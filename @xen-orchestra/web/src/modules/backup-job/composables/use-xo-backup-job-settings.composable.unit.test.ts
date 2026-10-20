@@ -52,8 +52,11 @@ describe('useXoBackupJobSettings', () => {
   })
 
   it('names the compression of the backup job', () => {
-    expect(mountSettings(createVmBackupJob({ compression: 'native' })).compression).toBe('Native')
-    expect(mountSettings(createVmBackupJob({ compression: 'zstd' })).compression).toBe('Zstd')
+    const native = mountSettings(createVmBackupJob({ compression: 'native' }))
+    const zstd = mountSettings(createVmBackupJob({ compression: 'zstd' }))
+
+    expect(native.compression).toBe(native.t('native'))
+    expect(zstd.compression).toBe(zstd.t('zstd'))
     expect(mountSettings(createVmBackupJob({ compression: '' })).compression).toBeUndefined()
   })
 

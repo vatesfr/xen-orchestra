@@ -1,19 +1,8 @@
-import { getAdminBackupLogRoute, getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
+import { getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 
 const jobError = { message: 'no VMs match this pattern' }
 const taskError = { message: 'Disk write error' }
-
-describe('getAdminBackupLogRoute', () => {
-  it('opens the backup log in the logs of the administration', () => {
-    const backupLog = createBackupLog()
-
-    expect(getAdminBackupLogRoute(backupLog)).toEqual({
-      name: '/admin/backup-and-replication/logs',
-      query: { id: backupLog.id },
-    })
-  })
-})
 
 describe('getBackupLogError', () => {
   it('has no error for a successful or pending run', () => {

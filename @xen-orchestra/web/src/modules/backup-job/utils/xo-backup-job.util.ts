@@ -3,9 +3,16 @@ import type {
   FrontXoVmBackupJob,
 } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
-import type { XoSr } from '@vates/types'
+import type { VM_POWER_STATE, XoSr } from '@vates/types'
 
 export const BACKUP_JOB_LAST_RUNS_COUNT = 3
+
+export type VmsSmartModeEnabled = {
+  $pool?: Record<string, unknown>
+  power_state?: VM_POWER_STATE
+  tags?: Record<string, unknown>
+  type: 'VM'
+}
 
 export function getBackupJobHealthCheckStatus(backupJob: FrontAnyXoBackupJob): Status | undefined {
   if (backupJob.type === 'metadataBackup') {
@@ -45,4 +52,14 @@ export function hasBackupJobSnapshotRetention(backupJob: FrontXoVmBackupJob): bo
   return Object.values(backupJob.settings).some(
     settings => typeof settings?.snapshotRetention === 'number' && settings.snapshotRetention > 0
   )
+}
+
+export function isBackupJobVmsSmartMode(
+  vmsConfig: FrontXoVmBackupJob['vms'] | undefined
+): vmsConfig is VmsSmartModeEnabled {
+  if (typeof vmsConfig !== 'object' || vmsConfig === null) {
+    return false
+  }
+
+  return !('id' in vmsConfig)
 }

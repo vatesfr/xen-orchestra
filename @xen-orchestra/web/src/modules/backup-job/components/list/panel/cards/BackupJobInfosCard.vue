@@ -4,7 +4,7 @@
       :id="backupJob.id"
       size="medium"
       :label="backupJob.name ?? t('untitled')"
-      :href="overviewHref"
+      :href="jobOverviewHref"
       icon="object:backup-job"
     />
     <div class="content">
@@ -95,7 +95,7 @@ const { getSrById } = useXoSrCollection()
 
 const { getSrStatusIcon } = useXoSrUtils()
 
-const overviewHref = computed(() => buildXo5Route('/backup/overview'))
+const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
 

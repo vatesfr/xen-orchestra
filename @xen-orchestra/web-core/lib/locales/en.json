@@ -896,6 +896,7 @@
   "n-vms": "1 VM | {n} VMs",
   "name": "Name",
   "name-required": "Name is required.",
+  "native": "Native",
   "nbd-concurrency": "NBD concurrency",
   "nbd:disabled": "Disabled",
   "nbd:insecure": "Insecure (not encrypted)",

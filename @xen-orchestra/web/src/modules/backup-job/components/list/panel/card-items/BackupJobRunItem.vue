@@ -2,7 +2,11 @@
   <VtsCardRowKeyValue>
     <template #key>{{ t('run') }}</template>
     <template #value>
-      <UiLink size="small" icon="object:backup-run" :to="backupRunRoute">
+      <UiLink
+        size="small"
+        icon="object:backup-run"
+        :to="{ name: '/admin/backup-and-replication/logs', query: { id: backupRun.id } }"
+      >
         {{ backupRun.id }}
       </UiLink>
     </template>
@@ -26,7 +30,7 @@
   <VtsCardRowKeyValue>
     <template #key>{{ t('schedule') }}</template>
     <template #value>
-      <UiLink v-if="schedule !== undefined" size="small" icon="object:backup-schedule" :href="scheduleHref">
+      <UiLink v-if="schedule !== undefined" size="small" icon="object:backup-schedule" :href="jobOverviewHref">
         {{ scheduleName }}
       </UiLink>
       <template v-else>{{ scheduleName }}</template>
@@ -46,7 +50,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { getAdminBackupLogRoute, getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
+import { getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
 import {
   type FrontXoSchedule,
   useXoScheduleCollection,
@@ -82,13 +86,11 @@ const scheduleName = computed(() => {
   return schedule.value.name || t('untitled')
 })
 
-const scheduleHref = computed(() => buildXo5Route('/backup/overview'))
+const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const formattedRunDate = computed(() =>
   d(backupRun.end ?? backupRun.start, { dateStyle: 'short', timeStyle: 'medium' })
 )
-
-const backupRunRoute = computed(() => getAdminBackupLogRoute(backupRun))
 
 const errorViewer = computed(() =>
   backupRun.status === 'skipped'

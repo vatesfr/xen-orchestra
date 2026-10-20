@@ -138,7 +138,7 @@ describe('values', () => {
       [t('vm-backup-failure-number-of-retries')]: '2',
       [t('report-when')]: t('report-when:always'),
       [t('concurrency')]: '3',
-      [t('compression')]: 'Zstd',
+      [t('compression')]: t('zstd'),
       [t('offline-backup')]: t('disabled'),
       [t('shorter-backup-reports')]: t('enabled'),
       [t('merge-backups-synchronously')]: t('enabled'),
