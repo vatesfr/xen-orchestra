@@ -50,6 +50,9 @@ function bindRestApi(user: Partial<XoUser>, userPrivileges: AnyPrivilege[] = [])
       getUser: async () => _user,
       getAclV2UserPrivileges: async () => userPrivileges,
     },
+    // none of the selectors below uses `[resolve]`, so the predicates never call
+    // the resolver: `undefined` is what the real method returns in that case
+    buildPrivilegeResolver: async () => undefined,
   } as unknown as RestApi)
 
   return _user
