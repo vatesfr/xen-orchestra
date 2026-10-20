@@ -22,6 +22,7 @@
 - [XO6/Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
 - [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
 - [RPU] Resuming a rolling pool update restores the settings the failed or interrupted attempt left disabled: HA, auto power on, backup schedules, WLB and the load balancer (PR [#10562](https://github.com/vatesfr/xen-orchestra/pull/10562))
+- [RPU] A rolling pool update that could not move some VMs back to their original host keeps its recovery record, so a resume tries again. VMs stopped or deleted during the update are left alone and reported in the task (PR [#10634](https://github.com/vatesfr/xen-orchestra/pull/10634))
 
 ### Bug fixes
 
