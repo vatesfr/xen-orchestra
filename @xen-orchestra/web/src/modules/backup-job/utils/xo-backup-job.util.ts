@@ -5,6 +5,8 @@ import type {
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { XoSr } from '@vates/types'
 
+export const BACKUP_JOB_LAST_RUNS_COUNT = 3
+
 export function getBackupJobHealthCheckStatus(backupJob: FrontAnyXoBackupJob): Status | undefined {
   if (backupJob.type === 'metadataBackup') {
     return undefined

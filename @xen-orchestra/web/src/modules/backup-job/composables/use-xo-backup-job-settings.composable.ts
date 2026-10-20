@@ -3,16 +3,14 @@ import { getMetadataBackupJobSettings } from '@/modules/backup-job/utils/get-met
 import { getMirrorBackupJobSettings } from '@/modules/backup-job/utils/get-mirror-backup-job-settings.util.ts'
 import { getVmBackupJobSettings } from '@/modules/backup-job/utils/get-vm-backup-job-settings.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { reactiveComputed } from '@vueuse/shared'
-import type humanFormat from 'human-format'
-import type { Info } from 'human-format'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
+export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
   const { locale, t } = useI18n()
   const { useGetProxyById } = useXoProxyCollection()
 
@@ -31,13 +29,11 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
     }
   })
 
-  const maxExportRate = computed<Info<humanFormat.Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined>(
-    () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, { maxDecimals: 2 }) : undefined)
+  const formattedMaxExportRate = computed(() =>
+    settings.maxExportRate ? formatSpeed(settings.maxExportRate) : undefined
   )
 
-  const formattedTimeout = computed(() =>
-    settings.timeout !== undefined ? formatTimeout(Number(settings.timeout), locale.value) : undefined
-  )
+  const formattedTimeout = computed(() => formatTimeout(settings.timeout, locale.value))
 
   const compression = computed(() => {
     switch (settings.compression) {
@@ -74,14 +70,14 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
 
     if (settings.checkpointSnapshot === false && settings.offlineSnapshot === true) {
       return t('offline')
-    } else {
-      return t('normal')
     }
+
+    return t('normal')
   })
 
   return {
     settings,
-    maxExportRate,
+    formattedMaxExportRate,
     formattedTimeout,
     compression,
     reportWhenValueTranslation,

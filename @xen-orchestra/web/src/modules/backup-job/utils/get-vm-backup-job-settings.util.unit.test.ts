@@ -1,12 +1,10 @@
 import { getVmBackupJobSettings } from '@/modules/backup-job/utils/get-vm-backup-job-settings.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
-import type { XoProxy } from '@vates/types'
 
 describe('getVmBackupJobSettings', () => {
   it('reads the settings of a VM backup job', () => {
     const backupJob = createVmBackupJob({
       compression: 'zstd',
-      proxy: 'proxy-123' as XoProxy['id'],
       settings: {
         '': {
           concurrency: 2,
@@ -28,7 +26,6 @@ describe('getVmBackupJobSettings', () => {
 
     expect(getVmBackupJobSettings(backupJob)).toEqual({
       compression: 'zstd',
-      proxy: 'proxy-123',
       concurrency: 2,
       maxExportRate: 1048576,
       nRetriesVmBackupFailures: 1,

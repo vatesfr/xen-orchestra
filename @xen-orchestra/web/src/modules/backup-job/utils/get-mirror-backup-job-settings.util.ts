@@ -18,7 +18,6 @@ export function getMirrorBackupJobSettings(job: FrontXoMirrorBackupJob): XoBacku
   } = job.settings['']
 
   return {
-    proxy: job.proxy,
     concurrency,
     maxExportRate,
     nRetriesVmBackupFailures,
