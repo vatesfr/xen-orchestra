@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import { EventEmitter } from 'events'
 import { strict as assert } from 'node:assert'
 
@@ -68,5 +68,169 @@ describe('xapi event listeners', () => {
     }
     assert.equal(controller._managedXapis.size, 0)
     assert.equal(controller._xapiCleaners.size, 0)
+  })
+})
+describe('SDN controller reliability', () => {
+  it('handles a stale preferred-center host gracefully', async () => {
+    const controller = createFakeController()
+
+    const hostUuid = 'stale-host-uuid'
+    const networkUuid = 'network-uuid-1'
+    const poolUuid = 'pool-uuid-1'
+    const xapi = createFakeXapi()
+
+    const staleHost = {
+      $ref: `host-ref-${hostUuid}`,
+      $id: `host-id-${hostUuid}`,
+      uuid: hostUuid,
+      name_label: 'stale-host',
+      PIFs: [],
+      enabled: true,
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+    }
+
+    const testNetwork = {
+      $ref: 'network-ref-1',
+      $id: 'network-id-1',
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id`, $xapi: xapi },
+      name_label: 'test-network',
+      other_config: {
+        'xo:sdn-controller:private-network-uuid': networkUuid,
+        'xo:sdn-controller:preferred-center': hostUuid,
+      },
+      $xapi: xapi,
+      update_other_config: mock.fn(() => Promise.resolve(testNetwork)),
+    }
+
+    const xapiObjects = {
+      indexes: {
+        type: {
+          SDN_controller: [{ protocol: 'pssl', address: '', port: 0 }],
+          network: [testNetwork],
+          host: [staleHost],
+        },
+      },
+    }
+
+    xapi.barrier = async (ref, obj) => obj ?? testNetwork
+
+    xapi.objects = new EventEmitter()
+    xapi.objects.indexes = xapiObjects.indexes
+
+    const getObject = mock.fn(() => {
+      const error = new Error(`Object not found: ${hostUuid}`)
+      error.code = 'object_not_found'
+      throw error
+    })
+    controller._xo = {
+      ...controller._xo,
+      getObject,
+      getXapiObject: () => undefined,
+    }
+
+    controller._getOrCreateOvsdbClient = mock.fn(() => undefined)
+    controller._getOrCreateOfChannel = mock.fn(() => undefined)
+
+    await assert.doesNotReject(async () => {
+      await controller._handleConnectedXapi(xapi)
+    }, /Object not found/)
+
+    assert.equal(getObject.mock.calls.length, 1)
+    assert.equal(getObject.mock.calls[0].arguments[0], hostUuid)
+    assert.equal(getObject.mock.calls[0].arguments[1], 'host')
+  })
+
+  it('handles PIF unplugged when center is undefined', async () => {
+    const controller = createFakeController()
+
+    const poolUuid = 'pool-uuid-1'
+    const hostId = 'host-1'
+    const networkId = 'network-1'
+    const xapi = createFakeXapi()
+    const xapiObjects = {
+      indexes: {
+        type: {
+          network: [
+            {
+              $ref: 'network-ref-1',
+              $id: networkId,
+              $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+              name_label: 'test-network',
+              other_config: {
+                'xo:sdn-controller:private-network-uuid': 'private-network-uuid',
+                'xo:sdn-controller:vni': '100',
+              },
+            },
+          ],
+          host: [
+            {
+              $ref: `host-ref-${hostId}`,
+              $id: hostId,
+              name_label: 'host-1',
+              PIFs: ['pif-ref-1'],
+              enabled: true,
+              $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+            },
+          ],
+        },
+      },
+    }
+
+    xapi.objects = new EventEmitter()
+    xapi.objects.indexes = xapiObjects.indexes
+    xapi.objectsFetched = Promise.resolve()
+
+    const getObject = mock.fn((id, type) => ({
+      $ref: 'network-ref-1',
+      $id: networkId,
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+      name_label: 'test-network',
+      other_config: {
+        'xo:sdn-controller:private-network-uuid': 'private-network-uuid',
+        'xo:sdn-controller:vni': '100',
+      },
+    }))
+
+    const getXapiObject = mock.fn(obj => {
+      if (obj === undefined) return undefined
+      return {
+        $ref: obj.$ref,
+        $id: obj.$id,
+      }
+    })
+
+    controller._xo = {
+      ...controller._xo,
+      getObject,
+      getXapiObject,
+    }
+
+    await controller._manageXapi(xapi)
+
+    controller.privateNetworks['private-network-uuid'] = {
+      uuid: 'private-network-uuid',
+      networks: {
+        [poolUuid]: {
+          $ref: 'network-ref-1',
+          $id: networkId,
+          $pool: { uuid: poolUuid },
+        },
+      },
+      center: undefined,
+    }
+
+    const pif = {
+      $ref: 'pif-ref-1',
+      $id: 'pif-id-1',
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+      $host: { $ref: `host-ref-${hostId}`, $id: hostId, $pool: { uuid: poolUuid } },
+      $network: { $ref: 'network-ref-1', $id: networkId, name_label: 'test-network' },
+      currently_attached: false,
+      device: 'eth0',
+    }
+
+    await assert.doesNotReject(async () => {
+      await controller._pifUpdated(pif)
+    })
   })
 })
