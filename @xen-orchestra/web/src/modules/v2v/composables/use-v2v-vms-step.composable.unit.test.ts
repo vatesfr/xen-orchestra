@@ -2,17 +2,16 @@ import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.compos
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { getV2vMigrationListStorageKey } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { ONE_GB } from '@/shared/constants.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
-import { createV2vWizardRouter, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
+import { V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import { mountOnV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
   V2V_DB_VM,
@@ -23,6 +22,7 @@ import {
 } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
+import { toValue } from 'vue'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -46,25 +46,13 @@ async function mountVmsStep({
   inventory = V2V_VMS_INVENTORY,
   list = LIST,
 }: { filter?: string; inventory?: XoV2vInventory | null; list?: V2vMigrationList | null } = {}) {
-  if (list !== null) {
-    seedV2vMigrationList(list)
-  }
-
   v2vVmRowsCollectionsMock.vms.value = [createV2vImportVm({ isWarm: true, sourceVmId: V2V_DB_VM.id })]
-  const router = await createV2vWizardRouter('vms', { pool: LIST.poolId, [V2V_VMS_FILTER_QUERY_KEY]: filter })
 
-  const result = mountComposableWithI18n(
-    () => {
-      if (inventory !== null) {
-        connectV2vSource({ inventory })
-      }
-
-      return useV2vVmsStep()
-    },
-    { router }
-  )
-
-  return { result, router }
+  return mountOnV2vVmsStep(() => useV2vVmsStep(), {
+    list,
+    inventory,
+    query: { pool: LIST.poolId, [V2V_VMS_FILTER_QUERY_KEY]: filter },
+  })
 }
 
 type VmsStep = Awaited<ReturnType<typeof mountVmsStep>>['result']
@@ -376,6 +364,19 @@ describe('tableState', () => {
     const { result } = await mountVmsStep({ filter: 'name:nothing' })
 
     expect(result.tableState?.type).toBe('no-result')
+  })
+})
+
+describe('selectedVmsContext', () => {
+  it('hands its list, rows, pool and source host to the selected VMs', async () => {
+    const { result } = await mountVmsStep()
+
+    const { migrationList, rows, poolId, sourceHost } = result.selectedVmsContext
+
+    expect(migrationList.list.value?.vms).toEqual(LIST.vms)
+    expect(getV2vVmNames(toValue(rows))).toEqual(getV2vVmNames(V2V_VMS_INVENTORY.vms))
+    expect(toValue(poolId)).toBe(LIST.poolId)
+    expect(toValue(sourceHost)).toBe(createV2vConnection().host)
   })
 })
 
