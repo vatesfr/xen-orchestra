@@ -1,6 +1,6 @@
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { fromEvent } from 'promise-toolbox'
+import { Disposable, fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -26,8 +26,8 @@ export default class MigrateVm {
     this._app = app
   }
 
-  #connectToEsxi(host, user, password, sslVerify) {
-    return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
+  async #connectToEsxi(host, user, password, sslVerify) {
+    const esxi = await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       try {
         await fromEvent(esxi, 'ready')
@@ -39,6 +39,7 @@ export default class MigrateVm {
       }
       return esxi
     })
+    return new Disposable(() => this.#closeEsxi(esxi, host), esxi)
   }
 
   // a session is not released when this process ends, it lingers on the host until it expires, and
@@ -47,22 +48,12 @@ export default class MigrateVm {
     return esxi.close().catch(error => warn('failed to close the ESXi session', { error, host }))
   }
 
-  async connectToEsxiAndList({ host, user, password, sslVerify }) {
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    try {
-      return await esxi.getAllVmMetadata()
-    } finally {
-      await this.#closeEsxi(esxi, host)
-    }
+  connectToEsxiAndList({ host, user, password, sslVerify }) {
+    return Disposable.use(this.#connectToEsxi(host, user, password, sslVerify), esxi => esxi.getAllVmMetadata())
   }
 
-  async getEsxiInventory({ host, user, password, sslVerify }) {
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    try {
-      return await esxi.getInventory()
-    } finally {
-      await this.#closeEsxi(esxi, host)
-    }
+  getEsxiInventory({ host, user, password, sslVerify }) {
+    return Disposable.use(this.#connectToEsxi(host, user, password, sslVerify), esxi => esxi.getInventory())
   }
 
   async #findBaseVM(xapi, metadata) {
@@ -105,7 +96,7 @@ export default class MigrateVm {
     return xapiVm
   }
 
-  async #createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi }) {
+  async #createVmAndNetworks($defer, { metadata, network: defaultNetwork, networksByNic, template, xapi }) {
     const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
@@ -148,7 +139,7 @@ export default class MigrateVm {
           const ref = await xapi.VIF_create(
             {
               device: vifDevices[i],
-              network: this._app.getXapiObject(networkIdsByNic?.[network.key] ?? networkId).$ref,
+              network: (networksByNic[network.key] ?? defaultNetwork).$ref,
               VM: vm.$ref,
             },
             {
@@ -263,9 +254,9 @@ export default class MigrateVm {
     }
   ) {
     const app = this._app
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    const { value: esxi, dispose } = await this.#connectToEsxi(host, user, password, sslVerify)
     // every transfer is awaited below, nothing is left reading from the host when this returns
-    $defer(() => this.#closeEsxi(esxi, host))
+    $defer(dispose)
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
@@ -278,7 +269,33 @@ export default class MigrateVm {
     assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
     const srsByNode = {}
     for (const [node, diskSrId] of Object.entries(srIdsByNode)) {
-      srsByNode[node] = app.getXapiObject(diskSrId, 'SR')
+      const diskSr = app.getXapiObject(diskSrId, 'SR')
+      // the VM is created on the pool of `sr`: a VDI on another pool could not be attached to it
+      if (diskSr.$pool.uuid !== sr.$pool.uuid) {
+        const error = new Error(`the SR ${diskSrId} of disk ${node} is not in the pool of the SR ${srId}`)
+        error.code = 'SR_NOT_IN_POOL'
+        Object.assign(error, { vmId, node, srId: diskSrId, poolId: sr.$pool.uuid })
+        throw error
+      }
+      srsByNode[node] = diskSr
+    }
+    const getPoolNetwork = (id, nic) => {
+      const network = app.getXapiObject(id, 'network')
+      // the VIFs are created on the VM, in the pool of `sr`
+      if (network.$pool.uuid !== sr.$pool.uuid) {
+        const error = new Error(
+          `the network ${id}${nic === undefined ? '' : ` of NIC ${nic}`} is not in the pool of the SR ${srId}`
+        )
+        error.code = 'NETWORK_NOT_IN_POOL'
+        Object.assign(error, { vmId, nic, networkId: id, poolId: sr.$pool.uuid })
+        throw error
+      }
+      return network
+    }
+    const network = getPoolNetwork(networkId)
+    const networksByNic = {}
+    for (const [nic, nicNetworkId] of Object.entries(networkIdsByNic)) {
+      networksByNic[nic] = getPoolNetwork(nicNetworkId, nic)
     }
 
     // the change tracking of the host gives the blocks to read: every block the disk uses for the
@@ -357,7 +374,7 @@ export default class MigrateVm {
       }
     }
     Task.abortSignal?.throwIfAborted()
-    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, network, networksByNic, template, xapi })
     Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
     await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, srsByNode, vmId })
@@ -381,7 +398,7 @@ export default class MigrateVm {
   }
 
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
-    const esxi = await this.#connectToEsxi(host, user, password, false)
+    const { value: esxi, dispose } = await this.#connectToEsxi(host, user, password, false)
     const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
@@ -431,7 +448,7 @@ export default class MigrateVm {
         warn('error while reading the disk from esxi', { diskId, error, vmId })
         stream.destroy(error)
       })
-      .finally(() => this.#closeEsxi(esxi, host))
+      .finally(dispose)
     return stream
   }
 

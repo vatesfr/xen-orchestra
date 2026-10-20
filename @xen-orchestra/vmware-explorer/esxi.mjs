@@ -100,6 +100,37 @@ function isRetryableError(error) {
  */
 
 /**
+ * The objects of the inventory, as {@link Esxi#search} returns them: only the properties read by
+ * {@link Esxi#getInventory}, any of them can be missing from the answer.
+ *
+ * @typedef {{ name?: string, datastore?: unknown, network?: unknown }} RawDatacenter
+ * @typedef {{ name?: string, parent?: unknown, host?: unknown }} RawCluster
+ * @typedef {{ name?: string, parent?: unknown }} RawHost
+ * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown } }} RawDatastore
+ * @typedef {{ name?: string }} RawNetwork
+ * @typedef {{ name?: string, apiType?: string, version?: string, build?: string, instanceUuid?: string }} RawAboutInfo
+ * @typedef {{ name?: string, key?: string, 'config.defaultPortConfig'?: import('./_inventory.mjs').RawPortConfig }} RawPortgroup
+ * @typedef {{
+ *   'config.name'?: string,
+ *   'config.annotation'?: string,
+ *   'config.instanceUuid'?: string,
+ *   'config.firmware'?: string,
+ *   'config.bootOptions.efiSecureBootEnabled'?: unknown,
+ *   'config.guestId'?: string,
+ *   'config.guestFullName'?: string,
+ *   'config.template'?: unknown,
+ *   'config.hardware.numCPU'?: unknown,
+ *   'config.hardware.memoryMB'?: unknown,
+ *   'config.hardware.device'?: import('./_inventory.mjs').RawDevices,
+ *   'runtime.powerState'?: string,
+ *   'runtime.host'?: unknown,
+ *   datastore?: unknown,
+ *   network?: unknown,
+ *   snapshot?: { currentSnapshot?: unknown, rootSnapshotList?: import('./_inventory.mjs').RawSnapshotTree | import('./_inventory.mjs').RawSnapshotTree[] },
+ * }} RawVm
+ */
+
+/**
  * Every snapshot of a tree, walked down.
  *
  * The snapshots of a VM are a tree, and a `changeId` can be held by any of them.
@@ -611,6 +642,7 @@ export default class Esxi extends EventEmitter {
    */
   async getInventory() {
     await this.#connected
+    /** @type {[Record<string, RawDatacenter>, Record<string, RawCluster>, Record<string, RawHost>, Record<string, RawDatastore>, Record<string, RawNetwork>, Record<string, RawPortgroup>, Record<string, RawVm>]} */
     const [datacenters, clusters, hosts, datastores, networks, portgroups, vms] = await Promise.all([
       this.search('Datacenter', ['name', 'datastore', 'network']),
       this.search('ClusterComputeResource', ['name', 'parent', 'host']),
@@ -639,13 +671,21 @@ export default class Esxi extends EventEmitter {
       ]),
     ])
 
+    /** @type {Record<string, string>} */
     const portgroupsByKey = {}
     for (const [id, { key }] of Object.entries(portgroups)) {
+      // `key` comes from the SOAP response: same prototype-pollution guard as in `search`
+      if (UNSAFE_KEYS.has(key)) {
+        continue
+      }
       portgroupsByKey[key] = id
     }
 
     // AboutInfo: `instanceUuid` is only set by a vCenter, `apiType` is `VirtualCenter` or `HostAgent`
-    const about = this.#vimClient.serviceContent?.about ?? {}
+    /** @type {{ serviceContent?: { about?: RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    /** @type {RawAboutInfo} */
+    const about = vimClient.serviceContent?.about ?? {}
 
     return {
       product: about.name,

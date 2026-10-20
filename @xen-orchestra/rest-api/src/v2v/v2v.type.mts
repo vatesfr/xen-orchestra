@@ -73,9 +73,11 @@ export type V2vStartBody = {
   /** stop at the first failed VM instead of importing the others */
   stopOnError?: boolean
   /**
-   * number of VMs imported in parallel
+   * number of VMs imported in parallel, each one opens its own ESXi session and a host only
+   * accepts a limited number of them
    * @isInt
    * @minimum 1
+   * @maximum 8
    */
   concurrency?: number
 }
