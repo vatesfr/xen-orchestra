@@ -47,8 +47,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build",
-    "test": "cd dist && node --test"
+    "prepublishOnly": "yarn run build"
   },
   "private": true
 }
