@@ -1,5 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import BackupRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupRunItem.vue'
+import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import type {
   FrontXoSchedule,
   useXoScheduleCollection,
@@ -43,7 +43,7 @@ function findScheduleRow(wrapper: ReturnType<typeof mountRun>) {
 }
 
 function mountRun(backupRun: FrontXoBackupLog) {
-  return mount(BackupRunItem, {
+  return mount(BackupJobRunItem, {
     props: { backupRun },
     global: createGlobalTestConfig(),
   })

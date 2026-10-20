@@ -1,13 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import type { XoTask } from '@vates/types'
-import type { RouteLocationAsRelative } from 'vue-router'
-
-export function getAdminBackupLogRoute(backupLog: FrontXoBackupLog): RouteLocationAsRelative {
-  return {
-    name: '/admin/backup-and-replication/logs',
-    query: { id: backupLog.id },
-  }
-}
 
 function findTaskErrorRecursively(tasks: XoTask[]): XoTask['result'] {
   for (const task of tasks) {

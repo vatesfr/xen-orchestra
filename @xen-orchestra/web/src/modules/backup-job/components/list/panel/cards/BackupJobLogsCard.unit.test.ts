@@ -1,5 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import BackupRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupRunItem.vue'
+import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
 import type { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -38,7 +38,7 @@ it('always titles the last 3 runs, telling which ones have not run', () => {
     t('last-run-number', { n: 2 }),
     t('last-run-number', { n: 3 }),
   ])
-  expect(wrapper.findAllComponents(BackupRunItem).map(run => run.props('backupRun').id)).toEqual(['backup-log-1'])
+  expect(wrapper.findAllComponents(BackupJobRunItem).map(run => run.props('backupRun').id)).toEqual(['backup-log-1'])
   expect(wrapper.findAll('.no-run').map(noRun => noRun.text())).toEqual([t('no-run'), t('no-run')])
 })
 
@@ -49,7 +49,7 @@ it('shows each of the last 3 runs, from the most recent', () => {
     createBackupLog({ id: 'backup-log-3' as FrontXoBackupLog['id'] }),
   ])
 
-  expect(wrapper.findAllComponents(BackupRunItem).map(run => run.props('backupRun').id)).toEqual([
+  expect(wrapper.findAllComponents(BackupJobRunItem).map(run => run.props('backupRun').id)).toEqual([
     'backup-log-1',
     'backup-log-2',
     'backup-log-3',

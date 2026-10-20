@@ -1,11 +1,9 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { getMetadataBackupJobSettings } from '@/modules/backup-job/utils/get-metadata-backup-job-settings.util.ts'
-import { getMirrorBackupJobSettings } from '@/modules/backup-job/utils/get-mirror-backup-job-settings.util.ts'
-import { getVmBackupJobSettings } from '@/modules/backup-job/utils/get-vm-backup-job-settings.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import type { XoVmBackupJob, XoVmBackupJobGeneralSettings } from '@vates/types'
 import { reactiveComputed } from '@vueuse/shared'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,18 +14,10 @@ export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
 
   const backupJob = toComputed(rawBackupJob)
 
-  const settings = reactiveComputed(() => {
-    switch (backupJob.value.type) {
-      case 'backup':
-        return getVmBackupJobSettings(backupJob.value)
-      case 'metadataBackup':
-        return getMetadataBackupJobSettings(backupJob.value)
-      case 'mirrorBackup':
-        return getMirrorBackupJobSettings(backupJob.value)
-      default:
-        throw new Error(`Unsupported backup job type: ${(backupJob.value as FrontAnyXoBackupJob).type}`)
-    }
-  })
+  const settings = reactiveComputed<XoVmBackupJobGeneralSettings & Pick<XoVmBackupJob, 'compression'>>(() => ({
+    ...backupJob.value.settings[''],
+    compression: backupJob.value.type === 'backup' ? backupJob.value.compression : undefined,
+  }))
 
   const formattedMaxExportRate = computed(() =>
     settings.maxExportRate ? formatSpeed(settings.maxExportRate) : undefined
@@ -38,9 +28,9 @@ export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
   const compression = computed(() => {
     switch (settings.compression) {
       case 'native':
-        return 'Native'
+        return t('native')
       case 'zstd':
-        return 'Zstd'
+        return t('zstd')
       default:
         return undefined
     }

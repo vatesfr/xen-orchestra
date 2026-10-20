@@ -1,20 +1,13 @@
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { isBackupJobVmsSmartMode } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { vmContainsNoBakTag } from '@/modules/vm/utils/xo-vm.util.ts'
 import { destructSmartPattern } from '@/shared/utils/pattern.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { VM_POWER_STATE } from '@vates/types'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import * as ValueMatcher from 'value-matcher'
 import { computed, type MaybeRefOrGetter } from 'vue'
-
-type VmsSmartModeEnabled = {
-  $pool?: Record<string, unknown>
-  power_state?: VM_POWER_STATE
-  tags?: Record<string, unknown>
-  type: 'VM'
-}
 
 export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<FrontXoVmBackupJob['vms']>) {
   const { getPoolsByIds } = useXoPoolCollection()
@@ -22,18 +15,10 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
 
   const backedUpVmsConfig = toComputed(rawBackedUpVmsConfig)
 
-  function isSmartModeConfig(value: FrontXoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
-    if (typeof value !== 'object' || value === null) {
-      return false
-    }
-
-    return !('id' in value)
-  }
-
-  const isSmartModeEnabled = computed(() => isSmartModeConfig(backedUpVmsConfig.value))
+  const isSmartModeEnabled = computed(() => isBackupJobVmsSmartMode(backedUpVmsConfig.value))
 
   const backedUpVms = computed(() => {
-    if (isSmartModeConfig(backedUpVmsConfig.value)) {
+    if (isBackupJobVmsSmartMode(backedUpVmsConfig.value)) {
       const predicate = ValueMatcher.createPredicate(backedUpVmsConfig.value)
 
       return vms.value.filter(vm => predicate(vm) && !vmContainsNoBakTag(vm))
@@ -45,7 +30,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   const backedUpVmsCount = computed(() => backedUpVms.value.length)
 
   const smartModePools = computed(() => {
-    if (!isSmartModeConfig(backedUpVmsConfig.value) || backedUpVmsConfig.value.$pool === undefined) {
+    if (!isBackupJobVmsSmartMode(backedUpVmsConfig.value) || backedUpVmsConfig.value.$pool === undefined) {
       return undefined
     }
 
@@ -62,7 +47,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   })
 
   const smartModeTags = computed(() => {
-    if (!isSmartModeConfig(backedUpVmsConfig.value) || backedUpVmsConfig.value.tags === undefined) {
+    if (!isBackupJobVmsSmartMode(backedUpVmsConfig.value) || backedUpVmsConfig.value.tags === undefined) {
       return undefined
     }
 
@@ -75,7 +60,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   })
 
   const smartModePowerState = computed(() =>
-    isSmartModeConfig(backedUpVmsConfig.value) ? backedUpVmsConfig.value.power_state : undefined
+    isBackupJobVmsSmartMode(backedUpVmsConfig.value) ? backedUpVmsConfig.value.power_state : undefined
   )
 
   return {
