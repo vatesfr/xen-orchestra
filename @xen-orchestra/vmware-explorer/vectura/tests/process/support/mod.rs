@@ -3,7 +3,8 @@
 //! The management port answers the five vSphere API calls with canned
 //! replies, one TLS connection per call; the data port runs the greeting,
 //! both TLS sessions, the ticket dialogue, the handshake and the record
-//! protocol. Both record what they see, in order and before they reply, so
+//! protocol, or the legacy messages after a greeting without SHA-256
+//! support. Both record what they see, in order and before they reply, so
 //! once the client has exited the log is complete. The wire constants here
 //! are written from the public documents, not taken from the crate, so the
 //! crate is not its own oracle.
@@ -92,6 +93,18 @@ const TAG_ACK_WORD_16: u32 = 1;
 /// A TLS record starts with its content type, version and length.
 const TLS_RECORD_HEAD: usize = 5;
 
+/// Legacy message types: open, opened, read, close, end, and the error a refusal is.
+pub const LEGACY_OPEN: u32 = 21;
+const LEGACY_OPENED: u32 = 22;
+const LEGACY_READ: u32 = 46;
+pub const LEGACY_CLOSE: u32 = 24;
+pub const LEGACY_END: u32 = 4;
+const LEGACY_ERROR: u32 = 20;
+/// The code of a legacy read ending past the disk; the session stays usable.
+const OUT_OF_BOUNDS: u32 = 17;
+/// The block a legacy read reply's data follows: 8 bytes, the position, the length twice.
+const LEGACY_BLOCK_LEN: usize = 24;
+
 /// The magic word every record header starts with, little-endian on the wire.
 const RECORD_MAGIC: u32 = 0xA100_DA7A;
 /// An open reply is 60 bytes: status, handle, capacity, sector size, geometry.
@@ -155,7 +168,8 @@ pub struct Scenario {
     pub login: Result<(), &'static str>,
     /// Whose SHA-1 thumbprint the ticket carries.
     pub ticket_thumbprint: Thumbprint,
-    /// Whose SHA-256 thumbprint the `THUMBPRINT_SHA2` reply announces.
+    /// Whose SHA-256 thumbprint the `THUMBPRINT_SHA2` reply announces, or
+    /// whose SHA-1 thumbprint the legacy `THUMBPRINT` reply does.
     pub announced_thumbprint: Thumbprint,
     /// The reply line to `PROXY`, instead of the line granting what was asked.
     pub proxy_reply: Option<&'static str>,
@@ -164,6 +178,8 @@ pub struct Scenario {
     /// The status the open reply carries; zero is success.
     pub open_status: u64,
     /// An error record sent before the open reply: its code and text.
+    ///
+    /// A legacy host sends an error message instead, and closes the connection.
     pub open_error: Option<(u64, &'static str)>,
     /// The capacity in bytes the open reply carries.
     pub capacity: u64,
@@ -437,6 +453,16 @@ impl Mock {
             .lock()
             .expect("the log is not poisoned")
             .push(event);
+    }
+
+    /// Whether the greeting leaves out SHA-256 support, as an ESXi 6.x host's does.
+    fn legacy(&self) -> bool {
+        let DataPort::Greeting(greeting) = self.scenario.data else {
+            return false;
+        };
+        !greeting
+            .windows(b"SHA256 supported".len())
+            .any(|name| name == b"SHA256 supported")
     }
 
     /// The thumbprint `whose` names, with `algorithm`.
@@ -820,7 +846,11 @@ fn serve_data(mut stream: TcpStream, mock: &Mock) -> Observed {
         observed.second_handshake = true;
         Plane::Tls(&mut second, &mut stream)
     };
-    if shake(&mut plane, mock).is_some() {
+    if mock.legacy() {
+        if legacy_shake(&mut plane, mock).is_some() {
+            legacy_messages(&mut plane, mock);
+        }
+    } else if shake(&mut plane, mock).is_some() {
         records(&mut plane, &socket, mock, &mut observed);
     }
     plane.close();
@@ -843,7 +873,16 @@ fn dialogue<S: Read + Write>(tls: &mut S, mock: &Mock) -> (usize, Option<String>
         let reply = if text == "BANNER" {
             mock.record(Event::Banner);
             "220 VMware Authentication Daemon Version 1.10".to_owned()
-        } else if text.starts_with("THUMBPRINT_SHA2 ") {
+        } else if mock.legacy() && text.starts_with("THUMBPRINT ") {
+            mock.record(Event::Thumbprint);
+            format!(
+                "200 {}",
+                mock.thumbprint(
+                    &SHA1_FOR_LEGACY_USE_ONLY,
+                    mock.scenario.announced_thumbprint
+                )
+            )
+        } else if !mock.legacy() && text.starts_with("THUMBPRINT_SHA2 ") {
             mock.record(Event::Thumbprint);
             format!(
                 "200 {}",
@@ -1007,19 +1046,112 @@ fn shake(plane: &mut Plane<'_>, mock: &Mock) -> Option<()> {
     plane.send(&message(MSG_READY, (0, 0)))
 }
 
+/// Runs a legacy host's handshake: the tag and its end, acknowledged at once.
+fn legacy_shake(plane: &mut Plane<'_>, mock: &Mock) -> Option<()> {
+    expect(plane, mock, MSG_TAG)?;
+    expect(plane, mock, MSG_TAG_END)?;
+    plane.send(&message(MSG_TAG_ACK, (0, 0)))
+}
+
+/// The cylinders the scenario's capacity spans whole, the way a geometry understates it.
+fn cylinders(mock: &Mock) -> u32 {
+    let cylinder = u64::from(HEADS) * u64::from(SECTORS_PER_TRACK) * u64::from(SECTOR_SIZE);
+    u32::try_from(mock.scenario.capacity / cylinder).expect("the geometry fits a word")
+}
+
+/// A legacy error message with its text, NUL ended, as the trailer.
+fn legacy_error(code: u32, text: &str) -> Vec<u8> {
+    let text_len = u32::try_from(text.len() + 1).expect("the text fits a word");
+    let mut bytes = message(LEGACY_ERROR, (1, code)).to_vec();
+    bytes[12..16].copy_from_slice(&text_len.to_le_bytes());
+    bytes.extend_from_slice(text.as_bytes());
+    bytes.push(0);
+    bytes
+}
+
+/// Answers legacy messages until the end message.
+///
+/// An open the scenario refuses gets an error message, then the host
+/// closes the connection, as an ESXi 6.0 host does; a read ending past the
+/// capacity gets a code-17 error message and the session goes on. Every
+/// read is answered before the next message is read: one read in flight.
+fn legacy_messages<S: Read + Write>(plane: &mut S, mock: &Mock) -> Option<()> {
+    loop {
+        let mut request = [0_u8; MESSAGE_LEN];
+        plane.read_exact(&mut request).ok()?;
+        let kind = word(&request, 0);
+        match kind {
+            LEGACY_OPEN => {
+                let path_len = usize::try_from(word(&request, 4)).expect("a path fits memory");
+                let mut path = vec![0_u8; path_len];
+                plane.read_exact(&mut path).ok()?;
+                let path = path.strip_suffix(&[0])?;
+                mock.record(Event::Record {
+                    opcode: kind,
+                    sequence: 0,
+                    path: Some(String::from_utf8_lossy(path).into_owned()),
+                });
+                if let Some((code, text)) = mock.scenario.open_error {
+                    let code = u32::try_from(code).expect("a legacy code fits a word");
+                    send(plane, &legacy_error(code, text))?;
+                    return None;
+                }
+                let mut opened = message(LEGACY_OPENED, (0, 2));
+                opened[12..16].copy_from_slice(&SECTOR_SIZE.to_le_bytes());
+                opened[16..20].copy_from_slice(&cylinders(mock).to_le_bytes());
+                opened[20..24].copy_from_slice(&HEADS.to_le_bytes());
+                opened[24..28].copy_from_slice(&SECTORS_PER_TRACK.to_le_bytes());
+                send(plane, &opened)?;
+            }
+            LEGACY_READ => {
+                let (offset, length) = (long(&request, 12), word(&request, 20));
+                mock.record(Event::Read {
+                    sequence: 0,
+                    offset,
+                    length,
+                    compression: 0,
+                });
+                mock.record(Event::Answered { sequence: 0 });
+                if offset + u64::from(length) > mock.scenario.capacity {
+                    send(plane, &legacy_error(OUT_OF_BOUNDS, "out of bounds"))?;
+                    continue;
+                }
+                let following =
+                    u32::try_from(LEGACY_BLOCK_LEN).expect("the block fits a word") + length;
+                let mut reply = message(LEGACY_READ, (0, following)).to_vec();
+                reply[16..20].copy_from_slice(&1_u32.to_le_bytes());
+                reply.extend_from_slice(&[0_u8; 8]);
+                reply.extend_from_slice(&offset.to_le_bytes());
+                reply.extend_from_slice(&length.to_le_bytes());
+                reply.extend_from_slice(&length.to_le_bytes());
+                reply.extend_from_slice(&disk_bytes(offset, u64::from(length)));
+                send(plane, &reply)?;
+            }
+            LEGACY_CLOSE | LEGACY_END => {
+                mock.record(Event::Record {
+                    opcode: kind,
+                    sequence: 0,
+                    path: None,
+                });
+                send(plane, &message(kind, (0, 0)))?;
+                if kind == LEGACY_END {
+                    return Some(());
+                }
+            }
+            _ => return None,
+        }
+    }
+}
+
 /// The 60-byte open reply the scenario calls for.
 fn open_reply(mock: &Mock) -> Vec<u8> {
     let capacity = mock.scenario.capacity;
-    let cylinders = u32::try_from(
-        capacity / (u64::from(HEADS) * u64::from(SECTORS_PER_TRACK) * u64::from(SECTOR_SIZE)),
-    )
-    .expect("the geometry fits a word");
     let mut bytes = vec![0_u8; OPEN_REPLY_LEN];
     bytes[..8].copy_from_slice(&mock.scenario.open_status.to_le_bytes());
     bytes[8..16].copy_from_slice(&HANDLE.to_le_bytes());
     bytes[28..36].copy_from_slice(&capacity.to_le_bytes());
     bytes[36..40].copy_from_slice(&SECTOR_SIZE.to_le_bytes());
-    bytes[40..44].copy_from_slice(&cylinders.to_le_bytes());
+    bytes[40..44].copy_from_slice(&cylinders(mock).to_le_bytes());
     bytes[44..48].copy_from_slice(&HEADS.to_le_bytes());
     bytes[48..52].copy_from_slice(&SECTORS_PER_TRACK.to_le_bytes());
     bytes

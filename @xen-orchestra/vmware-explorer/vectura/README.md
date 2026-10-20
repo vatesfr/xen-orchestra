@@ -13,7 +13,8 @@ binary with two commands:
 
 Vectura targets ESXi 7.x and 8.x hosts, reached directly or through a
 vCenter; with a vCenter, the disk is read from the ESXi host its ticket
-names. An ESXi 6.x host is refused at the data port's greeting. Certificate
+names. An ESXi 6.x host is read too, one host read at a time and without
+the data port's SHA-256 confirmation, which it cannot give. Certificate
 verification can be pinned or pointed at a CA bundle but never skipped, and
 the password is read from `VECTURA_PASSWORD` only.
 
