@@ -1,10 +1,8 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { ReportWhen } from '@/modules/backup-job/types/xo-backup-job-settings.type.ts'
 import { getMetadataBackupJobSettings } from '@/modules/backup-job/utils/get-metadata-backup-job-settings.util.ts'
 import { getMirrorBackupJobSettings } from '@/modules/backup-job/utils/get-mirror-backup-job-settings.util.ts'
 import { getVmBackupJobSettings } from '@/modules/backup-job/utils/get-vm-backup-job-settings.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { useMapper } from '@core/packages/mapper'
 import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -33,12 +31,6 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
     }
   })
 
-  const nbdConcurrency = computed(() => (settings.preferNbd ? (settings.nbdConcurrency ?? 1) : undefined))
-
-  const cbtDestroySnapshotData = computed(() =>
-    !!settings.preferNbd && settings.cbtDestroySnapshotData !== undefined ? settings.cbtDestroySnapshotData : undefined
-  )
-
   const maxExportRate = computed<Info<humanFormat.Scale<'B/s' | 'KiB/s' | 'MiB/s' | 'GiB/s' | 'TiB/s'>> | undefined>(
     () => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate, { maxDecimals: 2 }) : undefined)
   )
@@ -60,16 +52,20 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
 
   const proxy = useGetProxyById(() => backupJob.value.proxy)
 
-  const reportWhenValueTranslation = useMapper<ReportWhen, string>(
-    () => settings.reportWhen as ReportWhen | undefined,
-    {
-      always: t('report-when:always'),
-      failure: t('report-when:skipped-and-failure'),
-      error: t('report-when:error'),
-      never: t('report-when:never'),
-    },
-    'never'
-  )
+  const reportWhenValueTranslation = computed(() => {
+    switch (settings.reportWhen) {
+      case 'always':
+        return t('report-when:always')
+      case 'failure':
+        return t('report-when:skipped-and-failure')
+      case 'error':
+        return t('report-when:error')
+      case 'never':
+        return t('report-when:never')
+      default:
+        return undefined
+    }
+  })
 
   const snapshotModeTranslation = computed(() => {
     if (settings.checkpointSnapshot === true && settings.offlineSnapshot === false) {
@@ -86,8 +82,6 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
   return {
     settings,
     maxExportRate,
-    nbdConcurrency,
-    cbtDestroySnapshotData,
     formattedTimeout,
     compression,
     reportWhenValueTranslation,

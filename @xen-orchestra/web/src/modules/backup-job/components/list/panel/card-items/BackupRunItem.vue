@@ -38,19 +38,19 @@
   <UiLogEntryViewer
     v-if="backupRunError !== undefined"
     :content="backupRunError"
-    :label="backupRun.status === 'skipped' ? t('api-warning-details') : t('api-error-details')"
+    :label="errorViewer.label"
     size="small"
-    :accent="backupRun.status === 'skipped' ? 'warning' : 'danger'"
+    :accent="errorViewer.accent"
   />
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import { getAdminBackupLogRoute, getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
 import {
   type FrontXoSchedule,
   useXoScheduleCollection,
-} from '@/modules/backup-job/remote-resources/use-xo-schedule-collection.ts'
-import { getBackupLogError, getBackupLogRunRoute } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
+} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -88,7 +88,13 @@ const formattedRunDate = computed(() =>
   d(backupRun.end ?? backupRun.start, { dateStyle: 'short', timeStyle: 'medium' })
 )
 
-const backupRunRoute = computed(() => getBackupLogRunRoute(backupRun))
+const backupRunRoute = computed(() => getAdminBackupLogRoute(backupRun))
+
+const errorViewer = computed(() =>
+  backupRun.status === 'skipped'
+    ? { label: t('api-warning-details'), accent: 'warning' as const }
+    : { label: t('api-error-details'), accent: 'danger' as const }
+)
 
 const backupRunError = computed(() => {
   const error = getBackupLogError(backupRun)

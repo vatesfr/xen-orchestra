@@ -8,21 +8,15 @@
       icon="object:backup-job"
     />
     <div class="content">
-      <template v-if="typeLabels.length > 0">
-        <VtsCardRowKeyValue v-for="(typeLabel, index) in typeLabels" :key="typeLabel">
-          <template #key>
-            <template v-if="index === 0">{{ t('type') }}</template>
-          </template>
-          <template #value>{{ typeLabel }}</template>
-          <template #addons>
-            <VtsCopyButton :value="typeLabel" />
-            <VtsCopyAllMenuItem v-if="index === 0 && typeLabels.length > 1" :values="typeLabels" />
-          </template>
-        </VtsCardRowKeyValue>
-      </template>
-      <VtsCardRowKeyValue v-else>
-        <template #key>{{ t('type') }}</template>
-        <template #value />
+      <VtsCardRowKeyValue v-for="(typeLabel, index) in typeLabels" :key="typeLabel">
+        <template #key>
+          <template v-if="index === 0">{{ t('type') }}</template>
+        </template>
+        <template #value>{{ typeLabel }}</template>
+        <template #addons>
+          <VtsCopyButton :value="typeLabel" />
+          <VtsCopyAllMenuItem v-if="index === 0 && typeLabels.length > 1" :values="typeLabels" />
+        </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('mode') }}</template>

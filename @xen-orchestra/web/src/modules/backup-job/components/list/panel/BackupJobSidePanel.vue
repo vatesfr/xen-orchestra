@@ -8,7 +8,7 @@
       <BackupJobInfosCard :backup-job />
       <BackupJobSchedulesCard v-if="schedules.length > 0" :schedules />
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
-      <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
+      <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup'" :backed-up-vms="backupJob.vms" />
       <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
       <BackupJobSettingsCard :backup-job />
     </template>
@@ -24,11 +24,11 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { useXoScheduleCollection } from '@/modules/backup-job/remote-resources/use-xo-schedule-collection.ts'
 import {
   useXoBackupRepositoryCollection,
   type FrontXoBackupRepository,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
