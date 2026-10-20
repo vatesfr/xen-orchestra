@@ -45,7 +45,6 @@ const mirrorBackupJobFields = [
   'proxy',
 ] as const satisfies readonly (keyof XoMirrorBackupJob)[]
 
-// Ensure fields are unique
 export const anyBackupJobFields = Array.from(
   new Set([...vmBackupJobFields, ...metadataBackupJobFields, ...mirrorBackupJobFields])
 )
