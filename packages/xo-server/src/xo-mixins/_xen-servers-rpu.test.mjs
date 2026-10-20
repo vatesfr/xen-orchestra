@@ -20,12 +20,13 @@ function createXenServers({
   loadBalancerLoaded = false,
   recordRefused = false,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
-  strandedVmHostIds = [],
   updateRefused = false,
+  vmConflicts = [],
   withSchedule = false,
   wlbEnabled = false,
 } = {}) {
   const calls = []
+  const failErrors = []
   const taskNames = []
   const taskProperties = []
   const makeRecorder = (attempt = 1) => ({
@@ -46,14 +47,15 @@ function createXenServers({
     async markSucceeded() {
       calls.push(['recorder.markSucceeded'])
     },
-    async fail() {
+    async fail(error) {
       calls.push(['recorder.fail'])
+      failErrors.push(error)
     },
     async dropIfNothingToRecover() {
       calls.push(['recorder.dropIfNothingToRecover'])
     },
-    hostsWithStrandedVms() {
-      return strandedVmHostIds
+    getVmConflicts() {
+      return vmConflicts
     },
   })
   const app = {
@@ -144,7 +146,7 @@ function createXenServers({
       }
     },
   })
-  return { calls, taskNames, taskProperties, xenServers }
+  return { calls, failErrors, taskNames, taskProperties, xenServers }
 }
 
 describe('XenServers.rollingPoolUpdate', function () {
@@ -278,10 +280,29 @@ describe('XenServers.rollingPoolUpdate', function () {
     assert.equal(calls.at(-1)[0], 'recorder.delete')
   })
   it('keeps the record as failed when some VMs could not be migrated back, so that a resume retries them', async function () {
-    const { calls, xenServers } = createXenServers({ strandedVmHostIds: ['host-B'] })
+    const { calls, failErrors, xenServers } = createXenServers({
+      vmConflicts: [
+        { vmId: 'vm-1', vmName: 'vm 1', hostId: 'host-B', reason: 'migration-failed', message: 'OPERATION_BLOCKED' },
+        { vmId: 'vm-2', vmName: 'vm 2', hostId: 'host-A', reason: 'stopped' },
+      ],
+    })
     await xenServers.rollingPoolUpdate(pool)
     assert.equal(calls.at(-1)[0], 'recorder.fail')
+    // named after the VMs, not after their host
+    assert.match(failErrors.at(-1).message, /vm 1/)
+    assert.doesNotMatch(failErrors.at(-1).message, /vm 2/)
     assert.ok(!calls.some(([name]) => name === 'recorder.delete' || name === 'recorder.dropIfNothingToRecover'))
+  })
+  it('keeps the record as succeeded when VMs were stopped or deleted during the run, so that Finalize closes it', async function () {
+    const { calls, xenServers } = createXenServers({
+      vmConflicts: [
+        { vmId: 'vm-2', vmName: 'vm 2', hostId: 'host-A', reason: 'stopped' },
+        { vmId: 'vm-3', hostId: 'host-A', reason: 'deleted' },
+      ],
+    })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.equal(calls.at(-1)[0], 'recorder.markSucceeded')
+    assert.ok(!calls.some(([name]) => name === 'recorder.delete' || name === 'recorder.fail'))
   })
 })
 

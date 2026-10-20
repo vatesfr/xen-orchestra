@@ -1182,12 +1182,16 @@ export default class XenServers {
     // must not fail an RPU that succeeded: log it. A resume that found
     // settings left changed by an interrupted attempt keeps the record, so
     // Finalize lists them. VMs left away from their host keep it too, failed:
-    // a resume migrates them back
+    // a resume migrates them back. VMs stopped or deleted during the run keep
+    // it succeeded: the operator reviews them, then finalizes
     try {
-      const strandedVmHostIds = recorder.hostsWithStrandedVms()
-      if (strandedVmHostIds.length > 0) {
-        await recorder.fail(new Error(`could not migrate all the VMs back to hosts ${strandedVmHostIds.join(', ')}`))
-      } else if (leftoverSettings.length > 0) {
+      const vmConflicts = recorder.getVmConflicts()
+      const strandedVms = vmConflicts.filter(_ => _.reason === 'migration-failed')
+      if (strandedVms.length > 0) {
+        await recorder.fail(
+          new Error(`could not migrate VMs back to their host: ${strandedVms.map(_ => _.vmName ?? _.vmId).join(', ')}`)
+        )
+      } else if (vmConflicts.length > 0 || leftoverSettings.length > 0) {
         await recorder.markSucceeded()
       } else {
         await recorder.delete()
