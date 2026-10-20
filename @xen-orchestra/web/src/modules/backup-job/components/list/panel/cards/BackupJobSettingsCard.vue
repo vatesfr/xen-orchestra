@@ -42,19 +42,35 @@
           <VtsCopyButton :value="reportWhenValueTranslation" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <template v-if="reportRecipients.length > 0">
+        <VtsCardRowKeyValue v-for="(recipient, index) in visibleReportRecipients" :key="recipient" align-top>
+          <template #key>
+            <template v-if="index === 0">{{ t('report-recipients') }}</template>
+          </template>
+          <template #value>{{ recipient }}</template>
+          <template #addons>
+            <VtsCopyButton :value="recipient" />
+            <VtsCopyAllMenuItem v-if="index === 0 && reportRecipients.length > 1" :values="reportRecipients" />
+          </template>
+        </VtsCardRowKeyValue>
+        <UiButton
+          v-if="hiddenReportRecipientsCount > 0"
+          class="see-more"
+          size="small"
+          accent="brand"
+          variant="tertiary"
+          @click="toggleReportRecipients()"
+        >
+          {{
+            areReportRecipientsExpanded
+              ? t('action:see-less')
+              : t('action:see-n-more', { n: hiddenReportRecipientsCount })
+          }}
+        </UiButton>
+      </template>
+      <VtsCardRowKeyValue v-else>
         <template #key>{{ t('report-recipients') }}</template>
-        <template #value>
-          <UiCollapsibleList v-if="reportRecipients.length > 0" tag="ul" :total-items="reportRecipients.length">
-            <li v-for="recipient in reportRecipients" :key="recipient" class="recipient">
-              <span class="text-ellipsis">{{ recipient }}</span>
-              <VtsCopyButton :value="recipient" />
-            </li>
-          </UiCollapsibleList>
-        </template>
-        <template v-if="reportRecipients.length > 1" #addons>
-          <VtsCopyAllMenuItem :values="reportRecipients" />
-        </template>
+        <template #value />
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="hasVmBackupSettings">
         <template #key>{{ t('concurrency') }}</template>
@@ -96,10 +112,11 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -131,7 +148,21 @@ const canSetOfflineBackup = computed(
     !Object.values(backupJob.settings).some(settings => Number(settings?.snapshotRetention) > 0)
 )
 
+const VISIBLE_REPORT_RECIPIENTS_COUNT = 5
+
+const [areReportRecipientsExpanded, toggleReportRecipients] = useToggle(false)
+
 const reportRecipients = computed(() => settings.reportRecipients ?? [])
+
+const hiddenReportRecipientsCount = computed(() =>
+  Math.max(reportRecipients.value.length - VISIBLE_REPORT_RECIPIENTS_COUNT, 0)
+)
+
+const visibleReportRecipients = computed(() =>
+  areReportRecipientsExpanded.value
+    ? reportRecipients.value
+    : reportRecipients.value.slice(0, VISIBLE_REPORT_RECIPIENTS_COUNT)
+)
 </script>
 
 <style scoped lang="postcss">
@@ -141,15 +172,8 @@ const reportRecipients = computed(() => settings.reportRecipients ?? [])
     flex-direction: column;
     gap: 0.4rem;
 
-    .value:empty::before {
-      content: '-';
-    }
-
-    .recipient {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
+    .see-more {
+      align-self: center;
     }
   }
 }

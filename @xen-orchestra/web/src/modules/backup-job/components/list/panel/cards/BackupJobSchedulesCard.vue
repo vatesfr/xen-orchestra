@@ -94,10 +94,6 @@ const nextRuns = computed(() => {
     .divider {
       margin-block: 1.6rem;
     }
-
-    .value:empty::before {
-      content: '-';
-    }
   }
 }
 </style>
