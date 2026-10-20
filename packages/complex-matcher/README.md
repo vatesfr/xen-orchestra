@@ -19,17 +19,57 @@ npm install --save complex-matcher
 ```js
 import * as CM from 'complex-matcher'
 
+const places = {
+  gotham: { name: 'Gotham City', planet: 'Earth' },
+  krypton: { name: 'Krypton', planet: 'Krypton', destroyed: true },
+  themyscira: { name: 'Themyscira', planet: 'Earth' },
+}
+
 const characters = [
-  { name: 'Catwoman', costumeColor: 'black' },
-  { name: 'Superman', costumeColor: 'blue', hasCape: true },
-  { name: 'Wonder Woman', costumeColor: 'blue' },
+  { name: 'Catwoman', costumeColor: 'black', originId: 'gotham', visitedIds: ['gotham'] },
+  { name: 'Superman', costumeColor: 'blue', hasCape: true, originId: 'krypton', visitedIds: ['gotham', 'krypton'] },
+  { name: 'Wonder Woman', costumeColor: 'blue', originId: 'themyscira', visitedIds: [] },
 ]
 
-const predicate = CM.parse('costumeColor:blue hasCape?').createPredicate()
+// [resolve] requires a resolver, calling createPredicate() without one throws.
+// [resolve] can be nested up to a depth of 5, beyond it throws at parse time.
+const resolver = id => places[id]
 
-characters.filter(predicate)
+// --------------------------------------------
+
+const costumeColorPredicate = CM.parse('costumeColor:blue hasCape?').createPredicate()
+characters.filter(costumeColorPredicate)
 // [
-//   { name: 'Superman', costumeColor: 'blue', hasCape: true },
+//   { name: 'Superman', costumeColor: 'blue', hasCape: true, originId: 'krypton', visitedIds: ['gotham', 'krypton'] },
+// ]
+
+const originPlanetPredicate = CM.parse('originId:[resolve]:planet:Earth').createPredicate(resolver)
+characters.filter(originPlanetPredicate)
+// [
+//   { name: 'Catwoman', costumeColor: 'black', originId: 'gotham', visitedIds: ['gotham'] },
+//   { name: 'Wonder Woman', costumeColor: 'blue', originId: 'themyscira', visitedIds: [] },
+// ]
+
+const earthPredicate = CM.parse('visitedIds:[resolve]:planet:Earth').createPredicate(resolver)
+characters.filter(earthPredicate)
+// No quantifier defaults to [some].
+// [
+//   { name: 'Catwoman', costumeColor: 'black', originId: 'gotham', visitedIds: ['gotham'] },
+//   { name: 'Superman', costumeColor: 'blue', hasCape: true, originId: 'krypton', visitedIds: ['gotham', 'krypton'] },
+// ]
+
+const someEarthPredicate = CM.parse('visitedIds:[resolve]:[some]:planet:Earth').createPredicate(resolver)
+characters.filter(someEarthPredicate)
+// [
+//   { name: 'Catwoman', costumeColor: 'black', originId: 'gotham', visitedIds: ['gotham'] },
+//   { name: 'Superman', costumeColor: 'blue', hasCape: true, originId: 'krypton', visitedIds: ['gotham', 'krypton'] },
+// ]
+
+const everyEarthPredicate = CM.parse('visitedIds:[resolve]:[every]:planet:Earth').createPredicate(resolver)
+characters.filter(everyEarthPredicate)
+// Wonder Woman is excluded because [every] requires at least one resolved object.
+// [
+//   { name: 'Catwoman', costumeColor: 'black', originId: 'gotham', visitedIds: ['gotham'] },
 // ]
 
 new CM.String('foo').createPredicate()

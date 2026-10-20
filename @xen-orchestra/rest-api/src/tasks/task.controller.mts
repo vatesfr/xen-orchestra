@@ -96,7 +96,7 @@ export class TaskController extends XoController<XoTask> {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
-      const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
+      const complexMatcher = filter === undefined ? undefined : safeParseComplexMatcher(filter)
       const mapper = makeObjectMapper(req)
       const stream = new Transform({
         objectMode: true,
@@ -123,6 +123,14 @@ export class TaskController extends XoController<XoTask> {
         }
       }
 
+      // these handlers run on an event emitter which does not await them, so a
+      // rejection would otherwise be unhandled and silently lose events for
+      // this client: destroy it instead, it reconnects and refetches
+      const onError = (error: unknown) => {
+        warn('cannot decide whether to send this task, the connection is going to be destroyed', { error })
+        req.destroy()
+      }
+
       const onSigTerm = () => {
         req.destroy()
       }
@@ -139,7 +147,8 @@ export class TaskController extends XoController<XoTask> {
       process.on('SIGTERM', onSigTerm)
 
       const userId = this.restApi.getCurrentUser().id
-      const update = async (task: XoTask) => {
+
+      const shouldSend = async (task: XoTask): Promise<boolean> => {
         const user = await this.restApi.xoApp.getUser(userId)
         const userPrivileges =
           user.permission === 'admin'
@@ -147,24 +156,40 @@ export class TaskController extends XoController<XoTask> {
             : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
         if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
-          (userFilter === undefined || userFilter(task))
+          hasPrivilegeOn(
+            { user, userPrivileges, action: 'read', resource: 'task', objects: task },
+            await this.restApi.buildPrivilegeResolver([task], userPrivileges, 'task')
+          )
         ) {
-          safeWrite(['update', task])
+          if (complexMatcher === undefined) {
+            return true
+          } else {
+            const resolver = await this.restApi.buildResolver([task], complexMatcher)
+            if (complexMatcher.createPredicate(resolver)(task)) {
+              return true
+            }
+          }
+        }
+
+        return false
+      }
+
+      const update = async (task: XoTask) => {
+        try {
+          if (await shouldSend(task)) {
+            safeWrite(['update', task])
+          }
+        } catch (error) {
+          onError(error)
         }
       }
       const remove = async (task: XoTask) => {
-        const user = await this.restApi.xoApp.getUser(userId)
-        const userPrivileges =
-          user.permission === 'admin'
-            ? []
-            : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
-
-        if (
-          hasPrivilegeOn({ user, userPrivileges, action: 'read', resource: 'task', objects: task }) &&
-          (userFilter === undefined || userFilter(task))
-        ) {
-          safeWrite(['remove', { id: task.id }])
+        try {
+          if (await shouldSend(task)) {
+            safeWrite(['remove', { id: task.id }])
+          }
+        } catch (error) {
+          onError(error)
         }
       }
 
@@ -229,9 +254,18 @@ export class TaskController extends XoController<XoTask> {
     const userPrivileges =
       user.permission === 'admin' ? [] : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
-    const deletePromises: Promise<void>[] = []
+    const tasks: XoTask[] = []
     for await (const task of this.restApi.tasks.list()) {
-      if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
+      tasks.push(task)
+    }
+
+    const privilegeResolver = await this.restApi.buildPrivilegeResolver(tasks, userPrivileges, 'task')
+
+    const deletePromises: Promise<void>[] = []
+    for (const task of tasks) {
+      if (
+        hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task }, privilegeResolver)
+      ) {
         deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }
     }

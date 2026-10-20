@@ -14,6 +14,8 @@ const RAW_STRING_SYMBOLS = {
   $: true,
 }
 
+const MAX_RESOLVE_DEPTH = 5
+
 const isRawStringChar = c =>
   (c >= '0' && c <= '9') || c in RAW_STRING_SYMBOLS || !(c === c.toUpperCase() && c === c.toLowerCase())
 
@@ -27,8 +29,8 @@ const isRawString = string => {
 // -------------------------------------------------------------------
 
 class Node {
-  createPredicate() {
-    return value => this.match(value)
+  createPredicate(resolver) {
+    return value => this.match(value, resolver)
   }
 }
 
@@ -55,8 +57,8 @@ class And extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.every(child => child.match(value))
+  match(value, resolver) {
+    return this.children.every(child => child.match(value, resolver))
   }
 
   toString(isNested) {
@@ -105,8 +107,8 @@ class Or extends Node {
     this.children = children
   }
 
-  match(value) {
-    return this.children.some(child => child.match(value))
+  match(value, resolver) {
+    return this.children.some(child => child.match(value, resolver))
   }
 
   toString() {
@@ -122,8 +124,8 @@ class Not extends Node {
     this.child = child
   }
 
-  match(value) {
-    return !this.child.match(value)
+  match(value, resolver) {
+    return !this.child.match(value, resolver)
   }
 
   toString() {
@@ -188,8 +190,8 @@ class Property extends Node {
     this.child = child
   }
 
-  match(value) {
-    return value != null && this.child.match(value[this.name])
+  match(value, resolver) {
+    return value != null && this.child.match(value[this.name], resolver)
   }
 
   toString() {
@@ -313,6 +315,66 @@ class TruthyProperty extends Node {
   }
 }
 exports.TruthyProperty = TruthyProperty
+
+class Resolve extends Node {
+  constructor(child) {
+    super()
+
+    this.child = child
+  }
+
+  match(value, resolver) {
+    if (resolver === undefined) {
+      throw new Error('[resolve] requires a resolver')
+    }
+
+    if (value == null) {
+      return false
+    }
+
+    const ids = Array.isArray(value) ? value : [value]
+    const objects = []
+    for (const id of ids) {
+      objects.push(resolver(id))
+    }
+
+    return this.child.match(objects, resolver)
+  }
+
+  toString() {
+    return `[resolve]:${this.child.toString(true)}`
+  }
+}
+exports.Resolve = Resolve
+
+class Quantifier extends Node {
+  constructor(child, mode = 'some', implicit = false) {
+    super()
+
+    this.child = child
+    this.mode = mode
+    this.implicit = implicit
+  }
+
+  match(values, resolver) {
+    const array = Array.isArray(values) ? values : [values]
+
+    if (this.mode === 'some') {
+      return array.some(value => value != null && this.child.match(value, resolver))
+    } else if (this.mode === 'every') {
+      // nothing resolved means nothing matches
+      return array.length > 0 && array.every(value => value != null && this.child.match(value, resolver))
+    }
+
+    throw new Error(`${this.mode} quantifier not supported`)
+  }
+
+  toString(isNested) {
+    // an implicit 'some' is not re-emitted so that toString still round-trips
+    return this.implicit ? this.child.toString(isNested) : `[${this.mode}]:${this.child.toString(true)}`
+  }
+}
+exports.Quantifier = Quantifier
 
 // -------------------------------------------------------------------
 
@@ -533,6 +595,11 @@ const parser = P.grammar({
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         return new Comparison(op, +val)
       }),
+      P.seq(P.text('[resolve]'), P.text(':'), r.ws, r.term).map(
+        _ => new Resolve(_[3] instanceof Quantifier ? _[3] : new Quantifier(_[3], 'some', true))
+      ),
+      P.seq(P.text('[some]'), P.text(':'), r.ws, r.term).map(_ => new Quantifier(_[3], 'some')),
+      P.seq(P.text('[every]'), P.text(':'), r.ws, r.term).map(_ => new Quantifier(_[3], 'every')),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value
@@ -548,7 +615,48 @@ const parser = P.grammar({
     ),
   ws: P.regex(/\s*/),
 }).default
-exports.parse = parser.parse.bind(parser)
+
+const _checkResolveConstraints = (node, parent) => {
+  let depth = 0
+
+  if (node instanceof Resolve && !(parent instanceof Property)) {
+    throw new Error(`[resolve] must follow a property`)
+  }
+
+  if (node instanceof Quantifier && !(parent instanceof Resolve)) {
+    throw new Error(`[some]/[every] must follow a [resolve]`)
+  }
+
+  if (node.children !== undefined) {
+    for (const child of node.children) {
+      const childDepth = _checkResolveConstraints(child, node)
+      if (childDepth > depth) {
+        depth = childDepth
+      }
+    }
+  } else if (node.child !== undefined) {
+    depth = _checkResolveConstraints(node.child, node)
+  }
+
+  if (node instanceof Resolve) {
+    depth += 1
+    if (depth > MAX_RESOLVE_DEPTH) {
+      throw new Error(`[resolve] cannot be nested more than ${MAX_RESOLVE_DEPTH} levels`)
+    }
+  }
+
+  return depth
+}
+
+const _parse = parser.parse.bind(parser)
+
+exports.parse = function parse(input) {
+  const node = _parse(input)
+
+  _checkResolveConstraints(node)
+
+  return node
+}
 
 // -------------------------------------------------------------------
 
@@ -621,6 +729,26 @@ exports.getPropertyClausesStrings = function getPropertyClausesStrings(node) {
 }
 
 // -------------------------------------------------------------------
+
+exports.getResolveFields = function getResolveFields(node, prefix = []) {
+  const result = []
+
+  if (node instanceof Property) {
+    if (node.child instanceof Resolve) {
+      result.push({ path: [...prefix, node.name], resolveNode: node.child })
+    } else {
+      result.push(...getResolveFields(node.child, [...prefix, node.name]))
+    }
+  } else if (node instanceof And || node instanceof Or) {
+    node.children.forEach(childNode => {
+      result.push(...getResolveFields(childNode, prefix))
+    })
+  } else if (node instanceof Not || node instanceof Quantifier) {
+    result.push(...getResolveFields(node.child, prefix))
+  }
+
+  return result
+}
 
 exports.setPropertyClause = function setPropertyClause(node, name, child) {
   const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)

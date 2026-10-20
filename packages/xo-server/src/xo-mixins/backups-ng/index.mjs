@@ -10,7 +10,7 @@ import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mj
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
-import { invalidParameters, noMatchingVm } from 'xo-common/api-errors.js'
+import { invalidParameters, noMatchingVm, noSuchObject } from 'xo-common/api-errors.js'
 import { timeout } from 'promise-toolbox'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
@@ -21,6 +21,9 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+
+// BR uuid/xo-vm-backups/VM uuid/(ISO 8601 compact).json
+const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)\.json$/
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -903,5 +906,25 @@ export default class BackupNg {
   forgetVmBackupRepository(remoteId) {
     this.#vmBackupsCache.remove(remoteId)
     this.#resetVmBackupsListingState(remoteId)
+  }
+
+  /**
+   * @param {XoVmBackupArchive['id']} id
+   * @returns {Promise<XoVmBackupArchive>}
+   */
+  async getVmBackupArchive(id) {
+    const match = id.match(BACKUP_ARCHIVE_ID_REGEX)
+    if (match === null) {
+      throw noSuchObject(id, 'backup-archive')
+    }
+
+    const [, brId, vmId] = match
+
+    const backupArchive = (await this.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(backup => backup.id === id)
+    if (backupArchive === undefined) {
+      throw noSuchObject(id, 'backup-archive')
+    }
+
+    return backupArchive
   }
 }
