@@ -93,6 +93,7 @@
 - [Swagger] Fixed a typo in the VM collection: `xentools` → `xenTools`, and added a missing type to the server collection `poolMembersAddresses` [#10514](https://github.com/vatesfr/xen-orchestra/issues/10514) (PR [#10598](https://github.com/vatesfr/xen-orchestra/pull/10598))
 - [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
 - [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected(PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
+- [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
 
 ### Packages to release
 
@@ -133,6 +134,7 @@
 - xo-server-load-balancer minor
 - xo-server-netbox minor
 - xo-server-sdn-controller patch
+- xo-server-transport-icinga2 patch
 - xo-web minor
 
 <!--packages-end-->
