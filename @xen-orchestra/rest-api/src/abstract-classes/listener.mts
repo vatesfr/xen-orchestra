@@ -125,7 +125,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
   }: {
     event: CollectionEventType
     object: Partial<XoRecord> | undefined
-    previousObject: object | undefined
+    previousObject: Partial<XoRecord> | undefined
     userId: XoUser['id']
   }): Promise<CollectionEventType | undefined> {
     if (this.type === undefined || (object === undefined && previousObject === undefined)) {

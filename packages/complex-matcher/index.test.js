@@ -262,8 +262,8 @@ describe('resolve quantifiers', () => {
     assert(!parse(every).createPredicate(resolver)(someFail))
   })
 
-  it('[every] ignores ids which cannot be resolved', () => {
-    assert(parse(every).createPredicate(resolver)(oneUnresolvable))
+  it("[every] doesn't match when an id cannot be resolved", () => {
+    assert(!parse(every).createPredicate(resolver)(oneUnresolvable))
   })
 
   it("[every] doesn't match when nothing could be resolved", () => {

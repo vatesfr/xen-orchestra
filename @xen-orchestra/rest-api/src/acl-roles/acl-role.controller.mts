@@ -317,8 +317,7 @@ export class AclRoleController extends XoController<XoAclRole> {
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
 
-    const predicate = await this.restApi.applyUserFilter(privileges, filter)
-    return this.sendObjects(limitAndFilterArray(privileges, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(privileges, { filter }, this.restApi), req, {
       path: 'acl-privileges',
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },
@@ -490,8 +489,7 @@ export class AclRoleController extends XoController<XoAclRole> {
             )
           )
 
-    const predicate = await this.restApi.applyUserFilter(users, filter)
-    return this.sendObjects(limitAndFilterArray(users, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(users, { filter }, this.restApi), req, {
       path: 'users',
       limit,
       privilege: { resource: 'user', action: 'read' },
@@ -537,8 +535,7 @@ export class AclRoleController extends XoController<XoAclRole> {
             )
           )
 
-    const predicate = await this.restApi.applyUserFilter(groups, filter)
-    return this.sendObjects(limitAndFilterArray(groups, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(groups, { filter }, this.restApi), req, {
       path: 'groups',
       limit,
       privilege: { resource: 'group', action: 'read' },

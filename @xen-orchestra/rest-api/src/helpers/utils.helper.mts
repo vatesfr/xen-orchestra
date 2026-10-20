@@ -8,6 +8,7 @@ import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
 import { XMLParser } from 'fast-xml-parser'
 
+import { RestApi } from '../rest-api/rest-api.mjs'
 export const BASE_URL = '/rest/v0'
 export { default as forEach } from 'lodash/forEach.js'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
@@ -142,11 +143,17 @@ export function safeParseComplexMatcher(string: string) {
   }
 }
 
-export function limitAndFilterArray<T>(
+export async function limitAndFilterArray<T>(
   array: T[],
-  { filter, limit = Infinity }: { filter?: (obj: T) => boolean; limit?: number } = {}
-): T[] {
-  if (filter !== undefined) {
+  { filter, limit = Infinity }: { filter?: string | ((obj: T) => boolean); limit?: number },
+  restApi: RestApi
+): Promise<T[]> {
+  if (typeof filter === 'string') {
+    const parsedFilter = safeParseComplexMatcher(filter)
+    const userFilter = parsedFilter.createPredicate(await restApi.buildResolver(array, parsedFilter))
+
+    array = array.filter(userFilter)
+  } else if (filter !== undefined) {
     array = array.filter(filter)
   }
 

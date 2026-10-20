@@ -75,15 +75,6 @@ export class RestApi {
     return this.buildResolver(objects, new CM.And(nodes))
   }
 
-  async applyUserFilter<T>(array: T[], filter: string | undefined): Promise<((obj: T) => boolean) | undefined> {
-    if (filter !== undefined) {
-      const parsedFilter = safeParseComplexMatcher(filter)
-      return parsedFilter.createPredicate(await this.buildResolver(array, parsedFilter))
-    }
-
-    return undefined
-  }
-
   getObjectsByType<T extends XapiXoRecord>(
     type: T['type'],
     { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}

@@ -13,6 +13,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
+import { Resolver } from 'complex-matcher'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
@@ -296,7 +297,12 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(error)
     }
 
-    const privilegeResolver = await restApi.buildPrivilegeResolver(objectsToResolve, userPrivileges)
+    let privilegeResolver: Resolver | undefined
+    try {
+      privilegeResolver = await restApi.buildPrivilegeResolver(objectsToResolve, userPrivileges)
+    } catch (error) {
+      return next(error)
+    }
 
     const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, privilegeResolver)
     if (missingPrivileges.length > 0) {

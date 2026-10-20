@@ -223,9 +223,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoVdi>>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
-
-    const predicate = await this.restApi.applyUserFilter(vdis, filter)
-    return this.sendObjects(limitAndFilterArray(vdis, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(vdis, { filter }, this.restApi), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

@@ -286,8 +286,7 @@ export class UserController extends XoController<XoUser> {
     const user = await this.getObject(id as XoUser['id'])
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
 
-    const predicate = await this.restApi.applyUserFilter(groups, filter)
-    return this.sendObjects(limitAndFilterArray(groups, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(groups, { filter }, this.restApi), req, {
       path: 'groups',
       limit,
       privilege: { action: 'read', resource: 'group' },
@@ -321,9 +320,7 @@ export class UserController extends XoController<XoUser> {
     }
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
-
-    const predicate = await this.restApi.applyUserFilter(tokens, filter)
-    return limitAndFilterArray(tokens, { filter: predicate, limit })
+    return limitAndFilterArray(tokens, { filter }, this.restApi)
   }
 
   /**
@@ -461,9 +458,7 @@ export class UserController extends XoController<XoUser> {
     const currentUser = this.restApi.getCurrentUser()
 
     const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
-
-    const predicate = await this.restApi.applyUserFilter(userPrivileges, filter)
-    return this.sendObjects(limitAndFilterArray(userPrivileges, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(userPrivileges, { filter }, this.restApi), req, {
       path: 'acl-privileges',
       limit,
       privilege: currentUser.id === user.id ? undefined : { action: 'read', resource: 'acl-privilege' },

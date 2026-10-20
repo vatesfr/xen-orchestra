@@ -335,10 +335,7 @@ class Resolve extends Node {
     const ids = Array.isArray(value) ? value : [value]
     const objects = []
     for (const id of ids) {
-      const obj = resolver(id)
-      if (obj != null) {
-        objects.push(obj)
-      }
+      objects.push(resolver(id))
     }
 
     return this.child.match(objects, resolver)

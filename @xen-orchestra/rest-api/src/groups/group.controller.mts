@@ -286,8 +286,7 @@ export class GroupController extends XoController<XoGroup> {
     const group = await this.getObject(id as XoGroup['id'])
     const users = await Promise.all(group.users.map(id => this.restApi.xoApp.getUser(id, { obfuscatePassword: true })))
 
-    const predicate = await this.restApi.applyUserFilter(users, filter)
-    return this.sendObjects(limitAndFilterArray(users, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(users, { filter }, this.restApi), req, {
       path: 'users',
       limit,
       privilege: { action: 'read', resource: 'user' },
@@ -356,8 +355,7 @@ export class GroupController extends XoController<XoGroup> {
     const group = await this.getObject(id as XoGroup['id'])
     const roles = await Promise.all(group.aclRoleIds.map(roleId => this.restApi.xoApp.getAclV2Role(roleId)))
 
-    const predicate = await this.restApi.applyUserFilter(roles, filter)
-    return this.sendObjects(limitAndFilterArray(roles, { filter: predicate }), req, {
+    return this.sendObjects(await limitAndFilterArray(roles, { filter }, this.restApi), req, {
       path: 'acl-roles',
       limit,
       privilege: { action: 'read', resource: 'acl-role' },

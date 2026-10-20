@@ -23,8 +23,9 @@ export default class ObjectResolver {
    * Synchronous resolver, limited to XAPI objects: they are the only ones held
    * in memory and therefore the only ones reachable without awaiting.
    *
-   * @param {XoRecord['id']} id
-   * @returns {object | undefined} `undefined` when the id is unknown
+   * @template {import('@vates/types').XapiXoRecord} Record
+   * @param {Record['id']} id
+   * @returns {Record | undefined} `undefined` when the id is unknown
    */
   xapiObjectResolver(id) {
     try {
@@ -48,9 +49,9 @@ export default class ObjectResolver {
    * once the previous one has been fetched, and each id is fetched at most once
    * for the whole filter run.
    *
-   * @param {object | object[]} objects the objects the filter will be matched against
+   * @param {XoRecord | XoRecord[]} objects the objects the filter will be matched against
    * @param {CmNode} filterNode
-   * @returns {Promise<CmResolver>} falls back to xapiObjectResolver for ids which were not prefetched
+   * @returns {Promise<CmResolver>}
    */
   async buildResolver(objects, filterNode) {
     /** @type {XoRecord[]} */
@@ -61,7 +62,7 @@ export default class ObjectResolver {
       objectArray = objects
     }
 
-    /** @type {Map<XoRecord['id'], object>} */
+    /** @type {Map<XoRecord['id'], XoRecord>} */
     const anyObjects = new Map()
 
     /**
@@ -116,23 +117,31 @@ export default class ObjectResolver {
 
     await process(objectArray, filterNode)
 
-    return id => anyObjects.get(id) ?? this.xapiObjectResolver(id)
+    return id => anyObjects.get(id)
   }
 
   /**
    * Look an id up in every collection which can hold an `XoRecord`.
    *
-   * @param {XoRecord['id']} id
-   * @returns {Promise<XoRecord>}
+   * Ordered by cost and parallelized where pertinent.
+   *
+   * @template {XoRecord} Record
+   * @param {Record['id']} id
+   * @returns {Promise<Record>}
    * @throws `noSuchObject` when no collection holds this id
    */
   async getAnyObject(id) {
-    // We do getObject first because it covers all XAPI object,
-    // then the cheap getters, then the logs and archives.
-    //
-    // Keep the order as is.
-    const getters = [
-      () => this._app.getObject(id),
+    // We do getObject first because it covers all XAPI object
+    try {
+      return await this._app.getObject(id)
+    } catch (error) {
+      if (!noSuchObject.is(error)) {
+        throw error
+      }
+    }
+
+    // Then the cheap getters in parallel
+    const parallelGetters = [
       () => this._app.getAclV2Privilege(id),
       () => this._app.getAclV2Role(id),
       () => this._app.getGroup(id),
@@ -141,13 +150,33 @@ export default class ObjectResolver {
       () => this._app.getRemote(id),
       () => this._app.getSchedule(id),
       () => this._app.tasks.get(id),
-      () => this._app.getUser(id),
+      () => this._app.getUser(id, { obfuscatePassword: true }),
       () => this._app.getXenServer(id),
-      () => this._app.getBackupNgLogs(id),
-      () => this._app.getVmBackupArchive(id),
     ]
 
-    for (const getter of getters) {
+    try {
+      return await new Promise((resolve, reject) => {
+        let pending = parallelGetters.length
+        const errors = []
+        for (const getter of parallelGetters) {
+          getter().then(resolve, error => {
+            errors.push(error)
+            if (--pending === 0) {
+              reject(errors)
+            }
+          })
+        }
+      })
+    } catch (errors) {
+      for (const error of errors) {
+        if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
+          throw error
+        }
+      }
+    }
+
+    // Then the more costly logs and archives
+    for (const getter of [() => this._app.getVmBackupArchive(id), () => this._app.getBackupNgLogs(id)]) {
       try {
         return await getter()
       } catch (error) {
