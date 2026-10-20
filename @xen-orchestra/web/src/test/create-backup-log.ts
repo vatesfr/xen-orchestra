@@ -1,5 +1,5 @@
-import type { BackupLogTask } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import type { BackupLogTask } from '@/modules/backup-log/composables/use-xo-backup-log-utils.composable.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { XoSchedule } from '@vates/types'
 
 /**

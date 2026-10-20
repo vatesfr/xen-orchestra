@@ -23,7 +23,7 @@ import BackupJobBackedUpPoolsCard from '@/modules/backup/components/panel/cards/
 import BackupJobBackedUpVmsCard from '@/modules/backup/components/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobSchedulesCard from '@/modules/backup/components/panel/cards/BackupJobSchedulesCard.vue'
 import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoPoolCollection, type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { getTasksResultsRecursively } from '@/modules/task/utils/xo-task.util.ts'

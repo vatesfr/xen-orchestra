@@ -51,8 +51,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { getBackupLogRunRoute } from '@/modules/backup/utils/xo-backup-log.util.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { getBackupLogRunRoute } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

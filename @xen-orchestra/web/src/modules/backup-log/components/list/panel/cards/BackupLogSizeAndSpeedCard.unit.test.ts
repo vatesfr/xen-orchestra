@@ -1,5 +1,5 @@
-import AdminBackupLogSizeAndSpeedCard from '@/modules/admin-backup-log/components/list/panel/cards/AdminBackupLogSizeAndSpeedCard.vue'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import BackupLogSizeAndSpeedCard from '@/modules/backup-log/components/list/panel/cards/BackupLogSizeAndSpeedCard.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
   createBackupLog,
   createBackupLogExportTask,
@@ -14,7 +14,7 @@ import { formatSpeed } from '@core/utils/speed.util.ts'
 import { mount } from '@vue/test-utils'
 
 function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
-  return mount(AdminBackupLogSizeAndSpeedCard, {
+  return mount(BackupLogSizeAndSpeedCard, {
     props: { backupLog },
     global: createGlobalTestConfig(),
   })

@@ -13,7 +13,7 @@
 
 <script lang="ts" setup>
 import BackupRunItem from '@/modules/backup/components/panel/card-items/BackupRunItem.vue'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'

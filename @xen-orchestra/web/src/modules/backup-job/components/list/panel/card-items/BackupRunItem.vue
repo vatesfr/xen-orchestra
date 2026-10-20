@@ -45,8 +45,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { getAdminBackupLogRoute, getBackupLogError } from '@/modules/backup-job/utils/xo-backup-log.util.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { getAdminBackupLogRoute, getBackupLogError } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
 import {
   type FrontXoSchedule,
   useXoScheduleCollection,

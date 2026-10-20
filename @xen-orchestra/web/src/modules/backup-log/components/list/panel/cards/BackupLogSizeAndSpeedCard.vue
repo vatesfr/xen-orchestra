@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="admin-backup-log-size-and-speed-card">
+  <UiPanelCard class="backup-log-size-and-speed-card">
     <UiPanelCardTitle size="medium" :label="t('size-and-speed')" />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -21,8 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import { useXoBackupLogsUtils } from '@/modules/backup-log/composables/use-xo-backup-log-utils.composable.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -54,7 +54,7 @@ const speed = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.admin-backup-log-size-and-speed-card {
+.backup-log-size-and-speed-card {
   .content {
     display: flex;
     flex-direction: column;
