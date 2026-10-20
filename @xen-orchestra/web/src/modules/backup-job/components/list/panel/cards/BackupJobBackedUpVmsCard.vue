@@ -40,7 +40,7 @@
           </template>
           <template v-if="smartModeTags !== undefined">
             <BackupJobSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
-            <BackupJobSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
+            <BackupJobSmartModeTags :tags="smartModeTags.excluded" :label="t('excluded-vms-tags')" />
           </template>
         </div>
       </template>

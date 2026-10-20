@@ -2,7 +2,7 @@
   <UiPanelCard class="backup-job-schedules-card">
     <UiPanelCardTitle size="medium" :label="t('schedules')" :counter="schedules.length" />
     <div class="content">
-      <template v-for="(schedule, index) in schedules" :key="schedule.id">
+      <template v-for="({ schedule, nextRun }, index) in schedulesWithNextRun" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
           <template #key>{{ t('name') }}</template>
@@ -39,9 +39,9 @@
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
           <template #key>{{ t('next-run') }}</template>
-          <template #value>{{ nextRuns.get(schedule.id) }}</template>
-          <template v-if="nextRuns.get(schedule.id)" #addons>
-            <VtsCopyButton :value="nextRuns.get(schedule.id) ?? ''" />
+          <template #value>{{ nextRun }}</template>
+          <template v-if="nextRun !== undefined" #addons>
+            <VtsCopyButton :value="nextRun" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -50,8 +50,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoSchedule } from '@/modules/backup-job/remote-resources/use-xo-schedule-collection.ts'
-import { getScheduleNextRun } from '@/modules/backup-job/utils/xo-schedule.util.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import { getScheduleNextRun } from '@/modules/schedule/utils/xo-schedule.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -73,19 +73,16 @@ const { buildXo5Route } = useXoRoutes()
 
 const overviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const nextRuns = computed(() => {
-  const formattedNextRuns = new Map<FrontXoSchedule['id'], string>()
-
-  schedules.forEach(schedule => {
+const schedulesWithNextRun = computed(() =>
+  schedules.map(schedule => {
     const nextRun = getScheduleNextRun(schedule)
 
-    if (nextRun !== undefined) {
-      formattedNextRuns.set(schedule.id, d(nextRun, { dateStyle: 'short', timeStyle: 'medium' }))
+    return {
+      schedule,
+      nextRun: nextRun !== undefined ? d(nextRun, { dateStyle: 'short', timeStyle: 'medium' }) : undefined,
     }
   })
-
-  return formattedNextRuns
-})
+)
 </script>
 
 <style scoped lang="postcss">

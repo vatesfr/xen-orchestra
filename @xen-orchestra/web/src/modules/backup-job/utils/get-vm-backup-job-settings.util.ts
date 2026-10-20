@@ -7,13 +7,9 @@ export function getVmBackupJobSettings(job: FrontXoVmBackupJob): XoBackupJobSett
   }
 
   const {
-    preferNbd,
-    cbtDestroySnapshotData,
     concurrency,
-    nbdConcurrency,
     maxExportRate,
     nRetriesVmBackupFailures,
-    hideSuccessfulItems,
     backupReportTpl,
     reportWhen,
     timeout,
@@ -21,21 +17,15 @@ export function getVmBackupJobSettings(job: FrontXoVmBackupJob): XoBackupJobSett
     offlineBackup,
     offlineSnapshot,
     mergeBackupsSynchronously,
-    timezone,
     reportRecipients,
-    ...other
   } = job.settings['']
 
   return {
     compression: job.compression,
     proxy: job.proxy,
-    preferNbd,
-    cbtDestroySnapshotData,
     concurrency,
-    nbdConcurrency,
     maxExportRate,
     nRetriesVmBackupFailures,
-    hideSuccessfulItems,
     backupReportTpl,
     reportWhen,
     timeout,
@@ -43,8 +33,6 @@ export function getVmBackupJobSettings(job: FrontXoVmBackupJob): XoBackupJobSett
     offlineBackup,
     offlineSnapshot,
     mergeBackupsSynchronously,
-    timezone,
     reportRecipients,
-    other,
   }
 }
