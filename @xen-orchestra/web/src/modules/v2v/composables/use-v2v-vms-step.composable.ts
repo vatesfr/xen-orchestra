@@ -1,5 +1,6 @@
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
+import type { V2vSelectedVmsContext } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmQueryBuilder } from '@/modules/v2v/composables/use-v2v-vm-query-builder.composable.ts'
 import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composable.ts'
@@ -55,6 +56,8 @@ export function useV2vVmsStep() {
   const { presetLabels, getSummaryLabels } = useV2vVmLabels()
 
   const pool = useV2vPoolQuery()
+
+  const sourceHost = computed(() => connectionStore.connection?.host)
 
   const migrationList = useV2vMigrationList(() => connectionStore.sourceId, pool)
 
@@ -169,8 +172,10 @@ export function useV2vVmsStep() {
 
   const canGoNext = computed(() => listVmIds.value.size > 0)
 
+  const selectedVmsContext: V2vSelectedVmsContext = { migrationList, rows, poolId: pool, sourceHost }
+
   return {
-    sourceHost: computed(() => connectionStore.connection?.host),
+    sourceHost,
     filter,
     schema,
     tableView,
@@ -188,5 +193,6 @@ export function useV2vVmsStep() {
     canGoNext,
     back: () => goToStep('destination'),
     next: () => goToStep('mapping'),
+    selectedVmsContext,
   }
 }
