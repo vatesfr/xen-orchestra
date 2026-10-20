@@ -15,6 +15,7 @@ export function assertKnownDevices({ disks, networks }, { srIdsByNode, networkId
   const unknownNics = Object.keys(networkIdsByNic).filter(key => !nicKeys.has(key))
   if (unknownNodes.length !== 0 || unknownNics.length !== 0) {
     const missing = [...unknownNodes.map(node => `disk ${node}`), ...unknownNics.map(key => `NIC ${key}`)]
+    /** @type {Error & { code?: string }} */
     const error = new Error(`the VM ${vmId} has no ${missing.join(', ')}`)
     error.code = 'UNKNOWN_DEVICE'
     Object.assign(error, { vmId, unknownNodes, unknownNics, nodes: [...nodes], nicKeys: [...nicKeys] })

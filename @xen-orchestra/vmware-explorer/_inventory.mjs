@@ -21,6 +21,68 @@ const CONTROLLER_PREFIXES = {
 }
 
 /**
+ * The backing of a device, as the SOAP library returns it: only the fields read here.
+ *
+ * @typedef {object} RawBacking
+ * @property {string} [fileName]
+ * @property {unknown} [datastore]
+ * @property {string} [diskMode]
+ * @property {unknown} [thinProvisioned]
+ * @property {unknown} [keyId]
+ * @property {{ portgroupKey?: string }} [port]
+ * @property {unknown} [network]
+ * @property {string} [opaqueNetworkId]
+ */
+
+/**
+ * A `VirtualDevice`, as the SOAP library returns it: only the fields read here.
+ *
+ * @typedef {object} RawDevice
+ * @property {string | number} [key]
+ * @property {string | number} [busNumber]
+ * @property {string | number} [controllerKey]
+ * @property {string | number} [unitNumber]
+ * @property {string | number} [capacityInBytes]
+ * @property {string | number} [capacityInKB]
+ * @property {{ label?: string }} [deviceInfo]
+ * @property {string} [macAddress]
+ * @property {string} [addressType]
+ * @property {RawBacking} [backing]
+ */
+
+/**
+ * The value of `config.hardware.device`.
+ *
+ * @typedef {{ VirtualDevice?: RawDevice | RawDevice[] }} RawDevices
+ */
+
+/**
+ * A `VirtualMachineSnapshotTree`, as the SOAP library returns it: only the fields read here.
+ *
+ * @typedef {object} RawSnapshotTree
+ * @property {unknown} snapshot
+ * @property {string} name
+ * @property {string} [description]
+ * @property {string} [createTime]
+ * @property {RawSnapshotTree | RawSnapshotTree[]} [childSnapshotList]
+ */
+
+/**
+ * The `defaultPortConfig` of a distributed port group: only the fields read here.
+ *
+ * @typedef {{ vlan?: { vlanId?: unknown } }} RawPortConfig
+ */
+
+/**
+ * @typedef {object} InventorySnapshot
+ * @property {string} id
+ * @property {string} name
+ * @property {string | undefined} description
+ * @property {string | undefined} createTime
+ * @property {string | undefined} parent
+ */
+
+/**
  * @typedef {object} InventoryDisk
  * @property {string} key - the node of the disk, as the vmx and the import name it, e.g. `scsi0:0`
  * @property {string} label
@@ -48,7 +110,7 @@ const CONTROLLER_PREFIXES = {
 /**
  * The disks and network cards of a VM, from its `config.hardware.device`.
  *
- * @param {unknown} devices - value of `config.hardware.device`
+ * @param {RawDevices | undefined} devices - value of `config.hardware.device`
  * @param {Record<string, string>} portgroupsByKey - managed object reference of the distributed port groups, by key
  * @returns {{ disks: InventoryDisk[], nics: InventoryNic[] }}
  */
@@ -105,10 +167,10 @@ export function parseDevices(devices, portgroupsByKey = {}) {
 /**
  * The snapshots of a VM, flattened.
  *
- * @param {unknown} rootList - a `rootSnapshotList`, or the `childSnapshotList` of the recursion
+ * @param {RawSnapshotTree | RawSnapshotTree[] | undefined} rootList - a `rootSnapshotList`, or the `childSnapshotList` of the recursion
  * @param {string} [parent]
- * @param {object[]} [snapshots] - accumulator of the recursion
- * @returns {{ id: string, name: string, description: string | undefined, createTime: string | undefined, parent: string | undefined }[]}
+ * @param {InventorySnapshot[]} [snapshots] - accumulator of the recursion
+ * @returns {InventorySnapshot[]}
  */
 export function flattenSnapshots(rootList, parent, snapshots = []) {
   for (const node of asArray(rootList)) {
@@ -122,7 +184,7 @@ export function flattenSnapshots(rootList, parent, snapshots = []) {
 /**
  * The VLAN of a distributed port group: a single id, or the ranges of a trunk.
  *
- * @param {unknown} defaultPortConfig
+ * @param {RawPortConfig | undefined} defaultPortConfig
  * @returns {number | { start: number, end: number }[] | undefined}
  */
 export function parseVlan(defaultPortConfig) {
