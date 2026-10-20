@@ -110,7 +110,9 @@ describe('last runs', () => {
 
     const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
 
-    expect(cell.findAllComponents(VtsStatus).map(status => status.props('status'))).toEqual(['failure', 'success'])
+    const statuses = cell.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
+
+    expect(statuses.map(status => status.props('status'))).toEqual(['failure', 'success'])
   })
 
   it('shows a loader while the backup logs are loading', () => {

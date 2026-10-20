@@ -65,9 +65,12 @@ describe('useXoBackupJobLastRuns', () => {
 
     const result = mountLastRuns(createVmBackupJob())
 
-    expect(result.lastRuns[0].tooltip).toBe(
-      `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_000_000, 'datetime_short')}, ${result.t('pending')}`
-    )
+    expect(result.lastRuns).toEqual([
+      {
+        status: 'pending',
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_000_000, 'datetime_short')}, ${result.t('pending')}`,
+      },
+    ])
   })
 
   it('has no run for a backup job that never ran', () => {
