@@ -67,6 +67,10 @@ export function useV2vMigrationList(
 
   const isStoredByNewerVersion = computed(() => isV2vMigrationListOfNewerVersion(storedValue.value))
 
+  const vmCount = computed(() => list.value?.vms.length ?? 0)
+
+  const hasVms = computed(() => vmCount.value > 0)
+
   function write(key: V2vMigrationListKey, defaults: V2vDestinationDefaults, vms: V2vMigrationListVm[]) {
     if (isStoredByNewerVersion.value) {
       return
@@ -123,5 +127,5 @@ export function useV2vMigrationList(
     updateVms(() => [])
   }
 
-  return { list, isStoredByNewerVersion, saveDefaults, addVms, removeVm, clearVms }
+  return { list, isStoredByNewerVersion, vmCount, hasVms, saveDefaults, addVms, removeVm, clearVms }
 }

@@ -1,19 +1,18 @@
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vSelectedVmItem as SelectedVmItem } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import { createV2vSelectedVmItem } from '@/test/create-v2v-selected-vms.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
-import { findAccentedTags } from '@/test/find-accented-tags.ts'
+import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { mount } from '@vue/test-utils'
 
-const ITEM = createV2vSelectedVmItem()
+const ITEM = createV2vSelectedVm()
 
-async function mountItem(item: SelectedVmItem = ITEM) {
+async function mountItem(item: V2vSelectedVm = ITEM) {
   const router = await createV2vWizardRouter('vms')
 
   return mount(V2vSelectedVmItem, { props: { item }, global: createGlobalTestConfig({ router }) })
@@ -29,7 +28,7 @@ it('links the name of the VM to its mapping', async () => {
 it('tags the VM with its kind', async () => {
   const kind = { label: 'Resume', accent: 'info' } as const
 
-  expect(findAccentedTags(await mountItem(createV2vSelectedVmItem({ kind })))).toEqual([kind])
+  expect(findAccentedTags(await mountItem(createV2vSelectedVm({ kind })))).toEqual([kind])
 })
 
 it('lays out its mapping', async () => {
@@ -37,14 +36,13 @@ it('lays out its mapping', async () => {
 })
 
 it('has no mapping line without mapping parts', async () => {
-  expect((await mountItem(createV2vSelectedVmItem({ mappingParts: [] }))).find('.mapping').exists()).toBe(false)
+  expect((await mountItem(createV2vSelectedVm({ mappingParts: [] }))).find('.mapping').exists()).toBe(false)
 })
 
 it('tells its check with its accent', async () => {
   const check = { label: 'Import in progress', accent: 'danger' } as const
-  const info = (await mountItem(createV2vSelectedVmItem({ check }))).getComponent(UiInfo)
 
-  expect({ label: info.text(), accent: info.props('accent') }).toEqual(check)
+  expect(findAccentedInfos(await mountItem(createV2vSelectedVm({ check })))).toEqual([check])
 })
 
 it('removes the VM from the list', async () => {
