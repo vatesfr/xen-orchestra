@@ -65,8 +65,11 @@ Do these steps **before** installing RKE2 on the node:
          insecure: false
    ```
 
-   Replace `<xo-url>` with the URL of your Xen Orchestra instance and `<xo-token>` with your authentication token.\
-   _If the instance uses a self-signed HTTPS certificate, set `insecure` to `true`._
+   Replace `<xo-url>` with the URL of your Xen Orchestra instance and `<xo-token>` with your authentication token.
+
+   :::note
+   If the instance uses a self-signed HTTPS certificate, set `insecure` to `true`.
+   :::
 
 3. Install RKE2 by following the official [RKE2 Quickstart](https://docs.rke2.io/install/quickstart).
 

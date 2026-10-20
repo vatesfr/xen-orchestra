@@ -105,8 +105,12 @@ Make sure your infrastructure meets these requirements:
       The name will be used to tag VMs (see [VM tagging](./recipes.md#vm-tagging)).
    4. Define the number of worker nodes.
    5. Choose the fault tolerance level for the control plane, which sets the number of control plane nodes (three or more enables high availability).
-   6. Define the FQDN or IP address that the Cloud Controller Manager (CCM) will use to reach this Xen Orchestra instance.\
-      _If the instance uses a self-signed HTTPS certificate, toggle "Allow insecure XO connection"._
+   6. Define the FQDN or IP address that the Cloud Controller Manager (CCM) will use to reach this Xen Orchestra instance.
+
+      :::note
+      If the instance uses a self-signed HTTPS certificate, toggle **Allow insecure XO connection**.
+      :::
+
    7. (Optional) To change the default CIDR for your cluster pods and services, check the **Use a custom cluster CIDR** box and specify the new IP ranges to use.
 
       <UiDetail src="/img/xo5/k8s-custom-cidr.png" alt="The custom pod and service CIDR fields" width={480} />
