@@ -1,6 +1,6 @@
-import type { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
@@ -27,7 +27,7 @@ vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   })) as unknown as typeof useXoRoutes,
 }))
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     areBackupLogsReady: ref(areBackupLogsReady.value),
     getLastNBackupLogsByJobId,

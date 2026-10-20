@@ -1,6 +1,6 @@
-import type { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -10,7 +10,7 @@ const { getLastNBackupLogsByJobId } = vi.hoisted(() => ({
   getLastNBackupLogsByJobId: vi.fn(),
 }))
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({ getLastNBackupLogsByJobId })) as unknown as typeof useXoBackupLogCollection,
 }))
 

@@ -1,5 +1,5 @@
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupRunItem.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type {
   FrontXoSchedule,
   useXoScheduleCollection,

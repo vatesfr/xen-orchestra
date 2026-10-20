@@ -23,12 +23,12 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobHealthCheckStatus } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -39,7 +39,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useAdminBackupJobColumns } from '@core/tables/column-sets/admin-backup-job-columns.ts'
+import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
@@ -81,7 +81,7 @@ const state = useTableState({
 
 const overviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const { HeadCells, BodyCells } = useAdminBackupJobColumns({
+const { HeadCells, BodyCells } = useBackupJobColumns({
   body: (backupJob: FrontAnyXoBackupJob) => {
     const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)
