@@ -158,7 +158,7 @@ export class TaskController extends XoController<XoTask> {
         if (
           hasPrivilegeOn(
             { user, userPrivileges, action: 'read', resource: 'task', objects: task },
-            await this.restApi.buildPrivilegeResolver([task], userPrivileges)
+            await this.restApi.buildPrivilegeResolver([task], userPrivileges, 'task')
           )
         ) {
           if (complexMatcher === undefined) {
@@ -254,13 +254,17 @@ export class TaskController extends XoController<XoTask> {
     const userPrivileges =
       user.permission === 'admin' ? [] : ((await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
 
-    const deletePromises: Promise<void>[] = []
+    const tasks: XoTask[] = []
     for await (const task of this.restApi.tasks.list()) {
+      tasks.push(task)
+    }
+
+    const privilegeResolver = await this.restApi.buildPrivilegeResolver(tasks, userPrivileges, 'task')
+
+    const deletePromises: Promise<void>[] = []
+    for (const task of tasks) {
       if (
-        hasPrivilegeOn(
-          { user, userPrivileges, resource: 'task', action: 'delete', objects: task },
-          await this.restApi.buildPrivilegeResolver([task], userPrivileges)
-        )
+        hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task }, privilegeResolver)
       ) {
         deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }

@@ -360,10 +360,10 @@ class Quantifier extends Node {
     const array = Array.isArray(values) ? values : [values]
 
     if (this.mode === 'some') {
-      return array.some(value => this.child.match(value, resolver))
+      return array.some(value => value != null && this.child.match(value, resolver))
     } else if (this.mode === 'every') {
       // nothing resolved means nothing matches
-      return array.length > 0 && array.every(value => this.child.match(value, resolver))
+      return array.length > 0 && array.every(value => value != null && this.child.match(value, resolver))
     }
 
     throw new Error(`${this.mode} quantifier not supported`)

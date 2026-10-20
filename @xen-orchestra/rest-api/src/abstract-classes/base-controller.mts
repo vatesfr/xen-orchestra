@@ -57,7 +57,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
         : []
     ) as AnyPrivilege[]
 
-    const privilegeResolver = await this.restApi.buildPrivilegeResolver(objects, userPrivileges)
+    const privilegeResolver = await this.restApi.buildPrivilegeResolver(
+      objects,
+      userPrivileges,
+      opts?.privilege?.resource
+    )
 
     let limit = opts?.limit ?? Infinity
     for (const object of objects) {

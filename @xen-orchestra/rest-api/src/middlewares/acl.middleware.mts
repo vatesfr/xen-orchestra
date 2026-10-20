@@ -13,7 +13,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
-import { Resolver } from 'complex-matcher'
+import type { Resolver } from 'complex-matcher'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 

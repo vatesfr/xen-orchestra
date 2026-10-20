@@ -582,7 +582,8 @@ export type XoApp = EventEmitter & {
   ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
-  getAnyObject(id: XoRecord['id']): Promise<XoRecord>
+  getAnyObject<T extends XoRecord>(id: T['id']): Promise<T>
+  /** Can't be narrower as buildResolver will be asked to walk objects */
   buildResolver(objects: object | object[], node: CmNode): Promise<Resolver>
   xapiObjectResolver: Resolver
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>

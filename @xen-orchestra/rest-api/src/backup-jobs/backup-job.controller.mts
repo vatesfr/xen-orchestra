@@ -59,7 +59,6 @@ import {
   vmBackupJobIds,
 } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { BackupJobService } from './backup-job.service.mjs'
-import * as CM from 'complex-matcher'
 
 const log = createLogger('xo:rest-api:backupJob-controller')
 

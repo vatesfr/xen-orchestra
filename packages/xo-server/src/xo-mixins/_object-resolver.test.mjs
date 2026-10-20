@@ -76,6 +76,18 @@ describe('ObjectResolver', function () {
       assert.deepEqual(resolver('user1'), { email: 'test@test.com' })
     })
 
+    it('prefetches and matches through a grouped property', async function () {
+      const objectResolver = new ObjectResolver(makeApp())
+      // the resolve sits inside a group, so its path has two segments
+      const node = CM.parse('properties:(userId:[resolve]:email:"test@test.com" method:vm.start)')
+      const object = { properties: { userId: 'user1', method: 'vm.start' } }
+
+      const resolver = await objectResolver.buildResolver([object], node)
+
+      assert.deepEqual(resolver('user1'), { email: 'test@test.com' })
+      assert(node.createPredicate(resolver)(object))
+    })
+
     it('resolves a non-XAPI object referenced by a XAPI object', async function () {
       const objectResolver = new ObjectResolver(makeApp())
       const node = CM.parse('$VM:[resolve]:creation:user:[resolve]:email:"test@test.com"')
@@ -85,6 +97,85 @@ describe('ObjectResolver', function () {
       // first hop is a XAPI object, second one is only reachable through `getAnyObject`
       assert.deepEqual(resolver('vm1'), xapiObjects.vm1)
       assert.deepEqual(resolver('user1'), { email: 'test@test.com' })
+    })
+
+    describe('when the same id is reached from two branches', function () {
+      // both branches dereference `shared`, but each one continues through a
+      // different field of it
+      const store = {
+        shared: { x: 'xobj', y: 'yobj' },
+        xobj: { tags: ['tx'] },
+        yobj: { tags: ['ty'] },
+      }
+      const sharedApp = {
+        getObject: id => {
+          throw noSuchObject(id)
+        },
+        getAnyObject: async id => {
+          const object = store[id]
+          if (object === undefined) {
+            throw noSuchObject(id)
+          }
+          return object
+        },
+      }
+      const object = { a: 'shared', b: 'shared' }
+      const filter = 'a:[resolve]:x:[resolve]:tags:tx b:[resolve]:y:[resolve]:tags:ty'
+
+      it('prefetches both branches', async function () {
+        const node = CM.parse(filter)
+
+        const resolver = await new ObjectResolver(sharedApp).buildResolver([object], node)
+
+        assert.deepEqual(resolver('shared'), store.shared)
+        assert.deepEqual(resolver('xobj'), store.xobj)
+        // only reachable by walking `shared` a second time, for the other branch
+        assert.deepEqual(resolver('yobj'), store.yobj)
+      })
+
+      it('matches on both branches', async function () {
+        const node = CM.parse(filter)
+
+        const resolver = await new ObjectResolver(sharedApp).buildResolver([object], node)
+
+        assert(node.createPredicate(resolver)(object))
+      })
+
+      it('looks a shared dangling id up only once', async function () {
+        // an id which resolves to nothing must be remembered too, otherwise the
+        // second branch walks the whole getter chain again
+        let lookups = 0
+        const objectResolver = new ObjectResolver({
+          ...sharedApp,
+          getAnyObject: async id => {
+            lookups++
+            return sharedApp.getAnyObject(id)
+          },
+        })
+        const node = CM.parse('a:[resolve]:x:y b:[resolve]:x:z')
+
+        await objectResolver.buildResolver([{ a: 'ghost', b: 'ghost' }], node)
+
+        assert.equal(lookups, 1)
+      })
+
+      it('fetches the shared object only once', async function () {
+        let fetches = 0
+        const node = CM.parse(filter)
+        const objectResolver = new ObjectResolver({
+          ...sharedApp,
+          getAnyObject: async id => {
+            if (id === 'shared') {
+              fetches++
+            }
+            return sharedApp.getAnyObject(id)
+          },
+        })
+
+        await objectResolver.buildResolver([object], node)
+
+        assert.equal(fetches, 1)
+      })
     })
 
     it('matches through a XAPI object onto a non-XAPI one', async function () {

@@ -1,11 +1,11 @@
 import { createLogger } from '@xen-orchestra/log'
 import { invalidCredentials } from 'xo-common/api-errors.js'
-import type { XapiXoRecord, XoApp, XoUser, XoVmBackupJob } from '@vates/types'
+import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
 
 import type { Container } from 'inversify'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import * as CM from 'complex-matcher'
-import { AnyPrivilege } from '@xen-orchestra/acl'
+import type { AnyPrivilege, SupportedResource } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:error-handler')
 
@@ -60,10 +60,14 @@ export class RestApi {
     return this.#xoApp.buildResolver(...args)
   }
 
-  async buildPrivilegeResolver(objects: object[], userPrivileges: AnyPrivilege[]): Promise<CM.Resolver | undefined> {
+  async buildPrivilegeResolver(
+    objects: object[],
+    userPrivileges: AnyPrivilege[],
+    resource?: SupportedResource
+  ): Promise<CM.Resolver | undefined> {
     const nodes: CM.Node[] = []
     userPrivileges.forEach(userPrivilege => {
-      if (userPrivilege.selector) {
+      if (userPrivilege.selector && (resource === undefined || userPrivilege.resource === resource)) {
         nodes.push(CM.parse(userPrivilege.selector))
       }
     })

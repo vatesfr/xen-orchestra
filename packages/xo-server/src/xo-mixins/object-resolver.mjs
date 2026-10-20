@@ -65,6 +65,12 @@ export default class ObjectResolver {
     /** @type {Map<XoRecord['id'], XoRecord>} */
     const anyObjects = new Map()
 
+    // ids which `getAnyObject()` could not resolve, remembered so that a filter
+    // reaching the same dangling id from another branch does not walk the whole
+    // getter chain again
+    /** @type {Set<XoRecord['id']>} */
+    const unresolvableIds = new Set()
+
     /**
      * @param {XoRecord[]} objectsToProcess
      * @param {CmNode} node
@@ -80,37 +86,45 @@ export default class ObjectResolver {
           const ids = field.path.reduce((object, path) => object?.[path], objectToProcess)
           if (ids !== undefined) {
             for (const id of Array.isArray(ids) ? ids : [ids]) {
-              if (!anyObjects.has(id)) {
-                objectIds.add(id)
-              }
+              objectIds.add(id)
             }
           }
         }
 
-        /** @type {XoRecord[]} */
-        const fetchedObjects = []
         await asyncEach(
           objectIds,
           async objectId => {
-            let fetchedObject
-            try {
-              fetchedObject = await this._app.getAnyObject(objectId)
-            } catch (error) {
-              if (!noSuchObject.is(error)) {
-                throw error
+            if (!anyObjects.has(objectId) && !unresolvableIds.has(objectId)) {
+              let fetchedObject
+              try {
+                fetchedObject = await this._app.getAnyObject(objectId)
+              } catch (error) {
+                if (!noSuchObject.is(error)) {
+                  throw error
+                }
+              }
+
+              if (fetchedObject !== undefined) {
+                anyObjects.set(objectId, fetchedObject)
+              } else {
+                unresolvableIds.add(objectId)
               }
             }
-
-            if (fetchedObject !== undefined) {
-              anyObjects.set(objectId, fetchedObject)
-              fetchedObjects.push(fetchedObject)
-            }
           },
-          { concurency: getAnyObjectsConcurrency }
+          { concurrency: getAnyObjectsConcurrency }
         )
 
-        if (fetchedObjects.length > 0) {
-          await process(fetchedObjects, field.resolveNode.child)
+        /** @type {XoRecord[]} */
+        const resolvedObjects = []
+        for (const objectId of objectIds) {
+          const resolvedObject = anyObjects.get(objectId)
+          if (resolvedObject !== undefined) {
+            resolvedObjects.push(resolvedObject)
+          }
+        }
+
+        if (resolvedObjects.length > 0) {
+          await process(resolvedObjects, field.resolveNode.child)
         }
       }
     }
@@ -154,12 +168,13 @@ export default class ObjectResolver {
       () => this._app.getXenServer(id),
     ]
 
+    const parallelPromises = parallelGetters.map(async getter => getter())
     try {
       return await new Promise((resolve, reject) => {
-        let pending = parallelGetters.length
+        let pending = parallelPromises.length
         const errors = []
-        for (const getter of parallelGetters) {
-          getter().then(resolve, error => {
+        for (const promise of parallelPromises) {
+          promise.then(resolve, error => {
             errors.push(error)
             if (--pending === 0) {
               reject(errors)

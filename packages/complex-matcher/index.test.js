@@ -225,6 +225,17 @@ describe('resolve', () => {
     assert(!parse('objects:[resolve]:nested:[resolve]:tags:not-found-tag').createPredicate(id => store[id])(target))
   })
 
+  it('matches through a grouped property', () => {
+    const filter = 'outer:(objects:[resolve]:tags:tag other:x)'
+    const predicate = parse(filter).createPredicate(id => store[id])
+
+    assert(predicate({ outer: { objects: 'object', other: 'x' } }))
+    // the resolved object matches but the sibling term of the group does not
+    assert(!predicate({ outer: { objects: 'object', other: 'nope' } }))
+    // the sibling matches but the id resolves to nothing
+    assert(!predicate({ outer: { objects: 'ghost', other: 'x' } }))
+  })
+
   it('throws when no resolver is provided', () => {
     assert.throws(() => parse('objects:[resolve]:tags:tag').createPredicate()(target), {
       message: '[resolve] requires a resolver',
@@ -310,6 +321,46 @@ describe('resolve quantifiers', () => {
       getResolveFields(field.resolveNode.child).map(_ => _.path),
       [['b']]
     )
+  })
+})
+
+describe('resolve quantifiers with a negated condition', () => {
+  const store = {
+    'object-1': { tags: ['tag'] },
+    'object-3': { tags: ['other'] },
+  }
+  const resolver = id => store[id]
+
+  // an unresolvable id must never match, whatever the condition: without a guard
+  // in the quantifier, `!tags:tag` would be *satisfied* by an unresolved object
+  const notEvery = 'objects:[resolve]:[every]:!tags:tag'
+  const notSome = 'objects:[resolve]:[some]:!tags:tag'
+
+  it('[some] matches a resolved object which satisfies the negation', () => {
+    assert(parse(notSome).createPredicate(resolver)({ objects: ['object-3'] }))
+  })
+
+  it("[some] doesn't match when only an unresolvable id would satisfy the negation", () => {
+    assert(!parse(notSome).createPredicate(resolver)({ objects: ['object-1', 'ghost'] }))
+  })
+
+  it('[every] matches when every resolved object satisfies the negation', () => {
+    assert(parse(notEvery).createPredicate(resolver)({ objects: ['object-3'] }))
+  })
+
+  it("[every] doesn't match when an id cannot be resolved", () => {
+    assert(!parse(notEvery).createPredicate(resolver)({ objects: ['object-3', 'ghost'] }))
+  })
+
+  it("[every] doesn't match when nothing could be resolved", () => {
+    assert(!parse(notEvery).createPredicate(resolver)({ objects: ['ghost-1', 'ghost-2'] }))
+  })
+
+  it('a negation outside the resolve is unaffected', () => {
+    const filter = '!(objects:[resolve]:[some]:tags:tag)'
+
+    assert(!parse(filter).createPredicate(resolver)({ objects: ['object-1', 'ghost'] }))
+    assert(parse(filter).createPredicate(resolver)({ objects: ['ghost'] }))
   })
 })
 

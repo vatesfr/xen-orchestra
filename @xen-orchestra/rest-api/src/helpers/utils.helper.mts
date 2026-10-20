@@ -8,7 +8,7 @@ import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
 import { XMLParser } from 'fast-xml-parser'
 
-import { RestApi } from '../rest-api/rest-api.mjs'
+import type { RestApi } from '../rest-api/rest-api.mjs'
 export const BASE_URL = '/rest/v0'
 export { default as forEach } from 'lodash/forEach.js'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'

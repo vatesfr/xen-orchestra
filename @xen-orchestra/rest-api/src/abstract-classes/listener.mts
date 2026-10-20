@@ -142,12 +142,6 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return event
     }
 
-    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
-    const privilegeResolver = await restApi.buildPrivilegeResolver(
-      [object, previousObject].filter(o => o !== undefined),
-      userPrivileges
-    )
-
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
@@ -160,6 +154,13 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       // cast is necessary because `Object.entries` loses inference on the key (it transforms it into a simple string).
       ;[resource] = resourceXapiType as [keyof typeof XAPI_TYPE_BY_ACL_RESOURCE, XapiXoRecord['type']]
     }
+
+    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const privilegeResolver = await restApi.buildPrivilegeResolver(
+      [object, previousObject].filter(o => o !== undefined),
+      userPrivileges,
+      resource
+    )
 
     switch (event) {
       case 'add':
