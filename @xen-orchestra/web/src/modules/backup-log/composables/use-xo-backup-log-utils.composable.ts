@@ -1,4 +1,4 @@
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import type { Info, Scale } from 'human-format'

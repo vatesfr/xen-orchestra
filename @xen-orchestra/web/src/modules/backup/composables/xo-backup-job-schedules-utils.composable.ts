@@ -2,7 +2,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-
 import {
   useXoBackupLogCollection,
   type FrontXoBackupLog,
-} from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { useI18n } from 'vue-i18n'

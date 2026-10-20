@@ -1,6 +1,6 @@
-import AdminBackupLogInfosCard from '@/modules/admin-backup-log/components/list/panel/cards/AdminBackupLogInfosCard.vue'
 import type { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import BackupLogInfosCard from '@/modules/backup-log/components/list/panel/cards/BackupLogInfosCard.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type {
@@ -81,7 +81,7 @@ function mockSrs(srs: FrontXoSr[]) {
 }
 
 function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
-  return mount(AdminBackupLogInfosCard, {
+  return mount(BackupLogInfosCard, {
     props: { backupLog },
     global: createGlobalTestConfig(),
   })
