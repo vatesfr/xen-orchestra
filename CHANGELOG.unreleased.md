@@ -29,7 +29,7 @@
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
 - [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB) (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
-- [Mirror] The incremental mirrors between remotes don't recompress block if the sources and remote use the same compression (PR [#10581](https://github.com/vatesfr/xen-orchestra/pull/10581))
+- [Mirror] The incremental mirrors between remotes don't recompress the blocks if the source and destination use the same compression (PR [#10581](https://github.com/vatesfr/xen-orchestra/pull/10581))
 - [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
@@ -105,8 +105,9 @@
 - @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/acl minor
-- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch

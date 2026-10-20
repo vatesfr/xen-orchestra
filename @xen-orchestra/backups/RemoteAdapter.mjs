@@ -674,15 +674,7 @@ export class RemoteAdapter {
     return path
   }
 
-  /**
-   * @param {boolean} [options.compressedBlocks] the disk blocks are stored with this remote compression, see
-   *   readIncrementalVmBackup
-   */
-  async writeVhd(
-    path,
-    disk,
-    { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath, compressedBlocks = false } = {}
-  ) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
@@ -694,14 +686,12 @@ export class RemoteAdapter {
           concurrency: writeBlockConcurrency,
           validator,
           compression: this.getVhdDirectoryCompression(),
-          compressedBlocks,
           uuid,
           parentUuid,
           parentPath,
         },
       })
     } else {
-      assert.ok(!compressedBlocks, `can't write compressed blocks in a VHD file`)
       const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
       const size = await this.outputStream(path, stream, {
         validator,
@@ -735,36 +725,24 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain, compressedBlocks = false }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
-      assert.ok(!compressedBlocks, `can't read compressed blocks of a disk chain`)
+      assert.strictEqual(rawBlocksCompression, undefined, `can't read raw blocks of a disk chain`)
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhdDisk({ handler, path, compressedBlocks })
+      disk = new RemoteVhdDisk({ handler, path, rawBlocksCompression })
       await disk.init()
-      // the configuration of the remote may have changed since this disk was written
-      if (compressedBlocks) {
-        const diskCompression = disk.getCompressionType()
-        const remoteCompression = this.getVhdDirectoryCompression()
-        if (diskCompression !== remoteCompression) {
-          await disk.close()
-          throw Object.assign(
-            new Error(`can't read compressed blocks, the disk compression differs from the remote one`),
-            { path, diskCompression, remoteCompression }
-          )
-        }
-      }
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
   /**
-   * @param {boolean} [options.compressedBlocks] read the blocks as stored, compressed with this remote compression,
-   *   to be written as is in a remote using the same compression (see writeVhd), VHD directories only
+   * `rawBlocksCompression`: the blocks of the VHD directories using this compression are read as stored (see
+   * RemoteVhdDisk), to be written as is in a remote using the same compression
    */
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, compressedBlocks = false } = {}) {
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -772,7 +750,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, compressedBlocks })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {

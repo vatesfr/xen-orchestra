@@ -12,6 +12,7 @@ import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 import assert from 'node:assert'
+import { isCompressedBlock } from './compressedBlock.mjs'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -24,8 +25,6 @@ import assert from 'node:assert'
  * @property {Buffer?} parentUuid
  * @property {string?} parentPath
  * @property {(path: string) => Promise<void>} validator
- * @property {boolean} [compressedBlocks] the source blocks are already stored with `compression` (bitmap and data
- *   compressed together, see VhdDirectory#readCompressedBlock): write them as is
  */
 
 /**
@@ -49,18 +48,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
    * @returns {Promise<number>}
    */
   async write(signal) {
-    const {
-      handler,
-      path,
-      compression,
-      compressedBlocks = false,
-      flags,
-      validator,
-      concurrency,
-      uuid,
-      parentUuid,
-      parentPath,
-    } = this.#target
+    const { handler, path, compression, flags, validator, concurrency, uuid, parentUuid, parentPath } = this.#target
     const SUFFIX = '.alias.vhd'
     assert.ok(path.endsWith(SUFFIX), `filename must be an alias , got ${path}`)
     const base = basename(path).slice(0, -SUFFIX.length)
@@ -89,9 +77,16 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       let truncatedBlock = null
       await asyncEach(
         generator,
-        async ({ index, data }) => {
+        async block => {
           signal?.throwIfAborted()
-          if (compressedBlocks) {
+          const { index, data } = block
+          if (isCompressedBlock(block)) {
+            // writing it with another compression would produce an unreadable block
+            assert.strictEqual(
+              block.compression,
+              compression,
+              `can't write a ${block.compression} compressed block ${index} in ${dataPath}`
+            )
             // the size of a compressed block is not related to the block size
             await vhd.writeCompressedBlock(index, data)
             return

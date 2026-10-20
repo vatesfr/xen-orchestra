@@ -76,20 +76,19 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
 
   async _run() {
     const transferList = await this._computeTransferList(({ mode }) => mode === 'delta')
-    const rawBlocksCompression = this.#getRawBlocksCompression()
     // the source remote writes with the same compression as all the writers: the blocks can be copied as stored
-    // this is based on the remote configurations, each source disk must still be checked since its compression may
-    // predate a configuration change
-    const sameCompression =
-      rawBlocksCompression !== undefined &&
-      rawBlocksCompression === this._sourceRemoteAdapter.getVhdDirectoryCompression()
+    // this is based on the remote configurations, each source disk checks its own compression since it may predate a
+    // configuration change, and falls back to a normal read
+    const writersCompression = this.#getRawBlocksCompression()
+    const rawBlocksCompression =
+      writersCompression === this._sourceRemoteAdapter.getVhdDirectoryCompression() ? writersCompression : undefined
     const nbTransferrableVms = transferList.length
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       assert.strictEqual(metadata.mode, 'delta')
       const incrementalExport = await this._sourceRemoteAdapter.readIncrementalVmBackup(metadata, undefined, {
         useChain: false,
-        compressedBlocks: sameCompression,
+        rawBlocksCompression,
       })
       // don't trust metadata too much
       // recompute if it's a base backup
@@ -123,7 +122,6 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
             deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
             includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
             isVhdDifferencing,
-            sameCompression,
             timestamp: metadata.timestamp,
             vm: metadata.vm,
             vmSnapshot: metadata.vmSnapshot,

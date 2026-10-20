@@ -14,8 +14,6 @@
  * @property {Buffer?} parentUuid
  * @property {string?} parentPath
  * @property {(path: string) => Promise<void>} validator
- * @property {boolean} [compressedBlocks] the source blocks are already stored with `compression` (bitmap and data
- *   compressed together, see VhdDirectory#readCompressedBlock): write them as is
  *
  */
 
