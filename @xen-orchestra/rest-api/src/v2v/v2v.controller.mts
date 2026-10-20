@@ -119,6 +119,8 @@ export class V2vController extends Controller {
     const task = this.#restApi.tasks.create({
       name: `REST API: ${V2V_TASK_NAME}`,
       type: 'xo:rest-api:action',
+      objectId: body.pool,
+      objectType: 'pool',
       params: {
         platform: body.platform,
         host: body.connection.host,
