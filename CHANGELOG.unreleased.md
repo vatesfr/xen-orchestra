@@ -17,6 +17,7 @@
 - [XO6/VM] Warn that deleting a VM also deletes its snapshots and disks (PR [#10554](https://github.com/vatesfr/xen-orchestra/pull/10554))
 - [Backup jobs] Add backup job list in admin menu (PR [#10630](https://github.com/vatesfr/xen-orchestra/pull/10630))
 - [Backup jobs] Add backup job side panel in admin menu (PR [#10631](https://github.com/vatesfr/xen-orchestra/pull/10631))
+- [Backup jobs] The backup links of the site dashboard and the VM Backups tab now use the backup jobs of the admin menu (PR [#10636](https://github.com/vatesfr/xen-orchestra/pull/10636))
 
 ### Bug fixes
 
