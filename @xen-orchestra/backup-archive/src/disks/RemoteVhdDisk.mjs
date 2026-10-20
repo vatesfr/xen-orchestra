@@ -46,11 +46,6 @@ export class RemoteVhdDisk extends RemoteDisk {
   #blockSize = 2 * 1024 * 1024
 
   /**
-   * @type {number}
-   */
-  #bitmapSize = 512
-
-  /**
    * @type {() => any}
    */
   #dispose = () => {}
@@ -263,10 +258,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd === undefined) {
       throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
     }
-    await this.#vhd.writeEntireBlock({
-      id: diskBlock.index,
-      buffer: Buffer.concat([Buffer.alloc(this.#bitmapSize, 255), diskBlock.data]),
-    })
+    await this.#vhd.writeBlockData(diskBlock.index, diskBlock.data)
 
     return this.getBlockSize()
   }

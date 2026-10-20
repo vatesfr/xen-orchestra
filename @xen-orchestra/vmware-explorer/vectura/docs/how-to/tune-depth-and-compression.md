@@ -26,6 +26,11 @@ answered when its last chunk arrives.
 
 The range is 1 to 32; anything else is a usage error.
 
+An ESXi 6.x host takes one read at a time and sends every read as stored:
+there the depth is 1 and `--compression` changes nothing, whatever is
+given. See
+[Host requirements and limits](../reference/host-requirements-and-limits.md#esxi-6x-hosts).
+
 ## Compression
 
 | Mode              | What the host sends                               | When                                                                                                                                                              |

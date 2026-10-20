@@ -2,7 +2,7 @@
   <UiTitle>
     {{ t('backup-logs') }}
   </UiTitle>
-  <VtsQueryBuilder v-model="filter" :schema />
+  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>

@@ -347,7 +347,10 @@ export class QcowStreamGenerator {
         if (data.length < disk.getBlockSize()) {
           truncatedBlock = { data, index }
         }
-        yield* self.#trackAndYield(Buffer.concat([data], disk.getBlockSize()))
+        // only the truncated last block is padded: a full block is yielded without copying it
+        yield* self.#trackAndYield(
+          data.length < disk.getBlockSize() ? Buffer.concat([data], disk.getBlockSize()) : data
+        )
         nbGeneratedBlock++
       }
 

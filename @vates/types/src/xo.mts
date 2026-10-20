@@ -118,7 +118,7 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
         major: null | number
@@ -208,6 +208,7 @@ export type XoBackupRepositoryBenchmark = {
 }
 
 export type XoBackupRepository = {
+  available?: number
   benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
@@ -215,7 +216,9 @@ export type XoBackupRepository = {
   name: string
   options?: string
   proxy?: XoProxy['id']
+  size?: number
   url: string
+  used?: number
 }
 
 export type XoGpuGroup = BaseXapiXo & {
@@ -609,6 +612,7 @@ export type XoServer = {
   label?: string
   master?: XoHost['id']
   poolId?: XoPool['id']
+  poolMembersAddresses?: string[]
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
