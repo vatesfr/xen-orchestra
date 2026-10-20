@@ -4,6 +4,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import {
   countV2vPoolResources,
+  getOfferedV2vDestinationPrefill,
   getV2vDestinationPrefill,
   getV2vPoolDestinationChoices,
   getV2vPoolManagementNetworkId,
@@ -82,6 +83,32 @@ describe('getV2vPoolManagementNetworkId', () => {
 
   it('returns nothing when the master has no management PIF', () => {
     expect(getV2vPoolManagementNetworkId(POOL, [createPif()])).toBeUndefined()
+  })
+})
+
+describe('getOfferedV2vDestinationPrefill', () => {
+  const DEFAULTS = createV2vMigrationList().defaults
+
+  const CHOICES = { srs: [createSr()], networks: [createNetwork()], templates: [createVmTemplate()] }
+
+  it('keeps the defaults the pool offers', () => {
+    expect(getOfferedV2vDestinationPrefill(DEFAULTS, CHOICES)).toEqual(DEFAULTS)
+  })
+
+  it('leaves out each default not offered yet, or gone from the pool', () => {
+    expect(getOfferedV2vDestinationPrefill(DEFAULTS, { srs: [], networks: CHOICES.networks, templates: [] })).toEqual({
+      sr: undefined,
+      network: DEFAULTS.network,
+      template: undefined,
+    })
+  })
+
+  it('keeps nothing of an empty prefill', () => {
+    expect(getOfferedV2vDestinationPrefill({}, CHOICES)).toEqual({
+      sr: undefined,
+      network: undefined,
+      template: undefined,
+    })
   })
 })
 
