@@ -1,4 +1,7 @@
-import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type {
+  FrontAnyXoBackupJob,
+  FrontXoVmBackupJob,
+} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { XoSr } from '@vates/types'
 
@@ -34,4 +37,10 @@ export function getBackupJobHealthCheckSrIds(backupJob: FrontAnyXoBackupJob): Xo
   })
 
   return Array.from(srIds)
+}
+
+export function hasBackupJobSnapshotRetention(backupJob: FrontXoVmBackupJob): boolean {
+  return Object.values(backupJob.settings).some(
+    settings => typeof settings?.snapshotRetention === 'number' && settings.snapshotRetention > 0
+  )
 }

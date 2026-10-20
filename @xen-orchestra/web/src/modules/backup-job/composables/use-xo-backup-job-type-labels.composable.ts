@@ -1,4 +1,5 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { hasBackupJobSnapshotRetention } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -19,7 +20,7 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
 
     switch (job.type) {
       case 'backup':
-        if (Object.values(job.settings).some(settings => Number(settings?.snapshotRetention) > 0)) {
+        if (hasBackupJobSnapshotRetention(job)) {
           labels.push(t('backup:rolling-snapshot'))
         }
 

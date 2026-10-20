@@ -6,14 +6,12 @@ export function getMetadataBackupJobSettings(job: FrontXoMetadataBackupJob): XoB
     return {}
   }
 
-  const { hideSuccessfulItems, backupReportTpl, reportWhen, reportRecipients, ...other } = job.settings['']
+  const { backupReportTpl, reportWhen, reportRecipients } = job.settings['']
 
   return {
     proxy: job.proxy,
-    hideSuccessfulItems,
     backupReportTpl,
     reportWhen,
     reportRecipients,
-    other,
   }
 }

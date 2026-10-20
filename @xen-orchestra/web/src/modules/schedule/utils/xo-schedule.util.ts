@@ -1,4 +1,4 @@
-import type { FrontXoSchedule } from '@/modules/backup-job/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createSchedule } from '@xen-orchestra/cron'
 
 export function getScheduleNextRun(schedule: FrontXoSchedule): Date | undefined {

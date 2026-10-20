@@ -10,13 +10,11 @@ export function getMirrorBackupJobSettings(job: FrontXoMirrorBackupJob): XoBacku
     concurrency,
     maxExportRate,
     nRetriesVmBackupFailures,
-    hideSuccessfulItems,
     backupReportTpl,
     reportWhen,
     timeout,
     reportRecipients,
     mergeBackupsSynchronously,
-    ...other
   } = job.settings['']
 
   return {
@@ -24,12 +22,10 @@ export function getMirrorBackupJobSettings(job: FrontXoMirrorBackupJob): XoBacku
     concurrency,
     maxExportRate,
     nRetriesVmBackupFailures,
-    hideSuccessfulItems,
     backupReportTpl,
     reportWhen,
     timeout,
     reportRecipients,
     mergeBackupsSynchronously,
-    other,
   }
 }

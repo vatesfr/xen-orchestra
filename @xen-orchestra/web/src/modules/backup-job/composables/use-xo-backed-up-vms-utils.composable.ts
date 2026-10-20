@@ -70,7 +70,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
 
     return {
       included: tags.values?.flat(),
-      excluded: [...tags.notValues?.flat(), 'xo:no-bak'],
+      excluded: [...(tags.notValues?.flat() ?? []), 'xo:no-bak'],
     }
   })
 

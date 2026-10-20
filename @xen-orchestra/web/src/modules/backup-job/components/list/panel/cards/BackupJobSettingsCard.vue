@@ -18,7 +18,7 @@
           <VtsCopyButton :value="snapshotModeTranslation" />
         </template>
       </VtsCardRowKeyValue>
-      <template v-if="hasVmBackupSettings">
+      <template v-if="hasTransferSettings">
         <VtsCardRowKeyValue>
           <template #key>{{ t('vm-backup-failure-number-of-retries') }}</template>
           <template #value>{{ settings.nRetriesVmBackupFailures }}</template>
@@ -38,7 +38,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('report-when') }}</template>
         <template #value>{{ reportWhenValueTranslation }}</template>
-        <template #addons>
+        <template v-if="reportWhenValueTranslation !== undefined" #addons>
           <VtsCopyButton :value="reportWhenValueTranslation" />
         </template>
       </VtsCardRowKeyValue>
@@ -72,7 +72,7 @@
         <template #key>{{ t('report-recipients') }}</template>
         <template #value />
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="hasVmBackupSettings">
+      <VtsCardRowKeyValue v-if="hasTransferSettings">
         <template #key>{{ t('concurrency') }}</template>
         <template #value>{{ settings.concurrency }}</template>
       </VtsCardRowKeyValue>
@@ -95,7 +95,7 @@
           <VtsStatus :status="settings.backupReportTpl === 'compactMjml'" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="hasVmBackupSettings">
+      <VtsCardRowKeyValue v-if="hasTransferSettings">
         <template #key>{{ t('merge-backups-synchronously') }}</template>
         <template #value>
           <VtsStatus :status="!!settings.mergeBackupsSynchronously" />
@@ -108,6 +108,7 @@
 <script lang="ts" setup>
 import { useXoBackupJobSettingsUtils } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { hasBackupJobSnapshotRetention } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -138,15 +139,11 @@ const {
 
 const isVmBackupJob = computed(() => backupJob.type === 'backup')
 
-const hasVmBackupSettings = computed(() => backupJob.type === 'backup' || backupJob.type === 'mirrorBackup')
+const hasTransferSettings = computed(() => backupJob.type === 'backup' || backupJob.type === 'mirrorBackup')
 
 const canSetCompression = computed(() => backupJob.type === 'backup' && backupJob.mode === 'full')
 
-const canSetOfflineBackup = computed(
-  () =>
-    backupJob.type === 'backup' &&
-    !Object.values(backupJob.settings).some(settings => Number(settings?.snapshotRetention) > 0)
-)
+const canSetOfflineBackup = computed(() => backupJob.type === 'backup' && !hasBackupJobSnapshotRetention(backupJob))
 
 const VISIBLE_REPORT_RECIPIENTS_COUNT = 5
 
