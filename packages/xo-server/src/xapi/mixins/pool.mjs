@@ -459,6 +459,8 @@ const methods = {
         for (const host of hosts) {
           recorder.stepNotNeeded(host.uuid, 'restoreVms')
         }
+        // no VM is expected home anymore, whatever a previous attempt left
+        recorder.setVmConflicts([])
       })
     }
 
@@ -485,7 +487,7 @@ const methods = {
       // whole phase
       const vm = this.getObject(vmId, undefined)
       if (vm?.power_state !== 'Running') {
-        vmsLeftAlone.push({ hostId, vmId, powerState: vm?.power_state })
+        vmsLeftAlone.push({ hostId, vmId, vmName: vm?.name_label, powerState: vm?.power_state })
         return
       }
 
@@ -606,6 +608,24 @@ const methods = {
         }
         log.warn('could not migrate all the VMs back to their host', { pool: this.pool.uuid, strandedVms })
       }
+
+      // what the run could not bring home stays in the record, for the
+      // operator to see
+      recorder.setVmConflicts([
+        ...vmsLeftAlone.map(({ hostId, vmId, vmName, powerState }) => ({
+          vmId,
+          vmName,
+          hostId,
+          reason: powerState === undefined ? 'deleted' : 'stopped',
+        })),
+        ...pendingVms.map(({ hostId, message, vmId, vmName }) => ({
+          vmId,
+          vmName,
+          hostId,
+          reason: 'migration-failed',
+          message,
+        })),
+      ])
     })
   },
 }

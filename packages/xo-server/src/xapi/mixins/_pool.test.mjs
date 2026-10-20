@@ -193,18 +193,23 @@ const settingsSpy = xapi => {
   return { events, recorder, xapi }
 }
 
-// records only the step transitions, the rest of the recorder is a no-op
+// records only the step transitions and the VM conflicts, the rest of the
+// recorder is a no-op
 const stepSpyRecorder = () => {
   const steps = []
   const record = status => (hostId, name) => steps.push({ status, hostId, name })
-  return {
+  const spy = {
     ...noopRpuRecorder,
     steps,
+    setVmConflicts: vmConflicts => {
+      spy.vmConflicts = vmConflicts
+    },
     stepRunning: record('running'),
     stepObserved: record('observed'),
     stepNotNeeded: record('not-needed'),
     stepFailed: record('failed'),
   }
+  return spy
 }
 
 const rollingPoolReboot = async (xapi, options) => {
@@ -296,12 +301,15 @@ describe('rollingPoolReboot', function () {
       ['vm-a2']
     )
 
-    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi)
+    const recorder = stepSpyRecorder()
+
+    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.deepEqual(strandedVms, [])
     assert.deepEqual(xapi.strayedVms(), [])
-    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a2', powerState: undefined }])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a2', vmName: undefined, powerState: undefined }])
+    assert.deepEqual(recorder.vmConflicts, [{ vmId: 'vm-a2', vmName: undefined, hostId: 'host-A', reason: 'deleted' }])
   })
 
   it('leaves the VMs halted during the run where they are, and reports them', async function () {
@@ -321,8 +329,10 @@ describe('rollingPoolReboot', function () {
     assert.equal(error, undefined)
     assert.deepEqual(strandedVms, [])
     assert.deepEqual(xapi.strayedVms(), ['vm-a1'])
-    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a1', powerState: 'Halted' }])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a1', vmName: 'vm a1', powerState: 'Halted' }])
     assert.ok(!recorder.steps.some(_ => _.status === 'failed'))
+    // still a conflict to show: the run did not bring it home
+    assert.deepEqual(recorder.vmConflicts, [{ vmId: 'vm-a1', vmName: 'vm a1', hostId: 'host-A', reason: 'stopped' }])
   })
 
   it('records every VM a host could not get back in its restoreVms failure', async function () {
@@ -335,7 +345,8 @@ describe('rollingPoolReboot', function () {
       [0, 90]
     )
     const errors = []
-    const recorder = { ...noopRpuRecorder, stepFailed: (hostId, name, error) => errors.push([hostId, error.message]) }
+    const recorder = stepSpyRecorder()
+    recorder.stepFailed = (hostId, name, error) => errors.push([hostId, error.message])
 
     await rollingPoolReboot(xapi, { recorder })
 
@@ -344,6 +355,14 @@ describe('rollingPoolReboot', function () {
       ['host-B']
     )
     assert.match(errors[0][1], /vm-b1.*vm-b2/)
+    assert.deepEqual(
+      recorder.vmConflicts.map(({ vmId, vmName, hostId, reason }) => ({ vmId, vmName, hostId, reason })),
+      [
+        { vmId: 'vm-b1', vmName: 'vm b1', hostId: 'host-B', reason: 'migration-failed' },
+        { vmId: 'vm-b2', vmName: 'vm b2', hostId: 'host-B', reason: 'migration-failed' },
+      ]
+    )
+    assert.match(recorder.vmConflicts[0].message, /HOST_NOT_ENOUGH_FREE_MEMORY/)
   })
 
   it('persists the settings it changes before changing them, and how each host was before', async function () {
@@ -459,6 +478,9 @@ describe('rollingPoolReboot', function () {
     // a run which died before reaching it
     assert.ok(taskNames.includes('Skip migrating VMs back'))
     assert.ok(!taskNames.includes('Migrate VMs back'))
+    // nothing was expected to come home: the conflicts of a previous attempt
+    // must not fail this run
+    assert.deepEqual(recorder.vmConflicts, [])
 
     // a skipped phase must not leave `restoreVms` pending, otherwise the
     // recovery record shows a finished run as still running

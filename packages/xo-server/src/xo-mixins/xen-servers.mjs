@@ -1118,9 +1118,11 @@ export default class XenServers {
     $defer.onFailure(() => recorder.dropIfNothingToRecover())
     // a successful run needs no recovery: the record must be gone, unless a
     // setting could not be restored or some VMs could not be migrated back,
-    // then it stays failed with what is left to restore. If the delete fails, the recorder has stamped the record
-    // `succeeded` so the run is not reported as interrupted at the next
-    // restart; a stale record must not fail an RPU that succeeded: log it
+    // then it stays failed with what is left to restore, or VMs were stopped
+    // or deleted during the run, then it stays succeeded for Finalize. If the
+    // delete fails, the recorder has stamped the record `succeeded` so the run
+    // is not reported as interrupted at the next restart; a stale record must
+    // not fail an RPU that succeeded: log it
     $defer.onSuccess(async () => {
       try {
         await recorder.complete()

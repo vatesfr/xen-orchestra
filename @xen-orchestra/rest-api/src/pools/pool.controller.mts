@@ -722,7 +722,8 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
-   * step statuses, last error, pinned VMs still halted. 404 when the last
+   * step statuses, last error, pinned VMs still halted, VMs the update could
+   * not migrate back to their original host (`vmConflicts`). 404 when the last
    * rolling pool update completed successfully (no recovery needed), or when
    * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
    * record is kept for those pools).

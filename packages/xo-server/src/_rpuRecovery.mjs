@@ -96,8 +96,8 @@ function deriveHostStatus(steps, isRunLive) {
 
 /**
  * Projects a readable record onto its public view: run identity and status,
- * dates, current task, per-host steps, last filtered error and halted pinned
- * VMs.
+ * dates, current task, per-host steps, last filtered error, halted pinned VMs
+ * and the VMs the run could not bring home.
  *
  * Never exposes the raw intent: options, initial VM placement and agent times
  * stay in the record.
@@ -150,6 +150,7 @@ export function buildRpuRecoveryView(record) {
     hosts,
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
+    vmConflicts: record.vmConflicts ?? [],
   }
 }
 
@@ -318,7 +319,8 @@ export const noopRpuRecorder = Object.freeze({
   fail: asyncNoop,
   dropIfNothingToRecover: asyncNoop,
   complete: asyncNoop,
-  hostsWithStrandedVms: () => [],
+  setVmConflicts: noop,
+  getVmConflicts: () => [],
 })
 
 /**
@@ -382,6 +384,8 @@ export function createRpuRecoveryRecorder({ store, record }) {
   // reported as interrupted at the next restart
   const markSucceeded = async () => {
     record.status = 'succeeded'
+    // the error of a previous attempt is not current anymore
+    record.lastError = null
     record.finishedAt = new Date().toISOString()
     await enqueueWrite().catch(warnOnce)
   }
@@ -401,8 +405,6 @@ export function createRpuRecoveryRecorder({ store, record }) {
     await enqueueWrite().catch(warnOnce)
   }
   const settingsLeftChanged = () => Object.keys(record.changedByRun ?? {})
-  const hostsWithStrandedVms = () =>
-    Object.keys(record.hosts).filter(hostId => record.hosts[hostId].steps.restoreVms?.status === 'failed')
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
@@ -565,22 +567,36 @@ export function createRpuRecoveryRecorder({ store, record }) {
         await deleteRecord().catch(warnOnce)
       }
     },
-    // hosts whose VMs could not all be migrated back
-    hostsWithStrandedVms,
+    // the VMs the last migrate back could not bring home, and why: each
+    // migrate back replaces them
+    setVmConflicts(vmConflicts) {
+      record.vmConflicts = vmConflicts
+      write()
+    },
+    getVmConflicts() {
+      return record.vmConflicts ?? []
+    },
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart. Meant to run
     // after the restorations of the settings: one that failed keeps the record
     // `failed` with what is left, a resume restores it again. VMs left away
-    // from their host keep it failed too: a resume migrates them back
+    // from their host keep it failed too: a resume migrates them back. VMs
+    // stopped or deleted during the run keep it succeeded: the operator
+    // reviews them, then finalizes
     async complete() {
-      const strandedVmHostIds = hostsWithStrandedVms()
+      const vmConflicts = record.vmConflicts ?? []
+      const strandedVms = vmConflicts.filter(_ => _.reason === 'migration-failed')
       const left = settingsLeftChanged()
-      if (strandedVmHostIds.length > 0) {
-        await fail(new Error(`could not migrate all the VMs back to hosts ${strandedVmHostIds.join(', ')}`))
-      } else if (left.length === 0) {
-        await deleteOrSucceed()
-      } else {
+      if (strandedVms.length > 0) {
+        await fail(
+          new Error(`could not migrate VMs back to their host: ${strandedVms.map(_ => _.vmName ?? _.vmId).join(', ')}`)
+        )
+      } else if (left.length > 0) {
         await fail(new Error(`settings changed by the rolling pool update not restored: ${left.join(', ')}`))
+      } else if (vmConflicts.length > 0) {
+        await markSucceeded()
+      } else {
+        await deleteOrSucceed()
       }
     },
   }

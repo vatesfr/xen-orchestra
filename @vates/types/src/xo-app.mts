@@ -149,6 +149,19 @@ export type PoolRollingUpdateRecoveryHost = {
   lastError: PoolRollingUpdateRecoveryError | null
 }
 
+/** a VM the last migrate back of the run could not bring to its original host */
+export type PoolRollingUpdateRecoveryVmConflict = {
+  vmId: string
+  /** unknown for a VM deleted before the run could read it */
+  vmName?: string
+  /** UUID of the host the VM was running on before the run */
+  hostId: string
+  /** `stopped` and `deleted`: left to the operator; `migration-failed`: retried by a resume */
+  reason: 'stopped' | 'deleted' | 'migration-failed'
+  /** XAPI error of the last migration, `migration-failed` only */
+  message?: string
+}
+
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
@@ -168,6 +181,7 @@ export type PoolRollingUpdateRecoveryRun = {
   lastError: PoolRollingUpdateRecoveryError | null
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
+  vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */
