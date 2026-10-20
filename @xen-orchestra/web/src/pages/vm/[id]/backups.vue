@@ -1,16 +1,19 @@
 <template>
-  <VtsContentSidePanel class="backups">
-    <UiCard class="container">
-      <BackupJobsTable :backup-jobs="vmBackupJobs" :busy="!areVmBackupJobsReady" :error="hasVmBackupJobFetchError" />
-    </UiCard>
+  <VtsContentSidePanel>
+    <div class="container">
+      <UiCard>
+        <BackupJobsTable :backup-jobs="vmBackupJobs" :busy="!areVmBackupJobsReady" :error="hasVmBackupJobFetchError" />
+      </UiCard>
+    </div>
+
     <BackupJobSidePanel :backup-job="selectedBackupJob" @close="selectedBackupJob = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
-import BackupJobsTable from '@/modules/backup/components/jobs/BackupJobsTable.vue'
-import BackupJobSidePanel from '@/modules/backup/components/jobs/panel/BackupJobSidePanel.vue'
-import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
+import BackupJobSidePanel from '@/modules/backup-job/components/list/panel/BackupJobSidePanel.vue'
+import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoVmBackupJobCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-jobs-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -30,11 +33,8 @@ const selectedBackupJob = useRouteQuery<FrontXoVmBackupJob | undefined>('id', {
 </script>
 
 <style scoped lang="postcss">
-.backups {
-  .container {
-    height: fit-content;
-    gap: 4rem;
-    margin: 0.8rem;
-  }
+.container {
+  height: fit-content;
+  margin: 0.8rem;
 }
 </style>
