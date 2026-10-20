@@ -951,16 +951,45 @@ class Netbox {
 
     const isBadRequest = error => error.response?.status === 400
     const rejectedIps = []
-    const createIp = async ipToCreate => {
+    // Netbox rejects a whole request if one of its IPs is invalid (e.g. it
+    // already exists) and returns one error per IP: send the valid ones again
+    const createIps = async ipsToCreate => {
       try {
-        const [nbIp] = await this.#request('/ipam/ip-addresses/', 'POST', [ipToCreate.nbIp])
-        nbIps[nbIp.id] = nbIp
+        const newNbIps = await this.#request(
+          '/ipam/ip-addresses/',
+          'POST',
+          ipsToCreate.map(({ nbIp }) => nbIp)
+        )
+        Object.assign(nbIps, keyBy(newNbIps, 'id'))
       } catch (error) {
         if (!isBadRequest(error)) {
           throw error
         }
 
-        rejectedIps.push({ ...ipToCreate, error: error.netboxError })
+        const errors = error.netboxError
+        if (!Array.isArray(errors) || errors.length !== ipsToCreate.length || errors.every(isEmpty)) {
+          if (ipsToCreate.length === 1) {
+            rejectedIps.push({ ...ipsToCreate[0], error: errors })
+            return
+          }
+
+          for (const ipToCreate of ipsToCreate) {
+            await createIps([ipToCreate])
+          }
+          return
+        }
+
+        const validIps = []
+        ipsToCreate.forEach((ipToCreate, i) => {
+          if (isEmpty(errors[i])) {
+            validIps.push(ipToCreate)
+          } else {
+            rejectedIps.push({ ...ipToCreate, error: errors[i] })
+          }
+        })
+        if (validIps.length > 0) {
+          await createIps(validIps)
+        }
       }
     }
 
@@ -978,29 +1007,12 @@ class Netbox {
       }
     }
 
-    // Netbox rejects a whole request if one of its IPs is invalid (e.g. it
-    // already exists), so retry them one by one in that case
     for (const ipsChunk of chunk(uniqueIpsToCreate, CHUNK_SIZE)) {
-      try {
-        const newNbIps = await this.#request(
-          '/ipam/ip-addresses/',
-          'POST',
-          ipsChunk.map(({ nbIp }) => nbIp)
-        )
-        Object.assign(nbIps, keyBy(newNbIps, 'id'))
-      } catch (error) {
-        if (!isBadRequest(error)) {
-          throw error
-        }
-
-        for (const ipToCreate of ipsChunk) {
-          await createIp(ipToCreate)
-        }
-      }
+      await createIps(ipsChunk)
     }
 
     for (const ipToCreate of duplicateIpsToCreate) {
-      await createIp(ipToCreate)
+      await createIps([ipToCreate])
     }
 
     // An IP can only be assigned to one interface: when several VMs report the
