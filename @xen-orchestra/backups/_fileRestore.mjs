@@ -66,7 +66,29 @@ export const toLvPartitions = (partitionId, originalVgName, lvItems) =>
     }))
 
 const makeRelative = path => resolve('/', path).slice(1)
-const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
+
+// The partition is mounted on the XOA/proxy, so the kernel resolves a guest symlink against the
+// host root: following one (e.g. `ln -s / foo` in the VM, then `/foo/etc`) would read host files.
+// Symlinks are therefore not supported by file restore: a path going through one is refused,
+// checked component by component with lstat. The mount is read-only, so no check/use race.
+export async function resolveWithoutSymlinks(rootPath, path) {
+  const relativePath = makeRelative(path)
+  let currentPath = rootPath
+  for (const name of relativePath.split('/')) {
+    if (name === '') {
+      continue
+    }
+    currentPath = join(currentPath, name)
+    const stats = await lstat(currentPath)
+    if (stats.isSymbolicLink()) {
+      const error = new Error(`symbolic links are not supported by file restore: ${path}`)
+      error.code = 'ELINK_NOT_SUPPORTED'
+      error.path = path
+      throw error
+    }
+  }
+  return relativePath
+}
 
 async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
   for (const relativePath of relativePaths) {
@@ -290,6 +312,12 @@ export const fileRestoreMethods = {
     const self = this
     Disposable.use(async function* () {
       const path = yield self.getPartition(diskId, partitionId)
+      // validated before resolving the promise, so a refused path rejects instead of
+      // producing a truncated archive
+      const relativePaths = []
+      for (const requestedPath of paths) {
+        relativePaths.push(await resolveWithoutSymlinks(path, requestedPath))
+      }
       let outputStream
 
       if (format === 'tgz') {
@@ -298,7 +326,13 @@ export const fileRestoreMethods = {
         // simultaneous reads. Those saturate the libuv threadpool and starve
         // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
         // threadpool deadlock). Serializing keeps a worker free for them.
-        const pack = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+        //
+        // symlinks found while walking the selected directories are skipped, like in the zip
+        // format and the file listing
+        const pack = tar.c(
+          { cwd: path, gzip: true, jobs: 1, filter: (_, stats) => !stats.isSymbolicLink() },
+          relativePaths
+        )
 
         // node-tar >= 7 returns a Minipass stream: it has `pipe()` but is not a `node:stream`
         // instance. xo-proxy serves this stream through Koa, which pipes only bodies passing
@@ -316,7 +350,7 @@ export const fileRestoreMethods = {
         // appear as a freeze with no response sent.
         outputStream = zip.outputStream
         resolve(zip.outputStream)
-        await addZipEntries(zip, path, '', paths.map(makeRelative))
+        await addZipEntries(zip, path, '', relativePaths)
         zip.end()
       } else {
         throw new Error('unsupported format ' + format)
@@ -377,7 +411,7 @@ export const fileRestoreMethods = {
 
   listPartitionFiles(diskId, partitionId, path) {
     return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
-      path = resolveSubpath(rootPath, path)
+      path = join(rootPath, await resolveWithoutSymlinks(rootPath, path))
       const entriesMap = {}
       await asyncEach(
         await readdir(path),

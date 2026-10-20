@@ -180,6 +180,7 @@ The file restore feature includes the following constraints:
 
 - **Supported partition types** are limited to those compatible with Debian systems and NTFS. ReFS and Windows dynamic disks are not supported.
 - **LVM support** is limited and may fail in certain edge cases.
+- **Symbolic links** are not supported: they are hidden when browsing, skipped when a folder is restored, and a path going through one is refused.
 - File restore is designed for **small file sets** and is not suitable for large-scale recovery.
 
 :::tip

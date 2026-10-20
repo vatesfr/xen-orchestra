@@ -285,6 +285,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Downloads the selected files from a partition of a backup archive disk as a tgz or zip archive.
+   * Symbolic links are not supported: a path going through one is refused, and the links found while
+   * walking a directory are skipped.
    *
    * Required privileges:
    * - resource: backup-archive, action: mount
@@ -332,6 +334,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Returns the list of files at the given path inside a partition of a backup archive disk.
+   * Symbolic links are not supported: a path going through one is refused, and the links found while
+   * walking a directory are skipped.
    *
    * Required privileges:
    * - resource: backup-archive, action: mount
@@ -376,6 +380,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Downloads the selected files from a bare disk (no partition table) of a backup archive as a tgz or zip archive.
+   * Symbolic links are not supported: a path going through one is refused, and the links found while
+   * walking a directory are skipped.
    *
    * Required privileges:
    * - resource: backup-archive, action: mount
@@ -420,6 +426,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   /**
    * Returns the list of files at the given path on a bare disk (no partition table) of a backup archive.
+   * Symbolic links are not supported: a path going through one is refused, and the links found while
+   * walking a directory are skipped.
    *
    * Required privileges:
    * - resource: backup-archive, action: mount
