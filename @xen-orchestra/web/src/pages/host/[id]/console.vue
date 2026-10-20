@@ -30,6 +30,7 @@
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { isHostOperationPending } from '@/modules/host/utils/xo-host.util.ts'
+import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -62,7 +63,7 @@ const clipboardText = ref('')
 const isConsoleConnected = ref(false)
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const sendToConsole = () => consoleElement.value?.setClipboard(clipboardText.value)
+const sendToConsole = (layoutId: KeyboardLayoutId) => consoleElement.value?.typeText(clipboardText.value, layoutId)
 </script>
 
 <style scoped lang="postcss">

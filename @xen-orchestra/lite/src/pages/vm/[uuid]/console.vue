@@ -42,6 +42,7 @@ import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useConsoleStore } from '@/stores/xen-api/console.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -117,7 +118,7 @@ const clipboardText = ref('')
 const isConsoleConnected = ref(false)
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const sendToConsole = () => consoleElement.value?.setClipboard(clipboardText.value)
+const sendToConsole = (layoutId: KeyboardLayoutId) => consoleElement.value?.typeText(clipboardText.value, layoutId)
 </script>
 
 <style lang="postcss" scoped>
