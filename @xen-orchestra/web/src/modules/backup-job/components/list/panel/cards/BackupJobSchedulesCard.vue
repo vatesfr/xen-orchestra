@@ -7,7 +7,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('name') }}</template>
           <template #value>
-            <UiLink size="small" icon="object:backup-schedule" :href="buildXo5Route(`/backup/${schedule.jobId}/edit`)">
+            <UiLink size="small" icon="object:backup-schedule" :href="overviewHref">
               {{ schedule.name || t('untitled') }}
             </UiLink>
           </template>
@@ -70,6 +70,8 @@ const { schedules } = defineProps<{
 const { t, d } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
+
+const overviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const nextRuns = computed(() => {
   const formattedNextRuns = new Map<FrontXoSchedule['id'], string>()
