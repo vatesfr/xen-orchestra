@@ -1,7 +1,18 @@
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { VueWrapper } from '@vue/test-utils'
 
+type AccentedComponents = Pick<VueWrapper, 'findAllComponents'>
+
 // Read as the `{ label, accent }` a composable hands to the component, in order
-export function findTags(wrapper: Pick<VueWrapper, 'findAllComponents'>) {
-  return wrapper.findAllComponents(UiTag).map(tag => ({ label: tag.text(), accent: tag.props('accent') }))
+function findAccentedLabels(wrapper: AccentedComponents, component: typeof UiTag | typeof UiInfo) {
+  return wrapper.findAllComponents(component).map(found => ({ label: found.text(), accent: found.props('accent') }))
+}
+
+export function findTags(wrapper: AccentedComponents) {
+  return findAccentedLabels(wrapper, UiTag)
+}
+
+export function findInfos(wrapper: AccentedComponents) {
+  return findAccentedLabels(wrapper, UiInfo)
 }

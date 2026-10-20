@@ -117,6 +117,7 @@
   "action:migrate-n-vms": "Migrate 1 VM | Migrate {n} VMs",
   "action:migrate-vdi-on-sr": "Migrate on SR",
   "action:move-filters-to-parent-group": "Move filters to parent group",
+  "action:next-mapping": "Next: mapping",
   "action:open": "Open",
   "action:open-app": "@:action:open {name}",
   "action:open-console-in-new-tab": "Open console in new tab",

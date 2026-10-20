@@ -9,14 +9,11 @@
       :network-select-bindings="form.networkSelectBindings"
       :template-select-bindings="form.templateSelectBindings"
     />
-    <div class="actions">
-      <UiButton accent="brand" variant="secondary" size="medium" @click="back()">
-        {{ t('action:back') }}
-      </UiButton>
+    <V2vWizardStepActions @back="back()">
       <UiButton type="submit" accent="brand" variant="primary" size="medium">
         {{ existingList !== undefined ? t('action:continue-with-existing-list') : t('action:continue') }}
       </UiButton>
-    </div>
+    </V2vWizardStepActions>
   </VtsForm>
 </template>
 
@@ -24,6 +21,7 @@
 import V2vDestinationDefaultsCard from '@/modules/v2v/components/destination/V2vDestinationDefaultsCard.vue'
 import V2vDestinationPoolCard from '@/modules/v2v/components/destination/V2vDestinationPoolCard.vue'
 import V2vExistingListInfo from '@/modules/v2v/components/destination/V2vExistingListInfo.vue'
+import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -39,11 +37,5 @@ const { form, existingList, submit, back } = useV2vDestinationStep()
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.8rem;
-  }
 }
 </style>
