@@ -5,6 +5,8 @@ import { icon } from '@core/icons'
 import type { POOL_ALLOWED_OPERATIONS } from '@vates/types'
 import { castArray } from 'lodash-es'
 
+const AUTHENTICATION_FAILED_ERROR_CODE = 'SESSION_AUTHENTICATION_FAILED'
+
 export function getPoolInfo(server: FrontXoServer): VtsLinkCellProps & { label: string } {
   if (server.poolNameLabel) {
     return {
@@ -36,4 +38,8 @@ export function isPoolOperationPending(
   const currentOperations = Object.values(pool.current_operations)
 
   return castArray(operations).some(operation => currentOperations.includes(operation))
+}
+
+export function isAuthenticationFailedError(error: Error) {
+  return error.message.startsWith(AUTHENTICATION_FAILED_ERROR_CODE)
 }

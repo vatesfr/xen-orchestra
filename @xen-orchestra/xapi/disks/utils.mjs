@@ -1,6 +1,19 @@
 import MultiNbdClient from '@vates/nbd-client/multi.mjs'
 
 /**
+ * Whether xapi-nbd serves in TLS: same rule as xapi-nbd itself, TLS unless the pool only has networks with
+ * the insecure_nbd purpose (it refuses connections when both purposes are set)
+ *
+ * @param {any} xapi
+ * @returns {Promise<boolean>}
+ */
+async function isNbdTlsRequired(xapi) {
+  const networks = Object.values(await xapi.call('network.get_all_records'))
+  const purposes = networks.flatMap(network => network.purpose)
+  return purposes.includes('nbd') || !purposes.includes('insecure_nbd')
+}
+
+/**
  *
  * @param {any} xapi
  * @param {string} vdiRef
@@ -18,6 +31,12 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
     const addresses = await Promise.all(pifs.map(pifRef => xapi.getField('PIF', pifRef, 'IP')))
     nbdInfos = nbdInfos.filter(({ address }) => addresses.includes(address))
   }
+  // VDI.get_nbd_info always gives the certificate, even when xapi-nbd serves in clear (insecure_nbd), and
+  // the client upgrades to TLS whenever it has one: decide like xapi-nbd, from the network purposes, rather
+  // than downgrading when the server refuses STARTTLS (which anyone on the path could force)
+  if (!(await isNbdTlsRequired(xapi))) {
+    nbdInfos = nbdInfos.map(({ cert: _cert, ...nbdInfo }) => nbdInfo)
+  }
 
   if (nbdInfos.length === 0) {
     /** @type {NodeJS.ErrnoException} */
@@ -25,6 +44,14 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
     error.code = 'NO_NBD_AVAILABLE'
     throw error
   }
+  // when the pool is only reachable through an HTTP proxy (e.g. an XO Proxy),
+  // NBD connections must be tunneled through it as well
+  const { httpProxy } = xapi
+  if (httpProxy !== undefined) {
+    const proxyRejectUnauthorized = !xapi.allowUnauthorized
+    nbdInfos = nbdInfos.map(nbdInfo => ({ ...nbdInfo, httpProxy, proxyRejectUnauthorized }))
+  }
+
   const nbdClient = new MultiNbdClient(nbdInfos, { nbdConcurrency })
   await nbdClient.connect()
   return nbdClient

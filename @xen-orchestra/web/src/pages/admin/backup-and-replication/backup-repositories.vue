@@ -36,16 +36,16 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  brs: FrontXoBackupRepository[]
-}>()
-
 const { t } = useI18n()
 
 const { openNewBackupRepositoryDrawer } = useNewBackupRepository()
 
-const { getBackupRepositoryById, areBackupRepositoriesReady, hasBackupRepositoryFetchError } =
-  useXoBackupRepositoryCollection()
+const {
+  backupRepositories: brs,
+  getBackupRepositoryById,
+  areBackupRepositoriesReady,
+  hasBackupRepositoryFetchError,
+} = useXoBackupRepositoryCollection()
 
 const selectedBr = useRouteQuery<FrontXoBackupRepository | undefined>('id', {
   toData: id => getBackupRepositoryById(id as FrontXoBackupRepository['id']),

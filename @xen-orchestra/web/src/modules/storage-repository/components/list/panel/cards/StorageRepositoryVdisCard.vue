@@ -1,18 +1,10 @@
 <template>
   <UiPanelCard class="storage-repository-vdis-card">
-    <UiCardTitle>
-      <div class="title">
-        {{ t('vdis') }}
-        <UiCounter :value="vdis.length + vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('vdis')" :counter="vdis.length + vdiSnapshots.length" />
 
     <div v-if="vdis.length > 0 || vdiSnapshots.length > 0" class="content">
       <template v-if="vdis.length > 0">
-        <div class="subsection">
-          <span class="subtitle typo-body-bold-small">{{ t('vdis') }}</span>
-          <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
-        </div>
+        <UiPanelCardTitle size="small" :label="t('vdis')" :counter="vdis.length" />
 
         <UiCollapsibleList tag="ul" :total-items="vdis.length">
           <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
@@ -30,10 +22,7 @@
       <VtsDivider v-if="vdis.length > 0 && vdiSnapshots.length > 0" type="stretch" />
 
       <template v-if="vdiSnapshots.length > 0">
-        <div class="subsection">
-          <span class="subtitle typo-body-bold-small">{{ t('snapshot-vdis') }}</span>
-          <UiCounter :value="vdiSnapshots.length" accent="neutral" size="small" variant="primary" />
-        </div>
+        <UiPanelCardTitle size="small" :label="t('snapshot-vdis')" :counter="vdiSnapshots.length" />
 
         <UiCollapsibleList tag="ul" :total-items="vdiSnapshots.length">
           <li v-for="vdiSnapshot in vdiSnapshots" :key="vdiSnapshot.id" v-tooltip class="text-ellipsis">
@@ -67,11 +56,10 @@ import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -87,28 +75,10 @@ const { getVbdsByIds } = useXoVbdCollection()
 
 <style scoped lang="postcss">
 .storage-repository-vdis-card {
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
   .content {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-
-    .subsection {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-
-      .subtitle {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-      }
-    }
   }
 }
 </style>

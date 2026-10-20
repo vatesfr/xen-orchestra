@@ -1,13 +1,14 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
+import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
-type BackupRepositoryGeneralFormData = {
+export type BackupRepositoryGeneralFormData = {
   name: string
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
@@ -16,8 +17,13 @@ type BackupRepositoryGeneralFormData = {
   encryptionKey: string
 }
 
-const ENCRYPTION_KEY_LENGTH = 32
-const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
+export type BackupRepositoryGeneralFormOptions = {
+  isEditing?: boolean
+  extraConfig?: FormValidationConfig<BackupRepositoryGeneralFormData>
+}
+
+export const ENCRYPTION_KEY_LENGTH = 32
+export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
 
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
@@ -25,29 +31,16 @@ const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm() {
+export function useBackupRepositoryGeneralForm(
+  formData: BackupRepositoryGeneralFormData,
+  { isEditing = false, extraConfig }: BackupRepositoryGeneralFormOptions = {}
+) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
 
-  const formData = reactive<BackupRepositoryGeneralFormData>({
-    name: '',
-    type: undefined,
-    backupFormat: undefined,
-    proxy: undefined,
-    encrypted: false,
-    encryptionKey: '',
-  })
-
-  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+  const baseConfig: FormValidationConfig<BackupRepositoryGeneralFormData> = {
     errors: {
-      onBlur: () => ({
-        encryptionKey: {
-          regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
-            t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
-          ),
-        },
-      }),
       onSubmit: () => ({
         name: { required },
         type: { required },
@@ -57,7 +50,14 @@ export function useBackupRepositoryGeneralForm() {
         },
       }),
     },
-  })
+  }
+
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
+
+  const encryptionKeyInputType: InputType = isEditing ? 'password' : 'text'
 
   const isBackupFormatLocked = computed(() => formData.type !== undefined && BLOCK_ONLY_TYPES.includes(formData.type))
 
@@ -90,6 +90,7 @@ export function useBackupRepositoryGeneralForm() {
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
+    disabled: () => isEditing,
     option: { label: 'label', value: 'value' },
   })
 
@@ -109,7 +110,8 @@ export function useBackupRepositoryGeneralForm() {
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
     required: true,
-    disabled: () => formData.type === undefined || isBackupFormatLocked.value,
+    // Encryption requires block format, and it can't be changed in edit mode
+    disabled: () => formData.type === undefined || isBackupFormatLocked.value || (isEditing && formData.encrypted),
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
@@ -130,11 +132,13 @@ export function useBackupRepositoryGeneralForm() {
     encrypted: useField('encrypted', () => ({
       label: t('encrypted'),
       warning: t('encryption-key-loss-warning'),
-      disabled: !isEncryptionAvailable.value,
+      disabled: isEditing || !isEncryptionAvailable.value,
     })),
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
+      type: encryptionKeyInputType,
+      disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
   })

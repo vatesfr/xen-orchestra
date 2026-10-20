@@ -1,10 +1,9 @@
-import { ifElse } from '@core/utils/if-else.utils.ts'
 import { onKeyStroke } from '@vueuse/core'
-import { type EffectScope, effectScope, ref, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { FORM_SELECT_HANDLED_KEY, type FormOptionIndex } from './types.ts'
 
 export function useFormSelectKeyboardNavigation({
-  isActive,
+  target,
   isOpen,
   isMultiple,
   onOpen,
@@ -13,7 +12,7 @@ export function useFormSelectKeyboardNavigation({
   onToggle,
   onSelect,
 }: {
-  isActive: Ref<boolean>
+  target: Ref<HTMLElement | undefined>
   isOpen: Ref<boolean>
   isMultiple: Ref<boolean>
   onOpen: () => void
@@ -99,7 +98,7 @@ export function useFormSelectKeyboardNavigation({
     event: KeyboardEvent,
     key: FORM_SELECT_HANDLED_KEY.TAB | FORM_SELECT_HANDLED_KEY.ESCAPE
   ) {
-    if (key === FORM_SELECT_HANDLED_KEY.ESCAPE) {
+    if (key === FORM_SELECT_HANDLED_KEY.ESCAPE && isOpen.value) {
       event.preventDefault()
     }
 
@@ -108,47 +107,36 @@ export function useFormSelectKeyboardNavigation({
 
   const handledKeys = Object.values(FORM_SELECT_HANDLED_KEY)
 
-  let scope: EffectScope | undefined
+  onKeyStroke(
+    handledKeys,
+    (event): void => {
+      const key = event.key as FORM_SELECT_HANDLED_KEY
 
-  function registerEvents() {
-    scope = effectScope()
-
-    scope.run(() =>
-      onKeyStroke(handledKeys, (event): void => {
-        const key = event.key as FORM_SELECT_HANDLED_KEY
-
-        switch (key) {
-          case FORM_SELECT_HANDLED_KEY.DOWN:
-          case FORM_SELECT_HANDLED_KEY.UP:
-            return handleArrowUpDownKeys(event, key)
-          case FORM_SELECT_HANDLED_KEY.PAGE_DOWN:
-          case FORM_SELECT_HANDLED_KEY.PAGE_UP:
-            return handlePageUpDownKeys(event, key)
-          case FORM_SELECT_HANDLED_KEY.HOME:
-          case FORM_SELECT_HANDLED_KEY.END:
-            return handleHomeEndKeys(event, key)
-          case FORM_SELECT_HANDLED_KEY.ENTER:
-          case FORM_SELECT_HANDLED_KEY.SPACE:
-            return handleEnterSpaceKeys(event, key)
-          case FORM_SELECT_HANDLED_KEY.LEFT:
-          case FORM_SELECT_HANDLED_KEY.RIGHT:
-            return handleLeftRightKeys()
-          case FORM_SELECT_HANDLED_KEY.TAB:
-          case FORM_SELECT_HANDLED_KEY.ESCAPE:
-            return handleTabEscapeKeys(event, key)
-          default:
-            return key
-        }
-      })
-    )
-  }
-
-  function unregisterEvents() {
-    scope?.stop()
-    scope = undefined
-  }
-
-  ifElse(isActive, registerEvents, unregisterEvents)
+      switch (key) {
+        case FORM_SELECT_HANDLED_KEY.DOWN:
+        case FORM_SELECT_HANDLED_KEY.UP:
+          return handleArrowUpDownKeys(event, key)
+        case FORM_SELECT_HANDLED_KEY.PAGE_DOWN:
+        case FORM_SELECT_HANDLED_KEY.PAGE_UP:
+          return handlePageUpDownKeys(event, key)
+        case FORM_SELECT_HANDLED_KEY.HOME:
+        case FORM_SELECT_HANDLED_KEY.END:
+          return handleHomeEndKeys(event, key)
+        case FORM_SELECT_HANDLED_KEY.ENTER:
+        case FORM_SELECT_HANDLED_KEY.SPACE:
+          return handleEnterSpaceKeys(event, key)
+        case FORM_SELECT_HANDLED_KEY.LEFT:
+        case FORM_SELECT_HANDLED_KEY.RIGHT:
+          return handleLeftRightKeys()
+        case FORM_SELECT_HANDLED_KEY.TAB:
+        case FORM_SELECT_HANDLED_KEY.ESCAPE:
+          return handleTabEscapeKeys(event, key)
+        default:
+          return key
+      }
+    },
+    { target }
+  )
 
   return {
     isNavigatingWithKeyboard,

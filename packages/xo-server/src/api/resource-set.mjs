@@ -1,3 +1,5 @@
+import { unauthorized } from 'xo-common/api-errors.js'
+
 export function create({ name, shareByDefault, subjects, objects, tags, limits }) {
   return this.createResourceSet(name, subjects, objects, limits, shareByDefault, tags)
 }
@@ -118,8 +120,20 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export function get({ id }) {
-  return this.getResourceSet(id)
+export async function get({ id }) {
+  const resourceSet = await this.getResourceSet(id)
+
+  const { permission, user } = this.apiContext
+  if (permission !== 'admin') {
+    const subjects = new Set(user.groups)
+    subjects.add(user.id)
+
+    if (!resourceSet.subjects.some(subject => subjects.has(subject))) {
+      throw unauthorized()
+    }
+  }
+
+  return resourceSet
 }
 
 get.params = {

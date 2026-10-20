@@ -42,6 +42,14 @@ it('shows the prefix ahead of the value', () => {
   expect(mountTextInput({ prefix: '\\\\' }).get('.prefix').text()).toBe('\\\\')
 })
 
+it('disables the input when it is disabled', () => {
+  expect(mountTextInput({ disabled: true }).get('input').attributes('disabled')).toBeDefined()
+})
+
+it('enables the input by default', () => {
+  expect(mountTextInput().get('input').attributes('disabled')).toBeUndefined()
+})
+
 it('updates its model with the trimmed value', async () => {
   const wrapper = mountTextInput()
 
