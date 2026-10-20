@@ -227,6 +227,7 @@ declare module 'vue-router/auto-routes' {
       | '/kubernetes/cluster/[id]'
       | '/kubernetes/cluster/[id]/dashboard'
       | '/kubernetes/cluster/[id]/nodes'
+      | '/kubernetes/cluster/[id]/system'
       | '/kubernetes/clusters'
       | '/kubernetes/namespace/[id]'
       | '/kubernetes/node/[id]'
@@ -240,6 +241,7 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | '/kubernetes/cluster/[id]/dashboard'
       | '/kubernetes/cluster/[id]/nodes'
+      | '/kubernetes/cluster/[id]/system'
     >,
     '/kubernetes/cluster/[id]/dashboard': RouteRecordInfo<
       '/kubernetes/cluster/[id]/dashboard',
@@ -251,6 +253,13 @@ declare module 'vue-router/auto-routes' {
     '/kubernetes/cluster/[id]/nodes': RouteRecordInfo<
       '/kubernetes/cluster/[id]/nodes',
       '/kubernetes/cluster/:id/nodes',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/kubernetes/cluster/[id]/system': RouteRecordInfo<
+      '/kubernetes/cluster/[id]/system',
+      '/kubernetes/cluster/:id/system',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -753,6 +762,7 @@ declare module 'vue-router/auto-routes' {
         | '/kubernetes/cluster/[id]'
         | '/kubernetes/cluster/[id]/dashboard'
         | '/kubernetes/cluster/[id]/nodes'
+        | '/kubernetes/cluster/[id]/system'
         | '/kubernetes/clusters'
         | '/kubernetes/namespace/[id]'
         | '/kubernetes/node/[id]'
@@ -766,6 +776,7 @@ declare module 'vue-router/auto-routes' {
         | '/kubernetes/cluster/[id]'
         | '/kubernetes/cluster/[id]/dashboard'
         | '/kubernetes/cluster/[id]/nodes'
+        | '/kubernetes/cluster/[id]/system'
       views:
         | 'default'
     }
@@ -778,6 +789,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/kubernetes/cluster/[id]/nodes.vue': {
       routes:
         | '/kubernetes/cluster/[id]/nodes'
+      views:
+        | never
+    }
+    'src/pages/kubernetes/cluster/[id]/system.vue': {
+      routes:
+        | '/kubernetes/cluster/[id]/system'
       views:
         | never
     }

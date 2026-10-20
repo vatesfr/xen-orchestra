@@ -326,6 +326,7 @@
   "container-name": "Nom du conteneur",
   "control-domain-memory": "Mémoire du domaine de contrôle",
   "control-plane": "Plan de contrôle",
+  "control-plane-endpoint": "Endpoint du plan de contrôle",
   "control-plane-initialized": "Plan de contrôle initialisé",
   "control-plane-ip": "IP du plan de contrôle",
   "control-plane-replicas": "Réplicas de plan de contrôle",

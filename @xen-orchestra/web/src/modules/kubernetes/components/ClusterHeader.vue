@@ -31,6 +31,15 @@
     </RouterLink>
     <RouterLink
       v-slot="{ isActive, href }"
+      :to="{ name: '/kubernetes/cluster/[id]/system', params: { id: cluster.id } }"
+      custom
+    >
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('system') }}
+      </UiTabItem>
+    </RouterLink>
+    <RouterLink
+      v-slot="{ isActive, href }"
       :to="{ name: '/kubernetes/cluster/[id]/nodes', params: { id: cluster.id } }"
       custom
     >

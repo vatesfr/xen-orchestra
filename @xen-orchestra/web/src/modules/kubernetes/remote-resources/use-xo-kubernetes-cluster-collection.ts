@@ -4,11 +4,11 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { useSorted } from '@vueuse/core'
 import { reactify } from '@vueuse/shared'
 
-type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'id' | 'type'> & {
+export type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'id' | 'type'> & {
   id?: XoKubernetesCluster['id']
 }
 
-function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
+export function toXoCluster(cluster: ApiKubernetesCluster): XoKubernetesCluster {
   return {
     ...cluster,
     id: cluster.id ?? cluster.name,

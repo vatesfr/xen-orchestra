@@ -326,6 +326,7 @@
   "container-name": "Container name",
   "control-domain-memory": "Control domain memory",
   "control-plane": "Control plane",
+  "control-plane-endpoint": "Control plane endpoint",
   "control-plane-initialized": "Control plane initialized",
   "control-plane-ip": "Control plane IP",
   "control-plane-replicas": "Control plane replicas",
