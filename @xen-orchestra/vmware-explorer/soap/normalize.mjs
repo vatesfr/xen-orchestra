@@ -1,8 +1,9 @@
 /**
  * The SOAP library returns a single element as the element itself, and a repeated one as an array.
  *
- * @param {unknown} value
- * @returns {Array<unknown>} - an empty array when the element is absent
+ * @template T
+ * @param {T | T[] | undefined | null} value
+ * @returns {Array<T>} - an empty array when the element is absent
  */
 export function asArray(value) {
   if (value === undefined || value === null) {
