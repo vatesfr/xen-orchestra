@@ -124,6 +124,37 @@ describe('list', () => {
   })
 })
 
+describe('vmCount', () => {
+  it('counts the VMs of the stored list', () => {
+    seedV2vMigrationList(STORED_LIST)
+
+    expect(mountMigrationList().vmCount).toBe(2)
+  })
+
+  it('is zero when no list is stored', () => {
+    expect(mountMigrationList().vmCount).toBe(0)
+  })
+})
+
+describe('hasVms', () => {
+  it('is true once the stored list holds VMs', () => {
+    seedV2vMigrationList(STORED_LIST)
+
+    expect(mountMigrationList().hasVms).toBe(true)
+  })
+
+  it.each([
+    ['the stored list holds no VM', createV2vMigrationList()],
+    ['no list is stored', undefined],
+  ])('is false when %s', (_, list) => {
+    if (list !== undefined) {
+      seedV2vMigrationList(list)
+    }
+
+    expect(mountMigrationList().hasVms).toBe(false)
+  })
+})
+
 describe('saveDefaults', () => {
   it('stores a new list with the defaults and no VM', () => {
     mountMigrationList().saveDefaults(NEW_DEFAULTS)

@@ -51,6 +51,8 @@ export const destinationCollectionsMock = {
 export const useXoPoolCollection = (() => ({
   pools: destinationCollectionsMock.pools,
   arePoolsReady: destinationCollectionsMock.arePoolsReady,
+  getPoolById: (id: FrontXoPool['id'] | undefined) =>
+    destinationCollectionsMock.pools.value.find(pool => pool.id === id),
   hasPoolById: (id: FrontXoPool['id']) => destinationCollectionsMock.pools.value.some(pool => pool.id === id),
 })) as unknown as typeof realUseXoPoolCollection
 
@@ -60,10 +62,13 @@ export const useXoHostCollection = (() => ({
 
 export const useXoSrCollection = (() => ({
   srs: destinationCollectionsMock.srs,
+  getSrById: (id: FrontXoSr['id'] | undefined) => destinationCollectionsMock.srs.value.find(sr => sr.id === id),
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
   networks: destinationCollectionsMock.networks,
+  getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
+    destinationCollectionsMock.networks.value.find(network => network.id === id),
 })) as unknown as typeof realUseXoNetworkCollection
 
 // No PBD: the tests offer shared SRs, whose location needs none

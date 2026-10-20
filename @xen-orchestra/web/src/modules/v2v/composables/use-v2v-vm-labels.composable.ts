@@ -1,4 +1,3 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type {
   V2vMappingSummary,
   V2vReadinessLevel,
@@ -9,7 +8,7 @@ import type { V2vUnsupportedReason, V2vVmRow, V2vVmStatus } from '@/modules/v2v/
 import { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
-import { getCountedKeys } from '@/shared/utils/count.util.ts'
+import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { V2V_VM_POWER_STATE } from '@vates/types'
@@ -21,14 +20,10 @@ export type V2vVmStatusSummary = {
   counts: Record<V2vVmStatus, number>
 }
 
-export type V2vVmTag = {
+// A label with the accent of the tag or the info it is shown in
+export type V2vAccentedLabel<TAccent extends string> = {
   label: string
-  accent: TagAccent
-}
-
-export type V2vVmCheckInfo = {
-  label: string
-  accent: InfoAccent
+  accent: TAccent
 }
 
 const STATUS_ACCENTS: Record<V2vVmStatus, TagAccent> = {
@@ -83,7 +78,10 @@ export function useV2vVmLabels() {
   }))
 
   // An unsupported VM cannot be migrated: its reason matters more than its status
-  function getStatusTag({ migration, unsupportedReason }: Pick<V2vVmRow, 'migration' | 'unsupportedReason'>): V2vVmTag {
+  function getStatusTag({
+    migration,
+    unsupportedReason,
+  }: Pick<V2vVmRow, 'migration' | 'unsupportedReason'>): V2vAccentedLabel<TagAccent> {
     if (unsupportedReason !== undefined) {
       return { label: unsupportedReasonLabels.value[unsupportedReason], accent: 'danger' }
     }
@@ -103,9 +101,7 @@ export function useV2vVmLabels() {
   }
 
   function getSummaryLabels({ total, counts }: V2vVmStatusSummary): string[] {
-    const countedStatuses = getCountedKeys(V2V_VM_STATUSES, counts)
-
-    return [t('n-vms', { n: total }), ...countedStatuses.map(status => getStatusCountLabel(status, counts[status]))]
+    return [t('n-vms', { n: total }), ...mapCountedKeys(V2V_VM_STATUSES, counts, getStatusCountLabel)]
   }
 
   const kindLabels = computed<Record<V2vSelectedVmKind, string>>(() => ({
@@ -113,12 +109,12 @@ export function useV2vVmLabels() {
     resume: t('resume'),
   }))
 
-  function getKindTag(kind: V2vSelectedVmKind): V2vVmTag {
+  function getKindTag(kind: V2vSelectedVmKind): V2vAccentedLabel<TagAccent> {
     return { label: kindLabels.value[kind], accent: KIND_ACCENTS[kind] }
   }
 
   // A pool still loading is named by its id rather than not at all
-  function getCheckLabel(check: V2vSelectedVmCheck, poolNames: Map<FrontXoPool['id'], string>): string {
+  function getCheckLabel(check: V2vSelectedVmCheck, poolName: string | undefined): string {
     switch (check.type) {
       case 'not-found':
         return t('v2v:not-found-in-source')
@@ -127,7 +123,7 @@ export function useV2vVmLabels() {
       case 'running':
         return t('import-in-progress')
       case 'partial-on-other-pool':
-        return t('v2v:partial-import-on-pool', { pool: poolNames.get(check.poolId) ?? check.poolId })
+        return t('v2v:partial-import-on-pool', { pool: poolName ?? check.poolId })
       case 'already-migrated':
         return t('v2v:already-migrated-confirm-at-launch')
       case 'ready':
@@ -135,8 +131,9 @@ export function useV2vVmLabels() {
     }
   }
 
-  function getCheckInfo(check: V2vSelectedVmCheck, poolNames: Map<FrontXoPool['id'], string>): V2vVmCheckInfo {
-    return { label: getCheckLabel(check, poolNames), accent: READINESS_ACCENTS[check.level] }
+  // `poolName` names the pool of the check, when it has one
+  function getCheckInfo(check: V2vSelectedVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
+    return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 
   function withTarget(countLabel: string, target: string | undefined): string {
@@ -166,9 +163,9 @@ export function useV2vVmLabels() {
     blocking: count => t('n-blocking', { n: count }),
   }
 
-  function getReadinessTags(counts: Record<V2vReadinessLevel, number>): V2vVmTag[] {
-    return getCountedKeys(V2V_READINESS_LEVELS, counts).map(level => ({
-      label: readinessCountLabelGetters[level](counts[level]),
+  function getReadinessTags(counts: Record<V2vReadinessLevel, number>): V2vAccentedLabel<TagAccent>[] {
+    return mapCountedKeys(V2V_READINESS_LEVELS, counts, (level, count) => ({
+      label: readinessCountLabelGetters[level](count),
       accent: READINESS_ACCENTS[level],
     }))
   }

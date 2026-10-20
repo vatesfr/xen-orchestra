@@ -17,6 +17,10 @@ expect(result.powerState.text).toBe(result.t('vm:status:running'))
 
 Both take the options of `createGlobalTestConfig()` as a second argument, e.g. `{ router }` for a composable that navigates (build it with `createTestRouter()` and assert on `router.currentRoute.value`).
 
+A composable that drives a component of its caller (it reacts to what that component does) takes a `render` option, which renders that component beside it: `mountComposable(() => useFeature(), { render: () => h(SomeComponent, { someProp: true }) })`.
+
+A composable that only has side effects (it returns nothing) is mounted the same way: assert on the store or the component it acts on.
+
 The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through it rather than destructuring it: a destructured value is a snapshot and stops following updates.
 
 The wrapper is unmounted after the test, so `onUnmounted` and `onScopeDispose` cleanup runs and no watcher of a previous test can re-fire in the next one.

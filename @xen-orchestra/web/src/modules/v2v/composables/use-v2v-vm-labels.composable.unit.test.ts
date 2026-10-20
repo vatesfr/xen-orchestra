@@ -2,6 +2,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
@@ -137,8 +138,6 @@ describe('getKindTag', () => {
 describe('getCheckInfo', () => {
   const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 
-  const POOL_NAMES = new Map([[OTHER_POOL_ID, 'pool diskor']])
-
   it.each([
     ['a ready', { type: 'ready', level: 'ready' }, 'ready', 'success'],
     ['a missing', { type: 'not-found', level: 'blocking' }, 'v2v:not-found-in-source', 'danger'],
@@ -152,7 +151,7 @@ describe('getCheckInfo', () => {
   ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo(check, POOL_NAMES)).toEqual({ label: labels.t(labelKey), accent })
+    expect(labels.getCheckInfo(check)).toEqual({ label: labels.t(labelKey), accent })
   })
 
   it.each([
@@ -162,7 +161,7 @@ describe('getCheckInfo', () => {
   ] as const)('tells a VM unsupported for its %s disk', (reason, labelKey) => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason }, POOL_NAMES)).toEqual({
+    expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason })).toEqual({
       label: labels.t(labelKey),
       accent: 'danger',
     })
@@ -172,16 +171,16 @@ describe('getCheckInfo', () => {
     const labels = mountLabels()
 
     expect(
-      labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }, POOL_NAMES)
-    ).toEqual({ label: labels.t('v2v:partial-import-on-pool', { pool: 'pool diskor' }), accent: 'danger' })
+      labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }, DISKOR_POOL_NAME)
+    ).toEqual({ label: labels.t('v2v:partial-import-on-pool', { pool: DISKOR_POOL_NAME }), accent: 'danger' })
   })
 
   it('names the pool by its id while its name is unknown', () => {
     const labels = mountLabels()
 
-    expect(
-      labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }, new Map()).label
-    ).toBe(labels.t('v2v:partial-import-on-pool', { pool: OTHER_POOL_ID }))
+    expect(labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }).label).toBe(
+      labels.t('v2v:partial-import-on-pool', { pool: OTHER_POOL_ID })
+    )
   })
 })
 

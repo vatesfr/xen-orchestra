@@ -1,6 +1,7 @@
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useV2vIsUnknownPool } from '@/modules/v2v/composables/use-v2v-is-unknown-pool.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
+import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
@@ -13,8 +14,6 @@ export function useV2vDestinationStep() {
 
   const connectionStore = useV2vConnectionStore()
 
-  const { arePoolsReady, hasPoolById } = useXoPoolCollection()
-
   const poolQuery = useV2vPoolQuery()
 
   const pool = ref(poolQuery.value)
@@ -23,32 +22,31 @@ export function useV2vDestinationStep() {
 
   const form = useV2vDestinationForm({ pool, storedList: migrationList.list })
 
+  const { sourceHost, poolName } = useV2vSourceAndDestination(pool)
+
   watch(pool, newPool => {
     poolQuery.value = newPool
   })
 
-  // A reload or a shared link may name a pool this XO does not know (removed, other XO): start without it
+  // A pool this XO does not know cannot be chosen: start without it
   whenever(
-    arePoolsReady,
+    useV2vIsUnknownPool(pool),
     () => {
-      const isUnknownPool = pool.value !== undefined && !hasPoolById(pool.value)
-
-      if (isUnknownPool) {
-        pool.value = undefined
-      }
+      pool.value = undefined
     },
     { immediate: true }
   )
 
   const existingList = computed(() => {
+    const source = sourceHost.value
+    const destination = poolName.value
+
     // An empty stored list only holds defaults: there is nothing to reopen
-    const vmCount = migrationList.list.value?.vms.length ?? 0
-    const sourceHost = connectionStore.connection?.host
-    const pool = form.selectedPool.value
+    const hasExistingList = migrationList.hasVms.value && source !== undefined && destination !== undefined
 
-    const hasExistingList = vmCount > 0 && sourceHost !== undefined && pool !== undefined
-
-    return hasExistingList ? { sourceHost, poolName: pool.name_label, vmCount } : undefined
+    return hasExistingList
+      ? { sourceHost: source, poolName: destination, vmCount: migrationList.vmCount.value }
+      : undefined
   })
 
   // The route may not hold the chosen pool yet: its update is still pending right after a choice

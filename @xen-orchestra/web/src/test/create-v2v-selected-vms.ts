@@ -1,9 +1,10 @@
-import type { V2vListLock, V2vSelectedVmItem } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vListLock, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import type { XoV2vVm } from '@vates/types'
 
 // The labels are the component input: a panel test reads them back as given
-export function createV2vSelectedVmItem(overrides: Partial<V2vSelectedVmItem> = {}): V2vSelectedVmItem {
+export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2vSelectedVm {
   const id = overrides.id ?? ('vm-1' as XoV2vVm['id'])
 
   return {
@@ -18,5 +19,5 @@ export function createV2vSelectedVmItem(overrides: Partial<V2vSelectedVmItem> = 
 }
 
 export function createV2vListLock(overrides: Partial<V2vListLock> = {}): V2vListLock {
-  return { sourceHost: createV2vConnection().host, poolName: 'pool diskor', isLocked: true, ...overrides }
+  return { sourceHost: createV2vConnection().host, poolName: DISKOR_POOL_NAME, isLocked: true, ...overrides }
 }
