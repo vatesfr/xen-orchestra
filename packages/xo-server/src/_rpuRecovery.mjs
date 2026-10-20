@@ -318,6 +318,7 @@ export const noopRpuRecorder = Object.freeze({
   fail: asyncNoop,
   dropIfNothingToRecover: asyncNoop,
   complete: asyncNoop,
+  hostsWithStrandedVms: () => [],
 })
 
 /**
@@ -400,6 +401,8 @@ export function createRpuRecoveryRecorder({ store, record }) {
     await enqueueWrite().catch(warnOnce)
   }
   const settingsLeftChanged = () => Object.keys(record.changedByRun ?? {})
+  const hostsWithStrandedVms = () =>
+    Object.keys(record.hosts).filter(hostId => record.hosts[hostId].steps.restoreVms?.status === 'failed')
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
@@ -562,13 +565,19 @@ export function createRpuRecoveryRecorder({ store, record }) {
         await deleteRecord().catch(warnOnce)
       }
     },
+    // hosts whose VMs could not all be migrated back
+    hostsWithStrandedVms,
     // a successful run leaves no record behind: strict, a record left on disk
     // would report the run as interrupted at the next restart. Meant to run
     // after the restorations of the settings: one that failed keeps the record
-    // `failed` with what is left, a resume restores it again
+    // `failed` with what is left, a resume restores it again. VMs left away
+    // from their host keep it failed too: a resume migrates them back
     async complete() {
+      const strandedVmHostIds = hostsWithStrandedVms()
       const left = settingsLeftChanged()
-      if (left.length === 0) {
+      if (strandedVmHostIds.length > 0) {
+        await fail(new Error(`could not migrate all the VMs back to hosts ${strandedVmHostIds.join(', ')}`))
+      } else if (left.length === 0) {
         await deleteOrSucceed()
       } else {
         await fail(new Error(`settings changed by the rolling pool update not restored: ${left.join(', ')}`))

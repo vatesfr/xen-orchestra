@@ -224,8 +224,9 @@ const rollingPoolReboot = async (xapi, options) => {
   })
 
   const strandedVms = events.findLast(_ => _.type === 'property' && _.name === 'strandedVms')?.value ?? []
+  const vmsLeftAlone = events.findLast(_ => _.type === 'property' && _.name === 'vmsLeftAlone')?.value ?? []
   const taskNames = events.filter(_ => _.type === 'start').map(_ => _.properties.name)
-  return { error, strandedVms, taskNames }
+  return { error, strandedVms, taskNames, vmsLeftAlone }
 }
 
 describe('rollingPoolReboot', function () {
@@ -295,11 +296,54 @@ describe('rollingPoolReboot', function () {
       ['vm-a2']
     )
 
-    const { error, strandedVms } = await rollingPoolReboot(xapi)
+    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi)
 
     assert.equal(error, undefined)
     assert.deepEqual(strandedVms, [])
     assert.deepEqual(xapi.strayedVms(), [])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a2', powerState: undefined }])
+  })
+
+  it('leaves the VMs halted during the run where they are, and reports them', async function () {
+    const xapi = new FakeXapi([[30], [30], [30]])
+    const callAsync = xapi.callAsync.bind(xapi)
+    xapi.callAsync = async (...args) => {
+      await callAsync(...args)
+      // halted by an operator away from its host, before the migrate back
+      if (xapi._nReboots === xapi.hosts.length) {
+        Object.assign(xapi.getObject('vm-a1'), { power_state: 'Halted', $resident_on: xapi.hosts[1] })
+      }
+    }
+    const recorder = stepSpyRecorder()
+
+    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error, undefined)
+    assert.deepEqual(strandedVms, [])
+    assert.deepEqual(xapi.strayedVms(), ['vm-a1'])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a1', powerState: 'Halted' }])
+    assert.ok(!recorder.steps.some(_ => _.status === 'failed'))
+  })
+
+  it('records every VM a host could not get back in its restoreVms failure', async function () {
+    // host B has room for none of its VMs once the pool has rebooted
+    const xapi = new FakeXapi(
+      [
+        [20, 20],
+        [20, 20],
+      ],
+      [0, 90]
+    )
+    const errors = []
+    const recorder = { ...noopRpuRecorder, stepFailed: (hostId, name, error) => errors.push([hostId, error.message]) }
+
+    await rollingPoolReboot(xapi, { recorder })
+
+    assert.deepEqual(
+      errors.map(([hostId]) => hostId),
+      ['host-B']
+    )
+    assert.match(errors[0][1], /vm-b1.*vm-b2/)
   })
 
   it('persists the settings it changes before changing them, and how each host was before', async function () {
@@ -496,6 +540,25 @@ describe('rollingPoolReboot', function () {
         ['hostStarting', 'host-C'],
       ])
       assert.ok(recorder.steps.some(_ => _.hostId === 'host-A' && _.name === 'restoreVms' && _.status === 'observed'))
+    })
+
+    it('leaves the pinned VMs a previous attempt halted to their restart, not to the migrate back', async function () {
+      const xapi = new FakeXapi([[30], [30], [30]])
+      xapi.getObject('vm-a1').power_state = 'Halted'
+
+      const { error, vmsLeftAlone } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: Object.fromEntries(xapi.homeOf),
+          // vm-b1 was started again by an operator since
+          haltedPinnedVms: { 'vm-a1': 'host-A', 'vm-b1': 'host-B' },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(vmsLeftAlone, [])
+      assert.equal(xapi.getObject('vm-b1').$resident_on.uuid, 'host-B')
     })
 
     it('handles the hosts in the order of the first attempt', async function () {

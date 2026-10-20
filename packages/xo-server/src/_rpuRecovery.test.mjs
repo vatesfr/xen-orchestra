@@ -571,6 +571,16 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().hosts.h1.lastError.message, 'second')
   })
 
+  it('hostsWithStrandedVms lists the hosts whose VMs could not be migrated back', async () => {
+    const { recorder } = await makeRecorder()
+
+    recorder.stepObserved('h1', 'restoreVms')
+    recorder.stepFailed('h2', 'restoreVms', new Error('HOST_NOT_ENOUGH_FREE_MEMORY'))
+    recorder.stepFailed('h3', 'evacuate', new Error('CANNOT_EVACUATE_HOST'))
+
+    assert.deepEqual(recorder.hostsWithStrandedVms(), ['h2'])
+  })
+
   it('hostSkipped marks every step not-needed', async () => {
     const { recorder, stored } = await makeRecorder()
 
@@ -708,6 +718,18 @@ describe('createRpuRecoveryRecorder()', () => {
     const resumed = store.data.get('pool1')
     assert.equal(resumed.status, 'resuming')
     assert.deepEqual(resumed.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
+  })
+
+  it('complete keeps the record failed when some VMs could not be migrated back, so that a resume retries them', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    recorder.stepFailed('h2', 'restoreVms', new Error('HOST_NOT_ENOUGH_FREE_MEMORY'))
+    await recorder.complete()
+
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'failed')
+    assert.match(record.lastError.message, /hosts h2/)
   })
 
   it('complete is strict: rejects when the record cannot be deleted', async () => {
@@ -954,6 +976,7 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.dropIfNothingToRecover()
     noopRpuRecorder.settingRestored('ha')
     await noopRpuRecorder.complete()
+    assert.deepEqual(noopRpuRecorder.hostsWithStrandedVms(), [])
   })
 })
 
