@@ -8,6 +8,8 @@
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
+import { getKeyboardLayout, getKeysymKeyStrokes, typeText } from '@core/utils/keyboard-layout/keyboard-layout.util.ts'
 import type NoVncClient from '@novnc/novnc/lib/rfb'
 import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
@@ -148,9 +150,27 @@ onBeforeUnmount(() => {
   clearVncClient()
 })
 
+function typeTextInConsole(text: string, layoutId: KeyboardLayoutId) {
+  const client = vncClient
+
+  if (client === undefined) {
+    return
+  }
+
+  // not exposed by noVNC and only true when the server announced the QEMU extended key event, which the host console does not
+  const isScancodeSupported = (client as unknown as { _qemuExtKeyEventSupported: boolean })._qemuExtKeyEventSupported
+
+  return typeText(
+    (keysym, code, down) => client.sendKey(keysym, code, down),
+    text,
+    isScancodeSupported ? getKeyboardLayout(layoutId).getKeyStrokes : getKeysymKeyStrokes,
+    () => vncClient !== client
+  )
+}
+
 defineExpose({
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
-  setClipboard: (text: string) => vncClient?.clipboardPasteFrom(text),
+  typeText: typeTextInConsole,
 })
 </script>
 
