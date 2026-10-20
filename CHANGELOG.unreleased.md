@@ -127,7 +127,7 @@
 - @xen-orchestra/xapi minor
 - complex-matcher minor
 - vhd-lib minor
-- xen-api major
+- xen-api minor
 - xo-acl-resolver minor
 - xo-cli patch
 - xo-server minor
