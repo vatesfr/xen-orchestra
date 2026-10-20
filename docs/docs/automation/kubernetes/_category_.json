@@ -1,0 +1,8 @@
+{
+  "label": "Kubernetes",
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/kubernetes",
+    "description": "Deploy Kubernetes clusters on XCP-ng and integrate them with Xen Orchestra"
+  }
+}
