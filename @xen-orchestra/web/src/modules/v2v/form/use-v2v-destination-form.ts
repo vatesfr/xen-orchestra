@@ -13,6 +13,7 @@ import {
 import type { V2vDestinationDefaults, V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   countV2vPoolResources,
+  getOfferedV2vDestinationPrefill,
   getV2vDestinationPrefill,
   getV2vPoolDestinationChoices,
   type V2vDestinationPrefill,
@@ -87,11 +88,19 @@ export function useV2vDestinationForm({
     countV2vPoolResources(pools.value, { hosts: hosts.value, srs: srs.value, networks: networks.value })
   )
 
-  const prefill = computed(() =>
-    selectedPool.value === undefined
-      ? {}
-      : getV2vDestinationPrefill(selectedPool.value, { srs: srs.value, pifs: pifs.value }, toValue(storedList))
-  )
+  const prefill = computed(() => {
+    if (selectedPool.value === undefined) {
+      return {}
+    }
+
+    const poolPrefill = getV2vDestinationPrefill(
+      selectedPool.value,
+      { srs: srs.value, pifs: pifs.value },
+      toValue(storedList)
+    )
+
+    return getOfferedV2vDestinationPrefill(poolPrefill, choices.value)
+  })
 
   watch(
     () => formData.pool,
@@ -100,14 +109,18 @@ export function useV2vDestinationForm({
     }
   )
 
-  // Collections may still be loading when the pool is chosen (e.g. `?pool=` on reload): fill what is still empty
-  // once they are, without overwriting a value the user picked
-  watch(prefill, newPrefill => {
-    Object.assign(
-      formData,
-      pickBy(newPrefill, (_, field) => formData[field as keyof V2vDestinationPrefill] === undefined)
-    )
-  })
+  // The pool may be set before mount (e.g. `?pool=`) and each collection may load before or after: fill what is still
+  // empty as soon as its option is offered, without overwriting a value the user picked
+  watch(
+    prefill,
+    newPrefill => {
+      Object.assign(
+        formData,
+        pickBy(newPrefill, (_, field) => formData[field as keyof V2vDestinationPrefill] === undefined)
+      )
+    },
+    { immediate: true }
+  )
 
   const defaults = computed<V2vDestinationDefaults | undefined>(() => {
     const { sr, network, template } = formData
