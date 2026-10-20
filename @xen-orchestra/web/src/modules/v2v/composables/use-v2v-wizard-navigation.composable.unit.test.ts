@@ -32,3 +32,22 @@ it('sets the given parameters along the step', async () => {
     [V2V_VMS_FILTER_QUERY_KEY]: 'name:web',
   })
 })
+
+it('locates the step, keeping the other parameters of the route and setting the given ones', async () => {
+  const { navigation, router } = await mountNavigation()
+
+  expect(router.resolve(navigation.getStepLocation('mapping', { vm: 'vm-1' })).query).toEqual({
+    step: 'mapping',
+    pool: 'pool-1',
+    vm: 'vm-1',
+    [V2V_VMS_FILTER_QUERY_KEY]: 'name:web',
+  })
+})
+
+it('locates the step without moving to it', async () => {
+  const { navigation, router } = await mountNavigation()
+
+  navigation.getStepLocation('vms')
+
+  expect(router.currentRoute.value.query.step).toBe('destination')
+})

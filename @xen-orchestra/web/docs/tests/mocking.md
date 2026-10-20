@@ -41,6 +41,8 @@ Collections always read together share one mock module exporting each of their c
 
 The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading).
 
+`mock-delete-modal.ts` stands for `useDeleteModal`, whose overlay a unit test cannot answer: `deleteModalMock.answer('onConfirm' | 'onCancel')` sets how the next confirmation is answered, `deleteModalMock.open` is the spy to read the props it was opened with, and `deleteModalMock.reset()` goes in `beforeEach`.
+
 ## Network
 
 `src/test/setup.ts` stubs the global `fetch` with a never-settling promise before each test, so composables that trigger remote requests on use never hit the network in unit tests. When a test needs a real response, `stubFetchResponse(status, body)` from `src/test/stub-fetch-response.ts` overrides it for that test only and returns the mock, to assert the request when the request is the contract (a job).
