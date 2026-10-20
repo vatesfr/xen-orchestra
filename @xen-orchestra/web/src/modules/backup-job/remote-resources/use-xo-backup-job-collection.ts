@@ -3,7 +3,6 @@ import { useXoCollectionState } from '@/shared/composables/xo-collection-state/u
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVmBackupJob, XoMetadataBackupJob, XoMirrorBackupJob } from '@vates/types'
-import { useSorted } from '@vueuse/core'
 
 export type FrontXoVmBackupJob = Pick<XoVmBackupJob, (typeof vmBackupJobFields)[number]>
 export type FrontXoMetadataBackupJob = Pick<XoMetadataBackupJob, (typeof metadataBackupJobFields)[number]>
@@ -57,16 +56,9 @@ export const useXoBackupJobCollection = defineRemoteResource({
   initWatchCollection: () =>
     useWatchCollection({ collectionId: 'adminBackupJob', resource: 'backup-job', fields: anyBackupJobFields }),
   initialData: () => [] as FrontAnyXoBackupJob[],
-  state: (rawBackupJobs, context) => {
-    const backupJobs = useSorted(rawBackupJobs, ({ name: name1 = '' }, { name: name2 = '' }) =>
-      name1.localeCompare(name2)
-    )
-
-    return {
-      ...useXoCollectionState(backupJobs, {
-        context,
-        baseName: 'backupJob',
-      }),
-    }
-  },
+  state: (backupJobs, context) =>
+    useXoCollectionState(backupJobs, {
+      context,
+      baseName: 'backupJob',
+    }),
 })

@@ -79,7 +79,7 @@ const state = useTableState({
         : false,
 })
 
-const overviewHref = computed(() => buildXo5Route('/backup/overview'))
+const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const { HeadCells, BodyCells } = useAdminBackupJobColumns({
   body: (backupJob: FrontAnyXoBackupJob) => {
@@ -92,7 +92,7 @@ const { HeadCells, BodyCells } = useAdminBackupJobColumns({
       backupJob: r =>
         r({
           label: backupJob.name ?? t('untitled'),
-          href: overviewHref.value,
+          href: jobOverviewHref.value,
           icon: 'object:backup-job',
         }),
       type: r => r(typeLabels.value[0] ?? '', { extraCount: typeLabels.value.length - 1 }),
