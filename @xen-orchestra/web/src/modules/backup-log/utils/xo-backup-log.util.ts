@@ -3,7 +3,6 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoTask } from '@vates/types'
 import { formatDate } from '@vueuse/core'
-import type { RouteLocationAsRelative } from 'vue-router'
 
 function getBackupLogVmTasks(backupLog: FrontXoBackupLog) {
   return (backupLog.tasks ?? []).filter(task => task.data?.type === 'VM')
@@ -25,13 +24,6 @@ export function getBackupLogSrIds(backupLog: FrontXoBackupLog) {
 
 export function formatBackupLogDate(timestamp: number) {
   return formatDate(new Date(timestamp), 'YYYY-MM-DD HH:mm:ss')
-}
-
-export function getBackupLogRoute(backupLog: FrontXoBackupLog): RouteLocationAsRelative {
-  return {
-    name: '/admin/backup-and-replication/logs',
-    query: { id: backupLog.id },
-  }
 }
 
 function findTaskErrorRecursively(tasks: XoTask[]): XoTask['result'] {
