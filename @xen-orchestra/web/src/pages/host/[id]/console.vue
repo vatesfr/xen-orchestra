@@ -8,11 +8,21 @@
     </div>
   </VtsStateHero>
   <VtsLayoutConsole v-else>
-    <VtsRemoteConsole ref="console-element" :url :is-console-available="isHostConsoleAvailable" />
+    <VtsRemoteConsole
+      ref="console-element"
+      :url
+      :is-console-available="isHostConsoleAvailable"
+      @clipboard="clipboardText = $event"
+      @connection-change="isConsoleConnected = $event"
+    />
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <VtsClipboardConsole
+        v-model="clipboardText"
+        :is-console-connected="isConsoleConnected"
+        :send-to-console="sendToConsole"
+      />
     </template>
   </VtsLayoutConsole>
 </template>
@@ -27,7 +37,7 @@ import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { HOST_ALLOWED_OPERATIONS } from '@vates/types'
-import { computed, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -48,8 +58,11 @@ const isHostConsoleAvailable = computed(() =>
   props.host.controlDomain !== undefined ? !isHostOperationPending(props.host!, STOP_OPERATIONS) : false
 )
 const consoleElement = useTemplateRef('console-element')
+const clipboardText = ref('')
+const isConsoleConnected = ref(false)
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const sendToConsole = () => consoleElement.value?.setClipboard(clipboardText.value)
 </script>
 
 <style scoped lang="postcss">
