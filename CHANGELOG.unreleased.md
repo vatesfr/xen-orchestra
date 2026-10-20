@@ -94,6 +94,7 @@
 - [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
 - [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected(PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
 - [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
+- [Plugins/web-hooks, Import] Fix authenticated requests failing with `Request cannot be constructed from a URL that includes credentials` (PR [#10635](https://github.com/vatesfr/xen-orchestra/pull/10635))
 
 ### Packages to release
 
@@ -135,6 +136,7 @@
 - xo-server-netbox minor
 - xo-server-sdn-controller patch
 - xo-server-transport-icinga2 patch
+- xo-server-web-hooks patch
 - xo-web minor
 
 <!--packages-end-->
