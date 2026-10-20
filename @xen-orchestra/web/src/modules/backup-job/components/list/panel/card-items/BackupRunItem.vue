@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupLog } from '@/modules/backup-job/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import {
   type FrontXoSchedule,
   useXoScheduleCollection,
@@ -82,7 +82,7 @@ const scheduleName = computed(() => {
   return schedule.value.name || t('untitled')
 })
 
-const scheduleHref = computed(() => buildXo5Route(`/backup/${backupRun.jobId}/edit`))
+const scheduleHref = computed(() => buildXo5Route('/backup/overview'))
 
 const formattedRunDate = computed(() =>
   d(backupRun.end ?? backupRun.start, { dateStyle: 'short', timeStyle: 'medium' })
