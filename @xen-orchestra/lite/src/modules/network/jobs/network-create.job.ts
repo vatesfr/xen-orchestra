@@ -9,6 +9,7 @@ export type BaseNewNetworkPayload = {
   description?: string
   mtu?: number
   nbd?: boolean
+  insecureNbd?: boolean
 }
 
 export type NewNetworkPayload = BaseNewNetworkPayload & {
@@ -29,6 +30,7 @@ export const useNetworkCreateJob = defineJob('network.create', [payloadArg], () 
         vlan: payload.vlan,
         pifRef: payload.pifRef,
         nbd: payload.nbd,
+        insecureNbd: payload.insecureNbd,
       })
 
       return xapi.getField<XenApiNetwork['uuid']>('network', networkRef, 'uuid')

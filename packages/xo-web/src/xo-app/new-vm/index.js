@@ -131,7 +131,6 @@ const Item = ({ label, children, className }) => (
 )
 
 @addSubscriptions({
-  // eslint-disable-next-line standard/no-callback-literal
   ipPoolsConfigured: cb => subscribeIpPools(ipPools => cb(ipPools.length > 0)),
 })
 @injectIntl
@@ -302,6 +301,18 @@ export default class NewVm extends BaseComponent {
     const template = this.props.template
     if (get(() => prevProps.template.id) !== get(() => template.id)) {
       this._initTemplate(template)
+    } else if (
+      prevProps.resourceSets === undefined &&
+      this.props.resourceSets !== undefined &&
+      template !== undefined
+    ) {
+      // the template may have been skipped by `_initTemplate` because the
+      // resource sets were not fetched yet
+      //
+      // deferred until the pending updates are applied: the `share` update
+      // below is batched with this one and, as `_setState` spreads the current
+      // state, it would otherwise discard the values set by `_initTemplate`
+      this.setState(null, () => this._initTemplate(this.props.template))
     }
 
     // as an admin, the resource set is selected in the advanced settings and
@@ -573,6 +584,12 @@ export default class NewVm extends BaseComponent {
   _initTemplate = template => {
     if (!template) {
       return this._reset()
+    }
+
+    // self-service: the template can be known (e.g. deep link) before the
+    // resource sets are fetched, `componentDidUpdate` will retry once they are
+    if (this.props.pool === undefined && this._getResolvedResourceSet() === undefined) {
+      return
     }
 
     const storeState = store.getState()
@@ -878,19 +895,20 @@ export default class NewVm extends BaseComponent {
       return
     }
 
-    const defaultSr = getObject(store.getState(), template.$pool, true).default_SR
-
-    return includes(
-      resolveIds(
-        filter(
-          this._getResolvedResourceSet().objectsByType.SR,
-          sr => sr.$pool === template.$pool && sr.content_type !== 'iso' && sr.size > 0
-        )
-      ),
-      defaultSr
+    const usableSrs = resolveIds(
+      filter(
+        this._getResolvedResourceSet().objectsByType.SR,
+        sr => sr.$pool === template.$pool && sr.content_type !== 'iso' && sr.size > 0
+      )
     )
-      ? defaultSr
-      : undefined
+
+    // the pool is not necessarily visible: a resource set grants its objects,
+    // never their container
+    const defaultSr = getObject(store.getState(), template.$pool, true)?.default_SR
+
+    // fall back to any SR of the set, otherwise the disk rows come up with
+    // nothing selected
+    return includes(usableSrs, defaultSr) ? defaultSr : usableSrs[0]
   }
   _addVdi = () => {
     const { state } = this.state

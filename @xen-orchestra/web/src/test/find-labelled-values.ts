@@ -27,6 +27,21 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
 }
 
 /**
+ * Reads the value each `VtsTabularKeyValueRow` / `VtsKeyValueRow` offers to copy, keyed
+ * by its label. Rows without a copy button are left out, so a single `toEqual` pins
+ * both which rows are copyable and what they copy.
+ */
+export function findCopiedValues(wrapper: QueryableWrapper): Record<string, unknown> {
+  return Object.fromEntries(
+    wrapper.findAll('.vts-tabular-key-value-row, .vts-key-value-row').flatMap(row => {
+      const button = row.findComponent(VtsCopyButton)
+
+      return button.exists() ? [[row.get('dt.label').text(), button.props('value')]] : []
+    })
+  )
+}
+
+/**
  * Reads the value each `VtsCopyButton` of the `VtsCardRowKeyValue` rows would copy, in
  * order — so a card test asserts what is copyable, and what is left out (a secret, an
  * empty value).

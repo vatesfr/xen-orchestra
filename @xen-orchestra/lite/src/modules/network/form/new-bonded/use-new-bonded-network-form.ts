@@ -20,7 +20,7 @@ export function useNewBondedNetworkForm() {
     name: '',
     description: '',
     mtu: undefined,
-    nbd: false,
+    nbd: 'none',
     pifRefs: [],
     bondMode: undefined,
   })
@@ -44,7 +44,7 @@ export function useNewBondedNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(formData, extraConfig)
 
   const { interfacesSelectId } = useNetworkPifSelect(toRef(formData, 'pifRefs'), {
@@ -78,7 +78,7 @@ export function useNewBondedNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, 'pifRefs', () => ({ label: t('interfaces') })),
     bondModeSelectBindings: useSelect(bondModeSelectId, 'bondMode', () => ({ label: t('bond-mode') })),
     validateAndBuildPayload,

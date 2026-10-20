@@ -6,21 +6,26 @@
 //! then a second, full TLS handshake on the same TCP connection carries the
 //! [`handshake`] messages and the [`record`] protocol; or `nfc`, and the
 //! connection carries them in clear once the first session is abandoned.
+//! A host whose greeting does not announce [`greeting::SHA256_SUPPORTED`]
+//! speaks the [`legacy`] dialect instead: a shorter handshake, then fixed-size
+//! messages and no record.
 
 pub mod greeting;
 pub mod handshake;
+pub mod legacy;
 pub mod record;
 
 use std::fmt;
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
+use std::num::NonZeroUsize;
 use std::str::FromStr;
 
 use rustls::{ClientConnection, Stream};
 use rustls_pki_types::CertificateDer;
 
-use crate::tls;
 use crate::transcript::Transcript;
+use crate::{disk, tls};
 
 /// Longest line read from the host before giving up on it.
 ///
@@ -37,8 +42,11 @@ const MAX_RECORD_LEN: usize = 1 << 20;
 
 /// Reply code that opens the host's answer to `BANNER`.
 const BANNER_OK: &str = "220";
-/// Reply code that opens a successful `THUMBPRINT_SHA2` answer, hash after the space.
+/// Reply code that opens a successful thumbprint answer, hash after the space.
 const REPLY_OK: &str = "200 ";
+
+/// Length of a capacity-search read on a legacy host: one [`disk::SECTOR`].
+const PROBE_LEN: u32 = 512;
 
 /// Alphabet of a session tag: the 64 base64 characters, so any byte maps to one.
 const TAG_ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -92,6 +100,34 @@ impl fmt::Display for Transport {
             Transport::Nfcssl => "nfcssl",
             Transport::Nfc => "nfc",
         })
+    }
+}
+
+/// Which protocol a host speaks once the ticket dialogue is done, as its greeting tells.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Dialect {
+    /// The greeting announces [`greeting::SHA256_SUPPORTED`]: the full handshake, then records.
+    Modern,
+    /// It does not (ESXi 6.x): the tag alone, then [`legacy`] messages.
+    Legacy,
+}
+
+impl Dialect {
+    /// The dialect `greeting` selects.
+    fn of(greeting: &greeting::Greeting) -> Dialect {
+        if greeting.announces(greeting::SHA256_SUPPORTED) {
+            Dialect::Modern
+        } else {
+            Dialect::Legacy
+        }
+    }
+
+    /// The dialogue command asking for the thumbprint of the host's certificate.
+    const fn thumbprint(self) -> &'static str {
+        match self {
+            Dialect::Modern => "THUMBPRINT_SHA2",
+            Dialect::Legacy => "THUMBPRINT",
+        }
     }
 }
 
@@ -169,7 +205,8 @@ pub enum Error {
         /// The header received.
         received: record::Header,
     },
-    /// The host answered a record with an error record before the reply.
+    /// The host answered a record with an error record before the reply,
+    /// or a legacy message with an error message.
     #[error("{what}: the host reported error {code}: {text}")]
     Refused {
         /// What was refused: the opcode sent, or the open and its path.
@@ -215,6 +252,43 @@ pub enum Error {
         /// The length the reply header announced.
         length: u32,
     },
+    /// A legacy host answered with a message of another type than the one expected.
+    #[error("{what}: expected a type {expected} reply, the host sent type {observed}")]
+    Unexpected {
+        /// What was answered: the open and its path, the read, the close or the end.
+        what: String,
+        /// The type the protocol calls for at that point.
+        expected: u32,
+        /// The type the host sent.
+        observed: u32,
+    },
+    /// A legacy read reply does not describe the read in flight.
+    #[error(
+        "read {length} bytes at offset {offset} was answered with {answered_length} bytes \
+         at offset {answered_offset} ({answered_wire_length} sent), {announced} bytes announced"
+    )]
+    Misread {
+        /// The disk offset the read asked.
+        offset: u64,
+        /// The length the read asked.
+        length: u32,
+        /// The disk offset the reply's block names.
+        answered_offset: u64,
+        /// The length the reply's block names.
+        answered_length: u32,
+        /// How many data bytes the reply's block says follow it.
+        answered_wire_length: u32,
+        /// How many bytes the reply announced after it, block included.
+        announced: u32,
+    },
+    /// The capacity search on a legacy host found no last readable sector.
+    #[error("open {path:?}: no capacity found from the {estimate} bytes the disk's geometry gives")]
+    Capacity {
+        /// The datastore path opened.
+        path: String,
+        /// The size the open reply's geometry gives.
+        estimate: u64,
+    },
     /// The random generator could not fill the session tag.
     #[error("could not draw a session tag from the random generator")]
     Random,
@@ -232,7 +306,8 @@ pub struct Disk {
 /// A read sent to the host whose chunks are still to come.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Pending {
-    /// The header sent, which every chunk echoes.
+    /// The header sent, which every chunk echoes; a legacy read sends none,
+    /// and keeps a header naming its message type and sequence 0.
     sent: record::Header,
     /// The disk offset asked.
     offset: u64,
@@ -254,16 +329,14 @@ pub fn read_greeting<R: Read>(reader: &mut R) -> Result<greeting::Greeting, Erro
 
 /// Reads a host's data-port greeting, then captures the certificate TLS presents.
 ///
-/// TLS starts on the same connection right after the greeting line, and only
-/// when the greeting announces [`greeting::SHA256_SUPPORTED`]: a host without
-/// it gets no TLS handshake at all.
+/// TLS starts on the same connection right after the greeting line,
+/// whatever capabilities it announces.
 ///
 /// # Errors
-/// When connecting or reading the greeting fails, the greeting lacks the
-/// capability, or the TLS handshake fails.
+/// When connecting, reading the greeting or the TLS handshake fails.
 pub(crate) fn capture(host: &str, port: u16) -> Result<tls::Presented, Error> {
     let mut stream = tls::connect(host, port)?;
-    read_greeting(&mut stream)?.require(greeting::SHA256_SUPPORTED)?;
+    read_greeting(&mut stream)?;
     Ok(tls::capture(&mut stream, host)?)
 }
 
@@ -272,6 +345,7 @@ pub(crate) fn capture(host: &str, port: u16) -> Result<tls::Presented, Error> {
 pub struct Connection {
     stream: TcpStream,
     plane: Plane,
+    dialect: Dialect,
     next_sequence: u32,
     transcript: Transcript,
 }
@@ -291,13 +365,14 @@ impl<S: Read + Write> Wire for S {}
 impl Connection {
     /// Connects to `host:port` and runs everything up to the capabilities record.
     ///
-    /// The greeting must announce SHA-256 support, and `NFCSSL supported`
-    /// when `transport` is `nfcssl`; the first TLS session must present the
-    /// certificate `pin` names, which is the ticket's thumbprint; `secret` is
-    /// the ticket presented in that session. With `nfcssl` the second TLS
-    /// session must present the same certificate; with `nfc` the connection
-    /// goes on in clear. The handshake, hello, version and capabilities
-    /// exchanges follow, each waiting for its reply.
+    /// The greeting selects the [`Dialect`] and must announce `NFCSSL
+    /// supported` when `transport` is `nfcssl`; the first TLS session must
+    /// present the certificate `pin` names, which is the ticket's thumbprint;
+    /// `secret` is the ticket presented in that session. With `nfcssl` the
+    /// second TLS session must present the same certificate; with `nfc` the
+    /// connection goes on in clear. The handshake, hello, version and
+    /// capabilities exchanges follow, each waiting for its reply; a legacy
+    /// host gets the start of the handshake alone.
     ///
     /// # Errors
     /// When any phase fails, naming that phase.
@@ -312,7 +387,10 @@ impl Connection {
         let mut stream = tls::connect(host, port)?;
         let greeted = read_greeting(&mut stream)?;
         transcript.greeting(&greeted.capabilities);
-        greeted.require(greeting::SHA256_SUPPORTED)?;
+        let dialect = Dialect::of(&greeted);
+        if dialect == Dialect::Legacy {
+            transcript.legacy();
+        }
         if transport == Transport::Nfcssl {
             greeted.require(greeting::NFCSSL_SUPPORTED)?;
         }
@@ -328,6 +406,7 @@ impl Connection {
             &tag,
             &certificate,
             transport,
+            dialect,
             transcript,
         )?;
         // The PROXY reply is the last thing the host sends in the first
@@ -349,10 +428,14 @@ impl Connection {
         let mut connection = Connection {
             stream,
             plane,
+            dialect,
             next_sequence: 0,
             transcript,
         };
-        shake(&mut connection.data(), &tag, transcript)?;
+        shake(&mut connection.data(), &tag, dialect, transcript)?;
+        if dialect == Dialect::Legacy {
+            return Ok(connection);
+        }
         connection.exchange(record::HELLO, &record::HELLO_PAYLOAD, &[])?;
         connection.exchange(record::VERSION, &record::VERSION_PAYLOAD, &[])?;
         connection.exchange(record::CAPABILITIES, &record::CAPABILITIES_PAYLOAD, &[])?;
@@ -361,10 +444,22 @@ impl Connection {
 
     /// Opens the disk at datastore `path` and returns its handle and capacity.
     ///
+    /// A legacy host reports no handle, which is then 0, and no capacity,
+    /// which is searched for with reads.
+    ///
     /// # Errors
     /// When the exchange fails, the host answers with an error record, or
     /// the reply carries a non-zero status.
     pub fn open(&mut self, path: &str) -> Result<Disk, Error> {
+        if self.dialect == Dialect::Legacy {
+            let (opened, capacity, probes) = legacy_open(&mut self.data(), path)?;
+            self.transcript.opened(capacity, opened.sector_size);
+            self.transcript.searched(opened.estimate(), probes);
+            return Ok(Disk {
+                handle: 0,
+                capacity,
+            });
+        }
         let length = u32::try_from(path.len()).ok().ok_or(Error::Oversize {
             what: "the datastore path",
             length: path.len(),
@@ -395,6 +490,9 @@ impl Connection {
     /// # Errors
     /// When the exchange fails.
     pub fn close(&mut self, handle: u64) -> Result<(), Error> {
+        if self.dialect == Dialect::Legacy {
+            return legacy_close(&mut self.data());
+        }
         self.exchange(record::CLOSE, &record::close_request(handle), &[])?;
         Ok(())
     }
@@ -404,6 +502,9 @@ impl Connection {
     /// # Errors
     /// When the exchange fails.
     pub fn end(&mut self) -> Result<(), Error> {
+        if self.dialect == Dialect::Legacy {
+            return legacy_end(&mut self.data());
+        }
         self.exchange(record::END, &record::END_PAYLOAD, &[])?;
         Ok(())
     }
@@ -411,7 +512,8 @@ impl Connection {
     /// Asks for `length` bytes at `offset` of the disk `handle` names, sent as `compression` says.
     ///
     /// Only the request goes out; the chunks answering it are read one at a
-    /// time with [`Connection::chunk`].
+    /// time with [`Connection::chunk`]. A legacy host knows no handle and no
+    /// compression, and sends the data as stored.
     ///
     /// # Errors
     /// When the request cannot be sent.
@@ -422,6 +524,9 @@ impl Connection {
         length: u32,
         compression: u32,
     ) -> Result<Pending, Error> {
+        if self.dialect == Dialect::Legacy {
+            return legacy_read(&mut self.data(), offset, length);
+        }
         let sequence = self.next_sequence;
         self.next_sequence = sequence.wrapping_add(1);
         let sent = send_record(
@@ -441,16 +546,43 @@ impl Connection {
     /// Reads the next chunk answering one of the reads `in_flight`.
     ///
     /// Returns the index of the read answered, what the chunk's header says
-    /// and its bytes; the host answers reads in flight in any order.
+    /// and its bytes; the host answers reads in flight in any order. A
+    /// legacy host answers its one read in flight with one chunk.
     ///
     /// # Errors
     /// When the host closes or answers a read not in flight, reports an
     /// error record, or a non-zero status.
+    ///
+    /// # Panics
+    /// On a legacy host, when `in_flight` does not hold exactly one read,
+    /// which [`Connection::depth_limit`] rules out.
     pub fn chunk(
         &mut self,
         in_flight: &[Pending],
     ) -> Result<(usize, record::ReadReply, Vec<u8>), Error> {
+        if self.dialect == Dialect::Legacy {
+            let [pending] = in_flight else {
+                panic!(
+                    "a legacy host takes one read in flight, not {}",
+                    in_flight.len()
+                );
+            };
+            let (reply, data) = legacy_chunk(&mut self.data(), pending)?;
+            return Ok((0, reply, data));
+        }
         chunk(&mut self.data(), in_flight)
+    }
+
+    /// The most reads this host takes in flight, when it has a limit.
+    ///
+    /// A legacy host sometimes drops a read sent before the previous reply
+    /// has fully arrived, without an error, so it takes them one at a time.
+    #[must_use]
+    pub fn depth_limit(&self) -> Option<NonZeroUsize> {
+        match self.dialect {
+            Dialect::Modern => None,
+            Dialect::Legacy => Some(NonZeroUsize::MIN),
+        }
     }
 
     fn data(&mut self) -> Box<dyn Wire + '_> {
@@ -523,15 +655,17 @@ fn draw_tag() -> Result<[u8; handshake::TAG_LEN], Error> {
 /// `SESSION <ticket>` gets no reply. `BANNER ` (with its trailing space) is
 /// answered with a 220 line. `THUMBPRINT_SHA2 <tag>` is answered with
 /// `200 <hash>`, where the hash must be the SHA-256 thumbprint of the
-/// certificate this session verified. The `PROXY` line asking for
-/// `transport` must be answered with exactly the line granting it; nothing
-/// else is written before that.
+/// certificate this session verified; a legacy host is asked `THUMBPRINT
+/// <tag>` instead, and its reply, a SHA-1 hash, must only start with `200 `.
+/// The `PROXY` line asking for `transport` must be answered with exactly
+/// the line granting it; nothing else is written before that.
 fn dialogue<S: Read + Write>(
     stream: &mut S,
     secret: &str,
     tag: &[u8; handshake::TAG_LEN],
     certificate: &CertificateDer<'_>,
     transport: Transport,
+    dialect: Dialect,
     transcript: Transcript,
 ) -> Result<(), Error> {
     send(
@@ -550,23 +684,26 @@ fn dialogue<S: Read + Write>(
             reply: banner,
         });
     }
-    let line = format!("THUMBPRINT_SHA2 {}", String::from_utf8_lossy(tag));
+    let command = dialect.thumbprint();
+    let line = format!("{command} {}", String::from_utf8_lossy(tag));
     send(stream, format!("{line}\r\n").as_bytes(), "dialogue")?;
     transcript.sent(&line);
     let answer = reply(stream)?;
     transcript.received(&answer);
-    let announced = answer
-        .strip_prefix(REPLY_OK)
-        .and_then(|hash| tls::Pin::sha256(hash).ok())
-        .ok_or_else(|| Error::Dialogue {
-            command: "THUMBPRINT_SHA2",
-            reply: answer.clone(),
-        })?;
-    if !announced.matches(certificate) {
-        return Err(Error::InBand {
-            announced: announced.to_string(),
-            presented: tls::sha256(certificate),
-        });
+    let refused = || Error::Dialogue {
+        command,
+        reply: answer.clone(),
+    };
+    let hash = answer.strip_prefix(REPLY_OK).ok_or_else(refused)?;
+    // A legacy host's SHA-1 reply confirms nothing the ticket's SHA-1 has not.
+    if dialect == Dialect::Modern {
+        let announced = tls::Pin::sha256(hash).ok().ok_or_else(refused)?;
+        if !announced.matches(certificate) {
+            return Err(Error::InBand {
+                announced: announced.to_string(),
+                presented: tls::sha256(certificate),
+            });
+        }
     }
     send(
         stream,
@@ -590,9 +727,12 @@ fn dialogue<S: Read + Write>(
 /// The host reads one message per TLS record, so every message is its own
 /// write, and it acknowledges the tag only once the version message has
 /// arrived, so the first three messages go out before any reply is awaited.
+/// A legacy host acknowledges the tag and its end alone, and refuses the
+/// version message: nothing follows the acknowledgment.
 fn shake<S: Read + Write>(
     stream: &mut S,
     tag: &[u8; handshake::TAG_LEN],
+    dialect: Dialect,
     transcript: Transcript,
 ) -> Result<(), Error> {
     put(stream, handshake::TAG, &handshake::tag(tag), transcript)?;
@@ -602,6 +742,9 @@ fn shake<S: Read + Write>(
         &handshake::message(handshake::TAG_END, (0, 0)),
         transcript,
     )?;
+    if dialect == Dialect::Legacy {
+        return expect(stream, handshake::TAG_ACK, transcript);
+    }
     put(
         stream,
         handshake::VERSION,
@@ -785,6 +928,203 @@ fn read_bounded<R: Read>(reader: &mut R, opcode: u32, announced: u32) -> Result<
     Ok(body)
 }
 
+/// Reads one [`legacy`] message and checks it is of type `expected`, naming `what` it answers.
+///
+/// An error message is read whole, text included, and reported as
+/// [`Error::Refused`].
+fn legacy_reply<R: Read>(
+    reader: &mut R,
+    expected: u32,
+    what: &str,
+) -> Result<[u8; handshake::LEN], Error> {
+    let mut message = [0_u8; handshake::LEN];
+    read_full(reader, &mut message, "record")?;
+    match handshake::kind(&message) {
+        observed if observed == expected => Ok(message),
+        legacy::ERROR => {
+            let refusal = legacy::error(&message);
+            let text = read_bounded(reader, expected, refusal.text_len)?;
+            let text = text.strip_suffix(&[0]).unwrap_or(&text);
+            Err(Error::Refused {
+                what: what.to_owned(),
+                code: refusal.code,
+                text: String::from_utf8_lossy(text).into_owned(),
+            })
+        }
+        observed => Err(Error::Unexpected {
+            what: what.to_owned(),
+            expected,
+            observed,
+        }),
+    }
+}
+
+/// Opens the disk at datastore `path` on a legacy host, then searches for its capacity.
+///
+/// Returns what the open reply says, the capacity, and the reads the search took.
+fn legacy_open<S: Read + Write>(
+    stream: &mut S,
+    path: &str,
+) -> Result<(legacy::Opened, u64, u32), Error> {
+    let mut trailer = path.as_bytes().to_vec();
+    trailer.push(0);
+    let length = u32::try_from(trailer.len()).ok().ok_or(Error::Oversize {
+        what: "the datastore path",
+        length: trailer.len(),
+    })?;
+    send(stream, &legacy::open_request(length), "record")?;
+    send(stream, &trailer, "record")?;
+    let opened = legacy::opened(&legacy_reply(
+        stream,
+        legacy::OPENED,
+        &format!("open {path:?}"),
+    )?);
+    let (capacity, probes) = search(stream, path, opened.estimate())?;
+    Ok((opened, capacity, probes))
+}
+
+/// Finds the capacity of a legacy disk from the `estimate` its geometry gives.
+///
+/// The geometry falls short of the capacity by up to a cylinder, so the
+/// last sector it gives must be readable; from there one-sector reads
+/// gallop by doubling steps to the first refused one, then bisect. Returns
+/// the capacity and how many reads the search took.
+fn search<S: Read + Write>(stream: &mut S, path: &str, estimate: u64) -> Result<(u64, u32), Error> {
+    let lost = || Error::Capacity {
+        path: path.to_owned(),
+        estimate,
+    };
+    let mut probes = 0;
+    let mut probe = |offset| {
+        probes += 1;
+        readable(stream, offset)
+    };
+    let mut low = estimate.checked_sub(disk::SECTOR).ok_or_else(lost)?;
+    if !probe(low)? {
+        return Err(lost());
+    }
+    let mut step = disk::SECTOR;
+    let mut high = loop {
+        let next = low.checked_add(step).ok_or_else(lost)?;
+        if !probe(next)? {
+            break next;
+        }
+        low = next;
+        step = step.checked_mul(2).ok_or_else(lost)?;
+    };
+    while high - low > disk::SECTOR {
+        let middle = low + (high - low) / 2 / disk::SECTOR * disk::SECTOR;
+        if probe(middle)? {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    Ok((low + disk::SECTOR, probes))
+}
+
+/// Whether the sector at `offset` of a legacy disk can be read.
+///
+/// A read refused as out of bounds leaves the session usable and answers
+/// no; any other failure is an error.
+fn readable<S: Read + Write>(stream: &mut S, offset: u64) -> Result<bool, Error> {
+    let pending = legacy_read(stream, offset, PROBE_LEN)?;
+    match legacy_chunk(stream, &pending) {
+        Ok(_) => Ok(true),
+        Err(Error::Refused {
+            code: legacy::OUT_OF_BOUNDS,
+            ..
+        }) => Ok(false),
+        Err(error) => Err(error),
+    }
+}
+
+/// Sends a legacy read of `length` bytes at `offset`.
+fn legacy_read<W: Write>(writer: &mut W, offset: u64, length: u32) -> Result<Pending, Error> {
+    send(writer, &legacy::read_request(offset, length), "record")?;
+    Ok(Pending {
+        sent: record::Header {
+            opcode: legacy::READ,
+            length: 0,
+            sequence: 0,
+        },
+        offset,
+        length,
+    })
+}
+
+/// Reads the reply to the legacy read `pending`: what it says, as a record would, and its data.
+///
+/// The reply must describe that read and carry its bytes as stored.
+fn legacy_chunk<R: Read>(
+    reader: &mut R,
+    pending: &Pending,
+) -> Result<(record::ReadReply, Vec<u8>), Error> {
+    let what = format!("read {} bytes at offset {}", pending.length, pending.offset);
+    let announced = legacy::trailer_len(&legacy_reply(reader, legacy::READ, &what)?);
+    let mut bytes = [0_u8; legacy::BLOCK_LEN];
+    read_full(reader, &mut bytes, "record")?;
+    let block = legacy::block(&bytes);
+    let rest = announced
+        .checked_sub(block.wire_length)
+        .and_then(|rest| usize::try_from(rest).ok());
+    if block.offset != pending.offset
+        || block.length != pending.length
+        || block.wire_length != pending.length
+        || rest != Some(legacy::BLOCK_LEN)
+    {
+        return Err(Error::Misread {
+            offset: pending.offset,
+            length: pending.length,
+            answered_offset: block.offset,
+            answered_length: block.length,
+            answered_wire_length: block.wire_length,
+            announced,
+        });
+    }
+    let data = read_bounded(reader, legacy::READ, block.wire_length)?;
+    let reply = record::ReadReply {
+        status: 0,
+        compression: 0,
+        base_offset: pending.offset,
+        total_length: pending.length,
+        chunk_offset: 0,
+        chunk_length: pending.length,
+        wire_length: block.wire_length,
+    };
+    Ok((reply, data))
+}
+
+/// Closes the disk open on a legacy host.
+fn legacy_close<S: Read + Write>(stream: &mut S) -> Result<(), Error> {
+    send(stream, &handshake::message(legacy::CLOSE, (0, 0)), "record")?;
+    legacy_reply(stream, legacy::CLOSE, "close")?;
+    Ok(())
+}
+
+/// Ends a legacy session; the host answering in kind or closing the connection both end it.
+///
+/// A host that refused the open has closed the connection already, so the
+/// end message may meet a reset as well as an orderly close.
+fn legacy_end<S: Read + Write>(stream: &mut S) -> Result<(), Error> {
+    let ended = send(stream, &handshake::message(legacy::END, (0, 0)), "record")
+        .and_then(|()| legacy_reply(stream, legacy::END, "end"));
+    match ended {
+        Ok(_) | Err(Error::Closed(_)) => Ok(()),
+        Err(Error::Io { source, .. })
+            if matches!(
+                source.kind(),
+                io::ErrorKind::BrokenPipe
+                    | io::ErrorKind::ConnectionReset
+                    | io::ErrorKind::ConnectionAborted
+            ) =>
+        {
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -964,6 +1304,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap();
@@ -988,6 +1329,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfc,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap();
@@ -1009,6 +1351,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfc,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1029,6 +1372,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1050,6 +1394,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1072,6 +1417,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1100,6 +1446,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1120,6 +1467,7 @@ mod tests {
             TAG,
             &certificate(),
             Transport::Nfcssl,
+            Dialect::Modern,
             QUIET,
         )
         .unwrap_err();
@@ -1142,7 +1490,7 @@ mod tests {
             ],
         );
 
-        shake(&mut peer, TAG, QUIET).unwrap();
+        shake(&mut peer, TAG, Dialect::Modern, QUIET).unwrap();
 
         assert_eq!(
             peer.writes,
@@ -1164,7 +1512,7 @@ mod tests {
             &handshake::message(handshake::ERROR, (0, 0)),
         ]);
 
-        let error = shake(&mut peer, TAG, QUIET).unwrap_err();
+        let error = shake(&mut peer, TAG, Dialect::Modern, QUIET).unwrap_err();
 
         assert_eq!(
             error.to_string(),
@@ -1177,7 +1525,7 @@ mod tests {
     fn a_host_that_closes_during_the_handshake_is_reported_as_such() {
         let mut peer = Peer::replying(&[&[0_u8; 10]]);
 
-        let error = shake(&mut peer, TAG, QUIET).unwrap_err();
+        let error = shake(&mut peer, TAG, Dialect::Modern, QUIET).unwrap_err();
 
         assert_eq!(
             error.to_string(),
@@ -1556,6 +1904,387 @@ mod tests {
                 "record: the datastore path is {} bytes, more than a record can carry",
                 usize::MAX
             )
+        );
+    }
+
+    /// A legacy error message carrying `code` and `text`, its NUL appended.
+    fn legacy_error(code: u32, text: &[u8]) -> Vec<u8> {
+        let mut bytes = handshake::message(legacy::ERROR, (1, code)).to_vec();
+        bytes[12..16].copy_from_slice(&u32::try_from(text.len() + 1).unwrap().to_le_bytes());
+        bytes.extend_from_slice(text);
+        bytes.push(0);
+        bytes
+    }
+
+    /// A legacy read reply carrying `data` read at `offset`: message, block, data.
+    fn legacy_data(offset: u64, data: &[u8]) -> Vec<u8> {
+        let length = u32::try_from(data.len()).unwrap();
+        let mut bytes = handshake::message(legacy::READ, (0, 24 + length)).to_vec();
+        bytes.extend_from_slice(&[0; 8]);
+        bytes.extend_from_slice(&offset.to_le_bytes());
+        bytes.extend_from_slice(&length.to_le_bytes());
+        bytes.extend_from_slice(&length.to_le_bytes());
+        bytes.extend_from_slice(data);
+        bytes
+    }
+
+    /// A legacy open reply: 512-byte sectors and the geometry given.
+    fn legacy_opened(cylinders: u32, heads: u32, sectors: u32) -> Vec<u8> {
+        let mut bytes = handshake::message(legacy::OPENED, (0, 2)).to_vec();
+        for (at, word) in [(12, 512), (16, cylinders), (20, heads), (24, sectors)] {
+            bytes[at..at + 4].copy_from_slice(&word.to_le_bytes());
+        }
+        bytes
+    }
+
+    /// A legacy host serving a disk of `capacity` zero bytes, answering each read as it arrives.
+    struct LegacyDisk {
+        capacity: u64,
+        replies: std::collections::VecDeque<u8>,
+        reads: u32,
+    }
+
+    impl LegacyDisk {
+        fn opening(capacity: u64, opened: &[u8]) -> LegacyDisk {
+            LegacyDisk {
+                capacity,
+                replies: opened.iter().copied().collect(),
+                reads: 0,
+            }
+        }
+    }
+
+    impl Read for LegacyDisk {
+        fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+            self.replies.read(buffer)
+        }
+    }
+
+    impl Write for LegacyDisk {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            if let Ok(message) = <&[u8; handshake::LEN]>::try_from(bytes)
+                && handshake::kind(message) == legacy::READ
+            {
+                self.reads += 1;
+                let offset = record::long(message, 12);
+                let length = record::word(message, 20);
+                let reply = if offset + u64::from(length) <= self.capacity {
+                    legacy_data(offset, &vec![0; usize::try_from(length).unwrap()])
+                } else {
+                    legacy_error(17, b"out of bounds")
+                };
+                self.replies.extend(reply);
+            }
+            Ok(bytes.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn a_greeting_without_sha256_selects_the_legacy_dialect_and_its_thumbprint_command() {
+        let modern = greeting::parse(ESXI_8).unwrap();
+        let legacy = greeting::parse(&ESXI_8[..ESXI_8.len() - 20]).unwrap();
+
+        assert_eq!(Dialect::of(&modern), Dialect::Modern);
+        assert_eq!(Dialect::of(&legacy), Dialect::Legacy);
+        assert_eq!(Dialect::Legacy.thumbprint(), "THUMBPRINT");
+    }
+
+    #[test]
+    fn the_legacy_dialogue_asks_thumbprint_and_takes_any_200_reply_as_success() {
+        let mut peer = Peer::replying(&[
+            b"220 ok\r\n",
+            b"200 AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD\r\n",
+            b"200 Connect ha-nfcssl\r\n",
+        ]);
+
+        dialogue(
+            &mut peer,
+            "ticket-0",
+            TAG,
+            &certificate(),
+            Transport::Nfcssl,
+            Dialect::Legacy,
+            QUIET,
+        )
+        .unwrap();
+
+        assert_eq!(
+            peer.output(),
+            b"SESSION ticket-0\r\nBANNER \r\nTHUMBPRINT ABCDEFGHIJKLMNOP\r\nPROXY nfcssl\r\n"
+        );
+    }
+
+    #[test]
+    fn a_legacy_thumbprint_reply_without_200_ends_the_dialogue_before_proxy() {
+        let mut peer = Peer::replying(&[b"220 ok\r\n", b"500 no\r\n"]);
+
+        let error = dialogue(
+            &mut peer,
+            "ticket-0",
+            TAG,
+            &certificate(),
+            Transport::Nfcssl,
+            Dialect::Legacy,
+            QUIET,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "dialogue: THUMBPRINT was answered \"500 no\""
+        );
+        assert!(!peer.output().ends_with(b"PROXY nfcssl\r\n"));
+    }
+
+    #[test]
+    fn the_legacy_handshake_sends_the_tag_and_its_end_then_awaits_the_ack_alone() {
+        let mut peer = Peer::replying_after(
+            2 * handshake::LEN,
+            &[&handshake::message(handshake::TAG_ACK, (0, 0))],
+        );
+
+        shake(&mut peer, TAG, Dialect::Legacy, QUIET).unwrap();
+
+        assert_eq!(
+            peer.writes,
+            [
+                handshake::tag(TAG).to_vec(),
+                handshake::message(handshake::TAG_END, (0, 0)).to_vec(),
+            ]
+        );
+    }
+
+    #[test]
+    fn an_end_in_place_of_the_legacy_ack_is_a_refused_handshake() {
+        let mut peer = Peer::replying(&[&handshake::message(legacy::END, (0, 0))]);
+
+        let error = shake(&mut peer, TAG, Dialect::Legacy, QUIET).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "handshake: expected a type 36 reply, the host sent type 4"
+        );
+    }
+
+    #[test]
+    fn a_legacy_disk_capacity_is_searched_past_its_geometry_in_the_reads_observed() {
+        let path = "[datastore1] vm/vm.vmdk";
+        for (cylinders, capacity, probes) in [(1044, 8 << 30, 26), (3133, 24 << 30, 6)] {
+            let mut host = LegacyDisk::opening(capacity, &legacy_opened(cylinders, 255, 63));
+
+            let (opened, found, counted) = legacy_open(&mut host, path).unwrap();
+
+            assert_eq!(opened.sector_size, 512);
+            assert_eq!(
+                (found, counted),
+                (capacity, probes),
+                "{cylinders} cylinders"
+            );
+            assert_eq!(host.reads, probes);
+            assert!(host.replies.is_empty(), "every reply is consumed");
+        }
+    }
+
+    #[test]
+    fn a_legacy_open_writes_the_path_after_the_request_and_a_refusal_names_the_path() {
+        let path = "[datastore1] vm/missing.vmdk";
+        let text = format!("NfcFssrvrOpen: permission check failed for file {path}, access = 1");
+        let mut peer = Peer::replying(&[&legacy_error(11, text.as_bytes())]);
+
+        let error = legacy_open(&mut peer, path).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            format!("open {path:?}: the host reported error 11: {text}")
+        );
+        assert_eq!(
+            peer.writes,
+            [
+                legacy::open_request(29).to_vec(),
+                b"[datastore1] vm/missing.vmdk\0".to_vec(),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_legacy_disk_whose_geometry_overshoots_or_is_empty_has_no_capacity() {
+        let path = "[datastore1] vm/vm.vmdk";
+        for (cylinders, estimate) in [(1044, 8_587_192_320_u64), (0, 0)] {
+            let mut host = LegacyDisk::opening(
+                estimate.saturating_sub(512),
+                &legacy_opened(cylinders, 255, 63),
+            );
+
+            let error = legacy_open(&mut host, path).unwrap_err();
+
+            assert_eq!(
+                error.to_string(),
+                format!(
+                    "open {path:?}: no capacity found from the {estimate} bytes the disk's geometry gives"
+                )
+            );
+        }
+    }
+
+    #[test]
+    fn a_legacy_read_is_answered_with_its_block_and_mapped_as_one_uncompressed_chunk() {
+        let mut peer = Peer::replying(&[&legacy_data(0, &[7; 512]), b"next"]);
+
+        let pending = legacy_read(&mut peer, 0, 512).unwrap();
+        let (reply, data) = legacy_chunk(&mut peer, &pending).unwrap();
+
+        assert_eq!(peer.writes, [legacy::read_request(0, 512).to_vec()]);
+        assert_eq!(
+            reply,
+            record::ReadReply {
+                status: 0,
+                compression: 0,
+                base_offset: 0,
+                total_length: 512,
+                chunk_offset: 0,
+                chunk_length: 512,
+                wire_length: 512,
+            }
+        );
+        assert_eq!(data, [7; 512]);
+        assert_eq!(
+            peer.input.position(),
+            u64::try_from(peer.input.get_ref().len() - 4).unwrap(),
+            "only the reply is consumed"
+        );
+    }
+
+    #[test]
+    fn a_legacy_reply_describing_another_read_is_refused_naming_both() {
+        let mut peer = Peer::replying(&[&legacy_data(512, &[0; 512])]);
+        let pending = legacy_read(&mut peer, 0, 512).unwrap();
+
+        let error = legacy_chunk(&mut peer, &pending).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "read 512 bytes at offset 0 was answered with 512 bytes at offset 512 (512 sent), 536 bytes announced"
+        );
+    }
+
+    #[test]
+    fn a_legacy_reply_echoing_another_length_is_refused_naming_it() {
+        let mut reply = legacy_data(0, &[0; 512]);
+        let at = reply.len() - 512 - 8;
+        reply[at..at + 4].copy_from_slice(&1024_u32.to_le_bytes());
+        let mut peer = Peer::replying(&[&reply]);
+        let pending = legacy_read(&mut peer, 0, 512).unwrap();
+
+        let error = legacy_chunk(&mut peer, &pending).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "read 512 bytes at offset 0 was answered with 1024 bytes at offset 0 (512 sent), 536 bytes announced"
+        );
+    }
+
+    #[test]
+    fn a_refused_legacy_read_is_reported_with_its_text_without_the_nul() {
+        let text = "The request has invalid arguments -- NfcFssrvrReadEx: failed to read 512 bytes @ 1048577 : One of the parameters supplied is invalid";
+        let mut peer = Peer::replying(&[&legacy_error(19, text.as_bytes())]);
+        let pending = legacy_read(&mut peer, 1_048_577, 512).unwrap();
+
+        let error = legacy_chunk(&mut peer, &pending).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            format!("read 512 bytes at offset 1048577: the host reported error 19: {text}")
+        );
+        assert_eq!(peer.input.position(), 264 + 133, "the text is read whole");
+    }
+
+    #[test]
+    fn a_legacy_close_is_acknowledged_in_kind_and_an_end_in_its_place_is_refused() {
+        let close = handshake::message(legacy::CLOSE, (0, 0));
+        let mut peer = Peer::replying(&[&close]);
+        legacy_close(&mut peer).unwrap();
+        assert_eq!(peer.writes, [close.to_vec()]);
+
+        let mut peer = Peer::replying(&[&handshake::message(legacy::END, (0, 0))]);
+        let error = legacy_close(&mut peer).unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "close: expected a type 24 reply, the host sent type 4"
+        );
+    }
+
+    #[test]
+    fn a_legacy_end_succeeds_answered_in_kind_or_by_the_connection_closing() {
+        let end = handshake::message(legacy::END, (0, 0));
+        for script in [&end[..], b""] {
+            let mut peer = Peer::replying(&[script]);
+            legacy_end(&mut peer).unwrap();
+            assert_eq!(peer.writes, [end.to_vec()]);
+        }
+
+        let mut peer = Peer::replying(&[&handshake::message(legacy::CLOSE, (0, 0))]);
+        let error = legacy_end(&mut peer).unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "end: expected a type 4 reply, the host sent type 24"
+        );
+    }
+
+    #[test]
+    fn a_legacy_end_succeeds_on_a_connection_the_host_has_reset_but_not_on_a_timeout() {
+        /// A connection whose reads, and writes when `writes_fail`, fail with `kind`.
+        struct Failing {
+            kind: io::ErrorKind,
+            writes_fail: bool,
+        }
+        impl Read for Failing {
+            fn read(&mut self, _buffer: &mut [u8]) -> io::Result<usize> {
+                Err(io::Error::from(self.kind))
+            }
+        }
+        impl Write for Failing {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                if self.writes_fail {
+                    Err(io::Error::from(self.kind))
+                } else {
+                    Ok(bytes.len())
+                }
+            }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
+        }
+
+        for (kind, writes_fail) in [
+            (io::ErrorKind::BrokenPipe, true),
+            (io::ErrorKind::ConnectionReset, true),
+            (io::ErrorKind::ConnectionReset, false),
+            (io::ErrorKind::ConnectionAborted, false),
+        ] {
+            let ended = legacy_end(&mut Failing { kind, writes_fail });
+            assert!(
+                ended.is_ok(),
+                "{kind:?}, writes fail: {writes_fail}: {ended:?}"
+            );
+        }
+        let error = legacy_end(&mut Failing {
+            kind: io::ErrorKind::TimedOut,
+            writes_fail: false,
+        })
+        .unwrap_err();
+        assert!(
+            matches!(
+                error,
+                Error::Io {
+                    phase: "record",
+                    ..
+                }
+            ),
+            "{error:?}"
         );
     }
 }

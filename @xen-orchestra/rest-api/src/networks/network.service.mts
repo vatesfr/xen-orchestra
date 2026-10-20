@@ -1,3 +1,5 @@
+import { invalidParameters } from 'xo-common/api-errors.js'
+
 import type { CreateBondedNetworkBody, CreateInternalNetworkBody, CreateNetworkBody } from '../pools/pool.type.mjs'
 import type { ReplaceKey } from '../helpers/helper.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -14,12 +16,16 @@ export class NetworkService {
     poolId: XoPool['id'],
     body: ReplaceKey<CreateNetworkBody, 'pif', 'pifId'> | CreateBondedNetworkBody | CreateInternalNetworkBody
   ): Promise<XoNetwork['id']> {
+    const { nbd, insecureNbd, ...rest } = body
+    if (nbd && insecureNbd) {
+      throw invalidParameters('nbd and insecureNbd are mutually exclusive')
+    }
+
     const xapiPool = this.#restApi.getXapiObject<XoPool>(poolId, 'pool')
     const xapi = xapiPool.$xapi
 
     let xapiNetwork: XenApiNetworkWrapped
 
-    const { nbd, ...rest } = body
     const createParams: Parameters<Xapi['createBondedNetwork']>[0] | Parameters<Xapi['createNetwork']>[0] = rest
 
     if ('pifIds' in createParams) {
@@ -30,6 +36,8 @@ export class NetworkService {
 
     if (nbd) {
       await xapiNetwork.$call('add_purpose', 'nbd')
+    } else if (insecureNbd) {
+      await xapiNetwork.$call('add_purpose', 'insecure_nbd')
     }
 
     return xapiNetwork.uuid as XoNetwork['id']

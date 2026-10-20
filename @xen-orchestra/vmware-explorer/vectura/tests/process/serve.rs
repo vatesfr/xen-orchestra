@@ -9,9 +9,10 @@ use std::time::Duration;
 use crate::support::nbd::{self, Export, Info};
 use crate::support::{
     COOKIE, DataPort, Event, GREETING_WITHOUT_NFCSSL, GREETING_WITHOUT_SHA256, HANDSHAKE_ERROR,
-    HOLD_PATIENCE, Host, MSG_MODE, MSG_NAME, MSG_READY, MSG_TAG, MSG_TAG_END, MSG_VERSION,
-    OP_CAPABILITIES, OP_CLOSE, OP_END, OP_HELLO, OP_OPEN, OP_VERSION, Observed, ReadFault,
-    Scenario, TICKET, Thumbprint, disk_byte, disk_bytes, text, thumbprint,
+    HOLD_PATIENCE, Host, LEGACY_CLOSE, LEGACY_END, LEGACY_OPEN, MSG_MODE, MSG_NAME, MSG_READY,
+    MSG_TAG, MSG_TAG_END, MSG_VERSION, OP_CAPABILITIES, OP_CLOSE, OP_END, OP_HELLO, OP_OPEN,
+    OP_VERSION, Observed, ReadFault, Scenario, TICKET, Thumbprint, disk_byte, disk_bytes, text,
+    thumbprint,
 };
 
 const USER: &str = "root";
@@ -506,21 +507,102 @@ fn a_ticket_thumbprint_that_is_not_the_data_port_certificate_aborts_the_first_tl
     );
 }
 
+/// What a legacy session records, in order, through the open message.
+///
+/// A legacy host acknowledges the tag and its end at once: no version, name,
+/// mode or ready message, and no record before the open.
+fn legacy_events_up_to_open() -> Vec<Event> {
+    let mut events = events_up_to_open("nfcssl");
+    let version = events
+        .iter()
+        .position(|event| *event == Event::Handshake(MSG_VERSION))
+        .expect("a modern handshake sends its version");
+    events.truncate(version);
+    events.push(Event::Record {
+        opcode: LEGACY_OPEN,
+        sequence: 0,
+        path: Some(DISK.to_owned()),
+    });
+    events
+}
+
+fn legacy_message(opcode: u32) -> Event {
+    record(opcode, 0)
+}
+
 #[test]
-fn a_greeting_without_sha256_support_is_refused_and_the_session_logged_out() {
-    let (host, stderr) = fails_then_logs_out(Scenario {
+fn a_legacy_host_exports_the_capacity_its_reads_reveal_and_serves_the_disk_bytes() {
+    let capacity = Scenario::default().capacity;
+    let host = Host::start(Scenario {
         data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
         ..Scenario::default()
     });
+    // A legacy reply names no read: a second read in flight makes the client
+    // panic, so a depth of four that is not brought down to one fails the run.
+    let mut child = spawn(&host, Some(PASSWORD), &pinned_at_depth(&host, 4));
 
+    let export = negotiate(&mut child, true);
+    let searched = host.events().len();
+    let first = read_at(&mut child, 1, 0, 4 * MIB);
+    let last = read_at(&mut child, 2, capacity - SECTOR, SECTOR);
+    let events = session_ends_cleanly(&host, child);
+
+    assert_eq!(export.size, capacity);
+    matches_disk(&first, 0, 4 * MIB);
+    matches_disk(&last, capacity - SECTOR, SECTOR);
+    let opened = legacy_events_up_to_open();
+    assert_eq!(events[..opened.len()], opened);
+    let probes = &events[opened.len()..searched];
     assert!(
-        stderr.contains("greeting: the host does not announce \"SHA256 supported\""),
-        "{stderr}"
+        !probes.is_empty()
+            && probes.iter().all(|event| matches!(
+                event,
+                Event::Read { length: 512, .. } | Event::Answered { .. }
+            )),
+        "the capacity is searched with sector reads: {probes:?}"
     );
-    assert!(
-        !host.data().handshake_started,
-        "no TLS is started on the data port"
+    let (reads, end) = events[searched..].split_at(events.len() - searched - 3);
+    assert_eq!(
+        host_reads(reads, capacity),
+        [
+            (0, MIB),
+            (MIB, MIB),
+            (2 * MIB, MIB),
+            (3 * MIB, MIB),
+            (capacity - SECTOR, SECTOR),
+        ]
     );
+    assert_eq!(
+        end,
+        [
+            legacy_message(LEGACY_CLOSE),
+            legacy_message(LEGACY_END),
+            call("Logout", Some(COOKIE)),
+        ]
+    );
+}
+
+/// The text an ESXi 6.0 host sends when the path names no disk.
+const LEGACY_OPEN_ERROR: &str =
+    "NfcFssrvrOpen: permission check failed for file [datastore1] vm/vm.vmdk, access = 1";
+
+#[test]
+fn a_legacy_open_the_host_refuses_is_reported_with_its_text_and_the_session_logged_out() {
+    let (host, stderr) = fails_then_logs_out(Scenario {
+        data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
+        open_error: Some((11, LEGACY_OPEN_ERROR)),
+        ..Scenario::default()
+    });
+
+    assert_eq!(
+        stderr,
+        format!(
+            "vectura: data plane: open {DISK:?}: the host reported error 11: {LEGACY_OPEN_ERROR}\n"
+        )
+    );
+    let mut expected = legacy_events_up_to_open();
+    expected.push(call("Logout", Some(COOKIE)));
+    assert_eq!(host.events(), expected);
 }
 
 #[test]
