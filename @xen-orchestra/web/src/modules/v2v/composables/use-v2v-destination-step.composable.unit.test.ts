@@ -2,6 +2,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
@@ -13,6 +14,7 @@ import {
   createV2vMigrationListVms,
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
@@ -56,10 +58,15 @@ const UNKNOWN_POOL_ID = 'pool-unknown' as FrontXoPool['id']
 
 const DEFAULTS = createV2vDestinationDefaults({ sr: POOL.default_SR })
 
+const STORED_TEMPLATE_ID = 'template-stored' as V2vMigrationList['defaults']['template']
+
 async function mountDestinationStep(query: Record<string, string> = {}) {
   destinationCollectionsMock.pools.value = [POOL]
   destinationCollectionsMock.srs.value = [createSr()]
+  destinationCollectionsMock.networks.value = [createNetwork({ id: DEFAULTS.network })]
   destinationCollectionsMock.pifs.value = [createManagementPif(POOL, DEFAULTS.network)]
+  // The stored defaults are only prefilled once the pool offers them
+  destinationCollectionsMock.templates.value = [createVmTemplate({ id: STORED_TEMPLATE_ID })]
   const router = await createV2vWizardRouter('destination', query)
 
   const result = mountComposable(
@@ -134,9 +141,7 @@ describe('form', () => {
 
   it('prefills the defaults of the list stored for the chosen pool', async () => {
     const storedList = createV2vMigrationList({
-      defaults: createV2vDestinationDefaults({
-        template: 'template-stored' as V2vMigrationList['defaults']['template'],
-      }),
+      defaults: createV2vDestinationDefaults({ template: STORED_TEMPLATE_ID }),
     })
     seedV2vMigrationList(storedList)
     const { result } = await mountDestinationStep()

@@ -11,6 +11,8 @@ export type V2vPoolResourceCounts = { hosts: number; srs: number; networks: numb
 
 export type V2vDestinationPrefill = Partial<V2vDestinationDefaults>
 
+export type V2vPoolDestinationChoices = ReturnType<typeof getV2vPoolDestinationChoices>
+
 function countByPool(resources: { $pool: FrontXoPool['id'] }[]) {
   const counts = new Map<FrontXoPool['id'], number>()
 
@@ -46,6 +48,23 @@ export function getV2vPoolDestinationChoices(
     srs: resources.srs.filter(sr => isInPool(sr) && isSrWritable(sr)),
     networks: resources.networks.filter(isInPool),
     templates: resources.templates.filter(isInPool),
+  }
+}
+
+function findOfferedId<TId>(choices: { id: TId }[], id: TId | undefined): TId | undefined {
+  return choices.find(choice => choice.id === id)?.id
+}
+
+// A select only shows a value once it offers it: a prefill set before its option exists would read empty, and a
+// default gone from the pool would be kept unseen
+export function getOfferedV2vDestinationPrefill(
+  prefill: V2vDestinationPrefill,
+  { srs, networks, templates }: V2vPoolDestinationChoices
+): V2vDestinationPrefill {
+  return {
+    sr: findOfferedId(srs, prefill.sr),
+    network: findOfferedId(networks, prefill.network),
+    template: findOfferedId(templates, prefill.template),
   }
 }
 
