@@ -22,7 +22,6 @@ export function getVmBackupJobSettings(job: FrontXoVmBackupJob): XoBackupJobSett
 
   return {
     compression: job.compression,
-    proxy: job.proxy,
     concurrency,
     maxExportRate,
     nRetriesVmBackupFailures,

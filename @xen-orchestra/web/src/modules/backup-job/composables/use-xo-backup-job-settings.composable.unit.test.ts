@@ -1,9 +1,9 @@
-import { useXoBackupJobSettingsUtils } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
+import { useXoBackupJobSettings } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import type { XoProxy } from '@vates/types'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
@@ -28,11 +28,11 @@ function mountSettings(backupJob: FrontAnyXoBackupJob) {
   return mountComposable(() => {
     const { t, locale } = useI18n()
 
-    return { ...useXoBackupJobSettingsUtils(backupJob), t, locale }
+    return { ...useXoBackupJobSettings(backupJob), t, locale }
   }).wrapper.vm
 }
 
-describe('useXoBackupJobSettingsUtils', () => {
+describe('useXoBackupJobSettings', () => {
   describe('report when', () => {
     it('translates when the report is sent', () => {
       const always = mountSettings(createVmBackupJob({ settings: { '': { reportWhen: 'always' } } }))
@@ -75,14 +75,14 @@ describe('useXoBackupJobSettingsUtils', () => {
     const result = mountSettings(createVmBackupJob({ settings: { '': { timeout: 7200000, maxExportRate: 1048576 } } }))
 
     expect(result.formattedTimeout).toBe(formatTimeout(7200000, result.locale))
-    expect(result.maxExportRate).toEqual(formatSpeedRaw(1048576, { maxDecimals: 2 }))
+    expect(result.formattedMaxExportRate).toBe(formatSpeed(1048576))
   })
 
   it('has no timeout nor speed limit when they are not set', () => {
     const result = mountSettings(createVmBackupJob())
 
     expect(result.formattedTimeout).toBeUndefined()
-    expect(result.maxExportRate).toBeUndefined()
+    expect(result.formattedMaxExportRate).toBeUndefined()
   })
 
   it('finds the proxy of the backup job', () => {
