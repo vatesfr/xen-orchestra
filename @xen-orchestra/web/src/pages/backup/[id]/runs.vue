@@ -14,7 +14,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-
 import {
   useXoBackupLogCollection,
   type FrontXoBackupLog,
-} from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'

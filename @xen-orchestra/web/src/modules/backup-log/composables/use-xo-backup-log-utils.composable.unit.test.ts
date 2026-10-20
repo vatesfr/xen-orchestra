@@ -1,4 +1,4 @@
-import { useXoBackupLogsUtils } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
+import { useXoBackupLogsUtils } from '@/modules/backup-log/composables/use-xo-backup-log-utils.composable.ts'
 import {
   createBackupLog,
   createBackupLogExportTask,

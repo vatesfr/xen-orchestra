@@ -13,9 +13,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import { BACKUP_JOB_LAST_RUNS_COUNT } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'

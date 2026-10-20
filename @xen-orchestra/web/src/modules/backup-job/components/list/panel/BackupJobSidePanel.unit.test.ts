@@ -1,7 +1,3 @@
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobSidePanel from '@/modules/backup-job/components/list/panel/BackupJobSidePanel.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
@@ -10,6 +6,10 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type {
+  FrontXoBackupLog,
+  useXoBackupLogCollection,
+} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
@@ -53,7 +53,7 @@ vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.t
   }
 })
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     getLastNBackupLogsByJobId: (jobId: string) => backupLogsByJobId.get(jobId) ?? [],
   })) as unknown as typeof useXoBackupLogCollection,

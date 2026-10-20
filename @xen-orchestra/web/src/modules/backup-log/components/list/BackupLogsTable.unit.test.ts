@@ -1,6 +1,6 @@
-import AdminBackupLogsTable from '@/modules/admin-backup-log/components/list/AdminBackupLogsTable.vue'
 import type { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import BackupLogsTable from '@/modules/backup-log/components/list/BackupLogsTable.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -66,7 +66,7 @@ function mockVms(vms: FrontXoVm[]) {
 }
 
 function mountTable(backupLog: FrontXoBackupLog) {
-  return mount(AdminBackupLogsTable, {
+  return mount(BackupLogsTable, {
     props: { backupLogs: [backupLog], busy: false, error: false },
     global: createGlobalTestConfig(),
   })
