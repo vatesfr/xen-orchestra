@@ -29,6 +29,9 @@ const listenSchema = z
     key: redacted.optional(),
     cert: redacted.optional(),
     certificate: redacted.optional(),
+    passphrase: redacted.optional(),
+    pfx: redacted.optional(),
+    ca: redacted.optional(),
   })
   .partial()
   .catchall(z.any().transform(() => '**REDACTED**'))
@@ -49,7 +52,7 @@ export const XoServerConfigSchema = z
       .object({
         // record (`[http.listen.<name>]`) or legacy array (`[[http.listen]]`)
         listen: z.union([z.record(z.string(), listenSchema), z.array(listenSchema)]).optional(),
-        listenOptions: z.record(z.unknown()).optional(),
+        listenOptions: listenSchema.extend({ requestTimeout: z.number().optional() }).optional(),
         redirectToHttps: z.boolean().optional(),
         sessionSecret: redacted,
         cookies: redacted,

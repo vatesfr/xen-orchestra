@@ -87,6 +87,34 @@ describe('applySchema()', function () {
     assert.ok(Array.isArray(result.data.http.listen))
   })
 
+  it('redacts TLS secrets in http.listenOptions', function () {
+    const input = {
+      http: {
+        listenOptions: {
+          requestTimeout: 0,
+          passphrase: 'PASSPHRASE',
+          pfx: 'PFX_MATERIAL',
+          ca: 'CA_MATERIAL',
+          unknownOption: 'UNKNOWN',
+        },
+      },
+    }
+
+    const result = applySchema(input)
+
+    assert.deepEqual(result, {
+      http: {
+        listenOptions: {
+          requestTimeout: 0,
+          passphrase: '**REDACTED**',
+          pfx: '**REDACTED**',
+          ca: '**REDACTED**',
+          unknownOption: '**REDACTED**',
+        },
+      },
+    })
+  })
+
   it('returns an empty object for an empty configuration', function () {
     assert.deepEqual(applySchema({}), {})
   })

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { ServerConfigService } from './server-config.service.mjs'
@@ -25,16 +26,12 @@ describe('ServerConfigService#getSource()', () => {
     assert.deepStrictEqual(result, expected)
   })
 
-  it('throws a 404 when the path is not in the known sources', async () => {
-    const error = Object.assign(new Error('path is not a loaded config source'), {
-      statusCode: 404,
-    })
-
+  it('throws noSuchObject when the path is not in the known sources', async () => {
     const service = new ServerConfigService({
       xoApp: {
         config: {
-          parseSourceFiltered: async () => {
-            throw error
+          parseSourceFiltered: async (path: string) => {
+            throw noSuchObject(path, 'config-source')
           },
         },
       },
@@ -42,20 +39,16 @@ describe('ServerConfigService#getSource()', () => {
 
     await assert.rejects(
       () => service.getSource('/etc/passwd'),
-      (err: Error & { statusCode?: number }) => err.statusCode === 404
+      (err: unknown) => noSuchObject.is(err, { id: '/etc/passwd', type: 'config-source' })
     )
   })
 
-  it('throws a 404 for traversal paths', async () => {
-    const error = Object.assign(new Error('path is not a loaded config source'), {
-      statusCode: 404,
-    })
-
+  it('throws noSuchObject for traversal paths', async () => {
     const service = new ServerConfigService({
       xoApp: {
         config: {
-          parseSourceFiltered: async () => {
-            throw error
+          parseSourceFiltered: async (path: string) => {
+            throw noSuchObject(path, 'config-source')
           },
         },
       },
@@ -63,7 +56,7 @@ describe('ServerConfigService#getSource()', () => {
 
     await assert.rejects(
       () => service.getSource('../../etc/passwd'),
-      (err: Error & { statusCode?: number }) => err.statusCode === 404
+      (err: unknown) => noSuchObject.is(err, { id: '../../etc/passwd', type: 'config-source' })
     )
   })
 })

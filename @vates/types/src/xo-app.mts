@@ -207,7 +207,7 @@ export type ConfigSource = {
   files: string[]
 }
 
-export type XoApp = {
+export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
     get(key: string): Promise<string | null>

@@ -6,12 +6,12 @@ import { ServerConfigService } from './server-config.service.mjs'
 import {
   notFoundResp,
   unauthorizedResp,
-  badRequestResp,
   forbiddenOperationResp,
+  invalidParameters as invalidParams,
 } from '../open-api/common/response.common.mjs'
 import type { ConfigContent, ConfigSource } from './server-config.type.mjs'
 import { mergedConfigExample, sourcesExample, sourceFileExample } from './server-config.oa-example.mjs'
-import { ApiError } from '../helpers/error.helper.mjs'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 @Route('server-config')
 @Security('*') // admin-only: no acl() middleware → only permission==='admin' passes
@@ -33,7 +33,6 @@ export class ServerConfigController {
   @Example(mergedConfigExample)
   @Get('')
   @SuccessResponse(200, 'OK')
-  @Response(badRequestResp.status, badRequestResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -57,14 +56,14 @@ export class ServerConfigController {
   @Example(sourceFileExample)
   @Get('sources')
   @SuccessResponse(200, 'OK')
-  @Response(badRequestResp.status, badRequestResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParams.status, invalidParams.description)
   async getSources(@Query() path?: string): Promise<ConfigContent | ConfigSource[]> {
     if (path !== undefined) {
       if (path === '') {
-        throw new ApiError(`path is empty`, 400)
+        throw invalidParameters([{ property: 'path', message: 'must not be empty' }])
       }
       return this.#service.getSource(path)
     }
