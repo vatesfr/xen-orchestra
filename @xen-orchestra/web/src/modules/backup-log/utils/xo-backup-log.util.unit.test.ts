@@ -1,5 +1,4 @@
 import {
-  getBackupLogRoute,
   getBackupLogError,
   getBackupLogSrIds,
   getBackupLogVmIds,
@@ -74,17 +73,6 @@ describe('getBackupLogSrIds', () => {
 
   it('returns an empty list for a log without tasks', () => {
     expect(getBackupLogSrIds(createBackupLog({ tasks: undefined }))).toEqual([])
-  })
-})
-
-describe('getBackupLogRoute', () => {
-  it('opens the backup log in the logs of the administration', () => {
-    const backupLog = createBackupLog()
-
-    expect(getBackupLogRoute(backupLog)).toEqual({
-      name: '/admin/backup-and-replication/logs',
-      query: { id: backupLog.id },
-    })
   })
 })
 
