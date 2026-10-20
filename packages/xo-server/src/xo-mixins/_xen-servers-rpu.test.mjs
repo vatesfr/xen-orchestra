@@ -20,6 +20,7 @@ function createXenServers({
   loadBalancerLoaded = false,
   recordRefused = false,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
+  strandedVmHostIds = [],
   updateRefused = false,
   withSchedule = false,
   wlbEnabled = false,
@@ -50,6 +51,9 @@ function createXenServers({
     },
     async dropIfNothingToRecover() {
       calls.push(['recorder.dropIfNothingToRecover'])
+    },
+    hostsWithStrandedVms() {
+      return strandedVmHostIds
     },
   })
   const app = {
@@ -272,6 +276,12 @@ describe('XenServers.rollingPoolUpdate', function () {
     })
     await xenServers.rollingPoolUpdate(pool)
     assert.equal(calls.at(-1)[0], 'recorder.delete')
+  })
+  it('keeps the record as failed when some VMs could not be migrated back, so that a resume retries them', async function () {
+    const { calls, xenServers } = createXenServers({ strandedVmHostIds: ['host-B'] })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.equal(calls.at(-1)[0], 'recorder.fail')
+    assert.ok(!calls.some(([name]) => name === 'recorder.delete' || name === 'recorder.dropIfNothingToRecover'))
   })
 })
 

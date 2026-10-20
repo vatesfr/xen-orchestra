@@ -208,11 +208,12 @@ const methods = {
     // on resume, the VMs go back where they were before the first attempt, the
     // current placement only covers the VMs unknown to the record
     Object.assign(vmHomeById, resume.vmHomeById)
-    const vmRefsByHost = {}
+    const vmIdsByHost = {}
     for (const [vmId, hostId] of Object.entries(vmHomeById)) {
-      const vm = this.getObject(vmId, undefined)
-      if (vm?.power_state === 'Running') {
-        ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
+      // the pinned VMs a previous attempt left halted are started on their
+      // host once the run is over
+      if (!haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
+        ;(vmIdsByHost[hostId] ??= []).push(vmId)
       }
     }
 
@@ -420,7 +421,7 @@ const methods = {
 
       await this._migrateVmsBack(
         hosts,
-        vmRefsByHost,
+        vmIdsByHost,
         skipMigrateBack,
         () => {
           rprProgress += progressStepPerHost
@@ -445,29 +446,33 @@ const methods = {
   //
   // onHostDone is called once per host, whether its VMs moved or not, so that
   // the caller can advance the progress of the whole rolling operation.
-  async _migrateVmsBack(hosts, vmRefsByHost, ignoreHost, onHostDone, recorder = noopRpuRecorder) {
+  async _migrateVmsBack(hosts, vmIdsByHost, ignoreHost, onHostDone, recorder = noopRpuRecorder) {
+    // VMs destroyed or no longer running since the run started
+    const vmsLeftAlone = []
+
     // returns a report entry instead of throwing: a rejected migration is
     // queued for the retry passes below, it aborts nothing
-    const migrateVmBack = async (vmRef, host) => {
+    const migrateVmBack = async (vmId, host) => {
       const hostId = host.uuid
       const hostName = host.name_label
 
-      // the VM may have been destroyed since its host was evacuated: there is
-      // nothing left to migrate back, and it must not abort the whole phase
-      const vm = this.getObject(vmRef, undefined)
-      if (vm === undefined) {
-        log.warn('a VM to migrate back no longer exists', { pool: this.pool.uuid, vmRef })
+      // an operator may have stopped or destroyed the VM during the run: it is
+      // theirs now, there is nothing to migrate back and it must not abort the
+      // whole phase
+      const vm = this.getObject(vmId, undefined)
+      if (vm?.power_state !== 'Running') {
+        vmsLeftAlone.push({ hostId, vmId, powerState: vm?.power_state })
         return
       }
 
-      const { uuid: vmId, name_label: vmName } = vm
+      const { name_label: vmName } = vm
       try {
         await Task.run(
           { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
           () => this.migrateVm(vmId, this, hostId)
         )
       } catch (error) {
-        return { code: error.code, host, hostId, hostName, message: error.message, vmId, vmName, vmRef }
+        return { code: error.code, host, hostId, hostName, message: error.message, vmId, vmName }
       }
     }
 
@@ -490,9 +495,9 @@ const methods = {
           continue
         }
 
-        const vmRefs = vmRefsByHost[hostId]
+        const vmIds = vmIdsByHost[hostId]
 
-        if (vmRefs === undefined) {
+        if (vmIds === undefined) {
           recorder.stepNotNeeded(hostId, 'restoreVms')
           hostDone()
           continue
@@ -507,19 +512,19 @@ const methods = {
           const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
           let done = 0
 
-          for (const vmRef of vmRefs) {
-            if (residentVmRefs.includes(vmRef)) {
+          for (const vmId of vmIds) {
+            if (residentVmRefs.includes(this.getObject(vmId, undefined)?.$ref)) {
               done++
-              setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
+              setProgress(oneHostMigrationsTask, (100 * done) / vmIds.length)
               continue
             }
 
-            const pendingVm = await migrateVmBack(vmRef, host)
+            const pendingVm = await migrateVmBack(vmId, host)
             if (pendingVm !== undefined) {
               pendingVms.push(pendingVm)
             }
             done++
-            setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
+            setProgress(oneHostMigrationsTask, (100 * done) / vmIds.length)
           }
         })
         // optimistic: a VM still pending is only a failure once the retry
@@ -535,8 +540,8 @@ const methods = {
           { properties: { name: `Retry migrating VMs back`, total: pendingVms.length } },
           async () => {
             const failedVms = []
-            for (const { host, vmRef } of pendingVms) {
-              const failedVm = await migrateVmBack(vmRef, host)
+            for (const { host, vmId } of pendingVms) {
+              const failedVm = await migrateVmBack(vmId, host)
               if (failedVm !== undefined) {
                 failedVms.push(failedVm)
               }
@@ -552,14 +557,28 @@ const methods = {
       }
       setProgress(migrationsSubtask, 100)
 
+      if (vmsLeftAlone.length > 0) {
+        migrationsSubtask.set('vmsLeftAlone', vmsLeftAlone)
+        log.warn('VMs stopped or destroyed during the run were not migrated back', {
+          pool: this.pool.uuid,
+          vmsLeftAlone,
+        })
+      }
+
       // a VM left on another host is not worth failing the whole run: it is
       // running, only not where it started, and an operator has to move it back
       if (pendingVms.length > 0) {
-        // host and vmRef have no place in a task property
-        const strandedVms = pendingVms.map(({ host, vmRef, ...strandedVm }) => strandedVm)
+        // host has no place in a task property
+        const strandedVms = pendingVms.map(({ host, ...strandedVm }) => strandedVm)
         migrationsSubtask.set('strandedVms', strandedVms)
+        // one failure per host, naming all its VMs: the last error of a host
+        // keeps only the last one recorded
+        const messagesByHost = {}
         for (const { hostId, message, vmId } of strandedVms) {
-          recorder.stepFailed(hostId, 'restoreVms', new Error(`could not migrate VM ${vmId} back: ${message}`))
+          ;(messagesByHost[hostId] ??= []).push(`${vmId}: ${message}`)
+        }
+        for (const [hostId, messages] of Object.entries(messagesByHost)) {
+          recorder.stepFailed(hostId, 'restoreVms', new Error(`could not migrate VMs back: ${messages.join('; ')}`))
         }
         log.warn('could not migrate all the VMs back to their host', { pool: this.pool.uuid, strandedVms })
       }

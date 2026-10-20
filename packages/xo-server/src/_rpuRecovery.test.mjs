@@ -549,6 +549,16 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().hosts.h1.lastError.message, 'second')
   })
 
+  it('hostsWithStrandedVms lists the hosts whose VMs could not be migrated back', async () => {
+    const { recorder } = await makeRecorder()
+
+    recorder.stepObserved('h1', 'restoreVms')
+    recorder.stepFailed('h2', 'restoreVms', new Error('HOST_NOT_ENOUGH_FREE_MEMORY'))
+    recorder.stepFailed('h3', 'evacuate', new Error('CANNOT_EVACUATE_HOST'))
+
+    assert.deepEqual(recorder.hostsWithStrandedVms(), ['h2'])
+  })
+
   it('hostSkipped marks every step not-needed', async () => {
     const { recorder, stored } = await makeRecorder()
 
@@ -891,5 +901,6 @@ describe('noopRpuRecorder', () => {
     await noopRpuRecorder.dropIfNothingToRecover()
     await noopRpuRecorder.markSucceeded()
     await noopRpuRecorder.delete()
+    assert.deepEqual(noopRpuRecorder.hostsWithStrandedVms(), [])
   })
 })

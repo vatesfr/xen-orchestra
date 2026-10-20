@@ -1181,9 +1181,13 @@ export default class XenServers {
     // run is not reported as interrupted at the next restart; a stale record
     // must not fail an RPU that succeeded: log it. A resume that found
     // settings left changed by an interrupted attempt keeps the record, so
-    // Finalize lists them
+    // Finalize lists them. VMs left away from their host keep it too, failed:
+    // a resume migrates them back
     try {
-      if (leftoverSettings.length > 0) {
+      const strandedVmHostIds = recorder.hostsWithStrandedVms()
+      if (strandedVmHostIds.length > 0) {
+        await recorder.fail(new Error(`could not migrate all the VMs back to hosts ${strandedVmHostIds.join(', ')}`))
+      } else if (leftoverSettings.length > 0) {
         await recorder.markSucceeded()
       } else {
         await recorder.delete()

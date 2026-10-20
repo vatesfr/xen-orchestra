@@ -322,6 +322,7 @@ export const noopRpuRecorder = Object.freeze({
   dropIfNothingToRecover: asyncNoop,
   markSucceeded: asyncNoop,
   delete: asyncNoop,
+  hostsWithStrandedVms: () => [],
 })
 
 /**
@@ -512,6 +513,10 @@ export function createRpuRecoveryRecorder({ store, record }) {
       if (record.attempt === undefined && Object.keys(record.hosts).length === 0) {
         await deleteRecord().catch(warnOnce)
       }
+    },
+    // hosts whose VMs could not all be migrated back
+    hostsWithStrandedVms() {
+      return Object.keys(record.hosts).filter(hostId => record.hosts[hostId].steps.restoreVms?.status === 'failed')
     },
     // a successful run which left some settings changed keeps its record, so
     // that Finalize lists them
