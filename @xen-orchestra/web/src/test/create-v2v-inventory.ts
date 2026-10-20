@@ -5,6 +5,7 @@ import {
   type XoV2vDatastore,
   type XoV2vDisk,
   type XoV2vInventory,
+  type XoV2vNic,
   type XoV2vVm,
 } from '@vates/types'
 
@@ -37,6 +38,15 @@ export function createV2vDisk(overrides: Partial<XoV2vDisk> = {}): XoV2vDisk {
     mode: V2V_DISK_MODE.PERSISTENT,
     isRdm: false,
     isEncrypted: false,
+    ...overrides,
+  }
+}
+
+export function createV2vNic(overrides: Partial<XoV2vNic> = {}): XoV2vNic {
+  return {
+    key: 'nic-4000' as XoV2vNic['key'],
+    label: 'Network adapter 1',
+    macAddress: '00:50:56:00:00:01',
     ...overrides,
   }
 }
