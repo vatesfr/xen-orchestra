@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Backup/File restore] Symbolic links are no longer followed: browsing or downloading a path that goes through one is refused, and the links met inside a restored folder are skipped (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
