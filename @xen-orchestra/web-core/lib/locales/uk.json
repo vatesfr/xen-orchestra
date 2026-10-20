@@ -88,8 +88,6 @@
   "backup-repository": "Сховище резервних копій",
   "backup-repository-type": "Сховище резервних копій (local, NFS, SMB)",
   "backup-targets": "Призначення для резервної копії",
-  "backup:full": "Повна резервна копія",
-  "backup:incremental": "Інкрементальна резервна копія",
   "backup:pool-metadata": "Метадані пулу",
   "backup:rolling-snapshot": "Ковзний знімок",
   "backup:xo-config": "Конфігурація XO",

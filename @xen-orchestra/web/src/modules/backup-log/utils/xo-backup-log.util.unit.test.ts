@@ -1,9 +1,7 @@
-import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
   formatBackupLogDate,
-  getAdminBackupLogRoute,
+  getBackupLogRoute,
   getBackupLogError,
-  getBackupLogRunRoute,
   getBackupLogSrIds,
   getBackupLogVmIds,
 } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
@@ -88,30 +86,11 @@ describe('formatBackupLogDate', () => {
   })
 })
 
-describe('getBackupLogRunRoute', () => {
-  it('points to the run of the log in the runs of its job', () => {
-    const backupLog = createBackupLog({
-      id: 'backup-log-42' as FrontXoBackupLog['id'],
-      jobId: 'backup-job-7' as NonNullable<FrontXoBackupLog['jobId']>,
-    })
-
-    expect(getBackupLogRunRoute(backupLog)).toEqual({
-      name: '/backup/[id]/runs',
-      params: { id: 'backup-job-7' },
-      query: { id: 'backup-log-42' },
-    })
-  })
-
-  it('returns undefined for a log without job', () => {
-    expect(getBackupLogRunRoute(createBackupLog({ jobId: undefined }))).toBeUndefined()
-  })
-})
-
-describe('getAdminBackupLogRoute', () => {
+describe('getBackupLogRoute', () => {
   it('opens the backup log in the logs of the administration', () => {
     const backupLog = createBackupLog()
 
-    expect(getAdminBackupLogRoute(backupLog)).toEqual({
+    expect(getBackupLogRoute(backupLog)).toEqual({
       name: '/admin/backup-and-replication/logs',
       query: { id: backupLog.id },
     })

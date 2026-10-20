@@ -39,7 +39,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useAdminBackupJobColumns } from '@core/tables/column-sets/admin-backup-job-columns.ts'
+import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
@@ -81,7 +81,7 @@ const state = useTableState({
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const { HeadCells, BodyCells } = useAdminBackupJobColumns({
+const { HeadCells, BodyCells } = useBackupJobColumns({
   body: (backupJob: FrontAnyXoBackupJob) => {
     const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)

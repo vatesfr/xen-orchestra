@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { BackupLogFilterableData } from '@/modules/backup-log/types/xo-backup-log.type.ts'
 import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
@@ -37,7 +37,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useAdminBackupLogColumns } from '@core/tables/column-sets/admin-backup-log-columns.ts'
+import { useBackupLogColumns } from '@core/tables/column-sets/backup-log-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -68,7 +68,7 @@ const filterableBackupLogs = computed(() =>
 )
 
 const { items: filteredBackupLogs, filter } = useQueryBuilderFilter<BackupLogFilterableData>(
-  'admin-backup-logs',
+  'backup-logs',
   () => filterableBackupLogs.value
 )
 
@@ -84,7 +84,7 @@ const schema = useQueryBuilderSchema<BackupLogFilterableData>({
   }),
 })
 
-const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('admin-backup-logs', filteredBackupLogs)
+const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backup-logs', filteredBackupLogs)
 
 const state = useTableState({
   busy: () => busy,
@@ -97,7 +97,7 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useAdminBackupLogColumns({
+const { HeadCells, BodyCells } = useBackupLogColumns({
   body: (log: BackupLogFilterableData) => {
     const href = computed(() => buildXo5Route(`/backup/${log.jobId}/edit`))
 
