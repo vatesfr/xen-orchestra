@@ -1,10 +1,6 @@
-import type {
-  FrontAnyXoBackupJob,
-  FrontXoVmBackupJob,
-} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { useMapper } from '@core/packages/mapper'
+import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { MaybeRefOrGetter } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupJobModeLabel(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
@@ -12,13 +8,11 @@ export function useXoBackupJobModeLabel(rawBackupJob: MaybeRefOrGetter<FrontAnyX
 
   const { t } = useI18n()
 
-  return useMapper<FrontXoVmBackupJob['mode'] | 'none', string>(
-    () => (backupJob.value.type === 'metadataBackup' ? undefined : backupJob.value.mode),
-    {
-      delta: t('incremental'),
-      full: t('full'),
-      none: '',
-    },
-    'none'
-  )
+  return computed(() => {
+    if (backupJob.value.type === 'metadataBackup') {
+      return ''
+    }
+
+    return backupJob.value.mode === 'delta' ? t('incremental') : t('full')
+  })
 }

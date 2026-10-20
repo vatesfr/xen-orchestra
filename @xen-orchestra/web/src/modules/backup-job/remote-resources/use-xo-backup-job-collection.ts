@@ -7,11 +7,11 @@ import { useSorted } from '@vueuse/core'
 
 export type FrontXoVmBackupJob = Pick<XoVmBackupJob, (typeof vmBackupJobFields)[number]>
 export type FrontXoMetadataBackupJob = Pick<XoMetadataBackupJob, (typeof metadataBackupJobFields)[number]>
-export type FrontXoMirrorBackupJob = Pick<XoMirrorBackupJob, (typeof mirrorBackupJobfields)[number]>
+export type FrontXoMirrorBackupJob = Pick<XoMirrorBackupJob, (typeof mirrorBackupJobFields)[number]>
 
 export type FrontAnyXoBackupJob = FrontXoVmBackupJob | FrontXoMetadataBackupJob | FrontXoMirrorBackupJob
 
-export const vmBackupJobFields = [
+const vmBackupJobFields = [
   'id',
   'name',
   'mode',
@@ -35,7 +35,7 @@ const metadataBackupJobFields = [
   'proxy',
 ] as const satisfies readonly (keyof XoMetadataBackupJob)[]
 
-const mirrorBackupJobfields = [
+const mirrorBackupJobFields = [
   'id',
   'name',
   'mode',
@@ -48,7 +48,7 @@ const mirrorBackupJobfields = [
 
 // Ensure fields are unique
 export const anyBackupJobFields = Array.from(
-  new Set([...vmBackupJobFields, ...metadataBackupJobFields, ...mirrorBackupJobfields])
+  new Set([...vmBackupJobFields, ...metadataBackupJobFields, ...mirrorBackupJobFields])
 )
 
 export const useXoBackupJobCollection = defineRemoteResource({
