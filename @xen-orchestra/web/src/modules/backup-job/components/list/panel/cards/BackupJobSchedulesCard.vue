@@ -30,7 +30,9 @@
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
           <template #key>{{ t('cron-pattern') }}</template>
-          <template #value>{{ schedule.cron }}</template>
+          <template #value>
+            <span class="cron-pattern">{{ schedule.cron }}</span>
+          </template>
           <template #addons>
             <VtsCopyButton :value="schedule.cron" />
           </template>
@@ -93,6 +95,10 @@ const nextRuns = computed(() => {
 
     .divider {
       margin-block: 1.6rem;
+    }
+
+    .cron-pattern {
+      overflow-wrap: anywhere;
     }
   }
 }
