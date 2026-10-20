@@ -1,6 +1,6 @@
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
