@@ -56,6 +56,7 @@ export const xoCollectionsMock = {
 export const useXoPoolCollection = (() => ({
   pools: xoCollectionsMock.pools,
   arePoolsReady: xoCollectionsMock.arePoolsReady,
+  getPoolById: (id: FrontXoPool['id'] | undefined) => xoCollectionsMock.pools.value.find(pool => pool.id === id),
   hasPoolById: (id: FrontXoPool['id']) => xoCollectionsMock.pools.value.some(pool => pool.id === id),
   useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
     computed(() => xoCollectionsMock.pools.value.find(pool => pool.id === toValue(id))),
@@ -68,10 +69,13 @@ export const useXoHostCollection = (() => ({
 
 export const useXoSrCollection = (() => ({
   srs: xoCollectionsMock.srs,
+  getSrById: (id: FrontXoSr['id'] | undefined) => xoCollectionsMock.srs.value.find(sr => sr.id === id),
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
   networks: xoCollectionsMock.networks,
+  getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
+    xoCollectionsMock.networks.value.find(network => network.id === id),
 })) as unknown as typeof realUseXoNetworkCollection
 
 export const useXoPbdCollection = (() => ({

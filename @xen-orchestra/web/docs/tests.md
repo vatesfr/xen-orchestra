@@ -14,6 +14,10 @@ A fixed priority, not a preference:
 
 Testing a page is a different job from testing a component, and the component is the more valuable one. A component should not carry much complex logic — when it does, extract that into a composable or utility and test it there.
 
+### Only the app's own behaviour
+
+An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` does on its own: a side panel opening on a selection, a store re-expanding on a resize, a select opening its options all belong to the web-core tests. A web-core component may be rendered beside the code under test when the app's rule depends on it, but the assertion must be about that rule: a test that still passes once the app's code is removed is testing web-core and is deleted, not written. A state the app sets on a web-core component (`busy`, `disabled`, `selected`, a table `state`…) is asserted through that component's props (`getUiButton(wrapper, label).props('busy')`), never through the DOM it renders for it; a user action clicks the real `<button>` (`getButton(wrapper, label)`). A composable member that only forwards to a web-core store gets no test of its own. Selects: see [Testing components](./tests/testing-components.md#selects).
+
 ## Getting started
 
 - [Assert behaviour, not implementation](./tests/assert-behaviour.md) — the one rule that outranks the others

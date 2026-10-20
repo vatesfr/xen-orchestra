@@ -1,5 +1,5 @@
 <template>
-  <li class="v2v-selected-vm-item">
+  <UiPanelCard>
     <UiPanelCardTitle size="small" :label="item.name" :to="item.mappingRoute">
       <template #action>
         <UiTag :accent="item.kind.accent" variant="secondary">{{ item.kind.label }}</UiTag>
@@ -19,14 +19,15 @@
       <span v-for="part of item.mappingParts" :key="part">{{ part }}</span>
     </InlineParts>
     <UiInfo :accent="item.check.accent" size="small">{{ item.check.label }}</UiInfo>
-  </li>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
-import type { V2vSelectedVmItem } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import InlineParts from '@/shared/components/InlineParts.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -35,7 +36,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { item } = defineProps<{
-  item: V2vSelectedVmItem
+  item: V2vSelectedVm
 }>()
 
 const emit = defineEmits<{
@@ -48,18 +49,7 @@ const removeLabel = computed(() => t('action:remove-name-from-list', { name: ite
 </script>
 
 <style lang="postcss" scoped>
-.v2v-selected-vm-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 1rem;
-  border: 0.1rem solid var(--color-neutral-border);
-  border-radius: 0.8rem;
-  background-color: var(--color-neutral-background-primary);
-  list-style: none;
-
-  .mapping {
-    color: var(--color-neutral-txt-secondary);
-  }
+.mapping {
+  color: var(--color-neutral-txt-secondary);
 }
 </style>
