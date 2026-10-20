@@ -1,6 +1,5 @@
 import {
   formatBackupLogDate,
-  getBackupLogRoute,
   getBackupLogError,
   getBackupLogSrIds,
   getBackupLogVmIds,
@@ -83,17 +82,6 @@ describe('formatBackupLogDate', () => {
     const date = new Date(2026, 6, 19, 3, 4, 5)
 
     expect(formatBackupLogDate(date.getTime())).toBe('2026-07-19 03:04:05')
-  })
-})
-
-describe('getBackupLogRoute', () => {
-  it('opens the backup log in the logs of the administration', () => {
-    const backupLog = createBackupLog()
-
-    expect(getBackupLogRoute(backupLog)).toEqual({
-      name: '/admin/backup-and-replication/logs',
-      query: { id: backupLog.id },
-    })
   })
 })
 
