@@ -29,3 +29,7 @@ export function createV2vVmRow(overrides: Partial<V2vVmRow> = {}): V2vVmRow {
 export function getV2vVmNames(vms: Pick<V2vVmRow, 'name'>[]): string[] {
   return vms.map(vm => vm.name)
 }
+
+export function getV2vVmIds(vms: Pick<V2vVmRow, 'id'>[]): V2vVmRow['id'][] {
+  return vms.map(vm => vm.id)
+}

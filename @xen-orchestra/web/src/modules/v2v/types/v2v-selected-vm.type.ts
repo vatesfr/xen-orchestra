@@ -15,6 +15,11 @@ export type V2vSelectedVmCheck =
   | { type: 'already-migrated'; level: 'warning' }
   | { type: 'ready'; level: 'ready' }
 
+export type V2vSelectedVmState = {
+  kind: V2vSelectedVmKind
+  check: V2vSelectedVmCheck
+}
+
 // Names stay `undefined` while their collection loads
 export type V2vMappingSummary =
   | { type: 'locked' }

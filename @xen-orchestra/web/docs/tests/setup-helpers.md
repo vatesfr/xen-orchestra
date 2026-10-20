@@ -26,7 +26,7 @@ The exception is a **reactivity** test: it must keep reading through the mounted
 
 ## Unmounting
 
-`src/test/setup.ts` calls `enableAutoUnmount(afterEach)`, so every wrapper — `mount` or `mountComposable` — is unmounted after the test that created it. Never unmount by hand, and never mount in `beforeAll`: that wrapper would be torn down after the first test.
+`src/test/setup.ts` calls `enableAutoUnmount(afterEach)`, so every wrapper — `mount` or `mountComposable` — is unmounted after the test that created it. Never unmount by hand for cleanup, and never mount in `beforeAll`: that wrapper would be torn down after the first test. The one `wrapper.unmount()` allowed is the act of a test asserting what `onUnmounted` does.
 
 ## Shared helpers: `use<X>EnhancedData`
 

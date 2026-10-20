@@ -6,11 +6,11 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
-import { getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
+import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountOnV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
@@ -36,6 +36,10 @@ vi.mock(
   import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
+vi.mock(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-destination-collections.ts')
+)
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
 
@@ -48,7 +52,7 @@ async function mountVmsStep({
 }: { filter?: string; inventory?: XoV2vInventory | null; list?: V2vMigrationList | null } = {}) {
   v2vVmRowsCollectionsMock.vms.value = [createV2vImportVm({ isWarm: true, sourceVmId: V2V_DB_VM.id })]
 
-  return mountOnV2vVmsStep(() => useV2vVmsStep(), {
+  return mountV2vVmsStep(() => useV2vVmsStep(), {
     list,
     inventory,
     query: { pool: LIST.poolId, [V2V_VMS_FILTER_QUERY_KEY]: filter },
@@ -72,7 +76,7 @@ function findPageRow(result: VmsStep, id: XoV2vVm['id']) {
 }
 
 function findListedIds() {
-  return readV2vMigrationListStorage().vms.map((vm: { id: XoV2vVm['id'] }) => vm.id)
+  return getV2vVmIds(readV2vMigrationListStorage().vms)
 }
 
 // The VMs on the datastore B: the DB one (warm), the RDM one and the listed one (not migrated)
@@ -368,15 +372,16 @@ describe('tableState', () => {
 })
 
 describe('selectedVmsContext', () => {
-  it('hands its list, rows, pool and source host to the selected VMs', async () => {
+  it('hands its list, rows and their readiness, and pool to the selected VMs', async () => {
+    v2vVmRowsCollectionsMock.areVmsReady.value = false
     const { result } = await mountVmsStep()
 
-    const { migrationList, rows, poolId, sourceHost } = result.selectedVmsContext
+    const { migrationList, rows, areRowsReady, poolId } = result.selectedVmsContext
 
     expect(migrationList.list.value?.vms).toEqual(LIST.vms)
     expect(getV2vVmNames(toValue(rows))).toEqual(getV2vVmNames(V2V_VMS_INVENTORY.vms))
+    expect(toValue(areRowsReady)).toBe(false)
     expect(toValue(poolId)).toBe(LIST.poolId)
-    expect(toValue(sourceHost)).toBe(createV2vConnection().host)
   })
 })
 

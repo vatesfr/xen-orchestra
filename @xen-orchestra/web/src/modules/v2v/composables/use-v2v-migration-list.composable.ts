@@ -59,6 +59,10 @@ export function useV2vMigrationList(
     }
   })
 
+  const vmCount = computed(() => list.value?.vms.length ?? 0)
+
+  const hasVms = computed(() => vmCount.value > 0)
+
   function write(key: V2vMigrationListKey, defaults: V2vDestinationDefaults, vms: V2vMigrationListVm[]) {
     rawList.value = JSON.stringify(buildV2vMigrationList(key, defaults, vms))
   }
@@ -111,5 +115,5 @@ export function useV2vMigrationList(
     updateVms(() => [])
   }
 
-  return { list, saveDefaults, addVms, removeVm, clearVms }
+  return { list, vmCount, hasVms, saveDefaults, addVms, removeVm, clearVms }
 }
