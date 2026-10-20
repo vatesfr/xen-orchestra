@@ -1,4 +1,4 @@
-import type { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import BackupLogInfosCard from '@/modules/backup-log/components/list/panel/cards/BackupLogInfosCard.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
@@ -33,7 +33,7 @@ vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
   useXoBackupJobCollection: (() => ({ useGetBackupJobById })) as unknown as typeof useXoBackupJobCollection,
 }))
 

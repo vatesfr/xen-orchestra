@@ -22,19 +22,7 @@ export function getBackupLogSrIds(backupLog: FrontXoBackupLog) {
   ]
 }
 
-export function getBackupLogRunRoute(backupLog: FrontXoBackupLog): RouteLocationAsRelative | undefined {
-  if (backupLog.jobId === undefined) {
-    return undefined
-  }
-
-  return {
-    name: '/backup/[id]/runs',
-    params: { id: backupLog.jobId },
-    query: { id: backupLog.id },
-  }
-}
-
-export function getAdminBackupLogRoute(backupLog: FrontXoBackupLog): RouteLocationAsRelative {
+export function getBackupLogRoute(backupLog: FrontXoBackupLog): RouteLocationAsRelative {
   return {
     name: '/admin/backup-and-replication/logs',
     query: { id: backupLog.id },
