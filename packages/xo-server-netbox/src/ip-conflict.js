@@ -10,6 +10,14 @@ export function resolveIpConflict(candidates, holder) {
     return { reason: 'Already assigned to an object not managed by XO' }
   }
 
+  if (holder !== undefined) {
+    // The same VM can report the same IP on several interfaces
+    candidates = candidates.filter(candidate => candidate.vm !== holder.vm)
+    if (candidates.length === 0) {
+      return { owner: holder }
+    }
+  }
+
   const claimants = holder === undefined ? candidates : [holder, ...candidates]
   if (claimants.length === 1) {
     return { owner: claimants[0] }
