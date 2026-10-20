@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser', '@xen-orchestra/cron'],
+      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser'],
     },
     test: {
       globals: true,
