@@ -9,7 +9,6 @@ export function getMetadataBackupJobSettings(job: FrontXoMetadataBackupJob): XoB
   const { backupReportTpl, reportWhen, reportRecipients } = job.settings['']
 
   return {
-    proxy: job.proxy,
     backupReportTpl,
     reportWhen,
     reportRecipients,

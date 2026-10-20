@@ -29,10 +29,7 @@
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
           <template #key>{{ t('speed-limit') }}</template>
-          <template v-if="maxExportRate !== undefined" #value>
-            {{ `${maxExportRate.value} ${maxExportRate.prefix}` }}
-          </template>
-          <template v-else #value />
+          <template #value>{{ formattedMaxExportRate }}</template>
         </VtsCardRowKeyValue>
       </template>
       <VtsCardRowKeyValue>
@@ -106,7 +103,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupJobSettingsUtils } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
+import { useXoBackupJobSettings } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { hasBackupJobSnapshotRetention } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -130,12 +127,12 @@ const { t } = useI18n()
 const {
   compression,
   formattedTimeout,
-  maxExportRate,
+  formattedMaxExportRate,
   proxy,
   reportWhenValueTranslation,
   settings,
   snapshotModeTranslation,
-} = useXoBackupJobSettingsUtils(() => backupJob)
+} = useXoBackupJobSettings(() => backupJob)
 
 const isVmBackupJob = computed(() => backupJob.type === 'backup')
 

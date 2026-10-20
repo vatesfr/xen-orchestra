@@ -9,7 +9,7 @@ import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFr
 import * as ValueMatcher from 'value-matcher'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export type VmsSmartModeEnabled = {
+type VmsSmartModeEnabled = {
   $pool?: Record<string, unknown>
   power_state?: VM_POWER_STATE
   tags?: Record<string, unknown>
@@ -22,18 +22,18 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
 
   const backedUpVmsConfig = toComputed(rawBackedUpVmsConfig)
 
-  function checkSmartModeEnabled(value: FrontXoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
-    if (value === undefined || typeof value !== 'object' || value === null) {
+  function isSmartModeConfig(value: FrontXoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
+    if (typeof value !== 'object' || value === null) {
       return false
     }
 
     return !('id' in value)
   }
 
-  const isSmartModeEnabled = computed(() => checkSmartModeEnabled(backedUpVmsConfig.value))
+  const isSmartModeEnabled = computed(() => isSmartModeConfig(backedUpVmsConfig.value))
 
   const backedUpVms = computed(() => {
-    if (checkSmartModeEnabled(backedUpVmsConfig.value)) {
+    if (isSmartModeConfig(backedUpVmsConfig.value)) {
       const predicate = ValueMatcher.createPredicate(backedUpVmsConfig.value)
 
       return vms.value.filter(vm => predicate(vm) && !vmContainsNoBakTag(vm))
@@ -45,7 +45,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   const backedUpVmsCount = computed(() => backedUpVms.value.length)
 
   const smartModePools = computed(() => {
-    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.$pool === undefined) {
+    if (!isSmartModeConfig(backedUpVmsConfig.value) || backedUpVmsConfig.value.$pool === undefined) {
       return undefined
     }
 
@@ -62,25 +62,21 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   })
 
   const smartModeTags = computed(() => {
-    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.tags === undefined) {
+    if (!isSmartModeConfig(backedUpVmsConfig.value) || backedUpVmsConfig.value.tags === undefined) {
       return undefined
     }
 
     const tags = destructSmartPattern(backedUpVmsConfig.value.tags)
 
     return {
-      included: tags.values?.flat(),
+      included: tags.values?.flat() ?? [],
       excluded: [...(tags.notValues?.flat() ?? []), 'xo:no-bak'],
     }
   })
 
-  const smartModePowerState = computed(() => {
-    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.power_state === undefined) {
-      return undefined
-    }
-
-    return backedUpVmsConfig.value.power_state
-  })
+  const smartModePowerState = computed(() =>
+    isSmartModeConfig(backedUpVmsConfig.value) ? backedUpVmsConfig.value.power_state : undefined
+  )
 
   return {
     backedUpVms,

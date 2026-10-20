@@ -24,6 +24,7 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { BACKUP_JOB_LAST_RUNS_COUNT } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import {
   useXoBackupRepositoryCollection,
   type FrontXoBackupRepository,
@@ -59,7 +60,9 @@ const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
 
 const schedules = computed(() => (backupJob !== undefined ? (schedulesByJobId.value.get(backupJob.id) ?? []) : []))
 
-const lastBackupLogs = computed(() => (backupJob !== undefined ? getLastNBackupLogsByJobId(backupJob.id) : []))
+const lastBackupLogs = computed(() =>
+  backupJob !== undefined ? getLastNBackupLogsByJobId(backupJob.id, BACKUP_JOB_LAST_RUNS_COUNT) : []
+)
 
 const backupRepositoryTargets = computed(() =>
   backupJob !== undefined
@@ -68,7 +71,7 @@ const backupRepositoryTargets = computed(() =>
 )
 
 const storageRepositoryTargets = computed(() => {
-  if (!(backupJob?.type === 'backup' && backupJob.srs)) {
+  if (backupJob?.type !== 'backup' || backupJob.srs === undefined) {
     return []
   }
 
