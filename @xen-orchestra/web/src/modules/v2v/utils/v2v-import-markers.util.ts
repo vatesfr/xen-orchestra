@@ -1,7 +1,10 @@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { countOccurrences } from '@/shared/utils/count.util.ts'
 import { V2V_VM_OTHER_CONFIG, VM_OPERATIONS, type XoV2vVm } from '@vates/types'
 
-export type V2vImportState = 'warm' | 'cold'
+const V2V_IMPORT_STATES = ['warm', 'cold'] as const
+
+export type V2vImportState = (typeof V2V_IMPORT_STATES)[number]
 
 export type V2vImportCounts = Record<V2vImportState, number>
 
@@ -38,17 +41,9 @@ export function getV2vImportState(vm: V2vImportVm): V2vImportState | undefined {
 }
 
 export function countV2vImportsBySource(vms: V2vImportVm[], sourceId: string): V2vImportCounts {
-  const counts: V2vImportCounts = { warm: 0, cold: 0 }
+  const states = vms.filter(vm => isFromSource(vm, sourceId)).flatMap(vm => getV2vImportState(vm) ?? [])
 
-  for (const vm of vms) {
-    const state = isFromSource(vm, sourceId) ? getV2vImportState(vm) : undefined
-
-    if (state !== undefined) {
-      counts[state]++
-    }
-  }
-
-  return counts
+  return countOccurrences(V2V_IMPORT_STATES, states)
 }
 
 export function getV2vImportVmsBySourceVmId<TVm extends V2vImportVm>(

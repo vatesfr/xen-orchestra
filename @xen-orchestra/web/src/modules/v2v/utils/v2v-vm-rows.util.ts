@@ -7,8 +7,8 @@ import {
   type V2vImportSnapshot,
 } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { countOccurrences } from '@/shared/utils/count.util.ts'
 import { safePushInMap } from '@/shared/utils/map.util.ts'
-import { objectFromEntries } from '@core/utils/object.util.ts'
 import type { XoV2vDatastore, XoV2vDisk, XoV2vInventory, XoV2vVm } from '@vates/types'
 
 export type V2vVmRowsInput = {
@@ -72,13 +72,10 @@ export function getV2vOtherDatastores(row: Pick<V2vVmRow, 'datastore'>, datastor
 }
 
 export function countV2vRowsByStatus(rows: Pick<V2vVmRow, 'migration'>[]): Record<V2vVmStatus, number> {
-  const counts = objectFromEntries(V2V_VM_STATUSES.map(status => [status, 0] as const))
-
-  for (const row of rows) {
-    counts[row.migration]++
-  }
-
-  return counts
+  return countOccurrences(
+    V2V_VM_STATUSES,
+    rows.map(row => row.migration)
+  )
 }
 
 // A VM already in the list is added once only
