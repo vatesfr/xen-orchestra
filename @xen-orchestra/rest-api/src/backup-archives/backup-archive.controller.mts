@@ -16,8 +16,8 @@ import {
 } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { pipeline } from 'node:stream/promises'
-import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
+import type { Readable } from 'node:stream'
+import { json, type Request as ExRequest } from 'express'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type {
   BackupArchiveDiskMount,
@@ -265,20 +265,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions')
   @Middlewares(
-    acl([
-      {
-        resource: 'backup-archive',
-        action: 'mount',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'read',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-    ])
+    acl({
+      resource: 'backup-archive',
+      actions: ['mount', 'read'],
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -307,26 +299,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions/{partitionId}/files.{format}')
   @Middlewares(
-    acl([
-      {
-        resource: 'backup-archive',
-        action: 'mount',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'read',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'export',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-    ])
+    acl({
+      resource: 'backup-archive',
+      actions: ['mount', 'read', 'export'],
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -338,8 +316,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Path() partitionId: string,
     @Path() format: 'tgz' | 'zip',
     @Query() paths: string[]
-  ): Promise<void> {
-    const res = req.res as ExResponse
+  ): Promise<Readable> {
     const { stream, filename } = await this.#backupArchiveService.fetchFiles({
       archiveId: id as XoVmBackupArchive['id'],
       diskId,
@@ -347,10 +324,10 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       paths,
       format,
     })
-    res.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
-    res.setHeader('content-disposition', `attachment; filename="${filename}"`)
+    this.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
+    this.setHeader('content-disposition', `attachment; filename="${filename}"`)
     req.on('close', () => stream.destroy())
-    await pipeline(stream, res)
+    return stream
   }
 
   /**
@@ -369,20 +346,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/partitions/{partitionId}/files')
   @Middlewares(
-    acl([
-      {
-        resource: 'backup-archive',
-        action: 'mount',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'read',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-    ])
+    acl({
+      resource: 'backup-archive',
+      actions: ['mount', 'read'],
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -420,26 +389,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/files.{format}')
   @Middlewares(
-    acl([
-      {
-        resource: 'backup-archive',
-        action: 'mount',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'read',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'export',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-    ])
+    acl({
+      resource: 'backup-archive',
+      actions: ['mount', 'read', 'export'],
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -450,18 +405,17 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Path() diskId: string,
     @Path() format: 'tgz' | 'zip',
     @Query() paths: string[]
-  ): Promise<void> {
-    const res = req.res as ExResponse
+  ): Promise<Readable> {
     const { stream, filename } = await this.#backupArchiveService.fetchFiles({
       archiveId: id as XoVmBackupArchive['id'],
       diskId,
       paths,
       format,
     })
-    res.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
-    res.setHeader('content-disposition', `attachment; filename="${filename}"`)
+    this.setHeader('content-type', DOWNLOAD_CONTENT_TYPES[format])
+    this.setHeader('content-disposition', `attachment; filename="${filename}"`)
     req.on('close', () => stream.destroy())
-    await pipeline(stream, res)
+    return stream
   }
 
   /**
@@ -479,20 +433,12 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   @Extension('x-mcp-exposure', 'deny')
   @Get('{id}/disks/{diskId}/files')
   @Middlewares(
-    acl([
-      {
-        resource: 'backup-archive',
-        action: 'mount',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-      {
-        resource: 'backup-archive',
-        action: 'read',
-        objectId: 'params.id',
-        getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
-      },
-    ])
+    acl({
+      resource: 'backup-archive',
+      actions: ['mount', 'read'],
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
