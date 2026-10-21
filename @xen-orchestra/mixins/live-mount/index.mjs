@@ -43,7 +43,7 @@ const { info, warn } = createLogger('xo:mixins:LiveMount')
  * @property {import('@vates/iscsi').IscsiTarget} target
  * @property {Xapi} xapi - replaced by any newer connection to the same pool, see {@link LiveMount#watchConnection}
  * @property {string} [poolUuid] - pool of `xapi`, unknown if it was not connected
- * @property {{ device: object, lun: object, vbdRef: string, vdiRef: string, xapi: Xapi }} [cache] - local VDI the disk is materialized into, in the pool running this appliance
+ * @property {{ device: object, lun: object, poolUuid?: string, vbdRef: string, vdiRef: string, xapi: Xapi }} [cache] - local VDI the disk is materialized into, in the pool running this appliance; its `xapi` is replaced like the mount's one
  * @property {{ source: string, port: number, id: string }} [firewallRule] - opened by `iscsi.manageFirewall`
  * @property {() => Promise<void>} [release]
  */
@@ -272,7 +272,7 @@ export default class LiveMount extends EventEmitter {
         xapi: cacheXapi,
       })
       lun = new CachedDiskBlockDevice({ cache: device, disk })
-      cache = { device, lun, vbdRef, vdiRef, xapi: cacheXapi }
+      cache = { device, lun, poolUuid: cacheXapi.pool?.uuid, vbdRef, vdiRef, xapi: cacheXapi }
     }
 
     const target = this.#createTarget({
@@ -395,6 +395,10 @@ export default class LiveMount extends EventEmitter {
       for (const mount of this.#mounts.values()) {
         if (mount.poolUuid === poolUuid) {
           mount.xapi = xapi
+        }
+        // the cache may live in another pool than the mount, the one running this appliance
+        if (mount.cache?.poolUuid === poolUuid) {
+          mount.cache.xapi = xapi
         }
       }
     }

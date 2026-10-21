@@ -692,6 +692,43 @@ describe('after a reconnection', () => {
     assert.equal(xapi.calls.at(-1)[0], 'SR.forget')
   })
 
+  it('destroys the cache through the new connection', async () => {
+    const { mixin } = makeMixin()
+    const disconnected = makeXapi()
+    const { id } = await mountDisk(mixin, disconnected, CACHE)
+    disconnected.calls.length = 0
+
+    const reconnected = makeXapi()
+    mixin.watchConnection(reconnected)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(disconnected.calls, [])
+    const methods = reconnected.calls.map(([method]) => method)
+    assert.ok(methods.includes('VBD_destroy'))
+    assert.ok(methods.includes('VDI_destroy'))
+  })
+
+  it('destroys the cache through the new connection of its own pool', async () => {
+    const { mixin } = makeMixin()
+    const xapi = makeXapi()
+    const disconnectedCache = makeXapi({ poolUuid: 'cache-pool-uuid' })
+    const { id } = await mountDisk(mixin, xapi, { ...CACHE, cacheXapi: disconnectedCache })
+    xapi.calls.length = 0
+    disconnectedCache.calls.length = 0
+
+    const reconnectedCache = makeXapi({ poolUuid: 'cache-pool-uuid' })
+    mixin.watchConnection(reconnectedCache)
+    await mixin.unmountDisk(id)
+
+    assert.deepEqual(disconnectedCache.calls, [])
+    assert.deepEqual(
+      reconnectedCache.calls.map(([method]) => method),
+      ['VBD_destroy', 'VDI_destroy']
+    )
+    // the mount itself stays on the connection of its own pool
+    assert.equal(xapi.calls.at(-1)[0], 'SR.forget')
+  })
+
   it('listens only once to a connection handed several times', async () => {
     const { mixin } = makeMixin()
     const xapi = makeXapi()
