@@ -22,7 +22,8 @@ const { warning } = defineProps<{
   disabled?: boolean
 }>()
 
-const model = defineModel<boolean>({ required: true })
+// undefined displays the checkbox as indeterminate (mixed value in multi-edition)
+const model = defineModel<boolean | undefined>({ required: true })
 
 const warningMessages = computed(() =>
   toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
