@@ -409,7 +409,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
   // VDIs from this job/VM/SR that ended up detached from any VM, because a previous run
   // was interrupted or a storage backend refused to destroy a VDI at import time.
-  // Destroying a VM only reaches the VDIs still attached to it, _deleteOldEntries never cleans it.
+  // Destroying a VM only reaches the VDIs still attached to it, _deleteOldEntries never cleans them.
   async _deleteOrphanVdis() {
     const sr = this._sr
     const vmUuid = this._vmUuid
@@ -421,6 +421,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         vdi.other_config[JOB_ID] === jobId &&
         vdi.other_config[VM_UUID] === vmUuid &&
         vdi.other_config[REPLICATED_TO_SR_UUID] === sr.uuid &&
+        vdi.type !== 'suspend' &&
         // a VBD or VM missing from the cache (e.g. just destroyed) keeps the VDI, next run will handle it
         vdi.$VBDs.every(vbd => vbd?.$VM?.is_control_domain === true)
     )
