@@ -1,4 +1,11 @@
-import { getV2vAddress, getV2vSourceId, isV2vVcenter, normalizeV2vHost } from '@/modules/v2v/utils/v2v-source.util.ts'
+import {
+  getV2vAddress,
+  getV2vSourceId,
+  getV2vVmDatacenterName,
+  isV2vVcenter,
+  normalizeV2vHost,
+} from '@/modules/v2v/utils/v2v-source.util.ts'
+import { createV2vDatacenter, createV2vHost, createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
 
 describe('normalizeV2vHost', () => {
   it('trims and lowercases the host', () => {
@@ -31,5 +38,26 @@ describe('getV2vSourceId', () => {
 
   it.each([undefined, ''])('falls back to the connection address without instance UUID (%j)', instanceUuid => {
     expect(getV2vSourceId(connection, instanceUuid)).toBe(getV2vAddress(connection))
+  })
+})
+
+describe('getV2vVmDatacenterName', () => {
+  const DATACENTER = createV2vDatacenter()
+
+  const HOST = createV2vHost({ datacenterId: DATACENTER.id })
+
+  const VM = createV2vVm({ hostId: HOST.id })
+
+  it('names the datacenter of the host of the VM', () => {
+    expect(getV2vVmDatacenterName(createV2vInventory({ hosts: [HOST], datacenters: [DATACENTER] }), VM)).toBe(
+      DATACENTER.name
+    )
+  })
+
+  it.each([
+    ['an unknown host', { hosts: [], datacenters: [DATACENTER] }],
+    ['a host of an unknown datacenter', { hosts: [HOST], datacenters: [] }],
+  ])('names no datacenter for %s', (_, inventory) => {
+    expect(getV2vVmDatacenterName(createV2vInventory(inventory), VM)).toBeUndefined()
   })
 })

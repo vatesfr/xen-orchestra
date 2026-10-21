@@ -1,4 +1,8 @@
-import type { V2vDestinationDefaults, V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type {
+  V2vDestinationDefaults,
+  V2vMigrationList,
+  V2vMigrationListVm,
+} from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
 import type { XoV2vVm } from '@vates/types'
 
@@ -27,6 +31,15 @@ export function createNewerV2vMigrationList(list = createV2vMigrationList()) {
   return { ...list, version: 2 }
 }
 
+export function createV2vMigrationListVm(overrides: Partial<V2vMigrationListVm> = {}): V2vMigrationListVm {
+  return {
+    id: 'vm-1' as XoV2vVm['id'],
+    ...overrides,
+  }
+}
+
 export function createV2vMigrationListVms(count: number): V2vMigrationList['vms'] {
-  return Array.from({ length: count }, (_, index) => ({ id: `vm-${index + 1}` as XoV2vVm['id'] }))
+  return Array.from({ length: count }, (_, index) =>
+    createV2vMigrationListVm({ id: `vm-${index + 1}` as XoV2vVm['id'] })
+  )
 }

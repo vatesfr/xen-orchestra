@@ -2,7 +2,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { XoV2vVm } from '@vates/types'
+import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
 
 export type V2vDestinationDefaults = {
   sr: FrontXoSr['id']
@@ -10,8 +10,14 @@ export type V2vDestinationDefaults = {
   template: FrontXoVmTemplate['id']
 }
 
+// An absent override leaves the VM on its default
 export type V2vMigrationListVm = {
   id: XoV2vVm['id']
+  disks?: Record<XoV2vDisk['key'], FrontXoSr['id']>
+  nics?: Record<XoV2vNic['key'], FrontXoNetwork['id']>
+  template?: FrontXoVmTemplate['id']
+  keepMac?: boolean
+  tags?: string[]
 }
 
 export type V2vMigrationList = {

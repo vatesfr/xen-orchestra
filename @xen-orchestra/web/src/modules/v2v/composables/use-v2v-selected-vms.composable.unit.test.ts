@@ -2,18 +2,17 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
-import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { createNetwork } from '@/test/create-network.ts'
-import { createSr } from '@/test/create-sr.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { V2V_DEFAULT_NETWORK, V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
@@ -43,15 +42,15 @@ vi.mock(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }, { id: V2V_RDM_VM.id }] })
 
 const LIST_IDS = getV2vVmIds(LIST.vms)
-
-const SR = createSr({ id: LIST.defaults.sr, name_label: 'sr-nvme-01' })
-
-const NETWORK = createNetwork({ id: LIST.defaults.network, name_label: 'VLAN 10' })
 
 const GONE_VM_ID = 'vm-gone' as XoV2vVm['id']
 
@@ -76,8 +75,8 @@ async function mountSelectedVms({
   poolId = V2V_LIST_POOL.id,
 }: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null } = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_OTHER_POOL]
-  xoCollectionsMock.srs.value = [SR]
-  xoCollectionsMock.networks.value = [NETWORK]
+  xoCollectionsMock.srs.value = [V2V_DEFAULT_SR]
+  xoCollectionsMock.networks.value = [V2V_DEFAULT_NETWORK]
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
   return mountV2vVmsStep(
@@ -87,6 +86,17 @@ async function mountSelectedVms({
 }
 
 type SelectedVms = Awaited<ReturnType<typeof mountSelectedVms>>['result']
+
+// The web VM has one disk and no NIC
+function getWebVmMappingParts(result: SelectedVms, srName: string) {
+  return result.labels.getMappingParts({
+    type: 'mapped',
+    diskCount: 1,
+    srNames: [srName],
+    nicCount: 0,
+    networkNames: [],
+  })
+}
 
 function findItemIds(result: SelectedVms) {
   return getV2vVmIds(result.items)
@@ -135,15 +145,28 @@ describe('items', () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 
     expect(result.items.map(item => item.mappingParts)).toEqual([
-      result.labels.getMappingParts({
-        type: 'defaults',
-        diskCount: 1,
-        srName: SR.name_label,
-        nicCount: 0,
-        networkName: NETWORK.name_label,
-      }),
+      getWebVmMappingParts(result, V2V_DEFAULT_SR.name_label),
       result.labels.getMappingParts({ type: 'locked' }),
     ])
+  })
+
+  it('maps a new VM to its overrides', async () => {
+    const [disk] = V2V_WEB_VM.disks
+
+    const { result } = await mountSelectedVms({
+      list: createV2vMigrationList({
+        vms: [
+          createV2vMigrationListVm({
+            id: V2V_WEB_VM.id,
+            disks: { [disk.key]: V2V_SSD_SR.id } as V2vMigrationListVm['disks'],
+          }),
+        ],
+      }),
+    })
+
+    xoCollectionsMock.srs.value = [V2V_DEFAULT_SR, V2V_SSD_SR]
+
+    expect(result.items[0].mappingParts).toEqual(getWebVmMappingParts(result, V2V_SSD_SR.name_label))
   })
 
   it('tells the check of each VM', async () => {
