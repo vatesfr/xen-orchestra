@@ -6,6 +6,8 @@ import { computed, type ComputedRef } from 'vue'
 export type KubernetesVersionOption = {
   value: string
   label: string
+  // Minor version the release belongs to, displayed as a separator in the select dropdown
+  group?: string
 }
 
 /**
@@ -28,10 +30,14 @@ export function useKubernetesVersionOptions(cluster?: XoKubernetesCluster): {
     }
   }
 
-  const { kubernetesReleases, areKubernetesReleasesReady } = useXoKubernetesReleaseCollection()
+  const { kubernetesReleaseGroups, areKubernetesReleasesReady } = useXoKubernetesReleaseCollection()
 
   // CAPI expects releases without the "v" prefix, which is only added for display
-  const options = computed(() => kubernetesReleases.value.map(release => ({ value: release, label: `v${release}` })))
+  const options = computed(() =>
+    kubernetesReleaseGroups.value.flatMap(({ version, releases }) =>
+      releases.map(release => ({ value: release, label: `v${release}`, group: `v${version}` }))
+    )
+  )
 
   return {
     options,

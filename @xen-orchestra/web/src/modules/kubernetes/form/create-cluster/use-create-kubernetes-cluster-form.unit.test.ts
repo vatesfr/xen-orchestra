@@ -2,7 +2,11 @@ import {
   DESCRIPTION_MAX_LENGTH,
   useCreateKubernetesClusterForm,
 } from '@/modules/kubernetes/form/create-cluster/use-create-kubernetes-cluster-form.ts'
-import type { useXoKubernetesReleaseCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-release-collection.ts'
+import { useKubernetesVersionOptions } from '@/modules/kubernetes/form/create-cluster/use-kubernetes-version-options.ts'
+import type {
+  KubernetesReleaseGroup,
+  useXoKubernetesReleaseCollection,
+} from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-release-collection.ts'
 import {
   buildKubernetesClusterCreatePayload,
   type CreateKubernetesClusterFormData,
@@ -11,12 +15,12 @@ import {
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 
-const { kubernetesReleases, useReleaseCollection } = vi.hoisted(() => {
-  const kubernetesReleases = { value: [] as string[] }
+const { kubernetesReleaseGroups, useReleaseCollection } = vi.hoisted(() => {
+  const kubernetesReleaseGroups = { value: [] as KubernetesReleaseGroup[] }
 
   return {
-    kubernetesReleases,
-    useReleaseCollection: vi.fn(() => ({ kubernetesReleases, areKubernetesReleasesReady: { value: true } })),
+    kubernetesReleaseGroups,
+    useReleaseCollection: vi.fn(() => ({ kubernetesReleaseGroups, areKubernetesReleasesReady: { value: true } })),
   }
 })
 
@@ -25,7 +29,10 @@ vi.mock(import('@/modules/kubernetes/remote-resources/use-xo-kubernetes-release-
 }))
 
 beforeEach(() => {
-  kubernetesReleases.value = ['1.37.1', '1.36.5']
+  kubernetesReleaseGroups.value = [
+    { version: '1.37', releases: ['1.37.1'] },
+    { version: '1.36', releases: ['1.36.5'] },
+  ]
   useReleaseCollection.mockClear()
 })
 
@@ -124,7 +131,7 @@ describe('validateAndBuildPayload', () => {
   })
 
   it('builds no payload when no Kubernetes release is available', async () => {
-    kubernetesReleases.value = []
+    kubernetesReleaseGroups.value = []
 
     const result = mountCreateKubernetesClusterForm()
 
@@ -208,7 +215,7 @@ describe('edit mode', () => {
   })
 
   it('builds the edit payload without requiring a Kubernetes release', async () => {
-    kubernetesReleases.value = []
+    kubernetesReleaseGroups.value = []
 
     const result = mountEditKubernetesClusterForm()
 
@@ -216,5 +223,28 @@ describe('edit mode', () => {
       control_plane_replicas: 1,
       worker_replicas: 2,
     })
+  })
+})
+
+describe('useKubernetesVersionOptions', () => {
+  it('groups the releases by minor version', () => {
+    kubernetesReleaseGroups.value = [
+      { version: '1.37', releases: ['1.37.1', '1.37.0'] },
+      { version: '1.36', releases: ['1.36.5'] },
+    ]
+
+    const { options } = mountComposable(() => useKubernetesVersionOptions()).wrapper.vm
+
+    expect(options).toEqual([
+      { value: '1.37.1', label: 'v1.37.1', group: 'v1.37' },
+      { value: '1.37.0', label: 'v1.37.0', group: 'v1.37' },
+      { value: '1.36.5', label: 'v1.36.5', group: 'v1.36' },
+    ])
+  })
+
+  it('does not group the current version in edit mode', () => {
+    const { options } = mountComposable(() => useKubernetesVersionOptions(editedCluster)).wrapper.vm
+
+    expect(options).toEqual([{ value: 'v1.36.5', label: 'v1.36.5' }])
   })
 })
