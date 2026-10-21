@@ -39,6 +39,10 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     return this.#type
   }
 
+  get watchedEvent() {
+    return this.#watchedEvent
+  }
+
   addSubscriber(subscriber: Subscriber, fields: '*' | string[] = '*') {
     const unregisterOnClear = subscriber.onClear(() => this.removeSubscriber(subscriber.id))
 

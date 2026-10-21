@@ -46,6 +46,7 @@ function createRestApi(vmBackupArchives: EventEmitter) {
       getUser: async () => user,
       getAclV2UserPrivileges: async () => [],
       vmBackupArchives,
+      getXoEventEmitterByType: () => new EventEmitter(),
     },
   } as unknown as RestApi
 
