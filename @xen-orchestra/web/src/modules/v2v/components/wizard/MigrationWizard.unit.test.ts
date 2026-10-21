@@ -35,7 +35,6 @@ async function mountWizard(setup: V2vWizardSetup = {}) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   destinationCollectionsMock.reset()
 })
 
