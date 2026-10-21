@@ -23,7 +23,6 @@ vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => imp
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 beforeEach(() => {
-  localStorage.clear()
   v2vStatusMock.reset()
   deleteModalMock.reset()
   vi.useFakeTimers({ now: NOW, toFake: ['Date'] })

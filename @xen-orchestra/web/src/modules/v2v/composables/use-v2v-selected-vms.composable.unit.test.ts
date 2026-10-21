@@ -94,7 +94,6 @@ function findItemIds(result: SelectedVms) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   v2vVmRowsCollectionsMock.reset()
   destinationCollectionsMock.reset()
   deleteModalMock.reset()
