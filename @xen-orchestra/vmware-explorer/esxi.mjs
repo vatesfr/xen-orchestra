@@ -1044,6 +1044,23 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Removes a single snapshot, its children are kept, and consolidates its disks.
+   *
+   * @param {string} snapshotId - id of the snapshot, e.g. the `result` of {@link snapshot}
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async removeSnapshot(snapshotId, { signal, timeout = 30 * 60e3 } = {}) {
+    return this.#runTask(
+      'RemoveSnapshot_Task',
+      { _this: snapshotId, removeChildren: false, consolidate: true },
+      { signal, timeout }
+    )
+  }
+
+  /**
    * Turns the change tracking (CBT) of a VM on, when it is not already.
    *
    * The host only starts tracking when the disks are next opened, e.g. by a snapshot, running or

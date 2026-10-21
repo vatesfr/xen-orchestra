@@ -252,16 +252,52 @@ export default class MigrateVm {
       Task.warning(`the change tracking could not be enabled on the source: ${error.message}`)
     }
 
+    const isRunning = metadata.powerState !== 'poweredOff'
+    // a running VM is only read up to a snapshot
+    const isSnapshotRequired = isRunning && !metadata.snapshots?.current
     // tracking which has just been turned on only starts with the next snapshot: before it the host
-    // has no tracking file to answer from, and an existing snapshot carries no changeId
-    if (isChangeTrackingNew || (metadata.powerState !== 'poweredOff' && !metadata.snapshots?.current)) {
-      await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
-        return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
-      })
+    // has no tracking file to answer from, and an existing snapshot carries no changeId. Not when a
+    // partial import was made from the current snapshot: a new one would not be found as its base,
+    // and the whole VM would be transferred again
+    const isSnapshotUseful =
+      isChangeTrackingNew && !(isRunning && this.#listBaseVmCandidates(xapi, metadata).length === 1)
 
-      metadata = await Task.run({ properties: { name: `updating metadata of ${vmId} after taking a snapshot` } }, () =>
-        esxi.getTransferableVmMetadata(vmId)
-      )
+    if (isSnapshotRequired || isSnapshotUseful) {
+      let snapshotTaskInfo
+      try {
+        snapshotTaskInfo = await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+          return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
+        })
+      } catch (error) {
+        if (isSnapshotRequired) {
+          throw error
+        }
+        Task.abortSignal?.throwIfAborted()
+        // not fatal, like the change tracking it would have started
+        warn('failed to snapshot the source to start its change tracking', { error, vmId })
+        Task.warning(`the source could not be snapshotted to start its change tracking: ${error.message}`)
+      }
+
+      const snapshotId = snapshotTaskInfo?.result?.$value
+      if (!isRunning && snapshotId !== undefined) {
+        // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
+        // nothing would ever remove this snapshot from the source
+        await Task.run({ properties: { name: `removing the snapshot of ${vmId}` } }, () =>
+          esxi.removeSnapshot(snapshotId)
+        ).catch(error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: the import reads the chain of the disks, this snapshot included
+          warn('failed to remove the snapshot which started the change tracking', { error, snapshotId, vmId })
+          Task.warning(`the snapshot ${snapshotId} could not be removed from the source: ${error.message}`)
+        })
+      }
+
+      if (snapshotTaskInfo !== undefined) {
+        metadata = await Task.run(
+          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
+          () => esxi.getTransferableVmMetadata(vmId)
+        )
+      }
     }
     Task.abortSignal?.throwIfAborted()
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
