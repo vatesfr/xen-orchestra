@@ -123,6 +123,8 @@ export function useV2vVmLabels() {
         return t('import-in-progress')
       case 'partial-on-other-pool':
         return t('v2v:partial-import-on-pool', { pool: poolName ?? check.poolId })
+      case 'mapping-incomplete':
+        return t('v2v:check:mapping-incomplete')
       case 'already-migrated':
         return t('v2v:already-migrated-confirm-at-launch')
       case 'ready':
@@ -134,8 +136,10 @@ export function useV2vVmLabels() {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 
-  function withTarget(countLabel: string, target: string | undefined): string {
-    return target === undefined ? countLabel : t('source-to-destination', { source: countLabel, destination: target })
+  function withTargets(countLabel: string, targets: string[] | undefined): string {
+    return targets === undefined
+      ? countLabel
+      : t('source-to-destination', { source: countLabel, destination: targets.join(', ') })
   }
 
   function getMappingParts(summary: V2vMappingSummary | undefined): string[] {
@@ -147,11 +151,11 @@ export function useV2vVmLabels() {
       return [t('v2v:delta-from-last-sync'), t('v2v:mapping-locked')]
     }
 
-    const { diskCount, srName, nicCount, networkName } = summary
+    const { diskCount, srNames, nicCount, networkNames } = summary
 
     return [
-      ...(diskCount > 0 ? [withTarget(t('n-disks', { n: diskCount }), srName)] : []),
-      ...(nicCount > 0 ? [withTarget(t('n-nics', { n: nicCount }), networkName)] : []),
+      ...(diskCount > 0 ? [withTargets(t('n-disks', { n: diskCount }), srNames)] : []),
+      ...(nicCount > 0 ? [withTargets(t('n-nics', { n: nicCount }), networkNames)] : []),
     ]
   }
 
