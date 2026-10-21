@@ -34,6 +34,16 @@ export function isClusterEditable(phase: KubernetesClusterPhase): boolean {
   }
 }
 
+export function isClusterReconciliationToggleable(phase: KubernetesClusterPhase): boolean {
+  switch (phase) {
+    case 'Deleting':
+    case 'Deleted':
+      return false
+    default:
+      return true
+  }
+}
+
 export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   switch (phase) {
     case 'Provisioned':

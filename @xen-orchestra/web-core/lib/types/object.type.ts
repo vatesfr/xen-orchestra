@@ -1,4 +1,4 @@
-export type ObjectType = 'vm' | 'host'
+export type ObjectType = 'vm' | 'host' | 'kubernetes-cluster'
 
 export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
 export type HostActions =
@@ -15,6 +15,8 @@ export type HostActions =
   | 'detach'
   | 'emergency-shutdown'
 
+export type KubernetesClusterActions = 'pause-reconciliation'
+
 export type VmBlockedOperations =
   | 'clean_shutdown'
   | 'hard_shutdown'
@@ -27,4 +29,5 @@ export type VmBlockedOperations =
 export type ActionsByObject = {
   vm: VmActions
   host: HostActions
+  'kubernetes-cluster': KubernetesClusterActions
 }

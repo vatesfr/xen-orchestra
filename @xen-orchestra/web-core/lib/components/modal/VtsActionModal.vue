@@ -22,7 +22,13 @@ import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
+import type {
+  ActionsByObject,
+  HostActions,
+  KubernetesClusterActions,
+  ObjectType,
+  VmActions,
+} from '@core/types/object.type.ts'
 import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
@@ -40,6 +46,7 @@ type VtsActionModalVmProps = {
   action: VmActions
   vmName: string
   hostName?: never
+  clusterName?: never
 }
 
 type VtsActionModalHostProps = {
@@ -47,10 +54,19 @@ type VtsActionModalHostProps = {
   action: HostActions
   vmName?: never
   hostName: string
+  clusterName?: never
 }
 
-const { action, object, vmName, hostName } = defineProps<
-  (VtsActionModalVmProps | VtsActionModalHostProps) & {
+type VtsActionModalKubernetesClusterProps = {
+  object: 'kubernetes-cluster'
+  action: KubernetesClusterActions
+  vmName?: never
+  hostName?: never
+  clusterName: string
+}
+
+const { action, object, vmName, hostName, clusterName } = defineProps<
+  (VtsActionModalVmProps | VtsActionModalHostProps | VtsActionModalKubernetesClusterProps) & {
     accent: ModalAccent
     icon: IconName
   }
@@ -64,6 +80,7 @@ const emit = defineEmits<{
 const defaultActionByObject: ActionsByObject = {
   vm: 'shutdown',
   host: 'disable',
+  'kubernetes-cluster': 'pause-reconciliation',
 }
 
 const { t } = useI18n()
@@ -150,6 +167,13 @@ const textMappingsByObject: TextMappingByObject = {
       title: t('modal:confirm-host-emergency-shutdown?', { host: hostName }),
       message: t('modal:host-emergency-shutdown-message'),
       action: t('action:emergency-shutdown-host'),
+    },
+  },
+  'kubernetes-cluster': {
+    'pause-reconciliation': {
+      title: t('modal:confirm-cluster-pause-reconciliation?', { cluster: clusterName }),
+      message: t('modal:cluster-pause-reconciliation-message'),
+      action: t('action:pause-reconciliation'),
     },
   },
 }

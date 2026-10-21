@@ -5,6 +5,7 @@ import {
   formatNodesCount,
   isClusterDeletable,
   isClusterPhaseReady,
+  isClusterReconciliationToggleable,
 } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 
@@ -19,6 +20,24 @@ describe('isClusterDeletable', () => {
       expect(isClusterDeletable(phase)).toBe(false)
     }
   )
+})
+
+describe('isClusterReconciliationToggleable', () => {
+  it.each<KubernetesClusterPhase>([
+    'Pending',
+    'Provisioning',
+    'Provisioned',
+    'Running',
+    'Updating',
+    'Failed',
+    'Unknown',
+  ])('returns true for %s', phase => {
+    expect(isClusterReconciliationToggleable(phase)).toBe(true)
+  })
+
+  it.each<KubernetesClusterPhase>(['Deleting', 'Deleted'])('returns false for %s', phase => {
+    expect(isClusterReconciliationToggleable(phase)).toBe(false)
+  })
 })
 
 describe('isClusterPhaseReady', () => {
