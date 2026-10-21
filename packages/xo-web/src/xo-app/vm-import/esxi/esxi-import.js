@@ -185,6 +185,8 @@ class EsxiImport extends Component {
       repair: repair ? { windowsCleanup: 'standard' } : false,
       sr: resolveId(sr),
       sslVerify: !skipSslVerify,
+      // a repaired guest is started once its repair is done, its first boot is followed by the import
+      startVm: repair,
       stopOnError,
       stopSource,
       template: template.id,
