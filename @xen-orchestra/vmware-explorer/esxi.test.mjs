@@ -352,7 +352,8 @@ describe('shutdown', function () {
   /**
    * @param {object} params
    * @param {string} [params.toolsStatus] - `guest.toolsRunningStatus`
-   * @param {string[]} params.powerStates - successive answers for `runtime.powerState`, the last one repeats
+   * @param {Array<string | Error>} params.powerStates - successive answers for `runtime.powerState`, an
+   * error is thrown, the last one repeats
    * @param {() => object} [params.shutdownGuest] - answer to `ShutdownGuest`, may throw
    */
   const shutdownEsxi = ({ toolsStatus = 'guestToolsRunning', powerStates, shutdownGuest = () => ({}) }) => {
@@ -370,6 +371,9 @@ describe('shutdown', function () {
             return propertyOf('VirtualMachine', 'vm-1', pathSet[0], toolsStatus)
           }
           const state = states.length > 1 ? states.shift() : states[0]
+          if (state instanceof Error) {
+            throw state
+          }
           return propertyOf('VirtualMachine', 'vm-1', pathSet[0], state)
         },
       },
@@ -406,12 +410,38 @@ describe('shutdown', function () {
     assert.equal(stuck.vimClient.callsTo('PowerOffVM_Task').length, 1)
   })
 
+  it('polls again when reading the power state fails transiently', async function () {
+    const reset = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' })
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', reset, 'poweredOn', 'poweredOff'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'shutdown')
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+
   it('does not power off a guest which completed its shut down after the timeout', async function () {
     // the read while waiting, then the one before the power off
     const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOff'] })
 
     assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1, timeout: 0 }), 'shutdown')
     assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+})
+
+describe('removeSnapshot', function () {
+  it('removes only the snapshot, and consolidates its disks', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        RemoveSnapshot_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('success'),
+      },
+    })
+
+    await esxi.removeSnapshot('snapshot-1')
+    assert.deepEqual(vimClient.callsTo('RemoveSnapshot_Task')[0].args, {
+      _this: 'snapshot-1',
+      removeChildren: false,
+      consolidate: true,
+    })
   })
 })
 
