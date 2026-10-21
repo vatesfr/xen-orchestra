@@ -18,7 +18,7 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoPlugin } from '@vates/types'
@@ -37,11 +37,18 @@ import {
 import { partialPlugins, plugin, pluginIds } from '../open-api/oa-examples/plugin.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import type { PluginConfigurationRequestBody, PluginTestRequestBody, UpdatePluginRequestBody } from './plugin.type.mjs'
+import type {
+  PluginConfigurationPatchRequestBody,
+  PluginConfigurationRequestBody,
+  PluginTestRequestBody,
+  UpdatePluginRequestBody,
+} from './plugin.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
+import { assertNoUnknownProperties, obfuscatePluginSecrets } from './plugin.helper.mjs'
+import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 @Route('plugins')
 @Security('*')
@@ -55,11 +62,18 @@ export class PluginController extends XoController<XoPlugin> {
   }
 
   // --- abstract methods
-  getAllCollectionObjects(): Promise<XoPlugin[]> {
-    return this.restApi.xoApp.getPlugins()
+  async getAllCollectionObjects(): Promise<XoPlugin[]> {
+    return (await this.restApi.xoApp.getPlugins()).map(obfuscatePluginSecrets)
   }
-  getCollectionObject(id: XoPlugin['id']): Promise<XoPlugin> {
-    return this.restApi.xoApp.getPlugin(id)
+  async getCollectionObject(id: XoPlugin['id']): Promise<XoPlugin> {
+    return obfuscatePluginSecrets(await this.restApi.xoApp.getPlugin(id))
+  }
+
+  #assertState(plugin: XoPlugin, property: 'configured' | 'loaded' | 'loading', expected: boolean) {
+    const actual = plugin[property] === true
+    if (actual !== expected) {
+      throw incorrectState({ actual, expected, object: plugin.id, property })
+    }
   }
 
   /**
@@ -148,11 +162,9 @@ export class PluginController extends XoController<XoPlugin> {
 
   /**
    * Required privilege:
-   * - resource: plugin, action: configure
+   * - resource: plugin, action: update:configuration
    *
-   * Validate the configuration against the plugin `configurationSchema`, apply it and save it.
-   *
-   * Obfuscated values (`"obfuscated-q3oi6d9X8uenGvdLnHk2"`) are replaced by the currently saved values.
+   * Properties not declared in the `configurationSchema` are rejected.
    *
    * @example id "transport-email"
    * @example body {
@@ -166,7 +178,7 @@ export class PluginController extends XoController<XoPlugin> {
     json(),
     acl({
       resource: 'plugin',
-      action: 'configure',
+      action: 'update:configuration',
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getPlugin,
     }),
@@ -176,12 +188,56 @@ export class PluginController extends XoController<XoPlugin> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async configurePlugin(@Path() id: string, @Body() body: PluginConfigurationRequestBody): Promise<void> {
-    await this.restApi.xoApp.configurePlugin(id as XoPlugin['id'], body)
+    const plugin = await this.getObject(id as XoPlugin['id'])
+
+    assertNoUnknownProperties(body, plugin.configurationSchema)
+    await this.restApi.xoApp.configurePlugin(plugin.id, body)
   }
 
   /**
    * Required privilege:
-   * - resource: plugin, action: delete-configuration
+   * - resource: plugin, action: update:configuration
+   *
+   * Properties not declared in the `configurationSchema` are rejected.
+   *
+   * @example id "transport-email"
+   * @example body { "from": { "address": "xo@example.org", "name": "Xen Orchestra" } }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}/configuration')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'plugin',
+      action: 'update:configuration',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async updatePluginConfiguration(
+    @Path() id: string,
+    @Body() body: PluginConfigurationPatchRequestBody
+  ): Promise<void> {
+    const plugin = await this.getObject(id as XoPlugin['id'])
+
+    assertNoUnknownProperties(body, plugin.configurationSchema)
+
+    const configuration: Record<string, unknown> = { ...plugin.configuration, ...body }
+    for (const [key, value] of Object.entries(body)) {
+      if (value === null) {
+        delete configuration[key]
+      }
+    }
+    await this.restApi.xoApp.configurePlugin(plugin.id, configuration)
+  }
+
+  /**
+   * Required privilege:
+   * - resource: plugin, action: update:configuration
    *
    * Remove the plugin configuration. The plugin must be unloaded.
    *
@@ -192,7 +248,7 @@ export class PluginController extends XoController<XoPlugin> {
   @Middlewares(
     acl({
       resource: 'plugin',
-      action: 'delete-configuration',
+      action: 'update:configuration',
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.getPlugin,
     })
@@ -204,9 +260,7 @@ export class PluginController extends XoController<XoPlugin> {
   async deletePluginConfiguration(@Path() id: string): Promise<void> {
     const plugin = await this.getObject(id as XoPlugin['id'])
 
-    if (plugin.loaded) {
-      throw incorrectState({ actual: plugin.loaded, expected: false, object: plugin.id, property: 'loaded' })
-    }
+    this.#assertState(plugin, 'loaded', false)
 
     await this.restApi.xoApp.purgePluginConfiguration(plugin.id)
   }
@@ -232,15 +286,23 @@ export class PluginController extends XoController<XoPlugin> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, 'The plugin is already loaded, is loading or is not configured')
+  @Response(incorrectStateResp.status, 'The plugin is already loaded, is loading or is not configured')
   async loadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.loadPlugin(plugin.id), {
-      statusCode: noContentResp.status,
-      sync,
-      taskProperties: { name: `load ${plugin.name} plugin`, objectId: plugin.id },
-    })
+    return this.createAction<void>(
+      async () => {
+        this.#assertState(plugin, 'loaded', false)
+        this.#assertState(plugin, 'loading', false)
+        this.#assertState(plugin, 'configured', true)
+        await this.restApi.xoApp.loadPlugin(plugin.id)
+      },
+      {
+        statusCode: noContentResp.status,
+        sync,
+        taskProperties: { name: `load ${plugin.name} plugin`, objectId: plugin.id },
+      }
+    )
   }
 
   /**
@@ -264,15 +326,24 @@ export class PluginController extends XoController<XoPlugin> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, 'The plugin is already unloaded or cannot be unloaded')
+  @Response(incorrectStateResp.status, 'The plugin is not loaded')
   async unloadPlugin(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.unloadPlugin(plugin.id), {
-      statusCode: noContentResp.status,
-      sync,
-      taskProperties: { name: `unload ${plugin.name} plugin`, objectId: plugin.id },
-    })
+    return this.createAction<void>(
+      async () => {
+        if (!plugin.unloadable) {
+          throw forbiddenOperation('unload plugin', 'the plugin cannot be unloaded')
+        }
+        this.#assertState(plugin, 'loaded', true)
+        await this.restApi.xoApp.unloadPlugin(plugin.id)
+      },
+      {
+        statusCode: noContentResp.status,
+        sync,
+        taskProperties: { name: `unload ${plugin.name} plugin`, objectId: plugin.id },
+      }
+    )
   }
 
   /**
@@ -302,7 +373,8 @@ export class PluginController extends XoController<XoPlugin> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, 'The plugin is not testable, not loaded or the data are invalid')
+  @Response(incorrectStateResp.status, 'The plugin is not loaded')
+  @Response(invalidParameters.status, 'The data are invalid')
   async testPlugin(
     @Path() id: string,
     @Body() body: PluginTestRequestBody,
@@ -310,10 +382,24 @@ export class PluginController extends XoController<XoPlugin> {
   ): CreateActionReturnType<void> {
     const plugin = await this.getObject(id as XoPlugin['id'])
 
-    return this.createAction<void>(() => this.restApi.xoApp.testPlugin(plugin.id, body.data), {
-      statusCode: noContentResp.status,
-      sync,
-      taskProperties: { name: `test ${plugin.name} plugin`, objectId: plugin.id },
-    })
+    assertNoUnknownProperties(body.data, 'testSchema' in plugin ? plugin.testSchema : undefined)
+
+    const params =
+      body.data !== undefined && 'password' in body.data ? { ...body.data, password: OBFUSCATED_VALUE } : body.data
+
+    return this.createAction<void>(
+      async () => {
+        if (!plugin.testable) {
+          throw forbiddenOperation('test plugin', 'the plugin is not testable')
+        }
+        this.#assertState(plugin, 'loaded', true)
+        await this.restApi.xoApp.testPlugin(plugin.id, body.data)
+      },
+      {
+        statusCode: noContentResp.status,
+        sync,
+        taskProperties: { name: `test ${plugin.name} plugin`, objectId: plugin.id, params },
+      }
+    )
   }
 }

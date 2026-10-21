@@ -142,6 +142,7 @@ export default class {
       description,
       keywords,
       loaded,
+      loading,
       name,
       testable,
       testSchema,
@@ -156,6 +157,7 @@ export default class {
       autoload,
       description,
       loaded,
+      loading,
       keywords,
       unloadable,
       version,
@@ -253,13 +255,14 @@ export default class {
     }
 
     plugin.loading = true
+    await this._touchPlugin(id)
     try {
       await plugin.instance.load()
       plugin.loaded = true
     } finally {
       plugin.loading = false
+      await this._touchPlugin(id)
     }
-    await this._touchPlugin(id)
   }
 
   async unloadPlugin(id) {
