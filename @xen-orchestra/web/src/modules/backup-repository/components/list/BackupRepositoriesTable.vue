@@ -1,27 +1,29 @@
 <template>
-  <UiTitle>
-    {{ t('backup-repositories') }}
-    <template #action>
-      <slot name="title-actions" />
-    </template>
-  </UiTitle>
-  <div class="filters">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
-    <BackupRepositoriesBulkActions :brs="selectedBrs" />
-  </div>
+  <div class="backup-repositories-table">
+    <UiTitle>
+      {{ t('backup-repositories') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
+    </UiTitle>
+    <div class="filters">
+      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <BackupRepositoriesBulkActions :brs="selectedBrs" />
+    </div>
 
-  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
-    <thead>
-      <tr>
-        <HeadCells />
-      </tr>
-    </thead>
-    <tbody>
-      <VtsRow v-for="br of paginatedBrs" :key="br.id" :selected="selectedBrId === br.id">
-        <BodyCells :item="br" />
-      </VtsRow>
-    </tbody>
-  </VtsTable>
+    <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
+      <thead>
+        <tr>
+          <HeadCells />
+        </tr>
+      </thead>
+      <tbody>
+        <VtsRow v-for="br of paginatedBrs" :key="br.id" :selected="selectedBrId === br.id">
+          <BodyCells :item="br" />
+        </VtsRow>
+      </tbody>
+    </VtsTable>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -206,9 +208,15 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
 </script>
 
 <style scoped lang="postcss">
-.filters {
+.backup-repositories-table {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 2.4rem;
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 }
 </style>

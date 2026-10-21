@@ -1,6 +1,5 @@
 <template>
   <BackupRepositoryChangeStateButton :br />
-  <BackupRepositoryEditButton :br />
   <MenuList placement="bottom-end">
     <template #trigger="{ open }">
       <UiButtonIcon
@@ -11,6 +10,7 @@
         @click="open($event)"
       />
     </template>
+    <BackupRepositoryEditButton :br />
     <BackupRepositoryTestSpeedButton :br />
     <MenuSeparator />
     <BackupRepositoryForgetButton :br />

@@ -1,4 +1,5 @@
 import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryTestSpeedButton.vue'
+import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
 import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
@@ -80,19 +81,13 @@ it('links the breadcrumb back to the list of backup repositories', () => {
   )
 })
 
-it('offers to edit the repository', () => {
-  const wrapper = mountHeader()
-
-  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:edit'))
-})
-
 it('offers to change the state of the repository', () => {
   const wrapper = mountHeader(createBr({ enabled: true }))
 
   expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:disable'))
 })
 
-it('offers to test the speed and to forget the repository in the more actions menu', async () => {
+it('offers to edit, to test the speed and to forget the repository in the more actions menu', async () => {
   const wrapper = mountHeader()
 
   const moreActionsButton = wrapper
@@ -101,6 +96,7 @@ it('offers to test the speed and to forget the repository in the more actions me
 
   await moreActionsButton?.trigger('click')
 
+  expect(wrapper.findComponent(BackupRepositoryEditButton).exists()).toBe(true)
   expect(wrapper.findComponent(BackupRepositoryTestSpeedButton).exists()).toBe(true)
   expect(wrapper.findComponent(BackupRepositoryForgetButton).exists()).toBe(true)
 })
