@@ -6,7 +6,7 @@
  * Build of the repair ISO this version of XO is tested with: its date (`YYYYMMDD`), or a release tag.
  * Several builds can be deployed side by side, the CI names each one `xo-repair-<date>-<commit>.iso`
  */
-export const REPAIR_ISO_VERSION = '20261018'
+export const REPAIR_ISO_VERSION = '20261021'
 
 /**
  * Whether a VDI is the repair ISO of this build: `xo-repair-20261018-0d5f013b.iso`, or `xo-repair-1.0.0.iso` for
@@ -125,9 +125,14 @@ export const clearRepairXenstoreData = current =>
  * @param {'standard' | 'full'} [inputs.windowsCleanup]
  * @param {string} [inputs.windowsMsiPatterns]
  * @param {string} [inputs.windowsNics]
+ * @param {'guest' | 'xo'} [inputs.windowsReboot] - `xo`: the first boot stops the VM between its phases, for XO
+ * to start it again
  * @returns {Record<string, string>}
  */
-export function buildRepairXenstoreData(current, { mode, nics, windowsCleanup, windowsMsiPatterns, windowsNics }) {
+export function buildRepairXenstoreData(
+  current,
+  { mode, nics, windowsCleanup, windowsMsiPatterns, windowsNics, windowsReboot }
+) {
   const xenstoreData = clearRepairXenstoreData(current)
   const inputs = {
     mode,
@@ -135,6 +140,7 @@ export function buildRepairXenstoreData(current, { mode, nics, windowsCleanup, w
     'windows-cleanup': windowsCleanup,
     'windows-msi-patterns': windowsMsiPatterns,
     'windows-nics': windowsNics,
+    'windows-reboot': windowsReboot,
   }
   for (const [key, value] of Object.entries(inputs)) {
     if (value !== undefined) {
@@ -254,6 +260,12 @@ export function describeFailures(report) {
  */
 export const guestLogsOf = report => GUEST_LOGS[report.os?.kind]
 
+/**
+ * @typedef {object} FirstBootProgress - of the Windows first boot followed by XO
+ * @property {string[]} restartedAfter - the phases after which XO started the VM again, in order
+ * @property {boolean} done - whether the first boot reported its end
+ */
+
 // starts what the import writes in the description of the VM: a later write replaces everything after it
 export const REPAIR_DESCRIPTION_MARKER = '--- V2V repair ---'
 
@@ -269,11 +281,12 @@ const describeFinding = ({ level, code, message }) =>
  * @param {object} params
  * @param {{ diagnose?: RepairReport, repair?: RepairReport }} [params.reports] - all or part of them on a failure
  * @param {{ message: string }} [params.error] - why the repair failed
+ * @param {FirstBootProgress} [params.firstBoot] - how far the first boot of a repaired guest went
  * @param {{ message: string }} [params.firstBootError] - why the first boot of a repaired guest failed
  * @param {string} params.isoVersion
  * @returns {string}
  */
-export function describeRepair({ reports = {}, error, firstBootError, isoVersion }) {
+export function describeRepair({ reports = {}, error, firstBoot, firstBootError, isoVersion }) {
   const lines = [REPAIR_DESCRIPTION_MARKER, `ISO: ${isoVersion}`]
   // the repair run is the one which changed the guest, a diagnose alone did not change anything
   const report = reports.repair ?? reports.diagnose
@@ -300,6 +313,14 @@ export function describeRepair({ reports = {}, error, firstBootError, isoVersion
     }
     if (report.truncated) {
       lines.push('details were dropped from the report to fit in xenstore')
+    }
+  }
+  if (firstBoot !== undefined) {
+    for (const phase of firstBoot.restartedAfter) {
+      lines.push(`first boot: ${phase} phase done, VM restarted by XO`)
+    }
+    if (firstBoot.done) {
+      lines.push('first boot: done')
     }
   }
   if (firstBootError !== undefined) {

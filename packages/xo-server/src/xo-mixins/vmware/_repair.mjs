@@ -290,6 +290,8 @@ export async function diagnoseOffline({ xapi, vmRef, context, isoVersion }) {
  * @param {object} [params.options]
  * @param {'standard' | 'full'} [params.options.windowsCleanup]
  * @param {string} [params.options.windowsMsiPatterns]
+ * @param {boolean} [params.options.followFirstBoot] - whether XO starts the VM and follows its first boot: the
+ * Windows first boot then leaves its reboots to XO
  * @param {string} params.isoVersion - build of the repair ISO to use
  * @returns {Promise<{ diagnose: object, repair: object }>} the reports of both runs
  */
@@ -318,7 +320,8 @@ export async function repairImportedVm({ xapi, vmRef, metadata, options = {}, is
         'the source did not report its network cards (not running, or without VMware tools): static addresses of a VM with several cards cannot be carried over'
       )
     }
-    if (diagnose.report.findings.some(finding => finding.code === 'pv_drivers_unsupported')) {
+    const hasPvDrivers = !diagnose.report.findings.some(finding => finding.code === 'pv_drivers_unsupported')
+    if (!hasPvDrivers) {
       Task.warning(
         'this Windows version is older than the XCP-ng PV drivers support (build 14393): the VM will run on emulated devices, without management agent'
       )
@@ -334,6 +337,9 @@ export async function repairImportedVm({ xapi, vmRef, metadata, options = {}, is
               networks: metadata.networks,
               reportNetwork: diagnose.report.network,
             }),
+            // without PV drivers the first boot cannot report its end: XO does not follow it, and a VM stopped
+            // between two phases would stay stopped
+            windowsReboot: options.followFirstBoot && hasPvDrivers ? 'xo' : 'guest',
           }
         : { mode: 'repair', nics: buildLinuxNics(metadata.networks) }
     )
