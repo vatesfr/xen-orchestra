@@ -1170,6 +1170,41 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Turns the change tracking (CBT) of a VM on, when it is not already.
+   *
+   * The host only starts tracking when the disks are next opened, e.g. by a snapshot, running or
+   * not: until then it has no tracking file to answer from, and a snapshot taken before carries no
+   * `changeId`, no delta can be computed from it.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>} whether this call turned the tracking on
+   */
+  async enableChangeTracking(vmId, { signal, timeout = 5 * 60e3 } = {}) {
+    const enabled = await this.#retrieveProperty('VirtualMachine', vmId, 'config.changeTrackingEnabled', {
+      signal,
+    }).catch(error => {
+      // absent when the VM has never been tracked
+      if (error.code !== 'NO_PROPERTY') {
+        throw error
+      }
+    })
+    if (isTrue(enabled)) {
+      return false
+    }
+
+    await this.#runTask(
+      'ReconfigVM_Task',
+      { _this: vmId, spec: virtualMachineConfigSpec({ changeTrackingEnabled: true }) },
+      { signal, timeout }
+    )
+    info('change tracking enabled', { vmId })
+    return true
+  }
+
+  /**
    * Attaches an existing vmdk to a VM, powered on or not, without ever writing to it.
    *
    * The disk is attached in `independent_nonpersistent` mode: the guest sees a writable disk, but its

@@ -359,17 +359,30 @@ export default class MigrateVm {
       srsByNode[node] = app.getXapiObject(diskSrId, 'SR')
     }
 
-    if (!metadata.snapshots || !metadata.snapshots.current) {
-      if (metadata.powerState !== 'poweredOff') {
-        await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
-          return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
-        })
+    // the change tracking of the host gives the blocks to read: every block the disk uses for the
+    // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
+    // it, a full pass reads the unallocated blocks too
+    let isChangeTrackingNew = false
+    try {
+      isChangeTrackingNew = await Task.run({ properties: { name: `enabling change tracking on ${vmId}` } }, () =>
+        esxi.enableChangeTracking(vmId)
+      )
+    } catch (error) {
+      // not fatal: the disks are read to find their blocks
+      warn('failed to enable the change tracking on the source', { error, vmId })
+      Task.warning(`the change tracking could not be enabled on the source: ${error.message}`)
+    }
 
-        metadata = await Task.run(
-          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
-          () => esxi.getTransferableVmMetadata(vmId)
-        )
-      }
+    // tracking which has just been turned on only starts with the next snapshot: before it the host
+    // has no tracking file to answer from, and an existing snapshot carries no changeId
+    if (isChangeTrackingNew || (metadata.powerState !== 'poweredOff' && !metadata.snapshots?.current)) {
+      await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+        return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
+      })
+
+      metadata = await Task.run({ properties: { name: `updating metadata of ${vmId} after taking a snapshot` } }, () =>
+        esxi.getTransferableVmMetadata(vmId)
+      )
     }
     Task.abortSignal?.throwIfAborted()
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, networkIdsByNic, template, xapi })

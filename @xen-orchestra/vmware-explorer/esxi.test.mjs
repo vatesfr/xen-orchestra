@@ -491,6 +491,51 @@ describe('shutdown', function () {
   })
 })
 
+describe('enableChangeTracking', function () {
+  // `undefined` answers the property as absent, like a VM which has never been tracked
+  const trackingEsxi = enabled =>
+    connectedEsxi({
+      responses: {
+        ReconfigVM_Task: () => startedTask(),
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { pathSet, type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return taskInfo('success')
+          }
+          return enabled === undefined
+            ? { returnval: { objects: [{ obj: moRef('VirtualMachine', 'vm-1'), propSet: [] }] } }
+            : propertyOf('VirtualMachine', 'vm-1', pathSet[0], enabled)
+        },
+      },
+    })
+
+  it('turns the tracking on when it is off', async function () {
+    const { esxi, vimClient } = await trackingEsxi('false')
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), true)
+    const [{ args }] = vimClient.callsTo('ReconfigVM_Task')
+    assert.equal(args._this, 'vm-1')
+    assert.deepEqual(args.spec, {
+      attributes: { 'xsi:type': 'VirtualMachineConfigSpec' },
+      changeTrackingEnabled: true,
+    })
+  })
+
+  it('turns the tracking on when the VM has never been tracked', async function () {
+    const { esxi, vimClient } = await trackingEsxi(undefined)
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), true)
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 1)
+  })
+
+  it('does not reconfigure a VM already tracked', async function () {
+    const { esxi, vimClient } = await trackingEsxi('true')
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), false)
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+})
+
 describe('tasks', function () {
   it('resolves with the info of the successful task', async function () {
     const { esxi, vimClient } = await connectedEsxi({
