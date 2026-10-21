@@ -426,7 +426,7 @@ export default class {
     return /* await */ this.updateRemote(remote.id, { enabled: true })
   }
 
-  updateRemote(id, { enabled, name, options, proxy, url }) {
+  async updateRemote(id, { enabled, name, options, proxy, url }) {
     if (url !== undefined) {
       validateUrl(url)
     }
@@ -447,13 +447,24 @@ export default class {
       this._app.invalidateVmBackupsListing(id)
     }
 
-    return this._updateRemote(id, {
+    const remote = await this._updateRemote(id, {
       enabled,
       name,
       options,
       proxy,
       url,
     })
+
+    // the start lists only the repositories enabled then: one enabled later would have its archives
+    // neither announced nor polled until a client lists it. Listed once the update is stored, as the
+    // listing reads the remote from its record, which must not still say it is disabled
+    //
+    // not awaited, the listing can take a while: it never rejects
+    if (enabled === true) {
+      this._app.listVmBackupsNg([id])
+    }
+
+    return remote
   }
 
   @synchronized()
