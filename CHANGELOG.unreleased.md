@@ -62,7 +62,7 @@
 - [Backup] New `zstd` compression for the remotes in block mode (needs Node 22.15 or later), faster to back up and about 1.5 times faster to restore than `brotli` (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
-
+- [CLI] Add new command to `xo-server-db` cli: `disable-remote <id>`, disables a remote while xo-server is stopped (PR [#10587](https://github.com/vatesfr/xen-orchestra/pull/10587/))
 
 ### Bug fixes
 
