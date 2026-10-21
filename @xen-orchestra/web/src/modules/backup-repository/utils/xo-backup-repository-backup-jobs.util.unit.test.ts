@@ -17,7 +17,7 @@ describe('getBackupJobsUsingBackupRepository', () => {
       remotes: { id: { __or: ['backup-repository-456', 'backup-repository-123'] } },
     })
 
-    expect(getBackupJobsUsingBackupRepository(br, [singleTarget, multipleTargets])).toEqual([
+    expect(getBackupJobsUsingBackupRepository(br.id, [singleTarget, multipleTargets])).toEqual([
       singleTarget,
       multipleTargets,
     ])
@@ -30,7 +30,7 @@ describe('getBackupJobsUsingBackupRepository', () => {
       remotes: { id: 'backup-repository-456' },
     })
 
-    expect(getBackupJobsUsingBackupRepository(br, [mirrorJob])).toEqual([mirrorJob])
+    expect(getBackupJobsUsingBackupRepository(br.id, [mirrorJob])).toEqual([mirrorJob])
   })
 
   it('ignores the jobs using other repositories only', () => {
@@ -41,6 +41,6 @@ describe('getBackupJobsUsingBackupRepository', () => {
       remotes: { id: 'backup-repository-456' },
     })
 
-    expect(getBackupJobsUsingBackupRepository(br, [otherTarget, otherSource])).toEqual([])
+    expect(getBackupJobsUsingBackupRepository(br.id, [otherTarget, otherSource])).toEqual([])
   })
 })

@@ -7,10 +7,12 @@ import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { ref } from 'vue'
+import { type MaybeRefOrGetter, ref } from 'vue'
 import type { Router } from 'vue-router'
 
-type OverlayEvents = { onConfirm?: () => Promise<void> }
+type OverlayEvents = { onConfirm?: () => void }
+
+type ForgetResults = PromiseSettledResult<void>[]
 
 type MockedOverlay = { open: ReturnType<typeof vi.fn>; events: OverlayEvents }
 
@@ -44,17 +46,28 @@ vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
   }) as unknown as typeof useOverlay,
 }))
 
+let successHandled: Promise<void> | undefined
+
 beforeEach(() => {
   vi.restoreAllMocks()
   overlays.length = 0
   run.mockReset()
   selectedBrId.value = ''
+  successHandled = undefined
 })
+
+// The composable runs the job detached: like a successful job, the mock hands the results to `onSuccess`
+function mockForgetSuccess(results: ForgetResults, beforeSuccess?: () => void) {
+  run.mockImplementation(({ onSuccess }: { onSuccess: (results: ForgetResults) => Promise<void> }) => {
+    beforeSuccess?.()
+    successHandled = onSuccess(results)
+  })
+}
 
 const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })
 const secondBr = createBr({ id: 'backup-repository-2' as FrontXoBackupRepository['id'] })
 
-function mountForget(brs: FrontXoBackupRepository[], { router = createTestRouter() } = {}) {
+function mountForget(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>, { router = createTestRouter() } = {}) {
   const result = mountComposable(() => useBackupRepositoryForget(brs), { router }).wrapper.vm
 
   // The composable declares the single repository modal first, then the type to confirm one
@@ -63,8 +76,8 @@ function mountForget(brs: FrontXoBackupRepository[], { router = createTestRouter
   return { result, forgetModal, typeToConfirmModal }
 }
 
-// Opens the modal matching the repositories count, then confirms it
-function forgetAndConfirm(brs: FrontXoBackupRepository[], options?: { router?: Router }) {
+// Opens the modal matching the repositories count, confirms it, then waits for the success handling
+async function forgetAndConfirm(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>, options?: { router?: Router }) {
   const { result } = mountForget(brs, options)
 
   result.forgetBackupRepositories()
@@ -74,7 +87,9 @@ function forgetAndConfirm(brs: FrontXoBackupRepository[], options?: { router?: R
   // The events can be declared with the modal, or given when opening it
   const openEvents: OverlayEvents | undefined = openedModal?.open.mock.lastCall?.[0]?.events
 
-  return (openEvents?.onConfirm ?? openedModal?.events.onConfirm)?.()
+  ;(openEvents?.onConfirm ?? openedModal?.events.onConfirm)?.()
+
+  await successHandled
 }
 
 async function createRouterOnBrPage(id: FrontXoBackupRepository['id']) {
@@ -105,8 +120,8 @@ describe('forgetBackupRepositories', () => {
       props: {
         accent: 'danger',
         icon: 'status:danger-picto',
-        title: t('modal:backup-repository-forget-n-title', { n: 2 }),
-        description: t('modal:backup-repository-forget-n-message'),
+        title: t('modal:backup-repository-forget-title', { n: 2 }),
+        description: t('modal:backup-repository-forget-message', { n: 2 }),
         confirmationText: t('n-brs', { n: 2 }),
         confirmLabel: t('action:forget-n-brs', { n: 2 }),
       },
@@ -119,7 +134,7 @@ describe('forgetBackupRepositories', () => {
 
 describe('on confirm', () => {
   it('unselects the repository shown in the side panel once forgotten', async () => {
-    run.mockResolvedValue([
+    mockForgetSuccess([
       { status: 'fulfilled', value: undefined },
       { status: 'fulfilled', value: undefined },
     ])
@@ -131,7 +146,7 @@ describe('on confirm', () => {
   })
 
   it('keeps the repository shown in the side panel selected when forgetting it failed', async () => {
-    run.mockResolvedValue([
+    mockForgetSuccess([
       { status: 'fulfilled', value: undefined },
       { status: 'rejected', reason: new Error('Backup repository unreachable') },
     ])
@@ -143,7 +158,7 @@ describe('on confirm', () => {
   })
 
   it('keeps another repository shown in the side panel selected', async () => {
-    run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
+    mockForgetSuccess([{ status: 'fulfilled', value: undefined }])
     selectedBrId.value = secondBr.id
 
     await forgetAndConfirm([firstBr])
@@ -151,17 +166,45 @@ describe('on confirm', () => {
     expect(selectedBrId.value).toBe(secondBr.id)
   })
 
-  it('does not throw when the job cannot run', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    run.mockRejectedValue(new Error('Backup repository used by 1 backup job'))
+  it('runs the job detached so the modal closes right away', async () => {
+    await forgetAndConfirm([firstBr])
 
-    await expect(forgetAndConfirm([firstBr])).resolves.toBeUndefined()
+    expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
+  })
+
+  it('keeps the repository shown in the side panel selected when the job failed', async () => {
+    // A failed detached job never calls `onSuccess`
+    selectedBrId.value = firstBr.id
+
+    await forgetAndConfirm([firstBr])
+
+    expect(selectedBrId.value).toBe(firstBr.id)
+  })
+
+  it('unselects the forgotten repository even when the repositories change during the job', async () => {
+    const brs = ref([firstBr, secondBr])
+    selectedBrId.value = secondBr.id
+
+    // The forgotten repositories leave the collection before the job is over
+    mockForgetSuccess(
+      [
+        { status: 'fulfilled', value: undefined },
+        { status: 'fulfilled', value: undefined },
+      ],
+      () => {
+        brs.value = []
+      }
+    )
+
+    await forgetAndConfirm(brs)
+
+    expect(selectedBrId.value).toBe('')
   })
 })
 
 describe('redirection', () => {
   it('redirects to the repositories list once the repository of the current page is forgotten', async () => {
-    run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
+    mockForgetSuccess([{ status: 'fulfilled', value: undefined }])
     const router = await createRouterOnBrPage(firstBr.id)
 
     await forgetAndConfirm([firstBr], { router })
@@ -170,7 +213,7 @@ describe('redirection', () => {
   })
 
   it('stays on the repository page when forgetting it failed', async () => {
-    run.mockResolvedValue([{ status: 'rejected', reason: new Error('Backup repository unreachable') }])
+    mockForgetSuccess([{ status: 'rejected', reason: new Error('Backup repository unreachable') }])
     const router = await createRouterOnBrPage(firstBr.id)
 
     await forgetAndConfirm([firstBr], { router })
@@ -179,7 +222,7 @@ describe('redirection', () => {
   })
 
   it('stays on the page of another repository', async () => {
-    run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
+    mockForgetSuccess([{ status: 'fulfilled', value: undefined }])
     const router = await createRouterOnBrPage(secondBr.id)
 
     await forgetAndConfirm([firstBr], { router })

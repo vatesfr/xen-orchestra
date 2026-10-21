@@ -1,14 +1,14 @@
+import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryTestSpeedButton.vue'
+import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
-import type {
-  FrontXoBackupRepository,
-  useXoBackupRepositoryCollection,
-} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
@@ -40,12 +40,6 @@ vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-fo
     isForgettingBackupRepositories: computed(() => false),
     forgetBackupRepositoriesErrorMessage: computed(() => undefined),
   }),
-}))
-
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
-  useXoBackupRepositoryCollection: (() => ({
-    $context: { forceReload: vi.fn() },
-  })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
@@ -90,6 +84,25 @@ it('offers to edit the repository', () => {
   const wrapper = mountHeader()
 
   expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:edit'))
+})
+
+it('offers to change the state of the repository', () => {
+  const wrapper = mountHeader(createBr({ enabled: true }))
+
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:disable'))
+})
+
+it('offers to test the speed and to forget the repository in the more actions menu', async () => {
+  const wrapper = mountHeader()
+
+  const moreActionsButton = wrapper
+    .findAllComponents(UiButtonIcon)
+    .find(button => button.props('icon') === 'action:more-actions')
+
+  await moreActionsButton?.trigger('click')
+
+  expect(wrapper.findComponent(BackupRepositoryTestSpeedButton).exists()).toBe(true)
+  expect(wrapper.findComponent(BackupRepositoryForgetButton).exists()).toBe(true)
 })
 
 it('shows a connected icon for an enabled repository without error', () => {
