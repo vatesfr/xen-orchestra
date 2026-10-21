@@ -512,6 +512,36 @@ describe('VmBackupsCache', () => {
     assert.equal(cache.isReplayable(REPOSITORY.id), true)
   })
 
+  it('does not clear the mark of a repository which cannot be replayed when an older replay settles', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a replay of the entry which is about to be dropped, held while it reads the journal
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+    cache.delete(REPOSITORY.id)
+
+    // the repository is then listed again, and found out not to be replayable
+    repository.cannotReplay = true
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
+
+    // the replay which started before the deletion settles after the new entry has been marked: it
+    // must not clear that mark
+    held.release()
+    await pending
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
+  })
+
   it('forgets a repository which cannot be read anymore', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
@@ -842,7 +872,10 @@ describe('VmBackupsCache collection', () => {
     assert.equal(repository.nListings, 3)
 
     // still stale: listed again without waiting for the end of the refresh window
-    assert.ok(filenames(await cache.get(REPOSITORY)).includes(added._filename))
+    assert.deepEqual(
+      filenames(await cache.get(REPOSITORY)).sort(),
+      [filenameOf(VM, '20260811T090000'), added._filename].sort()
+    )
     assert.equal(repository.nListings, 4)
   })
 

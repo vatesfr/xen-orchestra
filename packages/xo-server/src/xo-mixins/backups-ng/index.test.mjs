@@ -617,6 +617,26 @@ describe('the backup-archive collection', () => {
     assert.equal(registeredCollection(backupNg).type, 'backup-archive')
   })
 
+  it('announces each change once after the app has stopped and started again', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+    const events = []
+    // attaches the listeners as `xo.mjs` does each time the core starts: a restart must not attach a second set
+    hooks.on('registerCollection', ({ collection }) => {
+      collection.on('add', ([item]) => events.push(item.id))
+    })
+
+    hooks.emit('core started')
+    hooks.emit('start')
+    hooks.emit('stop')
+    hooks.emit('core started')
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(events, [idOf('20260811T090000')])
+  })
+
   it('announces the archives a listing discovered', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
