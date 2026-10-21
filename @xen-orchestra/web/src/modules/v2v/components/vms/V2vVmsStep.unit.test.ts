@@ -135,7 +135,6 @@ function findShowPanelButton(wrapper: VueWrapper) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   v2vVmRowsCollectionsMock.reset()
   destinationCollectionsMock.reset()
   deleteModalMock.reset()

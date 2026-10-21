@@ -28,6 +28,10 @@ The exception is a **reactivity** test: it must keep reading through the mounted
 
 `src/test/setup.ts` calls `enableAutoUnmount(afterEach)`, so every wrapper — `mount` or `mountComposable` — is unmounted after the test that created it. Never unmount by hand for cleanup, and never mount in `beforeAll`: that wrapper would be torn down after the first test. The one `wrapper.unmount()` allowed is the act of a test asserting what `onUnmounted` does.
 
+## Local storage
+
+`src/test/setup.ts` clears `localStorage` before each test, so every test starts with an empty storage. Never clear it again in a test file: store what a test needs in its own setup (e.g. `seedV2vMigrationList`).
+
 ## Shared helpers: `use<X>EnhancedData`
 
 When several modules test the _same shape_ of composable, the helpers belong in `src/test/`, not copy-pasted per module. The `use<X>EnhancedData` family (`usePoolEnhancedData`, `useVmEnhancedData`, … each backing a `<X>sTable.vue`) all expose a `filterable<X>s` computed plus a `getDisplayData`, so `src/test/create-enhanced-data-helpers.ts` builds their three helpers once. Only the name of the filterable list varies, so it is passed as a getter:
