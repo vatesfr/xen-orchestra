@@ -40,8 +40,8 @@
 - [Pool/Network] Allow enabling the insecure NBD (not encrypted) on a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [REST API] `POST /rest/v0/pools/:id/actions/create_network` supports `insecureNbd` to create a network with the insecure NBD (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [XO6/New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
-- [V2V] The change tracking (CBT) is enabled on the source VM when it is not, so that only the used blocks are read, and only the changed ones for the delta of a running VM
-- [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes
+- [V2V] The change tracking (CBT) is enabled on the source VM when it is not, so that only the used blocks are read, and only the changed ones for the delta of a running VM (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
+- [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
 
 - Host Probe SR REST API Endpoints:
 
@@ -64,7 +64,6 @@
 - [Backup] New `zstd` compression for the remotes in block mode (needs Node 22.15 or later), faster to back up and about 1.5 times faster to restore than `brotli` (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
-
 
 ### Bug fixes
 
