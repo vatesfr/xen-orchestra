@@ -140,6 +140,7 @@ test('buildRepairXenstoreData', async t => {
           windowsCleanup: 'full',
           windowsMsiPatterns: 'xen-*.msi;managementagent-*.msi',
           windowsNics: '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
+          windowsReboot: 'xo',
         }
       ),
       {
@@ -148,6 +149,7 @@ test('buildRepairXenstoreData', async t => {
         'vm-data/xo-repair/windows-cleanup': 'full',
         'vm-data/xo-repair/windows-msi-patterns': 'xen-*.msi;managementagent-*.msi',
         'vm-data/xo-repair/windows-nics': '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
+        'vm-data/xo-repair/windows-reboot': 'xo',
       }
     )
   })
@@ -341,6 +343,28 @@ test('describeRepair', async t => {
       [REPAIR_DESCRIPTION_MARKER, 'ISO: 1', 'repair failed: the repair ISO did not report its result in time'].join(
         '\n'
       )
+    )
+  })
+
+  await t.test('follows the first boot: the restarts done by XO, then its end or its failure', () => {
+    const reports = { diagnose: report(), repair: report() }
+    const restarted = { restartedAfter: ['drivers', 'cleanup'], done: false }
+    assert.ok(
+      describeRepair({ reports, firstBoot: { ...restarted, done: true }, isoVersion: '1' }).endsWith(
+        [
+          'first boot: drivers phase done, VM restarted by XO',
+          'first boot: cleanup phase done, VM restarted by XO',
+          'first boot: done',
+        ].join('\n')
+      )
+    )
+    assert.ok(
+      describeRepair({
+        reports,
+        firstBoot: restarted,
+        firstBootError: { message: 'the Windows first boot did not complete' },
+        isoVersion: '1',
+      }).endsWith('cleanup phase done, VM restarted by XO\nfirst boot failed: the Windows first boot did not complete')
     )
   })
 
