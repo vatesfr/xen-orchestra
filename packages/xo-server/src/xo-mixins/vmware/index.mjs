@@ -200,7 +200,13 @@ export default class MigrateVm {
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
       if (stopSource) {
-        await Task.run({ properties: { name: 'stopping source VM' } }, async () => esxi.powerOff(vmId))
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
+          // a clean shut down when the guest allows it: a power off leaves the file systems dirty
+          const stoppedBy = await esxi.shutdown(vmId, { signal: Task.abortSignal })
+          if (stoppedBy === 'powerOff') {
+            Task.warning('the guest could not be shut down cleanly, it was powered off')
+          }
+        })
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,

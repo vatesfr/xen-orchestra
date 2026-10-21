@@ -909,6 +909,63 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Shuts the guest down cleanly through the VMware tools, and waits for the VM to be off.
+   *
+   * A power off is the guest losing power: Windows leaves its NTFS volumes dirty, which then cannot be
+   * written offline, e.g. by the repair ISO. The VM is powered off anyway when its tools do not run, when
+   * the guest refuses to shut down, or does not within `timeout`.
+   *
+   * @param {string} vmId - id of the VM, powered on
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, how long the guest is given to shut down
+   * @param {number} [options.pollInterval] - in ms, between two reads of the power state
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<'shutdown' | 'powerOff'>} how the VM was stopped
+   */
+  async shutdown(vmId, { signal, timeout = 10 * 60e3, pollInterval = 5e3 } = {}) {
+    const toolsStatus = await this.#retrieveProperty('VirtualMachine', vmId, 'guest.toolsRunningStatus', {
+      signal,
+    }).catch(error => {
+      signal?.throwIfAborted()
+      warn('failed to read the state of the VMware tools', { error, vmId })
+    })
+
+    if (toolsStatus === 'guestToolsRunning') {
+      try {
+        // not a task: the call returns once the guest has been asked to shut down
+        await this.#vimClient.call('ShutdownGuest', { _this: vmId })
+        await this.#waitPoweredOff(vmId, { signal, timeout, pollInterval })
+        return 'shutdown'
+      } catch (error) {
+        signal?.throwIfAborted()
+        warn('the guest did not shut down, powering it off', { error, vmId })
+      }
+    } else {
+      info('the VMware tools do not run, powering the VM off', { toolsStatus, vmId })
+    }
+
+    // the guest may have completed its shut down meanwhile, the power off would then be refused
+    if ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) === 'poweredOff') {
+      return 'shutdown'
+    }
+    await this.powerOff(vmId, { signal })
+    return 'powerOff'
+  }
+
+  async #waitPoweredOff(vmId, { signal, timeout, pollInterval }) {
+    const deadline = Date.now() + timeout
+    while ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) !== 'poweredOff') {
+      if (Date.now() >= deadline) {
+        const error = new Error(`the VM ${vmId} is still running ${timeout}ms after its guest was asked to shut down`)
+        error.code = 'SHUTDOWN_TIMEOUT'
+        error.vmId = vmId
+        throw error
+      }
+      await delay(pollInterval, undefined, { signal })
+    }
+  }
+
+  /**
    * Powers on a VM, and waits for the hypervisor to have started it.
    *
    * @param {string} vmId - id of the VM
