@@ -166,7 +166,7 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
           actions: [
             {
               label: br.enabled ? t('action:disable') : t('action:connect'),
-              icon: br.enabled ? 'status:disabled' : 'status:success-circle',
+              icon: br.enabled ? 'action:disable' : 'action:connect',
               onClick: () => changeBackupRepositoriesState(),
               disabled: !canChangeBackupRepositoriesState.value,
               busy: isChangingBackupRepositoriesState.value,

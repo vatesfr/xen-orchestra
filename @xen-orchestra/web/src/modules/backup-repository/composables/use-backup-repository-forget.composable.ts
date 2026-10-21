@@ -30,22 +30,23 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
     errorMessage: forgetBackupRepositoriesErrorMessage,
   } = useXoBackupRepositoryForgetJob(brs)
 
-  async function forget() {
-    try {
-      const results = await run()
+  function forget() {
+    const brIds = brs.value.map(br => br.id)
 
-      const isSelectedBrForgotten = results.some(
-        (result, index) => result.status === 'fulfilled' && brs.value[index]?.id === selectedBrId.value
-      )
+    run({
+      detached: true,
+      onSuccess: async results => {
+        const isSelectedBrForgotten = results.some(
+          (result, index) => result.status === 'fulfilled' && brIds[index] === selectedBrId.value
+        )
 
-      if (isSelectedBrForgotten) {
-        selectedBrId.value = ''
-      }
+        if (isSelectedBrForgotten) {
+          selectedBrId.value = ''
+        }
 
-      await redirectIfOnObjectPage(results)
-    } catch (error) {
-      console.error('Error when forgetting backup repository:', error)
-    }
+        await redirectIfOnObjectPage(results)
+      },
+    })
   }
 
   const { open: openForgetModal } = useOverlay({
@@ -69,8 +70,8 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
       props: {
         accent: 'danger',
         icon: 'status:danger-picto',
-        title: t('modal:backup-repository-forget-n-title', { n: count }),
-        description: t('modal:backup-repository-forget-n-message'),
+        title: t('modal:backup-repository-forget-title', { n: count }),
+        description: t('modal:backup-repository-forget-message', { n: count }),
         confirmationText: t('n-brs', { n: count }),
         confirmLabel: t('action:forget-n-brs', { n: count }),
       },

@@ -5,67 +5,20 @@
       <VtsIcon size="medium" :name="icon" />
     </template>
     <template #actions>
-      <BackupRepositoryChangeStateButton :br />
-      <BackupRepositoryEditButton :br />
-      <UiButton
-        v-tooltip="!canBenchmarkBackupRepository && benchmarkBackupRepositoryErrorMessage"
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        left-icon="action:scan"
-        :disabled="!canBenchmarkBackupRepository"
-        :busy="isBenchmarkingBackupRepository"
-        @click="benchmarkBackupRepository()"
-      >
-        {{ t('action:test-speed') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="!canForgetBackupRepositories && forgetBackupRepositoriesErrorMessage"
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        left-icon="action:forget"
-        :disabled="!canForgetBackupRepositories"
-        :busy="isForgettingBackupRepositories"
-        @click="forgetBackupRepositories()"
-      >
-        {{ t('action:forget') }}
-      </UiButton>
+      <BackupRepositoryActions :br />
     </template>
   </UiHeadBar>
 </template>
 
 <script setup lang="ts">
-import BackupRepositoryChangeStateButton from '@/modules/backup-repository/components/actions/change-state/BackupRepositoryChangeStateButton.vue'
-import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
-import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
-import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import BackupRepositoryActions from '@/modules/backup-repository/components/actions/BackupRepositoryActions.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useI18n } from 'vue-i18n'
 
-const { br } = defineProps<{
+defineProps<{
   br: FrontXoBackupRepository
   icon: IconName
 }>()
-
-const { t } = useI18n()
-
-const {
-  run: benchmarkBackupRepository,
-  canRun: canBenchmarkBackupRepository,
-  isRunning: isBenchmarkingBackupRepository,
-  errorMessage: benchmarkBackupRepositoryErrorMessage,
-} = useXoBackupRepositoryBenchmarkJob(() => [br])
-
-const {
-  forgetBackupRepositories,
-  canForgetBackupRepositories,
-  isForgettingBackupRepositories,
-  forgetBackupRepositoriesErrorMessage,
-} = useBackupRepositoryForget(() => [br])
 </script>

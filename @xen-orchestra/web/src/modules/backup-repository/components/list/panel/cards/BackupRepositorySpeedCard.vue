@@ -2,12 +2,7 @@
   <UiPanelCard class="backup-repository-speed-card">
     <UiPanelCardTitle size="medium" :label="t('speed')">
       <template #more-actions>
-        <BackupRepositoryBenchmarkButton
-          :can-benchmark="canBenchmarkBackupRepository"
-          :is-benchmarking="isBenchmarkingBackupRepository"
-          :error-message="benchmarkBackupRepositoryErrorMessage"
-          @click="benchmarkBackupRepository()"
-        />
+        <BackupRepositoryBenchmarkButton :br />
       </template>
     </UiPanelCardTitle>
 
@@ -33,7 +28,6 @@
 <script lang="ts" setup>
 import BackupRepositoryBenchmarkButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryBenchmarkButton.vue'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
-import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -46,13 +40,6 @@ const { br } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const {
-  run: benchmarkBackupRepository,
-  canRun: canBenchmarkBackupRepository,
-  isRunning: isBenchmarkingBackupRepository,
-  errorMessage: benchmarkBackupRepositoryErrorMessage,
-} = useXoBackupRepositoryBenchmarkJob(() => [br])
 
 const { writeSpeed, readSpeed } = useXoBackupRepositoryBenchmark(() => br)
 </script>

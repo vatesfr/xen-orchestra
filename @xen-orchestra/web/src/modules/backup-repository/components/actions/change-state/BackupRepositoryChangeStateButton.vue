@@ -5,7 +5,7 @@
     variant="tertiary"
     accent="brand"
     :disabled="!canChangeBackupRepositoriesState"
-    :left-icon="br.enabled ? 'status:disabled' : 'status:success-circle'"
+    :left-icon="br.enabled ? 'action:disable' : 'action:connect'"
     :busy="isChangingBackupRepositoriesState"
     @click="changeBackupRepositoriesState()"
   >

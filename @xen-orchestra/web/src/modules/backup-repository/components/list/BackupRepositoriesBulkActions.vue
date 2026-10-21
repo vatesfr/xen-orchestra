@@ -57,7 +57,7 @@ const bulkActions = computed<ActionItem[]>(() => [
     children: [
       {
         label: t('action:connect'),
-        icon: 'status:success-circle',
+        icon: 'action:connect',
         onClick: () => connectBackupRepositories(),
         disabled: !canConnectBackupRepositories.value,
         busy: isConnectingBackupRepositories.value,
@@ -65,7 +65,7 @@ const bulkActions = computed<ActionItem[]>(() => [
       },
       {
         label: t('action:disable'),
-        icon: 'status:disabled',
+        icon: 'action:disable',
         onClick: () => disableBackupRepositories(),
         disabled: !canDisableBackupRepositories.value,
         busy: isDisablingBackupRepositories.value,

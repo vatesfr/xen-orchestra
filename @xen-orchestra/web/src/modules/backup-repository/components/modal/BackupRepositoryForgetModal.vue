@@ -1,11 +1,11 @@
 <template>
   <UiModal accent="danger" icon="status:danger-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
-      {{ t('modal:backup-repository-forget-title') }}
+      {{ t('modal:backup-repository-forget-title', 1) }}
     </template>
 
     <template #content>
-      {{ t('modal:backup-repository-forget-message') }}
+      {{ t('modal:backup-repository-forget-message', 1) }}
     </template>
 
     <template #buttons>
