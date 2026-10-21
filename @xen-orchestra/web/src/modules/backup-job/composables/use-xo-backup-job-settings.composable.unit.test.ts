@@ -46,8 +46,10 @@ describe('useXoBackupJobSettings', () => {
       expect(never.reportWhenValueTranslation).toBe(never.t('report-when:never'))
     })
 
-    it('has no value when the report setting is not set', () => {
-      expect(mountSettings(createVmBackupJob()).reportWhenValueTranslation).toBeUndefined()
+    it('sends the report after every run when the report setting is not set', () => {
+      const result = mountSettings(createVmBackupJob())
+
+      expect(result.reportWhenValueTranslation).toBe(result.t('report-when:always'))
     })
   })
 

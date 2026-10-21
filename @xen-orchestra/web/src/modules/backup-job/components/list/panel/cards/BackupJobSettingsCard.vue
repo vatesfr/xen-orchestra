@@ -35,7 +35,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('report-when') }}</template>
         <template #value>{{ reportWhenValueTranslation }}</template>
-        <template v-if="reportWhenValueTranslation !== undefined" #addons>
+        <template #addons>
           <VtsCopyButton :value="reportWhenValueTranslation" />
         </template>
       </VtsCardRowKeyValue>

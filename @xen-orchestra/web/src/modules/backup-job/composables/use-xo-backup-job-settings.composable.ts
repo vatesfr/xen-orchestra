@@ -40,8 +40,6 @@ export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
 
   const reportWhenValueTranslation = computed(() => {
     switch (settings.reportWhen) {
-      case 'always':
-        return t('report-when:always')
       case 'failure':
         return t('report-when:skipped-and-failure')
       case 'error':
@@ -49,7 +47,7 @@ export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
       case 'never':
         return t('report-when:never')
       default:
-        return undefined
+        return t('report-when:always')
     }
   })
 
