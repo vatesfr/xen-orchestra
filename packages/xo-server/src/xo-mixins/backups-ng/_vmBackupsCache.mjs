@@ -286,7 +286,7 @@ export class VmBackupsCache {
       this.#emitter.on(event, listener)
     },
     get: async () => this.#listArchives(),
-    first: async id => this.#listArchives().find(archive => archive.id === id),
+    first: async id => this.#findArchive(id),
   }
 
   // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, rebuildInterval,
@@ -590,6 +590,27 @@ export class VmBackupsCache {
       }
     }
     return archives
+  }
+
+  /**
+   * The archive with this id, if any: walks the announced backups and only builds the matching one,
+   * instead of building every archive of the collection to pick one.
+   *
+   * @param {FormattedBackup['id']} id
+   * @returns {FormattedBackup | undefined}
+   */
+  #findArchive(id) {
+    for (const [repositoryId, backupsByVm] of this.#announced) {
+      for (const backups of Object.values(backupsByVm)) {
+        for (const backup of Object.values(backups)) {
+          // same id as `archiveOf()` gives, compared before building the archive
+          if (`${repositoryId}/${backup.id}` === id) {
+            return archiveOf(backup, repositoryId)
+          }
+        }
+      }
+    }
+    return undefined
   }
 
   /**
