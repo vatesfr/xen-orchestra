@@ -668,11 +668,10 @@ const archiveIdOf = (vmUuid, name) => `${REPOSITORY.id}/${filenameOf(vmUuid, nam
 // `remove`, which the cache emits one at a time
 const recordEvents = cache => {
   const events = []
-  for (const name of ['add', 'update', 'remove']) {
-    cache.archives.on(name, ([item]) =>
-      events.push(name === 'remove' ? { event: name, id: item } : { event: name, archive: item })
-    )
+  for (const name of ['add', 'update']) {
+    cache.archives.on(name, ([archive]) => events.push({ event: name, archive }))
   }
+  cache.archives.on('remove', ([id]) => events.push({ event: 'remove', id }))
   return events
 }
 

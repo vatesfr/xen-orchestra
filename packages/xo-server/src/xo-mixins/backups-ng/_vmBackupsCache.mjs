@@ -164,10 +164,10 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
  * `remove` their ids.
  *
  * @typedef {{
- *   on: (
- *     event: 'add' | 'update' | 'remove',
- *     listener: (payload: FormattedBackup[] | Array<FormattedBackup['id']>) => void
- *   ) => void,
+ *   on: {
+ *     (event: 'add' | 'update', listener: (archives: [FormattedBackup]) => void): void
+ *     (event: 'remove', listener: (ids: [FormattedBackup['id']]) => void): void
+ *   },
  *   get: () => Promise<FormattedBackup[]>,
  *   first: (id: FormattedBackup['id']) => Promise<FormattedBackup | undefined>,
  * }} Archives
@@ -384,7 +384,7 @@ export class VmBackupsCache {
    * @returns {Array<Repository['id']>}
    */
   replayableRepositoryIds() {
-    return [...this.#announced.keys()].filter(id => !this.#unreplayable.has(id))
+    return this.#repositoryIds(false)
   }
 
   /**
@@ -393,7 +393,16 @@ export class VmBackupsCache {
    * @returns {Array<Repository['id']>}
    */
   unreplayableRepositoryIds() {
-    return [...this.#announced.keys()].filter(id => this.#unreplayable.has(id))
+    return this.#repositoryIds(true)
+  }
+
+  // Both listings filter the announced set on the same test, so a change to how it is filtered is made once
+  /**
+   * @param {boolean} unreplayable whether to keep the repositories `isReplayable()` does not hold for
+   * @returns {Array<Repository['id']>}
+   */
+  #repositoryIds(unreplayable) {
+    return [...this.#announced.keys()].filter(id => this.#unreplayable.has(id) === unreplayable)
   }
 
   /**
