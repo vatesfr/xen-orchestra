@@ -2,7 +2,8 @@ import V2vPrerequisiteStatus from '@/modules/v2v/components/source/V2vPrerequisi
 import V2vSourceConnectionForm from '@/modules/v2v/components/source/V2vSourceConnectionForm.vue'
 import { useV2vConnectionForm } from '@/modules/v2v/form/use-v2v-connection-form.ts'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
-import { findButtonByLabel } from '@/test/find-button.ts'
+import { getButtonByLabel } from '@/test/find-button.ts'
+import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -33,8 +34,8 @@ function mountConnectionForm(props: Partial<FormProps> = {}, { attachTo }: { att
   })
 }
 
-function findConnectButton(wrapper: ReturnType<typeof mountConnectionForm>) {
-  return findButtonByLabel(wrapper, t('action:connect'))
+function getConnectButton(wrapper: ReturnType<typeof mountConnectionForm>) {
+  return getButtonByLabel(wrapper, t('action:connect'))
 }
 
 it('shows the prerequisite check', () => {
@@ -46,12 +47,7 @@ it('shows the prerequisite check', () => {
 it('asks for the host, port, username and password, all required', () => {
   const wrapper = mountConnectionForm()
 
-  expect(wrapper.findAll('.ui-label').map(label => label.text())).toEqual([
-    t('host'),
-    t('port'),
-    t('username'),
-    t('password'),
-  ])
+  expect(findInputLabels(wrapper)).toEqual([t('host'), t('port'), t('username'), t('password')])
   expect(wrapper.findAll('input[required]')).toHaveLength(4)
 })
 
@@ -107,16 +103,16 @@ it('submits the form', async () => {
 it('cancels', async () => {
   const wrapper = mountConnectionForm()
 
-  await findButtonByLabel(wrapper, t('cancel'))?.trigger('click')
+  await getButtonByLabel(wrapper, t('cancel')).trigger('click')
 
   expect(wrapper.emitted('cancel')).toHaveLength(1)
 })
 
 it('cannot connect while the prerequisites are not met', () => {
-  expect(findConnectButton(mountConnectionForm({ canConnect: false }))?.props('disabled')).toBe(true)
-  expect(findConnectButton(mountConnectionForm())?.props('disabled')).toBe(false)
+  expect(getConnectButton(mountConnectionForm({ canConnect: false })).props('disabled')).toBe(true)
+  expect(getConnectButton(mountConnectionForm()).props('disabled')).toBe(false)
 })
 
 it('shows the connection in progress', () => {
-  expect(findConnectButton(mountConnectionForm({ isConnecting: true }))?.props('busy')).toBe(true)
+  expect(getConnectButton(mountConnectionForm({ isConnecting: true })).props('busy')).toBe(true)
 })
