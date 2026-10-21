@@ -9,7 +9,6 @@ const { info, warn } = createLogger('xo:fs:abstract')
  * @template T
  * @param {(...args: any[]) => Promise<T>} fn - The asynchronous function to wrap
  * @param {Object} [options] - Configuration options
- * @param {() => void} [options.onTimeout] - Callback invoked when the timeout is reached
  * @param {(result: T) => void} [options.onSuccessAfterTimeout] - Callback invoked if original promise resolves after timeout
  * @param {(error: any) => void} [options.onFailureAfterTimeout] - Callback invoked if original promise rejects after timeout
  * @returns {(...args: any[]) => Promise<T>} A new function that will enforce the timeout
@@ -33,7 +32,7 @@ const { info, warn } = createLogger('xo:fs:abstract')
  *   onFailureAfterTimeout: (error) => console.log('Late failure', error)
  * })
  */
-export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
+export function withTimeout(fn, timeout, { onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
   return function (...args) {
     let timeoutHandle
     let didTimeout = false
@@ -44,7 +43,6 @@ export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onF
 
     return new Promise((resolve, reject) => {
       timeoutHandle = setTimeout(() => {
-        onTimeout?.()
         didTimeout = true
         reject(timeoutError)
       }, timeout)
