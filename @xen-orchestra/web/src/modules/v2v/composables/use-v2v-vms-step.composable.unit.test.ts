@@ -85,7 +85,6 @@ function expectedDatastoreBSummaryLabels(result: VmsStep) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   v2vVmRowsCollectionsMock.reset()
 })
 
