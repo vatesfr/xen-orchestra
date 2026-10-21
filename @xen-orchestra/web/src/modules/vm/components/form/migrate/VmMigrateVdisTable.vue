@@ -39,7 +39,7 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { rows, srs, flaggedRows, showErrors } = defineProps<{
+const { rows, srs, flaggedRows } = defineProps<{
   rows: VmMigrateVdiRow[]
   srs: FrontXoSr[]
   flaggedRows: VmMigrateVdiRow[]
