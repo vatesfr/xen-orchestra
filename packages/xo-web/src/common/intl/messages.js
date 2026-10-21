@@ -2198,7 +2198,6 @@ const messages = {
   vdiTargetRestore: 'Restore',
   vdiTargetLiveMount: 'Live mount (read only)',
   vdiTargetLiveRestore: 'Live restore (read/write)',
-  vdiTargetLiveMountUnavailable: 'Live mount (read only): unavailable, the VM running XO or the proxy is unknown',
   vdiTargetLiveRestoreUnavailable: 'Live restore (read/write): unavailable, the VM running XO or the proxy is unknown',
   vdiTargetCacheSr: 'SR holding the written data…',
   vdiTargetIgnore: 'Do not restore',
