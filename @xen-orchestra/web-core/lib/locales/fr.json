@@ -274,6 +274,8 @@
   "bucket-name": "Nom du bucket",
   "build-number": "Numéro de build",
   "by": "Par",
+  "bytes-read": "Données lues",
+  "bytes-to-read": "Données à lire",
   "bytes:gi": "Gio",
   "bytes:kbs": "kB/s",
   "bytes:ki": "Kio",

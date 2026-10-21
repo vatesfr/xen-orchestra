@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
-import { TaskProgressHandler } from './_runners/_vmRunners/_TaskProgressHandler.mjs'
+import { meterIncrementalExport, SourceReadTask } from './_SourceReadTask.mjs'
 import { decorateClass } from '@vates/decorate-with'
 import { Task } from '@vates/task'
 import { createLogger } from '@xen-orchestra/log'
@@ -402,7 +402,7 @@ export class ImportVmBackup {
     const adapter = this._adapter
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
-    const sizeContainer = { size: 0, reportSize: true }
+    const sizeContainer = { size: 0 }
     const { newMacAddresses, vmNamePrefix, additionalVmTag } = this._importIncrementalVmSettings
     let backup
     if (isFull) {
@@ -411,6 +411,7 @@ export class ImportVmBackup {
         throw new Error('live mounting a disk is only supported when restoring an incremental backup')
       }
       backup = await adapter.readFullVmBackup(metadata)
+      sizeContainer.readTask = new SourceReadTask({ name: 'read' })
       watchStreamSize(backup, sizeContainer)
     } else {
       assert.strictEqual(metadata.mode, 'delta')
@@ -419,6 +420,7 @@ export class ImportVmBackup {
       // releases them, a successful one hands their ids back to the caller
       $defer.onFailure(() => this.#releaseLiveMounts())
       backup = await this._decorateIncrementalVmMetadata()
+      meterIncrementalExport(backup)
     }
 
     return Task.run(
@@ -428,14 +430,6 @@ export class ImportVmBackup {
       async () => {
         const xapi = this._xapi
         const srRef = await xapi.call('SR.get_by_uuid', this._srUuid)
-
-        if (!isFull) {
-          for (const disk of Object.values(backup.disks)) {
-            disk.addProgressHandler(
-              new TaskProgressHandler({ size: disk.getBlockIndexesCount() * disk.getBlockSize() })
-            )
-          }
-        }
 
         const onVmCreation =
           vmNamePrefix === undefined && additionalVmTag === undefined

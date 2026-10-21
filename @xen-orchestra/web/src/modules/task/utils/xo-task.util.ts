@@ -78,55 +78,58 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
   }
 }
 
-export type TransferTask = Pick<XoTask, 'start' | 'end' | 'properties'> & { tasks?: TransferTask[] }
+export type TaskTree = Pick<XoTask, 'start' | 'end' | 'properties'> & { tasks?: TaskTree[] }
 
-export type TaskTransfer = {
-  /** total bytes to transfer, unknown if one of the transfers doesn't report it */
-  size: number | undefined
-  transferredSize: number
-  /** average speed once the task has ended, otherwise the speed of the transfers still running */
+export type TaskRead = {
+  /** bytes to read from the sources, unknown if one of them doesn't report it */
+  bytesToRead: number | undefined
+  bytesRead: number
+  /** average speed once the task has ended, otherwise the speed of the reads still running */
   bytesPerSecond: number
 }
 
-function getNumberProperty(task: TransferTask, name: string) {
+function getNumberProperty(task: TaskTree, name: string) {
   const value = task.properties[name]
 
   return typeof value === 'number' ? value : undefined
 }
 
-function getAverageSpeed(task: TransferTask, transferredSize: number, now: number) {
+function getAverageSpeed(task: TaskTree, bytes: number, now: number) {
   const elapsedMs = (task.end ?? now) - task.start
 
-  return elapsedMs > 0 ? (transferredSize * 1e3) / elapsedMs : 0
+  return elapsedMs > 0 ? (bytes * 1e3) / elapsedMs : 0
 }
 
-// bytesPerSecond only counts the transfers still running
-function sumTransfers(task: TransferTask, now: number): TaskTransfer | undefined {
-  const transferredSize = getNumberProperty(task, 'transferredSize')
+// bytesPerSecond only counts the reads still running
+function sumReads(task: TaskTree, now: number): TaskRead | undefined {
+  const bytesRead = getNumberProperty(task, 'bytesRead')
 
-  if (transferredSize !== undefined) {
+  if (bytesRead !== undefined) {
     return {
-      size: getNumberProperty(task, 'size'),
-      transferredSize,
-      bytesPerSecond: task.end === undefined ? getAverageSpeed(task, transferredSize, now) : 0,
+      bytesToRead: getNumberProperty(task, 'bytesToRead'),
+      bytesRead,
+      bytesPerSecond: task.end === undefined ? getAverageSpeed(task, bytesRead, now) : 0,
     }
   }
 
-  let total: TaskTransfer | undefined
+  let total: TaskRead | undefined
 
   for (const subtask of task.tasks ?? []) {
-    const transfer = sumTransfers(subtask, now)
+    const read = sumReads(subtask, now)
 
-    if (transfer === undefined) {
+    if (read === undefined) {
       continue
     }
 
     if (total === undefined) {
-      total = { ...transfer }
+      total = { ...read }
     } else {
-      total.size = total.size === undefined || transfer.size === undefined ? undefined : total.size + transfer.size
-      total.transferredSize += transfer.transferredSize
-      total.bytesPerSecond += transfer.bytesPerSecond
+      total.bytesToRead =
+        total.bytesToRead === undefined || read.bytesToRead === undefined
+          ? undefined
+          : total.bytesToRead + read.bytesToRead
+      total.bytesRead += read.bytesRead
+      total.bytesPerSecond += read.bytesPerSecond
     }
   }
 
@@ -134,16 +137,19 @@ function sumTransfers(task: TransferTask, now: number): TaskTransfer | undefined
 }
 
 /**
- * Sums the transfers (backups, restores) reported in a task and its subtasks.
+ * Sums the bytes read from the sources (backups, restores) reported in a task and its subtasks.
  *
- * A task reporting its own `transferredSize` is a transfer: its subtasks are not visited, so the same bytes are
- * never counted twice.
+ * The backend reports them in one task per source (`read disk …`, `read`): a source consumed by multiple writers
+ * is counted once, the written bytes are not reported here.
+ *
+ * A task reporting its own `bytesRead` is a source: its subtasks are not visited, so the same bytes are never
+ * counted twice.
  */
-export function getTaskTransfer(task: TransferTask, now = Date.now()): TaskTransfer | undefined {
-  const total = sumTransfers(task, now)
+export function getTaskRead(task: TaskTree, now = Date.now()): TaskRead | undefined {
+  const total = sumReads(task, now)
 
   if (total !== undefined && task.end !== undefined) {
-    total.bytesPerSecond = getAverageSpeed(task, total.transferredSize, now)
+    total.bytesPerSecond = getAverageSpeed(task, total.bytesRead, now)
   }
 
   return total

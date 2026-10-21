@@ -13,6 +13,7 @@ import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { Task } from '@vates/task'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { meterIncrementalExport } from '../../_SourceReadTask.mjs'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -77,11 +78,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       const isVhdDifferencing = {}
 
       for (const key in incrementalExport.disks) {
-        let disk = incrementalExport.disks[key]
-        isVhdDifferencing[key] = disk.isDifferencing()
-        disk.addProgressHandler(new TaskProgressHandler({ size: disk.getBlockIndexesCount() * disk.getBlockSize() }))
-        disk = new ThrottledDisk(disk, this._throttleGenerator)
-        incrementalExport.disks[key] = new SynchronizedDisk(disk)
+        isVhdDifferencing[key] = incrementalExport.disks[key].isDifferencing()
       }
 
       const hasDifferencingDisk = Object.values(isVhdDifferencing).includes(true)
@@ -97,18 +94,37 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._selectBaseVm(metadata)
       await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
-      await this._callWriters(
-        writer =>
-          writer.transfer({
-            deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
-            includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
-            isVhdDifferencing,
-            timestamp: metadata.timestamp,
-            vm: metadata.vm,
-            vmSnapshot: metadata.vmSnapshot,
-          }),
-        'writer.transfer()'
-      )
+      // one task per restore point, holding the reading of its disks from the source remote: each disk is read once,
+      // whatever the number of writers
+      // not `id` nor `type`: xo-web would display it as a remote task
+      const readTask = new Task({
+        properties: { name: 'read', remoteId: this.job.sourceRemote, timestamp: metadata.timestamp },
+      })
+      await readTask.runInside(() => meterIncrementalExport(incrementalExport))
+      for (const key in incrementalExport.disks) {
+        const disk = incrementalExport.disks[key]
+        disk.addProgressHandler(new TaskProgressHandler())
+        incrementalExport.disks[key] = new SynchronizedDisk(new ThrottledDisk(disk, this._throttleGenerator))
+      }
+
+      try {
+        await this._callWriters(
+          writer =>
+            writer.transfer({
+              deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
+              includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
+              isVhdDifferencing,
+              timestamp: metadata.timestamp,
+              vm: metadata.vm,
+              vmSnapshot: metadata.vmSnapshot,
+            }),
+          'writer.transfer()'
+        )
+      } catch (error) {
+        readTask.failure(error)
+        throw error
+      }
+      readTask.success()
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck

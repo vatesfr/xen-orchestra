@@ -18,6 +18,7 @@ import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { meterIncrementalExport } from '../../_SourceReadTask.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -48,16 +49,19 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       preferNbd: this._settings.preferNbd,
     })
 
+    // specific to the XAPI disks: read before they are wrapped
+    const useNbd = Object.values(deltaExport.disks).some(disk => disk.useNbd())
+    // each disk is read once, whatever the number of writers
+    meterIncrementalExport(deltaExport)
+
     const isVhdDifferencing = {}
-    let useNbd = false
     for (const key in deltaExport.disks) {
       let disk = deltaExport.disks[key]
-      disk.addProgressHandler(new TaskProgressHandler({ size: disk.getBlockIndexesCount() * disk.getBlockSize() }))
+      disk.addProgressHandler(new TaskProgressHandler())
       isVhdDifferencing[key] = disk.isDifferencing()
       if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
         Task.warning('Backup fell back to a full')
       }
-      useNbd = useNbd || disk.useNbd()
       disk = new ThrottledDisk(disk, this._throttleGenerator)
       deltaExport.disks[key] = new SynchronizedDisk(disk)
     }

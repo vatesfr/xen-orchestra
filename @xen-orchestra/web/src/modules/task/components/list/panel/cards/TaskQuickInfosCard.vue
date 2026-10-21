@@ -49,12 +49,16 @@
           {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="formattedSize !== undefined">
-        <template #key>{{ t('size') }}</template>
-        <template #value>{{ formattedSize }}</template>
+      <VtsCardRowKeyValue v-if="formattedBytesToRead !== undefined">
+        <template #key>{{ t('bytes-to-read') }}</template>
+        <template #value>{{ formattedBytesToRead }}</template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedBytesRead !== undefined">
+        <template #key>{{ t('bytes-read') }}</template>
+        <template #value>{{ formattedBytesRead }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
-        <template #key>{{ t('speed') }}</template>
+        <template #key>{{ t('reading-speed') }}</template>
         <template #value>{{ formattedSpeed }}</template>
       </VtsCardRowKeyValue>
 
@@ -78,7 +82,7 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents, getTaskTransfer } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskAccents, getTaskRead } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -140,18 +144,25 @@ const formattedEndDate = computed(() => {
   return d(endTimestamp, 'datetime_short')
 })
 
-// sizes in bytes reported by the transfers of this task and its subtasks
-const transfer = computed(() => getTaskTransfer(task))
+// bytes read from the sources (disks, XVA) of this task and its subtasks, each source counted once whatever the number
+// of targets: this is not what is written
+const read = computed(() => getTaskRead(task))
 
-const formattedSize = computed(() => {
-  const size = transfer.value?.size
+const formattedBytesToRead = computed(() => {
+  const bytesToRead = read.value?.bytesToRead
 
-  return size !== undefined ? formatSize(size, 2) : undefined
+  return bytesToRead !== undefined ? formatSize(bytesToRead, 2) : undefined
 })
 
-// average speed once ended, otherwise the speed of the transfers still running
+const formattedBytesRead = computed(() => {
+  const bytesRead = read.value?.bytesRead
+
+  return bytesRead !== undefined ? formatSize(bytesRead, 2) : undefined
+})
+
+// average speed once ended, otherwise the speed of the reads still running
 const formattedSpeed = computed(() => {
-  const bytesPerSecond = transfer.value?.bytesPerSecond
+  const bytesPerSecond = read.value?.bytesPerSecond
 
   return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })

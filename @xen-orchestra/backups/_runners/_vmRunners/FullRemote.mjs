@@ -4,6 +4,7 @@ import { AbstractRemote } from './_AbstractRemote.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
+import { SourceReadTask } from '../../_SourceReadTask.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { Task } from '@vates/task'
 
@@ -24,7 +25,8 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
-      const sizeContainer = watchStreamSize(stream, { size: 0, reportSize: true })
+      // the backup is read once, whatever the number of writers
+      const sizeContainer = watchStreamSize(stream, { size: 0, readTask: new SourceReadTask({ name: 'read' }) })
       let checksum
       try {
         // the unencrypted destinations store the same data as the source: no need to compute their checksum again

@@ -4,6 +4,7 @@ import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { FullXapiWriter } from '../_writers/FullXapiWriter.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
+import { SourceReadTask } from '../../_SourceReadTask.mjs'
 import { AbstractXapi } from './_AbstractXapi.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { AggregatedFullXapiWriter } from '../_writers/AggregatedFullXapiWriter.mjs'
@@ -78,7 +79,8 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
       maxStreamLength += XVA_BLOCK_SIZE * nbBlocks + headersSize
     }
 
-    const sizeContainer = watchStreamSize(stream, { size: 0, reportSize: true })
+    // the export is read once, whatever the number of writers
+    const sizeContainer = watchStreamSize(stream, { size: 0, readTask: new SourceReadTask({ name: 'read' }) })
 
     const transferStart = Date.now()
     await this._callWriters(
