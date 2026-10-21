@@ -14,6 +14,7 @@ import { default as pbd } from './pbd.mjs'
 import { default as pci } from './pci.mjs'
 import { default as pgpu } from './pgpu.mjs'
 import { default as pif } from './pif.mjs'
+import { default as plugin } from './plugin.mjs'
 import { default as pool } from './pool.mjs'
 import { default as proxy } from './proxy.mjs'
 import { default as restoreLog } from './restore-log.mjs'
@@ -56,6 +57,7 @@ export const SUPPORTED_ACTIONS_BY_RESOURCE = {
   pci,
   pgpu,
   pif,
+  plugin,
   pool,
   proxy,
   'restore-log': restoreLog,

@@ -9,7 +9,8 @@ import { PassThrough } from 'node:stream'
 import '../open-api/routes/routes.js'
 
 import type { AnyPrivilege } from '@xen-orchestra/acl'
-import type { XoUser, XoVmBackupArchive } from '@vates/types'
+import type { XoPlugin, XoUser, XoVmBackupArchive } from '@vates/types'
+import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 import { Subscriber, SubscriberManager, XoListener } from './event.class.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
@@ -167,5 +168,32 @@ describe('XoListener on the backup-archive collection', () => {
     assert.equal(frames.length, 1)
     assert.equal(frames[0].event, 'add')
     assert.equal(frames[0].data.backupRepository, REPOSITORY_ID)
+  })
+})
+
+describe('XoListener on the plugin collection', () => {
+  it('obfuscates the secrets of the plugins', async () => {
+    const user = bindRestApi({ permission: 'admin' })
+    const { frames, subscriber } = createSubscriber(user.id)
+
+    const emitter = new EventEmitter()
+    const listener = new XoListener('plugin', emitter)
+    listener.addSubscriber(subscriber)
+
+    const plugin = (clientSecret: string) =>
+      ({ id: 'auth-oidc', name: 'auth-oidc', configuration: { clientID: 'xo', clientSecret } }) as unknown as XoPlugin
+    emitter.emit('add', plugin('secret'), undefined)
+    emitter.emit('update', plugin('new secret'), plugin('secret'))
+    emitter.emit('remove', undefined, plugin('new secret'))
+
+    await flush()
+
+    assert.deepEqual(
+      frames.map(({ event }) => event),
+      ['add', 'update', 'remove']
+    )
+    frames.forEach(({ data }) => {
+      assert.deepEqual(data.configuration, { clientID: 'xo', clientSecret: OBFUSCATED_VALUE })
+    })
   })
 })
