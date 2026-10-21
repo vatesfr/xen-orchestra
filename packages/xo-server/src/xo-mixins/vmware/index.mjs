@@ -256,11 +256,10 @@ export default class MigrateVm {
     // a running VM is only read up to a snapshot
     const isSnapshotRequired = isRunning && !metadata.snapshots?.current
     // tracking which has just been turned on only starts with the next snapshot: before it the host
-    // has no tracking file to answer from, and an existing snapshot carries no changeId. Not when a
-    // partial import was made from the current snapshot: a new one would not be found as its base,
-    // and the whole VM would be transferred again
-    const isSnapshotUseful =
-      isChangeTrackingNew && !(isRunning && this.#listBaseVmCandidates(xapi, metadata).length === 1)
+    // has no tracking file to answer from, and an existing snapshot carries no changeId. A partial
+    // import made from that snapshot is not resumed on purpose: without a changeId its delta can only
+    // be read from a COWD extent, which ESXi 7 and later no longer write, the transfer starts over
+    const isSnapshotUseful = isChangeTrackingNew
 
     if (isSnapshotRequired || isSnapshotUseful) {
       let snapshotTaskInfo
