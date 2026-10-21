@@ -40,6 +40,7 @@ import {
   useUserQueryBuilder,
 } from '@/modules/user/composables/use-user-query-builder.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -114,7 +115,7 @@ const { HeadCells, BodyCells } = useUserColumns({
   }),
   body: (user: FilterableUser) => ({
     checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
-    username: r => r(user.name),
+    username: r => r(getUserDisplayName(user)),
     firstName: r => r(user.firstname),
     lastName: r => r(user.lastname),
     email: r => r(user.email),

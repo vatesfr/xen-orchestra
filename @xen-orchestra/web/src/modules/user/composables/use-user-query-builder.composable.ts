@@ -6,7 +6,7 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type FilterableUser<TUser extends FrontXoUser = FrontXoUser> = TUser & {
-  name: string
+  username: string
   firstname: string
   lastname: string
   providers: string
@@ -25,7 +25,7 @@ export function useUserQueryBuilder<TUser extends FrontXoUser>(
 
       return {
         ...user,
-        name: user.name ?? '',
+        username: user.username ?? '',
         firstname: user.firstname ?? '',
         lastname: user.lastname ?? '',
         providers: providers.length === 0 ? t('local') : providers.join(', '),
@@ -37,7 +37,7 @@ export function useUserQueryBuilder<TUser extends FrontXoUser>(
 
   const schema = useQueryBuilderSchema<FilterableUser>({
     '': useStringSchema(t('any-property')),
-    name: useStringSchema(t('username')),
+    username: useStringSchema(t('username')),
     firstname: useStringSchema(t('first-name')),
     lastname: useStringSchema(t('last-name')),
     email: useStringSchema(t('email')),

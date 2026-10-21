@@ -4,7 +4,7 @@
       {{ t('user-details') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('username')" :value="user.name" />
+      <VtsTabularKeyValueRow :label="t('username')" :value="user.username" />
       <VtsTabularKeyValueRow :label="t('uuid')" :value="user.id" />
       <VtsTabularKeyValueRow :label="t('last-login')" :value="lastLogin" />
       <VtsTabularKeyValueRow :label="t('first-name')" :value="user.firstname" />

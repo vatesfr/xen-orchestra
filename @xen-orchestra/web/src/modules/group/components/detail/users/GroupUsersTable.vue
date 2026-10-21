@@ -36,6 +36,7 @@ import {
   useUserQueryBuilder,
 } from '@/modules/user/composables/use-user-query-builder.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import AssignmentsTableLayout from '@/shared/components/AssignmentsTableLayout.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -106,7 +107,7 @@ const { HeadCells, BodyCells } = useUserColumns({
 
     return {
       checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
-      username: r => r(user.name, { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
+      username: r => r(getUserDisplayName(user), { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
       firstName: r => r(user.firstname),
       lastName: r => r(user.lastname),
       email: r => r(user.email),
