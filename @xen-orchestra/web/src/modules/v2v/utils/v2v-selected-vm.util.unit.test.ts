@@ -1,27 +1,50 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { getV2vMappingSummary, getV2vSelectedVmState } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
-import { createV2vDisk, createV2vNic, createV2vVm } from '@/test/create-v2v-inventory.ts'
+import { createV2vVm } from '@/test/create-v2v-inventory.ts'
+import { createV2vDestinationDefaults, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createV2vVmRow } from '@/test/create-v2v-vm-row.ts'
+import {
+  V2V_DEFAULT_NETWORK,
+  V2V_DEFAULT_SR,
+  V2V_DISK_OVERRIDES,
+  V2V_MAPPED_VM,
+  V2V_POOL_OFFERS,
+  V2V_SSD_SR,
+} from '@/test/v2v-mapping-fixtures.ts'
+import type { XoV2vVm } from '@vates/types'
 
 const LIST_POOL_ID = 'pool-list' as FrontXoPool['id']
 
 const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 
-const TARGET_NAMES = { srName: 'sr-nvme-01', networkName: 'VLAN 10' }
+function findName(objects: { id: string; name_label: string }[], id: string) {
+  return objects.find(object => object.id === id)?.name_label
+}
+
+const TARGET_NAME_GETTERS = {
+  getSrName: (id: string) => findName(V2V_POOL_OFFERS.srs, id),
+  getNetworkName: (id: string) => findName(V2V_POOL_OFFERS.networks, id),
+}
 
 function createWarmRow(poolId: FrontXoPool['id'], overrides: Partial<V2vVmRow> = {}) {
   return createV2vVmRow({ migration: 'warm', importVm: createV2vImportVm({}, { $pool: poolId }), ...overrides })
 }
 
-function createRowWithDevices(diskCount: number, nicCount: number) {
+function createMigratedRow() {
   return createV2vVmRow({
-    vm: createV2vVm({
-      disks: Array.from({ length: diskCount }, () => createV2vDisk()),
-      nics: Array.from({ length: nicCount }, () => createV2vNic()),
-    }),
+    migration: 'cold',
+    importVm: createV2vImportVm({ isWarm: false }, { $pool: LIST_POOL_ID }),
   })
+}
+
+// The summary reads the targets, whatever the pool offers
+function createMapping(vm: XoV2vVm) {
+  const listVm = createV2vMigrationListVm({ disks: V2V_DISK_OVERRIDES })
+
+  return getV2vVmMapping(vm, listVm, createV2vDestinationDefaults(), { srs: [], networks: [], templates: [] })
 }
 
 describe('getV2vSelectedVmState', () => {
@@ -54,12 +77,7 @@ describe('getV2vSelectedVmState', () => {
   })
 
   it('imports a migrated VM as new, with a warning', () => {
-    const row = createV2vVmRow({
-      migration: 'cold',
-      importVm: createV2vImportVm({ isWarm: false }, { $pool: LIST_POOL_ID }),
-    })
-
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(createMigratedRow(), LIST_POOL_ID)).toEqual({
       kind: 'new',
       check: { type: 'already-migrated', level: 'warning' },
     })
@@ -103,43 +121,79 @@ describe('getV2vSelectedVmState', () => {
 
     expect(getV2vSelectedVmState(row, LIST_POOL_ID).check.type).toBe('running')
   })
-})
 
-describe('getV2vMappingSummary', () => {
-  it('maps the disks and the NICs of a new VM to the defaults of the list', () => {
-    expect(getV2vMappingSummary(createRowWithDevices(2, 1), 'new', TARGET_NAMES)).toEqual({
-      type: 'defaults',
-      diskCount: 2,
-      srName: 'sr-nvme-01',
-      nicCount: 1,
-      networkName: 'VLAN 10',
+  it('blocks a new VM whose mapping is incomplete', () => {
+    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID, 'incomplete')).toEqual({
+      kind: 'new',
+      check: { type: 'mapping-incomplete', level: 'blocking' },
     })
   })
 
-  it('names no target while the SRs and networks are unknown', () => {
-    expect(getV2vMappingSummary(createRowWithDevices(2, 1), 'new', {})).toEqual({
-      type: 'defaults',
+  it('tells a new VM whose mapping is complete ready', () => {
+    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID, 'complete')).toEqual({ kind: 'new', check: READY })
+  })
+
+  it('ignores the mapping state of a resumed VM, locked since its first sync', () => {
+    expect(getV2vSelectedVmState(createWarmRow(LIST_POOL_ID), LIST_POOL_ID, 'incomplete')).toEqual({
+      kind: 'resume',
+      check: READY,
+    })
+  })
+
+  it.each([
+    ['unsupported', createV2vVmRow({ supported: false, unsupportedReason: 'rdm' }), 'unsupported'],
+    ['being imported', createV2vVmRow({ migration: 'running' }), 'running'],
+    ['partially imported on another pool', createWarmRow(OTHER_POOL_ID), 'partial-on-other-pool'],
+  ])('blocks a VM %s for that before its incomplete mapping', (_, row, checkType) => {
+    expect(getV2vSelectedVmState(row, LIST_POOL_ID, 'incomplete').check.type).toBe(checkType)
+  })
+
+  it('blocks a migrated VM for its incomplete mapping before warning about the migration', () => {
+    expect(getV2vSelectedVmState(createMigratedRow(), LIST_POOL_ID, 'incomplete').check.type).toBe('mapping-incomplete')
+  })
+})
+
+describe('getV2vMappingSummary', () => {
+  it('maps a new VM to the distinct targets of its disks and NICs', () => {
+    expect(getV2vMappingSummary(createMapping(V2V_MAPPED_VM), 'new', TARGET_NAME_GETTERS)).toEqual({
+      type: 'mapped',
       diskCount: 2,
-      srName: undefined,
-      nicCount: 1,
-      networkName: undefined,
+      srNames: [V2V_DEFAULT_SR.name_label, V2V_SSD_SR.name_label],
+      nicCount: 2,
+      networkNames: [V2V_DEFAULT_NETWORK.name_label],
+    })
+  })
+
+  it('names no target of a kind while one of them is unknown', () => {
+    const getters = { ...TARGET_NAME_GETTERS, getSrName: (id: string) => findName([V2V_DEFAULT_SR], id) }
+
+    expect(getV2vMappingSummary(createMapping(V2V_MAPPED_VM), 'new', getters)).toMatchObject({
+      srNames: undefined,
+      networkNames: [V2V_DEFAULT_NETWORK.name_label],
+    })
+  })
+
+  it('names once two targets of the same name', () => {
+    const getters = { ...TARGET_NAME_GETTERS, getSrName: () => V2V_DEFAULT_SR.name_label }
+
+    expect(getV2vMappingSummary(createMapping(V2V_MAPPED_VM), 'new', getters)).toMatchObject({
+      srNames: [V2V_DEFAULT_SR.name_label],
     })
   })
 
   it('counts a VM without disk nor NIC', () => {
-    expect(getV2vMappingSummary(createRowWithDevices(0, 0), 'new', TARGET_NAMES)).toMatchObject({
-      diskCount: 0,
-      nicCount: 0,
-    })
+    expect(
+      getV2vMappingSummary(createMapping(createV2vVm({ disks: [], nics: [] })), 'new', TARGET_NAME_GETTERS)
+    ).toEqual({ type: 'mapped', diskCount: 0, srNames: [], nicCount: 0, networkNames: [] })
   })
 
   it('locks the mapping of a resumed VM', () => {
-    expect(getV2vMappingSummary(createWarmRow(LIST_POOL_ID), 'resume', TARGET_NAMES)).toEqual({
+    expect(getV2vMappingSummary(createMapping(V2V_MAPPED_VM), 'resume', TARGET_NAME_GETTERS)).toEqual({
       type: 'locked',
     })
   })
 
   it('summarizes nothing for a VM missing from the inventory', () => {
-    expect(getV2vMappingSummary(undefined, 'new', TARGET_NAMES)).toBeUndefined()
+    expect(getV2vMappingSummary(undefined, 'new', TARGET_NAME_GETTERS)).toBeUndefined()
   })
 })

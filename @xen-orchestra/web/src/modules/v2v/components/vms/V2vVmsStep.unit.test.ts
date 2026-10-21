@@ -50,6 +50,10 @@ vi.mock(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-destination-collections.ts')
 )
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-destination-collections.ts')
+)
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })

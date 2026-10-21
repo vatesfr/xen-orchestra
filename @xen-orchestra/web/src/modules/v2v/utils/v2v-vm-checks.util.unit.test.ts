@@ -1,6 +1,6 @@
 import type { V2vUnsupportedReason } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { getV2vUnsupportedReason } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
-import { createV2vVmWithDisks } from '@/test/create-v2v-inventory.ts'
+import { getV2vUnsupportedReason, getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
+import { createV2vVm, createV2vVmWithDisks } from '@/test/create-v2v-inventory.ts'
 import { V2V_DISK_MODE, type XoV2vDisk } from '@vates/types'
 
 describe('getV2vUnsupportedReason', () => {
@@ -34,5 +34,31 @@ describe('getV2vUnsupportedReason', () => {
     ['without disks', []],
   ])('accepts a VM %s', (_, disks) => {
     expect(getV2vUnsupportedReason(createV2vVmWithDisks(disks))).toBeUndefined()
+  })
+})
+
+describe('getV2vVmChecks', () => {
+  it('tells a VM without unsupported disk nor snapshot ready', () => {
+    expect(getV2vVmChecks(createV2vVm({ snapshotCount: 0 }))).toEqual([
+      { type: 'no-unsupported-disk', level: 'ready' },
+      { type: 'no-snapshot', level: 'ready' },
+    ])
+  })
+
+  // Each reason and their precedence are those of `getV2vUnsupportedReason`, tested above
+  it('blocks a VM with an unsupported disk, with its reason', () => {
+    expect(getV2vVmChecks(createV2vVmWithDisks([{}, { isEncrypted: true }]))[0]).toEqual({
+      type: 'unsupported',
+      level: 'blocking',
+      reason: 'encrypted',
+    })
+  })
+
+  it('warns about the snapshots of the source VM, with their count', () => {
+    expect(getV2vVmChecks(createV2vVm({ snapshotCount: 3 }))[1]).toEqual({
+      type: 'snapshots',
+      level: 'warning',
+      count: 3,
+    })
   })
 })
