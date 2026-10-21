@@ -11,6 +11,7 @@ import type { RestApi } from '../rest-api/rest-api.mjs'
 import { XAPI_TYPES, XoUser, type XapiXoRecord } from '@vates/types'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { AnyPrivilege } from '@xen-orchestra/acl'
+import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -40,6 +41,10 @@ export class EventService {
 
   async #clearSseOnPrivilegechange(privilege?: AnyPrivilege, previousPrivilege?: AnyPrivilege) {
     const roleIds = [privilege?.roleId, previousPrivilege?.roleId].filter(id => id !== undefined)
+    const impactedResources = [privilege?.resource, previousPrivilege?.resource].filter(
+      resource => resource !== undefined
+    )
+
     const roles = await Promise.all(roleIds.map(roleId => this.#restApi.xoApp.getAclV2Role(roleId))).catch(err => {
       log.error('TBD', { error: err })
       return []
@@ -51,11 +56,14 @@ export class EventService {
       }
     })
 
-    this.#subscriberManager.subscribers.forEach(subscriber => {
-      if (userIds.has(subscriber.userId)) {
-        log.debug('clear SSE connection because privileges changed for this user', { user: subscriber.userId })
-        subscriber.clear()
-      }
+    impactedResources.forEach(resource => {
+      const impactedListener = this.#getListener(XAPI_TYPE_BY_ACL_RESOURCE[resource] ?? resource)
+      impactedListener.subscribers.forEach(({ subscriber }) => {
+        if (userIds.has(subscriber.userId)) {
+          log.debug('clear SSE connection because privileges changed for this user', { user: subscriber.userId })
+          subscriber.clear()
+        }
+      })
     })
   }
 
