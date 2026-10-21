@@ -6,6 +6,10 @@ export function getUserProvidersLabel(user: Pick<XoUser, 'authProviders'>, local
   return providerNames.length === 0 ? localLabel : providerNames.join(', ')
 }
 
+export function getUserDisplayName(user: Pick<XoUser, 'username' | 'email'>) {
+  return user.username || user.email
+}
+
 export function getUserLastLoginTimestamp(tokens: XoAuthenticationToken[]) {
   let mostRecentTimestamp: number | undefined
 

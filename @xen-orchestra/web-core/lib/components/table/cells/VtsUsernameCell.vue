@@ -1,6 +1,6 @@
 <template>
   <UiTableCell>
-    <div class="user-name">
+    <div class="username">
       <UiUserLogo size="small" />
       <UiLink :to :href size="medium">
         {{ content }}
@@ -23,7 +23,7 @@ defineProps<
 </script>
 
 <style scoped lang="postcss">
-.user-name {
+.username {
   display: flex;
   align-items: center;
   gap: 0.8rem;
