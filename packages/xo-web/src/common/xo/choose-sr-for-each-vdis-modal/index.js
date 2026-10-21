@@ -22,13 +22,12 @@ const LIVE_MOUNT = 'live-mount'
 const LIVE_RESTORE = 'live-restore'
 const IGNORE = 'ignore'
 
-// the live actions stay listed when they cannot be offered, so the user learns why they are not there
-const getVdiTargetOptions = liveTargetsAvailable => [
+// a read-only live mount needs no VM to plug a cache onto, so it is always offered. A live restore
+// stays listed when it cannot be, so the user learns why it is not there
+const getVdiTargetOptions = liveRestoreAvailable => [
   { label: _('vdiTargetRestore'), value: RESTORE },
-  liveTargetsAvailable
-    ? { label: _('vdiTargetLiveMount'), value: LIVE_MOUNT }
-    : { disabled: true, label: _('vdiTargetLiveMountUnavailable'), value: LIVE_MOUNT },
-  liveTargetsAvailable
+  { label: _('vdiTargetLiveMount'), value: LIVE_MOUNT },
+  liveRestoreAvailable
     ? { label: _('vdiTargetLiveRestore'), value: LIVE_RESTORE }
     : { disabled: true, label: _('vdiTargetLiveRestoreUnavailable'), value: LIVE_RESTORE },
   { label: _('vdiTargetIgnore'), value: IGNORE },
@@ -120,7 +119,7 @@ Collapsible.propTypes = {
 export default class ChooseSrForEachVdisModal extends Component {
   static propTypes = {
     // the SRs which can hold the cache of a live restore: the ones reachable from the VM serving the
-    // mount, which only the caller knows. Without it, neither live mount nor live restore is offered.
+    // mount, which only the caller knows. Without it, live restore is not offered, live mount still is.
     cacheSrPredicate: PropTypes.func,
     mainSrPredicate: PropTypes.func,
     onChange: PropTypes.func.isRequired,
