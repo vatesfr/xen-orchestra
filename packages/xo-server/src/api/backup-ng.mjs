@@ -71,7 +71,7 @@ function assertValidExpression(name, value) {
       compileExpression(value)
     } catch (error) {
       throw invalidParameters(`Invalid ${name} expression: ${error.message}`, [
-        { property: name, message: error.message },
+        { instancePath: `/${name}`, message: error.message },
       ])
     }
   }
