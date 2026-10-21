@@ -17,6 +17,8 @@ export const V2V_TEST_SOURCE = {
 
 const DATASTORE_ID = 'datastore-1' as XoV2vDatastore['id']
 
+const VM_NAME = 'app-03'
+
 export function createV2vDatastore(overrides: Partial<XoV2vDatastore> = {}): XoV2vDatastore {
   return {
     id: DATASTORE_ID,
@@ -38,6 +40,7 @@ export function createV2vDisk(overrides: Partial<XoV2vDisk> = {}): XoV2vDisk {
     mode: V2V_DISK_MODE.PERSISTENT,
     isRdm: false,
     isEncrypted: false,
+    chainPaths: [`${VM_NAME}/${VM_NAME}.vmdk`],
     ...overrides,
   }
 }
@@ -55,7 +58,7 @@ export function createV2vVm(overrides: Partial<XoV2vVm> = {}): XoV2vVm {
   return {
     id: 'vm-1' as XoV2vVm['id'],
     instanceUuid: 'vm-instance-uuid-1',
-    name: 'app-03',
+    name: VM_NAME,
     description: '',
     powerState: V2V_VM_POWER_STATE.POWERED_ON,
     hostId: 'host-1' as XoV2vVm['hostId'],
