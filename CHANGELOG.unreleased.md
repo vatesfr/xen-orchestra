@@ -55,6 +55,13 @@
 - [XO5/Host/Patches] Warn when installing patches on a host while its pool master is not up to date (PR [#10523](https://github.com/vatesfr/xen-orchestra/pull/10523))
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
+- [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
+- [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
+- [V2V] Import VMs from ESXi 6.x hosts: their disks are read one request at a time, so more slowly than from ESXi 7 and 8 (PR [#10590](https://github.com/vatesfr/xen-orchestra/pull/10590))
+- [Backup repositories] Free, used and total space are now available on backup repositories (PR [#10406](https://github.com/vatesfr/xen-orchestra/pull/10406))
+- [Backup] New `zstd` compression for the remotes in block mode (needs Node 22.15 or later), faster to back up and about 1.5 times faster to restore than `brotli` (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [CLI] Add new command to `xo-server-db` cli: `disable-remote <id>`, disables a remote while xo-server is stopped (PR [#10587](https://github.com/vatesfr/xen-orchestra/pull/10587/))
 
 ### Bug fixes
@@ -87,6 +94,10 @@
 - [Backups/DR] Report the actual XAPI error instead of `(intermediate value) is not iterable` when a VM import fails (PR [#10551](https://github.com/vatesfr/xen-orchestra/pull/10551/))
 - [VDI/Export] Fix pressing Escape in the format select closing the whole export drawer (PR [#10582](https://github.com/vatesfr/xen-orchestra/pull/10582))
 - [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#10577](https://github.com/vatesfr/xen-orchestra/pull/10577))
+- [Swagger] Fixed a typo in the VM collection: `xentools` → `xenTools`, and added a missing type to the server collection `poolMembersAddresses` [#10514](https://github.com/vatesfr/xen-orchestra/issues/10514) (PR [#10598](https://github.com/vatesfr/xen-orchestra/pull/10598))
+- [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
+- [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected(PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
+- [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
 
 ### Packages to release
 
