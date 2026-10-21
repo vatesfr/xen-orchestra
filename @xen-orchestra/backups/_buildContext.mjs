@@ -1,7 +1,10 @@
 // @ts-check
 
+import createLogger from '@xen-orchestra/log'
 import moment from 'moment-timezone'
 import { parse } from 'xo-remote-parser'
+
+const { warn } = createLogger('xo:backups:buildContext')
 
 /**
  * @typedef {import('@vates/types/xen-api').XenApiVm} XenApiVm
@@ -90,10 +93,17 @@ export function buildSrContext(sr, run) {
  * @returns {BackupRepositoryContext}
  */
 export function buildBackupRepositoryContext(backupRepository, run) {
+  let type
+  try {
+    type = parse(backupRepository.url).type
+  } catch (error) {
+    warn('cannot parse backup repository URL', { backupRepositoryId: backupRepository.id, error })
+  }
+
   return {
     backupRepository: {
       name: backupRepository.name,
-      type: parse(backupRepository.url).type,
+      type,
       tags: [], // Placeholder - Backup repositories don't have tags yet
     },
     run,
