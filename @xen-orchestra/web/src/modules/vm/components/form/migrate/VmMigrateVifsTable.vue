@@ -36,7 +36,7 @@ import { useVmMigrateVifColumns } from '@core/tables/column-sets/vm-migrate-vif-
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { rows, networks, flaggedRows, showErrors } = defineProps<{
+const { rows, networks, flaggedRows } = defineProps<{
   rows: VmMigrateVifRow[]
   networks: FrontXoNetwork[]
   flaggedRows: VmMigrateVifRow[]
