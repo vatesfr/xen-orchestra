@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
@@ -41,7 +42,6 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -56,9 +56,9 @@ const { t } = useI18n()
 
 const { backedUpVms } = useXoBackedUpVmsUtils(() => backupJob.vms)
 
-const backupRepositoriesIds = computed(() =>
-  extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes)
-)
+const { getTargetIds } = useXoBackupUtils()
+
+const backupRepositoriesIds = computed(() => getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
 
 const { backupArchives, areBackupArchivesReady } = useXoVmBackupArchiveCollection({}, () => backupRepositoriesIds.value)
 

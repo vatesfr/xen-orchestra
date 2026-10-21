@@ -25,6 +25,7 @@ import BackupJobTargetsCard from '@/modules/backup/components/panel/cards/Backup
 import { getMetadataBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-metadata-backup-job-settings.ts'
 import { getMirrorBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-mirror-backup-job-settings.ts'
 import { getVmBackupJobSettings } from '@/modules/backup/composables/backup-job-settings/get-vm-backup-job-settings.ts'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import {
@@ -54,6 +55,7 @@ const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 const { schedulesByJobId } = useXoScheduleCollection()
 const { getPoolsByIds } = useXoPoolCollection()
+const { getTargetIds } = useXoBackupUtils()
 
 const backupJobSchedules = computed(() =>
   backupJob !== undefined ? (schedulesByJobId.value.get(backupJob.id) ?? []) : []
@@ -71,7 +73,7 @@ const backedUpPools = computed(() => {
 
 const backupRepositoryTargets = computed(() =>
   backupJob !== undefined
-    ? getBackupRepositoriesByIds(extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes))
+    ? getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
     : []
 )
 
@@ -80,7 +82,7 @@ const storageRepositoryTargets = computed(() => {
     return []
   }
 
-  return getSrsByIds(extractIdsFromSimplePattern<FrontXoSr['id']>(backupJob.srs))
+  return getSrsByIds(getTargetIds<FrontXoSr['id']>(backupJob.srs))
 })
 
 const hasSettings = computed(() => {

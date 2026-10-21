@@ -144,6 +144,12 @@ export default class BackupNg {
         let vmIds
 
         if (job.type === 'backup') {
+          job = { ...job }
+          const runContext = buildRunContext(
+            new Date(),
+            job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
+          )
+
           if (isExpression(job.srs)) {
             const predicate = compileExpression(job.srs)
 
@@ -242,11 +248,6 @@ export default class BackupNg {
             vms: { id: { __or: vmIds } },
             settings: merge(job.settings, data?.settings),
           }
-
-          const runContext = buildRunContext(
-            new Date(),
-            job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
-          )
         }
 
         const proxyId = job.proxy

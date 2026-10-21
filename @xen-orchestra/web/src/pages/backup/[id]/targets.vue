@@ -12,6 +12,7 @@
 <script setup lang="ts">
 import BackupRepositoriesTargetsTable from '@/modules/backup/components/targets/BackupRepositoriesTargetsTable.vue'
 import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets/StorageRepositoriesTargetsTable.vue'
+import { useXoBackupUtils } from '@/modules/backup/composables/xo-backup-utils.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import {
   useXoBackupRepositoryCollection,
@@ -22,7 +23,6 @@ import {
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
@@ -32,9 +32,10 @@ const { backupJob } = defineProps<{
 const { getSrsByIds, areSrsReady, hasSrFetchError } = useXoSrCollection()
 const { getBackupRepositoriesByIds, areBackupRepositoriesReady, hasBackupRepositoryFetchError } =
   useXoBackupRepositoryCollection()
+const { getTargetIds } = useXoBackupUtils()
 
 const backupRepositories = computed(() =>
-  getBackupRepositoriesByIds(extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes))
+  getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
 )
 
 const storageRepositories = computed(() => {
@@ -42,7 +43,7 @@ const storageRepositories = computed(() => {
     return []
   }
 
-  return getSrsByIds(extractIdsFromSimplePattern<FrontXoSr['id']>(backupJob.srs))
+  return getSrsByIds(getTargetIds<FrontXoSr['id']>(backupJob.srs))
 })
 </script>
 
