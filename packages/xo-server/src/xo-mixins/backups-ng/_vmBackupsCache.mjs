@@ -92,6 +92,11 @@ const CLOCK_SKEW_TOLERANCE = 5 * 60 * 1e3
 // bounds the drift described in `VmBackupsCache` at the price of one full listing per period
 const DEFAULT_REBUILD_INTERVAL = 60 * 60 * 1e3
 
+// how many reads one `#refresh()` call makes at most while `refresh()` keeps being called during them:
+// past it, the next `get()` reads the entry again, so a source written to faster than it is read
+// cannot hold the callers of `get()` forever
+const MAX_REFRESH_READS = 3
+
 /**
  * @param {Entry} entry
  * @param {Repository} repository
@@ -466,17 +471,31 @@ export class VmBackupsCache {
    * e.g. a backup job writing VM after VM, this read would never settle. `stale` stays set instead,
    * so the next read lists it again.
    *
+   * Not either after `MAX_REFRESH_READS` reads, even when each of them is a replay: a backup job
+   * writing VM after VM can outpace the journal reads as well, and the callers of `get()` must not
+   * wait for every write. `stale` stays set as well, so the next read replays the entry.
+   *
    * @param {Repository} repository
    * @returns {Promise<BackupsByVm>}
    */
   async #refresh(repository) {
-    for (;;) {
+    for (let nReads = 1; ; nReads++) {
       const backupsByVm = await this.#read(repository)
 
       // only the entry this call has just read: one built by another call since is that call's
       // business
       const entry = this.#entries.get(repository.id)
       if (entry?.backupsByVm !== backupsByVm || !entry.stale || this.#unreplayable.has(repository.id)) {
+        return backupsByVm
+      }
+
+      // reading again would list it in full: `stale` stays set for the next read
+      if (Date.now() - entry.builtAt >= entry.rebuildInterval) {
+        return backupsByVm
+      }
+
+      // reading again would go on past the bound: `stale` stays set for the next read
+      if (nReads >= MAX_REFRESH_READS) {
         return backupsByVm
       }
     }

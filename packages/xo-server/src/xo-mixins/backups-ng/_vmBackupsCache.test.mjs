@@ -375,6 +375,35 @@ describe('VmBackupsCache', () => {
     assert.ok(filenames(backups).includes(added._filename))
   })
 
+  it('leaves the rebuild which falls due during a refresh() to the next read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    // built at 10:00, the replay below starts 59 minutes later
+    await cache.get(REPOSITORY)
+    tick(59 * 60e3)
+
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+
+    // the refresh lands during the replay, which settles after the rebuild interval has elapsed: the
+    // read must not list the repository in full on behalf of the callers which joined it
+    cache.refresh(REPOSITORY.id)
+    tick(2 * 60e3)
+    held.release()
+
+    await pending
+    assert.equal(repository.nListings, 1)
+    assert.equal(repository.nJournalReads, 1)
+
+    // the next read lists it, as the rebuild interval has elapsed
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
+  })
+
   it('delete() forces a rebuild', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
@@ -734,6 +763,33 @@ describe('VmBackupsCache collection', () => {
       { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T100000') },
       { event: 'add', id: archiveIdOf(VM, '20260811T100000') },
     ])
+  })
+
+  it('stops reading the journal again after a bound, leaving the entry stale for the next read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a mutation during every journal read, e.g. a backup job writing VM after VM faster than the cache reads them
+    const readJournal = source.readJournal
+    source.readJournal = async (...args) => {
+      const read = await readJournal(...args)
+      cache.refresh(REPOSITORY.id)
+      return read
+    }
+
+    // the callers of `get()` settle: they are not held while the mutations keep coming
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nJournalReads, 3)
+
+    // still stale: the next read replays the entry again
+    source.readJournal = readJournal
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nJournalReads, 4)
   })
 
   it('reads the journal when refresh() is called while the repository is being listed', async t => {
