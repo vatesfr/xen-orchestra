@@ -2,7 +2,7 @@
 <template>
   <div class="vts-side-panel-sticky" :class="{ mobile: uiStore.isSmall }">
     <VtsPanel
-      :closable="hasSelection"
+      :closable="isClosable"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="vts-side-panel"
       :class="{
@@ -47,11 +47,12 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { usePanelStore } from '@core/stores/panel.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { hasSelection } = defineProps<{
+const { hasSelection, persistent } = defineProps<{
   hasSelection?: boolean
+  persistent?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -69,6 +70,9 @@ const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
+
+// A persistent panel holds no selection to clear: it only closes to leave the full screen of a small screen
+const isClosable = computed(() => hasSelection && (!persistent || uiStore.isSmall))
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
