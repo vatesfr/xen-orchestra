@@ -49,7 +49,10 @@
           {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
-
+      <VtsCardRowKeyValue v-if="formattedSize !== undefined">
+        <template #key>{{ t('size') }}</template>
+        <template #value>{{ formattedSize }}</template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -82,6 +85,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -110,6 +114,13 @@ const progress = computed(() => {
   return task.properties.progress ?? 100
 })
 
+// backup writers return `{ size }` in bytes as task result
+const formattedSize = computed(() => {
+  const size = task.result?.size
+
+  return typeof size === 'number' ? formatSize(size, 2) : undefined
+})
+
 const formattedStartDate = computed(() => d(task.start, { dateStyle: 'short', timeStyle: 'medium' }))
 const formattedEndDate = computed(() => {
   if (task.end) {
@@ -122,9 +133,9 @@ const formattedEndDate = computed(() => {
     return '-'
   }
 
-  // TODO need to be improved and test with real data...
+  // progress is a percentage (0-100), not a ratio
   const elapsed = Date.now() - task.start
-  const estimatedTotal = elapsed / progress
+  const estimatedTotal = (elapsed * 100) / progress
   const endTimestamp = task.start + estimatedTotal
 
   return d(endTimestamp, 'datetime_short')
