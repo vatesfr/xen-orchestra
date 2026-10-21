@@ -1,74 +1,18 @@
+import { useKubernetesVersionOptions } from '@/modules/kubernetes/form/create-cluster/use-kubernetes-version-options.ts'
 import { kubernetesTagsSyntax } from '@/modules/kubernetes/form/kubernetes-tags-syntax.rule.ts'
-import type { KubernetesClusterCreatePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
-import type { KubernetesClusterEditPayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { getControlPlaneHost } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
-import { parseKubernetesTagsString } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
+import {
+  buildKubernetesClusterCreatePayload,
+  buildKubernetesClusterEditPayload,
+  type CreateKubernetesClusterFormData,
+  kubernetesClusterToFormData,
+} from '@/modules/kubernetes/utils/kubernetes-cluster-form.util.ts'
 import { integer, ipv4OrCidr, maxLength, minValue, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export const DESCRIPTION_MAX_LENGTH = 4000
-
-/** Temporary default until the create-cluster form exposes a version field. */
-export const KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION = '1.37.1'
-
-export type CreateKubernetesClusterFormData = {
-  name: string
-  description: string
-  tagsRaw: string
-  control_plane_replicas: number
-  worker_replicas: number
-  control_plane_ip: string
-  vm_name_prefix: string
-}
-
-export function buildKubernetesClusterCreatePayload(
-  form: CreateKubernetesClusterFormData
-): KubernetesClusterCreatePayload {
-  const payload: KubernetesClusterCreatePayload = {
-    name: form.name,
-    control_plane_replicas: form.control_plane_replicas,
-    worker_replicas: form.worker_replicas,
-    control_plane_ip: form.control_plane_ip,
-    vm_name_prefix: form.vm_name_prefix,
-    kubernetes_version: KUBERNETES_CLUSTER_CREATE_KUBERNETES_VERSION,
-  }
-
-  if (form.description !== '') {
-    payload.description = form.description
-  }
-
-  const tags = parseKubernetesTagsString(form.tagsRaw)
-
-  if (tags !== undefined) {
-    payload.tags = tags
-  }
-
-  return payload
-}
-
-function buildKubernetesClusterEditPayload(form: CreateKubernetesClusterFormData): KubernetesClusterEditPayload {
-  return {
-    control_plane_replicas: form.control_plane_replicas,
-    worker_replicas: form.worker_replicas,
-  }
-}
-
-function kubernetesClusterToFormData(cluster: XoKubernetesCluster): CreateKubernetesClusterFormData {
-  return {
-    name: cluster.name,
-    description: cluster.description ?? '',
-    // Displayed as a tags list in edit mode
-    tagsRaw: '',
-    control_plane_replicas: cluster.control_plane_status.desired_replicas,
-    worker_replicas: cluster.worker_status.desired_replicas,
-    control_plane_ip: getControlPlaneHost(cluster.control_plane_endpoint),
-    // Not exposed by the cluster object
-    vm_name_prefix: '',
-  }
-}
 
 /**
  * When a cluster is provided, the form is in edit mode: it is prefilled with the cluster data
@@ -90,10 +34,27 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
           worker_replicas: 1,
           control_plane_ip: '',
           vm_name_prefix: '',
+          kubernetes_version: undefined,
         }
   )
 
-  const { useField, validate } = useValidatedForm(formData, {
+  const {
+    options: versionOptions,
+    defaultOption: defaultVersionOption,
+    isLoading: areVersionOptionsLoading,
+  } = useKubernetesVersionOptions(cluster)
+
+  watch(
+    defaultVersionOption,
+    option => {
+      if (formData.kubernetes_version === undefined && option !== undefined) {
+        formData.kubernetes_version = option.value
+      }
+    },
+    { immediate: true }
+  )
+
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         control_plane_replicas: { required, integer, minValue: minValue(1) },
@@ -109,6 +70,7 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
               },
               control_plane_ip: { required, ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
               vm_name_prefix: { required },
+              kubernetes_version: { required },
               tagsRaw: {
                 kubernetesTagsSyntax: withMessage(kubernetesTagsSyntax, () => t('form:error:invalid-tag-syntax')),
               },
@@ -164,6 +126,22 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
     disabled: isEditMode,
   }))
 
+  const { id: versionSelectId } = useFormSelect('kubernetes_version', versionOptions, {
+    required: !isEditMode,
+    disabled: isEditMode,
+    loading: areVersionOptionsLoading,
+    searchable: true,
+    option: { id: 'value', label: 'label', value: 'value' },
+  })
+
+  const versionSelectBindings = useSelect(versionSelectId, () => ({
+    label: t('version'),
+    info:
+      defaultVersionOption.value === undefined
+        ? undefined
+        : t('value-by-default', { value: defaultVersionOption.value.label }),
+  }))
+
   async function validateAndBuild<TPayload>(
     build: (form: CreateKubernetesClusterFormData) => TPayload
   ): Promise<TPayload | undefined> {
@@ -177,7 +155,12 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
   }
 
   function validateAndBuildPayload() {
-    return validateAndBuild(buildKubernetesClusterCreatePayload)
+    return validateAndBuild(({ kubernetes_version, ...form }) =>
+      // Already checked by the validation rules, only narrows the type
+      kubernetes_version === undefined
+        ? undefined
+        : buildKubernetesClusterCreatePayload({ ...form, kubernetes_version })
+    )
   }
 
   function validateAndBuildEditPayload() {
@@ -192,6 +175,7 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
     workerReplicasInputBindings,
     controlPlaneIPInputBindings,
     vmNamePrefixInputBindings,
+    versionSelectBindings,
     validateAndBuildPayload,
     validateAndBuildEditPayload,
   }

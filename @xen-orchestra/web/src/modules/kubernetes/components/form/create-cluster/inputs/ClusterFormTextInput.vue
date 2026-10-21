@@ -5,6 +5,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mergeInputMessages } from '@/modules/kubernetes/utils/kubernetes-form-input.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { IconName } from '@core/icons'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -25,7 +26,5 @@ const emit = defineEmits<{ blur: [] }>()
 
 const model = defineModel<string>({ required: true })
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed(() => mergeInputMessages(info, warning, error))
 </script>

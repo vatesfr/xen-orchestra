@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mergeInputMessages } from '@/modules/kubernetes/utils/kubernetes-form-input.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
@@ -34,7 +35,5 @@ const emit = defineEmits<{ blur: [] }>()
 
 const model = defineModel<number>({ required: true })
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed(() => mergeInputMessages(info, warning, error))
 </script>

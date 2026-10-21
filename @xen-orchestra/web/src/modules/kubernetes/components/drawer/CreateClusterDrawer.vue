@@ -22,6 +22,10 @@
             <FormTextarea v-bind="descriptionInputBindings" />
           </div>
 
+          <div class="row">
+            <ClusterFormSelect v-bind="versionSelectBindings" />
+          </div>
+
           <UiAlert accent="info" wrap>{{ t('control-plane-replicas-hint') }}</UiAlert>
 
           <div class="row">
@@ -46,6 +50,7 @@
 
 <script setup lang="ts">
 import ClusterFormNumberInput from '@/modules/kubernetes/components/form/create-cluster/inputs/ClusterFormNumberInput.vue'
+import ClusterFormSelect from '@/modules/kubernetes/components/form/create-cluster/inputs/ClusterFormSelect.vue'
 import ClusterFormTextInput from '@/modules/kubernetes/components/form/create-cluster/inputs/ClusterFormTextInput.vue'
 import { useCreateKubernetesClusterForm } from '@/modules/kubernetes/form/create-cluster/use-create-kubernetes-cluster-form.ts'
 import type { KubernetesClusterCreatePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
@@ -88,6 +93,7 @@ const {
   workerReplicasInputBindings,
   controlPlaneIPInputBindings,
   vmNamePrefixInputBindings,
+  versionSelectBindings,
   validateAndBuildPayload,
   validateAndBuildEditPayload,
 } = useCreateKubernetesClusterForm(cluster)

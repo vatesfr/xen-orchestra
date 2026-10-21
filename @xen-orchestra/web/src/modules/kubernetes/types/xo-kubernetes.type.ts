@@ -46,6 +46,11 @@ export type XoKubernetesNodesStatus = {
   versions: XoKubernetesReplicasVersion[]
 }
 
+export type XoKubernetesVersionGroup = {
+  version: string
+  releases: string[] | null
+}
+
 export type XoKubernetesCluster = {
   control_plane_endpoint: string
   control_plane_status: XoKubernetesNodesStatus
