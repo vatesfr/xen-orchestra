@@ -954,7 +954,21 @@ export default class Esxi extends EventEmitter {
 
   async #waitPoweredOff(vmId, { signal, timeout, pollInterval }) {
     const deadline = Date.now() + timeout
-    while ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) !== 'poweredOff') {
+    for (;;) {
+      let powerState
+      try {
+        powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      } catch (error) {
+        // the guest keeps shutting down on the host: a transient failure of a single poll must not
+        // end in powering off a guest which is about to be off
+        if (!isRetryableError(error) || Date.now() >= deadline) {
+          throw error
+        }
+        warn('failed to read the power state of a VM, will poll again', { error, vmId })
+      }
+      if (powerState === 'poweredOff') {
+        return
+      }
       if (Date.now() >= deadline) {
         const error = new Error(`the VM ${vmId} is still running ${timeout}ms after its guest was asked to shut down`)
         error.code = 'SHUTDOWN_TIMEOUT'
