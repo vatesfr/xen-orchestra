@@ -9,6 +9,7 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoPlugin,
   XoPool,
   XoPoolBackupArchive,
   XoProxy,
@@ -341,8 +342,10 @@ export type XoApp = EventEmitter & {
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
+  disablePluginAutoload(id: XoPlugin['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  enablePluginAutoload(id: XoPlugin['id']): Promise<void>
   findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
@@ -368,6 +371,8 @@ export type XoApp = EventEmitter & {
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
+  getPlugin(id: XoPlugin['id']): Promise<XoPlugin>
+  getPlugins(): Promise<XoPlugin[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -447,6 +452,7 @@ export type XoApp = EventEmitter & {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
@@ -469,6 +475,7 @@ export type XoApp = EventEmitter & {
     diskId: string
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
+  purgePluginConfiguration(id: XoPlugin['id']): Promise<void>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /**
    * Record the live mounts a proxy created by itself, while running a restore: they never went
@@ -509,6 +516,7 @@ export type XoApp = EventEmitter & {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testPlugin(id: XoPlugin['id'], data?: unknown): Promise<void>
   testRemote(
     id: XoBackupRepository['id']
   ): Promise<
@@ -518,6 +526,7 @@ export type XoApp = EventEmitter & {
   touchXoObject(type: string, id: NonXapiXoRecord['id']): Promise<void>
   /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
   unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
+  unloadPlugin(id: XoPlugin['id']): Promise<void>
   reclaimSpace(
     remoteId: XoBackupRepository['id'],
     opts?: { vmUuid?: XoVm['id']; merge?: boolean; remove?: boolean }

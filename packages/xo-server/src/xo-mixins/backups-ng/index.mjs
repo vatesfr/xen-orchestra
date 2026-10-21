@@ -112,6 +112,17 @@ export default class BackupNg {
     return this._runningRestores
   }
 
+  /**
+   * the VM backup archives of the backup repositories, for the other mixins: clients reach them
+   * through the `backup-archive` collection, which is only registered once its initial load is done,
+   * after the `start` hooks have begun
+   *
+   * @returns {import('./_vmBackupsCache.mjs').Archives}
+   */
+  get vmBackupArchives() {
+    return this.#vmBackupsCache.archives
+  }
+
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()

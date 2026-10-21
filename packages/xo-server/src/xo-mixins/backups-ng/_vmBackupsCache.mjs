@@ -161,10 +161,15 @@ const removeBackup = (backupsByVm, vmUuid, key) => {
 /**
  * The archives of the backup repositories, with the interface the app expects from the collections
  * registered with it (see `registerCollection` in `xo.mjs`): `add` and `update` carry archives,
- * `remove` their ids.
+ * `remove` their ids. `off()` is for the other mixins which listen to them, see `vmBackupArchives`
+ * in `index.mjs`.
  *
  * @typedef {{
  *   on: {
+ *     (event: 'add' | 'update', listener: (archives: [FormattedBackup]) => void): void
+ *     (event: 'remove', listener: (ids: [FormattedBackup['id']]) => void): void
+ *   },
+ *   off: {
  *     (event: 'add' | 'update', listener: (archives: [FormattedBackup]) => void): void
  *     (event: 'remove', listener: (ids: [FormattedBackup['id']]) => void): void
  *   },
@@ -284,6 +289,9 @@ export class VmBackupsCache {
   #archives = {
     on: (event, listener) => {
       this.#emitter.on(event, listener)
+    },
+    off: (event, listener) => {
+      this.#emitter.off(event, listener)
     },
     get: async () => this.#listArchives(),
     first: async id => this.#findArchive(id),

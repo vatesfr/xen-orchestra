@@ -25,6 +25,7 @@ const obfuscateRemote = ({ url, ...remote }) => {
 
 const REMOTE_INFO_RETRY_DELAY = 5e3
 const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+const BACKUP_REPOSITORY_INFO_REFRESH_DELAY = 10e3
 const RETRY_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'ENOTCONN', 'ESTALE'])
 function _isRetryableRemoteError(error) {
   return error instanceof TimeoutError || RETRY_CODES.has(error.code)
@@ -76,7 +77,17 @@ export default class {
     this._handlers = { __proto__: null }
     this._remotesInfo = {}
     this._remotesInfoRetry = { __proto__: null }
+    this._backupRepositoryInfoRefresh = { __proto__: null }
     this._app = app
+
+    // `add` and `update` carry the archives, `remove` their ids: `<backup repository id>/<metadata path>`
+    const onVmBackupArchivesChange = archives =>
+      archives.forEach(archive => this._scheduleBackupRepositoryInfoRefresh(archive.backupRepository))
+    const vmBackupArchivesListeners = {
+      add: onVmBackupArchivesChange,
+      update: onVmBackupArchivesChange,
+      remove: ids => ids.forEach(id => this._scheduleBackupRepositoryInfoRefresh(id.slice(0, id.indexOf('/')))),
+    }
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
     app.hooks.on('core started', () => {
@@ -99,6 +110,8 @@ export default class {
       )
     })
     app.hooks.on('start', async () => {
+      Object.entries(vmBackupArchivesListeners).forEach(([event, listener]) => app.vmBackupArchives.on(event, listener))
+
       const remotes = await this._remotes.get()
       remotes.forEach(remote => {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
@@ -108,6 +121,13 @@ export default class {
       })
     })
     app.hooks.on('stop', async () => {
+      Object.entries(vmBackupArchivesListeners).forEach(([event, listener]) =>
+        app.vmBackupArchives.off(event, listener)
+      )
+      Object.keys(this._backupRepositoryInfoRefresh).forEach(id => {
+        clearTimeout(this._backupRepositoryInfoRefresh[id])
+        delete this._backupRepositoryInfoRefresh[id]
+      })
       Object.keys(this._remotesInfoRetry).forEach(id => this._cancelRemoteInfoRetry(id))
       const handlers = this._handlers
       for (const id in handlers) {
@@ -316,7 +336,22 @@ export default class {
         ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', { remote })
         : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-    this._remotesInfo[remote.id] = { ...(await timeout.call(promise, 5e3)), encryption }
+    const info = { ...(await timeout.call(promise, 5e3)), encryption }
+
+    const currentRemote = await ignoreErrors.call(this._remotes.first(remote.id))
+    if (!currentRemote?.enabled) {
+      return
+    }
+
+    const { size, used, available } = info
+    if (currentRemote.size !== size || currentRemote.used !== used || currentRemote.available !== available) {
+      await this._updateRemote(remote.id, {
+        size: size ?? null,
+        used: used ?? null,
+        available: available ?? null,
+      })
+    }
+    this._remotesInfo[remote.id] = info
   }
 
   async _refreshRemoteInfo(remote) {
@@ -363,6 +398,17 @@ export default class {
       clearTimeout(state.timer)
       delete this._remotesInfoRetry[id]
     }
+  }
+
+  _scheduleBackupRepositoryInfoRefresh(backupRepositoryId) {
+    clearTimeout(this._backupRepositoryInfoRefresh[backupRepositoryId])
+    this._backupRepositoryInfoRefresh[backupRepositoryId] = setTimeout(async () => {
+      delete this._backupRepositoryInfoRefresh[backupRepositoryId]
+      const backupRepository = await ignoreErrors.call(this._remotes.first(backupRepositoryId))
+      if (backupRepository?.enabled) {
+        await this._refreshRemoteInfo(backupRepository)
+      }
+    }, BACKUP_REPOSITORY_INFO_REFRESH_DELAY)
   }
 
   async getAllRemotes() {
@@ -439,10 +485,14 @@ export default class {
     }
 
     this._cancelRemoteInfoRetry(id)
+
+    const sizeProps = {}
     if (enabled === false) {
       // it will not be listed again: its backups are no longer part of the collection
       this._app.forgetVmBackupRepository(id)
-      delete this._remotesInfo[id]
+      sizeProps.size = null
+      sizeProps.used = null
+      sizeProps.available = null
     } else {
       this._app.invalidateVmBackupsListing(id)
     }
@@ -453,7 +503,16 @@ export default class {
       options,
       proxy,
       url,
+      ...sizeProps,
     })
+    if (enabled === false) {
+      delete this._remotesInfo[id]
+    }
+
+    const isTargetChanged = url !== undefined || options !== undefined || proxy !== undefined
+    if (enabled === true || (remote.enabled && isTargetChanged)) {
+      ignoreErrors.call(this._refreshRemoteInfo(remote))
+    }
 
     // the start lists only the repositories enabled then: one enabled later would have its archives
     // neither announced nor polled until a client lists it. Listed once the update is stored, as the
