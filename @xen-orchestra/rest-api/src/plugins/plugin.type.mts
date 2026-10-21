@@ -6,11 +6,6 @@ export type UpdatePluginRequestBody = {
 
 export type PluginConfigurationRequestBody = XoPluginConfiguration
 
-// `null` removes an optional property
-type NullablePartial<T> = { [K in keyof T]?: undefined extends T[K] ? T[K] | null : T[K] }
-
-export type PluginConfigurationPatchRequestBody = NullablePartial<XoPluginConfiguration>
-
 export type PluginTestRequestBody = {
   /** data matching the plugin `testSchema` */
   data?: XoPluginTestData

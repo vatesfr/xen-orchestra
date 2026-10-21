@@ -37,12 +37,7 @@ import {
 import { partialPlugins, plugin, pluginIds } from '../open-api/oa-examples/plugin.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import type {
-  PluginConfigurationPatchRequestBody,
-  PluginConfigurationRequestBody,
-  PluginTestRequestBody,
-  UpdatePluginRequestBody,
-} from './plugin.type.mjs'
+import type { PluginConfigurationRequestBody, PluginTestRequestBody, UpdatePluginRequestBody } from './plugin.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -192,47 +187,6 @@ export class PluginController extends XoController<XoPlugin> {
 
     assertNoUnknownProperties(body, plugin.configurationSchema)
     await this.restApi.xoApp.configurePlugin(plugin.id, body)
-  }
-
-  /**
-   * Required privilege:
-   * - resource: plugin, action: update:configuration
-   *
-   * Properties not declared in the `configurationSchema` are rejected.
-   *
-   * @example id "transport-email"
-   * @example body { "from": { "address": "xo@example.org", "name": "Xen Orchestra" } }
-   */
-  @Extension('x-mcp-exposure', 'confirm')
-  @Patch('{id}/configuration')
-  @Middlewares([
-    json(),
-    acl({
-      resource: 'plugin',
-      action: 'update:configuration',
-      objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getPlugin,
-    }),
-  ])
-  @SuccessResponse(noContentResp.status, noContentResp.description)
-  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, invalidParameters.description)
-  async updatePluginConfiguration(
-    @Path() id: string,
-    @Body() body: PluginConfigurationPatchRequestBody
-  ): Promise<void> {
-    const plugin = await this.getObject(id as XoPlugin['id'])
-
-    assertNoUnknownProperties(body, plugin.configurationSchema)
-
-    const configuration: Record<string, unknown> = { ...plugin.configuration, ...body }
-    for (const [key, value] of Object.entries(body)) {
-      if (value === null) {
-        delete configuration[key]
-      }
-    }
-    await this.restApi.xoApp.configurePlugin(plugin.id, configuration)
   }
 
   /**
