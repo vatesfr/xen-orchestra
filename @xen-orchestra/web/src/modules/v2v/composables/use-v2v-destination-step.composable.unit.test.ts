@@ -86,7 +86,6 @@ async function chooseCompleteDestination(result: DestinationStep) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   destinationCollectionsMock.reset()
 })
 
