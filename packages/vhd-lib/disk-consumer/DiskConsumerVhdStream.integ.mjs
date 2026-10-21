@@ -168,4 +168,22 @@ describe('DiskConsumerVhdStream', () => {
 
     assert(chunksReceived >= 1, 'should have received at least one chunk before abort')
   })
+
+  it('should refuse the compressed blocks of a VHD directory', async () => {
+    // a block as read from a VHD directory, see compressedBlock.mjs
+    class MockCompressedDisk extends MockDisk {
+      async readBlock(index) {
+        return { ...(await super.readBlock(index)), compression: 'brotli' }
+      }
+    }
+    const stream = await toVhdStream(new MockCompressedDisk(1, [0]))
+    await assert.rejects(
+      pipeline(stream, async function* (source) {
+        for await (const chunk of source) {
+          yield chunk
+        }
+      }),
+      /can't write a compressed block 0 in a VHD file/
+    )
+  })
 })

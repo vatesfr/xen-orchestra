@@ -196,13 +196,17 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
-    // in case of VhdDirectory, we want to create the file if it does not exists
-    const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(
       // the handler can write an array without concatenating it, most compressors can't
       Array.isArray(buffer) && !this.#compressor.acceptsBufferArray ? Buffer.concat(buffer) : buffer
     )
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return this.#outputChunk(partName, compressed)
+  }
+
+  #outputChunk(partName, buffer) {
+    // in case of VhdDirectory, we want to create the file if it does not exists
+    const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
+    return this._handler.outputFile(this.#getChunkPath(partName), buffer, { flags })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -255,6 +259,15 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       buffer,
     }
   }
+
+  /**
+   * read a block as stored (bitmap and data compressed together), to be written as is with writeCompressedBlock in a
+   * VhdDirectory using the same compression
+   */
+  async readCompressedBlock(blockId) {
+    return this._handler.readFile(this.getFullBlockPath(blockId))
+  }
+
   ensureBatSize() {
     // nothing to do in directory mode
   }
@@ -350,6 +363,16 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   async writeBlockData(blockId, data) {
     assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
     await this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
+    setBitmap(this.#blockTable, blockId)
+  }
+
+  /**
+   * write a block read with readCompressedBlock, the caller must ensure it is compressed with the same compression as
+   * this VHD
+   */
+  async writeCompressedBlock(blockId, buffer) {
+    assert.notStrictEqual(this._opts?.flags, 'r', `Can't write block ${blockId} in ${this._path} with read permission`)
+    await this.#outputChunk(this.#getBlockPath(blockId), buffer)
     setBitmap(this.#blockTable, blockId)
   }
 
