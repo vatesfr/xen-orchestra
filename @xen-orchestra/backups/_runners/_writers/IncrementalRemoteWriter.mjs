@@ -23,6 +23,7 @@ import { diskHasData } from './_diskHasData.mjs'
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
+  #exportTask
   #parentVdiPaths
   #parentUuids
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -141,20 +142,29 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
   }
 
   prepare({ isFull }) {
+    // the mirror calls prepare() once per restore point: the previous export is over, unless it has already failed
+    if (this.#exportTask?.status === 'pending') {
+      this.#exportTask.success()
+    }
+
     // create the task related to this export and ensure all methods are called in this context
-    const task = new Task({
+    const task = (this.#exportTask = new Task({
       properties: {
         id: this._remoteId,
         isFull,
         name: 'export',
         type: 'remote',
       },
-    })
-    this._prepare = task.wrapInside(this._prepare)
-    this.transfer = task.wrapInside(this.transfer)
-    this.healthCheck = task.wrapInside(this.healthCheck)
-    this.cleanup = task.wrapInside(this.cleanup)
-    this.afterBackup = task.wrap(this.afterBackup)
+    }))
+    // wrap the methods of the class, not the ones wrapped by a previous call, which would run in all the previous
+    // exports
+    const methods = Object.getPrototypeOf(this)
+    this._prepare = task.wrapInside(methods._prepare)
+    this.transfer = task.wrapInside(methods.transfer)
+    this.healthCheck = task.wrapInside(methods.healthCheck)
+    this.cleanup = task.wrapInside(methods.cleanup)
+    // ends the last export
+    this.afterBackup = task.wrap(methods.afterBackup)
 
     return this._prepare()
   }
