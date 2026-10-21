@@ -151,7 +151,7 @@ describe('values', () => {
       [t('vm-backup-failure-number-of-retries')]: '',
       [t('timeout')]: '',
       [t('speed-limit')]: '',
-      [t('report-when')]: '',
+      [t('report-when')]: t('report-when:always'),
       [t('report-recipients')]: '',
       [t('concurrency')]: '',
       [t('compression')]: t('disabled'),
