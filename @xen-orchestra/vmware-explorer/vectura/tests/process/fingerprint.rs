@@ -109,24 +109,19 @@ fn verbose_adds_the_negotiated_version_and_suite_on_standard_error_only() {
 }
 
 #[test]
-fn a_greeting_without_sha256_support_is_refused_before_tls_starts() {
+fn a_greeting_without_sha256_support_is_fingerprinted_like_any_other() {
     let host = Host::with_data_port(DataPort::Greeting(GREETING_WITHOUT_SHA256));
 
     let output = fingerprint(&host, false);
 
-    let stderr = failure_naming(&output, &format!("127.0.0.1:{}", host.data_port));
-    assert!(stderr.contains("\"SHA256 supported\""), "{stderr}");
-    assert!(
-        stderr.contains(
-            "SSL Required, ServerDaemonProtocol:SOAP, MKSDisplayProtocol:VNC, \
-             VMXARGS supported, NFCSSL supported"
-        ),
-        "the announced list is quoted: {stderr}"
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "stderr: {}",
+        text(&output.stderr)
     );
-    assert!(
-        !host.data().handshake_started,
-        "no TLS is started on the data port"
-    );
+    assert_eq!(text(&output.stdout), expected_stdout(&host));
+    assert!(host.data().handshake_completed, "{:?}", host.data());
 }
 
 #[test]

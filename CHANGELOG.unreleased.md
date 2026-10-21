@@ -7,6 +7,9 @@
 
 > Security fixes and new features should go in this section
 
+- [Backup/Live mount] A connection to the iSCSI target that has not logged in yet, such as a port scan or a failed CHAP login, no longer interrupts the mounted disk (PR [#10465](https://github.com/vatesfr/xen-orchestra/pull/10465))
+- [Backup/Live mount] The mounted disk is reported as write-protected, so the guest sees it read-only instead of getting I/O errors on write, and the iSCSI target bounds the size of what a client can make it buffer (PR [#10566](https://github.com/vatesfr/xen-orchestra/pull/10566))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -29,6 +32,7 @@
 - [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
 - [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB) (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
+- [Mirror] The incremental mirrors between remotes don't recompress the blocks if the source and destination use the same compression (PR [#10581](https://github.com/vatesfr/xen-orchestra/pull/10581))
 - [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
@@ -53,6 +57,15 @@
 - [XO6] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [XO6] Export VDI as vmdk (PR [#10591](https://github.com/vatesfr/xen-orchestra/pull/10591))
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
+- [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
+- [V2V] Import VMs from ESXi 6.x hosts: their disks are read one request at a time, so more slowly than from ESXi 7 and 8 (PR [#10590](https://github.com/vatesfr/xen-orchestra/pull/10590))
+- [Backup repositories] Free, used and total space are now available on backup repositories (PR [#10406](https://github.com/vatesfr/xen-orchestra/pull/10406))
+- [Backup] New `zstd` compression for the remotes in block mode (needs Node 22.15 or later), faster to back up and about 1.5 times faster to restore than `brotli` (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [Backup] Remove the unused `vhdDirectoryCompression` setting of the configuration: the compression is the one of the backup repository, brotli by default (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
+- [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
+- [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
+
 
 ### Bug fixes
 
@@ -76,7 +89,7 @@
 - [V2V] Fix `vectura is not runnable` on XOA and other systems based on Debian 11 (glibc 2.31): the `vectura` binary required glibc 2.34
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 - [XO5/Hosts] Disable restart toolstack button for the hosts that belongs to a HA pools in the home page (PR [#10497](https://github.com/vatesfr/xen-orchestra/pull/10497))
-- [Backup/replication] fix to ensure distributed replications are deleted according to retention( PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
+- [Backup/replication] fix to ensure distributed replications are deleted according to retention (PR [#10491] (https://github.com/vatesfr/xen-orchestra/pull/10491))
 - [Replication] Fix `Cannot read properties of undefined (reading 'get')` error on continuous replication to multiple SRs (PR [#10519](https://github.com/vatesfr/xen-orchestra/pull/10519))
 - [Backup/NBD] Support NBD for pools reached through an HTTP proxy (e.g. an XO Proxy): NBD connections are now tunneled through the proxy instead of falling back to a stream export (PR [#10544](https://github.com/vatesfr/xen-orchestra/pull/10544))
 - [xo-cli] fix output failing when outputing a rest api answer (PR [#10541](https://github.com/vatesfr/xen-orchestra/pull/10541))
@@ -85,6 +98,10 @@
 - [VDI/Export] Fix pressing Escape in the format select closing the whole export drawer (PR [#10582](https://github.com/vatesfr/xen-orchestra/pull/10582))
 - [Servers] Fix a pool left in a broken state when its connection was lost twice in a row within 5 minutes (e.g. during a toolstack restart): it could be displayed as connecting while connected and its objects could no longer be acted upon, or it would never be reconnected automatically (PR [#10577](https://github.com/vatesfr/xen-orchestra/pull/10577))
 - [XO6] Fix the ETA of task (PR [#10622](https://github.com/vatesfr/xen-orchestra/pull/10622))
+- [Swagger] Fixed a typo in the VM collection: `xentools` → `xenTools`, and added a missing type to the server collection `poolMembersAddresses` [#10514](https://github.com/vatesfr/xen-orchestra/issues/10514) (PR [#10598](https://github.com/vatesfr/xen-orchestra/pull/10598))
+- [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
+- [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected (PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
+- [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
 
 ### Packages to release
 
@@ -102,17 +119,20 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
 - @vates/nbd-client minor
 - @vates/types minor
 - @xen-orchestra/acl minor
-- @xen-orchestra/backup-archive patch
+- @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs minor
+- @xen-orchestra/proxy patch
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmdk major
-- @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
@@ -122,7 +142,9 @@
 - xo-cli patch
 - xo-server minor
 - xo-server-load-balancer minor
+- xo-server-netbox minor
 - xo-server-sdn-controller patch
+- xo-server-transport-icinga2 patch
 - xo-web minor
 
 <!--packages-end-->

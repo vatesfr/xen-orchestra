@@ -21,7 +21,6 @@ export default class BackupsRemoteAdapter {
     return new RemoteAdapter(await app.getRemoteHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
-      vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
       // this adapter is also used for file restore
       useGetDiskLegacy: app.config.getOptional('backups.useGetDiskLegacy'),
     })
