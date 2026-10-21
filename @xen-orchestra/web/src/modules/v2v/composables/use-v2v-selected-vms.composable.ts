@@ -2,15 +2,18 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import {
   getV2vMappingSummary,
   getV2vSelectedVmState,
   V2V_READINESS_LEVELS,
+  type V2vMappingTargetNameGetters,
 } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { countOccurrences } from '@/shared/utils/count.util.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
@@ -59,6 +62,8 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
 
   const { getNetworkById } = useXoNetworkCollection()
 
+  const offers = useV2vPoolDestinationChoices(poolId)
+
   const { sourceHost, poolName } = useV2vSourceAndDestination(poolId)
 
   const rowsById = computed(() => new Map(toValue(rows).map(row => [row.id, row])))
@@ -68,23 +73,26 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     return rowsById.value.get(id)?.name ?? id
   }
 
-  const mappingTargetNames = computed(() => {
-    const defaults = migrationList.list.value?.defaults
+  const targetNameGetters: V2vMappingTargetNameGetters = {
+    getSrName: id => getSrById(id)?.name_label,
+    getNetworkName: id => getNetworkById(id)?.name_label,
+  }
 
-    return {
-      srName: getSrById(defaults?.sr)?.name_label,
-      networkName: getNetworkById(defaults?.network)?.name_label,
+  const selectedVms = computed(() => {
+    const list = migrationList.list.value
+
+    if (list === undefined) {
+      return []
     }
-  })
 
-  const selectedVms = computed(() =>
-    (migrationList.list.value?.vms ?? []).map(({ id }) => {
-      const row = rowsById.value.get(id)
+    return list.vms.map(listVm => {
+      const row = rowsById.value.get(listVm.id)
       const { kind, check } = getV2vSelectedVmState(row, toValue(poolId))
+      const mapping = row === undefined ? undefined : getV2vVmMapping(row.vm, listVm, list.defaults, offers.value)
 
-      return { id, kind, check, mapping: getV2vMappingSummary(row, kind, mappingTargetNames.value) }
+      return { id: listVm.id, kind, check, mapping: getV2vMappingSummary(mapping, kind, targetNameGetters) }
     })
-  )
+  })
 
   // Only a partial import on another pool names a pool
   function getCheckPoolName(check: V2vSelectedVmCheck) {

@@ -4,19 +4,42 @@ import type {
   V2vMigrationListKey,
   V2vMigrationListVm,
 } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { isPlainObject } from 'lodash-es'
+import { isBoolean, isPlainObject, isString } from 'lodash-es'
 
 const DEFAULTS_FIELDS = ['sr', 'network', 'template'] as const
 
 function isDestinationDefaults(value: unknown): value is V2vDestinationDefaults {
-  return (
-    isPlainObject(value) &&
-    DEFAULTS_FIELDS.every(field => typeof (value as Record<string, unknown>)[field] === 'string')
-  )
+  return isPlainObject(value) && DEFAULTS_FIELDS.every(field => isString((value as Record<string, unknown>)[field]))
 }
 
+function isStringRecord(value: unknown) {
+  return isPlainObject(value) && Object.values(value as Record<string, unknown>).every(isString)
+}
+
+function isStringArray(value: unknown) {
+  return Array.isArray(value) && value.every(isString)
+}
+
+const VM_OVERRIDE_CHECKS: Record<Exclude<keyof V2vMigrationListVm, 'id'>, (value: unknown) => boolean> = {
+  disks: isStringRecord,
+  nics: isStringRecord,
+  template: isString,
+  keepMac: isBoolean,
+  tags: isStringArray,
+}
+
+// Overrides are optional: only those present must have their shape
 function isMigrationListVm(value: unknown): value is V2vMigrationListVm {
-  return isPlainObject(value) && typeof (value as Record<string, unknown>).id === 'string'
+  if (!isPlainObject(value)) {
+    return false
+  }
+
+  const vm = value as Record<string, unknown>
+
+  return (
+    isString(vm.id) &&
+    Object.entries(VM_OVERRIDE_CHECKS).every(([field, isValid]) => vm[field] === undefined || isValid(vm[field]))
+  )
 }
 
 export function getV2vMigrationListStorageKey({ sourceId, poolId }: V2vMigrationListKey) {

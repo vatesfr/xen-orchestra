@@ -1464,6 +1464,7 @@
   "v2v": "V2V",
   "v2v:action:add-to-migration-list": "Ajouter à la liste de migration",
   "v2v:already-migrated-confirm-at-launch": "Déjà migrée, confirmation au lancement",
+  "v2v:check:mapping-incomplete": "Correspondance incomplète",
   "v2v:choose-vmware-source": "Choisir la source VMware",
   "v2v:connect-new-vmware-source": "Connecter une nouvelle source VMware",
   "v2v:credentials-never-stored": "Les identifiants ne sont jamais stockés par XO : ils restent dans ce navigateur et sont envoyés avec chaque requête qui nécessite VMware. L'état des migrations est partagé par tous ceux qui se connectent au même vCenter.",
