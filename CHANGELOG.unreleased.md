@@ -59,6 +59,7 @@
 - [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
 - [XO6/V2V] Add the _Migrate VMs_ wizard in Administration › V2V, with its first step: connect to a VMware source, new or remembered in the browser (PR [#10623](https://github.com/vatesfr/xen-orchestra/pull/10623))
 - [XO6/V2V] _Migrate VMs_ wizard: choose the destination pool and its default SR, network and template (PR [#10626](https://github.com/vatesfr/xen-orchestra/pull/10626))
+- [XO6/V2V] _Migrate VMs_ wizard: select the VMs to migrate, filtered by datastore, status or name, and review the migration list (PR [#10638](https://github.com/vatesfr/xen-orchestra/pull/10638))
 
 ### Bug fixes
 

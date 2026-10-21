@@ -41,6 +41,16 @@ describe('countV2vPoolResources', () => {
     expect(counts.get(OTHER_POOL_ID)).toEqual({ hosts: 1, srs: 1, networks: 0 })
   })
 
+  it('leaves out the resources of a pool not given', () => {
+    const counts = countV2vPoolResources([POOL], {
+      hosts: [createHost({ $pool: OTHER_POOL_ID })],
+      srs: [createSr({ $pool: OTHER_POOL_ID })],
+      networks: [],
+    })
+
+    expect([...counts.keys()]).toEqual([POOL.id])
+  })
+
   it('counts zero for a pool without resources', () => {
     expect(countV2vPoolResources([POOL], { hosts: [], srs: [], networks: [] }).get(POOL.id)).toEqual({
       hosts: 0,
