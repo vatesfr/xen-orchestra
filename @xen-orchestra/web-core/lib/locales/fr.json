@@ -725,6 +725,8 @@
   "keep-me-logged": "Rester connecté",
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
   "key": "Clé",
+  "kubelet": "Kubelet",
+  "kubernetes-version": "Version de Kubernetes",
   "language": "Langue",
   "language-preferences": "Choix de la langue",
   "last": "Dernier",

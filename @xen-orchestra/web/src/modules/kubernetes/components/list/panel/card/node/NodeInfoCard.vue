@@ -54,11 +54,11 @@
 </template>
 
 <script setup lang="ts">
+import { useXoKubernetesNodeCluster } from '@/modules/kubernetes/composables/xo-kubernetes-node-cluster.composable.ts'
 import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-kubernetes-node-utils.composable.ts'
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isControlPlaneNode, nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
-import { getKubernetesClusterRoute, getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
+import { getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -76,8 +76,6 @@ const { node } = defineProps<{
 
 const { t } = useI18n()
 
-const { getClusterById } = useXoKubernetesClusterCollection()
-
 const nodeRoute = computed(() => getKubernetesNodeRoute(node.id))
 
 const readyStatus = computed(() => nodeReadyStatus(node))
@@ -86,9 +84,7 @@ const { roleLabels } = useXoKubernetesNodeUtils()
 
 const roleLabel = computed(() => roleLabels.value[node.role])
 
-const clusterRoute = computed(() => getKubernetesClusterRoute(node.$cluster))
-
-const clusterLabel = computed(() => getClusterById(node.$cluster)?.name ?? node.$cluster)
+const { clusterRoute, clusterLabel } = useXoKubernetesNodeCluster(() => node)
 </script>
 
 <style scoped lang="postcss">

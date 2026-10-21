@@ -725,6 +725,8 @@
   "keep-me-logged": "Keep me logged in",
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
   "key": "Key",
+  "kubelet": "Kubelet",
+  "kubernetes-version": "Kubernetes version",
   "language": "Language",
   "language-preferences": "Language preferences",
   "last": "Last",
