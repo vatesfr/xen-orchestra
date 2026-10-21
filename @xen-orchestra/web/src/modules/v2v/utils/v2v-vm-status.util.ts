@@ -1,8 +1,8 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vNextTransfer, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vImportState, type V2vImportVm } from '@/modules/v2v/utils/v2v-import-markers.util.ts'
-import { V2V_SNAPSHOT_NAME, V2V_TASK_PROPERTY, type XoV2vVm } from '@vates/types'
+import { V2V_SNAPSHOT_NAME, V2V_TASK_PROPERTY, V2V_VM_OTHER_CONFIG, type XoV2vVm } from '@vates/types'
 
 export type V2vImportSnapshot = Pick<FrontXoVmSnapshot, '$snapshot_of' | 'name_label' | 'snapshot_time'>
 
@@ -52,4 +52,17 @@ export function getV2vLastSyncAt(importVmSnapshots: V2vImportSnapshot[]): number
 
   // `snapshot_time` is in seconds, the front dates in milliseconds
   return syncTimes.length === 0 ? undefined : Math.max(...syncTimes) * 1000
+}
+
+// Same rule as the import (`#findBaseVM`): a delta only applies on top of the source snapshot the import last synced,
+// which a resumable import always records
+export function getV2vNextTransfer(
+  vm: Pick<XoV2vVm, 'currentSnapshotId'>,
+  importVm: Pick<V2vImportVm, 'other'>
+): V2vNextTransfer {
+  const isSyncedSnapshot =
+    vm.currentSnapshotId !== undefined &&
+    vm.currentSnapshotId === importVm.other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID]
+
+  return isSyncedSnapshot ? 'delta' : 'full'
 }

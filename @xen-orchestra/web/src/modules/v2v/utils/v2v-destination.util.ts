@@ -48,7 +48,7 @@ export function getV2vPoolDestinationChoices(
   }
 }
 
-function findOfferedId<TId>(choices: { id: TId }[], id: TId | undefined): TId | undefined {
+export function findOfferedId<TId>(choices: { id: TId }[], id: TId | undefined): TId | undefined {
   return choices.find(choice => choice.id === id)?.id
 }
 
