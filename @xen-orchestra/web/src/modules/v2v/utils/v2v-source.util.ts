@@ -1,4 +1,4 @@
-import type { XoV2vConnection } from '@vates/types'
+import type { XoV2vConnection, XoV2vInventory, XoV2vVm } from '@vates/types'
 
 export const V2V_DEFAULT_PORT = 443
 
@@ -24,4 +24,13 @@ export function getV2vSourceId(
   }
 
   return getV2vAddress(connection)
+}
+
+export function getV2vVmDatacenterName(
+  inventory: Pick<XoV2vInventory, 'hosts' | 'datacenters'>,
+  vm: Pick<XoV2vVm, 'hostId'>
+): string | undefined {
+  const datacenterId = inventory.hosts.find(host => host.id === vm.hostId)?.datacenterId
+
+  return inventory.datacenters.find(datacenter => datacenter.id === datacenterId)?.name
 }

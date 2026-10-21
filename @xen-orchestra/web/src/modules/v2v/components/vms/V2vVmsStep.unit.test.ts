@@ -57,6 +57,10 @@ vi.mock(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
