@@ -1,5 +1,8 @@
 import { kubernetesTagsSyntax } from '@/modules/kubernetes/form/kubernetes-tags-syntax.rule.ts'
 import type { KubernetesClusterCreatePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
+import type { KubernetesClusterEditPayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
+import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
+import { getControlPlaneHost } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { parseKubernetesTagsString } from '@/modules/kubernetes/utils/kubernetes-tags.util.ts'
 import { integer, ipv4OrCidr, maxLength, minValue, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -46,44 +49,85 @@ export function buildKubernetesClusterCreatePayload(
   return payload
 }
 
-export function useCreateKubernetesClusterForm() {
+function buildKubernetesClusterEditPayload(form: CreateKubernetesClusterFormData): KubernetesClusterEditPayload {
+  return {
+    control_plane_replicas: form.control_plane_replicas,
+    worker_replicas: form.worker_replicas,
+  }
+}
+
+function kubernetesClusterToFormData(cluster: XoKubernetesCluster): CreateKubernetesClusterFormData {
+  return {
+    name: cluster.name,
+    description: cluster.description ?? '',
+    // Displayed as a tags list in edit mode
+    tagsRaw: '',
+    control_plane_replicas: cluster.control_plane_status.desired_replicas,
+    worker_replicas: cluster.worker_status.desired_replicas,
+    control_plane_ip: getControlPlaneHost(cluster.control_plane_endpoint),
+    // Not exposed by the cluster object
+    vm_name_prefix: '',
+  }
+}
+
+/**
+ * When a cluster is provided, the form is in edit mode: it is prefilled with the cluster data
+ * and only the replicas fields are editable and validated
+ */
+export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
   const { t } = useI18n()
 
-  const formData = reactive<CreateKubernetesClusterFormData>({
-    name: '',
-    description: '',
-    tagsRaw: '',
-    control_plane_replicas: 1,
-    worker_replicas: 1,
-    control_plane_ip: '',
-    vm_name_prefix: '',
-  })
+  const isEditMode = cluster !== undefined
+
+  const formData = reactive<CreateKubernetesClusterFormData>(
+    isEditMode
+      ? kubernetesClusterToFormData(cluster)
+      : {
+          name: '',
+          description: '',
+          tagsRaw: '',
+          control_plane_replicas: 1,
+          worker_replicas: 1,
+          control_plane_ip: '',
+          vm_name_prefix: '',
+        }
+  )
 
   const { useField, validate } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
-        name: { required },
         control_plane_replicas: { required, integer, minValue: minValue(1) },
         worker_replicas: { required, integer, minValue: minValue(1) },
-        control_plane_ip: { required, ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
-        vm_name_prefix: { required },
-        description: {
-          maxLength: withMessage(maxLength(DESCRIPTION_MAX_LENGTH), () =>
-            t('field:exceeds-max-characters', { max: DESCRIPTION_MAX_LENGTH })
-          ),
-        },
-        tagsRaw: {
-          kubernetesTagsSyntax: withMessage(kubernetesTagsSyntax, () => t('form:error:invalid-tag-syntax')),
-        },
+        ...(isEditMode
+          ? {}
+          : {
+              name: { required },
+              description: {
+                maxLength: withMessage(maxLength(DESCRIPTION_MAX_LENGTH), () =>
+                  t('field:exceeds-max-characters', { max: DESCRIPTION_MAX_LENGTH })
+                ),
+              },
+              control_plane_ip: { required, ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
+              vm_name_prefix: { required },
+              tagsRaw: {
+                kubernetesTagsSyntax: withMessage(kubernetesTagsSyntax, () => t('form:error:invalid-tag-syntax')),
+              },
+            }),
       }),
     },
   })
 
-  const nameInputBindings = useField('name', () => ({ label: t('cluster-name'), required: true }))
+  const nameInputBindings = useField('name', () => ({
+    label: t('cluster-name'),
+    required: true,
+    disabled: isEditMode,
+  }))
 
   const descriptionInputBindings = useField('description', () => ({
     label: t('description'),
     maxCharacters: DESCRIPTION_MAX_LENGTH,
+    // TODO Enable in edit mode once CAPI exposes a route to update the description
+    disabled: isEditMode,
   }))
 
   const tagsInputBindings = useField('tagsRaw', () => ({
@@ -111,21 +155,33 @@ export function useCreateKubernetesClusterForm() {
   const controlPlaneIPInputBindings = useField('control_plane_ip', () => ({
     label: t('control-plane-ip'),
     required: true,
+    disabled: isEditMode,
   }))
 
   const vmNamePrefixInputBindings = useField('vm_name_prefix', () => ({
     label: t('vm-name-prefix'),
     required: true,
+    disabled: isEditMode,
   }))
 
-  async function validateAndBuildPayload(): Promise<KubernetesClusterCreatePayload | undefined> {
+  async function validateAndBuild<TPayload>(
+    build: (form: CreateKubernetesClusterFormData) => TPayload
+  ): Promise<TPayload | undefined> {
     const isValid = await validate()
 
     if (!isValid) {
       return undefined
     }
 
-    return buildKubernetesClusterCreatePayload(formData)
+    return build(formData)
+  }
+
+  function validateAndBuildPayload() {
+    return validateAndBuild(buildKubernetesClusterCreatePayload)
+  }
+
+  function validateAndBuildEditPayload() {
+    return validateAndBuild(buildKubernetesClusterEditPayload)
   }
 
   return {
@@ -137,5 +193,6 @@ export function useCreateKubernetesClusterForm() {
     controlPlaneIPInputBindings,
     vmNamePrefixInputBindings,
     validateAndBuildPayload,
+    validateAndBuildEditPayload,
   }
 }

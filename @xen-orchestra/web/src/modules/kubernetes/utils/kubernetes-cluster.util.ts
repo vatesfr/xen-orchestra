@@ -1,3 +1,4 @@
+import type { KubernetesClusterEditPayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
 import type {
   KubernetesClusterPhase,
   KubernetesAvailabilityStatus,
@@ -15,6 +16,17 @@ export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
     case 'Running':
     case 'Provisioned':
     case 'Failed':
+    case 'Updating':
+      return true
+    default:
+      return false
+  }
+}
+
+export function isClusterEditable(phase: KubernetesClusterPhase): boolean {
+  switch (phase) {
+    case 'Running':
+    case 'Provisioned':
     case 'Updating':
       return true
     default:
@@ -42,4 +54,43 @@ export function clusterVersion(cluster: XoKubernetesCluster): string {
   )
 
   return [...new Set(versions)].sort(compareStrings).join('/')
+}
+
+export type KubernetesClusterReplicasUpdate = {
+  endpoint: string
+  replicas: number
+}
+
+/**
+ * Returns the replicas updates to send to CAPI, skipping the node groups whose desired replicas are unchanged
+ */
+export function getClusterReplicasUpdates(
+  cluster: XoKubernetesCluster,
+  payload: KubernetesClusterEditPayload
+): KubernetesClusterReplicasUpdate[] {
+  const updates: KubernetesClusterReplicasUpdate[] = []
+
+  if (payload.control_plane_replicas !== cluster.control_plane_status.desired_replicas) {
+    updates.push({
+      endpoint: `kubernetes/clusters/${cluster.id}/control-plane/replicas`,
+      replicas: payload.control_plane_replicas,
+    })
+  }
+
+  if (payload.worker_replicas !== cluster.worker_status.desired_replicas) {
+    updates.push({
+      endpoint: `kubernetes/clusters/${cluster.id}/workers/replicas`,
+      replicas: payload.worker_replicas,
+    })
+  }
+
+  return updates
+}
+
+export function getControlPlaneHost(endpoint: string): string {
+  try {
+    return new URL(endpoint.includes('://') ? endpoint : `https://${endpoint}`).hostname
+  } catch {
+    return endpoint
+  }
 }

@@ -1,4 +1,5 @@
 <template>
+  <ClusterEditButton :cluster />
   <ClusterKubeconfigDownloadButton :cluster />
   <ClusterDeleteButton :cluster />
 </template>
@@ -6,6 +7,7 @@
 <script lang="ts" setup>
 import ClusterDeleteButton from '@/modules/kubernetes/components/actions/delete-cluster/ClusterDeleteButton.vue'
 import ClusterKubeconfigDownloadButton from '@/modules/kubernetes/components/actions/download-kubeconfig/ClusterKubeconfigDownloadButton.vue'
+import ClusterEditButton from '@/modules/kubernetes/components/actions/edit-cluster/ClusterEditButton.vue'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 
 defineProps<{
