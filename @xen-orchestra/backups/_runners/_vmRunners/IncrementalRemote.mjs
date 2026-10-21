@@ -12,7 +12,7 @@ import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { Task } from '@vates/task'
-import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { runAndEndSourceTasks, TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -75,11 +75,19 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       // recompute if it's a base backup
       // recompute if disks are differencing or not
       const isVhdDifferencing = {}
+      // each disk is read once, whatever the number of writers: the sizes are reported in its own task
+      const sourceProgressHandlers = []
 
       for (const key in incrementalExport.disks) {
         let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
-        disk.addProgressHandler(new TaskProgressHandler())
+        const vdi = incrementalExport.vdis[key]
+        const progressHandler = TaskProgressHandler.forSource(
+          { name: `read disk ${vdi.name_label}`, vdiUuid: vdi.uuid },
+          { size: disk.getBlockIndexesCount() * disk.getBlockSize() }
+        )
+        disk.addProgressHandler(progressHandler)
+        sourceProgressHandlers.push(progressHandler)
         disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }
@@ -97,17 +105,19 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._selectBaseVm(metadata)
       await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
-      await this._callWriters(
-        writer =>
-          writer.transfer({
-            deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
-            includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
-            isVhdDifferencing,
-            timestamp: metadata.timestamp,
-            vm: metadata.vm,
-            vmSnapshot: metadata.vmSnapshot,
-          }),
-        'writer.transfer()'
+      await runAndEndSourceTasks(sourceProgressHandlers, () =>
+        this._callWriters(
+          writer =>
+            writer.transfer({
+              deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
+              includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
+              isVhdDifferencing,
+              timestamp: metadata.timestamp,
+              vm: metadata.vm,
+              vmSnapshot: metadata.vmSnapshot,
+            }),
+          'writer.transfer()'
+        )
       )
 
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')

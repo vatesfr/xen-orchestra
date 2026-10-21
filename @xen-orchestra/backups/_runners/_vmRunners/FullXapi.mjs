@@ -4,6 +4,7 @@ import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { FullXapiWriter } from '../_writers/FullXapiWriter.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
+import { runAndEndSourceTasks, TaskProgressHandler } from './_TaskProgressHandler.mjs'
 import { AbstractXapi } from './_AbstractXapi.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { AggregatedFullXapiWriter } from '../_writers/AggregatedFullXapiWriter.mjs'
@@ -78,20 +79,24 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
       maxStreamLength += XVA_BLOCK_SIZE * nbBlocks + headersSize
     }
 
-    const sizeContainer = watchStreamSize(stream)
+    // the export is read once, whatever the number of writers: the sizes are reported in its own task
+    const progressHandler = TaskProgressHandler.forSource({ name: 'read' })
+    const sizeContainer = watchStreamSize(stream, { size: 0, progressHandler })
 
     const transferStart = Date.now()
-    await this._callWriters(
-      writer =>
-        writer.run({
-          maxStreamLength,
-          sizeContainer,
-          stream: forkStreamUnpipe(stream),
-          timestamp: this.timestamp,
-          vm,
-          vmSnapshot: exportedVm,
-        }),
-      'writer.run()'
+    await runAndEndSourceTasks([progressHandler], () =>
+      this._callWriters(
+        writer =>
+          writer.run({
+            maxStreamLength,
+            sizeContainer,
+            stream: forkStreamUnpipe(stream),
+            timestamp: this.timestamp,
+            vm,
+            vmSnapshot: exportedVm,
+          }),
+        'writer.run()'
+      )
     )
 
     const { size } = sizeContainer

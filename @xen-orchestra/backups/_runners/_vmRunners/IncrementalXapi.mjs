@@ -17,7 +17,7 @@ import {
 import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
-import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { runAndEndSourceTasks, TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -49,10 +49,18 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     })
 
     const isVhdDifferencing = {}
+    // each disk is read once, whatever the number of writers: the sizes are reported in its own task
+    const sourceProgressHandlers = []
     let useNbd = false
     for (const key in deltaExport.disks) {
       let disk = deltaExport.disks[key]
-      disk.addProgressHandler(new TaskProgressHandler())
+      const vdi = deltaExport.vdis[key]
+      const progressHandler = TaskProgressHandler.forSource(
+        { name: `read disk ${vdi.name_label}`, vdiUuid: vdi.uuid },
+        { size: disk.getBlockIndexesCount() * disk.getBlockSize() }
+      )
+      disk.addProgressHandler(progressHandler)
+      sourceProgressHandlers.push(progressHandler)
       isVhdDifferencing[key] = disk.isDifferencing()
       if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
         Task.warning('Backup fell back to a full')
@@ -67,20 +75,22 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
 
     // @todo : reimplement throttle
 
-    await this._callWriters(
-      writer =>
-        writer.transfer({
-          deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
-          // freshly exported from XAPI by code that has the fix and the force-full gate
-          // (writer.checkBaseVdis ran before this transfer), so the chain is verified/forced
-          // clean; the tip's flag lets the next run skip re-probing
-          includeNonNbdQcow2Fix: true,
-          isVhdDifferencing,
-          timestamp: this.timestamp,
-          vm,
-          vmSnapshot: exportedVm,
-        }),
-      'writer.transfer()'
+    await runAndEndSourceTasks(sourceProgressHandlers, () =>
+      this._callWriters(
+        writer =>
+          writer.transfer({
+            deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
+            // freshly exported from XAPI by code that has the fix and the force-full gate
+            // (writer.checkBaseVdis ran before this transfer), so the chain is verified/forced
+            // clean; the tip's flag lets the next run skip re-probing
+            includeNonNbdQcow2Fix: true,
+            isVhdDifferencing,
+            timestamp: this.timestamp,
+            vm,
+            vmSnapshot: exportedVm,
+          }),
+        'writer.transfer()'
+      )
     )
 
     if (isFull) {

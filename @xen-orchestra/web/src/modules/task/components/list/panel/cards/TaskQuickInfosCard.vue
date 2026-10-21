@@ -49,6 +49,14 @@
           {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedSize !== undefined">
+        <template #key>{{ t('size-to-read') }}</template>
+        <template #value>{{ formattedSize }}</template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
+        <template #key>{{ t('reading-speed') }}</template>
+        <template #value>{{ formattedSpeed }}</template>
+      </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -70,7 +78,7 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskAccents, getTaskTransfer } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -82,6 +90,8 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatSize } from '@core/utils/size.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -128,6 +138,23 @@ const formattedEndDate = computed(() => {
   const endTimestamp = task.start + estimatedTotal
 
   return d(endTimestamp, 'datetime_short')
+})
+
+// sizes in bytes read from the sources (disks, XVA) of this task and its subtasks, each source counted once whatever
+// the number of targets: this is not the written size
+const transfer = computed(() => getTaskTransfer(task))
+
+const formattedSize = computed(() => {
+  const size = transfer.value?.size
+
+  return size !== undefined ? formatSize(size, 2) : undefined
+})
+
+// average speed once ended, otherwise the speed of the transfers still running
+const formattedSpeed = computed(() => {
+  const bytesPerSecond = transfer.value?.bytesPerSecond
+
+  return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })
 </script>
 

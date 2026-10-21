@@ -1135,6 +1135,7 @@
   "size": "Taille",
   "size-and-speed": "@:size et @.lower:speed",
   "size-on-disk": "Taille sur le disque",
+  "size-to-read": "Taille à lire",
   "skipped": "Ignoré",
   "smart-mode": "Mode intelligent",
   "smb": "SMB",

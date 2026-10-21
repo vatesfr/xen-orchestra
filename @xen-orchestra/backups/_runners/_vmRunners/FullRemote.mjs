@@ -6,6 +6,7 @@ import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { Task } from '@vates/task'
+import { runAndEndSourceTasks, TaskProgressHandler } from './_TaskProgressHandler.mjs'
 
 const { warn } = createLogger('xo:backups:FullRemoteVmBackup')
 
@@ -24,7 +25,9 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     let nbTransferredVms = 0
     for (const metadata of transferList) {
       const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
-      const sizeContainer = watchStreamSize(stream)
+      // the backup is read once, whatever the number of writers: the sizes are reported in its own task
+      const progressHandler = TaskProgressHandler.forSource({ name: 'read' })
+      const sizeContainer = watchStreamSize(stream, { size: 0, progressHandler })
       let checksum
       try {
         // the unencrypted destinations store the same data as the source: no need to compute their checksum again
@@ -37,20 +40,22 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
       const isForked = this._writers.size > 1
 
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)
-      await this._callWriters(
-        writer =>
-          writer.run({
-            checksum,
-            stream: isForked ? forkStreamUnpipe(stream) : stream,
-            // stream will be forked and transformed, it's not safe to attach additional properties to it
-            streamLength: stream.length,
-            maxStreamLength: stream.maxStreamLength, // for encrypted destination/source without length
-            timestamp: metadata.timestamp,
-            vm: metadata.vm,
-            vmSnapshot: metadata.vmSnapshot,
-            sizeContainer,
-          }),
-        'writer.run()'
+      await runAndEndSourceTasks([progressHandler], () =>
+        this._callWriters(
+          writer =>
+            writer.run({
+              checksum,
+              stream: isForked ? forkStreamUnpipe(stream) : stream,
+              // stream will be forked and transformed, it's not safe to attach additional properties to it
+              streamLength: stream.length,
+              maxStreamLength: stream.maxStreamLength, // for encrypted destination/source without length
+              timestamp: metadata.timestamp,
+              vm: metadata.vm,
+              vmSnapshot: metadata.vmSnapshot,
+              sizeContainer,
+            }),
+          'writer.run()'
+        )
       )
       // for healthcheck
       this._tags = metadata.vm.tags
