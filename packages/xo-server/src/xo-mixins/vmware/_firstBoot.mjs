@@ -14,6 +14,9 @@ const WINDOWS_FIRST_BOOT_TIMEOUT = 45 * 60e3
 const AGENT_TIMEOUT = 15 * 60e3
 const AGENT_POLL_INTERVAL = 5e3
 
+// the phases of the first-boot script, by cleanup mode: the VM is restarted between two of them
+const WINDOWS_FIRST_BOOT_PHASES = { standard: ['drivers', 'finish'], full: ['drivers', 'cleanup', 'finish'] }
+
 const hasFinding = (report, code) => report.findings.some(finding => finding.code === code)
 
 /**
@@ -46,20 +49,53 @@ async function stopVm(xapi, vmRef) {
 /**
  * The first-boot script of Windows can only report once the PV drivers are loaded. When it does not report
  * its end in time, or gives up, the VM is stopped and a diagnose run reads its state and log offline.
+ *
+ * Between two phases the script stops the VM (`windows-reboot=xo`), XO starts it again: before the PV drivers
+ * are loaded the guest cannot tell anything, a stopped VM is the signal. The number of phases bounds it, a VM
+ * which stops once more is a first boot which did not complete. An ISO which reboots the guest itself never
+ * stops it, its first boot is followed all the same.
+ *
+ * @param {import('xen-api').Xapi} xapi
+ * @param {string} vmRef
+ * @param {object} params
+ * @param {object} params.context
+ * @param {string} params.isoVersion
+ * @param {readonly string[]} params.phases - of the script, from `WINDOWS_FIRST_BOOT_PHASES`
+ * @param {(progress: import('./_repairInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress
  */
-async function followWindowsFirstBoot(xapi, vmRef, { context, isoVersion }) {
+async function followWindowsFirstBoot(xapi, vmRef, { context, isoVersion, phases, onProgress }) {
+  const progress = { restartedAfter: [], done: false }
+  const deadline = Date.now() + WINDOWS_FIRST_BOOT_TIMEOUT
   let state
-  try {
-    const vm = await xapi.waitObjectState(
-      vmRef,
-      vm => isFirstBootOver(readFirstBootState(vm.xenstore_data)) || vm.power_state === 'Halted',
-      { timeout: WINDOWS_FIRST_BOOT_TIMEOUT }
-    )
+  while (true) {
+    let vm
+    try {
+      vm = await xapi.waitObjectState(
+        vmRef,
+        vm => isFirstBootOver(readFirstBootState(vm.xenstore_data)) || vm.power_state === 'Halted',
+        { timeout: Math.max(0, deadline - Date.now()) }
+      )
+    } catch (error) {
+      warn('the Windows first boot did not report its end in time', { ...context, error })
+      break
+    }
     state = readFirstBootState(vm.xenstore_data)
-  } catch (error) {
-    warn('the Windows first boot did not report its end in time', { ...context, error })
+    if (isFirstBootOver(state) || progress.restartedAfter.length >= phases.length - 1) {
+      break
+    }
+
+    const phase = phases[progress.restartedAfter.length]
+    await Task.run({ properties: { name: `restarting the VM after the ${phase} phase of its first boot` } }, () =>
+      xapi.call('VM.start', vmRef, false, false)
+    )
+    // until then the cache may still show the VM halted, and it would be started again
+    await xapi.barrier()
+    progress.restartedAfter.push(phase)
+    await onProgress(progress)
   }
   if (state === 'done') {
+    progress.done = true
+    await onProgress(progress)
     return
   }
 
@@ -123,8 +159,10 @@ async function enableSecureBoot(xapi, vmRef, context) {
  * @param {object} params.metadata - from `getTransferableVmMetadata`
  * @param {{ diagnose: object, repair: object }} params.reports - from `repairImportedVm`
  * @param {string} params.isoVersion - build of the repair ISO, to diagnose a first boot which did not complete
+ * @param {(progress: import('./_repairInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress - called
+ * each time the Windows first boot moves forward, e.g. to describe it on the VM. Must not throw
  */
-export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, isoVersion }) {
+export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, isoVersion, onProgress }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
   const { repair } = reports
@@ -142,7 +180,12 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, is
   )
   if (isWindows && firstBootScheduled && hasPvDrivers) {
     await Task.run({ properties: { name: 'Windows first boot' } }, () =>
-      followWindowsFirstBoot(xapi, vmRef, { context, isoVersion })
+      followWindowsFirstBoot(xapi, vmRef, {
+        context,
+        isoVersion,
+        phases: WINDOWS_FIRST_BOOT_PHASES[repair.os.cleanup] ?? WINDOWS_FIRST_BOOT_PHASES.standard,
+        onProgress,
+      })
     )
   }
 

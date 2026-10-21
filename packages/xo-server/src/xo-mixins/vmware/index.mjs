@@ -299,9 +299,21 @@ export default class MigrateVm {
       await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
       return
     }
+    // how far the first boot went, kept in the description when it fails
+    let firstBoot
     try {
       await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
-        firstBootOfRepairedVm({ xapi, vmRef: vm.$ref, metadata, reports, isoVersion })
+        firstBootOfRepairedVm({
+          xapi,
+          vmRef: vm.$ref,
+          metadata,
+          reports,
+          isoVersion,
+          onProgress: progress => {
+            firstBoot = progress
+            return this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, isoVersion }))
+          },
+        })
       )
     } catch (error) {
       warn('the first boot of the repaired guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
@@ -314,7 +326,7 @@ export default class MigrateVm {
           }),
         })
         .catch(storeError => warn('failed to store the first boot report', { error: storeError, vmId: vm.uuid }))
-      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBootError: error, isoVersion }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, firstBootError: error, isoVersion }))
     }
   }
 
@@ -396,7 +408,14 @@ export default class MigrateVm {
     const isoVersion = repairOptions.isoVersion ?? REPAIR_ISO_VERSION
     let reports
     if (repair) {
-      reports = await this.#repairVm({ isComplete, isoVersion, metadata, options: repairOptions, vm })
+      reports = await this.#repairVm({
+        isComplete,
+        isoVersion,
+        metadata,
+        // the VM is started once repaired, XO follows its first boot and does its reboots
+        options: { ...repairOptions, followFirstBoot: startVm },
+        vm,
+      })
     }
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
