@@ -12,10 +12,6 @@ function mountSelectedVmsPanel() {
   })
 }
 
-beforeEach(() => {
-  localStorage.clear()
-})
-
 describe('on a small screen', () => {
   it('closes the panel at load, even open before', async () => {
     await resizeToSmallScreen()

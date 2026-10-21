@@ -45,10 +45,6 @@ function failStorageWrites() {
   return silenceConsoleError()
 }
 
-beforeEach(() => {
-  localStorage.clear()
-})
-
 describe('connections', () => {
   it('lists the remembered connections, the most recently used first', () => {
     const { old, recent } = createOldAndRecentV2vRememberedConnections()

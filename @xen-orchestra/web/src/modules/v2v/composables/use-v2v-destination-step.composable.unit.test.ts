@@ -64,7 +64,6 @@ async function mountDestinationStep(query: Record<string, string> = {}) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   xoCollectionsMock.reset()
 })
 
