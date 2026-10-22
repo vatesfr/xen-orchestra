@@ -1,5 +1,6 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import { buildAzureBackupRepositoryDetailsPayload } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { required } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, reactive } from 'vue'
@@ -10,28 +11,36 @@ export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupR
 
 const INITIAL_FORM_DATA = {
   hostName: '',
-  useHttps: true,
+  useHttps: true as boolean | undefined,
   accountName: '',
   key: '',
   containerName: '',
   pathInContainer: '',
 }
 
-export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
+export type AzureBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useAzureBackupRepositoryDetailsForm(
+  rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>,
+  initialData?: Partial<AzureBackupRepositoryDetailsFormData>
+) {
   const { t } = useI18n()
 
   const type = toComputed(rawType)
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onSubmit: () => ({
-        hostName: { required },
-        accountName: { required },
-        key: { required },
-        containerName: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          hostName: { required },
+          accountName: { required },
+          key: { required },
+          containerName: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     hostName: useField('hostName', () => ({ label: t('host-name'), required: true })),
@@ -43,16 +52,7 @@ export function useAzureBackupRepositoryDetailsForm(rawType: MaybeRefOrGetter<Ba
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: type.value === 'azurite' ? 'azurite' : 'azure',
-        protocol: formData.useHttps ? 'https' : 'http',
-        host: formData.hostName,
-        path: `${formData.containerName}/${formData.pathInContainer}`,
-        username: formData.accountName,
-        password: formData.key,
-      },
-    }
+    return buildAzureBackupRepositoryDetailsPayload(formData, type.value)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

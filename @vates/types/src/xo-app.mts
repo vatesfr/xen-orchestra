@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:stream'
+import type { EventEmitter, Readable } from 'node:stream'
 import type {
   AnyXoJob,
   AnyXoLog,
@@ -9,6 +9,7 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoPlugin,
   XoPool,
   XoPoolBackupArchive,
   XoProxy,
@@ -191,7 +192,16 @@ export type BackupArchiveDiskMount = {
   port: number
 }
 
-export type XoApp = {
+type XoStoreRangeOptions = {
+  gt?: string
+  gte?: string
+  lt?: string
+  lte?: string
+  limit?: number
+  reverse?: boolean
+}
+
+export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
     get(key: string): Promise<string | null>
@@ -246,6 +256,7 @@ export type XoApp = {
     user?: XoUser
     permission?: XoUser['permission'] | 'none' | null
   }
+  backupLogsEe: EventEmitter
 
   // methods ------------
   allocIpAddresses(vifId: XoVif['id'], addAddresses?: string[], removeAddresses?: string[]): Promise<void>
@@ -290,6 +301,13 @@ export type XoApp = {
     description?: XoAclRole['description']
     privileges?: Omit<XoAclBasePrivilege, 'id' | 'roleId'>[]
   }): Promise<XoAclRole>
+  createApiConnection(remoteAddress: string): EventEmitter & {
+    close(): void
+    get<T = unknown>(key: string, defaultValue: unknown): T
+    has(key: string): boolean
+    set(key: string, value: unknown): void
+    unset(key: string): void
+  }
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -324,8 +342,10 @@ export type XoApp = {
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
+  disablePluginAutoload(id: XoPlugin['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  enablePluginAutoload(id: XoPlugin['id']): Promise<void>
   findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
@@ -336,6 +356,7 @@ export type XoApp = {
     roleId: XoAclRole['id'],
     opts?: { bypassAuthorization?: boolean }
   ): Promise<boolean>
+  deleteSchedule(id: XoSchedule['id']): Promise<void>
   getAclV2GroupRoles(
     groupId: XoGroup['id'],
     opts?: { bypassAuthorization?: boolean }
@@ -350,6 +371,8 @@ export type XoApp = {
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
+  getPlugin(id: XoPlugin['id']): Promise<XoPlugin>
+  getPlugins(): Promise<XoPlugin[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -382,6 +405,10 @@ export type XoApp = {
   }
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
+  /** Please use `REMOVE_CACHE_ENTRY` const to clear the cache */
+  getBackupNgLogs(removeCacheEntry: {}): void
+  /** Please use `REMOVE_CACHE_ENTRY` const to clear a cache entry */
+  getBackupNgLogs(removeCacheEntry: {}, id: AnyXoLog['id']): void
   getBackupNgLogsSorted(opts: {
     after?: number
     before?: number
@@ -399,6 +426,18 @@ export type XoApp = {
   ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
+  getStore(namespace: string): Promise<{
+    /** rejects with an error having `notFound: true` when the key does not exist */
+    get(key: string): Promise<unknown>
+    has(key: string): Promise<boolean>
+    put(key: string, value: unknown): Promise<void>
+    del(key: string): Promise<void>
+    del(key: string, cb: (error?: Error | null) => void): void
+    /** object mode stream of `{ key, value }` */
+    createReadStream(opts?: XoStoreRangeOptions): Readable
+    /** object mode stream of keys */
+    createKeyStream(opts?: XoStoreRangeOptions): Readable
+  }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
@@ -413,6 +452,7 @@ export type XoApp = {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
@@ -435,6 +475,7 @@ export type XoApp = {
     diskId: string
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
+  purgePluginConfiguration(id: XoPlugin['id']): Promise<void>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /**
    * Record the live mounts a proxy created by itself, while running a restore: they never went
@@ -475,6 +516,7 @@ export type XoApp = {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testPlugin(id: XoPlugin['id'], data?: unknown): Promise<void>
   testRemote(
     id: XoBackupRepository['id']
   ): Promise<
@@ -484,6 +526,7 @@ export type XoApp = {
   touchXoObject(type: string, id: NonXapiXoRecord['id']): Promise<void>
   /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
   unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
+  unloadPlugin(id: XoPlugin['id']): Promise<void>
   reclaimSpace(
     remoteId: XoBackupRepository['id'],
     opts?: { vmUuid?: XoVm['id']; merge?: boolean; remove?: boolean }

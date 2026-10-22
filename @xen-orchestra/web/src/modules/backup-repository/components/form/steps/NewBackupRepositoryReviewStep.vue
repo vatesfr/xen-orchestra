@@ -28,7 +28,7 @@
         </VtsTabularKeyValueRow>
         <VtsTabularKeyValueRow :label="t('encryption')">
           <template #value>
-            <VtsStatus :status="general.formData.encrypted" />
+            <VtsStatus :status="general.formData.encrypted === true" />
           </template>
         </VtsTabularKeyValueRow>
       </VtsTabularKeyValueList>
@@ -72,8 +72,8 @@ import BackupRepositoryNfsReview from '@/modules/backup-repository/components/fo
 import BackupRepositoryS3Review from '@/modules/backup-repository/components/form/review/BackupRepositoryS3Review.vue'
 import BackupRepositorySmbReview from '@/modules/backup-repository/components/form/review/BackupRepositorySmbReview.vue'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import type { BackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
-import type { NewBackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-new-backup-repository-form.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -86,7 +86,7 @@ import { useI18n } from 'vue-i18n'
 
 const { general } = defineProps<{
   general: BackupRepositoryGeneralForm
-  details: NewBackupRepositoryDetailsForms
+  details: BackupRepositoryDetailsForms
   detailsTitle: string
 }>()
 
@@ -98,7 +98,7 @@ const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const proxy = useGetProxyById(() => general.formData.proxy)
+const proxy = useGetProxyById(() => general.formData.proxy ?? undefined)
 
 const type = computed(() => general.formData.type)
 

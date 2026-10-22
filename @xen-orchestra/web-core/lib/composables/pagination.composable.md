@@ -7,7 +7,9 @@ The composable uses index-based pagination instead of page numbers, enabling URL
 ## Storage
 
 - Route query: `{id}.idx` stores start index
-- LocalStorage: `{id}.per-page` stores "Show by" value (default: 50)
+- LocalStorage: `{id}.per-page` stores "Show by" value (default: 24)
+
+With `ignoreRoute: true`, the start index is kept in memory instead of the route query (e.g. for a table inside an overlay, which must not change the URL).
 
 ## Key Points
 
@@ -22,6 +24,9 @@ The composable uses index-based pagination instead of page numbers, enabling URL
 ```typescript
 // Basic usage
 const { pageRecords, paginationBindings } = usePagination('items', items)
+
+// Start index kept in memory
+const { pageRecords, paginationBindings } = usePagination('items', items, { ignoreRoute: true })
 
 // Template
 <div v-for="item in pageRecords" :key="item.id">

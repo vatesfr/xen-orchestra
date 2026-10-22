@@ -43,6 +43,10 @@ it('is checked according to its model', () => {
   expect({ whenFalse: isChecked(false), whenTrue: isChecked(true) }).toEqual({ whenFalse: false, whenTrue: true })
 })
 
+it('is indeterminate when its model is undefined, as for a value which differs between edited repositories', () => {
+  expect(mountCheckbox({ modelValue: undefined }).find('input.indeterminate').exists()).toBe(true)
+})
+
 it('updates its model when it is checked', async () => {
   const wrapper = mountCheckbox()
 

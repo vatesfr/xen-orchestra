@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { formatVmBackupAt } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { isKnownJournalEvent } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { normalize } from '@xen-orchestra/fs/path'
 
 import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
-const REPOSITORY = { id: 'repository' }
+const REPOSITORY = { id: 'repository', url: 'file:///media/backup' }
 
 const enoent = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
@@ -19,6 +20,9 @@ class Repository {
   nListings = 0
   nOneVmListings = 0
   nJournalReads = 0
+
+  // the cursor of each journal read, in order
+  cursors = []
 
   failWith
 
@@ -89,6 +93,7 @@ class Repository {
       readJournal: async (repository, cursor, { mustExist = false } = {}) => {
         this.#mayFail()
         this.nJournalReads++
+        this.cursors.push(cursor)
 
         if (this.cannotReplay) {
           return undefined
@@ -106,15 +111,18 @@ class Repository {
           cursor = entries[entries.length - 1]._filename
         }
 
-        // `VmBackupsSource` hands the cache the current value of each backup an event is about, or
-        // nothing at all when the backup is gone
-        const events = entries.map(({ event, filename, vmUuid }) => {
-          const key = normalize(filename)
-          const metadata = this.metadataByFilename.get(key)
-          return metadata === undefined
-            ? { event, vmUuid, filename: key }
-            : { event, vmUuid, filename: key, backup: this.#format(metadata) }
-        })
+        // `VmBackupsSource` ignores the events it does not know how to resolve, and hands the cache
+        // the current value of each backup the others are about, or nothing at all when the backup
+        // is gone
+        const events = entries
+          .filter(({ event }) => isKnownJournalEvent(event))
+          .map(({ event, filename, vmUuid }) => {
+            const key = normalize(filename)
+            const metadata = this.metadataByFilename.get(key)
+            return metadata === undefined
+              ? { event, vmUuid, filename: key }
+              : { event, vmUuid, filename: key, backup: this.#format(metadata) }
+          })
         return { events, cursor }
       },
     }
@@ -125,6 +133,27 @@ class Repository {
       throw this.failWith
     }
   }
+}
+
+// makes the next call to a method of the source read, then wait for `release()` before returning
+// what it read, so that a test can act between the two; `read` resolves once it has read
+const holdNextRead = (source, method) => {
+  const original = source[method]
+  let onRead, release
+  const read = new Promise(resolve => {
+    onRead = resolve
+  })
+  const released = new Promise(resolve => {
+    release = resolve
+  })
+  source[method] = async (...args) => {
+    source[method] = original
+    const result = await original(...args)
+    onRead()
+    await released
+    return result
+  }
+  return { read, release }
 }
 
 const filenames = backupsByVm => Object.values(backupsByVm).flatMap(backups => Object.keys(backups))
@@ -273,18 +302,36 @@ describe('VmBackupsCache', () => {
     assert.ok(filenames(backups).includes(added._filename))
   })
 
-  it('rebuilds when the entry crosses a UTC day', async t => {
-    const { tick } = mockTime(t, Date.parse('2026-08-11T23:59:00Z'))
-    const repository = new Repository([metadataOf(VM, '20260811T090000')])
-    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+  for (const [query, minutes] of [
+    ['', 60],
+    ['?fullListingInterval=10', 10],
+    ['?fullListingInterval=360', 360],
+    // a typo or a duration with a unit must not make the repository unreadable, nor an interval which is
+    // not positive make every read list it in full: the default interval, with a warning
+    ['?fullListingInterval=often', 60],
+    ['?fullListingInterval=10m', 60],
+    ['?fullListingInterval=1.5', 60],
+    ['?fullListingInterval=0', 60],
+    ['?fullListingInterval=-10', 60],
+  ]) {
+    it(`rebuilds ${minutes} minutes after the entry was built, however recently it was replayed, for '${REPOSITORY.url + query}'`, async t => {
+      const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+      const withQuery = { ...REPOSITORY, url: REPOSITORY.url + query }
 
-    await cache.get(REPOSITORY)
-    tick(120e3)
-    await cache.get(REPOSITORY)
+      await cache.get(withQuery)
+      tick((minutes - 1) * 60e3)
+      await cache.get(withQuery)
+      assert.equal(repository.nListings, 1)
+      assert.equal(repository.nJournalReads, 1)
 
-    assert.equal(repository.nListings, 2)
-    assert.equal(repository.nJournalReads, 0)
-  })
+      tick(60e3)
+      await cache.get(withQuery)
+      assert.equal(repository.nListings, 2)
+      assert.equal(repository.nJournalReads, 1)
+    })
+  }
 
   it('rebuilds when the remote is re-pointed or reconfigured', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
@@ -328,6 +375,35 @@ describe('VmBackupsCache', () => {
     assert.ok(filenames(backups).includes(added._filename))
   })
 
+  it('leaves the rebuild which falls due during a refresh() to the next read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    // built at 10:00, the replay below starts 59 minutes later
+    await cache.get(REPOSITORY)
+    tick(59 * 60e3)
+
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+
+    // the refresh lands during the replay, which settles after the rebuild interval has elapsed: the
+    // read must not list the repository in full on behalf of the callers which joined it
+    cache.refresh(REPOSITORY.id)
+    tick(2 * 60e3)
+    held.release()
+
+    await pending
+    assert.equal(repository.nListings, 1)
+    assert.equal(repository.nJournalReads, 1)
+
+    // the next read lists it, as the rebuild interval has elapsed
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
+  })
+
   it('delete() forces a rebuild', async t => {
     mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
@@ -362,6 +438,108 @@ describe('VmBackupsCache', () => {
     tick(30e3)
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
+  })
+
+  it('replays the repository again once the source can replay it', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    repository.cannotReplay = true
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
+
+    // e.g. the proxy it is attached to has been updated to a version which exposes its journal
+    repository.cannotReplay = false
+    tick(60e3)
+    await cache.get(REPOSITORY)
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), true)
+    assert.equal(repository.nListings, 2)
+  })
+
+  it('tells the repositories in the collection whose journal can be replayed from the others', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+    const replayability = () => ({
+      isReplayable: cache.isReplayable(REPOSITORY.id),
+      replayable: cache.replayableRepositoryIds(),
+      unreplayable: cache.unreplayableRepositoryIds(),
+    })
+
+    // never listed: none of its archives is in the collection
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [] })
+
+    await cache.get(REPOSITORY)
+    assert.deepEqual(replayability(), { isReplayable: true, replayable: [REPOSITORY.id], unreplayable: [] })
+
+    // reading it now means listing it in full, which the cache finds out on the next replay
+    repository.cannotReplay = true
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [REPOSITORY.id] })
+
+    // e.g. it has been moved to another proxy, which may expose its journal
+    cache.delete(REPOSITORY.id)
+    assert.deepEqual(replayability(), { isReplayable: true, replayable: [REPOSITORY.id], unreplayable: [] })
+
+    cache.remove(REPOSITORY.id)
+    assert.deepEqual(replayability(), { isReplayable: false, replayable: [], unreplayable: [] })
+  })
+
+  it('does not record that a repository cannot be replayed when it is deleted during the read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // e.g. read through a proxy which does not expose the journal, while the repository is being
+    // moved off it
+    repository.cannotReplay = true
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+    cache.delete(REPOSITORY.id)
+    held.release()
+    await pending
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), true)
+  })
+
+  it('does not clear the mark of a repository which cannot be replayed when an older replay settles', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a replay of the entry which is about to be dropped, held while it reads the journal
+    const held = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+    cache.delete(REPOSITORY.id)
+
+    // the repository is then listed again, and found out not to be replayable
+    repository.cannotReplay = true
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
+
+    // the replay which started before the deletion settles after the new entry has been marked: it
+    // must not clear that mark
+    held.release()
+    await pending
+
+    assert.equal(cache.isReplayable(REPOSITORY.id), false)
   })
 
   it('forgets a repository which cannot be read anymore', async t => {
@@ -412,6 +590,40 @@ describe('VmBackupsCache', () => {
     repository.journalDirMissing = false
     await cache.get(REPOSITORY)
     assert.equal(repository.nListings, 2)
+  })
+
+  it('advances the cursor past the entries which resolved to no event', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+
+    // an event of a kind this version does not support, e.g. written by a newer one: it is consumed
+    // by the source, which reports no event at all
+    tick(60e3)
+    repository.pushEvent('an-unsupported-event', filenameOf(VM, '20260811T100000'), VM, Date.now())
+    await cache.get(REPOSITORY)
+
+    tick(60e3)
+    await cache.get(REPOSITORY)
+
+    // the entry is behind the cursor: the next read does not cover it again
+    assert.equal(repository.cursors[1], repository.journal[0]._filename)
+    assert.equal(repository.nListings, 1)
+  })
+
+  it('confirms the journal directory even when its entries resolved to no event', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 0 })
+
+    await cache.get(REPOSITORY)
+    repository.pushEvent('an-unsupported-event', filenameOf(VM, '20260811T100000'), VM, Date.now())
+    await cache.get(REPOSITORY) // reads the entry, confirming the journal directory exists
+
+    repository.journalDirMissing = true
+    await assert.rejects(cache.get(REPOSITORY), /ENOENT/)
   })
 
   describe('getOneVm()', () => {
@@ -476,6 +688,359 @@ describe('VmBackupsCache', () => {
       assert.equal(repository.nListings, 1)
       assert.equal(repository.nOneVmListings, 0)
     })
+  })
+})
+
+// the id the cache announces an archive under, which is the one the API serves it as
+const archiveIdOf = (vmUuid, name) => `${REPOSITORY.id}/${filenameOf(vmUuid, name)}`
+
+// records what the cache announces, in order: the archive of an `add` or `update`, the id of a
+// `remove`, which the cache emits one at a time
+const recordEvents = cache => {
+  const events = []
+  for (const name of ['add', 'update']) {
+    cache.archives.on(name, ([archive]) => events.push({ event: name, archive }))
+  }
+  cache.archives.on('remove', ([id]) => events.push({ event: 'remove', id }))
+  return events
+}
+
+// what an event says, without the whole archive
+const summarize = events => events.map(({ event, archive, id }) => ({ event, id: id ?? archive.id }))
+
+describe('VmBackupsCache collection', () => {
+  it('announces the backups a listing discovered', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.source)
+    const events = recordEvents(cache)
+
+    await cache.get(REPOSITORY)
+
+    assert.deepEqual(events, [
+      {
+        event: 'add',
+        archive: {
+          ...formatVmBackupAt(metadata, metadata._filename, REPOSITORY.id),
+          id: archiveIdOf(VM, '20260811T090000'),
+        },
+      },
+    ])
+  })
+
+  it('announces what the journal replays', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const changed = metadataOf(VM, '20260811T090000')
+    const removed = metadataOf(VM, '20260811T093000')
+    const repository = new Repository([changed, removed])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+    tick(60e3)
+
+    const added = metadataOf(OTHER_VM, '20260811T100000')
+    repository.add(added, Date.now())
+    repository.change({ ...changed, size: 42 }, Date.now())
+    repository.del(removed, Date.now())
+
+    await cache.get(REPOSITORY)
+
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T100000') },
+      { event: 'update', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'remove', id: archiveIdOf(VM, '20260811T093000') },
+    ])
+    assert.equal(events[1].archive.size, 42)
+  })
+
+  it('reads the journal again for every refresh() called while it is being read again', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+    tick(60e3)
+
+    const firstRead = holdNextRead(source, 'readJournal')
+    const pending = cache.get(REPOSITORY)
+    await firstRead.read
+
+    // written after the journal has been read, e.g. by the next VM of a backup job
+    const added = metadataOf(OTHER_VM, '20260811T100000')
+    repository.add(added, Date.now())
+    cache.refresh(REPOSITORY.id)
+    const secondRead = holdNextRead(source, 'readJournal')
+    firstRead.release()
+    await secondRead.read
+
+    // e.g. the VM after it in the same backup job
+    const addedLater = metadataOf(VM, '20260811T100000')
+    repository.add(addedLater, Date.now())
+    cache.refresh(REPOSITORY.id)
+    secondRead.release()
+
+    assert.deepEqual(
+      filenames(await pending).sort(),
+      [filenameOf(VM, '20260811T090000'), added._filename, addedLater._filename].sort()
+    )
+    assert.equal(repository.nJournalReads, 3)
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T100000') },
+      { event: 'add', id: archiveIdOf(VM, '20260811T100000') },
+    ])
+  })
+
+  it('stops reading the journal again after a bound, leaving the entry stale for the next read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    // a mutation during every journal read, e.g. a backup job writing VM after VM faster than the cache reads them
+    const readJournal = source.readJournal
+    source.readJournal = async (...args) => {
+      const read = await readJournal(...args)
+      cache.refresh(REPOSITORY.id)
+      return read
+    }
+
+    // the callers of `get()` settle: they are not held while the mutations keep coming
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nJournalReads, 3)
+
+    // still stale: the next read replays the entry again
+    source.readJournal = readJournal
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nJournalReads, 4)
+  })
+
+  it('reads the journal when refresh() is called while the repository is being listed', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+    const events = recordEvents(cache)
+
+    const held = holdNextRead(source, 'listAll')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+
+    const added = metadataOf(OTHER_VM, '20260811T100000')
+    repository.add(added, Date.now())
+    cache.refresh(REPOSITORY.id)
+    held.release()
+
+    assert.deepEqual(filenames(await pending).sort(), [filenameOf(VM, '20260811T090000'), added._filename].sort())
+    assert.equal(repository.nListings, 1)
+    assert.equal(repository.nJournalReads, 1)
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T100000') },
+    ])
+  })
+
+  it('leaves a refresh() called while a repository is listed in full to the next read', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    repository.cannotReplay = true
+    const source = repository.source
+    const cache = new VmBackupsCache(source, { minRefreshDelay: 60e3 })
+
+    // the cache only finds out on the first replay
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    await cache.get(REPOSITORY)
+    tick(60e3)
+
+    const held = holdNextRead(source, 'listAll')
+    const pending = cache.get(REPOSITORY)
+    await held.read
+
+    const added = metadataOf(OTHER_VM, '20260811T100000')
+    repository.add(added, Date.now())
+    cache.refresh(REPOSITORY.id)
+    held.release()
+
+    assert.deepEqual(filenames(await pending), [filenameOf(VM, '20260811T090000')])
+    assert.equal(repository.nListings, 3)
+
+    // still stale: listed again without waiting for the end of the refresh window
+    assert.deepEqual(
+      filenames(await cache.get(REPOSITORY)).sort(),
+      [filenameOf(VM, '20260811T090000'), added._filename].sort()
+    )
+    assert.equal(repository.nListings, 4)
+  })
+
+  it('announces nothing when a journal event changed nothing', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+    tick(60e3)
+
+    // e.g. a cache file rewritten with the same content
+    repository.change(metadata, Date.now())
+    await cache.get(REPOSITORY)
+
+    assert.equal(repository.nJournalReads, 1)
+    assert.deepEqual(events, [])
+  })
+
+  it('announces nothing when a repository is listed again with the same backups', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+
+    // an hour later, the entry is rebuilt from scratch
+    tick(60 * 60e3)
+    await cache.get(REPOSITORY)
+
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(events, [])
+  })
+
+  it('only announces what changed when a repository is read from scratch again', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const kept = metadataOf(VM, '20260811T090000')
+    const removed = metadataOf(VM, '20260811T093000')
+    const repository = new Repository([kept, removed])
+    const cache = new VmBackupsCache(repository.source)
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+
+    // as `delete()` is called when the repository is reconfigured, or when the user forces a refresh
+    cache.delete(REPOSITORY.id)
+    repository.metadataByFilename.delete(removed._filename)
+    const added = metadataOf(OTHER_VM, '20260811T100000')
+    repository.metadataByFilename.set(added._filename, added)
+
+    await cache.get(REPOSITORY)
+
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T100000') },
+      { event: 'remove', id: archiveIdOf(VM, '20260811T093000') },
+    ])
+  })
+
+  it('remove() announces the removal of every archive of the repository', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+    const cache = new VmBackupsCache(repository.source)
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+
+    cache.remove(REPOSITORY.id)
+
+    assert.deepEqual(summarize(events), [
+      { event: 'remove', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'remove', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+
+    // the repository is forgotten, and announced from scratch if it comes back
+    await cache.get(REPOSITORY)
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(summarize(events).slice(2), [
+      { event: 'add', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+  })
+
+  it('does not fail a listing because a listener threw', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+    const cache = new VmBackupsCache(repository.source)
+    const events = recordEvents(cache)
+    cache.archives.on('add', () => {
+      throw new Error('a broken consumer')
+    })
+
+    const backupsByVm = await cache.get(REPOSITORY)
+
+    // the listing itself succeeded, and the archives after the throwing one were still announced
+    assert.deepEqual(
+      filenames(backupsByVm).sort(),
+      [filenameOf(VM, '20260811T090000'), filenameOf(OTHER_VM, '20260811T093000')].sort()
+    )
+    assert.deepEqual(summarize(events), [
+      { event: 'add', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'add', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+  })
+
+  it('removes every archive of a repository even when a listener throws', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(OTHER_VM, '20260811T093000')])
+    const cache = new VmBackupsCache(repository.source)
+
+    await cache.get(REPOSITORY)
+    const events = recordEvents(cache)
+    cache.archives.on('remove', () => {
+      throw new Error('a broken consumer')
+    })
+
+    cache.remove(REPOSITORY.id)
+
+    assert.deepEqual(summarize(events), [
+      { event: 'remove', id: archiveIdOf(VM, '20260811T090000') },
+      { event: 'remove', id: archiveIdOf(OTHER_VM, '20260811T093000') },
+    ])
+  })
+
+  it('announces nothing for a repository which is already gone', async t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const cache = new VmBackupsCache(repository.source)
+    const events = recordEvents(cache)
+
+    cache.remove(REPOSITORY.id)
+
+    assert.deepEqual(events, [])
+  })
+
+  it('serves the archives it announced, as the app reads a collection', async t => {
+    const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+    const metadata = metadataOf(VM, '20260811T090000')
+    const repository = new Repository([metadata])
+    const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+    // nothing has been listed yet, e.g. when the app registers the collection
+    assert.deepEqual(await cache.archives.get(), [])
+
+    await cache.get(REPOSITORY)
+    tick(60e3)
+    repository.add(metadataOf(OTHER_VM, '20260811T100000'), Date.now())
+    await cache.get(REPOSITORY)
+
+    assert.deepEqual(
+      (await cache.archives.get()).map(_ => _.id).sort(),
+      [archiveIdOf(OTHER_VM, '20260811T100000'), archiveIdOf(VM, '20260811T090000')].sort()
+    )
+    assert.deepEqual(await cache.archives.first(archiveIdOf(VM, '20260811T090000')), {
+      ...formatVmBackupAt(metadata, metadata._filename, REPOSITORY.id),
+      id: archiveIdOf(VM, '20260811T090000'),
+    })
+    assert.equal(await cache.archives.first(archiveIdOf(VM, 'a-backup-it-does-not-hold')), undefined)
+
+    cache.remove(REPOSITORY.id)
+    assert.deepEqual(await cache.archives.get(), [])
+    assert.equal(await cache.archives.first(archiveIdOf(VM, '20260811T090000')), undefined)
   })
 })
 

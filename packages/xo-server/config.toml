@@ -121,11 +121,6 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
-# settings when using Vhd directories ( s3 , encryption )
-# you should use 'none' if your fs is already compressed
-# changing this setting will generate new full backups
-vhdDirectoryCompression = 'brotli'
-
 # how many block can be merged in parallel per backup running
 # increase to increase performance, reduce if you have timeout during merge
 mergeBlockConcurrency = 2

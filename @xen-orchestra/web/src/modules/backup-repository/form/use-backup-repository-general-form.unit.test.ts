@@ -1,8 +1,16 @@
-import { useBackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
+import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
+import {
+  type BackupRepositoryGeneralFormData,
+  useBackupRepositoryGeneralForm,
+} from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { defineComponent, h, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
@@ -10,15 +18,19 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
 }))
 
-type GeneralFormData = ReturnType<typeof useBackupRepositoryGeneralForm>['formData']
-
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
-async function mountGeneralForm(formData: Partial<GeneralFormData> = {}) {
+const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
+
+function createGeneralFormData(): BackupRepositoryGeneralFormData {
+  return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }
+}
+
+async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormData> = {}) {
   const result = mountComposable(() => {
     const { t } = useI18n()
 
-    return { ...useBackupRepositoryGeneralForm(), t }
+    return { ...useBackupRepositoryGeneralForm(reactive(createGeneralFormData())), t }
   }).wrapper.vm
 
   const { type, ...otherFormData } = formData
@@ -30,6 +42,40 @@ async function mountGeneralForm(formData: Partial<GeneralFormData> = {}) {
   await flushPromises()
 
   return result
+}
+
+function createEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
+  return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), {
+    isEditing: true,
+  })
+}
+
+function mountEditGeneralForm(formData: Partial<BackupRepositoryGeneralFormData>) {
+  return mountComposable(() => createEditGeneralForm(formData)).wrapper.vm
+}
+
+function findDisabledSelects(formData: Partial<BackupRepositoryGeneralFormData>) {
+  const wrapper = mount(
+    defineComponent(() => {
+      const { bindings } = createEditGeneralForm(formData)
+
+      return () => h(BackupRepositoryGeneralStep, { bindings })
+    }),
+    { global: createGlobalTestConfig() }
+  )
+
+  return wrapper
+    .findAllComponents(BackupRepositoryFormSelect)
+    .filter(select => select.getComponent(UiInput).props('disabled'))
+    .map(select => select.props('label'))
+}
+
+const ENCRYPTED_NFS_FORM_DATA: Partial<BackupRepositoryGeneralFormData> = {
+  name: 'My repository',
+  type: 'nfs',
+  backupFormat: 'block',
+  encrypted: true,
+  encryptionKey: OBFUSCATED_VALUE,
 }
 
 describe('formData', () => {
@@ -98,6 +144,12 @@ describe('bindings', () => {
 
     expect(result.bindings.encrypted.disabled).toBe(false)
   })
+
+  it('shows the encryption key in clear text', async () => {
+    const result = await mountGeneralForm({ type: 'nfs', backupFormat: 'block', encrypted: true })
+
+    expect(result.bindings.encryptionKey.type).toBe('text')
+  })
 })
 
 describe('validate', () => {
@@ -123,24 +175,12 @@ describe('validate', () => {
     expect(result.bindings.encryptionKey.error).toBeDefined()
   })
 
-  it.each(['0123456789abcdef', `${ENCRYPTION_KEY}0`, 'g123456789abcdef0123456789abcdef'])(
-    'rejects the malformed encryption key %s',
-    async encryptionKey => {
-      const result = await mountGeneralForm({ name: 'My repository', type: 's3', encrypted: true, encryptionKey })
-
-      expect(await result.validate()).toBe(false)
-      expect(result.bindings.encryptionKey.error).toMatchObject({
-        content: result.t('encryption-key-invalid', { n: 32 }),
-      })
-    }
-  )
-
-  it('accepts a 32 hexadecimal characters encryption key, whatever its case', async () => {
+  it('accepts any encryption key, its format being checked by the form using it', async () => {
     const result = await mountGeneralForm({
       name: 'My repository',
       type: 's3',
       encrypted: true,
-      encryptionKey: ENCRYPTION_KEY,
+      encryptionKey: '0123456789abcdef',
     })
 
     expect(await result.validate()).toBe(true)
@@ -164,5 +204,115 @@ describe('buildUrlOptions', () => {
     const result = await mountGeneralForm({ type: 's3', encrypted: true, encryptionKey: ENCRYPTION_KEY })
 
     expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: ENCRYPTION_KEY })
+  })
+})
+
+describe('edit mode', () => {
+  it('locks the encryption and its key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.bindings.encrypted.disabled).toBe(true)
+    expect(result.bindings.encryptionKey.disabled).toBe(true)
+  })
+
+  it('hides the key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.bindings.encryptionKey.type).toBe('password')
+  })
+
+  it('locks the encryption of an unencrypted block based repository', () => {
+    const result = mountEditGeneralForm({ name: 'My repository', type: 'nfs', backupFormat: 'block' })
+
+    expect(result.bindings.encrypted.disabled).toBe(true)
+  })
+
+  it('locks the type and the format of an encrypted repository', () => {
+    expect(findDisabledSelects(ENCRYPTED_NFS_FORM_DATA)).toEqual([t('type'), t('backup-format')])
+  })
+
+  it('locks the type and the format of an unencrypted repository', () => {
+    expect(findDisabledSelects({ name: 'My repository', type: 'nfs', backupFormat: 'block' })).toEqual([
+      t('type'),
+      t('backup-format'),
+    ])
+  })
+
+  it('accepts the obfuscated key sent back by the API', async () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(await result.validate()).toBe(true)
+  })
+
+  it('keeps the key of an encrypted repository', () => {
+    const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
+
+    expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: OBFUSCATED_VALUE })
+  })
+})
+
+describe('multi-edit mode', () => {
+  function createMultiEditGeneralForm(
+    formData: Partial<BackupRepositoryGeneralFormData>,
+    mixedFields: (keyof BackupRepositoryGeneralFormData)[] = []
+  ) {
+    return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), {
+      isEditing: true,
+      isMultiEdit: true,
+      mixedFields,
+    })
+  }
+
+  // The selects display the label of their selected option
+  function findSelectedLabels(
+    formData: Partial<BackupRepositoryGeneralFormData>,
+    mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
+  ) {
+    const wrapper = mount(
+      defineComponent(() => {
+        const { bindings } = createMultiEditGeneralForm(formData, mixedFields)
+
+        return () => h(BackupRepositoryGeneralStep, { bindings })
+      }),
+      { global: createGlobalTestConfig() }
+    )
+
+    return Object.fromEntries(
+      wrapper
+        .findAllComponents(BackupRepositoryFormSelect)
+        .map(select => [select.props('label'), select.getComponent(UiInput).props('modelValue')])
+    )
+  }
+
+  it('shows the mixed value on the type, the format and the proxy which differ between the repositories', () => {
+    expect(findSelectedLabels({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
+      [t('type')]: t('mixed-value'),
+      [t('backup-format')]: t('mixed-value'),
+      [t('proxy')]: t('mixed-value'),
+    })
+  })
+
+  it('shows the values shared by all the repositories', () => {
+    const selectedLabels = findSelectedLabels({
+      name: 'My repository',
+      type: 'nfs',
+      backupFormat: 'block',
+      proxy: null,
+    })
+
+    expect(selectedLabels).toMatchObject({ [t('backup-format')]: t('block-based'), [t('proxy')]: t('none') })
+    expect(selectedLabels[t('type')]).not.toBe(t('mixed-value'))
+  })
+
+  it('removes the proxy of all the repositories with "None"', () => {
+    expect(findSelectedLabels({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
+  })
+
+  it('accepts a type and a format left mixed', async () => {
+    const result = mountComposable(() =>
+      createMultiEditGeneralForm({ name: 'My repository' }, ['type', 'backupFormat'])
+    ).wrapper.vm
+
+    expect(await result.validate()).toBe(true)
   })
 })

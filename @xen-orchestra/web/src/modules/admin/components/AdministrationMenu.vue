@@ -4,7 +4,7 @@
       <div class="section-title typo-h6">{{ section.title }}</div>
       <ul class="links">
         <MenuItem v-for="(item, itemIndex) in section.items" :key="itemIndex" accent="neutral">
-          <UiLink size="small" class="link" :href="item.href" :to="item.to">
+          <UiLink size="small" class="link" :href="item.href" :to="item.to" @click="closeSidebarOnSmallScreen()">
             {{ item.label }}
           </UiLink>
         </MenuItem>
@@ -17,6 +17,8 @@
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -33,6 +35,15 @@ type AdminMenuSection = {
 const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
+const uiStore = useUiStore()
+const leftSidebar = useLeftSidebarStore()
+
+function closeSidebarOnSmallScreen() {
+  if (uiStore.isSmall) {
+    leftSidebar.toggleExpand(false)
+  }
+}
+
 const sections = computed<AdminMenuSection[]>(() => [
   {
     title: t('backup-and-replication'),
@@ -40,11 +51,7 @@ const sections = computed<AdminMenuSection[]>(() => [
       { label: t('jobs'), href: buildXo5Route('/backup/overview'), to: undefined },
       { label: t('backup-repositories'), href: undefined, to: { name: '/admin/backup-and-replication' } },
       { label: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
-      {
-        label: t('logs'),
-        href: buildXo5Route('/backup/overview'),
-        to: undefined,
-      },
+      { label: t('logs'), href: undefined, to: { name: '/admin/backup-and-replication/logs' } },
     ],
   },
   {

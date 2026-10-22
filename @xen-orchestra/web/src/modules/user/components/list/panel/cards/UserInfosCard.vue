@@ -1,15 +1,16 @@
 <template>
   <UiPanelCard class="user-infos-card">
-    <UiCardTitle>
-      <div class="title">
-        <UiUserLogo size="small" />
-        <UiLink :href="xo5UsersHref" size="medium">
-          {{ user.name }}
-        </UiLink>
-      </div>
-    </UiCardTitle>
+    <UiPanelCardTitle :id="user.id" size="medium">
+      <template #label>
+        <span class="name">
+          <UiUserLogo size="small" />
+          <UiLink :href="xo5UsersHref" size="medium">
+            {{ user.name }}
+          </UiLink>
+        </span>
+      </template>
+    </UiPanelCardTitle>
     <div class="content">
-      <VtsCodeSnippet :content="user.id" copy />
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('xoa-manager') }}</template>
         <template #value>{{ userPermission }}</template>
@@ -44,11 +45,10 @@ import { useXoUserAuthenticationTokensCollection } from '@/modules/user/remote-r
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -98,7 +98,7 @@ const userPermission = computed(() => {
 
 <style scoped lang="postcss">
 .user-infos-card {
-  .title {
+  .name {
     display: flex;
     align-items: center;
     gap: 0.8rem;
