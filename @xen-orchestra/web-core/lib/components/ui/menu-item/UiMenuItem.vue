@@ -1,14 +1,25 @@
 <!-- v5 -->
 <template>
-  <component :is="component" class="ui-menu-item typo-body-bold-small" :class="className" v-bind="attributes">
+  <component
+    :is="component"
+    class="ui-menu-item typo-body-bold-small"
+    :class="className"
+    v-bind="attributes"
+    :type="isButton ? 'button' : undefined"
+    :disabled="isButton ? disabled : undefined"
+  >
     <VtsIcon :name="icon" size="medium" />
     <slot />
+    <span v-if="info" class="info typo-body-regular-small em-dash-prefix">{{ info }}</span>
+    <UiCounter v-if="counter !== undefined" :value="counter" accent="info" size="small" variant="primary" />
+    <VtsIcon v-if="submenu" name="fa:angle-right" size="medium" />
     <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" />
   </component>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -21,6 +32,9 @@ const props = defineProps<
     size: MenuItemSize
     selected?: boolean
     icon?: IconName
+    info?: string
+    counter?: number
+    submenu?: boolean
   }
 >()
 
@@ -28,9 +42,11 @@ defineSlots<{
   default(): any
 }>()
 
-const { component, attributes, isDisabled } = useLinkComponent('span', () => props)
+const { component, attributes } = useLinkComponent('button', () => props)
 
-const className = computed(() => toVariants({ size: props.size, selected: props.selected, disabled: isDisabled.value }))
+const isButton = computed(() => component.value === 'button')
+
+const className = computed(() => toVariants({ size: props.size, selected: props.selected, disabled: props.disabled }))
 </script>
 
 <style lang="postcss" scoped>
@@ -40,9 +56,16 @@ const className = computed(() => toVariants({ size: props.size, selected: props.
   align-items: center;
   gap: 0.8rem;
   padding-inline: 1.6rem;
+  border: none;
+  text-align: start;
   text-decoration: none;
   color: var(--color-brand-txt-base);
   background-color: var(--color-neutral-background-primary);
+  cursor: pointer;
+
+  .info {
+    color: var(--color-neutral-txt-secondary);
+  }
 
   &:not(.disabled) {
     &:hover {

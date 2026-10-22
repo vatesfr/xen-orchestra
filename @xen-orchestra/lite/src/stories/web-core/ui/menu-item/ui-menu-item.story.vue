@@ -9,6 +9,9 @@
       iconProp(),
       prop('selected').bool().widget(),
       prop('disabled').bool().widget(),
+      prop('info').str().widget(),
+      prop('counter').num().widget(),
+      prop('submenu').bool().widget(),
       slot(),
       setting('label').widget(text()).preset('Label'),
     ]"
