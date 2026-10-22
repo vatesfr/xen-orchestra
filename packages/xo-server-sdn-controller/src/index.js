@@ -283,9 +283,12 @@ class SDNController extends EventEmitter {
     - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
     - `key`   : Corresponding OpenVSwitch bridge name (missing if `active` is `false`)
 
-  Attributes on VIFs (OpenFlow entries):
+  Attributes on networks and VIFs (traffic rules):
   - `other_config`:
-    - `xo:sdn-controller:of-rules`: A list of openflow entries to apply to this VIF
+    - `xo:sdn-controller:of-rules`: A list of rules to apply to this network or VIF, each one a
+        JSON string holding its match fields (`protocol`, `port`, `ipRange`, `direction`), `allow`,
+        `ofPriority` (the OpenFlow priority, not the rank of the API; absent on a rule stored before
+        priorities) and, for a network only, `cookie`. See `traffic-rules.js`
   */
 
   constructor({ xo, getDataDir, staticConfig }) {
@@ -705,12 +708,13 @@ class SDNController extends EventEmitter {
     checkPriorityValue(priority)
   }
 
+  // Returns `{ priority }`, the rank the rule got, except with the legacy methods
   async _addTrafficRule(params) {
     this._checkTrafficRulePriority(params.priority)
     if (!this.#useOrderedTrafficRules) {
       return params.vifId === undefined ? this._addNetworkRule(params) : this._addRule(params)
     }
-    return this.#trafficRules.addRule(await this._getTrafficRuleTarget(params), params)
+    return { priority: await this.#trafficRules.addRule(await this._getTrafficRuleTarget(params), params) }
   }
 
   async _deleteTrafficRule(params) {
@@ -720,20 +724,24 @@ class SDNController extends EventEmitter {
     return this.#trafficRules.deleteRule(await this._getTrafficRuleTarget(params), params)
   }
 
-  // `target` is `{ networkId }` or `{ vifId }`
+  // `target` is `{ networkId }` or `{ vifId }`. Returns as _addTrafficRule does.
   async _updateTrafficRule(target, oldRule, newRule) {
     if (!this.#useOrderedTrafficRules) {
-      // the REST API copies the stored priority into `newRule`, which the legacy
-      // methods would not store anyway: kept, it would fail the add after the delete
+      // a `null` priority, which moves the rule last, means nothing to the legacy
+      // methods: kept, it would fail the add after the delete
       const { priority, ...rule } = newRule
       await this._deleteTrafficRule({ ...oldRule, ...target })
       return this._addTrafficRule({ ...rule, ...target })
     }
-    return this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule)
+    return { priority: await this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule) }
   }
 
-  // The rules of a network and of its VIFs, in the order they apply
   _listTrafficRules(networkId) {
+    // without the XAPI plugin no rule has a priority, so every rule reads rank 1 in owner order: answered, and logged
+    // at debug level only, as a client polling this route would otherwise fill the warnings
+    if (!this.#useOrderedTrafficRules) {
+      log.debug('traffic rules listed without the XAPI plugin: their ranks are meaningless', { networkId })
+    }
     return listRules(this._xo.getXapiObject(this._xo.getObject(networkId, 'network')))
   }
 
@@ -772,16 +780,14 @@ class SDNController extends EventEmitter {
         direction,
       })
       // compare the fields, not the strings: rules written with a priority have more
+      // the protocol is compared case-sensitively, unlike `sameMatch`: the OpenFlow channel
+      // maps only `TCP`, `UDP`, `ICMP`, `IP` and `ARP` (`openflow-channel.js`), so `tcp` is a
+      // flow without protocol on the host, a different match from `TCP`
+      const match = Object.entries({ allow, protocol, port, ipRange, direction })
       if (
         !newVifRules.some(entry => {
           const rule = JSON.parse(entry)
-          return (
-            rule.allow === allow &&
-            rule.protocol === protocol &&
-            rule.port === port &&
-            rule.ipRange === ipRange &&
-            rule.direction === direction
-          )
+          return match.every(([key, value]) => rule[key] === value)
         })
       ) {
         newVifRules.push(stringRule)
@@ -1634,8 +1640,7 @@ class SDNController extends EventEmitter {
   }
 
   async _cleanOfVmRules(vm) {
-    // ordered rules stay through migrations and reboots, and go once a shutdown is
-    // over (_vmUpdated)
+    // ordered rules stay through migrations and reboots, and go once a shutdown ends (_vmUpdated)
     if (this.#useOrderedTrafficRules) {
       return
     }
@@ -1651,10 +1656,10 @@ class SDNController extends EventEmitter {
     for (const vif of vm.$VIFs) {
       if (this.#useOrderedTrafficRules) {
         await this.#trafficRules.vifAttached(vif)
-      } else {
-        await this._applyVifOfRules(vif)
-        await this._applyNetworkOfRules(vif.$network)
+        continue
       }
+      await this._applyVifOfRules(vif)
+      await this._applyNetworkOfRules(vif.$network)
     }
   }
 
