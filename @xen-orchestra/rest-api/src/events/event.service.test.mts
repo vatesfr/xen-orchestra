@@ -114,44 +114,51 @@ describe('EventService', () => {
     assert.equal(vmBackupArchives.listenerCount('add'), 0)
   })
 
-  it('sends the VMs whose visibility changed when a privilege on VMs changes', async t => {
-    t.mock.timers.enable({ apis: ['setInterval'] })
+  // a XAPI collection, and a XO one read like its GET endpoint does
+  for (const [resource, collection] of [
+    ['vm', 'VM'],
+    ['user', 'user'],
+  ] as const) {
+    it(`sends the ${collection} objects whose visibility changed when a privilege on them changes`, async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
 
-    const operator = { id: 'user-2', permission: 'none' } as XoUser
-    const previous = {
-      id: 'privilege-1',
-      roleId: 'role-1',
-      resource: 'vm',
-      action: 'read',
-      effect: 'allow',
-      selector: 'id:vm1',
-    }
-    const privilege = { ...previous, selector: 'id:vm2' }
-    const restApi = createRestApi(new EventEmitter())
-    Object.assign(restApi, {
-      getCurrentUser: () => operator,
-      getObjectsByType: () => ({ vm1: { id: 'vm1' }, vm2: { id: 'vm2' } }),
+      const operator = { id: 'user-2', permission: 'none' } as XoUser
+      const previous = {
+        id: 'privilege-1',
+        roleId: 'role-1',
+        resource,
+        action: 'read',
+        effect: 'allow',
+        selector: 'id:o1',
+      }
+      const privilege = { ...previous, selector: 'id:o2' }
+      const restApi = createRestApi(new EventEmitter())
+      Object.assign(restApi, {
+        getCurrentUser: () => operator,
+        getObjectsByType: () => ({ o1: { id: 'o1' }, o2: { id: 'o2' } }),
+      })
+      Object.assign(restApi.xoApp, {
+        getAclV2Role: async () => ({ id: 'role-1', userIds: [operator.id], groupIds: [] }),
+        // after the change
+        getAclV2UserPrivileges: async () => [privilege],
+        getXoObjectsByType: async () => [{ id: 'o1' }, { id: 'o2' }],
+        getUser: async () => operator,
+        objects: { allIndexes: { type: { getEventEmitterByType: () => new EventEmitter() } } },
+      })
+
+      const eventService = new EventService(restApi)
+      const { frames, res } = createResponse()
+      eventService.addListenerFor(eventService.createSseSubscriber(res), { type: collection, fields: ['id'] })
+
+      // the privilege moves from `o1` to `o2`
+      restApi.xoApp.getXoEventEmitterByType('acl-privilege').emit('update', privilege, previous)
+      await flush()
+
+      assert.deepEqual(frames.slice(1), [
+        { event: 'remove', data: { $subscription: collection, id: 'o1' } },
+        { event: 'add', data: { $subscription: collection, id: 'o2' } },
+      ])
+      assert.equal(res.destroyed, false)
     })
-    Object.assign(restApi.xoApp, {
-      getAclV2Role: async () => ({ id: 'role-1', userIds: [operator.id], groupIds: [] }),
-      // after the change
-      getAclV2UserPrivileges: async () => [privilege],
-      getUser: async () => operator,
-      objects: { allIndexes: { type: { getEventEmitterByType: () => new EventEmitter() } } },
-    })
-
-    const eventService = new EventService(restApi)
-    const { frames, res } = createResponse()
-    eventService.addListenerFor(eventService.createSseSubscriber(res), { type: 'VM', fields: ['id'] })
-
-    // the privilege moves from `vm1` to `vm2`
-    restApi.xoApp.getXoEventEmitterByType('acl-privilege').emit('update', privilege, previous)
-    await flush()
-
-    assert.deepEqual(frames.slice(1), [
-      { event: 'remove', data: { $subscription: 'VM', id: 'vm1' } },
-      { event: 'add', data: { $subscription: 'VM', id: 'vm2' } },
-    ])
-    assert.equal(res.destroyed, false)
-  })
+  }
 })

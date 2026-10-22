@@ -7,6 +7,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Subscriber } from '../events/event.class.mjs'
 import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
+import type { PrivilegesChange } from './listener.type.mjs'
 
 const log = createLogger('xo:rest-api:listener')
 
@@ -121,16 +122,33 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     this.#eventEmitter.on(event, broadcastAllSubscriber)
   }
 
+  async resync(subscriber: Subscriber, objects: object[], privilegesChange: PrivilegesChange) {
+    const conf = this.#subscribers.get(subscriber.id)
+    if (conf === undefined) {
+      return
+    }
+
+    for (const object of objects) {
+      const data = await this.handleData({ ...conf, event: 'update' }, object, object, privilegesChange)
+      if (data?.event === 'add' || data?.event === 'remove') {
+        const { event, ...dataToBroadcast } = data
+        subscriber.broadcast(event, dataToBroadcast)
+      }
+    }
+  }
+
   async getAclEvent({
     event,
     object,
     previousObject,
     userId,
+    privilegesChange,
   }: {
     event: CollectionEventType
     object: object | undefined
     previousObject: object | undefined
     userId: XoUser['id']
+    privilegesChange?: PrivilegesChange
   }): Promise<CollectionEventType | undefined> {
     if (this.type === undefined || (object === undefined && previousObject === undefined)) {
       return
@@ -141,12 +159,14 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     const restApi = iocContainer.get(RestApi)
-    const user = await restApi.xoApp.getUser(userId)
+    const user = privilegesChange?.user ?? (await restApi.xoApp.getUser(userId))
     if (user.permission === 'admin') {
       return event
     }
 
-    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const userPrivileges =
+      privilegesChange?.userPrivileges ?? ((await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
+    const previousUserPrivileges = privilegesChange?.previousUserPrivileges ?? userPrivileges
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
@@ -185,7 +205,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
           previousObject !== undefined &&
           hasPrivilegeOn({
             user,
-            userPrivileges,
+            userPrivileges: previousUserPrivileges,
             action: 'read',
             objects: previousObject,
             resource,

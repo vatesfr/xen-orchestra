@@ -456,6 +456,10 @@ export type XoApp = EventEmitter & {
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
   getXoEventEmitterByType(type: string): EventEmitter
+  getXoObjectsByType<T extends NonXapiXoRecord>(
+    type: string,
+    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
+  ): Promise<T[]>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   loadPlugin(id: XoPlugin['id']): Promise<void>
