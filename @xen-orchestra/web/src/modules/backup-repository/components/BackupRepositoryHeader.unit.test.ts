@@ -1,20 +1,46 @@
+import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryTestSpeedButton.vue'
+import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
+import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
-import type {
-  FrontXoBackupRepository,
-  useXoBackupRepositoryCollection,
-} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
+import { computed } from 'vue'
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
-  useXoBackupRepositoryCollection: (() => ({
-    $context: { forceReload: vi.fn() },
-  })) as unknown as typeof useXoBackupRepositoryCollection,
+// The action jobs subscribe to server events, unavailable in tests
+vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
+  useXoBackupRepositoryChangeStateJob: (() => ({
+    run: vi.fn(),
+    canRun: computed(() => true),
+    isRunning: computed(() => false),
+    errorMessage: computed(() => undefined),
+  })) as unknown as typeof useXoBackupRepositoryChangeStateJob,
+}))
+
+vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
+  useXoBackupRepositoryBenchmarkJob: (() => ({
+    run: vi.fn(),
+    canRun: computed(() => true),
+    isRunning: computed(() => false),
+    errorMessage: computed(() => undefined),
+  })) as unknown as typeof useXoBackupRepositoryBenchmarkJob,
+}))
+
+vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
+  useBackupRepositoryForget: () => ({
+    forgetBackupRepositories: vi.fn(),
+    canForgetBackupRepositories: computed(() => true),
+    isForgettingBackupRepositories: computed(() => false),
+    forgetBackupRepositoriesErrorMessage: computed(() => undefined),
+  }),
 }))
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
@@ -55,10 +81,24 @@ it('links the breadcrumb back to the list of backup repositories', () => {
   )
 })
 
-it('offers to edit the repository', () => {
+it('offers to change the state of the repository', () => {
+  const wrapper = mountHeader(createBr({ enabled: true }))
+
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:disable'))
+})
+
+it('offers to edit, to test the speed and to forget the repository in the more actions menu', async () => {
   const wrapper = mountHeader()
 
-  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:edit'))
+  const moreActionsButton = wrapper
+    .findAllComponents(UiButtonIcon)
+    .find(button => button.props('icon') === 'action:more-actions')
+
+  await moreActionsButton?.trigger('click')
+
+  expect(wrapper.findComponent(BackupRepositoryEditButton).exists()).toBe(true)
+  expect(wrapper.findComponent(BackupRepositoryTestSpeedButton).exists()).toBe(true)
+  expect(wrapper.findComponent(BackupRepositoryForgetButton).exists()).toBe(true)
 })
 
 it('shows a connected icon for an enabled repository without error', () => {

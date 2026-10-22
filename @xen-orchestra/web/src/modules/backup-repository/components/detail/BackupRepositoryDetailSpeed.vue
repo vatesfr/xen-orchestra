@@ -3,12 +3,7 @@
     <UiTitle>
       {{ t('speed') }}
       <template #action>
-        <BackupRepositoryBenchmarkButton
-          :can-benchmark
-          :is-benchmarking
-          :error-message="benchmarkErrorMessage"
-          @click="runBenchmark()"
-        />
+        <BackupRepositoryBenchmarkButton :br />
       </template>
     </UiTitle>
     <VtsTabularKeyValueList>
@@ -34,6 +29,5 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { writeSpeed, readSpeed, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } =
-  useXoBackupRepositoryBenchmark(() => br)
+const { writeSpeed, readSpeed } = useXoBackupRepositoryBenchmark(() => br)
 </script>
