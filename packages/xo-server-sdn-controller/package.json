@@ -15,8 +15,7 @@
     "prebuild": "rimraf dist/",
     "test": "cd dist && node --test",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build",
-    "test": "cd dist && node --test"
+    "prepublishOnly": "yarn run build"
   },
   "version": "1.5.1",
   "engines": {
