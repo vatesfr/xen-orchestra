@@ -52,6 +52,7 @@ export type XoKubernetesVersionGroup = {
 }
 
 export type XoKubernetesCluster = {
+  api_server_port: number
   control_plane_endpoint: string
   control_plane_status: XoKubernetesNodesStatus
   created_at: string
@@ -64,6 +65,9 @@ export type XoKubernetesCluster = {
   is_reconciliation_paused: boolean
   name: string
   phase: KubernetesClusterPhase
+  pod_cidr_blocks: string[] | null
+  service_cidr_blocks: string[] | null
+  service_domain: string
   tags: Record<string, string> | null
   type: 'kubernetes-cluster'
   worker_status: XoKubernetesNodesStatus
