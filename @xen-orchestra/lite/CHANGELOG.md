@@ -15,6 +15,7 @@
 - [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
 - [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [New/VM] Fix `MAP_DUPLICATE_KEY` error that could randomly prevent the VM creation (PR [#10552](https://github.com/vatesfr/xen-orchestra/pull/10552))
+- [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 
 ## **0.26.0** (2026-10-01)
 
