@@ -12,13 +12,16 @@ export type BackupRepositoryGeneralFormData = {
   name: string
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
-  proxy: FrontXoProxy['id'] | undefined
+  proxy: FrontXoProxy['id'] | null | undefined
   encrypted: boolean
   encryptionKey: string
 }
 
 export type BackupRepositoryGeneralFormOptions = {
   isEditing?: boolean
+  isMultiEdit?: boolean
+  // Fields whose values differ between the edited BRs (multi-edition)
+  mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
   extraConfig?: FormValidationConfig<BackupRepositoryGeneralFormData>
 }
 
@@ -27,13 +30,15 @@ export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGT
 
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
 
+const MIXED_OPTION_ID = '__MIXED__'
+
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
 export function useBackupRepositoryGeneralForm(
   formData: BackupRepositoryGeneralFormData,
-  { isEditing = false, extraConfig }: BackupRepositoryGeneralFormOptions = {}
+  { isEditing = false, isMultiEdit = false, mixedFields = [], extraConfig }: BackupRepositoryGeneralFormOptions = {}
 ) {
   const { t } = useI18n()
 
@@ -43,8 +48,8 @@ export function useBackupRepositoryGeneralForm(
     errors: {
       onSubmit: () => ({
         name: { required },
-        type: { required },
-        backupFormat: { required },
+        type: isMultiEdit ? {} : { required },
+        backupFormat: isMultiEdit ? {} : { required },
         encryptionKey: {
           requiredIf: requiredIf(() => formData.encrypted),
         },
@@ -82,11 +87,22 @@ export function useBackupRepositoryGeneralForm(
     }
   )
 
-  const typeOptions = Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
-    id: type,
-    label: useXoBackupRepositoryTypeLabel(type).value,
-    value: type,
-  }))
+  // In multi-edition, a select whose value differs between the BRs shows a "[Mixed]" option (undefined value),
+  // which keeps the value of each BR
+  function isMixed(field: keyof BackupRepositoryGeneralFormData) {
+    return isMultiEdit && mixedFields.includes(field)
+  }
+
+  const mixedOption = { id: MIXED_OPTION_ID, label: t('mixed-value'), value: undefined }
+
+  const typeOptions = [
+    ...(isMixed('type') ? [mixedOption] : []),
+    ...Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+      id: type,
+      label: useXoBackupRepositoryTypeLabel(type).value,
+      value: type,
+    })),
+  ]
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
@@ -104,21 +120,26 @@ export function useBackupRepositoryGeneralForm(
   }
 
   const backupFormatOptions = computed(() => [
+    ...(isMixed('backupFormat') ? [{ ...mixedOption, hint: undefined }] : []),
     { id: 'block', label: backupFormatLabels.value.block, value: 'block', hint: t('block-based-hint') },
     { id: 'vhd', label: backupFormatLabels.value.vhd, value: 'vhd', hint: t('vhd-file-hint') },
   ])
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
     required: true,
-    // Encryption requires block format, and it can't be changed in edit mode
-    disabled: () => formData.type === undefined || isBackupFormatLocked.value || (isEditing && formData.encrypted),
+    // The format can't be changed in edit mode
+    disabled: () => isEditing || formData.type === undefined || isBackupFormatLocked.value,
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
-  const { id: proxySelectId } = useFormSelect('proxy', proxies, {
+  const mixedProxyOption = { id: MIXED_OPTION_ID, name: t('mixed-value') }
+
+  const proxyOptions = computed(() => [...(isMixed('proxy') ? [mixedProxyOption] : []), ...proxies.value])
+
+  const { id: proxySelectId } = useFormSelect('proxy', proxyOptions, {
     searchable: true,
-    emptyOption: { label: t('none'), value: undefined },
-    option: { label: 'name', value: 'id' },
+    emptyOption: { label: t('none'), value: isMultiEdit ? null : undefined },
+    option: { label: 'name', value: source => (source === mixedProxyOption ? undefined : source.id) },
   })
 
   const bindings = reactive({

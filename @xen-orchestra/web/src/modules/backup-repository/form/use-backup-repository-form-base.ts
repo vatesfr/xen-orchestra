@@ -57,7 +57,7 @@ export function useBackupRepositoryFormBase(
   const general = useBackupRepositoryGeneralForm(generalFormData, generalFormOptions)
 
   const details = {
-    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy, detailsInitialData?.file),
+    file: useLocalBackupRepositoryDetailsForm(() => generalFormData.proxy ?? undefined, detailsInitialData?.file),
     nfs: useNfsBackupRepositoryDetailsForm(detailsInitialData?.nfs),
     smb: useSmbBackupRepositoryDetailsForm(detailsInitialData?.smb),
     s3: useS3BackupRepositoryDetailsForm(detailsInitialData?.s3),
@@ -99,7 +99,7 @@ export function useBackupRepositoryFormBase(
       name: generalFormData.name,
       url: formatBackupRepositoryUrl({ ...urlInfo, ...general.buildUrlOptions() }),
       ...(options !== undefined && { options }),
-      ...(generalFormData.proxy !== undefined && { proxy: generalFormData.proxy }),
+      ...(generalFormData.proxy && { proxy: generalFormData.proxy }),
     }
   }
 

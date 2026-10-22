@@ -1,5 +1,6 @@
 import BackupRepositoriesBulkActions from '@/modules/backup-repository/components/list/BackupRepositoriesBulkActions.vue'
 import type { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
+import type { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
 import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -13,24 +14,38 @@ import { ref, toValue } from 'vue'
 
 type MockedJobState = { canRun?: boolean; isRunning?: boolean; errorMessage?: string }
 
-const { connect, disable, benchmark, forget, jobStates } = vi.hoisted(() => ({
+const { connect, disable, edit, benchmark, forget, jobStates } = vi.hoisted(() => ({
   connect: vi.fn(),
   disable: vi.fn(),
+  edit: vi.fn(),
   benchmark: vi.fn(),
   forget: vi.fn(),
-  jobStates: {} as Record<'connect' | 'disable' | 'benchmark' | 'forget', MockedJobState>,
+  jobStates: {} as Record<'connect' | 'disable' | 'edit' | 'benchmark' | 'forget', MockedJobState>,
 }))
 
 function toJobState({ canRun = true, isRunning = false, errorMessage }: MockedJobState = {}) {
   return { canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) }
 }
 
-// The jobs and the forget composable call the REST API and open SSE subscriptions
+// The jobs and the edit and forget composables call the REST API and open SSE subscriptions
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
   useXoBackupRepositoryChangeStateJob: ((_brs: unknown, enabled: unknown) =>
     toValue(enabled)
       ? { run: connect, ...toJobState(jobStates.connect) }
       : { run: disable, ...toJobState(jobStates.disable) }) as unknown as typeof useXoBackupRepositoryChangeStateJob,
+}))
+
+vi.mock(import('@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'), () => ({
+  useBulkEditBackupRepositories: (() => {
+    const { canRun, isRunning, errorMessage } = toJobState(jobStates.edit)
+
+    return {
+      editBackupRepositories: edit,
+      canEditBackupRepositories: canRun,
+      isEditingBackupRepositories: isRunning,
+      editBackupRepositoriesErrorMessage: errorMessage,
+    }
+  }) as unknown as typeof useBulkEditBackupRepositories,
 }))
 
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
@@ -54,12 +69,13 @@ vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-fo
 }))
 
 beforeEach(() => {
-  for (const action of [connect, disable, benchmark, forget]) {
+  for (const action of [connect, disable, edit, benchmark, forget]) {
     action.mockReset()
   }
 
   jobStates.connect = {}
   jobStates.disable = {}
+  jobStates.edit = {}
   jobStates.benchmark = {}
   jobStates.forget = {}
 })
@@ -72,15 +88,13 @@ function mountBulkActions(brs: FrontXoBackupRepository[] = [createBr()]) {
 }
 
 function findActions(wrapper: ReturnType<typeof mountBulkActions>) {
-  const [changeState, testSpeed, forgetAction] = wrapper.getComponent(VtsTableBulkActions).props('actions') as [
-    GroupActionItem,
-    ActionItem,
-    ActionItem,
-  ]
+  const [changeState, editAction, testSpeed, forgetAction] = wrapper
+    .getComponent(VtsTableBulkActions)
+    .props('actions') as [GroupActionItem, ActionItem, ActionItem, ActionItem]
 
   const [connectAction, disableAction] = changeState.children
 
-  return { changeState, connectAction, disableAction, testSpeed, forgetAction }
+  return { changeState, connectAction, disableAction, editAction, testSpeed, forgetAction }
 }
 
 describe('without selection', () => {
@@ -90,12 +104,14 @@ describe('without selection', () => {
     expect(changeState).toMatchObject({ disabled: true, hint: t('no-br-selected') })
   })
 
-  it('explains why test speed and forget cannot run', () => {
+  it('explains why edit, test speed and forget cannot run', () => {
+    jobStates.edit = { canRun: false, errorMessage: 'No backup repository to edit' }
     jobStates.benchmark = { canRun: false, errorMessage: 'Missing backup repository' }
     jobStates.forget = { canRun: false, errorMessage: 'No backup repository to forget' }
 
-    const { testSpeed, forgetAction } = findActions(mountBulkActions([]))
+    const { editAction, testSpeed, forgetAction } = findActions(mountBulkActions([]))
 
+    expect(editAction).toMatchObject({ disabled: true, hint: t('no-br-selected') })
     expect(testSpeed).toMatchObject({ disabled: true, hint: t('no-br-selected') })
     expect(forgetAction).toMatchObject({ disabled: true, hint: t('no-br-selected') })
   })
@@ -109,15 +125,17 @@ describe('with a selection', () => {
   })
 
   it('runs the matching job for each action', () => {
-    const { connectAction, disableAction, testSpeed, forgetAction } = findActions(mountBulkActions())
+    const { connectAction, disableAction, editAction, testSpeed, forgetAction } = findActions(mountBulkActions())
 
     connectAction.onClick()
     disableAction.onClick()
+    editAction.onClick?.()
     testSpeed.onClick?.()
     forgetAction.onClick?.()
 
     expect(connect).toHaveBeenCalledOnce()
     expect(disable).toHaveBeenCalledOnce()
+    expect(edit).toHaveBeenCalledOnce()
     expect(benchmark).toHaveBeenCalledOnce()
     expect(forget).toHaveBeenCalledOnce()
   })
@@ -125,13 +143,15 @@ describe('with a selection', () => {
   it('reflects the state of each job', () => {
     jobStates.connect = { isRunning: true }
     jobStates.disable = { canRun: false, errorMessage: 'Backup repository state change in progress…' }
+    jobStates.edit = { canRun: false, isRunning: true, errorMessage: 'Backup repositories edition in progress…' }
     jobStates.benchmark = { canRun: false, errorMessage: '2 selected backup repositories are disabled' }
     jobStates.forget = { canRun: false, errorMessage: 'Used by 1 backup job, remove it from the job first' }
 
-    const { connectAction, disableAction, testSpeed, forgetAction } = findActions(mountBulkActions())
+    const { connectAction, disableAction, editAction, testSpeed, forgetAction } = findActions(mountBulkActions())
 
     expect(connectAction).toMatchObject({ busy: true, disabled: false })
     expect(disableAction).toMatchObject({ disabled: true, hint: 'Backup repository state change in progress…' })
+    expect(editAction).toMatchObject({ busy: true, disabled: true, hint: 'Backup repositories edition in progress…' })
     expect(testSpeed).toMatchObject({ disabled: true, hint: '2 selected backup repositories are disabled' })
     expect(forgetAction).toMatchObject({
       disabled: true,

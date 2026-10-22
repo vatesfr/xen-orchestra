@@ -1,5 +1,6 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import { buildLocalBackupRepositoryDetailsPayload } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { required } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -41,12 +42,7 @@ export function useLocalBackupRepositoryDetailsForm(
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: 'file',
-        path: formData.path,
-      },
-    }
+    return buildLocalBackupRepositoryDetailsPayload(formData)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

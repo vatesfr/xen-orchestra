@@ -1,5 +1,6 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import { buildAzureBackupRepositoryDetailsPayload } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { required } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, reactive } from 'vue'
@@ -10,7 +11,7 @@ export type AzureBackupRepositoryDetailsForm = ReturnType<typeof useAzureBackupR
 
 const INITIAL_FORM_DATA = {
   hostName: '',
-  useHttps: true,
+  useHttps: true as boolean | undefined,
   accountName: '',
   key: '',
   containerName: '',
@@ -51,16 +52,7 @@ export function useAzureBackupRepositoryDetailsForm(
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: type.value === 'azurite' ? 'azurite' : 'azure',
-        protocol: formData.useHttps ? 'https' : 'http',
-        host: formData.hostName,
-        path: `${formData.containerName}/${formData.pathInContainer}`,
-        username: formData.accountName,
-        password: formData.key,
-      },
-    }
+    return buildAzureBackupRepositoryDetailsPayload(formData, type.value)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

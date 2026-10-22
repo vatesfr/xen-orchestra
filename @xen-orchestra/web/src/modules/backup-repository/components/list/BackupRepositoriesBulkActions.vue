@@ -4,6 +4,7 @@
 
 <script lang="ts" setup>
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
+import { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -17,6 +18,13 @@ const { brs } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const {
+  editBackupRepositories,
+  canEditBackupRepositories,
+  isEditingBackupRepositories,
+  editBackupRepositoriesErrorMessage,
+} = useBulkEditBackupRepositories(() => brs)
 
 const {
   run: connectBackupRepositories,
@@ -72,6 +80,14 @@ const bulkActions = computed<ActionItem[]>(() => [
         hint: disableBackupRepositoriesErrorMessage.value,
       },
     ],
+  },
+  {
+    label: t('action:edit'),
+    icon: 'action:edit',
+    onClick: () => editBackupRepositories(),
+    disabled: !canEditBackupRepositories.value,
+    busy: isEditingBackupRepositories.value,
+    hint: isSelectionEmpty.value ? t('no-br-selected') : editBackupRepositoriesErrorMessage.value,
   },
   {
     label: t('action:test-speed'),
