@@ -782,7 +782,7 @@
   "modal:action:vm-force-shutdown": "@:action:force-shutdown VM",
   "modal:action:vm-reboot": "@:action:reboot VM",
   "modal:action:vm-shutdown": "@:action:shutdown VM",
-  "modal:cluster-pause-reconciliation-message": "Cluster API will stop reconciling this cluster: scaling, upgrades and node remediation will not be applied until reconciliation is resumed. Running VMs and workloads are not affected.",
+  "modal:cluster-pause-reconciliation-message": "Scaling, upgrades and node remediation will be on hold until reconciliation is resumed. Running workloads are not affected.",
   "modal:confirm-cluster-pause-reconciliation?": "Are you sure you want to pause the reconciliation of {cluster}?",
   "modal:confirm-host-detach?": "Are you sure you want to detach {host}?",
   "modal:confirm-host-disable-and-evacuate-vms?": "Are you sure you want to disable {host} and evacuate its VMs?",

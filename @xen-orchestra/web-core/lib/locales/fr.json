@@ -782,7 +782,7 @@
   "modal:action:vm-force-shutdown": "@:action:force-shutdown la VM",
   "modal:action:vm-reboot": "@:action:reboot la VM",
   "modal:action:vm-shutdown": "@:action:shutdown la VM",
-  "modal:cluster-pause-reconciliation-message": "Cluster API cessera de réconcilier ce cluster : la mise à l'échelle, les mises à jour et la remédiation des nœuds ne seront pas appliquées tant que la réconciliation n'aura pas repris. Les VM et charges de travail en cours d'exécution ne sont pas affectées.",
+  "modal:cluster-pause-reconciliation-message": "La mise à l'échelle, les mises à jour et la remédiation des nœuds seront suspendues jusqu'à la reprise de la réconciliation. Les charges de travail en cours ne sont pas affectées.",
   "modal:confirm-cluster-pause-reconciliation?": "Êtes-vous sûr de vouloir mettre en pause la réconciliation de {cluster} ?",
   "modal:confirm-host-detach?": "Êtes-vous sûr de vouloir détacher {host} ?",
   "modal:confirm-host-disable-and-evacuate-vms?": "Êtes-vous sûr de vouloir désactiver {host} et évacuer ses VMs ?",
