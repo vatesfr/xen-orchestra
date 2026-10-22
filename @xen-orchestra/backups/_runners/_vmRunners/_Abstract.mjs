@@ -2,7 +2,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { Task } from '@vates/task'
 import { compileExpression, isExpression } from '../../_expressionPredicate.mjs'
-import { buildRunContext, buildVmContext } from '../../_buildContext.mjs'
+import { buildVmContext } from '../../_buildContext.mjs'
 
 const { debug, warn } = createLogger('xo:backups:AbstractVmRunner')
 
@@ -92,7 +92,7 @@ export const Abstract = class AbstractVmBackupRunner {
     }
 
     if (isExpression(settings.healthCheckVmsWithTags)) {
-      const context = buildVmContext(this._vm, buildRunContext(new Date(), settings.timezone))
+      const context = buildVmContext(this._vm, this._runContext)
       if (!this._healthCheckPredicate(context)) {
         return Task.run(
           {

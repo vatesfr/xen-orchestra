@@ -12,6 +12,7 @@ import { Throttle } from '@vates/generator-toolbox'
 import { asyncEach } from '@vates/async-each'
 import createStreamThrottle from './_createStreamThrottle.mjs'
 import { selectSynchronizedSnapshotVms } from './_selectSynchronizedSnapshotVms.mjs'
+import { buildRunContext } from '../_buildContext.mjs'
 
 const noop = Function.prototype
 
@@ -68,6 +69,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
     const settings = this._settings
+    const runContext = buildRunContext(new Date(), settings.timezone)
 
     const throttleGenerator = new Throttle(settings.maxExportRate)
     const throttleStream = createStreamThrottle(settings.maxExportRate)
@@ -151,6 +153,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                     healthCheckSr,
                     job,
                     remoteAdapters,
+                    runContext,
                     schedule,
                     settings: vmSettings,
                     srs,
@@ -249,6 +252,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       throttleGenerator,
                       throttleStream,
                       vm,
+                      runContext,
                     }
 
                     const vmBackup = this._getVmBackup(job.mode, opts)

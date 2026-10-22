@@ -19,7 +19,7 @@ import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncreme
 import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrementalXapiWriter.mjs'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
 import { compileExpression, isExpression } from '../../_expressionPredicate.mjs'
-import { buildRunContext, buildVmContext } from '../../_buildContext.mjs'
+import { buildVmContext } from '../../_buildContext.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -241,7 +241,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     // especially on replication when we always update the same VM
     const fullInterval = this._settings.fullInterval
     if (isExpression(fullInterval)) {
-      const context = buildVmContext(this._vm, buildRunContext(new Date(), this._settings.timezone), deltaChainLength)
+      const context = buildVmContext(this._vm, this._runContext, deltaChainLength)
       if (this._fullIntervalPredicate(context)) {
         debug('forcing full backup: fullInterval expression matched', { fullInterval })
         return

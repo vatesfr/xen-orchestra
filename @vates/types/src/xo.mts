@@ -552,8 +552,8 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
 }
 export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
-  fullInterval?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  fullInterval?: number | string
   copyRetention?: number
   snapshotRetention?: number
   cbtDestroySnapshotData?: boolean
@@ -598,13 +598,15 @@ export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   nRetriesVmBackupFailures?: number
   mergeBackupsSynchronously?: boolean
   timeout?: number
+  timezone?: string
   maxExportRate?: number
   backupReportTpl?: 'compactMjml'
   reportWhen: 'failure'
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  vmFilter?: string
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }

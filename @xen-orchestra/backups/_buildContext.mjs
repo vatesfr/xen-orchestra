@@ -1,6 +1,6 @@
 // @ts-check
 
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import moment from 'moment-timezone'
 import { parse } from 'xo-remote-parser'
 

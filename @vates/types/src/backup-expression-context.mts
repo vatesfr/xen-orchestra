@@ -22,6 +22,7 @@ export const BACKUP_EXPRESSION_CONTEXT = {
     tags: { type: 'string[]' },
     power_state: { type: 'string' },
   },
+  chainLength: { type: 'number' },
 } as const
 
 export type BACKUP_EXPRESSION_CONTEXT = (typeof BACKUP_EXPRESSION_CONTEXT)[keyof typeof BACKUP_EXPRESSION_CONTEXT]

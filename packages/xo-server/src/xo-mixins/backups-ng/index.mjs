@@ -192,12 +192,18 @@ export default class BackupNg {
 
         let vmIds
 
+        const settingsTimezone = job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
+        const timezone = settingsTimezone ?? schedule.timezone
+
+        job = { ...job }
+        if (settingsTimezone === undefined && timezone !== undefined) {
+          job.settings = { ...job.settings, '': { ...job.settings[''], timezone } }
+        }
+
         if (job.type === 'backup') {
-          job = { ...job }
-          const runContext = buildRunContext(
-            new Date(),
-            job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
-          )
+          const srsExpression = isExpression(job.srs) ? job.srs : undefined
+          const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
+          const runContext = buildRunContext(new Date(), timezone)
 
           if (isExpression(job.srs)) {
             const predicate = compileExpression(job.srs)
@@ -227,6 +233,21 @@ export default class BackupNg {
             })
 
             job.remotes = { id: { __or: remoteIds } }
+          }
+
+          if (
+            (srsExpression !== undefined || remotesExpression !== undefined) &&
+            unboxIdsFromPattern(job.srs).length === 0 &&
+            unboxIdsFromPattern(job.remotes).length === 0
+          ) {
+            jobsLogger.warning(
+              'no SR or backup repository matched the expressions, nothing will be backed up or replicated',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { srs: srsExpression, remotes: remotesExpression },
+              }
+            )
           }
 
           const vmsPattern = job.vms
