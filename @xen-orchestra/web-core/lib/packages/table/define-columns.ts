@@ -1,6 +1,7 @@
-import type { AreAllPropertiesOptional, Columns } from '@core/packages/table/types.ts'
+import { IK_COLUMN_SORT } from '@core/packages/table/injection-keys.ts'
+import type { AreAllPropertiesOptional, Columns, ColumnSortDirection } from '@core/packages/table/types.ts'
 import { objectOmit, toReactive } from '@vueuse/shared'
-import { type Component, computed, defineComponent, Fragment, h, ref, type Ref, type VNode } from 'vue'
+import { type Component, computed, defineComponent, Fragment, h, provide, ref, type Ref, type VNode } from 'vue'
 
 export function defineColumns<TSetupArgs extends any[], TColumns extends Columns>(
   setup: (...args: TSetupArgs) => TColumns
@@ -25,6 +26,7 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
     config: {
       exclude?: TExcludedId[]
       body: (item: TBodyItem) => Omit<TBodyRenderers, TExcludedId>
+      sort?: { [K in keyof TColumns]?: (item1: TBodyItem, item2: TBodyItem) => number }
     } & (AreAllPropertiesOptional<Omit<THeadRenderers, TExcludedId>> extends true
       ? { head?: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }
       : { head: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }),
@@ -48,13 +50,61 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
     const colspan = computed(() => visibleColumnIds.value.length)
 
+    const sortState = ref<{ id: $TAvailableColumnId; direction: ColumnSortDirection }>()
+
     function toggle(columnId: $TAvailableColumnId, visible: boolean = hiddenColumnIds.value.has(columnId)) {
       if (visible) {
         hiddenColumnIds.value.delete(columnId)
       } else {
         hiddenColumnIds.value.add(columnId)
+
+        // A hidden column has no header left to show or clear its sort
+        if (sortState.value?.id === columnId) {
+          sortState.value = undefined
+        }
       }
     }
+
+    function setSort(columnId: $TAvailableColumnId, direction: ColumnSortDirection | undefined) {
+      sortState.value = direction === undefined ? undefined : { id: columnId, direction }
+    }
+
+    function sortItems(items: TBodyItem[]) {
+      if (sortState.value === undefined) {
+        return items
+      }
+
+      const { id, direction } = sortState.value
+
+      const compareFn = config.sort?.[id]
+
+      if (compareFn === undefined) {
+        return items
+      }
+
+      const compare = direction === 'asc' ? compareFn : (item1: TBodyItem, item2: TBodyItem) => compareFn(item2, item1)
+
+      return items.slice().sort(compare)
+    }
+
+    const ColumnSortProvider = defineComponent({
+      props: {
+        columnId: {
+          type: String,
+          required: true,
+        },
+      },
+      setup(props, { slots }) {
+        const columnId = props.columnId as $TAvailableColumnId
+
+        provide(IK_COLUMN_SORT, {
+          direction: computed(() => (sortState.value?.id === columnId ? sortState.value.direction : undefined)),
+          setDirection: direction => setSort(columnId, direction),
+        })
+
+        return () => slots.default?.()
+      },
+    })
 
     const HeadCells = defineComponent({
       props: {
@@ -66,14 +116,20 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       setup(props) {
         const headCellRenderers = config.head?.(props.item as THeadItem) ?? ({} as THeadRenderers)
 
+        function renderHeadCell(columnId: $TAvailableColumnId) {
+          const { renderHead } = availableColumns[columnId]
+
+          const headCellRenderer = headCellRenderers[columnId as keyof typeof headCellRenderers]
+
+          return headCellRenderer ? headCellRenderer(renderHead) : renderHead()
+        }
+
         return () =>
-          visibleColumnIds.value.map(columnId => {
-            const { renderHead } = availableColumns[columnId]
-
-            const headCellRenderer = headCellRenderers[columnId as keyof typeof headCellRenderers]
-
-            return h(Fragment, { key: columnId }, [headCellRenderer ? headCellRenderer(renderHead) : renderHead()])
-          })
+          visibleColumnIds.value.map(columnId =>
+            config.sort?.[columnId] === undefined
+              ? h(Fragment, { key: columnId }, [renderHeadCell(columnId)])
+              : h(ColumnSortProvider, { key: columnId, columnId: columnId as string }, () => renderHeadCell(columnId))
+          )
       },
     })
 
@@ -110,6 +166,7 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       BodyCells: BodyCells as Component<{ item: TBodyItem }>,
       toggle,
       colspan,
+      sortItems,
     }
   }
 

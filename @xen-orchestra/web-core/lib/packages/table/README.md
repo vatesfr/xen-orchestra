@@ -8,7 +8,7 @@ The render functions can receive arguments and must return a VNode.
 
 ```ts
 const useTextColumn = defineColumn((config?: { headLabel?: string }) => ({
-  renderHead: () => h('th', { class: 'table-head-cell' }, config?.headLabel),
+  renderHead: () => renderHeadCell(config?.headLabel),
   renderBody: (text: string) => h('td', { class: 'table-text-cell' }, text),
 }))
 ```
@@ -17,7 +17,7 @@ const useTextColumn = defineColumn((config?: { headLabel?: string }) => ({
 
 ```ts
 const useNumberWithUnitColumn = defineColumn((config?: { headLabel?: string; defaultUnit?: string }) => ({
-  renderHead: () => h('th', config?.headLabel ?? 'User'),
+  renderHead: () => renderHeadCell(config?.headLabel),
   renderBody: (value: number, unit?: string) =>
     h(NumberCell, {
       value,
@@ -58,7 +58,7 @@ const { HeadCells, BodyCells } = useUserTableColumns({
   body: (user: User) => ({
     fullName: r => r(`${user.firstName} ${user.lastName}`),
     email: r => r(user.email),
-    age: r => r(user.age < 2 ? { value: toMonths(user.age), unit: 'months' } : { value: user.age }),
+    age: r => (user.age < 2 ? r(toMonths(user.age), 'months') : r(user.age)),
   }),
 })
 ```
@@ -78,4 +78,33 @@ const { HeadCells, BodyCells } = useUserTableColumns({
     </tbody>
   </table>
 </template>
+```
+
+# Sorting
+
+Pass an optional `sort` object to make columns sortable:
+
+- **Keys** are column ids. Columns without a key aren't sortable.
+- **Values** are compare functions receiving two row items (same type as the `body` item), following the `Array.prototype.sort` contract.
+
+A sortable column's header opens a menu to sort ascending or descending. Selecting the current direction again removes the sort. Only one column is sorted at a time, and hiding the sorted column removes the sort.
+
+The sort menu is rendered by `VtsHeaderCell` (what `renderHeadCell` from `@core/tables/helpers/render-head-cell.ts` renders). A head that doesn't render it, such as a plain `<th>` or a `head` override that ignores the renderer, won't be sortable.
+
+`sortItems` returns a sorted copy and doesn't own the rows: apply it before pagination, if any.
+
+```ts
+const { HeadCells, BodyCells, sortItems } = useUserTableColumns({
+  body: (user: User) => ({
+    fullName: r => r(`${user.firstName} ${user.lastName}`),
+    email: r => r(user.email),
+    age: r => (user.age < 2 ? r(toMonths(user.age), 'months') : r(user.age)),
+  }),
+  sort: {
+    email: (user1, user2) => user1.email.localeCompare(user2.email),
+    age: (user1, user2) => user1.age - user2.age,
+  },
+})
+
+const sortedUsers = computed(() => sortItems(users.value))
 ```
