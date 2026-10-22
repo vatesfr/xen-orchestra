@@ -89,6 +89,7 @@
 - [XO6/Privileges] See the scope of a privilege in its detail page: its scope type, its query and the objects it currently applies to
 - [XO6/Users] Show users by their username, or their email address when they have none, and show their first and last names in the users list and side panel
 - [XO6/Users] Create a user from the users list in the user management page, and add it to groups and assign it roles right away
+- [XO6/Groups] See the roles applied to a group in its side panel
 
 ### Bug fixes
 
