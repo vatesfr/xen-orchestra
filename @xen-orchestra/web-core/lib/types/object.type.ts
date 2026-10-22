@@ -23,6 +23,7 @@ export type VmBlockedOperations =
   | 'hard_reboot'
   | 'suspend'
   | 'destroy'
+  | 'migrate_send'
 
 export type ActionsByObject = {
   vm: VmActions
