@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="cluster-system-status">
+  <UiCard>
     <UiTitle>
       {{ t('status') }}
     </UiTitle>
@@ -21,12 +21,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('paused')">
         <template #value>
-          <!-- TODO: use KubernetesStatus UiInfo with the "paused" accent once it is available in web-core -->
-          <div v-if="isPaused === 'paused'" class="paused">
-            <VtsIcon class="icon" name="status:paused-circle" size="medium" />
-            <p class="typo-body-regular">{{ t('yes') }}</p>
-          </div>
-          <KubernetesStatus v-else :status="isPaused" />
+          <KubernetesPausedStatus :paused="cluster.is_reconciliation_paused" />
         </template>
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
@@ -34,10 +29,10 @@
 </template>
 
 <script setup lang="ts">
+import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -50,19 +45,5 @@ const { cluster } = defineProps<{
 
 const { t } = useI18n()
 
-const { isControlPlaneInitialized, isInfrastructureProvisioned, isPaused } = useXoKubernetesClusterUtils(() => cluster)
+const { isControlPlaneInitialized, isInfrastructureProvisioned } = useXoKubernetesClusterUtils(() => cluster)
 </script>
-
-<style lang="postcss" scoped>
-.cluster-system-status {
-  .paused {
-    display: flex;
-    align-items: baseline;
-    gap: 0.8rem;
-
-    .icon {
-      transform: translateY(0.2ex);
-    }
-  }
-}
-</style>

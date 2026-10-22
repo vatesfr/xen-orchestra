@@ -30,13 +30,10 @@ export function useXoKubernetesClusterUtils(rawCluster: MaybeRefOrGetter<XoKuber
 
   const isInfrastructureProvisioned = computed(() => (cluster.value.is_infrastructure_provisioned ? 'yes' : 'no'))
 
-  const isPaused = computed(() => (cluster.value.is_reconciliation_paused ? 'paused' : 'no'))
-
   return {
     createdAtFormatted,
     createdAtTooltip,
     isControlPlaneInitialized,
     isInfrastructureProvisioned,
-    isPaused,
   }
 }

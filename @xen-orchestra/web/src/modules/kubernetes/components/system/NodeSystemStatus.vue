@@ -14,11 +14,17 @@
           <KubernetesStatus :status="schedulingStatus" />
         </template>
       </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('paused')">
+        <template #value>
+          <KubernetesPausedStatus :paused="node.is_reconciliation_paused" />
+        </template>
+      </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { nodeReadyStatus, nodeSchedulingStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'

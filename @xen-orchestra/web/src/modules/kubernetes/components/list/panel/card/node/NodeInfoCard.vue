@@ -16,6 +16,12 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('paused') }}</template>
+        <template #value>
+          <KubernetesPausedStatus :paused="node.is_reconciliation_paused" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('version') }}</template>
         <template #value>{{ node.version }}</template>
         <template v-if="node.version" #addons>
@@ -54,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
 import { useXoKubernetesNodeCluster } from '@/modules/kubernetes/composables/xo-kubernetes-node-cluster.composable.ts'
 import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-kubernetes-node-utils.composable.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'

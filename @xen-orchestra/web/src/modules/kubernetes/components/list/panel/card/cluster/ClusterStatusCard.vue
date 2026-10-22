@@ -25,12 +25,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('paused') }}</template>
         <template #value>
-          <!-- TODO: use KubernetesStatus UiInfo with the "paused" accent once it is available in web-core -->
-          <div v-if="isPaused === 'paused'" class="value">
-            <VtsIcon class="icon" name="status:paused-circle" size="medium" />
-            <p class="typo-body-regular">{{ t('yes') }}</p>
-          </div>
-          <KubernetesStatus v-else :status="isPaused" />
+          <KubernetesPausedStatus :paused="cluster.is_reconciliation_paused" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -38,11 +33,11 @@
 </template>
 
 <script setup lang="ts">
+import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { useI18n } from 'vue-i18n'
@@ -53,7 +48,7 @@ const { cluster } = defineProps<{
 
 const { t } = useI18n()
 
-const { isControlPlaneInitialized, isInfrastructureProvisioned, isPaused } = useXoKubernetesClusterUtils(() => cluster)
+const { isControlPlaneInitialized, isInfrastructureProvisioned } = useXoKubernetesClusterUtils(() => cluster)
 </script>
 
 <style scoped lang="postcss">
@@ -62,16 +57,6 @@ const { isControlPlaneInitialized, isInfrastructureProvisioned, isPaused } = use
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-
-    .value {
-      display: flex;
-      align-items: baseline;
-      gap: 0.8rem;
-
-      .icon {
-        transform: translateY(0.2ex);
-      }
-    }
   }
 }
 </style>
