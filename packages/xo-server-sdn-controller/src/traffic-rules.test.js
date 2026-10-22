@@ -78,107 +78,142 @@ function summary(calls, ...fields) {
 }
 
 describe('TrafficRules', () => {
-  it('stores a rule on its owner, and installs it with its priority', async () => {
+  it('stores a rule on its owner with its OpenFlow priority, and installs it', async () => {
     const { calls, network, vif1, trafficRules } = setup()
 
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
-    await trafficRules.addRule(vif1, { ...WEB, priority: 50000 })
+    assert.equal(await trafficRules.addRule(network, SSH), 1)
+    assert.equal(await trafficRules.addRule(vif1, { ...WEB, priority: 1 }), 1)
 
     const [ssh] = rulesOf(network)
-    assert.deepEqual(ssh, { ...SSH, priority: 40000, cookie: ssh.cookie })
+    assert.deepEqual(ssh, { ...SSH, ofPriority: 60000, cookie: ssh.cookie })
     assert.match(ssh.cookie, /^0x[0-9a-f]{16}$/)
     // a VIF rule's cookie is not stored
-    assert.deepEqual(rulesOf(vif1), [{ ...WEB, priority: 50000 }])
+    assert.deepEqual(rulesOf(vif1), [{ ...WEB, ofPriority: 60005 }])
 
     const vifCookie = calls[2].args.cookie
     assert.match(vifCookie, /^0x[0-9a-f]{16}$/)
     assert.deepEqual(summary(calls, 'mac', 'priority', 'cookie'), [
-      ['host1', 'add-rule', undefined, '40000', ssh.cookie],
-      ['host2', 'add-rule', undefined, '40000', ssh.cookie],
-      ['host1', 'add-rule', 'AA:BB:CC:DD:EE:01', '50000', vifCookie],
-      ['host2', 'add-rule', 'AA:BB:CC:DD:EE:01', '50000', vifCookie],
+      ['host1', 'add-rule', undefined, '60000', ssh.cookie],
+      ['host2', 'add-rule', undefined, '60000', ssh.cookie],
+      ['host1', 'add-rule', 'AA:BB:CC:DD:EE:01', '60005', vifCookie],
+      ['host2', 'add-rule', 'AA:BB:CC:DD:EE:01', '60005', vifCookie],
     ])
   })
 
-  it('appends a rule added without a priority after the last rule of the network', async () => {
-    const { calls, network, vif1, vif2, trafficRules } = setup()
+  it('puts a rule added without a priority after the last rule of the network', async () => {
+    const { network, vif1, vif2, trafficRules } = setup()
 
     await trafficRules.addRule(network, SSH)
     await trafficRules.addRule(vif1, WEB)
-    await trafficRules.addRule(network, { ...ICMP, priority: 50000 })
     // an unplugged VIF counts too
-    await trafficRules.addRule(vif2, { ...WEB, priority: 40000 })
-    await trafficRules.addRule(vif1, SSH)
+    await trafficRules.addRule(vif2, ICMP)
+    assert.equal(await trafficRules.addRule(vif1, SSH), 4)
 
     assert.deepEqual(
-      [...rulesOf(network), ...rulesOf(vif1)].map(rule => [rule.port, rule.priority]),
+      [...rulesOf(network), ...rulesOf(vif1), ...rulesOf(vif2)].map(rule => [
+        rule.protocol,
+        rule.port,
+        rule.ofPriority,
+      ]),
       [
-        [22, 60000],
-        [undefined, 50000],
-        [443, 59995],
-        [22, 39995],
+        ['TCP', 22, 60000],
+        ['TCP', 443, 59995],
+        ['TCP', 22, 59985],
+        ['ICMP', undefined, 59990],
       ]
     )
-    assert.equal(calls[0].args.priority, '60000')
   })
 
-  it('appends down to the lowest priority allowed, then answers 409', async () => {
+  it('inserts a rule at its rank, before the rule which had it', async () => {
     const { network, vif1, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 8006 })
-
+    await trafficRules.addRule(network, SSH)
     await trafficRules.addRule(vif1, WEB)
-    assert.equal(rulesOf(vif1)[0].priority, 8002)
 
-    await assert.rejects(trafficRules.addRule(vif1, SSH), error => objectAlreadyExists.is(error))
-    assert.equal(rulesOf(vif1).length, 1)
-  })
-
-  it('accepts a priority from 8002 to 65535', async () => {
-    const { network, trafficRules } = setup()
-
-    await trafficRules.addRule(network, { ...SSH, priority: 8002 })
-    await trafficRules.addRule(network, { ...WEB, priority: 32768 })
-    await trafficRules.addRule(network, { ...ICMP, priority: 65535 })
+    assert.equal(await trafficRules.addRule(network, { ...ICMP, priority: 2 }), 2)
 
     assert.deepEqual(
-      rulesOf(network).map(rule => rule.priority),
-      [65535, 32768, 8002]
+      rulesOf(network).map(rule => rule.ofPriority),
+      [60000, 59997]
+    )
+    assert.deepEqual(
+      listRules(network).map(rule => [rule.protocol, rule.priority]),
+      [
+        ['TCP', 1],
+        ['ICMP', 2],
+        ['TCP', 3],
+      ]
     )
   })
 
-  it('rejects a priority another rule of the network has, or an invalid one', async () => {
-    const { calls, network, vif1, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
-    calls.length = 0
+  it('puts a rule given a rank past the last one last', async () => {
+    const { network, trafficRules } = setup()
+    await trafficRules.addRule(network, SSH)
 
-    await assert.rejects(trafficRules.addRule(vif1, { ...WEB, priority: 40000 }), error =>
-      objectAlreadyExists.is(error)
+    assert.equal(await trafficRules.addRule(network, { ...WEB, priority: 50 }), 2)
+    assert.deepEqual(
+      rulesOf(network).map(rule => rule.ofPriority),
+      [60000, 59995]
     )
-    // 8001 and below would tie with, or fall under, the flows of locked VIFs
-    for (const priority of [1.5, -1, 8001, 65536]) {
+  })
+
+  it('spreads the priorities of the network again when none is free at the rank', async () => {
+    const { calls, network, vif1, vif2, trafficRules } = setup({
+      networkConfig: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...SSH, ofPriority: 60000, cookie: '0x01' }]) },
+      vif1Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...WEB, ofPriority: 59999 }]) },
+      // the copy of a clone, unplugged
+      vif2Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...WEB, ofPriority: 59999 }]) },
+    })
+
+    assert.equal(await trafficRules.addRule(network, { ...ICMP, priority: 2 }), 2)
+
+    // two priorities were taken, now as far apart as (60000 - 8001) / 3 lets them:
+    // the order and the tie are kept
+    assert.deepEqual(
+      [...rulesOf(network), ...rulesOf(vif1), ...rulesOf(vif2)].map(rule => [rule.protocol, rule.ofPriority]),
+      [
+        ['TCP', 60000],
+        ['ICMP', 51333],
+        ['TCP', 42667],
+        ['TCP', 42667],
+      ]
+    )
+    // the moved rule of the plugged VIF is installed again
+    assert.deepEqual(summary(calls, 'mac', 'priority'), [
+      ['host1', 'add-rule', undefined, '51333'],
+      ['host2', 'add-rule', undefined, '51333'],
+      ['host1', 'add-rule', 'AA:BB:CC:DD:EE:01', '42667'],
+      ['host2', 'add-rule', 'AA:BB:CC:DD:EE:01', '42667'],
+    ])
+  })
+
+  it('rejects a priority that is not an integer from 1', async () => {
+    const { calls, vif1, trafficRules } = setup()
+
+    for (const priority of [0, -1, 1.5]) {
       await assert.rejects(trafficRules.addRule(vif1, { ...WEB, priority }), error => invalidParameters.is(error))
     }
     assert.deepEqual(rulesOf(vif1), [])
     assert.deepEqual(calls, [])
   })
 
-  it('checks a priority under the lock', async () => {
+  it('places rules added at the same time one after the other, under the lock', async () => {
     const { network, vif1, trafficRules } = setup()
 
-    const results = await Promise.allSettled([
-      trafficRules.addRule(network, { ...SSH, priority: 40000 }),
-      trafficRules.addRule(vif1, { ...WEB, priority: 40000 }),
+    const ranks = await Promise.all([
+      trafficRules.addRule(network, { ...SSH, priority: 1 }),
+      trafficRules.addRule(vif1, { ...WEB, priority: 1 }),
     ])
 
+    assert.deepEqual(ranks, [1, 1])
     assert.deepEqual(
-      results.map(({ status }) => status),
-      ['fulfilled', 'rejected']
+      listRules(network).map(rule => rule.sourceId),
+      ['vif1', 'net']
     )
   })
 
-  it('changes the action of a rule with the same match in place, keeping its priority', async () => {
+  it('changes the action of a rule with the same match in place, keeping its place', async () => {
     const { network, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
+    await trafficRules.addRule(network, SSH)
     const [ssh] = rulesOf(network)
 
     // as XO 5 would, without a priority
@@ -192,7 +227,7 @@ describe('TrafficRules', () => {
 
     await trafficRules.addRule(vif2, WEB)
 
-    assert.deepEqual(rulesOf(vif2), [{ ...WEB, priority: 60000 }])
+    assert.deepEqual(rulesOf(vif2), [{ ...WEB, ofPriority: 60000 }])
     assert.deepEqual(calls, [])
   })
 
@@ -213,30 +248,31 @@ describe('TrafficRules', () => {
     assert.equal(calls[4].args.cookie, vif1Cookie)
   })
 
-  it('moves a rule to another priority with its cookie', async () => {
-    const { calls, network, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
+  it('moves a rule to another rank with its cookie', async () => {
+    const { calls, network, vif1, trafficRules } = setup()
+    await trafficRules.addRule(network, SSH)
+    await trafficRules.addRule(vif1, WEB)
     const [ssh] = rulesOf(network)
     calls.length = 0
 
-    await trafficRules.updateRule(network, SSH, { ...SSH, priority: 45000 })
+    assert.equal(await trafficRules.updateRule(network, SSH, { ...SSH, priority: 2 }), 2)
 
-    assert.deepEqual(rulesOf(network), [{ ...ssh, priority: 45000 }])
+    assert.deepEqual(rulesOf(network), [{ ...ssh, ofPriority: 59990 }])
     assert.deepEqual(summary(calls, 'priority', 'cookie'), [
-      ['host1', 'add-rule', '45000', ssh.cookie],
-      ['host2', 'add-rule', '45000', ssh.cookie],
+      ['host1', 'add-rule', '59990', ssh.cookie],
+      ['host2', 'add-rule', '59990', ssh.cookie],
     ])
   })
 
   it('installs the new match of a VIF rule before deleting the old one', async () => {
     const { calls, vif1, trafficRules } = setup()
-    await trafficRules.addRule(vif1, { ...WEB, priority: 50000 })
+    await trafficRules.addRule(vif1, WEB)
     const oldCookie = calls[0].args.cookie
     calls.length = 0
 
-    await trafficRules.updateRule(vif1, WEB, { ...WEB, port: 8443, priority: 50000 })
+    await trafficRules.updateRule(vif1, WEB, { ...WEB, port: 8443 })
 
-    assert.deepEqual(rulesOf(vif1), [{ ...WEB, port: 8443, priority: 50000 }])
+    assert.deepEqual(rulesOf(vif1), [{ ...WEB, port: 8443, ofPriority: 60000 }])
     const newCookie = calls[0].args.cookie
     assert.notEqual(newCookie, oldCookie)
     assert.deepEqual(summary(calls, 'port', 'cookie'), [
@@ -247,31 +283,53 @@ describe('TrafficRules', () => {
     ])
   })
 
-  it('lets the copy of a clone change, but not move onto a taken priority', async () => {
+  it('lets the copy of a clone change without moving, or move before its original', async () => {
     const { network, vif1, vif2, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
-    await trafficRules.addRule(vif1, { ...WEB, priority: 50000 })
+    await trafficRules.addRule(network, SSH)
+    await trafficRules.addRule(vif1, WEB)
     vif2.other_config = { ...vif1.other_config }
 
-    await trafficRules.updateRule(vif2, WEB, { ...WEB, allow: false, priority: 50000 })
-    assert.deepEqual(rulesOf(vif2), [{ ...WEB, allow: false, priority: 50000 }])
+    assert.equal(await trafficRules.updateRule(vif2, WEB, { ...WEB, allow: false }), 2)
+    assert.deepEqual(rulesOf(vif2), [{ ...WEB, allow: false, ofPriority: 59995 }])
 
-    await assert.rejects(trafficRules.updateRule(vif2, WEB, { ...WEB, priority: 40000 }), error =>
-      objectAlreadyExists.is(error)
+    assert.equal(await trafficRules.updateRule(vif2, WEB, { ...WEB, priority: 2 }), 2)
+    assert.deepEqual(
+      listRules(network).map(rule => [rule.sourceId, rule.priority]),
+      [
+        ['net', 1],
+        ['vif2', 2],
+        ['vif1', 3],
+      ]
     )
   })
 
-  it('moves a rule updated without a priority after the last rule of the network', async () => {
+  it('moves a rule updated with a null priority after the last rule of the network', async () => {
     const { network, vif1, trafficRules } = setup()
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
-    await trafficRules.addRule(vif1, { ...WEB, priority: 30000 })
+    await trafficRules.addRule(network, SSH)
+    await trafficRules.addRule(vif1, WEB)
 
-    await trafficRules.updateRule(network, SSH, SSH)
-    assert.equal(rulesOf(network)[0].priority, 29995)
+    assert.equal(await trafficRules.updateRule(network, SSH, { ...SSH, priority: null }), 2)
+    assert.equal(rulesOf(network)[0].ofPriority, 59990)
 
-    // the last rule already, which does not count itself
-    await trafficRules.updateRule(network, SSH, SSH)
-    assert.equal(rulesOf(network)[0].priority, 29995)
+    // the last rule already: it stays where it is
+    await trafficRules.updateRule(network, SSH, { ...SSH, priority: null })
+    assert.equal(rulesOf(network)[0].ofPriority, 59990)
+  })
+
+  it('keeps the place of a rule updated without a priority', async () => {
+    const { network, trafficRules } = setup()
+    await trafficRules.addRule(network, SSH)
+    await trafficRules.addRule(network, { ...WEB, priority: 1 })
+
+    assert.equal(await trafficRules.updateRule(network, SSH, { ...SSH, allow: true }), 2)
+
+    assert.deepEqual(
+      rulesOf(network).map(rule => [rule.port, rule.ofPriority]),
+      [
+        [443, 60005],
+        [22, 60000],
+      ]
+    )
   })
 
   it('rejects updating a missing rule, or onto the match of another rule', async () => {
@@ -332,7 +390,7 @@ describe('TrafficRules', () => {
     const [ssh] = rulesOf(network)
     assert.match(ssh.cookie, /^0x[0-9a-f]{16}$/)
     assert.deepEqual(
-      [ssh, ...rulesOf(vif1), ...rulesOf(vif2)].map(rule => rule.priority),
+      [ssh, ...rulesOf(vif1), ...rulesOf(vif2)].map(rule => rule.ofPriority),
       [60000, 59995, 59990]
     )
     // the legacy flows go first: older plugins delete by match whatever the cookie
@@ -357,17 +415,15 @@ describe('TrafficRules', () => {
     ])
   })
 
-  it('installs a rule from before priorities at 8001 when none is left to number it', async () => {
-    const { calls, network, vif1, trafficRules } = setup({
+  it('installs a rule from before priorities at 8001 until it is numbered', async () => {
+    const { calls, vif1, trafficRules } = setup({
       vif1Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([WEB]) },
     })
-    await trafficRules.addRule(network, { ...SSH, priority: 8002 })
-    calls.length = 0
 
-    await trafficRules.refresh(network)
+    await trafficRules.vifAttached(vif1)
 
     assert.deepEqual(rulesOf(vif1), [WEB])
-    assert.equal(calls.find(call => call.args.mac !== undefined && call.method === 'add-rule').args.priority, '8001')
+    assert.equal(calls[0].args.priority, '8001')
   })
 
   it('reads two legacy rules with the same match as the last one', async () => {
@@ -389,13 +445,13 @@ describe('TrafficRules', () => {
   it('writes the rules of an owner highest priority first', async () => {
     const { network, trafficRules } = setup()
 
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
+    await trafficRules.addRule(network, SSH)
     await trafficRules.addRule(network, WEB)
-    await trafficRules.addRule(network, { ...ICMP, priority: 50000 })
+    await trafficRules.addRule(network, { ...ICMP, priority: 1 })
 
     assert.deepEqual(
-      rulesOf(network).map(rule => rule.priority),
-      [50000, 40000, 39995]
+      rulesOf(network).map(rule => rule.ofPriority),
+      [60005, 60000, 59995]
     )
   })
 
@@ -417,34 +473,40 @@ describe('TrafficRules', () => {
 })
 
 describe('listRules', () => {
-  it('lists the rules of a network and of its VIFs, highest priority first', async () => {
+  it('lists the rules of a network and of its VIFs by rank', async () => {
     const { network, vif1, trafficRules } = setup({
       // from before priorities: last
       vif2Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([ICMP]) },
     })
-    await trafficRules.addRule(network, { ...SSH, priority: 40000 })
-    await trafficRules.addRule(vif1, { ...WEB, priority: 50000 })
+    await trafficRules.addRule(network, SSH)
+    await trafficRules.addRule(vif1, { ...WEB, priority: 1 })
     // a snapshot keeps a copy of the VIF, which never applies
     const snapshotVif = { ...vif1, $ref: 'snapshot-vif', uuid: 'snapshot-vif', $VM: { is_a_snapshot: true } }
     network.$VIFs.push(snapshotVif)
 
     assert.deepEqual(listRules(network), [
-      { ...WEB, priority: 50000, type: 'VIF', sourceId: 'vif1', networkId: 'net', active: true },
-      { ...SSH, priority: 40000, type: 'network', sourceId: 'net', networkId: 'net', active: true },
-      { ...ICMP, port: undefined, priority: undefined, type: 'VIF', sourceId: 'vif2', networkId: 'net', active: false },
+      { ...WEB, priority: 1, type: 'VIF', sourceId: 'vif1', networkId: 'net', active: true },
+      { ...SSH, priority: 2, type: 'network', sourceId: 'net', networkId: 'net', active: true },
+      { ...ICMP, port: undefined, priority: 3, type: 'VIF', sourceId: 'vif2', networkId: 'net', active: false },
     ])
   })
 
-  it('lists the rules of the same priority network rules first, then in the order of the VIFs', async () => {
-    const { network, vif1, vif2, trafficRules } = setup()
-    await trafficRules.addRule(vif2, { ...WEB, priority: 40000 })
+  it('lists the rules of the same rank network rules first, then in the order of the VIFs', () => {
     // a clone copies the priorities of its rules
-    vif1.other_config = { ...vif2.other_config }
-    network.other_config = { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...SSH, priority: 40000 }]) }
+    const vifConfig = { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...WEB, ofPriority: 40000 }]) }
+    const { network } = setup({
+      networkConfig: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...SSH, ofPriority: 40000 }]) },
+      vif1Config: vifConfig,
+      vif2Config: vifConfig,
+    })
 
     assert.deepEqual(
-      listRules(network).map(rule => rule.sourceId),
-      ['net', 'vif1', 'vif2']
+      listRules(network).map(rule => [rule.sourceId, rule.priority]),
+      [
+        ['net', 1],
+        ['vif1', 1],
+        ['vif2', 1],
+      ]
     )
   })
 })
