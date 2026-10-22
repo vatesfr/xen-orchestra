@@ -7,7 +7,7 @@
     >
       {{ branch.data.name_label || '(Host)' }}
       <template #icon>
-        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+        <VtsObjectIcon v-tooltip="powerState.text" type="host" size="medium" :state="hostState" />
       </template>
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="currentOperation" />
@@ -63,7 +63,8 @@ const { t } = useI18n()
 const { isMasterHost } = usePoolStore().subscribe()
 const { runningVmsCountByHostRef } = useVmStore().subscribe()
 
-const { hostState, isChangingState, currentOperation } = useHostUtils(() => branch.data)
+const { getHostStatus, hostState, isChangingState, currentOperation } = useHostUtils(() => branch.data)
+const powerState = computed(() => getHostStatus(hostState.value))
 
 const isMaster = computed(() => isMasterHost(branch.data.$ref))
 
