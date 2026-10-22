@@ -16,7 +16,7 @@ export const DESCRIPTION_MAX_LENGTH = 4000
 
 /**
  * When a cluster is provided, the form is in edit mode: it is prefilled with the cluster data
- * and only the replicas fields are editable and validated
+ * and only the description and replicas fields are editable and validated
  */
 export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
   const { t } = useI18n()
@@ -59,15 +59,15 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
       onSubmit: () => ({
         control_plane_replicas: { required, integer, minValue: minValue(1) },
         worker_replicas: { required, integer, minValue: minValue(1) },
+        description: {
+          maxLength: withMessage(maxLength(DESCRIPTION_MAX_LENGTH), () =>
+            t('field:exceeds-max-characters', { max: DESCRIPTION_MAX_LENGTH })
+          ),
+        },
         ...(isEditMode
           ? {}
           : {
               name: { required },
-              description: {
-                maxLength: withMessage(maxLength(DESCRIPTION_MAX_LENGTH), () =>
-                  t('field:exceeds-max-characters', { max: DESCRIPTION_MAX_LENGTH })
-                ),
-              },
               control_plane_ip: { required, ipv4OrCidr: withMessage(ipv4OrCidr, () => t('ip-address-invalid')) },
               vm_name_prefix: { required },
               kubernetes_version: { required },
@@ -88,8 +88,6 @@ export function useCreateKubernetesClusterForm(cluster?: XoKubernetesCluster) {
   const descriptionInputBindings = useField('description', () => ({
     label: t('description'),
     maxCharacters: DESCRIPTION_MAX_LENGTH,
-    // TODO Enable in edit mode once CAPI exposes a route to update the description
-    disabled: isEditMode,
   }))
 
   const tagsInputBindings = useField('tagsRaw', () => ({

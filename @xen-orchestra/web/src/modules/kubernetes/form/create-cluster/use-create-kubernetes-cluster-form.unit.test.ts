@@ -220,6 +220,7 @@ describe('edit mode', () => {
     const result = mountEditKubernetesClusterForm()
 
     await expect(result.validateAndBuildEditPayload()).resolves.toEqual({
+      description: '',
       control_plane_replicas: 1,
       worker_replicas: 2,
     })

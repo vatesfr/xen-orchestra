@@ -42,6 +42,7 @@ export function buildKubernetesClusterCreatePayload(
 
 export function buildKubernetesClusterEditPayload(form: CreateKubernetesClusterFormData): KubernetesClusterEditPayload {
   return {
+    description: form.description,
     control_plane_replicas: form.control_plane_replicas,
     worker_replicas: form.worker_replicas,
   }

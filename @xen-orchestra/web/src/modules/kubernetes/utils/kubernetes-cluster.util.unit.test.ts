@@ -3,6 +3,7 @@ import {
   clusterStatus,
   clusterVersion,
   formatNodesCount,
+  getClusterUpdates,
   isClusterDeletable,
   isClusterPhaseReady,
   isClusterReconciliationToggleable,
@@ -107,5 +108,56 @@ describe('clusterVersion', () => {
     expect(clusterVersion(createClusterWithVersions(['v1.10.0', 'v1.9.0'], ['v1.10.0', 'v1.9.10', 'v1.9.2']))).toBe(
       'v1.9.0/v1.9.2/v1.9.10/v1.10.0'
     )
+  })
+})
+
+describe('getClusterUpdates', () => {
+  const cluster = createKubernetesCluster({ description: 'Production cluster' })
+
+  const unchangedPayload = {
+    description: 'Production cluster',
+    control_plane_replicas: cluster.control_plane_status.desired_replicas,
+    worker_replicas: cluster.worker_status.desired_replicas,
+  }
+
+  it('returns no update when nothing changed', () => {
+    expect(getClusterUpdates(cluster, unchangedPayload)).toEqual([])
+  })
+
+  it('returns a description update when the description changed', () => {
+    expect(getClusterUpdates(cluster, { ...unchangedPayload, description: 'Staging cluster' })).toEqual([
+      { endpoint: 'kubernetes/clusters/cluster-1/description', body: { description: 'Staging cluster' } },
+    ])
+  })
+
+  it('returns an empty description update when the description is cleared', () => {
+    expect(getClusterUpdates(cluster, { ...unchangedPayload, description: '' })).toEqual([
+      { endpoint: 'kubernetes/clusters/cluster-1/description', body: { description: '' } },
+    ])
+  })
+
+  it('returns no description update when the cluster has no description and the field is empty', () => {
+    expect(
+      getClusterUpdates(createKubernetesCluster({ description: undefined }), { ...unchangedPayload, description: '' })
+    ).toEqual([])
+  })
+
+  it('returns a replicas update for each changed node group', () => {
+    expect(
+      getClusterUpdates(cluster, {
+        ...unchangedPayload,
+        control_plane_replicas: unchangedPayload.control_plane_replicas + 2,
+        worker_replicas: unchangedPayload.worker_replicas + 1,
+      })
+    ).toEqual([
+      {
+        endpoint: 'kubernetes/clusters/cluster-1/control-plane/replicas',
+        body: { replicas: unchangedPayload.control_plane_replicas + 2 },
+      },
+      {
+        endpoint: 'kubernetes/clusters/cluster-1/workers/replicas',
+        body: { replicas: unchangedPayload.worker_replicas + 1 },
+      },
+    ])
   })
 })

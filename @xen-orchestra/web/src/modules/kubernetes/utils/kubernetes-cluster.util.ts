@@ -66,31 +66,38 @@ export function clusterVersion(cluster: XoKubernetesCluster): string {
   return [...new Set(versions)].sort(compareStrings).join('/')
 }
 
-export type KubernetesClusterReplicasUpdate = {
+export type KubernetesClusterUpdate = {
   endpoint: string
-  replicas: number
+  body: { replicas: number } | { description: string }
 }
 
 /**
- * Returns the replicas updates to send to CAPI, skipping the node groups whose desired replicas are unchanged
+ * Returns the updates to send to CAPI, skipping the fields that are unchanged
  */
-export function getClusterReplicasUpdates(
+export function getClusterUpdates(
   cluster: XoKubernetesCluster,
   payload: KubernetesClusterEditPayload
-): KubernetesClusterReplicasUpdate[] {
-  const updates: KubernetesClusterReplicasUpdate[] = []
+): KubernetesClusterUpdate[] {
+  const updates: KubernetesClusterUpdate[] = []
+
+  if (payload.description !== (cluster.description ?? '')) {
+    updates.push({
+      endpoint: `kubernetes/clusters/${cluster.id}/description`,
+      body: { description: payload.description },
+    })
+  }
 
   if (payload.control_plane_replicas !== cluster.control_plane_status.desired_replicas) {
     updates.push({
       endpoint: `kubernetes/clusters/${cluster.id}/control-plane/replicas`,
-      replicas: payload.control_plane_replicas,
+      body: { replicas: payload.control_plane_replicas },
     })
   }
 
   if (payload.worker_replicas !== cluster.worker_status.desired_replicas) {
     updates.push({
       endpoint: `kubernetes/clusters/${cluster.id}/workers/replicas`,
-      replicas: payload.worker_replicas,
+      body: { replicas: payload.worker_replicas },
     })
   }
 
