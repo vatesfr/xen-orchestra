@@ -27,7 +27,7 @@ import {
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { format as formatBackupRepositoryUrl } from 'xo-remote-parser'
+import { type BackupRepositoryUrlOptions, format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 export type BackupRepositoryPayload = {
   name: string
@@ -48,11 +48,15 @@ export type BackupRepositoryDetailsInitialData = {
 
 export function useBackupRepositoryFormBase(
   generalFormData: BackupRepositoryGeneralFormData,
-  options: BackupRepositoryGeneralFormOptions & { detailsInitialData?: BackupRepositoryDetailsInitialData } = {}
+  options: BackupRepositoryGeneralFormOptions & {
+    detailsInitialData?: BackupRepositoryDetailsInitialData
+    // URL options the form does not manage, kept when the URL is rebuilt
+    urlOptionsToKeep?: BackupRepositoryUrlOptions
+  } = {}
 ) {
   const { t } = useI18n()
 
-  const { detailsInitialData, ...generalFormOptions } = options
+  const { detailsInitialData, urlOptionsToKeep, ...generalFormOptions } = options
 
   const general = useBackupRepositoryGeneralForm(generalFormData, generalFormOptions)
 
@@ -97,7 +101,7 @@ export function useBackupRepositoryFormBase(
 
     return {
       name: generalFormData.name,
-      url: formatBackupRepositoryUrl({ ...urlInfo, ...general.buildUrlOptions() }),
+      url: formatBackupRepositoryUrl({ ...urlInfo, ...urlOptionsToKeep, ...general.buildUrlOptions() }),
       ...(options !== undefined && { options }),
       ...(generalFormData.proxy && { proxy: generalFormData.proxy }),
     }
