@@ -18,12 +18,12 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const { vmsByHost } = useXoVmCollection()
 
   const getHostStateDisplay = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
-    {
+    () => ({
       running: { text: t('host:status:running'), icon: 'status:running-circle' },
       halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
       disabled: { text: t('host:status:disabled'), icon: 'status:host-disabled-circle' },
       unknown: { text: t('host:status:unknown'), icon: undefined },
-    },
+    }),
     'unknown'
   )
 
@@ -47,7 +47,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const currentOperation = useMapper<string, string>(
     () => pendingStateOperation.value,
-    {
+    () => ({
       power_on: t('operation:start'),
       shutdown: t('operation:shutdown'),
       reboot: t('operation:clean-reboot'),
@@ -57,7 +57,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
       clean_shutdown: t('operation:vm-clean-shutdown'),
       hard_shutdown: t('operation:vm-hard-shutdown'),
       unknown: '',
-    },
+    }),
     'unknown'
   )
 

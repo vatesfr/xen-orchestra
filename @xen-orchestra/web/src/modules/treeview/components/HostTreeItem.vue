@@ -3,7 +3,7 @@
     <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
-        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+        <VtsObjectIcon v-tooltip="powerState.text" type="host" size="medium" :state="hostState" />
       </template>
       <template #addons>
         <UiLoader
@@ -66,10 +66,11 @@ const { t } = useI18n()
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
 
-const { isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
+const { getHostStatus, isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.id))
 const hostState = computed(() => getHostState(branch.data))
+const powerState = computed(() => getHostStatus(hostState.value))
 
 const runningVmsCount = computed(() => runningVmsCountByContainer.value.get(branch.data.id) ?? 0)
 </script>
