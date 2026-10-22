@@ -37,7 +37,8 @@ import { synchronized } from 'decorator-synchronized'
  * @typedef {Network | Vif} Owner
  */
 
-// A rule as the API sends it
+// A rule as the API sends it. Its priority is its rank among the rules of its
+// network, 1 applying first.
 /**
  * @typedef {object} RuleParams
  * @property {boolean} allow
@@ -57,10 +58,17 @@ import { synchronized } from 'decorator-synchronized'
  * @property {string} direction
  */
 
-// A rule as its owner stores it, in `xo:sdn-controller:of-rules`. Only a network
-// rule stores its cookie: a VIF rule's is derived (vifCookie).
+// A rule as its owner stores it, in `xo:sdn-controller:of-rules`, with its
+// OpenFlow priority. Only a network rule stores its cookie: a VIF rule's is
+// derived (vifCookie).
 /**
- * @typedef {Match & { allow: boolean, priority?: number, cookie?: string }} Rule
+ * @typedef {Match & { allow: boolean, ofPriority?: number, cookie?: string }} Rule
+ */
+
+// The rules of an owner, as a change reads them under the lock. The VIF of a
+// snapshot or a template is not `live`: its rules never apply.
+/**
+ * @typedef {{ owner: Owner, rules: Rule[], live: boolean }} Entry
  */
 
 const log = createLogger('xo:sdn-controller:traffic-rules')
@@ -76,15 +84,16 @@ const OF_RULES_KEY = 'xo:sdn-controller:of-rules'
 // drop where it would never be reached. See
 // https://github.com/xapi-project/xen-api/blob/master/ocaml/xenopsd/scripts/setup-vif-rules
 //
-// A rule has a priority from LAST_PRIORITY + 1 to MAX_PRIORITY. One from before
-// priorities is installed at LAST_PRIORITY until refresh() numbers it.
+// A rule has an OpenFlow priority from LAST_PRIORITY + 1 to MAX_PRIORITY. One from
+// before priorities is installed at LAST_PRIORITY until refresh() numbers it.
 const LAST_PRIORITY = 8001
 const MAX_PRIORITY = 65535
 
-// A rule added without a priority is appended: it gets the lowest priority of its
-// network minus APPEND_STEP, or FIRST_PRIORITY for the first one, which leaves
-// room above. The step is small so that a network holds thousands of them, and
-// leaves gaps to move a rule between two others in one update.
+// The API speaks of ranks: a rule goes between the OpenFlow priorities of the rules
+// around its rank. A rule put last gets the lowest priority of its network minus
+// APPEND_STEP, or FIRST_PRIORITY for the first one, which leaves room above; one put
+// first, the highest plus APPEND_STEP; one in between, the middle of its
+// neighbours'. When they leave no free priority, the network's are spread again.
 const FIRST_PRIORITY = 60000
 const APPEND_STEP = 5
 
@@ -141,14 +150,15 @@ function toMatch({ protocol, port, ipRange = '', direction }) {
   return { protocol, port: port == null || port === '' ? undefined : Number(port), ipRange, direction }
 }
 
-// In the field order of the legacy code
+// In the field order of the legacy code. Without its OpenFlow priority, which only
+// placing it gives.
 /**
  * @param {RuleParams} params
  * @returns {Rule}
  */
-function toRule({ allow, priority, ...match }) {
+function toRule({ allow, ...match }) {
   const { protocol, port, ipRange, direction } = toMatch(match)
-  return { allow, protocol, port, ipRange, direction, priority: priority ?? undefined }
+  return { allow, protocol, port, ipRange, direction }
 }
 
 // XO 6 sends `TCP`, XO 5 `tcp`
@@ -203,9 +213,9 @@ function cookieOf(owner, rule) {
  */
 function readRules(owner) {
   const raw = owner.other_config[OF_RULES_KEY]
-  /** @type {Array<RuleParams & { cookie?: string }>} */
+  /** @type {Array<RuleParams & { ofPriority?: number, cookie?: string }>} */
   const stored = raw === undefined ? [] : JSON.parse(raw).map(JSON.parse)
-  const rules = stored.map(rule => ({ ...toRule(rule), cookie: rule.cookie }))
+  const rules = stored.map(rule => ({ ...toRule(rule), ofPriority: rule.ofPriority, cookie: rule.cookie }))
   // the legacy `_addRule` could store two rules with the same match: the last one
   // is the one in effect
   return rules.filter((rule, index) => !rules.slice(index + 1).some(other => sameMatch(other, rule)))
@@ -218,7 +228,7 @@ function readRules(owner) {
  * @param {Rule[]} rules
  */
 async function writeRules(owner, rules) {
-  const sorted = [...rules].sort((a, b) => (b.priority ?? LAST_PRIORITY) - (a.priority ?? LAST_PRIORITY))
+  const sorted = [...rules].sort((a, b) => (b.ofPriority ?? LAST_PRIORITY) - (a.ofPriority ?? LAST_PRIORITY))
   // `null` removes the key
   const value = sorted.length === 0 ? null : JSON.stringify(sorted.map(rule => JSON.stringify(rule)))
   if ((owner.other_config[OF_RULES_KEY] ?? null) !== value) {
@@ -228,56 +238,130 @@ async function writeRules(owner, rules) {
   }
 }
 
-// Exported for the REST API, which checks a priority before starting its task
+// A rank, as the API takes it. Exported for the REST API, which checks it before
+// starting its task.
 /**
  * @param {number} priority
  */
 export function checkPriorityValue(priority) {
-  if (!Number.isInteger(priority) || priority <= LAST_PRIORITY || priority > MAX_PRIORITY) {
-    throw invalidParameters(
-      `traffic rule priority must be an integer from ${LAST_PRIORITY + 1} to ${MAX_PRIORITY}, not ${priority}`
-    )
+  if (!Number.isInteger(priority) || priority < 1) {
+    throw invalidParameters(`traffic rule priority must be an integer from 1, which applies first, not ${priority}`)
   }
 }
 
-// The priority a rule moves to must be valid, and free on the network: two
-// overlapping flows of the same priority have no defined winner
-/**
- * @param {Network} network
- * @param {number} priority
- */
-function checkPriority(network, priority) {
-  checkPriorityValue(priority)
-  if (ownersOf(network).some(owner => readRules(owner).some(rule => rule.priority === priority))) {
-    throw objectAlreadyExists({ objectId: String(priority), objectType: 'traffic rule priority' })
-  }
-}
-
-// The priority of a rule appended after `rules`, those of a network, or
-// `undefined` when the lowest one allowed is taken
+// The distinct OpenFlow priorities of `rules`, highest first. With `legacy`, those
+// of rules from before priorities count as LAST_PRIORITY.
 /**
  * @param {Rule[]} rules
+ * @param {boolean} legacy
  */
-function nextPriority(rules) {
-  const priorities = rules.flatMap(({ priority }) => (priority === undefined ? [] : [priority]))
+function prioritiesOf(rules, legacy) {
+  const priorities = new Set()
+  for (const { ofPriority } of rules) {
+    if (ofPriority !== undefined || legacy) {
+      priorities.add(ofPriority ?? LAST_PRIORITY)
+    }
+  }
+  return [...priorities].sort((a, b) => b - a)
+}
+
+// The rank of `rule` among `rules`, those of its network: 1 for the highest
+// priority, one more for each lower one. Rules of the same priority, like the
+// copies a clone makes, share their rank.
+/**
+ * @param {Rule[]} rules
+ * @param {Rule} rule
+ */
+function rankOf(rules, rule) {
+  return prioritiesOf([...rules, rule], true).indexOf(rule.ofPriority ?? LAST_PRIORITY) + 1
+}
+
+// Gives `rule` an OpenFlow priority between those of the ranks `rank - 1` and
+// `rank` among `others`, the other rules of its network, keeping the one it has
+// when it is there already. A rank past the last one puts it last. Returns false
+// when they leave no free priority.
+/**
+ * @param {Rule[]} others
+ * @param {Rule} rule
+ * @param {number} rank
+ */
+function fit(others, rule, rank) {
+  // rules from before priorities stay last, at LAST_PRIORITY
+  const priorities = prioritiesOf(others, false)
+  const index = Math.min(rank, priorities.length + 1) - 1
+  const above = index === 0 ? MAX_PRIORITY + 1 : priorities[index - 1]
+  const below = index === priorities.length ? LAST_PRIORITY : priorities[index]
+  if (rule.ofPriority !== undefined && rule.ofPriority < above && rule.ofPriority > below) {
+    return true
+  }
+
+  let priority
   if (priorities.length === 0) {
-    return FIRST_PRIORITY
+    priority = FIRST_PRIORITY
+  } else if (index === priorities.length) {
+    priority = above - APPEND_STEP
+  } else if (index === 0) {
+    priority = below + APPEND_STEP
+  } else {
+    priority = Math.floor((above + below) / 2)
   }
-  const lowest = Math.min(...priorities)
-  const priority = Math.max(lowest - APPEND_STEP, LAST_PRIORITY + 1)
-  return priority < lowest ? priority : undefined
+  if (priority >= above || priority <= below) {
+    priority = Math.floor((above + below) / 2)
+  }
+  if (priority <= below) {
+    return false
+  }
+  rule.ofPriority = priority
+  return true
 }
 
-// As nextPriority(), for a change that fails without room left
+// Spreads the OpenFlow priorities of `rules` down from FIRST_PRIORITY, as far apart
+// as the range allows, keeping their order and their ties. Returns the rules whose
+// priority changed.
 /**
  * @param {Rule[]} rules
  */
-function appendedPriority(rules) {
-  const priority = nextPriority(rules)
-  if (priority === undefined) {
-    throw objectAlreadyExists({ objectId: String(LAST_PRIORITY + 1), objectType: 'traffic rule priority' })
+function respace(rules) {
+  const priorities = prioritiesOf(rules, false)
+  const gap = Math.floor((FIRST_PRIORITY - LAST_PRIORITY) / (priorities.length + 1))
+  const newPriorities = new Map(priorities.map((priority, index) => [priority, FIRST_PRIORITY - index * gap]))
+  /** @type {Rule[]} */
+  const moved = []
+  for (const rule of rules) {
+    const priority = rule.ofPriority === undefined ? undefined : newPriorities.get(rule.ofPriority)
+    if (priority !== rule.ofPriority) {
+      rule.ofPriority = priority
+      moved.push(rule)
+    }
   }
-  return priority
+  return moved
+}
+
+// Moves `rule` to `rank` (Infinity: after the last rule) among `rules`, those of its
+// network, spreading their priorities again when none is free there. Returns the
+// other rules whose priority changed: their flows must be installed again.
+/**
+ * @param {Rule[]} rules
+ * @param {Rule} rule
+ * @param {number} rank
+ */
+function place(rules, rule, rank) {
+  const others = rules.filter(other => other !== rule)
+  if (fit(others, rule, rank)) {
+    return []
+  }
+  const moved = respace(others)
+  if (!fit(others, rule, rank)) {
+    throw objectAlreadyExists({ objectId: String(rank), objectType: 'traffic rule priority' })
+  }
+  return moved
+}
+
+/**
+ * @param {Entry[]} entries
+ */
+function liveRules(entries) {
+  return entries.flatMap(({ rules, live }) => (live ? rules : []))
 }
 
 // Runs a sdncontroller.py method on every host with a PIF on the network. A VIF
@@ -329,7 +413,7 @@ function addFlows(owner, rule) {
   if (cookie !== undefined) {
     args.cookie = cookie
   }
-  args.priority = String(rule.priority ?? LAST_PRIORITY)
+  args.priority = String(rule.ofPriority ?? LAST_PRIORITY)
   return callPlugin(owner, 'add-rule', rule, args)
 }
 
@@ -354,23 +438,57 @@ function deleteLegacyFlows(owner, rule) {
   return callPlugin(owner, 'del-rule', rule, {})
 }
 
-// The rules of a network and of its VIFs, highest priority first: the order in
-// which they apply. Rules of the same priority, which have no defined order in OVS
-// either, keep network rules first, then the order of the VIFs.
+// Saves the rules of `owner`, and of the owners of the rules `moved` to another
+// priority
+/**
+ * @param {Entry[]} entries
+ * @param {Owner} owner
+ * @param {Rule[]} moved
+ */
+async function save(entries, owner, moved) {
+  for (const entry of entries) {
+    if (entry.owner === owner || entry.rules.some(rule => moved.includes(rule))) {
+      await writeRules(entry.owner, entry.rules)
+    }
+  }
+}
+
+// Installs the flows of the rules `moved` to another priority again
+/**
+ * @param {Entry[]} entries
+ * @param {Rule[]} moved
+ */
+async function installMoved(entries, moved) {
+  for (const { owner, rules } of entries) {
+    for (const rule of rules) {
+      if (isActive(owner) && moved.includes(rule)) {
+        await addFlows(owner, rule)
+      }
+    }
+  }
+}
+
+// The rules of a network and of its VIFs, by rank: the order in which they apply.
+// Rules of the same rank, which have no defined order in OVS either, keep network
+// rules first, then the order of the VIFs.
 /**
  * @param {Network} network
  */
 export function listRules(network) {
-  const rules = ownersOf(network).flatMap(owner =>
-    readRules(owner).map(({ cookie, ...rule }) => ({
+  const owners = ownersOf(network).map(owner => ({ owner, rules: readRules(owner) }))
+  const all = owners.flatMap(({ rules }) => rules)
+  const priorities = prioritiesOf(all, true)
+  const rules = owners.flatMap(({ owner, rules }) =>
+    rules.map(({ cookie, ofPriority, ...rule }) => ({
       ...rule,
+      priority: priorities.indexOf(ofPriority ?? LAST_PRIORITY) + 1,
       type: owner.$type,
       sourceId: owner.uuid,
       networkId: network.uuid,
       active: isActive(owner),
     }))
   )
-  return rules.sort((a, b) => (b.priority ?? LAST_PRIORITY) - (a.priority ?? LAST_PRIORITY))
+  return rules.sort((a, b) => a.priority - b.priority)
 }
 
 // The rule `owner` stores with this match, for the ACL of the REST API. It only
@@ -387,8 +505,9 @@ export function findRule(owner, params) {
 // =============================================================================
 // With sdncontroller.py, traffic rules carry an OpenFlow priority: of the rules
 // of a network matching a packet, network and VIF rules alike, the highest one
-// decides. Rules stay where they always were, in the `xo:sdn-controller:of-rules`
-// of their network or VIF.
+// decides. The API gives a rule a rank instead, from which its priority follows.
+// Rules stay where they always were, in the `xo:sdn-controller:of-rules` of their
+// network or VIF.
 // =============================================================================
 
 export class TrafficRules {
@@ -400,9 +519,9 @@ export class TrafficRules {
     fn(owner.$xapi.getObjectByRef(owner.$ref))
   )
 
-  // A rule with the same match on the same owner only gets the new action and
-  // priority. Without a priority, it keeps the one it had, as XO 5 knows nothing of
-  // them, and a new rule is appended.
+  // A rule with the same match on the same owner only gets the new action, and moves
+  // to the new rank. Without one, it keeps its place, as XO 5 knows nothing of
+  // priorities, and a new rule goes last. Returns the rank of the rule.
   //
   // The rule is saved before its flows are installed: if that failed on some
   // host, it is still listed, so it can be deleted, and is installed again at the
@@ -413,26 +532,30 @@ export class TrafficRules {
    */
   addRule(target, params) {
     return this.#withLock(target, async owner => {
-      const rules = await this.#rulesOf(owner)
+      if (params.priority != null) {
+        checkPriorityValue(params.priority)
+      }
+      const { entries, rules } = await this.#read(owner)
       const rule = toRule(params)
 
-      const existing = rules.find(other => sameMatch(other, rule))
-      if (rule.priority === undefined) {
-        rule.priority =
-          existing === undefined ? appendedPriority(ownersOf(networkOf(owner)).flatMap(readRules)) : existing.priority
-      } else if (rule.priority !== existing?.priority) {
-        checkPriority(networkOf(owner), rule.priority)
-      }
-      if (existing !== undefined) {
-        Object.assign(existing, rule)
+      let saved = rules.find(other => sameMatch(other, rule))
+      const isNew = saved === undefined
+      if (saved === undefined) {
+        saved = owner.$type === 'VIF' ? rule : { ...rule, cookie: newCookie(rules) }
+        rules.push(saved)
       } else {
-        rules.push(owner.$type === 'VIF' ? rule : { ...rule, cookie: newCookie(rules) })
+        Object.assign(saved, rule)
       }
 
-      await writeRules(owner, rules)
+      const network = liveRules(entries)
+      const rank = params.priority ?? (isNew ? Infinity : undefined)
+      const moved = rank === undefined ? [] : place(network, saved, rank)
+      await save(entries, owner, moved)
       if (isActive(owner)) {
-        await addFlows(owner, existing ?? rules[rules.length - 1])
+        await addFlows(owner, saved)
       }
+      await installMoved(entries, moved)
+      return rankOf(network, saved)
     })
   }
 
@@ -456,8 +579,9 @@ export class TrafficRules {
     })
   }
 
-  // `newParams` is the whole new rule, its priority included: without one, the rule
-  // moves after the last rule of the network
+  // `newParams` is the whole new rule. Its priority moves it to this rank, and `null`
+  // after the last rule; without one, it keeps its place. Returns the rank of the
+  // rule.
   /**
    * @param {Owner} target the network or the VIF
    * @param {RuleParams} oldParams
@@ -465,7 +589,10 @@ export class TrafficRules {
    */
   updateRule(target, oldParams, newParams) {
     return this.#withLock(target, async owner => {
-      const rules = await this.#rulesOf(owner)
+      if (newParams.priority != null) {
+        checkPriorityValue(newParams.priority)
+      }
+      const { entries, rules } = await this.#read(owner)
       const newRule = toRule(newParams)
 
       const rule = rules.find(other => sameMatch(other, toMatch(oldParams)))
@@ -475,21 +602,15 @@ export class TrafficRules {
       if (rules.some(other => other !== rule && sameMatch(other, newRule))) {
         throw objectAlreadyExists({ objectId: JSON.stringify(newParams), objectType: 'traffic-rule' })
       }
-      if (newRule.priority === undefined) {
-        // the rule itself aside, which may be the last one already
-        const others = ownersOf(networkOf(owner)).flatMap(other =>
-          other.$ref === owner.$ref ? rules.filter(r => r !== rule) : readRules(other)
-        )
-        newRule.priority = appendedPriority(others)
-      } else if (newRule.priority !== rule.priority) {
-        // a clone's copy shares the priority of its original: it can still change
-        // without moving
-        checkPriority(networkOf(owner), newRule.priority)
-      }
 
       const previous = { ...rule }
       Object.assign(rule, newRule)
-      await writeRules(owner, rules)
+      const network = liveRules(entries)
+      // a clone's copy shares the priority of its original: it can still change
+      // without moving
+      const rank = newParams.priority === null ? Infinity : newParams.priority
+      const moved = rank === undefined ? [] : place(network, rule, rank)
+      await save(entries, owner, moved)
       if (isActive(owner)) {
         await addFlows(owner, rule)
       }
@@ -497,14 +618,16 @@ export class TrafficRules {
       if (owner.$type === 'VIF' && !sameMatch(previous, rule)) {
         await deleteFlows(owner, previous)
       }
+      await installMoved(entries, moved)
+      return rankOf(network, rule)
     })
   }
 
   // At every connection to a pool, as hosts may have restarted while XO was away.
-  // Rules from before priorities are numbered first, as if appended network rules
-  // first; without room left, they stay at LAST_PRIORITY. The flows of rules whose
-  // VIF is unplugged go, and so do the legacy flows (cookie 0): this is all a
-  // network from before priorities needs.
+  // Rules from before priorities are numbered first, put last one after the other,
+  // network rules first. The flows of rules whose VIF is unplugged go, and so do
+  // the legacy flows (cookie 0): this is all a network from before priorities
+  // needs.
   //
   // Called from event handlers: never throws.
   /**
@@ -513,20 +636,18 @@ export class TrafficRules {
   async refresh(network) {
     try {
       await this.#withLock(network, async network => {
-        const owners = ownersOf(network)
-        /** @type {Rule[][]} */
-        const rulesByOwner = []
-        for (const owner of owners) {
-          rulesByOwner.push(await this.#rulesOf(owner))
-        }
-        const all = rulesByOwner.flat()
+        const { entries } = await this.#read(network)
+        const all = liveRules(entries)
         for (const rule of all) {
-          rule.priority ??= nextPriority(all)
+          // the flows of every rule are installed below, those a respace moves too
+          if (rule.ofPriority === undefined) {
+            place(all, rule, Infinity)
+          }
         }
 
-        for (const [index, owner] of owners.entries()) {
-          await writeRules(owner, rulesByOwner[index])
-          for (const rule of rulesByOwner[index]) {
+        for (const { owner, rules } of entries) {
+          await writeRules(owner, rules)
+          for (const rule of rules) {
             // before installing the rule: on hosts whose xcp-ng-xapi-plugins is older
             // than 1.16.0, del-rule ignores the cookie and deletes its flows too
             await deleteLegacyFlows(owner, rule)
@@ -581,6 +702,26 @@ export class TrafficRules {
     } catch (error) {
       log.error('error while removing the traffic rules of a VIF', { error, vif: vif.uuid })
     }
+  }
+
+  // The rules of the network of `owner`, by owner, and those of `owner`, which is
+  // not live when it is the VIF of a snapshot
+  /**
+   * @param {Owner} owner
+   */
+  async #read(owner) {
+    /** @type {Entry[]} */
+    const entries = []
+    for (const other of ownersOf(networkOf(owner))) {
+      const current = other.$ref === owner.$ref ? owner : other
+      entries.push({ owner: current, rules: await this.#rulesOf(current), live: true })
+    }
+    let entry = entries.find(entry => entry.owner === owner)
+    if (entry === undefined) {
+      entry = { owner, rules: await this.#rulesOf(owner), live: false }
+      entries.push(entry)
+    }
+    return { entries, rules: entry.rules }
   }
 
   // A network rule from before cookies gets one here, saved before any flow is

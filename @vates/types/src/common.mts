@@ -773,10 +773,9 @@ export type RawTrafficRule = {
   direction: TrafficRuleDirection
   port?: string
   // The OpenFlow priority, with the XAPI plugin: of the rules of a network matching a packet, the
-  // highest one decides. An integer from 8002 to 65535, unique on the network; a rule added without
-  // one is appended (the lowest priority of the network minus 5). Only a rule from before priorities
-  // has none, until XO numbers it.
-  priority?: number
+  // highest one decides. From 8002 to 65535, given by XO from the rank the API takes, which counts
+  // the other way (1 applies first). Only a rule from before priorities has none, until XO numbers it.
+  ofPriority?: number
 }
 
 type BaseTrafficRule = RawTrafficRule & {

@@ -26,14 +26,14 @@ const BODY_UPDATE_RULE = {
       ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
       protocol: { type: 'string', example: 'tcp', optional: true },
       port: { type: 'number', example: 80, optional: true, nullable: true },
-      priority: { type: 'number', example: 40000, optional: true, nullable: true },
+      priority: { type: 'number', example: 2, optional: true, nullable: true },
     },
   },
 }
 
 // A rule as the list of the rules of a network returns it
 const LISTED_RULE_FIELDS = {
-  priority: { type: 'number', example: 59995, optional: true },
+  priority: { type: 'number', example: 3 },
   allow: { type: 'boolean', example: true },
   protocol: { type: 'string', example: 'TCP' },
   port: { type: 'number', example: 443, optional: true },
@@ -48,13 +48,14 @@ const LISTED_RULE_FIELDS = {
 const LIST_ENDPOINT = '/rest/v0/plugins/sdn-controller/networks/{id}/traffic-rules'
 
 const PRIORITY_DESCRIPTION = [
-  'With the XAPI plugin, `priority` is the OpenFlow priority of the rule: of the rules of a network, network and VIF rules alike, the one with the highest priority matching a packet decides.',
-  `It is an integer from 8002 to 65535, above the flows XAPI installs for a locked VIF (4000 to 8000), and must not be used by another rule of the network: \`GET ${LIST_ENDPOINT}\` lists them all, in order.`,
-  'Leave gaps between the priorities you choose, of 100 for instance, so that moving a rule between two others takes one update.',
-  'A rule added without a priority is appended: it gets the lowest priority of the network minus 5, or 60000 for its first rule, so it is the last one of that list.',
+  'With the XAPI plugin, `priority` is the rank of the rule among the rules of its network, network and VIF rules alike: of those matching a packet, the one with the smallest priority decides, 1 applying first.',
+  `A rule given a priority ends up at that rank, the other rules keeping their order around it, and a priority past the last rule puts it last: the response gives the priority the rule got, and \`GET ${LIST_ENDPOINT}\` lists them all, in order.`,
   'Beware that a rule allowing the traffic of a locked VIF lets it through before the anti-spoofing flows of XAPI.',
   'Without the XAPI plugin (`useDirectChannel` in the configuration), a priority is rejected.',
 ].join(' ')
+
+// The rank a rule got
+const RESPONSE_PRIORITY = { priority: { type: 'number', example: 2 } }
 
 // network and vif traffic-rule routes only differ by these tokens
 const RESOURCES = [
@@ -81,16 +82,16 @@ function isRule(value) {
 // Whether a request to a VIF route changes the order of the rules of the network of
 // the VIF: it sets a priority, or changes or deletes a rule that has one. A rule
 // added since priorities always has one, so a user with privileges on the VIF only
-// can add rules, appended to the network's, but not change them.
+// can add rules, put after the network's, but not change them.
 const REORDERS = {
-  add: (vif, body) => !isRule(body) || body.priority != null || findRule(vif, body)?.priority !== undefined,
-  delete: (vif, body) => !isRule(body) || findRule(vif, body)?.priority !== undefined,
+  add: (vif, body) => !isRule(body) || body.priority != null || findRule(vif, body)?.ofPriority !== undefined,
+  delete: (vif, body) => !isRule(body) || findRule(vif, body)?.ofPriority !== undefined,
   update: (vif, { oldRule, newRule }) =>
     !isRule(oldRule) ||
     typeof newRule !== 'object' ||
     newRule === null ||
     'priority' in newRule ||
-    findRule(vif, oldRule)?.priority !== undefined,
+    findRule(vif, oldRule)?.ofPriority !== undefined,
 }
 
 // On a VIF route, a change of the order of the rules of the network also needs the
@@ -166,14 +167,14 @@ function ruleFromBody(req, idKey) {
 function listRulesRoute(controller) {
   return {
     endpoint: '/networks/{id}/traffic-rules',
-    description: `List the traffic rules of a network and of the VIFs of its VMs, highest priority first: the order in which they apply. \`active\` is false for the rules of an unplugged VIF, which apply again once it is plugged: those of a halted VM are listed, as they keep their priority. A rule from before priorities, which has none until XO connects to the pool again, is listed last, as it applies after the others. Rules of the same priority, like the copies a clone or a replica makes, have no defined order. The VIFs of snapshots and templates, which never apply, are not listed. Add \`ndjson\` to the query to get NDJSON.\n\nRequired privileges:\n - resource: network, action: read\n - resource: vif, action: read, on every VIF whose rules are listed`,
+    description: `List the traffic rules of a network and of the VIFs of its VMs by \`priority\`, their rank: the order in which they apply, 1 first. \`active\` is false for the rules of an unplugged VIF, which apply again once it is plugged: those of a halted VM are listed, as they keep their place. Rules from before priorities share the last rank until XO connects to the pool again and puts them last one after the other. Rules of the same priority, like the copies a clone or a replica makes, have no defined order between them. The VIFs of snapshots and templates, which never apply, are not listed. Add \`ndjson\` to the query to get NDJSON.\n\nRequired privileges:\n - resource: network, action: read\n - resource: vif, action: read, on every VIF whose rules are listed`,
     method: 'get',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     responses: [
       {
         status: 200,
-        description: 'The rules, highest priority first',
+        description: 'The rules, by rank',
         schema: { type: 'array', items: { type: 'object', fields: LISTED_RULE_FIELDS } },
       },
       { status: 403, description: 'Access denied' },
@@ -207,25 +208,20 @@ function listRulesRoute(controller) {
 function addRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/add_traffic_rule`,
-    description: `Add a traffic rule to a ${resource.type}. A rule with the same protocol, port, IP range and direction is updated instead, and keeps its priority if none is given.\n\n${PRIORITY_DESCRIPTION}\n\n${requiredPrivileges(resource, 'to give a priority, or to update a rule that has one')}`,
+    description: `Add a traffic rule to a ${resource.type}, after the last rule of the network without a priority. A rule with the same protocol, port, IP range and direction is updated instead, and keeps its place without a priority.\n\n${PRIORITY_DESCRIPTION}\n\n${requiredPrivileges(resource, 'to give a priority, or to update a rule that has one')}`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
-    body: { ...RULE_FIELDS, priority: { type: 'number', example: 40000, optional: true } },
+    body: { ...RULE_FIELDS, priority: { type: 'number', example: 1, optional: true } },
     responses: [
+      { status: 200, description: 'Rule added, with the priority it got', schema: RESPONSE_PRIORITY },
       { status: 202, description: 'Action executed asynchronously' },
-      { status: 204, description: 'Rule added successfully' },
+      { status: 204, description: 'Rule added, without the XAPI plugin' },
       { status: 403, description: 'Access denied' },
       { status: 404, description: `No ${resource.type} found for this ID` },
-      {
-        status: 409,
-        description: `Another rule of the network has this priority, or no priority is left below the lowest one to append the rule: \`GET ${LIST_ENDPOINT}\` lists them`,
-      },
-      {
-        status: 422,
-        description: 'Invalid rule, priority not an integer from 8002 to 65535, or priority without the XAPI plugin',
-      },
+      { status: 409, description: 'No OpenFlow priority is left on the network' },
+      { status: 422, description: 'Invalid rule, priority not an integer from 1, or priority without the XAPI plugin' },
     ],
     middlewares: jsonAndAcl(resource, REORDERS.add),
     callback: ({ req, createAction }) => {
@@ -233,7 +229,7 @@ function addRuleRoute(controller, resource) {
       controller._checkTrafficRulePriority(rule.priority)
       return createAction(() => controller._addTrafficRule(rule), {
         sync: req.query.sync ?? false,
-        statusCode: 204,
+        statusCode: 200,
         taskProperties: {
           name: `add ${resource.acl} traffic rule`,
           objectId: rule[resource.idKey],
@@ -291,33 +287,30 @@ function deleteRuleRoute(controller, resource) {
 function updateRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/update_traffic_rule`,
-    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule. A \`newRule\` without \`priority\` keeps the priority of the rule, and \`priority: null\` moves it after the last rule of the network.\n\n${PRIORITY_DESCRIPTION}\n\n${requiredPrivileges(resource, 'to give a priority, or to update a rule that has one')}`,
+    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule. A \`newRule\` without \`priority\` keeps the place of the rule, and \`priority: null\` moves it after the last rule of the network.\n\n${PRIORITY_DESCRIPTION}\n\n${requiredPrivileges(resource, 'to give a priority, or to update a rule that has one')}`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
     body: BODY_UPDATE_RULE,
     responses: [
+      { status: 200, description: 'Rule updated, with the priority it has', schema: RESPONSE_PRIORITY },
       { status: 202, description: 'Action executed asynchronously' },
-      { status: 204, description: 'Rule updated successfully' },
+      { status: 204, description: 'Rule updated, without the XAPI plugin' },
       { status: 403, description: 'Access denied' },
       { status: 404, description: `Old rule does not exist on this ${resource.type}` },
-      {
-        status: 409,
-        description: `Another rule has the new match, another rule of the network has the new priority, or no priority is left below the lowest one to move the rule after it: \`GET ${LIST_ENDPOINT}\` lists them`,
-      },
-      {
-        status: 422,
-        description: 'Invalid rule, priority not an integer from 8002 to 65535, or priority without the XAPI plugin',
-      },
+      { status: 409, description: 'Another rule has the new match, or no OpenFlow priority is left on the network' },
+      { status: 422, description: 'Invalid rule, priority not an integer from 1, or priority without the XAPI plugin' },
     ],
     middlewares: jsonAndAcl(resource, REORDERS.update),
     callback: ({ req, createAction }) => {
       const { oldRule, newRule: partialNewRule } = req.body
+      // a rank, `null` or nothing, which mean another thing than for the other fields
+      const { priority, ...patch } = partialNewRule
       const id = req.params.id
       // `null` is not checked: it moves the rule last, or is ignored without the
       // XAPI plugin
-      controller._checkTrafficRulePriority(partialNewRule.priority)
+      controller._checkTrafficRulePriority(priority)
       return createAction(
         async () => {
           const object = controller._xo.getObject(id, resource.type)
@@ -326,15 +319,16 @@ function updateRuleRoute(controller, resource) {
           if (stored === undefined) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
-          // patching the stored rule keeps what `oldRule` does not mention, like the
-          // priority
-          const newRule = applyRulePatch(stored, partialNewRule)
+          // patching the stored rule keeps what `oldRule` does not mention; its
+          // OpenFlow priority is not a rank
+          const { ofPriority, ...storedRule } = stored
+          const newRule = { ...applyRulePatch(storedRule, patch), priority }
 
-          await controller._updateTrafficRule({ [resource.idKey]: id }, oldRule, newRule)
+          return controller._updateTrafficRule({ [resource.idKey]: id }, oldRule, newRule)
         },
         {
           sync: req.query.sync ?? false,
-          statusCode: 204,
+          statusCode: 200,
           taskProperties: {
             name: `update ${resource.acl} traffic rule`,
             objectId: id,

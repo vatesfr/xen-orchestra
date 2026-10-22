@@ -705,12 +705,13 @@ class SDNController extends EventEmitter {
     checkPriorityValue(priority)
   }
 
+  // Returns `{ priority }`, the rank the rule got, except with the legacy methods
   async _addTrafficRule(params) {
     this._checkTrafficRulePriority(params.priority)
     if (!this.#useOrderedTrafficRules) {
       return params.vifId === undefined ? this._addNetworkRule(params) : this._addRule(params)
     }
-    return this.#trafficRules.addRule(await this._getTrafficRuleTarget(params), params)
+    return { priority: await this.#trafficRules.addRule(await this._getTrafficRuleTarget(params), params) }
   }
 
   async _deleteTrafficRule(params) {
@@ -720,19 +721,21 @@ class SDNController extends EventEmitter {
     return this.#trafficRules.deleteRule(await this._getTrafficRuleTarget(params), params)
   }
 
-  // `target` is `{ networkId }` or `{ vifId }`
+  // `target` is `{ networkId }` or `{ vifId }`. Returns as _addTrafficRule does.
   async _updateTrafficRule(target, oldRule, newRule) {
     if (!this.#useOrderedTrafficRules) {
-      // the REST API copies the stored priority into `newRule`, which the legacy
-      // methods would not store anyway: kept, it would fail the add after the delete
+      // a `null` priority, which moves the rule last, means nothing to the legacy
+      // methods: kept, it would fail the add after the delete
       const { priority, ...rule } = newRule
       await this._deleteTrafficRule({ ...oldRule, ...target })
       return this._addTrafficRule({ ...rule, ...target })
     }
-    return this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule)
+    return {
+      priority: await this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule),
+    }
   }
 
-  // The rules of a network and of its VIFs, in the order they apply
+  // The rules of a network and of its VIFs, by rank: the order in which they apply
   _listTrafficRules(networkId) {
     return listRules(this._xo.getXapiObject(this._xo.getObject(networkId, 'network')))
   }
