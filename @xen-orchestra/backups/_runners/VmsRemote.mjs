@@ -96,6 +96,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             job,
             healthCheckSr,
             remoteAdapters,
+            runContext,
             schedule,
             settings: vmSettings,
             sourceRemoteAdapter,

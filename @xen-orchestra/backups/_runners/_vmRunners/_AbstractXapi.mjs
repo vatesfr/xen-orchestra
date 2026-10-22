@@ -36,6 +36,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     job,
     remoteAdapters,
     remotes,
+    runContext,
     schedule,
     settings,
     srs,
@@ -69,6 +70,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._exportedVm = undefined
     this._synchronizedSnapshotTimestamp = synchronizedSnapshotTimestamp
     this._vm = vm
+    this._runContext = runContext
 
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isIncremental = job.mode === 'delta'
