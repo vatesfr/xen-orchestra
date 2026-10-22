@@ -20,7 +20,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     description: '',
     mtu: undefined,
     vlan: undefined,
-    nbd: false,
+    nbd: 'none',
   })
 
   const { t } = useI18n()
@@ -34,7 +34,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(_poolId, formData)
 
   const { interfacesSelectId } = useNetworkPifSelect(selectedPool, toRef(formData, 'pif'), {
@@ -54,7 +54,7 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, () => ({ label: t('interface') })),
     vlanInputBindings: useField('vlan', () => ({ label: t('vlan'), required: true })),
     validateAndBuildPayload,

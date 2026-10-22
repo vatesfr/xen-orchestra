@@ -1046,7 +1046,10 @@ const messages = {
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
-  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  insecureNbdConnection: 'Insecure NBD Connection (not encrypted)',
+  insecureNbdConfirmTitle: 'Enable insecure NBD?',
+  insecureNbdConfirmBody:
+    'The disk data of the backups will travel unencrypted on this network. Only enable it on a network dedicated to backups and isolated from the VMs and the users (dedicated VLAN or physical network).',
   // ----- Pool patches tab -----
   multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   nVmsRunningOnLocalStorage:
@@ -1148,9 +1151,9 @@ const messages = {
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths: '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
-    'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
+    'This action will not be fulfilled if a VM is in a running state on shared SRs. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
-    'The host{nHosts, plural, one {} other {s}} will lose their connection to the SRs. Do you want to continue?',
+    'The host{nHosts, plural, one {} other {s}} will lose their connection to the shared SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
@@ -1253,6 +1256,10 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesOnHostMasterNotUpToDate:
+    'The pool master is not up to date. Installing patches on a host before its pool master can lead to severe issues. Update the pool master first, or use a rolling pool update.',
+  installAllPatchesOnHostMasterUnknown:
+    'Unable to check whether the pool master is up to date. Installing patches on a host before its pool master can lead to severe issues. Make sure the pool master is updated first, or use a rolling pool update.',
   installAllPatchesXostorWarning:
     'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
@@ -2573,6 +2580,7 @@ const messages = {
   // ----- IPs ------
   ipPoolName: 'Name',
   ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs, e.g. 192.168.0.1-192.168.0.254;192.168.1.10',
   ipPoolNetworks: 'Networks',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',

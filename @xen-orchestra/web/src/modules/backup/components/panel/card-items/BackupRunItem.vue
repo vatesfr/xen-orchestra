@@ -4,12 +4,7 @@
       {{ t('run') }}
     </template>
     <template #value>
-      <UiLink
-        v-if="backupRun.id"
-        size="small"
-        icon="object:backup-run"
-        :to="{ name: '/backup/[id]/runs', params: { id: backupRun.jobId }, query: { id: backupRun.id } }"
-      >
+      <UiLink size="small" icon="object:backup-run" :to="backupRunRoute">
         {{ backupRun.id }}
       </UiLink>
     </template>
@@ -57,6 +52,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import { getBackupLogRunRoute } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -91,4 +87,6 @@ const logContent = computed(() => {
 })
 
 const scheduleName = computed(() => schedules.value.find(schedule => schedule.jobId === backupRun.jobId)?.name)
+
+const backupRunRoute = computed(() => getBackupLogRunRoute(backupRun))
 </script>

@@ -92,14 +92,14 @@ Performance gains can be significant, though results depend on the environment:
 
 Make sure your Xen Orchestra instance is up to date. The import page includes an automatic check that verifies that `vectura`, shipped with your Xen Orchestra, runs on this system. Errors must be resolved before the migration can start.
 
-<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={480} />
+<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={232} />
 
 ### Dependencies
 
 The only dependency is `vectura`, a single binary that reads VMware disks over the NFC protocol. It
 is shipped with Xen Orchestra and runs from there: there is nothing to install, nothing to download
-from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.34 or
-later, such as Debian 12 or Ubuntu 22.04.
+from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.31 or
+later, such as Debian 11 or Ubuntu 20.04.
 
 Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
 
@@ -116,6 +116,15 @@ Read [Preparing the VMware environment](#-preparing-the-vmware-environment) to k
 ### Prerequisites
 
 Before starting the migration, make sure your VMware environment meets the following conditions:
+
+#### ESXi version
+
+ESXi 7.x and 8.x hosts are supported, directly or through a vCenter. ESXi 6.x hosts are supported too, with two differences:
+
+- The certificate of the NFC data port (902) is confirmed by its SHA-256 with ESXi 7 and later only. On ESXi 6.x, it is checked against the SHA-1 thumbprint that comes with the migration ticket.
+- On ESXi 6.x, the reads of a disk go one at a time, so the transfer is slower.
+
+ESXi 6.0 was tested with the host reached directly; ESXi 6.5, 6.7 and 6.x hosts behind a vCenter were not.
 
 #### Network
 

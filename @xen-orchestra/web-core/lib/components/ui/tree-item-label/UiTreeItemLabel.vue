@@ -18,7 +18,7 @@
           :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
           size="small"
           :target-scale="{ x: 1.5, y: 2 }"
-          @click="emit('toggle')"
+          @click.stop="emit('toggle')"
         />
         <div v-else class="h-line" />
       </div>
@@ -30,7 +30,7 @@
           <slot />
         </div>
       </a>
-      <div class="addons-wrapper">
+      <div class="addons-wrapper" @click.stop>
         <slot name="addons" />
       </div>
     </div>

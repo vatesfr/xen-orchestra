@@ -29,8 +29,9 @@ session is idle; the disk goes through the other port.
 
 Port 902 is the data plane. The host greets in clear with a `220` line that lists its capabilities,
 among them `NFCSSL supported` and `SHA256 supported`. Vectura reads the
-list and refuses a host that lacks what it needs, before it sends
-anything. Then it starts TLS.
+list, picks the dialect from `SHA256 supported`, and refuses a host that
+lacks what the transport needs, before it sends anything. Then it starts
+TLS.
 
 ## Ticket, thumbprint, and a second TLS session
 
@@ -86,6 +87,24 @@ a read's last chunk lands, it is placed at the right offset of the NBD
 command's buffer, and when a command's last read lands, the command is
 answered. Commands can complete out of order, which is what the NBD
 cookie is for.
+
+## The legacy dialect
+
+A host whose greeting does not announce `SHA256 supported`, ESXi 6.x,
+speaks an older dialect inside the same TLS sessions. In the dialogue the
+client asks `THUMBPRINT` instead, and the host answers with a SHA-1 that
+is not checked; the ticket's SHA-1 and the same certificate on both
+sessions still are. The handshake stops once the host has acknowledged
+the tag. There are no records after it: every message is 264 bytes, an
+open is followed by the path, a read reply by a short block that repeats
+the read, then the bytes as stored.
+
+The open reply gives the disk's geometry, which falls short of the
+capacity by up to a cylinder. Vectura reads the last sector the geometry
+gives, then single sectors past it, doubling the step until the host
+refuses one as out of bounds, and halves the gap down to one sector: the
+capacity is the end of the last readable one. A read sent before the
+previous reply has arrived is sometimes lost, so the window is 1.
 
 ## Two threads, one channel
 

@@ -40,13 +40,20 @@ export function buildStandardInquiry(identity: ScsiIdentity): Buffer {
   return buffer
 }
 
-const SUPPORTED_VPD_PAGES = [0x00, 0x80, 0x83]
+const SUPPORTED_VPD_PAGES = [0x00, 0x80, 0x83, 0xb0]
+
+/** Default max length of a single READ or WRITE, in bytes. */
+export const DEFAULT_MAX_TRANSFER_LENGTH = 8 * 1024 * 1024
 
 /**
  * Build an INQUIRY EVPD page, or `undefined` for an unsupported page code (the
  * caller then returns CHECK CONDITION / INVALID FIELD IN CDB).
  */
-export function buildVpd(pageCode: number, identity: ScsiIdentity): Buffer | undefined {
+export function buildVpd(
+  pageCode: number,
+  identity: ScsiIdentity,
+  maxTransferBlocks = DEFAULT_MAX_TRANSFER_LENGTH / 512
+): Buffer | undefined {
   switch (pageCode) {
     case 0x00: {
       // Supported VPD pages.
@@ -81,6 +88,15 @@ export function buildVpd(pageCode: number, identity: ScsiIdentity): Buffer | und
       buffer[1] = 0x83
       buffer.writeUInt16BE(descriptor.length, 2)
       descriptor.copy(buffer, 4)
+      return buffer
+    }
+    case 0xb0: {
+      // Block limits: initiators split their I/O to the max transfer length
+      // instead of seeing it refused.
+      const buffer = Buffer.alloc(64)
+      buffer[1] = 0xb0
+      buffer.writeUInt16BE(0x3c, 2)
+      buffer.writeUInt32BE(maxTransferBlocks, 8) // maximum transfer length
       return buffer
     }
     default:
@@ -125,15 +141,21 @@ export function buildFixedSense({ key, asc, ascq }: SenseInfo): Buffer {
   return buffer
 }
 
+// WP bit of the device-specific parameter in the mode parameter header
+const MODE_SENSE_WRITE_PROTECT = 0x80
+
 /** Minimal MODE SENSE parameter data: a header with no block descriptor or pages. */
-export function buildModeSense(long: boolean): Buffer {
+export function buildModeSense(long: boolean, writeProtected = false): Buffer {
+  const deviceSpecific = writeProtected ? MODE_SENSE_WRITE_PROTECT : 0
   if (long) {
     const buffer = Buffer.alloc(8)
     buffer.writeUInt16BE(6, 0) // mode data length (8 - 2)
+    buffer[3] = deviceSpecific
     return buffer
   }
   const buffer = Buffer.alloc(4)
   buffer[0] = 3 // mode data length (4 - 1)
+  buffer[2] = deviceSpecific
   return buffer
 }
 
@@ -150,6 +172,7 @@ const ILLEGAL_REQUEST_LBA_OUT_OF_RANGE: SenseInfo = {
   ...Asc.LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE,
 }
 const MEDIUM_ERROR_NO_ADDITIONAL_SENSE: SenseInfo = { key: SenseKey.MEDIUM_ERROR, ...Asc.NO_ADDITIONAL_SENSE }
+const DATA_PROTECT_WRITE_PROTECTED: SenseInfo = { key: SenseKey.DATA_PROTECT, ...Asc.WRITE_PROTECTED }
 
 function checkCondition(ctx: CommandContext, itt: number, sense: SenseInfo): Promise<void> {
   return ctx.sendScsiResponse(itt, ScsiStatus.CHECK_CONDITION, { sense: buildFixedSense(sense) })
@@ -161,16 +184,22 @@ function checkCondition(ctx: CommandContext, itt: number, sense: SenseInfo): Pro
  * `cdb` is the 16-byte CDB from the SCSI Command PDU and `itt` its Initiator
  * Task Tag. Read commands stream Data-In; WRITE solicits Data-Out via R2T;
  * everything else returns status (with sense on error).
+ *
+ * A READ or WRITE longer than `maxTransferLength` bytes, advertised in the
+ * block limits VPD page, is refused with INVALID FIELD IN CDB: it also bounds
+ * the buffer a WRITE allocates.
  */
 export async function handleScsiCommand(
   cdb: Buffer,
   itt: number,
   ctx: CommandContext,
-  identity: ScsiIdentity
+  identity: ScsiIdentity,
+  maxTransferLength = DEFAULT_MAX_TRANSFER_LENGTH
 ): Promise<void> {
   const { lun } = ctx
   const blockSize = lun.getBlockSize()
   const blockCount = lun.getSize() / blockSize
+  const maxTransferBlocks = Math.floor(maxTransferLength / blockSize)
   const request = decodeCdb(cdb)
   log.debug('scsi command', { itt, ...request })
 
@@ -183,7 +212,7 @@ export async function handleScsiCommand(
         }
         return ctx.sendReadData(itt, buildStandardInquiry(identity), request.allocationLength)
       }
-      const page = buildVpd(request.pageCode, identity)
+      const page = buildVpd(request.pageCode, identity, maxTransferBlocks)
       if (page === undefined) {
         return checkCondition(ctx, itt, ILLEGAL_REQUEST_INVALID_FIELD)
       }
@@ -203,6 +232,9 @@ export async function handleScsiCommand(
       if (request.lba + request.blocks > blockCount) {
         return checkCondition(ctx, itt, ILLEGAL_REQUEST_LBA_OUT_OF_RANGE)
       }
+      if (request.blocks > maxTransferBlocks) {
+        return checkCondition(ctx, itt, ILLEGAL_REQUEST_INVALID_FIELD)
+      }
       const byteLength = request.blocks * blockSize
       if (byteLength === 0) {
         return ctx.sendReadData(itt, Buffer.alloc(0), 0)
@@ -221,8 +253,14 @@ export async function handleScsiCommand(
     }
 
     case 'write': {
+      if (lun.readOnly === true) {
+        return checkCondition(ctx, itt, DATA_PROTECT_WRITE_PROTECTED)
+      }
       if (request.lba + request.blocks > blockCount) {
         return checkCondition(ctx, itt, ILLEGAL_REQUEST_LBA_OUT_OF_RANGE)
+      }
+      if (request.blocks > maxTransferBlocks) {
+        return checkCondition(ctx, itt, ILLEGAL_REQUEST_INVALID_FIELD)
       }
       const byteLength = request.blocks * blockSize
       if (byteLength === 0) {
@@ -243,7 +281,7 @@ export async function handleScsiCommand(
     }
 
     case 'modeSense':
-      return ctx.sendReadData(itt, buildModeSense(request.long), request.allocationLength)
+      return ctx.sendReadData(itt, buildModeSense(request.long, lun.readOnly === true), request.allocationLength)
 
     case 'syncCache':
       await lun.flush()

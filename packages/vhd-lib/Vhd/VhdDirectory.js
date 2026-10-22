@@ -9,6 +9,7 @@ const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
+const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -16,6 +17,8 @@ const NULL_COMPRESSOR = {
   compress: buffer => buffer,
   decompress: buffer => buffer,
   baseOptions: {},
+  // an array of buffers is returned as is, the handler writes it without concatenating it
+  acceptsBufferArray: true,
 }
 
 const COMPRESSORS = {
@@ -38,6 +41,32 @@ const COMPRESSORS = {
     decompress: promisify(zlib.brotliDecompress),
   },
   none: NULL_COMPRESSOR,
+  // no compression, only the pages full of zeroes are removed: much cheaper than a real compression
+  // TODO: once the handlers write arrays of buffers (feat_writev), return the parts as is (views on the data, no
+  // copy): `compress: removeZeroPages, acceptsBufferArray: true`
+  zeros: {
+    compress: buffer => Buffer.concat(removeZeroPages(buffer)),
+    decompress: restoreZeroPages,
+  },
+}
+
+// negative levels are the fastest ones: they mostly remove the runs of zeroes, and decompress about 5 times faster
+// than brotli
+const ZSTD_LEVEL = -3
+
+// zstd is only available since Node 22.15
+if (zlib.zstdCompress !== undefined) {
+  COMPRESSORS.zstd = {
+    compress: (
+      zstdCompress => buffer =>
+        zstdCompress(buffer, {
+          params: {
+            [zlib.constants.ZSTD_c_compressionLevel]: ZSTD_LEVEL,
+          },
+        })
+    )(promisify(zlib.zstdCompress)),
+    decompress: promisify(zlib.zstdDecompress),
+  }
 }
 
 // inject identifiers
@@ -159,6 +188,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
+  // buffer can be an array of buffers, the chunk is then their concatenation
   async _writeChunk(partName, buffer) {
     assert.notStrictEqual(
       this._opts?.flags,
@@ -166,10 +196,17 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
+    const compressed = await this.#compressor.compress(
+      // the handler can write an array without concatenating it, most compressors can't
+      Array.isArray(buffer) && !this.#compressor.acceptsBufferArray ? Buffer.concat(buffer) : buffer
+    )
+    return this.#outputChunk(partName, compressed)
+  }
+
+  #outputChunk(partName, buffer) {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
-    const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return this._handler.outputFile(this.#getChunkPath(partName), buffer, { flags })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -222,6 +259,15 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       buffer,
     }
   }
+
+  /**
+   * read a block as stored (bitmap and data compressed together), to be written as is with writeCompressedBlock in a
+   * VhdDirectory using the same compression
+   */
+  async readCompressedBlock(blockId) {
+    return this._handler.readFile(this.getFullBlockPath(blockId))
+  }
+
   ensureBatSize() {
     // nothing to do in directory mode
   }
@@ -311,6 +357,23 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+  }
+
+  // bitmap and data are not concatenated: the handler can write them with a single writev
+  async writeBlockData(blockId, data) {
+    assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
+    await this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
+    setBitmap(this.#blockTable, blockId)
+  }
+
+  /**
+   * write a block read with readCompressedBlock, the caller must ensure it is compressed with the same compression as
+   * this VHD
+   */
+  async writeCompressedBlock(blockId, buffer) {
+    assert.notStrictEqual(this._opts?.flags, 'r', `Can't write block ${blockId} in ${this._path} with read permission`)
+    await this.#outputChunk(this.#getBlockPath(blockId), buffer)
+    setBitmap(this.#blockTable, blockId)
   }
 
   async _readParentLocatorData(id) {

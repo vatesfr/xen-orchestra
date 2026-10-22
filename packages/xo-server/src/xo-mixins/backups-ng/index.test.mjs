@@ -1,8 +1,10 @@
 import assert from 'assert/strict'
 import Disposable from 'promise-toolbox/Disposable'
+import EventEmitter from 'node:events'
 import test from 'node:test'
 import TimeoutError from 'promise-toolbox/TimeoutError'
 import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { makeOnProgress } from '@vates/task/combineEvents'
 
 import BackupNg, { backupsListingRetryDelay } from './index.mjs'
 import { filenameOf, journalEntryPath, metadataOf, VM } from './_vmBackupsFixtures.mjs'
@@ -12,6 +14,8 @@ const { afterEach, beforeEach, describe, it, mock } = test
 // must be kept in sync with `index.mjs`
 const LISTING_TIMEOUT = 30e3
 const LISTING_DEBOUNCE = 60e3
+const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
+const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
 // `mock.timers.tick()` is synchronous: yield to the event loop so that the promise continuations
 // it scheduled have run before the assertions
@@ -350,8 +354,30 @@ class Repository {
 
   nListings = 0
 
+  // set to make every read fail, as an unreachable repository does
+  failWith
+
   constructor(metadata) {
     metadata.forEach(_ => this.metadataByFilename.set(_._filename, _))
+  }
+
+  // writes a backup and its journal entry, as a backup job does
+  add(metadata) {
+    this.metadataByFilename.set(metadata._filename, metadata)
+    const date = Date.now()
+    this.journal.push({
+      event: 'add',
+      filename: metadata._filename,
+      vmUuid: metadata.vm.uuid,
+      date,
+      _filename: journalEntryPath(date),
+    })
+  }
+
+  #mayFail() {
+    if (this.failWith !== undefined) {
+      throw this.failWith
+    }
   }
 
   get adapter() {
@@ -364,10 +390,12 @@ class Repository {
         }
       },
       listAllVmBackups: async () => {
+        this.#mayFail()
         this.nListings++
         return { [VM]: [...this.metadataByFilename.values()] }
       },
       readBackupJournalEvents: async cursor => {
+        this.#mayFail()
         const entries = cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor)
         if (entries.length > 0) {
           cursor = entries[entries.length - 1]._filename
@@ -394,7 +422,8 @@ const createBackupNgWithRepository = repository => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup' }
     },
-    hooks: { on() {} },
+    hooks: new EventEmitter(),
+    registerJobExecutor() {},
   }
   return new BackupNg(app)
 }
@@ -402,10 +431,12 @@ const createBackupNgWithRepository = repository => {
 const PROXY_ID = 'a-proxy-id'
 
 // serves the same in-memory repository through the RPCs a proxy exposes
-const createBackupNgWithProxiedRepository = (repository, { journal = true, failsToList = false } = {}) => {
+//
+// `backupLogs` is what the proxy streams when it runs a backup job: an async iterable of task events
+const createBackupNgWithProxiedRepository = (repository, { journal = true, failsToList = false, backupLogs } = {}) => {
   const adapter = repository.adapter
   const app = {
-    config: { getDuration: () => LISTING_DEBOUNCE },
+    config: { get: () => ({}), getDuration: () => LISTING_DEBOUNCE },
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup', proxy: PROXY_ID }
@@ -430,9 +461,18 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
         return adapter.deleteVmBackups(params.filenames)
       }
 
+      if (method === 'backup.run') {
+        return backupLogs()
+      }
+
       throw new Error(`unexpected proxy method ${method}`)
     },
-    hooks: { on() {} },
+    hooks: new EventEmitter(),
+    jobExecutors: {},
+    registerJobExecutor(type, executor) {
+      this.jobExecutors[type] = executor
+    },
+    tasks: { createExternalProgressHandler: makeOnProgress },
   }
   return new BackupNg(app)
 }
@@ -469,6 +509,14 @@ describe('deleteVmBackupsNg', () => {
 })
 
 describe('on a repository attached to a proxy', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
   it('makes a deletion visible at once, without listing the repository again', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
     const backupNg = createBackupNgWithProxiedRepository(repository)
@@ -525,10 +573,362 @@ describe('invalidateVmBackupsListing() on a cached repository', () => {
     await backupNg.listVmBackupsNg([REMOTE_ID])
     assert.equal(repository.nListings, 1)
 
-    // as the `remotes` mixin does when the repository is gone or has been reconfigured
+    // as the `remotes` mixin does when the repository has been reconfigured
     backupNg.invalidateVmBackupsListing(REMOTE_ID)
 
     await backupNg.listVmBackupsNg([REMOTE_ID])
     assert.equal(repository.nListings, 2)
+  })
+})
+
+describe('the backup-archive collection', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
+  // the collection the mixin registers once the core of the app has started, as `xo.mjs` receives it
+  const registeredCollection = backupNg => {
+    const { hooks } = backupNg._app
+    let registered
+    hooks.on('registerCollection', payload => {
+      registered = payload
+    })
+    hooks.emit('core started')
+    return registered
+  }
+
+  // records what the mixin announces, in order, by the id of the one archive each event carries
+  const recordEvents = backupNg => {
+    const { collection } = registeredCollection(backupNg)
+    const events = []
+    for (const name of ['add', 'update', 'remove']) {
+      collection.on(name, ([item]) => events.push({ event: name, id: name === 'remove' ? item : item.id }))
+    }
+    return events
+  }
+
+  it('is registered with the app as backup-archive', () => {
+    const backupNg = createBackupNgWithRepository(new Repository([]))
+
+    assert.equal(registeredCollection(backupNg).type, 'backup-archive')
+  })
+
+  it('announces each change once after the app has stopped and started again', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+    const events = []
+    // attaches the listeners as `xo.mjs` does each time the core starts: a restart must not attach a second set
+    hooks.on('registerCollection', ({ collection }) => {
+      collection.on('add', ([item]) => events.push(item.id))
+    })
+
+    hooks.emit('core started')
+    hooks.emit('start')
+    hooks.emit('stop')
+    hooks.emit('core started')
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(events, [idOf('20260811T090000')])
+  })
+
+  it('announces the archives a listing discovered', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const events = recordEvents(backupNg)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
+  })
+
+  it('announces a backup deleted through the mixin, without waiting for a listing', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
+    await tick(0)
+
+    assert.deepEqual(events, [{ event: 'remove', id: idOf('20260811T093000') }])
+    assert.equal(repository.nListings, 1)
+  })
+
+  it('does not read a repository whose archives are not in the collection after a deletion', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const events = recordEvents(backupNg)
+
+    await backupNg.deleteVmBackupsNg([idOf('20260811T093000')])
+    await tick(0)
+
+    assert.equal(repository.nListings, 0)
+    assert.deepEqual(events, [])
+  })
+
+  it('announces the backup of a VM once it is exported, before the end of the job', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    let eventsWhenExported
+    const backupNg = createBackupNgWithProxiedRepository(repository, {
+      // a single VM exported to a single repository
+      async *backupLogs() {
+        yield { type: 'start', id: 'run', timestamp: 0, properties: { name: 'backup run' } }
+        yield {
+          type: 'start',
+          id: 'export',
+          parentId: 'run',
+          timestamp: 0,
+          properties: { id: REMOTE_ID, name: 'export', type: 'remote' },
+        }
+        repository.add(metadataOf(VM, '20260811T100000'))
+        yield { type: 'end', id: 'export', timestamp: 0, status: 'success' }
+
+        await tick(0)
+        eventsWhenExported = events.slice()
+
+        yield { type: 'end', id: 'run', timestamp: 0, status: 'success' }
+      },
+    })
+    const { hooks, jobExecutors } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    await jobExecutors.mirrorBackup({
+      job: { id: 'job', name: 'job', proxy: PROXY_ID, remotes: { id: REMOTE_ID }, settings: { schedule: {} } },
+      jobData: {},
+      jobUpdateFct: async () => {},
+      schedule: { id: 'schedule' },
+    })
+
+    assert.deepEqual(eventsWhenExported, [{ event: 'add', id: idOf('20260811T100000') }])
+    assert.equal(repository.nListings, 1)
+
+    hooks.emit('stop')
+  })
+
+  it('reads the repositories of the collection on a timer, for the changes made by other processes', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    // e.g. by another XO sharing the repository
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T100000') }])
+    assert.equal(repository.nListings, 1)
+
+    hooks.emit('stop')
+    repository.add(metadataOf(VM, '20260811T110000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(events.length, 1)
+  })
+
+  it('lists the repositories of the collection whose journal cannot be read on a slower timer', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithProxiedRepository(repository, { journal: false })
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+    hooks.emit('start')
+
+    // the first tick finds out that the journal cannot be read, by listing the repository instead
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 2)
+
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL - 2 * VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(events, [])
+
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(repository.nListings, 3)
+    assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T100000') }])
+
+    hooks.emit('stop')
+  })
+
+  // the mixin with three repositories in the collection, whose reads by the timers are recorded in
+  // `started` and only settle when their function in `pending` is called
+  const createBackupNgWithHeldReads = async () => {
+    const backupNg = createBackupNgWithRepository(new Repository([metadataOf(VM, '20260811T090000')]))
+    backupNg._app.getRemoteWithCredentials = async id => ({ id, url: 'file:///media/backup' })
+    await backupNg.listVmBackupsNg(['a', 'b', 'c'])
+
+    const started = []
+    const pending = []
+    backupNg._listVmBackupsWithBackoff = remoteId => {
+      started.push(remoteId)
+      return new Promise(resolve => pending.push(resolve))
+    }
+    return { backupNg, pending, started }
+  }
+
+  it('reads the repositories two at a time, and skips the ticks which come before they are done', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 2)
+
+    // the next tick does not add its reads to those still running
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 2)
+
+    // the third one starts as soon as one of the first two is done
+    pending.shift()()
+    await tick(0)
+    assert.equal(started.length, 3)
+
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.equal(started.length, 5)
+
+    hooks.emit('stop')
+  })
+
+  it('does not read a repository forgotten while it was waiting for its turn', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    // as the `remotes` mixin does when the backup repository is removed or disabled: reading it would
+    // put its archives back in the collection
+    const [waiting] = ['a', 'b', 'c'].filter(id => !started.includes(id))
+    backupNg.forgetVmBackupRepository(waiting)
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+
+    assert.equal(started.length, 2)
+
+    hooks.emit('stop')
+  })
+
+  it('does not read the repositories still waiting for their turn once the app has stopped', async () => {
+    const { backupNg, pending, started } = await createBackupNgWithHeldReads()
+    const { hooks } = backupNg._app
+    hooks.emit('start')
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+
+    hooks.emit('stop')
+    pending.splice(0).forEach(settle => settle())
+    await tick(0)
+
+    assert.equal(started.length, 2)
+  })
+
+  it('lists every enabled repository once the app has started', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { _app: app } = backupNg
+    app.getAllRemotes = async () => [
+      { id: 'a-disabled-remote-id', enabled: false },
+      { id: REMOTE_ID, enabled: true },
+    ]
+    const listed = []
+    const { getRemoteWithCredentials } = app
+    app.getRemoteWithCredentials = id => {
+      listed.push(id)
+      return getRemoteWithCredentials(id)
+    }
+    const events = recordEvents(backupNg)
+
+    app.hooks.emit('start')
+    app.hooks.emit('started')
+    await tick(0)
+
+    assert.deepEqual(listed, [REMOTE_ID])
+    assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
+    assert.equal(repository.nListings, 1)
+
+    // and from then on, the timer reads it
+    repository.add(metadataOf(VM, '20260811T100000'))
+    await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    assert.deepEqual(events.slice(1), [{ event: 'add', id: idOf('20260811T100000') }])
+    assert.equal(repository.nListings, 1)
+
+    app.hooks.emit('stop')
+  })
+
+  it('does not list the repositories once the app has stopped', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+    backupNg._app.getAllRemotes = async () => [{ id: REMOTE_ID, enabled: true }]
+
+    hooks.emit('start')
+    hooks.emit('started')
+    hooks.emit('stop')
+    await tick(0)
+
+    assert.equal(repository.nListings, 0)
+  })
+
+  it('keeps the retry delay of a repository the timer fails to read', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    hooks.emit('start')
+
+    repository.failWith = new Error('unreachable')
+    for (let i = 0; i < 3; ++i) {
+      await tick(VM_BACKUP_ARCHIVES_POLL_INTERVAL)
+    }
+
+    // each tick fails again once the retry delay of the previous failure is over: a timer which reset
+    // the retry state would count a first failure each time
+    assert.equal(backupNg._backupsListingRetry[REMOTE_ID].attempt, 3)
+
+    hooks.emit('stop')
+  })
+
+  it('announces the removal of every archive of a repository which is gone', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000'), metadataOf(VM, '20260811T093000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    // as the `remotes` mixin does when the backup repository is removed or disabled
+    backupNg.forgetVmBackupRepository(REMOTE_ID)
+
+    assert.deepEqual(events, [
+      { event: 'remove', id: idOf('20260811T090000') },
+      { event: 'remove', id: idOf('20260811T093000') },
+    ])
+  })
+
+  it('announces nothing when a repository is merely invalidated and read again', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+    const events = recordEvents(backupNg)
+
+    // as `_forceRefresh` does
+    backupNg.invalidateVmBackupsListing(REMOTE_ID)
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.equal(repository.nListings, 2)
+    assert.deepEqual(events, [])
   })
 })

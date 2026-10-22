@@ -307,6 +307,7 @@ const applyPreset = (preset: { props?: Record<string, any>; settings?: Record<st
 
   .tab-content {
     flex: 1;
+    min-width: 0;
     height: auto;
   }
 }

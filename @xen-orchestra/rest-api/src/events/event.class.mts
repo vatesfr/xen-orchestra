@@ -7,9 +7,10 @@ import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
-import type { AnyXoJob, XoAlarm, XoMessage, XoRecord, XoUser } from '@vates/types'
+import type { AnyXoJob, XoAlarm, XoAuthenticationToken, XoMessage, XoPlugin, XoRecord, XoUser } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
 import type { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { obfuscatePluginSecrets } from '../plugins/plugin.helper.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -143,18 +144,31 @@ export class XoListener extends Listener<XoListenerType> {
         previousObj !== undefined && this.#backupJobService!.isBackupJob(previousObj as AnyXoJob)
           ? previousObj
           : undefined
+    } else if (this.type === 'authentication_token') {
+      // `as` assertion safe because we are in the `authentication_token` listener
+      _object = (object as XoAuthenticationToken | undefined)?.user_id === subscriber.userId ? object : undefined
+      _prevObject =
+        (previousObj as XoAuthenticationToken | undefined)?.user_id === subscriber.userId ? previousObj : undefined
+    } else if (this.type === 'plugin') {
+      // `as` assertions safe because we are in the `plugin` listener
+      _object = object === undefined ? undefined : obfuscatePluginSecrets(object as XoPlugin)
+      _prevObject = previousObj === undefined ? undefined : obfuscatePluginSecrets(previousObj as XoPlugin)
     }
 
     if (_object === undefined && _prevObject === undefined) {
       return
     }
 
-    const aclEvent = await this.getAclEvent({
-      event,
-      object: _object,
-      previousObject: _prevObject,
-      userId: subscriber.userId,
-    })
+    // a user is always able to see his own authentication token. no privileges required
+    const aclEvent =
+      this.type === 'authentication_token'
+        ? event
+        : await this.getAclEvent({
+            event,
+            object: _object,
+            previousObject: _prevObject,
+            userId: subscriber.userId,
+          })
     // If the user has no 'read' privileges for the changes, don't send the update
     if (aclEvent === undefined) {
       return

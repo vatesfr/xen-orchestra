@@ -13,7 +13,8 @@ binary with two commands:
 
 Vectura targets ESXi 7.x and 8.x hosts, reached directly or through a
 vCenter; with a vCenter, the disk is read from the ESXi host its ticket
-names. An ESXi 6.x host is refused at the data port's greeting. Certificate
+names. An ESXi 6.x host is read too, one host read at a time and without
+the data port's SHA-256 confirmation, which it cannot give. Certificate
 verification can be pinned or pointed at a CA bundle but never skipped, and
 the password is read from `VECTURA_PASSWORD` only.
 
@@ -21,7 +22,7 @@ the password is read from `VECTURA_PASSWORD` only.
 
 The binary, `vectura`, ships in this directory with
 `@xen-orchestra/vmware-explorer`, and xo-server runs it from there. It runs
-on Debian 12, Ubuntu 22.04 or newer (amd64) and needs nothing but glibc. To
+on Debian 11, Ubuntu 20.04 or newer (amd64) and needs nothing but glibc. To
 use it by hand, copy it to a directory in `PATH`:
 
 ```sh
@@ -85,24 +86,44 @@ Explanation, the reasoning:
 touches this directory. The pre-commit hook runs `cargo fmt --check` when a
 `.rs` file is staged.
 
-A change to vectura needs its own line in the packages list of
-`CHANGELOG.unreleased.md`:
+A pull request that changes the sources, `Cargo.lock` or a tool version bumps
+vectura once, at its end, from this directory, then commits `Cargo.toml`,
+`Cargo.lock` and `vectura`:
 
-```md
-- vectura patch
+```sh
+scripts/release.sh patch # or minor, major
 ```
 
-`scripts/gen-deps-list.js` then lists `./scripts/bump-pkg vectura <type>`,
-followed by a release of `@xen-orchestra/vmware-explorer`, which bundles the
-binary. `bump-pkg` runs `scripts/release.sh`: it bumps the version in
-`Cargo.toml` and `Cargo.lock`, rebuilds the binary in place of the previous
-one and commits both as `feat(vectura): <version>`.
+It bumps the version in `Cargo.toml` and `Cargo.lock` and rebuilds the binary
+in place of the previous one. If the build or the check of the binary fails,
+it puts the version back and can run again. vectura is not released on its
+own: the pull request lists the package which bundles the binary in the
+packages list of `CHANGELOG.unreleased.md`, and the release of that package
+ships the binary as is:
+
+```md
+- @xen-orchestra/vmware-explorer patch
+```
+
 `tests/bundled_binary.rs` fails when the binary and `Cargo.toml` disagree, or
 when the binary lost its executable bit.
 
-The build links against glibc 2.34 through zig, whatever the glibc of the
-machine, so the binary runs on Debian 12 and Ubuntu 22.04. It needs
-[zig](https://ziglang.org/download/) (0.16.0 tested) and:
+The binary in git is the build of its sources: the workflow builds it again
+and fails when the two differ by a single byte. A change pushed after the bump
+does not bump again: rebuild the binary from this directory and commit it:
+
+```sh
+scripts/build.sh .
+```
+
+The build is reproducible: `scripts/build.sh` keeps the paths of the machine
+out of the binary and refuses any zig or cargo-zigbuild but the versions the
+workflow installs. Linux x86_64 machines build the same binary; macOS and
+aarch64 hosts are untested.
+
+The build links against glibc 2.31 through zig, whatever the glibc of the
+machine, so the binary runs on Debian 11, which XOA appliances still run,
+and Ubuntu 20.04. It needs [zig](https://ziglang.org/download/) 0.16.0 and:
 
 ```sh
 cargo install --locked cargo-zigbuild@0.23.4

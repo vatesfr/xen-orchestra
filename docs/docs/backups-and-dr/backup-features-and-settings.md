@@ -304,6 +304,24 @@ Since the VSS provider was removed from the guest tools and the `snapshot_with_q
 
 Both can be applied per VM with [backup modifier tags](#backup-modifier-tags). Old quiesced snapshots taken before the removal are still identified by an "info" icon in the VM's Snapshots tab.
 
+## Synchronized snapshots {#synchronized-snapshots}
+
+A backup job snapshots each VM right before exporting it, one VM after the other. When several VMs form a single system (an application server and its database, the nodes of a cluster...) their restore points end up minutes apart, and restoring the whole set gives you VMs that are not consistent with each other.
+
+Enable **Synchronize snapshots** in the _Advanced settings_ of a backup or replication job to snapshot every VM of the job up front, before the first export starts. All the restore points of a run are then taken within the same short window, so the whole job can be restored as a coherent set.
+
+The snapshots are taken in parallel, up to the job's snapshot concurrency (2 by default), and the VMs are not frozen: this narrows the window between the restore points, it does not make them simultaneous. The snapshot concurrency can be raised to narrow the window.
+
+:::note
+VMs that are exported without a snapshot are not part of the batch: offline backup, offline snapshot, or a halted VM in a full backup.
+:::
+
+Two consequences to keep in mind:
+
+- Each VM keeps its snapshot until its own export runs, so the snapshots taken first live for most of the job and grow as the VMs write to their disks. Expect more space used on the storage repository while the job runs, especially on thick-provisioned SRs.
+- In the backup logs, a VM's task starts when its snapshot is taken instead of when its export starts, so the duration reported for a VM includes the time it waited for its turn to export. The duration of the job itself is unchanged.
+
+
 ## Backup repositories (BR) {#remotes}
 
 Backup repositories (BR), formerly called _remotes_, are places where your _backup_ and _delta backup_ files will be stored.
