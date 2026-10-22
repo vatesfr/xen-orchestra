@@ -93,7 +93,7 @@ const { HeadCells, BodyCells } = useKubernetesNodeColumns({
       status: r => r({ status: nodeReadyStatus(node) }),
       role: r => r(roleLabels.value[node.role]),
       version: r => r(node.version),
-      endpoint: r => r(node.endpoint),
+      ipAddresses: r => r(node.ips ?? []),
       actions: r =>
         r({
           onClick: () => (selectedNodeId.value = node.id),
