@@ -46,7 +46,7 @@
             <span class="live typo-body-regular-small"><span class="pulse" />{{ t('firewall:live:refreshing') }}</span>
           </template>
         </UiTitle>
-        <VtsStateHero v-if="blocked.length === 0" format="card" type="no-data" size="small" horizontal>
+        <VtsStateHero v-if="blockedRows.length === 0" format="card" type="no-data" size="small" horizontal>
           {{ t('firewall:live:no-blocked') }}
         </VtsStateHero>
         <VtsTable v-else>
@@ -54,30 +54,39 @@
             <tr>
               <VtsHeaderCell>{{ t('firewall:source') }}</VtsHeaderCell>
               <VtsHeaderCell>{{ t('firewall:destination') }}</VtsHeaderCell>
+              <VtsHeaderCell>{{ t('firewall:service') }}</VtsHeaderCell>
+              <VtsHeaderCell>{{ t('firewall:log:decided-by') }}</VtsHeaderCell>
               <VtsHeaderCell>{{ t('firewall:live:rate') }}</VtsHeaderCell>
               <VtsHeaderCell />
             </tr>
           </thead>
           <tbody>
-            <VtsRow v-for="attempt of blocked" :key="`${attempt.srcIp}>${attempt.dstVm}`">
+            <VtsRow v-for="row of blockedRows" :key="row.key">
               <UiTableCell>
                 <span class="end">
-                  <span class="typo-body-bold">{{ attempt.srcVm || attempt.srcIp }}</span>
-                  <code v-if="attempt.srcVm" class="secondary">{{ attempt.srcIp }}</code>
+                  <span class="typo-body-bold">{{ row.srcVm || row.srcIp }}</span>
+                  <code v-if="row.srcVm" class="secondary">{{ row.srcIp }}</code>
                 </span>
               </UiTableCell>
               <UiTableCell>
                 <span class="end">
                   <VtsIcon name="fa:ban" size="small" class="danger" />
-                  <span class="typo-body-bold">{{ attempt.dstVm }}</span>
-                  <UiTag v-if="attempt.revoked" accent="warning" variant="secondary">{{
-                    t('firewall:live:revoked')
-                  }}</UiTag>
+                  <span class="typo-body-bold">{{ row.dstVm }}</span>
+                  <UiTag v-if="row.revoked" accent="warning" variant="secondary">
+                    {{ t('firewall:live:revoked') }}
+                  </UiTag>
                 </span>
               </UiTableCell>
-              <UiTableCell>{{ t('firewall:hits:per-second', { n: formatRate(attempt.perSec) }) }}</UiTableCell>
+              <UiTableCell>
+                <span v-if="row.proto" class="end">
+                  <span class="proto typo-body-bold-small">{{ row.proto.toUpperCase() }}</span>
+                  {{ row.port }}
+                </span>
+              </UiTableCell>
+              <UiTableCell class="typo-body-regular-small">{{ row.decidedBy }}</UiTableCell>
+              <UiTableCell class="typo-body-regular-small">{{ row.rate }}</UiTableCell>
               <UiTableCell align="end">
-                <UiLink v-if="whyRoute(attempt)" :to="whyRoute(attempt)" size="small" icon="fa:route">
+                <UiLink v-if="row.why" :to="row.why" size="small" icon="fa:route">
                   {{ t('firewall:live:why') }}
                 </UiLink>
               </UiTableCell>
@@ -206,6 +215,7 @@ import VdfStatCard from '@/modules/vdf/components/VdfStatCard.vue'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfRuleHits } from '@/modules/vdf/composables/vdf-rule-hits.composable.ts'
+import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfBlockedAttempt, VdfConnection } from '@/modules/vdf/types.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
@@ -221,6 +231,7 @@ import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -270,25 +281,92 @@ const ruleOwners = computed(
   () => new Map(document.value.policies.flatMap(policy => policy.ingress.map(rule => [rule.id, policy.name])))
 )
 
-function whyRoute(attempt: VdfBlockedAttempt): RouteLocationRaw | undefined {
-  const destination = poolVms.value.find(vm => vm.name_label === attempt.dstVm)
+function traceRoute(source: { vm?: string; ip: string }, destinationVm: string, proto?: string, port?: string) {
+  const destination = poolVms.value.find(vm => vm.name_label === destinationVm)
 
   if (destination === undefined) {
     return undefined
   }
 
-  const source = poolVms.value.find(vm => vm.name_label === attempt.srcVm)
+  const sourceVm = poolVms.value.find(vm =>
+    source.vm ? vm.name_label === source.vm : Object.values(vm.addresses ?? {}).includes(source.ip)
+  )
 
   return {
     name: '/pool/[id]/firewall/trace',
     params: { id: pool.id },
     query: {
-      from: source?.id ?? 'external',
-      fromip: source === undefined ? attempt.srcIp : undefined,
+      from: sourceVm?.id ?? 'external',
+      fromip: sourceVm === undefined ? source.ip : undefined,
       to: destination.id,
+      proto,
+      port,
+      run: proto === undefined ? undefined : '1',
     },
-  }
+  } satisfies RouteLocationRaw
 }
+
+// what the agents attribute (drops from VMs of the pool, by rate) and what
+// rules with logging recorded in the last minute (any source, with port)
+const { ruleLog } = useVdfRuleLog({}, () => pool.id)
+
+const now = useNow({ interval: 5000 })
+
+type BlockedRow = {
+  key: string
+  srcVm: string
+  srcIp: string
+  dstVm: string
+  revoked: boolean
+  proto?: string
+  port?: string
+  decidedBy: string
+  rate: string
+  why: RouteLocationRaw | undefined
+}
+
+const blockedRows = computed<BlockedRow[]>(() => {
+  const rows: BlockedRow[] = blocked.value.map((attempt: VdfBlockedAttempt) => ({
+    key: `agent:${attempt.srcIp}>${attempt.dstVm}`,
+    srcVm: attempt.srcVm,
+    srcIp: attempt.srcIp,
+    dstVm: attempt.dstVm,
+    revoked: attempt.revoked,
+    decidedBy: attempt.revoked ? t('firewall:live:revoked') : t('firewall:live:default-drop'),
+    rate: t('firewall:hits:per-second', { n: formatRate(attempt.perSec) }),
+    why: traceRoute({ vm: attempt.srcVm || undefined, ip: attempt.srcIp }, attempt.dstVm),
+  }))
+
+  const since = now.value.getTime() - 60_000
+  const logged = new Map<string, BlockedRow & { count: number }>()
+
+  for (const entry of ruleLog.value?.entries ?? []) {
+    if (entry.verdict !== 'DROP' || !entry.vm || Date.parse(entry.time) < since) {
+      continue
+    }
+
+    const key = `log:${entry.src}>${entry.vm}:${entry.proto}/${entry.dport}`
+    const row = logged.get(key)
+    const count = (row?.count ?? 0) + 1 + (entry.suppressed ?? 0)
+    const proto = entry.proto.split(' ')[0].toLowerCase()
+
+    logged.set(key, {
+      key,
+      srcVm: '',
+      srcIp: entry.src,
+      dstVm: entry.vm,
+      revoked: false,
+      proto,
+      port: entry.dport,
+      decidedBy: `${entry.policy} · ${entry.rule === 'default' ? t('firewall:log:default') : t('firewall:log:rule', { id: entry.rule })}`,
+      rate: t('firewall:live:last-minute', { n: count }),
+      count,
+      why: traceRoute({ ip: entry.src }, entry.vm, proto, entry.dport),
+    })
+  }
+
+  return [...rows, ...[...logged.values()].sort((rowA, rowB) => rowB.count - rowA.count)]
+})
 
 function connectionKey(connection: VdfConnection) {
   return `${connection.proto}:${connection.src}:${connection.sport}>${connection.dst}:${connection.dport}`

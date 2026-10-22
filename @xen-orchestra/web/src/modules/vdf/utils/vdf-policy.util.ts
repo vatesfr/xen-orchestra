@@ -108,8 +108,9 @@ export function emptyDocument(): VdfDocument {
   return { groups: {}, policies: [] }
 }
 
+// documents are JSON, and often reactive proxies, which structuredClone refuses
 export function cloneDocument(document: VdfDocument): VdfDocument {
-  return structuredClone(document)
+  return JSON.parse(JSON.stringify(document))
 }
 
 export function serializeDocument(document: VdfDocument) {

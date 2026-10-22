@@ -360,7 +360,7 @@ async function confirmQuarantine(quarantine: boolean) {
     flex-direction: column;
     gap: 0.6rem;
 
-    &:not(:first-of-type) {
+    & + .vif {
       padding-block-start: 1.2rem;
       border-block-start: 0.1rem solid var(--color-neutral-border);
     }

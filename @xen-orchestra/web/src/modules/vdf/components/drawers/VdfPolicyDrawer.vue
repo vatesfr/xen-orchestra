@@ -127,6 +127,10 @@ const defaultWarning = computed(() => {
     return t('firewall:policy-form:default:allow-early')
   }
 
+  if (form.default === 'drop' && form.tier < VDF_APPLICATION_TIER) {
+    return t('firewall:policy-form:default:drop-early')
+  }
+
   return undefined
 })
 
