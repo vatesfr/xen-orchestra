@@ -186,7 +186,7 @@ describe('save', () => {
     configuration.formValue = savedConfiguration
     await configuration.save()
 
-    plugin.value = { ...unconfiguredPlugin, configuration: editedConfiguration, configured: true }
+    plugin.value = createPlugin({ ...unconfiguredPlugin, configuration: editedConfiguration, configured: true })
     await nextTick()
 
     expect(configuration.formValue).toEqual(editedConfiguration)

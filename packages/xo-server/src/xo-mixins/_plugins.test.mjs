@@ -176,6 +176,7 @@ describe('Plugins', () => {
         autoload: false,
         description: 'description',
         loaded: undefined,
+        loading: undefined,
         keywords: ['keyword'],
         unloadable: true,
         version: '1.0.0',
@@ -416,7 +417,8 @@ describe('Plugins', () => {
 
       touched.length = 0
       await plugins.loadPlugin('foo')
-      assert.deepEqual(touched, ['foo'], 'load')
+      // once when the loading starts, once when it ends
+      assert.deepEqual(touched, ['foo', 'foo'], 'load')
 
       touched.length = 0
       await plugins.unloadPlugin('foo')

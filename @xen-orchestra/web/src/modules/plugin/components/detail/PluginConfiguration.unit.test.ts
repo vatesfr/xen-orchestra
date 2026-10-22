@@ -98,14 +98,14 @@ it('explains that a plugin without schema is not configurable', () => {
 
 describe('presets', () => {
   it('offers the presets of the plugin', () => {
-    const wrapper = mountCard({ ...configuredPlugin, configurationPresets: { gmail: GMAIL_PRESET } })
+    const wrapper = mountCard(createPlugin({ ...configuredPlugin, configurationPresets: { gmail: GMAIL_PRESET } }))
 
     expect(wrapper.text()).toContain(t('plugin:configuration-presets'))
     expect(hasButton(wrapper, t('action:apply'))).toBe(true)
   })
 
   it('offers no preset for a plugin without presets', () => {
-    const wrapper = mountCard({ ...configuredPlugin, configurationPresets: undefined })
+    const wrapper = mountCard(createPlugin({ ...configuredPlugin, configurationPresets: undefined }))
 
     expect(wrapper.text()).not.toContain(t('plugin:configuration-presets'))
     expect(hasButton(wrapper, t('action:apply'))).toBe(false)

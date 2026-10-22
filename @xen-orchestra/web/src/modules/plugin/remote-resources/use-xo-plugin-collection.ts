@@ -1,4 +1,3 @@
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
@@ -6,14 +5,16 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoPlugin } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
+type PluginField = (typeof pluginFields)[number]
+
+// not every plugin has a test schema or presets: the missing fields are typed as `undefined` so they can be read on the union
 export type ToFrontXoPlugin<TPlugin extends XoPlugin> = TPlugin extends XoPlugin
-  ? Omit<Pick<TPlugin, (typeof pluginFields)[number]>, 'configurationSchema' | 'testSchema'> & {
-      configurationSchema?: JsonSchema
-      testSchema?: JsonSchema
-    }
+  ? Pick<TPlugin, Extract<PluginField, keyof TPlugin>> & { [K in Exclude<PluginField, keyof TPlugin>]?: undefined }
   : never
 
 export type FrontXoPlugin = ToFrontXoPlugin<XoPlugin>
+
+type XoPluginKey<TPlugin = XoPlugin> = TPlugin extends XoPlugin ? keyof TPlugin : never
 
 const pluginFields = [
   'id',
@@ -30,7 +31,7 @@ const pluginFields = [
   'configured',
   'testable',
   'testSchema',
-] as const satisfies readonly (keyof XoPlugin)[]
+] as const satisfies readonly XoPluginKey[]
 
 export const useXoPluginCollection = defineRemoteResource({
   url: `${BASE_URL}/plugins?fields=${pluginFields.join(',')}&ndjson=true`,

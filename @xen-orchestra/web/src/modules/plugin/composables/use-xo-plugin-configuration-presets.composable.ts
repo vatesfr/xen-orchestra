@@ -29,7 +29,8 @@ export function useXoPluginConfigurationPresets(
       return
     }
 
-    const preset = plugin.value.configurationPresets?.[selectedPreset.value]
+    const presets: Record<string, object> | undefined = plugin.value.configurationPresets
+    const preset = presets?.[selectedPreset.value]
 
     if (preset !== undefined) {
       configuration.value = merge({}, configuration.value, preset)

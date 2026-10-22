@@ -8,8 +8,8 @@ import { PluginController } from './plugin.controller.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const plugins = [
-  { id: 'auth-ldap', name: 'auth-ldap', loaded: true },
-  { id: 'transport-email', name: 'transport-email', loaded: false },
+  { id: 'auth-ldap', name: 'auth-ldap', configured: true, loaded: true, testable: true, unloadable: true },
+  { id: 'transport-email', name: 'transport-email', configured: true, loaded: false, testable: true, unloadable: true },
 ] as XoPlugin[]
 
 function createController() {
@@ -140,21 +140,22 @@ describe('PluginController.deletePluginConfiguration', () => {
   })
 })
 
-for (const [method, xoAppMethod, taskName] of [
-  ['loadPlugin', 'loadPlugin', 'load auth-ldap plugin'],
-  ['unloadPlugin', 'unloadPlugin', 'unload auth-ldap plugin'],
+// loading requires an unloaded plugin, unloading a loaded one
+for (const [method, xoAppMethod, pluginId, taskName] of [
+  ['loadPlugin', 'loadPlugin', 'transport-email', 'load transport-email plugin'],
+  ['unloadPlugin', 'unloadPlugin', 'auth-ldap', 'unload auth-ldap plugin'],
 ] as const) {
   describe(`PluginController.${method}`, () => {
     it(`calls ${xoAppMethod} in a task`, async () => {
       const { calls, controller, tasks } = createController()
 
-      await controller[method]('auth-ldap', true)
+      await controller[method](pluginId, true)
 
-      assert.deepEqual(calls, [[xoAppMethod, 'auth-ldap']])
+      assert.deepEqual(calls, [[xoAppMethod, pluginId]])
       assert.deepEqual(tasks, [
         {
           name: `REST API: ${taskName}`,
-          objectId: 'auth-ldap',
+          objectId: pluginId,
           objectType: 'plugin',
           type: 'xo:rest-api:action',
         },
@@ -165,7 +166,7 @@ for (const [method, xoAppMethod, taskName] of [
     it('returns the task id when not synchronous', async () => {
       const { controller } = createController()
 
-      assert.deepEqual(await controller[method]('auth-ldap'), { taskId: 'task-1' })
+      assert.deepEqual(await controller[method](pluginId), { taskId: 'task-1' })
       assert.equal(controller.getStatus(), 202)
     })
   })
@@ -176,14 +177,15 @@ describe('PluginController.testPlugin', () => {
     const { calls, controller, tasks } = createController()
     const body = { data: { to: 'admin@example.org' } }
 
-    await controller.testPlugin('transport-email', body, true)
+    await controller.testPlugin('auth-ldap', body, true)
 
-    assert.deepEqual(calls, [['testPlugin', 'transport-email', body.data]])
+    assert.deepEqual(calls, [['testPlugin', 'auth-ldap', body.data]])
     assert.deepEqual(tasks, [
       {
-        name: 'REST API: test transport-email plugin',
-        objectId: 'transport-email',
+        name: 'REST API: test auth-ldap plugin',
+        objectId: 'auth-ldap',
         objectType: 'plugin',
+        params: body.data,
         type: 'xo:rest-api:action',
       },
     ])
