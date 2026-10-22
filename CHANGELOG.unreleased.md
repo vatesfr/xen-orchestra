@@ -38,6 +38,7 @@
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 - [BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
 - [BRs] Add change state, test speed and forget actions, and bulk actions on BRs (PR [#10532](https://github.com/vatesfr/xen-orchestra/pull/10532))
+- [BRs] Allow editing several BRs at once from the list of BRs (PR [#10555](https://github.com/vatesfr/xen-orchestra/pull/10555))
 - [Backup] Support insecure dedicated NBD network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [Pool/Network] Allow enabling the insecure NBD (not encrypted) on a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [REST API] `POST /rest/v0/pools/:id/actions/create_network` supports `insecureNbd` to create a network with the insecure NBD (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
@@ -66,7 +67,6 @@
 - [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
-
 
 ### Bug fixes
 
