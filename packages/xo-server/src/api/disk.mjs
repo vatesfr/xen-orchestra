@@ -304,11 +304,8 @@ async function importDisk({ sr, type, name, description, url, vmdkData }) {
       throw invalidParameters('URL import is only compatible with VHD and raw formats')
     }
 
-    const response = await fetch(url)
-    if (!response.ok) {
-      await response.body?.cancel() // free the socket
-      throw new Error(`${response.status} ${response.statusText}`)
-    }
+    // keeping undici default timeout
+    const response = await this.httpRequest(url, { timeout: 300e3 })
     const stream = Readable.fromWeb(response.body)
     const length = response.headers.get('content-length')
     if (length !== null) {

@@ -14,7 +14,6 @@ import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
-import { Agent } from 'undici'
 import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -1370,19 +1369,9 @@ async function import_({ data, sr, type = 'xva', url }) {
     }
 
     const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
-    // `timeout` is an inactivity timeout: undici's headers/body timeouts match this semantic
-    const dispatcher = new Agent({ headersTimeout: timeout, bodyTimeout: timeout })
-    try {
-      const response = await fetch(url, { dispatcher })
-      if (!response.ok) {
-        await response.body?.cancel() // free the socket
-        throw new Error(`${response.status} ${response.statusText}`)
-      }
-      const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
-      return await xapi.call('VM.get_uuid', ref)
-    } finally {
-      await dispatcher.close()
-    }
+    const response = await this.httpRequest(url, { timeout })
+    const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
+    return await xapi.call('VM.get_uuid', ref)
   }
 
   return {

@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { URL } from 'url'
 
 const log = createLogger('xo:web-hooks')
 
@@ -26,6 +27,19 @@ function constructPayload(format, data, type) {
   }
 }
 
+// do not leak the password of URLs containing credentials in the logs
+function redactUrl(url) {
+  try {
+    url = new URL(url)
+  } catch {
+    return url
+  }
+  if (url.password !== '') {
+    url.password = '***'
+  }
+  return url.href
+}
+
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
@@ -36,7 +50,7 @@ function handleHook(type, data) {
         const promise = this._makeRequest(url, payload).catch(error => {
           log.error('web hook failed', {
             error,
-            webHook: { ...data, url, type, format },
+            webHook: { ...data, url: redactUrl(url), type, format },
           })
         })
         if (waitForResponse && type === 'pre') {

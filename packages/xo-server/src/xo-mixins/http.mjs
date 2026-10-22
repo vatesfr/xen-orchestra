@@ -3,6 +3,16 @@ import { ProxyAgent } from 'proxy-agent'
 
 const { env } = process
 
+// URL credentials are percent-encoded, but may contain invalid sequences (e.g. a lone `%`)
+// which make `decodeURIComponent` throw, in that case the raw value is used
+function decodeUrlCredential(value) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export default class Http {
   // automatically fetches the proxy to use for the requested URL from the environment
   //
@@ -55,6 +65,14 @@ export default class Http {
     url,
     { auth, body, bypassStatusCheck = false, headers, rejectUnauthorized = true, timeout = 0, ...opts } = {}
   ) {
+    // `fetch` rejects URLs containing credentials
+    url = new URL(url)
+    if (url.username !== '' || url.password !== '') {
+      auth ??= `${decodeUrlCredential(url.username)}:${decodeUrlCredential(url.password)}`
+      url.username = ''
+      url.password = ''
+    }
+
     const finalHeaders = { ...headers }
     if (auth !== undefined) {
       finalHeaders.authorization = 'Basic ' + Buffer.from(auth).toString('base64')
