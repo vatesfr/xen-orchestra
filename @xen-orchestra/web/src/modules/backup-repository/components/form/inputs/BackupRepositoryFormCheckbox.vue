@@ -1,6 +1,11 @@
 <template>
   <div class="backup-repository-form-checkbox">
-    <UiCheckbox v-model="model" accent="brand" :disabled>
+    <UiCheckbox
+      :model-value
+      accent="brand"
+      :disabled
+      @update:model-value="value => emit('update:modelValue', value === true)"
+    >
       {{ label }}
     </UiCheckbox>
     <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
@@ -18,12 +23,14 @@ import { computed } from 'vue'
 
 const { warning } = defineProps<{
   label: string
+  modelValue: boolean | undefined
   warning?: InputWrapperMessage
   disabled?: boolean
 }>()
 
-// undefined displays the checkbox as indeterminate (mixed value in multi-edition)
-const model = defineModel<boolean | undefined>({ required: true })
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
 
 const warningMessages = computed(() =>
   toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
