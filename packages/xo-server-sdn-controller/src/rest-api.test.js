@@ -11,12 +11,13 @@ const noop = () => undefined
 const SSH = { allow: false, protocol: 'TCP', port: 22, ipRange: '10.0.0.0/8', direction: 'to' }
 const WEB = { allow: true, protocol: 'TCP', port: 443, ipRange: '10.0.0.0/8', direction: 'to' }
 
-function createController({ useDirectChannel = false } = {}) {
+function createController({ useDirectChannel = false, objects = {} } = {}) {
   return createSdnController({
     xo: {
       addApiMethods: noop,
       registerRestRoutes: noop,
       getAllXapis: () => [],
+      getObject: id => objects[id],
       on: noop,
       removeListener: noop,
     },
@@ -36,7 +37,7 @@ const VIF = {
   $network: 'net',
   other_config: {
     [SDN_CONTROLLER_OF_RULES_KEY]: JSON.stringify([
-      JSON.stringify({ ...SSH, priority: 40000 }),
+      JSON.stringify({ ...SSH, ofPriority: 40000 }),
       JSON.stringify({ ...WEB, protocol: 'tcp' }),
     ]),
   },
@@ -55,19 +56,16 @@ function networkObjectIds(action, body) {
 }
 
 describe('the ACL of the VIF routes', () => {
-  it('requires the privilege on the network to add a rule with a priority', () => {
+  it('requires the privilege on the network to add a rule with a priority, or over one that has one', () => {
     assert.deepEqual(networkObjectIds('add', { ...WEB, port: 8443 }), [])
-    assert.deepEqual(networkObjectIds('add', { ...WEB, port: 8443, priority: 50000 }), ['net'])
-  })
-
-  it('requires the privilege on the network to add a rule over one that has a priority', () => {
+    assert.deepEqual(networkObjectIds('add', { ...WEB, port: 8443, priority: 2 }), ['net'])
     assert.deepEqual(networkObjectIds('add', { ...SSH, protocol: 'tcp', allow: true }), ['net'])
     assert.deepEqual(networkObjectIds('add', { ...WEB, allow: false }), [])
   })
 
   it('requires the privilege on the network to update a priority, or a rule that has one', () => {
     assert.deepEqual(networkObjectIds('update', { oldRule: WEB, newRule: { allow: false } }), [])
-    assert.deepEqual(networkObjectIds('update', { oldRule: WEB, newRule: { priority: 50000 } }), ['net'])
+    assert.deepEqual(networkObjectIds('update', { oldRule: WEB, newRule: { priority: 2 } }), ['net'])
     assert.deepEqual(networkObjectIds('update', { oldRule: WEB, newRule: { priority: null } }), ['net'])
     assert.deepEqual(networkObjectIds('update', { oldRule: SSH, newRule: { allow: true } }), ['net'])
   })
@@ -88,10 +86,8 @@ describe('the ACL of the VIF routes', () => {
 
   it('is only on the VIF routes', () => {
     const route = findRoute(createController(), 'post', '/networks/{id}/actions/add_traffic_rule')
-    assert.deepEqual(
-      route.middlewares.find(middleware => middleware.name === 'acl').acls.map(acl => acl.resource),
-      ['network']
-    )
+    const resources = route.middlewares.find(middleware => middleware.name === 'acl').acls.map(acl => acl.resource)
+    assert.deepEqual(resources, ['network'])
   })
 })
 
@@ -101,9 +97,7 @@ describe('the priority of a rule', () => {
   async function rejectsBeforeTheTask(controller, action, body) {
     const route = findRoute(controller, 'post', `/networks/{id}/actions/${action}_traffic_rule`)
     let created = false
-    const createAction = async () => {
-      created = true
-    }
+    const createAction = async () => (created = true)
     await assert.rejects(
       async () => route.callback({ req: { params: { id: 'net' }, query: {}, body }, createAction }),
       error => invalidParameters.is(error)
@@ -113,30 +107,69 @@ describe('the priority of a rule', () => {
 
   it('is checked before the task starts', async () => {
     const controller = createController()
-    await rejectsBeforeTheTask(controller, 'add', { ...SSH, priority: 8001 })
-    await rejectsBeforeTheTask(controller, 'update', { oldRule: SSH, newRule: { priority: 65536 } })
+    await rejectsBeforeTheTask(controller, 'add', { ...SSH, priority: 0 })
+    await rejectsBeforeTheTask(controller, 'update', { oldRule: SSH, newRule: { priority: 1.5 } })
+  })
+
+  // the JSON-RPC methods, which have no route, reach the rules through the same check
+  it('is checked by the JSON-RPC methods before any rule is written', async () => {
+    const controller = createController()
+    for (const priority of [0, -1, 1.5]) {
+      await assert.rejects(controller._addTrafficRule({ ...SSH, priority }), error => invalidParameters.is(error))
+    }
   })
 
   it('is rejected without the XAPI plugin', async () => {
     const controller = createController({ useDirectChannel: true })
-    await rejectsBeforeTheTask(controller, 'add', { ...SSH, priority: 40000 })
-    await rejectsBeforeTheTask(controller, 'update', { oldRule: SSH, newRule: { priority: 40000 } })
+    await rejectsBeforeTheTask(controller, 'add', { ...SSH, priority: 1 })
+    await rejectsBeforeTheTask(controller, 'update', { oldRule: SSH, newRule: { priority: 1 } })
   })
 
   it('may be null in an update, even without the XAPI plugin', async () => {
-    const route = findRoute(
-      createController({ useDirectChannel: true }),
-      'post',
-      '/networks/{id}/actions/update_traffic_rule'
-    )
+    const controller = createController({ useDirectChannel: true })
+    const route = findRoute(controller, 'post', '/networks/{id}/actions/update_traffic_rule')
     let created = false
     await route.callback({
       req: { params: { id: 'net' }, query: {}, body: { oldRule: SSH, newRule: { priority: null } } },
-      createAction: async () => {
-        created = true
-      },
+      createAction: async () => (created = true),
     })
     assert.equal(created, true)
+  })
+})
+
+describe('the update of a rule', () => {
+  // runs the task at once, and returns what the route answers with `sync=true`
+  async function update(newRule) {
+    const controller = createController({ objects: { net: { other_config: VIF.other_config } } })
+    let args
+    controller._updateTrafficRule = async (...rest) => {
+      args = rest
+      return { priority: 3 }
+    }
+    const route = findRoute(controller, 'post', '/networks/{id}/actions/update_traffic_rule')
+    let statusCode
+    const result = await route.callback({
+      req: { params: { id: 'net' }, query: { sync: true }, body: { oldRule: SSH, newRule } },
+      createAction: async (task, options) => {
+        statusCode = options.statusCode
+        return task()
+      },
+    })
+    assert.equal(statusCode, 200)
+    assert.deepEqual(result, { priority: 3 })
+    return args[2]
+  }
+
+  // the stored OpenFlow priority is not a rank
+  it('keeps the place of the rule without a priority', async () => {
+    assert.deepEqual(await update({ allow: true }), { ...SSH, allow: true, priority: undefined })
+  })
+
+  it('passes a priority on as it came, `null` included', async () => {
+    assert.deepEqual(await update({ priority: 2 }), { ...SSH, priority: 2 })
+    // `null` removes the other fields
+    const { port, ...withoutPort } = SSH
+    assert.deepEqual(await update({ port: null, priority: null }), { ...withoutPort, priority: null })
   })
 })
 
@@ -155,13 +188,11 @@ describe('the list of the rules of a network', () => {
     const route = findRoute(controller, 'get', '/networks/{id}/traffic-rules')
     const acls = route.middlewares.find(middleware => middleware.name === 'acl').acls
 
-    assert.deepEqual(
-      acls.map(acl => [acl.resource, acl.action]),
-      [
-        ['network', 'read'],
-        ['vif', 'read'],
-      ]
-    )
+    const actions = acls.map(acl => [acl.resource, acl.action])
+    assert.deepEqual(actions, [
+      ['network', 'read'],
+      ['vif', 'read'],
+    ])
     assert.deepEqual(acls[1].objectIds({ req: { params: { id: 'net' } } }), ['vif1', 'vif2'])
   })
 })
