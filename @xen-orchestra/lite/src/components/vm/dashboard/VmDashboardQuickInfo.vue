@@ -54,8 +54,8 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -69,7 +69,6 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
@@ -103,16 +102,7 @@ const hostPowerState = computed(() => {
   return isHostRunning(host.value) ? 'running' : 'halted'
 })
 
-const powerState = useMapper(
-  () => vm.power_state,
-  {
-    [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
-    [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
-  },
-  VM_POWER_STATE.RUNNING
-)
+const { powerState } = useVmUtils(() => vm)
 
 function getValidDateTime(dateTime: string | undefined): string | undefined {
   return dateTime === '19700101T00:00:00Z' ? undefined : dateTime
