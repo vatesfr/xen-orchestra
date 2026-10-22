@@ -3,9 +3,9 @@
     <div class="detail-page-layout" :class="{ mobile: uiStore.isSmall }">
       <slot name="alert" />
       <div class="body">
-        <UiMenuList class="menu">
+        <nav class="menu">
           <slot name="menu" :size="menuItemSize" />
-        </UiMenuList>
+        </nav>
         <div class="content">
           <slot />
         </div>
@@ -16,22 +16,21 @@
 </template>
 
 <script lang="ts" setup>
-import type { UiMenuItemSize } from '@core/components/ui/menu-item/UiMenuItem.vue'
+import type { MenuItemSize } from '@core/components/ui/menu-item/UiMenuItem.vue'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
-import UiMenuList from '@core/components/ui/menu-list/UiMenuList.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
 const slots = defineSlots<{
   default(): any
   alert?(): any
-  menu(props: { size: UiMenuItemSize }): any
+  menu(props: { size: MenuItemSize }): any
   panel?(): any
 }>()
 
 const uiStore = useUiStore()
 
-const menuItemSize = computed<UiMenuItemSize>(() => (uiStore.isSmall ? 'small' : 'large'))
+const menuItemSize = computed<MenuItemSize>(() => (uiStore.isSmall ? 'small' : 'large'))
 </script>
 
 <style lang="postcss" scoped>
@@ -48,7 +47,12 @@ const menuItemSize = computed<UiMenuItemSize>(() => (uiStore.isSmall ? 'small' :
   }
 
   .menu {
+    display: flex;
+    flex-direction: column;
     flex-shrink: 0;
+    overflow: hidden;
+    border: 0.1rem solid var(--color-neutral-border);
+    border-radius: 0.8rem;
   }
 
   .content {
