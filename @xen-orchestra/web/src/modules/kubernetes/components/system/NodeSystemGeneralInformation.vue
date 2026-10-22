@@ -5,6 +5,7 @@
     </UiTitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="node.name" />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="node.node_id" />
       <VtsTabularKeyValueRow :label="t('role')" :value="roleLabel" />
       <VtsTabularKeyValueRow :label="t('cluster')">
         <template #value>

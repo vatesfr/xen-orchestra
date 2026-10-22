@@ -9,13 +9,19 @@
           <VtsStatus :status="readyStatus" />
         </template>
       </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('scheduling')">
+        <template #value>
+          <KubernetesStatus :status="schedulingStatus" />
+        </template>
+      </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
+import { nodeReadyStatus, nodeSchedulingStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -31,4 +37,6 @@ const { node } = defineProps<{
 const { t } = useI18n()
 
 const readyStatus = computed(() => nodeReadyStatus(node))
+
+const schedulingStatus = computed(() => nodeSchedulingStatus(node))
 </script>

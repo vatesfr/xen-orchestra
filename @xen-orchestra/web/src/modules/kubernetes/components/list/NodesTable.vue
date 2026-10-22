@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import NodeActions from '@/modules/kubernetes/components/actions/node/NodeActions.vue'
 import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-kubernetes-node-utils.composable.ts'
 import { useKubernetesNodeColumns } from '@/modules/kubernetes/tables/kubernetes-node-columns.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
@@ -97,6 +98,8 @@ const { HeadCells, BodyCells } = useKubernetesNodeColumns({
       actions: r =>
         r({
           onClick: () => (selectedNodeId.value = node.id),
+          component: NodeActions,
+          props: { node },
         }),
     }
   },

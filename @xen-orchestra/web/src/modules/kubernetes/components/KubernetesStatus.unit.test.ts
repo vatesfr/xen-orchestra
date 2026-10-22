@@ -35,3 +35,15 @@ it('maps no to the no label with a muted accent', () => {
   expect(info.text()).toBe(t('no'))
   expect(info.props('accent')).toBe('muted')
 })
+
+it.each([
+  ['schedulable', 'success'],
+  ['cordoned', 'danger'],
+  ['draining', 'warning'],
+] as const)('maps %s to its label with a %s accent', (status, accent) => {
+  const wrapper = mountKubernetesStatus(status)
+  const info = wrapper.getComponent(UiInfo)
+
+  expect(info.text()).toBe(t(status))
+  expect(info.props('accent')).toBe(accent)
+})

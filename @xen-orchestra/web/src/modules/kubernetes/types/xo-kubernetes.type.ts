@@ -4,6 +4,8 @@ export type KubernetesAvailabilityStatus = 'available' | 'not-available'
 
 export type KubernetesReadyStatus = Extract<Status, 'ready' | 'not-ready'>
 
+export type KubernetesSchedulingStatus = 'schedulable' | 'cordoned' | 'draining'
+
 export type KubernetesClusterPhase =
   | 'Pending'
   | 'Provisioning'
@@ -18,6 +20,7 @@ export type KubernetesClusterPhase =
 export type KubernetesStatus =
   | KubernetesAvailabilityStatus
   | KubernetesClusterPhase
+  | KubernetesSchedulingStatus
   | 'yes'
   | 'no'
   | 'paused'
@@ -77,6 +80,8 @@ export type XoKubernetesNode = {
   $cluster: string
   id: string
   ips: string[] | null
+  is_cordon?: boolean
+  is_draining?: boolean
   is_reconciliation_paused: boolean
   name: string
   node_id?: string
