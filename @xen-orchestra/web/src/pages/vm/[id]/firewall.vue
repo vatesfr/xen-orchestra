@@ -58,7 +58,7 @@
         <UiTitle>{{ t('firewall:groups') }}</UiTitle>
         <div v-if="vmGroups.length > 0" class="chips">
           <span v-for="name of vmGroups" :key="name" class="group">
-            <VdfGroupChip :pool-id="pool.id" :group="name" />
+            <VdfGroupChip :scope-id="pool.id" :group="name" />
             <UiButtonIcon
               v-tooltip="t('firewall:remove-from-group')"
               icon="fa:circle-minus"
@@ -137,6 +137,7 @@ import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
+import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { effectiveTiers, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -193,7 +194,7 @@ const statusIcon = computed<IconName>(
 
 const statusDetail = computed(() => {
   if (protection.value === 'protected') {
-    const policies = tiers.value.flatMap(tier => tier.policies.map(policy => policy.name))
+    const policies = tiers.value.flatMap(tier => tier.policies.map(policy => displayName(policy.name)))
 
     return t('firewall:vm:status:protected:detail', { n: policies.length, policies: policies.join(', ') })
   }
@@ -206,7 +207,7 @@ const vmGroups = computed(() => vmGroupNames(vm.tags, document.value))
 const joinableGroups = computed(() =>
   Object.entries(document.value.groups)
     .filter(([name, group]) => (group.tags ?? []).length > 0 && !vmGroups.value.includes(name))
-    .map(([name, group]) => ({ name, label: `${name} (${(group.tags ?? []).join(', ')})` }))
+    .map(([name, group]) => ({ name, label: `${displayName(name)} (${(group.tags ?? []).join(', ')})` }))
 )
 
 const groupToJoin = ref('')

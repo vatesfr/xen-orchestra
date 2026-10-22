@@ -48,6 +48,7 @@
 <script lang="ts" setup>
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfProtocol, VdfRule, VdfRuleAction } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, parsePorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -78,6 +79,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+// a global group, usable in a pool: "admins (global)"
+function groupLabel(name: string) {
+  return isGlobalName(name) ? `${displayName(name)} (${t('firewall:global')})` : name
+}
+
 const title = computed(() => (isNew ? t('firewall:rule-form:new') : t('firewall:rule-form:edit', { id: rule.id })))
 
 const actions: VdfRuleAction[] = ['allow', 'drop', 'pass']
@@ -101,7 +107,7 @@ const { id: sourceSelectId } = useFormSelect([{ name: 'any', members: -1 }, ...g
     label: group =>
       group.members === -1
         ? t('firewall:rule-form:source:any')
-        : `${group.name} (${t('firewall:group:members', { n: group.members })})`,
+        : `${groupLabel(group.name)} (${t('firewall:group:members', { n: group.members })})`,
   },
 })
 

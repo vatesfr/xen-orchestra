@@ -21,6 +21,27 @@
             <span class="checking"><VtsIcon name="fa:spinner" size="small" />{{ t('firewall:publish:checking') }}</span>
           </UiInfo>
           <UiInfo v-else-if="checkError !== undefined" accent="danger" wrap>{{ checkError }}</UiInfo>
+          <template v-else-if="checkResult?.pools !== undefined">
+            <UiInfo v-if="checkResult.error" accent="danger" wrap>{{ checkResult.error }}</UiInfo>
+            <div v-for="pool of checkResult.pools" :key="pool.id" class="pool-result">
+              <span class="typo-body-bold-small pool-name">{{ pool.name }}</span>
+              <UiInfo v-if="pool.skipped" accent="muted" wrap>{{ t('firewall:global:check:out-of-scope') }}</UiInfo>
+              <UiInfo v-else-if="pool.unreachable" accent="warning" wrap>
+                {{ t('firewall:global:check:unreachable') }}
+              </UiInfo>
+              <UiInfo v-else-if="pool.ok" accent="success" wrap>
+                {{
+                  pool.inScope
+                    ? t('firewall:publish:valid', { version: pool.version, keys: pool.keys?.join(', ') })
+                    : t('firewall:global:check:removed')
+                }}
+              </UiInfo>
+              <UiInfo v-else accent="danger" wrap>{{ pool.error }}</UiInfo>
+              <UiInfo v-for="warning of pool.warnings ?? []" :key="warning" accent="warning" wrap>
+                {{ warning }}
+              </UiInfo>
+            </div>
+          </template>
           <template v-else-if="checkResult !== undefined">
             <UiInfo v-if="checkResult.ok" accent="success" wrap>
               {{ t('firewall:publish:valid', { version: checkResult.version, keys: checkResult.keys?.join(', ') }) }}
@@ -33,7 +54,9 @@
         </section>
 
         <UiAlert v-if="publishError" accent="danger">{{ publishError }}</UiAlert>
-        <UiAlert v-else accent="info">{{ t('firewall:publish:effect') }}</UiAlert>
+        <UiAlert v-else accent="info">
+          {{ isGlobalScope(scopeId) ? t('firewall:global:publish:effect') : t('firewall:publish:effect') }}
+        </UiAlert>
       </div>
     </template>
     <template #buttons>
@@ -46,8 +69,9 @@
 
 <script lang="ts" setup>
 import { checkVdfDocument } from '@/modules/vdf/jobs/vdf-publish.job.ts'
-import type { VdfCheckResult, VdfDocument } from '@/modules/vdf/types.ts'
-import { serializeDocument, type VdfChange } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import type { VdfCheckResult, VdfDocument, VdfScopeId } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import type { VdfChange } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -59,8 +83,8 @@ import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { poolId, document } = defineProps<{
-  poolId: string
+const { scopeId, document } = defineProps<{
+  scopeId: VdfScopeId
   document: VdfDocument
   changes: VdfChange[]
   publishError?: string
@@ -92,10 +116,14 @@ function describeChange(change: VdfChange) {
       return t('firewall:change:policies-reordered')
     }
 
-    return change.label === '' ? t('firewall:change:settings') : t('firewall:change:policy', { name: change.label })
+    if (change.label === '') {
+      return isGlobalScope(scopeId) ? t('firewall:global:change:settings') : t('firewall:change:settings')
+    }
+
+    return t('firewall:change:policy', { name: displayName(change.label) })
   }
 
-  return t('firewall:change:group', { name: change.label })
+  return t('firewall:change:group', { name: displayName(change.label) })
 }
 
 // what the pool master's agent makes of the draft, before anything is written
@@ -105,7 +133,7 @@ const checkError = ref<string>()
 
 onMounted(async () => {
   try {
-    checkResult.value = await checkVdfDocument(poolId, serializeDocument(document))
+    checkResult.value = await checkVdfDocument(scopeId, document)
   } catch (error) {
     checkError.value = (error as Error).message
   }
@@ -142,6 +170,16 @@ onMounted(async () => {
 
   .change-type {
     min-width: 8rem;
+  }
+
+  .pool-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .pool-name {
+    color: var(--color-neutral-txt-secondary);
   }
 
   .checking {

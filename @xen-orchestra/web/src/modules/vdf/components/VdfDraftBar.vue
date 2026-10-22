@@ -20,14 +20,19 @@
     <VtsIcon :name="publishProgress.done ? 'fa:check' : 'fa:spinner'" size="medium" class="icon" />
     <div class="text">
       <span class="typo-body-bold">
-        {{ t('firewall:published:enforcing', { n: publishProgress.enforcing, total: publishProgress.total }) }}
+        {{
+          t(isGlobal ? 'firewall:global:published:in-sync' : 'firewall:published:enforcing', {
+            n: publishProgress.enforcing,
+            total: publishProgress.total,
+          })
+        }}
       </span>
       <span class="typo-body-regular-small secondary">
         {{ publishProgress.done ? t('firewall:published:done') : t('firewall:published:waiting') }}
       </span>
     </div>
     <div class="actions">
-      <UiButton variant="tertiary" accent="brand" size="medium" @click="dismissedDocId = lastPublish?.docId">
+      <UiButton variant="tertiary" accent="brand" size="medium" @click="dismissedDocId = publishProgress.id">
         {{ t('firewall:published:dismiss') }}
       </UiButton>
     </div>
@@ -35,39 +40,73 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfPublish } from '@/modules/vdf/composables/vdf-publish.composable.ts'
+import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: FrontXoPool
+const { scope } = defineProps<{
+  scope: VdfScope
 }>()
 
 const { t } = useI18n()
 
-const { hasDraft, changes, isDraftOutdated, discardDraft, lastPublish, publishedDocId, hosts, liveHostCount } =
-  useVdfPolicy(() => pool)
+const isGlobal = scope.kind === 'global'
 
-// after a publish, the bar follows the hosts until all of them enforce it
+// after a publish, the bar follows the hosts (the pools, for the global
+// configuration) until all of them enforce it
 const dismissedDocId = ref<string>()
 
-const publishProgress = computed(() => {
-  const publish = lastPublish.value
+const { hasDraft, changes, isDraftOutdated, discardDraft, publishProgress } = (() => {
+  if (scope.kind === 'global') {
+    const global = useVdfGlobalPolicy()
 
-  if (publish === undefined || publish.docId !== publishedDocId.value || publish.docId === dismissedDocId.value) {
-    return undefined
+    return {
+      ...global,
+      publishProgress: computed(() => {
+        const publish = global.lastPublish.value
+        const id = `r${publish?.revision}`
+
+        if (publish === undefined || publish.revision !== global.revision.value || id === dismissedDocId.value) {
+          return undefined
+        }
+
+        const total = global.inScopePoolCount.value
+        const enforcing = global.inSyncPoolCount.value
+
+        return { id, enforcing, total, done: enforcing === total }
+      }),
+    }
   }
 
-  const enforcing = hosts.value.filter(({ status }) => status?.doc === publish.docId).length
+  const policy = useVdfPolicy(() => scope.pool)
 
-  return { enforcing, total: liveHostCount.value, done: enforcing === liveHostCount.value }
-})
+  return {
+    ...policy,
+    publishProgress: computed(() => {
+      const publish = policy.lastPublish.value
 
-const { openPublish } = useVdfPublish(() => pool)
+      if (
+        publish === undefined ||
+        publish.docId !== policy.publishedDocId.value ||
+        publish.docId === dismissedDocId.value
+      ) {
+        return undefined
+      }
+
+      const enforcing = policy.hosts.value.filter(({ status }) => status?.doc === publish.docId).length
+      const total = policy.liveHostCount.value
+
+      return { id: publish.docId, enforcing, total, done: enforcing === total }
+    }),
+  }
+})()
+
+const { openPublish } = useVdfPublish(() => scope)
 
 function discard() {
   discardDraft()

@@ -7,11 +7,20 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 // Group members as the agents resolve them: VMs carrying all the group's
 // tags. Protection (appliedTo) follows the tags whatever the power state;
-// as a rule source, only running VMs' IPs count.
-export function useVdfMembers(rawPoolId: MaybeRefOrGetter<string>, rawDocument: MaybeRefOrGetter<VdfDocument>) {
+// as a rule source, only running VMs' IPs count. For the global
+// configuration, the VMs of every pool in scope.
+export function useVdfMembers(
+  rawPoolIds: MaybeRefOrGetter<string | string[]>,
+  rawDocument: MaybeRefOrGetter<VdfDocument>
+) {
   const { vms, areVmsReady } = useXoVmCollection()
 
-  const poolVms = computed(() => vms.value.filter(vm => vm.$pool === toValue(rawPoolId)))
+  const poolVms = computed(() => {
+    const poolIds = toValue(rawPoolIds)
+    const ids = new Set(Array.isArray(poolIds) ? poolIds : [poolIds])
+
+    return vms.value.filter(vm => ids.has(vm.$pool))
+  })
 
   const membersByGroup = computed(() => {
     const members = new Map<string, FrontXoVm[]>()

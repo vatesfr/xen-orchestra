@@ -41,6 +41,7 @@
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { VDF_APPLICATION_TIER, VDF_TIERS, type VdfDefaultAction, type VdfPolicy } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierName, tierValue, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -71,6 +72,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// a global group, usable in a pool: "admins (global)"
+function groupLabel(name: string) {
+  return isGlobalName(name) ? `${displayName(name)} (${t('firewall:global')})` : name
+}
 
 const tierLabel = useVdfTierLabel()
 
@@ -118,7 +124,7 @@ const { id: appliedToSelectId } = useFormSelect(groups, {
   option: {
     id: 'name',
     value: 'name',
-    label: group => `${group.name} (${t('firewall:group:members', { n: group.members })})`,
+    label: group => `${groupLabel(group.name)} (${t('firewall:group:members', { n: group.members })})`,
   },
 })
 
@@ -143,6 +149,10 @@ const nameError = computed(() => {
 
   if (form.name === '') {
     return { content: t('firewall:policy-form:name:required'), accent: 'danger' as const }
+  }
+
+  if (isGlobalName(form.name)) {
+    return { content: t('firewall:policy-form:name:reserved'), accent: 'danger' as const }
   }
 
   if (otherPolicyNames.includes(form.name)) {

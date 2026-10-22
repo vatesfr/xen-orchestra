@@ -45,6 +45,15 @@
         />
       </div>
 
+      <UiAlert v-if="globalInfo?.inScope" accent="info">
+        {{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}
+        <template #description>
+          <UiLink :to="{ name: '/(site)/firewall/overview' }" size="medium" icon="fa:globe">
+            {{ t('firewall:global:open') }}
+          </UiLink>
+        </template>
+      </UiAlert>
+
       <UiAlert v-if="unlockedProtectedVms.length > 0" accent="warning">
         {{ t('firewall:warning:unlocked', { n: unlockedProtectedVms.length }) }}
         <template #description>{{ unlockedProtectedVms.map(vm => vm.name_label).join(', ') }}</template>
@@ -79,10 +88,20 @@
                 <UiTableCell>
                   <span class="tier typo-body-regular-small">{{ tierLabel(row.tier) }}</span>
                 </UiTableCell>
-                <UiTableCell class="typo-body-bold">{{ row.policy.name }}</UiTableCell>
+                <UiTableCell class="typo-body-bold">
+                  <span class="policy-name">
+                    <VtsIcon
+                      v-if="isGlobalName(row.policy.name)"
+                      v-tooltip="t('firewall:global')"
+                      name="fa:globe"
+                      size="small"
+                    />
+                    {{ displayName(row.policy.name) }}
+                  </span>
+                </UiTableCell>
                 <UiTableCell>
                   <VdfGroupChip
-                    :pool-id="pool.id"
+                    :scope-id="pool.id"
                     :group="row.policy.appliedTo"
                     :count="membersOf(row.policy.appliedTo).length"
                   />
@@ -163,8 +182,10 @@ import VdfStatCard from '@/modules/vdf/components/VdfStatCard.vue'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
@@ -201,7 +222,10 @@ const {
   upToDateHostCount,
   liveHostCount,
   realizationOf,
+  globalInfo,
 } = useVdfPolicy(() => pool)
+
+const globalPolicyCount = computed(() => document.value.policies.filter(policy => isGlobalName(policy.name)).length)
 
 const { poolVms, runningVms, membersOf, protectedVms, quarantinedVms, areVmsReady } = useVdfMembers(
   () => pool.id,
@@ -256,6 +280,12 @@ const unlockedProtectedVms = computed(() =>
 
 <style lang="postcss" scoped>
 .firewall-overview {
+  .policy-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
   display: flex;
   flex-direction: column;
   gap: 0.8rem;

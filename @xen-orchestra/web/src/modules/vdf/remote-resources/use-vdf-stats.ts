@@ -9,6 +9,11 @@ export const useVdfStats = defineRemoteResource({
   url: (poolId: string) => `${BASE_URL}/plugins/vdf/pools/${poolId}/stats`,
   pollingIntervalMs: 4000,
   cacheExpirationMs: false,
+  // each answer is the whole document: replace it (the default deep merge
+  // would keep what the server removed, and skip reactivity)
+  onDataReceived: async (data: Ref<{ hosts: VdfHostStats[] } | undefined>, receivedData: { hosts: VdfHostStats[] }) => {
+    data.value = receivedData
+  },
   state: (stats: Ref<{ hosts: VdfHostStats[] } | undefined>, context) => ({
     stats,
     areStatsReady: context.isReady,

@@ -55,11 +55,12 @@
           </UiTableCell>
           <UiTableCell>
             <RouterLink
-              :to="{
-                name: '/pool/[id]/firewall/policies',
-                params: { id: poolId },
-                query: entry.rule === 'default' ? { policy: entry.policy } : { policy: entry.policy, rule: entry.rule },
-              }"
+              :to="
+                vdfPageRoute(poolId, 'policies', {
+                  policy: entry.policy,
+                  rule: entry.rule === 'default' ? undefined : Number(entry.rule),
+                })
+              "
               class="rule-link typo-body-regular-small"
             >
               {{ describeDecision(entry) }}
@@ -84,6 +85,7 @@
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
+import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -197,9 +199,13 @@ function whyRoute(entry: VdfRuleLogEntry): RouteLocationRaw | undefined {
 }
 
 function describeDecision(entry: VdfRuleLogEntry) {
-  const rule = entry.rule === 'default' ? t('firewall:log:default') : t('firewall:log:rule', { id: entry.rule })
+  const rule =
+    entry.rule === 'default'
+      ? t('firewall:log:default')
+      : t('firewall:log:rule', { id: globalRuleId(Number(entry.rule)) })
+  const policy = isGlobalName(entry.policy) ? `${displayName(entry.policy)} (${t('firewall:global')})` : entry.policy
 
-  return `${entry.tier} · ${entry.policy} · ${rule}`
+  return `${entry.tier} · ${policy} · ${rule}`
 }
 
 function formatTime(time: string) {

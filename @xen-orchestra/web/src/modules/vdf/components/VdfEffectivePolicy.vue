@@ -11,16 +11,17 @@
           <span class="typo-h6">{{ tierLabel(tier.value) }}</span>
           <div v-for="policy of tier.policies" :key="policy.name" class="policy">
             <RouterLink
-              :to="{ name: '/pool/[id]/firewall/policies', params: { id: poolId }, query: { policy: policy.name } }"
+              :to="vdfPageRoute(poolId, 'policies', { policy: policy.name })"
               class="policy-name typo-body-bold"
             >
-              {{ policy.name }}
+              <VtsIcon v-if="isGlobalName(policy.name)" v-tooltip="t('firewall:global')" name="fa:globe" size="small" />
+              {{ displayName(policy.name) }}
             </RouterLink>
             <div v-for="rule of policy.ingress" :key="rule.id" class="rule typo-body-regular-small">
-              <code class="secondary">{{ t('firewall:rule-number', { id: rule.id }) }}</code>
+              <code class="secondary">{{ t('firewall:rule-number', { id: globalRuleId(rule.id) }) }}</code>
               <VdfActionTag :action="ruleAction(rule)" />
               <span class="secondary">{{ t('firewall:vm:from') }}</span>
-              <VdfGroupChip :pool-id :group="rule.from" />
+              <VdfGroupChip :scope-id="poolId" :group="rule.from" />
               <span class="service">{{ formatService(rule) }}</span>
             </div>
             <div v-if="policy.ingress.length === 0" class="rule typo-body-regular-small secondary">
@@ -46,10 +47,12 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type { VdfDocument, VdfRule } from '@/modules/vdf/types.ts'
+import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { effectiveTiers, formatPorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

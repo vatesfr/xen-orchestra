@@ -18,8 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
+import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
@@ -30,16 +29,33 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
-const { pool } = defineProps<{
-  pool: FrontXoPool
+const { scope } = defineProps<{
+  scope: VdfScope
 }>()
 
 const { t } = useI18n()
 
-const { changes } = useVdfPolicy(() => pool)
+const { changes } = useVdfScope(() => scope)
 
-const tabs = computed<{ to: RouteLocationRaw; label: string; icon: IconName; showChanges?: boolean }[]>(() => {
-  const params = { id: pool.id }
+type Tab = { to: RouteLocationRaw; label: string; icon: IconName; showChanges?: boolean }
+
+const tabs = computed<Tab[]>(() => {
+  // traces, live view and logs are a pool's: the global configuration is
+  // enforced there
+  if (scope.kind === 'global') {
+    return [
+      { to: { name: '/(site)/firewall/overview' }, label: t('firewall:overview'), icon: 'fa:traffic-rule' },
+      {
+        to: { name: '/(site)/firewall/policies' },
+        label: t('firewall:policies'),
+        icon: 'fa:layer-group',
+        showChanges: true,
+      },
+      { to: { name: '/(site)/firewall/groups' }, label: t('firewall:groups'), icon: 'fa:object-group' },
+    ]
+  }
+
+  const params = { id: scope.pool.id }
 
   return [
     { to: { name: '/pool/[id]/firewall/overview', params }, label: t('firewall:overview'), icon: 'fa:traffic-rule' },
