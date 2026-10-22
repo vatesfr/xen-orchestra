@@ -1,6 +1,7 @@
 export default {
   clone: true,
   delete: true,
+  'eject-cd': true,
   export: true,
   'migrate-send': true,
   pause: true,
