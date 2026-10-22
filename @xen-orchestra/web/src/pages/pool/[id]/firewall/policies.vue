@@ -7,6 +7,9 @@
         <template #action>
           <div class="title-actions">
             <UiToggle v-model="showHits">{{ t('firewall:show-hits') }}</UiToggle>
+            <UiButton variant="tertiary" accent="brand" size="medium" left-icon="fa:sliders" @click="editLimits()">
+              {{ t('firewall:limits') }}
+            </UiButton>
             <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:plus" @click="editPolicy()">
               {{ t('firewall:new-policy') }}
             </UiButton>
@@ -124,7 +127,7 @@ const {
 
 const { membersOf, areVmsReady } = useVdfMembers(() => pool.id, document)
 
-const { editPolicy, editRule } = useVdfEditors(() => pool)
+const { editPolicy, editRule, editLimits } = useVdfEditors(() => pool)
 
 const isReady = logicAnd(isPublishedPolicyReady, areHostsReady, areVmsReady)
 

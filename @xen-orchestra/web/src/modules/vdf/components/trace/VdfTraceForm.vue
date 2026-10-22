@@ -26,6 +26,9 @@
     <VtsInputWrapper :label="t('firewall:trace:connection')" class="small">
       <VtsSelect :id="stateSelectId" accent="brand" />
     </VtsInputWrapper>
+    <UiCheckbox v-if="form.proto === 'udp'" v-model="form.broadcast" accent="brand" class="broadcast">
+      {{ t('firewall:trace:broadcast') }}
+    </UiCheckbox>
     <UiButton
       type="submit"
       variant="primary"
@@ -47,6 +50,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { computed, onMounted, reactive, toRef } from 'vue'
@@ -76,6 +80,7 @@ const form = reactive({
   proto: (initial.proto ?? 'tcp') as VdfProtocol,
   port: initial.port === undefined ? 22 : Number(initial.port),
   state: (initial.state ?? 'new') as NonNullable<VdfTraceRequest['state']>,
+  broadcast: false,
 })
 
 const endOptions = computed(() => [...vms, { id: EXTERNAL, label: t('firewall:trace:external-address') }])
@@ -134,6 +139,11 @@ function submit() {
     request.port = form.port
   }
 
+  // a UDP broadcast from the source: is it delivered to the destination?
+  if (form.proto === 'udp' && form.broadcast) {
+    request.broadcast = true
+  }
+
   emit('trace', request)
 }
 
@@ -167,6 +177,10 @@ onMounted(() => {
 .arrow {
   margin-block-end: 1.2rem;
   color: var(--color-neutral-txt-secondary);
+}
+
+.broadcast {
+  margin-block-end: 1.2rem;
 }
 
 .submit {
