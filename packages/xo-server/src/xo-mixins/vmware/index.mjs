@@ -200,7 +200,13 @@ export default class MigrateVm {
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
       if (stopSource) {
-        await Task.run({ properties: { name: 'stopping source VM' } }, async () => esxi.powerOff(vmId))
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
+          // a clean shut down when the guest allows it: a power off leaves the file systems dirty
+          const stoppedBy = await esxi.shutdown(vmId, { signal: Task.abortSignal })
+          if (stoppedBy === 'powerOff') {
+            Task.warning('the guest could not be shut down cleanly, it was powered off')
+          }
+        })
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,
@@ -232,12 +238,60 @@ export default class MigrateVm {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    if (!metadata.snapshots || !metadata.snapshots.current) {
-      if (metadata.powerState !== 'poweredOff') {
-        await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+    // the change tracking of the host gives the blocks to read: every block the disk uses for the
+    // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
+    // it, a full pass reads the unallocated blocks too
+    let isChangeTrackingNew = false
+    try {
+      isChangeTrackingNew = await Task.run({ properties: { name: `enabling change tracking on ${vmId}` } }, () =>
+        esxi.enableChangeTracking(vmId)
+      )
+    } catch (error) {
+      // not fatal: the disks are read to find their blocks
+      warn('failed to enable the change tracking on the source', { error, vmId })
+      Task.warning(`the change tracking could not be enabled on the source: ${error.message}`)
+    }
+
+    const isRunning = metadata.powerState !== 'poweredOff'
+    // a running VM is only read up to a snapshot
+    const isSnapshotRequired = isRunning && !metadata.snapshots?.current
+    // tracking which has just been turned on only starts with the next snapshot: before it the host
+    // has no tracking file to answer from, and an existing snapshot carries no changeId. A partial
+    // import made from that snapshot is not resumed on purpose: without a changeId its delta can only
+    // be read from a COWD extent, which ESXi 7 and later no longer write, the transfer starts over
+    const isSnapshotUseful = isChangeTrackingNew
+
+    if (isSnapshotRequired || isSnapshotUseful) {
+      let snapshotTaskInfo
+      try {
+        snapshotTaskInfo = await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
           return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
+      } catch (error) {
+        if (isSnapshotRequired) {
+          throw error
+        }
+        Task.abortSignal?.throwIfAborted()
+        // not fatal, like the change tracking it would have started
+        warn('failed to snapshot the source to start its change tracking', { error, vmId })
+        Task.warning(`the source could not be snapshotted to start its change tracking: ${error.message}`)
+      }
 
+      const snapshotId = snapshotTaskInfo?.result?.$value
+      if (!isRunning && snapshotId !== undefined) {
+        // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
+        // nothing would ever remove this snapshot from the source
+        await Task.run({ properties: { name: `removing the snapshot of ${vmId}` } }, () =>
+          esxi.removeSnapshot(snapshotId)
+        ).catch(error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: the import reads the chain of the disks, this snapshot included
+          warn('failed to remove the snapshot which started the change tracking', { error, snapshotId, vmId })
+          Task.warning(`the snapshot ${snapshotId} could not be removed from the source: ${error.message}`)
+        })
+      }
+
+      if (snapshotTaskInfo !== undefined) {
         metadata = await Task.run(
           { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
           () => esxi.getTransferableVmMetadata(vmId)

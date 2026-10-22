@@ -42,6 +42,7 @@
 - [Pool/Network] Allow enabling the insecure NBD (not encrypted) on a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [REST API] `POST /rest/v0/pools/:id/actions/create_network` supports `insecureNbd` to create a network with the insecure NBD (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [XO6/New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
+- [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
 
 - Host Probe SR REST API Endpoints:
 
@@ -67,11 +68,11 @@
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
 
-
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [V2V] Fix the migration of a running VM whose change tracking (CBT) is not enabled failing on ESXi 7 and 8 once the source is stopped: the change tracking is now enabled on the source VM, so that only the used blocks are read, and only the changed ones for the delta. A partial import made before can't be resumed and is transferred again (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
 - [Backups/sequences] Prevent errors on backup with proxy from aborting sequences (PR [#10504](https://github.com/vatesfr/xen-orchestra/pull/10504))
 - [Backups] Fix on distributed incremental replication and deleteFirst incorrectly disabled for non-distributed replication jobs (PR [#10452](https://github.com/vatesfr/xen-orchestra/pull/10452))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
