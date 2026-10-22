@@ -19,11 +19,13 @@
           <span v-tooltip="createdAtTooltip">{{ createdAtFormatted }}</span>
         </template>
       </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('created-by')" :value="creatorLabel" />
     </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import { useKubernetesClusterCreator } from '@/modules/kubernetes/composables/use-kubernetes-cluster-creator.composable.ts'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
@@ -45,6 +47,8 @@ const { cluster } = defineProps<{
 const { t } = useI18n()
 
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
+
+const { creatorLabel } = useKubernetesClusterCreator(() => cluster)
 
 const displayTags = computed(() => kubernetesTagsToStrings(cluster.tags))
 

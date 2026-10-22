@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 export type KubernetesClusterCreatePayload = {
   control_plane_ip: string
   control_plane_replicas: number
+  created_by_xo_user_id?: string
   description?: string
   kubernetes_version: string
   name: string

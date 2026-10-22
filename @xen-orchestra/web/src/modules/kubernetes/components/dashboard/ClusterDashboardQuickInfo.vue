@@ -12,7 +12,7 @@
           <span v-tooltip="createdAtTooltip">{{ createdAtFormatted }}</span>
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('created-by')" :value="t('unknown')" />
+      <VtsKeyValueRow :label="t('created-by')" :value="creatorLabel" />
     </VtsKeyValueList>
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('uuid')" />
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
+import { useKubernetesClusterCreator } from '@/modules/kubernetes/composables/use-kubernetes-cluster-creator.composable.ts'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
@@ -47,6 +48,8 @@ const { t } = useI18n()
 const { areClustersReady } = useXoKubernetesClusterCollection()
 
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
+
+const { creatorLabel } = useKubernetesClusterCreator(() => cluster)
 
 const status = computed(() => clusterStatus(cluster))
 

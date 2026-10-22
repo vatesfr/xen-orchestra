@@ -55,6 +55,7 @@ export type XoKubernetesCluster = {
   control_plane_endpoint: string
   control_plane_status: XoKubernetesNodesStatus
   created_at: string
+  created_by_xo_user_id?: string
   description?: string
   id: string
   is_available: boolean

@@ -37,7 +37,10 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('created-by') }}</template>
-        <template #value>{{ t('unknown') }}</template>
+        <template #value>{{ creatorLabel }}</template>
+        <template v-if="creatorLabel" #addons>
+          <VtsCopyButton :value="creatorLabel" />
+        </template>
       </VtsCardRowKeyValue>
     </div>
   </UiPanelCard>
@@ -45,6 +48,7 @@
 
 <script setup lang="ts">
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
+import { useKubernetesClusterCreator } from '@/modules/kubernetes/composables/use-kubernetes-cluster-creator.composable.ts'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterStatus, clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
@@ -67,6 +71,8 @@ const { cluster } = defineProps<{
 const { t } = useI18n()
 
 const { createdAtFormatted, createdAtTooltip } = useXoKubernetesClusterUtils(() => cluster)
+
+const { creatorLabel } = useKubernetesClusterCreator(() => cluster)
 
 const clusterRoute = computed(() => getKubernetesClusterRoute(cluster.id))
 
