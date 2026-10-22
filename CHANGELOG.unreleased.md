@@ -67,6 +67,7 @@
 - [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
+- [REST API] Add `POST /rest/v0/vms/{id}/actions/eject_cd` to eject the CD from a VM (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
 
 ### Bug fixes
 

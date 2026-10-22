@@ -204,6 +204,7 @@ export interface Xapi {
   joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
+  ejectCdFromVm(vmId: XoVm['id']): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
   revertVm(snapshotId: XoVmSnapshot['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
