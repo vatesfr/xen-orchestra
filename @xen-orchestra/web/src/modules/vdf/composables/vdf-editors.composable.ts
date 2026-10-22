@@ -1,7 +1,13 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import { VDF_APPLICATION_TIER, type VdfGroup, type VdfPolicy, type VdfRule } from '@/modules/vdf/types.ts'
+import {
+  VDF_APPLICATION_TIER,
+  type VdfGroup,
+  type VdfLimits,
+  type VdfPolicy,
+  type VdfRule,
+} from '@/modules/vdf/types.ts'
 import { nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -12,7 +18,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 export function useVdfEditors(rawPool: MaybeRefOrGetter<FrontXoPool>) {
   const pool = toComputed(rawPool)
 
-  const { document, savePolicy, saveRule, saveGroup } = useVdfPolicy(pool)
+  const { document, savePolicy, saveRule, saveGroup, saveLimits } = useVdfPolicy(pool)
 
   const { membersOf } = useVdfMembers(() => pool.value.id, document)
 
@@ -95,5 +101,18 @@ export function useVdfEditors(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     }
   }
 
-  return { editRule, editPolicy, editGroup, groupOptions }
+  const { open: openLimits } = useOverlay({
+    component: () => import('@/modules/vdf/components/drawers/VdfLimitsDrawer.vue'),
+    events: { onConfirm: (limits: VdfLimits | undefined) => ({ limits }), onCancel: true },
+  })
+
+  async function editLimits() {
+    const response = await openLimits({ props: { limits: document.value.limits } })
+
+    if (response.event === 'onConfirm') {
+      saveLimits(response.payload.limits)
+    }
+  }
+
+  return { editRule, editPolicy, editGroup, editLimits, groupOptions }
 }

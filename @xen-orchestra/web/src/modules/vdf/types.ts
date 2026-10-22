@@ -52,9 +52,16 @@ export type VdfGroup = {
   [unknownField: string]: unknown
 }
 
+// host-wide conntrack protection (agent/policy.go Limits)
+export type VdfLimits = {
+  newConnPerSec?: number
+  maxConnPerVIF?: number
+}
+
 export type VdfDocument = {
   groups: Record<string, VdfGroup>
   policies: VdfPolicy[]
+  limits?: VdfLimits
   [unknownField: string]: unknown
 }
 
@@ -158,6 +165,7 @@ export type VdfTraceRequest = {
   proto: VdfProtocol
   port?: number
   state?: 'new' | 'established' | 'revoked'
+  broadcast?: boolean
 }
 
 export type VdfRuleStat = {

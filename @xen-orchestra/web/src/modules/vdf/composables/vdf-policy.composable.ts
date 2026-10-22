@@ -1,7 +1,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
-import type { VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfGroup, VdfLimits, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
 import {
   cloneDocument,
   diffDocuments,
@@ -227,6 +227,16 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     })
   }
 
+  function saveLimits(limits: VdfLimits | undefined) {
+    edit(document => {
+      if (limits === undefined) {
+        delete document.limits
+      } else {
+        document.limits = limits
+      }
+    })
+  }
+
   // HOSTS: realized status, from what each agent writes in its host's
   // other_config (followed through the host collection's events)
 
@@ -292,6 +302,7 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     moveRule,
     saveGroup,
     deleteGroup,
+    saveLimits,
     hosts,
     areHostsReady,
     upToDateHostCount,
