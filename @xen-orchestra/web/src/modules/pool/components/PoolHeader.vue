@@ -28,6 +28,11 @@
         {{ t('network') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/firewall', params: { id: pool.id } }" custom>
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('firewall') }}
+      </UiTabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('traffic-rules') }}
