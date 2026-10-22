@@ -3,7 +3,7 @@ export function kubernetesTagsToStrings(tags: Record<string, string> | null): st
     return []
   }
 
-  return Object.entries(tags).map(([key, value]) => (value === '' ? key : `${key}: ${value}`))
+  return Object.entries(tags).map(([key, value]) => (value === '' ? key : `${key}=${value}`))
 }
 
 function parseKubernetesTagPart(part: string): string {

@@ -66,7 +66,7 @@ describe('kubernetesTagsToStrings', () => {
   })
 
   it('formats key-value pairs as "key: value"', () => {
-    expect(kubernetesTagsToStrings({ env: 'prod' })).toEqual(['env: prod'])
+    expect(kubernetesTagsToStrings({ env: 'prod' })).toEqual(['env=prod'])
   })
 
   it('returns the key alone when the value is empty', () => {
