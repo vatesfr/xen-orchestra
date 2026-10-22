@@ -14,11 +14,11 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type UiMenuItemSize = 'small' | 'large'
+export type MenuItemSize = 'small' | 'large'
 
 const props = defineProps<
   LinkOptions & {
-    size: UiMenuItemSize
+    size: MenuItemSize
     selected?: boolean
     icon?: IconName
   }
