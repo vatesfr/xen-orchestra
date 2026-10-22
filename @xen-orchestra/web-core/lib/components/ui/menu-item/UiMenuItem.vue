@@ -84,6 +84,10 @@ const className = computed(() => toVariants({ size: props.size, selected: props.
   &.size--small {
     padding-block: 1.6rem;
     border-block: 0.1rem solid var(--color-neutral-border);
+
+    & + .size--small {
+      border-block-start-width: 0;
+    }
   }
 
   &.size--large {
