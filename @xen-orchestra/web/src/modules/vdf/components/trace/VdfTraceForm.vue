@@ -161,7 +161,7 @@ onMounted(() => {
 }
 
 .small {
-  width: 18rem;
+  width: 20rem;
 }
 
 .arrow {

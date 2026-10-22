@@ -45,8 +45,6 @@
         />
       </div>
 
-      <UiAlert v-if="lastPublishMessage !== undefined" accent="success">{{ lastPublishMessage }}</UiAlert>
-
       <UiAlert v-if="unlockedProtectedVms.length > 0" accent="warning">
         {{ t('firewall:warning:unlocked', { n: unlockedProtectedVms.length }) }}
         <template #description>{{ unlockedProtectedVms.map(vm => vm.name_label).join(', ') }}</template>
@@ -196,7 +194,6 @@ const tierLabel = useVdfTierLabel()
 const {
   document,
   publishedPolicy,
-  publishedDocId,
   isPublishedPolicyReady,
   hasPublishedPolicyError,
   hosts,
@@ -204,7 +201,6 @@ const {
   upToDateHostCount,
   liveHostCount,
   realizationOf,
-  lastPublish,
 } = useVdfPolicy(() => pool)
 
 const { poolVms, runningVms, membersOf, protectedVms, quarantinedVms, areVmsReady } = useVdfMembers(
@@ -256,16 +252,6 @@ const unlockedProtectedVms = computed(() =>
       vifs.value.some(vif => vif.$VM === vm.id && vif.lockingMode !== 'locked')
   )
 )
-
-const lastPublishMessage = computed(() => {
-  if (lastPublish.value === undefined || lastPublish.value.docId !== publishedDocId.value) {
-    return undefined
-  }
-
-  const enforcing = hosts.value.filter(({ status }) => status?.doc === lastPublish.value?.docId).length
-
-  return t('firewall:published:enforcing', { n: enforcing, total: liveHostCount.value })
-})
 </script>
 
 <style lang="postcss" scoped>

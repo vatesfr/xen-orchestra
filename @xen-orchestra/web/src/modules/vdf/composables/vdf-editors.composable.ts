@@ -1,7 +1,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import type { VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import { VDF_APPLICATION_TIER, type VdfGroup, type VdfPolicy, type VdfRule } from '@/modules/vdf/types.ts'
 import { nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -55,7 +55,9 @@ export function useVdfEditors(rawPool: MaybeRefOrGetter<FrontXoPool>) {
       name: '',
       appliedTo: taggedGroupOptions.value[0]?.name ?? '',
       tier: tier === undefined ? undefined : toTierRef(tier),
-      default: 'drop',
+      // a tier before application usually decides a few things and leaves
+      // the rest to the next tiers: drop there would cut what they allow
+      default: tier !== undefined && tier < VDF_APPLICATION_TIER ? 'pass' : 'drop',
       ingress: [],
     }
 
