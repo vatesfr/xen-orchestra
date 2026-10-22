@@ -1,3 +1,4 @@
+import pick from 'lodash/pick.js'
 import { createLogger } from '@xen-orchestra/log'
 import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
@@ -8,8 +9,10 @@ import { PingListener, Subscriber, SubscriberManager, XoListener } from './event
 import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
-import { XAPI_TYPES, type XapiXoRecord } from '@vates/types'
+import { XAPI_TYPES, XoUser, type XapiXoRecord } from '@vates/types'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { hasPrivilegeOn, type AnyPrivilege, type SupportedResource } from '@xen-orchestra/acl'
+import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -31,6 +34,84 @@ export class EventService {
     this.#restApi = restApi
     this.#alarmService = restApi.ioc.get(AlarmService)
     this.#backupJobService = restApi.ioc.get(BackupJobService)
+
+    const fn = this.#clearSseOnPrivilegechange.bind(this)
+    const privilegeListener = this.#getListener('acl-privilege')
+    privilegeListener.watchedEvent.map(event => privilegeListener.eventEmitter.on(event, fn))
+  }
+
+  async #clearSseOnPrivilegechange(privilege?: AnyPrivilege, previousPrivilege?: AnyPrivilege) {
+    const roleIds = [privilege?.roleId, previousPrivilege?.roleId].filter(id => id !== undefined)
+    const impactedResources = new Set(
+      [privilege?.resource, previousPrivilege?.resource].filter(resource => resource !== undefined)
+    )
+
+    const roles = await Promise.all(roleIds.map(roleId => this.#restApi.xoApp.getAclV2Role(roleId))).catch(err => {
+      log.error('TBD', { error: err })
+      return []
+    })
+    const userIds = new Set<XoUser['id']>()
+    roles.forEach(role => {
+      if ('userIds' in role) {
+        role.userIds.forEach(id => userIds.add(id))
+      }
+    })
+
+    for (const resource of impactedResources) {
+      const impactedListener = this.#listeners.get(XAPI_TYPE_BY_ACL_RESOURCE[resource] ?? resource)
+
+      if (impactedListener === undefined) {
+        continue
+      }
+
+      for (const [_, conf] of impactedListener.subscribers) {
+        if (!userIds.has(conf.subscriber.userId)) {
+          continue
+        }
+
+        try {
+          await this.#resync(impactedListener, conf, resource, privilege, previousPrivilege)
+        } catch (error) {
+          log.error('cannot resync the SSE connection after a privilege change', { error })
+          conf.subscriber.clear()
+        }
+      }
+    }
+  }
+
+  // sends `add`/`remove` for the objects the user can now see / can no longer see
+  async #resync(
+    listener: Listener | Listener<XoListenerType>,
+    { subscriber, fields }: { subscriber: Subscriber; fields: '*' | string[] },
+    resource: SupportedResource,
+    privilege?: AnyPrivilege,
+    previousPrivilege?: AnyPrivilege
+  ) {
+    const type = XAPI_TYPE_BY_ACL_RESOURCE[resource]
+    // only the XAPI objects are in memory (and messages exclude the alarms): the client fetches the others again
+    if (type === undefined || type === 'message') {
+      log.debug('clear SSE connection because privileges changed for this user', { user: subscriber.userId })
+      return subscriber.clear()
+    }
+
+    const { xoApp } = this.#restApi
+    const user = await xoApp.getUser(subscriber.userId)
+    const privileges = (await xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+
+    const changedId = (privilege ?? previousPrivilege)!.id
+    const previousPrivileges = privileges.filter(({ id }) => id !== changedId).concat(previousPrivilege ?? [])
+    const canSee = (userPrivileges: AnyPrivilege[], object: object) =>
+      hasPrivilegeOn({ user, userPrivileges, action: 'read', resource, objects: object })
+
+    for (const object of Object.values(this.#restApi.getObjectsByType(type))) {
+      const visible = canSee(privileges, object)
+      if (visible !== canSee(previousPrivileges, object)) {
+        subscriber.broadcast(visible ? 'add' : 'remove', {
+          $subscription: listener.type,
+          ...(fields === '*' ? object : pick(object, fields)),
+        })
+      }
+    }
   }
 
   #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
