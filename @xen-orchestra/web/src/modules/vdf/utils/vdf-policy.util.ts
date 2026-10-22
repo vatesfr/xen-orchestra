@@ -1,5 +1,6 @@
 import {
   VDF_APPLICATION_TIER,
+  VDF_GLOBAL_RULE_BASE,
   VDF_TIERS,
   type VdfDefaultAction,
   type VdfDocument,
@@ -98,8 +99,11 @@ export function tierDefault(policies: VdfPolicy[]): VdfDefaultAction {
   return 'pass'
 }
 
+// ids from VDF_GLOBAL_RULE_BASE up belong to the global configuration
 export function nextRuleId(document: VdfDocument) {
-  const ids = document.policies.flatMap(policy => policy.ingress.map(rule => rule.id))
+  const ids = document.policies
+    .flatMap(policy => policy.ingress.map(rule => rule.id))
+    .filter(id => id < VDF_GLOBAL_RULE_BASE)
 
   return ids.length === 0 ? 1 : Math.max(...ids) + 1
 }

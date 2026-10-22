@@ -4,6 +4,9 @@ import { defineJobArg } from '@core/packages/job'
 
 export const vdfPoolIdArg = defineJobArg<string>({ identify: true, toArray: false })
 
+// revision of the global configuration an edit started from
+export const vdfRevisionArg = defineJobArg<number>({ identify: false, toArray: false })
+
 export const vdfDocumentArg = defineJobArg<VdfDocument>({ identify: false, toArray: false })
 
 export const vdfVmsArg = defineJobArg({

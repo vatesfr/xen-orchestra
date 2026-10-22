@@ -1,6 +1,4 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
-import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
+import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import {
   VDF_APPLICATION_TIER,
   type VdfGroup,
@@ -10,17 +8,13 @@ import {
 } from '@/modules/vdf/types.ts'
 import { nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-// Policy, rule and group edits all land in the pool's draft: nothing
-// reaches the hosts before a publish.
-export function useVdfEditors(rawPool: MaybeRefOrGetter<FrontXoPool>) {
-  const pool = toComputed(rawPool)
-
-  const { document, savePolicy, saveRule, saveGroup, saveLimits } = useVdfPolicy(pool)
-
-  const { membersOf } = useVdfMembers(() => pool.value.id, document)
+// Policy, rule and group edits all land in the scope's draft: nothing
+// reaches the hosts before a publish. In a pool, global groups can be used
+// as sources and targets, but global objects are edited XO-wide.
+export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
+  const { document, savePolicy, saveRule, saveGroup, saveLimits, membersOf } = useVdfScope(rawScope)
 
   const groupOptions = computed(() =>
     Object.keys(document.value.groups)

@@ -1,20 +1,34 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import { useVdfPublishJob } from '@/modules/vdf/jobs/vdf-publish.job.ts'
+import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
+import { useVdfGlobalPublishJob, useVdfPublishJob } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { toComputed } from '@core/utils/to-computed.util.ts'
 import { reactiveComputed } from '@vueuse/core'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
-export function useVdfPublish(rawPool: MaybeRefOrGetter<FrontXoPool>) {
-  const pool = toComputed(rawPool)
+export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
+  const scope = useVdfScope(rawScope)
 
-  const { poolId, document, changes, recordPublish } = useVdfPolicy(pool)
+  const { scopeId, document, changes } = scope
 
   const publishError = ref<string>()
 
-  const { run, isRunning: isPublishing } = useVdfPublishJob(poolId, document)
+  const poolJob = useVdfPublishJob(scopeId, document)
+
+  const globalJob = useVdfGlobalPublishJob(scopeId, document, () => (scope.isGlobal ? scope.revision.value : 0))
+
+  const isPublishing = computed(() => (scope.isGlobal ? globalJob.isRunning.value : poolJob.isRunning.value))
+
+  async function publish() {
+    if (scope.isGlobal) {
+      const result = await globalJob.run()
+
+      scope.recordPublish(result.revision ?? scope.revision.value + 1)
+    } else {
+      const result = await poolJob.run()
+
+      scope.recordPublish(result.document ?? '')
+    }
+  }
 
   const { open } = useOverlay({
     component: () => import('@/modules/vdf/components/VdfPublishModal.vue'),
@@ -23,9 +37,7 @@ export function useVdfPublish(rawPool: MaybeRefOrGetter<FrontXoPool>) {
         publishError.value = undefined
 
         try {
-          const result = await run()
-
-          recordPublish(result.document ?? '')
+          await publish()
         } catch (error) {
           publishError.value = (error as Error).message
 
@@ -37,7 +49,7 @@ export function useVdfPublish(rawPool: MaybeRefOrGetter<FrontXoPool>) {
   })
 
   const props = reactiveComputed(() => ({
-    poolId: poolId.value,
+    scopeId: scopeId.value,
     document: document.value,
     changes: changes.value,
     publishError: publishError.value,

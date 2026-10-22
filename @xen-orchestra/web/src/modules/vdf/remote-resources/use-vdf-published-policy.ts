@@ -8,6 +8,11 @@ import type { Ref } from 'vue'
 export const useVdfPublishedPolicy = defineRemoteResource({
   url: (poolId: string) => `${BASE_URL}/plugins/vdf/pools/${poolId}/policy`,
   pollingIntervalMs: 60_000,
+  // each answer is the whole document: replace it (the default deep merge
+  // would keep what the server removed, and skip reactivity)
+  onDataReceived: async (data: Ref<VdfPublishedPolicy | undefined>, receivedData: VdfPublishedPolicy) => {
+    data.value = receivedData
+  },
   state: (publishedPolicy: Ref<VdfPublishedPolicy | undefined>, context) => ({
     publishedPolicy,
     isPublishedPolicyReady: context.isReady,

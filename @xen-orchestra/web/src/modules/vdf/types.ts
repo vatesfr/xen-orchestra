@@ -19,6 +19,18 @@ export const VDF_QUARANTINE_TAG = 'vdf:quarantine'
 
 export const VDF_TAG_PREFIX = 'vdf:'
 
+// XO-wide configuration (xo-server-vdf global.mjs): in a pool's document,
+// XO owns the groups and policies named `global:*` and the rule ids from
+// VDF_GLOBAL_RULE_BASE up
+export const VDF_GLOBAL_SCOPE = 'global'
+
+export const VDF_GLOBAL_PREFIX = 'global:'
+
+export const VDF_GLOBAL_RULE_BASE = 0x800000
+
+// a pool's id, or VDF_GLOBAL_SCOPE
+export type VdfScopeId = string
+
 export type VdfRuleAction = 'allow' | 'drop' | 'pass'
 
 export type VdfDefaultAction = 'allow' | 'drop' | 'pass'
@@ -71,7 +83,46 @@ export type VdfPublishedPolicy = {
   text: string | null
   document: VdfDocument | null
   parseError?: string
+  global?: { revision: number; inScope: boolean }
 }
+
+export type VdfGlobalScope = {
+  all?: boolean
+  pools?: string[]
+}
+
+export type VdfPoolSyncState = 'in-sync' | 'behind' | 'not-published' | 'out-of-scope' | 'stale-global' | 'unreachable'
+
+export type VdfGlobalPool = {
+  id: string
+  name: string
+  inScope: boolean
+  state: VdfPoolSyncState
+  docId?: string
+  sync?: { at: number; ok: boolean; error?: string; state?: VdfPoolSyncState; revision?: number }
+}
+
+export type VdfGlobalMember = {
+  vm: string
+  vmName: string
+  pool: string
+  poolName?: string
+  ips: string[]
+  trusted: boolean
+}
+
+export type VdfGlobalStatus = {
+  document: VdfDocument
+  revision: number
+  scope: VdfGlobalScope
+  publishedAt?: string
+  publishedBy?: string
+  pools: VdfGlobalPool[]
+  members: Record<string, VdfGlobalMember[]>
+}
+
+// the global configuration as edited: the document and where it applies
+export type VdfGlobalDocument = VdfDocument & { scope: VdfGlobalScope }
 
 export type VdfCheckResult = {
   ok: boolean
@@ -81,6 +132,9 @@ export type VdfCheckResult = {
   keys?: string[]
   document?: string
   published?: boolean
+  // global configuration: one result per pool
+  pools?: (VdfCheckResult & { id: string; name: string; inScope: boolean; skipped?: boolean; unreachable?: boolean })[]
+  revision?: number
 }
 
 // host.other_config["vdf:status"], written by each host's agent

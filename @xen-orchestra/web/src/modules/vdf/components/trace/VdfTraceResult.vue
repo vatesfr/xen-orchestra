@@ -93,6 +93,7 @@
 
 <script lang="ts" setup>
 import type { VdfTraceEnd, VdfTraceHop, VdfTraceResult, VdfTraceStage } from '@/modules/vdf/types.ts'
+import { vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -139,13 +140,7 @@ const decisionRoute = computed<RouteLocationRaw | undefined>(() => {
     return undefined
   }
 
-  const query: Record<string, string> = { policy: decision.value.policy }
-
-  if (decision.value.rule) {
-    query.rule = String(decision.value.rule)
-  }
-
-  return { name: '/pool/[id]/firewall/policies', params: { id: poolId }, query }
+  return vdfPageRoute(poolId, 'policies', { policy: decision.value.policy, rule: decision.value.rule || undefined })
 })
 
 const otherwise = computed(() => result.hops.map(hop => hop.otherwise).find(Boolean))

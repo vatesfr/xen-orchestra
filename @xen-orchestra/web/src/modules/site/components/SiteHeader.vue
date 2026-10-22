@@ -32,6 +32,9 @@
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/(site)/firewall' }" custom>
+      <UiTabItem :active="isActive" :href tag="a">{{ t('firewall') }}</UiTabItem>
+    </RouterLink>
   </TabList>
 </template>
 

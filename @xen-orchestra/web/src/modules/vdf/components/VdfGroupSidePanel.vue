@@ -1,14 +1,22 @@
 <template>
   <VtsSidePanel :has-selection="name !== undefined" @close="emit('close')">
     <template v-if="name !== undefined && group !== undefined" #actions>
-      <UiButton size="medium" variant="tertiary" accent="brand" left-icon="action:edit" @click="emit('edit')">
+      <UiLink v-if="locked" size="medium" icon="fa:globe" :to="vdfGlobalRoute('groups', { group: name })">
+        {{ t('firewall:global:edit-xo-wide') }}
+      </UiLink>
+      <UiButton v-else size="medium" variant="tertiary" accent="brand" left-icon="action:edit" @click="emit('edit')">
         {{ t('action:edit') }}
       </UiButton>
     </template>
 
     <template v-if="name !== undefined && group !== undefined" #default>
       <UiPanelCard>
-        <UiPanelCardTitle size="medium" :label="name" icon="fa:object-group" />
+        <UiPanelCardTitle
+          size="medium"
+          :label="displayName(name)"
+          :icon="isGlobalName(name) || isGlobalScope(scopeId) ? 'fa:globe' : 'fa:object-group'"
+        />
+        <UiInfo v-if="locked" accent="info" wrap>{{ t('firewall:global:group:info') }}</UiInfo>
         <VtsCardRowKeyValue align-top>
           <template #key>{{ t('firewall:group-form:tags') }}</template>
           <template #value>
@@ -19,7 +27,7 @@
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue align-top>
-          <template #key>{{ t('firewall:group-form:ips') }}</template>
+          <template #key>{{ locked ? t('firewall:global:group-ips') : t('firewall:group-form:ips') }}</template>
           <template #value>
             <div class="chips">
               <code v-for="ip of group.ips ?? []" :key="ip">{{ ip }}</code>
@@ -34,16 +42,16 @@
               <RouterLink
                 v-for="policy of usage.appliedTo"
                 :key="`applied:${policy}`"
-                :to="{ name: '/pool/[id]/firewall/policies', params: { id: poolId }, query: { policy } }"
+                :to="vdfPageRoute(scopeId, 'policies', { policy })"
               >
-                {{ t('firewall:used-by:protected', { policy }) }}
+                {{ t('firewall:used-by:protected', { policy: displayName(policy) }) }}
               </RouterLink>
               <RouterLink
                 v-for="policy of usage.sourceOf"
                 :key="`source:${policy}`"
-                :to="{ name: '/pool/[id]/firewall/policies', params: { id: poolId }, query: { policy } }"
+                :to="vdfPageRoute(scopeId, 'policies', { policy })"
               >
-                {{ t('firewall:used-by:source', { policy }) }}
+                {{ t('firewall:used-by:source', { policy: displayName(policy) }) }}
               </RouterLink>
               <span v-if="usage.appliedTo.length + usage.sourceOf.length === 0" class="secondary">
                 {{ t('firewall:used-by:none') }}
@@ -90,6 +98,10 @@
               {{ isLocked(vm) ? t('firewall:vif-locked') : t('firewall:vif-unlocked') }}
             </UiInfo>
             <span v-if="vm.power_state !== 'Running'" class="secondary">{{ t('firewall:not-running') }}</span>
+            <span v-if="poolNameOf" class="pool secondary">
+              <VtsIcon name="object:pool" size="small" />
+              {{ poolNameOf(vm) }}
+            </span>
           </div>
         </div>
       </UiPanelCard>
@@ -98,16 +110,25 @@
 </template>
 
 <script lang="ts" setup>
-import type { VdfGroup } from '@/modules/vdf/types.ts'
+import type { VdfGroup, VdfScopeId } from '@/modules/vdf/types.ts'
+import {
+  displayName,
+  isGlobalName,
+  isGlobalScope,
+  vdfGlobalRoute,
+  vdfPageRoute,
+} from '@/modules/vdf/utils/vdf-global.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -115,8 +136,12 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  poolId: string
+  scopeId: VdfScopeId
   name: string | undefined
+  // a global group shown in a pool: edited XO-wide
+  locked?: boolean
+  // global configuration: members come from several pools
+  poolNameOf?: (vm: FrontXoVm) => string
   group: VdfGroup | undefined
   members: FrontXoVm[]
   usage: { appliedTo: string[]; sourceOf: string[] }
@@ -171,6 +196,12 @@ function isLocked(vm: FrontXoVm) {
   gap: 0.4rem;
   padding-block: 0.8rem;
   border-block-start: 0.1rem solid var(--color-neutral-border);
+}
+
+.pool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .member-head {

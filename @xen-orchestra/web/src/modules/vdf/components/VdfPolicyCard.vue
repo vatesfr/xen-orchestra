@@ -2,17 +2,26 @@
   <div class="vdf-policy-card" :class="{ highlighted }">
     <div class="header">
       <div class="title">
-        <span class="typo-h5">{{ policy.name }}</span>
-        <UiTag v-if="draftState" :accent="draftState === 'new' ? 'success' : 'info'" variant="secondary">
+        <span class="typo-h5">{{ displayName(policy.name) }}</span>
+        <UiTag v-if="isGlobalPolicy" accent="info" variant="primary">
+          <VtsIcon name="fa:globe" size="small" />
+          {{ t('firewall:global') }}
+        </UiTag>
+        <UiTag v-if="draftState && !locked" :accent="draftState === 'new' ? 'success' : 'info'" variant="secondary">
           {{ t(`firewall:draft-state:${draftState}`) }}
         </UiTag>
         <span class="typo-body-regular-small secondary">{{ t('firewall:applies-to') }}</span>
-        <VdfGroupChip :pool-id :group="policy.appliedTo" :count="members" :exists="groupExists(policy.appliedTo)" />
+        <VdfGroupChip :scope-id :group="policy.appliedTo" :count="members" :exists="groupExists(policy.appliedTo)" />
         <UiInfo v-if="realization.total > 0 || realization.unknown > 0" :accent="realizationAccent">
           {{ t('firewall:realized:count', realization) }}
         </UiInfo>
       </div>
-      <div class="actions">
+      <div v-if="locked" class="actions">
+        <UiLink size="small" icon="fa:globe" :to="vdfGlobalRoute('policies', { policy: policy.name })">
+          {{ t('firewall:global:edit-xo-wide') }}
+        </UiLink>
+      </div>
+      <div v-else class="actions">
         <UiButton variant="tertiary" accent="brand" size="small" left-icon="fa:plus" @click="emit('addRule')">
           {{ t('firewall:rule') }}
         </UiButton>
@@ -37,7 +46,7 @@
           <VtsHeaderCell>{{ t('firewall:service') }}</VtsHeaderCell>
           <VtsHeaderCell>{{ t('firewall:log') }}</VtsHeaderCell>
           <VtsHeaderCell v-if="hits !== undefined">{{ t('firewall:hits') }}</VtsHeaderCell>
-          <VtsHeaderCell class="narrow" />
+          <VtsHeaderCell v-if="!locked" class="narrow" />
         </tr>
       </thead>
       <tbody>
@@ -45,9 +54,9 @@
           <UiTableCell class="secondary">{{ index + 1 }}</UiTableCell>
           <UiTableCell>
             <span class="rule-id">
-              <code>{{ rule.id }}</code>
+              <code>{{ globalRuleId(rule.id) }}</code>
               <UiTag
-                v-if="ruleStates.get(rule.id)"
+                v-if="ruleStates.get(rule.id) && !locked"
                 :accent="ruleStates.get(rule.id) === 'new' ? 'success' : 'info'"
                 variant="secondary"
               >
@@ -58,7 +67,7 @@
           <UiTableCell><VdfActionTag :action="ruleAction(rule)" /></UiTableCell>
           <UiTableCell>
             <VdfGroupChip
-              :pool-id
+              :scope-id
               :group="rule.from"
               :count="rule.from === 'any' ? undefined : membersOf(rule.from)"
               :ips="rule.from === 'any' ? undefined : ipsOf(rule.from)"
@@ -90,6 +99,7 @@
             </span>
           </UiTableCell>
           <VtsActionCell
+            v-if="!locked"
             button-icon="action:edit"
             :actions="ruleActions(rule, index)"
             @click="emit('editRule', rule)"
@@ -97,7 +107,7 @@
         </VtsRow>
         <VtsRow class="default-row">
           <UiTableCell class="secondary">{{ policy.ingress.length + 1 }}</UiTableCell>
-          <UiTableCell :colspan="hits !== undefined ? 7 : 6">
+          <UiTableCell :colspan="(hits !== undefined ? 7 : 6) - (locked ? 1 : 0)">
             <span class="default">
               <span class="secondary">{{ t('firewall:no-rule-matches') }}</span>
               <VdfActionTag :action="policy.default" is-default />
@@ -116,7 +126,14 @@
 <script lang="ts" setup>
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
-import type { VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
+import {
+  displayName,
+  globalRuleId,
+  isGlobalName,
+  isGlobalScope,
+  vdfGlobalRoute,
+} from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { VdfPolicyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -128,6 +145,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -135,9 +153,11 @@ import { isEqual, omit } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { policy, publishedPolicy, realization, isFirst, isLast } = defineProps<{
-  poolId: string
+const { policy, publishedPolicy, realization, isFirst, isLast, scopeId } = defineProps<{
+  scopeId: VdfScopeId
   policy: VdfPolicy
+  // a global policy shown in a pool: edited XO-wide
+  locked?: boolean
   // the same policy as published, to mark what the draft changes
   publishedPolicy: VdfPolicy | undefined
   members: number
@@ -163,6 +183,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const isGlobalPolicy = computed(() => isGlobalName(policy.name) || isGlobalScope(scopeId))
 
 const draftState = computed(() => {
   if (publishedPolicy === undefined) {
@@ -275,6 +297,10 @@ function formatRate(rate: number) {
     display: inline-flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .log {
+    white-space: nowrap;
   }
 
   .proto {

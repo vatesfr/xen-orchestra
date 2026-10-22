@@ -37,6 +37,10 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | '/(site)/backups'
       | '/(site)/dashboard'
+      | '/(site)/firewall'
+      | '/(site)/firewall/groups'
+      | '/(site)/firewall/overview'
+      | '/(site)/firewall/policies'
       | '/(site)/hosts'
       | '/(site)/pools'
       | '/(site)/tasks'
@@ -52,6 +56,36 @@ declare module 'vue-router/auto-routes' {
     '/(site)/dashboard': RouteRecordInfo<
       '/(site)/dashboard',
       '/dashboard',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/firewall': RouteRecordInfo<
+      '/(site)/firewall',
+      '/firewall',
+      Record<never, never>,
+      Record<never, never>,
+      | '/(site)/firewall/groups'
+      | '/(site)/firewall/overview'
+      | '/(site)/firewall/policies'
+    >,
+    '/(site)/firewall/groups': RouteRecordInfo<
+      '/(site)/firewall/groups',
+      '/firewall/groups',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/firewall/overview': RouteRecordInfo<
+      '/(site)/firewall/overview',
+      '/firewall/overview',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/firewall/policies': RouteRecordInfo<
+      '/(site)/firewall/policies',
+      '/firewall/policies',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -638,6 +672,10 @@ declare module 'vue-router/auto-routes' {
         | '/(site)'
         | '/(site)/backups'
         | '/(site)/dashboard'
+        | '/(site)/firewall'
+        | '/(site)/firewall/groups'
+        | '/(site)/firewall/overview'
+        | '/(site)/firewall/policies'
         | '/(site)/hosts'
         | '/(site)/pools'
         | '/(site)/tasks'
@@ -654,6 +692,33 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(site)/dashboard.vue': {
       routes:
         | '/(site)/dashboard'
+      views:
+        | never
+    }
+    'src/pages/(site)/firewall.vue': {
+      routes:
+        | '/(site)/firewall'
+        | '/(site)/firewall/groups'
+        | '/(site)/firewall/overview'
+        | '/(site)/firewall/policies'
+      views:
+        | 'default'
+    }
+    'src/pages/(site)/firewall/groups.vue': {
+      routes:
+        | '/(site)/firewall/groups'
+      views:
+        | never
+    }
+    'src/pages/(site)/firewall/overview.vue': {
+      routes:
+        | '/(site)/firewall/overview'
+      views:
+        | never
+    }
+    'src/pages/(site)/firewall/policies.vue': {
+      routes:
+        | '/(site)/firewall/policies'
       views:
         | never
     }

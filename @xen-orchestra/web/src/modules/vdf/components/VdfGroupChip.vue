@@ -7,27 +7,30 @@
     v-else
     v-tooltip="tooltip"
     class="vdf-group-chip typo-body-regular-small"
-    :class="{ unknown: !exists }"
-    :to="{ name: '/pool/[id]/firewall/groups', params: { id: poolId }, query: { group } }"
+    :class="{ unknown: !exists, global: isGlobal }"
+    :to="vdfPageRoute(scopeId, 'groups', { group })"
   >
-    <VtsIcon name="fa:object-group" size="small" />
-    {{ group }}
+    <VtsIcon :name="isGlobal ? 'fa:globe' : 'fa:object-group'" size="small" />
+    {{ displayName(group) }}
     <span v-if="count !== undefined || ips" class="count">{{ (count ?? 0) + (ips ?? 0) }}</span>
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
+import type { VdfScopeId } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
+  group,
   count,
   ips,
   exists = true,
 } = defineProps<{
-  poolId: string
+  scopeId: VdfScopeId
   group: string
   // member VMs, and static IPs
   count?: number
@@ -37,12 +40,15 @@ const {
 
 const { t } = useI18n()
 
+// a group of the global configuration, used in a pool
+const isGlobal = computed(() => isGlobalName(group))
+
 const tooltip = computed(() => {
   if (!exists) {
     return t('firewall:group:unknown')
   }
 
-  const parts = []
+  const parts = isGlobal.value ? [t('firewall:global:group')] : []
 
   if (count !== undefined) {
     parts.push(t('firewall:group:members', { n: count }))
@@ -77,6 +83,10 @@ const tooltip = computed(() => {
     border-color: var(--color-neutral-border);
     color: var(--color-neutral-txt-primary);
     background-color: var(--color-neutral-background-secondary);
+  }
+
+  &.global {
+    border-style: dashed;
   }
 
   &.unknown {

@@ -7,6 +7,14 @@ export const useVdfRuleLog = defineRemoteResource({
   url: (poolId: string) => `${BASE_URL}/plugins/vdf/pools/${poolId}/rule-log?lines=500`,
   pollingIntervalMs: 5000,
   cacheExpirationMs: false,
+  // each answer is the whole document: replace it (the default deep merge
+  // would keep what the server removed, and skip reactivity)
+  onDataReceived: async (
+    data: Ref<{ entries: VdfRuleLogEntry[]; errors: { hostName: string; error: string }[] } | undefined>,
+    receivedData: { entries: VdfRuleLogEntry[]; errors: { hostName: string; error: string }[] }
+  ) => {
+    data.value = receivedData
+  },
   state: (
     ruleLog: Ref<{ entries: VdfRuleLogEntry[]; errors: { hostName: string; error: string }[] } | undefined>,
     context

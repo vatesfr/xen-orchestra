@@ -1,7 +1,7 @@
 <template>
   <div class="firewall">
-    <VdfFirewallNav :pool />
-    <VdfDraftBar :pool />
+    <VdfFirewallNav :scope="{ kind: 'pool', pool }" />
+    <VdfDraftBar :scope="{ kind: 'pool', pool }" />
     <RouterView v-slot="{ Component }">
       <component :is="Component" :pool />
     </RouterView>
