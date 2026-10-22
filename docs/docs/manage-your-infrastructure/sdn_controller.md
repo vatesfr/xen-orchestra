@@ -212,7 +212,7 @@ Parameters:
 - _protocol_: IP, TCP, UDP, ICMP or ARP (case-insensitive).
 - _port_: required for TCP/UDP protocol. Use `json:22` so the number is passed as an integer.
 - _allow_: true or false. If set to false the packets are dropped.
-- _priority_ (optional): where the rule applies among the rules of its network, see [Rule order](#rule-order). Use `json:40000` so the number is passed as an integer.
+- _priority_ (optional): the rank of the rule among the rules of its network, 1 applying first, see [Rule order](#rule-order). Use `json:1` so the number is passed as an integer.
 
 Some examples:
 
@@ -232,15 +232,14 @@ xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc052
 
 #### Rule order
 
-When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the highest priority decides.
+When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the smallest priority decides: a rule's priority is its rank, 1 applying first.
 
-- A priority is an integer from 8002 to 65535, and two rules of a network cannot share one.
-- A rule added without a priority goes after all the others: it gets the lowest priority of the network minus 5, or 60000 for the first rule of the network. A rule added again, with the same protocol, port, IP range and direction, keeps its priority.
-- To choose where a rule applies, give it a priority. Leave gaps between the priorities you choose, of 100 for instance, so that a rule can move between two others in a single update.
+- A rule added without a priority goes after all the others. A rule added again, with the same protocol, port, IP range and direction, keeps its place.
+- A rule given a priority ends up at that rank, and the other rules keep their order around it: a new rule goes before the rule that had the rank. A priority past the last rule puts the rule last. Xen Orchestra answers with the priority the rule got.
 - The [REST API](../automation/restapi.md) lists the rules of a network and of the VIFs of its VMs in the order they apply: `GET /rest/v0/plugins/sdn-controller/networks/<NETWORK_UUID>/traffic-rules`. Its `update_traffic_rule` action moves a rule, and `priority: null` moves it after the last one.
-- Rules created before priorities have none until Xen Orchestra next connects to the pool, which numbers them after the others, network-wide rules first.
-- A clone or a replica of a VM keeps the priorities of its rules: two rules can share a priority until one of them moves.
-- XAPI installs its own flows, from 4000 to 8000, for a VIF whose locking mode is `locked`. Every rule is above them: a rule that allows some traffic lets it through before the anti-spoofing checks of XAPI.
+- Rules created before priorities share the last rank until Xen Orchestra next connects to the pool, which puts them last one after the other, network-wide rules first.
+- A clone or a replica of a VM keeps the place of its rules: a rule and its copy share a priority until one of them moves.
+- XAPI installs its own flows for a VIF whose locking mode is `locked`, and every rule applies before them: a rule that allows some traffic lets it through before the anti-spoofing checks of XAPI.
 - Priorities need xcp-ng-xapi-plugins 1.16.0 or later on every host of the pool.
 
 Priorities only exist with the XAPI plugin: with the OpenFlow protocol, a rule with a priority is rejected.
