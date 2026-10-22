@@ -11,6 +11,7 @@ import type { AnyXoJob, XoAlarm, XoAuthenticationToken, XoMessage, XoPlugin, XoR
 import type { AlarmService } from '../alarms/alarm.service.mjs'
 import type { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { obfuscatePluginSecrets } from '../plugins/plugin.helper.mjs'
+import type { PrivilegesChange } from '../abstract-classes/listener.type.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -109,7 +110,8 @@ export class XoListener extends Listener<XoListenerType> {
   async handleData<T extends Exclude<XoRecord, XoAlarm>>(
     { fields, event, subscriber }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
-    previousObj?: T
+    previousObj?: T,
+    privilegesChange?: PrivilegesChange
   ): Promise<(Partial<XoRecord> & { $subscription: XoListenerType; event: CollectionEventType }) | undefined> {
     let _object: Partial<XoRecord> | undefined = object
     let _prevObject: Partial<XoRecord> | undefined = previousObj
@@ -168,6 +170,7 @@ export class XoListener extends Listener<XoListenerType> {
             object: _object,
             previousObject: _prevObject,
             userId: subscriber.userId,
+            privilegesChange,
           })
     // If the user has no 'read' privileges for the changes, don't send the update
     if (aclEvent === undefined) {

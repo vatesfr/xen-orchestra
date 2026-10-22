@@ -1,4 +1,3 @@
-import pick from 'lodash/pick.js'
 import { createLogger } from '@xen-orchestra/log'
 import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
@@ -11,7 +10,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { XAPI_TYPES, XoUser, type XapiXoRecord } from '@vates/types'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
-import { hasPrivilegeOn, type AnyPrivilege, type SupportedResource } from '@xen-orchestra/acl'
+import type { AnyPrivilege, SupportedResource } from '@xen-orchestra/acl'
 import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
@@ -70,7 +69,7 @@ export class EventService {
         }
 
         try {
-          await this.#resync(impactedListener, conf, resource, privilege, previousPrivilege)
+          await this.#resync(impactedListener, conf.subscriber, resource, privilege, previousPrivilege)
         } catch (error) {
           log.error('cannot resync the SSE connection after a privilege change', { error })
           conf.subscriber.clear()
@@ -82,36 +81,26 @@ export class EventService {
   // sends `add`/`remove` for the objects the user can now see / can no longer see
   async #resync(
     listener: Listener | Listener<XoListenerType>,
-    { subscriber, fields }: { subscriber: Subscriber; fields: '*' | string[] },
+    subscriber: Subscriber,
     resource: SupportedResource,
     privilege?: AnyPrivilege,
     previousPrivilege?: AnyPrivilege
   ) {
-    const type = XAPI_TYPE_BY_ACL_RESOURCE[resource]
-    // only the XAPI objects are in memory (and messages exclude the alarms): the client fetches the others again
-    if (type === undefined || type === 'message') {
-      log.debug('clear SSE connection because privileges changed for this user', { user: subscriber.userId })
-      return subscriber.clear()
-    }
-
     const { xoApp } = this.#restApi
+    // alarms are messages
+    const type = resource === 'alarm' ? 'message' : XAPI_TYPE_BY_ACL_RESOURCE[resource]
+    const objects =
+      type !== undefined
+        ? Object.values(this.#restApi.getObjectsByType(type))
+        : await xoApp.getXoObjectsByType(resource === 'backup-job' ? 'job' : resource)
+
     const user = await xoApp.getUser(subscriber.userId)
-    const privileges = (await xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const userPrivileges = (await xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
 
     const changedId = (privilege ?? previousPrivilege)!.id
-    const previousPrivileges = privileges.filter(({ id }) => id !== changedId).concat(previousPrivilege ?? [])
-    const canSee = (userPrivileges: AnyPrivilege[], object: object) =>
-      hasPrivilegeOn({ user, userPrivileges, action: 'read', resource, objects: object })
+    const previousUserPrivileges = userPrivileges.filter(({ id }) => id !== changedId).concat(previousPrivilege ?? [])
 
-    for (const object of Object.values(this.#restApi.getObjectsByType(type))) {
-      const visible = canSee(privileges, object)
-      if (visible !== canSee(previousPrivileges, object)) {
-        subscriber.broadcast(visible ? 'add' : 'remove', {
-          $subscription: listener.type,
-          ...(fields === '*' ? object : pick(object, fields)),
-        })
-      }
-    }
+    await listener.resync(subscriber, objects, { user, userPrivileges, previousUserPrivileges })
   }
 
   #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {

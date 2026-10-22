@@ -496,6 +496,10 @@ export type XoApp = EventEmitter & {
   getXenServerIdByObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type?: T['type'] | T['type'][]): XoServer['id']
   getXenServerWithCredentials(id: XoServer['id']): Promise<XoServer & { password: string }>
   getXoEventEmitterByType(type: string): EventEmitter
+  getXoObjectsByType<T extends NonXapiXoRecord>(
+    type: string,
+    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
+  ): Promise<T[]>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>

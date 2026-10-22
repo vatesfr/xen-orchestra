@@ -46,6 +46,10 @@ export default class Xo extends EventEmitter {
    * @type {Map<string, (id: NonXapiXoRecord['id']) => Promise<void>>}
    */
   #refreshByType = new Map()
+  /**
+   * @type {Map<string, () => Promise<NonXapiXoRecord[]>>}
+   */
+  #getAllByType = new Map()
 
   constructor(opts) {
     super()
@@ -147,6 +151,25 @@ export default class Xo extends EventEmitter {
           await onAddOrUpdate([object])
         }
       })
+      this.#getAllByType.set(type, async () =>
+        (await Promise.all((await collection.get()).map(object => decorate({ ...object })))).filter(
+          object => object !== undefined
+        )
+      )
+    })
+    // the XO objects which are not in a collection
+    this.#getAllByType.set('backup-archive', async () =>
+      Object.values(await this.listVmBackupsNg((await this.getAllRemotes()).map(({ id }) => id)))
+        .filter(backupsByVm => backupsByVm !== null)
+        .flatMap(backupsByVm => Object.values(backupsByVm).flat())
+    )
+    this.#getAllByType.set('backup-log', () => this.getBackupNgLogsSorted({ filter: { message: 'backup' } }))
+    this.#getAllByType.set('task', async () => {
+      const tasks = []
+      for await (const task of this.tasks.list()) {
+        tasks.push(task)
+      }
+      return tasks
     })
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
@@ -184,6 +207,20 @@ export default class Xo extends EventEmitter {
       throw new Error(`collection ${type} not registered`)
     }
     await refresh(id)
+  }
+
+  /**
+   * @param {string} type
+   * @param {{ filter?: Parameters<typeof iteratee>[0], limit?: number }} [opts]
+   * @returns {Promise<NonXapiXoRecord[]>}
+   */
+  async getXoObjectsByType(type, { filter, limit = Infinity } = {}) {
+    const getAll = this.#getAllByType.get(type)
+    if (getAll === undefined) {
+      throw new Error(`collection ${type} not registered`)
+    }
+    const objects = await getAll()
+    return (filter === undefined ? objects : objects.filter(iteratee(filter))).slice(0, limit)
   }
 
   // Returns an object from its key or UUID.
