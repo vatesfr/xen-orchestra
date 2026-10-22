@@ -1,0 +1,35 @@
+{
+  "private": true,
+  "name": "xo-server-vdf",
+  "version": "0.0.0",
+  "description": "Vates Distributed Firewall: publish policies, realized status, trace and rule log through the hosts' vdf XAPI plugin",
+  "keywords": [
+    "firewall",
+    "microsegmentation",
+    "orchestra",
+    "plugin",
+    "xen",
+    "xen-orchestra",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-vdf",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "packages/xo-server-vdf",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "type": "module",
+  "main": "./index.mjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@xen-orchestra/log": "^0.7.2"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}
