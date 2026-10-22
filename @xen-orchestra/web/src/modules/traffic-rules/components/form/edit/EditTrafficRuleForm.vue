@@ -22,7 +22,7 @@
 
     <div class="row target-row">
       <span class="prefix-wrapper">
-        <span class="prefix">{{ t('on') }}</span>
+        <span class="prefix">{{ t('traffic-rules:target-on') }}</span>
       </span>
       <TrafficRuleFormSelect v-bind="targetTypeSelectBindings" />
       <TrafficRuleFormSelect v-if="isVifTarget" v-bind="vmSelectBindings">

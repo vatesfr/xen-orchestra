@@ -1285,6 +1285,7 @@
   "traffic-rules:format-warning:check-doc": "check the latest documentation",
   "traffic-rules:info-message": "Traffic rules order is being implemented. Behaviour may be hazardous.",
   "traffic-rules:no-traffic-rules-detected": "No traffic rules detected",
+  "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Requires XAPI plugin mode",
   "transfer-size": "Transfer size",
   "translation-tool": "Translation tool",
