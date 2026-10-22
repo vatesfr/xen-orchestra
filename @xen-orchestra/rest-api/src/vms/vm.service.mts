@@ -22,6 +22,7 @@ import {
   type XoVmTemplate,
 } from '@vates/types'
 import { Response as ExResponse } from 'express'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { Readable, Writable } from 'node:stream'
 
 import type { CreateVmAfterCreateParams, CreateVmParams } from '../pools/pool.type.mjs'
@@ -240,6 +241,36 @@ export class VmService {
     }
 
     await xoApp.getXapi(id).editVm(id, editProps)
+  }
+
+  async convertToTemplate(id: XoVm['id']): Promise<void> {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+    // Checked before ejecting the media, so a VM that cannot be converted is left untouched
+    if (vm.power_state !== VM_POWER_STATE.HALTED) {
+      throw incorrectState({
+        actual: vm.power_state,
+        expected: VM_POWER_STATE.HALTED,
+        object: vm.id,
+        property: 'power_state',
+      })
+    }
+
+    const xapiVm = this.#restApi.getXapiObject<XoVm>(id, 'VM')
+    const xapi = xapiVm.$xapi
+
+    // Attempts to eject all removable media
+    await Promise.all(
+      xapiVm.VBDs.map(ref =>
+        xapi.callAsync('VBD.eject', ref).catch(error => {
+          const { code } = error
+          if (code !== 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
+            throw error
+          }
+        })
+      )
+    )
+
+    await xapiVm.$call('set_is_a_template', true)
   }
 
   #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {
