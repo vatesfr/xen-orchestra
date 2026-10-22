@@ -8,6 +8,7 @@ import { filter, find, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
@@ -15,7 +16,7 @@ import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
 import { createRestRoutes } from './rest-api'
-import { TrafficRules } from './traffic-rules'
+import { TrafficRules, checkPriorityValue, listRules } from './traffic-rules'
 
 // =============================================================================
 
@@ -692,7 +693,20 @@ class SDNController extends EventEmitter {
     return vif
   }
 
+  // The REST API calls it before its task, so that an async call gets its 422 too
+  _checkTrafficRulePriority(priority) {
+    if (priority == null) {
+      return
+    }
+    // the legacy methods would drop it
+    if (!this.#useOrderedTrafficRules) {
+      throw invalidParameters('a traffic rule priority needs the XAPI plugin mode')
+    }
+    checkPriorityValue(priority)
+  }
+
   async _addTrafficRule(params) {
+    this._checkTrafficRulePriority(params.priority)
     if (!this.#useOrderedTrafficRules) {
       return params.vifId === undefined ? this._addNetworkRule(params) : this._addRule(params)
     }
@@ -709,10 +723,18 @@ class SDNController extends EventEmitter {
   // `target` is `{ networkId }` or `{ vifId }`
   async _updateTrafficRule(target, oldRule, newRule) {
     if (!this.#useOrderedTrafficRules) {
+      // the REST API copies the stored priority into `newRule`, which the legacy
+      // methods would not store anyway: kept, it would fail the add after the delete
+      const { priority, ...rule } = newRule
       await this._deleteTrafficRule({ ...oldRule, ...target })
-      return this._addTrafficRule({ ...newRule, ...target })
+      return this._addTrafficRule({ ...rule, ...target })
     }
     return this.#trafficRules.updateRule(await this._getTrafficRuleTarget(target), oldRule, newRule)
+  }
+
+  // The rules of a network and of its VIFs, in the order they apply
+  _listTrafficRules(networkId) {
+    return listRules(this._xo.getXapiObject(this._xo.getObject(networkId, 'network')))
   }
 
   // ---------------------------------------------------------------------------
