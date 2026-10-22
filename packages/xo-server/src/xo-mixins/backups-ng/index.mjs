@@ -21,6 +21,8 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildSrContext, buildBackupRepositoryContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -142,6 +144,42 @@ export default class BackupNg {
         let vmIds
 
         if (job.type === 'backup') {
+          job = { ...job }
+          const runContext = buildRunContext(
+            new Date(),
+            job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
+          )
+
+          if (isExpression(job.srs)) {
+            const predicate = compileExpression(job.srs)
+
+            const srs = Object.values(app.getObjectsByType('SR'))
+
+            const srUuids = []
+            srs.forEach(sr => {
+              if (predicate(buildSrContext(sr, runContext))) {
+                srUuids.push(sr.uuid)
+              }
+            })
+
+            job.srs = { id: { __or: srUuids } }
+          }
+
+          if (isExpression(job.remotes)) {
+            const predicate = compileExpression(job.remotes)
+
+            const remotes = await app.getAllRemotes()
+
+            const remoteIds = []
+            remotes.forEach(remote => {
+              if (predicate(buildBackupRepositoryContext(remote, runContext))) {
+                remoteIds.push(remote.id)
+              }
+            })
+
+            job.remotes = { id: { __or: remoteIds } }
+          }
+
           const vmsPattern = job.vms
 
           // Make sure we are passing only the VM to run which can be

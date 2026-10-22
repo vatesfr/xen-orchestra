@@ -5,6 +5,8 @@ import { pipeline } from 'readable-stream'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
+import { isExpression, compileExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
@@ -63,7 +65,22 @@ const SCHEMA_SETTINGS = {
   optional: true,
 }
 
+function assertValidExpression(name, value) {
+  if (isExpression(value)) {
+    try {
+      compileExpression(value)
+    } catch (error) {
+      throw invalidParameters(`Invalid ${name} expression: ${error.message}`, [
+        { instancePath: `/${name}`, message: error.message },
+      ])
+    }
+  }
+}
+
 export function createJob({ schedules, ...job }) {
+  assertValidExpression('srs', job.srs)
+  assertValidExpression('remotes', job.remotes)
+
   return this.createBackupNgJob('backup', job, schedules).then(({ id }) => id)
 }
 
@@ -85,7 +102,7 @@ createJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   schedules: {
@@ -94,7 +111,7 @@ createJob.params = {
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {
@@ -118,6 +135,9 @@ deleteJob.params = {
 }
 
 export function editJob(props) {
+  assertValidExpression('srs', props.srs)
+  assertValidExpression('remotes', props.remotes)
+
   return this.updateJob(props)
 }
 
@@ -143,12 +163,12 @@ editJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {

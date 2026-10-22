@@ -564,9 +564,9 @@ export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  remotes?: CMType.IdOr<XoBackupRepository['id']> | string
   vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
-  srs?: CMType.IdOr<XoSr['id']>
+  srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
     '': XoVmBackupJobGeneralSettings

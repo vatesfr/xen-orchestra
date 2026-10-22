@@ -1,6 +1,8 @@
 import type { AnyXoBackupJob, XoBackupRepository, XoVm, XoApp } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { inject } from 'inversify'
+import { compileExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildBackupRepositoryContext, buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 export class BackupRepositoryService {
   #restApi: RestApi
@@ -8,30 +10,44 @@ export class BackupRepositoryService {
   constructor(@inject(RestApi) restApi: RestApi) {
     this.#restApi = restApi
   }
+
   isBackupRepositoryReferenced(
     idsToCheck: AnyXoBackupJob['remotes'],
-
-    repositoryId: XoBackupRepository['id']
+    repository: XoBackupRepository,
+    timezone?: string
   ): boolean {
     if (idsToCheck === undefined) {
       return false
     }
-    const { id } = idsToCheck
-    const ids = typeof id === 'string' ? [id] : id.__or
-    return ids.includes(repositoryId)
+
+    if (typeof idsToCheck === 'string') {
+      return compileExpression(idsToCheck)(
+        buildBackupRepositoryContext(repository, buildRunContext(new Date(), timezone))
+      )
+    } else {
+      const { id } = idsToCheck
+      const ids = typeof id === 'string' ? [id] : id.__or
+      return ids.includes(repository.id)
+    }
   }
+
   public async getReferencingJobs(repositoryId: XoBackupRepository['id']): Promise<AnyXoBackupJob['id'][]> {
     const allJobs = await this.#restApi.xoApp.getAllJobs()
     const referencingJobs: AnyXoBackupJob['id'][] = []
+    const repository = await this.#restApi.xoApp.getRemote(repositoryId)
 
     // checks if a backup job related to this backup repository is running
     for (const job of allJobs) {
-      if (job.type === 'backup' || job.type === 'metadataBackup') {
-        if (this.isBackupRepositoryReferenced(job.remotes, repositoryId)) {
+      if (job.type === 'backup') {
+        if (this.isBackupRepositoryReferenced(job.remotes, repository, job.settings[''].timezone)) {
+          referencingJobs.push(job.id)
+        }
+      } else if (job.type === 'metadataBackup') {
+        if (this.isBackupRepositoryReferenced(job.remotes, repository)) {
           referencingJobs.push(job.id)
         }
       } else if (job.type === 'mirrorBackup') {
-        if (job.sourceRemote === repositoryId || this.isBackupRepositoryReferenced(job.remotes, repositoryId)) {
+        if (job.sourceRemote === repositoryId || this.isBackupRepositoryReferenced(job.remotes, repository)) {
           referencingJobs.push(job.id)
         }
       }

@@ -4,6 +4,7 @@ import type {
   FrontXoMirrorBackupJob,
   FrontXoVmBackupJob,
 } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupUtils() {
@@ -26,9 +27,9 @@ export function useXoBackupUtils() {
       modes.push(t('backup:rolling-snapshot'))
     }
 
-    const hasRemotes = hasIds(backupJob.remotes?.id)
+    const hasRemotes = typeof backupJob.remotes === 'string' || hasIds(backupJob.remotes?.id)
 
-    const hasSrs = hasIds(backupJob.srs?.id)
+    const hasSrs = typeof backupJob.srs === 'string' || hasIds(backupJob.srs?.id)
 
     if (backupJob.mode === 'full') {
       if (hasRemotes) {
@@ -105,9 +106,19 @@ export function useXoBackupUtils() {
     return toIds(input).length > 0
   }
 
+  function getTargetIds<TId extends string>(pattern: string | { id: TId | { __or: TId[] } } | undefined): TId[] {
+    // Expression targets are only resolved when the job runs, so there are no fixed IDs to show
+    if (typeof pattern === 'string') {
+      return []
+    }
+
+    return extractIdsFromSimplePattern<TId>(pattern)
+  }
+
   return {
     hasIds,
     toIds,
+    getTargetIds,
     getModeLabels,
     getVmBackupModes,
     getMetadataBackupModes,
