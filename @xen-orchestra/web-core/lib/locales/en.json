@@ -1424,6 +1424,8 @@
   "user-details": "User details",
   "user-management": "User management",
   "user:delete-warning": "Deleting this user will permanently remove their access and associated permissions. This action cannot be undone. Proceed with caution. | Deleting these users will permanently remove their access and associated permissions. This action cannot be undone. Proceed with caution.",
+  "user:direct-roles": "Direct roles",
+  "user:roles-from-group": "From {group} group",
   "username": "Username",
   "username-required": "Username is required.",
   "users": "Users",

@@ -123,6 +123,7 @@
 - [VM/console] Fix opening console in new tab (PR [#10616](https://github.com/vatesfr/xen-orchestra/pull/10616))
 - [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected (PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
 - [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
+- [XO6/Users] Fix the side panel of a user always showing "No role applied": it now lists the roles of the user, grouped by the group they are inherited from, then its direct roles
 
 ### Packages to release
 

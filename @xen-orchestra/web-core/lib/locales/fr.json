@@ -1424,6 +1424,8 @@
   "user-details": "Détails de l'utilisateur",
   "user-management": "Gestion des utilisateurs",
   "user:delete-warning": "Supprimer cet utilisateur retirera définitivement son accès et les permissions associées. Cette action est irréversible. Procédez avec prudence. | Supprimer ces utilisateurs retirera définitivement leurs accès et les permissions associées. Cette action est irréversible. Procédez avec prudence.",
+  "user:direct-roles": "Rôles directs",
+  "user:roles-from-group": "Du groupe {group}",
   "username": "Nom d'utilisateur",
   "username-required": "Le nom d'utilisateur est requis.",
   "users": "Utilisateurs",
