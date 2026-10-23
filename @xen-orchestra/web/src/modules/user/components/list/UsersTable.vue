@@ -67,6 +67,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
+  exclude: ['checkbox', 'firstName', 'lastName'],
   body: (user: FrontXoUser) => {
     const { deleteUsers, canDeleteUsers, isDeletingUsers, deleteUsersErrorMessage } = useUserDelete(() => [user])
 
