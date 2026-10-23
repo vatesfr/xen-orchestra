@@ -645,6 +645,8 @@
   "job:pif-management-reconfigure:missing-ip": "Le PIF cible n'a pas d'adresse IP configurée",
   "job:role-delete:missing-role": "Aucun rôle à supprimer",
   "job:role-delete:role-assigned": "Un rôle attribué à des utilisateurs ou à des groupes ne peut pas être supprimé",
+  "job:role-groups:missing-group": "@:job:group-users:missing-group",
+  "job:role-groups:missing-role": "@:job:role-users:missing-role",
   "job:role-users:inherited-role": "Un rôle hérité d'un groupe ne peut pas être détaché d'un utilisateur",
   "job:role-users:missing-role": "Aucun rôle sélectionné",
   "job:role-users:missing-user": "Aucun utilisateur sélectionné",
