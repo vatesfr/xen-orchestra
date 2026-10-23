@@ -12,13 +12,14 @@ The first time a user signs in, XO will create a new XO user with the
 same identifier.
 
 Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/architecture#plugins).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/getting-started/architecture#plugins).
 
 ## User email uniqueness
 
 XO usernames (emails) should be unique. If an LDAP user signs in with a username that already exists in XO — whether a local account or from another provider — the LDAP identity is automatically linked to that existing account. The user keeps their existing permissions and settings.
 
 > Note: if several users have the same email address in different LDAP forest, it can lead to undefined behaviours.
+>
 > - If `authentication.mergeProvidersUsers` is enabled, it will silently merge the associated users.
 > - If `authentication.mergeProvidersUsers` is disabled, it will throw an error.
 
