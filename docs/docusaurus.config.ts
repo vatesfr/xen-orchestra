@@ -91,8 +91,8 @@ export default {
             from: '/xo6/backups',
           },
           {
-            to: '/support-and-licencing/community',
-            from: ['/xo6/community', '/community'],
+            to: '/support-and-licensing/community',
+            from: ['/xo6/community', '/community', '/support-and-licencing/community'],
           },
           {
             to: '/getting-started/configuration',
@@ -135,8 +135,22 @@ export default {
             from: '/xo5/backup',
           },
           {
-            to: '/support-and-licencing/support',
-            from: ['/license_management', '/xo5/license_management', '/xo6/support', '/support'],
+            to: '/support-and-licensing/support',
+            from: [
+              '/license_management',
+              '/xo5/license_management',
+              '/xo6/support',
+              '/support',
+              '/support-and-licencing/support',
+            ],
+          },
+          {
+            to: '/support-and-licensing/useful-links',
+            from: '/support-and-licencing/useful-links',
+          },
+          {
+            to: '/category/support-and-licensing',
+            from: '/category/support-and-licencing',
           },
           {
             to: '/manage-your-infrastructure/load_balancing',
@@ -171,7 +185,7 @@ export default {
             from: ['/proxy', '/xo5/proxy'],
           },
           {
-            to: '/support-and-licencing/support#licensing',
+            to: '/support-and-licensing/support#licensing',
             from: ['/purchase', '/xo6/purchase'],
           },
           {
