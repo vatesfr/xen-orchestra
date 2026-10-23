@@ -1,5 +1,6 @@
 export default {
   clone: true,
+  'convert-to-template': true,
   delete: true,
   'eject-cd': true,
   export: true,

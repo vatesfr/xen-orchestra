@@ -679,6 +679,42 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * The VM must be halted. Removable media (e.g. CDs) are ejected before the conversion.
+   *
+   * The template keeps the same ID as the VM and is then available under `/vm-templates/{id}`.
+   *
+   * Required privilege:
+   * - resource: vm, action: convert-to-template
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/convert_to_template')
+  @Middlewares(acl({ resource: 'vm', action: 'convert-to-template', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async convertVmToTemplate(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.#vmService.convertToTemplate(vmId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'convert VM to template',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
    * Required privilege:
    * - resource: vm, action: revert-snapshot
    * - resource: vm, action: snapshot (if `snapshotBefore: true`)

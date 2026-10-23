@@ -68,6 +68,7 @@
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
 - [REST API] Add `POST /rest/v0/vms/{id}/actions/eject_cd` to eject the CD from a VM (PR [#10660](https://github.com/vatesfr/xen-orchestra/pull/10660))
+- [REST API] Add `POST /rest/v0/vms/{id}/actions/convert_to_template` to convert a VM into a template (PR [#10661](https://github.com/vatesfr/xen-orchestra/pull/10661))
 
 ### Bug fixes
 
