@@ -1,17 +1,14 @@
 <template>
   <VtsErrorModal :title="t('unable-to-delete-network')" @close="emit('close')">
     <template #content>
-      {{ error ?? t('error') }}
-      <template v-if="showConnectedVifsMessage">
-        <br />
-        <I18nT keypath="disconnect-vifs-in-xo-5-to-delete-network" scope="global">
-          <template #xo-5>
-            <UiLink :href="xo5Link" size="medium">
-              {{ t('xo-5') }}
-            </UiLink>
-          </template>
-        </I18nT>
-      </template>
+      <p>{{ error ?? t('error') }}</p>
+      <I18nT v-if="showConnectedVifsMessage" keypath="disconnect-vifs-in-xo-5-to-delete-network" scope="global" tag="p">
+        <template #xo-5>
+          <UiLink :href="xo5Link" size="medium">
+            {{ t('xo-5') }}
+          </UiLink>
+        </template>
+      </I18nT>
     </template>
   </VtsErrorModal>
 </template>
