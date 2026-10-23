@@ -1,4 +1,8 @@
-import type { XoAuthenticationToken } from '@vates/types'
+import type { XoAuthenticationToken, XoUser } from '@vates/types'
+
+export function getUserDisplayName(user: Pick<XoUser, 'username' | 'email'>) {
+  return user.username || user.email
+}
 
 export function getUserLastLoginTimestamp(tokens: XoAuthenticationToken[]) {
   let mostRecentTimestamp: number | undefined

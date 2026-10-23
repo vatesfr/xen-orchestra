@@ -3,7 +3,7 @@ import { useActionColumn } from '@core/tables/column-definitions/action-column.t
 import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
-import { useUserNameColumn } from '@core/tables/column-definitions/user-name-column.ts'
+import { useUsernameColumn } from '@core/tables/column-definitions/username-column.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useUserColumns = defineColumns(() => {
@@ -11,7 +11,7 @@ export const useUserColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    username: useUserNameColumn({ headerLabel: () => t('username') }),
+    username: useUsernameColumn({ headerLabel: () => t('username') }),
     firstName: useTextColumn({ headerLabel: () => t('first-name') }),
     lastName: useTextColumn({ headerLabel: () => t('last-name') }),
     email: useTruncatedTextColumn({ headerLabel: () => t('email') }),

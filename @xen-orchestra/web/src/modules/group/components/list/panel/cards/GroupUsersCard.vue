@@ -10,7 +10,7 @@
         size="small"
         :to="{ name: '/admin/user-management/users', query: { id: user.id } }"
       >
-        {{ user.name ?? user.email }}
+        {{ getUserDisplayName(user) }}
       </UiLink>
     </UiLinkList>
 
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import type { FrontXoGroup } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLinkList from '@core/components/ui/link-list/UiLinkList.vue'

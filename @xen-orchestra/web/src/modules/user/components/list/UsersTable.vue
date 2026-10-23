@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
@@ -67,12 +68,14 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
-  exclude: ['checkbox', 'firstName', 'lastName'],
+  exclude: ['checkbox'],
   body: (user: FrontXoUser) => {
     const { deleteUsers, canDeleteUsers, isDeletingUsers, deleteUsersErrorMessage } = useUserDelete(() => [user])
 
     return {
-      username: r => r(user.name ?? '', { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
+      username: r => r(getUserDisplayName(user), { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
+      firstName: r => r(user.firstname ?? ''),
+      lastName: r => r(user.lastname ?? ''),
       email: r => r(user.email),
       providers: r => {
         const providers = Object.keys(user.authProviders ?? {})

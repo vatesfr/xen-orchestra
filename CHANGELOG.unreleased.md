@@ -87,6 +87,7 @@
 - [XO6/Roles] List the privileges of a role in its detail page, and see the objects each privilege currently applies to in a side panel
 - [XO6/Privileges] Open a privilege's detail page from the privileges table of a role or its side panel, to see its details
 - [XO6/Privileges] See the scope of a privilege in its detail page: its scope type, its query and the objects it currently applies to
+- [XO6/Users] Show users by their username, or their email address when they have none, and show their first and last names in the users list and side panel
 
 ### Bug fixes
 
