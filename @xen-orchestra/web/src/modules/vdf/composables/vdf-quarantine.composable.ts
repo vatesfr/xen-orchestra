@@ -74,7 +74,11 @@ export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership
       icon: release ? 'fa:lock-open' : 'fa:lock',
       accent: release ? 'brand' : 'danger',
       busy: isUpdatingTags.value && pendingVmId.value === vm.id,
-      onClick: () => confirmQuarantine(vm, !release),
+      // not awaited: menus show a click as busy until it settles, and this one
+      // waits on the confirmation; `busy` above covers the tag write
+      onClick: () => {
+        void confirmQuarantine(vm, !release)
+      },
     }
   }
 
