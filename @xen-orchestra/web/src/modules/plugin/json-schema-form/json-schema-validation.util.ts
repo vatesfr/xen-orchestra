@@ -7,7 +7,6 @@ import {
   type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 
-/** keys of the objects and indexes of the arrays from the root value to a field */
 export type JsonSchemaPath = string[]
 
 type JsonSchemaMissingField = {

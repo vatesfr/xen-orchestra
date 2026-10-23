@@ -5,12 +5,10 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, inject, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-/**
- * Validation state of a field, from the closest `useJsonSchemaForm` (none if the field is used alone)
- */
 export function useJsonSchemaFieldValidation(rawPath: MaybeRefOrGetter<JsonSchemaPath>) {
   const path = toComputed(rawPath)
 
+  // undefined when the field is used outside of a form
   const form = inject(IK_JSON_SCHEMA_FORM, undefined)
 
   const { t } = useI18n()

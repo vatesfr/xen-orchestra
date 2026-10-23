@@ -1,8 +1,5 @@
 export type JsonSchemaType = 'array' | 'boolean' | 'integer' | 'null' | 'number' | 'object' | 'string'
 
-/**
- * Subset of JSON schema used by xo-server plugins to describe their configuration
- */
 export type JsonSchema = {
   type?: JsonSchemaType | JsonSchemaType[]
   title?: string
@@ -16,7 +13,7 @@ export type JsonSchema = {
   minimum?: number
   maximum?: number
   format?: string
-  /** XO object type (e.g. `VM`, `Host`, `Tag`), the value is the object ID */
+  // XO object type (e.g. VM, Host, Tag), the value is the object ID
   $type?: string
   'xo:type'?: string
   $multiline?: boolean

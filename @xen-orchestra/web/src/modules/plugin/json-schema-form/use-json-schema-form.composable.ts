@@ -18,7 +18,6 @@ export type JsonSchemaFormError = FormErrorSummaryItem & {
 
 type JsonSchemaFormContext = {
   getFieldId: (path: JsonSchemaPath) => string
-  /** whether the field is required and missing, once the user has left it or tried to submit the form */
   hasVisibleError: (path: JsonSchemaPath) => boolean
   countVisibleErrors: (path: JsonSchemaPath) => number
   touch: (path: JsonSchemaPath) => void

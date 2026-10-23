@@ -26,12 +26,7 @@ function isList(lines: string[]): boolean {
   return lines.every(line => line.startsWith('- '))
 }
 
-/**
- * Split a markdown description of a JSON schema into a help text and clickable examples
- *
- * - a bullet list of code spans becomes an example group, introduced by the paragraph before it
- * - the other paragraphs make up the help text, their code spans are kept to be highlighted
- */
+// plugins list their examples as a bullet list of code spans
 export function parseSchemaDescription(description: string | undefined): JsonSchemaDescription {
   const paragraphs: string[] = []
   const exampleGroups: JsonSchemaExampleGroup[] = []
