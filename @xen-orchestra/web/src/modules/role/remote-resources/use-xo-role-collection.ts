@@ -1,3 +1,4 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
@@ -18,9 +19,14 @@ const roleFields = [
 ] as const satisfies readonly (keyof FrontXoRole)[]
 
 export const useXoRoleCollection = defineRemoteResource({
-  // Template roles are excluded: they are blueprints to copy, not roles to assign.
-  url: `${BASE_URL}/acl-roles?fields=${roleFields.join(',')}&filter=!isTemplate?`,
-
+  url: `${BASE_URL}/acl-roles?fields=${roleFields.join(',')}&filter=!isTemplate?&ndjson=true`,
+  stream: true,
+  initWatchCollection: () =>
+    useWatchCollection({
+      resource: 'acl-role',
+      fields: [...roleFields, 'isTemplate'],
+      predicate: role => !('isTemplate' in role),
+    }),
   initialData: () => [] as FrontXoRole[],
   state: (roles, context) => {
     return useXoCollectionState(roles, {

@@ -1130,7 +1130,7 @@
   "retry": "Réessayer",
   "review-and-confirm": "Vérifier et confirmer",
   "role:what-is-a-role-description": "Un rôle est un ensemble de privilèges attribuable à des utilisateurs et à des groupes. Attribuer un rôle accorde tous ses privilèges d'un coup. Un utilisateur détient les rôles qui lui sont attribués directement, ainsi que tous ceux hérités des groupes auxquels il appartient.",
-  "role:what-is-a-role?": "Qu'est-ce qu'un rôle ?",
+  "role:what-is-a-role?": "Qu'est-ce qu'un rôle ?",
   "roles": "Rôles",
   "roles-applied": "Rôles appliqués",
   "root-by-default": "\"root\" par défaut.",
