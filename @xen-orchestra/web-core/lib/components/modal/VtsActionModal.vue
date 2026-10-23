@@ -26,6 +26,7 @@ import type {
   ActionsByObject,
   HostActions,
   KubernetesClusterActions,
+  KubernetesNodeActions,
   ObjectType,
   VmActions,
 } from '@core/types/object.type.ts'
@@ -47,6 +48,7 @@ type VtsActionModalVmProps = {
   vmName: string
   hostName?: never
   clusterName?: never
+  nodeName?: never
 }
 
 type VtsActionModalHostProps = {
@@ -55,6 +57,7 @@ type VtsActionModalHostProps = {
   vmName?: never
   hostName: string
   clusterName?: never
+  nodeName?: never
 }
 
 type VtsActionModalKubernetesClusterProps = {
@@ -63,10 +66,25 @@ type VtsActionModalKubernetesClusterProps = {
   vmName?: never
   hostName?: never
   clusterName: string
+  nodeName?: never
 }
 
-const { action, object, vmName, hostName, clusterName } = defineProps<
-  (VtsActionModalVmProps | VtsActionModalHostProps | VtsActionModalKubernetesClusterProps) & {
+type VtsActionModalKubernetesNodeProps = {
+  object: 'kubernetes-node'
+  action: KubernetesNodeActions
+  vmName?: never
+  hostName?: never
+  clusterName?: never
+  nodeName: string
+}
+
+const { action, object, vmName, hostName, clusterName, nodeName } = defineProps<
+  (
+    | VtsActionModalVmProps
+    | VtsActionModalHostProps
+    | VtsActionModalKubernetesClusterProps
+    | VtsActionModalKubernetesNodeProps
+  ) & {
     accent: ModalAccent
     icon: IconName
   }
@@ -81,6 +99,7 @@ const defaultActionByObject: ActionsByObject = {
   vm: 'shutdown',
   host: 'disable',
   'kubernetes-cluster': 'pause-reconciliation',
+  'kubernetes-node': 'pause-reconciliation',
 }
 
 const { t } = useI18n()
@@ -173,6 +192,13 @@ const textMappingsByObject: TextMappingByObject = {
     'pause-reconciliation': {
       title: t('modal:confirm-cluster-pause-reconciliation?', { cluster: clusterName }),
       message: t('modal:cluster-pause-reconciliation-message'),
+      action: t('action:pause-reconciliation'),
+    },
+  },
+  'kubernetes-node': {
+    'pause-reconciliation': {
+      title: t('modal:confirm-node-pause-reconciliation?', { node: nodeName }),
+      message: t('modal:node-pause-reconciliation-message'),
       action: t('action:pause-reconciliation'),
     },
   },

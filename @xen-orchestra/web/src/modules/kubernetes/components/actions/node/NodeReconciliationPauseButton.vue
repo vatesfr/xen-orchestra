@@ -2,12 +2,12 @@
   <MenuItem
     v-if="!node.is_reconciliation_paused"
     icon="fa:pause"
-    accent="neutral"
+    accent="warning"
     :disabled="!canPauseReconciliation"
     :busy="isPausingReconciliation"
     @click="pauseReconciliation()"
   >
-    {{ t('action:pause') }}
+    {{ t('action:pause-reconciliation') }}
   </MenuItem>
 </template>
 

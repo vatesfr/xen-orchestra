@@ -7,7 +7,7 @@
     :busy="isResumingReconciliation"
     @click="resumeReconciliation()"
   >
-    {{ t('action:resume') }}
+    {{ t('action:resume-reconciliation') }}
   </MenuItem>
 </template>
 
