@@ -1,6 +1,12 @@
 <template>
   <UiPanelCard>
-    <UiPanelCardTitle size="medium" :label="t('privilege-number', { n: number })" />
+    <UiPanelCardTitle
+      :id="privilege.id"
+      size="medium"
+      :label="t('privilege-number', { n: number })"
+      icon="fa:certificate"
+      :to="{ name: '/admin/privilege/[id]/general', params: { id: privilege.id } }"
+    />
     <PrivilegeDetailsRows :privilege />
   </UiPanelCard>
 </template>

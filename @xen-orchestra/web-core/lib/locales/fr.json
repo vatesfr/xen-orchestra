@@ -1101,6 +1101,8 @@
   "privilege:scope-type:manual-selection": "Sélection manuelle",
   "privilege:select-scope": "Sélectionner la portée",
   "privilege:selector": "Sélecteur",
+  "privilege:what-is-a-privilege-description": "Un privilège est une permission fine qui contrôle l'accès à une action ou une ressource précise de votre environnement, comme démarrer une VM, modifier un réseau ou consulter le stockage. Chaque privilège appartient à un seul rôle. Attribuez des privilèges à un rôle pour définir précisément ce que les utilisateurs de ce rôle peuvent faire.",
+  "privilege:what-is-a-privilege?": "Qu'est-ce qu'un privilège ?",
   "privileges": "Privilèges",
   "pro-support": "Support pro {name}",
   "professional-support": "Support professionnel",
