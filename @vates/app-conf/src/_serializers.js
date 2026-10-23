@@ -6,67 +6,31 @@ const UnknownFormatError = require('./_unknown-format-error')
 
 // ===================================================================
 
-const parseJson = (function () {
-  try {
-    return require('json5').parse
-  } catch (_) {
-    /* empty */
-  }
-
-  try {
-    const stripJsonComments = require('strip-json-comments')
-    return function parseJson(json) {
-      return JSON.parse(stripJsonComments(json))
-    }
-  } catch (_) {
-    /* empty */
-  }
-
-  return JSON.parse
-})()
+const ini = require('ini')
+const json5 = require('json5')
+const toml = require('smol-toml')
+const yaml = require('js-yaml')
 
 // ===================================================================
 
 const serializers = [
   {
     test: path => /\.json5?$/i.test(path),
-    parse: content => parseJson(content),
+    parse: content => json5.parse(content),
   },
-]
-
-// Optional dependency.
-try {
-  const ini = require('ini')
-  serializers.push({
+  {
     test: path => /\.ini$/i.test(path),
     parse: content => ini.decode(content),
-  })
-} catch (_) {
-  /* empty */
-}
-
-// Optional dependency.
-try {
-  const { parse } = require('smol-toml')
-  serializers.push({
+  },
+  {
     test: path => /\.toml$/i.test(path),
-    parse: content => parse(content),
-  })
-} catch (_) {
-  /* empty */
-}
-
-// Optional dependency.
-try {
-  const yaml = require('js-yaml')
-
-  serializers.push({
+    parse: content => toml.parse(content),
+  },
+  {
     test: path => /\.ya?ml$/i.test(path),
     parse: content => yaml.load(content),
-  })
-} catch (_) {
-  /* empty */
-}
+  },
+]
 
 // ===================================================================
 

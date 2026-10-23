@@ -1,4 +1,4 @@
-import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example } from 'tsoa'
+import { Get, Query, Route, Security, Tags, Response, SuccessResponse, Example, Extension } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -32,6 +32,7 @@ export class ServerConfigController {
    */
   @Example(mergedConfigExample)
   @Get('')
+  @Extension('x-mcp-exposure', 'allow')
   @SuccessResponse(200, 'OK')
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -55,6 +56,7 @@ export class ServerConfigController {
   @Example(sourcesExample)
   @Example(sourceFileExample)
   @Get('sources')
+  @Extension('x-mcp-exposure', 'allow')
   @SuccessResponse(200, 'OK')
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
