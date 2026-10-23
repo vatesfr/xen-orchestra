@@ -29,7 +29,7 @@
           size="medium"
           left-icon="fa:lock-open"
           :busy="isUpdatingTags"
-          @click="confirmQuarantine(false)"
+          @click="confirmQuarantine(vm, false)"
         >
           {{ t('firewall:vm:release') }}
         </UiButton>
@@ -44,7 +44,7 @@
               @click="open($event)"
             />
           </template>
-          <MenuItem accent="danger" icon="fa:lock" :busy="isUpdatingTags" @click="confirmQuarantine(true)">
+          <MenuItem accent="danger" icon="fa:lock" :busy="isUpdatingTags" @click="confirmQuarantine(vm, true)">
             {{ t('firewall:vm:quarantine-action') }}
           </MenuItem>
         </MenuList>
@@ -75,11 +75,6 @@
             :vm-tags="vm.tags"
             :quarantined="isQuarantined"
           />
-        </UiCard>
-
-        <UiCard>
-          <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
-          <VdfRuleLogTable :pool-id="pool.id" :vm-name="vm.name_label" />
         </UiCard>
       </VtsColumn>
 
@@ -152,6 +147,12 @@
         </UiCard>
       </VtsColumn>
     </VtsColumns>
+
+    <!-- full width: a table of eight columns -->
+    <UiCard>
+      <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
+      <VdfRuleLogTable :pool-id="pool.id" :vm-name="vm.name_label" />
+    </UiCard>
   </div>
 </template>
 
@@ -164,7 +165,7 @@ import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
+import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -207,13 +208,15 @@ const pool = useGetPoolById(() => vm.$pool)
 // draft (the page only renders once the pool is known)
 const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft } = useVdfPolicy(() => pool.value!)
 
-const { setTags, removeVmFromGroup, setQuarantine, isUpdatingTags, tagError } = useVdfMembership()
+const membership = useVdfMembership()
+
+const { setTags, removeVmFromGroup, isUpdatingTags, tagError } = membership
 
 const { vifs } = useXoVifCollection()
 
 const { getNetworkById } = useXoNetworkCollection()
 
-const isQuarantined = computed(() => vm.tags.includes(VDF_QUARANTINE_TAG))
+const isQuarantined = computed(() => isVmQuarantined(vm))
 
 const isRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
@@ -334,24 +337,10 @@ const vmVifs = computed(() =>
   vifs.value.filter(vif => vif.$VM === vm.id).sort((vifA, vifB) => Number(vifA.device) - Number(vifB.device))
 )
 
-// QUARANTINE
+// QUARANTINE: the same confirmation as the VM's header menu and the Live
+// tables; a failure shows through tagError
 
-const { open: openQuarantine } = useOverlay({
-  component: () => import('@/modules/vdf/components/vm/VdfQuarantineModal.vue'),
-  events: { onConfirm: true, onCancel: true },
-})
-
-async function confirmQuarantine(quarantine: boolean) {
-  const response = await openQuarantine({ props: { vmName: vm.name_label, release: !quarantine } })
-
-  if (response.event === 'onConfirm') {
-    try {
-      await setQuarantine(vm, quarantine)
-    } catch {
-      // shown through tagError
-    }
-  }
-}
+const { confirmQuarantine } = useVdfQuarantine(membership)
 </script>
 
 <style lang="postcss" scoped>

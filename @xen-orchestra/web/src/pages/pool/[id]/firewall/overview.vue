@@ -54,7 +54,7 @@
             </ul>
           </UiCard>
         </VtsColumn>
-        <VtsColumn>
+        <VtsColumn class="numbers-column">
           <UiCard>
             <UiCardTitle>
               {{ t('firewall:overview:policies') }}
@@ -71,7 +71,7 @@
 
       <UiCard v-if="hasStatus" class="status-strip">
         <div v-if="globalInfo?.inScope" class="status-item">
-          <UiInfo accent="info">{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
+          <UiInfo accent="info" wrap>{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
           <UiTag v-if="globalSyncState" v-tooltip="globalSyncTooltip" :accent="globalSyncAccent" variant="secondary">
             {{ t(`firewall:global:state:${globalSyncState}`) }}
           </UiTag>
@@ -80,7 +80,7 @@
           </UiLink>
         </div>
         <div v-if="quarantinedVms.length > 0" class="status-item">
-          <UiInfo accent="danger">{{ t('firewall:overview:quarantined', { n: quarantinedVms.length }) }}</UiInfo>
+          <UiInfo accent="danger" wrap>{{ t('firewall:overview:quarantined', { n: quarantinedVms.length }) }}</UiInfo>
           <UiLink
             v-for="vm of quarantinedVms"
             :key="vm.id"
@@ -91,7 +91,7 @@
           </UiLink>
         </div>
         <div v-if="unlockedVms.length > 0" class="status-item">
-          <UiInfo accent="warning">{{ t('firewall:overview:unlocked', { n: unlockedVms.length }) }}</UiInfo>
+          <UiInfo accent="warning" wrap>{{ t('firewall:overview:unlocked', { n: unlockedVms.length }) }}</UiInfo>
           <UiLink
             v-for="vm of unlockedVms"
             :key="vm.id"
@@ -448,7 +448,15 @@ const hasStatus = computed(
 
   .numbers {
     display: flex;
-    gap: 2.4rem;
+    flex-wrap: wrap;
+    gap: 0.8rem 2.4rem;
+  }
+
+  /* a few numbers need less room than the charts beside them */
+  @container vts-columns (min-width: 90rem) {
+    .numbers-column {
+      flex: 0.75 0 0;
+    }
   }
 
   .attention {

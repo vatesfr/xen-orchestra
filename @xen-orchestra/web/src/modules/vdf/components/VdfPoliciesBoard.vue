@@ -119,7 +119,7 @@
         </tbody>
       </VtsTable>
 
-      <UiInfo v-if="search === ''" accent="success">{{ t('firewall:after-last-tier') }}</UiInfo>
+      <UiInfo v-if="search === ''" accent="success" wrap>{{ t('firewall:after-last-tier') }}</UiInfo>
     </UiCard>
   </div>
 </template>
@@ -392,6 +392,7 @@ function openEvaluationInfo() {
 
 <style lang="postcss" scoped>
 .vdf-policies-board {
+  container-type: inline-size;
   margin: 0.8rem;
 
   .container {
@@ -408,9 +409,16 @@ function openEvaluationInfo() {
   .toolbar {
     flex-wrap: wrap;
 
+    /* its own line rather than a clipped Search button */
     .search {
       flex: 1;
-      min-width: 32rem;
+      min-width: min(100%, 52rem);
+
+      /* its field shrinks before the Search button is cut */
+      :deep(.ui-input),
+      :deep(input) {
+        min-width: 0;
+      }
     }
   }
 
@@ -428,12 +436,21 @@ function openEvaluationInfo() {
       width: 14rem;
     }
 
+    /* as wide as its labels, within a quarter of the board */
     .log {
-      width: 18rem;
+      width: 10rem;
     }
 
     .actions {
       width: 8rem;
+    }
+  }
+
+  /* on a laptop: tighter columns, so that labels still show in full */
+  @container (max-width: 100rem) {
+    .rule-base :deep(tr > th),
+    .rule-base :deep(tr > td) {
+      padding-inline: 0.8rem;
     }
   }
 }

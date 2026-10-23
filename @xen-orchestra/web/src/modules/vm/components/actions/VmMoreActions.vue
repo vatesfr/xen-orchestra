@@ -9,11 +9,13 @@
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
   <VmExportButton :vm />
+  <VdfQuarantineMenuItem :vm />
   <MenuSeparator />
   <VmDeleteButton :vm />
 </template>
 
 <script lang="ts" setup>
+import VdfQuarantineMenuItem from '@/modules/vdf/components/vm/VdfQuarantineMenuItem.vue'
 import VmDeleteButton from '@/modules/vm/components/actions/delete/VmDeleteButton.vue'
 import VmDuplicateButton from '@/modules/vm/components/actions/duplicate/VmDuplicateButton.vue'
 import VmExportButton from '@/modules/vm/components/actions/export/VmExportButton.vue'

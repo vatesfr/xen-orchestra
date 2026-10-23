@@ -91,9 +91,12 @@ const isEmpty = computed(() => tier.policies.length === 0)
     gap: 0.8rem;
   }
 
+  /* as wide as the rule columns, wrapping: never what sets the table's width */
   .content {
     justify-content: space-between;
     flex-wrap: wrap;
+    width: 0;
+    min-width: 100%;
   }
 
   .title {
@@ -101,8 +104,10 @@ const isEmpty = computed(() => tier.policies.length === 0)
     min-width: 0;
   }
 
+  /* to the end, also when wrapped under the title */
   .actions {
     gap: 1.6rem;
+    margin-inline-start: auto;
   }
 
   .order {
