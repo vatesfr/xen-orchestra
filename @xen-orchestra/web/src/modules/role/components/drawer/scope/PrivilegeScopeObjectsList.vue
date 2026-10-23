@@ -7,24 +7,18 @@
 </template>
 
 <script lang="ts" setup>
-import { usePrivilegeScopeObjects } from '@/modules/role/composables/use-privilege-scope-objects.composable.ts'
-import type { PrivilegeScopeObject } from '@/modules/role/types.ts'
+import { usePrivilegeScopeObjectsByIds } from '@/modules/role/composables/use-privilege-scope-objects-by-ids.composable.ts'
 import type { SelectablePrivilegeResource } from '@/modules/role/utils/privilege-catalogue.util.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { computed } from 'vue'
 
 const { resource, ids } = defineProps<{
   resource: SelectablePrivilegeResource
   ids: string[]
 }>()
 
-const { objects } = usePrivilegeScopeObjects(() => resource)
-
-const objectsById = computed(() => new Map(objects.value.map(object => [object.id, object])))
-
-// An object deleted since it was selected is still part of the selector, so it stays listed by its id.
-const selectedObjects = computed<PrivilegeScopeObject[]>(() =>
-  ids.map(id => objectsById.value.get(id) ?? { id, label: id })
+const selectedObjects = usePrivilegeScopeObjectsByIds(
+  () => resource,
+  () => ids
 )
 </script>
 
