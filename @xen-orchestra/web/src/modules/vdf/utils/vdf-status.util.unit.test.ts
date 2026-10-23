@@ -1,5 +1,10 @@
 import type { VdfHostStatusDocument } from '@/modules/vdf/types.ts'
-import { hostState, policyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
+import {
+  effectiveLockingMode,
+  hostState,
+  policyRealization,
+  vmProtection,
+} from '@/modules/vdf/utils/vdf-status.util.ts'
 import { describe, expect, it } from 'vitest'
 
 const now = Date.parse('2026-10-22T10:00:00Z')
@@ -42,5 +47,23 @@ describe('policyRealization', () => {
         { status: undefined, state: 'unknown' },
       ])
     ).toEqual({ realized: 1, total: 2, unknown: 1, reasons: ['apply failed'] })
+  })
+})
+
+describe('vmProtection', () => {
+  it('only calls a running VM protected', () => {
+    expect(vmProtection({ quarantined: false, running: true, policyCount: 2 })).toBe('protected')
+    expect(vmProtection({ quarantined: false, running: false, policyCount: 2 })).toBe('protected-when-running')
+    expect(vmProtection({ quarantined: false, running: true, policyCount: 0 })).toBe('unprotected')
+    expect(vmProtection({ quarantined: true, running: false, policyCount: 0 })).toBe('quarantined')
+  })
+})
+
+describe('effectiveLockingMode', () => {
+  it('resolves the network default', () => {
+    expect(effectiveLockingMode('locked', true)).toBe('locked')
+    expect(effectiveLockingMode('network_default', false)).toBe('unlocked')
+    expect(effectiveLockingMode('network_default', undefined)).toBe('unlocked')
+    expect(effectiveLockingMode('network_default', true)).toBe('disabled')
   })
 })

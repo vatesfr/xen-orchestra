@@ -1,41 +1,60 @@
 <template>
-  <div v-if="hasDraft" class="vdf-draft-bar" :class="{ outdated: isDraftOutdated }">
-    <VtsIcon :name="isDraftOutdated ? 'status:warning-circle' : 'fa:pencil'" size="medium" class="icon" />
-    <div class="text">
-      <span class="typo-body-bold">{{ t('firewall:draft:changes', { n: changes.length }) }}</span>
-      <span class="typo-body-regular-small secondary">
-        {{ isDraftOutdated ? t('firewall:draft:outdated') : t('firewall:draft:info') }}
-      </span>
-    </div>
-    <div class="actions">
-      <UiButton variant="tertiary" accent="danger" size="medium" left-icon="fa:rotate-left" @click="discard()">
-        {{ t('firewall:draft:discard') }}
-      </UiButton>
-      <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:upload" @click="review()">
-        {{ t('firewall:draft:review-and-publish') }}
-      </UiButton>
-    </div>
+  <div v-if="hasDraft" class="vdf-draft-bar">
+    <VtsBanner :accent="isDraftOutdated ? 'warning' : 'brand'">
+      <div class="text" role="status">
+        <VtsIcon
+          :name="isDraftOutdated ? 'status:warning-circle' : 'action:edit'"
+          size="medium"
+          class="icon"
+          :class="{ warning: isDraftOutdated }"
+        />
+        <span class="typo-body-bold">{{ t('firewall:draft:changes', { n: changes.length }, changes.length) }}</span>
+        <span class="typo-body-regular-small secondary">
+          {{ isDraftOutdated ? t('firewall:draft:outdated') : t('firewall:draft:info') }}
+        </span>
+      </div>
+      <template #addons>
+        <div class="actions">
+          <UiButton variant="tertiary" accent="danger" size="small" left-icon="action:undo" @click="openDiscard()">
+            {{ t('firewall:draft:discard') }}
+          </UiButton>
+          <UiButton
+            v-if="isDraftOutdated"
+            variant="primary"
+            accent="warning"
+            size="small"
+            left-icon="fa:repeat"
+            @click="openRebase()"
+          >
+            {{ t('firewall:draft:rebase') }}
+          </UiButton>
+          <UiButton
+            v-else
+            variant="primary"
+            accent="brand"
+            size="small"
+            left-icon="fa:upload"
+            :busy="isPublishing"
+            @click="openPublish()"
+          >
+            {{ t('firewall:draft:review-and-publish') }}
+          </UiButton>
+        </div>
+      </template>
+    </VtsBanner>
   </div>
-  <div v-else-if="publishProgress !== undefined" class="vdf-draft-bar published">
-    <VtsIcon :name="publishProgress.done ? 'fa:check' : 'fa:spinner'" size="medium" class="icon" />
-    <div class="text">
-      <span class="typo-body-bold">
-        {{
-          t(isGlobal ? 'firewall:global:published:in-sync' : 'firewall:published:enforcing', {
-            n: publishProgress.enforcing,
-            total: publishProgress.total,
-          })
-        }}
-      </span>
-      <span class="typo-body-regular-small secondary">
+  <div v-else-if="publishProgress !== undefined" class="vdf-draft-bar published" role="status">
+    <UiAlert :accent="publishProgress.done ? 'success' : 'info'" close @close="dismissedDocId = publishProgress.id">
+      {{
+        t(isGlobal ? 'firewall:global:published:in-sync' : 'firewall:published:enforcing', {
+          n: publishProgress.enforcing,
+          total: publishProgress.total,
+        })
+      }}
+      <template #description>
         {{ publishProgress.done ? t('firewall:published:done') : t('firewall:published:waiting') }}
-      </span>
-    </div>
-    <div class="actions">
-      <UiButton variant="tertiary" accent="brand" size="medium" @click="dismissedDocId = publishProgress.id">
-        {{ t('firewall:published:dismiss') }}
-      </UiButton>
-    </div>
+      </template>
+    </UiAlert>
   </div>
 </template>
 
@@ -44,7 +63,9 @@ import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composa
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfPublish } from '@/modules/vdf/composables/vdf-publish.composable.ts'
 import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
+import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -61,7 +82,7 @@ const isGlobal = scope.kind === 'global'
 // configuration) until all of them enforce it
 const dismissedDocId = ref<string>()
 
-const { hasDraft, changes, isDraftOutdated, discardDraft, publishProgress } = (() => {
+const { hasDraft, changes, isDraftOutdated, publishProgress } = (() => {
   if (scope.kind === 'global') {
     const global = useVdfGlobalPolicy()
 
@@ -106,55 +127,34 @@ const { hasDraft, changes, isDraftOutdated, discardDraft, publishProgress } = ((
   }
 })()
 
-const { openPublish } = useVdfPublish(() => scope)
-
-function discard() {
-  discardDraft()
-}
-
-function review() {
-  void openPublish()
-}
+const { openPublish, openRebase, openDiscard, isPublishing } = useVdfPublish(() => scope)
 </script>
 
 <style lang="postcss" scoped>
+/* stays in view while the page scrolls, with "Review and publish" */
 .vdf-draft-bar {
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
-  margin: 0.8rem 0.8rem 0;
-  padding: 1.2rem 1.6rem;
-  border: 0.1rem solid var(--color-brand-item-base);
-  border-radius: 0.8rem;
-  background-color: var(--color-brand-background-selected);
-
-  .icon {
-    color: var(--color-brand-item-base);
-  }
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
 
   &.published {
-    border-color: var(--color-success-item-base);
-    background-color: var(--color-success-background-selected);
-
-    .icon {
-      color: var(--color-success-item-base);
-    }
-  }
-
-  &.outdated {
-    border-color: var(--color-warning-item-base);
-    background-color: var(--color-warning-background-selected);
-
-    .icon {
-      color: var(--color-warning-item-base);
-    }
+    position: static;
+    margin: 0.8rem 0.8rem 0;
   }
 
   .text {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+  }
+
+  .icon {
+    color: var(--color-brand-item-base);
+
+    &.warning {
+      color: var(--color-warning-item-base);
+    }
   }
 
   .secondary {

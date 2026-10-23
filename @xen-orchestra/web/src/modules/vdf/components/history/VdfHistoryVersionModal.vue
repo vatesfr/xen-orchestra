@@ -1,0 +1,135 @@
+<template>
+  <UiModal accent="info" icon="fa:clock" @dismiss="emit('cancel')">
+    <template #title>{{ title }}</template>
+    <template #content>
+      <div class="vdf-history-version-modal">
+        <VtsStateHero v-if="version === undefined && error === undefined" format="card" type="busy" size="small" />
+        <VtsStateHero v-else-if="version === undefined" format="card" type="error" size="small">
+          {{ t('firewall:history:version:error', { error }) }}
+        </VtsStateHero>
+        <template v-else>
+          <p class="typo-body-regular-small secondary">{{ byline }}</p>
+          <p class="typo-body-bold">
+            {{ hasPrevious ? t('firewall:history:version:changes') : t('firewall:history:version:content') }}
+          </p>
+          <p v-if="!hasPrevious" class="typo-body-regular-small secondary">
+            {{ t('firewall:history:version:no-previous') }}
+          </p>
+          <p v-if="isEmptyChange(details)" class="typo-body-regular-small">{{ t('firewall:history:no-change') }}</p>
+          <div v-else class="changes">
+            <VdfChangeList :details :is-global="isGlobalScope(scopeId)" />
+          </div>
+        </template>
+      </div>
+    </template>
+    <template #buttons>
+      <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:close') }}</VtsOverlayCancelButton>
+      <VtsOverlayConfirmButton
+        v-tooltip="isCurrent ? t('firewall:history:restore:current') : undefined"
+        :disabled="version === undefined || isCurrent"
+        @click="version !== undefined && emit('restore', version)"
+      >
+        {{ t('firewall:history:restore') }}
+      </VtsOverlayConfirmButton>
+    </template>
+  </UiModal>
+</template>
+
+<script lang="ts" setup>
+import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
+import { fetchVdfHistoryVersion } from '@/modules/vdf/remote-resources/use-vdf-history.ts'
+import type { VdfDocument, VdfHistoryEntry, VdfHistoryVersion, VdfScopeId } from '@/modules/vdf/types.ts'
+import { changeDetails, isEmptyChange } from '@/modules/vdf/utils/vdf-change.util.ts'
+import { isGlobalScope, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
+import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiModal from '@core/components/ui/modal/UiModal.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { scopeId, entry } = defineProps<{
+  scopeId: VdfScopeId
+  entry: VdfHistoryEntry
+  // the version the scope enforces now: nothing to restore
+  isCurrent: boolean
+}>()
+
+const emit = defineEmits<{
+  restore: [version: VdfHistoryVersion]
+  cancel: []
+}>()
+
+const { t, d } = useI18n()
+
+const version = ref<VdfHistoryVersion>()
+
+const error = ref<string>()
+
+onMounted(async () => {
+  try {
+    version.value = await fetchVdfHistoryVersion(scopeId, entry.id)
+  } catch (fetchError) {
+    error.value = (fetchError as Error).message
+  }
+})
+
+const title = computed(() =>
+  entry.publishedAt === null
+    ? t('firewall:history:before-history')
+    : t('firewall:history:version:title', { date: d(entry.publishedAt, { dateStyle: 'medium', timeStyle: 'short' }) })
+)
+
+const byline = computed(() => {
+  if (entry.revision !== undefined) {
+    return t('firewall:history:revision-by', {
+      n: entry.revision,
+      user: entry.publishedBy ?? t('firewall:history:unknown-user'),
+    })
+  }
+
+  return entry.publishedBy === null
+    ? t('firewall:history:before-history:info')
+    : t('firewall:history:by', { user: entry.publishedBy })
+})
+
+// a pool's own part: the global part has its own history
+const ownPart = (document: VdfDocument) => (isGlobalScope(scopeId) ? document : withGlobalOf(document, emptyDocument()))
+
+const hasPrevious = computed(() => version.value?.previous != null)
+
+const details = computed(() => {
+  const current = version.value
+
+  if (current === undefined) {
+    return changeDetails(emptyDocument(), emptyDocument())
+  }
+
+  const before = current.previous === null ? emptyDocument() : ownPart(current.previous.document)
+  const withScope = (document: VdfDocument, scope = current.scope) =>
+    isGlobalScope(scopeId) && scope !== undefined ? { ...document, scope } : document
+
+  return changeDetails(withScope(before, current.previous?.scope), withScope(ownPart(current.document)))
+})
+</script>
+
+<style lang="postcss" scoped>
+.vdf-history-version-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: min(64rem, 80vw);
+  text-align: start;
+
+  .changes {
+    max-height: 48rem;
+    overflow: auto;
+  }
+
+  .secondary {
+    color: var(--color-neutral-txt-secondary);
+  }
+}
+</style>

@@ -1,24 +1,33 @@
 <template>
   <div class="vdf-trace-result">
-    <div class="verdict" :class="`verdict--${verdict}`">
-      <span class="verdict-icon">
-        <VtsIcon :name="verdictIcon" size="large" />
-      </span>
-      <div class="verdict-text">
-        <span class="typo-h3">{{ t(`firewall:trace:verdict:${verdict}`) }}</span>
-        <span class="typo-body-regular">{{ explanation }}</span>
-        <div class="ends typo-body-regular-small">
-          <span class="end">{{ endLabel(result.from) }}</span>
+    <div class="verdict">
+      <UiAlert :accent="verdictAccent" class="verdict-alert">
+        <span class="typo-body-bold">{{ t(`firewall:trace:verdict:${verdict}`) }}</span>
+        <span class="ends">
+          <span>{{ fromLabel }}</span>
           <VtsIcon name="fa:arrow-right" size="small" />
-          <span class="end">{{ endLabel(result.to) }}</span>
-          <span class="secondary">{{
+          <span>{{ toLabel }}</span>
+          <span>{{
             t('firewall:trace:service-state', { service, state: t(`firewall:trace:state:${result.state}`) })
           }}</span>
-        </div>
+        </span>
+        <template #description>{{ explanation }}</template>
+      </UiAlert>
+      <div v-if="decisionRoute || allowRoute" class="actions">
+        <UiLink v-if="decisionRoute" :to="decisionRoute" size="medium" icon="fa:layer-group">
+          {{ t('firewall:trace:show-rule') }}
+        </UiLink>
+        <UiButton
+          v-if="allowRoute"
+          variant="secondary"
+          accent="brand"
+          size="medium"
+          left-icon="fa:plus"
+          @click="allowFlow()"
+        >
+          {{ t('firewall:trace:allow-flow') }}
+        </UiButton>
       </div>
-      <UiLink v-if="decisionRoute" :to="decisionRoute" size="medium" icon="fa:layer-group" class="decision-link">
-        {{ t('firewall:trace:show-rule') }}
-      </UiLink>
     </div>
 
     <UiAlert v-if="otherwise" accent="info">
@@ -26,89 +35,98 @@
       <template #description>{{ otherwise }}</template>
     </UiAlert>
 
-    <div v-for="(hop, hopIndex) of result.hops" :key="hopIndex" class="hop">
+    <div v-for="hop of hops" :key="hop.key" class="hop">
       <div class="hop-header">
         <VtsIcon name="object:host" size="medium" />
-        <span class="typo-h6">{{ hop.host }}</span>
-        <span class="typo-body-regular-small secondary">
-          {{ t('firewall:trace:hop', { side: hop.side, bridge: hop.bridge }) }}
-        </span>
-        <UiInfo v-if="hop.model" :accent="hop.model.agrees ? 'success' : 'warning'" class="model">
-          {{ hop.model.agrees ? t('firewall:trace:model-agrees') : t('firewall:trace:model-disagrees') }}
+        <span class="typo-body-bold">{{ hop.hop.host }}</span>
+        <span class="typo-body-regular-small secondary">{{ hop.side }}</span>
+        <UiInfo v-if="hop.hop.model" :accent="hop.hop.model.agrees ? 'success' : 'warning'" class="model">
+          {{ hop.hop.model.agrees ? t('firewall:trace:model-agrees') : t('firewall:trace:model-disagrees') }}
         </UiInfo>
       </div>
-      <UiAlert v-if="hop.stale" accent="warning">{{ hop.stale }}</UiAlert>
+      <UiAlert v-if="hop.hop.stale" accent="warning">{{ hop.hop.stale }}</UiAlert>
       <ol class="stages">
         <li
-          v-for="(stage, stageIndex) of visibleStages(hop)"
-          :key="stageIndex"
+          v-for="stage of hop.stages"
+          :key="stage.key"
           class="stage"
-          :class="[`stage--${stageOutcome(stage)}`, { decides: stage.decides }]"
+          :class="[`stage--${stage.outcome}`, { decides: stage.decides }]"
         >
-          <span class="dot"><VtsIcon :name="stageIcon(stage)" size="small" /></span>
-          <div class="stage-body">
-            <span :class="stage.decides ? 'typo-body-bold' : 'typo-body-regular'">{{ stage.text }}</span>
-            <span class="typo-body-regular-small secondary">
-              {{ t('firewall:trace:stage-meta', { kind: stage.kind, table: stage.table, priority: stage.priority }) }}
-            </span>
-          </div>
+          <span class="dot"><VtsIcon :name="stage.icon" size="small" /></span>
+          <span :class="stage.decides ? 'typo-body-bold' : 'typo-body-regular'">{{ stage.label }}</span>
         </li>
-        <li class="stage" :class="hop.delivered ? 'stage--allow' : 'stage--drop'">
-          <span class="dot"><VtsIcon :name="hop.delivered ? 'fa:check' : 'fa:ban'" size="small" /></span>
+        <li class="stage" :class="hop.hop.delivered ? 'stage--allow' : 'stage--drop'">
+          <span class="dot"><VtsIcon :name="hop.hop.delivered ? 'fa:check' : 'fa:ban'" size="small" /></span>
           <div class="stage-body">
             <span class="typo-body-bold">
-              {{ hop.delivered ? t('firewall:trace:delivered') : t('firewall:trace:not-delivered') }}
+              {{ hop.hop.delivered ? t('firewall:trace:delivered') : t('firewall:trace:not-delivered') }}
             </span>
-            <span v-if="hop.l2" class="typo-body-regular-small secondary">{{ hop.l2 }}</span>
+            <span v-if="hop.hop.l2" class="typo-body-regular-small secondary">{{ hop.hop.l2 }}</span>
           </div>
         </li>
       </ol>
-      <details class="details">
-        <summary class="typo-body-regular-small">{{ t('firewall:trace:ovs-details') }}</summary>
-        <dl class="typo-body-regular-small">
-          <dt>{{ t('firewall:trace:packet') }}</dt>
-          <dd>
-            <code>{{ hop.packet }}</code>
-          </dd>
-          <dt>{{ t('firewall:trace:conntrack') }}</dt>
-          <dd>
-            <code>{{ hop.conntrack }}</code>
-          </dd>
-          <dt>{{ t('firewall:trace:datapath') }}</dt>
-          <dd>
-            <code>{{ hop.datapath_actions }}</code>
-          </dd>
-        </dl>
-        <ol class="raw-stages">
-          <li v-for="(stage, index) of hop.stages" :key="index" class="typo-body-regular-small">
+      <VdfTechnicalDetails :label="t('firewall:trace:ovs-details')">
+        <VtsTabularKeyValueList>
+          <VtsTabularKeyValueRow :label="t('firewall:trace:bridge')" :value="hop.hop.bridge" />
+          <VtsTabularKeyValueRow :label="t('firewall:trace:packet')" :value="hop.hop.packet" copy />
+          <VtsTabularKeyValueRow :label="t('firewall:trace:conntrack')" :value="hop.hop.conntrack" />
+          <VtsTabularKeyValueRow :label="t('firewall:trace:datapath')" :value="hop.hop.datapath_actions" copy />
+        </VtsTabularKeyValueList>
+        <ol class="raw-stages typo-body-regular-small">
+          <li v-for="(stage, index) of hop.hop.stages" :key="index">
             <code>{{
               t('firewall:trace:raw-stage', { table: stage.table, priority: stage.priority, match: stage.match })
             }}</code>
+            <span class="secondary">{{
+              t('firewall:trace:raw-stage:text', { kind: stage.kind, text: stage.text })
+            }}</span>
           </li>
         </ol>
-      </details>
+      </VdfTechnicalDetails>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { VdfTraceEnd, VdfTraceHop, VdfTraceResult, VdfTraceStage } from '@/modules/vdf/types.ts'
-import { vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
+import { ipMatches } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import {
+  VDF_GLOBAL_SCOPE,
+  type VdfDocument,
+  type VdfTraceEnd,
+  type VdfTraceResult,
+  type VdfTraceStage,
+} from '@/modules/vdf/types.ts'
+import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw, useRouter } from 'vue-router'
 
-const { result, poolId } = defineProps<{
+const { result, poolId, document } = defineProps<{
   poolId: string
   result: VdfTraceResult
+  // the published document: what the hosts traced against
+  document: VdfDocument
 }>()
 
 const { t } = useI18n()
+
+const router = useRouter()
+
+const tierLabel = useVdfTierLabel()
+
+const { vms } = useXoVmCollection()
 
 const lastHop = computed(() => result.hops[result.hops.length - 1])
 
@@ -117,50 +135,78 @@ const verdict = computed(() => {
     return 'not-delivered'
   }
 
-  return result.allowed ? 'allowed' : 'blocked'
+  return result.allowed ? 'allowed' : 'dropped'
 })
 
-const verdictIcon = computed<IconName>(
-  () =>
-    ({ allowed: 'fa:check', blocked: 'fa:ban', 'not-delivered': 'fa:triangle-exclamation' })[verdict.value] as IconName
-)
+const VERDICT_ACCENTS = { allowed: 'success', dropped: 'danger', 'not-delivered': 'warning' } as const
+
+const verdictAccent = computed(() => VERDICT_ACCENTS[verdict.value])
 
 const decision = computed(() => lastHop.value?.decision)
 
-const explanation = computed(() => {
-  if (decision.value === undefined) {
-    return t('firewall:trace:no-decision')
-  }
+function endLabel(end: VdfTraceEnd) {
+  return end.external
+    ? t('firewall:trace:external', { ip: end.ip })
+    : t('firewall:trace:vm-end', { vm: end.vm, ip: end.ip })
+}
 
-  return decision.value.text
-})
+const fromLabel = computed(() => endLabel(result.from))
 
-const decisionRoute = computed<RouteLocationRaw | undefined>(() => {
-  if (decision.value?.policy === undefined) {
-    return undefined
-  }
-
-  return vdfPageRoute(poolId, 'policies', { policy: decision.value.policy, rule: decision.value.rule || undefined })
-})
-
-const otherwise = computed(() => result.hops.map(hop => hop.otherwise).find(Boolean))
+const toLabel = computed(() => endLabel(result.to))
 
 const service = computed(() => {
   if (result.proto === 'any') {
     return t('firewall:any-protocol')
   }
 
-  return result.port ? `${result.proto.toUpperCase()} ${result.port}` : result.proto.toUpperCase()
+  const proto = result.proto.toUpperCase()
+
+  return result.port ? t('firewall:recent-drops:service', { proto, port: result.port }) : proto
 })
 
-function endLabel(end: VdfTraceEnd) {
-  return end.external ? t('firewall:trace:external', { ip: end.ip }) : `${end.vm} (${end.ip})`
+// STAGES, in policy terms: tiers by name, global objects without their
+// prefix; the agent's own wording for the rest (anti-spoofing, conntrack…)
+
+function actionLabel(action: string | undefined) {
+  if (action === 'allow' || action === 'drop') {
+    return t(`firewall:action:${action}`)
+  }
+
+  return t('firewall:action:next-tier')
 }
 
-// VDF's own stages: the rest is XAPI's anti-spoofing and OVS switching
-function visibleStages(hop: VdfTraceHop) {
-  return hop.stages.filter(stage => stage.vdf || stage.decides)
+function stageLabel(stage: VdfTraceStage) {
+  if (stage.tier === undefined) {
+    return stage.text
+  }
+
+  const tier = tierLabel(stage.tier)
+
+  if (stage.kind === 'rule' && stage.policy !== undefined && stage.rule !== undefined) {
+    return t('firewall:trace:stage:rule', {
+      tier,
+      policy: displayName(stage.policy),
+      rule: globalRuleId(stage.rule),
+      action: actionLabel(stage.action),
+    })
+  }
+
+  if (stage.kind === 'tier-default') {
+    return stage.policy === undefined
+      ? t('firewall:trace:stage:tier-default', { tier, action: actionLabel(stage.action) })
+      : t('firewall:trace:stage:policy-default', {
+          tier,
+          policy: displayName(stage.policy),
+          action: actionLabel(stage.action),
+        })
+  }
+
+  return stage.text
 }
+
+const explanation = computed(() =>
+  decision.value === undefined ? t('firewall:trace:no-decision') : stageLabel(decision.value)
+)
 
 // as agent/trace.go allows(): what a deciding stage does with the packet
 const ALLOWING_KINDS = [
@@ -174,14 +220,6 @@ const ALLOWING_KINDS = [
   'dhcp',
 ]
 
-function stageAllows(stage: VdfTraceStage) {
-  if (stage.kind === 'rule' || stage.kind === 'tier-default') {
-    return stage.action === 'allow'
-  }
-
-  return ALLOWING_KINDS.includes(stage.kind)
-}
-
 function stageOutcome(stage: VdfTraceStage) {
   if (stage.action === 'pass') {
     return 'pass'
@@ -191,13 +229,119 @@ function stageOutcome(stage: VdfTraceStage) {
     return 'step'
   }
 
-  return stageAllows(stage) ? 'allow' : 'drop'
+  if (stage.kind === 'rule' || stage.kind === 'tier-default') {
+    return stage.action === 'allow' ? 'allow' : 'drop'
+  }
+
+  return ALLOWING_KINDS.includes(stage.kind) ? 'allow' : 'drop'
 }
 
-function stageIcon(stage: VdfTraceStage): IconName {
-  return (
-    { drop: 'fa:ban', pass: 'fa:arrow-down', allow: 'fa:check', step: 'fa:angle-right' } as Record<string, IconName>
-  )[stageOutcome(stage)]
+const STAGE_ICONS: Record<ReturnType<typeof stageOutcome>, IconName> = {
+  drop: 'fa:ban',
+  pass: 'fa:arrow-down',
+  allow: 'fa:check',
+  step: 'fa:angle-right',
+}
+
+function sideLabel(side: string) {
+  if (side === 'source' || side === 'destination' || side === 'source and destination') {
+    return t(`firewall:trace:side:${side.replaceAll(' ', '-')}`)
+  }
+
+  return side
+}
+
+// VDF's own stages: the rest is XAPI's anti-spoofing and OVS switching,
+// left in the technical details
+const hops = computed(() =>
+  result.hops.map((hop, hopIndex) => ({
+    key: hopIndex,
+    hop,
+    side: sideLabel(hop.side),
+    stages: hop.stages
+      .filter(stage => stage.vdf || stage.decides)
+      .map((stage, stageIndex) => {
+        const outcome = stageOutcome(stage)
+
+        return {
+          key: stageIndex,
+          label: stageLabel(stage),
+          decides: stage.decides,
+          outcome,
+          icon: STAGE_ICONS[outcome],
+        }
+      }),
+  }))
+)
+
+const otherwise = computed(() => result.hops.map(hop => hop.otherwise).find(Boolean))
+
+// LINKS
+
+const decisionRoute = computed<RouteLocationRaw | undefined>(() => {
+  if (decision.value?.policy === undefined) {
+    return undefined
+  }
+
+  return vdfPageRoute(poolId, 'policies', { policy: decision.value.policy, rule: decision.value.rule || undefined })
+})
+
+// the group the source belongs to, as a rule of the deciding policy can
+// name it (a global policy only knows global groups)
+const sourceGroup = computed(() => {
+  const policy = document.policies.find(({ name }) => name === decision.value?.policy)
+
+  if (policy === undefined) {
+    return undefined
+  }
+
+  const onlyGlobal = isGlobalName(policy.name)
+  const sourceVm = result.from.external ? undefined : vms.value.find(vm => vm.id === result.from.uuid)
+
+  const candidates = Object.entries(document.groups)
+    .filter(([name]) => name !== policy.appliedTo && (!onlyGlobal || isGlobalName(name)))
+    .filter(([, group]) =>
+      sourceVm === undefined
+        ? (group.ips ?? []).some(member => ipMatches(result.from.ip, member))
+        : isVmInGroup(sourceVm.tags, group)
+    )
+    // the pool's own groups first
+    .sort(([nameA], [nameB]) => Number(isGlobalName(nameA)) - Number(isGlobalName(nameB)))
+
+  return candidates[0]?.[0]
+})
+
+// "Allow this flow…": the Policies page opens a new rule in the deciding
+// policy, prefilled with this flow
+const allowRoute = computed<RouteLocationRaw | undefined>(() => {
+  const policy = decision.value?.policy
+
+  if (verdict.value !== 'dropped' || policy === undefined || decision.value?.action !== 'drop') {
+    return undefined
+  }
+
+  const isGlobal = isGlobalName(policy)
+  const route = vdfPageRoute(isGlobal ? VDF_GLOBAL_SCOPE : poolId, 'policies', { policy }) as {
+    query: Record<string, string>
+  }
+  const from = sourceGroup.value === undefined ? 'any' : isGlobal ? displayName(sourceGroup.value) : sourceGroup.value
+
+  return {
+    ...route,
+    query: {
+      ...route.query,
+      newRule: '1',
+      from,
+      proto: result.proto,
+      port: result.port === undefined ? undefined : String(result.port),
+    },
+  } as RouteLocationRaw
+})
+
+function allowFlow() {
+  if (allowRoute.value !== undefined) {
+    return router.push(allowRoute.value)
+  }
 }
 </script>
 
@@ -209,66 +353,29 @@ function stageIcon(stage: VdfTraceStage): IconName {
 
   .verdict {
     display: flex;
-    align-items: flex-start;
-    gap: 2.4rem;
-    padding: 2.4rem;
-    border-radius: 0.8rem;
-    border: 0.1rem solid var(--vdf-verdict-item);
-    background-color: var(--vdf-verdict-background);
-
-    &.verdict--allowed {
-      --vdf-verdict-item: var(--color-success-item-base);
-      --vdf-verdict-background: var(--color-success-background-selected);
-    }
-
-    &.verdict--blocked {
-      --vdf-verdict-item: var(--color-danger-item-base);
-      --vdf-verdict-background: var(--color-danger-background-selected);
-    }
-
-    &.verdict--not-delivered {
-      --vdf-verdict-item: var(--color-warning-item-base);
-      --vdf-verdict-background: var(--color-warning-background-selected);
-    }
-  }
-
-  .verdict-icon {
-    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 6.4rem;
-    height: 6.4rem;
-    border-radius: 50%;
-    color: var(--color-neutral-background-primary);
-    background-color: var(--vdf-verdict-item);
+    gap: 1.6rem;
   }
 
-  .verdict-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
+  .verdict-alert {
     flex: 1;
-
-    .typo-h3 {
-      color: var(--vdf-verdict-item);
-    }
+    min-width: 32rem;
   }
 
   .ends {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+    margin-inline-start: 0.8rem;
+  }
+
+  .actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.8rem;
-  }
-
-  .end {
-    font-weight: 600;
-  }
-
-  .decision-link {
-    align-self: center;
-    white-space: nowrap;
+    gap: 1.6rem;
   }
 
   .hop {
@@ -301,6 +408,7 @@ function stageIcon(stage: VdfTraceStage): IconName {
   .stage {
     position: relative;
     display: flex;
+    align-items: flex-start;
     gap: 1.6rem;
     padding-block-end: 1.6rem;
 
@@ -337,15 +445,19 @@ function stageIcon(stage: VdfTraceStage): IconName {
     }
 
     &.stage--allow {
-      --vdf-stage-color: var(--color-success-item-base);
+      --vdf-stage-color: var(--color-success-txt-base);
     }
 
     &.stage--pass {
-      --vdf-stage-color: var(--color-info-item-base);
+      --vdf-stage-color: var(--color-info-txt-base);
     }
 
     &.stage--drop {
-      --vdf-stage-color: var(--color-danger-item-base);
+      --vdf-stage-color: var(--color-danger-txt-base);
+    }
+
+    > span:last-child {
+      padding-block-start: 0.2rem;
     }
   }
 
@@ -356,32 +468,18 @@ function stageIcon(stage: VdfTraceStage): IconName {
     padding-block-start: 0.2rem;
   }
 
-  .details {
-    summary {
-      cursor: pointer;
-      color: var(--color-brand-txt-base);
-    }
+  .raw-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+    padding-inline-start: 2rem;
 
-    dl {
-      display: grid;
-      grid-template-columns: max-content 1fr;
-      gap: 0.4rem 1.6rem;
-      margin-block: 0.8rem;
-    }
-
-    dt {
-      color: var(--color-neutral-txt-secondary);
-    }
-
-    code {
-      font-family: monospace;
+    li {
+      display: flex;
+      flex-direction: column;
       word-break: break-all;
     }
-  }
-
-  .raw-stages {
-    padding-inline-start: 2rem;
-    color: var(--color-neutral-txt-secondary);
   }
 
   .secondary {

@@ -90,3 +90,40 @@ export function policyRealization(
 
   return realization
 }
+
+export type VdfVmProtection = 'quarantined' | 'protected' | 'protected-when-running' | 'unprotected'
+
+// What the published document does for a VM now: a halted VM has no
+// network interface to enforce anything on, its policies apply when it
+// starts.
+export function vmProtection({
+  quarantined,
+  running,
+  policyCount,
+}: {
+  quarantined: boolean
+  running: boolean
+  policyCount: number
+}): VdfVmProtection {
+  if (quarantined) {
+    return 'quarantined'
+  }
+
+  if (policyCount === 0) {
+    return 'unprotected'
+  }
+
+  return running ? 'protected' : 'protected-when-running'
+}
+
+export type VdfLockingMode = 'locked' | 'unlocked' | 'disabled'
+
+// A network interface's locking as XAPI applies it: `network_default`
+// follows its network (whose default is either unlocked or disabled).
+export function effectiveLockingMode(lockingMode: string, networkDefaultIsLocked: boolean | undefined): VdfLockingMode {
+  if (lockingMode === 'locked' || lockingMode === 'unlocked' || lockingMode === 'disabled') {
+    return lockingMode
+  }
+
+  return networkDefaultIsLocked ? 'disabled' : 'unlocked'
+}

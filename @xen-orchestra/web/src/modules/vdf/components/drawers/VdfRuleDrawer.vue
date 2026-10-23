@@ -1,9 +1,29 @@
 <template>
-  <UiDrawer :title @confirm="submit()" @dismiss="emit('cancel')">
-    <template #content>
-      <div class="vdf-rule-drawer">
-        <UiInfo accent="info" wrap>{{ t('firewall:rule-form:context', { id: rule.id, policy: policyName }) }}</UiInfo>
+  <UiDrawer class="vdf-rule-drawer" @confirm="submit()" @dismiss="emit('cancel')">
+    <template #title>{{ title }}</template>
 
+    <template #content>
+      <UiAlert accent="info">
+        <I18nT keypath="firewall:rule-form:preview" scope="global" tag="span">
+          <template #action>
+            <strong>{{ t(`firewall:action:${form.action}`) }}</strong>
+          </template>
+          <template #source>
+            <strong>{{ sourceLabel }}</strong>
+          </template>
+          <template #destination>
+            <strong>{{ destinationLabel }}</strong>
+          </template>
+          <template #service>
+            <strong>{{ serviceLabel }}</strong>
+          </template>
+        </I18nT>
+        <template #description>{{ t('firewall:rule-form:context', { id: displayId }) }}</template>
+      </UiAlert>
+
+      <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
+
+      <div class="fields">
         <UiRadioButtonGroup :label="t('firewall:rule-form:action')" accent="brand" gap="wide">
           <UiRadioButton v-for="action of actions" :key="action" v-model="form.action" :value="action" accent="brand">
             <VdfActionTag :action />
@@ -11,21 +31,45 @@
         </UiRadioButtonGroup>
         <UiInfo accent="muted" wrap>{{ t(`firewall:rule-form:action:${form.action}`) }}</UiInfo>
 
-        <VtsInputWrapper :label="t('firewall:rule-form:source')" :message="sourceMessage" wrap-message>
-          <VtsSelect :id="sourceSelectId" accent="brand" />
+        <VtsInputWrapper :label="t('firewall:rule-form:source')" :message="sourceMessages" wrap-message>
+          <VtsSelect :id="sourceSelectId" accent="brand">
+            <template #default="{ option }">
+              <VtsOption :option>
+                <span v-if="option.properties.isNew" class="new-group">
+                  <VtsIcon name="fa:plus" size="small" />
+                  {{ option.properties.label }}
+                </span>
+                <template v-else>{{ option.properties.label }}</template>
+              </VtsOption>
+            </template>
+          </VtsSelect>
         </VtsInputWrapper>
+        <UiAlert v-if="address !== undefined && form.from === ''" accent="warning">
+          {{ t('firewall:rule-form:source:address', { address }) }}
+          <template #description>
+            <UiButton
+              variant="secondary"
+              accent="brand"
+              size="small"
+              left-icon="fa:plus"
+              @click="emit('createGroup', name => (form.from = name), { ips: [address] })"
+            >
+              {{ t('firewall:rule-form:source:address:create') }}
+            </UiButton>
+          </template>
+        </UiAlert>
 
         <div class="row">
           <VtsInputWrapper :label="t('firewall:rule-form:protocol')">
             <VtsSelect :id="protocolSelectId" accent="brand" />
           </VtsInputWrapper>
-          <VtsInputWrapper
-            v-if="hasPorts"
-            :label="t('firewall:rule-form:ports')"
-            :message="portsError ?? t('firewall:rule-form:ports:info')"
-            wrap-message
-          >
-            <UiInput v-model.trim="form.ports" :accent="portsError ? 'danger' : 'brand'" placeholder="443, 8080" />
+          <VtsInputWrapper v-if="hasPorts" :label="t('firewall:rule-form:ports')" :message="portsMessages" wrap-message>
+            <UiInput
+              v-model.trim="form.ports"
+              :accent="portsField.error ? 'danger' : 'brand'"
+              :placeholder="t('firewall:rule-form:ports:placeholder')"
+              @blur="portsField.onBlur()"
+            />
           </VtsInputWrapper>
         </div>
 
@@ -34,10 +78,15 @@
           {{ t('firewall:rule-form:log:pass') }}
         </UiInfo>
         <VtsInputWrapper v-if="form.log" :label="t('firewall:rule-form:log-label')">
-          <UiInput v-model.trim="form.logLabel" accent="brand" placeholder="web-to-app" />
+          <UiInput
+            v-model.trim="form.logLabel"
+            accent="brand"
+            :placeholder="t('firewall:rule-form:log-label:placeholder')"
+          />
         </VtsInputWrapper>
       </div>
     </template>
+
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')" />
       <VtsOverlayConfirmButton>{{ t('firewall:save-to-draft') }}</VtsOverlayConfirmButton>
@@ -47,44 +96,57 @@
 
 <script lang="ts" setup>
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
-import type { VdfProtocol, VdfRule, VdfRuleAction } from '@/modules/vdf/types.ts'
-import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import type { VdfGroupOption } from '@/modules/vdf/composables/vdf-editors.composable.ts'
+import type { VdfGroup, VdfProtocol, VdfRule, VdfRuleAction } from '@/modules/vdf/types.ts'
+import { displayName, globalRuleId, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, parsePorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
-import { useFormSelect } from '@core/packages/form-select'
+import { required, withMessage } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { omit } from 'lodash-es'
-import { computed, reactive, ref, toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed, reactive, watch } from 'vue'
+import { I18nT, useI18n } from 'vue-i18n'
 
-const { rule, isNew, groups } = defineProps<{
+const { policyName, rule, isNew, groups, appliedTo } = defineProps<{
   policyName: string
+  // the policy's group: where the rule's connections go
+  appliedTo?: string
   rule: VdfRule
   isNew: boolean
-  groups: { name: string; members: number }[]
+  groups: VdfGroupOption[]
+  // a prefilled source address no group holds yet
+  address?: string
 }>()
 
 const emit = defineEmits<{
   confirm: [rule: VdfRule]
   cancel: []
+  // opens the group drawer (prefilled), and `select`s the group it creates
+  createGroup: [select: (name: string) => void, group?: VdfGroup]
 }>()
 
 const { t } = useI18n()
 
-// a global group, usable in a pool: "admins (global)"
-function groupLabel(name: string) {
-  return isGlobalName(name) ? `${displayName(name)} (${t('firewall:global')})` : name
-}
+const displayId = computed(() => globalRuleId(rule.id))
 
-const title = computed(() => (isNew ? t('firewall:rule-form:new') : t('firewall:rule-form:edit', { id: rule.id })))
+const title = computed(() =>
+  isNew
+    ? t('firewall:rule-form:new-in', { policy: displayName(policyName) })
+    : t('firewall:rule-form:edit', { id: displayId.value })
+)
 
 const actions: VdfRuleAction[] = ['allow', 'drop', 'pass']
 
@@ -97,18 +159,87 @@ const form = reactive({
   logLabel: rule.logLabel ?? '',
 })
 
-const { id: sourceSelectId } = useFormSelect([{ name: 'any', members: -1 }, ...groups], {
-  model: toRef(form, 'from'),
+const hasPorts = computed(() => form.proto === 'tcp' || form.proto === 'udp')
+
+const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, {
+  errors: {
+    onSubmit: () => ({
+      from: { required: withMessage(required, () => t('firewall:rule-form:source:required')) },
+    }),
+    onBlur: () => ({
+      ports: {
+        ports: withMessage(
+          (ports: unknown) => !hasPorts.value || parsePorts(String(ports ?? '')) !== undefined,
+          () => t('firewall:rule-form:ports:invalid')
+        ),
+      },
+    }),
+  },
+})
+
+// a global group, usable in a pool: "admins (global)"
+function groupName(name: string) {
+  return isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name
+}
+
+function groupSize({ members, ips }: VdfGroupOption) {
+  const vms = t('firewall:group:members', { n: members })
+
+  if (ips === 0) {
+    return vms
+  }
+
+  return members === 0
+    ? t('firewall:group:ips', { n: ips })
+    : t('firewall:group-option:both', { vms, ips: t('firewall:group:ips', { n: ips }) })
+}
+
+const ANY = 'any'
+
+// the last option of the select opens the group drawer
+const NEW_GROUP = '\0new-group'
+
+const sourceOptions = computed(() => [
+  { name: ANY, label: t('firewall:rule-form:source:any'), isNew: false },
+  ...groups.map(group => ({
+    name: group.name,
+    label: t('firewall:group-option', { name: groupName(group.name), members: groupSize(group) }),
+    isNew: false,
+  })),
+  { name: NEW_GROUP, label: t('firewall:new-group-option'), isNew: true },
+])
+
+const { id: sourceSelectId } = useFormSelect('from', sourceOptions, {
   required: true,
   searchable: true,
-  option: {
-    id: 'name',
-    value: 'name',
-    label: group =>
-      group.members === -1
-        ? t('firewall:rule-form:source:any')
-        : `${groupLabel(group.name)} (${t('firewall:group:members', { n: group.members })})`,
-  },
+  placeholder: () => t('firewall:rule-form:source:placeholder'),
+  option: { id: 'name', value: 'name', label: 'label', properties: option => ({ isNew: option.isNew }) },
+})
+
+watch(
+  () => form.from,
+  (value, previous) => {
+    if (value === NEW_GROUP) {
+      form.from = previous
+      emit('createGroup', name => (form.from = name))
+    }
+  }
+)
+
+const source = useSelect(sourceSelectId)
+
+const sourceMessages = computed(() => {
+  const messages: InputWrapperMessage = []
+
+  if (form.from === ANY) {
+    messages.push(t('firewall:rule-form:source:any:info'))
+  }
+
+  if (source.value.error !== undefined) {
+    messages.push(source.value.error as { content: string; accent: 'danger' })
+  }
+
+  return messages
 })
 
 const protocols: { value: VdfProtocol; label: string }[] = [
@@ -118,34 +249,49 @@ const protocols: { value: VdfProtocol; label: string }[] = [
   { value: 'any', label: t('firewall:rule-form:protocol:any') },
 ]
 
-const { id: protocolSelectId } = useFormSelect(protocols, {
-  model: toRef(form, 'proto'),
+const { id: protocolSelectId } = useFormSelect('proto', protocols, {
   required: true,
   option: { id: 'value', value: 'value', label: 'label' },
 })
 
-const hasPorts = computed(() => form.proto === 'tcp' || form.proto === 'udp')
+const portsField = useField('ports')
 
-const sourceMessage = computed<InputWrapperMessage | undefined>(() =>
-  form.from === 'any' ? t('firewall:rule-form:source:any:info') : undefined
+const portsMessages = computed(() =>
+  portsField.value.error === undefined
+    ? t('firewall:rule-form:ports:info')
+    : [t('firewall:rule-form:ports:info'), portsField.value.error as { content: string; accent: 'danger' }]
 )
 
-const submitted = ref(false)
+// THE SENTENCE the rule reads as on the board
 
-const parsedPorts = computed(() => parsePorts(form.ports))
+const sourceLabel = computed(() => {
+  if (form.from === ANY) {
+    return t('firewall:any')
+  }
 
-const portsError = computed(() =>
-  submitted.value && hasPorts.value && parsedPorts.value === undefined
-    ? t('firewall:rule-form:ports:invalid')
-    : undefined
-)
+  return form.from === '' ? '…' : displayName(form.from)
+})
 
-function submit() {
-  submitted.value = true
+const destinationLabel = computed(() => (appliedTo ? displayName(appliedTo) : displayName(policyName)))
 
-  if (portsError.value !== undefined) {
+const serviceLabel = computed(() => {
+  if (form.proto === 'any') {
+    return t('firewall:any-protocol')
+  }
+
+  const ports = hasPorts.value ? formatPorts(parsePorts(form.ports)) : ''
+
+  return ports === ''
+    ? t('firewall:service:all', { proto: form.proto.toUpperCase() })
+    : t('firewall:service:ports', { proto: form.proto.toUpperCase(), ports })
+})
+
+async function submit() {
+  if (!(await validate())) {
     return
   }
+
+  const ports = hasPorts.value ? parsePorts(form.ports) : undefined
 
   // keep fields this form doesn't know about (newer document formats)
   const next: VdfRule = {
@@ -159,8 +305,8 @@ function submit() {
     next.action = form.action
   }
 
-  if (hasPorts.value && parsedPorts.value !== undefined && parsedPorts.value.length > 0) {
-    next.ports = parsedPorts.value
+  if (ports !== undefined && ports.length > 0) {
+    next.ports = ports
   }
 
   if (form.log) {
@@ -177,14 +323,34 @@ function submit() {
 
 <style lang="postcss" scoped>
 .vdf-rule-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
+  .required-hint {
+    display: block;
+    margin-block-start: 2.4rem;
+
+    &::before {
+      content: '* ';
+      color: var(--color-brand-txt-base);
+    }
+  }
+
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+    margin-block-start: 2.4rem;
+  }
 
   .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.6rem;
+  }
+
+  .new-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--color-brand-txt-base);
   }
 }
 </style>

@@ -1,0 +1,55 @@
+import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
+import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { useNow } from '@vueuse/core'
+import { computed, type MaybeRefOrGetter } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
+
+export const VDF_RECENT_DROPS_WINDOW_MINUTES = 15
+
+// What a pool's rule log dropped lately, by flow, each with a trace of the
+// same packet ("why is it dropped?"). Only rules and policies that log what
+// they drop show up here.
+export function useVdfRecentDrops(rawPoolId: MaybeRefOrGetter<string>, { limit }: { limit: number }) {
+  const poolId = toComputed(rawPoolId)
+
+  const { ruleLog, isRuleLogReady, hasRuleLogError } = useVdfRuleLog({}, poolId)
+
+  const { vms } = useXoVmCollection()
+
+  const now = useNow({ interval: 5000 })
+
+  const poolVms = computed(() => vms.value.filter(vm => vm.$pool === poolId.value))
+
+  const drops = computed(() =>
+    recentDrops(ruleLog.value?.entries ?? [], {
+      since: now.value.getTime() - VDF_RECENT_DROPS_WINDOW_MINUTES * 60_000,
+      limit,
+    }).map(drop => {
+      const destination = poolVms.value.find(vm => vm.name_label === drop.vm)
+      const source = poolVms.value.find(vm => Object.values(vm.addresses ?? {}).includes(drop.src))
+      const canTrace = destination !== undefined && ['tcp', 'udp', 'icmp'].includes(drop.proto)
+
+      // same query as the rule log's and Live's links to the trace
+      const traceRoute: RouteLocationRaw | undefined = canTrace
+        ? {
+            name: '/pool/[id]/firewall/trace',
+            params: { id: poolId.value },
+            query: {
+              from: source?.id ?? 'external',
+              fromip: source === undefined ? drop.src : undefined,
+              to: destination.id,
+              proto: drop.proto,
+              port: drop.port,
+              run: '1',
+            },
+          }
+        : undefined
+
+      return { ...drop, source, destination, traceRoute }
+    })
+  )
+
+  return { drops, isRuleLogReady, hasRuleLogError }
+}

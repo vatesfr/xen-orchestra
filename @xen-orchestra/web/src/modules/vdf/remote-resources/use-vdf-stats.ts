@@ -18,5 +18,7 @@ export const useVdfStats = defineRemoteResource({
     stats,
     areStatsReady: context.isReady,
     hasStatsError: context.hasError,
+    statsError: context.lastError,
+    reloadStats: context.forceReload,
   }),
 })

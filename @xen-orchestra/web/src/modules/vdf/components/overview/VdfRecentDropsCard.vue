@@ -1,0 +1,92 @@
+<template>
+  <UiCard class="vdf-recent-drops-card">
+    <UiTitle>
+      {{ t('firewall:recent-drops') }}
+      <template #action>
+        <UiLink :to="{ name: '/pool/[id]/firewall/logs', params: { id: poolId } }" size="medium">
+          {{ t('firewall:recent-drops:open-log') }}
+        </UiLink>
+      </template>
+    </UiTitle>
+    <p class="description typo-body-regular-small">
+      {{ t('firewall:recent-drops:info', { n: VDF_RECENT_DROPS_WINDOW_MINUTES }) }}
+    </p>
+    <VtsStateHero v-if="!isRuleLogReady && hasRuleLogError" format="card" type="error" size="extra-small" horizontal>
+      {{ t('firewall:recent-drops:error') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="!isRuleLogReady" format="card" type="busy" size="extra-small" />
+    <VtsStateHero v-else-if="rows.length === 0" format="card" type="no-data" size="extra-small" horizontal>
+      {{ t('firewall:recent-drops:none', { n: VDF_RECENT_DROPS_WINDOW_MINUTES }) }}
+    </VtsStateHero>
+    <VdfDroppedTable v-else :scope-id="poolId" :rows />
+  </UiCard>
+</template>
+
+<script lang="ts" setup>
+import VdfDroppedTable, { type VdfDroppedRow } from '@/modules/vdf/components/live/VdfDroppedTable.vue'
+import { useVdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
+import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import {
+  useVdfRecentDrops,
+  VDF_RECENT_DROPS_WINDOW_MINUTES,
+} from '@/modules/vdf/composables/vdf-recent-drops.composable.ts'
+import type { VdfDocument } from '@/modules/vdf/types.ts'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+// "What is being dropped right now?": the top flows of the rule log, each
+// with a trace of the same packet
+const {
+  poolId,
+  document,
+  limit = 5,
+} = defineProps<{
+  poolId: string
+  // the published document, which decided these drops
+  document: VdfDocument
+  limit?: number
+}>()
+
+const { t, n } = useI18n()
+
+const { drops, isRuleLogReady, hasRuleLogError } = useVdfRecentDrops(() => poolId, { limit })
+
+const { decision } = useVdfDecision(
+  () => poolId,
+  () => document
+)
+
+const { groupsOfIp } = useVdfIpNames(() => document)
+
+const rows = computed<VdfDroppedRow[]>(() =>
+  drops.value.map(drop => {
+    const from = drop.source?.name_label ?? drop.src
+
+    return {
+      key: drop.key,
+      src: { ip: drop.src, vm: drop.source, groups: groupsOfIp(drop.src) },
+      dst: { ip: '', vm: drop.destination, name: drop.vm },
+      revoked: false,
+      proto: drop.proto,
+      port: drop.port,
+      decision: decision({ tier: drop.tier, policy: drop.policy, rule: drop.rule }),
+      rate: t('firewall:recent-drops:count', { n: n(drop.count), minutes: VDF_RECENT_DROPS_WINDOW_MINUTES }),
+      trace: drop.traceRoute,
+      traceLabel: t('firewall:recent-drops:why', { from, to: drop.vm }),
+    }
+  })
+)
+</script>
+
+<style lang="postcss" scoped>
+.vdf-recent-drops-card {
+  .description {
+    margin-block-start: -1.6rem;
+    color: var(--color-neutral-txt-secondary);
+  }
+}
+</style>

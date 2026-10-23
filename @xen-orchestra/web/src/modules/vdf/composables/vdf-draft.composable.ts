@@ -1,6 +1,7 @@
 import type { VdfDocument, VdfGroup, VdfLimits, VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
 import { isGlobalName, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { cloneDocument, diffDocuments, groupUsage, tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { mergeDocuments, type VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
+import { cloneDocument, diffDocuments, groupUsage, nextRuleId, tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { isEqual } from 'lodash-es'
 import { computed, type ComputedRef, type Ref } from 'vue'
@@ -9,8 +10,26 @@ type VdfDraft = {
   // id of the published document the draft started from: when it changes
   // under the draft, someone else published meanwhile
   baseDocId: string
+  // that document, to tell the draft's changes from the ones published
+  // since, and rebase the first onto the second (missing in drafts saved
+  // by an earlier version)
+  baseDocument?: VdfDocument
   document: VdfDocument
   updatedAt: number
+}
+
+// documents are JSON, and often reactive proxies
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value))
+
+// insert `key` after its nearest predecessor in `reference` that `list` has
+function insertionIndex<T>(list: T[], reference: T[], key: T, same: (a: T, b: T) => boolean) {
+  const index = reference.findIndex(item => same(item, key))
+  const predecessor = reference
+    .slice(0, index)
+    .reverse()
+    .find(item => list.some(other => same(other, item)))
+
+  return predecessor === undefined ? 0 : list.findIndex(item => same(item, predecessor)) + 1
 }
 
 // Drafts live in the browser until published, one per scope (a pool, or
@@ -40,35 +59,78 @@ export function useVdfDraft(
     return lockGlobal ? withGlobalOf(draftDocument, publishedDocument.value) : draftDocument
   })
 
-  const changes = computed(() =>
-    draft.value === undefined ? [] : diffDocuments(publishedDocument.value, document.value)
-  )
+  // The published document the draft started from: what its changes are
+  // measured against (the published one, without a draft or for a draft
+  // saved by an earlier version). In a pool, its global part is the
+  // published one: XO rewrites it on every publish anyway.
+  const baseDocument = computed(() => {
+    const base = draft.value?.baseDocument
+
+    if (base === undefined) {
+      return publishedDocument.value
+    }
+
+    return lockGlobal ? withGlobalOf(base, publishedDocument.value) : base
+  })
+
+  // the draft's own changes, whatever was published since
+  const changes = computed(() => (draft.value === undefined ? [] : diffDocuments(baseDocument.value, document.value)))
 
   const hasDraft = computed(() => changes.value.length > 0)
 
+  // what was published since the draft started (in a pool, besides the
+  // global part, which XO rewrites whenever global groups gain members)
+  const upstreamChanges = computed(() =>
+    draft.value?.baseDocument === undefined || draft.value.baseDocId === publishedDocId.value
+      ? []
+      : diffDocuments(baseDocument.value, publishedDocument.value)
+  )
+
+  // someone published since the draft started: it must be rebased before
+  // it's published, or it would undo their changes
   const isDraftOutdated = computed(
-    () => draft.value !== undefined && isPublishedReady.value && draft.value.baseDocId !== publishedDocId.value
+    () =>
+      draft.value !== undefined &&
+      isPublishedReady.value &&
+      draft.value.baseDocId !== publishedDocId.value &&
+      (draft.value.baseDocument === undefined || upstreamChanges.value.length > 0)
+  )
+
+  // what a publish expects the scope to hold (compare-and-swap): refused
+  // if someone published in between
+  const expectedDocId = computed(() =>
+    isDraftOutdated.value ? (draft.value?.baseDocId ?? publishedDocId.value) : publishedDocId.value
   )
 
   // global objects are read-only in a pool
   const isLocked = (name: string | undefined) => lockGlobal && isGlobalName(name)
 
-  function setDraft(nextDocument: VdfDocument | undefined) {
-    const { [scopeId.value]: current, ...others } = drafts.value
+  function writeDraft(nextDraft: VdfDraft | undefined) {
+    const others = Object.fromEntries(Object.entries(drafts.value).filter(([id]) => id !== scopeId.value))
 
-    if (nextDocument === undefined || isEqual(nextDocument, publishedDocument.value)) {
-      drafts.value = others
+    drafts.value = nextDraft === undefined ? others : { ...others, [scopeId.value]: nextDraft }
+  }
+
+  function setDraft(nextDocument: VdfDocument | undefined) {
+    const current = draft.value
+
+    if (nextDocument === undefined || (current === undefined && isEqual(nextDocument, publishedDocument.value))) {
+      writeDraft(undefined)
       return
     }
 
-    drafts.value = {
-      ...others,
-      [scopeId.value]: {
-        baseDocId: current?.baseDocId ?? publishedDocId.value,
-        document: nextDocument,
-        updatedAt: Date.now(),
-      },
+    if (current !== undefined && isEqual(nextDocument, baseDocument.value)) {
+      // back to where it started: nothing of its own left
+      writeDraft(undefined)
+      return
     }
+
+    writeDraft({
+      baseDocId: current?.baseDocId ?? publishedDocId.value,
+      baseDocument: current === undefined ? cloneDocument(publishedDocument.value) : current.baseDocument,
+      document: nextDocument,
+      updatedAt: Date.now(),
+    })
   }
 
   function edit(mutate: (document: VdfDocument) => void) {
@@ -82,14 +144,168 @@ export function useVdfDraft(
     setDraft(undefined)
   }
 
-  function rebaseDraft() {
-    if (draft.value !== undefined) {
-      drafts.value = { ...drafts.value, [scopeId.value]: { ...draft.value, baseDocId: publishedDocId.value } }
+  // REBASE: the draft's changes applied onto the published document
+
+  function rebasePreview(resolutions: Record<string, VdfResolution> = {}) {
+    return mergeDocuments(draft.value?.baseDocument, document.value, publishedDocument.value, {
+      resolutions,
+      lockGlobal,
+    })
+  }
+
+  // objects changed both in the draft and upstream: keep mine or take theirs
+  const rebaseConflicts = computed(() => (isDraftOutdated.value ? rebasePreview().conflicts : []))
+
+  function rebaseDraft(resolutions: Record<string, VdfResolution> = {}) {
+    if (draft.value === undefined) {
+      return
     }
+
+    const merged = rebasePreview(resolutions).document
+
+    writeDraft(
+      isEqual(merged, publishedDocument.value)
+        ? undefined
+        : {
+            baseDocId: publishedDocId.value,
+            baseDocument: cloneDocument(publishedDocument.value),
+            document: merged,
+            updatedAt: Date.now(),
+          }
+    )
+  }
+
+  // a new draft from another document (a version from the history), on top
+  // of what is published now
+  function replaceDraft(nextDocument: VdfDocument) {
+    const local = lockGlobal ? withGlobalOf(nextDocument, publishedDocument.value) : cloneDocument(nextDocument)
+
+    writeDraft(
+      isEqual(local, publishedDocument.value)
+        ? undefined
+        : {
+            baseDocId: publishedDocId.value,
+            baseDocument: cloneDocument(publishedDocument.value),
+            document: local,
+            updatedAt: Date.now(),
+          }
+    )
   }
 
   function clearDraft() {
-    drafts.value = Object.fromEntries(Object.entries(drafts.value).filter(([id]) => id !== scopeId.value))
+    writeDraft(undefined)
+  }
+
+  // REMOVED IN THE DRAFT: what its base has and the draft doesn't, to show
+  // it struck through and restore it
+
+  const removedGroups = computed(() =>
+    Object.entries(baseDocument.value.groups)
+      .filter(([name]) => document.value.groups[name] === undefined && !isLocked(name))
+      .map(([name, group]) => ({ name, group }))
+  )
+
+  const removedPolicies = computed(() =>
+    baseDocument.value.policies.filter(
+      policy => !isLocked(policy.name) && !document.value.policies.some(other => other.name === policy.name)
+    )
+  )
+
+  // rules removed from a policy the draft keeps
+  const removedRules = computed(() =>
+    baseDocument.value.policies.flatMap(policy => {
+      const draftPolicy = document.value.policies.find(other => other.name === policy.name)
+
+      if (draftPolicy === undefined || isLocked(policy.name)) {
+        return []
+      }
+
+      return policy.ingress
+        .filter(rule => !draftPolicy.ingress.some(other => other.id === rule.id))
+        .map(rule => ({ policyName: policy.name, rule }))
+    })
+  )
+
+  // groups a restored policy uses come back with it
+  function restoreGroupsOf(target: VdfDocument, policy: VdfPolicy) {
+    for (const name of [policy.appliedTo, ...policy.ingress.map(rule => rule.from)]) {
+      const group = baseDocument.value.groups[name]
+
+      if (group !== undefined && target.groups[name] === undefined) {
+        target.groups[name] = clone(group)
+      }
+    }
+  }
+
+  // a rule id the draft gave to a new rule meanwhile: the restored one
+  // gets another
+  function freeRuleId(target: VdfDocument, rule: VdfRule) {
+    const taken = target.policies.some(policy => policy.ingress.some(other => other.id === rule.id))
+
+    return taken ? { ...rule, id: nextRuleId(target) } : rule
+  }
+
+  function restoreGroup(name: string) {
+    const group = baseDocument.value.groups[name]
+
+    if (group === undefined || isLocked(name)) {
+      return
+    }
+
+    edit(target => {
+      target.groups[name] = clone(group)
+    })
+  }
+
+  function restorePolicy(name: string) {
+    const policy = baseDocument.value.policies.find(other => other.name === name)
+
+    if (policy === undefined || isLocked(name)) {
+      return
+    }
+
+    edit(target => {
+      if (target.policies.some(other => other.name === name)) {
+        return
+      }
+
+      const restored = { ...clone(policy), ingress: [] as VdfRule[] }
+
+      for (const rule of policy.ingress) {
+        restored.ingress.push(freeRuleId(target, clone(rule)))
+      }
+
+      target.policies.splice(
+        insertionIndex(target.policies, baseDocument.value.policies, policy, (a, b) => a.name === b.name),
+        0,
+        restored
+      )
+      restoreGroupsOf(target, restored)
+    })
+  }
+
+  function restoreRule(policyName: string, id: number) {
+    const rule = baseDocument.value.policies.find(policy => policy.name === policyName)?.ingress.find(r => r.id === id)
+
+    if (rule === undefined || isLocked(policyName)) {
+      return
+    }
+
+    edit(target => {
+      const policy = target.policies.find(other => other.name === policyName)
+      const basePolicy = baseDocument.value.policies.find(other => other.name === policyName)
+
+      if (policy === undefined || basePolicy === undefined || policy.ingress.some(other => isEqual(other, rule))) {
+        return
+      }
+
+      policy.ingress.splice(
+        insertionIndex(policy.ingress, basePolicy.ingress, rule, (a, b) => a.id === b.id),
+        0,
+        freeRuleId(target, clone(rule))
+      )
+      restoreGroupsOf(target, { ...policy, ingress: [rule] })
+    })
   }
 
   // POLICIES
@@ -258,14 +474,26 @@ export function useVdfDraft(
   return {
     draft,
     document,
+    baseDocument,
     changes,
     hasDraft,
+    upstreamChanges,
     isDraftOutdated,
+    expectedDocId,
     isLocked,
     edit,
     discardDraft,
+    rebasePreview,
+    rebaseConflicts,
     rebaseDraft,
+    replaceDraft,
     clearDraft,
+    removedGroups,
+    removedPolicies,
+    removedRules,
+    restoreGroup,
+    restorePolicy,
+    restoreRule,
     savePolicy,
     deletePolicy,
     movePolicy,

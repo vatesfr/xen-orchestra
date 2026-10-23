@@ -4,29 +4,33 @@
     <VtsStateHero v-if="tiers.length === 0" format="card" type="no-data" size="small" horizontal>
       {{ t('firewall:vm:no-policy') }}
     </VtsStateHero>
-    <ol v-else class="steps" :class="{ muted: quarantined }">
-      <li v-for="tier of tiers" :key="tier.value" class="step">
-        <span class="tier-number typo-body-bold-small">{{ tier.value }}</span>
-        <div class="step-body">
-          <span class="typo-h6">{{ tierLabel(tier.value) }}</span>
+    <ol v-else class="tiers">
+      <li v-for="tier of tiers" :key="tier.value" class="tier">
+        <div class="tier-header">
+          <span class="typo-body-bold">{{ tier.label }}</span>
+          <code v-tooltip="t('firewall:tier:order', { n: tier.value })" class="order typo-body-regular-small">
+            {{ tier.value }}
+          </code>
+        </div>
+        <div class="tier-body">
           <div v-for="policy of tier.policies" :key="policy.name" class="policy">
-            <RouterLink
-              :to="vdfPageRoute(poolId, 'policies', { policy: policy.name })"
-              class="policy-name typo-body-bold"
-            >
-              <VtsIcon v-if="isGlobalName(policy.name)" v-tooltip="t('firewall:global')" name="fa:globe" size="small" />
-              {{ displayName(policy.name) }}
-            </RouterLink>
-            <div v-for="rule of policy.ingress" :key="rule.id" class="rule typo-body-regular-small">
-              <code class="secondary">{{ t('firewall:rule-number', { id: globalRuleId(rule.id) }) }}</code>
-              <VdfActionTag :action="ruleAction(rule)" />
-              <span class="secondary">{{ t('firewall:vm:from') }}</span>
-              <VdfGroupChip :scope-id="poolId" :group="rule.from" />
-              <span class="service">{{ formatService(rule) }}</span>
+            <div class="policy-header">
+              <UiLink size="medium" :to="policy.route">{{ policy.label }}</UiLink>
+              <UiTag v-if="policy.isGlobal" v-tooltip="t('firewall:global:tooltip')" accent="muted" variant="primary">
+                <VtsIcon name="fa:globe" size="small" />
+                {{ t('firewall:global') }}
+              </UiTag>
             </div>
-            <div v-if="policy.ingress.length === 0" class="rule typo-body-regular-small secondary">
-              {{ t('firewall:vm:no-rule') }}
-            </div>
+            <ul v-if="policy.rules.length > 0" class="rules">
+              <li v-for="{ rule, id } of policy.rules" :key="rule.id" class="rule typo-body-regular-small">
+                <code class="id">{{ t('firewall:rule-number', { id }) }}</code>
+                <VdfActionTag :action="ruleAction(rule)" />
+                <span class="secondary">{{ t('firewall:vm:from') }}</span>
+                <VdfGroupChip :scope-id="poolId" :group="rule.from" />
+                <VdfRuleService :rule />
+              </li>
+            </ul>
+            <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:no-rule') }}</span>
           </div>
           <div class="tier-default typo-body-regular-small">
             <span class="secondary">{{ t('firewall:no-rule-matches') }}</span>
@@ -34,29 +38,35 @@
           </div>
         </div>
       </li>
-      <li class="step">
-        <span class="tier-number end"><VtsIcon name="fa:check" size="small" /></span>
-        <div class="step-body typo-body-regular-small secondary">{{ t('firewall:after-last-tier') }}</div>
+      <li class="end">
+        <UiInfo accent="success">{{ t('firewall:after-last-tier') }}</UiInfo>
       </li>
     </ol>
   </div>
 </template>
 
 <script lang="ts" setup>
+import VdfRuleService from '@/modules/vdf/components/policies/VdfRuleService.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import type { VdfDocument, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { effectiveTiers, formatPorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { effectiveTiers, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { document, vmTags } = defineProps<{
+// What decides a new connection to a VM, in evaluation order: each tier
+// with the policies that apply to the VM, their rules read as on the
+// policies board, and what the tier does when none matches
+const { poolId, document, vmTags } = defineProps<{
   poolId: string
   document: VdfDocument
   vmTags: string[]
@@ -67,17 +77,19 @@ const { t } = useI18n()
 
 const tierLabel = useVdfTierLabel()
 
-const tiers = computed(() => effectiveTiers(vmTags, document))
-
-function formatService(rule: VdfRule) {
-  if (rule.proto === 'any') {
-    return t('firewall:any-protocol')
-  }
-
-  const ports = formatPorts(rule.ports)
-
-  return ports === '' ? rule.proto.toUpperCase() : `${rule.proto.toUpperCase()} ${ports}`
-}
+const tiers = computed(() =>
+  effectiveTiers(vmTags, document).map(tier => ({
+    ...tier,
+    label: tierLabel(tier.value),
+    policies: tier.policies.map(policy => ({
+      name: policy.name,
+      label: displayName(policy.name),
+      isGlobal: isGlobalName(policy.name),
+      route: vdfPageRoute(poolId, 'policies', { policy: policy.name }),
+      rules: policy.ingress.map(rule => ({ rule, id: globalRuleId(rule.id) })),
+    })),
+  }))
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -86,72 +98,21 @@ function formatService(rule: VdfRule) {
   flex-direction: column;
   gap: 1.6rem;
 
-  .steps {
+  .tiers,
+  .rules {
     display: flex;
     flex-direction: column;
     list-style: none;
     padding: 0;
     margin: 0;
-
-    &.muted {
-      opacity: 0.5;
-    }
   }
 
-  .step {
-    position: relative;
-    display: flex;
+  .tiers {
     gap: 1.6rem;
-    padding-block-end: 2rem;
-
-    &:not(:last-child)::before {
-      content: '';
-      position: absolute;
-      inset-block: 3.2rem 0;
-      inset-inline-start: 2.3rem;
-      width: 0.2rem;
-      background-color: var(--color-neutral-border);
-    }
   }
 
-  .tier-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 4.8rem;
-    height: 3.2rem;
-    border-radius: 0.4rem;
-    color: var(--color-brand-txt-item);
-    background-color: var(--color-brand-item-base);
-
-    &.end {
-      color: var(--color-success-txt-item);
-      background-color: var(--color-success-item-base);
-    }
-  }
-
-  .step-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    padding-block-start: 0.4rem;
-    min-width: 0;
-  }
-
-  .policy {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 1.2rem;
-    border: 0.1rem solid var(--color-neutral-border);
-    border-radius: 0.8rem;
-  }
-
-  .policy-name {
-    color: var(--color-brand-txt-base);
-  }
-
+  .tier-header,
+  .policy-header,
   .rule,
   .tier-default {
     display: flex;
@@ -160,12 +121,44 @@ function formatService(rule: VdfRule) {
     gap: 0.8rem;
   }
 
-  .secondary {
+  .tier-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-block-start: 0.8rem;
+    margin-inline-start: 0.6rem;
+    padding-inline-start: 1.6rem;
+    border-inline-start: 0.2rem solid var(--color-neutral-border);
+  }
+
+  .policy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .rules {
+    gap: 0.4rem;
+  }
+
+  .order {
+    padding-inline: 0.4rem;
+    border: 0.1rem solid var(--color-neutral-border);
+    border-radius: 0.4rem;
     color: var(--color-neutral-txt-secondary);
   }
 
-  code {
-    font-family: monospace;
+  .id {
+    min-width: 4rem;
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .tier-default .secondary {
+    font-style: italic;
+  }
+
+  .secondary {
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
