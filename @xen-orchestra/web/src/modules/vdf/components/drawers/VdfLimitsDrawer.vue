@@ -1,8 +1,10 @@
 <template>
-  <UiDrawer :title="t('firewall:limits')" @confirm="submit()" @dismiss="emit('cancel')">
+  <UiDrawer class="vdf-limits-drawer" @confirm="submit()" @dismiss="emit('cancel')">
+    <template #title>{{ t('firewall:limits') }}</template>
+
     <template #content>
-      <div class="vdf-limits-drawer">
-        <UiInfo accent="info" wrap>{{ t('firewall:limits:info') }}</UiInfo>
+      <div class="fields">
+        <UiAlert accent="info">{{ t('firewall:limits:info') }}</UiAlert>
 
         <UiRadioButtonGroup :label="t('firewall:limits:ceiling')" accent="brand" gap="narrow" vertical>
           <UiRadioButton v-model="ceilingMode" value="auto" accent="brand">
@@ -15,14 +17,38 @@
             {{ t('firewall:limits:ceiling:off') }}
           </UiRadioButton>
         </UiRadioButtonGroup>
-        <VtsInputWrapper v-if="ceilingMode === 'custom'" :label="t('firewall:limits:ceiling:value')">
-          <UiInput v-model.number="form.maxConnPerVIF" accent="brand" type="number" />
+        <VtsInputWrapper
+          v-if="ceilingMode === 'custom'"
+          :label="t('firewall:limits:ceiling:value')"
+          :message="ceilingField.error"
+          wrap-message
+        >
+          <UiInput
+            v-model.number="form.maxConnPerVIF"
+            :accent="ceilingField.error ? 'danger' : 'brand'"
+            type="number"
+            min="1"
+            required
+            @blur="ceilingField.onBlur()"
+          />
         </VtsInputWrapper>
 
         <UiToggle v-model="meterOn">{{ t('firewall:limits:meter') }}</UiToggle>
         <UiInfo accent="muted" wrap>{{ t('firewall:limits:meter:info') }}</UiInfo>
-        <VtsInputWrapper v-if="meterOn" :label="t('firewall:limits:meter:value')">
-          <UiInput v-model.number="form.newConnPerSec" accent="brand" type="number" />
+        <VtsInputWrapper
+          v-if="meterOn"
+          :label="t('firewall:limits:meter:value')"
+          :message="meterField.error"
+          wrap-message
+        >
+          <UiInput
+            v-model.number="form.newConnPerSec"
+            :accent="meterField.error ? 'danger' : 'brand'"
+            type="number"
+            min="1"
+            required
+            @blur="meterField.onBlur()"
+          />
         </VtsInputWrapper>
       </div>
     </template>
@@ -38,12 +64,15 @@ import type { VdfLimits } from '@/modules/vdf/types.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { withMessage } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -71,17 +100,45 @@ const form = reactive({
   newConnPerSec: (limits?.newConnPerSec ?? 0) > 0 ? limits!.newConnPerSec! : 1000,
 })
 
-function submit() {
+// a value of 0 or less means something else to the agent (auto, off):
+// those are chosen with the modes, not typed
+const { useField, validate } = useValidatedForm(form, {
+  errors: {
+    onBlur: () => ({
+      maxConnPerVIF: positive(() => ceilingMode.value === 'custom'),
+      newConnPerSec: positive(() => meterOn.value),
+    }),
+  },
+})
+
+function positive(isUsed: () => boolean) {
+  return {
+    positive: withMessage(
+      (value: unknown) => !isUsed() || (Number.isInteger(value) && Number(value) >= 1),
+      () => t('firewall:limits:positive')
+    ),
+  }
+}
+
+const ceilingField = useField('maxConnPerVIF')
+
+const meterField = useField('newConnPerSec')
+
+async function submit() {
+  if (!(await validate())) {
+    return
+  }
+
   const next: VdfLimits = {}
 
-  if (ceilingMode.value === 'custom' && form.maxConnPerVIF > 0) {
-    next.maxConnPerVIF = Math.round(form.maxConnPerVIF)
+  if (ceilingMode.value === 'custom') {
+    next.maxConnPerVIF = form.maxConnPerVIF
   } else if (ceilingMode.value === 'off') {
     next.maxConnPerVIF = -1
   }
 
-  if (meterOn.value && form.newConnPerSec > 0) {
-    next.newConnPerSec = Math.round(form.newConnPerSec)
+  if (meterOn.value) {
+    next.newConnPerSec = form.newConnPerSec
   }
 
   emit('confirm', Object.keys(next).length === 0 ? undefined : next)
@@ -90,8 +147,10 @@ function submit() {
 
 <style lang="postcss" scoped>
 .vdf-limits-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
 }
 </style>

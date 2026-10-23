@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :has-selection="name !== undefined" @close="emit('close')">
+  <VtsSidePanel class="vdf-group-side-panel" :has-selection="name !== undefined" @close="emit('close')">
     <template v-if="name !== undefined && group !== undefined" #actions>
       <UiLink v-if="locked" size="medium" icon="fa:globe" :to="vdfGlobalRoute('groups', { group: name })">
         {{ t('firewall:global:edit-xo-wide') }}
@@ -11,52 +11,50 @@
 
     <template v-if="name !== undefined && group !== undefined" #default>
       <UiPanelCard>
-        <UiPanelCardTitle
-          size="medium"
-          :label="displayName(name)"
-          :icon="isGlobalName(name) || isGlobalScope(scopeId) ? 'fa:globe' : 'fa:object-group'"
-        />
+        <UiPanelCardTitle size="medium" :label="displayName(name)" :icon="isGlobal ? 'fa:globe' : 'fa:object-group'" />
+        <div v-if="isGlobal || !isPublished" class="badges">
+          <UiTag v-if="isGlobal" accent="muted" variant="primary">{{ t('firewall:global:group') }}</UiTag>
+          <UiTag v-if="!isPublished" accent="warning" variant="secondary">
+            {{ t('firewall:group:not-published') }}
+          </UiTag>
+        </div>
         <UiInfo v-if="locked" accent="info" wrap>{{ t('firewall:global:group:info') }}</UiInfo>
         <VtsCardRowKeyValue align-top>
           <template #key>{{ t('firewall:group-form:tags') }}</template>
           <template #value>
-            <div class="chips">
-              <VtsTag v-for="tag of group.tags ?? []" :key="tag" :value="tag" />
-              <span v-if="!group.tags?.length" class="secondary">{{ t('none') }}</span>
-            </div>
+            <UiTagsList v-if="group.tags?.length">
+              <VtsTag v-for="tag of group.tags" :key="tag" :value="tag" />
+            </UiTagsList>
+            <span v-else class="secondary">{{ t('none') }}</span>
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue align-top>
           <template #key>{{ locked ? t('firewall:global:group-ips') : t('firewall:group-form:ips') }}</template>
           <template #value>
-            <div class="chips">
-              <code v-for="ip of group.ips ?? []" :key="ip">{{ ip }}</code>
-              <span v-if="!group.ips?.length" class="secondary">{{ t('none') }}</span>
-            </div>
+            <ul v-if="group.ips?.length" class="ips">
+              <li v-for="ip of group.ips" :key="ip">
+                <code>{{ ip }}</code>
+              </li>
+            </ul>
+            <span v-else class="secondary">{{ t('none') }}</span>
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue align-top>
           <template #key>{{ t('firewall:used-by') }}</template>
           <template #value>
-            <div class="usage">
-              <RouterLink
-                v-for="policy of usage.appliedTo"
-                :key="`applied:${policy}`"
-                :to="vdfPageRoute(scopeId, 'policies', { policy })"
-              >
-                {{ t('firewall:used-by:protected', { policy: displayName(policy) }) }}
-              </RouterLink>
-              <RouterLink
-                v-for="policy of usage.sourceOf"
-                :key="`source:${policy}`"
-                :to="vdfPageRoute(scopeId, 'policies', { policy })"
-              >
-                {{ t('firewall:used-by:source', { policy: displayName(policy) }) }}
-              </RouterLink>
-              <span v-if="usage.appliedTo.length + usage.sourceOf.length === 0" class="secondary">
-                {{ t('firewall:used-by:none') }}
-              </span>
-            </div>
+            <ul v-if="usage.appliedTo.length + usage.sourceOf.length > 0" class="usage">
+              <li v-for="policy of usage.appliedTo" :key="`applied:${policy}`">
+                <UiLink size="small" :to="vdfPageRoute(scopeId, 'policies', { policy })">
+                  {{ t('firewall:used-by:protected', { policy: displayName(policy) }) }}
+                </UiLink>
+              </li>
+              <li v-for="policy of usage.sourceOf" :key="`source:${policy}`">
+                <UiLink size="small" :to="vdfPageRoute(scopeId, 'policies', { policy })">
+                  {{ t('firewall:used-by:source', { policy: displayName(policy) }) }}
+                </UiLink>
+              </li>
+            </ul>
+            <span v-else class="secondary">{{ t('firewall:used-by:none') }}</span>
           </template>
         </VtsCardRowKeyValue>
       </UiPanelCard>
@@ -76,34 +74,57 @@
             </UiButton>
           </template>
         </UiPanelCardTitle>
+        <UiInfo v-if="group.tags?.length" accent="warning" wrap>{{ t('firewall:membership:applies-now') }}</UiInfo>
+        <UiAlert v-if="tagError" accent="danger" close @close="emit('dismissError')">
+          {{ t('firewall:tags:error') }}
+          <template #description>{{ tagError }}</template>
+        </UiAlert>
         <UiInfo v-if="!group.tags?.length" accent="muted" wrap>{{ t('firewall:group-form:preview:no-tags') }}</UiInfo>
         <UiInfo v-else-if="members.length === 0" accent="muted" wrap>{{ t('firewall:group:no-member') }}</UiInfo>
-        <div v-for="vm of members" :key="vm.id" class="member">
-          <div class="member-head">
-            <UiObjectLink :route="{ name: '/vm/[id]/firewall', params: { id: vm.id } }" :icon="vmIcon(vm)">
-              {{ vm.name_label }}
-            </UiObjectLink>
-            <UiButtonIcon
-              v-tooltip="t('firewall:remove-from-group')"
-              icon="fa:circle-minus"
-              accent="danger"
-              size="small"
+        <ul v-else class="members">
+          <li v-for="member of visibleMembers" :key="member.vm.id" class="member">
+            <UiChip
+              accent="info"
               :disabled="isUpdatingTags"
-              @click="emit('removeVm', vm)"
-            />
-          </div>
-          <div class="member-details typo-body-regular-small">
-            <code v-for="ip of vmIps(vm)" :key="ip">{{ ip }}</code>
-            <UiInfo :accent="isLocked(vm) ? 'success' : 'warning'">
-              {{ isLocked(vm) ? t('firewall:vif-locked') : t('firewall:vif-unlocked') }}
-            </UiInfo>
-            <span v-if="vm.power_state !== 'Running'" class="secondary">{{ t('firewall:not-running') }}</span>
-            <span v-if="poolNameOf" class="pool secondary">
-              <VtsIcon name="object:pool" size="small" />
-              {{ poolNameOf(vm) }}
+              :title="t('firewall:remove-vm:label', { vm: member.vm.name_label })"
+              @remove="emit('removeVm', member.vm)"
+            >
+              <UiLink
+                size="small"
+                :icon="member.icon"
+                :to="{ name: '/vm/[id]/firewall', params: { id: member.vm.id } }"
+              >
+                {{ member.vm.name_label }}
+              </UiLink>
+            </UiChip>
+            <span class="details typo-body-regular-small">
+              <code v-if="member.ips.length > 0" v-tooltip="member.ips.length > 1 ? member.ips.join('\n') : false">
+                {{ member.ips[0] }}
+                <template v-if="member.ips.length > 1">{{ t('plus-n', { n: member.ips.length - 1 }) }}</template>
+              </code>
+              <UiTag v-if="!member.isRunning" accent="muted" variant="primary">
+                {{ t('firewall:membership:not-running') }}
+              </UiTag>
+              <UiInfo v-if="!member.isLocked" v-tooltip="t('firewall:membership:unlocked')" accent="warning">
+                {{ t('firewall:membership:ips-unlocked') }}
+              </UiInfo>
+              <span v-if="member.pool" class="secondary">
+                <VtsIcon name="object:pool" size="small" />
+                {{ member.pool }}
+              </span>
             </span>
-          </div>
-        </div>
+          </li>
+        </ul>
+        <UiButton
+          v-if="members.length > COLLAPSED_MEMBERS"
+          class="toggle"
+          size="small"
+          variant="tertiary"
+          accent="brand"
+          @click="showAll = !showAll"
+        >
+          {{ showAll ? t('action:show-less') : t('firewall:membership:show-all', { n: members.length }) }}
+        </UiButton>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -120,22 +141,33 @@ import {
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { objectIcon } from '@core/icons'
+import { VM_POWER_STATE } from '@vates/types'
+import { toLower } from 'lodash-es'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const {
+  scopeId,
+  name,
+  members,
+  poolNameOf,
+  isPublished = true,
+} = defineProps<{
   scopeId: VdfScopeId
   name: string | undefined
   // a global group shown in a pool: edited XO-wide
@@ -143,9 +175,13 @@ defineProps<{
   // global configuration: members come from several pools
   poolNameOf?: (vm: FrontXoVm) => string
   group: VdfGroup | undefined
+  // false for a group only in the draft
+  isPublished?: boolean
   members: FrontXoVm[]
   usage: { appliedTo: string[]; sourceOf: string[] }
   isUpdatingTags: boolean
+  // why the last membership change failed
+  tagError?: string
 }>()
 
 const emit = defineEmits<{
@@ -153,68 +189,104 @@ const emit = defineEmits<{
   edit: []
   addVms: []
   removeVm: [vm: FrontXoVm]
+  dismissError: []
 }>()
 
 const { t } = useI18n()
 
 const { vifs } = useXoVifCollection()
 
-function vmIcon(vm: FrontXoVm) {
-  return `object:vm:${vm.power_state.toLowerCase()}` as IconName
-}
+const COLLAPSED_MEMBERS = 5
 
-function vmIps(vm: FrontXoVm) {
-  return [...new Set(Object.values(vm.addresses ?? {}))].filter(ip => !ip.startsWith('fe80:')).slice(0, 3)
-}
+const showAll = ref(false)
 
-function isLocked(vm: FrontXoVm) {
-  const vmVifs = vifs.value.filter(vif => vif.$VM === vm.id)
+watch(
+  () => name,
+  () => (showAll.value = false)
+)
 
-  return vmVifs.length > 0 && vmVifs.every(vif => vif.lockingMode === 'locked')
-}
+const isGlobal = computed(() => isGlobalName(name) || isGlobalScope(scopeId))
+
+const memberRows = computed(() =>
+  members.map(vm => {
+    const vmVifs = vifs.value.filter(vif => vif.$VM === vm.id)
+
+    return {
+      vm,
+      icon: objectIcon('vm', toLower(vm.power_state)),
+      // IPv4 first: the guest reports link-local IPv6 too
+      ips: [...new Set(Object.values(vm.addresses ?? {}))]
+        .filter(ip => !ip.startsWith('fe80:'))
+        .sort((ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':'))),
+      isRunning: vm.power_state === VM_POWER_STATE.RUNNING,
+      isLocked: vmVifs.length > 0 && vmVifs.every(vif => vif.lockingMode === 'locked'),
+      pool: poolNameOf?.(vm),
+    }
+  })
+)
+
+const visibleMembers = computed(() => (showAll.value ? memberRows.value : memberRows.value.slice(0, COLLAPSED_MEMBERS)))
 </script>
 
 <style lang="postcss" scoped>
-.chips,
-.usage,
-.member-details {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.8rem;
-}
+.vdf-group-side-panel {
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
 
-.usage {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
-}
+  .ips,
+  .usage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+  }
 
-.member {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding-block: 0.8rem;
-  border-block-start: 0.1rem solid var(--color-neutral-border);
-}
+  .ips code {
+    overflow-wrap: anywhere;
+  }
 
-.pool {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
+  .members {
+    display: flex;
+    flex-direction: column;
+  }
 
-.member-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  .member {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding-block: 0.8rem;
+    border-block-start: 0.1rem solid var(--color-neutral-border);
+    min-width: 0;
 
-.secondary {
-  color: var(--color-neutral-txt-secondary);
-}
+    .details {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem;
+      max-width: 100%;
 
-code {
-  font-family: monospace;
+      code {
+        overflow-wrap: anywhere;
+      }
+
+      .secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+    }
+  }
+
+  .toggle {
+    align-self: flex-start;
+  }
+
+  .secondary {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>

@@ -8,19 +8,19 @@
         </VtsInputWrapper>
         <div class="tags typo-body-regular-small">
           <span>{{ t('firewall:add-vms:tags') }}</span>
-          <VtsTag v-for="tag of tags" :key="tag" :value="tag" />
+          <UiTagsList>
+            <VtsTag v-for="tag of tags" :key="tag" :value="tag" />
+          </UiTagsList>
         </div>
+        <UiAlert v-if="!isPublished" accent="info">{{ t('firewall:add-vms:not-published') }}</UiAlert>
         <UiAlert accent="warning">{{ t('firewall:add-vms:effect') }}</UiAlert>
       </div>
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')" />
-      <VtsOverlayConfirmButton v-if="selectedVms.length > 0">
+      <VtsOverlayConfirmButton>
         {{ t('firewall:add-vms:confirm', { n: selectedVms.length }) }}
       </VtsOverlayConfirmButton>
-      <UiButton v-else variant="primary" accent="brand" size="medium" disabled>
-        {{ t('firewall:add-vms:confirm', { n: 0 }) }}
-      </UiButton>
     </template>
   </UiModal>
 </template>
@@ -33,18 +33,21 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { candidates } = defineProps<{
+const { candidates, isPublished = true } = defineProps<{
   group: string
   tags: string[]
   candidates: FrontXoVm[]
+  // a group only in the draft: hosts don't know it until it's published
+  isPublished?: boolean
 }>()
 
+// confirming with no VM selected keeps the modal open
 const emit = defineEmits<{
   confirm: [vms: FrontXoVm[]]
   cancel: []

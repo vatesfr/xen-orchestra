@@ -23,6 +23,10 @@ const route = useRoute()
 
 const router = useRouter()
 
+// /pool/<id>/firewall opens the Overview. Not with useDefaultTab(), as the
+// object pages do: it remembers a single page/tab pair in localStorage, so
+// using it here, nested under /pool/[id], would overwrite the pool's own
+// remembered tab.
 watch(
   () => route.name,
   name => {

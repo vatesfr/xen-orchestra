@@ -2,9 +2,13 @@ import type { VdfDocument } from '@/modules/vdf/types.ts'
 import {
   diffDocuments,
   effectiveTiers,
+  filterRuleBase,
+  movePolicy,
+  moveRule,
   nextRuleId,
   parsePorts,
   policiesByTier,
+  ruleBase,
   tierDefault,
   tierValue,
   toTierRef,
@@ -89,6 +93,15 @@ describe('rules', () => {
     expect(nextRuleId({ groups: {}, policies: [] })).toBe(1)
   })
 
+  it("doesn't reuse the id of a rule deleted in the draft", () => {
+    const draft = structuredClone(document)
+
+    draft.policies[2].ingress = []
+
+    expect(nextRuleId(draft)).toBe(3)
+    expect(nextRuleId(draft, document)).toBe(4)
+  })
+
   it('parses port lists, refuses what agents would reject', () => {
     expect(parsePorts('80, 443 443')).toEqual([80, 443])
     expect(parsePorts('')).toEqual([])
@@ -117,5 +130,133 @@ describe('diffDocuments', () => {
       { kind: 'policy', type: 'removed', label: 'incident' },
       { kind: 'policy', type: 'moved', label: '' },
     ])
+  })
+})
+
+describe('ruleBase', () => {
+  const names = (tiers: ReturnType<typeof ruleBase>) =>
+    tiers.map(tier => [tier.value, tier.policies.map(({ policy, state }) => `${policy.name}:${state ?? ''}`)])
+
+  it('lists every named tier, in order, with its default', () => {
+    const tiers = ruleBase(document, document)
+
+    expect(tiers.map(tier => tier.value)).toEqual([0, 25, 50, 75, 100, 110])
+    expect(tiers.find(tier => tier.value === 110)?.default).toBe('drop')
+    expect(tiers.find(tier => tier.value === 25)?.policies).toEqual([])
+  })
+
+  it('marks what the draft adds, changes and removes, removed ones where they were', () => {
+    const draft = structuredClone(document)
+
+    draft.policies[0].ingress.unshift({ id: 4, from: 'admins', proto: 'tcp', ports: [22] })
+    draft.policies[1].default = 'pass'
+    draft.policies.splice(2, 1)
+    draft.policies.push({ name: 'web', appliedTo: 'web', default: 'drop', ingress: [] })
+
+    const tiers = ruleBase(draft, document)
+
+    expect(names(tiers).filter(([, policies]) => (policies as string[]).length > 0)).toEqual([
+      [0, ['incident:removed']],
+      [100, ['app:', 'web:new']],
+      [110, ['baseline:modified']],
+    ])
+    expect(tiers[4].policies[0].rules.map(({ rule, state }) => [rule.id, state])).toEqual([
+      [4, 'new'],
+      [1, undefined],
+    ])
+    // the rules of a removed policy go with it, they aren't marked one by one
+    expect(tiers[0].policies[0].rules.map(({ state }) => state)).toEqual([undefined])
+  })
+
+  it('shows a rule deleted in the draft right after its published predecessor', () => {
+    const published = structuredClone(document)
+    const draft = structuredClone(document)
+
+    published.policies[0].ingress = [
+      { id: 1, from: 'web', proto: 'tcp', ports: [8080] },
+      { id: 5, from: 'admins', proto: 'tcp', ports: [22] },
+      { id: 6, from: 'admins', proto: 'tcp', ports: [80] },
+    ]
+    draft.policies[0].ingress = [published.policies[0].ingress[0], published.policies[0].ingress[2]]
+
+    const [first, removed, last] = ruleBase(draft, published)[4].policies[0].rules
+
+    expect([first.rule.id, removed.rule.id, last.rule.id]).toEqual([1, 5, 6])
+    expect(removed.state).toBe('removed')
+    expect([first.isFirst, last.isLast, removed.isFirst]).toEqual([true, true, false])
+  })
+
+  it('keeps locked policies out of the moves', () => {
+    const draft = structuredClone(document)
+
+    draft.policies.push({ name: 'global:ssh', appliedTo: 'app', default: 'pass', ingress: [] })
+
+    const [locked, app] = ruleBase(draft, draft, name => name.startsWith('global:'))[4].policies.sort(
+      (entryA, entryB) => Number(entryB.locked) - Number(entryA.locked)
+    )
+
+    expect([locked.locked, locked.isFirst, app.isFirst, app.isLast]).toEqual([true, false, true, true])
+  })
+})
+
+describe('filterRuleBase', () => {
+  const tiers = ruleBase(document, document)
+  const found = (query: string) =>
+    filterRuleBase(tiers, query).flatMap(tier =>
+      tier.policies.map(({ policy, rules }) => `${policy.name}:${rules.map(({ rule }) => rule.id).join(',')}`)
+    )
+
+  it('finds policies by name or group, with all their rules', () => {
+    expect(found('baseline')).toEqual(['baseline:2'])
+    expect(found('prod')).toEqual(['incident:3'])
+  })
+
+  it('finds rules by source, port or id, and drops empty tiers', () => {
+    expect(found('web')).toEqual(['incident:3', 'app:1'])
+    expect(found('22')).toEqual(['baseline:2'])
+    expect(found('#1')).toEqual(['app:1'])
+    expect(found('prod 9999')).toEqual(['incident:3'])
+    expect(found('app 9999')).toEqual([])
+    expect(filterRuleBase(tiers, 'nothing')).toEqual([])
+    expect(filterRuleBase(tiers, '  ')).toBe(tiers)
+  })
+})
+
+describe('moves', () => {
+  const draft = (): VdfDocument => ({
+    groups: {},
+    policies: ['a', 'b', 'c'].map(name => ({ name, appliedTo: 'app', default: 'drop', ingress: [] })),
+  })
+
+  it('moves a policy within its tier, to an end or one step', () => {
+    const moved = draft()
+
+    moved.policies.splice(1, 0, { name: 'early', tier: 'emergency', appliedTo: 'app', default: 'pass', ingress: [] })
+
+    expect(movePolicy(moved, 'c', 'top')).toBe(true)
+    expect(moved.policies.map(({ name }) => name)).toEqual(['c', 'early', 'a', 'b'])
+    expect(movePolicy(moved, 'c', 'up')).toBe(false)
+    expect(movePolicy(moved, 'a', 'bottom')).toBe(true)
+    expect(moved.policies.map(({ name }) => name)).toEqual(['c', 'early', 'b', 'a'])
+  })
+
+  it("doesn't move a policy past a locked one", () => {
+    const moved = draft()
+
+    moved.policies.unshift({ name: 'global:ssh', appliedTo: 'app', default: 'pass', ingress: [] })
+
+    expect(movePolicy(moved, 'b', 'top', name => name.startsWith('global:'))).toBe(true)
+    expect(moved.policies.map(({ name }) => name)).toEqual(['global:ssh', 'b', 'a', 'c'])
+    expect(movePolicy(moved, 'global:ssh', 'bottom', name => name.startsWith('global:'))).toBe(false)
+  })
+
+  it('moves a rule within its policy', () => {
+    const moved = structuredClone(document)
+
+    moved.policies[0].ingress.push({ id: 7, from: 'any', proto: 'icmp' }, { id: 8, from: 'any', proto: 'udp' })
+
+    expect(moveRule(moved, 'app', 8, 'top')).toBe(true)
+    expect(moved.policies[0].ingress.map(({ id }) => id)).toEqual([8, 1, 7])
+    expect(moveRule(moved, 'app', 7, 'down')).toBe(false)
   })
 })

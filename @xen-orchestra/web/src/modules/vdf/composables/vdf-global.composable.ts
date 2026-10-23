@@ -54,6 +54,11 @@ export function useVdfGlobalPolicy() {
     pools.value.filter(pool => inGlobalScope(scope.value, pool.id)).map(pool => pool.id)
   )
 
+  // pools the published scope covers: what is enforced now
+  const publishedScopePoolIds = computed(() =>
+    pools.value.filter(pool => inGlobalScope(publishedScope.value, pool.id)).map(pool => pool.id)
+  )
+
   const inSyncPoolCount = computed(() => pools.value.filter(pool => pool.state === 'in-sync').length)
 
   const inScopePoolCount = computed(() => pools.value.filter(pool => pool.inScope).length)
@@ -110,6 +115,7 @@ export function useVdfGlobalPolicy() {
     setScope,
     pools,
     scopePoolIds,
+    publishedScopePoolIds,
     inSyncPoolCount,
     inScopePoolCount,
     hosts,

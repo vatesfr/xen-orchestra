@@ -9,14 +9,29 @@ export const useVdfVmTagJob = defineJob('vdf.vm-tag', [vdfVmsArg, vdfTagArg, vdf
   const { t } = useI18n()
 
   return {
-    run(vms, tag, present) {
+    async run(vms, tag, present) {
       const path = (vmId: string) => `vms/${vmId}/tags/${encodeURIComponent(tag)}`
+      const targets = vms.filter(vm => vm.tags.includes(tag) !== present)
 
-      return Promise.all(
-        vms
-          .filter(vm => vm.tags.includes(tag) !== present)
-          .map(vm => (present ? fetchRequest(path(vm.id), { method: 'PUT' }) : fetchDelete(path(vm.id))))
+      const results = await Promise.allSettled(
+        targets.map(vm => (present ? fetchRequest(path(vm.id), { method: 'PUT' }) : fetchDelete(path(vm.id))))
       )
+
+      // the other VMs are tagged anyway: say which ones failed, and why
+      const failures = results.flatMap((result, index) =>
+        result.status === 'rejected'
+          ? [
+              t('firewall:tags:vm-error', {
+                vm: targets[index].name_label,
+                error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+              }),
+            ]
+          : []
+      )
+
+      if (failures.length > 0) {
+        throw new Error(failures.join('\n'))
+      }
     },
 
     validate(isRunning, vms, tag) {

@@ -89,10 +89,12 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     poolId,
     publishedPolicy,
     publishedDocId,
+    // what the hosts enforce, without the draft (`document` is the draft)
     publishedDocument,
     isPublished,
     isPublishedPolicyReady,
     hasPublishedPolicyError,
+    reloadPublishedPolicy,
     globalInfo,
     hosts,
     areHostsReady,

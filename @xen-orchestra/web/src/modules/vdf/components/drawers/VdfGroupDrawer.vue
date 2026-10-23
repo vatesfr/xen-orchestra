@@ -1,9 +1,19 @@
 <template>
-  <UiDrawer :title @confirm="submit()" @dismiss="emit('cancel')">
+  <UiDrawer class="vdf-group-drawer" @confirm="submit()" @dismiss="emit('cancel')">
+    <template #title>{{ title }}</template>
+
     <template #content>
-      <div class="vdf-group-drawer">
-        <VtsInputWrapper :label="t('firewall:group-form:name')" :message="nameError" wrap-message>
-          <UiInput v-model.trim="form.name" :accent="nameError ? 'danger' : 'brand'" required placeholder="db" />
+      <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
+
+      <div class="fields">
+        <VtsInputWrapper :label="t('firewall:group-form:name')" :message="nameField.error" wrap-message>
+          <UiInput
+            v-model.trim="form.name"
+            :accent="nameField.error ? 'danger' : 'brand'"
+            required
+            :placeholder="t('firewall:group-form:name:placeholder')"
+            @blur="nameField.onBlur()"
+          />
         </VtsInputWrapper>
         <UiInfo v-if="!isNew && form.name !== name" accent="info" wrap>
           {{ t('firewall:group-form:rename') }}
@@ -16,9 +26,15 @@
             <UiChip v-for="tag of form.tags" :key="tag" accent="info" @remove="removeTag(tag)">{{ tag }}</UiChip>
           </div>
           <div class="add">
-            <UiInput v-model.trim="newTag" accent="brand" placeholder="vdf:role=db" @keydown.enter.prevent="addTag()" />
+            <UiInput
+              v-model.trim="newTag"
+              accent="brand"
+              :aria-label="t('firewall:group-form:tags')"
+              :placeholder="t('firewall:group-form:tags:placeholder')"
+              @keydown.enter.prevent="addTag()"
+            />
             <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="addTag()">
-              {{ t('firewall:add') }}
+              {{ t('firewall:group-form:add-tag') }}
             </UiButton>
           </div>
           <div v-if="suggestedTags.length > 0" class="suggestions typo-body-regular-small">
@@ -40,11 +56,12 @@
               <UiInput
                 v-model.trim="newIp"
                 :accent="ipError ? 'danger' : 'brand'"
-                placeholder="192.168.1.30, 10.0.0.0/8"
+                :aria-label="t('firewall:group-form:ips')"
+                :placeholder="t('firewall:group-form:ips:placeholder')"
                 @keydown.enter.prevent="addIp()"
               />
               <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="addIp()">
-                {{ t('firewall:add') }}
+                {{ t('firewall:group-form:add-ip') }}
               </UiButton>
             </div>
           </VtsInputWrapper>
@@ -57,8 +74,8 @@
           </UiInfo>
           <div v-else class="vms">
             <span v-for="vm of matchingVms" :key="vm.id" class="vm typo-body-regular-small">
-              <VtsIcon :name="`object:vm:${vm.power_state.toLowerCase()}` as IconName" size="medium" />
-              {{ vm.name_label }}
+              <VtsIcon :name="vm.icon" size="medium" />
+              {{ vm.name }}
             </span>
           </div>
         </section>
@@ -73,9 +90,9 @@
 
 <script lang="ts" setup>
 import { VDF_QUARANTINE_TAG, VDF_TAG_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
+import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -87,15 +104,20 @@ import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import { omit } from 'lodash-es'
+import { objectIcon } from '@core/icons'
+import { regex, required, withMessage } from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
+import { omit, toLower } from 'lodash-es'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { name, group, isNew, otherGroupNames } = defineProps<{
+const { name, group, isNew, otherGroupNames, poolIds } = defineProps<{
   name: string
   group: VdfGroup
   isNew: boolean
   otherGroupNames: string[]
+  // where members are looked for: the pool, or the global scope's pools
+  poolIds: string[]
 }>()
 
 const emit = defineEmits<{
@@ -105,7 +127,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const title = computed(() => (isNew ? t('firewall:group-form:new') : t('firewall:group-form:edit', { name })))
+const title = computed(() =>
+  isNew ? t('firewall:group-form:new') : t('firewall:group-form:edit', { name: displayName(name) })
+)
 
 const form = reactive({
   name,
@@ -115,7 +139,11 @@ const form = reactive({
 
 const { vms } = useXoVmCollection()
 
-const matchingVms = computed(() => vms.value.filter(vm => isVmInGroup(vm.tags, { tags: form.tags })))
+const matchingVms = computed(() =>
+  vms.value
+    .filter(vm => poolIds.includes(vm.$pool) && isVmInGroup(vm.tags, { tags: form.tags }))
+    .map(vm => ({ id: vm.id, name: vm.name_label, icon: objectIcon('vm', toLower(vm.power_state)) }))
+)
 
 // tags already used for the firewall on this XO's VMs
 const suggestedTags = computed(() =>
@@ -165,29 +193,31 @@ function removeIp(ip: string) {
   form.ips = form.ips.filter(value => value !== ip)
 }
 
-const submitted = ref(false)
+// in a pool, a global group reads by its global name: no local one may
+// take it, or the two would read the same in rules
+const takenNames = computed(() => ['any', ...otherGroupNames.map(displayName)])
 
-const nameError = computed(() => {
-  if (!submitted.value) {
-    return undefined
-  }
-
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(form.name)) {
-    return { content: t('firewall:group-form:name:invalid'), accent: 'danger' as const }
-  }
-
-  if (form.name === 'any' || otherGroupNames.includes(form.name)) {
-    return { content: t('firewall:group-form:name:taken'), accent: 'danger' as const }
-  }
-
-  return undefined
+const { useField, validate } = useValidatedForm(form, {
+  errors: {
+    onSubmit: () => ({
+      name: {
+        required: withMessage(required, () => t('firewall:group-form:name:required')),
+        pattern: withMessage(regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/), () => t('firewall:group-form:name:invalid')),
+        taken: withMessage(
+          (value: unknown) => !takenNames.value.includes(String(value ?? '')),
+          () => t('firewall:group-form:name:taken')
+        ),
+      },
+    }),
+  },
 })
 
-function submit() {
-  submitted.value = true
+const nameField = useField('name')
+
+async function submit() {
   addTag()
 
-  if (nameError.value !== undefined) {
+  if (!(await validate())) {
     return
   }
 
@@ -207,9 +237,17 @@ function submit() {
 
 <style lang="postcss" scoped>
 .vdf-group-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
+  .required-hint::before {
+    content: '* ';
+    color: var(--color-brand-txt-base);
+  }
+
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+    margin-block-start: 2.4rem;
+  }
 
   .section {
     display: flex;
@@ -232,10 +270,23 @@ function submit() {
   }
 
   .suggestion {
+    position: relative;
     padding: 0;
     border: none;
     background: none;
     cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -0.4rem;
+        border: 0.2rem solid var(--color-brand-txt-base);
+        border-radius: 0.4rem;
+      }
+    }
   }
 
   .vm {

@@ -135,6 +135,41 @@ export type VdfCheckResult = {
   // global configuration: one result per pool
   pools?: (VdfCheckResult & { id: string; name: string; inScope: boolean; skipped?: boolean; unreachable?: boolean })[]
   revision?: number
+  // pool publish refused: the pool's document isn't the one the edit
+  // started from (docId: what it holds)
+  conflict?: boolean
+  docId?: string
+}
+
+// Publish history (xo-server-vdf history.mjs): the last documents XO
+// published, per scope. A pool's summary counts its own part.
+export type VdfHistorySummary = {
+  added: number
+  removed: number
+  modified: number
+  groups: number
+  policies: number
+  rules: number
+}
+
+export type VdfHistoryEntry = {
+  id: number
+  // a pool's: the document id, and the one it replaced
+  docId?: string
+  previousDocId?: string | null
+  // the global configuration's
+  revision?: number
+  scope?: VdfGlobalScope
+  // null: what the pool held before XO kept a history
+  publishedAt: string | null
+  publishedBy: string | null
+  summary: VdfHistorySummary
+}
+
+export type VdfHistoryVersion = VdfHistoryEntry & {
+  document: VdfDocument
+  // the version it replaced, if still kept
+  previous: (VdfHistoryEntry & { document: VdfDocument }) | null
 }
 
 // host.other_config["vdf:status"], written by each host's agent

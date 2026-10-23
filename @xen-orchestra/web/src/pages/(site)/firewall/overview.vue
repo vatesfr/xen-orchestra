@@ -1,211 +1,267 @@
 <template>
-  <div class="global-firewall-overview">
-    <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-    <template v-else>
-      <UiAlert v-if="hasGlobalError" accent="danger">{{ t('firewall:global:error') }}</UiAlert>
+  <VtsStateHero
+    v-if="!isGlobalReady && hasGlobalError"
+    format="page"
+    type="error"
+    size="medium"
+    class="global-firewall-overview-state"
+  >
+    {{ t('firewall:global:error') }}
+  </VtsStateHero>
+  <VtsStateHero v-else-if="!isReady" format="page" type="busy" size="medium" class="global-firewall-overview-state" />
+  <div v-else class="global-firewall-overview">
+    <UiAlert v-if="hasGlobalError" accent="danger">{{ t('firewall:global:error:polling') }}</UiAlert>
 
-      <UiInfo accent="info" wrap>{{ t('firewall:global:info') }}</UiInfo>
-
-      <div class="stats">
-        <VdfStatCard
-          icon="object:pool"
-          :label="t('firewall:global:stat:pools')"
-          :value="inSyncPoolCount"
-          :total="inScopePoolCount"
-          :caption="poolsCaption"
-          :accent="inScopePoolCount > 0 && inSyncPoolCount === inScopePoolCount ? 'success' : 'warning'"
-        />
-        <VdfStatCard
-          icon="fa:layer-group"
-          :label="t('firewall:global:stat:policies')"
-          :value="document.policies.length"
-          :caption="t('firewall:n-rules', { n: ruleCount })"
-          accent="brand"
-        />
-        <VdfStatCard
-          icon="fa:shield"
-          :label="t('firewall:stat:protected-vms')"
-          :value="protectedVms.length"
-          :total="poolVms.length"
-          :caption="t('firewall:global:stat:protected-vms:caption', { n: scopePoolIds.length })"
-          :accent="protectedVms.length > 0 ? 'success' : 'neutral'"
-        />
-        <VdfStatCard
-          icon="fa:server"
-          :label="t('firewall:stat:hosts')"
-          :value="upToDateHosts"
-          :total="liveHosts"
-          :caption="
-            upToDateHosts === liveHosts
-              ? t('firewall:stat:hosts:all')
-              : t('firewall:stat:hosts:some', { n: liveHosts - upToDateHosts })
-          "
-          :accent="upToDateHosts === liveHosts ? 'success' : 'warning'"
-        />
-      </div>
-
-      <UiCard>
-        <UiTitle>
-          {{ t('firewall:global:pools') }}
-          <template #action>
-            <span v-if="revision > 0" class="typo-body-regular-small secondary published">
-              <span>{{ t('firewall:global:revision', { n: revision }) }}</span>
-              <span v-if="globalStatus?.publishedBy">{{ globalStatus.publishedBy }}</span>
-              <VtsRelativeTime v-if="globalStatus?.publishedAt" :date="globalStatus.publishedAt" />
-            </span>
+    <UiCard>
+      <UiTitle>{{ t('firewall:global:title') }}</UiTitle>
+      <p class="typo-body-regular">{{ t('firewall:global:info') }}</p>
+      <div class="summary typo-body-regular-small">
+        <span v-if="revision === 0" class="secondary">{{ t('firewall:global:not-published') }}</span>
+        <I18nT
+          v-else
+          :keypath="globalStatus?.publishedBy ? 'firewall:global:revision-by' : 'firewall:global:revision'"
+          scope="global"
+          tag="span"
+          class="secondary"
+        >
+          <template #n>{{ n(revision) }}</template>
+          <template #user>{{ globalStatus?.publishedBy }}</template>
+          <template #time>
+            <VtsRelativeTime v-if="globalStatus?.publishedAt" :date="globalStatus.publishedAt" />
           </template>
-        </UiTitle>
+        </I18nT>
+        <span class="scope">
+          <span>{{ scopeLabel }}</span>
+          <UiTag v-if="isScopeDrafted" accent="info" variant="secondary">{{
+            t('firewall:global:scope:drafted')
+          }}</UiTag>
+          <UiButton variant="tertiary" accent="brand" size="small" left-icon="action:edit" @click="changeScope()">
+            {{ t('firewall:global:scope:change') }}
+          </UiButton>
+        </span>
+      </div>
+      <VdfDraftHint v-if="hasDraft" :to="{ name: '/(site)/firewall/policies' }" />
+    </UiCard>
 
-        <div class="scope">
-          <UiRadioButtonGroup :label="t('firewall:global:scope')" accent="brand" gap="wide">
-            <UiRadioButton v-model="scopeMode" value="all" accent="brand">
-              {{ t('firewall:global:scope:all', { n: pools.length }) }}
-            </UiRadioButton>
-            <UiRadioButton v-model="scopeMode" value="selected" accent="brand">
-              {{ t('firewall:global:scope:selected') }}
-            </UiRadioButton>
-          </UiRadioButtonGroup>
-          <UiInfo accent="muted" wrap>{{ t('firewall:global:scope:info') }}</UiInfo>
-        </div>
-
-        <VtsTable>
-          <thead>
-            <tr>
-              <VtsHeaderCell v-if="scopeMode === 'selected'" class="narrow" />
-              <VtsHeaderCell>{{ t('pool') }}</VtsHeaderCell>
-              <VtsHeaderCell>{{ t('firewall:global:sync') }}</VtsHeaderCell>
-              <VtsHeaderCell>{{ t('firewall:stat:hosts') }}</VtsHeaderCell>
-              <VtsHeaderCell>{{ t('firewall:global:last-sync') }}</VtsHeaderCell>
-              <VtsHeaderCell />
-            </tr>
-          </thead>
-          <tbody>
-            <VtsRow v-for="row of poolRows" :key="row.pool.id">
-              <UiTableCell v-if="scopeMode === 'selected'">
-                <UiCheckbox
-                  accent="brand"
-                  :model-value="row.inDraftScope"
-                  @update:model-value="selected => togglePool(row.pool.id, selected === true)"
-                />
-              </UiTableCell>
-              <UiTableCell>
-                <UiObjectLink :route="{ name: '/pool/[id]/firewall', params: { id: row.pool.id } }" icon="object:pool">
-                  {{ row.pool.name }}
-                </UiObjectLink>
-              </UiTableCell>
-              <UiTableCell>
-                <span class="sync">
-                  <UiTag :accent="stateAccents[row.pool.state]" variant="secondary">
-                    {{ t(`firewall:global:state:${row.pool.state}`) }}
-                  </UiTag>
-                  <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
-                    {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
-                  </UiTag>
-                </span>
-              </UiTableCell>
-              <UiTableCell>
-                <span v-if="row.pool.inScope">{{ t('firewall:of-total-hosts', row.hosts) }}</span>
-                <span v-else class="secondary">{{ t('none') }}</span>
-              </UiTableCell>
-              <UiTableCell>
-                <span v-if="row.pool.sync" class="last-sync typo-body-regular-small">
-                  <VtsRelativeTime :date="row.pool.sync.at" />
-                  <span v-if="row.pool.sync.error" class="danger">{{ row.pool.sync.error }}</span>
-                </span>
-                <span v-else class="secondary">{{ t('none') }}</span>
-              </UiTableCell>
-              <UiTableCell>
-                <UiLink :to="{ name: '/pool/[id]/firewall/policies', params: { id: row.pool.id } }" size="small">
-                  {{ t('firewall:global:open-pool') }}
-                </UiLink>
-              </UiTableCell>
-            </VtsRow>
-          </tbody>
-        </VtsTable>
-      </UiCard>
-
-      <div class="columns">
-        <UiCard class="policies-card">
-          <UiTitle>
-            {{ t('firewall:policies') }}
-            <template #action>
-              <UiLink :to="{ name: '/(site)/firewall/policies' }" size="medium">
-                {{ t('firewall:manage-policies') }}
-              </UiLink>
-            </template>
-          </UiTitle>
-          <VtsStateHero v-if="document.policies.length === 0" format="card" type="no-data" size="medium">
-            {{ t('firewall:global:no-policy') }}
+    <VtsColumns>
+      <VtsColumn>
+        <UiCard>
+          <UiCardTitle>
+            {{ t('firewall:global:stat:pools') }}
+            <template #description>{{ t('firewall:global:stat:pools:description') }}</template>
+          </UiCardTitle>
+          <VtsStateHero v-if="inScopePools.length === 0" format="card" type="no-data" size="extra-small" horizontal>
+            {{ t('firewall:global:no-pool-in-scope') }}
           </VtsStateHero>
-          <VtsTable v-else>
-            <thead>
-              <tr>
-                <VtsHeaderCell>{{ t('firewall:tier') }}</VtsHeaderCell>
-                <VtsHeaderCell>{{ t('firewall:policy') }}</VtsHeaderCell>
-                <VtsHeaderCell>{{ t('firewall:applied-to') }}</VtsHeaderCell>
-                <VtsHeaderCell>{{ t('firewall:rules') }}</VtsHeaderCell>
-                <VtsHeaderCell>{{ t('firewall:realized') }}</VtsHeaderCell>
-              </tr>
-            </thead>
-            <tbody>
-              <VtsRow v-for="row of policyRows" :key="row.policy.name">
-                <UiTableCell>
-                  <span class="typo-body-regular-small">{{ tierLabel(row.tier) }}</span>
-                </UiTableCell>
-                <UiTableCell class="typo-body-bold">{{ row.policy.name }}</UiTableCell>
-                <UiTableCell>
-                  <VdfGroupChip
-                    :scope-id
-                    :group="row.policy.appliedTo"
-                    :count="membersOf(row.policy.appliedTo).length"
-                  />
-                </UiTableCell>
-                <UiTableCell>{{ row.policy.ingress.length }}</UiTableCell>
-                <UiTableCell>
-                  <UiInfo :accent="row.accent">{{ t('firewall:realized:count', row.realization) }}</UiInfo>
-                </UiTableCell>
-              </VtsRow>
-            </tbody>
-          </VtsTable>
+          <VtsDonutChartWithLegend
+            v-else
+            :segments="poolSegments"
+            :title="{ label: t('firewall:global:pools-in-sync', { n: inSyncPoolCount, total: inScopePools.length }) }"
+            icon="object:pool"
+          />
         </UiCard>
-
-        <UiCard class="members-card">
-          <UiTitle>{{ t('firewall:global:members') }}</UiTitle>
-          <UiInfo accent="muted" wrap>{{ t('firewall:global:members:info') }}</UiInfo>
-          <VtsStateHero v-if="memberGroups.length === 0" format="card" type="no-data" size="small" horizontal>
-            {{ t('firewall:global:members:none') }}
+      </VtsColumn>
+      <VtsColumn>
+        <UiCard>
+          <UiCardTitle>
+            {{ t('firewall:overview:protection') }}
+            <template #description>{{ t('firewall:global:protection:description') }}</template>
+          </UiCardTitle>
+          <VtsStateHero v-if="runningVms.length === 0" format="card" type="no-data" size="extra-small" horizontal>
+            {{ t('firewall:overview:no-running-vm') }}
           </VtsStateHero>
-          <div v-for="group of memberGroups" :key="group.name" class="member-group">
-            <VdfGroupChip :scope-id :group="group.name" :count="group.members.length" />
-            <div v-for="member of group.members" :key="member.vm" class="member typo-body-regular-small">
-              <UiObjectLink :route="{ name: '/vm/[id]/firewall', params: { id: member.vm } }" icon="object:vm">
-                {{ member.vmName }}
-              </UiObjectLink>
-              <span class="pool secondary"><VtsIcon name="object:pool" size="small" />{{ member.poolName }}</span>
-              <code v-for="ip of member.ips.slice(0, 1)" :key="ip">{{ ip }}</code>
-              <span v-if="member.ips.length > 1" v-tooltip="member.ips.slice(1).join('\n')" class="secondary">
-                {{ t('firewall:more', { n: member.ips.length - 1 }) }}
-              </span>
-              <UiInfo :accent="member.trusted ? 'success' : 'warning'">
-                {{ member.trusted ? t('firewall:vif-locked') : t('firewall:global:guest-ips') }}
-              </UiInfo>
-            </div>
+          <VtsDonutChartWithLegend
+            v-else
+            :segments="protectionSegments"
+            :title="{ label: protectionTitle }"
+            icon="fa:shield"
+          />
+        </UiCard>
+      </VtsColumn>
+      <VtsColumn>
+        <UiCard>
+          <UiCardTitle>
+            {{ t('firewall:global:stat:policies') }}
+            <template #description>{{ t('firewall:global:policies:description') }}</template>
+          </UiCardTitle>
+          <UiCardNumbers :label="t('firewall:policies')" :value="publishedDocument.policies.length" size="medium" />
+          <div class="numbers">
+            <UiCardNumbers :label="t('firewall:rules')" :value="ruleCount" size="small" />
+            <UiCardNumbers :label="t('firewall:groups')" :value="groupCount" size="small" />
           </div>
         </UiCard>
+      </VtsColumn>
+    </VtsColumns>
+
+    <UiCard>
+      <UiTitle>{{ t('firewall:global:pools') }}</UiTitle>
+      <VtsStateHero v-if="poolRows.length === 0" format="card" type="no-data" size="small" horizontal>
+        {{ t('firewall:global:no-pool') }}
+      </VtsStateHero>
+      <VtsTable v-else>
+        <thead>
+          <tr>
+            <VtsHeaderCell>{{ t('pool') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:global:sync') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:stat:hosts') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:global:last-sync') }}</VtsHeaderCell>
+            <VtsHeaderCell>
+              <span class="visually-hidden">{{ t('firewall:global:open-pool') }}</span>
+            </VtsHeaderCell>
+          </tr>
+        </thead>
+        <tbody>
+          <VtsRow v-for="row of poolRows" :key="row.pool.id">
+            <UiTableCell>
+              <UiLink
+                :to="{ name: '/pool/[id]/firewall', params: { id: row.pool.id } }"
+                size="small"
+                icon="object:pool"
+              >
+                {{ row.pool.name }}
+              </UiLink>
+            </UiTableCell>
+            <UiTableCell>
+              <span class="sync">
+                <UiTag
+                  v-tooltip="t(`firewall:global:state:${row.pool.state}:info`)"
+                  :accent="stateAccents[row.pool.state]"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{ t(`firewall:global:state:${row.pool.state}`) }}
+                </UiTag>
+                <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
+                  {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
+                </UiTag>
+              </span>
+            </UiTableCell>
+            <UiTableCell class="typo-body-regular-small">
+              <span v-if="row.pool.inScope && row.hosts.total > 0">{{
+                t('firewall:global:hosts-up-to-date', row.hosts)
+              }}</span>
+            </UiTableCell>
+            <UiTableCell class="typo-body-regular-small">
+              <span v-if="row.pool.sync" class="last-sync">
+                <VtsRelativeTime :date="row.pool.sync.at" />
+                <UiInfo v-if="row.pool.sync.error" accent="danger" wrap>{{ row.pool.sync.error }}</UiInfo>
+              </span>
+              <span
+                v-else-if="row.pool.inScope"
+                v-tooltip="t('firewall:global:last-sync:none:info')"
+                class="secondary"
+                tabindex="0"
+              >
+                {{ t('firewall:global:last-sync:none') }}
+              </span>
+            </UiTableCell>
+            <UiTableCell>
+              <UiLink :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }" size="small">
+                {{ t('firewall:global:open-pool') }}
+              </UiLink>
+            </UiTableCell>
+          </VtsRow>
+        </tbody>
+      </VtsTable>
+    </UiCard>
+
+    <UiCard>
+      <UiTitle>
+        {{ t('firewall:policies') }}
+        <template #action>
+          <UiLink :to="{ name: '/(site)/firewall/policies' }" size="medium">
+            {{ t('firewall:manage-policies') }}
+          </UiLink>
+        </template>
+      </UiTitle>
+      <VtsStateHero v-if="publishedDocument.policies.length === 0" format="card" type="no-data" size="small" horizontal>
+        {{ t('firewall:global:no-policy') }}
+      </VtsStateHero>
+      <VtsTable v-else>
+        <thead>
+          <tr>
+            <VtsHeaderCell>{{ t('firewall:tier') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:policy') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:applied-to') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:rules') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:enforced-on:column') }}</VtsHeaderCell>
+          </tr>
+        </thead>
+        <tbody>
+          <VtsRow v-for="row of policyRows" :key="row.policy.name">
+            <UiTableCell>
+              <span class="secondary typo-body-regular-small">{{ tierLabel(row.tier) }}</span>
+            </UiTableCell>
+            <UiTableCell>
+              <UiLink :to="row.route" size="small" icon="fa:globe">{{ row.policy.name }}</UiLink>
+            </UiTableCell>
+            <UiTableCell>
+              <VdfGroupChip :scope-id :group="row.policy.appliedTo" :count="membersOf(row.policy.appliedTo).length" />
+            </UiTableCell>
+            <UiTableCell class="typo-body-regular-small">{{ n(row.policy.ingress.length) }}</UiTableCell>
+            <UiTableCell>
+              <UiInfo v-if="row.realization.total === 0 && row.realization.unknown === 0" accent="muted">
+                {{ t('firewall:enforced-on:no-running-vm') }}
+              </UiInfo>
+              <UiInfo v-else :accent="row.accent">
+                {{ t('firewall:enforced-on:count', { ...row.realization, n: row.realization.total }) }}
+              </UiInfo>
+            </UiTableCell>
+          </VtsRow>
+        </tbody>
+      </VtsTable>
+    </UiCard>
+
+    <UiCard>
+      <UiTitle>{{ t('firewall:global:members') }}</UiTitle>
+      <p class="secondary typo-body-regular-small">{{ t('firewall:global:members:info') }}</p>
+      <VtsStateHero v-if="memberGroups.length === 0" format="card" type="no-data" size="extra-small" horizontal>
+        {{ t('firewall:global:members:none') }}
+      </VtsStateHero>
+      <div v-for="group of memberGroups" :key="group.name" class="member-group">
+        <div class="member-group-head">
+          <VdfGroupChip :scope-id :group="group.name" :count="group.total" />
+          <span class="secondary typo-body-regular-small">
+            {{ t('firewall:global:members:running', { n: group.members.length, total: group.total }) }}
+          </span>
+        </div>
+        <div v-for="member of group.members" :key="member.vm" class="member typo-body-regular-small">
+          <UiLink :to="{ name: '/vm/[id]/firewall', params: { id: member.vm } }" size="small" icon="object:vm">
+            {{ member.vmName }}
+          </UiLink>
+          <span class="pool secondary"><VtsIcon name="object:pool" size="small" />{{ member.poolName }}</span>
+          <code v-if="member.ips.length > 0">{{ member.ips[0] }}</code>
+          <span v-if="member.ips.length > 1" v-tooltip="member.ips.slice(1).join('\n')" class="secondary" tabindex="0">
+            {{ t('firewall:more', { n: member.ips.length - 1 }) }}
+          </span>
+          <VtsIcon
+            v-if="!member.trusted"
+            v-tooltip="t('firewall:global:guest-ips')"
+            name="status:warning-circle"
+            size="small"
+            :aria-label="t('firewall:global:guest-ips')"
+            role="img"
+          />
+        </div>
       </div>
-    </template>
+    </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
+import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
-import VdfStatCard from '@/modules/vdf/components/VdfStatCard.vue'
 import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
-import { inGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import type { VdfGlobalScope, VdfPoolSyncState } from '@/modules/vdf/types.ts'
+import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import VtsDonutChartWithLegend, {
+  type DonutChartWithLegendProps,
+} from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -213,44 +269,48 @@ import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
-import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
-import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { logicAnd } from '@vueuse/math'
+import { isEqual } from 'lodash-es'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { I18nT, useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t, n } = useI18n()
 
 const tierLabel = useVdfTierLabel()
 
+// what the pools enforce: the published configuration and scope; the draft
+// only shows as a hint, and in the pools' "joins"/"leaves" tags
 const {
   scopeId,
   globalStatus,
   isGlobalReady,
   hasGlobalError,
   revision,
-  document,
+  publishedDocument,
+  publishedScope,
+  hasDraft,
   scope,
   setScope,
   pools,
-  scopePoolIds,
+  publishedScopePoolIds,
   inSyncPoolCount,
-  inScopePoolCount,
   hosts,
   areHostsReady,
   realizationOf,
 } = useVdfGlobalPolicy()
 
-const { poolVms, protectedVms, membersOf, areVmsReady } = useVdfMembers(scopePoolIds, document)
+const { runningVms, protectedVms, membersOf, areVmsReady } = useVdfMembers(publishedScopePoolIds, publishedDocument)
 
 const isReady = logicAnd(isGlobalReady, areHostsReady, areVmsReady)
 
@@ -263,123 +323,169 @@ const stateAccents: Record<VdfPoolSyncState, TagAccent> = {
   'out-of-scope': 'muted',
 }
 
-const ruleCount = computed(() => document.value.policies.reduce((count, policy) => count + policy.ingress.length, 0))
+// SCOPE
 
-const liveHosts = computed(() => hosts.value.filter(({ state }) => state !== 'disabled').length)
-
-const upToDateHosts = computed(() => hosts.value.filter(({ state }) => state === 'up-to-date').length)
-
-const poolsCaption = computed(() => {
-  const behind = pools.value.filter(pool => pool.inScope && pool.state !== 'in-sync').length
-
-  return behind === 0 ? t('firewall:global:stat:pools:all') : t('firewall:global:stat:pools:some', { n: behind })
-})
-
-// SCOPE: part of the draft, published with the rest
-
-const scopeMode = computed({
-  get: () => (scope.value.all ? 'all' : 'selected'),
-  set: mode =>
-    setScope(mode === 'all' ? { all: true } : { pools: pools.value.filter(pool => pool.inScope).map(pool => pool.id) }),
-})
-
-function togglePool(poolId: string, selected: boolean) {
-  const current = new Set(scope.value.pools ?? [])
-
-  if (selected) {
-    current.add(poolId)
-  } else {
-    current.delete(poolId)
-  }
-
-  setScope({ pools: [...current] })
-}
-
-const poolRows = computed(() =>
-  pools.value.map(pool => {
-    const poolHosts = hosts.value.filter(({ host }) => host.$pool === pool.id && host.power_state === 'Running')
-
-    return {
-      pool,
-      inDraftScope: inGlobalScope(scope.value, pool.id),
-      hosts: { n: poolHosts.filter(({ state }) => state === 'up-to-date').length, total: poolHosts.length },
-    }
-  })
+const scopeLabel = computed(() =>
+  publishedScope.value.all
+    ? t('firewall:global:scope:all', { n: pools.value.length })
+    : t('firewall:global:scope:pools', { n: publishedScopePoolIds.value.length })
 )
 
+const isScopeDrafted = computed(() => !isEqual(scope.value, publishedScope.value))
+
+const { open: openScope } = useOverlay({
+  component: () => import('@/modules/vdf/components/drawers/VdfGlobalScopeDrawer.vue'),
+  events: { onConfirm: (next: VdfGlobalScope) => next, onCancel: true },
+})
+
+async function changeScope() {
+  const response = await openScope({ props: { pools: pools.value, scope: scope.value } })
+
+  if (response.event === 'onConfirm') {
+    setScope(response.payload)
+  }
+}
+
+// POOLS
+
+const inScopePools = computed(() => pools.value.filter(pool => pool.inScope))
+
+const poolSegments = computed<DonutChartWithLegendProps['segments']>(() => {
+  const count = (states: VdfPoolSyncState[]) => inScopePools.value.filter(pool => states.includes(pool.state)).length
+
+  return [
+    { label: t('firewall:global:state:in-sync'), value: count(['in-sync']), accent: 'success' },
+    {
+      label: t('firewall:global:stat:pools:catching-up'),
+      value: count(['behind', 'not-published', 'stale-global']),
+      accent: 'warning',
+    },
+    { label: t('firewall:global:state:unreachable'), value: count(['unreachable']), accent: 'danger' },
+  ]
+})
+
+const poolRows = computed(() =>
+  [...pools.value]
+    .sort((poolA, poolB) => poolA.name.localeCompare(poolB.name))
+    .map(pool => {
+      const poolHosts = hosts.value.filter(({ host }) => host.$pool === pool.id && host.power_state === 'Running')
+
+      return {
+        pool,
+        inDraftScope: inGlobalScope(scope.value, pool.id),
+        hosts: { n: poolHosts.filter(({ state }) => state === 'up-to-date').length, total: poolHosts.length },
+      }
+    })
+)
+
+// PROTECTION, of the running VMs of the pools in scope
+
+const runningProtectedVms = computed(() => runningVms.value.filter(vm => protectedVms.value.includes(vm)))
+
+const protectionTitle = computed(() =>
+  t('firewall:overview:running-protected', { n: runningProtectedVms.value.length, total: runningVms.value.length })
+)
+
+const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
+  { label: t('firewall:overview:protected'), value: runningProtectedVms.value.length, accent: 'success' },
+  {
+    label: t('firewall:global:not-protected'),
+    value: runningVms.value.length - runningProtectedVms.value.length,
+    accent: 'muted',
+  },
+])
+
+// POLICIES
+
+const ruleCount = computed(() =>
+  publishedDocument.value.policies.reduce((count, policy) => count + policy.ingress.length, 0)
+)
+
+const groupCount = computed(() => Object.keys(publishedDocument.value.groups).length)
+
 const policyRows = computed(() =>
-  policiesByTier(document.value).flatMap(tier =>
+  policiesByTier(publishedDocument.value).flatMap(tier =>
     tier.policies.map(({ policy }) => {
       const realization = realizationOf(policy.name)
       const accent: InfoAccent =
         realization.realized < realization.total ? 'danger' : realization.unknown > 0 ? 'warning' : 'success'
 
-      return { tier: tier.value, policy, realization, accent }
+      return {
+        tier: tier.value,
+        policy,
+        realization,
+        accent,
+        route: vdfGlobalRoute('policies', { policy: policy.name }),
+      }
     })
   )
 )
 
-// what XO writes into the pools: members of the global groups, by pool
+// MEMBERS: what XO writes into the pools, the running members of each
+// global group with their IPs (a halted member has none to write)
 const memberGroups = computed(() =>
   Object.entries(globalStatus.value?.members ?? {})
-    .filter(([, members]) => members.length > 0)
-    .map(([name, members]) => ({ name, members }))
+    .map(([name, members]) => ({
+      name,
+      members,
+      total: membersOf(name).length,
+    }))
+    .filter(group => group.total > 0)
 )
 </script>
 
 <style lang="postcss" scoped>
+.global-firewall-overview-state {
+  margin: 0.8rem;
+}
+
 .global-firewall-overview {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
   margin: 0.8rem;
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.8rem;
-
-    @media (--small) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .published,
-  .last-sync {
-    display: inline-flex;
+  .summary {
+    display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem 2.4rem;
   }
 
   .scope {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.8rem;
   }
 
-  .sync {
+  .numbers {
     display: flex;
-    gap: 0.4rem;
+    gap: 2.4rem;
   }
 
-  .columns {
-    display: grid;
-    grid-template-columns: 3fr 2fr;
-    gap: 0.8rem;
-    align-items: start;
-
-    @media (--small) {
-      grid-template-columns: 1fr;
-    }
+  .sync,
+  .last-sync {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
   }
 
   .member-group {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-    padding-block: 0.8rem;
+    gap: 0.8rem;
+    padding-block-start: 1.6rem;
     border-block-start: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .member-group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
   }
 
   .member {
@@ -396,20 +502,8 @@ const memberGroups = computed(() =>
     gap: 0.4rem;
   }
 
-  .narrow {
-    width: 4rem;
-  }
-
   .secondary {
     color: var(--color-neutral-txt-secondary);
-  }
-
-  .danger {
-    color: var(--color-danger-txt-base);
-  }
-
-  code {
-    font-family: monospace;
   }
 }
 </style>

@@ -8,23 +8,34 @@
     v-tooltip="tooltip"
     class="vdf-group-chip typo-body-regular-small"
     :class="{ unknown: !exists, global: isGlobal }"
+    :aria-label="ariaLabel"
     :to="vdfPageRoute(scopeId, 'groups', { group })"
   >
-    <VtsIcon :name="isGlobal ? 'fa:globe' : 'fa:object-group'" size="small" />
-    {{ displayName(group) }}
-    <span v-if="count !== undefined || ips" class="count">{{ (count ?? 0) + (ips ?? 0) }}</span>
+    <VtsIcon :name="icon" size="small" />
+    <span class="name">{{ displayName(group) }}</span>
+    <UiCounter
+      v-if="count !== undefined || ips"
+      :value="(count ?? 0) + (ips ?? 0)"
+      accent="neutral"
+      variant="secondary"
+      size="small"
+      aria-hidden="true"
+    />
   </RouterLink>
 </template>
 
 <script lang="ts" setup>
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
-import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, isGlobalScope, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
+  scopeId,
   group,
   count,
   ips,
@@ -38,14 +49,23 @@ const {
   exists?: boolean
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
-// a group of the global configuration, used in a pool
-const isGlobal = computed(() => isGlobalName(group))
+// a group of the global configuration: in a pool (`global:` name) or on
+// the global firewall's pages. It looks the same in both.
+const isGlobal = computed(() => isGlobalName(group) || isGlobalScope(scopeId))
 
-const tooltip = computed(() => {
+const icon = computed<IconName>(() => {
   if (!exists) {
-    return t('firewall:group:unknown')
+    return 'status:warning'
+  }
+
+  return isGlobal.value ? 'fa:globe' : 'fa:object-group'
+})
+
+const details = computed(() => {
+  if (!exists) {
+    return [t('firewall:group:unknown')]
   }
 
   const parts = isGlobal.value ? [t('firewall:global:group')] : []
@@ -58,31 +78,56 @@ const tooltip = computed(() => {
     parts.push(t('firewall:group:ips', { n: ips }))
   }
 
-  return parts.length === 0 ? false : parts.join(' · ')
+  return parts
 })
+
+const tooltip = computed(() => (details.value.length === 0 ? false : details.value.join('\n')))
+
+const ariaLabel = computed(() =>
+  details.value.length === 0
+    ? displayName(group)
+    : t('firewall:group-chip:label', {
+        name: displayName(group),
+        details: new Intl.ListFormat(locale.value, { type: 'unit' }).format(details.value),
+      })
+)
 </script>
 
 <style lang="postcss" scoped>
 .vdf-group-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.2rem 0.8rem;
+  max-width: 100%;
+  padding: 0.1rem 0.6rem;
   border-radius: 0.4rem;
-  border: 0.1rem solid var(--color-brand-item-base);
-  color: var(--color-brand-txt-base);
-  background-color: var(--color-brand-background-selected);
+  border: 0.1rem solid var(--color-neutral-border);
+  color: var(--color-neutral-txt-primary);
   text-decoration: none;
   white-space: nowrap;
 
-  &:hover {
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:is(a):hover {
+    border-color: var(--color-brand-item-base);
+    color: var(--color-brand-txt-base);
     background-color: var(--color-brand-background-hover);
   }
 
-  &.any {
-    border-color: var(--color-neutral-border);
-    color: var(--color-neutral-txt-primary);
-    background-color: var(--color-neutral-background-secondary);
+  &:focus-visible {
+    outline: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -0.3rem;
+      border: 0.2rem solid var(--color-brand-txt-base);
+      border-radius: 0.6rem;
+    }
   }
 
   &.global {
@@ -92,15 +137,6 @@ const tooltip = computed(() => {
   &.unknown {
     border-color: var(--color-danger-item-base);
     color: var(--color-danger-txt-base);
-    background-color: var(--color-danger-background-selected);
-  }
-
-  .count {
-    padding: 0 0.6rem;
-    border-radius: 1rem;
-    color: var(--color-brand-txt-item);
-    background-color: var(--color-brand-item-base);
-    font-size: 1.2rem;
   }
 }
 </style>

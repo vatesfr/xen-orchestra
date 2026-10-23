@@ -20,6 +20,10 @@ const route = useRoute()
 
 const router = useRouter()
 
+// /firewall opens the Overview. Not with useDefaultTab(), as the object
+// pages do: it remembers a single page/tab pair in localStorage, so using
+// it here, nested under /(site), would overwrite the site's own remembered
+// tab.
 watch(
   () => route.name,
   name => {
