@@ -20,7 +20,7 @@
     <template v-if="publishedDocument.policies.length > 0">
       <VtsColumns>
         <VtsColumn>
-          <UiCard>
+          <UiCard class="stat-card">
             <UiCardTitle>
               {{ t('firewall:overview:protection') }}
               <template #description>{{ t('firewall:overview:protection:description') }}</template>
@@ -40,7 +40,7 @@
           </UiCard>
         </VtsColumn>
         <VtsColumn>
-          <UiCard>
+          <UiCard class="stat-card">
             <UiCardTitle>
               {{ t('firewall:overview:hosts') }}
               <template #description>{{ t('firewall:overview:hosts:description') }}</template>
@@ -55,7 +55,7 @@
           </UiCard>
         </VtsColumn>
         <VtsColumn class="numbers-column">
-          <UiCard>
+          <UiCard class="stat-card">
             <UiCardTitle>
               {{ t('firewall:overview:policies') }}
               <template #description>{{ t('firewall:overview:policies:description') }}</template>
@@ -435,6 +435,11 @@ const hasStatus = computed(
 </script>
 
 <style lang="postcss" scoped>
+/* cards of a row share its height, as on XO's dashboard */
+.stat-card {
+  flex: 1;
+}
+
 .firewall-overview-state {
   margin: 0.8rem;
 }
