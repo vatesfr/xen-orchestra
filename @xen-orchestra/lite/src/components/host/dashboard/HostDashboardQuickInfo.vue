@@ -30,16 +30,10 @@
       <VtsKeyValueRow :label="t('uuid')" :value="host.uuid" copy />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.software_version.product_version" />
-      <VtsKeyValueRow
-        :label="t('hardware')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
+      <VtsKeyValueRow :label="t('hardware')" :value="getHostManufacturerInfo(host)" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow
-        :label="t('cores-with-sockets')"
-        :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`"
-      />
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="getHostCoreSocketInfo(host)" />
       <VtsKeyValueRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
@@ -55,6 +49,7 @@
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
@@ -77,15 +72,13 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost, masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
+const { masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()
 const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
 
-const { isRunning, powerState, relativeStartTime } = useHostUtils(() => host)
+const { isMaster, isRunning, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
-
-const isMaster = computed(() => isMasterHost(host.$ref))
 
 const ram = computed(() => {
   const memory = getHostMemory(host)

@@ -1,10 +1,10 @@
 <template>
   <UiPanelCard class="host-network-card">
-    <UiPanelCardTitle size="medium" :label="t('network')" />
+    <UiPanelCardTitle :label="t('network')" size="medium" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('management-ip') }}</template>
-        <template v-if="host.address" #value>{{ host.address }}</template>
+        <template #value>{{ host.address }}</template>
         <template v-if="host.address" #addons>
           <VtsCopyButton :value="host.address" />
         </template>
