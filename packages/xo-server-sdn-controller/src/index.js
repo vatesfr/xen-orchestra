@@ -539,26 +539,41 @@ class SDNController extends EventEmitter {
           let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
             const preferredCenterUuid = otherConfig['xo:sdn-controller:preferred-center']
-            const preferredCenter =
-              preferredCenterUuid !== undefined
-                ? this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
-                : undefined
+            let preferredCenter
+            if (preferredCenterUuid !== undefined) {
+              try {
+                preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
+              } catch (error) {
+                log.warn('Stale preferred center, will be elected when a host becomes available', {
+                  network: network.name_label,
+                  preferredCenterUuid,
+                  error,
+                })
+              }
+            }
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
             this.privateNetworks[uuid] = privateNetwork
           }
 
-          const vni = otherConfig['xo:sdn-controller:vni']
-          if (vni === undefined) {
-            noVniNetworks.push(network)
-          } else {
-            this._prevVni = Math.max(this._prevVni, +vni)
-          }
+          try {
+            const vni = otherConfig['xo:sdn-controller:vni']
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            } else {
+              this._prevVni = Math.max(this._prevVni, +vni)
+            }
 
-          await privateNetwork.addNetwork(network)
+            await privateNetwork.addNetwork(network)
 
-          this._networks.set(network.$id, network.$ref)
-          if (privateNetwork.center !== undefined) {
-            this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            this._networks.set(network.$id, network.$ref)
+            if (privateNetwork.center !== undefined) {
+              this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            }
+          } catch (error) {
+            log.warn('Error registering network for SDN controller', {
+              network: network.name_label,
+              error,
+            })
           }
         })
       )
@@ -1152,7 +1167,7 @@ class SDNController extends EventEmitter {
     if (!pif.currently_attached) {
       const tunnel = getHostTunnelForNetwork(pif.$host, pif.network)
       await tunnel.set_status({ active: 'false' })
-      if (privateNetwork.center.$ref !== pif.host) {
+      if (privateNetwork.center?.$ref !== pif.host) {
         return
       }
 
@@ -1463,7 +1478,7 @@ class SDNController extends EventEmitter {
 
   async _hostUnreachable(host) {
     let privateNetworks = filter(this.privateNetworks, privateNetwork => {
-      return privateNetwork.center.$ref === host.$ref
+      return privateNetwork.center?.$ref === host.$ref
     })
     for (const privateNetwork of privateNetworks) {
       log.debug('Unreachable star-center, electing a new one', {

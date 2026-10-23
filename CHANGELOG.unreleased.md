@@ -34,6 +34,7 @@
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [Mirror] The incremental mirrors between remotes don't recompress the blocks if the source and destination use the same compression (PR [#10581](https://github.com/vatesfr/xen-orchestra/pull/10581))
 - [SDN Controller] Fix events listening and stale objects on server reconnection (PR [#10440](https://github.com/vatesfr/xen-orchestra/pull/10440))
+- [SDN Controller] A Global Private Network that fails to be set up, or whose preferred star-center host was removed, no longer blocks the other private networks (PR [#10629](https://github.com/vatesfr/xen-orchestra/pull/10629))
 - [BRs] Add backup repository detail page (PR [#10454](https://github.com/vatesfr/xen-orchestra/pull/10454))
 - [Backup logs] Add backup log list in admin menu (PR [#10572](https://github.com/vatesfr/xen-orchestra/pull/10572))
 - [BRs] Add backup repository edit form (PR [#10478](https://github.com/vatesfr/xen-orchestra/pull/10478))
