@@ -150,7 +150,7 @@ describe('save', () => {
     await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
-    expect(wrapper.get('.feedback').text()).toContain(t('plugin:configuration-saved'))
+    expect(wrapper.get('.feedback').text()).toContain(t('configuration-saved'))
   })
 
   it('displays the error of the save', async () => {
@@ -162,9 +162,9 @@ describe('save', () => {
 
     const feedback = wrapper.get('.feedback').text()
 
-    expect(feedback).toContain(t('plugin:configuration-failed'))
+    expect(feedback).toContain(t('unable-to-save-configuration'))
     expect(feedback).toContain('invalid configuration')
-    expect(feedback).not.toContain(t('plugin:configuration-saved'))
+    expect(feedback).not.toContain(t('configuration-saved'))
   })
 
   it('displays no feedback before the configuration is saved', () => {

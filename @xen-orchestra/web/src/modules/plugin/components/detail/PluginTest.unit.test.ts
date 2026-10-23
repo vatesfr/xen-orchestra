@@ -74,7 +74,7 @@ it('displays a form for the data of the test', () => {
 
   expect(wrapper.getComponent(JsonSchemaField).props()).toMatchObject({
     schema: TEST_SCHEMA,
-    label: t('plugin:test-data'),
+    label: t('test-data'),
     required: true,
     disabled: false,
   })

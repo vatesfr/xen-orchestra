@@ -1,12 +1,12 @@
 <template>
   <UiCard class="plugin-test">
-    <UiTitle>{{ t('plugin:test') }}</UiTitle>
+    <UiTitle>{{ t('test') }}</UiTitle>
     <UiInfo accent="info" wrap>{{ t('plugin:test-info') }}</UiInfo>
     <JsonSchemaField
       v-if="testSchema !== undefined"
       v-model="testData"
       :schema="testSchema"
-      :label="t('plugin:test-data')"
+      :label="t('test-data')"
       required
       :disabled="isTesting"
     />

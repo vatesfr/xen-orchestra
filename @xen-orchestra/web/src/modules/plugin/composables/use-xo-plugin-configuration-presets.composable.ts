@@ -19,7 +19,7 @@ export function useXoPluginConfigurationPresets(
 
   const { id: presetSelectId } = useFormSelect(presetNames, {
     model: selectedPreset,
-    placeholder: () => t('plugin:select-preset'),
+    placeholder: () => t('select-preset'),
   })
 
   const canApplyPreset = computed(() => selectedPreset.value !== undefined)

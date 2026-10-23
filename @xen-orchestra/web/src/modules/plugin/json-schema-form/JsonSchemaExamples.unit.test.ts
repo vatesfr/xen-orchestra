@@ -63,7 +63,7 @@ it('collapses many examples, with their count', () => {
   const wrapper = mountExamples(MANY_EXAMPLES)
 
   expect(findExamples(wrapper)).toEqual([])
-  expect(findToggleButton(wrapper)?.text()).toBe(t('json-schema:show-examples-n', { n: 3 }))
+  expect(findToggleButton(wrapper)?.text()).toBe(t('json-schema:show-examples-n', 3))
 })
 
 it('expands and collapses many examples, with the captions of their groups', async () => {

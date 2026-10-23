@@ -2,7 +2,7 @@
   <div class="json-schema-examples">
     <div v-if="isCollapsible">
       <UiButton variant="tertiary" accent="brand" size="small" @click="isExpanded = !isExpanded">
-        {{ isExpanded ? t('json-schema:hide-examples') : t('json-schema:show-examples-n', { n: examplesCount }) }}
+        {{ isExpanded ? t('json-schema:hide-examples') : t('json-schema:show-examples-n', examplesCount) }}
       </UiButton>
     </div>
     <template v-if="areExamplesVisible">

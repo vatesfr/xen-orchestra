@@ -29,9 +29,9 @@
 
       <div v-if="hasFeedback" ref="feedback" class="feedback">
         <VtsFormErrorSummary :errors="summaryErrors" />
-        <ApiErrorAlert v-if="error !== undefined" :title="t('plugin:configuration-failed')" :error />
+        <ApiErrorAlert v-if="error !== undefined" :title="t('unable-to-save-configuration')" :error />
         <UiAlert v-if="isSaved" accent="success" close @close="isSaved = false">
-          {{ t('plugin:configuration-saved') }}
+          {{ t('configuration-saved') }}
         </UiAlert>
       </div>
 
