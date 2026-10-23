@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "dokumentasjonen for SDN-kontrolleren",
   "traffic-rules:format-warning": "Konfigurasjonsfeil: Trafikkreglene har ikke forventet format. Vennligst {check-doc} om hvordan du migrerer dem.",
   "traffic-rules:format-warning:check-doc": "se den nyeste dokumentasjonen",
-  "traffic-rules:info-message": "Rekkefølge for trafikkregler er under implementering. Oppførselen kan være uforutsigbar.",
   "traffic-rules:no-traffic-rules-detected": "Ingen trafikkregler oppdaget",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Krever XAPI-plugin-modus",

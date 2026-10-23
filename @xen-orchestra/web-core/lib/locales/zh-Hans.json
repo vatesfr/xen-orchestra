@@ -1171,7 +1171,6 @@
   "traffic-rules:error-plugin:check-doc": "SDN控制器文档",
   "traffic-rules:format-warning": "配置错误：流量规则格式异常，请参考{check-doc}完成迁移。",
   "traffic-rules:format-warning:check-doc": "最新文档",
-  "traffic-rules:info-message": "流量规则顺序正在生效，行为可能存在异常。",
   "traffic-rules:no-traffic-rules-detected": "未检测到流量规则",
   "traffic-rules:xapi-plugin-required": "需要XAPI插件模式",
   "translation-tool": "翻译工具",

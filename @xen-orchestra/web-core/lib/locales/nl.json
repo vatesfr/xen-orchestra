@@ -1171,7 +1171,6 @@
   "traffic-rules:error-plugin:check-doc": "de documentatie van de SDN-controller",
   "traffic-rules:format-warning": "Configuratiefout: De verkeersregels hebben niet de verwachte indeling. Raadpleeg {check-doc} voor informatie over hoe je ze kunt migreren.",
   "traffic-rules:format-warning:check-doc": "raadpleeg de meest recente documentatie",
-  "traffic-rules:info-message": "De verkeersregels worden gehandhaafd. Het gedrag kan gevaarlijk zijn.",
   "traffic-rules:no-traffic-rules-detected": "Er zijn geen verkeersregels gevonden",
   "traffic-rules:xapi-plugin-required": "Vereist de XAPI-plug-in modus",
   "translation-tool": "Vertaalprogramma",

@@ -29,6 +29,7 @@ export const useXoTrafficRuleEditJob = defineJob(
                 ipRange: oldRule.ipRange,
                 protocol: oldRule.protocol,
                 port: oldRule.port !== undefined ? Number(oldRule.port) : undefined,
+                priority: oldRule.priority,
               },
               newRule,
             })
