@@ -1,5 +1,6 @@
 ---
 sidebar_label: Incremental backups
+sidebar_position: 3
 ---
 
 # Incremental backups
