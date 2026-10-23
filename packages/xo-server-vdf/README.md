@@ -14,10 +14,14 @@ Under `/rest/v0/plugins/vdf/pools/{id}`:
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `GET policy`                  | The document the pool enforces (the newest pool key whose base still matches, as agents choose it) and its id              |
 | `POST actions/check_policy`   | `{ policy }`: validate with the pool master's agent, nothing written                                                       |
-| `POST actions/publish_policy` | `{ policy }`: validate and publish, as `vdf-agent publish` does                                                            |
+| `POST actions/publish_policy` | `{ policy, expectedDocId? }`: validate and publish, as `vdf-agent publish` does (see below)                                |
 | `POST actions/trace`          | `{ from, to, proto, port?, state? }`: why is this blocked? One hop per host involved, as `vdf-agent trace` orchestrates it |
 | `GET stats`                   | Per host: rule hit rates, open connections with the rule that let them in, blocked attempts                                |
 | `GET rule-log`                | Entries of every host's per-rule audit log, oldest first (`lines`, `since`)                                                |
+| `GET history`                 | The last documents XO published to the pool, oldest first, without their content                                           |
+| `GET history/{entry}`         | One of them, with the version it replaced (`previous`, when kept)                                                          |
+
+**Concurrent edits:** with `expectedDocId` (the id of the document the edit started from, `''` for none), a publish is refused with `conflict: true` and nothing is written if the pool's document changed meanwhile. Publishes through XO are serialized per pool, so two of them cannot both pass the check; a write made in between by the global configuration or outside XO (`vdf-agent publish`) makes the check fail, which is the point.
 
 ## Global configuration
 
@@ -28,13 +32,25 @@ Groups and policies defined once in XO and written into every pool in scope (all
 - **Members across pools:** each pool's agents resolve tag groups from their own VMs. For every global group, XO adds the IPs of its running members in the other pools in scope: a locked VIF's allowed addresses, else what the guest reports, as agents count them.
 - **Publish:** every pool in scope (and every pool still holding a global part) checks its new document with its master's agent. Nothing is written unless every reachable pool accepts it. Pools XO can't reach are reported and catch up later.
 - **Sync:** XO follows its object events (throttled to one pass every 5 s, plus one a minute) and republishes a pool whose global part differs from what it should be: new members in other pools, a pool back online, a pool that left the scope, or an edit made outside XO.
-- **Storage:** XO's store (`getStore('vdf')`), key `global`: `{ document, revision, scope, publishedAt, publishedBy }`. Publishing with an older `revision` is refused.
+- **Storage:** XO's store (`getStore('vdf')`), key `global`: `{ document, revision, scope, publishedAt, publishedBy }`. Publishing with an older `revision` is refused. Key `syncs`: each pool's last write (shown as "Last sync"), so it survives a restart.
 
 | Route                          | What                                                                                    |
 | ------------------------------ | --------------------------------------------------------------------------------------- |
 | `GET /global`                  | The global configuration, each pool's sync state, and the members of global groups      |
 | `POST /global/actions/check`   | `{ policy, scope }`: every pool in scope checks its resulting document, nothing written |
 | `POST /global/actions/publish` | `{ policy, scope, revision }`: check, then publish to every pool                        |
+| `GET /global/history`          | The last published global configurations, oldest first, without their content           |
+| `GET /global/history/{entry}`  | One of them (document and scope), with the one before it (`previous`)                   |
+
+## History
+
+XO keeps the last 50 published documents per scope (each pool, and the global configuration) in its store, keys `history:<pool id>` and `history:global`: `{ id, docId | revision, previousDocId, publishedAt, publishedBy, summary, document }`. `summary` counts the groups, policies and rules added, removed and modified, plus the size of the document (for a pool, its own part: the global part has its own history). The first pool publish also records what the pool held before (`publishedAt: null`), and the stored global configuration starts the global history. Publishing the same document again adds nothing. The pool history only covers publishes made through XO's pool routes: the global configuration's writes to the pools are in the global history.
+
+XO 6 shows it in the Firewall's History tab, where a version can be restored as a draft, then reviewed and published like any edit.
+
+## Config backup
+
+The plugin registers a `vdf` config manager, so XO's config export (Settings > Config) includes the global configuration, the histories and the sync records, and importing it restores them (a loaded plugin reloads them at once). Pool documents live in the pools and aren't part of it. The manager is registered once per process, when xo-server registers the plugin, whether it's loaded or not: importing an export that has a `vdf` entry into an XO without this plugin fails, as for any unknown config manager.
 
 ## Requirements
 
