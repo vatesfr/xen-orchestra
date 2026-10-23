@@ -83,6 +83,7 @@
 - [XO6/Groups] List the members of a group in its detail page, add users to the group and remove them from it
 - [XO6/Roles] Open a role's detail page from the roles tables or its side panel, to see its details
 - [XO6/Roles] List the users a role is assigned to in its detail page, whether directly or through their groups, assign the role to users and detach it from its direct users
+- [XO6/Roles] List the groups a role is assigned to in its detail page, assign the role to groups and detach it from them
 
 ### Bug fixes
 
