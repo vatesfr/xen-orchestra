@@ -129,18 +129,16 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { pool, isMasterHost, masterHost } = usePoolStore().subscribe()
+const { pool, masterHost } = usePoolStore().subscribe()
 const { getHostPowerState } = useHostMetricsStore().subscribe()
 
-const { powerState, relativeStartTime } = useHostUtils(() => host)
+const { isMaster, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const hostIcon = computed(() => getHostIcon(host, getHostPowerState(host)))
 
 const masterHostIcon = computed(() => getHostIcon(masterHost.value, getHostPowerState(masterHost.value)))
 
 const { count: nMissingPatches, areAllLoaded } = useHostPatches(() => [host])
-
-const isMaster = computed(() => isMasterHost(host.$ref))
 
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 </script>

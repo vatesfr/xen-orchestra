@@ -5,7 +5,7 @@
     </UiTitle>
     <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
     <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
+      <VtsTable :pagination-bindings :state sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -117,7 +117,7 @@ const { HeadCells, BodyCells } = useHostColumns({
       host: r =>
         r({
           label: host.name_label,
-          to: `/host/${host.uuid}/dashboard`,
+          to: { name: '/host/[uuid]/dashboard', params: { uuid: host.uuid } },
           icon: hostIcon.value,
           rightIcon: rightIcon.value,
         }),
@@ -131,16 +131,14 @@ const { HeadCells, BodyCells } = useHostColumns({
 </script>
 
 <style lang="postcss" scoped>
-.container,
 .hosts-table {
   display: flex;
   flex-direction: column;
-}
-
-.hosts-table {
   gap: 2.4rem;
 
   .container {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 }
