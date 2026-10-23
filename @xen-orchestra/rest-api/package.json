@@ -38,7 +38,7 @@
     "@vates/async-each": "^1.0.3",
     "@vates/obfuscate": "^0.1.0",
     "@vates/task": "^0.7.0",
-    "@vates/types": "^2.3.0",
+    "@vates/types": "^2.4.0",
     "@xen-orchestra/acl": "^1.7.0",
     "@xen-orchestra/backups": "^0.76.1",
     "@xen-orchestra/log": "^0.7.2",
