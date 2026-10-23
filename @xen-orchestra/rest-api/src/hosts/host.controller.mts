@@ -458,6 +458,52 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pif, action: update:management
+   *
+   * Move the management IP configuration (IP, netmask, gateway, DNS) of the host
+   * to the given PIF, then remove it from the previous management PIF.
+   *
+   * The target PIF must be connected and must not have an IP address configured.
+   * The current management PIF must use a static IP configuration.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "pif": "d9e42451-3794-089f-de81-4ee0e6137bee" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/move_management_ip')
+  @Middlewares([json(), acl({ resource: 'pif', action: 'update:management', objectId: 'body.pif' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  moveManagementIp(
+    @Path() id: string,
+    @Body() body: { pif: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      await this.#hostService.moveManagementIp(hostId, body.pif as XoPif['id'])
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'move management IP configuration',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
    * Required privileges:
    * - resource: host, action: disable
    * - resource: host, action: evacuate (if `evacuate: true`)

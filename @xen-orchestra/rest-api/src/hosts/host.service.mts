@@ -1,7 +1,17 @@
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { HOST_POWER_STATE, Xapi, XcpPatches, XenApiHostWrapped, XoPool, XsPatches, type XoHost } from '@vates/types'
-import { incorrectState } from 'xo-common/api-errors.js'
+import {
+  HOST_POWER_STATE,
+  Xapi,
+  XcpPatches,
+  XenApiHostWrapped,
+  XoPool,
+  XsPatches,
+  type XoHost,
+  type XoPif,
+  IP_CONFIGURATION_MODE,
+} from '@vates/types'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { parseXml, ensureArray } from '../helpers/utils.helper.mjs'
 import type {
   MissingPatchesInfo,
@@ -12,6 +22,7 @@ import type {
 } from './host.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import semver from 'semver'
+import { Task } from '@vates/task'
 
 const log = createLogger('xo:rest-api:host-service')
 
@@ -156,6 +167,107 @@ export class HostService {
     })
 
     await this.#restApi.getXapiObject<XoHost>(hostId, 'host').$restartAgent()
+  }
+
+  /**
+   * Move the management IP configuration of the host to the given PIF.
+   */
+  async moveManagementIp(hostId: XoHost['id'], pifId: XoPif['id']): Promise<void> {
+    const host = this.#restApi.getObject<XoHost>(hostId)
+    if (host.power_state !== HOST_POWER_STATE.RUNNING) {
+      throw incorrectState({
+        actual: host.power_state,
+        expected: HOST_POWER_STATE.RUNNING,
+        object: host.id,
+        property: 'power_state',
+      })
+    }
+
+    const pif = this.#restApi.getObject<XoPif>(pifId, 'PIF')
+    if (pif.$host !== hostId) {
+      throw invalidParameters(`the PIF ${pifId} does not belong to host ${hostId}`)
+    }
+
+    if (!pif.attached) {
+      throw incorrectState({
+        actual: pif.attached,
+        expected: true,
+        object: pif.id,
+        property: 'attached',
+      })
+    }
+
+    if (pif.management) {
+      throw incorrectState({
+        actual: pif.management,
+        expected: false,
+        object: pif.id,
+        property: 'management',
+      })
+    }
+
+    if (pif.mode !== IP_CONFIGURATION_MODE.NONE) {
+      throw incorrectState({
+        actual: pif.mode,
+        expected: IP_CONFIGURATION_MODE.NONE,
+        object: pif.id,
+        property: 'mode',
+      })
+    }
+
+    const managementPif = host.$PIFs
+      .map(id => this.#restApi.getObject<XoPif>(id, 'PIF'))
+      .find(hostPif => hostPif.management)
+
+    if (managementPif === undefined) {
+      throw incorrectState({
+        actual: managementPif,
+        expected: 'a management PIF',
+        object: hostId,
+        property: '$PIFs',
+      })
+    }
+
+    if (managementPif.mode !== IP_CONFIGURATION_MODE.STATIC) {
+      throw incorrectState({
+        actual: managementPif.mode,
+        expected: IP_CONFIGURATION_MODE.STATIC,
+        object: managementPif.id,
+        property: 'mode',
+      })
+    }
+
+    const xapiHost = this.#restApi.getXapiObject<XoHost>(hostId, 'host')
+    const xapi = xapiHost.$xapi
+    await xapi.callAsync(
+      'PIF.reconfigure_ip',
+      pif._xapiRef,
+      managementPif.mode,
+      managementPif.ip,
+      managementPif.netmask,
+      managementPif.gateway,
+      managementPif.dns
+    )
+
+    try {
+      await xapi.callAsync('host.management_reconfigure', pif._xapiRef)
+    } catch (error) {
+      await this.#removePifIp(xapi, pif)
+      throw error
+    }
+
+    try {
+      await this.#removePifIp(xapi, managementPif)
+    } catch (error) {
+      Task.warning(
+        'Management interface moved, but the IP could not be removed from the previous management PIF: please remove it manually',
+        { pifId: managementPif.id, error }
+      )
+    }
+  }
+
+  async #removePifIp(xapi: Xapi, pif: XoPif): Promise<void> {
+    await xapi.callAsync('PIF.reconfigure_ip', pif._xapiRef, IP_CONFIGURATION_MODE.NONE, '', '', '', '')
   }
 
   async #rebootChecks(
