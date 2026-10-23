@@ -1,5 +1,6 @@
 <template>
   <VtsTable
+    ref="table"
     class="vdf-protected-vms-table"
     horizontal
     :state
@@ -19,8 +20,11 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfActionsColumn } from '@/modules/vdf/components/live/vdf-actions-column.ts'
 import { useEndColumn } from '@/modules/vdf/components/live/vdf-end-column.ts'
 import { useVdfRate } from '@/modules/vdf/components/live/vdf-rate.ts'
+import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
+import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import type { VdfVmStat } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -34,7 +38,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { toLower } from 'lodash-es'
-import { h } from 'vue'
+import { h, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vms, vmById } = defineProps<{
@@ -45,6 +49,8 @@ const { vms, vmById } = defineProps<{
 const { t, n } = useI18n()
 
 const formatRate = useVdfRate()
+
+const { quarantineAction } = useVdfQuarantine()
 
 const { pageRecords: pageVms, paginationBindings } = usePagination('vdf-live-vms', () => vms, { ignoreRoute: true })
 
@@ -67,9 +73,10 @@ const useVmColumns = defineColumns(() => ({
   dropped: useEndColumn({ headerLabel: () => t('firewall:live:dropped-rate') }),
   spoofing: useEndColumn({ headerLabel: () => t('firewall:live:spoofing') }),
   status: useLiteralColumn({ headerLabel: () => t('status') }),
+  actions: useVdfActionsColumn(),
 }))
 
-const { HeadCells, BodyCells } = useVmColumns({
+const { HeadCells, BodyCells, toggle } = useVmColumns({
   body: (vm: VdfVmStat) => {
     const xoVm = vmById.get(vm.uuid)
 
@@ -97,9 +104,15 @@ const { HeadCells, BodyCells } = useVmColumns({
             vm.unprotected ? h(UiTag, { accent: 'muted', variant: 'primary' }, () => t('firewall:unprotected')) : null,
           ])
         ),
+      actions: r => r(xoVm === undefined ? [] : [quarantineAction(xoVm)]),
     }
   },
 })
+
+// on a laptop, no column of zeros: spoofing shows when a VM spoofs
+const isNarrow = useVdfNarrow(useTemplateRef('table'), 100)
+
+watchEffect(() => toggle('spoofing', !isNarrow.value || vms.some(vm => vm.spoofPerSec > 0)))
 </script>
 
 <style lang="postcss" scoped>

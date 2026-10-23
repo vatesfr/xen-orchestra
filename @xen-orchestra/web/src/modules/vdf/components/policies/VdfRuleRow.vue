@@ -42,9 +42,10 @@
       </span>
     </UiTableCell>
     <UiTableCell class="cell">
-      <span v-if="rule.log" v-tooltip="logLabel" class="log typo-body-regular-small">
+      <!-- in full when it fits, else truncated with a tooltip -->
+      <span v-if="rule.log" v-tooltip="isLogTruncated && logLabel" class="log typo-body-regular-small">
         <VtsIcon name="fa:list" size="small" />
-        <span class="log-label">{{ logLabel }}</span>
+        <span ref="logText" class="log-label">{{ logLabel }}</span>
       </span>
       <span v-else v-tooltip="t('firewall:log:off')" class="secondary" :aria-label="t('firewall:log:off')">
         {{ t('firewall:log:none') }}
@@ -94,7 +95,9 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed } from 'vue'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
+import { useResizeObserver } from '@vueuse/core'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // One rule of the rule base, read as a sentence:
@@ -145,6 +148,12 @@ const stateLabel = computed(() => (entry.state === undefined ? undefined : t(`fi
 const editLabel = computed(() => t('firewall:rule-form:edit', { id: globalRuleId(rule.value.id) }))
 
 const logLabel = computed(() => rule.value.logLabel ?? t('firewall:log:on'))
+
+const isLogTruncated = ref(false)
+
+useResizeObserver(useTemplateRef('logText'), ([entry]) => {
+  isLogTruncated.value = hasEllipsis(entry.target)
+})
 
 // "12/s · 3 open", on one line
 const hitsLabel = computed(() => {
@@ -236,8 +245,9 @@ const actions = computed<ActionItem[]>(() => [
     }
   }
 
+  /* up to a quarter of the board (its container) */
   .log {
-    max-width: 16rem;
+    max-width: max(16rem, 25cqi);
   }
 
   .log-label {

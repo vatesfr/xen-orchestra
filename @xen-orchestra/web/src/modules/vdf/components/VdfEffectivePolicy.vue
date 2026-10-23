@@ -39,7 +39,7 @@
         </div>
       </li>
       <li class="end">
-        <UiInfo accent="success">{{ t('firewall:after-last-tier') }}</UiInfo>
+        <UiInfo accent="success" wrap>{{ t('firewall:after-last-tier') }}</UiInfo>
       </li>
     </ol>
   </div>

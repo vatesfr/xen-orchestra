@@ -1,5 +1,5 @@
 <template>
-  <div class="vdf-rule-log-table">
+  <div ref="root" class="vdf-rule-log-table">
     <div class="toolbar">
       <UiRadioButtonGroup accent="brand" gap="wide" role="radiogroup" :aria-label="t('firewall:log:verdict')">
         <UiRadioButton v-for="option of verdicts" :key="option" v-model="verdict" :value="option" accent="brand">
@@ -31,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfActionsColumn } from '@/modules/vdf/components/live/vdf-actions-column.ts'
 import { useEndColumn } from '@/modules/vdf/components/live/vdf-end-column.ts'
 import VdfDecisionCell from '@/modules/vdf/components/live/VdfDecisionCell.vue'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
@@ -38,6 +39,8 @@ import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import { useVdfDecision, type VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
+import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
@@ -57,7 +60,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
-import { computed, h, ref, watchEffect, withDirectives } from 'vue'
+import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRouter } from 'vue-router'
 
@@ -70,6 +73,8 @@ const { poolId, vmName } = defineProps<{
 const { t, d } = useI18n()
 
 const router = useRouter()
+
+const { quarantineAction } = useVdfQuarantine()
 
 const isPaused = ref(false)
 
@@ -111,14 +116,22 @@ const vmEntries = computed(() =>
 const rows = computed<Row[]>(() => {
   const term = search.value.trim().toLocaleLowerCase()
 
+  // keys stay the same as new entries come in (a row's open menu with
+  // them): what the entry is, numbered when it repeats
+  const seen = new Map<string, number>()
+
   return vmEntries.value
     .filter(entry => verdict.value === 'all' || entry.verdict === verdict.value.toUpperCase())
-    .map((entry, index) => {
+    .map(entry => {
       const sourceVm = vmByIp.value.get(entry.src)
       const destination = entry.vm ? vmByName.value.get(entry.vm) : undefined
+      const id = [entry.host, entry.time, entry.rule, entry.src, entry.sport, entry.dst, entry.dport].join('|')
+      const repeat = seen.get(id) ?? 0
+
+      seen.set(id, repeat + 1)
 
       return {
-        key: `${entry.host}:${entry.time}:${index}`,
+        key: `${id}|${repeat}`,
         entry,
         source: { ip: entry.src, vm: sourceVm },
         destination,
@@ -185,6 +198,25 @@ function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: str
   }
 }
 
+// a row's trace button
+function traceButton(row: Row) {
+  const label = t('firewall:live:trace', { from: row.source.vm?.name_label ?? row.entry.src, to: row.entry.vm })
+
+  return withDirectives(
+    h(UiButtonIcon, {
+      icon: 'fa:route',
+      size: 'small',
+      accent: 'brand',
+      'aria-label': label,
+      onClick: () => router.push(row.why!),
+    }),
+    [[vTooltip, label]]
+  )
+}
+
+// on a laptop (XO's tree open): 8 columns don't fit
+const isNarrow = useVdfNarrow(useTemplateRef('root'), 100)
+
 const useLogColumns = defineColumns(() => ({
   time: useLiteralColumn({ headerLabel: () => t('firewall:log:time') }),
   verdict: useTagColumn({ headerLabel: () => t('firewall:log:verdict') }),
@@ -194,6 +226,7 @@ const useLogColumns = defineColumns(() => ({
   decidedBy: useLiteralColumn({ headerLabel: () => t('firewall:log:decided-by') }),
   label: useTruncatedTextColumn({ headerLabel: () => t('firewall:log:label') }),
   why: useEndColumn({ headerLabel: () => t('firewall:live:why') }),
+  actions: useVdfActionsColumn(),
 }))
 
 const { HeadCells, BodyCells, toggle } = useLogColumns({
@@ -230,44 +263,38 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
         })
       ),
     service: r => r(h(VdfService, { proto: row.entry.proto.split(' ')[0], port: row.entry.dport })),
-    decidedBy: r =>
-      r(
-        h(VdfDecisionCell, { decision: row.decision }, () =>
-          row.entry.suppressed
-            ? h(
-                'span',
-                { class: 'typo-body-regular-small secondary' },
-                t('firewall:log:suppressed', { n: row.entry.suppressed })
-              )
-            : null
-        )
-      ),
-    label: r => r(row.entry.label ?? ''),
-    why: r =>
-      r(
-        row.why === undefined
-          ? ''
-          : withDirectives(
-              h(UiButtonIcon, {
-                icon: 'fa:route',
-                size: 'small',
-                accent: 'brand',
-                'aria-label': t('firewall:live:trace', {
-                  from: row.source.vm?.name_label ?? row.entry.src,
-                  to: row.entry.vm,
-                }),
-                onClick: () => router.push(row.why!),
-              }),
-              [
-                [
-                  vTooltip,
-                  t('firewall:live:trace', { from: row.source.vm?.name_label ?? row.entry.src, to: row.entry.vm }),
-                ],
-              ]
+    decidedBy: r => {
+      const cell = h(VdfDecisionCell, { decision: row.decision }, () =>
+        row.entry.suppressed
+          ? h(
+              'span',
+              { class: 'typo-body-regular-small secondary' },
+              t('firewall:log:suppressed', { n: row.entry.suppressed })
             )
-      ),
+          : null
+      )
+
+      // narrow: the trace button beside what decided, not in a column of its own
+      return r(
+        isNarrow.value && row.why !== undefined ? h('span', { class: 'decided' }, [cell, traceButton(row)]) : cell
+      )
+    },
+    label: r => r(row.entry.label ?? ''),
+    why: r => r(row.why === undefined ? '' : traceButton(row)),
+    // the source, when it's a VM of this pool
+    actions: r => r(row.source.vm?.$pool === poolId ? [quarantineAction(row.source.vm, { named: true })] : []),
   }),
 })
+
+// a source VM of this pool to quarantine: no empty column otherwise
+watchEffect(() =>
+  toggle(
+    'actions',
+    rows.value.some(row => row.source.vm?.$pool === poolId)
+  )
+)
+
+watchEffect(() => toggle('why', !isNarrow.value))
 
 // labels are optional: no column of "None"
 watchEffect(() =>
@@ -280,6 +307,8 @@ watchEffect(() =>
 
 <style lang="postcss" scoped>
 .vdf-rule-log-table {
+  /* its endpoints narrow on a laptop */
+  container: vdf-table / inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -290,10 +319,23 @@ watchEffect(() =>
     align-items: center;
     gap: 1.6rem 2.4rem;
 
+    /* its own line rather than a clipped Search button */
     .search {
       flex: 1;
-      min-width: 32rem;
+      min-width: min(100%, 52rem);
+
+      /* its field shrinks before the Search button is cut */
+      :deep(.ui-input),
+      :deep(input) {
+        min-width: 0;
+      }
     }
+  }
+
+  :deep(.decided) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
   }
 
   :deep(.time) {

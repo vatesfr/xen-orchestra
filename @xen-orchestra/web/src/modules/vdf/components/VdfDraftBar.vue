@@ -161,9 +161,11 @@ const { openPublish, openRebase, openDiscard, isPublishing } = useVdfPublish(() 
     color: var(--color-neutral-txt-secondary);
   }
 
+  /* the text wraps, not the buttons */
   .actions {
     display: flex;
     gap: 0.8rem;
+    white-space: nowrap;
   }
 }
 </style>

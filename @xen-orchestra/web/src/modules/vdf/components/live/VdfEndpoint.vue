@@ -57,4 +57,11 @@ const vmIcon = computed(() => (vm === undefined ? undefined : objectIcon('vm', t
     color: var(--color-neutral-txt-secondary);
   }
 }
+
+/* in a table on a laptop: the groups over two lines, not a sideways scroll */
+@container vdf-table (max-width: 100rem) {
+  .vdf-endpoint {
+    max-width: 15rem;
+  }
+}
 </style>

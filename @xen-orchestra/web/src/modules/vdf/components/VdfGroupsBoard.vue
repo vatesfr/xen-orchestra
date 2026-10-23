@@ -266,6 +266,12 @@ function groupActions(entry: GroupEntry): ActionItem[] {
   .container {
     height: fit-content;
     gap: 2.4rem;
+
+    /* beside the side panel, on a laptop: the actions go under the title */
+    :deep(.ui-title) {
+      flex-wrap: wrap;
+      row-gap: 0.8rem;
+    }
   }
 
   .global-title {

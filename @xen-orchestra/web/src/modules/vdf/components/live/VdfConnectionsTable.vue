@@ -20,10 +20,12 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfActionsColumn } from '@/modules/vdf/components/live/vdf-actions-column.ts'
 import VdfDecisionCell from '@/modules/vdf/components/live/VdfDecisionCell.vue'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import type { VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
+import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -35,7 +37,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h, ref } from 'vue'
+import { computed, h, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 type Endpoint = { ip: string; vm?: FrontXoVm; name?: string; groups?: string[] }
@@ -59,6 +61,8 @@ const { connections, scopeId } = defineProps<{
 }>()
 
 const { t, n } = useI18n()
+
+const { quarantineAction } = useVdfQuarantine()
 
 // identical connections (same ends, service and rule) on one row, by default
 const isGrouped = ref(true)
@@ -157,9 +161,10 @@ const useConnectionColumns = defineColumns(() => ({
   state: useLiteralColumn({
     headerLabel: () => (isGrouped.value ? t('firewall:live:connections:count') : t('firewall:live:state')),
   }),
+  actions: useVdfActionsColumn(),
 }))
 
-const { HeadCells, BodyCells } = useConnectionColumns({
+const { HeadCells, BodyCells, toggle } = useConnectionColumns({
   body: (row: Row) => ({
     source: r => r(h(VdfEndpoint, { scopeId, ...row.src })),
     destination: r => r(h(VdfEndpoint, { scopeId, ...row.dst })),
@@ -186,12 +191,24 @@ const { HeadCells, BodyCells } = useConnectionColumns({
           row.revoked ? h(UiTag, { accent: 'danger', variant: 'secondary' }, () => t('firewall:live:revoked')) : null,
         ])
       ),
+    // the source, when it's a VM of this pool
+    actions: r => r(row.src.vm?.$pool === scopeId ? [quarantineAction(row.src.vm, { named: true })] : []),
   }),
 })
+
+// a source VM of this pool to quarantine: no empty column otherwise
+watchEffect(() =>
+  toggle(
+    'actions',
+    rows.value.some(row => row.src.vm?.$pool === scopeId)
+  )
+)
 </script>
 
 <style lang="postcss" scoped>
 .vdf-connections-table {
+  /* its endpoints narrow on a laptop */
+  container: vdf-table / inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -202,8 +219,16 @@ const { HeadCells, BodyCells } = useConnectionColumns({
     align-items: center;
     gap: 1.6rem;
 
+    /* its own line rather than a clipped Search button */
     .search {
       flex: 1;
+      min-width: min(100%, 52rem);
+
+      /* its field shrinks before the Search button is cut */
+      :deep(.ui-input),
+      :deep(input) {
+        min-width: 0;
+      }
     }
   }
 
@@ -211,8 +236,15 @@ const { HeadCells, BodyCells } = useConnectionColumns({
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.4rem 0.8rem;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* on a laptop: one state per line */
+  @container vdf-table (max-width: 100rem) {
+    :deep(.states) {
+      max-width: 14rem;
+    }
   }
 
   :deep(.secondary) {

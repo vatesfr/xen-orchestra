@@ -201,14 +201,22 @@ const actions = computed<ActionItem[]>(() => [
     gap: 0.8rem;
   }
 
+  /* as wide as the rule columns, wrapping: never what sets the table's width */
   .content {
     justify-content: space-between;
     flex-wrap: wrap;
+    width: 0;
+    min-width: 100%;
   }
 
   .title {
     flex-wrap: wrap;
     column-gap: 1.6rem;
+  }
+
+  /* to the end, also when wrapped under the title */
+  .actions {
+    margin-inline-start: auto;
   }
 
   .secondary {

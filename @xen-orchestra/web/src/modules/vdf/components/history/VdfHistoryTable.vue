@@ -1,6 +1,12 @@
 <template>
-  <div class="vdf-history-table">
-    <VtsTable :state :pagination-bindings="entries.length > 10 ? paginationBindings : undefined" sticky="right">
+  <div ref="root" class="vdf-history-table">
+    <!-- remeasured when a column drops: its sticky column's scroll shadow -->
+    <VtsTable
+      :key="String(isNarrow)"
+      :state
+      :pagination-bindings="entries.length > 10 ? paginationBindings : undefined"
+      sticky="right"
+    >
       <thead>
         <tr>
           <HeadCells />
@@ -16,6 +22,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import type { VdfHistoryEntry } from '@/modules/vdf/types.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -26,7 +33,7 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h } from 'vue'
+import { computed, h, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // newest first
@@ -76,7 +83,7 @@ const useHistoryColumns = defineColumns(() => ({
   actions: useActionColumn({ buttonIcon: 'fa:eye' }),
 }))
 
-const { HeadCells, BodyCells } = useHistoryColumns({
+const { HeadCells, BodyCells, toggle } = useHistoryColumns({
   body: (entry: VdfHistoryEntry) => ({
     publishedAt: r =>
       r(
@@ -113,6 +120,11 @@ const { HeadCells, BodyCells } = useHistoryColumns({
       }),
   }),
 })
+
+// on a laptop, a version's content is in its details (the eye)
+const isNarrow = useVdfNarrow(useTemplateRef('root'), 112)
+
+watchEffect(() => toggle('content', !isNarrow.value))
 </script>
 
 <style lang="postcss" scoped>

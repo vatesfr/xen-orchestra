@@ -1,7 +1,13 @@
 <template>
   <div ref="root" class="vdf-groups-table">
     <UiQuerySearchBar v-if="isLong" @search="value => (search = value)" />
-    <VtsTable :state :pagination-bindings="isLong ? paginationBindings : undefined" sticky="right">
+    <!-- remeasured when columns drop: its sticky column's scroll shadow -->
+    <VtsTable
+      :key="`${isNarrow}-${isVeryNarrow}-${isPoolsNarrow}`"
+      :state
+      :pagination-bindings="isLong ? paginationBindings : undefined"
+      sticky="right"
+    >
       <thead>
         <tr>
           <HeadCells />
@@ -17,6 +23,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -32,7 +39,7 @@ import { useActionColumn } from '@core/tables/column-definitions/action-column.t
 import { useCollapsedListColumn } from '@core/tables/column-definitions/collapsed-list-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
-import { computed, h, nextTick, ref, useTemplateRef, watch, withDirectives } from 'vue'
+import { computed, h, nextTick, ref, useTemplateRef, watch, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type VdfGroupRow = {
@@ -125,8 +132,7 @@ const useGroupColumns = defineColumns(() => ({
   actions: useActionColumn({}),
 }))
 
-const { HeadCells, BodyCells } = useGroupColumns({
-  exclude: withPools ? [] : ['pools'],
+const { HeadCells, BodyCells, toggle } = useGroupColumns({
   body: (row: VdfGroupRow) => ({
     group: r =>
       r(
@@ -161,6 +167,21 @@ const { HeadCells, BodyCells } = useGroupColumns({
     actions: r => r({ onClick: () => emit('select', row.name), actions: row.actions }),
   }),
 })
+
+// beside the side panel, on a laptop: the panel shows what the table drops
+const isNarrow = useVdfNarrow(root, 64)
+
+const isVeryNarrow = useVdfNarrow(root, 57)
+
+const isPoolsNarrow = useVdfNarrow(root, 76)
+
+watchEffect(() => {
+  toggle('usedBy', !isNarrow.value)
+  toggle('tags', !isVeryNarrow.value)
+
+  // the members' pools: in the global configuration only
+  toggle('pools', withPools && !isPoolsNarrow.value)
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -178,6 +199,14 @@ const { HeadCells, BodyCells } = useGroupColumns({
 
   :deep(.secondary) {
     color: var(--color-neutral-txt-secondary);
+  }
+
+  /* beside the side panel: the field shrinks before the Search button is cut */
+  :deep(.ui-query-search-bar) {
+    .ui-input,
+    input {
+      min-width: 0;
+    }
   }
 }
 </style>

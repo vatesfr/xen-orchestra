@@ -78,7 +78,7 @@
           />
         </UiCard>
       </VtsColumn>
-      <VtsColumn>
+      <VtsColumn class="numbers-column">
         <UiCard>
           <UiCardTitle>
             {{ t('firewall:global:stat:policies') }}
@@ -149,7 +149,7 @@
               <span
                 v-else-if="row.pool.inScope"
                 v-tooltip="t('firewall:global:last-sync:none:info')"
-                class="secondary"
+                class="secondary narrow-text"
                 tabindex="0"
               >
                 {{ t('firewall:global:last-sync:none') }}
@@ -462,7 +462,21 @@ const memberGroups = computed(() =>
 
   .numbers {
     display: flex;
-    gap: 2.4rem;
+    flex-wrap: wrap;
+    gap: 0.8rem 2.4rem;
+  }
+
+  /* a few numbers need less room than the charts beside them */
+  @container vts-columns (min-width: 90rem) {
+    .numbers-column {
+      flex: 0.75 0 0;
+    }
+  }
+
+  /* over two lines rather than widen the table */
+  .narrow-text {
+    display: inline-block;
+    max-width: 18rem;
   }
 
   .sync,
