@@ -119,7 +119,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostStatus, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getHostStatus, relativeStartTime } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -142,8 +142,6 @@ const hostState = computed(() => getHostState(host))
 const powerState = computed(() => getHostStatus(hostState.value))
 
 const hostIcon = computed(() => getHostIcon(host))
-
-const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
 
 <style scoped lang="postcss">

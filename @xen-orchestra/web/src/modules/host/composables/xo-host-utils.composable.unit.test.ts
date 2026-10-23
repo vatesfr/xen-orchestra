@@ -77,7 +77,13 @@ describe('getHostStatus', () => {
   })
 })
 
-describe('getRelativeStartTime', () => {
+describe('relativeStartTime', () => {
+  it('is undefined when the host has no start time', () => {
+    const { relativeStartTime } = mountHostUtils({ startTime: null })
+
+    expect(relativeStartTime).toBeUndefined()
+  })
+
   it('reports the start time relative to now, reading it as seconds', () => {
     const startTimeInSeconds = 1660000000
 
@@ -85,7 +91,7 @@ describe('getRelativeStartTime', () => {
       const { locale } = useI18n()
 
       return {
-        relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
+        relativeStartTime: useXoHostUtils(createHost({ startTime: startTimeInSeconds })).relativeStartTime,
         expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
       }
     })
