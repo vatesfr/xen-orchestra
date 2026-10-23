@@ -55,10 +55,8 @@ import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -67,18 +65,12 @@ const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
-const { getHostStatus } = useXoHostUtils(() => host)
+const { getHostStatus, relativeStartTime } = useXoHostUtils(() => host)
 
 const powerState = computed(() => getHostStatus(getHostState(host)))
-
-const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
-
-const relativeStartTime = computed(() =>
-  date.value === undefined ? undefined : getRelativeTime(date.value, locale.value)
-)
 
 const isMaster = computed(() => isMasterHost(host.id))
 

@@ -4,19 +4,13 @@
       {{ t('hardware-specifications') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow
-        :label="t('manufacturer-info')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
+      <VtsTabularKeyValueRow :label="t('manufacturer-info')" :value="getHostManufacturerInfo(host)" />
       <VtsTabularKeyValueRow
         :label="t('bios-info')"
         :value="`${host.bios_strings['bios-vendor']} (${host.bios_strings['bios-version']})`"
       />
       <VtsTabularKeyValueRow :label="t('cpu-model')" :value="host.cpu_info.modelname" />
-      <VtsTabularKeyValueRow
-        :label="t('core-socket')"
-        :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`"
-      />
+      <VtsTabularKeyValueRow :label="t('core-socket')" :value="getHostCoreSocketInfo(host)" />
       <VtsTabularKeyValueRow :label="t('gpus')">
         <template v-if="isReady" #value>
           <template v-if="devicesNames">
@@ -33,6 +27,7 @@
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/host.util.ts'
 import { usePciStore } from '@/stores/xen-api/pci.store.ts'
 import { usePgpuStore } from '@/stores/xen-api/pgpu.store.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

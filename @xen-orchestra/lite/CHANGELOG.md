@@ -16,6 +16,7 @@
 - [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
 - [New/VM] Fix `MAP_DUPLICATE_KEY` error that could randomly prevent the VM creation (PR [#10552](https://github.com/vatesfr/xen-orchestra/pull/10552))
 - [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
+- [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
 
 ## **0.26.0** (2026-10-01)
 
