@@ -106,7 +106,12 @@ const { HeadCells, BodyCells } = useGroupColumns({
 
     return {
       checkbox: r => r({ selected: isSelected(group.id), onToggle: () => toggleSelection(group.id) }),
-      name: r => r(group.name),
+      name: r =>
+        r({
+          label: group.name,
+          icon: 'table:group',
+          to: { name: '/admin/group/[id]/general', params: { id: group.id } },
+        }),
       provider: r => r(group.provider),
       users: r => r(group.usersCount),
       roles: r => r(group.rolesCount),
