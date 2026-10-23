@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # S3 Object Lock
 
 [Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html) is the immutability mechanism of S3-compatible object storage. This page explains what it actually protects when Xen Orchestra writes to a locked bucket, how to configure the bucket, and which backup settings are compatible with it.

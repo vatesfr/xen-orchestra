@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Full backups
 
 A full backup exports the complete VM, all of its disks and its configuration, to a backup repository (BR) on every run. Each run produces a single, self-contained XVA archive: no chain, no dependencies between runs. The mental model is simple, and so is the restore, since any one archive is enough to bring the whole VM back.

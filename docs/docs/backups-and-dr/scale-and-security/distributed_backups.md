@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Distributed backups
 
 Distributed backups let you spread backup and replication workloads across multiple storage targets, treating them as a pool rather than independent destinations.

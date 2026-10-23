@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # Object storage support
 
 ## Introduction
