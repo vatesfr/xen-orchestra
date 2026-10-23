@@ -2,22 +2,22 @@
   <UiPanelCard class="host-info-card">
     <UiPanelCardTitle
       :id="host.id"
-      size="medium"
+      :icon="hostIcon"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="hostIcon"
+      size="medium"
     />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
           <span class="value">
-            <VtsIcon :name="powerState.icon" size="medium" />
-            {{ powerState.text }}
+            <VtsIcon :name="hostStateDisplay.icon" size="medium" />
+            {{ hostStateDisplay.text }}
           </span>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue align-top truncate>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ host.name_description }}</template>
         <template v-if="host.name_description" #addons>
@@ -45,7 +45,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" icon="object:pool" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -119,7 +119,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostStatus, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getHostStateDisplay, relativeStartTime } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -139,14 +139,12 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
 const hostState = computed(() => getHostState(host))
 
-const powerState = computed(() => getHostStatus(hostState.value))
+const hostStateDisplay = computed(() => getHostStateDisplay(hostState.value))
 
 const hostIcon = computed(() => getHostIcon(host))
-
-const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .host-info-card {
   .content {
     display: flex;
