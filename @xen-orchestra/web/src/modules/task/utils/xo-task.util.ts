@@ -1,7 +1,6 @@
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import { createMapper } from '@core/packages/mapper'
-import type { XoTask } from '@vates/types'
 import type { RouteLocationAsRelative } from 'vue-router'
 
 export type BackupLogResult = { message: string; stack: unknown }
@@ -76,81 +75,4 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
     name: '/(site)/tasks',
     query: { id: taskId },
   }
-}
-
-export type TaskTree = Pick<XoTask, 'start' | 'end' | 'properties'> & { tasks?: TaskTree[] }
-
-export type TaskRead = {
-  /** bytes to read from the sources, unknown if one of them doesn't report it */
-  bytesToRead: number | undefined
-  bytesRead: number
-  /** average speed once the task has ended, otherwise the speed of the reads still running */
-  bytesPerSecond: number
-}
-
-function getNumberProperty(task: TaskTree, name: string) {
-  const value = task.properties[name]
-
-  return typeof value === 'number' ? value : undefined
-}
-
-function getAverageSpeed(task: TaskTree, bytes: number, now: number) {
-  const elapsedMs = (task.end ?? now) - task.start
-
-  return elapsedMs > 0 ? (bytes * 1e3) / elapsedMs : 0
-}
-
-// bytesPerSecond only counts the reads still running
-function sumReads(task: TaskTree, now: number): TaskRead | undefined {
-  const bytesRead = getNumberProperty(task, 'bytesRead')
-
-  if (bytesRead !== undefined) {
-    return {
-      bytesToRead: getNumberProperty(task, 'bytesToRead'),
-      bytesRead,
-      bytesPerSecond: task.end === undefined ? getAverageSpeed(task, bytesRead, now) : 0,
-    }
-  }
-
-  let total: TaskRead | undefined
-
-  for (const subtask of task.tasks ?? []) {
-    const read = sumReads(subtask, now)
-
-    if (read === undefined) {
-      continue
-    }
-
-    if (total === undefined) {
-      total = { ...read }
-    } else {
-      total.bytesToRead =
-        total.bytesToRead === undefined || read.bytesToRead === undefined
-          ? undefined
-          : total.bytesToRead + read.bytesToRead
-      total.bytesRead += read.bytesRead
-      total.bytesPerSecond += read.bytesPerSecond
-    }
-  }
-
-  return total
-}
-
-/**
- * Sums the bytes read from the sources (backups, restores) reported in a task and its subtasks.
- *
- * The backend reports them in one task per source (`read disk …`, `read`): a source consumed by multiple writers
- * is counted once, the written bytes are not reported here.
- *
- * A task reporting its own `bytesRead` is a source: its subtasks are not visited, so the same bytes are never
- * counted twice.
- */
-export function getTaskRead(task: TaskTree, now = Date.now()): TaskRead | undefined {
-  const total = sumReads(task, now)
-
-  if (total !== undefined && task.end !== undefined) {
-    total.bytesPerSecond = getAverageSpeed(task, total.bytesRead, now)
-  }
-
-  return total
 }

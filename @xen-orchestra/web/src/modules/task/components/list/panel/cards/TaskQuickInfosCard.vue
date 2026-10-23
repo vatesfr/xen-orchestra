@@ -82,7 +82,8 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents, getTaskRead } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskMetric } from '@/modules/task/utils/task-metric.util.ts'
+import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -146,23 +147,23 @@ const formattedEndDate = computed(() => {
 
 // bytes read from the sources (disks, XVA) of this task and its subtasks, each source counted once whatever the number
 // of targets: this is not what is written
-const read = computed(() => getTaskRead(task))
+const read = computed(() => getTaskMetric(task, 'bytesRead'))
 
 const formattedBytesToRead = computed(() => {
-  const bytesToRead = read.value?.bytesToRead
+  const bytesToRead = read.value?.total
 
   return bytesToRead !== undefined ? formatSize(bytesToRead, 2) : undefined
 })
 
 const formattedBytesRead = computed(() => {
-  const bytesRead = read.value?.bytesRead
+  const bytesRead = read.value?.value
 
   return bytesRead !== undefined ? formatSize(bytesRead, 2) : undefined
 })
 
-// average speed once ended, otherwise the speed of the reads still running
+// average speed once ended, otherwise the current speed of the reads still running
 const formattedSpeed = computed(() => {
-  const bytesPerSecond = read.value?.bytesPerSecond
+  const bytesPerSecond = read.value?.speed
 
   return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })

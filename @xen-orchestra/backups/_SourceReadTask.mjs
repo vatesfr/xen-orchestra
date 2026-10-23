@@ -1,4 +1,5 @@
 import { Task } from '@vates/task'
+import { TaskMetrics } from '@vates/task/metrics'
 import { MeteredDisk } from '@xen-orchestra/disk-transform'
 
 const MAX_DURATION_BETWEEN_EMIT = 5e3
@@ -12,14 +13,18 @@ const MAX_DURATION_BETWEEN_EMIT = 5e3
  * Its lifecycle follows the source: started before the first read, ended when the source is exhausted, fails or is
  * closed early. A source never read (a step failing before the transfer, a disk without blocks) leaves no task
  *
+ * The bytes read are reported in the `bytesRead` metric (`metrics` property, see `@vates/task/metrics`), with the
+ * number of bytes to read as total, and the `progress` property when this number is known
+ *
  * Implements `ReadMeter` from `@xen-orchestra/disk-transform`
  */
 export class SourceReadTask {
   #isStarted = false
-  #lastEmitDate = 0
+  #lastProgressDate = 0
   #bytesToRead
-  #task
   #bytesRead = 0
+  #metrics
+  #task
 
   /**
    * @param {Record<string, unknown>} properties of the task, must not contain `type` or `id`: xo-web would display it
@@ -28,18 +33,18 @@ export class SourceReadTask {
   constructor(properties) {
     // created here to be a child of the current task, only started on the first read
     this.#task = new Task({ properties })
+    this.#metrics = new TaskMetrics(this.#task, { minEmitInterval: MAX_DURATION_BETWEEN_EMIT })
+    this.#metrics.define('bytesRead', { unit: 'bytes' })
   }
 
   get bytesRead() {
     return this.#bytesRead
   }
 
-  #emit() {
-    const task = this.#task
-    this.#lastEmitDate = Date.now()
-    task.set('bytesRead', this.#bytesRead)
+  #setProgress() {
+    this.#lastProgressDate = Date.now()
     if (this.#bytesToRead > 0) {
-      task.set('progress', Math.min(100, Math.round((this.#bytesRead * 100) / this.#bytesToRead)))
+      this.#task.set('progress', Math.min(100, Math.round((this.#bytesRead * 100) / this.#bytesToRead)))
     }
   }
 
@@ -56,9 +61,7 @@ export class SourceReadTask {
     this.#isStarted = true
     this.#bytesToRead = bytesToRead
     this.#task.start()
-    if (bytesToRead !== undefined) {
-      this.#task.set('bytesToRead', bytesToRead)
-    }
+    this.#metrics.setTotal('bytesRead', bytesToRead)
   }
 
   /**
@@ -71,8 +74,9 @@ export class SourceReadTask {
       return
     }
     this.#bytesRead += length
-    if (Date.now() - this.#lastEmitDate >= MAX_DURATION_BETWEEN_EMIT) {
-      this.#emit()
+    this.#metrics.add('bytesRead', length)
+    if (Date.now() - this.#lastProgressDate >= MAX_DURATION_BETWEEN_EMIT) {
+      this.#setProgress()
     }
   }
 
@@ -86,7 +90,8 @@ export class SourceReadTask {
     if (!this.#isStarted || task.status !== 'pending') {
       return
     }
-    this.#emit()
+    this.#metrics.flush()
+    this.#setProgress()
     if (error !== undefined) {
       task.failure(error)
     } else {

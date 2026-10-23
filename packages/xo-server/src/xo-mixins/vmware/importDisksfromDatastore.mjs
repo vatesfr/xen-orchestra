@@ -1,12 +1,13 @@
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { QCOW2_CLUSTER_SIZE, VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_BLOCK_SIZE, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
-import { ReadAhead } from '@xen-orchestra/disk-transform'
+import { MeteredDisk, ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { NbdStdioClient } from '@vates/nbd-client'
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 import { TaskProgressHandler } from '@xen-orchestra/backups/_runners/_vmRunners/_TaskProgressHandler.mjs'
+import { SourceReadTask } from '@xen-orchestra/backups/_SourceReadTask.mjs'
 import {
   diskIsAlreadyImported,
   findPreviouslyImportedIndex,
@@ -46,6 +47,8 @@ export async function importStream(
     vmdk = new ReadAhead(vmdk)
 
     vmdk.addProgressHandler(new TaskProgressHandler())
+    // the bytes read from vectura, with their history, in a `read disk` subtask: the same metric as the backups
+    vmdk = new MeteredDisk(vmdk, new SourceReadTask({ name: `read disk ${diskPath}` }))
 
     if (format === VDI_FORMAT_QCOW2) {
       stream = await toQcow2Stream(vmdk, { signal })

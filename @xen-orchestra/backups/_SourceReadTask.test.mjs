@@ -105,12 +105,14 @@ describe('SourceReadTask', () => {
     assert.equal(readTask.isRootChild, true)
     assert.equal(readTask.status, 'success')
     assert.deepEqual(readTask.result, { isComplete: true })
-    assert.deepEqual(readTask.properties, {
-      vdiUuid: 'vdi-uuid',
-      bytesToRead: NB_BLOCKS * BLOCK_SIZE,
-      progress: 100,
-      bytesRead: NB_BLOCKS * BLOCK_SIZE,
-    })
+    assert.deepEqual(Object.keys(readTask.properties).sort(), ['metrics', 'progress', 'vdiUuid'])
+    assert.equal(readTask.properties.vdiUuid, 'vdi-uuid')
+    assert.equal(readTask.properties.progress, 100)
+    const { bytesRead } = readTask.properties.metrics
+    assert.equal(bytesRead.value, NB_BLOCKS * BLOCK_SIZE)
+    assert.equal(bytesRead.total, NB_BLOCKS * BLOCK_SIZE)
+    // the final value is always in the history
+    assert.equal(bytesRead.history.at(-1)[1], NB_BLOCKS * BLOCK_SIZE)
     assert.deepEqual(tasks.backup.properties, {})
     assert.deepEqual(tasks.replication.properties, {})
   })
@@ -137,8 +139,8 @@ describe('SourceReadTask', () => {
     assert.equal(tasks.read.isRootChild, true)
     assert.equal(tasks.read.status, 'success')
     assert.deepEqual(tasks.read.result, { isComplete: true })
-    assert.equal(tasks.read.properties.bytesRead, NB_BLOCKS * BLOCK_SIZE)
-    assert.equal(tasks.read.properties.bytesToRead, undefined)
+    assert.equal(tasks.read.properties.metrics.bytesRead.value, NB_BLOCKS * BLOCK_SIZE)
+    assert.equal(tasks.read.properties.metrics.bytesRead.total, undefined)
     assert.equal(tasks.read.properties.progress, undefined)
   })
 
@@ -163,7 +165,7 @@ describe('SourceReadTask', () => {
 
     assert.equal(tasks['read disk'].status, 'success')
     assert.deepEqual(tasks['read disk'].result, { isComplete: false })
-    assert.equal(tasks['read disk'].properties.bytesRead, 5 * BLOCK_SIZE)
+    assert.equal(tasks['read disk'].properties.metrics.bytesRead.value, 5 * BLOCK_SIZE)
     assert.equal(tasks['read disk'].properties.progress, 25)
   })
 
@@ -186,7 +188,7 @@ describe('SourceReadTask', () => {
 
     assert.equal(tasks['read disk'].status, 'failure')
     assert.equal(tasks['read disk'].result.message, 'NBD connection lost')
-    assert.equal(tasks['read disk'].properties.bytesRead, 2 * BLOCK_SIZE)
+    assert.equal(tasks['read disk'].properties.metrics.bytesRead.value, 2 * BLOCK_SIZE)
   })
 
   it('reports each disk of an incremental export in its own task', async () => {
@@ -214,7 +216,7 @@ describe('SourceReadTask', () => {
       assert.equal(tasks[name].isRootChild, true)
       assert.equal(tasks[name].status, 'success')
       assert.equal(tasks[name].properties.vdiUuid, vdiUuid)
-      assert.equal(tasks[name].properties.bytesRead, NB_BLOCKS * BLOCK_SIZE)
+      assert.equal(tasks[name].properties.metrics.bytesRead.value, NB_BLOCKS * BLOCK_SIZE)
     }
   })
 

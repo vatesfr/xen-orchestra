@@ -23,6 +23,7 @@
   },
   "exports": {
     ".": "./index.js",
-    "./combineEvents": "./combineEvents.js"
+    "./combineEvents": "./combineEvents.js",
+    "./metrics": "./metrics.js"
   }
 }
