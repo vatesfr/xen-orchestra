@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "SDN コントローラーのドキュメント",
   "traffic-rules:format-warning": "設定エラー: トラフィックルールが想定された形式ではありません。移行方法については{check-doc}。",
   "traffic-rules:format-warning:check-doc": "最新のドキュメントを確認してください",
-  "traffic-rules:info-message": "トラフィックルールの順序は実装中です。動作が不安定な場合があります。",
   "traffic-rules:no-traffic-rules-detected": "トラフィックルールは検出されませんでした",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "XAPI プラグインモードが必要です",
