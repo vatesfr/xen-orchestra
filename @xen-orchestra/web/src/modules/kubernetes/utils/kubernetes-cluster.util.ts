@@ -54,16 +54,23 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
   }
 }
 
+export function isClusterUpgradable(cluster: XoKubernetesCluster): boolean {
+  return isClusterPhaseReady(cluster.phase) && !cluster.is_upgrading && !cluster.is_reconciliation_paused
+}
+
 export function clusterStatus(cluster: XoKubernetesCluster): KubernetesAvailabilityStatus {
   return cluster.is_available ? 'available' : 'not-available'
 }
 
-export function clusterVersion(cluster: XoKubernetesCluster): string {
-  const versions = [...cluster.control_plane_status.versions, ...cluster.worker_status.versions].map(
-    ({ version }) => version
-  )
+/**
+ * Versions run by the control plane and worker nodes, with duplicates
+ */
+export function clusterVersions(cluster: XoKubernetesCluster): string[] {
+  return [...cluster.control_plane_status.versions, ...cluster.worker_status.versions].map(({ version }) => version)
+}
 
-  return [...new Set(versions)].sort(compareStrings).join('/')
+export function clusterVersion(cluster: XoKubernetesCluster): string {
+  return [...new Set(clusterVersions(cluster))].sort(compareStrings).join('/')
 }
 
 export type KubernetesClusterUpdate = {

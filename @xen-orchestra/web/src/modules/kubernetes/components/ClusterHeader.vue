@@ -2,6 +2,7 @@
   <UiHeadBar icon="object:cluster">
     {{ cluster.name }}
     <template #actions>
+      <ClusterUpgradeButton :cluster />
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
@@ -52,6 +53,7 @@
 
 <script setup lang="ts">
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
+import ClusterUpgradeButton from '@/modules/kubernetes/components/actions/upgrade-cluster/ClusterUpgradeButton.vue'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import TabList from '@core/components/tab-list/TabList.vue'

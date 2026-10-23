@@ -7,6 +7,7 @@ import {
   isClusterDeletable,
   isClusterPhaseReady,
   isClusterReconciliationToggleable,
+  isClusterUpgradable,
 } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 
@@ -52,6 +53,24 @@ describe('isClusterPhaseReady', () => {
       expect(isClusterPhaseReady(phase)).toBe(false)
     }
   )
+})
+
+describe('isClusterUpgradable', () => {
+  it('returns true for a ready cluster that is neither upgrading nor paused', () => {
+    expect(isClusterUpgradable(createKubernetesCluster())).toBe(true)
+  })
+
+  it('returns false when the cluster phase is not ready', () => {
+    expect(isClusterUpgradable(createKubernetesCluster({ phase: 'Updating' }))).toBe(false)
+  })
+
+  it('returns false when the cluster is upgrading', () => {
+    expect(isClusterUpgradable(createKubernetesCluster({ is_upgrading: true }))).toBe(false)
+  })
+
+  it('returns false when the cluster reconciliation is paused', () => {
+    expect(isClusterUpgradable(createKubernetesCluster({ is_reconciliation_paused: true }))).toBe(false)
+  })
 })
 
 describe('clusterStatus', () => {

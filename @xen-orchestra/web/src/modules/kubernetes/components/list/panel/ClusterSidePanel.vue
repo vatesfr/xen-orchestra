@@ -1,5 +1,8 @@
 <template>
   <VtsSidePanel :has-selection="!!cluster" @close="emit('close')">
+    <template v-if="cluster" #actions>
+      <ClusterUpgradeButton :cluster />
+    </template>
     <template v-if="cluster" #more-actions>
       <ClusterActions :cluster />
     </template>
@@ -15,6 +18,7 @@
 
 <script setup lang="ts">
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
+import ClusterUpgradeButton from '@/modules/kubernetes/components/actions/upgrade-cluster/ClusterUpgradeButton.vue'
 import ClusterInfoCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterInfoCard.vue'
 import ClusterNetworkingCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterNetworkingCard.vue'
 import ClusterNodesReplicasCard from '@/modules/kubernetes/components/list/panel/card/cluster/ClusterNodesReplicasCard.vue'

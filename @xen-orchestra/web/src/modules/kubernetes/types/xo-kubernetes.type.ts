@@ -66,6 +66,7 @@ export type XoKubernetesCluster = {
   is_control_plane_initialized: boolean
   is_infrastructure_provisioned: boolean
   is_reconciliation_paused: boolean
+  is_upgrading: boolean
   name: string
   phase: KubernetesClusterPhase
   pod_cidr_blocks: string[] | null

@@ -1,14 +1,11 @@
 import { useXoKubernetesReleaseCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-release-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { clusterVersion } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
+import {
+  type KubernetesVersionOption,
+  toKubernetesVersionOptions,
+} from '@/modules/kubernetes/utils/kubernetes-version.util.ts'
 import { computed, type ComputedRef } from 'vue'
-
-export type KubernetesVersionOption = {
-  value: string
-  label: string
-  // Minor version the release belongs to, displayed as a separator in the select dropdown
-  group?: string
-}
 
 /**
  * Options of the Kubernetes version select.
@@ -32,12 +29,7 @@ export function useKubernetesVersionOptions(cluster?: XoKubernetesCluster): {
 
   const { kubernetesReleaseGroups, areKubernetesReleasesReady } = useXoKubernetesReleaseCollection()
 
-  // CAPI expects releases without the "v" prefix, which is only added for display
-  const options = computed(() =>
-    kubernetesReleaseGroups.value.flatMap(({ version, releases }) =>
-      releases.map(release => ({ value: release, label: `v${release}`, group: `v${version}` }))
-    )
-  )
+  const options = computed(() => toKubernetesVersionOptions(kubernetesReleaseGroups.value))
 
   return {
     options,
