@@ -16,11 +16,11 @@
       {{ t('firewall:global:conflicts') }}
       <template #description>
         <ul class="address-list">
-          <li v-for="conflict of conflicts" :key="`${conflict.group}/${conflict.ip}`">
+          <li v-for="conflict of conflicts" :key="`${conflict.member.vm}/${conflict.ip}`">
             {{
               t('firewall:global:conflict', {
                 ip: conflict.ip,
-                group: conflict.group,
+                groups: conflict.groups.join(', '),
                 member: vmLabel(conflict.member),
                 holders: conflict.holders.map(vmLabel).join(', '),
               })
@@ -75,7 +75,7 @@
 
     <VtsColumns>
       <VtsColumn>
-        <UiCard>
+        <UiCard class="stat-card">
           <UiCardTitle>
             {{ t('firewall:global:stat:pools') }}
             <template #description>{{ t('firewall:global:stat:pools:description') }}</template>
@@ -92,7 +92,7 @@
         </UiCard>
       </VtsColumn>
       <VtsColumn>
-        <UiCard>
+        <UiCard class="stat-card">
           <UiCardTitle>
             {{ t('firewall:overview:protection') }}
             <template #description>{{ t('firewall:global:protection:description') }}</template>
@@ -109,7 +109,7 @@
         </UiCard>
       </VtsColumn>
       <VtsColumn class="numbers-column">
-        <UiCard>
+        <UiCard class="stat-card">
           <UiCardTitle>
             {{ t('firewall:global:stat:policies') }}
             <template #description>{{ t('firewall:global:policies:description') }}</template>
@@ -250,7 +250,7 @@
               <UiLink :to="row.route" size="small" icon="fa:globe">{{ row.policy.name }}</UiLink>
             </UiTableCell>
             <UiTableCell>
-              <VdfGroupChip :scope-id :group="row.policy.appliedTo" :count="membersOf(row.policy.appliedTo).length" />
+              <VdfGroupChip :scope-id :group="row.policy.appliedTo" :count="memberCount(row.policy.appliedTo)" />
             </UiTableCell>
             <UiTableCell class="typo-body-regular-small">{{ n(row.policy.ingress.length) }}</UiTableCell>
             <UiTableCell>
@@ -317,7 +317,13 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import type { VdfGlobalPool, VdfGlobalScope, VdfPoolSyncState, VdfVmRef } from '@/modules/vdf/types.ts'
+import type {
+  VdfAddressConflict,
+  VdfGlobalPool,
+  VdfGlobalScope,
+  VdfPoolSyncState,
+  VdfVmRef,
+} from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
@@ -482,7 +488,23 @@ async function takeOver(pool: VdfGlobalPool) {
 
 // ADDRESSES shared by VMs, which members across pools can't tell apart
 
-const conflicts = computed(() => globalStatus.value?.conflicts ?? [])
+// one line per member and IP, whatever the number of groups it's left out of
+const conflicts = computed(() => {
+  const byAddress = new Map<string, VdfAddressConflict & { groups: string[] }>()
+
+  for (const conflict of globalStatus.value?.conflicts ?? []) {
+    const key = `${conflict.member.vm}/${conflict.ip}`
+    const known = byAddress.get(key)
+
+    if (known === undefined) {
+      byAddress.set(key, { ...conflict, groups: [conflict.group] })
+    } else {
+      known.groups.push(conflict.group)
+    }
+  }
+
+  return [...byAddress.values()]
+})
 
 const overlaps = computed(() => globalStatus.value?.overlaps ?? [])
 
@@ -533,18 +555,29 @@ const policyRows = computed(() =>
 
 // MEMBERS: what XO writes into the pools, the running members of each
 // global group with their IPs (a halted member has none to write)
+
+// the last known members of the pools XO lost aren't among XO's VMs
+const staleMembersOf = (name: string) => (globalStatus.value?.members[name] ?? []).filter(member => member.stale)
+
+const memberCount = (name: string) => membersOf(name).length + staleMembersOf(name).length
+
 const memberGroups = computed(() =>
   Object.entries(globalStatus.value?.members ?? {})
     .map(([name, members]) => ({
       name,
       members,
-      total: membersOf(name).length,
+      total: memberCount(name),
     }))
     .filter(group => group.total > 0)
 )
 </script>
 
 <style lang="postcss" scoped>
+/* cards of a row share its height, as on XO's dashboard */
+.stat-card {
+  flex: 1;
+}
+
 .global-firewall-overview-state {
   margin: 0.8rem;
 }

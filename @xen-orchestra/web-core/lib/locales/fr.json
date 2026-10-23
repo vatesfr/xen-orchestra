@@ -527,7 +527,7 @@
   "firewall:global:check:out-of-scope": "Hors périmètre : rien à écrire",
   "firewall:global:check:removed": "Quitte le périmètre : ses politiques globales sont retirées, ses propres politiques restent",
   "firewall:global:check:unreachable": "XO ne peut pas joindre ce pool pour l'instant : il se mettra à jour dès que XO le joindra à nouveau",
-  "firewall:global:conflict": "{ip} : {member} (groupe {group}) et {holders}. Les autres pools ne reçoivent pas cette IP tant que le membre n'est pas seul à la détenir.",
+  "firewall:global:conflict": "{ip} : {member}, membre de {groups}, et {holders}. Les autres pools ne reçoivent pas cette IP tant que le membre n'est pas seul à la détenir.",
   "firewall:global:conflicts": "Adresses de membres aussi détenues par d'autres VM",
   "firewall:global:edit-xo-wide": "Modifier dans le pare-feu global",
   "firewall:global:error": "Impossible de lire le pare-feu global. Vérifiez que le plugin VDF est chargé dans XO, puis rechargez la page.",

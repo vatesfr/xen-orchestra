@@ -527,7 +527,7 @@
   "firewall:global:check:out-of-scope": "Not in scope: nothing to write",
   "firewall:global:check:removed": "Leaves the scope: its global policies are removed, its own policies stay",
   "firewall:global:check:unreachable": "XO can't reach this pool now: it catches up as soon as XO reaches it again",
-  "firewall:global:conflict": "{ip}: {member} (group {group}) and {holders}. The other pools don't get this IP until only the member holds it.",
+  "firewall:global:conflict": "{ip}: {member}, member of {groups}, and {holders}. The other pools don't get this IP until only the member holds it.",
   "firewall:global:conflicts": "Member addresses held by other VMs too",
   "firewall:global:edit-xo-wide": "Edit in global firewall",
   "firewall:global:error": "Can't read the global firewall. Check that the VDF plugin is loaded in XO, then reload the page.",
