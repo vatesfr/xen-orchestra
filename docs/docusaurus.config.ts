@@ -203,8 +203,8 @@ export default {
             from: '/xo6/powershell-module',
           },
           {
-            to: '/automation/kubernetes',
-            from: '/xo6/kubernetes',
+            to: '/automation/kubernetes/recipes',
+            from: ['/xo6/kubernetes', '/automation/kubernetes'],
           },
           {
             to: '/backups-and-dr/backup-types/rolling_snapshots',
