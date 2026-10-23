@@ -34,6 +34,7 @@
     "@vates/types": "^2.3.0",
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/openflow": "^0.1.4",
+    "decorator-synchronized": "^0.6.0",
     "ipaddr.js": "^2.0.1",
     "lodash": "^4.18.0",
     "node-openssl-cert": "^0.1.34",
