@@ -2242,6 +2242,8 @@ const messages = {
   importBackupModalSelectBackup: 'Select your backup…',
   importBackupModalSelectSr: 'Select a destination SR…',
   deleteOrphanedVdisModalTitle: 'Delete orphaned snapshot VDIs',
+  failedToDeleteVdisTitle: 'Delete VDI{nVdis, plural, one {} other {s}} failed',
+  failedToDeleteVdisMessage: 'Failed to delete {nVdis, number} VDI{nVdis, plural, one {} other {s}}.',
   deleteOrphanedVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} orphaned snapshot VDI{nVdis, plural, one {} other {s}}?',
   definitiveMessageModal: 'This operation is definitive.',
