@@ -67,6 +67,14 @@ export const useVdfGlobalPublishJob = defineJob(
           globalBody(document, revision)
         )
 
+        // published from an older revision: nothing written, the draft rebases
+        if (result.conflict) {
+          throw new JobError(t('firewall:publish:conflict'))
+        }
+
+        // a partial publish (`published` but not `ok`) isn't an error: the
+        // configuration is saved, the draft bar follows the pools until each
+        // one is written, and names those that aren't yet
         if (!result.published) {
           const failed = result.pools?.find(pool => !pool.ok && !pool.unreachable && !pool.otherXo)
 

@@ -49,7 +49,11 @@
     </VtsBanner>
   </div>
   <div v-else-if="publishProgress !== undefined" class="vdf-draft-bar published" role="status">
-    <UiAlert :accent="publishProgress.done ? 'success' : 'info'" close @close="dismissedDocId = publishProgress.id">
+    <UiAlert
+      :accent="publishProgress.done ? 'success' : publishProgress.failed.length > 0 ? 'warning' : 'info'"
+      close
+      @close="dismissedDocId = publishProgress.id"
+    >
       {{
         t(isGlobal ? 'firewall:global:published:in-sync' : 'firewall:published:enforcing', {
           n: publishProgress.enforcing,
@@ -57,7 +61,11 @@
         })
       }}
       <template #description>
-        {{ publishProgress.done ? t('firewall:published:done') : t('firewall:published:waiting') }}
+        <template v-if="publishProgress.done">{{ t('firewall:published:done') }}</template>
+        <template v-else-if="publishProgress.failed.length > 0">
+          {{ t('firewall:global:published:not-written', { pools: publishProgress.failed.join(', ') }) }}
+        </template>
+        <template v-else>{{ t('firewall:published:waiting') }}</template>
       </template>
     </UiAlert>
   </div>
@@ -106,7 +114,12 @@ const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } 
         const total = global.inScopePoolCount.value
         const enforcing = global.inSyncPoolCount.value
 
-        return { id, enforcing, total, done: enforcing === total }
+        // pools this revision couldn't be written into yet (XO retries)
+        const failed = global.pools.value
+          .filter(pool => pool.inScope && pool.state !== 'in-sync' && pool.sync?.ok === false)
+          .map(pool => (pool.sync?.error ? `${pool.name} (${pool.sync.error})` : pool.name))
+
+        return { id, enforcing, total, done: enforcing === total, failed }
       }),
     }
   }
@@ -130,7 +143,8 @@ const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } 
       const enforcing = policy.hosts.value.filter(({ status }) => status?.doc === publish.docId).length
       const total = policy.liveHostCount.value
 
-      return { id: publish.docId, enforcing, total, done: enforcing === total }
+      // a pool publish is written by the call itself, or refused
+      return { id: publish.docId, enforcing, total, done: enforcing === total, failed: [] as string[] }
     }),
   }
 })()
