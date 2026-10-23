@@ -134,6 +134,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/user/[id]': RouteRecordInfo<
+      '/admin/user/[id]',
+      '/admin/user/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/user/[id]/general'
+    >,
+    '/admin/user/[id]/general': RouteRecordInfo<
+      '/admin/user/[id]/general',
+      '/admin/user/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/user-management': RouteRecordInfo<
       '/admin/user-management',
       '/admin/user-management',
@@ -677,6 +691,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/role/new.vue': {
       routes:
         | '/admin/role/new'
+      views:
+        | never
+    }
+    'src/pages/admin/user/[id].vue': {
+      routes:
+        | '/admin/user/[id]'
+        | '/admin/user/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/user/[id]/general.vue': {
+      routes:
+        | '/admin/user/[id]/general'
       views:
         | never
     }
