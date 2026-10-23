@@ -44,7 +44,7 @@
     "@xen-orchestra/log": "^0.7.2",
     "@xen-orchestra/qcow2": "^1.4.1",
     "@xen-orchestra/vmdk": "^0.1.0",
-    "@xen-orchestra/xapi": "^9.0.1",
+    "@xen-orchestra/xapi": "^9.1.0",
     "complex-matcher": "^1.1.1",
     "fast-xml-parser": "^5.10.1",
     "golike-defer": "^0.5.1",
