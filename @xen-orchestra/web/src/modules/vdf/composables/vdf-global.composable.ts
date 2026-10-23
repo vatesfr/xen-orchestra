@@ -61,7 +61,11 @@ export function useVdfGlobalPolicy() {
 
   const inSyncPoolCount = computed(() => pools.value.filter(pool => pool.state === 'in-sync').length)
 
-  const inScopePoolCount = computed(() => pools.value.filter(pool => pool.inScope).length)
+  // a pool holding another XO's global configuration isn't this one's to sync
+  const inScopePoolCount = computed(() => pools.value.filter(pool => pool.inScope && pool.state !== 'other-xo').length)
+
+  // only XO administrators change the global configuration
+  const canEdit = computed(() => globalStatus.value?.canEdit !== false)
 
   // HOSTS of the pools in scope, each against its own pool's document
 
@@ -118,6 +122,7 @@ export function useVdfGlobalPolicy() {
     publishedScopePoolIds,
     inSyncPoolCount,
     inScopePoolCount,
+    canEdit,
     hosts,
     areHostsReady,
     realizationOf,

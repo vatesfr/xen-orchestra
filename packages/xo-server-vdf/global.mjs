@@ -135,7 +135,7 @@ export const sameDocument = (a, b) => JSON.stringify(canonical(a)) === JSON.stri
 // to write there (stale-global: but an old global part is still there).
 export function poolSyncState({ inScope, published, expected }) {
   const actual = globalPart(published)
-  const hasGlobal = Object.keys(actual.groups).length > 0 || actual.policies.length > 0
+  const hasGlobal = hasGlobalPart(published)
   if (!inScope) {
     return hasGlobal ? 'stale-global' : 'out-of-scope'
   }
@@ -160,27 +160,128 @@ export function vmIps(vm, vifs) {
   return { ips: ips.sort(), trusted }
 }
 
-const isMember = (vm, group) => (group.tags ?? []).length > 0 && group.tags.every(tag => vm.tags.includes(tag))
+// what XO knows of a running VM, enough to resolve global groups and to
+// spot an address held twice; kept for a pool XO can't reach (fail static)
+export const vmRecord = (vm, vifs) => ({
+  vm: vm.id,
+  vmName: vm.name_label,
+  pool: vm.$pool,
+  tags: vm.tags,
+  ...vmIps(vm, vifs),
+})
+
+export const runningVmRecords = (vms, vifsOf) =>
+  vms.filter(vm => vm.power_state === 'Running').map(vm => vmRecord(vm, vifsOf(vm)))
+
+const isMember = (record, group) => (group.tags ?? []).length > 0 && group.tags.every(tag => record.tags.includes(tag))
 
 // Members of each global group, in every pool in scope: running VMs
 // carrying all the group's tags, with their IPs.
-export function globalMembers({ global, vms, vifsOf, scope }) {
+export function globalMembers({ global, records, scope }) {
   const members = {}
   for (const [name, group] of Object.entries(global?.groups ?? {})) {
-    members[name] = vms
-      .filter(vm => vm.power_state === 'Running' && inScope(scope, vm.$pool) && isMember(vm, group))
-      .map(vm => ({ vm: vm.id, vmName: vm.name_label, pool: vm.$pool, ...vmIps(vm, vifsOf(vm)) }))
+    members[name] = records
+      .filter(record => inScope(scope, record.pool) && isMember(record, group))
+      .map(({ tags, ...member }) => member)
   }
   return members
 }
 
+// IPs held by more than one running VM, whatever their pool
+export function duplicateAddresses(records) {
+  const holders = new Map()
+  for (const record of records) {
+    for (const ip of record.ips) {
+      holders.set(ip, [...(holders.get(ip) ?? []), record])
+    }
+  }
+  return new Map(
+    [...holders]
+      .filter(([, list]) => new Set(list.map(record => record.vm)).size > 1)
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+  )
+}
+
+const vmRef = ({ vm, vmName, pool }) => ({ vm, vmName, pool })
+
+// A member's IP that another VM holds too (reused by DHCP, a clone, a
+// guest that set it): other pools can't tell the two apart, so it's left out
+// of the remote IPs at once, instead of letting the other VM in as a member
+// (approach notes §10.6).
+export function memberConflicts(members, duplicates) {
+  const conflicts = []
+  for (const [group, list] of Object.entries(members)) {
+    const memberIds = new Set(list.map(member => member.vm))
+    for (const member of list) {
+      for (const ip of member.ips) {
+        const others = (duplicates.get(ip) ?? []).filter(record => !memberIds.has(record.vm))
+        if (others.length > 0) {
+          conflicts.push({ group, ip, member: vmRef(member), holders: others.map(vmRef) })
+        }
+      }
+    }
+  }
+  return conflicts
+}
+
+// Members across pools only make sense if the pools share a routed address
+// space: the same IP on VMs of two pools in scope says they may not (two
+// private networks numbered alike), or that an address is used twice.
+export function addressOverlaps(duplicates, scope) {
+  const overlaps = []
+  for (const [ip, holders] of duplicates) {
+    const inScopeHolders = holders.filter(record => inScope(scope, record.pool))
+    if (new Set(inScopeHolders.map(record => record.pool)).size > 1) {
+      overlaps.push({ ip, holders: inScopeHolders.map(vmRef) })
+    }
+  }
+  return overlaps
+}
+
 // For one pool: per global group, the IPs of its members in the other pools
-// (its own members are resolved by its agents, from the tags).
-export function remoteIpsFor(poolId, members) {
+// (its own members are resolved by its agents, from the tags), without the
+// IPs another VM holds too.
+export function remoteIpsFor(poolId, members, conflicts = []) {
+  const excluded = new Set(conflicts.map(({ group, ip }) => `${group}\x00${ip}`))
   return Object.fromEntries(
     Object.entries(members).map(([name, list]) => [
       name,
-      [...new Set(list.filter(member => member.pool !== poolId).flatMap(member => member.ips))].sort(),
+      [
+        ...new Set(
+          list
+            .filter(member => member.pool !== poolId)
+            .flatMap(member => member.ips)
+            .filter(ip => !excluded.has(`${name}\x00${ip}`))
+        ),
+      ].sort(),
     ])
   )
+}
+
+// A pool takes the global configuration of one XO only: the first one to
+// write a global part there records itself in the pool's other_config, and
+// the others leave that pool's global part alone until an administrator
+// takes the pool over.
+export const OWNER_KEY = 'vdf:global.owner'
+
+export function poolOwner(otherConfig) {
+  try {
+    const owner = JSON.parse(otherConfig?.[OWNER_KEY] ?? '')
+    return typeof owner?.id === 'string' ? owner : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// a pool's own part with the global part it already holds: what XO
+// publishes for a pool another XO owns
+export function keepGlobalPart(local, published) {
+  const own = localPart(local)
+  const global = globalPart(published)
+  return { ...own, groups: { ...global.groups, ...own.groups }, policies: [...global.policies, ...own.policies] }
+}
+
+export function hasGlobalPart(document) {
+  const { groups, policies } = globalPart(document)
+  return Object.keys(groups).length > 0 || policies.length > 0
 }

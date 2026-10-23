@@ -83,7 +83,11 @@ export type VdfPublishedPolicy = {
   text: string | null
   document: VdfDocument | null
   parseError?: string
-  global?: { revision: number; inScope: boolean }
+  // whether the current user may publish to the pool (XO admin, or an
+  // administrate ACL on it)
+  canEdit?: boolean
+  // owner: the XO whose global configuration the pool holds, if another one
+  global?: { revision: number; inScope: boolean; owner?: string }
 }
 
 export type VdfGlobalScope = {
@@ -91,7 +95,14 @@ export type VdfGlobalScope = {
   pools?: string[]
 }
 
-export type VdfPoolSyncState = 'in-sync' | 'behind' | 'not-published' | 'out-of-scope' | 'stale-global' | 'unreachable'
+export type VdfPoolSyncState =
+  | 'in-sync'
+  | 'behind'
+  | 'not-published'
+  | 'out-of-scope'
+  | 'stale-global'
+  | 'unreachable'
+  | 'other-xo'
 
 export type VdfGlobalPool = {
   id: string
@@ -100,6 +111,10 @@ export type VdfGlobalPool = {
   state: VdfPoolSyncState
   docId?: string
   sync?: { at: number; ok: boolean; error?: string; state?: VdfPoolSyncState; revision?: number }
+  // other-xo: the XO whose global configuration the pool holds
+  owner?: string
+  // a pool XO lost (no longer one of its objects): when XO last saw it
+  seenAt?: number
 }
 
 export type VdfGlobalMember = {
@@ -109,7 +124,18 @@ export type VdfGlobalMember = {
   poolName?: string
   ips: string[]
   trusted: boolean
+  // last known: XO lost the member's pool (fail static)
+  stale?: boolean
+  seenAt?: number
 }
+
+export type VdfVmRef = Pick<VdfGlobalMember, 'vm' | 'vmName' | 'pool' | 'poolName'>
+
+// a member's IP another VM holds too: left out of the other pools
+export type VdfAddressConflict = { group: string; ip: string; member: VdfVmRef; holders: VdfVmRef[] }
+
+// the same IP on VMs of two pools in scope
+export type VdfAddressOverlap = { ip: string; holders: VdfVmRef[] }
 
 export type VdfGlobalStatus = {
   document: VdfDocument
@@ -119,6 +145,11 @@ export type VdfGlobalStatus = {
   publishedBy?: string
   pools: VdfGlobalPool[]
   members: Record<string, VdfGlobalMember[]>
+  // whether the current user may change it (XO administrators only)
+  canEdit?: boolean
+  instance?: { id: string; name: string }
+  conflicts?: VdfAddressConflict[]
+  overlaps?: VdfAddressOverlap[]
 }
 
 // the global configuration as edited: the document and where it applies
@@ -133,7 +164,16 @@ export type VdfCheckResult = {
   document?: string
   published?: boolean
   // global configuration: one result per pool
-  pools?: (VdfCheckResult & { id: string; name: string; inScope: boolean; skipped?: boolean; unreachable?: boolean })[]
+  pools?: (VdfCheckResult & {
+    id: string
+    name: string
+    inScope: boolean
+    skipped?: boolean
+    unreachable?: boolean
+    // the pool holds another XO's global configuration
+    otherXo?: boolean
+    owner?: string
+  })[]
   revision?: number
   // pool publish refused: the pool's document isn't the one the edit
   // started from (docId: what it holds)

@@ -12,6 +12,36 @@
   <div v-else class="global-firewall-overview">
     <UiAlert v-if="hasGlobalError" accent="danger">{{ t('firewall:global:error:polling') }}</UiAlert>
 
+    <UiAlert v-if="conflicts.length > 0" accent="warning">
+      {{ t('firewall:global:conflicts') }}
+      <template #description>
+        <ul class="address-list">
+          <li v-for="conflict of conflicts" :key="`${conflict.group}/${conflict.ip}`">
+            {{
+              t('firewall:global:conflict', {
+                ip: conflict.ip,
+                group: conflict.group,
+                member: vmLabel(conflict.member),
+                holders: conflict.holders.map(vmLabel).join(', '),
+              })
+            }}
+          </li>
+        </ul>
+      </template>
+    </UiAlert>
+
+    <UiAlert v-if="overlaps.length > 0" accent="warning">
+      {{ t('firewall:global:overlaps') }}
+      <template #description>
+        <p>{{ t('firewall:global:overlaps:info') }}</p>
+        <ul class="address-list">
+          <li v-for="overlap of overlaps" :key="overlap.ip">
+            {{ t('firewall:global:overlap', { ip: overlap.ip, vms: overlap.holders.map(vmLabel).join(', ') }) }}
+          </li>
+        </ul>
+      </template>
+    </UiAlert>
+
     <UiCard>
       <UiTitle>{{ t('firewall:global:title') }}</UiTitle>
       <p class="typo-body-regular">{{ t('firewall:global:info') }}</p>
@@ -113,7 +143,11 @@
         <tbody>
           <VtsRow v-for="row of poolRows" :key="row.pool.id">
             <UiTableCell>
+              <span v-if="row.pool.seenAt !== undefined" class="pool typo-body-regular-small">
+                <VtsIcon name="object:pool" size="small" />{{ row.pool.name }}
+              </span>
               <UiLink
+                v-else
                 :to="{ name: '/pool/[id]/firewall', params: { id: row.pool.id } }"
                 size="small"
                 icon="object:pool"
@@ -124,7 +158,7 @@
             <UiTableCell>
               <span class="sync">
                 <UiTag
-                  v-tooltip="t(`firewall:global:state:${row.pool.state}:info`)"
+                  v-tooltip="t(`firewall:global:state:${row.pool.state}:info`, { xo: row.pool.owner })"
                   :accent="stateAccents[row.pool.state]"
                   variant="secondary"
                   tabindex="0"
@@ -142,7 +176,12 @@
               }}</span>
             </UiTableCell>
             <UiTableCell class="typo-body-regular-small">
-              <span v-if="row.pool.sync" class="last-sync">
+              <span v-if="row.pool.seenAt !== undefined" class="last-sync">
+                <I18nT keypath="firewall:global:last-seen" scope="global" tag="span" class="secondary">
+                  <template #time><VtsRelativeTime :date="row.pool.seenAt" /></template>
+                </I18nT>
+              </span>
+              <span v-else-if="row.pool.sync" class="last-sync">
                 <VtsRelativeTime :date="row.pool.sync.at" />
                 <UiInfo v-if="row.pool.sync.error" accent="danger" wrap>{{ row.pool.sync.error }}</UiInfo>
               </span>
@@ -156,7 +195,22 @@
               </span>
             </UiTableCell>
             <UiTableCell>
-              <UiLink :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }" size="small">
+              <UiButton
+                v-if="row.pool.state === 'other-xo' && canEdit"
+                variant="tertiary"
+                accent="warning"
+                size="small"
+                left-icon="fa:link"
+                :busy="takingOver === row.pool.id"
+                @click="takeOver(row.pool)"
+              >
+                {{ t('firewall:global:take-over') }}
+              </UiButton>
+              <UiLink
+                v-else-if="row.pool.seenAt === undefined"
+                :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                size="small"
+              >
                 {{ t('firewall:global:open-pool') }}
               </UiLink>
             </UiTableCell>
@@ -242,6 +296,15 @@
             :aria-label="t('firewall:global:guest-ips')"
             role="img"
           />
+          <UiTag
+            v-if="member.stale"
+            v-tooltip="t('firewall:global:member:stale:info')"
+            accent="warning"
+            variant="secondary"
+            tabindex="0"
+          >
+            {{ t('firewall:global:member:stale') }}
+          </UiTag>
         </div>
       </div>
     </UiCard>
@@ -254,9 +317,10 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import type { VdfGlobalScope, VdfPoolSyncState } from '@/modules/vdf/types.ts'
+import type { VdfGlobalPool, VdfGlobalScope, VdfPoolSyncState, VdfVmRef } from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsDonutChartWithLegend, {
@@ -282,7 +346,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { logicAnd } from '@vueuse/math'
 import { isEqual } from 'lodash-es'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
 const { t, n } = useI18n()
@@ -308,6 +372,8 @@ const {
   hosts,
   areHostsReady,
   realizationOf,
+  canEdit,
+  reloadGlobal,
 } = useVdfGlobalPolicy()
 
 const { runningVms, protectedVms, membersOf, areVmsReady } = useVdfMembers(publishedScopePoolIds, publishedDocument)
@@ -321,6 +387,7 @@ const stateAccents: Record<VdfPoolSyncState, TagAccent> = {
   'stale-global': 'warning',
   unreachable: 'danger',
   'out-of-scope': 'muted',
+  'other-xo': 'warning',
 }
 
 // SCOPE
@@ -361,6 +428,7 @@ const poolSegments = computed<DonutChartWithLegendProps['segments']>(() => {
       accent: 'warning',
     },
     { label: t('firewall:global:state:unreachable'), value: count(['unreachable']), accent: 'danger' },
+    { label: t('firewall:global:state:other-xo'), value: count(['other-xo']), accent: 'muted' },
   ]
 })
 
@@ -377,6 +445,48 @@ const poolRows = computed(() =>
       }
     })
 )
+
+// TAKE OVER a pool holding another XO's global configuration
+
+const takingOver = ref<string>()
+
+const { open: openTakeOver } = useOverlay({
+  component: () => import('@/modules/vdf/components/VdfConfirmModal.vue'),
+  events: { onConfirm: true, onCancel: true },
+})
+
+async function takeOver(pool: VdfGlobalPool) {
+  const response = await openTakeOver({
+    props: {
+      accent: 'warning',
+      icon: 'fa:link',
+      title: t('firewall:global:take-over:title', { pool: pool.name }),
+      message: t('firewall:global:take-over:message', { pool: pool.name, xo: pool.owner }),
+      confirmLabel: t('firewall:global:take-over'),
+    },
+  })
+
+  if (response.event !== 'onConfirm') {
+    return
+  }
+
+  takingOver.value = pool.id
+
+  try {
+    await fetchPost(`plugins/vdf/pools/${pool.id}/actions/take_over_global`, {})
+    reloadGlobal()
+  } finally {
+    takingOver.value = undefined
+  }
+}
+
+// ADDRESSES shared by VMs, which members across pools can't tell apart
+
+const conflicts = computed(() => globalStatus.value?.conflicts ?? [])
+
+const overlaps = computed(() => globalStatus.value?.overlaps ?? [])
+
+const vmLabel = (vm: VdfVmRef) => (vm.poolName === undefined ? vm.vmName : `${vm.vmName} (${vm.poolName})`)
 
 // PROTECTION, of the running VMs of the pools in scope
 
@@ -485,6 +595,11 @@ const memberGroups = computed(() =>
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem 0.8rem;
+  }
+
+  .address-list {
+    margin: 0;
+    padding-inline-start: 2rem;
   }
 
   .member-group {

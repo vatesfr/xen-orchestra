@@ -30,17 +30,25 @@ Groups and policies defined once in XO and written into every pool in scope (all
 - **Ownership in a pool's document:** XO owns every group and policy named `global:*` and the rule ids from `0x800000` up (agents refuse unknown fields, so names carry the origin). Pool routes rewrite that part on every check and publish: a pool's edit can't change it, and a pool's own rule ids must stay below that range.
 - **Order:** global policies come first in the document. Agents take a tier's policies in document order, so in a tier shared with the pool's own policies, global rules match first. A global policy in the baseline tier sets defaults the pools can override.
 - **Members across pools:** each pool's agents resolve tag groups from their own VMs. For every global group, XO adds the IPs of its running members in the other pools in scope: a locked VIF's allowed addresses, else what the guest reports, as agents count them.
+- **Addresses held twice:** a member's IP that another running VM (any pool) holds too is left out of the other pools at once, and reported in `conflicts`: they couldn't tell the two VMs apart. The same IP on VMs of two pools in scope is reported in `overlaps`: members across pools only make sense if the pools share a routed address space.
+- **A pool XO loses** keeps its members in the other pools, with their last known IPs (fail static), as long as XO still has the pool's server; members are dropped once the server is removed from XO. Key `vms` of the store: the running VMs of each pool when XO last saw them. The pool shows as unreachable, its members as `stale`.
+- **One XO per pool:** the XO that writes a global part into a pool records itself in `pool.other_config["vdf:global.owner"]` (`{ id, name, since }`, id kept in the store's `instance` key). Another XO then leaves that pool's global part alone: its sync skips the pool, its global publishes report it (`otherXo`) without failing, and its pool routes keep that global part as is. `POST /pools/{id}/actions/take_over_global` makes this XO the owner.
 - **Publish:** every pool in scope (and every pool still holding a global part) checks its new document with its master's agent. Nothing is written unless every reachable pool accepts it. Pools XO can't reach are reported and catch up later.
 - **Sync:** XO follows its object events (throttled to one pass every 5 s, plus one a minute) and republishes a pool whose global part differs from what it should be: new members in other pools, a pool back online, a pool that left the scope, or an edit made outside XO.
 - **Storage:** XO's store (`getStore('vdf')`), key `global`: `{ document, revision, scope, publishedAt, publishedBy }`. Publishing with an older `revision` is refused. Key `syncs`: each pool's last write (shown as "Last sync"), so it survives a restart.
 
-| Route                          | What                                                                                    |
-| ------------------------------ | --------------------------------------------------------------------------------------- |
-| `GET /global`                  | The global configuration, each pool's sync state, and the members of global groups      |
-| `POST /global/actions/check`   | `{ policy, scope }`: every pool in scope checks its resulting document, nothing written |
-| `POST /global/actions/publish` | `{ policy, scope, revision }`: check, then publish to every pool                        |
-| `GET /global/history`          | The last published global configurations, oldest first, without their content           |
-| `GET /global/history/{entry}`  | One of them (document and scope), with the one before it (`previous`)                   |
+| Route                                       | What                                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `GET /global`                               | The global configuration, each pool's sync state, and the members of global groups      |
+| `POST /global/actions/check`                | `{ policy, scope }`: every pool in scope checks its resulting document, nothing written |
+| `POST /global/actions/publish`              | `{ policy, scope, revision }`: check, then publish to every pool                        |
+| `GET /global/history`                       | The last published global configurations, oldest first, without their content           |
+| `GET /global/history/{entry}`               | One of them (document and scope), with the one before it (`previous`)                   |
+| `POST /pools/{id}/actions/take_over_global` | Make this XO the pool's owner for the global configuration                              |
+
+## Permissions
+
+XO administrators can do everything. Other users, on a pool they have an ACL on, see its firewall (pool routes, with the `view` permission) and change the pool's own part (`check_policy` and `publish_policy`, with `administrate`); `GET policy` says whether they can (`canEdit`). The global configuration is for XO administrators only, as it applies to pools a user may not see: other users get it read-only from `GET /global`, with the pools and members they may view.
 
 ## History
 

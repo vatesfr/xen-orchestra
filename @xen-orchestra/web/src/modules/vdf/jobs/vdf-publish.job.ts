@@ -68,7 +68,7 @@ export const useVdfGlobalPublishJob = defineJob(
         )
 
         if (!result.published) {
-          const failed = result.pools?.find(pool => !pool.ok && !pool.unreachable)
+          const failed = result.pools?.find(pool => !pool.ok && !pool.unreachable && !pool.otherXo)
 
           throw new JobError(
             failed === undefined

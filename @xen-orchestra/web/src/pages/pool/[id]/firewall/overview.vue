@@ -404,6 +404,7 @@ const globalSyncAccents: Record<VdfPoolSyncState, TagAccent> = {
   'stale-global': 'warning',
   unreachable: 'danger',
   'out-of-scope': 'muted',
+  'other-xo': 'warning',
 }
 
 const globalSyncAccent = computed(() =>
@@ -411,7 +412,9 @@ const globalSyncAccent = computed(() =>
 )
 
 const globalSyncTooltip = computed(() =>
-  globalSyncState.value === undefined ? false : t(`firewall:global:state:${globalSyncState.value}:info`)
+  globalSyncState.value === undefined
+    ? false
+    : t(`firewall:global:state:${globalSyncState.value}:info`, { xo: globalInfo.value?.owner })
 )
 
 // a drop against an unlocked VM's traffic from other hosts is best effort:

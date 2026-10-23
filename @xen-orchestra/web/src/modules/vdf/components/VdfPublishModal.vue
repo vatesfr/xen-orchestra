@@ -44,6 +44,9 @@
               <UiInfo v-else-if="pool.unreachable" accent="warning" wrap>
                 {{ t('firewall:global:check:unreachable') }}
               </UiInfo>
+              <UiInfo v-else-if="pool.otherXo" accent="warning" wrap>
+                {{ t('firewall:global:check:other-xo', { xo: pool.owner }) }}
+              </UiInfo>
               <UiInfo
                 v-else-if="pool.ok"
                 v-tooltip="t('firewall:publish:valid:details', { version: pool.version, keys: pool.keys?.join(', ') })"
