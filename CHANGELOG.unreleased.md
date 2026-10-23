@@ -77,6 +77,7 @@
 - [XO6/Roles] Create a role and its privileges from the roles list in the user management page (PR [#10605](https://github.com/vatesfr/xen-orchestra/pull/10605))
 - [XO6/Users] Open a user's detail page from the users list or its side panel, to see its details
 - [XO6/Users] List the groups of a user in its detail page, add the user to groups and detach it from them
+- [XO6/Users] List the roles of a user in its detail page, whether assigned directly or inherited from its groups, assign roles to the user and detach its direct roles
 
 ### Bug fixes
 

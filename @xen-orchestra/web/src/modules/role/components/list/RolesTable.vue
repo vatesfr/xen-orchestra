@@ -27,8 +27,11 @@
 <script setup lang="ts">
 import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import { useRoleDelete } from '@/modules/role/composables/use-role-delete.composable.ts'
+import {
+  type FilterableRole,
+  useRoleQueryBuilder,
+} from '@/modules/role/composables/use-role-query-builder.composable.ts'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
-import { getRoleUserIds } from '@/modules/role/utils/xo-role.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -36,21 +39,9 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useRoleColumns } from '@core/tables/column-sets/role-columns.ts'
-import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-type FilterableRole = FrontXoRole & {
-  description: string
-  usersCount: number
-  groupsCount: number
-  privilegesCount: number
-}
 
 const {
   roles: rawRoles,
@@ -70,32 +61,13 @@ const { t } = useI18n()
 
 const selectedRoleId = useRouteQuery('id')
 
-const { getGroupsByIds, areGroupsReady, hasGroupFetchError } = useXoGroupCollection()
+const { areGroupsReady, hasGroupFetchError } = useXoGroupCollection()
 
 const isReady = logicAnd(() => !busy, areGroupsReady)
 
 const hasError = logicOr(() => error, hasGroupFetchError)
 
-const filterableRoles = computed<FilterableRole[]>(() =>
-  rawRoles.map(role => ({
-    ...role,
-    description: role.description ?? '',
-    usersCount: getRoleUserIds(role, getGroupsByIds(role.groupIds)).length,
-    groupsCount: role.groupIds.length,
-    privilegesCount: role.privilegeIds.length,
-  }))
-)
-
-const { items: filteredRoles, filter } = useQueryBuilderFilter('roles', () => filterableRoles.value)
-
-const schema = useQueryBuilderSchema<FilterableRole>({
-  '': useStringSchema(t('any-property')),
-  name: useStringSchema(t('name')),
-  description: useStringSchema(t('description')),
-  usersCount: useNumberSchema(t('users')),
-  groupsCount: useNumberSchema(t('groups')),
-  privilegesCount: useNumberSchema(t('privileges')),
-})
+const { items: filteredRoles, filter, schema } = useRoleQueryBuilder('roles', () => rawRoles)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -107,6 +79,7 @@ const state = useTableState({
 const { pageRecords: paginatedRoles, paginationBindings } = usePagination('roles', filteredRoles)
 
 const { HeadCells, BodyCells } = useRoleColumns({
+  exclude: ['checkbox', 'group'],
   body: (role: FilterableRole) => {
     const { deleteRoles, canDeleteRoles, isDeletingRoles, deleteRolesErrorMessage } = useRoleDelete(() => [role])
 
