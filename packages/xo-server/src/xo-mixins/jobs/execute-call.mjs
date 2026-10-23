@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import map from 'lodash/map.js'

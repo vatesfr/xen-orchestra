@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import { createSchedule } from '@xen-orchestra/cron'
 import { createLogger } from '@xen-orchestra/log'
 import { stringify } from 'csv-stringify'

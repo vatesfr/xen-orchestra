@@ -1,5 +1,5 @@
 import assert from 'assert'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { asyncMapSettled } from '@xen-orchestra/async-map'
 import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
 import getKeys from 'lodash/keys.js'
@@ -118,7 +118,7 @@ export default class Redis extends Collection {
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.sMembers(idsIndex), async id => {
+    await asyncMapSettled(await redis.sMembers(idsIndex), async id => {
       return this.#get(`${prefix}:${id}`).then(values =>
         values == null
           ? redis.sRem(idsIndex, id) // entry no longer exists
