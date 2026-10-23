@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "SDN-ohjaimen dokumentaatio",
   "traffic-rules:format-warning": "Määritysvirhe: liikennesäännöt eivät ole odotetussa muodossa. {check-doc}, miten ne siirretään.",
   "traffic-rules:format-warning:check-doc": "Tarkista uusimmasta dokumentaatiosta",
-  "traffic-rules:info-message": "Liikennesääntöjen järjestystä ollaan toteuttamassa. Toiminta voi olla arvaamatonta.",
   "traffic-rules:no-traffic-rules-detected": "Liikennesääntöjä ei havaittu",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Vaatii XAPI-lisäosatilan",
