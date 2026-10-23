@@ -36,30 +36,62 @@ function fakeStore(initial = {}) {
   }
 }
 
-// one pool, one host, whose agent writes what it's asked to publish
-function fakeXo({ store = fakeStore(), otherConfig = {} } = {}) {
+const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
+
+// pools of one host each, whose agent writes what it's asked to publish;
+// `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
+function fakeXo({
+  store = fakeStore(),
+  otherConfig = {},
+  pools = { [POOL]: { otherConfig } },
+  vms = [],
+  acls = [],
+} = {}) {
   const calls = []
-  const pool = { id: POOL, type: 'pool', name_label: 'Pool 1' }
-  const xapi = {
-    pool: { other_config: { ...otherConfig }, master: 'OpaqueRef:master' },
-    objects: { all: {} },
-    getObjectByRef: () => undefined,
-    async call(method, hostRef, plugin, fn, args) {
-      calls.push({ fn, args })
-      if (fn === 'publish') {
-        xapi.pool.other_config = { 'vdf:policy': args.policy }
-        return JSON.stringify({ ok: true, published: true, document: docId(args.policy), warnings: [] })
-      }
-      return JSON.stringify({ ok: true, warnings: [] })
-    },
+  const poolObjects = {}
+  const xapis = {}
+  const servers = new Set()
+  for (const [id, { otherConfig = {} }] of Object.entries(pools)) {
+    poolObjects[id] = { id, type: 'pool', name_label: `Pool ${id}` }
+    servers.add(`server-${id}`)
+    const xapi = {
+      pool: {
+        other_config: { ...otherConfig },
+        master: 'OpaqueRef:master',
+        async update_other_config(key, value) {
+          const { [key]: _, ...rest } = xapi.pool.other_config
+          xapi.pool.other_config = value === null ? rest : { ...rest, [key]: value }
+        },
+      },
+      objects: { all: {} },
+      getObjectByRef: () => undefined,
+      async call(method, hostRef, plugin, fn, args) {
+        calls.push({ pool: id, fn, args })
+        if (fn === 'publish') {
+          xapi.pool.other_config = { ...xapi.pool.other_config, 'vdf:policy': args.policy }
+          return JSON.stringify({ ok: true, published: true, document: docId(args.policy), warnings: [] })
+        }
+        return JSON.stringify({ ok: true, warnings: [] })
+      },
+    }
+    xapis[id] = xapi
   }
   const configManagers = {}
   let routes = []
   const xo = {
     calls,
-    xapi,
+    xapi: xapis[Object.keys(pools)[0]],
+    xapis,
     store,
     configManagers,
+    // XO loses the pool: its objects go, its server stays
+    disconnect(poolId) {
+      delete poolObjects[poolId]
+      delete xapis[poolId]
+    },
+    removeServer(poolId) {
+      servers.delete(`server-${poolId}`)
+    },
     getStore: async () => store,
     registerRestRoutes(newRoutes) {
       routes = newRoutes
@@ -71,20 +103,29 @@ function fakeXo({ store = fakeStore(), otherConfig = {} } = {}) {
       configManagers[id] = { exporter, importer }
     },
     objects: { on() {}, removeListener() {} },
-    getObjects: ({ filter }) => (filter.type === 'pool' ? { [POOL]: pool } : {}),
+    getObjects: ({ filter }) =>
+      filter.type === 'pool'
+        ? { ...poolObjects }
+        : filter.type === 'VM'
+          ? Object.fromEntries(vms.filter(vm => poolObjects[vm.$pool] !== undefined).map(vm => [vm.id, vm]))
+          : {},
     getObject(id) {
-      if (id !== POOL) {
+      if (poolObjects[id] === undefined) {
         throw new Error('no such object')
       }
-      return pool
+      return poolObjects[id]
     },
     getXapi(id) {
-      if (id !== POOL) {
+      if (xapis[id] === undefined) {
         throw new Error('no such object')
       }
-      return xapi
+      return xapis[id]
     },
-    async route(method, endpoint, { params = {}, body, query = {} } = {}) {
+    getXenServerIdByObject: pool => `server-${pool.id}`,
+    getAllXenServers: async () => [...servers].map(id => ({ id })),
+    hasPermissions: async (userId, [[objectId, permission]]) =>
+      acls.some(acl => acl[0] === userId && acl[1] === objectId && acl[2] === permission),
+    async route(method, endpoint, { params = {}, body, query = {}, user = ADMIN } = {}) {
       const route = routes.find(route => route.method === method && route.endpoint === endpoint)
       assert.ok(route, `${method} ${endpoint}`)
       const res = {
@@ -97,7 +138,7 @@ function fakeXo({ store = fakeStore(), otherConfig = {} } = {}) {
       const result = await route.callback({
         req: { params, body, query },
         res,
-        restApi: { getCurrentUser: () => ({ email: 'admin@example.org' }) },
+        restApi: { getCurrentUser: () => user },
         createAction: cb => cb(),
       })
       return { result, status: res.statusCode }
@@ -276,6 +317,156 @@ describe('global publish', () => {
       )
     } finally {
       plugin2.unload()
+    }
+  })
+})
+
+describe('across pools', () => {
+  const globalDocument = {
+    groups: { web: { tags: ['vdf:role=web'] } },
+    policies: [
+      { name: 'web', appliedTo: 'web', default: 'drop', ingress: [{ id: 1, from: 'web', proto: 'tcp', ports: [80] }] },
+    ],
+  }
+  const publishGlobal = (xo, revision) =>
+    xo.route('post', '/global/actions/publish', {
+      body: { policy: text(globalDocument), scope: { all: true }, revision },
+    })
+  const webVm = {
+    id: 'vm-a1',
+    name_label: 'web-1',
+    $pool: 'A',
+    power_state: 'Running',
+    tags: ['vdf:role=web'],
+    addresses: { '0/ipv4/0': '10.0.0.5' },
+  }
+  const ipsIn = (xo, poolId) => JSON.parse(xo.xapis[poolId].pool.other_config['vdf:policy']).groups['global:web'].ips
+
+  test('a pool XO loses keeps its members in the others until its server is removed', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, vms: [webVm] })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo, 0)
+      assert.deepEqual(ipsIn(xo, 'B'), ['10.0.0.5'])
+
+      xo.disconnect('A')
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(
+        status.pools.map(pool => [pool.id, pool.state]),
+        [
+          ['B', 'in-sync'],
+          ['A', 'unreachable'],
+        ]
+      )
+      assert.equal(status.members.web[0].stale, true)
+
+      const republished = (await publishGlobal(xo, 1)).result
+      assert.equal(republished.ok, true)
+      assert.equal(republished.pools.find(pool => pool.id === 'A').unreachable, true)
+      assert.deepEqual(ipsIn(xo, 'B'), ['10.0.0.5'])
+
+      xo.removeServer('A')
+      await publishGlobal(xo, 2)
+      assert.deepEqual(ipsIn(xo, 'B'), [])
+      assert.deepEqual(
+        (await xo.route('get', '/global')).result.pools.map(pool => pool.id),
+        ['B']
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("a pool holding another XO's global part is left alone until taken over", async () => {
+    const otherGlobal = text({ groups: { 'global:theirs': { ips: ['192.0.2.1'] } }, policies: [] })
+    const xo = fakeXo({
+      pools: {
+        A: {},
+        B: { otherConfig: { 'vdf:policy': otherGlobal, 'vdf:global.owner': '{"id":"other","name":"xo-other"}' } },
+      },
+    })
+    const plugin = await loaded(xo)
+    try {
+      const result = (await publishGlobal(xo, 0)).result
+      assert.equal(result.ok, true)
+      assert.equal(result.pools.find(pool => pool.id === 'B').otherXo, true)
+      assert.equal(
+        xo.calls.some(call => call.pool === 'B' && call.fn === 'publish'),
+        false
+      )
+      const ours = JSON.parse(xo.xapis.A.pool.other_config['vdf:global.owner'])
+      assert.equal(ours.id, (await xo.route('get', '/global')).result.instance.id)
+
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(
+        status.pools.map(pool => [pool.id, pool.state, pool.owner]),
+        [
+          ['A', 'in-sync', undefined],
+          ['B', 'other-xo', 'xo-other'],
+        ]
+      )
+
+      // the pool's own edits keep the other XO's part
+      await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'B' },
+        body: { policy: text(document()) },
+      })
+      const published = JSON.parse(xo.xapis.B.pool.other_config['vdf:policy'])
+      assert.deepEqual(Object.keys(published.groups), ['global:theirs', 'web'])
+
+      const { previous } = (await xo.route('post', '/pools/{id}/actions/take_over_global', { params: { id: 'B' } }))
+        .result
+      assert.equal(previous.name, 'xo-other')
+      assert.equal((await xo.route('get', '/global')).result.pools[1].state, 'behind')
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+describe('permissions', () => {
+  const viewer = { id: 'u1', email: 'viewer@example.org', permission: 'none' }
+
+  test('a user with an ACL on the pool sees its firewall, and changes it with administrate', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, acls: [['u1', 'A', 'view']] })
+    const plugin = await loaded(xo)
+    try {
+      const policy = await xo.route('get', '/pools/{id}/policy', { params: { id: 'A' }, user: viewer })
+      assert.equal(policy.status, 200)
+      assert.equal(policy.result.canEdit, false)
+
+      const publish = await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'A' },
+        body: { policy: text(document()) },
+        user: viewer,
+      })
+      assert.equal(publish.status, 403)
+      assert.equal(xo.calls.length, 0)
+
+      assert.equal((await xo.route('get', '/pools/{id}/policy', { params: { id: 'B' }, user: viewer })).status, 403)
+
+      const global = (await xo.route('get', '/global', { user: viewer })).result
+      assert.equal(global.canEdit, false)
+      assert.deepEqual(
+        global.pools.map(pool => pool.id),
+        ['A']
+      )
+
+      const operator = fakeXo({ acls: [['u1', POOL, 'administrate']] })
+      const plugin2 = await loaded(operator)
+      try {
+        const { status, result } = await operator.route('post', '/pools/{id}/actions/publish_policy', {
+          params: { id: POOL },
+          body: { policy: text(document()) },
+          user: viewer,
+        })
+        assert.equal(status, 200)
+        assert.equal(result.published, true)
+      } finally {
+        plugin2.unload()
+      }
+    } finally {
+      plugin.unload()
     }
   })
 })

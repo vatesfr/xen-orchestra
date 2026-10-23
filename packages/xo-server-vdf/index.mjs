@@ -1,16 +1,26 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
+import { hostname } from 'node:os'
+import { isDeepStrictEqual } from 'node:util'
 import { createLogger } from '@xen-orchestra/log'
 
 import {
+  addressOverlaps,
   checkGlobalDocument,
   checkLocalDocument,
   compose,
+  duplicateAddresses,
   emptyDocument,
   globalMembers,
+  hasGlobalPart,
   inScope,
+  keepGlobalPart,
   localPart,
+  memberConflicts,
+  OWNER_KEY,
+  poolOwner,
   poolSyncState,
   remoteIpsFor,
+  runningVmRecords,
   serialize,
 } from './global.mjs'
 import { appendEntry, listEntry, nextEntryId, summarize } from './history.mjs'
@@ -123,12 +133,23 @@ const BODY_GLOBAL = {
 // pools whose sync failed are retried at most this often
 const SYNC_RETRY_MS = 60e3
 
+// the running VMs of a connected pool are saved at least this often, so
+// that their age is known if XO loses the pool
+const VM_CACHE_SAVE_MS = 60e3
+
 const QUERY_LOG = {
   lines: { type: 'number', optional: true, example: 200 },
   since: { type: 'string', optional: true, example: '2026-10-22T08:00:00.000Z' },
 }
 
 const userLabel = user => user?.email ?? user?.name ?? user?.id
+
+const isAdmin = user => user?.permission === 'admin'
+
+function forbidden(res, message) {
+  res.status(403)
+  return { error: message }
+}
 
 // XO's config export only covers registered config managers, which can't
 // be unregistered: the plugin registers once per process, and the
@@ -193,6 +214,17 @@ class VdfPlugin {
 
   // per pool: last write { at, ok, error, state, revision }, persisted
   #syncs = {}
+
+  // this XO, as it records itself in the pools whose global part it writes
+  // (OWNER_KEY); kept in the store, so a restored configuration keeps it
+  #instance
+
+  // per pool: { at, name, serverId, records }, the running VMs of each pool
+  // when XO last saw them. A pool XO loses keeps its members in the other
+  // pools (fail static) as long as XO still has its server, and loses them
+  // once the server is removed from XO.
+  #vmCache = {}
+  #vmCacheSavedAt = 0
   #syncTimer
   #syncInterval
   #syncing
@@ -214,6 +246,12 @@ class VdfPlugin {
   async reloadStore() {
     this.#global = await this.#get('global')
     this.#syncs = await this.#get('syncs', {})
+    this.#vmCache = await this.#get('vms', {})
+    this.#instance = await this.#get('instance')
+    if (this.#instance === undefined) {
+      this.#instance = { id: randomUUID(), name: hostname() }
+      await this.#store.put('instance', this.#instance)
+    }
     // the history starts with the configuration published before it was kept
     if (this.#global !== undefined && !(await this.#store.has(historyKey(GLOBAL_SCOPE)))) {
       await this.#appendHistory(GLOBAL_SCOPE, [], this.#globalEntry(this.#global, undefined))
@@ -258,31 +296,99 @@ class VdfPlugin {
     }
   }
 
-  #members(global = this.#global?.document, scope = this.#global?.scope) {
-    if (global === undefined) {
-      return {}
-    }
+  #vifsOf = vm =>
+    (vm.VIFs ?? []).flatMap(id => {
+      try {
+        return [this.#xo.getObject(id, 'VIF')]
+      } catch {
+        return []
+      }
+    })
+
+  // running VMs of the connected pools, and the last known ones of the
+  // pools XO lost (stale)
+  #records() {
+    const connected = new Set(this.#pools().map(pool => pool.id))
     const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } }))
-    const vifsOf = vm =>
-      (vm.VIFs ?? []).flatMap(id => {
-        try {
-          return [this.#xo.getObject(id, 'VIF')]
-        } catch {
-          return []
-        }
-      })
-    return globalMembers({ global, vms, vifsOf, scope })
+    return [
+      ...runningVmRecords(vms, this.#vifsOf),
+      ...Object.entries(this.#vmCache)
+        .filter(([poolId]) => !connected.has(poolId))
+        .flatMap(([, { at, records }]) => records.map(record => ({ ...record, stale: true, seenAt: at }))),
+    ]
+  }
+
+  // Refreshes the saved VMs of the connected pools, and forgets the pools
+  // whose server was removed from XO: their members are known gone.
+  async #refreshVmCache() {
+    const records = this.#records().filter(record => !record.stale)
+    const cache = {}
+    for (const pool of this.#pools()) {
+      let serverId
+      try {
+        serverId = this.#xo.getXenServerIdByObject(pool)
+      } catch {}
+      cache[pool.id] = {
+        at: Date.now(),
+        name: pool.name_label,
+        serverId,
+        records: records.filter(record => record.pool === pool.id),
+      }
+    }
+    const servers = new Set((await this.#xo.getAllXenServers?.())?.map(server => server.id))
+    for (const [poolId, entry] of Object.entries(this.#vmCache)) {
+      if (cache[poolId] === undefined && servers.has(entry.serverId)) {
+        cache[poolId] = entry
+      }
+    }
+    const withoutTimes = cache_ => Object.entries(cache_).map(([poolId, { at, ...entry }]) => [poolId, entry])
+    const changed = !isDeepStrictEqual(withoutTimes(cache), withoutTimes(this.#vmCache))
+    this.#vmCache = cache
+    if (changed || Date.now() - this.#vmCacheSavedAt > VM_CACHE_SAVE_MS) {
+      this.#vmCacheSavedAt = Date.now()
+      await this.#store.put('vms', cache).catch(error => log.warn('saving VMs', { error }))
+    }
+  }
+
+  // pools XO lost but still has a server for
+  #lostPools() {
+    const connected = new Set(this.#pools().map(pool => pool.id))
+    return Object.entries(this.#vmCache)
+      .filter(([poolId]) => !connected.has(poolId))
+      .map(([id, { name, at }]) => ({ id, name, seenAt: at }))
+  }
+
+  // global members, and what their IPs share with other VMs
+  #analysis(global = this.#global?.document, scope = this.#global?.scope) {
+    if (global === undefined) {
+      return { members: {}, conflicts: [], overlaps: [] }
+    }
+    const records = this.#records()
+    const members = globalMembers({ global, records, scope })
+    const duplicates = duplicateAddresses(records)
+    return { members, conflicts: memberConflicts(members, duplicates), overlaps: addressOverlaps(duplicates, scope) }
   }
 
   // the document a pool must hold: its own part, plus the global
   // configuration when it's in scope
-  #composeFor(poolId, local, { global = this.#global, members = this.#members() } = {}) {
+  #composeFor(poolId, local, { global = this.#global, analysis = this.#analysis() } = {}) {
     const isInScope = global !== undefined && inScope(global.scope, poolId)
-    return compose(local, isInScope ? global.document : null, isInScope ? remoteIpsFor(poolId, members) : {})
+    return compose(
+      local,
+      isInScope ? global.document : null,
+      isInScope ? remoteIpsFor(poolId, analysis.members, analysis.conflicts) : {}
+    )
+  }
+
+  // the XO whose global configuration the pool holds, if not this one
+  #otherOwner(xapi) {
+    const owner = poolOwner(xapi.pool?.other_config)
+    return owner !== undefined && owner.id !== this.#instance.id ? owner : undefined
   }
 
   // pool routes: what the user sent, with XO's global part in place of
-  // whatever global part it holds
+  // whatever global part it holds (or, in a pool another XO owns, with the
+  // global part it holds)
   #poolDocument(poolId, text) {
     let document
     try {
@@ -294,14 +400,52 @@ class VdfPlugin {
     if (errors.length > 0) {
       return { error: errors[0] }
     }
-    return { text: serialize(this.#composeFor(poolId, document)) }
+    const xapi = this.#getXapi(poolId)
+    const composed =
+      this.#otherOwner(xapi) === undefined
+        ? this.#composeFor(poolId, document)
+        : keepGlobalPart(document, publishedPolicy(xapi.pool.other_config ?? {}).document)
+    return { text: serialize(composed) }
   }
 
-  #globalStatus() {
+  #claim(xapi) {
+    return xapi.pool.update_other_config(
+      OWNER_KEY,
+      JSON.stringify({ ...this.#instance, since: new Date().toISOString() })
+    )
+  }
+
+  // Publishes a pool's document, and records this XO as the owner of the
+  // pool's global part when it writes the first one (or forgets it when it
+  // removes it). Another XO's ownership is only changed by a take over.
+  async #publishOnPool(xapi, text) {
+    let document = null
+    try {
+      document = JSON.parse(text)
+    } catch {}
+    const owner = poolOwner(xapi.pool.other_config)
+    const writesGlobal = hasGlobalPart(document)
+    if (writesGlobal && owner === undefined) {
+      await this.#claim(xapi)
+    }
+    const result = await this.#onMaster(xapi, 'publish', { policy: text })
+    if (!writesGlobal && result.published && owner?.id === this.#instance.id) {
+      await xapi.pool.update_other_config(OWNER_KEY, null)
+    }
+    return result
+  }
+
+  async #globalStatus(user) {
+    await this.#refreshVmCache()
     const global = this.#global
-    const members = this.#members()
-    const poolName = Object.fromEntries(this.#pools().map(pool => [pool.id, pool.name_label]))
-    const pools = this.#pools().map(pool => {
+    const analysis = this.#analysis()
+    const admin = isAdmin(user)
+    const canView = async poolId => admin || (await this.#xo.hasPermissions(user.id, [[poolId, 'view']]))
+    const poolName = Object.fromEntries([
+      ...this.#lostPools().map(pool => [pool.id, pool.name]),
+      ...this.#pools().map(pool => [pool.id, pool.name_label]),
+    ])
+    const connected = this.#pools().map(pool => {
       const xapi = this.#connectedXapi(pool.id)
       const base = {
         id: pool.id,
@@ -312,7 +456,11 @@ class VdfPlugin {
         return { ...base, state: 'unreachable', sync: this.#syncs[pool.id] }
       }
       const published = publishedPolicy(xapi.pool?.other_config ?? {})
-      const expected = this.#composeFor(pool.id, published.document, { members })
+      const owner = this.#otherOwner(xapi)
+      if (owner !== undefined) {
+        return { ...base, docId: published.docId, state: 'other-xo', owner: owner.name, sync: this.#syncs[pool.id] }
+      }
+      const expected = this.#composeFor(pool.id, published.document, { analysis })
       return {
         ...base,
         docId: published.docId,
@@ -321,26 +469,56 @@ class VdfPlugin {
         sync: this.#syncs[pool.id],
       }
     })
+    const lost = this.#lostPools().map(({ id, name, seenAt }) => ({
+      id,
+      name,
+      inScope: global !== undefined && inScope(global.scope, id),
+      state: 'unreachable',
+      seenAt,
+      sync: this.#syncs[id],
+    }))
+    const visible = new Set()
+    for (const pool of [...connected, ...lost]) {
+      if (await canView(pool.id)) {
+        visible.add(pool.id)
+      }
+    }
+    const withPoolName = vm => ({ ...vm, poolName: poolName[vm.pool] })
     return {
       document: global?.document ?? emptyDocument(),
       revision: global?.revision ?? 0,
       scope: global?.scope ?? { all: true },
       publishedAt: global?.publishedAt,
       publishedBy: global?.publishedBy,
-      pools,
+      canEdit: admin,
+      instance: this.#instance,
+      pools: [...connected, ...lost].filter(pool => visible.has(pool.id)),
       members: Object.fromEntries(
-        Object.entries(members).map(([name, list]) => [
+        Object.entries(analysis.members).map(([name, list]) => [
           name,
-          list.map(member => ({ ...member, poolName: poolName[member.pool] })),
+          list.filter(member => visible.has(member.pool)).map(withPoolName),
         ])
       ),
+      // a member's IP another VM holds too: left out of the other pools
+      conflicts: analysis.conflicts
+        .filter(conflict => visible.has(conflict.member.pool))
+        .map(conflict => ({
+          ...conflict,
+          member: withPoolName(conflict.member),
+          holders: conflict.holders.map(withPoolName),
+        })),
+      // the same IP in two pools in scope: they may not share an address space
+      overlaps: analysis.overlaps
+        .filter(overlap => overlap.holders.every(holder => visible.has(holder.pool)))
+        .map(overlap => ({ ...overlap, holders: overlap.holders.map(withPoolName) })),
     }
   }
 
   // Every pool in scope (and every pool still holding a global part)
   // checks its new document with its master's agent: nothing is published
-  // unless every reachable one accepts it. Unreachable pools are reported
-  // and catch up once XO reaches them again.
+  // unless every reachable one accepts it. Unreachable pools, and pools
+  // another XO owns, are reported; the former catch up once XO reaches them
+  // again, the latter once taken over.
   async #checkGlobal(text, scope) {
     let document
     try {
@@ -352,8 +530,19 @@ class VdfPlugin {
     if (errors.length > 0) {
       return { ok: false, error: errors[0], pools: [] }
     }
+    await this.#refreshVmCache()
     const global = { document, scope }
-    const members = this.#members(document, scope)
+    const analysis = this.#analysis(document, scope)
+    const lost = this.#lostPools()
+      .filter(pool => inScope(scope, pool.id))
+      .map(pool => ({
+        id: pool.id,
+        name: pool.name,
+        inScope: true,
+        ok: false,
+        unreachable: true,
+        error: 'XO is not connected to this pool',
+      }))
     const pools = await Promise.all(
       this.#pools().map(async pool => {
         const base = { id: pool.id, name: pool.name_label, inScope: inScope(scope, pool.id) }
@@ -361,8 +550,20 @@ class VdfPlugin {
         if (xapi === undefined) {
           return { ...base, ok: false, unreachable: true, error: 'XO is not connected to this pool' }
         }
+        const owner = this.#otherOwner(xapi)
+        if (owner !== undefined) {
+          return base.inScope
+            ? {
+                ...base,
+                ok: false,
+                otherXo: true,
+                owner: owner.name,
+                error: `the pool holds the global configuration of another XO (${owner.name}): take it over to write this one there`,
+              }
+            : { ...base, ok: true, skipped: true }
+        }
         const published = publishedPolicy(xapi.pool?.other_config ?? {})
-        const next = this.#composeFor(pool.id, published.document, { global, members })
+        const next = this.#composeFor(pool.id, published.document, { global, analysis })
         const state = poolSyncState({ ...base, published: published.document, expected: next })
         if (state === 'out-of-scope') {
           return { ...base, ok: true, skipped: true }
@@ -375,10 +576,11 @@ class VdfPlugin {
         }
       })
     )
-    const ok = pools.every(pool => pool.ok || pool.unreachable)
+    const all = [...pools, ...lost]
+    const ok = all.every(pool => pool.ok || pool.unreachable || pool.otherXo)
     return {
       ok,
-      pools: pools.map(({ text, ...pool }) => pool),
+      pools: all.map(({ text, ...pool }) => pool),
       texts: Object.fromEntries(pools.map(pool => [pool.id, pool.text])),
     }
   }
@@ -497,7 +699,7 @@ class VdfPlugin {
       if (error !== undefined) {
         return { ok: false, published: false, error, warnings: [] }
       }
-      const result = await this.#onMaster(xapi, 'publish', { policy: text })
+      const result = await this.#publishOnPool(xapi, text)
       if (result.published) {
         let document = null
         try {
@@ -542,11 +744,11 @@ class VdfPlugin {
     )
     const pools = await Promise.all(
       check.pools.map(async pool => {
-        if (pool.skipped || pool.unreachable) {
+        if (pool.skipped || pool.unreachable || pool.otherXo) {
           return pool
         }
         try {
-          const result = await this.#onMaster(this.#xo.getXapi(pool.id), 'publish', { policy: texts[pool.id] })
+          const result = await this.#publishOnPool(this.#xo.getXapi(pool.id), texts[pool.id])
           this.#recordSync(pool.id, { ok: result.ok, error: result.error, revision: this.#global.revision })
           return { ...pool, ...result }
         } catch (error) {
@@ -556,7 +758,7 @@ class VdfPlugin {
       })
     )
     return {
-      ok: pools.every(pool => pool.ok || pool.unreachable),
+      ok: pools.every(pool => pool.ok || pool.unreachable || pool.otherXo),
       published: true,
       revision: this.#global.revision,
       pools,
@@ -588,25 +790,34 @@ class VdfPlugin {
     }
     this.#syncing = true
     try {
-      const members = this.#members()
+      await this.#refreshVmCache()
+      const analysis = this.#analysis()
       for (const pool of this.#pools()) {
         const xapi = this.#connectedXapi(pool.id)
         const last = this.#syncs[pool.id]
-        if (xapi === undefined || (last?.ok === false && Date.now() - last.at < SYNC_RETRY_MS)) {
+        if (
+          xapi === undefined ||
+          (last?.ok === false && Date.now() - last.at < SYNC_RETRY_MS) ||
+          this.#otherOwner(xapi) !== undefined
+        ) {
           continue
         }
         const published = publishedPolicy(xapi.pool?.other_config ?? {})
-        const expected = this.#composeFor(pool.id, published.document, { members })
+        const expected = this.#composeFor(pool.id, published.document, { analysis })
         const state = poolSyncState({
           inScope: inScope(this.#global.scope, pool.id),
           published: published.document,
           expected,
         })
         if (state === 'in-sync' || state === 'out-of-scope') {
+          // a global part this XO wrote before it recorded itself as the owner
+          if (state === 'in-sync' && poolOwner(xapi.pool.other_config) === undefined) {
+            await this.#claim(xapi).catch(error => log.warn('recording the owner', { pool: pool.id, error }))
+          }
           continue
         }
         try {
-          const result = await this.#onMaster(xapi, 'publish', { policy: serialize(expected) })
+          const result = await this.#publishOnPool(xapi, serialize(expected))
           this.#recordSync(pool.id, { ok: result.ok, error: result.error, state, revision: this.#global.revision })
           log.info('pool synced with the global configuration', { pool: pool.id, state, ok: result.ok })
         } catch (error) {
@@ -634,7 +845,7 @@ class VdfPlugin {
     try {
       out = await xapi.call('host.call_plugin', hostRef, PLUGIN, fn, args)
     } catch (error) {
-      if (/UNKNOWN_XENAPI_PLUGIN/.test(error.code ?? error.message)) {
+      if (/UNKNOWN_XENAPI_PLUGIN|XENAPI_MISSING_PLUGIN/.test(error.code ?? error.message)) {
         const host = xapi.getObjectByRef(hostRef, undefined)?.name_label ?? hostRef
         throw new Error(`the vdf agent on ${host} doesn't provide ${fn} (agent missing or older than this XO)`)
       }
@@ -666,6 +877,32 @@ class VdfPlugin {
     )
   }
 
+  // Who may do what: XO administrators everything; other users, on a pool
+  // they have an ACL on, see its firewall (view) and change its own part
+  // (administrate). The global configuration is for XO administrators
+  // only: it applies to pools a user may not even see.
+  async #canOnPool(restApi, poolId, permission) {
+    const user = restApi.getCurrentUser({ throwUnauthenticated: false })
+    return isAdmin(user) || (user !== undefined && (await this.#xo.hasPermissions(user.id, [[poolId, permission]])))
+  }
+
+  // a pool route open to users with `permission` on the pool
+  #poolRoute({ permission = 'view', callback, ...route }) {
+    return {
+      ...route,
+      scope: 'acl',
+      callback: async context => {
+        const { req, res, restApi } = context
+        // throws no such object for an unknown pool
+        this.#xo.getObject(req.params.id, 'pool')
+        if (!(await this.#canOnPool(restApi, req.params.id, permission))) {
+          return forbidden(res, `this needs the ${permission} permission on the pool`)
+        }
+        return callback(context)
+      },
+    }
+  }
+
   #routes() {
     return [
       {
@@ -675,7 +912,9 @@ class VdfPlugin {
           "The XO-wide configuration (groups and policies written into every pool in scope), each pool's sync state and the members of the global groups across pools.",
         tags: ['vdf'],
         responses: [{ status: 200, description: 'Global configuration and status' }],
-        callback: () => this.#globalStatus(),
+        // other users see the configuration, and the pools they may view
+        scope: 'acl',
+        callback: ({ restApi }) => this.#globalStatus(restApi.getCurrentUser({ throwUnauthenticated: false })),
       },
       {
         endpoint: '/global/actions/check',
@@ -730,26 +969,49 @@ class VdfPlugin {
         callback: ({ req, res }) => this.#historyEntry(GLOBAL_SCOPE, req.params.entry, res),
       },
       {
+        endpoint: '/pools/{id}/actions/take_over_global',
+        method: 'post',
+        description:
+          "Make this XO the one whose global configuration the pool holds, in place of another XO's (which then leaves the pool alone). The pool syncs within seconds.",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        responses: [{ status: 200, description: 'The previous owner, if any' }],
+        callback: async ({ req }) => {
+          const xapi = this.#getXapi(req.params.id)
+          const previous = poolOwner(xapi.pool.other_config)
+          await this.#claim(xapi)
+          log.info('pool taken over for the global configuration', { pool: req.params.id, previous })
+          this.#scheduleSync()
+          return { previous: previous ?? null }
+        },
+      },
+      this.#poolRoute({
         endpoint: '/pools/{id}/policy',
         method: 'get',
         description: 'The policy document the pool enforces (the newest pool key whose base still matches) and its id.',
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Published policy' }],
-        callback: ({ req }) => {
-          const policy = publishedPolicy(this.#getXapi(req.params.id).pool.other_config)
+        callback: async ({ req, restApi }) => {
+          const xapi = this.#getXapi(req.params.id)
+          const policy = publishedPolicy(xapi.pool.other_config)
           const global = this.#global
+          const owner = this.#otherOwner(xapi)
           return {
             ...policy,
+            canEdit: await this.#canOnPool(restApi, req.params.id, 'administrate'),
             global: {
               revision: global?.revision ?? 0,
               inScope: global !== undefined && inScope(global.scope, req.params.id),
+              // the global part is another XO's
+              owner: owner?.name,
             },
           }
         },
-      },
-      {
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/actions/check_policy',
+        permission: 'administrate',
         method: 'post',
         description: "Validate a policy document with the pool master's vdf-agent, without publishing it.",
         tags: ['vdf'],
@@ -764,9 +1026,10 @@ class VdfPlugin {
             ? this.#onMaster(xapi, 'check', { policy: text })
             : { ok: false, error, warnings: [] }
         },
-      },
-      {
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/actions/publish_policy',
+        permission: 'administrate',
         method: 'post',
         description:
           "Validate and publish a policy document to the pool's keys, through the pool master's vdf-agent. Agents apply it within tens of milliseconds. With expectedDocId, refused (nothing written) if the pool's document changed since.",
@@ -782,16 +1045,14 @@ class VdfPlugin {
           },
         ],
         callback: ({ req, restApi, createAction }) => {
-          // throws no such object for an unknown pool
-          this.#getXapi(req.params.id)
           const user = restApi.getCurrentUser({ throwUnauthenticated: false })
           return createAction(() => this.#publishPool(req.params.id, req.body, user), {
             sync: true,
             taskProperties: { name: 'publish firewall policy', objectId: req.params.id, objectType: 'pool' },
           })
         },
-      },
-      {
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/history',
         method: 'get',
         description:
@@ -799,12 +1060,9 @@ class VdfPlugin {
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Publish history' }],
-        callback: async ({ req }) => {
-          this.#xo.getObject(req.params.id, 'pool')
-          return { entries: (await this.#history(req.params.id)).map(listEntry) }
-        },
-      },
-      {
+        callback: async ({ req }) => ({ entries: (await this.#history(req.params.id)).map(listEntry) }),
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/history/{entry}',
         method: 'get',
         description: 'One published version of the pool document, and the version it replaced (`previous`, if kept).',
@@ -814,12 +1072,9 @@ class VdfPlugin {
           { status: 200, description: 'Published version' },
           { status: 404, description: 'No such version' },
         ],
-        callback: ({ req, res }) => {
-          this.#xo.getObject(req.params.id, 'pool')
-          return this.#historyEntry(req.params.id, req.params.entry, res)
-        },
-      },
-      {
+        callback: ({ req, res }) => this.#historyEntry(req.params.id, req.params.entry, res),
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/actions/trace',
         method: 'post',
         description:
@@ -833,8 +1088,8 @@ class VdfPlugin {
           const xapi = this.#getXapi(req.params.id)
           return trace(xapi, req.body, (hostRef, args) => this.#callPlugin(xapi, hostRef, 'trace', args))
         },
-      },
-      {
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/stats',
         method: 'get',
         description:
@@ -843,8 +1098,8 @@ class VdfPlugin {
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Per-host stats' }],
         callback: async ({ req }) => ({ hosts: await this.#onEachHost(this.#getXapi(req.params.id), 'stats') }),
-      },
-      {
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/rule-log',
         method: 'get',
         description:
@@ -864,7 +1119,7 @@ class VdfPlugin {
             .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
           return { entries, errors: hosts.filter(host => host.error !== undefined) }
         },
-      },
+      }),
     ]
   }
 }

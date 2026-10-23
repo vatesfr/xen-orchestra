@@ -1,4 +1,7 @@
 <template>
+  <div v-if="notices.length > 0" class="vdf-draft-bar notices">
+    <UiAlert v-for="notice of notices" :key="notice" accent="info">{{ notice }}</UiAlert>
+  </div>
   <div v-if="hasDraft" class="vdf-draft-bar">
     <VtsBanner :accent="isDraftOutdated ? 'warning' : 'brand'">
       <div class="text" role="status">
@@ -30,11 +33,13 @@
           </UiButton>
           <UiButton
             v-else
+            v-tooltip="!canEdit && readOnlyText"
             variant="primary"
             accent="brand"
             size="small"
             left-icon="fa:upload"
             :busy="isPublishing"
+            :disabled="!canEdit"
             @click="openPublish()"
           >
             {{ t('firewall:draft:review-and-publish') }}
@@ -67,6 +72,7 @@ import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,12 +88,13 @@ const isGlobal = scope.kind === 'global'
 // configuration) until all of them enforce it
 const dismissedDocId = ref<string>()
 
-const { hasDraft, changes, isDraftOutdated, publishProgress } = (() => {
+const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } = (() => {
   if (scope.kind === 'global') {
     const global = useVdfGlobalPolicy()
 
     return {
       ...global,
+      otherXo: computed(() => undefined),
       publishProgress: computed(() => {
         const publish = global.lastPublish.value
         const id = `r${publish?.revision}`
@@ -108,6 +115,7 @@ const { hasDraft, changes, isDraftOutdated, publishProgress } = (() => {
 
   return {
     ...policy,
+    otherXo: computed(() => policy.globalInfo.value?.owner),
     publishProgress: computed(() => {
       const publish = policy.lastPublish.value
 
@@ -128,6 +136,14 @@ const { hasDraft, changes, isDraftOutdated, publishProgress } = (() => {
 })()
 
 const { openPublish, openRebase, openDiscard, isPublishing } = useVdfPublish(() => scope)
+
+const readOnlyText = computed(() => t(isGlobal ? 'firewall:global:read-only' : 'firewall:read-only'))
+
+// on every page of the firewall: what the user can't change here
+const notices = computed(() => [
+  ...(canEdit.value ? [] : [readOnlyText.value]),
+  ...(otherXo.value === undefined ? [] : [t('firewall:global:other-xo', { xo: otherXo.value })]),
+])
 </script>
 
 <style lang="postcss" scoped>
@@ -137,9 +153,16 @@ const { openPublish, openRebase, openDiscard, isPublishing } = useVdfPublish(() 
   inset-block-start: 0;
   z-index: 1;
 
-  &.published {
+  &.published,
+  &.notices {
     position: static;
     margin: 0.8rem 0.8rem 0;
+  }
+
+  &.notices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 
   .text {

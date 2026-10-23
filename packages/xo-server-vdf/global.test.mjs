@@ -2,14 +2,21 @@ import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 
 import {
+  addressOverlaps,
   checkGlobalDocument,
   checkLocalDocument,
   compose,
+  duplicateAddresses,
   GLOBAL_RULE_BASE,
   globalMembers,
+  keepGlobalPart,
   localPart,
+  memberConflicts,
+  OWNER_KEY,
+  poolOwner,
   poolSyncState,
   remoteIpsFor,
+  runningVmRecords,
   vmIps,
 } from './global.mjs'
 
@@ -146,10 +153,11 @@ describe('members', () => {
     b3: [{ lockingMode: 'locked', allowedIpv4Addresses: ['10.1.0.20'], allowedIpv6Addresses: ['fd00::20', 'fe80::1'] }],
   }
   const vifsOf = vm => vifs[vm.id] ?? []
+  const records = runningVmRecords(vms, vifsOf)
   const scope = { pools: ['A', 'B'] }
 
   test('running members of the pools in scope, locked IPs authoritative', () => {
-    const members = globalMembers({ global: GLOBAL, vms, vifsOf, scope })
+    const members = globalMembers({ global: GLOBAL, records, scope })
 
     assert.deepEqual(
       members.app.map(member => member.vm),
@@ -162,10 +170,50 @@ describe('members', () => {
   })
 
   test("a pool gets the other pools' members only", () => {
-    const members = globalMembers({ global: GLOBAL, vms, vifsOf, scope })
+    const members = globalMembers({ global: GLOBAL, records, scope })
 
     assert.deepEqual(remoteIpsFor('A', members), { admins: [], app: ['10.1.0.9'], db: ['10.1.0.20', 'fd00::20'] })
     assert.deepEqual(remoteIpsFor('B', members).app, ['10.0.0.5'])
+  })
+
+  test('an IP another VM holds too is left out of the other pools, the overlap reported', () => {
+    // a VM of pool C took app-2's address, and pool A has a VM numbered like one of B's
+    const withReuse = [
+      ...records,
+      { vm: 'c2', vmName: 'dhcp-client', pool: 'C', tags: [], ips: ['10.1.0.9'], trusted: false },
+      { vm: 'a2', vmName: 'twin', pool: 'A', tags: [], ips: ['10.1.0.20'], trusted: false },
+    ]
+    const members = globalMembers({ global: GLOBAL, records: withReuse, scope })
+    const duplicates = duplicateAddresses(withReuse)
+    const conflicts = memberConflicts(members, duplicates)
+
+    assert.deepEqual(
+      conflicts.map(conflict => [
+        conflict.group,
+        conflict.ip,
+        conflict.member.vm,
+        conflict.holders.map(holder => holder.vm),
+      ]),
+      [
+        ['db', '10.1.0.20', 'b3', ['a2']],
+        ['app', '10.1.0.9', 'b1', ['c2']],
+      ]
+    )
+    assert.deepEqual(remoteIpsFor('A', members, conflicts), { admins: [], app: [], db: ['fd00::20'] })
+    // pool C is out of scope: only A and B overlap
+    assert.deepEqual(
+      addressOverlaps(duplicates, scope).map(overlap => [overlap.ip, overlap.holders.map(holder => holder.pool)]),
+      [['10.1.0.20', ['B', 'A']]]
+    )
+  })
+
+  test('members of a group may share an IP', () => {
+    const shared = [
+      { vm: 'x', vmName: 'x', pool: 'A', tags: ['vdf:role=app'], ips: ['10.9.0.1'], trusted: false },
+      { vm: 'y', vmName: 'y', pool: 'B', tags: ['vdf:role=app'], ips: ['10.9.0.1'], trusted: false },
+    ]
+    const members = globalMembers({ global: GLOBAL, records: shared, scope })
+    assert.deepEqual(memberConflicts(members, duplicateAddresses(shared)), [])
   })
 
   test('guest IPs when no VIF is locked', () => {
@@ -197,5 +245,24 @@ describe('poolSyncState', () => {
   test('local edits are not drift', () => {
     const published = compose({ ...LOCAL, policies: [] }, GLOBAL, { app: ['10.1.0.5'] })
     assert.equal(poolSyncState({ inScope: true, published, expected }), 'in-sync')
+  })
+})
+
+describe('ownership', () => {
+  test("the owner XO, if the pool's entry is valid", () => {
+    assert.deepEqual(poolOwner({ [OWNER_KEY]: '{"id":"xo-1","name":"xo"}' }), { id: 'xo-1', name: 'xo' })
+    assert.equal(poolOwner({ [OWNER_KEY]: 'garbage' }), undefined)
+    assert.equal(poolOwner({}), undefined)
+  })
+
+  test("another XO's global part is kept as is under the pool's edit", () => {
+    const published = compose(LOCAL, GLOBAL, { app: ['10.1.0.5'] })
+    const edited = { groups: {}, policies: [] }
+    const kept = keepGlobalPart(edited, published)
+    assert.deepEqual(Object.keys(kept.groups), ['global:admins', 'global:db', 'global:app'])
+    assert.deepEqual(
+      kept.policies.map(policy => policy.name),
+      ['global:db']
+    )
   })
 })

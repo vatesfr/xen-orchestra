@@ -38,6 +38,9 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
   // whether XO's global configuration applies to this pool
   const globalInfo = computed(() => publishedPolicy.value?.global)
 
+  // XO administrators, and users with an administrate ACL on the pool
+  const canEdit = computed(() => publishedPolicy.value?.canEdit !== false)
+
   const draftState = useVdfDraft(poolId, publishedDocument, publishedDocId, isPublishedPolicyReady, {
     lockGlobal: true,
   })
@@ -96,6 +99,7 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     hasPublishedPolicyError,
     reloadPublishedPolicy,
     globalInfo,
+    canEdit,
     hosts,
     areHostsReady,
     upToDateHostCount,
