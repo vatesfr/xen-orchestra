@@ -111,8 +111,10 @@ export type VdfGlobalPool = {
   state: VdfPoolSyncState
   docId?: string
   sync?: { at: number; ok: boolean; error?: string; state?: VdfPoolSyncState; revision?: number }
-  // other-xo: the XO whose global configuration the pool holds
+  // other-xo: the XO whose global configuration the pool holds (its id, for
+  // a take over that checks nothing changed since)
   owner?: string
+  ownerId?: string
   // a pool XO lost (no longer one of its objects): when XO last saw it
   seenAt?: number
 }
@@ -175,6 +177,8 @@ export type VdfCheckResult = {
     owner?: string
   })[]
   revision?: number
+  // global publish saved, but not written into every pool yet
+  partial?: boolean
   // pool publish refused: the pool's document isn't the one the edit
   // started from (docId: what it holds)
   conflict?: boolean

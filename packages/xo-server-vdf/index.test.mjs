@@ -40,12 +40,15 @@ const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
 
 // pools of one host each, whose agent writes what it's asked to publish;
 // `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
+// `agent.beforePublish(poolId)` runs before a publish lands (to interleave
+// another write), `agent.refuse` lists pools whose agent refuses publishes
 function fakeXo({
   store = fakeStore(),
   otherConfig = {},
   pools = { [POOL]: { otherConfig } },
   vms = [],
   acls = [],
+  agent = {},
 } = {}) {
   const calls = []
   const poolObjects = {}
@@ -68,6 +71,10 @@ function fakeXo({
       async call(method, hostRef, plugin, fn, args) {
         calls.push({ pool: id, fn, args })
         if (fn === 'publish') {
+          await agent.beforePublish?.(id)
+          if (agent.refuse?.includes(id)) {
+            return JSON.stringify({ ok: false, published: false, error: 'refused by the agent', warnings: [] })
+          }
           xapi.pool.other_config = { ...xapi.pool.other_config, 'vdf:policy': args.policy }
           return JSON.stringify({ ok: true, published: true, document: docId(args.policy), warnings: [] })
         }
@@ -272,10 +279,11 @@ describe('global publish', () => {
       assert.equal(first.published, true)
       assert.equal(first.revision, 1)
 
-      await assert.rejects(
-        xo.route('post', '/global/actions/publish', { body: globalBody(0, 80) }),
-        /changed meanwhile/
-      )
+      // like a pool publish: a conflict the UI rebases, nothing written
+      const stale = (await xo.route('post', '/global/actions/publish', { body: globalBody(0, 80) })).result
+      assert.deepEqual([stale.published, stale.conflict, stale.revision], [false, true, 1])
+      const blind = (await xo.route('post', '/global/actions/publish', { body: globalBody(undefined, 80) })).result
+      assert.deepEqual([blind.published, blind.conflict], [false, true])
 
       await xo.route('post', '/global/actions/publish', { body: globalBody(1, 80) })
 
@@ -414,10 +422,109 @@ describe('across pools', () => {
       const published = JSON.parse(xo.xapis.B.pool.other_config['vdf:policy'])
       assert.deepEqual(Object.keys(published.groups), ['global:theirs', 'web'])
 
-      const { previous } = (await xo.route('post', '/pools/{id}/actions/take_over_global', { params: { id: 'B' } }))
-        .result
+      // refused if the owner isn't the one the user saw
+      const refused = await xo.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'B' },
+        body: { expectedOwner: '' },
+      })
+      assert.deepEqual([refused.status, refused.result.conflict, refused.result.owner.id], [409, true, 'other'])
+      assert.equal(status.pools[1].ownerId, 'other')
+
+      const { previous } = (
+        await xo.route('post', '/pools/{id}/actions/take_over_global', {
+          params: { id: 'B' },
+          body: { expectedOwner: 'other' },
+        })
+      ).result
       assert.equal(previous.name, 'xo-other')
       assert.equal((await xo.route('get', '/global')).result.pools[1].state, 'behind')
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+describe('global write path', () => {
+  const globalDocument = {
+    groups: { web: { tags: ['vdf:role=web'] } },
+    policies: [
+      { name: 'web', appliedTo: 'web', default: 'drop', ingress: [{ id: 1, from: 'web', proto: 'tcp', ports: [80] }] },
+    ],
+  }
+  const publishGlobal = (xo, revision = 0, scope = { all: true }) =>
+    xo.route('post', '/global/actions/publish', { body: { policy: text(globalDocument), scope, revision } })
+  const ownerOf = (xo, poolId) => xo.xapis[poolId].pool.other_config['vdf:global.owner']
+  const poolDocumentOf = (xo, poolId) => JSON.parse(xo.xapis[poolId].pool.other_config['vdf:policy'])
+
+  test("a global write doesn't undo a pool publish that landed meanwhile", async () => {
+    // the global write is held at the agent while a pool admin publishes
+    let release
+    let onHeld
+    const isHeld = new Promise(resolve => (onHeld = resolve))
+    let held = false
+    const agent = {
+      beforePublish: async () => {
+        if (!held) {
+          held = true
+          onHeld()
+          await new Promise(resolve => (release = resolve))
+        }
+      },
+    }
+    const xo = fakeXo({ agent })
+    const plugin = await loaded(xo)
+    try {
+      const globalWrite = publishGlobal(xo)
+      await isHeld
+      const poolWrite = xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: POOL },
+        body: { policy: text(document(8080)) },
+      })
+      release()
+      await Promise.all([globalWrite, poolWrite])
+
+      // the pool publish waited for the global write, then composed on it
+      const final = poolDocumentOf(xo, POOL)
+      assert.deepEqual(final.policies.find(policy => policy.name === 'web').ingress[0].ports, [8080])
+      assert.ok(final.groups['global:web'])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a refused write claims nothing, and is reported as a partial publish', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, agent: { refuse: ['B'] } })
+    const plugin = await loaded(xo)
+    try {
+      const result = (await publishGlobal(xo)).result
+      assert.deepEqual([result.published, result.ok, result.partial], [true, false, true])
+      assert.deepEqual(
+        result.pools.map(pool => [pool.id, pool.ok]),
+        [
+          ['A', true],
+          ['B', false],
+        ]
+      )
+      assert.ok(ownerOf(xo, 'A'))
+      assert.equal(ownerOf(xo, 'B'), undefined)
+
+      // retried within seconds, not after the sync backoff
+      const { sync } = (await xo.route('get', '/global')).result.pools.find(pool => pool.id === 'B')
+      assert.equal(sync.ok, false)
+      assert.ok(sync.retryAt - sync.at <= 5e3)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a scope naming a pool XO does not know is refused', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      const result = (await publishGlobal(xo, 0, { pools: [POOL, 'typo'] })).result
+      assert.equal(result.published, false)
+      assert.match(result.error, /unknown pool in the scope: typo/)
+      assert.equal(xo.calls.length, 0)
     } finally {
       plugin.unload()
     }
@@ -480,7 +587,9 @@ describe('config export', () => {
     create({ xo }) // a second instance doesn't register again
     await plugin.load()
     try {
-      await xo.route('post', '/global/actions/publish', { body: { policy: text(document()), scope: { all: true } } })
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(document()), scope: { all: true }, revision: 0 },
+      })
 
       const exported = JSON.parse(JSON.stringify(await xo.configManagers.vdf.exporter()))
       assert.equal(exported.global.revision, 1)

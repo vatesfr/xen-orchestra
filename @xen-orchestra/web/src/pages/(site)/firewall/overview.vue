@@ -12,6 +12,8 @@
   <div v-else class="global-firewall-overview">
     <UiAlert v-if="hasGlobalError" accent="danger">{{ t('firewall:global:error:polling') }}</UiAlert>
 
+    <UiAlert v-if="takeOverError" accent="danger" close @close="takeOverError = undefined">{{ takeOverError }}</UiAlert>
+
     <UiAlert v-if="conflicts.length > 0" accent="warning">
       {{ t('firewall:global:conflicts') }}
       <template #description>
@@ -456,6 +458,8 @@ const poolRows = computed(() =>
 
 const takingOver = ref<string>()
 
+const takeOverError = ref<string>()
+
 const { open: openTakeOver } = useOverlay({
   component: () => import('@/modules/vdf/components/VdfConfirmModal.vue'),
   events: { onConfirm: true, onCancel: true },
@@ -479,9 +483,13 @@ async function takeOver(pool: VdfGlobalPool) {
   takingOver.value = pool.id
 
   try {
-    await fetchPost(`plugins/vdf/pools/${pool.id}/actions/take_over_global`, {})
-    reloadGlobal()
+    takeOverError.value = undefined
+    await fetchPost(`plugins/vdf/pools/${pool.id}/actions/take_over_global`, { expectedOwner: pool.ownerId ?? '' })
+  } catch (error) {
+    // refused if the owner changed since the page showed it
+    takeOverError.value = t('firewall:global:take-over:failed', { pool: pool.name, error: (error as Error).message })
   } finally {
+    reloadGlobal()
     takingOver.value = undefined
   }
 }

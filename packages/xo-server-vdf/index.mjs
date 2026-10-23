@@ -126,12 +126,17 @@ const BODY_GLOBAL = {
   revision: {
     type: 'number',
     optional: true,
-    description: 'revision the edit started from (refused if another publish came first)',
+    description:
+      'revision the edit started from, 0 for the first publish: a publish from an older one is refused with conflict: true (required to publish, ignored by check)',
   },
 }
 
 // pools whose sync failed are retried at most this often
 const SYNC_RETRY_MS = 60e3
+
+// a pool a global publish couldn't write is retried sooner: the user just
+// published, and waits for every pool to enforce it
+const PUBLISH_RETRY_MS = 5e3
 
 // the running VMs of a connected pool are saved at least this often, so
 // that their age is known if XO loses the pool
@@ -415,24 +420,64 @@ class VdfPlugin {
     )
   }
 
-  // Publishes a pool's document, and records this XO as the owner of the
-  // pool's global part when it writes the first one (or forgets it when it
-  // removes it). Another XO's ownership is only changed by a take over.
+  // Publishes a pool's document and, once it's written, records this XO as
+  // the owner of the pool's global part when it wrote the first one (or
+  // forgets it when it removed it): a refused publish claims nothing.
+  // Another XO's ownership is only changed by a take over. Callers hold the
+  // pool's lock (#serialized).
   async #publishOnPool(xapi, text) {
     let document = null
     try {
       document = JSON.parse(text)
     } catch {}
-    const owner = poolOwner(xapi.pool.other_config)
     const writesGlobal = hasGlobalPart(document)
-    if (writesGlobal && owner === undefined) {
-      await this.#claim(xapi)
-    }
     const result = await this.#onMaster(xapi, 'publish', { policy: text })
-    if (!writesGlobal && result.published && owner?.id === this.#instance.id) {
-      await xapi.pool.update_other_config(OWNER_KEY, null)
+    if (result.published) {
+      const owner = poolOwner(xapi.pool.other_config)
+      if (writesGlobal && owner === undefined) {
+        await this.#claim(xapi)
+      } else if (!writesGlobal && owner?.id === this.#instance.id) {
+        await xapi.pool.update_other_config(OWNER_KEY, null)
+      }
     }
     return result
+  }
+
+  // Writes the global part a pool must hold, in the pool's lock and from
+  // what the pool holds at that moment: a pool publish that landed meanwhile
+  // is kept, and an owner that changed meanwhile is respected. XAPI has no
+  // compare-and-set on other_config, so a window remains between this read
+  // and the agent's write, as short as the agent call.
+  #syncPool(poolId, analysis) {
+    return this.#serialized(poolId, async () => {
+      const xapi = this.#connectedXapi(poolId)
+      if (xapi === undefined) {
+        return { ok: false, unreachable: true, error: 'XO is not connected to this pool' }
+      }
+      const owner = this.#otherOwner(xapi)
+      if (owner !== undefined) {
+        return { ok: false, otherXo: true, owner: owner.name }
+      }
+      const published = publishedPolicy(xapi.pool.other_config ?? {})
+      const expected = this.#composeFor(poolId, published.document, { analysis })
+      const state = poolSyncState({
+        inScope: inScope(this.#global.scope, poolId),
+        published: published.document,
+        expected,
+      })
+      if (state === 'in-sync' || state === 'out-of-scope') {
+        // a global part this XO wrote before it recorded itself as the owner
+        if (
+          state === 'in-sync' &&
+          hasGlobalPart(published.document) &&
+          poolOwner(xapi.pool.other_config) === undefined
+        ) {
+          await this.#claim(xapi)
+        }
+        return { ok: true, state, unchanged: true }
+      }
+      return { ...(await this.#publishOnPool(xapi, serialize(expected))), state }
+    })
   }
 
   async #globalStatus(user) {
@@ -458,7 +503,14 @@ class VdfPlugin {
       const published = publishedPolicy(xapi.pool?.other_config ?? {})
       const owner = this.#otherOwner(xapi)
       if (owner !== undefined) {
-        return { ...base, docId: published.docId, state: 'other-xo', owner: owner.name, sync: this.#syncs[pool.id] }
+        return {
+          ...base,
+          docId: published.docId,
+          state: 'other-xo',
+          owner: owner.name,
+          ownerId: owner.id,
+          sync: this.#syncs[pool.id],
+        }
       }
       const expected = this.#composeFor(pool.id, published.document, { analysis })
       return {
@@ -531,6 +583,13 @@ class VdfPlugin {
       return { ok: false, error: errors[0], pools: [] }
     }
     await this.#refreshVmCache()
+    // a pool XO doesn't know (a typo, a pool removed from XO) would never
+    // get the configuration, unnoticed
+    const known = new Set([...this.#pools().map(pool => pool.id), ...this.#lostPools().map(pool => pool.id)])
+    const unknown = (scope?.all === true ? [] : (scope?.pools ?? [])).filter(id => !known.has(id))
+    if (unknown.length > 0) {
+      return { ok: false, error: `unknown pool in the scope: ${unknown.join(', ')}`, pools: [] }
+    }
     const global = { document, scope }
     const analysis = this.#analysis(document, scope)
     const lost = this.#lostPools()
@@ -585,6 +644,7 @@ class VdfPlugin {
     }
   }
 
+  // a failed write is retried from retryAt on (sync: SYNC_RETRY_MS later)
   #recordSync(poolId, sync) {
     this.#syncs = { ...this.#syncs, [poolId]: { at: Date.now(), ...sync } }
     this.#store.put('syncs', this.#syncs).catch(error => log.warn('saving syncs', { error }))
@@ -719,10 +779,18 @@ class VdfPlugin {
 
   async #publishGlobalNow({ policy, scope, revision }, user) {
     const current = this.#global?.revision ?? 0
-    if (revision !== undefined && revision !== current) {
-      throw new Error(
-        `the global configuration changed meanwhile (revision ${current}, edit started from ${revision}): reload it`
-      )
+    if (revision !== current) {
+      return {
+        ok: false,
+        published: false,
+        conflict: true,
+        revision: current,
+        error:
+          revision === undefined
+            ? `revision is required to publish (${current} now)`
+            : `the global configuration changed meanwhile (revision ${current}, edit started from ${revision}): reload it`,
+        pools: [],
+      }
     }
     const { texts, ...check } = await this.#checkGlobal(policy, scope)
     if (!check.ok) {
@@ -742,24 +810,48 @@ class VdfPlugin {
       await this.#history(GLOBAL_SCOPE),
       this.#globalEntry(this.#global, previous)
     )
+    // The configuration is saved first: it's what the pools must enforce,
+    // and the pools a write fails on catch up from it (no rollback, which
+    // would be partial too). Each pool is recomposed at write time, from
+    // what it holds then and the members as they are then.
+    const analysis = this.#analysis()
     const pools = await Promise.all(
       check.pools.map(async pool => {
         if (pool.skipped || pool.unreachable || pool.otherXo) {
           return pool
         }
+        const { revision: newRevision } = this.#global
         try {
-          const result = await this.#publishOnPool(this.#xo.getXapi(pool.id), texts[pool.id])
-          this.#recordSync(pool.id, { ok: result.ok, error: result.error, revision: this.#global.revision })
-          return { ...pool, ...result }
+          const result = await this.#syncPool(pool.id, analysis)
+          const ok = result.ok === true
+          this.#recordSync(pool.id, {
+            ok,
+            error: result.error,
+            revision: newRevision,
+            retryAt: ok ? undefined : Date.now() + PUBLISH_RETRY_MS,
+          })
+          return { ...pool, ...result, ok }
         } catch (error) {
-          this.#recordSync(pool.id, { ok: false, error: error.message })
+          this.#recordSync(pool.id, {
+            ok: false,
+            error: error.message,
+            revision: newRevision,
+            retryAt: Date.now() + PUBLISH_RETRY_MS,
+          })
           return { ...pool, ok: false, error: error.message }
         }
       })
     )
+    const ok = pools.every(pool => pool.ok || pool.unreachable || pool.otherXo)
+    if (!ok) {
+      this.#scheduleSync()
+    }
     return {
-      ok: pools.every(pool => pool.ok || pool.unreachable || pool.otherXo),
+      ok,
       published: true,
+      // saved, but not written into every pool it should be: the failed ones
+      // are retried within seconds
+      partial: !ok,
       revision: this.#global.revision,
       pools,
     }
@@ -793,35 +885,25 @@ class VdfPlugin {
       await this.#refreshVmCache()
       const analysis = this.#analysis()
       for (const pool of this.#pools()) {
-        const xapi = this.#connectedXapi(pool.id)
         const last = this.#syncs[pool.id]
-        if (
-          xapi === undefined ||
-          (last?.ok === false && Date.now() - last.at < SYNC_RETRY_MS) ||
-          this.#otherOwner(xapi) !== undefined
-        ) {
-          continue
-        }
-        const published = publishedPolicy(xapi.pool?.other_config ?? {})
-        const expected = this.#composeFor(pool.id, published.document, { analysis })
-        const state = poolSyncState({
-          inScope: inScope(this.#global.scope, pool.id),
-          published: published.document,
-          expected,
-        })
-        if (state === 'in-sync' || state === 'out-of-scope') {
-          // a global part this XO wrote before it recorded itself as the owner
-          if (state === 'in-sync' && poolOwner(xapi.pool.other_config) === undefined) {
-            await this.#claim(xapi).catch(error => log.warn('recording the owner', { pool: pool.id, error }))
-          }
+        if (last?.ok === false && Date.now() < (last.retryAt ?? last.at + SYNC_RETRY_MS)) {
           continue
         }
         try {
-          const result = await this.#publishOnPool(xapi, serialize(expected))
-          this.#recordSync(pool.id, { ok: result.ok, error: result.error, state, revision: this.#global.revision })
-          log.info('pool synced with the global configuration', { pool: pool.id, state, ok: result.ok })
+          const result = await this.#syncPool(pool.id, analysis)
+          if (result.unchanged || result.unreachable || result.otherXo) {
+            continue
+          }
+          this.#recordSync(pool.id, {
+            ok: result.ok,
+            error: result.error,
+            state: result.state,
+            revision: this.#global.revision,
+            retryAt: result.ok ? undefined : Date.now() + SYNC_RETRY_MS,
+          })
+          log.info('pool synced with the global configuration', { pool: pool.id, state: result.state, ok: result.ok })
         } catch (error) {
-          this.#recordSync(pool.id, { ok: false, error: error.message, state })
+          this.#recordSync(pool.id, { ok: false, error: error.message, retryAt: Date.now() + SYNC_RETRY_MS })
           log.warn('sync', { pool: pool.id, error })
         }
       }
@@ -972,17 +1054,37 @@ class VdfPlugin {
         endpoint: '/pools/{id}/actions/take_over_global',
         method: 'post',
         description:
-          "Make this XO the one whose global configuration the pool holds, in place of another XO's (which then leaves the pool alone). The pool syncs within seconds.",
+          "Make this XO the one whose global configuration the pool holds, in place of another XO's (which then leaves the pool alone). Refused (conflict: true) if the pool's owner isn't expectedOwner any more. The pool syncs within seconds.",
         tags: ['vdf'],
         params: PARAMS_ID,
-        responses: [{ status: 200, description: 'The previous owner, if any' }],
-        callback: async ({ req }) => {
+        body: {
+          expectedOwner: {
+            type: 'string',
+            description: "id of the owner the user saw ('' for none), as GET /global reports it (ownerId)",
+          },
+        },
+        middlewares: [{ name: 'json' }],
+        responses: [
+          { status: 200, description: 'The previous owner, if any' },
+          { status: 409, description: 'The owner changed since the user looked' },
+        ],
+        callback: ({ req, res }) => {
           const xapi = this.#getXapi(req.params.id)
-          const previous = poolOwner(xapi.pool.other_config)
-          await this.#claim(xapi)
-          log.info('pool taken over for the global configuration', { pool: req.params.id, previous })
-          this.#scheduleSync()
-          return { previous: previous ?? null }
+          return this.#serialized(req.params.id, async () => {
+            const previous = poolOwner(xapi.pool.other_config)
+            if ((previous?.id ?? '') !== req.body.expectedOwner) {
+              res.status(409)
+              return {
+                conflict: true,
+                owner: previous ?? null,
+                error: `the pool's owner changed meanwhile (${previous?.name ?? 'none'} now): look again before taking it over`,
+              }
+            }
+            await this.#claim(xapi)
+            log.info('pool taken over for the global configuration', { pool: req.params.id, previous })
+            this.#scheduleSync()
+            return { previous: previous ?? null }
+          })
         },
       },
       this.#poolRoute({
