@@ -28,7 +28,9 @@ export function useVdfRecentDrops(rawPoolId: MaybeRefOrGetter<string>, { limit }
       limit,
     }).map(drop => {
       const destination = poolVms.value.find(vm => vm.name_label === drop.vm)
-      const source = poolVms.value.find(vm => Object.values(vm.addresses ?? {}).includes(drop.src))
+      // a running VM first: a halted one keeps the addresses it last had
+      const sources = poolVms.value.filter(vm => Object.values(vm.addresses ?? {}).includes(drop.src))
+      const source = sources.find(vm => vm.power_state === 'Running') ?? sources[0]
       const canTrace = destination !== undefined && ['tcp', 'udp', 'icmp'].includes(drop.proto)
 
       // same query as the rule log's and Live's links to the trace
