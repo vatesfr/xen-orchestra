@@ -2,7 +2,19 @@
   <VtsContentSidePanel>
     <div class="container">
       <UiCard>
-        <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
+        <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError">
+          <template #title-actions>
+            <UiButton
+              variant="primary"
+              accent="brand"
+              size="medium"
+              left-icon="fa:plus"
+              @click="openNewBackupJobDrawer()"
+            >
+              {{ t('new') }}
+            </UiButton>
+          </template>
+        </BackupJobsTable>
       </UiCard>
     </div>
 
@@ -13,13 +25,20 @@
 <script setup lang="ts">
 import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
 import BackupJobSidePanel from '@/modules/backup-job/components/list/panel/BackupJobSidePanel.vue'
+import { useNewBackupJob } from '@/modules/backup-job/composables/use-new-backup-job.composable.ts'
 import {
   type FrontAnyXoBackupJob,
   useXoBackupJobCollection,
 } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const { openNewBackupJobDrawer } = useNewBackupJob()
 
 const { backupJobs, getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
