@@ -5,7 +5,7 @@
     </template>
 
     <template v-if="rule" #default>
-      <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
+      <VtsStateHero v-if="!isReady" format="panel" size="medium" type="busy" />
       <template v-else>
         <TrafficRuleSummaryCard :rule />
 
@@ -15,19 +15,22 @@
         </template>
 
         <template v-else-if="network">
-          <TrafficRuleNetworkInfosCard :rule :network />
-          <TrafficRuleNetworkPifsCard :rule :network />
+          <TrafficRuleNetworkInfosCard :network :rule />
+          <TrafficRuleNetworkPifsCard :network :rule />
         </template>
+
+        <TrafficRulePriorityCard v-if="network" :network :rule :rules />
       </template>
     </template>
   </VtsSidePanel>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import TrafficRuleActions from '@/modules/traffic-rules/components/actions/TrafficRuleActions.vue'
 import TrafficRuleNetworkInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkInfosCard.vue'
 import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkPifsCard.vue'
+import TrafficRulePriorityCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRulePriorityCard.vue'
 import TrafficRuleSummaryCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleSummaryCard.vue'
 import TrafficRuleVifInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifInfosCard.vue'
 import TrafficRuleVifNetworkInfoCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleVifNetworkInfoCard.vue'
@@ -38,7 +41,7 @@ import type { TrafficRule } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
-const { rule } = defineProps<{ rule?: TrafficRule }>()
+const { rule, rules } = defineProps<{ rule?: TrafficRule; rules: TrafficRule[] }>()
 
 const emit = defineEmits<{
   close: []

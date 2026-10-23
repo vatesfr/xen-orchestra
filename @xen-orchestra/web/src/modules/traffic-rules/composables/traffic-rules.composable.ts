@@ -23,26 +23,10 @@ export function useTrafficRules(
   const { getVmById } = useXoVmCollection()
 
   const trafficRules = computed<TrafficRule[]>(() => {
-    const sortedNetworks = [...networks.value].sort((networkA, networkB) =>
-      (networkA.name_label ?? '').localeCompare(networkB.name_label ?? '')
-    )
-
-    const sortedVifs = [...vifs.value]
-      .filter(vif => getVmById(vif.$VM))
-      .sort((vifA, vifB) => {
-        const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
-        const vmNameLabelB = getVmById(vifB.$VM)?.name_label ?? ''
-        const vmComparison = vmNameLabelA.localeCompare(vmNameLabelB)
-
-        if (vmComparison !== 0) {
-          return vmComparison
-        }
-
-        return Number(vifA.device) - Number(vifB.device)
-      })
+    const filteredVifs = vifs.value.filter(vif => getVmById(vif.$VM))
 
     return [
-      ...sortedNetworks.flatMap(network =>
+      ...networks.value.flatMap(network =>
         parseRules(network.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `network:${network.id}:${index}`,
@@ -51,7 +35,7 @@ export function useTrafficRules(
           networkId: network.id,
         }))
       ),
-      ...sortedVifs.flatMap(vif =>
+      ...filteredVifs.flatMap(vif =>
         parseRules(vif.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `VIF:${vif.id}:${index}`,
