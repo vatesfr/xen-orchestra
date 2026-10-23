@@ -8,10 +8,12 @@ import {
   emptyDocument,
   globalMembers,
   inScope,
+  localPart,
   poolSyncState,
   remoteIpsFor,
   serialize,
 } from './global.mjs'
+import { appendEntry, listEntry, nextEntryId, summarize } from './history.mjs'
 import { trace } from './trace.mjs'
 
 const log = createLogger('xo:xo-server-vdf')
@@ -71,6 +73,27 @@ const PARAMS_ID = { id: { type: 'string', example: '355ee47d-ff4c-4924-3db2-fd86
 
 const BODY_POLICY = { policy: { type: 'string', description: 'the policy document (JSON text)' } }
 
+const BODY_PUBLISH = {
+  ...BODY_POLICY,
+  expectedDocId: {
+    type: 'string',
+    optional: true,
+    description:
+      "id of the document the edit started from ('' for none): refused if the pool's document changed meanwhile",
+  },
+}
+
+const PARAMS_ENTRY = {
+  ...PARAMS_ID,
+  entry: { type: 'string', example: '12' },
+}
+
+const PARAMS_GLOBAL_ENTRY = { entry: { type: 'string', example: '4' } }
+
+const GLOBAL_SCOPE = 'global'
+
+const historyKey = scopeId => `history:${scopeId}`
+
 const BODY_TRACE = {
   from: { type: 'string', example: '6c51b800-7de2-3b18-23b3-26d89b749a46' },
   to: { type: 'string', example: '192.168.1.76' },
@@ -105,6 +128,60 @@ const QUERY_LOG = {
   since: { type: 'string', optional: true, example: '2026-10-22T08:00:00.000Z' },
 }
 
+const userLabel = user => user?.email ?? user?.name ?? user?.id
+
+// XO's config export only covers registered config managers, which can't
+// be unregistered: the plugin registers once per process, and the
+// exporter and importer work on the store whether the plugin is loaded or
+// not (a loaded plugin reloads what was imported).
+let configManagerRegistered = false
+let loadedPlugin
+
+async function readStore(store) {
+  const data = { history: {} }
+  for await (const { key, value } of store.createReadStream()) {
+    if (key.startsWith('history:')) {
+      data.history[key.slice('history:'.length)] = value
+    } else {
+      data[key] = value
+    }
+  }
+  return data
+}
+
+async function writeStore(store, { history = {}, ...rest }) {
+  const keys = []
+  for await (const key of store.createKeyStream()) {
+    keys.push(key)
+  }
+  await Promise.all(keys.map(key => store.del(key)))
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== undefined && value !== null) {
+      await store.put(key, value)
+    }
+  }
+  for (const [scopeId, entries] of Object.entries(history)) {
+    if (Array.isArray(entries)) {
+      await store.put(historyKey(scopeId), entries)
+    }
+  }
+}
+
+function registerConfigManager(xo) {
+  if (configManagerRegistered || typeof xo.addConfigManager !== 'function') {
+    return
+  }
+  configManagerRegistered = true
+  xo.addConfigManager(
+    'vdf',
+    async () => readStore(await xo.getStore('vdf')),
+    async data => {
+      await writeStore(await xo.getStore('vdf'), data)
+      await loadedPlugin?.reloadStore()
+    }
+  )
+}
+
 class VdfPlugin {
   #unregisterRoutes
   #xo
@@ -114,20 +191,39 @@ class VdfPlugin {
   #store
   #global
 
-  // per pool: last automatic sync { at, ok, error, state }
+  // per pool: last write { at, ok, error, state, revision }, persisted
   #syncs = {}
   #syncTimer
   #syncInterval
   #syncing
   #syncAgain
 
+  // per scope: the publish in progress, so that each one compares with
+  // what the previous one wrote
+  #publishing = new Map()
+
   constructor({ xo }) {
     this.#xo = xo
+    registerConfigManager(xo)
+  }
+
+  async #get(key, defaultValue) {
+    return (await this.#store.has(key)) ? this.#store.get(key) : defaultValue
+  }
+
+  async reloadStore() {
+    this.#global = await this.#get('global')
+    this.#syncs = await this.#get('syncs', {})
+    // the history starts with the configuration published before it was kept
+    if (this.#global !== undefined && !(await this.#store.has(historyKey(GLOBAL_SCOPE)))) {
+      await this.#appendHistory(GLOBAL_SCOPE, [], this.#globalEntry(this.#global, undefined))
+    }
   }
 
   async load() {
     this.#store = await this.#xo.getStore('vdf')
-    this.#global = (await this.#store.has('global')) ? await this.#store.get('global') : undefined
+    await this.reloadStore()
+    loadedPlugin = this
     this.#unregisterRoutes = this.#xo.registerRestRoutes(this.#routes(), '/plugins/vdf')
 
     // members of global groups follow XAPI events (tags, power state, IPs,
@@ -138,6 +234,9 @@ class VdfPlugin {
   }
 
   unload() {
+    if (loadedPlugin === this) {
+      loadedPlugin = undefined
+    }
     this.#unregisterRoutes?.()
     this.#unregisterRoutes = undefined
     this.#xo.objects.removeListener('finish', this.#scheduleSync)
@@ -284,7 +383,139 @@ class VdfPlugin {
     }
   }
 
-  async #publishGlobal({ policy, scope, revision }, user) {
+  #recordSync(poolId, sync) {
+    this.#syncs = { ...this.#syncs, [poolId]: { at: Date.now(), ...sync } }
+    this.#store.put('syncs', this.#syncs).catch(error => log.warn('saving syncs', { error }))
+  }
+
+  // one publish at a time per scope: a compare-and-swap must see what the
+  // previous publish wrote
+  #serialized(scopeId, fn) {
+    const previous = this.#publishing.get(scopeId) ?? Promise.resolve()
+    const next = previous.then(fn, fn)
+    const settled = next.catch(() => {})
+    this.#publishing.set(scopeId, settled)
+    settled.then(() => {
+      if (this.#publishing.get(scopeId) === settled) {
+        this.#publishing.delete(scopeId)
+      }
+    })
+    return next
+  }
+
+  // HISTORY
+
+  // entries imported or written by an earlier version may lack an id
+  async #history(scopeId) {
+    const entries = await this.#get(historyKey(scopeId), [])
+    return entries.map((entry, index) => (entry.id === undefined ? { id: index + 1, ...entry } : entry))
+  }
+
+  async #appendHistory(scopeId, entries, entry) {
+    await this.#store.put(historyKey(scopeId), appendEntry(entries, { id: nextEntryId(entries), ...entry }))
+  }
+
+  #globalEntry(global, previous) {
+    const versioned = ({ document, scope }) => ({ ...document, scope })
+    return {
+      revision: global.revision,
+      publishedAt: global.publishedAt,
+      publishedBy: global.publishedBy,
+      summary: summarize(previous === undefined ? null : versioned(previous), versioned(global)),
+      document: global.document,
+      scope: global.scope,
+    }
+  }
+
+  // Pool history: publishes made through XO's pool routes. The first one
+  // also records what the pool held before (published by another XO, or
+  // with `vdf-agent publish`), so it can be restored too. Summaries count
+  // the pool's own part: the global part has its own history.
+  async #recordPoolPublish(poolId, before, after, user) {
+    const entries = await this.#history(poolId)
+    const last = entries[entries.length - 1]
+    if (last !== undefined && last.docId === after.docId) {
+      return // published the same document again
+    }
+    let list = entries
+    if (list.length === 0 && before.document != null && before.docId !== after.docId) {
+      list = appendEntry(list, {
+        id: 1,
+        docId: before.docId,
+        previousDocId: null,
+        publishedAt: null,
+        publishedBy: null,
+        summary: summarize(null, localPart(before.document)),
+        document: before.document,
+      })
+    }
+    await this.#appendHistory(poolId, list, {
+      docId: after.docId,
+      previousDocId: before.docId || null,
+      publishedAt: new Date().toISOString(),
+      publishedBy: userLabel(user) ?? null,
+      summary: summarize(before.document == null ? null : localPart(before.document), localPart(after.document)),
+      document: after.document,
+    })
+  }
+
+  // a version, and the one it replaced (to show what it changed)
+  async #historyEntry(scopeId, id, res) {
+    const entries = await this.#history(scopeId)
+    const index = entries.findIndex(entry => String(entry.id) === String(id))
+    if (index === -1) {
+      res.status(404)
+      return { error: `no version ${id} in this history` }
+    }
+    const entry = entries[index]
+    const previous =
+      scopeId === GLOBAL_SCOPE
+        ? entries[index - 1]
+        : entries.findLast((other, otherIndex) => otherIndex < index && other.docId === entry.previousDocId)
+    return { ...entry, previous: previous ?? null }
+  }
+
+  // POOL PUBLISH
+
+  // refused, nothing written, if the pool's document isn't the one the edit
+  // started from
+  #publishPool(poolId, { policy, expectedDocId }, user) {
+    return this.#serialized(poolId, async () => {
+      const xapi = this.#getXapi(poolId)
+      const before = publishedPolicy(xapi.pool.other_config ?? {})
+      if (expectedDocId !== undefined && expectedDocId !== before.docId) {
+        return {
+          ok: false,
+          published: false,
+          conflict: true,
+          docId: before.docId,
+          error: `the pool's policy changed meanwhile (${before.docId || 'nothing'} is published, the edit started from ${expectedDocId || 'nothing'}): reload it`,
+          warnings: [],
+        }
+      }
+      const { text, error } = this.#poolDocument(poolId, policy)
+      if (error !== undefined) {
+        return { ok: false, published: false, error, warnings: [] }
+      }
+      const result = await this.#onMaster(xapi, 'publish', { policy: text })
+      if (result.published) {
+        let document = null
+        try {
+          document = JSON.parse(text)
+        } catch {}
+        await this.#recordPoolPublish(poolId, before, { docId: result.document ?? docId(text), document }, user).catch(
+          error => log.warn('recording the publish', { pool: poolId, error })
+        )
+      }
+      return result
+    })
+  }
+
+  #publishGlobal(body, user) {
+    return this.#serialized(GLOBAL_SCOPE, () => this.#publishGlobalNow(body, user))
+  }
+
+  async #publishGlobalNow({ policy, scope, revision }, user) {
     const current = this.#global?.revision ?? 0
     if (revision !== undefined && revision !== current) {
       throw new Error(
@@ -295,14 +526,20 @@ class VdfPlugin {
     if (!check.ok) {
       return { ...check, published: false }
     }
+    const previous = this.#global
     this.#global = {
       document: JSON.parse(policy),
       revision: current + 1,
       scope,
       publishedAt: new Date().toISOString(),
-      publishedBy: user?.email ?? user?.name ?? user?.id,
+      publishedBy: userLabel(user),
     }
     await this.#store.put('global', this.#global)
+    await this.#appendHistory(
+      GLOBAL_SCOPE,
+      await this.#history(GLOBAL_SCOPE),
+      this.#globalEntry(this.#global, previous)
+    )
     const pools = await Promise.all(
       check.pools.map(async pool => {
         if (pool.skipped || pool.unreachable) {
@@ -310,10 +547,10 @@ class VdfPlugin {
         }
         try {
           const result = await this.#onMaster(this.#xo.getXapi(pool.id), 'publish', { policy: texts[pool.id] })
-          this.#syncs[pool.id] = { at: Date.now(), ok: result.ok, error: result.error, revision: this.#global.revision }
+          this.#recordSync(pool.id, { ok: result.ok, error: result.error, revision: this.#global.revision })
           return { ...pool, ...result }
         } catch (error) {
-          this.#syncs[pool.id] = { at: Date.now(), ok: false, error: error.message }
+          this.#recordSync(pool.id, { ok: false, error: error.message })
           return { ...pool, ok: false, error: error.message }
         }
       })
@@ -370,16 +607,10 @@ class VdfPlugin {
         }
         try {
           const result = await this.#onMaster(xapi, 'publish', { policy: serialize(expected) })
-          this.#syncs[pool.id] = {
-            at: Date.now(),
-            ok: result.ok,
-            error: result.error,
-            state,
-            revision: this.#global.revision,
-          }
+          this.#recordSync(pool.id, { ok: result.ok, error: result.error, state, revision: this.#global.revision })
           log.info('pool synced with the global configuration', { pool: pool.id, state, ok: result.ok })
         } catch (error) {
-          this.#syncs[pool.id] = { at: Date.now(), ok: false, error: error.message, state }
+          this.#recordSync(pool.id, { ok: false, error: error.message, state })
           log.warn('sync', { pool: pool.id, error })
         }
       }
@@ -478,6 +709,27 @@ class VdfPlugin {
         },
       },
       {
+        endpoint: '/global/history',
+        method: 'get',
+        description:
+          'The last published global configurations, oldest first, without their content: id, revision, publishedAt, publishedBy, summary.',
+        tags: ['vdf'],
+        responses: [{ status: 200, description: 'Publish history' }],
+        callback: async () => ({ entries: (await this.#history(GLOBAL_SCOPE)).map(listEntry) }),
+      },
+      {
+        endpoint: '/global/history/{entry}',
+        method: 'get',
+        description: 'One published global configuration (document and scope), and the one before it (`previous`).',
+        tags: ['vdf'],
+        params: PARAMS_GLOBAL_ENTRY,
+        responses: [
+          { status: 200, description: 'Published version' },
+          { status: 404, description: 'No such version' },
+        ],
+        callback: ({ req, res }) => this.#historyEntry(GLOBAL_SCOPE, req.params.entry, res),
+      },
+      {
         endpoint: '/pools/{id}/policy',
         method: 'get',
         description: 'The policy document the pool enforces (the newest pool key whose base still matches) and its id.',
@@ -517,22 +769,54 @@ class VdfPlugin {
         endpoint: '/pools/{id}/actions/publish_policy',
         method: 'post',
         description:
-          "Validate and publish a policy document to the pool's keys, through the pool master's vdf-agent. Agents apply it within tens of milliseconds.",
+          "Validate and publish a policy document to the pool's keys, through the pool master's vdf-agent. Agents apply it within tens of milliseconds. With expectedDocId, refused (nothing written) if the pool's document changed since.",
         tags: ['vdf'],
         params: PARAMS_ID,
-        body: BODY_POLICY,
+        body: BODY_PUBLISH,
         middlewares: [{ name: 'json', options: { limit: '8mb' } }],
-        responses: [{ status: 200, description: 'Publish result (published, ok, error, warnings, keys, document)' }],
-        callback: ({ req, createAction }) => {
-          const xapi = this.#getXapi(req.params.id)
-          const { text, error } = this.#poolDocument(req.params.id, req.body.policy)
-          if (error !== undefined) {
-            return { ok: false, error, warnings: [] }
-          }
-          return createAction(() => this.#onMaster(xapi, 'publish', { policy: text }), {
+        responses: [
+          {
+            status: 200,
+            description:
+              'Publish result (published, ok, error, warnings, keys, document); conflict: true if the pool changed since expectedDocId',
+          },
+        ],
+        callback: ({ req, restApi, createAction }) => {
+          // throws no such object for an unknown pool
+          this.#getXapi(req.params.id)
+          const user = restApi.getCurrentUser({ throwUnauthenticated: false })
+          return createAction(() => this.#publishPool(req.params.id, req.body, user), {
             sync: true,
             taskProperties: { name: 'publish firewall policy', objectId: req.params.id, objectType: 'pool' },
           })
+        },
+      },
+      {
+        endpoint: '/pools/{id}/history',
+        method: 'get',
+        description:
+          'The last documents published to the pool through XO, oldest first, without their content: id, docId, previousDocId, publishedAt, publishedBy, summary.',
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        responses: [{ status: 200, description: 'Publish history' }],
+        callback: async ({ req }) => {
+          this.#xo.getObject(req.params.id, 'pool')
+          return { entries: (await this.#history(req.params.id)).map(listEntry) }
+        },
+      },
+      {
+        endpoint: '/pools/{id}/history/{entry}',
+        method: 'get',
+        description: 'One published version of the pool document, and the version it replaced (`previous`, if kept).',
+        tags: ['vdf'],
+        params: PARAMS_ENTRY,
+        responses: [
+          { status: 200, description: 'Published version' },
+          { status: 404, description: 'No such version' },
+        ],
+        callback: ({ req, res }) => {
+          this.#xo.getObject(req.params.id, 'pool')
+          return this.#historyEntry(req.params.id, req.params.entry, res)
         },
       },
       {
