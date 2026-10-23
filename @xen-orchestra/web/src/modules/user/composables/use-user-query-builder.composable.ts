@@ -5,16 +5,21 @@ import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type FilterableUser = FrontXoUser & { name: string; firstname: string; lastname: string; providers: string }
+export type FilterableUser<TUser extends FrontXoUser = FrontXoUser> = TUser & {
+  name: string
+  firstname: string
+  lastname: string
+  providers: string
+}
 
-export function useUserQueryBuilder(
+export function useUserQueryBuilder<TUser extends FrontXoUser>(
   id: string,
-  users: MaybeRefOrGetter<FrontXoUser[]>,
+  users: MaybeRefOrGetter<TUser[]>,
   options?: Parameters<typeof useQueryBuilderFilter>[2]
 ) {
   const { t } = useI18n()
 
-  const filterableUsers = computed<FilterableUser[]>(() =>
+  const filterableUsers = computed<FilterableUser<TUser>[]>(() =>
     toValue(users).map(user => {
       const providers = Object.keys(user.authProviders ?? {})
 
