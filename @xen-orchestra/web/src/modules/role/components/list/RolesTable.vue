@@ -36,6 +36,7 @@ import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-bu
 import { useRoleColumns } from '@core/tables/column-sets/role-columns.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -58,7 +59,11 @@ const {
 
 const { t } = useI18n()
 
-const { getGroupsByIds } = useXoGroupCollection()
+const { getGroupsByIds, areGroupsReady, hasGroupFetchError } = useXoGroupCollection()
+
+const isReady = logicAnd(() => !busy, areGroupsReady)
+
+const hasError = logicOr(() => error, hasGroupFetchError)
 
 const filterableRoles = computed<FilterableRole[]>(() =>
   rawRoles.map(role => ({
@@ -82,8 +87,8 @@ const schema = useQueryBuilderSchema<FilterableRole>({
 })
 
 const state = useTableState({
-  busy: () => busy,
-  error: () => error,
+  busy: logicNot(isReady),
+  error: hasError,
   empty: () =>
     rawRoles.length === 0 ? t('no-role-detected') : filteredRoles.value.length === 0 ? { type: 'no-result' } : false,
 })
