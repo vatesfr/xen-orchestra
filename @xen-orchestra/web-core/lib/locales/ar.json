@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "وثائق وحدة تحكم SDN",
   "traffic-rules:format-warning": "خطأ في التكوين: قواعد حركة المرور ليست بالتنسيق المتوقع. يرجى {check-doc} حول كيفية ترحيلها.",
   "traffic-rules:format-warning:check-doc": "مراجعة أحدث الوثائق",
-  "traffic-rules:info-message": "ترتيب قواعد حركة المرور قيد التنفيذ. قد يكون السلوك غير مضمون.",
   "traffic-rules:no-traffic-rules-detected": "لم يتم اكتشاف أي قواعد حركة مرور",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "يتطلب وضع إضافة XAPI",
