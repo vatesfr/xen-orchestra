@@ -42,7 +42,11 @@ export function useVdfIpNames(rawDocument: MaybeRefOrGetter<VdfDocument>) {
   const vmByIp = computed(() => {
     const byIp = new Map<string, FrontXoVm>()
 
-    for (const vm of vms.value) {
+    // running VMs last, so they win: a halted VM keeps the addresses its
+    // guest last reported, which DHCP may have handed to another VM since
+    const running = (vm: FrontXoVm) => (vm.power_state === 'Running' ? 1 : 0)
+
+    for (const vm of [...vms.value].sort((vmA, vmB) => running(vmA) - running(vmB))) {
       for (const ip of Object.values(vm.addresses ?? {})) {
         byIp.set(ip, vm)
       }
