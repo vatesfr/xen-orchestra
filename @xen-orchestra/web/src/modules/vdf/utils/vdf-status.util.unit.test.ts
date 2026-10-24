@@ -51,11 +51,37 @@ describe('policyRealization', () => {
 })
 
 describe('vmProtection', () => {
+  const vm = (fields: Partial<Parameters<typeof vmProtection>[0]> = {}) =>
+    vmProtection({ quarantined: false, running: true, policyCount: 2, hostState: 'up-to-date', ...fields })
+
   it('only calls a running VM protected', () => {
-    expect(vmProtection({ quarantined: false, running: true, policyCount: 2 })).toBe('protected')
-    expect(vmProtection({ quarantined: false, running: false, policyCount: 2 })).toBe('protected-when-running')
-    expect(vmProtection({ quarantined: false, running: true, policyCount: 0 })).toBe('unprotected')
-    expect(vmProtection({ quarantined: true, running: false, policyCount: 0 })).toBe('quarantined')
+    expect(vm()).toBe('protected')
+    expect(vm({ running: false })).toBe('protected-when-running')
+    expect(vm({ policyCount: 0 })).toBe('unprotected')
+    expect(vm({ quarantined: true, running: false, policyCount: 0 })).toBe('quarantined')
+  })
+
+  // #37: enforcement happens only on the host the VM runs on
+  it('is exposed on a host whose agent is missing, stopped or stuck', () => {
+    expect(vm({ hostState: 'unknown' })).toBe('exposed')
+    expect(vm({ hostState: 'stale' })).toBe('exposed')
+    expect(vm({ hostState: 'disabled' })).toBe('exposed')
+  })
+
+  it('is outdated on a host that enforces the previous document', () => {
+    expect(vm({ hostState: 'behind' })).toBe('outdated')
+    expect(vm({ hostState: 'rejected' })).toBe('outdated')
+  })
+
+  it("doesn't call a quarantine enforced on a host without a working agent", () => {
+    expect(vm({ quarantined: true, hostState: 'unknown' })).toBe('quarantine-not-enforced')
+    expect(vm({ quarantined: true, hostState: 'stale' })).toBe('quarantine-not-enforced')
+    expect(vm({ quarantined: true, hostState: 'rejected' })).toBe('quarantined')
+  })
+
+  it("doesn't depend on the host for a halted VM", () => {
+    expect(vm({ running: false, hostState: 'unknown' })).toBe('protected-when-running')
+    expect(vm({ running: false, quarantined: true, hostState: 'unknown' })).toBe('quarantined')
   })
 })
 

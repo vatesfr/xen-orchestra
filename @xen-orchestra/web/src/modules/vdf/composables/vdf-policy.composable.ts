@@ -4,6 +4,8 @@ import { useVdfDraft } from '@/modules/vdf/composables/vdf-draft.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hostState, parseHostStatus, policyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useNow } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, ref, toValue, watch } from 'vue'
 
@@ -73,6 +75,14 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
 
   const liveHostCount = computed(() => hosts.value.filter(({ state }) => state !== 'disabled').length)
 
+  // the host a running VM is on, with its agent's state: what the VM gets
+  // is enforced there only (#37)
+  function hostOf(vm: FrontXoVm) {
+    const hostId = extractVmHostId(vm)
+
+    return hosts.value.find(({ host }) => host.id === hostId)
+  }
+
   function realizationOf(policyName: string) {
     return policyRealization(policyName, hosts.value)
   }
@@ -105,6 +115,7 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
     upToDateHostCount,
     liveHostCount,
     realizationOf,
+    hostOf,
     lastPublish,
     recordPublish,
   }

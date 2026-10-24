@@ -198,7 +198,7 @@ const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -206,7 +206,9 @@ const pool = useGetPoolById(() => vm.$pool)
 
 // what the hosts enforce for this VM: the published document, never the
 // draft (the page only renders once the pool is known)
-const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft } = useVdfPolicy(() => pool.value!)
+const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hostOf } = useVdfPolicy(
+  () => pool.value!
+)
 
 const membership = useVdfMembership()
 
@@ -226,15 +228,26 @@ const policyNames = computed(() =>
   )
 )
 
+// enforcement happens on the host the VM runs on only (#37)
+const host = computed(() => (isRunning.value ? hostOf(vm) : undefined))
+
 const protection = computed(() =>
-  vmProtection({ quarantined: isQuarantined.value, running: isRunning.value, policyCount: policyNames.value.length })
+  vmProtection({
+    quarantined: isQuarantined.value,
+    running: isRunning.value,
+    policyCount: policyNames.value.length,
+    hostState: host.value?.state ?? 'unknown',
+  })
 )
 
 const STATUS_ACCENTS: Record<VdfVmProtection, 'success' | 'info' | 'warning' | 'danger'> = {
   protected: 'success',
+  outdated: 'warning',
+  exposed: 'danger',
   'protected-when-running': 'info',
   unprotected: 'warning',
   quarantined: 'danger',
+  'quarantine-not-enforced': 'danger',
 }
 
 const statusAccent = computed(() => STATUS_ACCENTS[protection.value])
@@ -242,14 +255,25 @@ const statusAccent = computed(() => STATUS_ACCENTS[protection.value])
 const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
 
 const statusDetail = computed(() => {
-  if (protection.value === 'protected' || protection.value === 'protected-when-running') {
-    return t(`firewall:vm:status:${protection.value}:detail`, {
-      n: policyNames.value.length,
-      policies: formatList(policyNames.value),
-    })
+  const params = {
+    n: policyNames.value.length,
+    policies: formatList(policyNames.value),
+    host: host.value?.host.name_label ?? vm.$container,
   }
 
-  return t(`firewall:vm:status:${protection.value}:detail`)
+  // the host can't enforce what applies: say why, and what to do there
+  if (
+    protection.value === 'exposed' ||
+    protection.value === 'outdated' ||
+    protection.value === 'quarantine-not-enforced'
+  ) {
+    const state = host.value?.state ?? 'unknown'
+    const hint = te(`firewall:host-state:${state}:hint`) ? `. ${t(`firewall:host-state:${state}:hint`)}` : '.'
+
+    return `${t(`firewall:vm:status:${protection.value}:detail`, params)} ${t(`firewall:host-state:${state}`)}${hint}`
+  }
+
+  return t(`firewall:vm:status:${protection.value}:detail`, params)
 })
 
 // GROUPS: membership is tags, written at once (no draft), after a

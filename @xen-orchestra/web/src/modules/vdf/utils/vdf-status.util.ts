@@ -91,29 +91,58 @@ export function policyRealization(
   return realization
 }
 
-export type VdfVmProtection = 'quarantined' | 'protected' | 'protected-when-running' | 'unprotected'
+export type VdfVmProtection =
+  | 'quarantined'
+  | 'quarantine-not-enforced'
+  | 'protected'
+  | 'outdated'
+  | 'exposed'
+  | 'protected-when-running'
+  | 'unprotected'
 
-// What the published document does for a VM now: a halted VM has no
-// network interface to enforce anything on, its policies apply when it
-// starts.
+// Hosts whose agent enforces nothing reliable: no agent, or one stopped or
+// stuck. A VM running there gets no flows at all, quarantine included.
+const NOT_ENFORCING: VdfHostState[] = ['unknown', 'stale', 'disabled']
+
+export const hostEnforces = (state: VdfHostState | undefined) => state !== undefined && !NOT_ENFORCING.includes(state)
+
+// What the published document does for a VM now. It's enforced only on the
+// host the VM runs on (at its own VIFs), so a running VM is protected only
+// if that host's agent is current: an agent that rejected the document or
+// hasn't applied it yet enforces the previous one (outdated), a host
+// without a working agent nothing (exposed). A halted VM has no network
+// interface to enforce anything on, its policies apply when it starts.
 export function vmProtection({
   quarantined,
   running,
   policyCount,
+  hostState,
 }: {
   quarantined: boolean
   running: boolean
   policyCount: number
+  // the state of the host the VM runs on (unknown when it isn't found)
+  hostState: VdfHostState
 }): VdfVmProtection {
+  const enforcing = !running || hostEnforces(hostState)
+
   if (quarantined) {
-    return 'quarantined'
+    return enforcing ? 'quarantined' : 'quarantine-not-enforced'
   }
 
   if (policyCount === 0) {
     return 'unprotected'
   }
 
-  return running ? 'protected' : 'protected-when-running'
+  if (!running) {
+    return 'protected-when-running'
+  }
+
+  if (!enforcing) {
+    return 'exposed'
+  }
+
+  return hostState === 'up-to-date' ? 'protected' : 'outdated'
 }
 
 export type VdfLockingMode = 'locked' | 'unlocked' | 'disabled'
