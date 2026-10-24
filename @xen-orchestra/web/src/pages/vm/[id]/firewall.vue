@@ -75,7 +75,7 @@
               :pool-id="pool.id"
               :document="publishedDocument"
               :vm-tags="vm.tags"
-              :quarantined="isQuarantined"
+              :quarantined="protection === 'quarantined'"
             />
           </UiCard>
         </VtsColumn>
@@ -274,7 +274,10 @@ const statusDetail = computed(() => {
     const state = host.value?.state ?? 'unknown'
     const hint = te(`firewall:host-state:${state}:hint`) ? `. ${t(`firewall:host-state:${state}:hint`)}` : '.'
 
-    return `${t(`firewall:vm:status:${protection.value}:detail`, params)} ${t(`firewall:host-state:${state}`)}${hint}`
+    // a stale agent's flows stay: only what changed since it stopped isn't enforced
+    const key = `firewall:vm:status:${protection.value}:detail${state === 'stale' && protection.value !== 'outdated' ? ':stale' : ''}`
+
+    return `${t(key, params)} ${t(`firewall:host-state:${state}`)}${hint}`
   }
 
   return t(`firewall:vm:status:${protection.value}:detail`, params)
