@@ -27,13 +27,14 @@
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</UiTabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/(site)/firewall' }" custom>
+    <RouterLink v-if="isVdfEnabled" v-slot="{ isActive, href }" :to="{ name: '/(site)/firewall' }" custom>
       <UiTabItem :active="isActive" :href tag="a">{{ t('firewall') }}</UiTabItem>
     </RouterLink>
   </TabList>
 </template>
 
 <script lang="ts" setup>
+import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
@@ -42,4 +43,7 @@ import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+
+// tech preview: only while the vdf plugin is loaded
+const { isVdfEnabled } = useVdfAvailability()
 </script>

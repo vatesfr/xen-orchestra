@@ -1,159 +1,162 @@
 <template>
-  <VtsStateHero
-    v-if="pool !== undefined && !isPublishedPolicyReady && hasPublishedPolicyError"
-    format="page"
-    type="error"
-    size="medium"
-    class="vm-firewall-state"
-  >
-    {{ t('firewall:error:unreachable') }}
-  </VtsStateHero>
-  <VtsStateHero
-    v-else-if="pool === undefined || !isPublishedPolicyReady"
-    format="page"
-    type="busy"
-    size="medium"
-    class="vm-firewall-state"
-  />
-  <div v-else class="vm-firewall">
-    <div class="status">
-      <UiAlert :accent="statusAccent" class="status-alert">
-        <span class="typo-body-bold">{{ t(`firewall:vm:status:${protection}`) }}</span>
-        <template #description>{{ statusDetail }}</template>
-      </UiAlert>
-      <div class="status-actions">
-        <UiButton
-          v-if="isQuarantined"
-          variant="primary"
-          accent="brand"
-          size="medium"
-          left-icon="fa:lock-open"
-          :busy="isUpdatingTags"
-          @click="confirmQuarantine(vm, false)"
-        >
-          {{ t('firewall:vm:release') }}
-        </UiButton>
-        <MenuList v-else placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon
-              v-tooltip="t('more-actions')"
-              icon="action:more-actions"
-              accent="brand"
-              size="medium"
-              :aria-label="t('more-actions')"
-              @click="open($event)"
-            />
-          </template>
-          <MenuItem accent="danger" icon="fa:lock" :busy="isUpdatingTags" @click="confirmQuarantine(vm, true)">
-            {{ t('firewall:vm:quarantine-action') }}
-          </MenuItem>
-        </MenuList>
-      </div>
-    </div>
-
-    <UiAlert v-if="tagError" accent="danger">
-      {{ t('firewall:vm:tags-failed', { vm: vm.name_label }) }}
-      <template #description>{{ tagError }}</template>
-    </UiAlert>
-
-    <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
-
-    <VtsColumns>
-      <VtsColumn>
-        <UiCard>
-          <UiTitle>
-            {{ t('firewall:vm:effective') }}
-            <template #action>
-              <UiLink :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" size="medium">
-                {{ t('firewall:manage-policies') }}
-              </UiLink>
+  <VdfGate :pool-id="vm.$pool">
+    <VtsStateHero
+      v-if="pool !== undefined && !isPublishedPolicyReady && hasPublishedPolicyError"
+      format="page"
+      type="error"
+      size="medium"
+      class="vm-firewall-state"
+    >
+      {{ t('firewall:error:unreachable') }}
+    </VtsStateHero>
+    <VtsStateHero
+      v-else-if="pool === undefined || !isPublishedPolicyReady || !areHostsReady"
+      format="page"
+      type="busy"
+      size="medium"
+      class="vm-firewall-state"
+    />
+    <div v-else class="vm-firewall">
+      <div class="status">
+        <UiAlert :accent="statusAccent" class="status-alert">
+          <span class="typo-body-bold">{{ t(`firewall:vm:status:${protection}`) }}</span>
+          <template #description>{{ statusDetail }}</template>
+        </UiAlert>
+        <div class="status-actions">
+          <VdfPreviewBadge />
+          <UiButton
+            v-if="isQuarantined"
+            variant="primary"
+            accent="brand"
+            size="medium"
+            left-icon="fa:lock-open"
+            :busy="isUpdatingTags"
+            @click="confirmQuarantine(vm, false)"
+          >
+            {{ t('firewall:vm:release') }}
+          </UiButton>
+          <MenuList v-else placement="bottom-end">
+            <template #trigger="{ open }">
+              <UiButtonIcon
+                v-tooltip="t('more-actions')"
+                icon="action:more-actions"
+                accent="brand"
+                size="medium"
+                :aria-label="t('more-actions')"
+                @click="open($event)"
+              />
             </template>
-          </UiTitle>
-          <VdfEffectivePolicy
-            :pool-id="pool.id"
-            :document="publishedDocument"
-            :vm-tags="vm.tags"
-            :quarantined="isQuarantined"
-          />
-        </UiCard>
-      </VtsColumn>
+            <MenuItem accent="danger" icon="fa:lock" :busy="isUpdatingTags" @click="confirmQuarantine(vm, true)">
+              {{ t('firewall:vm:quarantine-action') }}
+            </MenuItem>
+          </MenuList>
+        </div>
+      </div>
 
-      <VtsColumn>
-        <UiCard>
-          <UiTitle>{{ t('firewall:groups') }}</UiTitle>
-          <UiTagsList v-if="vmGroups.length > 0">
-            <UiChip
-              v-for="group of vmGroups"
-              :key="group.name"
-              v-tooltip="t('firewall:vm:leave', { group: group.label })"
-              accent="info"
-              :disabled="isUpdatingTags"
-              @remove="leaveGroup(group.name)"
-            >
-              <span class="chip">
-                <VtsIcon :name="group.isGlobal ? 'fa:globe' : 'fa:object-group'" size="small" />
-                {{ group.label }}
-              </span>
-            </UiChip>
-          </UiTagsList>
-          <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:no-group') }}</span>
-          <VtsInputWrapper v-if="joinableGroups.length > 0" :label="t('firewall:vm:join-group')">
-            <VtsSelect :id="joinSelectId" accent="brand" />
-          </VtsInputWrapper>
-          <span class="secondary typo-body-regular-small">{{ t('firewall:vm:groups:info') }}</span>
-        </UiCard>
+      <UiAlert v-if="tagError" accent="danger">
+        {{ t('firewall:vm:tags-failed', { vm: vm.name_label }) }}
+        <template #description>{{ tagError }}</template>
+      </UiAlert>
 
-        <UiCard>
-          <UiTitle>{{ t('firewall:vm:interfaces') }}</UiTitle>
-          <VtsStateHero v-if="vmVifs.length === 0" format="card" type="no-data" size="extra-small" horizontal>
-            {{ t('firewall:vm:no-interface') }}
-          </VtsStateHero>
-          <VdfVmInterface
-            v-for="vif of vmVifs"
-            :key="vif.id"
-            :vif
-            :vm
-            :network="getNetworkById(vif.$network)"
-            class="interface"
-          />
-        </UiCard>
+      <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
 
-        <UiCard>
-          <UiTitle>{{ t('firewall:vm:test') }}</UiTitle>
-          <div v-if="isRunning" class="links">
-            <UiLink
-              :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: vm.id } }"
-              size="medium"
-              icon="fa:route"
-            >
-              {{ t('firewall:vm:test:to') }}
-            </UiLink>
-            <UiLink
-              :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { from: vm.id } }"
-              size="medium"
-              icon="fa:route"
-            >
-              {{ t('firewall:vm:test:from') }}
-            </UiLink>
-            <UiLink
-              :to="{ name: '/pool/[id]/firewall/live', params: { id: pool.id }, query: { vm: vm.id } }"
-              size="medium"
-              icon="fa:network-wired"
-            >
-              {{ t('firewall:vm:live') }}
-            </UiLink>
-          </div>
-          <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:test:not-running') }}</span>
-        </UiCard>
-      </VtsColumn>
-    </VtsColumns>
+      <VtsColumns>
+        <VtsColumn>
+          <UiCard>
+            <UiTitle>
+              {{ t('firewall:vm:effective') }}
+              <template #action>
+                <UiLink :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" size="medium">
+                  {{ t('firewall:manage-policies') }}
+                </UiLink>
+              </template>
+            </UiTitle>
+            <VdfEffectivePolicy
+              :pool-id="pool.id"
+              :document="publishedDocument"
+              :vm-tags="vm.tags"
+              :quarantined="isQuarantined"
+            />
+          </UiCard>
+        </VtsColumn>
 
-    <!-- full width: a table of eight columns -->
-    <UiCard>
-      <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
-      <VdfRuleLogTable :pool-id="pool.id" :vm-name="vm.name_label" />
-    </UiCard>
-  </div>
+        <VtsColumn>
+          <UiCard>
+            <UiTitle>{{ t('firewall:groups') }}</UiTitle>
+            <UiTagsList v-if="vmGroups.length > 0">
+              <UiChip
+                v-for="group of vmGroups"
+                :key="group.name"
+                v-tooltip="t('firewall:vm:leave', { group: group.label })"
+                accent="info"
+                :disabled="isUpdatingTags"
+                @remove="leaveGroup(group.name)"
+              >
+                <span class="chip">
+                  <VtsIcon :name="group.isGlobal ? 'fa:globe' : 'fa:object-group'" size="small" />
+                  {{ group.label }}
+                </span>
+              </UiChip>
+            </UiTagsList>
+            <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:no-group') }}</span>
+            <VtsInputWrapper v-if="joinableGroups.length > 0" :label="t('firewall:vm:join-group')">
+              <VtsSelect :id="joinSelectId" accent="brand" />
+            </VtsInputWrapper>
+            <span class="secondary typo-body-regular-small">{{ t('firewall:vm:groups:info') }}</span>
+          </UiCard>
+
+          <UiCard>
+            <UiTitle>{{ t('firewall:vm:interfaces') }}</UiTitle>
+            <VtsStateHero v-if="vmVifs.length === 0" format="card" type="no-data" size="extra-small" horizontal>
+              {{ t('firewall:vm:no-interface') }}
+            </VtsStateHero>
+            <VdfVmInterface
+              v-for="vif of vmVifs"
+              :key="vif.id"
+              :vif
+              :vm
+              :network="getNetworkById(vif.$network)"
+              class="interface"
+            />
+          </UiCard>
+
+          <UiCard>
+            <UiTitle>{{ t('firewall:vm:test') }}</UiTitle>
+            <div v-if="isRunning" class="links">
+              <UiLink
+                :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: vm.id } }"
+                size="medium"
+                icon="fa:route"
+              >
+                {{ t('firewall:vm:test:to') }}
+              </UiLink>
+              <UiLink
+                :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { from: vm.id } }"
+                size="medium"
+                icon="fa:route"
+              >
+                {{ t('firewall:vm:test:from') }}
+              </UiLink>
+              <UiLink
+                :to="{ name: '/pool/[id]/firewall/live', params: { id: pool.id }, query: { vm: vm.id } }"
+                size="medium"
+                icon="fa:network-wired"
+              >
+                {{ t('firewall:vm:live') }}
+              </UiLink>
+            </div>
+            <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:test:not-running') }}</span>
+          </UiCard>
+        </VtsColumn>
+      </VtsColumns>
+
+      <!-- full width: a table of eight columns -->
+      <UiCard>
+        <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
+        <VdfRuleLogTable :pool-id="pool.id" :vm-name="vm.name_label" />
+      </UiCard>
+    </div>
+  </VdfGate>
 </template>
 
 <script lang="ts" setup>
@@ -161,6 +164,8 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfEffectivePolicy from '@/modules/vdf/components/VdfEffectivePolicy.vue'
+import VdfGate from '@/modules/vdf/components/VdfGate.vue'
+import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
@@ -206,9 +211,8 @@ const pool = useGetPoolById(() => vm.$pool)
 
 // what the hosts enforce for this VM: the published document, never the
 // draft (the page only renders once the pool is known)
-const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hostOf } = useVdfPolicy(
-  () => pool.value!
-)
+const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hostOf, areHostsReady } =
+  useVdfPolicy(() => pool.value!)
 
 const membership = useVdfMembership()
 

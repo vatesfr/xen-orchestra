@@ -208,6 +208,26 @@ function registerConfigManager(xo) {
   )
 }
 
+// Tech preview (vdf#42): opt-in. xo-server loads a plugin without a
+// configuration schema as soon as it's installed; with a required setting,
+// it stays unloaded until an administrator enables it in Settings > Plugins.
+// Unloading it is the kill switch: its routes go away, so does the
+// firewall interface (XO 6 shows it only while GET /plugins/vdf/info
+// answers), and nothing runs in the background.
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    enableTechPreview: {
+      type: 'boolean',
+      title: 'Enable the VDF firewall (tech preview)',
+      description:
+        "Shows the Firewall pages in XO 6 and lets administrators publish policies to pools whose hosts run the vdf agent. Unload the plugin to hide them again: policies already published stay enforced by the hosts' agents.",
+      enum: [true],
+    },
+  },
+  required: ['enableTechPreview'],
+}
+
 class VdfPlugin {
   #unregisterRoutes
   #xo
@@ -262,6 +282,9 @@ class VdfPlugin {
       await this.#appendHistory(GLOBAL_SCOPE, [], this.#globalEntry(this.#global, undefined))
     }
   }
+
+  // the only setting is the opt-in, checked by the schema
+  configure() {}
 
   async load() {
     this.#store = await this.#xo.getStore('vdf')
@@ -988,6 +1011,16 @@ class VdfPlugin {
   #routes() {
     return [
       {
+        endpoint: '/info',
+        method: 'get',
+        description:
+          'Answers while the plugin is loaded: XO 6 shows the firewall interface only then (tech preview, opt-in).',
+        tags: ['vdf'],
+        responses: [{ status: 200, description: 'The plugin is loaded' }],
+        scope: 'acl',
+        callback: () => ({ techPreview: true }),
+      },
+      {
         endpoint: '/global',
         method: 'get',
         description:
@@ -1226,4 +1259,8 @@ class VdfPlugin {
   }
 }
 
-export default opts => new VdfPlugin(opts)
+// xo-server reads the schema on the default export (registerPlugin), as
+// Babel-compiled plugins have it: a named export alone is ignored
+const createPlugin = opts => new VdfPlugin(opts)
+createPlugin.configurationSchema = configurationSchema
+export default createPlugin

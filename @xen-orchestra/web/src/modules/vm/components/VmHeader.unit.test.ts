@@ -8,9 +8,20 @@ import { t } from '@/test/i18n.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount, type DOMWrapper } from '@vue/test-utils'
+import { computed } from 'vue'
 
-const { buildXo5Route } = vi.hoisted(() => ({
+const { buildXo5Route, vdf } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
+  vdf: { enabled: false, poolsWithAgent: [] as string[] },
+}))
+
+// the firewall (vdf plugin) is a tech preview: off unless a test turns it on
+vi.mock(import('@/modules/vdf/composables/vdf-availability.composable.ts'), () => ({
+  useVdfAvailability: () => ({
+    isVdfEnabled: computed(() => vdf.enabled),
+    isVdfAvailabilityReady: computed(() => true),
+    hasVdfAgent: (poolId: string) => vdf.poolsWithAgent.includes(poolId),
+  }),
 }))
 
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
@@ -18,6 +29,8 @@ vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
 }))
 
 beforeEach(() => {
+  vdf.enabled = false
+  vdf.poolsWithAgent = []
   buildXo5Route.mockReset()
   buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
 })
@@ -71,7 +84,6 @@ it('lists every tab of the VM, in order', async () => {
     t('stats'),
     t('system'),
     t('network'),
-    t('firewall'),
     t('vdis'),
     t('snapshots'),
     t('tasks'),
@@ -91,7 +103,6 @@ it('points every in-app tab at the page of that VM', async () => {
     '/vm/vm-42/backups',
     '/vm/vm-42/system',
     '/vm/vm-42/networks',
-    '/vm/vm-42/firewall',
     '/vm/vm-42/vdis',
     '/vm/vm-42/snapshots',
     '/vm/vm-42/tasks',
@@ -151,4 +162,23 @@ it('replaces the power state icon with a loader while the VM is changing state',
   const wrapper = await mountHeader(vm)
 
   expect(wrapper.find('.ui-head-bar .label-wrapper .ui-loader').exists()).toBe(true)
+})
+
+describe('firewall tab (vdf tech preview)', () => {
+  it('shows it when the vdf plugin is loaded and the pool has an agent', async () => {
+    vdf.enabled = true
+    vdf.poolsWithAgent = ['pool-1']
+    const wrapper = await mountHeader(
+      createVm({ id: 'vm-42' as FrontXoVm['id'], $pool: 'pool-1' as FrontXoVm['$pool'] })
+    )
+
+    expect(findTabs(wrapper).map(tab => tab.text())).toContain(t('firewall'))
+  })
+
+  it('hides it in a pool without an agent', async () => {
+    vdf.enabled = true
+    const wrapper = await mountHeader(createVm({ $pool: 'pool-1' as FrontXoVm['$pool'] }))
+
+    expect(findTabs(wrapper).some(tab => tab.text().includes(t('firewall')))).toBe(false)
+  })
 })

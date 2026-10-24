@@ -28,7 +28,12 @@
         {{ t('network') }}
       </UiTabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/firewall', params: { id: pool.id } }" custom>
+    <RouterLink
+      v-if="isVdfEnabled"
+      v-slot="{ isActive, href }"
+      :to="{ name: '/pool/[id]/firewall', params: { id: pool.id } }"
+      custom
+    >
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('firewall') }}
       </UiTabItem>
@@ -63,6 +68,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
@@ -76,6 +82,10 @@ const { pool } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+// tech preview: only while the vdf plugin is loaded; a pool without agents
+// gets a page saying so
+const { isVdfEnabled } = useVdfAvailability()
 
 const { buildXo5Route } = useXoRoutes()
 const xo5PoolStatsHref = computed(() => buildXo5Route(`/pools/${pool.id}/stats`))

@@ -1,6 +1,8 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 
+import Ajv from 'ajv'
+
 import createPlugin, { docId, publishedPolicy } from './index.mjs'
 
 const POOL = 'pool-1'
@@ -173,6 +175,28 @@ const document = (rulePort = 22) => ({
 })
 
 const text = doc => JSON.stringify(doc, null, 2)
+
+// vdf#42: installed is not enabled, and unloading removes everything
+describe('tech preview', () => {
+  test('stays unloaded until an administrator opts in', () => {
+    // where xo-server's registerPlugin looks for it
+    const validate = new Ajv().compile(createPlugin.configurationSchema)
+    // xo-server tries an empty configuration first: it must fail
+    assert.equal(validate({}), false)
+    assert.equal(validate({ enableTechPreview: false }), false)
+    assert.equal(validate({ enableTechPreview: true }), true)
+  })
+
+  test('answers on /info while loaded, nothing once unloaded', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    assert.deepEqual((await xo.route('get', '/info', { user: { id: 'user', permission: 'none' } })).result, {
+      techPreview: true,
+    })
+    plugin.unload()
+    await assert.rejects(xo.route('get', '/info'))
+  })
+})
 
 describe('pool publish', () => {
   test('refused, nothing written, when the pool changed since the edit started', async () => {

@@ -5,10 +5,13 @@
         {{ tab.label }}
       </UiTabItem>
     </RouterLink>
+    <!-- tech preview (vdf#42) -->
+    <VdfPreviewBadge class="preview" />
   </TabList>
 </template>
 
 <script lang="ts" setup>
+import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
@@ -49,3 +52,10 @@ const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
   ]
 })
 </script>
+
+<style lang="postcss" scoped>
+.vdf-firewall-nav .preview {
+  align-self: center;
+  margin-inline: auto 1.6rem;
+}
+</style>

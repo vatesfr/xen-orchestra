@@ -1,17 +1,20 @@
 <template>
-  <div class="firewall">
-    <VdfFirewallNav :scope="{ kind: 'pool', pool }" />
-    <VdfDraftBar :scope="{ kind: 'pool', pool }" />
-    <RouterView v-slot="{ Component }">
-      <component :is="Component" :pool />
-    </RouterView>
-  </div>
+  <VdfGate :pool-id="pool.id">
+    <div class="firewall">
+      <VdfFirewallNav :scope="{ kind: 'pool', pool }" />
+      <VdfDraftBar :scope="{ kind: 'pool', pool }" />
+      <RouterView v-slot="{ Component }">
+        <component :is="Component" :pool />
+      </RouterView>
+    </div>
+  </VdfGate>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfDraftBar from '@/modules/vdf/components/VdfDraftBar.vue'
 import VdfFirewallNav from '@/modules/vdf/components/VdfFirewallNav.vue'
+import VdfGate from '@/modules/vdf/components/VdfGate.vue'
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

@@ -1,14 +1,17 @@
 <template>
-  <div class="firewall">
-    <VdfFirewallNav :scope />
-    <VdfDraftBar :scope />
-    <RouterView />
-  </div>
+  <VdfGate>
+    <div class="firewall">
+      <VdfFirewallNav :scope />
+      <VdfDraftBar :scope />
+      <RouterView />
+    </div>
+  </VdfGate>
 </template>
 
 <script lang="ts" setup>
 import VdfDraftBar from '@/modules/vdf/components/VdfDraftBar.vue'
 import VdfFirewallNav from '@/modules/vdf/components/VdfFirewallNav.vue'
+import VdfGate from '@/modules/vdf/components/VdfGate.vue'
 import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
