@@ -6,12 +6,14 @@ import {
   type VdfDocument,
   type VdfGroup,
   type VdfPolicy,
+  type VdfPort,
   type VdfRule,
   type VdfRuleAction,
   type VdfTierName,
 } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 export function tierValue(tier: VdfPolicy['tier']): number {
@@ -44,18 +46,25 @@ export function ruleAction(rule: VdfRule): VdfRuleAction {
   return rule.action ?? 'allow'
 }
 
-export function formatPorts(ports: number[] | undefined) {
+export function formatPorts(ports: VdfPort[] | undefined) {
   return ports === undefined || ports.length === 0 ? '' : ports.join(', ')
 }
 
-export function parsePorts(text: string): number[] | undefined {
-  const ports = text
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .map(Number)
+// "443, 8000-8099": a number per port, a "low-high" string per range
+export function parsePorts(text: string): VdfPort[] | undefined {
+  const ports: VdfPort[] = []
 
-  if (ports.some(port => !Number.isInteger(port) || port < 1 || port > 65535)) {
-    return undefined
+  for (const token of text
+    .replace(/\s*-\s*/g, '-')
+    .split(/[\s,]+/)
+    .filter(Boolean)) {
+    const bounds = /^\d+(-\d+)?$/.test(token) ? portBounds(token) : undefined
+
+    if (bounds === undefined) {
+      return undefined
+    }
+
+    ports.push(bounds[0] === bounds[1] ? bounds[0] : `${bounds[0]}-${bounds[1]}`)
   }
 
   return [...new Set(ports)]

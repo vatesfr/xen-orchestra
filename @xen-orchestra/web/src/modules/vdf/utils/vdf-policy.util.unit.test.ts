@@ -3,6 +3,7 @@ import {
   diffDocuments,
   effectiveTiers,
   filterRuleBase,
+  formatPorts,
   movePolicy,
   moveRule,
   nextRuleId,
@@ -107,6 +108,18 @@ describe('rules', () => {
     expect(parsePorts('')).toEqual([])
     expect(parsePorts('0')).toBeUndefined()
     expect(parsePorts('http')).toBeUndefined()
+  })
+
+  it('parses port ranges as "low-high" strings (vdf#54)', () => {
+    expect(parsePorts('22, 8000-8099')).toEqual([22, '8000-8099'])
+    expect(parsePorts('8000 - 8099 443')).toEqual(['8000-8099', 443])
+    expect(parsePorts('25-25')).toEqual([25])
+    expect(parsePorts('8099-8000')).toBeUndefined()
+    expect(parsePorts('1-65536')).toBeUndefined()
+    expect(parsePorts('0-10')).toBeUndefined()
+    expect(parsePorts('8000-')).toBeUndefined()
+    expect(parsePorts('1-2-3')).toBeUndefined()
+    expect(formatPorts([22, '8000-8099'])).toBe('22, 8000-8099')
   })
 })
 

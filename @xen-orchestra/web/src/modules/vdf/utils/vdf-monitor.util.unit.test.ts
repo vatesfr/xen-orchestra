@@ -121,6 +121,14 @@ describe('coveredBy', () => {
     expect(coveredBy(p, entry({ port: 23, rule: 2 }), groupsOf)).toBe(false) // another port
   })
 
+  it('a port range covers the ports in it (vdf#54)', () => {
+    const p = policy()
+    p.ingress.unshift({ id: 9, from: 'monitoring', proto: 'tcp', ports: [22, '8000-8099'] })
+    expect(coveredBy(p, entry({ port: 8000, rule: 2 }), groupsOf)).toBe(true)
+    expect(coveredBy(p, entry({ port: 8099, rule: 2 }), groupsOf)).toBe(true)
+    expect(coveredBy(p, entry({ port: 8100, rule: 2 }), groupsOf)).toBe(false)
+  })
+
   it('an allow after the dropping rule covers nothing; any allow covers the default', () => {
     const p = policy()
     p.ingress.push({ id: 9, from: 'any', proto: 'tcp', ports: [22] })

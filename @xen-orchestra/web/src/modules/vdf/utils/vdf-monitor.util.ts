@@ -1,4 +1,5 @@
 import type { VdfDocument, VdfMonitorEntry, VdfPolicy, VdfProtocol, VdfRule } from '@/modules/vdf/types.ts'
+import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 
 // a suggested allow rule, without its id (given when added to the draft)
 export type VdfSuggestedRule = { from: string; proto: VdfProtocol; ports?: number[] }
@@ -109,9 +110,7 @@ export function coveredBy(policy: VdfPolicy, entry: VdfMonitorEntry, groupsOf: (
     rule =>
       (rule.action ?? 'allow') === 'allow' &&
       (rule.proto === 'any' || rule.proto === entry.proto) &&
-      (rule.ports === undefined ||
-        rule.ports.length === 0 ||
-        (entry.port !== undefined && rule.ports.includes(entry.port))) &&
+      (entry.port === undefined ? (rule.ports ?? []).length === 0 : portsContain(rule.ports, entry.port)) &&
       (rule.from === 'any' || rule.from === entry.src || groups.has(rule.from))
   )
 }

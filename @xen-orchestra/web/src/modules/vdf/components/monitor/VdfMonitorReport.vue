@@ -115,6 +115,7 @@ import {
   type VdfSuggestion,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -218,7 +219,7 @@ function isInDraft(suggestion: VdfSuggestion) {
       ruleAction(rule) === 'allow' &&
       rule.from === suggestion.rule.from &&
       rule.proto === suggestion.rule.proto &&
-      (suggestion.rule.ports ?? []).every(port => (rule.ports ?? []).includes(port))
+      (suggestion.rule.ports ?? []).every(port => portsContain(rule.ports, port))
   )
 }
 
