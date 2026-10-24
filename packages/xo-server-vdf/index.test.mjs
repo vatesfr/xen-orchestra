@@ -3,7 +3,7 @@ import { strict as assert } from 'node:assert'
 
 import Ajv from 'ajv'
 
-import createPlugin, { docId, publishedPolicy } from './index.mjs'
+import createPlugin, { docId, mergeMonitor, publishedPolicy } from './index.mjs'
 
 const POOL = 'pool-1'
 
@@ -195,6 +195,94 @@ describe('tech preview', () => {
     })
     plugin.unload()
     await assert.rejects(xo.route('get', '/info'))
+  })
+})
+
+// the newest key whose base matches, as agents pick it (agent/inventory.go)
+describe('publishedPolicy', () => {
+  // bases computed by the agent's v3Base and v4Base for these values
+  const oc = {
+    'vdf:policy': 'v1doc',
+    'vdf:policy.v2': 'v2doc',
+    'vdf:policy.v3': 'v3doc',
+    'vdf:policy.v3.base': '372830f99f0a70fb',
+    'vdf:policy.v4': '{"policies":[]}',
+    'vdf:policy.v4.base': '982287995cc30ab0',
+  }
+
+  test('a v4 document with its base comes first', () => {
+    const published = publishedPolicy(oc)
+    assert.equal(published.key, 'vdf:policy.v4')
+    assert.deepEqual(published.document, { policies: [] })
+  })
+
+  test('a v4 document whose base no longer matches loses to v3', () => {
+    // v3 published since by an agent before monitor mode: v3 is the newer intent
+    assert.equal(publishedPolicy({ ...oc, 'vdf:policy.v3': 'v3new' }).key, 'vdf:policy.v3')
+    assert.equal(publishedPolicy({ ...oc, 'vdf:policy.v4.base': 'stale' }).key, 'vdf:policy.v3')
+  })
+})
+
+describe('mergeMonitor', () => {
+  const entry = fields => ({
+    src: '10.0.0.7',
+    vm: 'vm-db',
+    vmName: 'db',
+    proto: 'tcp',
+    port: 22,
+    policy: 'db-strict',
+    tier: 'application',
+    rule: 2,
+    ...fields,
+  })
+
+  test('a VM that moved: one entry, counts added, first and last over hosts', () => {
+    const merged = mergeMonitor([
+      {
+        host: 'h1',
+        entries: [entry({ count: 3, first: '2026-10-24T08:00:00Z', last: '2026-10-24T09:00:00Z', vmName: 'db-old' })],
+      },
+      {
+        host: 'h2',
+        entries: [entry({ count: 2, first: '2026-10-24T09:30:00Z', last: '2026-10-24T10:00:00Z', expired: true })],
+      },
+      { host: 'h3', error: 'host is not live' },
+    ])
+    assert.equal(merged.length, 1)
+    assert.deepEqual(
+      {
+        count: merged[0].count,
+        first: merged[0].first,
+        last: merged[0].last,
+        vmName: merged[0].vmName,
+        hosts: merged[0].hosts,
+        expired: merged[0].expired,
+      },
+      {
+        count: 5,
+        first: '2026-10-24T08:00:00Z',
+        last: '2026-10-24T10:00:00Z',
+        vmName: 'db',
+        hosts: ['h1', 'h2'],
+        expired: false,
+      }
+    )
+  })
+
+  test('distinct flows stay apart, most recently seen first', () => {
+    const merged = mergeMonitor([
+      {
+        host: 'h1',
+        entries: [
+          entry({ count: 1, first: 'a', last: '2026-10-24T09:00:00Z' }),
+          entry({ port: 9100, rule: 0, count: 1, first: 'a', last: '2026-10-24T10:00:00Z' }),
+        ],
+      },
+    ])
+    assert.deepEqual(
+      merged.map(e => e.port),
+      [9100, 22]
+    )
   })
 })
 

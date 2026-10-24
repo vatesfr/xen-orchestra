@@ -36,6 +36,10 @@ const KEY_V2 = 'vdf:policy.v2'
 const KEY_V2_BASE = 'vdf:policy.v2.base'
 const KEY_V3 = 'vdf:policy.v3'
 const KEY_V3_BASE = 'vdf:policy.v3.base'
+// documents with a policy in monitor mode (vdf#13): agents before it never
+// see them, and keep the v3 document
+const KEY_V4 = 'vdf:policy.v4'
+const KEY_V4_BASE = 'vdf:policy.v4.base'
 
 const PLUGIN = 'vdf'
 
@@ -47,6 +51,7 @@ const sha256Hex = (text, bytes) =>
 
 const v2Base = v1 => sha256Hex(v1, 8)
 const v3Base = (v1, v2) => v2Base(v1 + '\x00' + v2)
+const v4Base = (v1, v2, v3) => v2Base(v1 + '\x00' + v2 + '\x00' + v3)
 
 // short id of a document, as agents report it in host other_config vdf:status
 export const docId = text => (text ? sha256Hex(text, 6) : '')
@@ -55,10 +60,13 @@ export function publishedPolicy(otherConfig) {
   const v1 = otherConfig[KEY_V1] ?? ''
   const v2 = otherConfig[KEY_V2] ?? ''
   const v3 = otherConfig[KEY_V3] ?? ''
+  const v4 = otherConfig[KEY_V4] ?? ''
 
   let key
   let text
-  if (v3 !== '' && otherConfig[KEY_V3_BASE] === v3Base(v1, v2)) {
+  if (v4 !== '' && otherConfig[KEY_V4_BASE] === v4Base(v1, v2, v3)) {
+    ;[key, text] = [KEY_V4, v4]
+  } else if (v3 !== '' && otherConfig[KEY_V3_BASE] === v3Base(v1, v2)) {
     ;[key, text] = [KEY_V3, v3]
   } else if (v2 !== '' && otherConfig[KEY_V2_BASE] === v2Base(v1)) {
     ;[key, text] = [KEY_V2, v2]
@@ -145,6 +153,40 @@ const VM_CACHE_SAVE_MS = 60e3
 const QUERY_LOG = {
   lines: { type: 'number', optional: true, example: 200 },
   since: { type: 'string', optional: true, example: '2026-10-22T08:00:00.000Z' },
+}
+
+const QUERY_MONITOR = {
+  policy: { type: 'string', optional: true, example: 'db' },
+  since: { type: 'string', optional: true, example: '2026-10-22T08:00:00Z' },
+  lines: { type: 'number', optional: true, example: 500 },
+}
+
+// Monitor mode (vdf#13): each host reports what its monitored policies
+// would drop for the VMs it runs. A VM that moved shows on several hosts:
+// one entry per (source, VM, proto, port, policy, rule), counts added,
+// first and last seen over all hosts, most recently seen first.
+export function mergeMonitor(hosts) {
+  const byKey = new Map()
+  for (const { host, entries = [] } of hosts) {
+    for (const entry of entries) {
+      const key = [entry.src, entry.vm, entry.proto, entry.port ?? 0, entry.policy, entry.rule ?? 0].join('|')
+      const merged = byKey.get(key)
+      if (merged === undefined) {
+        byKey.set(key, { ...entry, hosts: [host], expired: entry.expired === true })
+        continue
+      }
+      merged.count += entry.count
+      merged.first = entry.first < merged.first ? entry.first : merged.first
+      if (entry.last > merged.last) {
+        merged.last = entry.last
+        merged.vmName = entry.vmName
+      }
+      merged.hosts.push(host)
+      // still monitored somewhere: not expired
+      merged.expired = merged.expired && entry.expired === true
+    }
+  }
+  return [...byKey.values()].sort((a, b) => (a.last > b.last ? -1 : a.last < b.last ? 1 : 0))
 }
 
 const userLabel = user => user?.email ?? user?.name ?? user?.id
@@ -1253,6 +1295,30 @@ class VdfPlugin {
             .flatMap(({ host, hostName, entries = [] }) => entries.map(entry => ({ ...entry, host, hostName })))
             .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
           return { entries, errors: hosts.filter(host => host.error !== undefined) }
+        },
+      }),
+      this.#poolRoute({
+        endpoint: '/pools/{id}/monitor',
+        method: 'get',
+        description:
+          "What the pool's policies in monitor mode would drop if enforced, from every host: per source, VM, protocol, port, policy and rule, with sampled counts and first and last seen, most recently seen first (vdf#13).",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        query: QUERY_MONITOR,
+        responses: [{ status: 200, description: 'Merged monitor report' }],
+        callback: async ({ req }) => {
+          const args = { lines: String(req.query.lines ?? 500) }
+          for (const name of ['policy', 'since']) {
+            if (req.query[name] !== undefined) {
+              args[name] = String(req.query[name])
+            }
+          }
+          const hosts = await this.#onEachHost(this.#getXapi(req.params.id), 'monitor', args)
+          return {
+            entries: mergeMonitor(hosts),
+            keepDays: hosts.find(host => host.keepDays !== undefined)?.keepDays,
+            errors: hosts.filter(host => host.error !== undefined),
+          }
         },
       }),
     ]
