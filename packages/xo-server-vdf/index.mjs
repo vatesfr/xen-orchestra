@@ -44,6 +44,10 @@ const KEY_V4_BASE = 'vdf:policy.v4.base'
 // listed port by port in the older keys, or keep their last document
 const KEY_V5 = 'vdf:policy.v5'
 const KEY_V5_BASE = 'vdf:policy.v5.base'
+// documents with egress rules (vdf#53): agents before them get the
+// document without its egress rules in the older keys
+const KEY_V6 = 'vdf:policy.v6'
+const KEY_V6_BASE = 'vdf:policy.v6.base'
 
 const PLUGIN = 'vdf'
 
@@ -57,6 +61,7 @@ const v2Base = v1 => sha256Hex(v1, 8)
 const v3Base = (v1, v2) => v2Base(v1 + '\x00' + v2)
 const v4Base = (v1, v2, v3) => v2Base(v1 + '\x00' + v2 + '\x00' + v3)
 const v5Base = (v1, v2, v3, v4) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4)
+const v6Base = (v1, v2, v3, v4, v5) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5)
 
 // short id of a document, as agents report it in host other_config vdf:status
 export const docId = text => (text ? sha256Hex(text, 6) : '')
@@ -67,10 +72,13 @@ export function publishedPolicy(otherConfig) {
   const v3 = otherConfig[KEY_V3] ?? ''
   const v4 = otherConfig[KEY_V4] ?? ''
   const v5 = otherConfig[KEY_V5] ?? ''
+  const v6 = otherConfig[KEY_V6] ?? ''
 
   let key
   let text
-  if (v5 !== '' && otherConfig[KEY_V5_BASE] === v5Base(v1, v2, v3, v4)) {
+  if (v6 !== '' && otherConfig[KEY_V6_BASE] === v6Base(v1, v2, v3, v4, v5)) {
+    ;[key, text] = [KEY_V6, v6]
+  } else if (v5 !== '' && otherConfig[KEY_V5_BASE] === v5Base(v1, v2, v3, v4)) {
     ;[key, text] = [KEY_V5, v5]
   } else if (v4 !== '' && otherConfig[KEY_V4_BASE] === v4Base(v1, v2, v3)) {
     ;[key, text] = [KEY_V4, v4]

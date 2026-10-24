@@ -261,7 +261,7 @@
             <UiTableCell>
               <VdfGroupChip :scope-id :group="row.policy.appliedTo" :count="memberCount(row.policy.appliedTo)" />
             </UiTableCell>
-            <UiTableCell class="typo-body-regular-small">{{ n(row.policy.ingress.length) }}</UiTableCell>
+            <UiTableCell class="typo-body-regular-small">{{ n(allRules(row.policy).length) }}</UiTableCell>
             <UiTableCell>
               <UiInfo v-if="row.realization.total === 0 && row.realization.unknown === 0" accent="muted">
                 {{ t('firewall:enforced-on:no-running-vm') }}
@@ -336,6 +336,7 @@ import type {
 } from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -574,7 +575,7 @@ const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() =>
 // POLICIES
 
 const ruleCount = computed(() =>
-  publishedDocument.value.policies.reduce((count, policy) => count + policy.ingress.length, 0)
+  publishedDocument.value.policies.reduce((count, policy) => count + allRules(policy).length, 0)
 )
 
 const groupCount = computed(() => Object.keys(publishedDocument.value.groups).length)

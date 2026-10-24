@@ -26,6 +26,10 @@ export type VdfGroupOption = {
 // flow"): a source group, `any`, or an address no group may hold yet
 export type VdfRulePrefill = {
   from?: string
+  // an egress rule (vdf#53), to this destination (a group, `any` or an
+  // address)
+  to?: string
+  egress?: boolean
   proto?: VdfProtocol
   ports?: VdfPort[]
   // a new rule's place: before this rule of the policy (else at its end)
@@ -137,11 +141,13 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
 
   async function editRule(policyName: string, rule?: VdfRule, prefill: VdfRulePrefill = {}) {
     const isNew = rule === undefined
-    const source = resolveSource(prefill.from)
+    const egress = prefill.egress === true || prefill.to !== undefined
+    // a group, or an address no group holds yet (it becomes one)
+    const source = resolveSource(egress ? prefill.to : prefill.from)
     const current: VdfRule = rule ?? {
       id: nextRuleId(document.value, publishedDocument.value),
-      // no source by default: "any" would admit everyone
-      from: source.from,
+      // no source (destination) by default: "any" would admit everyone
+      ...(egress ? { to: source.from } : { from: source.from }),
       proto: prefill.proto ?? 'tcp',
       ports: prefill.ports ?? [],
     }

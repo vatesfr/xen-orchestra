@@ -43,6 +43,9 @@ export function globalPart(document) {
   }
 }
 
+// a policy's rules, ingress and egress (vdf#53)
+const allRules = policy => [...(policy.ingress ?? []), ...(policy.egress ?? [])]
+
 // Errors XO reports before asking any agent: names and ids that would
 // collide once the global configuration is written into a pool.
 export function checkGlobalDocument(document) {
@@ -56,7 +59,7 @@ export function checkGlobalDocument(document) {
     if (isGlobalName(policy.name)) {
       errors.push(`policy "${policy.name}": global names are written without the "${GLOBAL_PREFIX}" prefix`)
     }
-    for (const rule of policy.ingress ?? []) {
+    for (const rule of allRules(policy)) {
       if (!(rule.id > 0 && rule.id < GLOBAL_RULE_BASE)) {
         errors.push(`policy "${policy.name}" rule ${rule.id}: global rule ids must be 1..${GLOBAL_RULE_BASE - 1}`)
       }
@@ -69,7 +72,7 @@ export function checkGlobalDocument(document) {
 export function checkLocalDocument(document) {
   const errors = []
   for (const policy of localPart(document).policies) {
-    for (const rule of policy.ingress ?? []) {
+    for (const rule of allRules(policy)) {
       if (rule.id >= GLOBAL_RULE_BASE) {
         errors.push(
           `policy "${policy.name}" rule ${rule.id}: ids from ${GLOBAL_RULE_BASE} up are kept for global rules`
@@ -93,17 +96,23 @@ export function compose(local, global, remoteIps = {}) {
       const ips = [...new Set([...(group.ips ?? []), ...(remoteIps[name] ?? [])])].sort()
       groups[globalName(name)] = { ...group, ips }
     }
+    const peer = name => (name === 'any' ? 'any' : globalName(name))
     for (const policy of global.policies ?? []) {
-      policies.push({
+      const composed = {
         ...policy,
         name: globalName(policy.name),
         appliedTo: globalName(policy.appliedTo),
         ingress: (policy.ingress ?? []).map(rule => ({
           ...rule,
           id: GLOBAL_RULE_BASE + rule.id,
-          from: rule.from === 'any' ? 'any' : globalName(rule.from),
+          from: peer(rule.from),
         })),
-      })
+      }
+      // egress rules (vdf#53): their destinations
+      if (policy.egress !== undefined) {
+        composed.egress = policy.egress.map(rule => ({ ...rule, id: GLOBAL_RULE_BASE + rule.id, to: peer(rule.to) }))
+      }
+      policies.push(composed)
     }
   }
   return withFormatVersion({ ...own, groups: { ...groups, ...own.groups }, policies: [...policies, ...own.policies] })

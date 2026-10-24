@@ -1,5 +1,6 @@
 import type { VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { allRules, rulesOf, VDF_DIRECTIONS } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 // What a publish changes (or changed, in the history), object by object,
@@ -89,7 +90,7 @@ export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChang
         name: policy.name,
         policy,
         settingsChanged: false,
-        rules: ruleChanges([], policy.ingress),
+        rules: ruleChanges([], allRules(policy)),
         rulesReordered: false,
       })
       continue
@@ -99,17 +100,22 @@ export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChang
       continue
     }
 
-    const beforeIds = previous.ingress.map(rule => rule.id)
-    const afterIds = policy.ingress.map(rule => rule.id)
+    // rules keep their order within their direction (vdf#53)
+    const reordered = VDF_DIRECTIONS.some(direction => {
+      const beforeIds = rulesOf(previous, direction).map(rule => rule.id)
+      const afterIds = rulesOf(policy, direction).map(rule => rule.id)
+
+      return !isEqual(commonOrder(beforeIds, afterIds), commonOrder(afterIds, beforeIds))
+    })
 
     policies.push({
       type: 'modified',
       name: policy.name,
       policy,
       previous,
-      settingsChanged: !isEqual(omit(previous, ['ingress']), omit(policy, ['ingress'])),
-      rules: ruleChanges(previous.ingress, policy.ingress),
-      rulesReordered: !isEqual(commonOrder(beforeIds, afterIds), commonOrder(afterIds, beforeIds)),
+      settingsChanged: !isEqual(omit(previous, ['ingress', 'egress']), omit(policy, ['ingress', 'egress'])),
+      rules: ruleChanges(allRules(previous), allRules(policy)),
+      rulesReordered: reordered,
     })
   }
 
@@ -120,7 +126,7 @@ export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChang
         name: policy.name,
         policy,
         settingsChanged: false,
-        rules: ruleChanges(policy.ingress, []),
+        rules: ruleChanges(allRules(policy), []),
         rulesReordered: false,
       })
     }
@@ -155,6 +161,8 @@ export type VdfPublishWarning =
   | { type: 'empty-group'; policy: string; group: string }
   // a new or changed policy drops all inbound traffic to its VMs
   | { type: 'drop-without-rules'; policy: string; group: string }
+  // or every connection they start (vdf#53)
+  | { type: 'egress-drop-without-rules'; policy: string; group: string }
   // open connections that let in a removed rule
   | { type: 'open-connections'; policy: string; rule: number; count: number }
 
@@ -184,6 +192,15 @@ export function publishWarnings(
     // a policy in monitor mode drops nothing (Discover publishes exactly that)
     if (change.type !== 'removed' && policy.default === 'drop' && policy.ingress.length === 0 && !isMonitored(policy)) {
       warnings.push({ type: 'drop-without-rules', policy: policy.name, group: policy.appliedTo })
+    }
+
+    if (
+      change.type !== 'removed' &&
+      policy.egressDefault === 'drop' &&
+      rulesOf(policy, 'egress').length === 0 &&
+      !isMonitored(policy)
+    ) {
+      warnings.push({ type: 'egress-drop-without-rules', policy: policy.name, group: policy.appliedTo })
     }
 
     for (const ruleChange of change.rules) {

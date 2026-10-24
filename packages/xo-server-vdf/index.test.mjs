@@ -227,6 +227,17 @@ describe('publishedPolicy', () => {
     assert.equal(publishedPolicy({ ...oc, 'vdf:policy.v4.base': 'stale' }).key, 'vdf:policy.v3')
   })
 
+  test('a v6 document (egress) with its base comes first', () => {
+    const withV6 = {
+      ...withV5,
+      'vdf:policy.v6': '{"policies":[],"version":6}',
+      'vdf:policy.v6.base': '663d3b4c292f2300',
+    }
+    assert.equal(publishedPolicy(withV6).key, 'vdf:policy.v6')
+    // v5 published since by an agent before egress
+    assert.equal(publishedPolicy({ ...withV6, 'vdf:policy.v5': 'v5new' }).key, 'vdf:policy.v5')
+  })
+
   test('a v5 document (port ranges) with its base comes first', () => {
     assert.equal(publishedPolicy(withV5).key, 'vdf:policy.v5')
     // v4 published since by an agent before port ranges

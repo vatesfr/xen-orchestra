@@ -9,6 +9,15 @@
     <UiTableCell class="cell">
       <span class="id">
         <code class="typo-body-regular-small">{{ t('firewall:rule-number', { id: globalRuleId(rule.id) }) }}</code>
+        <VtsIcon
+          v-if="isEgress"
+          v-tooltip="t('firewall:egress:rule')"
+          name="fa:arrow-right-from-bracket"
+          size="small"
+          class="egress"
+          role="img"
+          :aria-label="t('firewall:egress:rule')"
+        />
         <!-- an icon, not a tag: the # column stays narrow -->
         <VtsIcon
           v-if="entry.state"
@@ -24,17 +33,27 @@
     </UiTableCell>
     <UiTableCell class="cell"><VdfActionTag :action /></UiTableCell>
     <UiTableCell class="cell">
+      <VdfGroupChip v-if="isEgress" :scope-id :group="appliedTo" :exists="groupExists(appliedTo)" />
       <VdfGroupChip
+        v-else
         :scope-id
-        :group="rule.from"
-        :count="isAny ? undefined : membersOf(rule.from)"
-        :ips="isAny ? undefined : ipsOf(rule.from)"
-        :exists="isAny || groupExists(rule.from)"
+        :group="peer"
+        :count="isAny ? undefined : membersOf(peer)"
+        :ips="isAny ? undefined : ipsOf(peer)"
+        :exists="isAny || groupExists(peer)"
       />
     </UiTableCell>
     <UiTableCell class="cell"><VdfRuleService :rule /></UiTableCell>
     <UiTableCell class="cell">
-      <VdfGroupChip :scope-id :group="appliedTo" :exists="groupExists(appliedTo)" />
+      <VdfGroupChip
+        v-if="isEgress"
+        :scope-id
+        :group="peer"
+        :count="isAny ? undefined : membersOf(peer)"
+        :ips="isAny ? undefined : ipsOf(peer)"
+        :exists="isAny || groupExists(peer)"
+      />
+      <VdfGroupChip v-else :scope-id :group="appliedTo" :exists="groupExists(appliedTo)" />
     </UiTableCell>
     <UiTableCell v-if="hits !== undefined" class="cell" align="end">
       <span class="hits typo-body-regular-small" :class="{ idle: hitsLabel === undefined }">
@@ -87,6 +106,7 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
 import { globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { ruleAction, type VdfMove, type VdfRuleBaseRule } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsActionsMenu, { type ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
@@ -102,10 +122,13 @@ import { useI18n } from 'vue-i18n'
 
 // One rule of the rule base, read as a sentence:
 // #31  Allow  from [app]  TCP 5432  to [db]
+// An egress rule (vdf#53) goes from the policy's group to its destination:
+// #32 →  Allow  from [app]  UDP 53  to [any]
 const { entry, hits } = defineProps<{
   scopeId: VdfScopeId
   entry: VdfRuleBaseRule
-  // the policy's group: where the rule's connections go
+  // the policy's group: where the rule's connections go (egress: where
+  // they come from)
   appliedTo: string
   // global: edited XO-wide
   locked: boolean
@@ -133,7 +156,12 @@ const rule = computed(() => entry.rule)
 
 const action = computed(() => ruleAction(rule.value))
 
-const isAny = computed(() => rule.value.from === 'any')
+const isEgress = computed(() => isEgressRule(rule.value))
+
+// the source, or an egress rule's destination
+const peer = computed(() => rulePeer(rule.value))
+
+const isAny = computed(() => peer.value === 'any')
 
 const isRemoved = computed(() => entry.state === 'removed')
 

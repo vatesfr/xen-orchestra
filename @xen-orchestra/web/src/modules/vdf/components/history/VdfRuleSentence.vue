@@ -2,7 +2,9 @@
   <span class="vdf-rule-sentence typo-body-regular-small">
     <span class="typo-body-bold-small">{{ t('firewall:rule-number', { id: globalRuleId(rule.id) }) }}</span>
     <VdfActionTag :action="ruleAction(rule)" />
-    <span>{{ t('firewall:review:from', { source }) }}</span>
+    <span>{{
+      isEgressRule(rule) ? t('firewall:review:to', { destination: peer }) : t('firewall:review:from', { source: peer })
+    }}</span>
     <span>{{ traffic }}</span>
   </span>
 </template>
@@ -12,17 +14,19 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfRule } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// A rule as a sentence: `#12 Allow from app TCP 5432`
+// A rule as a sentence: `#12 Allow from app TCP 5432`, an egress rule
+// `#13 Allow to db TCP 5432` (vdf#53)
 const { rule } = defineProps<{
   rule: VdfRule
 }>()
 
 const { t } = useI18n()
 
-const source = computed(() => (rule.from === 'any' ? t('firewall:any') : displayName(rule.from)))
+const peer = computed(() => (rulePeer(rule) === 'any' ? t('firewall:any') : displayName(rulePeer(rule))))
 
 const traffic = computed(() => {
   if (rule.proto === 'any') {

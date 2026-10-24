@@ -121,6 +121,7 @@ const emit = defineEmits<{
   restore: []
   move: [to: VdfMove]
   addRule: []
+  addEgressRule: []
   setMode: [mode: VdfPolicyMode]
 }>()
 
@@ -157,6 +158,7 @@ const enforcement = computed<{ accent: InfoAccent; label: string } | undefined>(
 })
 
 const actions = computed<ActionItem[]>(() => [
+  { label: t('firewall:add-egress-rule'), icon: 'fa:arrow-right-from-bracket', onClick: () => emit('addEgressRule') },
   monitored.value
     ? { label: t('firewall:mode:switch-enforce'), icon: 'fa:shield', onClick: () => emit('setMode', 'enforce') }
     : { label: t('firewall:mode:switch-monitor'), icon: 'fa:eye', onClick: () => emit('setMode', 'monitor') },
