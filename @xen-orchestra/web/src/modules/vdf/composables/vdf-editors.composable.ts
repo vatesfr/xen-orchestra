@@ -5,6 +5,7 @@ import {
   type VdfGroup,
   type VdfLimits,
   type VdfPolicy,
+  type VdfPort,
   type VdfProtocol,
   type VdfRule,
 } from '@/modules/vdf/types.ts'
@@ -26,7 +27,7 @@ export type VdfGroupOption = {
 export type VdfRulePrefill = {
   from?: string
   proto?: VdfProtocol
-  ports?: number[]
+  ports?: VdfPort[]
   // a new rule's place: before this rule of the policy (else at its end)
   before?: number
 }

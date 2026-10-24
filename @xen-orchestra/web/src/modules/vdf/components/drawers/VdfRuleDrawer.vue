@@ -279,7 +279,9 @@ const serviceLabel = computed(() => {
     return t('firewall:any-protocol')
   }
 
-  const ports = hasPorts.value ? formatPorts(parsePorts(form.ports)) : ''
+  const parsed = hasPorts.value ? parsePorts(form.ports) : []
+  // as typed while it doesn't parse: "all ports" would be wrong
+  const ports = parsed === undefined ? form.ports : formatPorts(parsed)
 
   return ports === ''
     ? t('firewall:service:all', { proto: form.proto.toUpperCase() })

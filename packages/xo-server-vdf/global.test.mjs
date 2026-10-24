@@ -69,6 +69,23 @@ describe('compose', () => {
     assert.equal(compose({ ...local, policies: [{ ...local.policies[0], mode: 'monitor' }] }, null).version, 4)
   })
 
+  test('port ranges kept as written (vdf#54)', () => {
+    const global = {
+      groups: { app: { tags: ['role=app'] } },
+      policies: [
+        {
+          name: 'app',
+          appliedTo: 'app',
+          default: 'drop',
+          ingress: [{ id: 1, from: 'any', proto: 'tcp', ports: [22, '8000-8099'] }],
+        },
+      ],
+    }
+    const document = compose({ groups: {}, policies: [] }, global)
+    assert.deepEqual(document.policies[0].ingress[0].ports, [22, '8000-8099'])
+    assert.equal(document.version, undefined) // agents tell version 5 from the strings
+  })
+
   test('global objects first, prefixed, rule ids offset, local part kept', () => {
     const document = compose(LOCAL, GLOBAL, { app: ['10.1.0.5'] })
 

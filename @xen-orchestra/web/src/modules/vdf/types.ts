@@ -37,12 +37,16 @@ export type VdfDefaultAction = 'allow' | 'drop' | 'pass'
 
 export type VdfProtocol = 'tcp' | 'udp' | 'icmp' | 'any'
 
+// a destination port (22) or an inclusive range as a string ("8000-8099",
+// vdf#54): agents before ranges get them listed port by port
+export type VdfPort = number | string
+
 export type VdfRule = {
   id: number
   action?: VdfRuleAction
   from: string
   proto: VdfProtocol
-  ports?: number[]
+  ports?: VdfPort[]
   log?: boolean
   logLabel?: string
   [unknownField: string]: unknown

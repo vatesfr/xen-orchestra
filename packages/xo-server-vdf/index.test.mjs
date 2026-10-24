@@ -200,7 +200,7 @@ describe('tech preview', () => {
 
 // the newest key whose base matches, as agents pick it (agent/inventory.go)
 describe('publishedPolicy', () => {
-  // bases computed by the agent's v3Base and v4Base for these values
+  // bases computed by the agent's v3Base, v4Base and v5Base for these values
   const oc = {
     'vdf:policy': 'v1doc',
     'vdf:policy.v2': 'v2doc',
@@ -208,6 +208,11 @@ describe('publishedPolicy', () => {
     'vdf:policy.v3.base': '372830f99f0a70fb',
     'vdf:policy.v4': '{"policies":[]}',
     'vdf:policy.v4.base': '982287995cc30ab0',
+  }
+  const withV5 = {
+    ...oc,
+    'vdf:policy.v5': '{"policies":[],"version":5}',
+    'vdf:policy.v5.base': '770a770ef447f88c',
   }
 
   test('a v4 document with its base comes first', () => {
@@ -220,6 +225,13 @@ describe('publishedPolicy', () => {
     // v3 published since by an agent before monitor mode: v3 is the newer intent
     assert.equal(publishedPolicy({ ...oc, 'vdf:policy.v3': 'v3new' }).key, 'vdf:policy.v3')
     assert.equal(publishedPolicy({ ...oc, 'vdf:policy.v4.base': 'stale' }).key, 'vdf:policy.v3')
+  })
+
+  test('a v5 document (port ranges) with its base comes first', () => {
+    assert.equal(publishedPolicy(withV5).key, 'vdf:policy.v5')
+    // v4 published since by an agent before port ranges
+    assert.equal(publishedPolicy({ ...withV5, 'vdf:policy.v4': '{"policies":[{}]}' }).key, 'vdf:policy.v4')
+    assert.equal(publishedPolicy({ ...withV5, 'vdf:policy.v5.base': 'stale' }).key, 'vdf:policy.v4')
   })
 })
 
