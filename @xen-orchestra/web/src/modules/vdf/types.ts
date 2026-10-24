@@ -41,10 +41,17 @@ export type VdfProtocol = 'tcp' | 'udp' | 'icmp' | 'any'
 // vdf#54): agents before ranges get them listed port by port
 export type VdfPort = number | string
 
+// ingress rules decide what may reach the policy's VMs, egress rules what
+// they may reach (vdf#53)
+export type VdfDirection = 'ingress' | 'egress'
+
 export type VdfRule = {
   id: number
   action?: VdfRuleAction
-  from: string
+  // ingress: the source, a group or 'any'
+  from?: string
+  // egress: the destination, a group or 'any'
+  to?: string
   proto: VdfProtocol
   ports?: VdfPort[]
   log?: boolean
@@ -64,6 +71,10 @@ export type VdfPolicy = {
   logDefault?: boolean
   mode?: VdfPolicyMode
   ingress: VdfRule[]
+  // what its VMs may reach (vdf#53): rules and their default, pass when
+  // not set; a policy without either takes no part in egress
+  egress?: VdfRule[]
+  egressDefault?: VdfDefaultAction
   [unknownField: string]: unknown
 }
 
@@ -379,6 +390,8 @@ export type VdfRuleLogEntry = {
   verdict: 'ALLOW' | 'DROP'
   policy: string
   tier: string
+  // an egress rule or default (vdf#53): vm is the source
+  egress?: boolean
   rule: string
   label?: string
   proto: string
@@ -386,6 +399,7 @@ export type VdfRuleLogEntry = {
   sport?: string
   dst: string
   dport?: string
+  // the VM whose policy decided: the destination, or for egress the source
   vm?: string
   suppressed?: number
   host: string
@@ -397,8 +411,12 @@ export type VdfRuleLogEntry = {
 // protocol, port, policy and rule, among the connections allowed today
 export type VdfMonitorEntry = {
   src: string // an IP, or "other" for the flows past a rule's quota
-  vm: string
+  vm: string // the destination VM, or for egress the source VM
   vmName: string
+  // what the VM starts (vdf#53): an egress rule or default would drop it,
+  // to dst (an IP, or "other" past the rule's quota)
+  egress?: boolean
+  dst?: string
   proto: string
   port?: number
   policy: string

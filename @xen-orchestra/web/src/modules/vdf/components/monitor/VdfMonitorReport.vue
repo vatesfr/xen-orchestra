@@ -55,7 +55,14 @@
           <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
             <VdfActionTag action="allow" />
             <span class="typo-body-regular-small">
-              {{ t('firewall:monitor:suggestion', suggestionText(suggestion)) }}
+              {{
+                t(
+                  suggestion.rule.to === undefined
+                    ? 'firewall:monitor:suggestion'
+                    : 'firewall:monitor:suggestion:egress',
+                  suggestionText(suggestion)
+                )
+              }}
             </span>
             <span class="secondary typo-body-regular-small">
               {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
@@ -116,6 +123,7 @@ import {
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
+import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -141,7 +149,9 @@ import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRouter } from 'vue-router'
 
 // What the pool's policies in monitor mode would drop if enforced (vdf#13):
-// suggested rules per policy, then every flow, each with "allow this"
+// suggested rules per policy, then every flow, each with "allow this". An
+// egress would-be drop (vdf#53) is what the VM starts: from it to a
+// destination, allowed by an outbound rule.
 const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
@@ -183,8 +193,11 @@ const search = ref('')
 
 const showExpired = ref(false)
 
-// a source, as a rule would name it: the most specific tagged group its
-// VM belongs to, a group listing the address, else the address
+// a source (or an egress destination), as a rule would name it: the most
+// specific tagged group its VM belongs to, a group listing the address,
+// else the address. A VM of another pool is in a tagged group's members
+// only for a global group (XO adds the other pools' members to those): the
+// pool's own groups resolve on its hosts, among its own VMs.
 function sourceOf(address: string) {
   const vm = vmByIp.value.get(address)
   const groups = publishedDocument.value.groups
@@ -192,6 +205,7 @@ function sourceOf(address: string) {
   if (vm !== undefined) {
     const tagged = vmGroupNames(vm.tags, publishedDocument.value)
       .filter(name => (groups[name]?.tags?.length ?? 0) > 0)
+      .filter(name => vm.$pool === pool.id || isGlobalName(name))
       .sort((a, b) => membersOf(a).length - membersOf(b).length || a.localeCompare(b))
 
     if (tagged.length > 0) {
@@ -214,10 +228,13 @@ function draftPolicy(name: string) {
 }
 
 function isInDraft(suggestion: VdfSuggestion) {
-  return (draftPolicy(suggestion.policy)?.ingress ?? []).some(
+  const policy = draftPolicy(suggestion.policy)
+  const egress = suggestion.rule.to !== undefined
+
+  return (policy === undefined ? [] : rulesOf(policy, egress ? 'egress' : 'ingress')).some(
     rule =>
       ruleAction(rule) === 'allow' &&
-      rule.from === suggestion.rule.from &&
+      (egress ? rule.to === suggestion.rule.to : rule.from === suggestion.rule.from) &&
       rule.proto === suggestion.rule.proto &&
       (suggestion.rule.ports ?? []).every(port => portsContain(rule.ports, port))
   )
@@ -239,13 +256,18 @@ const suggestionGroups = computed(() =>
 )
 
 const suggestionKey = (suggestion: VdfSuggestion) =>
-  `${suggestion.policy}|${suggestion.rule.from}|${suggestion.rule.proto}|${suggestion.before ?? ''}`
+  `${suggestion.policy}|${suggestion.rule.from ?? ''}|${suggestion.rule.to ?? ''}|${suggestion.rule.proto}|${suggestion.before ?? ''}`
 
 function suggestionText(suggestion: VdfSuggestion) {
-  const { from, proto, ports } = suggestion.rule
+  const { from, to, proto, ports } = suggestion.rule
+
+  // "db (global)": a pool's own group can have the same name
+  const name = (group: string) =>
+    isGlobalName(group) ? t('firewall:global-name', { name: displayName(group) }) : displayName(group)
 
   return {
-    from: displayName(from),
+    from: name(from ?? ''),
+    to: name(to ?? ''),
     service:
       ports === undefined || ports.length === 0 ? proto.toUpperCase() : `${proto.toUpperCase()} ${formatPorts(ports)}`,
   }
@@ -279,13 +301,16 @@ const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm
 // "allow this": the rule drawer, prefilled, in the policy's place (before
 // the rule that would drop)
 function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
-  if (entry.src === MONITOR_OTHER || !['tcp', 'udp', 'icmp'].includes(entry.proto)) {
+  const peer = entry.egress ? entry.dst : entry.src
+
+  if (peer === undefined || peer === MONITOR_OTHER || !['tcp', 'udp', 'icmp'].includes(entry.proto)) {
     return undefined
   }
 
+  // an outbound rule to the destination, or a rule from the source
   const query = {
     newRule: '1',
-    from: sourceOf(entry.src),
+    [entry.egress ? 'to' : 'from']: sourceOf(peer),
     proto: entry.proto,
     port: entry.port ? String(entry.port) : undefined,
     before: entry.rule ? String(entry.rule) : undefined,
@@ -295,7 +320,11 @@ function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
   return isGlobalName(entry.policy)
     ? {
         name: '/(site)/firewall/policies',
-        query: { ...query, policy: displayName(entry.policy), from: displayName(query.from) },
+        query: {
+          ...query,
+          policy: displayName(entry.policy),
+          [entry.egress ? 'to' : 'from']: displayName(sourceOf(peer)),
+        },
       }
     : { name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: { policy: entry.policy, ...query } }
 }
@@ -310,12 +339,18 @@ const rows = computed<Row[]>(() => {
     .filter(
       entry =>
         term === '' ||
-        [entry.src, entry.vmName, entry.policy, String(entry.port ?? ''), vmByIp.value.get(entry.src)?.name_label].some(
-          value => value?.toLocaleLowerCase().includes(term)
-        )
+        [
+          entry.src,
+          entry.dst,
+          entry.vmName,
+          entry.policy,
+          String(entry.port ?? ''),
+          vmByIp.value.get(entry.src)?.name_label,
+          entry.dst === undefined ? undefined : vmByIp.value.get(entry.dst)?.name_label,
+        ].some(value => value?.toLocaleLowerCase().includes(term))
     )
     .map(entry => ({
-      key: [entry.src, entry.vm, entry.proto, entry.port, entry.policy, entry.rule].join('|'),
+      key: [entry.src, entry.dst, entry.vm, entry.proto, entry.port, entry.policy, entry.rule].join('|'),
       entry,
       allow: allowRoute(entry),
     }))
@@ -343,6 +378,22 @@ function decidedBy(entry: VdfMonitorEntry) {
   return entry.pass
     ? t('firewall:monitor:by-pass', { id: entry.rule })
     : t('firewall:monitor:by-rule', { id: entry.rule })
+}
+
+function vmEndpoint(entry: VdfMonitorEntry) {
+  return h(VdfEndpoint, { scopeId: pool.id, ip: '', vm: vmById.value.get(entry.vm), name: entry.vmName })
+}
+
+// past a rule's quota, the other sources (egress: destinations) are counted together
+function addressEndpoint(address: string, others: 'sources' | 'destinations') {
+  return address === MONITOR_OTHER
+    ? h('span', { class: 'secondary' }, t(`firewall:monitor:other-${others}`))
+    : h(VdfEndpoint, {
+        scopeId: pool.id,
+        ip: address,
+        vm: vmByIp.value.get(address),
+        groups: vmByIp.value.get(address) === undefined ? groupsOfIp(address) : [],
+      })
 }
 
 function allowButton(row: Row) {
@@ -384,19 +435,10 @@ const { HeadCells, BodyCells } = useMonitorColumns({
           ),
         ])
       ),
-    source: r =>
-      r(
-        row.entry.src === MONITOR_OTHER
-          ? h('span', { class: 'secondary' }, t('firewall:monitor:other-sources'))
-          : h(VdfEndpoint, {
-              scopeId: pool.id,
-              ip: row.entry.src,
-              vm: vmByIp.value.get(row.entry.src),
-              groups: vmByIp.value.get(row.entry.src) === undefined ? groupsOfIp(row.entry.src) : [],
-            })
-      ),
+    // egress: the VM is the source, the address the destination
+    source: r => r(row.entry.egress ? vmEndpoint(row.entry) : addressEndpoint(row.entry.src, 'sources')),
     destination: r =>
-      r(h(VdfEndpoint, { scopeId: pool.id, ip: '', vm: vmById.value.get(row.entry.vm), name: row.entry.vmName })),
+      r(row.entry.egress ? addressEndpoint(row.entry.dst ?? '', 'destinations') : vmEndpoint(row.entry)),
     service: r => r(h(VdfService, { proto: row.entry.proto, port: row.entry.port ? String(row.entry.port) : '' })),
     seen: r =>
       r(

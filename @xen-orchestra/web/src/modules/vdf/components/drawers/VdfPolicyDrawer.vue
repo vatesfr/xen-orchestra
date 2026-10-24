@@ -57,6 +57,20 @@
         <UiInfo v-if="defaultWarning" accent="warning" wrap>{{ defaultWarning }}</UiInfo>
         <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:default:${form.default}`) }}</UiInfo>
 
+        <UiRadioButtonGroup :label="t('firewall:policy-form:egress-default')" accent="brand" gap="wide">
+          <UiRadioButton
+            v-for="action of egressDefaults"
+            :key="action"
+            v-model="form.egressDefault"
+            :value="action"
+            accent="brand"
+          >
+            <VdfActionTag :action is-default />
+          </UiRadioButton>
+        </UiRadioButtonGroup>
+        <UiInfo v-if="egressDefaultWarning" accent="warning" wrap>{{ egressDefaultWarning }}</UiInfo>
+        <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:egress-default:${form.egressDefault}`) }}</UiInfo>
+
         <UiToggle v-model="form.logDefault">{{ t('firewall:policy-form:log-default') }}</UiToggle>
 
         <UiRadioButtonGroup :label="t('firewall:policy-form:mode')" accent="brand" gap="wide">
@@ -139,6 +153,9 @@ const title = computed(() =>
 
 const defaults: VdfDefaultAction[] = ['drop', 'allow', 'pass']
 
+// what the VMs may reach (vdf#53): next tier unless a policy says otherwise
+const egressDefaults: VdfDefaultAction[] = ['pass', 'drop', 'allow']
+
 // monitor: the normal start for a new policy (vdf#13)
 const modes: VdfPolicyMode[] = ['monitor', 'enforce']
 
@@ -148,6 +165,7 @@ const form = reactive({
   appliedTo: policy.appliedTo,
   default: policy.default,
   logDefault: policy.logDefault ?? false,
+  egressDefault: policy.egressDefault ?? 'pass',
   mode: (policy.mode === 'monitor' ? 'monitor' : 'enforce') as VdfPolicyMode,
 })
 
@@ -270,13 +288,22 @@ const defaultWarning = computed(() => {
   return undefined
 })
 
+const egressDefaultWarning = computed(() => {
+  if (form.mode === 'monitor' || form.egressDefault !== 'drop') {
+    return undefined
+  }
+
+  // until outbound rules are added, the default decides alone
+  return (policy.egress ?? []).length === 0 ? t('firewall:policy-form:egress-default:drop-everything') : undefined
+})
+
 async function submit(addRule = false) {
   if (!(await validate())) {
     return
   }
 
   const next: VdfPolicy = {
-    ...omit(policy, ['tier', 'logDefault', 'mode']),
+    ...omit(policy, ['tier', 'logDefault', 'mode', 'egressDefault']),
     name: form.name,
     appliedTo: form.appliedTo,
     default: form.default,
@@ -290,6 +317,12 @@ async function submit(addRule = false) {
 
   if (form.logDefault) {
     next.logDefault = true
+  }
+
+  // next tier is the default: absent from the document (a policy without
+  // outbound rules then takes no part in egress)
+  if (form.egressDefault !== 'pass') {
+    next.egressDefault = form.egressDefault
   }
 
   // enforce is the default: absent from the document

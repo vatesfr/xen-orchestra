@@ -32,6 +32,7 @@ import type { VdfDefaultAction, VdfGroup, VdfPolicy, VdfRule } from '@/modules/v
 import type { VdfChangeDetails, VdfChangeType } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -94,8 +95,15 @@ function policyMeta(policy: VdfPolicy) {
       ? t('firewall:review:applied-to', { group })
       : t('firewall:review:applied-to-members', { group, members: t('firewall:review:vms', { n: n(count) }, count) }),
     ...(isMonitored(policy) ? [t('firewall:review:monitor')] : []),
+    ...(hasEgress(policy)
+      ? [t('firewall:review:egress-default', { action: actionText(policy.egressDefault ?? 'pass') })]
+      : []),
     t('firewall:review:default'),
   ]
+}
+
+function actionText(action: VdfDefaultAction) {
+  return action === 'pass' ? t('firewall:action:next-tier') : t(`firewall:action:${action}`)
 }
 
 const items = computed<Item[]>(() => {

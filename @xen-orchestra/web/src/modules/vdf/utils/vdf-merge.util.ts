@@ -7,6 +7,7 @@ import {
 } from '@/modules/vdf/types.ts'
 import { isGlobalName, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { cloneDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { allRules, rulesOf, setRules, VDF_DIRECTIONS } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 // Rebasing a draft: the draft's changes (from the document it started
@@ -98,7 +99,7 @@ function localPart(document: VdfDocument): VdfDocument {
   }
 }
 
-const ruleIds = (document: VdfDocument) => document.policies.flatMap(policy => policy.ingress.map(rule => rule.id))
+const ruleIds = (document: VdfDocument) => document.policies.flatMap(policy => allRules(policy).map(rule => rule.id))
 
 // Rules the draft added with an id that was also added upstream (both
 // sides took the next free id): the draft's get new ids.
@@ -111,13 +112,13 @@ function renumberAddedRules(base: VdfDocument | undefined, mine: VdfDocument, th
 
   const baseIds = new Set(ruleIds(base))
   const theirRules = new Map(
-    theirs.policies.flatMap(policy => policy.ingress.map(rule => [rule.id, { policy: policy.name, rule }] as const))
+    theirs.policies.flatMap(policy => allRules(policy).map(rule => [rule.id, { policy: policy.name, rule }] as const))
   )
   let nextId = Math.max(0, ...[base, mine, theirs].flatMap(ruleIds).filter(id => id < VDF_GLOBAL_RULE_BASE)) + 1
   const next = cloneDocument(mine)
 
   for (const policy of next.policies) {
-    for (const rule of policy.ingress) {
+    for (const rule of allRules(policy)) {
       const their = theirRules.get(rule.id)
 
       if (baseIds.has(rule.id) || their === undefined || (their.policy === policy.name && isEqual(their.rule, rule))) {
@@ -256,7 +257,8 @@ export function mergeDocuments(
     }
 
     if (minePolicy !== undefined && theirPolicy !== undefined) {
-      const settings = (policy: VdfPolicy | undefined) => (policy === undefined ? undefined : omit(policy, ['ingress']))
+      const settings = (policy: VdfPolicy | undefined) =>
+        policy === undefined ? undefined : omit(policy, ['ingress', 'egress'])
       const result = merge3(
         basePolicy === UNKNOWN ? UNKNOWN : settings(basePolicy),
         settings(minePolicy),
@@ -271,16 +273,23 @@ export function mergeDocuments(
             )
           : result.value
 
-      policies.set(name, {
-        ...(merged as VdfPolicy),
-        ingress: mergeRules(
-          name,
-          basePolicy === UNKNOWN ? UNKNOWN : basePolicy?.ingress,
-          minePolicy.ingress,
-          theirPolicy.ingress,
-          resolve
-        ),
-      })
+      const mergedPolicy: VdfPolicy = { ...(merged as VdfPolicy) }
+
+      // each direction's rules merged on their own (vdf#53)
+      for (const direction of VDF_DIRECTIONS) {
+        setRules(
+          mergedPolicy,
+          direction,
+          mergeRules(
+            name,
+            basePolicy === UNKNOWN ? UNKNOWN : basePolicy && rulesOf(basePolicy, direction),
+            rulesOf(minePolicy, direction),
+            rulesOf(theirPolicy, direction),
+            resolve
+          )
+        )
+      }
+      policies.set(name, mergedPolicy)
       continue
     }
 

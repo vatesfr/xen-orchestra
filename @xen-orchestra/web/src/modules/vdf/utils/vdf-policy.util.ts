@@ -3,6 +3,7 @@ import {
   VDF_GLOBAL_RULE_BASE,
   VDF_TIERS,
   type VdfDefaultAction,
+  type VdfDirection,
   type VdfDocument,
   type VdfGroup,
   type VdfPolicy,
@@ -14,6 +15,15 @@ import {
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
+import {
+  allRules,
+  hasEgress,
+  isEgressRule,
+  ruleDirection,
+  rulePeer,
+  rulesOf,
+  VDF_DIRECTIONS,
+} from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 export function tierValue(tier: VdfPolicy['tier']): number {
@@ -98,12 +108,17 @@ export function policiesByTier(document: VdfDocument): VdfTierPolicies[] {
 // For the VIFs a tier's policies apply to, no matching rule means: drop if
 // one of them says drop, else allow if one says allow, else on to the next
 // tier (agent/policy.go)
-export function tierDefault(policies: VdfPolicy[]): VdfDefaultAction {
-  if (policies.some(policy => policy.default === 'drop')) {
+export function tierDefault(policies: VdfPolicy[], direction: VdfDirection = 'ingress'): VdfDefaultAction {
+  const defaults =
+    direction === 'egress'
+      ? policies.filter(hasEgress).map(policy => policy.egressDefault ?? 'pass')
+      : policies.map(policy => policy.default)
+
+  if (defaults.includes('drop')) {
     return 'drop'
   }
 
-  if (policies.some(policy => policy.default === 'allow')) {
+  if (defaults.includes('allow')) {
     return 'allow'
   }
 
@@ -115,7 +130,7 @@ export function tierDefault(policies: VdfPolicy[]): VdfDefaultAction {
 // too, so a rule deleted in the draft doesn't lend its id to a new one.
 export function nextRuleId(document: VdfDocument, ...others: VdfDocument[]) {
   const ids = [document, ...others]
-    .flatMap(({ policies }) => policies.flatMap(policy => policy.ingress.map(rule => rule.id)))
+    .flatMap(({ policies }) => policies.flatMap(policy => allRules(policy).map(rule => rule.id)))
     .filter(id => id < VDF_GLOBAL_RULE_BASE)
 
   return ids.length === 0 ? 1 : Math.max(...ids) + 1
@@ -152,8 +167,9 @@ export function vmGroupNames(vmTags: string[], document: VdfDocument) {
 export function groupUsage(document: VdfDocument, groupName: string) {
   return {
     appliedTo: document.policies.filter(policy => policy.appliedTo === groupName).map(policy => policy.name),
+    // a rule's source, or an egress rule's destination
     sourceOf: document.policies
-      .filter(policy => policy.ingress.some(rule => rule.from === groupName))
+      .filter(policy => allRules(policy).some(rule => rulePeer(rule) === groupName))
       .map(policy => policy.name),
   }
 }
@@ -163,6 +179,8 @@ export type VdfEffectiveTier = {
   name: VdfTierName | undefined
   policies: VdfPolicy[]
   default: VdfDefaultAction
+  // undefined: no policy of the tier has egress
+  egressDefault: VdfDefaultAction | undefined
 }
 
 // What applies to a VM carrying these tags, in order; a tier's default is
@@ -174,11 +192,14 @@ export function effectiveTiers(vmTags: string[], document: VdfDocument): VdfEffe
     .map(tier => {
       const policies = tier.policies.map(({ policy }) => policy).filter(policy => vmGroups.has(policy.appliedTo))
 
+      const enforced = policies.filter(policy => !isMonitored(policy))
+
       return {
         value: tier.value,
         name: tier.name,
         policies,
-        default: tierDefault(policies.filter(policy => !isMonitored(policy))),
+        default: tierDefault(enforced),
+        egressDefault: enforced.some(hasEgress) ? tierDefault(enforced, 'egress') : undefined,
       }
     })
     .filter(tier => tier.policies.length > 0)
@@ -191,10 +212,10 @@ export type VdfChange = {
   context?: string
 }
 
-function diffRules(publishedPolicy: VdfPolicy, draftPolicy: VdfPolicy): VdfChange[] {
+function diffRules(publishedPolicy: VdfPolicy, draftPolicy: VdfPolicy, direction: VdfDirection): VdfChange[] {
   const changes: VdfChange[] = []
-  const publishedRules = new Map(publishedPolicy.ingress.map(rule => [rule.id, rule]))
-  const draftRules = new Map(draftPolicy.ingress.map(rule => [rule.id, rule]))
+  const publishedRules = new Map(rulesOf(publishedPolicy, direction).map(rule => [rule.id, rule]))
+  const draftRules = new Map(rulesOf(draftPolicy, direction).map(rule => [rule.id, rule]))
 
   for (const [id, rule] of draftRules) {
     const publishedRule = publishedRules.get(id)
@@ -215,7 +236,7 @@ function diffRules(publishedPolicy: VdfPolicy, draftPolicy: VdfPolicy): VdfChang
   const commonOrder = (rules: VdfRule[]) =>
     rules.map(rule => rule.id).filter(id => publishedRules.has(id) && draftRules.has(id))
 
-  if (!isEqual(commonOrder(publishedPolicy.ingress), commonOrder(draftPolicy.ingress))) {
+  if (!isEqual(commonOrder(rulesOf(publishedPolicy, direction)), commonOrder(rulesOf(draftPolicy, direction)))) {
     changes.push({ kind: 'rule', type: 'moved', label: '', context: draftPolicy.name })
   }
 
@@ -253,15 +274,14 @@ export function diffDocuments(published: VdfDocument, draft: VdfDocument): VdfCh
       continue
     }
 
-    const { ingress: publishedRules, ...publishedSettings } = publishedPolicy
-    const { ingress: draftRules, ...draftSettings } = policy
-
-    if (!isEqual(publishedSettings, draftSettings)) {
+    if (!isEqual(omit(publishedPolicy, ['ingress', 'egress']), omit(policy, ['ingress', 'egress']))) {
       changes.push({ kind: 'policy', type: 'modified', label: name })
     }
 
-    if (!isEqual(publishedRules, draftRules)) {
-      changes.push(...diffRules(publishedPolicy, policy))
+    for (const direction of VDF_DIRECTIONS) {
+      if (!isEqual(rulesOf(publishedPolicy, direction), rulesOf(policy, direction))) {
+        changes.push(...diffRules(publishedPolicy, policy, direction))
+      }
     }
   }
 
@@ -305,6 +325,8 @@ export type VdfRuleBasePolicy = {
   state: VdfDraftState | undefined
   locked: boolean
   rules: VdfRuleBaseRule[]
+  // its egress rules (vdf#53), the same way
+  egressRules: VdfRuleBaseRule[]
   // within the tier's policies that can move (global and removed ones aside)
   isFirst: boolean
   isLast: boolean
@@ -315,6 +337,8 @@ export type VdfRuleBaseTier = {
   name: VdfTierName | undefined
   // for the VMs the tier's policies apply to, when none of their rules match
   default: VdfDefaultAction
+  // the same for egress; undefined when no policy of the tier has egress
+  egressDefault: VdfDefaultAction | undefined
   policies: VdfRuleBasePolicy[]
 }
 
@@ -360,10 +384,15 @@ function markFirstLast<T extends { state: VdfDraftState | undefined; isFirst: bo
   return entries
 }
 
-function ruleBaseRules(policy: VdfPolicy, publishedPolicy: VdfPolicy | undefined): VdfRuleBaseRule[] {
-  const publishedRules = new Map((publishedPolicy?.ingress ?? []).map(rule => [rule.id, rule]))
+function ruleBaseRules(
+  policy: VdfPolicy,
+  publishedPolicy: VdfPolicy | undefined,
+  direction: VdfDirection = 'ingress'
+): VdfRuleBaseRule[] {
+  const published = publishedPolicy === undefined ? [] : rulesOf(publishedPolicy, direction)
+  const publishedRules = new Map(published.map(rule => [rule.id, rule]))
 
-  const entries = policy.ingress.map((rule): VdfRuleBaseRule => {
+  const entries = rulesOf(policy, direction).map((rule): VdfRuleBaseRule => {
     const publishedRule = publishedRules.get(rule.id)
     let state: VdfDraftState | undefined
 
@@ -376,7 +405,7 @@ function ruleBaseRules(policy: VdfPolicy, publishedPolicy: VdfPolicy | undefined
   })
 
   return markFirstLast(
-    withRemoved(entries, publishedPolicy?.ingress ?? [], {
+    withRemoved(entries, published, {
       keyOf: ({ rule }) => rule.id,
       publishedKeyOf: rule => rule.id,
       removed: rule => ({ rule, state: 'removed', isFirst: false, isLast: false }),
@@ -401,7 +430,9 @@ export function ruleBase(
       return 'new'
     }
 
-    return isEqual(omit(publishedPolicy, 'ingress'), omit(policy, 'ingress')) ? undefined : 'modified'
+    return isEqual(omit(publishedPolicy, ['ingress', 'egress']), omit(policy, ['ingress', 'egress']))
+      ? undefined
+      : 'modified'
   }
 
   const values = new Set<number>([
@@ -421,6 +452,7 @@ export function ruleBase(
           state: policyState(policy),
           locked: isLocked(policy.name),
           rules: ruleBaseRules(policy, publishedPolicies.get(policy.name)),
+          egressRules: ruleBaseRules(policy, publishedPolicies.get(policy.name), 'egress'),
           isFirst: false,
           isLast: false,
         })
@@ -440,6 +472,7 @@ export function ruleBase(
           state: 'removed',
           locked: isLocked(policy.name),
           rules: ruleBaseRules(policy, policy),
+          egressRules: ruleBaseRules(policy, policy, 'egress'),
           isFirst: false,
           isLast: false,
         }),
@@ -449,13 +482,15 @@ export function ruleBase(
         value,
         name: tierName(value),
         default: tierDefault(tierPolicies),
+        egressDefault: tierPolicies.some(hasEgress) ? tierDefault(tierPolicies, 'egress') : undefined,
         policies: markFirstLast(policies, ({ locked }) => !locked),
       }
     })
 }
 
 // SEARCH: every word must be found in the policy (name, applied-to group)
-// or in the rule (id, source, protocol, ports, log label). A policy found
+// or in the rule (id, source or destination, protocol, ports, log label,
+// "outbound" for an egress rule). A policy found
 // by itself shows all its rules.
 
 function words(query: string) {
@@ -469,7 +504,8 @@ function policyTexts(policy: VdfPolicy) {
 function ruleTexts(rule: VdfRule) {
   return [
     `#${globalRuleId(rule.id)}`,
-    displayName(rule.from),
+    displayName(rulePeer(rule)),
+    isEgressRule(rule) ? 'outbound' : '',
     rule.proto,
     ...(rule.ports ?? []).map(String),
     rule.logLabel ?? '',
@@ -495,13 +531,15 @@ export function filterRuleBase(tiers: VdfRuleBaseTier[], query: string): VdfRule
           return [entry]
         }
 
-        const rules = entry.rules.filter(({ rule }) => {
+        const matches = ({ rule }: VdfRuleBaseRule) => {
           const all = [...texts, ...ruleTexts(rule)]
 
           return terms.every(term => found(all, term))
-        })
+        }
+        const rules = entry.rules.filter(matches)
+        const egressRules = entry.egressRules.filter(matches)
 
-        return rules.length === 0 ? [] : [{ ...entry, rules }]
+        return rules.length + egressRules.length === 0 ? [] : [{ ...entry, rules, egressRules }]
       }),
     }))
     .filter(tier => tier.policies.length > 0)
@@ -554,18 +592,21 @@ export function movePolicy(
   return moveAmong(document.policies, slots, index, to)
 }
 
+// among the rules of its direction
 export function moveRule(document: VdfDocument, policyName: string, id: number, to: VdfMove) {
   const policy = document.policies.find(({ name }) => name === policyName)
-  const index = policy?.ingress.findIndex(rule => rule.id === id) ?? -1
+  const direction = policy === undefined ? undefined : ruleDirection(policy, id)
 
-  if (policy === undefined || index === -1) {
+  if (policy === undefined || direction === undefined) {
     return false
   }
 
+  const rules = rulesOf(policy, direction)
+
   return moveAmong(
-    policy.ingress,
-    policy.ingress.map((_, slot) => slot),
-    index,
+    rules,
+    rules.map((_, slot) => slot),
+    rules.findIndex(rule => rule.id === id),
     to
   )
 }

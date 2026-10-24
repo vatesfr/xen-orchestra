@@ -31,7 +31,7 @@
         </UiRadioButtonGroup>
         <UiInfo accent="muted" wrap>{{ t(`firewall:rule-form:action:${form.action}`) }}</UiInfo>
 
-        <VtsInputWrapper :label="t('firewall:rule-form:source')" :message="sourceMessages" wrap-message>
+        <VtsInputWrapper :label="peerText('label')" :message="sourceMessages" wrap-message>
           <VtsSelect :id="sourceSelectId" accent="brand">
             <template #default="{ option }">
               <VtsOption :option>
@@ -45,7 +45,7 @@
           </VtsSelect>
         </VtsInputWrapper>
         <UiAlert v-if="address !== undefined && form.from === ''" accent="warning">
-          {{ t('firewall:rule-form:source:address', { address }) }}
+          {{ peerText('address', { address }) }}
           <template #description>
             <UiButton
               variant="secondary"
@@ -100,6 +100,7 @@ import type { VdfGroupOption } from '@/modules/vdf/composables/vdf-editors.compo
 import type { VdfGroup, VdfProtocol, VdfRule, VdfRuleAction } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, parsePorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -122,12 +123,14 @@ import { I18nT, useI18n } from 'vue-i18n'
 
 const { policyName, rule, isNew, groups, appliedTo } = defineProps<{
   policyName: string
-  // the policy's group: where the rule's connections go
+  // the policy's group: where the rule's connections go (egress: where
+  // they come from)
   appliedTo?: string
+  // an egress rule (vdf#53) has a destination (to) instead of a source
   rule: VdfRule
   isNew: boolean
   groups: VdfGroupOption[]
-  // a prefilled source address no group holds yet
+  // a prefilled source (egress: destination) address no group holds yet
   address?: string
 }>()
 
@@ -142,9 +145,17 @@ const { t } = useI18n()
 
 const displayId = computed(() => globalRuleId(rule.id))
 
+// an egress rule's form asks for a destination, the rest is the same
+const isEgress = isEgressRule(rule)
+
+const peerText = (key: string, values: Record<string, unknown> = {}) =>
+  t(`firewall:rule-form:${isEgress ? 'destination' : 'source'}${key === 'label' ? '' : `:${key}`}`, values)
+
 const title = computed(() =>
   isNew
-    ? t('firewall:rule-form:new-in', { policy: displayName(policyName) })
+    ? t(isEgress ? 'firewall:rule-form:new-egress-in' : 'firewall:rule-form:new-in', {
+        policy: displayName(policyName),
+      })
     : t('firewall:rule-form:edit', { id: displayId.value })
 )
 
@@ -152,7 +163,8 @@ const actions: VdfRuleAction[] = ['allow', 'drop', 'pass']
 
 const form = reactive({
   action: ruleAction(rule),
-  from: rule.from,
+  // the source, or an egress rule's destination
+  from: rulePeer(rule),
   proto: rule.proto,
   ports: formatPorts(rule.ports),
   log: rule.log ?? false,
@@ -164,7 +176,7 @@ const hasPorts = computed(() => form.proto === 'tcp' || form.proto === 'udp')
 const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, {
   errors: {
     onSubmit: () => ({
-      from: { required: withMessage(required, () => t('firewall:rule-form:source:required')) },
+      from: { required: withMessage(required, () => peerText('required')) },
     }),
     onBlur: () => ({
       ports: {
@@ -200,7 +212,7 @@ const ANY = 'any'
 const NEW_GROUP = '\0new-group'
 
 const sourceOptions = computed(() => [
-  { name: ANY, label: t('firewall:rule-form:source:any'), isNew: false },
+  { name: ANY, label: peerText('any'), isNew: false },
   ...groups.map(group => ({
     name: group.name,
     label: t('firewall:group-option', { name: groupName(group.name), members: groupSize(group) }),
@@ -212,7 +224,7 @@ const sourceOptions = computed(() => [
 const { id: sourceSelectId } = useFormSelect('from', sourceOptions, {
   required: true,
   searchable: true,
-  placeholder: () => t('firewall:rule-form:source:placeholder'),
+  placeholder: () => peerText('placeholder'),
   option: { id: 'name', value: 'name', label: 'label', properties: option => ({ isNew: option.isNew }) },
 })
 
@@ -232,7 +244,7 @@ const sourceMessages = computed(() => {
   const messages: InputWrapperMessage = []
 
   if (form.from === ANY) {
-    messages.push(t('firewall:rule-form:source:any:info'))
+    messages.push(peerText('any:info'))
   }
 
   if (source.value.error !== undefined) {
@@ -264,7 +276,7 @@ const portsMessages = computed(() =>
 
 // THE SENTENCE the rule reads as on the board
 
-const sourceLabel = computed(() => {
+const peerLabel = computed(() => {
   if (form.from === ANY) {
     return t('firewall:any')
   }
@@ -272,7 +284,11 @@ const sourceLabel = computed(() => {
   return form.from === '' ? '…' : displayName(form.from)
 })
 
-const destinationLabel = computed(() => (appliedTo ? displayName(appliedTo) : displayName(policyName)))
+const groupLabel = computed(() => (appliedTo ? displayName(appliedTo) : displayName(policyName)))
+
+const sourceLabel = computed(() => (isEgress ? groupLabel.value : peerLabel.value))
+
+const destinationLabel = computed(() => (isEgress ? peerLabel.value : groupLabel.value))
 
 const serviceLabel = computed(() => {
   if (form.proto === 'any') {
@@ -297,9 +313,9 @@ async function submit() {
 
   // keep fields this form doesn't know about (newer document formats)
   const next: VdfRule = {
-    ...omit(rule, ['action', 'ports', 'log', 'logLabel']),
+    ...omit(rule, ['action', 'from', 'to', 'ports', 'log', 'logLabel']),
     id: rule.id,
-    from: form.from,
+    ...(isEgress ? { to: form.from } : { from: form.from }),
     proto: form.proto,
   }
 

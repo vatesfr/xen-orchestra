@@ -6,11 +6,16 @@ import { isDeepStrictEqual } from 'node:util'
 
 export const HISTORY_LENGTH = 50
 
+// ingress and egress rules (vdf#53): ids are unique in a document
 const rulesOf = document =>
-  new Map((document?.policies ?? []).flatMap(policy => (policy.ingress ?? []).map(rule => [rule.id, rule])))
+  new Map(
+    (document?.policies ?? []).flatMap(policy =>
+      [...(policy.ingress ?? []), ...(policy.egress ?? [])].map(rule => [rule.id, rule])
+    )
+  )
 
 const policiesOf = document =>
-  new Map((document?.policies ?? []).map(({ ingress, ...settings }) => [settings.name, settings]))
+  new Map((document?.policies ?? []).map(({ ingress, egress, ...settings }) => [settings.name, settings]))
 
 // what a document holds besides its groups and policies
 const settingsOf = ({ groups, policies, ...settings } = {}) => settings

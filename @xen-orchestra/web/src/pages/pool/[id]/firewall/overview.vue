@@ -167,7 +167,7 @@
                 :count="membersOf(row.policy.appliedTo).length"
               />
             </UiTableCell>
-            <UiTableCell class="typo-body-regular-small">{{ n(row.policy.ingress.length) }}</UiTableCell>
+            <UiTableCell class="typo-body-regular-small">{{ n(allRules(row.policy).length) }}</UiTableCell>
             <UiTableCell>
               <UiInfo v-if="row.realization.total === 0 && row.realization.unknown === 0" accent="muted">
                 {{ t('firewall:enforced-on:no-running-vm') }}
@@ -254,6 +254,7 @@ import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { effectiveLockingMode, hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -418,7 +419,7 @@ const hostSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 // POLICIES
 
 const ruleCount = computed(() =>
-  publishedDocument.value.policies.reduce((count, policy) => count + policy.ingress.length, 0)
+  publishedDocument.value.policies.reduce((count, policy) => count + allRules(policy).length, 0)
 )
 
 const tierCount = computed(() => policiesByTier(publishedDocument.value).length)

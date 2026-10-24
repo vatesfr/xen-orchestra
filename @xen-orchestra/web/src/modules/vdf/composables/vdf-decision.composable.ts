@@ -2,6 +2,7 @@ import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.compos
 import { VDF_TIERS, type VdfDocument } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -27,7 +28,7 @@ export function useVdfDecision(rawPoolId: MaybeRefOrGetter<string>, rawDocument:
 
   // rule ids are unique in a pool's document
   const ruleOwners = computed(
-    () => new Map(toValue(rawDocument).policies.flatMap(policy => policy.ingress.map(rule => [rule.id, policy])))
+    () => new Map(toValue(rawDocument).policies.flatMap(policy => allRules(policy).map(rule => [rule.id, policy])))
   )
 
   // the agents name tiers by key (`application`), or by number

@@ -69,6 +69,43 @@ describe('compose', () => {
     assert.equal(compose({ ...local, policies: [{ ...local.policies[0], mode: 'monitor' }] }, null).version, 4)
   })
 
+  test('egress rules: global ids and destination names (vdf#53)', () => {
+    const global = {
+      groups: { app: { tags: ['role=app'] }, db: { tags: ['role=db'] } },
+      policies: [
+        {
+          name: 'app',
+          appliedTo: 'app',
+          default: 'pass',
+          ingress: [],
+          egressDefault: 'drop',
+          egress: [
+            { id: 1, to: 'db', proto: 'tcp', ports: [5432] },
+            { id: 2, to: 'any', proto: 'udp', ports: [53] },
+          ],
+        },
+      ],
+    }
+    const [policy] = compose({ groups: {}, policies: [] }, global).policies
+    assert.deepEqual(
+      policy.egress.map(rule => [rule.id, rule.to]),
+      [
+        [GLOBAL_RULE_BASE + 1, 'global:db'],
+        [GLOBAL_RULE_BASE + 2, 'any'],
+      ]
+    )
+    assert.equal(policy.egressDefault, 'drop')
+    assert.equal('from' in policy.egress[0], false)
+    // ids checked in both directions
+    assert.equal(
+      checkGlobalDocument({
+        ...global,
+        policies: [{ ...global.policies[0], egress: [{ id: 0, to: 'db', proto: 'tcp' }] }],
+      }).length,
+      1
+    )
+  })
+
   test('port ranges kept as written (vdf#54)', () => {
     const global = {
       groups: { app: { tags: ['role=app'] } },

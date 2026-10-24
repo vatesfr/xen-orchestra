@@ -3,6 +3,15 @@ import { isGlobalName, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.
 import { mergeDocuments, type VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
 import { insertRule } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { cloneDocument, diffDocuments, groupUsage, nextRuleId, tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import {
+  allRules,
+  isEgressRule,
+  ruleDirection,
+  rulePeer,
+  rulesOf,
+  setRules,
+  VDF_DIRECTIONS,
+} from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { isEqual } from 'lodash-es'
 import { computed, type ComputedRef, type Ref } from 'vue'
@@ -221,15 +230,17 @@ export function useVdfDraft(
         return []
       }
 
-      return policy.ingress
-        .filter(rule => !draftPolicy.ingress.some(other => other.id === rule.id))
-        .map(rule => ({ policyName: policy.name, rule }))
+      return VDF_DIRECTIONS.flatMap(direction =>
+        rulesOf(policy, direction)
+          .filter(rule => !rulesOf(draftPolicy, direction).some(other => other.id === rule.id))
+          .map(rule => ({ policyName: policy.name, rule, direction }))
+      )
     })
   )
 
   // groups a restored policy uses come back with it
   function restoreGroupsOf(target: VdfDocument, policy: VdfPolicy) {
-    for (const name of [policy.appliedTo, ...policy.ingress.map(rule => rule.from)]) {
+    for (const name of [policy.appliedTo, ...allRules(policy).map(rulePeer)]) {
       const group = baseDocument.value.groups[name]
 
       if (group !== undefined && target.groups[name] === undefined) {
@@ -241,7 +252,7 @@ export function useVdfDraft(
   // a rule id the draft gave to a new rule meanwhile: the restored one
   // gets another
   function freeRuleId(target: VdfDocument, rule: VdfRule) {
-    const taken = target.policies.some(policy => policy.ingress.some(other => other.id === rule.id))
+    const taken = target.policies.some(policy => allRules(policy).some(other => other.id === rule.id))
 
     return taken ? { ...rule, id: nextRuleId(target) } : rule
   }
@@ -270,10 +281,11 @@ export function useVdfDraft(
         return
       }
 
-      const restored = { ...clone(policy), ingress: [] as VdfRule[] }
+      const restored = clone(policy)
 
-      for (const rule of policy.ingress) {
-        restored.ingress.push(freeRuleId(target, clone(rule)))
+      restored.ingress = policy.ingress.map(rule => freeRuleId(target, clone(rule)))
+      if (policy.egress !== undefined) {
+        restored.egress = policy.egress.map(rule => freeRuleId(target, clone(rule)))
       }
 
       target.policies.splice(
@@ -286,26 +298,32 @@ export function useVdfDraft(
   }
 
   function restoreRule(policyName: string, id: number) {
-    const rule = baseDocument.value.policies.find(policy => policy.name === policyName)?.ingress.find(r => r.id === id)
+    const basePolicy = baseDocument.value.policies.find(policy => policy.name === policyName)
+    const direction = basePolicy === undefined ? undefined : ruleDirection(basePolicy, id)
 
-    if (rule === undefined || isLocked(policyName)) {
+    if (basePolicy === undefined || direction === undefined || isLocked(policyName)) {
       return
     }
 
+    const baseRules = rulesOf(basePolicy, direction)
+    const rule = baseRules.find(r => r.id === id)!
+
     edit(target => {
       const policy = target.policies.find(other => other.name === policyName)
-      const basePolicy = baseDocument.value.policies.find(other => other.name === policyName)
 
-      if (policy === undefined || basePolicy === undefined || policy.ingress.some(other => isEqual(other, rule))) {
+      if (policy === undefined || rulesOf(policy, direction).some(other => isEqual(other, rule))) {
         return
       }
 
-      policy.ingress.splice(
-        insertionIndex(policy.ingress, basePolicy.ingress, rule, (a, b) => a.id === b.id),
+      const rules = [...rulesOf(policy, direction)]
+
+      rules.splice(
+        insertionIndex(rules, baseRules, rule, (a, b) => a.id === b.id),
         0,
         freeRuleId(target, clone(rule))
       )
-      restoreGroupsOf(target, { ...policy, ingress: [rule] })
+      setRules(policy, direction, rules)
+      restoreGroupsOf(target, { ...policy, ingress: [rule], egress: [] })
     })
   }
 
@@ -324,7 +342,15 @@ export function useVdfDraft(
         // order puts them anyway
         document.policies.push(policy)
       } else {
-        document.policies[index] = { ...policy, ingress: document.policies[index].ingress }
+        // the drawer edits the settings, the rules stay
+        const { egress } = document.policies[index]
+        const next: VdfPolicy = { ...policy, ingress: document.policies[index].ingress }
+
+        delete next.egress
+        if (egress !== undefined && (egress.length > 0 || next.egressDefault !== undefined)) {
+          next.egress = egress
+        }
+        document.policies[index] = next
       }
     })
   }
@@ -366,8 +392,9 @@ export function useVdfDraft(
 
   // RULES
 
-  // a new rule goes at the policy's end, or before the rule `before` (an
-  // allow for what that rule would drop: first match wins)
+  // a new rule goes at the end of the policy's rules of its direction (an
+  // egress rule has a destination), or before the rule `before` (an allow
+  // for what that rule would drop: first match wins)
   function saveRule(policyName: string, originalId: number | undefined, rule: VdfRule, before?: number) {
     if (isLocked(policyName)) {
       return
@@ -380,12 +407,15 @@ export function useVdfDraft(
         return
       }
 
-      const index = policy.ingress.findIndex(({ id }) => id === originalId)
+      const direction = isEgressRule(rule) ? 'egress' : 'ingress'
+      const rules = [...rulesOf(policy, direction)]
+      const index = rules.findIndex(({ id }) => id === originalId)
 
       if (index === -1) {
         insertRule(policy, rule, before)
       } else {
-        policy.ingress[index] = rule
+        rules[index] = rule
+        setRules(policy, direction, rules)
       }
     })
   }
@@ -399,7 +429,15 @@ export function useVdfDraft(
       const policy = document.policies.find(({ name }) => name === policyName)
 
       if (policy !== undefined) {
-        policy.ingress = policy.ingress.filter(rule => rule.id !== id)
+        for (const direction of VDF_DIRECTIONS) {
+          if (rulesOf(policy, direction).some(rule => rule.id === id)) {
+            setRules(
+              policy,
+              direction,
+              rulesOf(policy, direction).filter(rule => rule.id !== id)
+            )
+          }
+        }
       }
     })
   }
@@ -411,14 +449,21 @@ export function useVdfDraft(
 
     edit(document => {
       const policy = document.policies.find(({ name }) => name === policyName)
-      const index = policy?.ingress.findIndex(rule => rule.id === id) ?? -1
-      const target = index + offset
+      const direction = policy === undefined ? undefined : ruleDirection(policy, id)
 
-      if (policy === undefined || index === -1 || target < 0 || target >= policy.ingress.length) {
+      if (policy === undefined || direction === undefined) {
         return
       }
 
-      ;[policy.ingress[index], policy.ingress[target]] = [policy.ingress[target], policy.ingress[index]]
+      const rules = rulesOf(policy, direction)
+      const index = rules.findIndex(rule => rule.id === id)
+      const target = index + offset
+
+      if (target < 0 || target >= rules.length) {
+        return
+      }
+
+      ;[rules[index], rules[target]] = [rules[target], rules[index]]
     })
   }
 
@@ -440,9 +485,12 @@ export function useVdfDraft(
             policy.appliedTo = name
           }
 
-          for (const rule of policy.ingress) {
+          for (const rule of allRules(policy)) {
             if (rule.from === originalName) {
               rule.from = name
+            }
+            if (rule.to === originalName) {
+              rule.to = name
             }
           }
         }

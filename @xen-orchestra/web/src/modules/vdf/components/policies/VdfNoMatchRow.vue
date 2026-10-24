@@ -3,9 +3,11 @@
     <UiTableCell class="cell" />
     <UiTableCell class="cell" :colspan="columns - 1">
       <span class="content typo-body-regular-small">
-        <span class="label">{{ t('firewall:no-rule-matches') }}</span>
-        <VdfActionTag :action="policy.default" is-default />
-        <span v-if="policy.logDefault" class="label">
+        <VtsIcon v-if="egress" name="fa:arrow-right-from-bracket" size="small" class="label" />
+        <span class="label">{{ egress ? t('firewall:no-egress-rule-matches') : t('firewall:no-rule-matches') }}</span>
+        <VdfActionTag :action is-default />
+        <!-- only a default drop logs -->
+        <span v-if="policy.logDefault && action === 'drop'" class="label">
           <VtsIcon name="fa:list" size="small" />
           {{ t('firewall:logged') }}
         </span>
@@ -20,15 +22,20 @@ import type { VdfPolicy } from '@/modules/vdf/types.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Closes a policy's rules: not a rule (no number, can't move), what the
-// policy does with what none of them matched
-defineProps<{
+// policy does with what none of them matched (egress: of its outbound
+// rules, vdf#53)
+const { policy, egress } = defineProps<{
   policy: VdfPolicy
   columns: number
   removed: boolean
+  egress?: boolean
 }>()
+
+const action = computed(() => (egress ? (policy.egressDefault ?? 'pass') : policy.default))
 
 const { t } = useI18n()
 </script>

@@ -34,8 +34,15 @@
               <li v-for="{ rule, id } of policy.rules" :key="rule.id" class="rule typo-body-regular-small">
                 <code class="id">{{ t('firewall:rule-number', { id }) }}</code>
                 <VdfActionTag :action="ruleAction(rule)" />
-                <span class="secondary">{{ t('firewall:vm:from') }}</span>
-                <VdfGroupChip :scope-id="poolId" :group="rule.from" />
+                <VtsIcon
+                  v-if="isEgressRule(rule)"
+                  v-tooltip="t('firewall:egress:rule')"
+                  name="fa:arrow-right-from-bracket"
+                  size="small"
+                  :aria-label="t('firewall:egress:rule')"
+                />
+                <span class="secondary">{{ isEgressRule(rule) ? t('firewall:vm:to') : t('firewall:vm:from') }}</span>
+                <VdfGroupChip :scope-id="poolId" :group="rulePeer(rule)" />
                 <VdfRuleService :rule />
               </li>
             </ul>
@@ -44,6 +51,10 @@
           <div class="tier-default typo-body-regular-small">
             <span class="secondary">{{ t('firewall:no-rule-matches') }}</span>
             <VdfActionTag :action="tier.default" is-default />
+          </div>
+          <div v-if="tier.egressDefault !== undefined" class="tier-default typo-body-regular-small">
+            <span class="secondary">{{ t('firewall:no-egress-rule-matches') }}</span>
+            <VdfActionTag :action="tier.egressDefault" is-default />
           </div>
         </div>
       </li>
@@ -63,6 +74,7 @@ import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { effectiveTiers, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { allRules, isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -97,7 +109,7 @@ const tiers = computed(() =>
       isGlobal: isGlobalName(policy.name),
       monitored: isMonitored(policy),
       route: vdfPageRoute(poolId, 'policies', { policy: policy.name }),
-      rules: policy.ingress.map(rule => ({ rule, id: globalRuleId(rule.id) })),
+      rules: allRules(policy).map(rule => ({ rule, id: globalRuleId(rule.id) })),
     })),
   }))
 )

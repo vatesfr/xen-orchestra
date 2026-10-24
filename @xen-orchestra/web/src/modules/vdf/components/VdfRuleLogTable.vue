@@ -123,8 +123,11 @@ const rows = computed<Row[]>(() => {
   return vmEntries.value
     .filter(entry => verdict.value === 'all' || entry.verdict === verdict.value.toUpperCase())
     .map(entry => {
-      const sourceVm = vmByIp.value.get(entry.src)
-      const destination = entry.vm ? vmByName.value.get(entry.vm) : undefined
+      // the log names the VM whose policy decided: the destination, or for
+      // egress (vdf#53) the source
+      const named = entry.vm ? vmByName.value.get(entry.vm) : undefined
+      const sourceVm = entry.egress ? (named ?? vmByIp.value.get(entry.src)) : vmByIp.value.get(entry.src)
+      const destination = entry.egress ? vmByIp.value.get(entry.dst) : named
       const id = [entry.host, entry.time, entry.rule, entry.src, entry.sport, entry.dst, entry.dport].join('|')
       const repeat = seen.get(id) ?? 0
 
@@ -250,6 +253,7 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
           scopeId: poolId,
           ip: row.entry.src,
           vm: row.source.vm,
+          name: row.source.vm === undefined && row.entry.egress ? row.entry.vm : undefined,
           groups: row.source.vm === undefined ? groupsOfIp(row.entry.src) : [],
         })
       ),
@@ -259,20 +263,22 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
           scopeId: poolId,
           ip: row.entry.dst,
           vm: row.destination,
-          name: row.destination === undefined ? row.entry.vm : undefined,
+          // the log names the VM whose policy decided: the destination, unless egress
+          name: row.destination === undefined && !row.entry.egress ? row.entry.vm : undefined,
         })
       ),
     service: r => r(h(VdfService, { proto: row.entry.proto.split(' ')[0], port: row.entry.dport })),
     decidedBy: r => {
-      const cell = h(VdfDecisionCell, { decision: row.decision }, () =>
+      const cell = h(VdfDecisionCell, { decision: row.decision }, () => [
+        row.entry.egress ? h('span', { class: 'typo-body-regular-small secondary' }, t('firewall:log:egress')) : null,
         row.entry.suppressed
           ? h(
               'span',
               { class: 'typo-body-regular-small secondary' },
               t('firewall:log:suppressed', { n: row.entry.suppressed })
             )
-          : null
-      )
+          : null,
+      ])
 
       // narrow: the trace button beside what decided, not in a column of its own
       return r(

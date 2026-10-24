@@ -94,6 +94,7 @@
               @restore="restorePolicy(entry.policy.name)"
               @move="to => edit(target => movePolicy(target, entry.policy.name, to, isLocked))"
               @add-rule="editRule(entry.policy.name)"
+              @add-egress-rule="editRule(entry.policy.name, undefined, { egress: true })"
               @set-mode="mode => setMode(entry.policy.name, mode)"
             />
             <VdfRuleRow
@@ -116,6 +117,32 @@
               @move="to => edit(target => moveRule(target, entry.policy.name, ruleEntry.rule.id, to))"
             />
             <VdfNoMatchRow :policy="entry.policy" :columns :removed="entry.state === 'removed'" />
+            <VdfRuleRow
+              v-for="ruleEntry of entry.egressRules"
+              :key="`${ruleEntry.rule.id}:${ruleEntry.state}`"
+              :scope-id
+              :entry="ruleEntry"
+              :applied-to="entry.policy.appliedTo"
+              :locked="entry.locked"
+              :in-removed-policy="entry.state === 'removed'"
+              :members-of="memberCount"
+              :ips-of
+              :group-exists
+              :hits="showHits ? (hitsByRule.get(ruleEntry.rule.id) ?? null) : undefined"
+              :highlighted="isRuleHighlighted(entry, ruleEntry)"
+              :anchor-id="ruleAnchor(entry.policy.name, ruleEntry.rule.id)"
+              @edit="editRule(entry.policy.name, ruleEntry.rule)"
+              @delete="confirmDeleteRule(entry.policy.name, ruleEntry.rule.id)"
+              @restore="restoreRule(entry.policy.name, ruleEntry.rule.id)"
+              @move="to => edit(target => moveRule(target, entry.policy.name, ruleEntry.rule.id, to))"
+            />
+            <VdfNoMatchRow
+              v-if="hasEgress(entry.policy)"
+              :policy="entry.policy"
+              :columns
+              :removed="entry.state === 'removed'"
+              egress
+            />
           </template>
         </tbody>
       </VtsTable>
@@ -144,6 +171,7 @@ import {
   type VdfRuleBasePolicy,
   type VdfRuleBaseRule,
 } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -307,7 +335,8 @@ watch(
 
 // NEW RULE FROM A LINK (the trace's and monitor report's "allow this flow"):
 // ?policy=<name>&newRule=1&from=<group|any|address>&proto=<tcp|udp|icmp>&port=<n>
-// [&before=<rule id>: in its place, before the rule that would drop]
+// [&before=<rule id>: in its place, before the rule that would drop]; an
+// outbound rule (vdf#53) with to=<group|any|address> instead of from
 
 const PROTOCOLS: VdfProtocol[] = ['tcp', 'udp', 'icmp', 'any']
 
@@ -318,11 +347,11 @@ watch(
       return
     }
 
-    const { from, proto, port, before } = route.query
+    const { from, to, proto, port, before } = route.query
     const policy = document.value.policies.find(({ name }) => name === highlightedPolicy.value)
 
     // before opening: overlays close on navigation
-    await router.replace({ query: omit(route.query, ['newRule', 'from', 'proto', 'port', 'before']) })
+    await router.replace({ query: omit(route.query, ['newRule', 'from', 'to', 'proto', 'port', 'before']) })
 
     if (policy === undefined || isLocked(policy.name)) {
       return
@@ -333,6 +362,7 @@ watch(
 
     void editRule(policy.name, undefined, {
       from: typeof from === 'string' ? from : undefined,
+      to: typeof to === 'string' ? to : undefined,
       proto: protocol,
       ports: protocol === 'tcp' || protocol === 'udp' ? ports : undefined,
       before: typeof before === 'string' && /^\d+$/.test(before) ? Number(before) : undefined,
