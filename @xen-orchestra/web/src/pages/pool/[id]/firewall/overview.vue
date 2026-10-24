@@ -73,7 +73,7 @@
         <div v-if="globalInfo?.inScope" class="status-item">
           <UiInfo accent="info" wrap>{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
           <UiTag v-if="globalSyncState" v-tooltip="globalSyncTooltip" :accent="globalSyncAccent" variant="secondary">
-            {{ t(`firewall:global:state:${globalSyncState}`) }}
+            {{ globalSyncLabel }}
           </UiTag>
           <UiLink :to="{ name: '/(site)/firewall/overview' }" size="small" icon="fa:globe">
             {{ t('firewall:global:open') }}
@@ -91,10 +91,12 @@
             {{ t('firewall:overview:exposed:vm', { vm: vm.name_label, host: hostOf(vm)?.host.name_label ?? '?' }) }}
           </UiLink>
         </div>
-        <div v-if="quarantinedVms.length > 0" class="status-item">
-          <UiInfo accent="danger" wrap>{{ t('firewall:overview:quarantined', { n: quarantinedVms.length }) }}</UiInfo>
+        <div v-if="enforcedQuarantines.length > 0" class="status-item">
+          <UiInfo accent="danger" wrap>{{
+            t('firewall:overview:quarantined', { n: enforcedQuarantines.length })
+          }}</UiInfo>
           <UiLink
-            v-for="vm of quarantinedVms"
+            v-for="vm of enforcedQuarantines"
             :key="vm.id"
             :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }"
             size="small"
@@ -321,6 +323,9 @@ const exposedVms = computed(() =>
   )
 )
 
+// the others are listed as exposed
+const enforcedQuarantines = computed(() => quarantinedVms.value.filter(vm => !exposedVms.value.includes(vm)))
+
 const runningProtectedVms = computed(() =>
   runningVms.value.filter(vm => protectedVms.value.includes(vm) && isOnEnforcingHost(vm))
 )
@@ -440,14 +445,33 @@ const globalSyncAccents: Record<VdfPoolSyncState, TagAccent> = {
   'other-xo': 'warning',
 }
 
+// in sync says the pool holds the document, not that its hosts enforce it
+const notEnforcingHostCount = computed(
+  () => hosts.value.filter(({ state }) => state !== 'disabled' && !hostEnforces(state)).length
+)
+
+const isInSyncNotEnforced = computed(() => globalSyncState.value === 'in-sync' && notEnforcingHostCount.value > 0)
+
 const globalSyncAccent = computed(() =>
-  globalSyncState.value === undefined ? 'muted' : globalSyncAccents[globalSyncState.value]
+  globalSyncState.value === undefined
+    ? 'muted'
+    : isInSyncNotEnforced.value
+      ? 'warning'
+      : globalSyncAccents[globalSyncState.value]
+)
+
+const globalSyncLabel = computed(() =>
+  isInSyncNotEnforced.value
+    ? t('firewall:global:state:in-sync:not-enforced', { n: notEnforcingHostCount.value })
+    : t(`firewall:global:state:${globalSyncState.value}`)
 )
 
 const globalSyncTooltip = computed(() =>
   globalSyncState.value === undefined
     ? false
-    : t(`firewall:global:state:${globalSyncState.value}:info`, { xo: globalInfo.value?.owner })
+    : isInSyncNotEnforced.value
+      ? t('firewall:global:state:in-sync:not-enforced:info', { n: notEnforcingHostCount.value })
+      : t(`firewall:global:state:${globalSyncState.value}:info`, { xo: globalInfo.value?.owner })
 )
 
 // a drop against an unlocked VM's traffic from other hosts is best effort:
@@ -466,7 +490,7 @@ const hasStatus = computed(
   () =>
     globalInfo.value?.inScope === true ||
     exposedVms.value.length > 0 ||
-    quarantinedVms.value.length > 0 ||
+    enforcedQuarantines.value.length > 0 ||
     unlockedVms.value.length > 0
 )
 </script>
