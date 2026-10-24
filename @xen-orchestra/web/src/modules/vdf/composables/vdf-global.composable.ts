@@ -10,6 +10,8 @@ import {
 import { inGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hostState, parseHostStatus, policyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useNow } from '@vueuse/core'
 import { computed, type ComputedRef, ref } from 'vue'
 
@@ -92,6 +94,14 @@ export function useVdfGlobalPolicy() {
       })
   })
 
+  // the host a running VM is on, with its agent's state: what the VM gets
+  // is enforced there only (#37)
+  function hostOf(vm: FrontXoVm) {
+    const hostId = extractVmHostId(vm)
+
+    return hosts.value.find(({ host }) => host.id === hostId)
+  }
+
   // a global policy is realized under its pool name, `global:<name>`
   function realizationOf(policyName: string) {
     return policyRealization(VDF_GLOBAL_PREFIX + policyName, hosts.value)
@@ -126,6 +136,7 @@ export function useVdfGlobalPolicy() {
     hosts,
     areHostsReady,
     realizationOf,
+    hostOf,
     lastPublish,
     recordPublish,
   }

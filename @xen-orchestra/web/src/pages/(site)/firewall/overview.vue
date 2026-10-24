@@ -108,6 +108,13 @@
             :title="{ label: protectionTitle }"
             icon="fa:shield"
           />
+          <ul v-if="exposedByHost.length > 0" class="attention">
+            <li v-for="{ host, state, vms } of exposedByHost" :key="host" class="typo-body-regular-small">
+              <span class="secondary">
+                {{ t('firewall:overview:exposed:host', { host, state: t(`firewall:host-state:${state}`), vms }) }}
+              </span>
+            </li>
+          </ul>
         </UiCard>
       </VtsColumn>
       <VtsColumn class="numbers-column">
@@ -323,11 +330,13 @@ import type {
   VdfAddressConflict,
   VdfGlobalPool,
   VdfGlobalScope,
+  VdfHostState,
   VdfPoolSyncState,
   VdfVmRef,
 } from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -357,7 +366,9 @@ import { isEqual } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
-const { t, n } = useI18n()
+const { t, n, locale } = useI18n()
+
+const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
 
 const tierLabel = useVdfTierLabel()
 
@@ -380,6 +391,7 @@ const {
   hosts,
   areHostsReady,
   realizationOf,
+  hostOf,
   canEdit,
   reloadGlobal,
 } = useVdfGlobalPolicy()
@@ -520,7 +532,30 @@ const vmLabel = (vm: VdfVmRef) => (vm.poolName === undefined ? vm.vmName : `${vm
 
 // PROTECTION, of the running VMs of the pools in scope
 
-const runningProtectedVms = computed(() => runningVms.value.filter(vm => protectedVms.value.includes(vm)))
+// enforced on the host each VM runs on only: a protected VM on a host
+// without a working agent gets nothing there (#37)
+const exposedVms = computed(() =>
+  runningVms.value.filter(vm => protectedVms.value.includes(vm) && !hostEnforces(hostOf(vm)?.state))
+)
+
+const runningProtectedVms = computed(() =>
+  runningVms.value.filter(vm => protectedVms.value.includes(vm) && !exposedVms.value.includes(vm))
+)
+
+const exposedByHost = computed(() => {
+  const byHost = new Map<string, { host: string; state: VdfHostState; vms: string[] }>()
+
+  for (const vm of exposedVms.value) {
+    const row = hostOf(vm)
+    const host = row?.host.name_label ?? '?'
+    const entry = byHost.get(host) ?? { host, state: row?.state ?? 'unknown', vms: [] }
+
+    entry.vms.push(vm.name_label)
+    byHost.set(host, entry)
+  }
+
+  return [...byHost.values()].map(entry => ({ ...entry, vms: formatList(entry.vms) }))
+})
 
 const protectionTitle = computed(() =>
   t('firewall:overview:running-protected', { n: runningProtectedVms.value.length, total: runningVms.value.length })
@@ -528,9 +563,10 @@ const protectionTitle = computed(() =>
 
 const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   { label: t('firewall:overview:protected'), value: runningProtectedVms.value.length, accent: 'success' },
+  { label: t('firewall:overview:exposed'), value: exposedVms.value.length, accent: 'danger' },
   {
     label: t('firewall:global:not-protected'),
-    value: runningVms.value.length - runningProtectedVms.value.length,
+    value: runningVms.value.length - runningProtectedVms.value.length - exposedVms.value.length,
     accent: 'muted',
   },
 ])
@@ -670,6 +706,19 @@ const memberGroups = computed(() =>
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+  }
+
+  .attention {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem;
+    }
   }
 
   .secondary {

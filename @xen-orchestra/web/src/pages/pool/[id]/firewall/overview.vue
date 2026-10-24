@@ -79,6 +79,18 @@
             {{ t('firewall:global:open') }}
           </UiLink>
         </div>
+        <div v-if="exposedVms.length > 0" class="status-item">
+          <UiInfo accent="danger" wrap>{{ t('firewall:overview:exposed:info', { n: exposedVms.length }) }}</UiInfo>
+          <UiLink
+            v-for="vm of exposedVms"
+            :key="vm.id"
+            v-tooltip="t(`firewall:host-state:${hostOf(vm)?.state ?? 'unknown'}`)"
+            :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }"
+            size="small"
+          >
+            {{ t('firewall:overview:exposed:vm', { vm: vm.name_label, host: hostOf(vm)?.host.name_label ?? '?' }) }}
+          </UiLink>
+        </div>
         <div v-if="quarantinedVms.length > 0" class="status-item">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:quarantined', { n: quarantinedVms.length }) }}</UiInfo>
           <UiLink
@@ -231,8 +243,9 @@ import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { effectiveLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { effectiveLockingMode, hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsDonutChartWithLegend, {
@@ -280,6 +293,7 @@ const {
   upToDateHostCount,
   liveHostCount,
   realizationOf,
+  hostOf,
   globalInfo,
 } = useVdfPolicy(() => pool)
 
@@ -297,7 +311,21 @@ const isReady = logicAnd(isPublishedPolicyReady, areHostsReady, areVmsReady)
 // PROTECTION: what matters now is the running VMs; a halted VM has nothing
 // to enforce on until it starts
 
-const runningProtectedVms = computed(() => runningVms.value.filter(vm => protectedVms.value.includes(vm)))
+// enforced on the host each VM runs on only: a protected or quarantined VM
+// on a host without a working agent gets nothing there (#37)
+const isOnEnforcingHost = (vm: FrontXoVm) => hostEnforces(hostOf(vm)?.state)
+
+const exposedVms = computed(() =>
+  runningVms.value.filter(
+    vm => (protectedVms.value.includes(vm) || quarantinedVms.value.includes(vm)) && !isOnEnforcingHost(vm)
+  )
+)
+
+const runningProtectedVms = computed(() =>
+  runningVms.value.filter(vm => protectedVms.value.includes(vm) && isOnEnforcingHost(vm))
+)
+
+const exposedProtectedCount = computed(() => exposedVms.value.filter(vm => protectedVms.value.includes(vm)).length)
 
 const haltedProtectedVms = computed(() => protectedVms.value.filter(vm => vm.power_state !== VM_POWER_STATE.RUNNING))
 
@@ -312,8 +340,13 @@ const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() =>
     accent: 'success',
   },
   {
+    label: t('firewall:overview:exposed'),
+    value: exposedProtectedCount.value,
+    accent: 'danger',
+  },
+  {
     label: t('firewall:overview:not-protected'),
-    value: runningVms.value.length - runningProtectedVms.value.length,
+    value: runningVms.value.length - runningProtectedVms.value.length - exposedProtectedCount.value,
     accent: 'warning',
   },
 ])
@@ -430,7 +463,11 @@ const unlockedVms = computed(() =>
 )
 
 const hasStatus = computed(
-  () => globalInfo.value?.inScope === true || quarantinedVms.value.length > 0 || unlockedVms.value.length > 0
+  () =>
+    globalInfo.value?.inScope === true ||
+    exposedVms.value.length > 0 ||
+    quarantinedVms.value.length > 0 ||
+    unlockedVms.value.length > 0
 )
 </script>
 
