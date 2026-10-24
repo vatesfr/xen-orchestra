@@ -6,6 +6,12 @@ VDF is a stateful firewall in front of every VM, enforced by each host's `vdf-ag
 
 This plugin never re-implements the agent's rules: validation, publication and traces go through the hosts' `vdf` XAPI plugin, which the agent installs.
 
+## Tech preview: opt-in, and the off switch
+
+Installed is not enabled: the plugin has a required setting, so xo-server leaves it unloaded until an administrator ticks **Enable the VDF firewall (tech preview)** in Settings > Plugins and loads it ([vdf#42](https://git.vates.tech/vates/vdf/issues/42)).
+
+XO 6 shows the firewall only while `GET /rest/v0/plugins/vdf/info` answers, and the VM tab and Quarantine only in pools where a host's agent wrote a status. Unloading the plugin is the off switch for XO: its routes and background sync stop, and the interface disappears within a minute. Policies already published stay enforced by the hosts' agents. To stop enforcement too, see the agent's README (`vdf-agent clear`).
+
 ## Routes
 
 Under `/rest/v0/plugins/vdf/pools/{id}`:

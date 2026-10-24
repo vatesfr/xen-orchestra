@@ -27,6 +27,9 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.7.2"
   },
+  "devDependencies": {
+    "ajv": "^8.0.3"
+  },
   "license": "AGPL-3.0-or-later",
   "author": {
     "name": "Vates SAS",
