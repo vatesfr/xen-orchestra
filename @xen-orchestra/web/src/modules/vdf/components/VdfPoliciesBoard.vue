@@ -94,6 +94,7 @@
               @restore="restorePolicy(entry.policy.name)"
               @move="to => edit(target => movePolicy(target, entry.policy.name, to, isLocked))"
               @add-rule="editRule(entry.policy.name)"
+              @set-mode="mode => setMode(entry.policy.name, mode)"
             />
             <VdfRuleRow
               v-for="ruleEntry of entry.rules"
@@ -132,7 +133,7 @@ import VdfTierRow from '@/modules/vdf/components/policies/VdfTierRow.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { useVdfRuleHits } from '@/modules/vdf/composables/vdf-rule-hits.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
-import type { VdfProtocol } from '@/modules/vdf/types.ts'
+import type { VdfPolicyMode, VdfProtocol } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
 import {
   filterRuleBase,
@@ -304,8 +305,9 @@ watch(
   { immediate: true }
 )
 
-// NEW RULE FROM A LINK (the trace's "allow this flow"):
+// NEW RULE FROM A LINK (the trace's and monitor report's "allow this flow"):
 // ?policy=<name>&newRule=1&from=<group|any|address>&proto=<tcp|udp|icmp>&port=<n>
+// [&before=<rule id>: in its place, before the rule that would drop]
 
 const PROTOCOLS: VdfProtocol[] = ['tcp', 'udp', 'icmp', 'any']
 
@@ -316,11 +318,11 @@ watch(
       return
     }
 
-    const { from, proto, port } = route.query
+    const { from, proto, port, before } = route.query
     const policy = document.value.policies.find(({ name }) => name === highlightedPolicy.value)
 
     // before opening: overlays close on navigation
-    await router.replace({ query: omit(route.query, ['newRule', 'from', 'proto', 'port']) })
+    await router.replace({ query: omit(route.query, ['newRule', 'from', 'proto', 'port', 'before']) })
 
     if (policy === undefined || isLocked(policy.name)) {
       return
@@ -333,10 +335,29 @@ watch(
       from: typeof from === 'string' ? from : undefined,
       proto: protocol,
       ports: protocol === 'tcp' || protocol === 'udp' ? ports : undefined,
+      before: typeof before === 'string' && /^\d+$/.test(before) ? Number(before) : undefined,
     })
   },
   { immediate: true }
 )
+
+// monitor or enforce, in the draft (vdf#13); enforce is the default:
+// absent from the document
+function setMode(name: string, mode: VdfPolicyMode) {
+  edit(target => {
+    const policy = target.policies.find(candidate => candidate.name === name)
+
+    if (policy === undefined || isLocked(name)) {
+      return
+    }
+
+    if (mode === 'monitor') {
+      policy.mode = 'monitor'
+    } else {
+      delete policy.mode
+    }
+  })
+}
 
 // a new policy lands at the end of its tier: show it there
 function addPolicy(tier?: number) {

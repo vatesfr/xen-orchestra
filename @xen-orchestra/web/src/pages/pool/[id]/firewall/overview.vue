@@ -79,6 +79,14 @@
             {{ t('firewall:global:open') }}
           </UiLink>
         </div>
+        <div v-if="monitoredPolicyCount > 0" class="status-item">
+          <UiInfo accent="info" wrap>
+            {{ t('firewall:overview:monitored-policies', { n: monitoredPolicyCount }) }}
+          </UiInfo>
+          <UiLink :to="{ name: '/pool/[id]/firewall/monitor', params: { id: pool.id } }" size="small" icon="fa:eye">
+            {{ t('firewall:monitor:open') }}
+          </UiLink>
+        </div>
         <div v-if="exposedVms.length > 0" class="status-item">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:exposed:info', { n: exposedVms.length }) }}</UiInfo>
           <UiLink
@@ -92,9 +100,9 @@
           </UiLink>
         </div>
         <div v-if="enforcedQuarantines.length > 0" class="status-item">
-          <UiInfo accent="danger" wrap>{{
-            t('firewall:overview:quarantined', { n: enforcedQuarantines.length })
-          }}</UiInfo>
+          <UiInfo accent="danger" wrap>
+            {{ t('firewall:overview:quarantined', { n: enforcedQuarantines.length }) }}
+          </UiInfo>
           <UiLink
             v-for="vm of enforcedQuarantines"
             :key="vm.id"
@@ -244,6 +252,7 @@ import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.compos
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { effectiveLockingMode, hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -299,7 +308,7 @@ const {
   globalInfo,
 } = useVdfPolicy(() => pool)
 
-const { runningVms, membersOf, protectedVms, quarantinedVms, areVmsReady } = useVdfMembers(
+const { runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVmsReady } = useVdfMembers(
   () => pool.id,
   publishedDocument
 )
@@ -338,6 +347,13 @@ const protectionTitle = computed(() =>
   t('firewall:overview:running-protected', { n: runningProtectedVms.value.length, total: runningVms.value.length })
 )
 
+// only policies in monitor mode apply: not protected yet, observed (vdf#13)
+const runningMonitoredCount = computed(
+  () => monitoredVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING).length
+)
+
+const monitoredPolicyCount = computed(() => publishedDocument.value.policies.filter(isMonitored).length)
+
 const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('firewall:overview:protected'),
@@ -350,8 +366,17 @@ const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() =>
     accent: 'danger',
   },
   {
+    label: t('firewall:overview:monitored'),
+    value: runningMonitoredCount.value,
+    accent: 'info',
+  },
+  {
     label: t('firewall:overview:not-protected'),
-    value: runningVms.value.length - runningProtectedVms.value.length - exposedProtectedCount.value,
+    value:
+      runningVms.value.length -
+      runningProtectedVms.value.length -
+      exposedProtectedCount.value -
+      runningMonitoredCount.value,
     accent: 'warning',
   },
 ])
@@ -489,6 +514,7 @@ const unlockedVms = computed(() =>
 const hasStatus = computed(
   () =>
     globalInfo.value?.inScope === true ||
+    monitoredPolicyCount.value > 0 ||
     exposedVms.value.length > 0 ||
     enforcedQuarantines.value.length > 0 ||
     unlockedVms.value.length > 0

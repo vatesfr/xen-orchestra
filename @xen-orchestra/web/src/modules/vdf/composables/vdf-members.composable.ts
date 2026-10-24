@@ -1,5 +1,6 @@
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
+import { enforcedPolicies, isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -39,15 +40,29 @@ export function useVdfMembers(
     return membersByGroup.value.get(groupName) ?? []
   }
 
+  // what an enforced policy applies to (monitored ones protect nothing)
   const protectedVms = computed(() => {
-    const appliedTo = new Set(toValue(rawDocument).policies.map(policy => policy.appliedTo))
+    const appliedTo = new Set(enforcedPolicies(toValue(rawDocument)).map(policy => policy.appliedTo))
 
     return poolVms.value.filter(vm => [...appliedTo].some(name => membersOf(name).includes(vm)))
+  })
+
+  // only observed by policies in monitor mode, not protected (vdf#13)
+  const monitoredVms = computed(() => {
+    const appliedTo = new Set(
+      toValue(rawDocument)
+        .policies.filter(isMonitored)
+        .map(policy => policy.appliedTo)
+    )
+
+    return poolVms.value.filter(
+      vm => !protectedVms.value.includes(vm) && [...appliedTo].some(name => membersOf(name).includes(vm))
+    )
   })
 
   const quarantinedVms = computed(() => poolVms.value.filter(vm => vm.tags.includes(VDF_QUARANTINE_TAG)))
 
   const runningVms = computed(() => poolVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
-  return { poolVms, runningVms, membersOf, protectedVms, quarantinedVms, areVmsReady }
+  return { poolVms, runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVmsReady }
 }

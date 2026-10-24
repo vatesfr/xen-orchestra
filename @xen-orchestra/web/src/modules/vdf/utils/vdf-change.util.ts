@@ -1,4 +1,5 @@
 import type { VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 // What a publish changes (or changed, in the history), object by object,
@@ -180,7 +181,8 @@ export function publishWarnings(
       }
     }
 
-    if (change.type !== 'removed' && policy.default === 'drop' && policy.ingress.length === 0) {
+    // a policy in monitor mode drops nothing (Discover publishes exactly that)
+    if (change.type !== 'removed' && policy.default === 'drop' && policy.ingress.length === 0 && !isMonitored(policy)) {
       warnings.push({ type: 'drop-without-rules', policy: policy.name, group: policy.appliedTo })
     }
 

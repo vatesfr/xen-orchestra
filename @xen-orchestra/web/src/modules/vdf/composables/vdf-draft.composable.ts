@@ -1,6 +1,7 @@
 import type { VdfDocument, VdfGroup, VdfLimits, VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
 import { isGlobalName, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { mergeDocuments, type VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
+import { insertRule } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { cloneDocument, diffDocuments, groupUsage, nextRuleId, tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { isEqual } from 'lodash-es'
@@ -365,7 +366,9 @@ export function useVdfDraft(
 
   // RULES
 
-  function saveRule(policyName: string, originalId: number | undefined, rule: VdfRule) {
+  // a new rule goes at the policy's end, or before the rule `before` (an
+  // allow for what that rule would drop: first match wins)
+  function saveRule(policyName: string, originalId: number | undefined, rule: VdfRule, before?: number) {
     if (isLocked(policyName)) {
       return
     }
@@ -380,7 +383,7 @@ export function useVdfDraft(
       const index = policy.ingress.findIndex(({ id }) => id === originalId)
 
       if (index === -1) {
-        policy.ingress.push(rule)
+        insertRule(policy, rule, before)
       } else {
         policy.ingress[index] = rule
       }

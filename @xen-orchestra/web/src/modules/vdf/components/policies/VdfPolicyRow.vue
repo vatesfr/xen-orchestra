@@ -13,6 +13,10 @@
             <VtsIcon name="fa:globe" size="small" />
             {{ t('firewall:global') }}
           </UiTag>
+          <UiTag v-if="monitored" v-tooltip="t('firewall:mode:monitor:tooltip')" accent="info" variant="primary">
+            <VtsIcon name="fa:eye" size="small" />
+            {{ t('firewall:mode:monitor') }}
+          </UiTag>
           <UiTag v-if="entry.state" :accent="stateAccent" variant="secondary">
             {{ t(`firewall:draft-state:${entry.state}`) }}
           </UiTag>
@@ -82,8 +86,9 @@
 <script lang="ts" setup>
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
-import type { VdfScopeId } from '@/modules/vdf/types.ts'
+import type { VdfPolicyMode, VdfScopeId } from '@/modules/vdf/types.ts'
 import { displayName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import type { VdfMove, VdfRuleBasePolicy } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { VdfPolicyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -116,7 +121,10 @@ const emit = defineEmits<{
   restore: []
   move: [to: VdfMove]
   addRule: []
+  setMode: [mode: VdfPolicyMode]
 }>()
+
+const monitored = computed(() => isMonitored(entry.policy))
 
 const { t } = useI18n()
 
@@ -142,11 +150,16 @@ const enforcement = computed<{ accent: InfoAccent; label: string } | undefined>(
 
   return {
     accent: realized < total ? 'danger' : 'warning',
-    label: t('firewall:enforced-on', { realized, total }, total),
+    label: monitored.value
+      ? t('firewall:recorded-on', { realized, total }, total)
+      : t('firewall:enforced-on', { realized, total }, total),
   }
 })
 
 const actions = computed<ActionItem[]>(() => [
+  monitored.value
+    ? { label: t('firewall:mode:switch-enforce'), icon: 'fa:shield', onClick: () => emit('setMode', 'enforce') }
+    : { label: t('firewall:mode:switch-monitor'), icon: 'fa:eye', onClick: () => emit('setMode', 'monitor') },
   {
     label: t('firewall:move-top-of-tier'),
     icon: 'fa:angle-up',

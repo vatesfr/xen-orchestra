@@ -54,6 +54,21 @@ const LOCAL = {
 }
 
 describe('compose', () => {
+  test('version 4 when a policy, global or local, is in monitor mode (vdf#13)', () => {
+    const local = {
+      groups: { db: { tags: ['role=db'] } },
+      policies: [{ name: 'db', appliedTo: 'db', default: 'drop', ingress: [] }],
+    }
+    const global = {
+      groups: { app: { tags: ['role=app'] } },
+      policies: [{ name: 'app', mode: 'monitor', appliedTo: 'app', default: 'drop', ingress: [] }],
+    }
+    assert.equal(compose(local, global).version, 4)
+    assert.equal(compose(local, null).version, undefined)
+    assert.equal(compose({ ...local, version: 4 }, null).version, undefined)
+    assert.equal(compose({ ...local, policies: [{ ...local.policies[0], mode: 'monitor' }] }, null).version, 4)
+  })
+
   test('global objects first, prefixed, rule ids offset, local part kept', () => {
     const document = compose(LOCAL, GLOBAL, { app: ['10.1.0.5'] })
 

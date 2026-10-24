@@ -91,7 +91,7 @@ import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfGroup } from '@/modules/vdf/types.ts'
-import { displayName, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, vdfGlobalRoute, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupUsage } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
@@ -109,6 +109,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { isEqual } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 // A scope's groups: a pool's own (editable) then the global ones it holds
 // (read-only), or the global configuration's, whose members come from every
@@ -119,6 +120,8 @@ const { scope } = defineProps<{
 
 const { t } = useI18n()
 
+const router = useRouter()
+
 const scopeState = useVdfScope(() => scope)
 
 const {
@@ -128,6 +131,7 @@ const {
   publishedDocument,
   isPublishedReady,
   deleteGroup,
+  savePolicy,
   isLocked,
   poolVms,
   membersOf,
@@ -223,6 +227,23 @@ function removeVm(vm: FrontXoVm, entry: GroupEntry) {
   return removeVmFromGroup(vm, entry.group, { name: entry.name, document: publishedDocument.value })
 }
 
+// DISCOVER (vdf#13): a policy in monitor mode for the group, with no rule
+// and a default drop: once published, the Monitor tab lists everything its
+// VMs receive, as suggested rules. In the draft, opened in Policies.
+function discover(entry: GroupEntry) {
+  const taken = new Set(document.value.policies.map(policy => policy.name))
+  const base = `discover-${entry.label}`
+  let name = base
+
+  for (let i = 2; taken.has(name); i++) {
+    name = `${base}-${i}`
+  }
+
+  savePolicy(undefined, { name, appliedTo: entry.name, default: 'drop', mode: 'monitor', ingress: [] })
+
+  return router.push(vdfPageRoute(scopeId.value, 'policies', { policy: name }))
+}
+
 function groupActions(entry: GroupEntry): ActionItem[] {
   // membership is live in every scope (VM tags); a global group's
   // definition is edited in the global firewall
@@ -241,6 +262,13 @@ function groupActions(entry: GroupEntry): ActionItem[] {
   return [
     { label: t('action:edit'), icon: 'action:edit', onClick: () => editGroup(entry.name) },
     addVmsAction,
+    {
+      label: t('firewall:discover'),
+      icon: 'fa:eye',
+      disabled: entry.tags.length === 0,
+      hint: entry.tags.length === 0 ? t('firewall:group-form:preview:no-tags') : t('firewall:discover:hint'),
+      onClick: () => discover(entry),
+    },
     {
       label: t('firewall:delete-group'),
       icon: 'action:delete',

@@ -98,6 +98,7 @@ export type VdfVmProtection =
   | 'outdated'
   | 'exposed'
   | 'protected-when-running'
+  | 'monitored'
   | 'unprotected'
 
 // Hosts whose agent enforces nothing reliable: no agent, or one stopped or
@@ -116,11 +117,15 @@ export function vmProtection({
   quarantined,
   running,
   policyCount,
+  monitoredCount = 0,
   hostState,
 }: {
   quarantined: boolean
   running: boolean
+  // enforced policies applying to the VM
   policyCount: number
+  // policies in monitor mode: they record what they'd drop, protect nothing
+  monitoredCount?: number
   // the state of the host the VM runs on (unknown when it isn't found)
   hostState: VdfHostState
 }): VdfVmProtection {
@@ -131,7 +136,7 @@ export function vmProtection({
   }
 
   if (policyCount === 0) {
-    return 'unprotected'
+    return monitoredCount > 0 ? 'monitored' : 'unprotected'
   }
 
   if (!running) {

@@ -21,6 +21,13 @@
           </div>
         </section>
 
+        <section v-if="enforced.length > 0" class="section">
+          <h3 class="typo-body-bold">{{ t('firewall:publish:enforcing') }}</h3>
+          <UiInfo v-for="item of enforced" :key="item.policy" :accent="item.flows > 0 ? 'warning' : 'success'" wrap>
+            {{ item.text }}
+          </UiInfo>
+        </section>
+
         <section v-if="warnings.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:warnings') }}</h3>
           <UiInfo v-for="warning of warnings" :key="warning.key" accent="warning" wrap>{{ warning.text }}</UiInfo>
@@ -102,10 +109,13 @@
 
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
-import { checkVdfDocument, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
-import type { VdfCheckResult, VdfDocument, VdfScopeId } from '@/modules/vdf/types.ts'
+import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
+import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
 import { changeDetails, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -172,9 +182,54 @@ const warnings = computed(() =>
   })
 )
 
+// policies the draft switches from monitor mode to enforce (vdf#13): what
+// they would have dropped over the last day, from the pool's report
+const enforcing = computed(() =>
+  document.policies
+    .filter(policy => !isMonitored(policy))
+    .filter(policy => baseDocument.policies.some(base => base.name === policy.name && isMonitored(base)))
+    .map(policy => policy.name)
+)
+
+const monitorEntries = ref<VdfMonitorEntry[]>()
+
+const DAY = 24 * 60 * 60 * 1000
+
+// who a source address is, to tell the flows the draft now allows
+const { vmByIp, groupsOfIp } = useVdfIpNames(() => document)
+
+function groupsOf(address: string) {
+  const vm = vmByIp.value.get(address)
+
+  return [...groupsOfIp(address), ...(vm === undefined ? [] : vmGroupNames(vm.tags, document))]
+}
+
+// the flows of the last day the draft's policy would still drop
+const enforced = computed(() =>
+  monitorEntries.value === undefined
+    ? []
+    : enforcing.value.map(name => {
+        const draftPolicy = document.policies.find(policy => policy.name === name)
+        const flows = seenSince(monitorEntries.value!, name, Date.now() - DAY).filter(
+          entry => draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf)
+        ).length
+        const policy = displayName(name)
+
+        return {
+          policy: name,
+          flows,
+          text:
+            flows > 0
+              ? t('firewall:publish:enforcing:flows', { policy, n: n(flows) }, flows)
+              : t('firewall:publish:enforcing:clean', { policy }),
+        }
+      })
+)
+
 const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
+    enforced.value.some(item => item.flows > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
     details.value.policies.some(
       change => change.type === 'removed' || change.rules.some(rule => rule.type === 'removed')
@@ -193,6 +248,13 @@ const isRejected = computed(() => checkError.value !== undefined || checkResult.
 const canPublish = computed(() => !isOutdated && changeCount > 0 && checkResult.value?.ok === true)
 
 onMounted(async () => {
+  if (!isGlobalScope(scopeId) && enforcing.value.length > 0) {
+    fetchVdfMonitor(scopeId).then(
+      entries => (monitorEntries.value = entries),
+      () => undefined
+    )
+  }
+
   if (!isGlobalScope(scopeId) && details.value.policies.some(change => change.rules.some(r => r.type === 'removed'))) {
     fetchVdfOpenConnections(scopeId).then(
       counts => (openConnections.value = counts),

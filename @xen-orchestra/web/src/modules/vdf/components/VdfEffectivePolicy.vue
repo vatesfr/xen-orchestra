@@ -20,6 +20,15 @@
                 <VtsIcon name="fa:globe" size="small" />
                 {{ t('firewall:global') }}
               </UiTag>
+              <UiTag
+                v-if="policy.monitored"
+                v-tooltip="t('firewall:mode:monitor:tooltip')"
+                accent="info"
+                variant="primary"
+              >
+                <VtsIcon name="fa:eye" size="small" />
+                {{ t('firewall:mode:monitor') }}
+              </UiTag>
             </div>
             <ul v-if="policy.rules.length > 0" class="rules">
               <li v-for="{ rule, id } of policy.rules" :key="rule.id" class="rule typo-body-regular-small">
@@ -52,6 +61,7 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { effectiveTiers, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -85,6 +95,7 @@ const tiers = computed(() =>
       name: policy.name,
       label: displayName(policy.name),
       isGlobal: isGlobalName(policy.name),
+      monitored: isMonitored(policy),
       route: vdfPageRoute(poolId, 'policies', { policy: policy.name }),
       rules: policy.ingress.map(rule => ({ rule, id: globalRuleId(rule.id) })),
     })),

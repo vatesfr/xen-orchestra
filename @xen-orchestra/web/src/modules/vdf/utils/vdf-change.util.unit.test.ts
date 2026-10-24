@@ -63,4 +63,12 @@ describe('publishWarnings', () => {
       { type: 'empty-group', policy: 'cache', group: 'cache' },
     ])
   })
+
+  it("doesn't warn about a policy in monitor mode without rules (Discover): it drops nothing", () => {
+    const after = cloneDocument(BEFORE)
+    after.policies[0].ingress = []
+    after.policies[0].mode = 'monitor'
+
+    expect(publishWarnings(changeDetails(BEFORE, after), { memberCount: () => 2 })).toEqual([])
+  })
 })
