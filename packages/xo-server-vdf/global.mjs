@@ -106,7 +106,21 @@ export function compose(local, global, remoteIps = {}) {
       })
     }
   }
-  return { ...own, groups: { ...groups, ...own.groups }, policies: [...policies, ...own.policies] }
+  return withFormatVersion({ ...own, groups: { ...groups, ...own.groups }, policies: [...policies, ...own.policies] })
+}
+
+// version 4 when a policy (global or the pool's own) is in monitor mode:
+// agents before monitor mode must reject the document (vdf#13); without a
+// version 4 nothing needs any more
+export function withFormatVersion(document) {
+  if (document.policies.some(policy => policy.mode === 'monitor')) {
+    return { ...document, version: Math.max(document.version ?? 0, 4) }
+  }
+  if (document.version === 4) {
+    const { version: _, ...rest } = document
+    return rest
+  }
+  return document
 }
 
 export const serialize = document => JSON.stringify(document, null, 2)

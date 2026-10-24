@@ -11,6 +11,7 @@ import {
   type VdfTierName,
 } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 export function tierValue(tier: VdfPolicy['tier']): number {
@@ -120,8 +121,9 @@ export function cloneDocument(document: VdfDocument): VdfDocument {
   return JSON.parse(JSON.stringify(document))
 }
 
+// as published: version 4 when a policy is in monitor mode (vdf#13)
 export function serializeDocument(document: VdfDocument) {
-  return JSON.stringify(document, null, 2)
+  return JSON.stringify(withFormatVersion(document), null, 2)
 }
 
 // A VM is in a group when it carries all the group's tags; IPs are static
@@ -154,7 +156,8 @@ export type VdfEffectiveTier = {
   default: VdfDefaultAction
 }
 
-// What decides a new connection to a VM carrying these tags, in order
+// What applies to a VM carrying these tags, in order; a tier's default is
+// what its enforced policies decide (monitored ones decide nothing)
 export function effectiveTiers(vmTags: string[], document: VdfDocument): VdfEffectiveTier[] {
   const vmGroups = new Set(vmGroupNames(vmTags, document))
 
@@ -162,7 +165,12 @@ export function effectiveTiers(vmTags: string[], document: VdfDocument): VdfEffe
     .map(tier => {
       const policies = tier.policies.map(({ policy }) => policy).filter(policy => vmGroups.has(policy.appliedTo))
 
-      return { value: tier.value, name: tier.name, policies, default: tierDefault(policies) }
+      return {
+        value: tier.value,
+        name: tier.name,
+        policies,
+        default: tierDefault(policies.filter(policy => !isMonitored(policy))),
+      }
     })
     .filter(tier => tier.policies.length > 0)
 }

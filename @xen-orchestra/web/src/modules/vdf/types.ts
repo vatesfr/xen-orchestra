@@ -48,12 +48,17 @@ export type VdfRule = {
   [unknownField: string]: unknown
 }
 
+// monitor: decides nothing, the hosts record what it would drop (vdf#13);
+// absent: enforce
+export type VdfPolicyMode = 'enforce' | 'monitor'
+
 export type VdfPolicy = {
   name: string
   appliedTo: string
   tier?: number | VdfTierName
   default: VdfDefaultAction
   logDefault?: boolean
+  mode?: VdfPolicyMode
   ingress: VdfRule[]
   [unknownField: string]: unknown
 }
@@ -71,6 +76,9 @@ export type VdfLimits = {
 }
 
 export type VdfDocument = {
+  // 4 when a policy is in monitor mode (agents before it must reject the
+  // document): set by serializeDocument
+  version?: number
   groups: Record<string, VdfGroup>
   policies: VdfPolicy[]
   limits?: VdfLimits
@@ -378,4 +386,30 @@ export type VdfRuleLogEntry = {
   suppressed?: number
   host: string
   hostName: string
+}
+
+// What the pool's monitored policies would drop if enforced, from every
+// host (GET /plugins/vdf/pools/:id/monitor): one entry per source, VM,
+// protocol, port, policy and rule, among the connections allowed today
+export type VdfMonitorEntry = {
+  src: string // an IP, or "other" for the flows past a rule's quota
+  vm: string
+  vmName: string
+  proto: string
+  port?: number
+  policy: string
+  tier: string
+  rule?: number // 0 or absent: the policy's default
+  pass?: boolean // a pass rule: enforcing it sends the connection to a later drop
+  count: number // sampled packets: a lower bound
+  first: string
+  last: string
+  expired?: boolean // the policy is no longer monitored there
+  hosts?: string[]
+}
+
+export type VdfMonitorReport = {
+  entries: VdfMonitorEntry[]
+  keepDays?: number
+  errors: { host: string; hostName: string; error: string }[]
 }

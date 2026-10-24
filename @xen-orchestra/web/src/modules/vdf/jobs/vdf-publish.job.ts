@@ -1,5 +1,12 @@
 import { vdfDocumentArg, vdfExpectedDocIdArg, vdfPoolIdArg, vdfRevisionArg } from '@/modules/vdf/jobs/vdf-args.ts'
-import type { VdfCheckResult, VdfDocument, VdfGlobalDocument, VdfHostStats, VdfScopeId } from '@/modules/vdf/types.ts'
+import type {
+  VdfCheckResult,
+  VdfDocument,
+  VdfGlobalDocument,
+  VdfHostStats,
+  VdfMonitorReport,
+  VdfScopeId,
+} from '@/modules/vdf/types.ts'
 import { isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { serializeDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { fetchGet, fetchPost } from '@/shared/utils/fetch.util.ts'
@@ -114,6 +121,11 @@ export function checkVdfDocument(scopeId: VdfScopeId, document: VdfDocument) {
 // Open connections per rule, on every host of the pool, from one sample of
 // the live stats (each costs the agents about a second): undefined if no
 // host answered.
+// what the pool's monitored policies would drop (vdf#13), once
+export async function fetchVdfMonitor(poolId: string) {
+  return (await fetchGet<VdfMonitorReport>(`plugins/vdf/pools/${poolId}/monitor?lines=5000`)).entries
+}
+
 export async function fetchVdfOpenConnections(poolId: string) {
   const { hosts } = await fetchGet<{ hosts: VdfHostStats[] }>(`plugins/vdf/pools/${poolId}/stats`)
   const answered = hosts.filter(host => host.error === undefined && host.rules !== undefined)

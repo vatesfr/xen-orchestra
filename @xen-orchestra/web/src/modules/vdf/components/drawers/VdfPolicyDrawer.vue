@@ -58,6 +58,15 @@
         <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:default:${form.default}`) }}</UiInfo>
 
         <UiToggle v-model="form.logDefault">{{ t('firewall:policy-form:log-default') }}</UiToggle>
+
+        <UiRadioButtonGroup :label="t('firewall:policy-form:mode')" accent="brand" gap="wide">
+          <UiRadioButton v-for="mode of modes" :key="mode" v-model="form.mode" :value="mode" accent="brand">
+            {{ t(`firewall:mode:${mode}`) }}
+          </UiRadioButton>
+        </UiRadioButtonGroup>
+        <UiInfo :accent="form.mode === 'monitor' ? 'info' : 'muted'" wrap>
+          {{ t(`firewall:policy-form:mode:${form.mode}`) }}
+        </UiInfo>
       </div>
     </template>
 
@@ -75,7 +84,13 @@
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfGroupOption } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import { VDF_APPLICATION_TIER, VDF_TIERS, type VdfDefaultAction, type VdfPolicy } from '@/modules/vdf/types.ts'
+import {
+  VDF_APPLICATION_TIER,
+  VDF_TIERS,
+  type VdfDefaultAction,
+  type VdfPolicy,
+  type VdfPolicyMode,
+} from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierName, tierValue, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -124,12 +139,16 @@ const title = computed(() =>
 
 const defaults: VdfDefaultAction[] = ['drop', 'allow', 'pass']
 
+// monitor: the normal start for a new policy (vdf#13)
+const modes: VdfPolicyMode[] = ['monitor', 'enforce']
+
 const form = reactive({
   name: policy.name,
   tier: tierValue(policy.tier),
   appliedTo: policy.appliedTo,
   default: policy.default,
   logDefault: policy.logDefault ?? false,
+  mode: (policy.mode === 'monitor' ? 'monitor' : 'enforce') as VdfPolicyMode,
 })
 
 const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, {
@@ -230,6 +249,11 @@ const appliedToMessages = computed(() => {
 })
 
 const defaultWarning = computed(() => {
+  // monitor mode decides nothing: nothing to warn about yet
+  if (form.mode === 'monitor') {
+    return undefined
+  }
+
   // until rules are added, the default decides alone
   if (form.default === 'drop' && policy.ingress.length === 0 && members.value !== undefined) {
     return t('firewall:policy-form:default:drop-everything', { n: members.value })
@@ -252,7 +276,7 @@ async function submit(addRule = false) {
   }
 
   const next: VdfPolicy = {
-    ...omit(policy, ['tier', 'logDefault']),
+    ...omit(policy, ['tier', 'logDefault', 'mode']),
     name: form.name,
     appliedTo: form.appliedTo,
     default: form.default,
@@ -266,6 +290,11 @@ async function submit(addRule = false) {
 
   if (form.logDefault) {
     next.logDefault = true
+  }
+
+  // enforce is the default: absent from the document
+  if (form.mode === 'monitor') {
+    next.mode = 'monitor'
   }
 
   emit('confirm', next, addRule)

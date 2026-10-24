@@ -27,6 +27,8 @@ export type VdfRulePrefill = {
   from?: string
   proto?: VdfProtocol
   ports?: number[]
+  // a new rule's place: before this rule of the policy (else at its end)
+  before?: number
 }
 
 const ADDRESS = /^[0-9a-f.:]+(\/\d{1,3})?$/i
@@ -161,7 +163,7 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
     })
 
     if (response.event === 'onConfirm') {
-      saveRule(policyName, isNew ? undefined : current.id, response.payload)
+      saveRule(policyName, isNew ? undefined : current.id, response.payload, isNew ? prefill.before : undefined)
     }
   }
 
@@ -188,6 +190,8 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
       // a tier before application usually decides a few things and leaves
       // the rest to the next tiers: drop there would cut what they allow
       default: tier !== undefined && tier < VDF_APPLICATION_TIER ? 'pass' : 'drop',
+      // a new policy starts by reporting what it would drop (vdf#13)
+      mode: 'monitor',
       ingress: [],
     }
 

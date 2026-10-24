@@ -31,6 +31,7 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfDefaultAction, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
 import type { VdfChangeDetails, VdfChangeType } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -92,6 +93,7 @@ function policyMeta(policy: VdfPolicy) {
     count === undefined
       ? t('firewall:review:applied-to', { group })
       : t('firewall:review:applied-to-members', { group, members: t('firewall:review:vms', { n: n(count) }, count) }),
+    ...(isMonitored(policy) ? [t('firewall:review:monitor')] : []),
     t('firewall:review:default'),
   ]
 }

@@ -1,0 +1,478 @@
+<template>
+  <div class="vdf-monitor-report">
+    <UiAlert v-if="hasMonitorError && isMonitorReady" accent="warning">
+      {{ t('firewall:monitor:stale', { error: monitorError?.message ?? '' }) }}
+    </UiAlert>
+    <UiAlert v-for="host of monitor?.errors ?? []" :key="host.host" accent="warning">
+      {{ t('firewall:log:host-error', { host: host.hostName, error: host.error }) }}
+    </UiAlert>
+
+    <VtsStateHero v-if="monitoredPolicies.length === 0" format="card" type="no-data" size="small">
+      <div class="empty">
+        <span>{{ t('firewall:monitor:none') }}</span>
+        <UiLink :to="{ name: '/pool/[id]/firewall/policies', params: { id: poolId } }" size="medium">
+          {{ t('firewall:manage-policies') }}
+        </UiLink>
+      </div>
+    </VtsStateHero>
+
+    <template v-else>
+      <div class="toolbar">
+        <VtsInputWrapper :label="t('firewall:policy')" class="policy-filter">
+          <VtsSelect :id="policySelectId" accent="brand" />
+        </VtsInputWrapper>
+        <UiQuerySearchBar class="search" @search="value => (search = value)" />
+        <UiToggle v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</UiToggle>
+      </div>
+
+      <section v-for="group of suggestionGroups" :key="group.policy.name" class="suggestions">
+        <div class="suggestions-title">
+          <span class="typo-body-bold">
+            {{
+              t('firewall:monitor:suggested', { policy: displayName(group.policy.name), n: group.suggestions.length })
+            }}
+          </span>
+          <UiButton
+            v-if="!group.isGlobal && group.pending.length > 1"
+            variant="secondary"
+            accent="brand"
+            size="small"
+            left-icon="fa:plus"
+            @click="addAll(group.policy.name, group.pending)"
+          >
+            {{ t('firewall:monitor:add-all', { n: group.pending.length }) }}
+          </UiButton>
+          <UiLink
+            v-if="group.isGlobal"
+            size="small"
+            icon="fa:globe"
+            :to="vdfGlobalRoute('policies', { policy: group.policy.name })"
+          >
+            {{ t('firewall:global:edit-xo-wide') }}
+          </UiLink>
+        </div>
+        <ul class="suggestion-list">
+          <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
+            <VdfActionTag action="allow" />
+            <span class="typo-body-regular-small">
+              {{ t('firewall:monitor:suggestion', suggestionText(suggestion)) }}
+            </span>
+            <span class="secondary typo-body-regular-small">
+              {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
+            </span>
+            <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
+              {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
+            </span>
+            <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
+              {{ t('firewall:monitor:in-draft') }}
+            </UiTag>
+            <UiButton
+              v-else-if="!group.isGlobal"
+              variant="tertiary"
+              accent="brand"
+              size="small"
+              left-icon="fa:plus"
+              @click="addToDraft(suggestion)"
+            >
+              {{ t('firewall:monitor:add') }}
+            </UiButton>
+          </li>
+        </ul>
+      </section>
+
+      <VtsTable :state :pagination-bindings>
+        <thead>
+          <tr>
+            <HeadCells />
+          </tr>
+        </thead>
+        <tbody>
+          <VtsRow v-for="row of pageRows" :key="row.key">
+            <BodyCells :item="row" />
+          </VtsRow>
+        </tbody>
+      </VtsTable>
+    </template>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
+import VdfService from '@/modules/vdf/components/live/VdfService.vue'
+import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
+import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
+import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
+import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
+import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import {
+  isMonitored,
+  liveEntries,
+  MONITOR_OTHER,
+  suggestRules,
+  type VdfSuggestion,
+} from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useFormSelect } from '@core/packages/form-select'
+import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
+import { computed, h, ref, withDirectives } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { type RouteLocationRaw, useRouter } from 'vue-router'
+
+// What the pool's policies in monitor mode would drop if enforced (vdf#13):
+// suggested rules per policy, then every flow, each with "allow this"
+const { pool } = defineProps<{
+  pool: FrontXoPool
+}>()
+
+const { t } = useI18n()
+
+const router = useRouter()
+
+const poolId = computed(() => pool.id)
+
+const { monitor, isMonitorReady, hasMonitorError, monitorError } = useVdfMonitor({}, () => pool.id)
+
+// what's published (the report is about it) and the draft (where rules go)
+const { document, publishedDocument, saveRule } = useVdfScope(() => ({ kind: 'pool' as const, pool }))
+
+const { vmByIp, groupsOfIp } = useVdfIpNames(publishedDocument)
+
+const { membersOf } = useVdfMembers(() => pool.id, publishedDocument)
+
+const { vms } = useXoVmCollection()
+
+const monitoredPolicies = computed(() => publishedDocument.value.policies.filter(isMonitored))
+
+const ALL = '\0all'
+
+const selectedPolicy = ref(ALL)
+
+const policyOptions = computed(() => [
+  { name: ALL, label: t('firewall:monitor:all-policies') },
+  ...monitoredPolicies.value.map(policy => ({ name: policy.name, label: displayName(policy.name) })),
+])
+
+const { id: policySelectId } = useFormSelect(policyOptions, {
+  model: selectedPolicy,
+  option: { id: 'name', value: 'name', label: 'label' },
+})
+
+const search = ref('')
+
+const showExpired = ref(false)
+
+// a source, as a rule would name it: the most specific tagged group its
+// VM belongs to, a group listing the address, else the address
+function sourceOf(address: string) {
+  const vm = vmByIp.value.get(address)
+  const groups = publishedDocument.value.groups
+
+  if (vm !== undefined) {
+    const tagged = vmGroupNames(vm.tags, publishedDocument.value)
+      .filter(name => (groups[name]?.tags?.length ?? 0) > 0)
+      .sort((a, b) => membersOf(a).length - membersOf(b).length || a.localeCompare(b))
+
+    if (tagged.length > 0) {
+      return tagged[0]
+    }
+  }
+
+  return groupsOfIp(address)[0] ?? address
+}
+
+const shownPolicies = computed(() =>
+  monitoredPolicies.value.filter(policy => selectedPolicy.value === ALL || policy.name === selectedPolicy.value)
+)
+
+// SUGGESTED RULES, per monitored policy (the pool's own are added to the
+// draft from here; a global one is edited in the global firewall)
+
+function draftPolicy(name: string) {
+  return document.value.policies.find(policy => policy.name === name)
+}
+
+function isInDraft(suggestion: VdfSuggestion) {
+  return (draftPolicy(suggestion.policy)?.ingress ?? []).some(
+    rule =>
+      ruleAction(rule) === 'allow' &&
+      rule.from === suggestion.rule.from &&
+      rule.proto === suggestion.rule.proto &&
+      (suggestion.rule.ports ?? []).every(port => (rule.ports ?? []).includes(port))
+  )
+}
+
+const suggestionGroups = computed(() =>
+  shownPolicies.value
+    .map((policy: VdfPolicy) => {
+      const suggestions = suggestRules(monitor.value?.entries ?? [], policy, sourceOf)
+
+      return {
+        policy,
+        isGlobal: isGlobalName(policy.name),
+        suggestions,
+        pending: suggestions.filter(suggestion => !isInDraft(suggestion)),
+      }
+    })
+    .filter(group => group.suggestions.length > 0)
+)
+
+const suggestionKey = (suggestion: VdfSuggestion) =>
+  `${suggestion.policy}|${suggestion.rule.from}|${suggestion.rule.proto}|${suggestion.before ?? ''}`
+
+function suggestionText(suggestion: VdfSuggestion) {
+  const { from, proto, ports } = suggestion.rule
+
+  return {
+    from: displayName(from),
+    service:
+      ports === undefined || ports.length === 0 ? proto.toUpperCase() : `${proto.toUpperCase()} ${formatPorts(ports)}`,
+  }
+}
+
+function addToDraft(suggestion: VdfSuggestion) {
+  saveRule(
+    suggestion.policy,
+    undefined,
+    { id: nextRuleId(document.value, publishedDocument.value), ...suggestion.rule },
+    suggestion.before
+  )
+}
+
+function addAll(_policy: string, suggestions: VdfSuggestion[]) {
+  for (const suggestion of suggestions) {
+    addToDraft(suggestion)
+  }
+}
+
+// EVERY FLOW
+
+type Row = {
+  key: string
+  entry: VdfMonitorEntry
+  allow: RouteLocationRaw | undefined
+}
+
+const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm.id, vm])))
+
+// "allow this": the rule drawer, prefilled, in the policy's place (before
+// the rule that would drop)
+function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
+  if (entry.src === MONITOR_OTHER || !['tcp', 'udp', 'icmp'].includes(entry.proto)) {
+    return undefined
+  }
+
+  const query = {
+    newRule: '1',
+    from: sourceOf(entry.src),
+    proto: entry.proto,
+    port: entry.port ? String(entry.port) : undefined,
+    before: entry.rule ? String(entry.rule) : undefined,
+  }
+
+  // the global firewall names its groups and policies without the prefix
+  return isGlobalName(entry.policy)
+    ? {
+        name: '/(site)/firewall/policies',
+        query: { ...query, policy: displayName(entry.policy), from: displayName(query.from) },
+      }
+    : { name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: { policy: entry.policy, ...query } }
+}
+
+const rows = computed<Row[]>(() => {
+  const term = search.value.trim().toLocaleLowerCase()
+  const names = new Set(shownPolicies.value.map(policy => policy.name))
+  const entries = showExpired.value ? (monitor.value?.entries ?? []) : liveEntries(monitor.value?.entries ?? [])
+
+  return entries
+    .filter(entry => selectedPolicy.value === ALL || names.has(entry.policy))
+    .filter(
+      entry =>
+        term === '' ||
+        [entry.src, entry.vmName, entry.policy, String(entry.port ?? ''), vmByIp.value.get(entry.src)?.name_label].some(
+          value => value?.toLocaleLowerCase().includes(term)
+        )
+    )
+    .map(entry => ({
+      key: [entry.src, entry.vm, entry.proto, entry.port, entry.policy, entry.rule].join('|'),
+      entry,
+      allow: allowRoute(entry),
+    }))
+})
+
+const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-monitor', rows)
+
+const state = useTableState({
+  busy: () => !isMonitorReady.value && !hasMonitorError.value,
+  error: () => (!isMonitorReady.value && hasMonitorError.value ? t('firewall:monitor:error') : false),
+  empty: () => {
+    if ((monitor.value?.entries.length ?? 0) === 0) {
+      return { type: 'no-data', message: t('firewall:monitor:empty') }
+    }
+
+    return rows.value.length === 0 ? { type: 'no-result' } : false
+  },
+})
+
+function decidedBy(entry: VdfMonitorEntry) {
+  if (!entry.rule) {
+    return t('firewall:monitor:by-default')
+  }
+
+  return entry.pass
+    ? t('firewall:monitor:by-pass', { id: entry.rule })
+    : t('firewall:monitor:by-rule', { id: entry.rule })
+}
+
+function allowButton(row: Row) {
+  const label = t('firewall:monitor:allow-this')
+
+  return withDirectives(
+    h(UiButtonIcon, {
+      icon: 'fa:check',
+      size: 'small',
+      accent: 'brand',
+      'aria-label': label,
+      onClick: () => router.push(row.allow!),
+    }),
+    [[vTooltip, label]]
+  )
+}
+
+const useMonitorColumns = defineColumns(() => ({
+  // the policy and what in it would drop: one column (a laptop's width)
+  policy: useLiteralColumn({ headerLabel: () => t('firewall:monitor:would-drop') }),
+  source: useLiteralColumn({ headerLabel: () => t('firewall:source') }),
+  destination: useLiteralColumn({ headerLabel: () => t('firewall:destination') }),
+  service: useLiteralColumn({ headerLabel: () => t('firewall:service') }),
+  seen: useLiteralColumn({ headerLabel: () => t('firewall:monitor:last-seen') }),
+  // its buttons say it (tooltip, label): a narrow column
+  allow: useLiteralColumn({ headerLabel: () => '' }),
+}))
+
+const { HeadCells, BodyCells } = useMonitorColumns({
+  body: (row: Row) => ({
+    policy: r =>
+      r(
+        h('span', { class: 'policy' }, [
+          h('span', displayName(row.entry.policy)),
+          h(
+            'span',
+            { class: 'secondary typo-body-regular-small' },
+            row.entry.expired ? `${decidedBy(row.entry)} · ${t('firewall:monitor:expired')}` : decidedBy(row.entry)
+          ),
+        ])
+      ),
+    source: r =>
+      r(
+        row.entry.src === MONITOR_OTHER
+          ? h('span', { class: 'secondary' }, t('firewall:monitor:other-sources'))
+          : h(VdfEndpoint, {
+              scopeId: pool.id,
+              ip: row.entry.src,
+              vm: vmByIp.value.get(row.entry.src),
+              groups: vmByIp.value.get(row.entry.src) === undefined ? groupsOfIp(row.entry.src) : [],
+            })
+      ),
+    destination: r =>
+      r(h(VdfEndpoint, { scopeId: pool.id, ip: '', vm: vmById.value.get(row.entry.vm), name: row.entry.vmName })),
+    service: r => r(h(VdfService, { proto: row.entry.proto, port: row.entry.port ? String(row.entry.port) : '' })),
+    seen: r =>
+      r(
+        h('span', { class: 'seen' }, [
+          h(VtsRelativeTime, { date: row.entry.last }),
+          h('span', { class: 'secondary typo-body-regular-small' }, t('firewall:monitor:seen', { n: row.entry.count })),
+        ])
+      ),
+    allow: r => r(row.allow === undefined ? '' : allowButton(row)),
+  }),
+})
+</script>
+
+<style lang="postcss" scoped>
+.vdf-monitor-report {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1.6rem;
+  }
+
+  .policy-filter {
+    min-width: 24rem;
+  }
+
+  .search {
+    flex: 1;
+    min-width: 20rem;
+  }
+
+  .suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1.2rem 1.6rem;
+    border: 0.1rem solid var(--color-info-item-base);
+    border-radius: 0.8rem;
+    background-color: var(--color-info-background-selected);
+  }
+
+  .suggestions-title,
+  .suggestion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem 1.6rem;
+  }
+
+  .suggestion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .secondary {
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  :deep(.policy),
+  :deep(.seen) {
+    display: flex;
+    flex-direction: column;
+  }
+}
+</style>

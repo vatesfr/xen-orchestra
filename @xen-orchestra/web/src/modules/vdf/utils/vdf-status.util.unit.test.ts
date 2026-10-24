@@ -79,6 +79,13 @@ describe('vmProtection', () => {
     expect(vm({ quarantined: true, hostState: 'rejected' })).toBe('quarantined')
   })
 
+  // vdf#13: a policy in monitor mode records what it would drop, protects nothing
+  it('is monitored, not protected, with only policies in monitor mode', () => {
+    expect(vm({ policyCount: 0, monitoredCount: 2 })).toBe('monitored')
+    expect(vm({ policyCount: 1, monitoredCount: 2 })).toBe('protected')
+    expect(vm({ policyCount: 0, monitoredCount: 0 })).toBe('unprotected')
+  })
+
   it("doesn't depend on the host for a halted VM", () => {
     expect(vm({ running: false, hostState: 'unknown' })).toBe('protected-when-running')
     expect(vm({ running: false, quarantined: true, hostState: 'unknown' })).toBe('quarantined')

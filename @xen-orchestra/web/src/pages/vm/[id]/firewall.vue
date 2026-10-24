@@ -172,6 +172,7 @@ import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.compo
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -226,11 +227,14 @@ const isQuarantined = computed(() => isVmQuarantined(vm))
 
 const isRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
+const appliedPolicies = computed(() => effectiveTiers(vm.tags, publishedDocument.value).flatMap(tier => tier.policies))
+
+// enforced: what protects it; monitored: what records what it would drop
 const policyNames = computed(() =>
-  effectiveTiers(vm.tags, publishedDocument.value).flatMap(tier =>
-    tier.policies.map(policy => displayName(policy.name))
-  )
+  appliedPolicies.value.filter(policy => !isMonitored(policy)).map(policy => displayName(policy.name))
 )
+
+const monitoredNames = computed(() => appliedPolicies.value.filter(isMonitored).map(policy => displayName(policy.name)))
 
 // enforcement happens on the host the VM runs on only (#37)
 const host = computed(() => (isRunning.value ? hostOf(vm) : undefined))
@@ -240,6 +244,7 @@ const protection = computed(() =>
     quarantined: isQuarantined.value,
     running: isRunning.value,
     policyCount: policyNames.value.length,
+    monitoredCount: monitoredNames.value.length,
     hostState: host.value?.state ?? 'unknown',
   })
 )
@@ -249,6 +254,7 @@ const STATUS_ACCENTS: Record<VdfVmProtection, 'success' | 'info' | 'warning' | '
   outdated: 'warning',
   exposed: 'danger',
   'protected-when-running': 'info',
+  monitored: 'info',
   unprotected: 'warning',
   quarantined: 'danger',
   'quarantine-not-enforced': 'danger',
@@ -259,9 +265,10 @@ const statusAccent = computed(() => STATUS_ACCENTS[protection.value])
 const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
 
 const statusDetail = computed(() => {
+  const names = protection.value === 'monitored' ? monitoredNames.value : policyNames.value
   const params = {
-    n: policyNames.value.length,
-    policies: formatList(policyNames.value),
+    n: names.length,
+    policies: formatList(names),
     host: host.value?.host.name_label ?? vm.$container,
   }
 
