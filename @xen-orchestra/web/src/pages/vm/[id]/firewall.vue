@@ -119,6 +119,7 @@
               :policies="interfacePolicies(vif)"
               :unprotected="getNetworkById(vif.$network)?.tags.includes(VDF_UNPROTECTED_TAG)"
               class="interface"
+              @lock="target => confirmLock([target])"
             />
           </UiCard>
 
@@ -171,6 +172,7 @@ import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
+import { useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
@@ -399,6 +401,11 @@ const vmVifs = computed(() =>
 // tables; a failure shows through tagError
 
 const { confirmQuarantine } = useVdfQuarantine(membership)
+
+// LOCKING: an interface locked to the addresses its guest reports, after
+// a confirmation (vdf#15)
+
+const { confirmLock } = useVdfLock()
 </script>
 
 <style lang="postcss" scoped>

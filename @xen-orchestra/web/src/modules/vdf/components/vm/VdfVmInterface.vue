@@ -25,18 +25,46 @@
     </div>
     <div class="locking">
       <UiInfo :accent="lockingAccent" wrap>{{ t(`firewall:vm:locking:${lockingMode}`) }}</UiInfo>
-      <UiLink v-if="lockingMode === 'unlocked'" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" size="small">
-        {{ t('firewall:vm:locking:open-network') }}
-      </UiLink>
+      <template v-if="lockingMode === 'unlocked'">
+        <UiButton
+          size="small"
+          variant="secondary"
+          accent="brand"
+          left-icon="fa:lock"
+          @click="lock(reportedAddresses(vif, vm.addresses))"
+        >
+          {{ t('firewall:lock:action') }}
+        </UiButton>
+        <UiLink :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" size="small">
+          {{ t('firewall:vm:locking:open-network') }}
+        </UiLink>
+      </template>
+    </div>
+    <div v-if="drift" class="locking">
+      <UiInfo v-tooltip="driftDetail" accent="danger" wrap>
+        {{ t('firewall:lock:drift', { outside: formatAddressList(drift.outside), allowed: shortList(drift.allowed) }) }}
+      </UiInfo>
+      <UiButton
+        size="small"
+        variant="secondary"
+        accent="brand"
+        left-icon="fa:lock"
+        @click="lock(drift.reported, drift.allowed)"
+      >
+        {{ t('firewall:lock:relock-to', { addresses: shortList(drift.reported) }) }}
+      </UiButton>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { lockTarget, type VdfLockTarget } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { formatAddressList, isAllowed, lockDrift, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { effectiveLockingMode, type VdfLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -54,6 +82,11 @@ const { vif, vm, network } = defineProps<{
   policies?: string[]
   // its network is left out of the firewall (vdf:unprotected)
   unprotected?: boolean
+}>()
+
+// Lock (vdf#15): the page confirms, with the addresses the guest reports
+const emit = defineEmits<{
+  lock: [target: VdfLockTarget]
 }>()
 
 const { t } = useI18n()
@@ -74,6 +107,34 @@ const LOCKING_ACCENTS: Record<VdfLockingMode, InfoAccent> = {
 }
 
 const lockingAccent = computed(() => LOCKING_ACCENTS[lockingMode.value])
+
+// locked, but the guest moved to another address (DHCP): XAPI drops its
+// traffic from it until it's locked again
+const drift = computed(() => {
+  const found = lockDrift(vif, vm.addresses)
+
+  return found && { ...found, outside: found.reported.filter(ip => !isAllowed(ip, found.allowed)) }
+})
+
+// the first address, and how many more
+const shortList = (addresses: string[]) =>
+  addresses.length === 0
+    ? t('none')
+    : `${addresses[0]}${addresses.length > 1 ? ` ${t('firewall:more', { n: addresses.length - 1 })}` : ''}`
+
+const driftDetail = computed(() =>
+  drift.value === undefined
+    ? false
+    : t('firewall:lock:drift:detail', {
+        allowed: formatAddressList(drift.value.allowed) || t('none'),
+        reported: formatAddressList(drift.value.reported),
+      })
+)
+
+// addresses: what to propose; lockedTo: a relock, from what it's locked to
+function lock(addresses: string[], lockedTo?: string[]) {
+  emit('lock', lockTarget(vif, { vmName: vm.name_label, network, addresses, lockedTo }))
+}
 </script>
 
 <style lang="postcss" scoped>
