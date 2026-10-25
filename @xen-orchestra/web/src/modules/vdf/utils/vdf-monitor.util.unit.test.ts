@@ -48,6 +48,18 @@ describe('withFormatVersion', () => {
     expect(withFormatVersion(doc([policy()], 3)).version).toBe(3)
   })
 
+  it('is version 7 with a group scoped to networks (vdf#36), down again without', () => {
+    const scoped = (version?: number): VdfDocument => ({
+      ...doc([policy({ mode: 'monitor' })], version),
+      groups: { web: { tags: ['vdf:role=web'], networks: ['vdf:net=dmz'] } },
+    })
+
+    expect(withFormatVersion(scoped()).version).toBe(7)
+    expect(withFormatVersion(scoped(4)).version).toBe(7)
+    expect(withFormatVersion(doc([policy({ mode: 'monitor' })], 7)).version).toBe(4)
+    expect('version' in withFormatVersion(doc([policy()], 7))).toBe(false)
+  })
+
   it('leaves monitored policies out of what protects', () => {
     expect(enforcedPolicies(doc([policy(), policy({ name: 'm', mode: 'monitor' })])).map(p => p.name)).toEqual(['db'])
   })

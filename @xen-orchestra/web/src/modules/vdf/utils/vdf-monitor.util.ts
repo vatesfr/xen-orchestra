@@ -17,12 +17,26 @@ export const isMonitored = (policy: Pick<VdfPolicy, 'mode'>) => policy.mode === 
 // before monitor mode reject it, and get it without the monitored policies
 // from the newer agents' publish); without a version 4 that nothing needs
 // any more.
+// groups scoped to networks (vdf#36) need version 7: agents before them
+// must reject the document rather than widen the groups
+export const VDF_NETWORKS_VERSION = 7
+
 export function withFormatVersion(document: VdfDocument): VdfDocument {
-  if (document.policies.some(isMonitored)) {
-    return { ...document, version: Math.max(document.version ?? 0, VDF_MONITOR_VERSION) }
+  const required = Math.max(
+    document.policies.some(isMonitored) ? VDF_MONITOR_VERSION : 0,
+    Object.values(document.groups).some(group => (group.networks ?? []).length > 0) ? VDF_NETWORKS_VERSION : 0
+  )
+  // the versions this sets, which follow the document; others are kept
+  const isManaged =
+    document.version === undefined ||
+    document.version === VDF_MONITOR_VERSION ||
+    document.version === VDF_NETWORKS_VERSION
+
+  if (required > 0) {
+    return { ...document, version: isManaged ? required : Math.max(document.version ?? 0, required) }
   }
 
-  if (document.version === VDF_MONITOR_VERSION) {
+  if (document.version !== undefined && isManaged) {
     const copy = { ...document }
 
     delete copy.version
