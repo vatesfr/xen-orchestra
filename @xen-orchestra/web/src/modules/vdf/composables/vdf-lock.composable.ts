@@ -1,5 +1,6 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useVdfLockJob, type VdfLockRequest } from '@/modules/vdf/jobs/vdf-lock.job.ts'
+import type { VdfLockProposal } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { effectiveLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -12,8 +13,11 @@ export type VdfLockTarget = {
   device: string
   vmName: string
   networkName: string | undefined
-  // proposed: what the guest reports now (none: the user enters them)
+  // proposed: what the guest reports now, IPv4 and stable IPv6 (none: the
+  // user enters them)
   addresses: string[]
+  // the guest's other IPv6 addresses (temporary), offered unticked
+  optional: string[]
   // a relock: what it's locked to now
   lockedTo?: string[]
 }
@@ -36,11 +40,19 @@ export function lockTarget(
   {
     vmName,
     network,
-    addresses,
+    proposal,
     lockedTo,
-  }: { vmName: string; network?: FrontXoNetwork; addresses: string[]; lockedTo?: string[] }
+  }: { vmName: string; network?: FrontXoNetwork; proposal: VdfLockProposal; lockedTo?: string[] }
 ): VdfLockTarget {
-  return { vifId: vif.id, device: vif.device, vmName, networkName: network?.name_label, addresses, lockedTo }
+  return {
+    vifId: vif.id,
+    device: vif.device,
+    vmName,
+    networkName: network?.name_label,
+    addresses: proposal.addresses,
+    optional: proposal.optional,
+    lockedTo,
+  }
 }
 
 // Locking an interface (vdf#15), alone or a group's at once: one

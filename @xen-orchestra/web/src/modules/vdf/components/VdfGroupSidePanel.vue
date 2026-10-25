@@ -149,7 +149,7 @@ import {
   vdfGlobalRoute,
   vdfPageRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -260,7 +260,7 @@ function lockAll() {
       lockTarget(iface.vif, {
         vmName: vm.name_label,
         network: iface.network,
-        addresses: reportedAddresses(iface.vif, vm.addresses),
+        proposal: lockProposal(reportedAddresses(iface.vif, vm.addresses), iface.vif.MAC),
       })
     ),
     { group: displayName(name) }

@@ -31,7 +31,7 @@
           variant="secondary"
           accent="brand"
           left-icon="fa:lock"
-          @click="lock(reportedAddresses(vif, vm.addresses))"
+          @click="lock(lockProposal(reportedAddresses(vif, vm.addresses), vif.MAC))"
         >
           {{ t('firewall:lock:action') }}
         </UiButton>
@@ -49,9 +49,13 @@
         variant="secondary"
         accent="brand"
         left-icon="fa:lock"
-        @click="lock(drift.reported, drift.allowed)"
+        @click="lock(drift.proposal, drift.allowed)"
       >
-        {{ t('firewall:lock:relock-to', { addresses: shortList(drift.reported) }) }}
+        {{
+          drift.proposal.addresses.length > 0
+            ? t('firewall:lock:relock-to', { addresses: shortList(drift.proposal.addresses) })
+            : t('firewall:lock:relock')
+        }}
       </UiButton>
     </div>
   </div>
@@ -60,7 +64,13 @@
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { lockTarget, type VdfLockTarget } from '@/modules/vdf/composables/vdf-lock.composable.ts'
-import { formatAddressList, isAllowed, lockDrift, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import {
+  formatAddressList,
+  lockDrift,
+  lockProposal,
+  reportedAddresses,
+  type VdfLockProposal,
+} from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { effectiveLockingMode, type VdfLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -110,11 +120,7 @@ const lockingAccent = computed(() => LOCKING_ACCENTS[lockingMode.value])
 
 // locked, but the guest moved to another address (DHCP): XAPI drops its
 // traffic from it until it's locked again
-const drift = computed(() => {
-  const found = lockDrift(vif, vm.addresses)
-
-  return found && { ...found, outside: found.reported.filter(ip => !isAllowed(ip, found.allowed)) }
-})
+const drift = computed(() => lockDrift(vif, vm.addresses))
 
 // the first address, and how many more
 const shortList = (addresses: string[]) =>
@@ -131,9 +137,9 @@ const driftDetail = computed(() =>
       })
 )
 
-// addresses: what to propose; lockedTo: a relock, from what it's locked to
-function lock(addresses: string[], lockedTo?: string[]) {
-  emit('lock', lockTarget(vif, { vmName: vm.name_label, network, addresses, lockedTo }))
+// proposal: what to propose; lockedTo: a relock, from what it's locked to
+function lock(proposal: VdfLockProposal, lockedTo?: string[]) {
+  emit('lock', lockTarget(vif, { vmName: vm.name_label, network, proposal, lockedTo }))
 }
 </script>
 

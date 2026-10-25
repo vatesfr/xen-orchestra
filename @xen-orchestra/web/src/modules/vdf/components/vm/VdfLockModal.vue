@@ -54,6 +54,20 @@
             <UiInfo v-if="!isLocked(row) && rowMessage(row)" :accent="rowMessage(row)!.accent" wrap>
               {{ rowMessage(row)!.content }}
             </UiInfo>
+            <div v-if="!isLocked(row) && row.target.optional.length > 0" class="optional">
+              <span class="typo-body-regular-small">{{ t('firewall:lock:temporary') }}</span>
+              <UiCheckbox
+                v-for="ip of row.target.optional"
+                :key="ip"
+                v-model="row.extras[ip]"
+                accent="brand"
+                :disabled="isBulk && !row.selected"
+                @update:model-value="checked => isBulk && checked && (row.selected = true)"
+              >
+                <code>{{ ip }}</code>
+              </UiCheckbox>
+              <span class="secondary typo-body-regular-small">{{ t('firewall:lock:temporary:note') }}</span>
+            </div>
             <UiInfo v-if="state.errors[row.target.vifId] && !isLocked(row)" accent="danger" wrap>
               {{ t('firewall:lock:failed', { error: state.errors[row.target.vifId] }) }}
             </UiInfo>
@@ -121,6 +135,8 @@ type Row = {
   target: VdfLockTarget
   text: string
   selected: boolean
+  // the temporary IPv6 addresses ticked
+  extras: Record<string, boolean>
 }
 
 const rows = reactive<Row[]>(
@@ -128,6 +144,7 @@ const rows = reactive<Row[]>(
     target,
     text: target.addresses.join('\n'),
     selected: !isBulk.value || target.addresses.length > 0,
+    extras: Object.fromEntries(target.optional.map(ip => [ip, false])),
   }))
 )
 
@@ -142,12 +159,16 @@ const isSubmitted = ref(false)
 const rowLabel = (target: VdfLockTarget) =>
   t('firewall:overview:lock-issue', { vm: target.vmName, device: target.device, network: target.networkName ?? '?' })
 
+// what's typed, and the temporary addresses ticked
+const rowAddresses = (row: Row) =>
+  parseAddressList([row.text, ...row.target.optional.filter(ip => row.extras[ip])].join('\n'))
+
 function rowError(row: Row) {
   if (!row.selected || isLocked(row)) {
     return undefined
   }
 
-  const { ipv4, ipv6, invalid } = parseAddressList(row.text)
+  const { ipv4, ipv6, invalid } = rowAddresses(row)
 
   if (invalid.length > 0) {
     return t('firewall:lock:invalid', { addresses: invalid.join(', '), n: invalid.length })
@@ -168,7 +189,10 @@ function rowMessage(row: Row): { content: string; accent: 'danger' | 'warning' }
   }
 
   if (row.target.addresses.length === 0) {
-    return { content: t('firewall:lock:none-reported'), accent: 'warning' }
+    return {
+      content: t(row.target.optional.length > 0 ? 'firewall:lock:none-stable' : 'firewall:lock:none-reported'),
+      accent: 'warning',
+    }
   }
 
   return undefined
@@ -184,7 +208,7 @@ function submit() {
   emit(
     'confirm',
     toLock.value.map(row => {
-      const { ipv4, ipv6 } = parseAddressList(row.text)
+      const { ipv4, ipv6 } = rowAddresses(row)
 
       return { vifId: row.target.vifId, ipv4, ipv6 }
     })
@@ -216,6 +240,12 @@ function submit() {
     &:first-child {
       padding-block-start: 0;
     }
+  }
+
+  .optional {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .row-head {
