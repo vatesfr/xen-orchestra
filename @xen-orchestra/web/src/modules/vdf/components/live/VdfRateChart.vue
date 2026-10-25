@@ -33,9 +33,10 @@ const maxValue = computed(() => niceMax(series))
 const valueFormatter = (value: number | null) =>
   value === null ? '' : t(`firewall:chart:per-${unit}`, { n: n(value, { maximumFractionDigits: value < 10 ? 1 : 0 }) })
 
-// short labels (14:05): the window is minutes, and 12-hour labels crowd
+// short labels (hours and minutes, as the tables beside them write time in
+// the user's locale): the window is minutes
 const timeFormatter = computed(() => {
-  const format = new Intl.DateTimeFormat(locale.value, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+  const format = new Intl.DateTimeFormat(locale.value, { hour: '2-digit', minute: '2-digit' })
 
   return (timestamp: number) => format.format(timestamp)
 })
