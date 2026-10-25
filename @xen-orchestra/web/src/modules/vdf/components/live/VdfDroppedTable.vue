@@ -45,8 +45,8 @@ import { type RouteLocationRaw, useRouter } from 'vue-router'
 
 export type VdfDroppedRow = {
   key: string
-  src: { ip: string; vm?: FrontXoVm; name?: string; groups: string[] }
-  dst: { ip: string; vm?: FrontXoVm; name?: string; groups?: string[] }
+  src: { ip: string; vm?: FrontXoVm; name?: string; groups: string[]; iface?: string }
+  dst: { ip: string; vm?: FrontXoVm; name?: string; groups?: string[]; iface?: string }
   revoked: boolean
   // dropped by the source's outbound rules or default (vdf#53)
   egress?: boolean

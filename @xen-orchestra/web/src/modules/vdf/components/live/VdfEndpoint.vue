@@ -8,6 +8,7 @@
       <VdfGroupChip v-for="group of groups" :key="group" :scope-id :group />
     </span>
     <code v-if="ip" class="ip" :class="{ secondary: vm || name || groups?.length }">{{ ip }}</code>
+    <span v-if="iface" class="secondary typo-body-regular-small">{{ iface }}</span>
   </span>
 </template>
 
@@ -28,6 +29,8 @@ const { vm } = defineProps<{
   vm?: FrontXoVm
   name?: string
   groups?: string[]
+  // which interface, for a VM with several (vdf#36): "eth1 · Backend"
+  iface?: string
 }>()
 
 const vmIcon = computed(() => (vm === undefined ? undefined : objectIcon('vm', toLower(vm.power_state))))
