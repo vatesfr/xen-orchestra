@@ -59,6 +59,7 @@
         </div>
       </UiPanelCard>
       <NetworkPifsInfoCard :network />
+      <VdfNetworkFirewallCard :network />
     </template>
   </VtsSidePanel>
 </template>
@@ -68,6 +69,7 @@ import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/Networ
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import VdfNetworkFirewallCard from '@/modules/vdf/components/network/VdfNetworkFirewallCard.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'

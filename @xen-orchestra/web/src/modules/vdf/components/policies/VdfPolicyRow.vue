@@ -79,6 +79,20 @@
           </template>
         </div>
       </div>
+      <div v-if="spread && !entry.locked && !isRemoved" class="spread typo-body-regular-small">
+        <UiInfo accent="info">
+          {{ t('firewall:policy:spread', { n: spread.vms, networks: spread.networks.join(', ') }, spread.vms) }}
+        </UiInfo>
+        <UiButton
+          variant="tertiary"
+          accent="brand"
+          size="small"
+          left-icon="fa:network-wired"
+          @click="emit('limitNetworks')"
+        >
+          {{ t('firewall:policy:limit-networks') }}
+        </UiButton>
+      </div>
     </th>
   </tr>
 </template>
@@ -104,7 +118,7 @@ import { useI18n } from 'vue-i18n'
 
 // A policy's section header in the rule base: what it protects, its
 // default, and where it isn't enforced (quiet when it is everywhere)
-const { entry, realization } = defineProps<{
+const { entry, realization, spread } = defineProps<{
   scopeId: VdfScopeId
   entry: VdfRuleBasePolicy
   columns: number
@@ -113,6 +127,8 @@ const { entry, realization } = defineProps<{
   realization: VdfPolicyRealization
   highlighted: boolean
   anchorId: string
+  // its VMs with interfaces on several networks, all getting it (vdf#36)
+  spread?: { vms: number; networks: string[] }
 }>()
 
 const emit = defineEmits<{
@@ -123,6 +139,7 @@ const emit = defineEmits<{
   addRule: []
   addEgressRule: []
   setMode: [mode: VdfPolicyMode]
+  limitNetworks: []
 }>()
 
 const monitored = computed(() => isMonitored(entry.policy))
@@ -214,6 +231,14 @@ const actions = computed<ActionItem[]>(() => [
     display: flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .spread {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+    margin-block-start: 0.8rem;
   }
 
   /* as wide as the rule columns, wrapping: never what sets the table's width */

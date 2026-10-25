@@ -9,7 +9,7 @@ import {
   type VdfProtocol,
   type VdfRule,
 } from '@/modules/vdf/types.ts'
-import { nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { groupUsage, nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed } from '@vueuse/core'
@@ -73,8 +73,18 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
     events: { onConfirm: (name: string, group: VdfGroup) => ({ name, group }), onCancel: true },
   })
 
-  // resolves with the group's name once saved
-  async function editGroup(name?: string, prefill?: VdfGroup) {
+  // resolves with the group's name once saved; scoped: open on its
+  // networks ("Limit to networks…", vdf#36)
+  async function editGroup(name?: string, prefill?: VdfGroup, { scoped = false }: { scoped?: boolean } = {}) {
+    // the other groups naming each network tag: they change with it
+    const networkTagUsers: Record<string, string[]> = {}
+
+    for (const [groupName, group] of Object.entries(document.value.groups)) {
+      for (const tag of groupName === name ? [] : (group.networks ?? [])) {
+        networkTagUsers[tag] = [...(networkTagUsers[tag] ?? []), groupName]
+      }
+    }
+
     const response = await openGroup({
       props: {
         name: name ?? '',
@@ -82,6 +92,10 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
         isNew: name === undefined,
         otherGroupNames: Object.keys(document.value.groups).filter(groupName => groupName !== name),
         poolIds: poolIds.value,
+        networkTagUsers,
+        scoped,
+        // the policies it's a source or destination in: their rules narrow too
+        peerOf: name === undefined ? [] : groupUsage(document.value, name).sourceOf,
       },
     })
 

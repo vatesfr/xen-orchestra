@@ -17,6 +17,12 @@
       <span v-if="ips.length === 0" class="secondary">{{ t('firewall:vm:no-ip') }}</span>
       <span class="secondary">{{ t('firewall:vm:mac', { mac: vif.MAC }) }}</span>
     </div>
+    <UiInfo v-if="unprotected" accent="muted" wrap>{{ t('firewall:vm:interface:unprotected') }}</UiInfo>
+    <div v-else-if="policies !== undefined" class="policies typo-body-regular-small">
+      <span class="secondary">{{ t('firewall:vm:interface:policies') }}</span>
+      <span v-if="policies.length > 0">{{ policies.join(', ') }}</span>
+      <span v-else class="secondary">{{ t('firewall:vm:interface:no-policy') }}</span>
+    </div>
     <div class="locking">
       <UiInfo :accent="lockingAccent" wrap>{{ t(`firewall:vm:locking:${lockingMode}`) }}</UiInfo>
       <UiLink v-if="lockingMode === 'unlocked'" :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }" size="small">
@@ -43,6 +49,11 @@ const { vif, vm, network } = defineProps<{
   vif: FrontXoVif
   vm: FrontXoVm
   network: FrontXoNetwork | undefined
+  // the policies enforced on this interface (vdf#36): a group scoped to
+  // networks applies to its VMs' interfaces there only
+  policies?: string[]
+  // its network is left out of the firewall (vdf:unprotected)
+  unprotected?: boolean
 }>()
 
 const { t } = useI18n()
@@ -73,6 +84,7 @@ const lockingAccent = computed(() => LOCKING_ACCENTS[lockingMode.value])
 
   .head,
   .addresses,
+  .policies,
   .locking {
     display: flex;
     flex-wrap: wrap;

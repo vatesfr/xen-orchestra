@@ -116,6 +116,8 @@
               :vif
               :vm
               :network="getNetworkById(vif.$network)"
+              :policies="interfacePolicies(vif)"
+              :unprotected="getNetworkById(vif.$network)?.tags.includes(VDF_UNPROTECTED_TAG)"
               class="interface"
             />
           </UiCard>
@@ -168,14 +170,16 @@ import VdfGate from '@/modules/vdf/components/VdfGate.vue'
 import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
+import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -370,6 +374,22 @@ function leaveGroup(name: string) {
 }
 
 // INTERFACES
+
+// the enforced policies on an interface: those whose group has no
+// networks, or one its network carries (vdf#36)
+function interfacePolicies(vif: FrontXoVif) {
+  const netTags = getNetworkById(vif.$network)?.tags ?? []
+
+  return appliedPolicies.value
+    .filter(
+      policy =>
+        !isMonitored(policy) && isOnNetworks(netTags, groupNetworks(publishedDocument.value.groups[policy.appliedTo]))
+    )
+    .map(policy => displayName(policy.name))
+}
+
+// the chips show what the groups they name are (their networks)
+provideVdfGroups(() => publishedDocument.value.groups)
 
 const vmVifs = computed(() =>
   vifs.value.filter(vif => vif.$VM === vm.id).sort((vifA, vifB) => Number(vifA.device) - Number(vifB.device))

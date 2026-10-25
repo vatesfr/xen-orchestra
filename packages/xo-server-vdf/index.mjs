@@ -48,6 +48,10 @@ const KEY_V5_BASE = 'vdf:policy.v5.base'
 // document without its egress rules in the older keys
 const KEY_V6 = 'vdf:policy.v6'
 const KEY_V6_BASE = 'vdf:policy.v6.base'
+// documents with per-network groups (vdf#36): only there, agents before
+// them keep their last document
+const KEY_V7 = 'vdf:policy.v7'
+const KEY_V7_BASE = 'vdf:policy.v7.base'
 
 const PLUGIN = 'vdf'
 
@@ -62,6 +66,8 @@ const v3Base = (v1, v2) => v2Base(v1 + '\x00' + v2)
 const v4Base = (v1, v2, v3) => v2Base(v1 + '\x00' + v2 + '\x00' + v3)
 const v5Base = (v1, v2, v3, v4) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4)
 const v6Base = (v1, v2, v3, v4, v5) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5)
+const v7Base = (v1, v2, v3, v4, v5, v6) =>
+  v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6)
 
 // short id of a document, as agents report it in host other_config vdf:status
 export const docId = text => (text ? sha256Hex(text, 6) : '')
@@ -73,10 +79,13 @@ export function publishedPolicy(otherConfig) {
   const v4 = otherConfig[KEY_V4] ?? ''
   const v5 = otherConfig[KEY_V5] ?? ''
   const v6 = otherConfig[KEY_V6] ?? ''
+  const v7 = otherConfig[KEY_V7] ?? ''
 
   let key
   let text
-  if (v6 !== '' && otherConfig[KEY_V6_BASE] === v6Base(v1, v2, v3, v4, v5)) {
+  if (v7 !== '' && otherConfig[KEY_V7_BASE] === v7Base(v1, v2, v3, v4, v5, v6)) {
+    ;[key, text] = [KEY_V7, v7]
+  } else if (v6 !== '' && otherConfig[KEY_V6_BASE] === v6Base(v1, v2, v3, v4, v5)) {
     ;[key, text] = [KEY_V6, v6]
   } else if (v5 !== '' && otherConfig[KEY_V5_BASE] === v5Base(v1, v2, v3, v4)) {
     ;[key, text] = [KEY_V5, v5]
@@ -391,13 +400,21 @@ class VdfPlugin {
       }
     })
 
+  #networkOf = vif => {
+    try {
+      return this.#xo.getObject(vif.$network, 'network')
+    } catch {
+      return undefined
+    }
+  }
+
   // running VMs of the connected pools, and the last known ones of the
   // pools XO lost (stale)
   #records() {
     const connected = new Set(this.#pools().map(pool => pool.id))
     const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } }))
     return [
-      ...runningVmRecords(vms, this.#vifsOf),
+      ...runningVmRecords(vms, this.#vifsOf, this.#networkOf),
       ...Object.entries(this.#vmCache)
         .filter(([poolId]) => !connected.has(poolId))
         .flatMap(([, { at, records }]) => records.map(record => ({ ...record, stale: true, seenAt: at }))),

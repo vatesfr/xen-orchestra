@@ -13,6 +13,10 @@
   >
     <VtsIcon :name="icon" size="small" />
     <span class="name">{{ displayName(group) }}</span>
+    <span v-if="networks.length > 0" class="networks">
+      <VtsIcon name="fa:network-wired" size="small" />
+      {{ networks.map(networkTagLabel).join(', ') }}
+    </span>
     <UiCounter
       v-if="count !== undefined || ips"
       :value="(count ?? 0) + (ips ?? 0)"
@@ -25,8 +29,10 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfGroup } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, isGlobalScope, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { groupNetworks, networkTagLabel } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -51,6 +57,12 @@ const {
 
 const { t, locale } = useI18n()
 
+// a group scoped to networks (vdf#36) shows them: only its VMs'
+// interfaces there
+const groupDefinition = useVdfGroup(() => group)
+
+const networks = computed(() => groupNetworks(groupDefinition.value))
+
 // a group of the global configuration: in a pool (`global:` name) or on
 // the global firewall's pages. It looks the same in both.
 const isGlobal = computed(() => isGlobalName(group) || isGlobalScope(scopeId))
@@ -69,6 +81,10 @@ const details = computed(() => {
   }
 
   const parts = isGlobal.value ? [t('firewall:global:group')] : []
+
+  if (networks.value.length > 0) {
+    parts.push(t('firewall:group:networks', { networks: networks.value.join(', ') }))
+  }
 
   if (count !== undefined) {
     parts.push(t('firewall:group:members', { n: count }))
@@ -110,6 +126,15 @@ const ariaLabel = computed(() =>
   .name {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .networks {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-inline-start: 0.6rem;
+    border-inline-start: 0.1rem solid var(--color-neutral-border);
+    color: var(--color-neutral-txt-secondary);
   }
 
   &:is(a):hover {

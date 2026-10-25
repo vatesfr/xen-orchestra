@@ -88,6 +88,7 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import VdfGroupsTable, { type VdfGroupRow } from '@/modules/vdf/components/groups/VdfGroupsTable.vue'
 import VdfGroupSidePanel from '@/modules/vdf/components/VdfGroupSidePanel.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
+import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfGroup } from '@/modules/vdf/types.ts'
@@ -143,6 +144,9 @@ const hasError = computed(() =>
 )
 
 const { editGroup } = useVdfEditors(() => scope)
+
+// the chips show what the groups they name are (their networks)
+provideVdfGroups(() => document.value.groups)
 
 const { addVmsToGroup, removeVmFromGroup, isUpdatingTags, tagError } = useVdfMembership()
 

@@ -170,42 +170,101 @@ export function poolSyncState({ inScope, published, expected }) {
 
 export const inScope = (scope, poolId) => scope?.all === true || (scope?.pools ?? []).includes(poolId)
 
-// A VM's IPs as agents count them for group membership
-// (agent/inventory.go): a locked VIF's allowed addresses are authoritative
-// (trusted), else what the guest reports; IPv6 link-local left out.
-export function vmIps(vm, vifs) {
-  const locked = vifs.filter(vif => vif.lockingMode === 'locked')
-  const trusted = locked.length > 0
-  const raw = trusted
-    ? locked.flatMap(vif => [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])])
-    : Object.values(vm.addresses ?? {})
-  const ips = [...new Set(raw.filter(ip => typeof ip === 'string' && !ip.includes('/') && !/^fe80:/i.test(ip)))]
-  return { ips: ips.sort(), trusted }
+const usableIp = ip => typeof ip === 'string' && !ip.includes('/') && !/^fe80:/i.test(ip)
+
+const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
+
+// A VM's interfaces as agents see them (agent/inventory.go vmIfaces,
+// vdf#36): each VIF with its network's tags and its own addresses, a
+// locked VIF's allowed ones (trusted), else what the guest reports for its
+// device ("N/ipv4/0"…, untrusted); addresses of no known VIF on no network.
+// networkOf: a VIF's network object, if XO knows it.
+export function vmIfaces(vm, vifs, networkOf = () => undefined) {
+  const reported = new Map()
+  for (const [key, ip] of Object.entries(vm.addresses ?? {})) {
+    const device = key.split('/')[0]
+    reported.set(device, [...(reported.get(device) ?? []), ip])
+  }
+  const ifaces = vifs.map(vif => {
+    const network = networkOf(vif)
+    // a network's default is unlocked or disabled, never locked
+    const locked = vif.lockingMode === 'locked'
+    return {
+      device: String(vif.device),
+      network: vif.$network,
+      netTags: network?.tags ?? [],
+      ips: sortedIps(
+        locked
+          ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
+          : (reported.get(String(vif.device)) ?? [])
+      ),
+      trusted: locked,
+    }
+  })
+  const known = new Set(ifaces.map(iface => iface.device))
+  for (const [device, ips] of reported) {
+    if (!known.has(device)) {
+      ifaces.push({ device, network: undefined, netTags: [], ips: sortedIps(ips), trusted: false })
+    }
+  }
+  return ifaces.sort((a, b) => (a.device < b.device ? -1 : a.device > b.device ? 1 : 0))
 }
+
+// What a set of interfaces adds up to: their addresses, trusted when one
+// is locked and none has addresses from the guest (agent: ifaceAddrs).
+function ifaceIps(ifaces) {
+  return {
+    ips: sortedIps(ifaces.flatMap(iface => iface.ips)),
+    trusted: ifaces.some(iface => iface.trusted) && !ifaces.some(iface => !iface.trusted && iface.ips.length > 0),
+  }
+}
+
+// A VM's IPs as agents count them for a group without networks: all its
+// interfaces'.
+export const vmIps = (vm, vifs, networkOf) => ifaceIps(vmIfaces(vm, vifs, networkOf))
 
 // what XO knows of a running VM, enough to resolve global groups and to
 // spot an address held twice; kept for a pool XO can't reach (fail static)
-export const vmRecord = (vm, vifs) => ({
-  vm: vm.id,
-  vmName: vm.name_label,
-  pool: vm.$pool,
-  tags: vm.tags,
-  ...vmIps(vm, vifs),
-})
+export function vmRecord(vm, vifs, networkOf) {
+  const ifaces = vmIfaces(vm, vifs, networkOf)
+  return {
+    vm: vm.id,
+    vmName: vm.name_label,
+    pool: vm.$pool,
+    tags: vm.tags,
+    ...ifaceIps(ifaces),
+    ifaces,
+  }
+}
 
-export const runningVmRecords = (vms, vifsOf) =>
-  vms.filter(vm => vm.power_state === 'Running').map(vm => vmRecord(vm, vifsOf(vm)))
+export const runningVmRecords = (vms, vifsOf, networkOf) =>
+  vms.filter(vm => vm.power_state === 'Running').map(vm => vmRecord(vm, vifsOf(vm), networkOf))
 
 const isMember = (record, group) => (group.tags ?? []).length > 0 && group.tags.every(tag => record.tags.includes(tag))
 
+// a member's addresses as a group sees them: all, or with networks those
+// of its interfaces on a network carrying them all (a record saved before
+// interfaces were known has none there)
+function memberIps(record, group) {
+  const networks = group.networks ?? []
+  if (networks.length === 0) {
+    return { ips: record.ips, trusted: record.trusted }
+  }
+  const ifaces = (record.ifaces ?? []).filter(iface => networks.every(tag => iface.netTags.includes(tag)))
+  return ifaces.length === 0 ? undefined : ifaceIps(ifaces)
+}
+
 // Members of each global group, in every pool in scope: running VMs
-// carrying all the group's tags, with their IPs.
+// carrying all the group's tags, with their IPs (on the group's networks).
 export function globalMembers({ global, records, scope }) {
   const members = {}
   for (const [name, group] of Object.entries(global?.groups ?? {})) {
     members[name] = records
       .filter(record => inScope(scope, record.pool) && isMember(record, group))
-      .map(({ tags, ...member }) => member)
+      .flatMap(({ tags, ifaces, ...member }) => {
+        const scoped = memberIps({ ...member, ifaces }, group)
+        return scoped === undefined ? [] : [{ ...member, ...scoped }]
+      })
   }
   return members
 }
