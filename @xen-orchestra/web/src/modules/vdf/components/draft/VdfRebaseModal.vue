@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="warning" icon="status:warning-picto" @confirm="confirm()" @dismiss="emit('cancel')">
+  <VdfContentModal accent="warning" @confirm="confirm()" @dismiss="emit('cancel')">
     <template #title>{{ t('firewall:rebase:title') }}</template>
     <template #content>
       <div class="vdf-rebase-modal">
@@ -50,12 +50,13 @@
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
       <VtsOverlayConfirmButton :disabled="!isResolved">{{ t('firewall:rebase:confirm') }}</VtsOverlayConfirmButton>
     </template>
-  </UiModal>
+  </VdfContentModal>
 </template>
 
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
 import VdfRuleSentence from '@/modules/vdf/components/history/VdfRuleSentence.vue'
+import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import type { VdfGroup, VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
 import { isEmptyChange, type VdfChangeDetails } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -63,7 +64,6 @@ import type { VdfConflict, VdfMergeResult, VdfResolution } from '@/modules/vdf/u
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiModal from '@core/components/ui/modal/UiModal.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import { computed, reactive } from 'vue'
@@ -166,10 +166,6 @@ const rows = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-  min-width: min(64rem, 80vw);
-  max-height: 60vh;
-  overflow: auto;
-  text-align: start;
 
   .section {
     display: flex;

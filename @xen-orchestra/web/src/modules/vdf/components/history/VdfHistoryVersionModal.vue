@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="info" icon="fa:clock" @dismiss="emit('cancel')">
+  <VdfContentModal accent="info" @dismiss="emit('cancel')">
     <template #title>{{ title }}</template>
     <template #content>
       <div class="vdf-history-version-modal">
@@ -16,9 +16,7 @@
             {{ t('firewall:history:version:no-previous') }}
           </p>
           <p v-if="isEmptyChange(details)" class="typo-body-regular-small">{{ t('firewall:history:no-change') }}</p>
-          <div v-else class="changes">
-            <VdfChangeList :details :is-global="isGlobalScope(scopeId)" />
-          </div>
+          <VdfChangeList v-else :details :is-global="isGlobalScope(scopeId)" />
         </template>
       </div>
     </template>
@@ -32,11 +30,12 @@
         {{ t('firewall:history:restore') }}
       </VtsOverlayConfirmButton>
     </template>
-  </UiModal>
+  </VdfContentModal>
 </template>
 
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
+import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import { fetchVdfHistoryVersion } from '@/modules/vdf/remote-resources/use-vdf-history.ts'
 import type { VdfDocument, VdfHistoryEntry, VdfHistoryVersion, VdfScopeId } from '@/modules/vdf/types.ts'
 import { changeDetails, isEmptyChange } from '@/modules/vdf/utils/vdf-change.util.ts'
@@ -45,7 +44,6 @@ import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiModal from '@core/components/ui/modal/UiModal.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -120,13 +118,6 @@ const details = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  min-width: min(64rem, 80vw);
-  text-align: start;
-
-  .changes {
-    max-height: 48rem;
-    overflow: auto;
-  }
 
   .secondary {
     color: var(--color-neutral-txt-secondary);

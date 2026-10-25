@@ -1,11 +1,11 @@
 <template>
-  <UiModal :accent icon="fa:shield" @confirm="canPublish && emit('confirm')" @dismiss="emit('cancel')">
+  <VdfContentModal :accent @confirm="confirm()" @dismiss="emit('cancel')">
     <template #title>
-      {{ isGlobalScope(scopeId) ? t('firewall:global:publish:title') : t('firewall:publish:title') }}
+      {{ isGlobalScope(shown.scopeId) ? t('firewall:global:publish:title') : t('firewall:publish:title') }}
     </template>
     <template #content>
       <div class="vdf-publish-modal">
-        <UiAlert v-if="isOutdated" accent="warning">
+        <UiAlert v-if="shown.isOutdated" accent="warning">
           {{ t('firewall:publish:outdated') }}
           <template #description>
             <UiButton variant="secondary" accent="warning" size="small" @click="emit('rebase')">
@@ -15,10 +15,10 @@
         </UiAlert>
 
         <section class="section">
-          <h3 class="typo-body-bold">{{ t('firewall:draft:changes', { n: changeCount }, changeCount) }}</h3>
-          <div class="changes">
-            <VdfChangeList :details :member-count :is-global="isGlobalScope(scopeId)" />
-          </div>
+          <h3 class="typo-body-bold">
+            {{ t('firewall:draft:changes', { n: shown.changeCount }, shown.changeCount) }}
+          </h3>
+          <VdfChangeList :details :member-count :is-global="isGlobalScope(shown.scopeId)" />
         </section>
 
         <section v-if="enforced.length > 0" class="section">
@@ -33,7 +33,7 @@
           <UiInfo v-for="warning of warnings" :key="warning.key" accent="warning" wrap>{{ warning.text }}</UiInfo>
         </section>
 
-        <section v-if="!isOutdated" class="section">
+        <section v-if="!shown.isOutdated" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:validation') }}</h3>
           <UiInfo v-if="checkResult === undefined && checkError === undefined" accent="muted">
             <span class="checking"><VtsIcon name="fa:spinner" size="small" />{{ t('firewall:publish:checking') }}</span>
@@ -65,8 +65,14 @@
               <UiInfo v-else accent="danger" wrap>
                 {{ t('firewall:publish:validation-failed', { error: pool.error }) }}
               </UiInfo>
-              <UiInfo v-for="warning of pool.warnings ?? []" :key="warning" accent="warning" wrap>
-                {{ warning }}
+              <UiInfo
+                v-for="warning of agentWarnings(pool.warnings)"
+                :key="warning.raw"
+                v-tooltip="warning.tooltip"
+                accent="warning"
+                wrap
+              >
+                {{ warning.text }}
               </UiInfo>
             </div>
           </template>
@@ -87,15 +93,21 @@
             <UiInfo v-else accent="danger" wrap>
               {{ t('firewall:publish:validation-failed', { error: checkResult.error }) }}
             </UiInfo>
-            <UiInfo v-for="warning of checkResult.warnings ?? []" :key="warning" accent="warning" wrap>
-              {{ warning }}
+            <UiInfo
+              v-for="warning of agentWarnings(checkResult.warnings)"
+              :key="warning.raw"
+              v-tooltip="warning.tooltip"
+              accent="warning"
+              wrap
+            >
+              {{ warning.text }}
             </UiInfo>
           </template>
         </section>
 
-        <UiAlert v-if="publishError" accent="danger">{{ publishError }}</UiAlert>
-        <UiAlert v-else-if="!isOutdated" accent="info">
-          {{ isGlobalScope(scopeId) ? t('firewall:global:publish:effect') : t('firewall:publish:effect') }}
+        <UiAlert v-if="shown.publishError" accent="danger">{{ shown.publishError }}</UiAlert>
+        <UiAlert v-else-if="!shown.isOutdated" accent="info">
+          {{ isGlobalScope(shown.scopeId) ? t('firewall:global:publish:effect') : t('firewall:publish:effect') }}
         </UiAlert>
         <UiInfo v-if="isRejected" accent="danger" wrap>{{ t('firewall:publish:fix-errors') }}</UiInfo>
       </div>
@@ -104,32 +116,36 @@
       <VtsOverlayCancelButton @click="emit('cancel')" />
       <VtsOverlayConfirmButton :disabled="!canPublish">{{ t('firewall:publish') }}</VtsOverlayConfirmButton>
     </template>
-  </UiModal>
+  </VdfContentModal>
 </template>
 
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
+import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
+import { parseAgentWarning } from '@/modules/vdf/utils/vdf-agent-warning.util.ts'
 import { changeDetails, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiModal, { type ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed, onMounted, ref } from 'vue'
+import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger.ts'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { scopeId, document, baseDocument, changeCount, isOutdated, memberCounts } = defineProps<{
+const props = defineProps<{
   scopeId: VdfScopeId
   document: VdfDocument
   // the published document the draft started from
@@ -150,10 +166,21 @@ const emit = defineEmits<{
 
 const { t, n } = useI18n()
 
-// the draft's own changes, never what others published meanwhile
-const details = computed(() => changeDetails(baseDocument, document))
+// A publish clears the draft before the modal has faded out: while the
+// overlay handles Publish (or Cancel), the modal keeps showing what it had,
+// rather than an empty draft. A failed publish leaves it open, live again.
+const { isDisabled: isHandling } = useOverlayTrigger()
 
-const memberCount = (group: string) => memberCounts?.[group]
+const frozen = shallowRef<typeof props>()
+
+watch(isHandling, handling => (frozen.value = handling ? { ...props } : undefined), { flush: 'sync' })
+
+const shown = computed(() => frozen.value ?? props)
+
+// the draft's own changes, never what others published meanwhile
+const details = computed(() => changeDetails(shown.value.baseDocument, shown.value.document))
+
+const memberCount = (group: string) => shown.value.memberCounts?.[group]
 
 // open connections per rule, for the rules the draft removes (one sample
 // of the pool's live stats)
@@ -187,9 +214,9 @@ const warnings = computed(() =>
 // policies the draft switches from monitor mode to enforce (vdf#13): what
 // they would have dropped over the last day, from the pool's report
 const enforcing = computed(() =>
-  document.policies
+  shown.value.document.policies
     .filter(policy => !isMonitored(policy))
-    .filter(policy => baseDocument.policies.some(base => base.name === policy.name && isMonitored(base)))
+    .filter(policy => shown.value.baseDocument.policies.some(base => base.name === policy.name && isMonitored(base)))
     .map(policy => policy.name)
 )
 
@@ -198,7 +225,7 @@ const monitorEntries = ref<VdfMonitorEntry[]>()
 const DAY = 24 * 60 * 60 * 1000
 
 // who a source address is, to tell the flows the draft now allows
-const { vmByIp, groupsOfIp } = useVdfIpNames(() => document)
+const { vmByIp, groupsOfIp } = useVdfIpNames(() => shown.value.document)
 
 const { netTagsOfAddress } = useVdfInterfaces()
 
@@ -209,8 +236,8 @@ function groupsOf(address: string) {
   const tagged =
     vm === undefined
       ? []
-      : vmGroupNames(vm.tags, document).filter(name => {
-          const networks = groupNetworks(document.groups[name])
+      : vmGroupNames(vm.tags, shown.value.document).filter(name => {
+          const networks = groupNetworks(shown.value.document.groups[name])
 
           return networks.length === 0 || (netTags !== undefined && isOnNetworks(netTags, networks))
         })
@@ -223,7 +250,7 @@ const enforced = computed(() =>
   monitorEntries.value === undefined
     ? []
     : enforcing.value.map(name => {
-        const draftPolicy = document.policies.find(policy => policy.name === name)
+        const draftPolicy = shown.value.document.policies.find(policy => policy.name === name)
         const flows = seenSince(monitorEntries.value!, name, Date.now() - DAY).filter(
           entry => draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf)
         ).length
@@ -250,7 +277,7 @@ const isRisky = computed(
     )
 )
 
-const accent = computed<ModalAccent>(() => (isOutdated || isRisky.value ? 'warning' : 'info'))
+const accent = computed<ModalAccent>(() => (shown.value.isOutdated || isRisky.value ? 'warning' : 'info'))
 
 // what the pool master's agent makes of the draft, before anything is written
 const checkResult = ref<VdfCheckResult>()
@@ -259,9 +286,57 @@ const checkError = ref<string>()
 
 const isRejected = computed(() => checkError.value !== undefined || checkResult.value?.ok === false)
 
-const canPublish = computed(() => !isOutdated && changeCount > 0 && checkResult.value?.ok === true)
+const canPublish = computed(
+  () => !shown.value.isOutdated && shown.value.changeCount > 0 && checkResult.value?.ok === true
+)
+
+function confirm() {
+  if (canPublish.value) {
+    emit('confirm')
+  }
+}
+
+const tierLabel = useVdfTierLabel()
+
+// the agent's warnings in an admin's words, its own text in the tooltip;
+// a text it is not known to write is shown as is
+function agentWarnings(raws: string[] | undefined) {
+  return (raws ?? []).map(raw => {
+    const warning = parseAgentWarning(raw)
+
+    if (warning === undefined) {
+      return { raw, text: raw, tooltip: undefined }
+    }
+
+    const params: Record<string, unknown> = { ...warning }
+
+    if ('policy' in warning) {
+      params.policy = displayName(warning.policy)
+    }
+
+    if ('other' in warning) {
+      params.other = displayName(warning.other)
+    }
+
+    if ('rule' in warning) {
+      params.rule = globalRuleId(warning.rule)
+    }
+
+    if ('tier' in warning) {
+      params.tier = tierLabel(warning.tier)
+    }
+
+    if ('max' in warning) {
+      params.max = n(warning.max)
+    }
+
+    return { raw, text: t(`firewall:publish:agent-warning:${warning.type}`, params), tooltip: raw }
+  })
+}
 
 onMounted(async () => {
+  const { scopeId, document, isOutdated } = props
+
   if (!isGlobalScope(scopeId) && enforcing.value.length > 0) {
     fetchVdfMonitor(scopeId).then(
       entries => (monitorEntries.value = entries),
@@ -293,18 +368,11 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-  text-align: start;
-  min-width: min(64rem, 80vw);
 
   .section {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  .changes {
-    max-height: 32rem;
-    overflow: auto;
   }
 
   .pool-result {
