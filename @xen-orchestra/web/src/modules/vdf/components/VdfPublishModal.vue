@@ -109,12 +109,14 @@
 
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
 import { changeDetails, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -198,10 +200,22 @@ const DAY = 24 * 60 * 60 * 1000
 // who a source address is, to tell the flows the draft now allows
 const { vmByIp, groupsOfIp } = useVdfIpNames(() => document)
 
+const { netTagsOfAddress } = useVdfInterfaces()
+
+// a group scoped to networks (vdf#36) only holds the address on them
 function groupsOf(address: string) {
   const vm = vmByIp.value.get(address)
+  const netTags = vm === undefined ? undefined : netTagsOfAddress(vm, address)
+  const tagged =
+    vm === undefined
+      ? []
+      : vmGroupNames(vm.tags, document).filter(name => {
+          const networks = groupNetworks(document.groups[name])
 
-  return [...groupsOfIp(address), ...(vm === undefined ? [] : vmGroupNames(vm.tags, document))]
+          return networks.length === 0 || (netTags !== undefined && isOnNetworks(netTags, networks))
+        })
+
+  return [...groupsOfIp(address), ...tagged]
 }
 
 // the flows of the last day the draft's policy would still drop

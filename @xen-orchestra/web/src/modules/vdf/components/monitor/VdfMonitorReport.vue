@@ -108,6 +108,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
@@ -121,6 +122,7 @@ import {
   suggestRules,
   type VdfSuggestion,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
@@ -169,6 +171,8 @@ const { document, publishedDocument, saveRule } = useVdfScope(() => ({ kind: 'po
 
 const { vmByIp, groupsOfIp } = useVdfIpNames(publishedDocument)
 
+const { netTagsOfAddress, interfaceLabel, vifLabel } = useVdfInterfaces()
+
 const { membersOf } = useVdfMembers(() => pool.id, publishedDocument)
 
 const { vms } = useXoVmCollection()
@@ -198,15 +202,24 @@ const showExpired = ref(false)
 // else the address. A VM of another pool is in a tagged group's members
 // only for a global group (XO adds the other pools' members to those): the
 // pool's own groups resolve on its hosts, among its own VMs.
+// A group scoped to networks (vdf#36) names the address only if it's on
+// one of its networks, and wins a tie: the rule then covers that interface
+// of the VM, not its others.
 function sourceOf(address: string) {
   const vm = vmByIp.value.get(address)
   const groups = publishedDocument.value.groups
 
   if (vm !== undefined) {
+    const netTags = netTagsOfAddress(vm, address)
+    const scoped = (name: string) => groupNetworks(groups[name]).length > 0
     const tagged = vmGroupNames(vm.tags, publishedDocument.value)
       .filter(name => (groups[name]?.tags?.length ?? 0) > 0)
       .filter(name => vm.$pool === pool.id || isGlobalName(name))
-      .sort((a, b) => membersOf(a).length - membersOf(b).length || a.localeCompare(b))
+      .filter(name => !scoped(name) || (netTags !== undefined && isOnNetworks(netTags, groupNetworks(groups[name]))))
+      .sort(
+        (a, b) =>
+          membersOf(a).length - membersOf(b).length || Number(scoped(b)) - Number(scoped(a)) || a.localeCompare(b)
+      )
 
     if (tagged.length > 0) {
       return tagged[0]
@@ -380,8 +393,11 @@ function decidedBy(entry: VdfMonitorEntry) {
     : t('firewall:monitor:by-rule', { id: entry.rule })
 }
 
+// the VM, and which of its interfaces when it has several (vdf#36)
 function vmEndpoint(entry: VdfMonitorEntry) {
-  return h(VdfEndpoint, { scopeId: pool.id, ip: '', vm: vmById.value.get(entry.vm), name: entry.vmName })
+  const vm = vmById.value.get(entry.vm)
+
+  return h(VdfEndpoint, { scopeId: pool.id, ip: '', vm, name: entry.vmName, iface: vifLabel(vm, entry.vif) })
 }
 
 // past a rule's quota, the other sources (egress: destinations) are counted together
@@ -393,6 +409,7 @@ function addressEndpoint(address: string, others: 'sources' | 'destinations') {
         ip: address,
         vm: vmByIp.value.get(address),
         groups: vmByIp.value.get(address) === undefined ? groupsOfIp(address) : [],
+        iface: interfaceLabel(vmByIp.value.get(address), address),
       })
 }
 

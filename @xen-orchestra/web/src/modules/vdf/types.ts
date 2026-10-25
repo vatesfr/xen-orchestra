@@ -425,6 +425,8 @@ export type VdfMonitorEntry = {
   src: string // an IP, or "other" for the flows past a rule's quota
   vm: string // the destination VM, or for egress the source VM
   vmName: string
+  // its interface, when it has several protected ones (vdf#36)
+  vif?: string
   // what the VM starts (vdf#53): an egress rule or default would drop it,
   // to dst (an IP, or "other" past the rule's quota)
   egress?: boolean

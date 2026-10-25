@@ -110,7 +110,6 @@ import type { VdfConnection } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -187,17 +186,8 @@ function involvesVm(...ends: { vm?: { id: string } }[]) {
   return vmFilter.value === '' || ends.some(end => end.vm?.id === vmFilter.value)
 }
 
-const { interfacesOf } = useVdfInterfaces()
-
 // which interface of a VM with several an address is on (vdf#36)
-function interfaceLabel(vm: FrontXoVm | undefined, ip: string) {
-  const interfaces = vm === undefined ? [] : interfacesOf(vm)
-  const iface = interfaces.length > 1 ? interfaces.find(candidate => candidate.ips.includes(ip)) : undefined
-
-  return iface === undefined
-    ? undefined
-    : t('firewall:live:interface', { device: iface.vif.device, network: iface.network?.name_label ?? '?' })
-}
+const { interfaceLabel } = useVdfInterfaces()
 
 function endpoint(ip: string, agentName?: string) {
   const vm = vmByIp.value.get(ip) ?? (agentName ? vmByName.value.get(agentName) : undefined)
