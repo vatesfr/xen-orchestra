@@ -1,4 +1,5 @@
-import type { VdfHostState, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfHostState, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
+import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
 
 export const VDF_STATUS_KEY = 'vdf:status'
 
@@ -46,6 +47,24 @@ export function hostState(
   }
 
   return 'up-to-date'
+}
+
+// The policy format a host's agent enforces, from the pool key it reads
+// (`vdf:policy.v5`: 5, `vdf:policy`: 1); undefined for none, or its last
+// valid policy after a rejection
+export function enforcedVersion(status: VdfHostStatusDocument | undefined): number | undefined {
+  const match = /^vdf:policy(?:\.v(\d+))?$/.exec(status?.source ?? '')
+
+  return match === null ? undefined : Number(match[1] ?? 1)
+}
+
+// An agent older than egress (vdf#53) enforces a document's ingress only:
+// it reads an older key, written without the egress rules, and reports
+// itself up to date
+export function ignoresEgress(status: VdfHostStatusDocument | undefined, document: VdfDocument) {
+  const version = enforcedVersion(status)
+
+  return version !== undefined && version < 6 && document.policies.some(hasEgress)
 }
 
 export type VdfPolicyRealization = {

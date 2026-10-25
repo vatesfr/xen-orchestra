@@ -1,7 +1,9 @@
-import type { VdfHostStatusDocument } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
 import {
   effectiveLockingMode,
+  enforcedVersion,
   hostState,
+  ignoresEgress,
   policyRealization,
   vmProtection,
 } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -16,6 +18,35 @@ const status = (fields: Partial<VdfHostStatusDocument> = {}): VdfHostStatusDocum
   published: 'abc',
   policies: [{ name: 'app', tier: 'application', vifs: 1, realized: true }],
   ...fields,
+})
+
+describe('ignoresEgress', () => {
+  const document = (egress: boolean): VdfDocument => ({
+    groups: {},
+    policies: [
+      {
+        name: 'app',
+        appliedTo: 'app',
+        tier: 'application',
+        default: 'drop',
+        ingress: [],
+        ...(egress ? { egress: [{ id: 2, to: 'any', proto: 'tcp', ports: [443] }] } : {}),
+      },
+    ],
+  })
+
+  it('reads the format from the key the agent enforces', () => {
+    expect(enforcedVersion(status({ source: 'vdf:policy.v6' }))).toBe(6)
+    expect(enforcedVersion(status({ source: 'vdf:policy' }))).toBe(1)
+    expect(enforcedVersion(status({ source: 'last valid policy' }))).toBeUndefined()
+    expect(enforcedVersion(undefined)).toBeUndefined()
+  })
+
+  it('flags an agent older than egress only when the document has egress', () => {
+    expect(ignoresEgress(status({ source: 'vdf:policy.v5' }), document(true))).toBe(true)
+    expect(ignoresEgress(status({ source: 'vdf:policy.v6' }), document(true))).toBe(false)
+    expect(ignoresEgress(status({ source: 'vdf:policy.v5' }), document(false))).toBe(false)
+  })
 })
 
 describe('hostState', () => {

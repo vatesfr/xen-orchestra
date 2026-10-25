@@ -3,7 +3,11 @@ import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
 export type VdfRecentDrop = {
   key: string
   src: string
+  dst: string
+  // the VM whose policy decided: the destination, or for egress the source
   vm: string
+  // dropped by the source's egress (vdf#53)
+  egress: boolean
   proto: string
   port?: string
   tier: string
@@ -14,7 +18,8 @@ export type VdfRecentDrop = {
 }
 
 // What the rule log dropped lately, one row per flow (source, destination VM,
-// service) with the policy and rule that decided, most frequent first.
+// service; for egress, source VM, destination and service) with the policy
+// and rule that decided, most frequent first.
 // Packets the agent didn't log (rate limit) count too.
 export function recentDrops(
   entries: VdfRuleLogEntry[],
@@ -31,7 +36,11 @@ export function recentDrops(
 
     const proto = entry.proto.split(' ')[0].toLowerCase()
     const port = entry.dport || undefined
-    const key = `${entry.src}>${entry.vm}:${proto}/${port ?? ''}`
+    const egress = entry.egress === true
+    // an egress drop's destination is anywhere: by address
+    const key = egress
+      ? `${entry.vm}>${entry.dst}:${proto}/${port ?? ''}:out`
+      : `${entry.src}>${entry.vm}:${proto}/${port ?? ''}`
     const count = 1 + (entry.suppressed ?? 0)
     const drop = drops.get(key)
 
@@ -39,7 +48,9 @@ export function recentDrops(
       drops.set(key, {
         key,
         src: entry.src,
+        dst: entry.dst,
         vm: entry.vm,
+        egress,
         proto,
         port,
         tier: entry.tier,

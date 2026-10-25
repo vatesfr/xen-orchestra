@@ -197,6 +197,9 @@
           </I18nT>
         </span>
         <UiInfo v-if="row.status?.rejected" accent="danger" wrap>{{ row.status.rejected }}</UiInfo>
+        <UiInfo v-if="ignoresEgress(row.status, publishedDocument)" accent="warning" wrap>
+          {{ t('firewall:overview:ignores-egress') }}
+        </UiInfo>
         <UiInfo v-for="error of row.status?.errors ?? []" :key="error" accent="danger" wrap>{{ error }}</UiInfo>
       </div>
 
@@ -255,7 +258,7 @@ import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { effectiveLockingMode, hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { effectiveLockingMode, hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'

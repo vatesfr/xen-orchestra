@@ -22,16 +22,24 @@ export function useVdfRecentDrops(rawPoolId: MaybeRefOrGetter<string>, { limit }
 
   const poolVms = computed(() => vms.value.filter(vm => vm.$pool === poolId.value))
 
+  // a running VM first: a halted one keeps the addresses it last had
+  function vmOfIp(ip: string) {
+    const candidates = poolVms.value.filter(vm => Object.values(vm.addresses ?? {}).includes(ip))
+
+    return candidates.find(vm => vm.power_state === 'Running') ?? candidates[0]
+  }
+
   const drops = computed(() =>
     recentDrops(ruleLog.value?.entries ?? [], {
       since: now.value.getTime() - VDF_RECENT_DROPS_WINDOW_MINUTES * 60_000,
       limit,
     }).map(drop => {
-      const destination = poolVms.value.find(vm => vm.name_label === drop.vm)
-      // a running VM first: a halted one keeps the addresses it last had
-      const sources = poolVms.value.filter(vm => Object.values(vm.addresses ?? {}).includes(drop.src))
-      const source = sources.find(vm => vm.power_state === 'Running') ?? sources[0]
-      const canTrace = destination !== undefined && ['tcp', 'udp', 'icmp'].includes(drop.proto)
+      const named = poolVms.value.find(vm => vm.name_label === drop.vm)
+      // egress (vdf#53): the named VM is the source, the destination by address
+      const source = drop.egress ? named : vmOfIp(drop.src)
+      const destination = drop.egress ? vmOfIp(drop.dst) : named
+      const canTrace =
+        (drop.egress ? source !== undefined : destination !== undefined) && ['tcp', 'udp', 'icmp'].includes(drop.proto)
 
       // same query as the rule log's and Live's links to the trace
       const traceRoute: RouteLocationRaw | undefined = canTrace
@@ -41,7 +49,8 @@ export function useVdfRecentDrops(rawPoolId: MaybeRefOrGetter<string>, { limit }
             query: {
               from: source?.id ?? 'external',
               fromip: source === undefined ? drop.src : undefined,
-              to: destination.id,
+              to: destination?.id ?? 'external',
+              toip: destination === undefined ? drop.dst : undefined,
               proto: drop.proto,
               port: drop.port,
               run: '1',

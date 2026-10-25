@@ -180,9 +180,18 @@
               </span>
             </UiTableCell>
             <UiTableCell class="typo-body-regular-small">
-              <span v-if="row.pool.inScope && row.hosts.total > 0">{{
-                t('firewall:global:hosts-up-to-date', row.hosts)
-              }}</span>
+              <span v-if="row.pool.inScope && row.hosts.total > 0" class="hosts">
+                <span>{{ t('firewall:global:hosts-up-to-date', row.hosts) }}</span>
+                <UiTag
+                  v-if="row.ignoringEgress > 0"
+                  v-tooltip="t('firewall:overview:ignores-egress')"
+                  accent="warning"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{ t('firewall:global:hosts-ignore-egress', { n: row.ignoringEgress }, row.ignoringEgress) }}
+                </UiTag>
+              </span>
             </UiTableCell>
             <UiTableCell class="typo-body-regular-small">
               <span v-if="row.pool.seenAt !== undefined" class="last-sync">
@@ -337,7 +346,7 @@ import type {
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -463,6 +472,8 @@ const poolRows = computed(() =>
         pool,
         inDraftScope: inGlobalScope(scope.value, pool.id),
         hosts: { n: poolHosts.filter(({ state }) => state === 'up-to-date').length, total: poolHosts.length },
+        // agents older than outbound rules (vdf#53): the global ones are ignored there
+        ignoringEgress: poolHosts.filter(({ status }) => ignoresEgress(status, publishedDocument.value)).length,
       }
     })
 )
@@ -668,6 +679,7 @@ const memberGroups = computed(() =>
   }
 
   .sync,
+  .hosts,
   .last-sync {
     display: inline-flex;
     flex-wrap: wrap;

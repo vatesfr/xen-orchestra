@@ -46,8 +46,10 @@ import { type RouteLocationRaw, useRouter } from 'vue-router'
 export type VdfDroppedRow = {
   key: string
   src: { ip: string; vm?: FrontXoVm; name?: string; groups: string[] }
-  dst: { ip: string; vm?: FrontXoVm; name?: string }
+  dst: { ip: string; vm?: FrontXoVm; name?: string; groups?: string[] }
   revoked: boolean
+  // dropped by the source's outbound rules or default (vdf#53)
+  egress?: boolean
   proto?: string
   port?: string
   // a rule or a policy default; the agents' own attempts only know it's
@@ -120,7 +122,7 @@ const { HeadCells, BodyCells, toggle } = useDroppedColumns({
       ),
     service: r => r(row.proto === undefined ? '' : h(VdfService, { proto: row.proto, port: row.port })),
     decidedBy: r => {
-      const cell = h(VdfDecisionCell, { decision: row.decision, fallback: row.decisionText })
+      const cell = h(VdfDecisionCell, { decision: row.decision, egress: row.egress, fallback: row.decisionText })
 
       // narrow: the trace button beside what decided, not in a column of its own
       return r(

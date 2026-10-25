@@ -283,6 +283,8 @@ export type VdfTraceStage = {
   rule?: number
   action?: string
   decides: boolean
+  // a stage of the source's egress tiers (vdf#53)
+  egress?: boolean
 }
 
 export type VdfTraceHop = {
@@ -355,7 +357,11 @@ export type VdfConnection = {
   dport: string
   state: string
   rule: number
+  // the source's egress rule that let it out (vdf#53)
+  egressRule?: number
   revoked: boolean
+  // revoked by the source's egress rather than its destination
+  egressRevoked?: boolean
   srcVm: string
   dstVm: string
 }
@@ -366,6 +372,9 @@ export type VdfBlockedAttempt = {
   dstVm: string
   perSec: number
   revoked: boolean
+  // dropped by the source's egress (vdf#53): its default (no dstVm), or
+  // with revoked its revocations
+  egress?: boolean
 }
 
 export type VdfHostStats = {

@@ -57,4 +57,23 @@ describe('recentDrops', () => {
       port: undefined,
     })
   })
+
+  it('keys egress drops by source VM and destination (vdf#53)', () => {
+    const drops = recentDrops(
+      [
+        entry({ egress: true, src: '192.168.1.73', dst: '1.1.1.1', dport: '443' }),
+        entry({ egress: true, src: '192.168.1.73', dst: '1.1.1.1', dport: '443', suppressed: 1 }),
+        entry({ egress: true, src: '192.168.1.73', dst: '8.8.8.8', dport: '443' }),
+        // the same addresses inbound: another flow
+        entry({ src: '1.1.1.1', dst: '192.168.1.73', dport: '443' }),
+      ],
+      { since }
+    )
+
+    expect(drops.map(({ egress, dst, count }) => ({ egress, dst, count }))).toEqual([
+      { egress: true, dst: '1.1.1.1', count: 3 },
+      { egress: true, dst: '8.8.8.8', count: 1 },
+      { egress: false, dst: '192.168.1.73', count: 1 },
+    ])
+  })
 })

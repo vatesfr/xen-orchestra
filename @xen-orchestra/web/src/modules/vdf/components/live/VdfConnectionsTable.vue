@@ -51,8 +51,12 @@ export type VdfConnectionItem = {
   // connection tracking's own state (TIME_WAIT, ESTABLISHED…)
   state: string
   revoked: boolean
+  // revoked by its source's outbound rules (vdf#53)
+  revokedByEgress?: boolean
   // the rule that let it in; none for connections older than the policy
   decision?: VdfDecision
+  // the source's outbound rule that let it out (vdf#53)
+  egressDecision?: VdfDecision
 }
 
 const { connections, scopeId } = defineProps<{
@@ -113,6 +117,7 @@ const rows = computed<Row[]>(() => {
         connection.port,
         label,
         connection.decision?.label,
+        connection.egressDecision?.label,
       ].some(value => value?.toLocaleLowerCase().includes(term))
     ) {
       continue
@@ -125,6 +130,7 @@ const rows = computed<Row[]>(() => {
           connection.proto,
           connection.port,
           connection.decision?.label,
+          connection.egressDecision?.label,
           connection.revoked,
         ].join('|')
       : connection.key
@@ -169,13 +175,19 @@ const { HeadCells, BodyCells, toggle } = useConnectionColumns({
     source: r => r(h(VdfEndpoint, { scopeId, ...row.src })),
     destination: r => r(h(VdfEndpoint, { scopeId, ...row.dst })),
     service: r => r(h(VdfService, { proto: row.proto, port: row.port })),
+    // out by the source's egress, then in by the destination's ingress
     allowedBy: r =>
       r(
-        h(VdfDecisionCell, {
-          decision: row.decision,
-          fallback: t('firewall:live:no-rule'),
-          fallbackIsSecondary: true,
-        })
+        h('span', { class: 'decisions' }, [
+          row.egressDecision ? h(VdfDecisionCell, { decision: row.egressDecision, egress: true }) : null,
+          row.decision || !row.egressDecision
+            ? h(VdfDecisionCell, {
+                decision: row.decision,
+                fallback: t('firewall:live:no-rule'),
+                fallbackIsSecondary: true,
+              })
+            : null,
+        ])
       ),
     state: r =>
       r(
@@ -188,7 +200,11 @@ const { HeadCells, BodyCells, toggle } = useConnectionColumns({
               )
               .join(', ')
           ),
-          row.revoked ? h(UiTag, { accent: 'danger', variant: 'secondary' }, () => t('firewall:live:revoked')) : null,
+          row.revoked
+            ? h(UiTag, { accent: 'danger', variant: 'secondary' }, () =>
+                row.revokedByEgress ? t('firewall:live:revoked-egress') : t('firewall:live:revoked')
+              )
+            : null,
         ])
       ),
     // the source, when it's a VM of this pool
@@ -230,6 +246,12 @@ watchEffect(() =>
         min-width: 0;
       }
     }
+  }
+
+  :deep(.decisions) {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 
   :deep(.states) {
