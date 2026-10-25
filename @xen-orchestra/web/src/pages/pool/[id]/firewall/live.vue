@@ -199,7 +199,7 @@ function connectionKey(connection: VdfConnection) {
 const connections = computed<VdfConnectionItem[]>(() =>
   hostStats.value
     .flatMap(host => host.connections ?? [])
-    .filter(connection => connection.rule !== 0 || connection.revoked)
+    .filter(connection => connection.rule !== 0 || connection.egressRule || connection.revoked)
     .map(connection => ({
       key: connectionKey(connection),
       src: endpoint(connection.src, connection.srcVm),
@@ -208,7 +208,9 @@ const connections = computed<VdfConnectionItem[]>(() =>
       port: connection.dport,
       state: connection.state,
       revoked: connection.revoked,
+      revokedByEgress: connection.egressRevoked,
       decision: connection.rule === 0 ? undefined : ruleDecision(connection.rule),
+      egressDecision: connection.egressRule ? ruleDecision(connection.egressRule) : undefined,
     }))
     .filter(connection => involvesVm(connection.src, connection.dst))
 )
@@ -235,10 +237,14 @@ const totals = computed(() =>
       }
 )
 
-function traceRoute(source: { vm?: string; ip: string }, destinationVm: string, proto?: string, port?: string) {
-  const destination = poolVms.value.find(vm => vm.name_label === destinationVm)
+// to a VM by name, or (egress, vdf#53) to any address
+function traceRoute(source: { vm?: string; ip: string }, to: string | { ip: string }, proto?: string, port?: string) {
+  const destination =
+    typeof to === 'string'
+      ? poolVms.value.find(vm => vm.name_label === to)
+      : poolVms.value.find(vm => Object.values(vm.addresses ?? {}).includes(to.ip))
 
-  if (destination === undefined) {
+  if (destination === undefined && typeof to === 'string') {
     return undefined
   }
 
@@ -252,7 +258,8 @@ function traceRoute(source: { vm?: string; ip: string }, destinationVm: string, 
     query: {
       from: sourceVm?.id ?? 'external',
       fromip: sourceVm === undefined ? source.ip : undefined,
-      to: destination.id,
+      to: destination?.id ?? 'external',
+      toip: destination === undefined && typeof to !== 'string' ? to.ip : undefined,
       proto,
       port,
       run: proto === undefined ? undefined : '1',
@@ -269,8 +276,27 @@ const droppedRows = computed<VdfDroppedRow[]>(() => {
   const sampled = hostStats.value
     .flatMap(host => host.blocked ?? [])
     .sort((attemptA, attemptB) => attemptB.perSec - attemptA.perSec)
-    .map(
-      (attempt): VdfDroppedRow => ({
+    .map((attempt): VdfDroppedRow => {
+      // the source's egress (vdf#53): its default, or its revocations, to
+      // destinations the agent doesn't sample
+      if (attempt.egress) {
+        return {
+          key: `agent:${attempt.srcVm}>${attempt.revoked ? 'revoked' : 'egress'}`,
+          src: endpoint(attempt.srcIp, attempt.srcVm),
+          dst: {
+            ip: '',
+            name: attempt.revoked ? t('firewall:live:egress-revoked') : t('firewall:live:egress-destinations'),
+          },
+          revoked: attempt.revoked,
+          egress: true,
+          decisionText: attempt.revoked ? t('firewall:live:revoked-by-egress') : t('firewall:live:egress-default-drop'),
+          rate: formatRate(attempt.perSec),
+          rateDetail: t('firewall:live:rate:sampled'),
+          traceLabel: '',
+        }
+      }
+
+      return {
         key: `agent:${attempt.srcIp}>${attempt.dstVm}`,
         src: endpoint(attempt.srcIp, attempt.srcVm),
         dst: endpoint('', attempt.dstVm),
@@ -280,8 +306,8 @@ const droppedRows = computed<VdfDroppedRow[]>(() => {
         rateDetail: t('firewall:live:rate:sampled'),
         trace: traceRoute({ vm: attempt.srcVm || undefined, ip: attempt.srcIp }, attempt.dstVm),
         traceLabel: t('firewall:live:trace', { from: attempt.srcVm || attempt.srcIp, to: attempt.dstVm }),
-      })
-    )
+      }
+    })
 
   const policies = new Map(publishedDocument.value.policies.map(policy => [policy.name, policy]))
 
@@ -289,11 +315,15 @@ const droppedRows = computed<VdfDroppedRow[]>(() => {
     (drop): VdfDroppedRow => {
       const policy = policies.get(drop.policy)
 
+      // egress (vdf#53): the logged VM is the source
+      const to = drop.egress ? (vmByIp.value.get(drop.dst)?.name_label ?? drop.dst) : drop.vm
+
       return {
         key: `log:${drop.key}`,
-        src: endpoint(drop.src),
-        dst: endpoint('', drop.vm),
+        src: drop.egress ? endpoint(drop.src, drop.vm) : endpoint(drop.src),
+        dst: drop.egress ? endpoint(drop.dst) : endpoint('', drop.vm),
         revoked: false,
+        egress: drop.egress,
         proto: drop.proto,
         port: drop.port,
         decision:
@@ -303,13 +333,20 @@ const droppedRows = computed<VdfDroppedRow[]>(() => {
         decisionText: displayName(drop.policy),
         rate: formatRate(drop.count / 60),
         rateDetail: t('firewall:live:last-minute', { n: drop.count }),
-        trace: traceRoute({ ip: drop.src }, drop.vm, drop.proto, drop.port),
-        traceLabel: t('firewall:live:trace', { from: drop.src, to: drop.vm }),
+        trace: drop.egress
+          ? traceRoute({ vm: drop.vm, ip: drop.src }, { ip: drop.dst }, drop.proto, drop.port)
+          : traceRoute({ ip: drop.src }, drop.vm, drop.proto, drop.port),
+        traceLabel: t('firewall:live:trace', { from: drop.egress ? drop.vm : drop.src, to }),
       }
     }
   )
 
-  return [...sampled, ...logged].filter(row => involvesVm(row.src, row.dst))
+  // a logged egress default names the destinations: the agent's sampled
+  // row for the same source says less
+  const loggedEgressSources = new Set(logged.filter(row => row.egress).map(row => row.src.vm?.id))
+  const shown = sampled.filter(row => !row.egress || row.revoked || !loggedEgressSources.has(row.src.vm?.id))
+
+  return [...shown, ...logged].filter(row => involvesVm(row.src, row.dst))
 })
 </script>
 

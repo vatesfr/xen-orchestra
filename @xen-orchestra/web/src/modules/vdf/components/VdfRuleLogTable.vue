@@ -183,7 +183,10 @@ const state = useTableState({
 function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: string): RouteLocationRaw | undefined {
   const proto = entry.proto.split(' ')[0].toLowerCase()
 
-  if (destinationId === undefined || !['tcp', 'udp', 'icmp'].includes(proto)) {
+  // egress (vdf#53): from the logged VM to any address
+  const known = entry.egress ? sourceId : destinationId
+
+  if (known === undefined || !['tcp', 'udp', 'icmp'].includes(proto)) {
     return undefined
   }
 
@@ -193,7 +196,8 @@ function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: str
     query: {
       from: sourceId ?? 'external',
       fromip: sourceId === undefined ? entry.src : undefined,
-      to: destinationId,
+      to: destinationId ?? 'external',
+      toip: destinationId === undefined ? entry.dst : undefined,
       proto,
       port: entry.dport || undefined,
       run: '1',

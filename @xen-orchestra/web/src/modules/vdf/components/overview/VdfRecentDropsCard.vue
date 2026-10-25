@@ -65,18 +65,25 @@ const { groupsOfIp } = useVdfIpNames(() => document)
 const rows = computed<VdfDroppedRow[]>(() =>
   drops.value.map(drop => {
     const from = drop.source?.name_label ?? drop.src
+    // egress (vdf#53): the named VM is the source, the destination any address
+    const to = drop.egress ? (drop.destination?.name_label ?? drop.dst) : drop.vm
 
     return {
       key: drop.key,
-      src: { ip: drop.src, vm: drop.source, groups: groupsOfIp(drop.src) },
-      dst: { ip: '', vm: drop.destination, name: drop.vm },
+      src: drop.egress
+        ? { ip: drop.src, vm: drop.source, name: drop.source === undefined ? drop.vm : undefined, groups: [] }
+        : { ip: drop.src, vm: drop.source, groups: groupsOfIp(drop.src) },
+      dst: drop.egress
+        ? { ip: drop.dst, vm: drop.destination, groups: groupsOfIp(drop.dst) }
+        : { ip: '', vm: drop.destination, name: drop.vm },
+      egress: drop.egress,
       revoked: false,
       proto: drop.proto,
       port: drop.port,
       decision: decision({ tier: drop.tier, policy: drop.policy, rule: drop.rule }),
       rate: t('firewall:recent-drops:count', { n: n(drop.count), minutes: VDF_RECENT_DROPS_WINDOW_MINUTES }),
       trace: drop.traceRoute,
-      traceLabel: t('firewall:recent-drops:why', { from, to: drop.vm }),
+      traceLabel: t('firewall:recent-drops:why', { from, to }),
     }
   })
 )
