@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="info" icon="fa:object-group" @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal accent="info" icon="status:info-picto" @confirm="emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <I18nT keypath="firewall:vm:join:title" scope="global" tag="div">
         <template #vm>

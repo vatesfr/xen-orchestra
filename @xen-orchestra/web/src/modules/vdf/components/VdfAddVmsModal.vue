@@ -1,5 +1,5 @@
 <template>
-  <UiModal accent="info" icon="fa:object-group" @confirm="emit('confirm', selectedVms)" @dismiss="emit('cancel')">
+  <VdfContentModal accent="info" size="medium" @confirm="emit('confirm', selectedVms)" @dismiss="emit('cancel')">
     <template #title>{{ t('firewall:add-vms:title', { group }) }}</template>
     <template #content>
       <div class="vdf-add-vms-modal">
@@ -22,10 +22,11 @@
         {{ t('firewall:add-vms:confirm', { n: selectedVms.length }) }}
       </VtsOverlayConfirmButton>
     </template>
-  </UiModal>
+  </VdfContentModal>
 </template>
 
 <script lang="ts" setup>
+import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -33,7 +34,6 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiModal from '@core/components/ui/modal/UiModal.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { computed, ref } from 'vue'
@@ -72,8 +72,6 @@ const selectedVms = computed(() => candidates.filter(vm => selectedIds.value.inc
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-  min-width: min(56rem, 80vw);
-  text-align: start;
 
   .tags {
     display: flex;
