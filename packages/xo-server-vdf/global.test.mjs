@@ -17,6 +17,7 @@ import {
   poolSyncState,
   remoteIpsFor,
   runningVmRecords,
+  vmIfaces,
   vmIps,
 } from './global.mjs'
 
@@ -219,7 +220,14 @@ describe('members', () => {
     },
   ]
   const vifs = {
-    b3: [{ lockingMode: 'locked', allowedIpv4Addresses: ['10.1.0.20'], allowedIpv6Addresses: ['fd00::20', 'fe80::1'] }],
+    b3: [
+      {
+        device: '0',
+        lockingMode: 'locked',
+        allowedIpv4Addresses: ['10.1.0.20'],
+        allowedIpv6Addresses: ['fd00::20', 'fe80::1'],
+      },
+    ],
   }
   const vifsOf = vm => vifs[vm.id] ?? []
   const records = runningVmRecords(vms, vifsOf)
@@ -293,6 +301,68 @@ describe('members', () => {
         trusted: false,
       }
     )
+  })
+})
+
+describe('per-network groups (vdf#36)', () => {
+  const dmz = { id: 'n-dmz', tags: ['vdf:net=dmz'] }
+  const backend = { id: 'n-backend', tags: ['vdf:net=backend'] }
+  const networks = { 'n-dmz': dmz, 'n-backend': backend }
+  const networkOf = vif => networks[vif.$network]
+  const web = {
+    id: 'web',
+    name_label: 'web',
+    $pool: 'A',
+    power_state: 'Running',
+    tags: ['vdf:role=web'],
+    addresses: { '0/ipv4/0': '10.0.20.5', '1/ipv4/0': '10.0.30.99', '2/ipv4/0': '192.0.2.7' },
+  }
+  const vifs = [
+    { device: '0', $network: 'n-dmz', lockingMode: 'unlocked' },
+    { device: '1', $network: 'n-backend', lockingMode: 'locked', allowedIpv4Addresses: ['10.0.30.5'] },
+  ]
+
+  test('each interface has its network tags and addresses', () => {
+    assert.deepEqual(vmIfaces(web, vifs, networkOf), [
+      { device: '0', network: 'n-dmz', netTags: ['vdf:net=dmz'], ips: ['10.0.20.5'], trusted: false },
+      // locked: the guest's address ignored
+      { device: '1', network: 'n-backend', netTags: ['vdf:net=backend'], ips: ['10.0.30.5'], trusted: true },
+      { device: '2', network: undefined, netTags: [], ips: ['192.0.2.7'], trusted: false },
+    ])
+    // the unlocked NIC's guest addresses count too, untrusted
+    assert.deepEqual(vmIps(web, vifs, networkOf), { ips: ['10.0.20.5', '10.0.30.5', '192.0.2.7'], trusted: false })
+  })
+
+  test("a group with networks gets its members' addresses there only", () => {
+    const global = {
+      groups: {
+        web: { tags: ['vdf:role=web'] },
+        'web-backend': { tags: ['vdf:role=web'], networks: ['vdf:net=backend'] },
+        'web-admin': { tags: ['vdf:role=web'], networks: ['vdf:net=admin'] },
+      },
+      policies: [],
+    }
+    const records = [
+      ...runningVmRecords([web], () => vifs, networkOf),
+      // saved before interfaces were known: no member of a scoped group
+      { vm: 'old', vmName: 'old', pool: 'B', tags: ['vdf:role=web'], ips: ['10.0.30.7'], trusted: true },
+    ]
+    const members = globalMembers({ global, records, scope: { all: true } })
+    assert.deepEqual(
+      members.web.map(member => member.ips),
+      [['10.0.20.5', '10.0.30.5', '192.0.2.7'], ['10.0.30.7']]
+    )
+    assert.deepEqual(members['web-backend'], [
+      { vm: 'web', vmName: 'web', pool: 'A', ips: ['10.0.30.5'], trusted: true },
+    ])
+    assert.deepEqual(members['web-admin'], [])
+    // composed for pool B: the remote addresses on the backend network only
+    const composed = compose({ groups: {}, policies: [] }, global, remoteIpsFor('B', members))
+    assert.deepEqual(composed.groups['global:web-backend'], {
+      tags: ['vdf:role=web'],
+      networks: ['vdf:net=backend'],
+      ips: ['10.0.30.5'],
+    })
   })
 })
 

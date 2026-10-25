@@ -14,6 +14,8 @@ const vifFields = [
   'txChecksumming',
   'id',
   'lockingMode',
+  'allowedIpv4Addresses',
+  'allowedIpv6Addresses',
   'MAC',
   'MTU',
   'rateLimit',

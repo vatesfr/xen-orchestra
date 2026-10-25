@@ -85,6 +85,7 @@
               :entry
               :columns
               :members="membersOf(entry.policy.appliedTo).length"
+              :spread="interfaceSpread(entry.policy.appliedTo)"
               :group-exists
               :realization="realizationOf(entry.policy.name)"
               :highlighted="isPolicyHighlighted(entry)"
@@ -95,6 +96,7 @@
               @move="to => edit(target => movePolicy(target, entry.policy.name, to, isLocked))"
               @add-rule="editRule(entry.policy.name)"
               @add-egress-rule="editRule(entry.policy.name, undefined, { egress: true })"
+              @limit-networks="editGroup(entry.policy.appliedTo, undefined, { scoped: true })"
               @set-mode="mode => setMode(entry.policy.name, mode)"
             />
             <VdfRuleRow
@@ -158,10 +160,13 @@ import VdfPolicyRow from '@/modules/vdf/components/policies/VdfPolicyRow.vue'
 import VdfRuleRow from '@/modules/vdf/components/policies/VdfRuleRow.vue'
 import VdfTierRow from '@/modules/vdf/components/policies/VdfTierRow.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
+import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfRuleHits } from '@/modules/vdf/composables/vdf-rule-hits.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfPolicyMode, VdfProtocol } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   filterRuleBase,
   movePolicy,
@@ -227,6 +232,31 @@ const hasError = computed(() =>
 )
 
 const { editPolicy, editRule, editGroup, editLimits, hasTaggedGroups } = useVdfEditors(() => scope)
+
+// the chips show what the groups they name are (their networks)
+provideVdfGroups(() => document.value.groups)
+
+const { interfacesOf } = useVdfInterfaces()
+
+// A group without networks applied to VMs with interfaces on several
+// networks: every one gets the policy, which may not be meant (vdf#36)
+function interfaceSpread(groupName: string) {
+  if (groupNetworks(document.value.groups[groupName]).length > 0) {
+    return undefined
+  }
+
+  const spread = membersOf(groupName)
+    .map(vm => [
+      ...new Set(
+        interfacesOf(vm)
+          .filter(iface => !iface.unprotected)
+          .map(iface => iface.network?.name_label ?? iface.vif.$network)
+      ),
+    ])
+    .filter(names => names.length > 1)
+
+  return spread.length === 0 ? undefined : { vms: spread.length, networks: [...new Set(spread.flat())].sort() }
+}
 
 const isReady = logicAnd(isPublishedReady, areHostsReady, areVmsReady)
 

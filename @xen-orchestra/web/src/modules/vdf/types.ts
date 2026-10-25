@@ -81,6 +81,9 @@ export type VdfPolicy = {
 export type VdfGroup = {
   tags?: string[]
   ips?: string[]
+  // network tags (vdf#36): only its VMs' interfaces on networks carrying
+  // them all; every interface without
+  networks?: string[]
   [unknownField: string]: unknown
 }
 

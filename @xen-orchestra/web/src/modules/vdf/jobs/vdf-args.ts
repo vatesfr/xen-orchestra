@@ -1,3 +1,4 @@
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { defineJobArg } from '@core/packages/job'
@@ -20,3 +21,8 @@ export const vdfVmsArg = defineJobArg({
 export const vdfTagArg = defineJobArg<string>({ identify: true, toArray: false })
 
 export const vdfTagPresentArg = defineJobArg<boolean>({ identify: false, toArray: false })
+
+export const vdfNetworksArg = defineJobArg({
+  identify: (network: FrontXoNetwork) => network.id,
+  toArray: true,
+})

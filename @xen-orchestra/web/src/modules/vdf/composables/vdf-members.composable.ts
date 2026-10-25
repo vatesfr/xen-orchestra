@@ -1,13 +1,16 @@
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
 import { enforcedPolicies, isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 // Group members as the agents resolve them: VMs carrying all the group's
-// tags. Protection (appliedTo) follows the tags whatever the power state;
+// tags, with an interface on its networks when it has some (vdf#36).
+// Protection (appliedTo) follows the tags whatever the power state;
 // as a rule source, only running VMs' IPs count. For the global
 // configuration, the VMs of every pool in scope.
 export function useVdfMembers(
@@ -15,6 +18,8 @@ export function useVdfMembers(
   rawDocument: MaybeRefOrGetter<VdfDocument>
 ) {
   const { vms, areVmsReady } = useXoVmCollection()
+
+  const { groupInterfaces } = useVdfInterfaces()
 
   const poolVms = computed(() => {
     const poolIds = toValue(rawPoolIds)
@@ -29,7 +34,10 @@ export function useVdfMembers(
     for (const [name, group] of Object.entries(toValue(rawDocument).groups)) {
       members.set(
         name,
-        poolVms.value.filter(vm => isVmInGroup(vm.tags, group))
+        poolVms.value.filter(
+          vm =>
+            isVmInGroup(vm.tags, group) && (groupNetworks(group).length === 0 || groupInterfaces(vm, group).length > 0)
+        )
       )
     }
 
