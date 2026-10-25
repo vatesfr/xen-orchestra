@@ -171,30 +171,93 @@ export const reportedAddresses = (vif: VdfInterfaceVif, guestAddresses: Record<s
   ),
 ]
 
+// STABLE IPV6: SLAAC gives a VIF an address whose interface ID (its low 64
+// bits) is the modified EUI-64 of its MAC, and keeps it. The guest's other
+// IPv6 addresses (privacy, temporary or random) rotate: a lock to one cuts
+// the VM's IPv6 off when it does.
+
+// the modified EUI-64 interface ID of a MAC (RFC 4291, appendix A): FF:FE
+// in the middle, the universal/local bit (0x02 of the first byte) flipped
+export function eui64InterfaceId(mac: string | undefined): bigint | undefined {
+  const bytes = mac?.split(/[:-]/) ?? []
+
+  if (bytes.length !== 6 || bytes.some(byte => !/^[0-9a-f]{2}$/i.test(byte))) {
+    return undefined
+  }
+
+  const [b0, b1, b2, b3, b4, b5] = bytes.map(byte => parseInt(byte, 16))
+
+  return [b0 ^ 0x02, b1, b2, 0xff, 0xfe, b3, b4, b5].reduce((value, byte) => (value << 8n) | BigInt(byte), 0n)
+}
+
+// an IPv6 address whose interface ID is the MAC's EUI-64
+export function isStableIpv6(ip: string, mac: string | undefined) {
+  const value = parseIpv6(ip)
+  const id = eui64InterfaceId(mac)
+
+  return value !== undefined && id !== undefined && (value & 0xffff_ffff_ffff_ffffn) === id
+}
+
+export type VdfLockProposal = {
+  // proposed: IPv4, and the stable IPv6 addresses
+  addresses: string[]
+  // the guest's other IPv6 addresses, offered unticked
+  optional: string[]
+}
+
+export function lockProposal(reported: readonly string[], mac: string | undefined): VdfLockProposal {
+  const isProposed = (ip: string) => !ip.includes(':') || isStableIpv6(ip, mac)
+
+  return { addresses: reported.filter(isProposed), optional: reported.filter(ip => !isProposed(ip)) }
+}
+
+// A VIF as a lock sees it: its MAC tells its stable IPv6 addresses
+export type VdfLockVif = VdfInterfaceVif & { MAC?: string }
+
 export type VdfLockDrift = {
   // what the VIF is locked to
   allowed: string[]
-  // what its guest reports now, in the families the lock allows (what a
-  // relock proposes)
+  // what its guest reports now that the lock is expected to hold
   reported: string[]
+  // those of them outside the lock: what it moved to
+  outside: string[]
+  // what a relock proposes: the guest's addresses in the families the
+  // lock allows (all of them for a lock to nothing)
+  proposal: VdfLockProposal
 }
 
-// the addresses of the families a lock allows: one locked to IPv4
-// addresses has IPv6 off on purpose (the guest's SLAAC addresses aren't a
-// change), and the other way round; a lock to nothing cuts them all
-function lockFamilies(addresses: string[], ipv4: readonly string[], ipv6: readonly string[]) {
+// The guest's addresses a lock is expected to hold: one missing from the
+// allowed list means the guest changed address. The same rule as agents'
+// (agent/status.go lockRelevant):
+// - a lock to nothing cuts every address: all of them count;
+// - IPv4 counts when the lock allows some IPv4, else it's off on purpose;
+//   the same for IPv6: a lock with no IPv6 at all has IPv6 off, the
+//   guest's IPv6 addresses aren't a change;
+// - a lock holding stable IPv6 addresses expects those only: the guest's
+//   temporary ones come and go, a new stable one (another prefix) counts;
+// - a lock holding IPv6 addresses, none of them stable (set by hand,
+//   static or DHCPv6), counts every IPv6 the guest reports.
+export function lockRelevant(
+  reported: readonly string[],
+  ipv4: readonly string[],
+  ipv6: readonly string[],
+  mac: string | undefined
+) {
   if (ipv4.length === 0 && ipv6.length === 0) {
-    return addresses
+    return [...reported]
   }
 
-  return addresses.filter(ip => (ip.includes(':') ? ipv6.length > 0 : ipv4.length > 0))
+  const isStableLock = ipv6.some(ip => isStableIpv6(ip, mac))
+
+  return reported.filter(ip =>
+    ip.includes(':') ? ipv6.length > 0 && (!isStableLock || isStableIpv6(ip, mac)) : ipv4.length > 0
+  )
 }
 
 // a locked VIF whose guest reports an address outside its allowed list:
-// the guest changed address, XAPI drops its traffic from the new one. The
-// same check as agents' (agent/status.go buildLocking).
+// the guest changed address, XAPI drops its traffic from the new one
 export function lockDrift(
-  vif: VdfInterfaceVif,
+  vif: VdfLockVif,
   guestAddresses: Record<string, string> | undefined
 ): VdfLockDrift | undefined {
   if (vif.lockingMode !== 'locked') {
@@ -204,9 +267,18 @@ export function lockDrift(
   const ipv4 = vif.allowedIpv4Addresses ?? []
   const ipv6 = vif.allowedIpv6Addresses ?? []
   const allowed = [...ipv4, ...ipv6]
-  const reported = lockFamilies(reportedAddresses(vif, guestAddresses), ipv4, ipv6)
+  const all = reportedAddresses(vif, guestAddresses)
+  const reported = lockRelevant(all, ipv4, ipv6, vif.MAC)
+  const outside = reported.filter(ip => !isAllowed(ip, allowed))
 
-  return reported.some(ip => !isAllowed(ip, allowed)) ? { allowed, reported } : undefined
+  if (outside.length === 0) {
+    return undefined
+  }
+
+  const isLockToNothing = allowed.length === 0
+  const inFamilies = all.filter(ip => isLockToNothing || (ip.includes(':') ? ipv6.length > 0 : ipv4.length > 0))
+
+  return { allowed, reported, outside, proposal: lockProposal(inFamilies, vif.MAC) }
 }
 
 export type VdfLockingReport = {
