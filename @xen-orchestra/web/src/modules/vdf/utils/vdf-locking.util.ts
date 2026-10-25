@@ -1,0 +1,255 @@
+import type { VdfHostLocking, VdfHostStatusDocument, VdfLockedVif } from '@/modules/vdf/types.ts'
+import { interfaceAddresses, type VdfInterfaceVif } from '@/modules/vdf/utils/vdf-networks.util.ts'
+
+// VIF LOCKING (vdf#15): a locked VIF can only send from its allowed
+// addresses (XAPI drops the rest), so the firewall can trust them. XO locks
+// an interface to the addresses its guest reports, after a confirmation
+// where they can be edited, and flags a lock its guest moved away from (a
+// new DHCP lease: its traffic from the new address is dropped).
+
+const IPV4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/
+
+export function parseIpv4(text: string): number | undefined {
+  if (!IPV4.test(text)) {
+    return undefined
+  }
+
+  return text.split('.').reduce((value, part) => value * 256 + Number(part), 0)
+}
+
+// an IPv6 address as a 128-bit number (embedded IPv4 accepted, zone not)
+export function parseIpv6(text: string): bigint | undefined {
+  if (!/^[0-9a-f:.]+$/i.test(text) || !text.includes(':')) {
+    return undefined
+  }
+
+  let groups = text
+  const tail = /:(\d+\.\d+\.\d+\.\d+)$/.exec(text)
+
+  if (tail !== null) {
+    const v4 = parseIpv4(tail[1])
+
+    if (v4 === undefined) {
+      return undefined
+    }
+
+    groups = `${text.slice(0, tail.index)}:${(v4 >>> 16).toString(16)}:${(v4 & 0xffff).toString(16)}`
+  }
+
+  const halves = groups.split('::')
+
+  if (halves.length > 2) {
+    return undefined
+  }
+
+  const head = halves[0] === '' ? [] : halves[0].split(':')
+  const rest = halves.length === 2 ? (halves[1] === '' ? [] : halves[1].split(':')) : []
+  const missing = 8 - head.length - rest.length
+
+  if (halves.length === 1 ? head.length !== 8 : missing < 1) {
+    return undefined
+  }
+
+  const all = [...head, ...Array<string>(halves.length === 2 ? missing : 0).fill('0'), ...rest]
+
+  if (all.some(group => !/^[0-9a-f]{1,4}$/i.test(group))) {
+    return undefined
+  }
+
+  return all.reduce((value, group) => (value << 16n) | BigInt(parseInt(group, 16)), 0n)
+}
+
+// RFC 5952: lower case, the longest run of zero groups (two or more) as ::
+function formatIpv6(value: bigint) {
+  const groups = Array.from({ length: 8 }, (_, index) => Number((value >> BigInt(112 - 16 * index)) & 0xffffn))
+  let best = { start: -1, length: 1 }
+
+  for (let start = 0; start < 8; start++) {
+    let length = 0
+
+    while (start + length < 8 && groups[start + length] === 0) {
+      length++
+    }
+
+    if (length > best.length) {
+      best = { start, length }
+    }
+  }
+
+  const hex = groups.map(group => group.toString(16))
+
+  if (best.start === -1) {
+    return hex.join(':')
+  }
+
+  return `${hex.slice(0, best.start).join(':')}::${hex.slice(best.start + best.length).join(':')}`
+}
+
+// an address as XAPI and agents write it, or undefined
+export function canonicalAddress(text: string): { family: 4 | 6; address: string } | undefined {
+  if (parseIpv4(text) !== undefined) {
+    return { family: 4, address: text }
+  }
+
+  const v6 = parseIpv6(text)
+
+  return v6 === undefined ? undefined : { family: 6, address: formatIpv6(v6) }
+}
+
+// what the user typed in a lock confirmation: addresses separated by
+// commas, semicolons or spaces
+export function parseAddressList(text: string) {
+  const ipv4: string[] = []
+  const ipv6: string[] = []
+  const invalid: string[] = []
+
+  for (const entry of text.split(/[\s,;]+/).filter(entry => entry !== '')) {
+    const parsed = canonicalAddress(entry)
+
+    if (parsed === undefined) {
+      invalid.push(entry)
+    } else {
+      const list = parsed.family === 4 ? ipv4 : ipv6
+
+      if (!list.includes(parsed.address)) {
+        list.push(parsed.address)
+      }
+    }
+  }
+
+  return { ipv4, ipv6, invalid }
+}
+
+export const formatAddressList = (addresses: readonly string[]) => addresses.join(', ')
+
+// an address is let through by a locked VIF's allowed entries (addresses,
+// or prefixes as agents accept them)
+export function isAllowed(ip: string, allowed: readonly string[]) {
+  const v4 = parseIpv4(ip)
+  const v6 = v4 === undefined ? parseIpv6(ip) : undefined
+
+  if (v4 === undefined && v6 === undefined) {
+    return true // not an address: nothing to say about it
+  }
+
+  return allowed.some(entry => {
+    const [base, bits] = entry.split('/')
+    const length = bits === undefined ? undefined : Number(bits)
+
+    if (v4 !== undefined) {
+      const net = parseIpv4(base)
+
+      if (net === undefined || (length !== undefined && !(length >= 0 && length <= 32))) {
+        return false
+      }
+
+      const shift = 32 - (length ?? 32)
+
+      return shift === 32 || Math.floor(net / 2 ** shift) === Math.floor(v4 / 2 ** shift)
+    }
+
+    const net = parseIpv6(base)
+
+    if (net === undefined || (length !== undefined && !(length >= 0 && length <= 128))) {
+      return false
+    }
+
+    const shift = BigInt(128 - (length ?? 128))
+
+    return net >> shift === v6! >> shift
+  })
+}
+
+// what the guest reports for a VIF's device, whatever its locking: the
+// addresses a lock proposes (IPv4 first, IPv6 link-local left out)
+// (written as agents write them)
+export const reportedAddresses = (vif: VdfInterfaceVif, guestAddresses: Record<string, string> | undefined) => [
+  ...new Set(
+    interfaceAddresses({ ...vif, lockingMode: 'unlocked' }, guestAddresses).map(
+      ip => canonicalAddress(ip)?.address ?? ip
+    )
+  ),
+]
+
+export type VdfLockDrift = {
+  // what the VIF is locked to
+  allowed: string[]
+  // what its guest reports now, in the families the lock allows (what a
+  // relock proposes)
+  reported: string[]
+}
+
+// the addresses of the families a lock allows: one locked to IPv4
+// addresses has IPv6 off on purpose (the guest's SLAAC addresses aren't a
+// change), and the other way round; a lock to nothing cuts them all
+function lockFamilies(addresses: string[], ipv4: readonly string[], ipv6: readonly string[]) {
+  if (ipv4.length === 0 && ipv6.length === 0) {
+    return addresses
+  }
+
+  return addresses.filter(ip => (ip.includes(':') ? ipv6.length > 0 : ipv4.length > 0))
+}
+
+// a locked VIF whose guest reports an address outside its allowed list:
+// the guest changed address, XAPI drops its traffic from the new one. The
+// same check as agents' (agent/status.go buildLocking).
+export function lockDrift(
+  vif: VdfInterfaceVif,
+  guestAddresses: Record<string, string> | undefined
+): VdfLockDrift | undefined {
+  if (vif.lockingMode !== 'locked') {
+    return undefined
+  }
+
+  const ipv4 = vif.allowedIpv4Addresses ?? []
+  const ipv6 = vif.allowedIpv6Addresses ?? []
+  const allowed = [...ipv4, ...ipv6]
+  const reported = lockFamilies(reportedAddresses(vif, guestAddresses), ipv4, ipv6)
+
+  return reported.some(ip => !isAllowed(ip, allowed)) ? { allowed, reported } : undefined
+}
+
+export type VdfLockingReport = {
+  // hosts whose agent reports locking (older agents don't)
+  reportingHostIds: Set<string>
+  unlocked: VdfLockedVif[]
+  unlockedCount: number
+  stale: VdfLockedVif[]
+  staleCount: number
+}
+
+// the agents' locking reports of a pool's hosts, merged
+export function mergeLocking(
+  hosts: { hostId: string; status: VdfHostStatusDocument | undefined; current: boolean }[]
+): VdfLockingReport {
+  const report: VdfLockingReport = {
+    reportingHostIds: new Set(),
+    unlocked: [],
+    unlockedCount: 0,
+    stale: [],
+    staleCount: 0,
+  }
+
+  for (const { hostId, status, current } of hosts) {
+    const locking: VdfHostLocking | undefined = status?.locking
+
+    // a stopped agent's report is outdated: the caller works it out
+    if (!current || locking === undefined) {
+      continue
+    }
+
+    report.reportingHostIds.add(hostId)
+    report.unlocked.push(...(locking.unlockedVifs ?? []))
+    report.unlockedCount += Math.max(locking.unlocked ?? 0, locking.unlockedVifs?.length ?? 0)
+    report.stale.push(...(locking.staleVifs ?? []))
+    report.staleCount += Math.max(locking.stale ?? 0, locking.staleVifs?.length ?? 0)
+  }
+
+  const byName = (vifA: VdfLockedVif, vifB: VdfLockedVif) =>
+    vifA.vmName.localeCompare(vifB.vmName) || Number(vifA.device) - Number(vifB.device)
+
+  report.unlocked.sort(byName)
+  report.stale.sort(byName)
+
+  return report
+}

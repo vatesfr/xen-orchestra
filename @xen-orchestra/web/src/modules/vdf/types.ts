@@ -258,6 +258,32 @@ export type VdfHostStatusDocument = {
   errors?: string[]
   saturated?: string[]
   policies?: { name: string; tier: string; vifs: number; realized: boolean; reason?: string }[]
+  // VIF locking of the host's protected or grouped VIFs (vdf#15); absent
+  // from agents before it
+  locking?: VdfHostLocking
+}
+
+// a VIF the agent reports: unlocked, or locked to addresses its guest no
+// longer uses (allowed and reported then)
+export type VdfLockedVif = {
+  vm: string
+  vmName: string
+  vif: string
+  device: string
+  network: string
+  networkName?: string
+  // a policy applies to it (else only a group selects it)
+  protected?: boolean
+  allowed?: string[]
+  reported?: string[]
+}
+
+// counts are complete, lists capped (20 per host)
+export type VdfHostLocking = {
+  unlocked: number
+  unlockedVifs?: VdfLockedVif[]
+  stale: number
+  staleVifs?: VdfLockedVif[]
 }
 
 export type VdfHostState = 'up-to-date' | 'behind' | 'rejected' | 'stale' | 'unknown' | 'disabled'

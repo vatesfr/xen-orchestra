@@ -79,6 +79,14 @@
           {{ t('firewall:tags:error') }}
           <template #description>{{ tagError }}</template>
         </UiAlert>
+        <div v-if="unlockedInterfaces.length > 0" class="lock-all">
+          <UiInfo accent="warning" wrap>
+            {{ t('firewall:lock:group-unlocked', { n: unlockedInterfaces.length }) }}
+          </UiInfo>
+          <UiButton size="small" variant="secondary" accent="brand" left-icon="fa:lock" @click="lockAll()">
+            {{ t('firewall:lock:all') }}
+          </UiButton>
+        </div>
         <UiInfo v-if="!group.tags?.length" accent="muted" wrap>{{ t('firewall:group-form:preview:no-tags') }}</UiInfo>
         <UiInfo v-else-if="members.length === 0" accent="muted" wrap>{{ t('firewall:group:no-member') }}</UiInfo>
         <ul v-else class="members">
@@ -105,7 +113,7 @@
               <UiTag v-if="!member.isRunning" accent="muted" variant="primary">
                 {{ t('firewall:membership:not-running') }}
               </UiTag>
-              <UiInfo v-if="!member.isLocked" v-tooltip="t('firewall:membership:unlocked')" accent="warning">
+              <UiInfo v-if="member.isUnlocked" v-tooltip="t('firewall:membership:unlocked')" accent="warning">
                 {{ t('firewall:membership:ips-unlocked') }}
               </UiInfo>
               <span v-if="member.pool" class="secondary">
@@ -131,6 +139,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
+import { isUnlocked, lockTarget, useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import type { VdfGroup, VdfScopeId } from '@/modules/vdf/types.ts'
 import {
   displayName,
@@ -139,7 +149,7 @@ import {
   vdfGlobalRoute,
   vdfPageRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -164,6 +174,7 @@ import { useI18n } from 'vue-i18n'
 const {
   scopeId,
   name,
+  group,
   members,
   poolNameOf,
   isPublished = true,
@@ -194,7 +205,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { vifs } = useXoVifCollection()
+const { groupInterfaces } = useVdfInterfaces()
 
 const COLLAPSED_MEMBERS = 5
 
@@ -207,10 +218,12 @@ watch(
 
 const isGlobal = computed(() => isGlobalName(name) || isGlobalScope(scopeId))
 
+// the interfaces the group selects (on its networks, vdf#36) that XAPI
+// lets use any address
+const unlockedOf = (vm: FrontXoVm) => groupInterfaces(vm, group).filter(iface => isUnlocked(iface.vif, iface.network))
+
 const memberRows = computed(() =>
   members.map(vm => {
-    const vmVifs = vifs.value.filter(vif => vif.$VM === vm.id)
-
     return {
       vm,
       icon: objectIcon('vm', toLower(vm.power_state)),
@@ -219,13 +232,40 @@ const memberRows = computed(() =>
         .filter(ip => !ip.startsWith('fe80:'))
         .sort((ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':'))),
       isRunning: vm.power_state === VM_POWER_STATE.RUNNING,
-      isLocked: vmVifs.length > 0 && vmVifs.every(vif => vif.lockingMode === 'locked'),
+      isUnlocked: unlockedOf(vm).length > 0,
       pool: poolNameOf?.(vm),
     }
   })
 )
 
 const visibleMembers = computed(() => (showAll.value ? memberRows.value : memberRows.value.slice(0, COLLAPSED_MEMBERS)))
+
+// LOCK ALL (vdf#15): the running members' unlocked interfaces, one
+// confirmation listing them (a halted VM reports no address to lock to)
+const unlockedInterfaces = computed(() =>
+  members
+    .filter(vm => vm.power_state === VM_POWER_STATE.RUNNING)
+    .flatMap(vm => unlockedOf(vm).map(iface => ({ vm, iface })))
+)
+
+const { confirmLock } = useVdfLock()
+
+function lockAll() {
+  if (name === undefined) {
+    return
+  }
+
+  void confirmLock(
+    unlockedInterfaces.value.map(({ vm, iface }) =>
+      lockTarget(iface.vif, {
+        vmName: vm.name_label,
+        network: iface.network,
+        addresses: reportedAddresses(iface.vif, vm.addresses),
+      })
+    ),
+    { group: displayName(name) }
+  )
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -283,6 +323,13 @@ const visibleMembers = computed(() => (showAll.value ? memberRows.value : member
 
   .toggle {
     align-self: flex-start;
+  }
+
+  .lock-all {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem 1.6rem;
   }
 
   .secondary {

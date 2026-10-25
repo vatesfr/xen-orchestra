@@ -112,16 +112,39 @@
             {{ vm.name_label }}
           </UiLink>
         </div>
-        <div v-if="unlockedVms.length > 0" class="status-item">
-          <UiInfo accent="warning" wrap>{{ t('firewall:overview:unlocked', { n: unlockedVms.length }) }}</UiInfo>
+        <div v-if="staleCount > 0" class="status-item">
+          <UiInfo accent="danger" wrap>{{ t('firewall:overview:stale-locks', { n: staleCount }) }}</UiInfo>
           <UiLink
-            v-for="vm of unlockedVms"
-            :key="vm.id"
-            :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }"
+            v-for="issue of stale"
+            :key="issue.vifId"
+            v-tooltip="
+              t('firewall:lock:drift:detail', {
+                allowed: formatAddressList(issue.allowed ?? []) || t('none'),
+                reported: formatAddressList(issue.reported ?? []),
+              })
+            "
+            :to="{ name: '/vm/[id]/firewall', params: { id: issue.vmId } }"
             size="small"
           >
-            {{ vm.name_label }}
+            {{ issueLabel(issue) }}
           </UiLink>
+          <span v-if="staleCount > stale.length" class="secondary typo-body-regular-small">
+            {{ t('firewall:more', { n: staleCount - stale.length }) }}
+          </span>
+        </div>
+        <div v-if="unlockedCount > 0" class="status-item">
+          <UiInfo accent="warning" wrap>{{ t('firewall:overview:unlocked', { n: unlockedCount }) }}</UiInfo>
+          <UiLink
+            v-for="issue of unlocked"
+            :key="issue.vifId"
+            :to="{ name: '/vm/[id]/firewall', params: { id: issue.vmId } }"
+            size="small"
+          >
+            {{ issueLabel(issue) }}
+          </UiLink>
+          <span v-if="unlockedCount > unlocked.length" class="secondary typo-body-regular-small">
+            {{ t('firewall:more', { n: unlockedCount - unlocked.length }) }}
+          </span>
           <span class="secondary typo-body-regular-small">{{ t('firewall:overview:unlocked:hint') }}</span>
         </div>
       </UiCard>
@@ -241,7 +264,6 @@
 
 <script lang="ts" setup>
 import HostLink from '@/modules/host/components/HostLink.vue'
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfOverviewOnboarding from '@/modules/vdf/components/overview/VdfOverviewOnboarding.vue'
@@ -249,17 +271,18 @@ import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDrops
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
+import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { effectiveLockingMode, hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
-import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -316,10 +339,6 @@ const { runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVm
   () => pool.id,
   publishedDocument
 )
-
-const { vifs } = useXoVifCollection()
-
-const { getNetworkById } = useXoNetworkCollection()
 
 const isReady = logicAnd(isPublishedPolicyReady, areHostsReady, areVmsReady)
 
@@ -503,17 +522,22 @@ const globalSyncTooltip = computed(() =>
       : t(`firewall:global:state:${globalSyncState.value}:info`, { xo: globalInfo.value?.owner })
 )
 
-// a drop against an unlocked VM's traffic from other hosts is best effort:
-// its IPs are whatever the guest reports
-const unlockedVms = computed(() =>
-  runningProtectedVms.value.filter(vm =>
-    vifs.value.some(
-      vif =>
-        vif.$VM === vm.id &&
-        effectiveLockingMode(vif.lockingMode, getNetworkById(vif.$network)?.defaultIsLocked) === 'unlocked'
-    )
-  )
-)
+// VIF LOCKING (vdf#15), as the agents report it: a drop against an
+// unlocked interface's traffic from other hosts is best effort (its IPs are
+// whatever the guest reports); a lock the guest moved away from cuts it off
+const { unlocked, unlockedCount, stale, staleCount } = useVdfLockingIssues({
+  hosts,
+  hostOf,
+  runningVms,
+  document: publishedDocument,
+})
+
+const issueLabel = (issue: VdfLockIssue) =>
+  t('firewall:overview:lock-issue', {
+    vm: issue.vmName,
+    device: issue.device,
+    network: issue.networkName ?? '?',
+  })
 
 const hasStatus = computed(
   () =>
@@ -521,7 +545,8 @@ const hasStatus = computed(
     monitoredPolicyCount.value > 0 ||
     exposedVms.value.length > 0 ||
     enforcedQuarantines.value.length > 0 ||
-    unlockedVms.value.length > 0
+    unlockedCount.value > 0 ||
+    staleCount.value > 0
 )
 </script>
 
