@@ -292,6 +292,22 @@ describe('mergeMonitor', () => {
     )
   })
 
+  test('interfaces and egress destinations stay apart (vdf#36, vdf#53)', () => {
+    const at = { count: 1, first: 'a', last: '2026-10-24T09:00:00Z' }
+    const merged = mergeMonitor([
+      {
+        host: 'h1',
+        entries: [
+          entry({ ...at, vif: 'vif-0' }),
+          entry({ ...at, vif: 'vif-1' }),
+          entry({ ...at, egress: true, dst: '192.0.2.1' }),
+          entry({ ...at, egress: true, dst: '192.0.2.2' }),
+        ],
+      },
+    ])
+    assert.equal(merged.length, 4)
+  })
+
   test('distinct flows stay apart, most recently seen first', () => {
     const merged = mergeMonitor([
       {

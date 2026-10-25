@@ -188,13 +188,23 @@ const QUERY_MONITOR = {
 
 // Monitor mode (vdf#13): each host reports what its monitored policies
 // would drop for the VMs it runs. A VM that moved shows on several hosts:
-// one entry per (source, VM, proto, port, policy, rule), counts added,
-// first and last seen over all hosts, most recently seen first.
+// one entry per (source, VM and its interface, egress destination, proto,
+// port, policy, rule), counts added, first and last seen over all hosts,
+// most recently seen first.
 export function mergeMonitor(hosts) {
   const byKey = new Map()
   for (const { host, entries = [] } of hosts) {
     for (const entry of entries) {
-      const key = [entry.src, entry.vm, entry.proto, entry.port ?? 0, entry.policy, entry.rule ?? 0].join('|')
+      const key = [
+        entry.src,
+        entry.vm,
+        entry.vif ?? '',
+        entry.egress === true ? `>${entry.dst ?? ''}` : '',
+        entry.proto,
+        entry.port ?? 0,
+        entry.policy,
+        entry.rule ?? 0,
+      ].join('|')
       const merged = byKey.get(key)
       if (merged === undefined) {
         byKey.set(key, { ...entry, hosts: [host], expired: entry.expired === true })

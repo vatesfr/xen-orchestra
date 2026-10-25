@@ -14,6 +14,7 @@ import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type VdfInterface = {
   vif: FrontXoVif
@@ -74,7 +75,42 @@ export function useVdfInterfaces() {
     return interfacesOf(vm).filter(iface => isOnNetworks(iface.netTags, networksOfGroup))
   }
 
-  return { networks, networkById, interfacesOf, groupInterfaces, areInterfacesReady }
+  const { t } = useI18n()
+
+  const label = (iface: VdfInterface) =>
+    t('firewall:live:interface', { device: iface.vif.device, network: iface.network?.name_label ?? '?' })
+
+  // which interface of a VM with several an address is on: "eth1 · Backend"
+  function interfaceLabel(vm: FrontXoVm | undefined, ip: string) {
+    const interfaces = vm === undefined ? [] : interfacesOf(vm)
+    const iface = interfaces.length > 1 ? interfaces.find(candidate => candidate.ips.includes(ip)) : undefined
+
+    return iface === undefined ? undefined : label(iface)
+  }
+
+  // the same for a VIF, by its uuid
+  function vifLabel(vm: FrontXoVm | undefined, vifId: string | undefined) {
+    const iface = vm === undefined || vifId === undefined ? undefined : interfacesOf(vm).find(i => i.vif.id === vifId)
+
+    return iface === undefined ? undefined : label(iface)
+  }
+
+  // the network tags of the interface an address is on (undefined: not a
+  // known interface of the VM)
+  function netTagsOfAddress(vm: FrontXoVm, ip: string) {
+    return interfacesOf(vm).find(iface => iface.ips.includes(ip))?.netTags
+  }
+
+  return {
+    networks,
+    networkById,
+    interfacesOf,
+    groupInterfaces,
+    areInterfacesReady,
+    interfaceLabel,
+    vifLabel,
+    netTagsOfAddress,
+  }
 }
 
 // Network tags are live edits, like VM tags
