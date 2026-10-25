@@ -189,9 +189,14 @@ const logSeries = computed(() => {
     return undefined
   }
 
+  // complete minutes only: the one in progress would always dip at the end
   return logRateSeries(
     rows.value.map(row => row.entry),
-    { since: logSince.value, until: Date.now(), bucketMs: LOG_BUCKET_MS }
+    {
+      since: logSince.value,
+      until: Math.floor(Date.now() / LOG_BUCKET_MS) * LOG_BUCKET_MS - 1,
+      bucketMs: LOG_BUCKET_MS,
+    }
   )
 })
 
@@ -199,7 +204,7 @@ const logCaption = computed(() =>
   logSince.value === undefined
     ? ''
     : t('firewall:log:chart', {
-        time: d(new Date(logSince.value), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+        time: d(new Date(logSince.value), { hour: '2-digit', minute: '2-digit' }),
       })
 )
 
