@@ -19,6 +19,7 @@ import {
   runningVmRecords,
   vmIfaces,
   vmIps,
+  withFormatVersion,
 } from './global.mjs'
 
 const GLOBAL = {
@@ -403,5 +404,18 @@ describe('ownership', () => {
       kept.policies.map(policy => policy.name),
       ['global:db']
     )
+  })
+})
+
+describe('withFormatVersion (vdf#36)', () => {
+  test('version 7 with a group scoped to networks, down again without', () => {
+    const policies = [{ name: 'p', appliedTo: 'web', default: 'drop', ingress: [] }]
+    const scoped = { groups: { web: { tags: ['vdf:role=web'], networks: ['vdf:net=dmz'] } }, policies }
+    assert.equal(withFormatVersion(scoped).version, 7)
+    assert.equal(
+      'version' in withFormatVersion({ version: 7, groups: { web: { tags: ['vdf:role=web'] } }, policies }),
+      false
+    )
+    assert.equal(withFormatVersion({ ...scoped, policies: [{ ...policies[0], mode: 'monitor' }] }).version, 7)
   })
 })
