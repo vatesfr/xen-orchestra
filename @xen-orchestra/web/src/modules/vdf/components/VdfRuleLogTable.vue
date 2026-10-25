@@ -15,6 +15,10 @@
     <UiAlert v-for="host of ruleLog?.errors ?? []" :key="host.hostName" accent="warning">
       {{ t('firewall:log:host-error', { host: host.hostName, error: host.error }) }}
     </UiAlert>
+    <div v-if="logSeries !== undefined" class="chart">
+      <span class="typo-body-regular-small secondary">{{ logCaption }}</span>
+      <VdfRateChart :series="logSeries" unit="minute" />
+    </div>
     <VtsTable :state :pagination-bindings :horizontal="vmName !== undefined">
       <thead>
         <tr>
@@ -36,6 +40,7 @@ import { useEndColumn } from '@/modules/vdf/components/live/vdf-end-column.ts'
 import VdfDecisionCell from '@/modules/vdf/components/live/VdfDecisionCell.vue'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue'
+import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import { useVdfDecision, type VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
@@ -45,6 +50,7 @@ import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-pu
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { logRateSeries } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -159,6 +165,43 @@ const rows = computed<Row[]>(() => {
 })
 
 const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-rule-log', rows)
+
+// CHART (vdf#59): what the table shows (its filters: verdict, search, a
+// policy's name), per minute, over the last hour or as far back as the
+// log's last lines go
+const LOG_WINDOW_MS = 60 * 60_000
+
+const LOG_BUCKET_MS = 60_000
+
+const logSince = computed(() => {
+  const times = (ruleLog.value?.entries ?? []).map(entry => Date.parse(entry.time)).filter(time => !Number.isNaN(time))
+
+  if (times.length === 0) {
+    return undefined
+  }
+
+  return Math.max(Math.min(...times), Date.now() - LOG_WINDOW_MS)
+})
+
+const logSeries = computed(() => {
+  // a single minute isn't a trend: the table says it all
+  if (logSince.value === undefined || Date.now() - logSince.value < 2 * LOG_BUCKET_MS) {
+    return undefined
+  }
+
+  return logRateSeries(
+    rows.value.map(row => row.entry),
+    { since: logSince.value, until: Date.now(), bucketMs: LOG_BUCKET_MS }
+  )
+})
+
+const logCaption = computed(() =>
+  logSince.value === undefined
+    ? ''
+    : t('firewall:log:chart', {
+        time: d(new Date(logSince.value), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+      })
+)
 
 const state = useTableState({
   busy: () => !isRuleLogReady.value && !hasRuleLogError.value,
@@ -322,6 +365,12 @@ watchEffect(() =>
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+
+  .chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 
   .toolbar {
     display: flex;

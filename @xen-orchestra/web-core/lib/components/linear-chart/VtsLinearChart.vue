@@ -17,10 +17,16 @@ const {
   data,
   valueFormatter: _valueFormatter,
   maxValue,
+  timeFormatter,
+  timeMinInterval,
 } = defineProps<{
   data: LinearChartData
   valueFormatter?: ValueFormatter
   maxValue?: number
+  // the x-axis labels, for windows of minutes rather than days
+  timeFormatter?: (timestamp: number) => string
+  // the smallest step between x-axis ticks, in ms (labels without seconds)
+  timeMinInterval?: number
 }>()
 
 const Y_AXIS_MAX_VALUE = 200
@@ -55,8 +61,9 @@ const option = computed<EChartsOption>(() => ({
   },
   xAxis: {
     type: 'time',
+    minInterval: timeMinInterval,
     axisLabel: {
-      formatter: (timestamp: number) => utcFormat('%a\n%I:%M\n%p')(new Date(timestamp)),
+      formatter: (timestamp: number) => timeFormatter?.(timestamp) ?? utcFormat('%a\n%I:%M\n%p')(new Date(timestamp)),
       showMaxLabel: false,
       showMinLabel: false,
     },

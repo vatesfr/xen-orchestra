@@ -395,6 +395,17 @@ export type VdfHostStats = {
   connections?: VdfConnection[]
   connectionsTruncated?: boolean
   blocked?: VdfBlockedAttempt[]
+  // the last minutes' samples, oldest first (vdf#59): an agent before it
+  // has none
+  history?: VdfStatsPoint[]
+}
+
+export type VdfStatsPoint = {
+  at: string
+  allowedPerSec: number
+  blockedPerSec: number
+  // the VMs with any: uuid -> [allowed, dropped] per second
+  vms?: Record<string, [number, number]>
 }
 
 export type VdfRuleLogEntry = {

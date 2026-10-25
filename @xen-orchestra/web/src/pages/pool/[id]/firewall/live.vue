@@ -72,6 +72,17 @@
       </div>
 
       <UiCard>
+        <UiCardTitle>
+          {{ t('firewall:live:chart') }}
+          <template #description>{{ chartCaption }}</template>
+        </UiCardTitle>
+        <VdfRateChart v-if="hasRateData" :series="rateSeries" unit="second" />
+        <VtsStateHero v-else format="card" type="no-data" size="extra-small" horizontal>
+          {{ t('firewall:live:chart:collecting') }}
+        </VtsStateHero>
+      </UiCard>
+
+      <UiCard>
         <UiTitle>{{ t('firewall:live:blocked-attempts') }}</UiTitle>
         <VdfDroppedTable :scope-id="pool.id" :rows="droppedRows" />
       </UiCard>
@@ -98,6 +109,7 @@ import VdfConnectionsTable, { type VdfConnectionItem } from '@/modules/vdf/compo
 import VdfDroppedTable, { type VdfDroppedRow } from '@/modules/vdf/components/live/VdfDroppedTable.vue'
 import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue'
 import VdfProtectedVmsTable from '@/modules/vdf/components/live/VdfProtectedVmsTable.vue'
+import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import { useVdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
@@ -109,6 +121,7 @@ import { useVdfStats } from '@/modules/vdf/remote-resources/use-vdf-stats.ts'
 import type { VdfConnection } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { hostRatePoints, sampleOf, sumRateSeries, type VdfRatePoint } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
 import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -122,7 +135,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useNow } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -156,13 +169,6 @@ const hostStats = computed(() => (stats.value?.hosts ?? []).filter(host => host.
 
 const hostErrors = computed(() => (stats.value?.hosts ?? []).filter(host => host.error !== undefined))
 
-// totals only count the hosts that answered: say so when some didn't
-const coverage = computed(() =>
-  hostErrors.value.length === 0
-    ? t('firewall:live:per-second')
-    : t('firewall:live:per-second:partial', { n: hostStats.value.length, total: stats.value?.hosts.length ?? 0 })
-)
-
 function roundRate(rate: number) {
   return rate >= 10 ? Math.round(rate) : Math.round(rate * 10) / 10
 }
@@ -181,6 +187,17 @@ const vmById = computed(() => new Map(poolVms.value.map(vm => [vm.id, vm])))
 const vmFilter = useRouteQuery('vm')
 
 const filteredVm = computed(() => poolVms.value.find(vm => vm.id === vmFilter.value))
+
+// totals only count the hosts that answered: say so when some didn't
+const coverage = computed(() => {
+  if (vmFilter.value !== '') {
+    return t('firewall:live:per-second:vm', { vm: filteredVm.value?.name_label ?? vmFilter.value })
+  }
+
+  return hostErrors.value.length === 0
+    ? t('firewall:live:per-second')
+    : t('firewall:live:per-second:partial', { n: hostStats.value.length, total: stats.value?.hosts.length ?? 0 })
+})
 
 function involvesVm(...ends: { vm?: { id: string } }[]) {
   return vmFilter.value === '' || ends.some(end => end.vm?.id === vmFilter.value)
@@ -278,6 +295,54 @@ function traceRoute(source: { vm?: string; ip: string }, to: string | { ip: stri
 }
 
 const now = useNow({ interval: 5000 })
+
+// RATE CHART (vdf#59): the last minutes of new connections, allowed and
+// dropped per second, the hosts' (or the filtered VM's) added up. An
+// agent keeps the history between polls; for one before that, what this
+// page samples while it's open.
+
+const CHART_WINDOW_MS = 5 * 60_000
+
+const CHART_BUCKET_MS = 10_000
+
+const collected = ref(new Map<string, VdfRatePoint[]>())
+
+watch(vmFilter, () => (collected.value = new Map()))
+
+watch(hostStats, hosts => {
+  const since = Date.now() - CHART_WINDOW_MS
+
+  for (const host of hosts) {
+    if (host.history !== undefined && host.history.length > 0) {
+      continue
+    }
+
+    const sample = sampleOf(host, vmFilter.value || undefined)
+    const points = (collected.value.get(host.host) ?? []).filter(point => point.at >= since)
+
+    if (sample !== undefined && !points.some(point => point.at === sample.at)) {
+      points.push(sample)
+    }
+
+    collected.value.set(host.host, points)
+  }
+})
+
+const rateSeries = computed(() =>
+  sumRateSeries(
+    hostStats.value.map(host => hostRatePoints(host, collected.value.get(host.host), vmFilter.value || undefined)),
+    { since: now.value.getTime() - CHART_WINDOW_MS, until: now.value.getTime(), bucketMs: CHART_BUCKET_MS }
+  )
+)
+
+// a line needs two points: one sample is "collecting"
+const hasRateData = computed(() => rateSeries.value.allowed.filter(point => point.value !== null).length >= 2)
+
+const chartCaption = computed(() =>
+  vmFilter.value === ''
+    ? t('firewall:live:chart:caption')
+    : t('firewall:live:chart:caption:vm', { vm: filteredVm.value?.name_label ?? vmFilter.value })
+)
 
 // What the agents attribute (drops from VMs of the pool, sampled now) and
 // what rules with logging recorded in the last minute (any source, with
