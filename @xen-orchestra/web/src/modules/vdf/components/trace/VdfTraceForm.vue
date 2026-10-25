@@ -12,6 +12,9 @@
             :placeholder="t('firewall:trace:external-ip:placeholder')"
           />
         </VtsInputWrapper>
+        <VtsInputWrapper v-else-if="fromInterfaces.length > 1" :label="t('firewall:trace:interface')" class="iface">
+          <VtsSelect :id="fromIfaceSelectId" accent="brand" />
+        </VtsInputWrapper>
       </div>
       <VtsIcon name="fa:arrow-right" size="medium" class="arrow" />
       <div class="end">
@@ -20,6 +23,9 @@
         </VtsInputWrapper>
         <VtsInputWrapper v-if="form.to === EXTERNAL" :label="t('firewall:trace:external-ip')" class="ip">
           <UiInput v-model.trim="form.toIp" accent="brand" :placeholder="t('firewall:trace:external-ip:placeholder')" />
+        </VtsInputWrapper>
+        <VtsInputWrapper v-else-if="toInterfaces.length > 1" :label="t('firewall:trace:interface')" class="iface">
+          <VtsSelect :id="toIfaceSelectId" accent="brand" />
         </VtsInputWrapper>
       </div>
       <VtsInputWrapper :label="t('firewall:rule-form:protocol')" class="proto">
@@ -66,7 +72,13 @@ import { useFormSelect } from '@core/packages/form-select'
 import { computed, nextTick, onMounted, reactive, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type VdfTraceVmOption = { id: string; name: string; running: boolean }
+// interfaces: those with an address, for a VM with several (vdf#36)
+export type VdfTraceVmOption = {
+  id: string
+  name: string
+  running: boolean
+  interfaces?: { ip: string; network: string; label: string }[]
+}
 
 // The form's state as a route query (also what the rule log, Live and the
 // overview link to): a trace can be shared, reloaded and prefilled.
@@ -75,6 +87,9 @@ export type VdfTraceQuery = {
   fromip?: string
   to?: string
   toip?: string
+  // the interface of a VM with several, by its address
+  fromiface?: string
+  toiface?: string
   proto?: string
   port?: string
   state?: string
@@ -107,6 +122,8 @@ const form = reactive({
   fromIp: initial.fromip ?? '',
   to: initial.to ?? '',
   toIp: initial.toip ?? '',
+  fromIface: initial.fromiface ?? '',
+  toIface: initial.toiface ?? '',
   proto: PROTOCOLS.includes(initial.proto as VdfProtocol) ? (initial.proto as VdfProtocol) : 'tcp',
   port: initial.port === undefined ? 22 : Number(initial.port),
   state: STATES.includes(initial.state as never) ? (initial.state as NonNullable<VdfTraceRequest['state']>) : 'new',
@@ -154,6 +171,78 @@ watch(
   }
 )
 
+// INTERFACES (vdf#36): a VM with several picks one, by default the one on
+// the other end's network, so the trace goes where the traffic would
+
+const interfacesOf = (id: string) => vms.find(vm => vm.id === id)?.interfaces ?? []
+
+const fromInterfaces = computed(() => interfacesOf(form.from))
+
+const toInterfaces = computed(() => interfacesOf(form.to))
+
+function defaultInterface(
+  own: VdfTraceVmOption['interfaces'] & object,
+  other: VdfTraceVmOption['interfaces'] & object
+) {
+  const networks = new Set(other.map(iface => iface.network))
+
+  return (own.find(iface => networks.has(iface.network)) ?? own[0])?.ip ?? ''
+}
+
+// the interfaces picked (or from the link), whatever the selects show
+// while they refresh
+const chosen = reactive({ from: initial.fromiface ?? '', to: initial.toiface ?? '' })
+
+watch(
+  () => form.fromIface,
+  value => {
+    if (value !== '') {
+      chosen.from = value
+    }
+  }
+)
+
+watch(
+  () => form.toIface,
+  value => {
+    if (value !== '') {
+      chosen.to = value
+    }
+  }
+)
+
+// the picked interface if the VM has it, else the default; set again
+// after a tick: a select only flags the options it holds when its model
+// changes (they load after the form)
+watch(
+  [fromInterfaces, toInterfaces],
+  async ([fromList, toList]) => {
+    const pick = (list: typeof fromList, other: typeof toList, current: string) =>
+      list.length < 2 ? current : list.some(iface => iface.ip === current) ? current : defaultInterface(list, other)
+    const fromIface = pick(fromList, toList, chosen.from)
+    const toIface = pick(toList, fromList, chosen.to)
+
+    form.fromIface = ''
+    form.toIface = ''
+    await nextTick()
+    form.fromIface = fromIface
+    form.toIface = toIface
+  },
+  { immediate: true }
+)
+
+const { id: fromIfaceSelectId } = useFormSelect(fromInterfaces, {
+  model: toRef(form, 'fromIface'),
+  required: true,
+  option: { id: 'ip', value: 'ip', label: 'label' },
+})
+
+const { id: toIfaceSelectId } = useFormSelect(toInterfaces, {
+  model: toRef(form, 'toIface'),
+  required: true,
+  option: { id: 'ip', value: 'ip', label: 'label' },
+})
+
 const { id: protoSelectId } = useFormSelect(
   [
     { value: 'tcp', label: 'TCP' },
@@ -178,9 +267,29 @@ const haltedEnds = computed(() =>
     .filter((vm, index, list) => list.indexOf(vm) === index)
 )
 
-const fromSpec = computed(() => (form.from === EXTERNAL ? form.fromIp : form.from))
+// an external address, the address of the interface picked (the default
+// one until the select is set), or the VM
+function endSpec(
+  end: string,
+  ip: string,
+  iface: string,
+  interfaces: VdfTraceVmOption['interfaces'] & object,
+  other: VdfTraceVmOption['interfaces'] & object
+) {
+  if (end === EXTERNAL) {
+    return ip
+  }
 
-const toSpec = computed(() => (form.to === EXTERNAL ? form.toIp : form.to))
+  if (interfaces.length < 2) {
+    return end
+  }
+
+  return interfaces.some(candidate => candidate.ip === iface) ? iface : defaultInterface(interfaces, other)
+}
+
+const fromSpec = computed(() => endSpec(form.from, form.fromIp, chosen.from, fromInterfaces.value, toInterfaces.value))
+
+const toSpec = computed(() => endSpec(form.to, form.toIp, chosen.to, toInterfaces.value, fromInterfaces.value))
 
 const canTrace = computed(
   () =>
@@ -202,6 +311,8 @@ function submit() {
     fromip: form.from === EXTERNAL ? form.fromIp : undefined,
     to: form.to,
     toip: form.to === EXTERNAL ? form.toIp : undefined,
+    fromiface: fromInterfaces.value.length > 1 ? fromSpec.value : undefined,
+    toiface: toInterfaces.value.length > 1 ? toSpec.value : undefined,
     proto: form.proto,
     state: form.state === 'new' ? undefined : form.state,
     run: '1',
@@ -255,6 +366,10 @@ onMounted(() => {
 
   .ip {
     width: 16rem;
+  }
+
+  .iface {
+    width: 28rem;
   }
 
   .proto {

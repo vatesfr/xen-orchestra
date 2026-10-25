@@ -4,7 +4,7 @@
       <UiTitle>{{ t('firewall:trace:title') }}</UiTitle>
       <p class="description typo-body-regular-small">{{ t('firewall:trace:info') }}</p>
       <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
-      <VtsStateHero v-if="!areVmsReady" format="card" type="busy" size="small" />
+      <VtsStateHero v-if="!areVmsReady || !areInterfacesReady" format="card" type="busy" size="small" />
       <VdfTraceForm
         v-else
         :key="formKey"
@@ -33,6 +33,7 @@ import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDropsCard.vue'
 import VdfTraceForm, { type VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
 import VdfTraceResult from '@/modules/vdf/components/trace/VdfTraceResult.vue'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTraceJob } from '@/modules/vdf/jobs/vdf-trace.job.ts'
@@ -63,10 +64,28 @@ const { publishedDocument, hasDraft } = useVdfPolicy(() => pool)
 
 const { poolVms, areVmsReady } = useVdfMembers(() => pool.id, publishedDocument)
 
+const { interfacesOf, areInterfacesReady } = useVdfInterfaces()
+
 const vmOptions = computed(() =>
   [...poolVms.value]
     .sort((vmA, vmB) => vmA.name_label.localeCompare(vmB.name_label))
-    .map(vm => ({ id: vm.id, name: vm.name_label, running: vm.power_state === VM_POWER_STATE.RUNNING }))
+    .map(vm => ({
+      id: vm.id,
+      name: vm.name_label,
+      running: vm.power_state === VM_POWER_STATE.RUNNING,
+      // the interfaces with an address: a VM with several picks one (vdf#36)
+      interfaces: interfacesOf(vm)
+        .filter(iface => iface.ips.length > 0)
+        .map(iface => ({
+          ip: iface.ips[0],
+          network: iface.vif.$network,
+          label: t('firewall:trace:interface:option', {
+            device: iface.vif.device,
+            network: iface.network?.name_label ?? '?',
+            ip: iface.ips[0],
+          }),
+        })),
+    }))
 )
 
 const result = ref<Result>()

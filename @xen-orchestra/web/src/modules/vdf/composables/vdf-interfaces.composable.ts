@@ -28,9 +28,11 @@ export type VdfInterface = {
 
 // VMs' interfaces as groups see them (vdf#36)
 export function useVdfInterfaces() {
-  const { vifs } = useXoVifCollection()
+  const { vifs, areVifsReady } = useXoVifCollection()
 
-  const { networks } = useXoNetworkCollection()
+  const { networks, areNetworksReady } = useXoNetworkCollection()
+
+  const areInterfacesReady = computed(() => areVifsReady.value && areNetworksReady.value)
 
   const networkById = computed(() => new Map(networks.value.map(network => [network.id, network])))
 
@@ -72,7 +74,7 @@ export function useVdfInterfaces() {
     return interfacesOf(vm).filter(iface => isOnNetworks(iface.netTags, networksOfGroup))
   }
 
-  return { networks, networkById, interfacesOf, groupInterfaces }
+  return { networks, networkById, interfacesOf, groupInterfaces, areInterfacesReady }
 }
 
 // Network tags are live edits, like VM tags

@@ -295,7 +295,7 @@ function sideLabel(side: string) {
 
 // egress (vdf#53): the source's own stages, what it may reach, before the
 // destination's (what may reach it)
-const EGRESS_KINDS = ['egress-allowed', 'egress-final', 'egress-commit', 'revoke', 'revoked', 'unrevoke']
+const EGRESS_KINDS = ['egress-allowed', 'egress-final', 'revoke', 'revoked', 'unrevoke']
 
 // kind `egress` also names a protected VIF's outgoing packets in general:
 // only table 1's 110 enters its egress tiers
@@ -326,8 +326,12 @@ const hops = computed(() =>
       side: sideLabel(hop.side),
       stages: stages.map((stage, stageIndex) => {
         const outcome = stageOutcome(stage)
-        // the rule log follows the stage that dropped: same section
-        const kind = isEgressStage(stage) || (stage.kind === 'log' && previous === 'egress') ? 'egress' : 'ingress'
+        // the rule log follows the stage that dropped, and the commit for an
+        // unprotected destination the source's egress: same section
+        const kind =
+          isEgressStage(stage) || ((stage.kind === 'log' || stage.kind === 'egress-commit') && previous === 'egress')
+            ? 'egress'
+            : 'ingress'
         // the stages before the egress ones (anti-spoofing…) open no section
         const opens = hasEgress && kind !== previous && (kind === 'egress' || previous === 'egress')
 

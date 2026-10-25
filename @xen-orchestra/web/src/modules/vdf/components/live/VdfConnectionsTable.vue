@@ -40,7 +40,7 @@ import { useLiteralColumn } from '@core/tables/column-definitions/literal-column
 import { computed, h, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type Endpoint = { ip: string; vm?: FrontXoVm; name?: string; groups?: string[] }
+type Endpoint = { ip: string; vm?: FrontXoVm; name?: string; groups?: string[]; iface?: string }
 
 export type VdfConnectionItem = {
   key: string

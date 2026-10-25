@@ -100,6 +100,7 @@ import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue
 import VdfProtectedVmsTable from '@/modules/vdf/components/live/VdfProtectedVmsTable.vue'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import { useVdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
@@ -109,6 +110,7 @@ import type { VdfConnection } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -185,10 +187,28 @@ function involvesVm(...ends: { vm?: { id: string } }[]) {
   return vmFilter.value === '' || ends.some(end => end.vm?.id === vmFilter.value)
 }
 
+const { interfacesOf } = useVdfInterfaces()
+
+// which interface of a VM with several an address is on (vdf#36)
+function interfaceLabel(vm: FrontXoVm | undefined, ip: string) {
+  const interfaces = vm === undefined ? [] : interfacesOf(vm)
+  const iface = interfaces.length > 1 ? interfaces.find(candidate => candidate.ips.includes(ip)) : undefined
+
+  return iface === undefined
+    ? undefined
+    : t('firewall:live:interface', { device: iface.vif.device, network: iface.network?.name_label ?? '?' })
+}
+
 function endpoint(ip: string, agentName?: string) {
   const vm = vmByIp.value.get(ip) ?? (agentName ? vmByName.value.get(agentName) : undefined)
 
-  return { ip, vm, name: vm === undefined ? agentName || undefined : undefined, groups: vm ? [] : groupsOfIp(ip) }
+  return {
+    ip,
+    vm,
+    name: vm === undefined ? agentName || undefined : undefined,
+    groups: vm ? [] : groupsOfIp(ip),
+    iface: interfaceLabel(vm, ip),
+  }
 }
 
 function connectionKey(connection: VdfConnection) {
