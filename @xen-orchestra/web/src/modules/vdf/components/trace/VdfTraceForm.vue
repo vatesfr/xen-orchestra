@@ -70,7 +70,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { computed, nextTick, onMounted, reactive, ref, type Ref, shallowRef, toRef, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, type Ref, shallowReactive, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // interfaces: those with an address, for a VM with several (vdf#36)
@@ -160,13 +160,11 @@ function withTypedAddress(search: string | undefined) {
       ]
 }
 
-// the selects' search terms, once they exist
-const fromSearch = shallowRef<Ref<string>>(ref(''))
-
-const toSearch = shallowRef<Ref<string>>(ref(''))
+// the selects' search terms, once they exist (refs kept as refs)
+const searches = shallowReactive<{ from: Ref<string>; to: Ref<string> }>({ from: ref(''), to: ref('') })
 
 const fromSelect = useFormSelect(
-  computed(() => withTypedAddress(fromSearch.value.value)),
+  computed(() => withTypedAddress(searches.from.value)),
   {
     model: toRef(form, 'from'),
     searchable: true,
@@ -177,7 +175,7 @@ const fromSelect = useFormSelect(
 )
 
 const toSelect = useFormSelect(
-  computed(() => withTypedAddress(toSearch.value.value)),
+  computed(() => withTypedAddress(searches.to.value)),
   {
     model: toRef(form, 'to'),
     searchable: true,
@@ -187,9 +185,9 @@ const toSelect = useFormSelect(
   }
 )
 
-fromSearch.value = fromSelect.searchTerm
+searches.from = fromSelect.searchTerm
 
-toSearch.value = toSelect.searchTerm
+searches.to = toSelect.searchTerm
 
 const { id: fromSelectId } = fromSelect
 
