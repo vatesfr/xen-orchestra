@@ -46,32 +46,21 @@
       />
 
       <div class="footer">
-        <UiButton
-          v-if="summaryErrors.length > 0"
-          variant="tertiary"
-          accent="danger"
-          size="small"
-          @click="focusField(summaryErrors[0].id)"
-        >
-          {{ t('json-schema:go-to-first-of-n-errors', summaryErrors.length) }}
+        <UiButton variant="secondary" accent="brand" size="medium" :disabled="!isDirty || isBusy" @click="reset()">
+          {{ t('cancel') }}
         </UiButton>
-        <div class="actions">
-          <UiButton variant="secondary" accent="brand" size="medium" :disabled="!isDirty || isBusy" @click="reset()">
-            {{ t('cancel') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="!canSave && saveErrorMessage"
-            variant="primary"
-            accent="brand"
-            size="medium"
-            left-icon="fa:floppy-disk"
-            :busy="isSaving"
-            :disabled="!canSave"
-            @click="submit()"
-          >
-            {{ t('action:save') }}
-          </UiButton>
-        </div>
+        <UiButton
+          v-tooltip="!canSave && saveErrorMessage"
+          variant="primary"
+          accent="brand"
+          size="medium"
+          left-icon="fa:floppy-disk"
+          :busy="isSaving"
+          :disabled="!canSave"
+          @click="submit()"
+        >
+          {{ t('action:save') }}
+        </UiButton>
       </div>
     </template>
   </UiCard>
@@ -92,7 +81,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { focusField } from '@core/utils/focus-field.util.ts'
 import { computed, nextTick, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -159,8 +147,7 @@ async function submit() {
     position: sticky;
     inset-block-end: 0;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    justify-content: flex-end;
     gap: 0.8rem;
     margin: 0 -2.4rem -2.4rem;
     padding: 1.6rem 2.4rem;
@@ -168,12 +155,6 @@ async function submit() {
     border-end-start-radius: 0.8rem;
     border-end-end-radius: 0.8rem;
     background-color: var(--color-neutral-background-primary);
-  }
-
-  .actions {
-    display: flex;
-    gap: 0.8rem;
-    margin-inline-start: auto;
   }
 }
 </style>

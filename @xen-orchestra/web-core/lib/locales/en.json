@@ -738,7 +738,6 @@
   "job:vm-suspend:in-progress": "Suspend in progress…",
   "job:vm-suspend:missing-vm": "No VMs to suspend",
   "jobs": "Jobs",
-  "json-schema:go-to-first-of-n-errors": "Go to the field to fix | Go to the first of the {n} fields to fix",
   "json-schema:hide-examples": "Hide examples",
   "json-schema:nested-label": "{parent} › {label}",
   "json-schema:numbered-item": "{label} {n}",

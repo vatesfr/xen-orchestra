@@ -227,16 +227,6 @@ describe('missing fields', () => {
 
     expect(document.activeElement).toBe(wrapper.get('input').element)
   })
-
-  it('offers to go to the first missing field', async () => {
-    const wrapper = mountCard(unconfiguredPlugin)
-
-    await save(wrapper)
-    wrapper.get('input').element.blur()
-    await findButton(wrapper, t('json-schema:go-to-first-of-n-errors', 2)).trigger('click')
-
-    expect(document.activeElement).toBe(wrapper.get('input').element)
-  })
 })
 
 describe('cancel', () => {
