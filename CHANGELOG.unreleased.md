@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
+- [XO6] Display dates and times as `YYYY-MM-DD HH:mm:ss` in all UI views (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 
 ### Bug fixes
 
@@ -37,6 +38,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/vmware-explorer minor
 - xo-server patch
 - xo-server-sdn-controller patch

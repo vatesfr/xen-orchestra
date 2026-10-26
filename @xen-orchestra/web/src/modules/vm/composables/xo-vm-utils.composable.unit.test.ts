@@ -4,6 +4,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
+import { formatDate } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -86,11 +87,11 @@ describe('installDateFormatted', () => {
     expect(result.installDateFormatted).toBe(result.t('unknown'))
   })
 
-  it('formats the install date as YYYY-MM-DD', () => {
+  it('formats the install date with formatDate', () => {
     const installTime = 1660000000
     const result = mountVmUtils({ installTime })
 
-    expect(result.installDateFormatted).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(result.installDateFormatted).toBe(formatDate(installTime * 1000))
   })
 })
 
