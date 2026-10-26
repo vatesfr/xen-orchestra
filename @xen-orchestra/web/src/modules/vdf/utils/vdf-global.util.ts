@@ -61,6 +61,55 @@ export function withGlobalOf(local: VdfDocument, published: VdfDocument): VdfDoc
   }
 }
 
+// A pool's document once the global configuration is written into it, as
+// xo-server-vdf global.mjs compose() writes it: global groups and policies
+// under their `global:` names, first, rule ids from VDF_GLOBAL_RULE_BASE
+// up, then the pool's own part. The members XO adds from the other pools
+// are left out.
+export function composeWithGlobal(own: VdfDocument, global: VdfDocument): VdfDocument {
+  const prefixed = (name: string) => VDF_GLOBAL_PREFIX + name
+  const peer = (name: string | undefined) => (name === undefined || name === 'any' ? name : prefixed(name))
+
+  return {
+    ...own,
+    groups: {
+      ...Object.fromEntries(Object.entries(global.groups).map(([name, group]) => [prefixed(name), group])),
+      ...Object.fromEntries(Object.entries(own.groups).filter(([name]) => !isGlobalName(name))),
+    },
+    policies: [
+      ...global.policies.map(policy => ({
+        ...policy,
+        name: prefixed(policy.name),
+        appliedTo: prefixed(policy.appliedTo),
+        ingress: policy.ingress.map(rule => ({ ...rule, id: VDF_GLOBAL_RULE_BASE + rule.id, from: peer(rule.from) })),
+        ...(policy.egress === undefined
+          ? {}
+          : {
+              egress: policy.egress.map(rule => ({ ...rule, id: VDF_GLOBAL_RULE_BASE + rule.id, to: peer(rule.to) })),
+            }),
+      })),
+      ...own.policies.filter(policy => !isGlobalName(policy.name)),
+    ],
+  }
+}
+
+// Where each global policy applies (vdf#47): per pool, the VMs its group
+// holds there (vmCount); pools where it holds none are left out
+export type VdfPolicyReach = { policy: string; pools: { id: string; name: string; vms: number }[] }
+
+export function policyReach(
+  document: VdfDocument,
+  pools: { id: string; name: string }[],
+  vmCount: (group: string, poolId: string) => number
+): VdfPolicyReach[] {
+  return document.policies.map(policy => ({
+    policy: policy.name,
+    pools: pools
+      .map(pool => ({ id: pool.id, name: pool.name, vms: vmCount(policy.appliedTo, pool.id) }))
+      .filter(pool => pool.vms > 0),
+  }))
+}
+
 type VdfPage = 'groups' | 'policies'
 
 // A scope's page for a group or a policy. In a pool, global objects are

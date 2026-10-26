@@ -104,6 +104,11 @@
       </template>
     </UiAlert>
 
+    <UiAlert v-if="sameIdentityPools.length > 0" accent="danger">
+      {{ t('firewall:outside:same-identity:pools', { pools: formatList(sameIdentityPools) }) }}
+      <template #description>{{ t('firewall:outside:same-identity:info') }}</template>
+    </UiAlert>
+
     <UiCard>
       <UiTitle>{{ t('firewall:global:title') }}</UiTitle>
       <p class="typo-body-regular">{{ t('firewall:global:info') }}</p>
@@ -237,7 +242,22 @@
                 >
                   {{ t(`firewall:global:state:${row.pool.state}`) }}
                 </UiTag>
-                <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
+                <UiTag
+                  v-if="row.outside !== undefined"
+                  v-tooltip="outsideText.full(row.outside)"
+                  :accent="row.outside.sameIdentity ? 'danger' : 'warning'"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{ t('firewall:outside') }}
+                </UiTag>
+                <UiTag
+                  v-if="row.inDraftScope !== row.pool.inScope"
+                  v-tooltip="row.inDraftScope ? joinText(row.pool.id) : false"
+                  accent="info"
+                  variant="secondary"
+                  :tabindex="row.inDraftScope ? 0 : undefined"
+                >
                   {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
                 </UiTag>
                 <UiTag
@@ -410,6 +430,15 @@
           >
             {{ t('firewall:global:member:stale') }}
           </UiTag>
+          <UiTag
+            v-if="member.otherXo !== undefined"
+            v-tooltip="t('firewall:global:member:other-xo:info', { xo: member.otherXo })"
+            accent="warning"
+            variant="secondary"
+            tabindex="0"
+          >
+            {{ t('firewall:global:member:other-xo', { xo: member.otherXo }) }}
+          </UiTag>
         </div>
       </div>
     </UiCard>
@@ -419,8 +448,10 @@
 <script lang="ts" setup>
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
+import { useVdfGlobalReach } from '@/modules/vdf/composables/vdf-global-reach.composable.ts'
 import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
+import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type {
   VdfAddressConflict,
@@ -434,6 +465,7 @@ import type {
   VdfVmRef,
 } from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -461,6 +493,7 @@ import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { isEqual } from 'lodash-es'
 import { computed, ref } from 'vue'
@@ -483,6 +516,8 @@ const {
   publishedDocument,
   publishedScope,
   hasDraft,
+  // the draft
+  document,
   scope,
   setScope,
   pools,
@@ -526,7 +561,7 @@ const { open: openScope } = useOverlay({
 })
 
 async function changeScope() {
-  const response = await openScope({ props: { pools: pools.value, scope: scope.value } })
+  const response = await openScope({ props: { pools: pools.value, scope: scope.value, document: document.value } })
 
   if (response.event === 'onConfirm') {
     setScope(response.payload)
@@ -534,6 +569,23 @@ async function changeScope() {
 }
 
 // POOLS
+
+// what a pool the draft brings into the scope will receive (vdf#47)
+const joiningPools = computed(() =>
+  pools.value.filter(pool => !pool.inScope && pool.state !== 'other-xo' && inGlobalScope(scope.value, pool.id))
+)
+
+const { receivesText } = useVdfGlobalReach(document, joiningPools)
+
+const joinText = (poolId: string) =>
+  document.value.policies.length === 0
+    ? t('firewall:global:scope:receives:none')
+    : t('firewall:global:scope:receives', { policies: receivesText(poolId) })
+
+// changed outside this XO (vdf#32)
+const outsideText = useVdfOutsideText()
+
+const outsideNow = useNow({ interval: 60_000 })
 
 const inScopePools = computed(() => pools.value.filter(pool => pool.inScope))
 
@@ -560,12 +612,20 @@ const poolRows = computed(() =>
 
       return {
         pool,
+        // changed outside this XO (vdf#32)
+        outside: isOutsideNotable(pool.outside, outsideNow.value.getTime()) ? pool.outside : undefined,
         inDraftScope: inGlobalScope(scope.value, pool.id),
         hosts: { n: poolHosts.filter(({ state }) => state === 'up-to-date').length, total: poolHosts.length },
         // agents older than outbound rules (vdf#53): the global ones are ignored there
         ignoringEgress: poolHosts.filter(({ status }) => ignoresEgress(status, publishedDocument.value)).length,
       }
     })
+)
+
+// a copy of this XO (a cloned XO VM, same identity) writes these pools
+// too (vdf#20)
+const sameIdentityPools = computed(() =>
+  poolRows.value.filter(row => row.outside?.sameIdentity).map(row => row.pool.name)
 )
 
 // TAKE OVER a pool holding another XO's global configuration

@@ -1,8 +1,10 @@
 import { VDF_GLOBAL_RULE_BASE, type VdfDocument } from '@/modules/vdf/types.ts'
 import {
+  composeWithGlobal,
   displayName,
   globalRuleId,
   isReservedTier,
+  policyReach,
   reservesTiers,
   vdfGlobalRoute,
   vdfPageRoute,
@@ -72,5 +74,64 @@ describe('tiers kept for global policies (vdf#21)', () => {
 
   it('up to securityops, numbered tiers included', () => {
     expect([0, 10, 25, 26, 50, 100].map(isReservedTier)).toEqual([true, true, true, false, false, false])
+  })
+})
+
+describe('composeWithGlobal', () => {
+  it("writes the global configuration first, under its pool names, then the pool's own part", () => {
+    const own: VdfDocument = {
+      groups: { db: { tags: ['vdf:role=db'] }, 'global:stale': {} },
+      policies: [{ name: 'db', appliedTo: 'db', default: 'pass', ingress: [] }],
+    }
+    const global: VdfDocument = {
+      groups: { app: { tags: ['vdf:role=app'] }, db: { tags: ['vdf:role=db'] } },
+      policies: [
+        {
+          name: 'db-from-app',
+          appliedTo: 'db',
+          tier: 'application',
+          default: 'drop',
+          ingress: [{ id: 1, from: 'app', proto: 'tcp', ports: [5432] }],
+          egress: [{ id: 2, to: 'any', proto: 'any' }],
+        },
+      ],
+    }
+
+    const document = composeWithGlobal(own, global)
+
+    expect(Object.keys(document.groups)).toEqual(['global:app', 'global:db', 'db'])
+    expect(document.policies.map(policy => [policy.name, policy.appliedTo])).toEqual([
+      ['global:db-from-app', 'global:db'],
+      ['db', 'db'],
+    ])
+    expect(document.policies[0].ingress[0]).toMatchObject({ id: VDF_GLOBAL_RULE_BASE + 1, from: 'global:app' })
+    expect(document.policies[0].egress?.[0]).toMatchObject({ id: VDF_GLOBAL_RULE_BASE + 2, to: 'any' })
+  })
+})
+
+describe('policyReach', () => {
+  it('counts the VMs each policy applies to, per pool, without the pools where it has none', () => {
+    const document: VdfDocument = {
+      groups: { db: { tags: ['vdf:role=db'] }, web: { tags: ['vdf:role=web'] } },
+      policies: [
+        { name: 'db', appliedTo: 'db', default: 'drop', ingress: [] },
+        { name: 'web', appliedTo: 'web', default: 'drop', ingress: [] },
+      ],
+    }
+    const counts: Record<string, number> = { 'db/A': 2, 'db/B': 0, 'web/A': 0, 'web/B': 0 }
+
+    expect(
+      policyReach(
+        document,
+        [
+          { id: 'A', name: 'Pool A' },
+          { id: 'B', name: 'Pool B' },
+        ],
+        (group, poolId) => counts[`${group}/${poolId}`]
+      )
+    ).toEqual([
+      { policy: 'db', pools: [{ id: 'A', name: 'Pool A', vms: 2 }] },
+      { policy: 'web', pools: [] },
+    ])
   })
 })

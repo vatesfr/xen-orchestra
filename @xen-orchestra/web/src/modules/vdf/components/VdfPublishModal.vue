@@ -21,6 +21,15 @@
           <VdfChangeList :details :member-count :is-global="isGlobalScope(shown.scopeId)" />
         </section>
 
+        <!-- vdf#47: a global publish, the pools and VMs each policy reaches -->
+        <section v-if="isGlobalScope(shown.scopeId) && shown.document.policies.length > 0" class="section">
+          <h3 class="typo-body-bold">{{ t('firewall:global:reach') }}</h3>
+          <p class="typo-body-regular-small secondary">{{ t('firewall:global:reach:info') }}</p>
+          <UiInfo v-for="policy of shown.document.policies" :key="policy.name" accent="info" wrap>
+            {{ reachText(policy.name) }}
+          </UiInfo>
+        </section>
+
         <section v-if="enforced.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:enforcing') }}</h3>
           <template v-for="item of enforced" :key="item.policy">
@@ -80,6 +89,9 @@
                   {{ note.text }}
                 </UiInfo>
               </template>
+              <UiInfo v-for="note of overriddenPerPool[pool.id] ?? []" :key="note.key" accent="warning" wrap>
+                {{ note.text }}
+              </UiInfo>
             </div>
           </template>
           <template v-else-if="checkResult !== undefined">
@@ -134,12 +146,21 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
+import { useVdfGlobalReach } from '@/modules/vdf/composables/vdf-global-reach.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
-import type { VdfCheckResult, VdfDefaultAction, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
+import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
+import type {
+  VdfCheckResult,
+  VdfDefaultAction,
+  VdfDocument,
+  VdfGlobalDocument,
+  VdfMonitorEntry,
+  VdfScopeId,
+} from '@/modules/vdf/types.ts'
 import { parseAgentWarning } from '@/modules/vdf/utils/vdf-agent-warning.util.ts'
 import {
   changeDetails,
@@ -147,7 +168,13 @@ import {
   overriddenDefaults,
   publishWarnings,
 } from '@/modules/vdf/utils/vdf-change.util.ts'
-import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import {
+  composeWithGlobal,
+  displayName,
+  globalRuleId,
+  inGlobalScope,
+  isGlobalScope,
+} from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
@@ -213,17 +240,12 @@ const defaultLabel = (action: VdfDefaultAction) =>
 const { netTagsOfAddress, interfacesOf } = useVdfInterfaces()
 
 // a pool policy's default that a global policy's decides for (vdf#27), on
-// the draft with the pool's global part, for the pool's VMs: the groups of
+// a pool's document with its global part, for the pool's VMs: the groups of
 // each of their interfaces (a group scoped to networks only holds those on
 // them)
-const overridden = computed(() => {
-  if (isGlobalScope(shown.value.scopeId)) {
-    return []
-  }
-
-  const { document, scopeId } = shown.value
+function overriddenIn(document: VdfDocument, poolId: string) {
   const interfaceGroups = vms.value
-    .filter(vm => vm.$pool === scopeId)
+    .filter(vm => vm.$pool === poolId)
     .map(vm => {
       const groups = vmGroupNames(vm.tags, document)
 
@@ -251,7 +273,30 @@ const overridden = computed(() => {
       item.vms
     ),
   }))
-})
+}
+
+// a pool's publish: its draft, with the pool's global part
+const overridden = computed(() =>
+  isGlobalScope(shown.value.scopeId) ? [] : overriddenIn(shown.value.document, shown.value.scopeId)
+)
+
+// A GLOBAL PUBLISH: where each policy applies, in the pools of the draft's
+// scope that get this configuration (vdf#47)
+
+const { globalStatus } = useVdfGlobal()
+
+const reachPools = computed(() =>
+  isGlobalScope(shown.value.scopeId)
+    ? (globalStatus.value?.pools ?? []).filter(
+        pool =>
+          inGlobalScope((shown.value.document as VdfGlobalDocument).scope, pool.id) &&
+          pool.state !== 'other-xo' &&
+          pool.seenAt === undefined
+      )
+    : []
+)
+
+const { reachText } = useVdfGlobalReach(() => shown.value.document, reachPools)
 
 // open connections per rule, for the rules the draft removes (one sample
 // of the pool's live stats)
@@ -354,6 +399,18 @@ const checkResult = ref<VdfCheckResult>()
 
 const checkError = ref<string>()
 
+// a global publish: each pool in scope, its own part as the check found it
+// with the draft's global configuration
+const overriddenPerPool = computed<Record<string, { key: string; text: string }[]>>(() =>
+  isGlobalScope(shown.value.scopeId)
+    ? Object.fromEntries(
+        (checkResult.value?.pools ?? [])
+          .filter(pool => pool.own !== undefined)
+          .map(pool => [pool.id, overriddenIn(composeWithGlobal(pool.own!, shown.value.document), pool.id)])
+      )
+    : {}
+)
+
 // HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
 // for the pool, or each pool the global configuration is checked on
 
@@ -392,6 +449,7 @@ const isRisky = computed(
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
     Object.values(hostNotes.value).some(notes => notes.length > 0) ||
+    Object.values(overriddenPerPool.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
     details.value.policies.some(
       change => change.type === 'removed' || change.rules.some(rule => rule.type === 'removed')
@@ -495,7 +553,8 @@ onMounted(async () => {
     gap: 0.4rem;
   }
 
-  .pool-name {
+  .pool-name,
+  .secondary {
     color: var(--color-neutral-txt-secondary);
   }
 

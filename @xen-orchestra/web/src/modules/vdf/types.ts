@@ -108,6 +108,27 @@ export type VdfDocument = {
   [unknownField: string]: unknown
 }
 
+// A change of a pool's document or owner made outside this XO (vdf#32):
+// another XO, xe, `vdf-agent publish`, or a copy of this XO
+export type VdfOutsideChange = {
+  seenAt: string
+  lastSeenAt: string
+  // seen again after this XO wrote the pool (two writers alternating)
+  times: number
+  docChanged: boolean
+  // the pool's global part changed
+  globalChanged: boolean
+  ownerChanged: boolean
+  previousOwner: VdfPoolOwner | null
+  owner: VdfPoolOwner | null
+  // this XO's identity made it: a copy of this XO (vdf#20)
+  sameIdentity: boolean
+  // GET policy and GET /global: the pool still holds it
+  current?: boolean
+}
+
+export type VdfPoolOwner = { id: string; name: string; since?: string }
+
 export type VdfPublishedPolicy = {
   key: string | null
   docId: string
@@ -119,6 +140,8 @@ export type VdfPublishedPolicy = {
   canEdit?: boolean
   // owner: the XO whose global configuration the pool holds, if another one
   global?: { revision: number; inScope: boolean; owner?: string }
+  // the last change made outside this XO
+  outside?: VdfOutsideChange | null
 }
 
 export type VdfGlobalScope = {
@@ -155,6 +178,8 @@ export type VdfGlobalPool = {
   // older (restored from a backup, a copy), and takes it back confirmed
   // (vdf#81)
   cloned?: boolean
+  // the last change made there outside this XO (vdf#32)
+  outside?: VdfOutsideChange
 }
 
 export type VdfGlobalMember = {
@@ -167,6 +192,9 @@ export type VdfGlobalMember = {
   // last known: XO lost the member's pool (fail static)
   stale?: boolean
   seenAt?: number
+  // its pool holds another XO's global configuration (vdf#30): it counts
+  // here, its pool never gets this XO's
+  otherXo?: string
 }
 
 export type VdfVmRef = Pick<VdfGlobalMember, 'vm' | 'vmName' | 'pool' | 'poolName'>
@@ -245,6 +273,8 @@ export type VdfCheckResult = {
     owner?: string
     // its own policies in the tiers kept for global policies (vdf#21)
     reservedTiers?: string[]
+    // a pool in scope: its own part, as it holds it (vdf#27)
+    own?: VdfDocument
   })[]
   revision?: number
   // global publish saved, but not written into every pool yet
@@ -278,6 +308,8 @@ export type VdfHistoryEntry = {
   publishedAt: string | null
   publishedBy: string | null
   summary: VdfHistorySummary
+  // a pool's: a change made outside this XO, publishedAt is when XO saw it
+  outside?: VdfOutsideChange
 }
 
 export type VdfHistoryVersion = VdfHistoryEntry & {

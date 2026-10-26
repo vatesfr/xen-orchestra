@@ -1946,3 +1946,218 @@ describe('normal life on one XO', () => {
     }
   })
 })
+
+// vdf#32, vdf#20: what changed in a pool without this XO
+describe('changes outside this XO', () => {
+  const globalDocument = {
+    groups: { web: { tags: ['vdf:role=web'] } },
+    policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [] }],
+  }
+  const publishGlobal = (xo, revision = 0) =>
+    xo.route('post', '/global/actions/publish', {
+      body: { policy: text(globalDocument), scope: { all: true }, revision },
+    })
+  const historyOf = async (xo, poolId = POOL) =>
+    (await xo.route('get', '/pools/{id}/history', { params: { id: poolId } })).result.entries
+  const policyOf = async (xo, poolId = POOL) =>
+    (await xo.route('get', '/pools/{id}/policy', { params: { id: poolId } })).result
+
+  test('a document written outside this XO is kept in the pool history, also while XO was stopped', async () => {
+    const store = fakeStore()
+    const before = text(document(22))
+    const xo = fakeXo({ store, otherConfig: { 'vdf:policy': before } })
+    const plugin = await loaded(xo)
+    try {
+      // first sight: nothing to compare with
+      await plugin.syncNow()
+      assert.deepEqual(await historyOf(xo), [])
+      assert.equal((await policyOf(xo)).outside, null)
+
+      // vdf-agent publish, xe, another XO
+      const outside = text(document(8080))
+      xo.xapi.pool.other_config['vdf:policy'] = outside
+      await plugin.syncNow()
+      const entries = await historyOf(xo)
+      assert.deepEqual(
+        entries.map(entry => [entry.id, entry.docId, entry.publishedBy, entry.outside?.docChanged]),
+        [
+          [1, docId(before), null, undefined],
+          [2, docId(outside), null, true],
+        ]
+      )
+      assert.equal(entries[1].previousDocId, docId(before))
+      assert.equal(entries[1].summary.modified, 1)
+      assert.equal(entries[1].outside.sameIdentity, false)
+      assert.equal((await policyOf(xo)).outside.current, true)
+
+      // seen again: nothing new
+      await plugin.syncNow()
+      assert.equal((await historyOf(xo)).length, 2)
+
+      // this XO's own publish is no outside change
+      await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: POOL },
+        body: { policy: text(document(443)) },
+      })
+      await plugin.syncNow()
+      const after = await historyOf(xo)
+      assert.deepEqual(
+        after.map(entry => entry.outside === undefined),
+        [true, false, true]
+      )
+      assert.equal(after[2].previousDocId, docId(outside))
+      assert.equal((await policyOf(xo)).outside.current, false)
+    } finally {
+      plugin.unload()
+    }
+
+    // a change made while this XO was stopped is seen at its first pass
+    const whileStopped = text(document(25))
+    const restarted = fakeXo({ store, otherConfig: { 'vdf:policy': whileStopped } })
+    const plugin2 = await loaded(restarted)
+    try {
+      await plugin2.syncNow()
+      const last = (await historyOf(restarted)).at(-1)
+      assert.equal(last.docId, docId(whileStopped))
+      assert.equal(last.outside.docChanged, true)
+    } finally {
+      plugin2.unload()
+    }
+  })
+
+  test('another XO taking the pool over is in the history, and in the global status', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} } })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo)
+      await plugin.syncNow()
+      xo.xapis.B.pool.other_config['vdf:global.owner'] = JSON.stringify({
+        id: 'other',
+        name: 'xo-b',
+        since: '2026-10-26T12:00:00.000Z',
+      })
+      await plugin.syncNow()
+      const { outside } = (await historyOf(xo, 'B')).at(-1)
+      assert.deepEqual(
+        [outside.ownerChanged, outside.docChanged, outside.owner.name, outside.sameIdentity],
+        [true, false, 'xo-b', false]
+      )
+      const pools = (await xo.route('get', '/global')).result.pools
+      assert.equal(pools.find(pool => pool.id === 'B').outside.owner.name, 'xo-b')
+      assert.equal(pools.find(pool => pool.id === 'A').outside, undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a copy of this XO writing the same pool is told apart, and counted once while they alternate', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo)
+      await plugin.syncNow()
+      // a cloned XO VM: same identity, other global groups
+      const ours = xo.xapi.pool.other_config['vdf:policy']
+      const theirs = JSON.parse(ours)
+      theirs.groups['global:web'] = { tags: ['vdf:role=web'], ips: ['192.0.2.9'] }
+      const copyWrites = () => (xo.xapi.pool.other_config['vdf:policy'] = text(theirs))
+
+      copyWrites()
+      await plugin.syncNow()
+      // this XO wrote its own global part back
+      assert.equal(xo.xapi.pool.other_config['vdf:policy'], ours)
+      copyWrites()
+      await plugin.syncNow()
+
+      const outsideEntries = (await historyOf(xo)).filter(entry => entry.outside !== undefined)
+      assert.equal(outsideEntries.length, 1)
+      assert.deepEqual(
+        [
+          outsideEntries[0].outside.sameIdentity,
+          outsideEntries[0].outside.globalChanged,
+          outsideEntries[0].outside.times,
+        ],
+        [true, true, 2]
+      )
+      const { outside } = await policyOf(xo)
+      assert.equal(outside.sameIdentity, true)
+      assert.equal(outside.current, false)
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+// vdf#30: one XO governs the global configuration; a pool another XO owns
+// still feeds members into this XO's pools
+describe('members from a pool another XO owns', () => {
+  test('are marked with that XO', async () => {
+    const globalDocument = {
+      groups: { web: { tags: ['vdf:role=web'] } },
+      policies: [
+        {
+          name: 'web',
+          appliedTo: 'web',
+          default: 'drop',
+          ingress: [{ id: 1, from: 'web', proto: 'tcp', ports: [80] }],
+        },
+      ],
+    }
+    const vm = (id, pool, ip) => ({
+      id,
+      name_label: id,
+      $pool: pool,
+      power_state: 'Running',
+      tags: ['vdf:role=web'],
+      addresses: { '0/ipv4/0': ip },
+    })
+    const xo = fakeXo({
+      pools: { A: {}, B: { otherConfig: { 'vdf:global.owner': '{"id":"other","name":"xo-other"}' } } },
+      vms: [vm('vm-a', 'A', '10.0.0.1'), vm('vm-b', 'B', '10.0.0.2')],
+    })
+    const plugin = await loaded(xo)
+    try {
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(globalDocument), scope: { all: true }, revision: 0 },
+      })
+      const { members } = (await xo.route('get', '/global')).result
+      assert.deepEqual(
+        members.web.map(member => [member.vm, member.otherXo]),
+        [
+          ['vm-a', undefined],
+          ['vm-b', 'xo-other'],
+        ]
+      )
+      // one way: A gets B's member, B never gets this XO's policies
+      assert.deepEqual(JSON.parse(xo.xapis.A.pool.other_config['vdf:policy']).groups['global:web'].ips, ['10.0.0.2'])
+      assert.equal(xo.xapis.B.pool.other_config['vdf:policy'], undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+// vdf#27: XO 6 warns, on a global publish, when a global default decides
+// for a pool policy's; it needs each pool's own part
+describe('global check', () => {
+  test("returns each pool's own part, for the pools in scope", async () => {
+    const own = {
+      groups: { db: { tags: ['vdf:role=db'] } },
+      policies: [{ name: 'db', appliedTo: 'db', default: 'pass', ingress: [] }],
+    }
+    const xo = fakeXo({ pools: { A: { otherConfig: { 'vdf:policy': text(own) } }, B: {} } })
+    const plugin = await loaded(xo)
+    try {
+      const { result } = await xo.route('post', '/global/actions/check', {
+        body: { policy: text(document()), scope: { pools: ['A'] } },
+      })
+      assert.equal(result.ok, true)
+      const [a, b] = ['A', 'B'].map(id => result.pools.find(pool => pool.id === id))
+      assert.deepEqual(a.own, own)
+      assert.equal(b.skipped, true)
+      assert.equal(b.own, undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+})

@@ -1,3 +1,4 @@
+import { lockErrorKind } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
@@ -14,15 +15,16 @@ const vdfLockRequestsArg = defineJobArg({
   toArray: true,
 })
 
-// why a request failed: the REST API's message when there is one
-function errorMessage(reason: unknown) {
-  const cause = (reason as { cause?: { error?: unknown } } | undefined)?.cause
+// why a request failed: the REST API's message when there is one, and
+// its status
+function errorOf(reason: unknown) {
+  const { cause, status } = (reason ?? {}) as { cause?: { error?: unknown }; status?: number }
 
   if (typeof cause?.error === 'string') {
-    return cause.error
+    return { message: cause.error, status }
   }
 
-  return reason instanceof Error ? reason.message : String(reason)
+  return { message: reason instanceof Error ? reason.message : String(reason), status }
 }
 
 // VIF locking (vdf#15) is XAPI's, not the firewall's: it applies at once.
@@ -31,6 +33,14 @@ function errorMessage(reason: unknown) {
 // error of each one that failed, by VIF id.
 export const useVdfLockJob = defineJob('vdf.lock-vifs', [vdfLockRequestsArg], () => {
   const { t } = useI18n()
+
+  // in words rather than XAPI's code (vdf#41), the raw error kept at the end
+  function errorMessage(reason: unknown) {
+    const { message, status } = errorOf(reason)
+    const known = lockErrorKind(message, status)
+
+    return known === undefined ? message : t(`firewall:lock:error:${known.kind}`, { detail: known.detail })
+  }
 
   return {
     async run(requests) {

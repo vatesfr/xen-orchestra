@@ -1,4 +1,4 @@
-import type { VdfHostLocking, VdfHostStatusDocument, VdfLockedVif } from '@/modules/vdf/types.ts'
+import type { VdfHostLocking, VdfHostStatusDocument, VdfLockedVif, VdfRule } from '@/modules/vdf/types.ts'
 import { interfaceAddresses, type VdfInterfaceVif } from '@/modules/vdf/utils/vdf-networks.util.ts'
 
 // VIF LOCKING (vdf#15): a locked VIF can only send from its allowed
@@ -324,4 +324,63 @@ export function mergeLocking(
   report.stale.sort(byName)
 
   return report
+}
+
+// Why XO or XAPI didn't lock an interface (vdf#41), from the REST API's
+// message (a XAPI error reads CODE(params)) and status: undefined for an
+// error not known here, shown as is
+export type VdfLockErrorKind = 'sdn-controller' | 'not-allowed' | 'permission' | 'gone' | 'invalid'
+
+export function lockErrorKind(
+  message: string,
+  status?: number
+): { kind: VdfLockErrorKind; detail: string } | undefined {
+  const xapi = /^([A-Z][A-Z0-9_]+)\(([\s\S]*)\)$/.exec(message.trim())
+  const code = xapi?.[1]
+  const detail = xapi?.[2] ?? message
+
+  // VIF.set_locking_mode refuses as soon as an SDN controller is
+  // registered on an Open vSwitch pool (Helpers.assert_vswitch_controller_not_active)
+  if (code === 'OPERATION_NOT_ALLOWED' && /vswitch controller/i.test(detail)) {
+    return { kind: 'sdn-controller', detail }
+  }
+
+  if (code === 'OPERATION_NOT_ALLOWED') {
+    return { kind: 'not-allowed', detail }
+  }
+
+  if (code === 'HANDLE_INVALID' || status === 404) {
+    return { kind: 'gone', detail }
+  }
+
+  if (code === 'RBAC_PERMISSION_DENIED' || status === 401 || status === 403) {
+    return { kind: 'permission', detail }
+  }
+
+  if (code === 'INVALID_IP_ADDRESS_SPECIFIED' || code === 'INVALID_VALUE' || status === 422) {
+    return { kind: 'invalid', detail }
+  }
+
+  return undefined
+}
+
+// The VMs whose addresses a policy can't trust (vdf#41): those it applies
+// to (unless `peersOnly`), and the members of the groups its rules allow or
+// drop, with an interface their guest may use any address on.
+// `untrustedOf`: a group's.
+export function untrustedInPolicy(
+  policy: { appliedTo: string; ingress: VdfRule[]; egress?: VdfRule[] },
+  untrustedOf: (group: string) => string[],
+  { peersOnly = false }: { peersOnly?: boolean } = {}
+): string[] {
+  const groups = new Set([
+    ...(peersOnly ? [] : [policy.appliedTo]),
+    ...policy.ingress.map(rule => rule.from),
+    ...(policy.egress ?? []).map(rule => rule.to),
+  ])
+
+  groups.delete('any')
+  groups.delete(undefined)
+
+  return [...new Set([...groups].flatMap(group => untrustedOf(group!)))].sort((a, b) => a.localeCompare(b))
 }
