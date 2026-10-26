@@ -9,6 +9,7 @@ import {
   nextRuleId,
   parsePorts,
   policiesByTier,
+  reservedTierPolicies,
   ruleBase,
   tierDefault,
   tierValue,
@@ -61,6 +62,20 @@ describe('tiers', () => {
       [100, ['app']],
       [110, ['baseline']],
     ])
+  })
+
+  it("lists the pool's own policies in the tiers kept for global policies (vdf#21)", () => {
+    const withGlobal: VdfDocument = {
+      ...document,
+      policies: [
+        { name: 'global:soc', tier: 'emergency', appliedTo: 'app', default: 'pass', ingress: [] },
+        { name: 'early', tier: 10, appliedTo: 'app', default: 'pass', ingress: [] },
+        { name: 'net', tier: 'networkops', appliedTo: 'app', default: 'pass', ingress: [] },
+        ...document.policies,
+      ],
+    }
+
+    expect(reservedTierPolicies(withGlobal)).toEqual(['early', 'incident'])
   })
 
   it('combines the defaults of a tier: drop, else allow, else pass', () => {

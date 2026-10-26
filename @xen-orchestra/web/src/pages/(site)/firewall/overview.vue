@@ -177,6 +177,21 @@
                 <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
                   {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
                 </UiTag>
+                <UiTag
+                  v-if="row.pool.reservedTiers !== undefined"
+                  v-tooltip="t('firewall:global:reserved-tiers:info', { policies: formatList(row.pool.reservedTiers) })"
+                  accent="warning"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{
+                    t(
+                      'firewall:global:reserved-tiers',
+                      { n: row.pool.reservedTiers.length },
+                      row.pool.reservedTiers.length
+                    )
+                  }}
+                </UiTag>
               </span>
             </UiTableCell>
             <UiTableCell class="typo-body-regular-small">

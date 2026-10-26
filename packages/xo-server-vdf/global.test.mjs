@@ -16,6 +16,7 @@ import {
   poolOwner,
   poolSyncState,
   remoteIpsFor,
+  reservedTierPolicies,
   runningVmRecords,
   vmIfaces,
   vmIps,
@@ -180,6 +181,29 @@ describe('checks', () => {
     assert.equal(
       checkLocalDocument({ groups: {}, policies: [{ name: 'p', ingress: [{ id: GLOBAL_RULE_BASE + 3 }] }] }).length,
       1
+    )
+  })
+
+  // vdf#21: a pool's emergency allow would decide before a global drop
+  test('in scope, a local policy in a tier kept for global policies is refused', () => {
+    const local = tier => ({ groups: {}, policies: [{ name: `p-${tier}`, tier, appliedTo: 'web', ingress: [] }] })
+    for (const tier of ['emergency', 'securityops', 0, 10, 25]) {
+      const errors = checkLocalDocument(local(tier), { globalScope: true })
+      assert.equal(errors.length, 1, String(tier))
+      assert.match(errors[0], new RegExp(`move "p-${tier}" to networkops or a later tier`))
+    }
+    for (const tier of ['networkops', 'platform', 26, undefined, 'baseline']) {
+      assert.deepEqual(checkLocalDocument(local(tier), { globalScope: true }), [], String(tier))
+    }
+    // out of scope: every tier
+    assert.deepEqual(checkLocalDocument(local('emergency')), [])
+    // the global policies themselves (securityops in GLOBAL) may use any
+    assert.deepEqual(checkLocalDocument(compose(LOCAL, GLOBAL), { globalScope: true }), [])
+    assert.deepEqual(
+      reservedTierPolicies(
+        compose({ ...LOCAL, policies: [...LOCAL.policies, { ...LOCAL.policies[0], name: 'sos', tier: 0 }] }, GLOBAL)
+      ),
+      ['sos']
     )
   })
 })

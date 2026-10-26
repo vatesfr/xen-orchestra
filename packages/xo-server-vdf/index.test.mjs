@@ -760,3 +760,103 @@ describe('config export', () => {
     }
   })
 })
+
+// vdf#21: in a pool the global configuration applies to, the emergency and
+// securityops tiers are the global policies'
+describe('tiers kept for global policies', () => {
+  const emergencyAllow = {
+    name: 'sos',
+    tier: 'emergency',
+    appliedTo: 'web',
+    default: 'pass',
+    ingress: [{ id: 7, from: 'any', proto: 'any' }],
+  }
+  const withEmergency = { ...document(), policies: [...document().policies, emergencyAllow] }
+  const globalDocument = {
+    groups: { db: { tags: ['vdf:role=db'] } },
+    policies: [
+      {
+        name: 'no-dev',
+        tier: 'securityops',
+        appliedTo: 'db',
+        default: 'pass',
+        ingress: [{ id: 1, action: 'drop', from: 'any', proto: 'tcp' }],
+      },
+    ],
+  }
+  const publishGlobal = (xo, revision, scope = { all: true }) =>
+    xo.route('post', '/global/actions/publish', { body: { policy: text(globalDocument), scope, revision } })
+  const publishPool = (xo, poolId, doc) =>
+    xo.route('post', '/pools/{id}/actions/publish_policy', { params: { id: poolId }, body: { policy: text(doc) } })
+
+  test('a pool in scope publishes no policy of its own there, a pool out of scope does', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} } })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo, 0, { pools: ['A'] })
+      const agentCalls = xo.calls.length
+
+      const refused = (await publishPool(xo, 'A', withEmergency)).result
+      assert.equal(refused.published, false)
+      assert.match(refused.error, /move "sos" to networkops or a later tier/)
+      const check = (
+        await xo.route('post', '/pools/{id}/actions/check_policy', {
+          params: { id: 'A' },
+          body: { policy: text(withEmergency) },
+        })
+      ).result
+      assert.equal(check.ok, false)
+      // refused by XO, before any agent sees it
+      assert.equal(xo.calls.length, agentCalls)
+
+      assert.equal((await publishPool(xo, 'B', withEmergency)).result.published, true)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a pool entering the scope with policies there is refused, with their names', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} } })
+    const plugin = await loaded(xo)
+    try {
+      await publishPool(xo, 'B', withEmergency)
+      const before = { ...xo.xapis.B.pool.other_config }
+
+      const result = (await publishGlobal(xo, 0)).result
+      assert.deepEqual([result.published, result.ok], [false, false])
+      const poolB = result.pools.find(pool => pool.id === 'B')
+      assert.deepEqual(poolB.reservedTiers, ['sos'])
+      assert.match(poolB.error, /move "sos" to networkops/)
+      // nothing written anywhere
+      assert.deepEqual(xo.xapis.B.pool.other_config, before)
+      assert.equal(xo.xapis.A.pool.other_config['vdf:policy'], undefined)
+
+      // moved: the scope change goes through
+      const moved = { ...withEmergency, policies: [...document().policies, { ...emergencyAllow, tier: 'networkops' }] }
+      await publishPool(xo, 'B', moved)
+      assert.equal((await publishGlobal(xo, 0)).result.ok, true)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a pool already in scope gets them anyway, flagged, and a warning at publish', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo, 0)
+      // an edit made outside XO (vdf-agent publish)
+      const held = JSON.parse(xo.xapi.pool.other_config['vdf:policy'])
+      xo.xapi.pool.other_config['vdf:policy'] = text({ ...held, policies: [...held.policies, emergencyAllow] })
+
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(status.pools[0].reservedTiers, ['sos'])
+
+      const result = (await publishGlobal(xo, 1)).result
+      assert.equal(result.ok, true)
+      assert.match(result.pools[0].warnings.join('\n'), /"sos"\. The pool can't publish until they're moved/)
+    } finally {
+      plugin.unload()
+    }
+  })
+})

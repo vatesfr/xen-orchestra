@@ -9,6 +9,7 @@ import {
   type VdfProtocol,
   type VdfRule,
 } from '@/modules/vdf/types.ts'
+import { reservesTiers } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupUsage, nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -65,6 +66,10 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
   )
 
   const hasTaggedGroups = computed(() => taggedGroupOptions.value.length > 0)
+
+  // a pool the global configuration applies to keeps its earliest tiers for
+  // the global policies (vdf#21); the global configuration uses any tier
+  const reservedTiers = computed(() => !scope.isGlobal && reservesTiers(scope.globalInfo.value))
 
   // GROUPS
 
@@ -221,6 +226,7 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
       isNew,
       groups: taggedGroupOptions.value,
       otherPolicyNames: document.value.policies.map(({ name }) => name).filter(name => name !== policy?.name),
+      reservedTiers: reservedTiers.value,
     }))
 
     const response = await openPolicy({
@@ -262,5 +268,5 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
     }
   }
 
-  return { editRule, editPolicy, editGroup, editLimits, groupOptions, hasTaggedGroups }
+  return { editRule, editPolicy, editGroup, editLimits, groupOptions, hasTaggedGroups, reservedTiers }
 }

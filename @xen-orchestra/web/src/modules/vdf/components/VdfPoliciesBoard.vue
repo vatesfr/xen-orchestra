@@ -40,6 +40,17 @@
         </UiButton>
       </div>
 
+      <UiAlert v-if="ownReservedPolicies.length > 0" accent="warning">
+        {{
+          t(
+            'firewall:policies:reserved-tiers',
+            { policies: ownReservedPolicies.join(', ') },
+            ownReservedPolicies.length
+          )
+        }}
+        <template #description>{{ t('firewall:policies:reserved-tiers:info') }}</template>
+      </UiAlert>
+
       <UiAlert v-if="!hasTaggedGroups" accent="info">
         {{ t('firewall:policies:no-group') }}
         <template #description>
@@ -78,7 +89,13 @@
           </tr>
         </thead>
         <tbody v-for="tier of tiers" :key="tier.value">
-          <VdfTierRow :tier :columns :can-add="search === ''" @add-policy="addPolicy(tier.value)" />
+          <VdfTierRow
+            :tier
+            :columns
+            :can-add="search === ''"
+            :reserved="reservedTiers && isReservedTier(tier.value)"
+            @add-policy="addPolicy(tier.value)"
+          />
           <template v-for="entry of tier.policies" :key="`${entry.policy.name}:${entry.state}`">
             <VdfPolicyRow
               :scope-id
@@ -165,13 +182,14 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfRuleHits } from '@/modules/vdf/composables/vdf-rule-hits.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfPolicyMode, VdfProtocol } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, globalRuleId, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   filterRuleBase,
   movePolicy,
   moveRule,
   parsePorts,
+  reservedTierPolicies,
   ruleBase,
   type VdfRuleBasePolicy,
   type VdfRuleBaseRule,
@@ -231,7 +249,11 @@ const hasError = computed(() =>
   vdfScope.isGlobal ? vdfScope.hasGlobalError.value : vdfScope.hasPublishedPolicyError.value
 )
 
-const { editPolicy, editRule, editGroup, editLimits, hasTaggedGroups } = useVdfEditors(() => scope)
+const { editPolicy, editRule, editGroup, editLimits, hasTaggedGroups, reservedTiers } = useVdfEditors(() => scope)
+
+// in a pool in scope, its own policies that came before the global ones
+// (written before it joined, or outside XO): flagged until moved (vdf#21)
+const ownReservedPolicies = computed(() => (reservedTiers.value ? reservedTierPolicies(document.value) : []))
 
 // the chips show what the groups they name are (their networks)
 provideVdfGroups(() => document.value.groups)

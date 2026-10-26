@@ -7,6 +7,15 @@
           <code v-tooltip="t('firewall:tier:order', { n: tier.value })" class="order typo-body-regular-small">
             {{ tier.value }}
           </code>
+          <UiTag
+            v-if="reserved"
+            v-tooltip="t('firewall:tier:reserved:info')"
+            accent="info"
+            variant="secondary"
+            tabindex="0"
+          >
+            {{ t('firewall:tier:reserved') }}
+          </UiTag>
           <span v-if="isEmpty" class="secondary typo-body-regular-small">{{ t('firewall:tier:empty') }}</span>
           <span v-else-if="tier.name" class="secondary typo-body-regular-small owner">
             {{ t(`firewall:tier:${tier.name}:owner`) }}
@@ -18,7 +27,7 @@
             <VdfActionTag :action="tier.default" is-default />
           </span>
           <UiButton
-            v-if="canAdd"
+            v-if="canAdd && !reserved"
             variant="tertiary"
             accent="brand"
             size="small"
@@ -39,6 +48,7 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type { VdfRuleBaseTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -49,6 +59,8 @@ const { tier } = defineProps<{
   tier: VdfRuleBaseTier
   columns: number
   canAdd: boolean
+  // kept for global policies in this pool (vdf#21): none of its own here
+  reserved?: boolean
 }>()
 
 const emit = defineEmits<{

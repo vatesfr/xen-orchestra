@@ -8,7 +8,8 @@
 // ids from GLOBAL_RULE_BASE up (ids must be unique in a document). Global
 // policies come first: agents take a tier's policies in document order, so
 // in a tier shared with the pool's own policies, the global rules match
-// first.
+// first; the earliest tiers are the global configuration's alone
+// (RESERVED_TIERS), so no pool policy comes before them.
 
 export const GLOBAL_PREFIX = 'global:'
 
@@ -68,8 +69,48 @@ export function checkGlobalDocument(document) {
   return errors
 }
 
-// Errors in a pool's own part: ids XO keeps for the global rules.
-export function checkLocalDocument(document) {
+// Tiers are evaluated in order, whoever wrote the policies in them: a
+// pool's own allow in an earlier tier would decide before a global drop
+// (vdf#21). In a pool the global configuration applies to, the emergency
+// and securityops tiers are therefore kept for global policies, so that a
+// global policy in an earlier or the same tier always wins. A numbered tier
+// up to securityops would come first too. Pools out of scope keep every
+// tier, and global policies may use any.
+export const RESERVED_TIERS = ['emergency', 'securityops']
+
+// the agent's named tiers (agent/policy.go tierNames)
+const TIER_VALUES = { emergency: 0, securityops: 25, networkops: 50, platform: 75, application: 100, baseline: 110 }
+
+export const LAST_RESERVED_TIER = TIER_VALUES.securityops
+
+// a policy's tier as a number: application when absent, undefined for a
+// name the agent doesn't know (it reports it)
+export function tierNumber(tier) {
+  if (tier === undefined) {
+    return TIER_VALUES.application
+  }
+  return typeof tier === 'number' ? tier : TIER_VALUES[tier]
+}
+
+const inReservedTier = policy => {
+  const tier = tierNumber(policy.tier)
+  return tier !== undefined && tier <= LAST_RESERVED_TIER
+}
+
+// the pool's own policies in a tier kept for global policies
+export const reservedTierPolicies = document =>
+  localPart(document)
+    .policies.filter(inReservedTier)
+    .map(policy => policy.name)
+
+// "a", "b": the pool's own policies to move before it can publish
+export const reservedTiersError = names =>
+  `the global configuration applies to this pool, where the tiers up to securityops are kept for global policies: move ${names.map(name => `"${name}"`).join(', ')} to networkops or a later tier`
+
+// Errors in a pool's own part: ids XO keeps for the global rules, and, in
+// a pool the global configuration applies to (globalScope), the tiers kept
+// for global policies.
+export function checkLocalDocument(document, { globalScope = false } = {}) {
   const errors = []
   for (const policy of localPart(document).policies) {
     for (const rule of allRules(policy)) {
@@ -79,6 +120,10 @@ export function checkLocalDocument(document) {
         )
       }
     }
+  }
+  const reserved = globalScope ? reservedTierPolicies(document) : []
+  if (reserved.length > 0) {
+    errors.push(reservedTiersError(reserved))
   }
   return errors
 }
