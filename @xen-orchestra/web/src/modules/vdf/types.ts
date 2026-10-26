@@ -173,6 +173,19 @@ export type VdfAddressConflict = { group: string; ip: string; member: VdfVmRef; 
 // the same IP on VMs of two pools in scope
 export type VdfAddressOverlap = { ip: string; holders: VdfVmRef[] }
 
+// a global configuration rebuilt from the pools holding another XO's
+// global part (vdf#81); exact: false from pools written before the owner
+// recorded its source (group IPs may include other pools' members)
+export type VdfRecoverable = {
+  owner: { id: string; name: string; since?: string }
+  document: VdfDocument
+  revision?: number
+  scope: VdfGlobalScope
+  exact: boolean
+  pools: { id: string; name: string }[]
+  differs: { id: string; name: string }[]
+}
+
 export type VdfGlobalStatus = {
   document: VdfDocument
   revision: number
@@ -186,7 +199,11 @@ export type VdfGlobalStatus = {
   instance?: { id: string; name: string }
   // the XO whose configuration was imported here (vdf#20): the pools it
   // owns stay its own until taken over
-  replaces?: { id: string; name: string; importedAt?: string }
+  // (recoveredAt: rebuilt from its pools instead, vdf#81)
+  replaces?: { id: string; name: string; importedAt?: string; recoveredAt?: string }
+  // without a global configuration, the ones other XOs left in the pools
+  // (vdf#81), XO administrators only
+  recoverable?: VdfRecoverable[]
   conflicts?: VdfAddressConflict[]
   overlaps?: VdfAddressOverlap[]
 }
