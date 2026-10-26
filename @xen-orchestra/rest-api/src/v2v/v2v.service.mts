@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { EsxiConnectionParams, XoPool } from '@vates/types'
+import { V2V_ERROR_CODE, type EsxiConnectionParams, type XoPool } from '@vates/types'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -113,15 +113,16 @@ export class V2vService {
 
 /**
  * A failure of the source is not a failure of XO: an invalid login is the answer the first step of the
- * wizard waits for
+ * wizard waits for. 422 rather than 401, which would open the Basic authentication prompt of the browser
  */
 function toSourceError(error: unknown, host: string): unknown {
   if (!(error instanceof Error)) {
     return error
   }
-  const code = 'code' in error ? error.code : undefined
-  if (code === 'InvalidLogin') {
-    const apiError = new ApiError('invalid credentials for the source', 400, { data: { code, host } })
+  if ('code' in error && error.code === 'InvalidLogin') {
+    const apiError = new ApiError('invalid credentials for the source', 422, {
+      data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS, host },
+    })
     apiError.cause = error
     return apiError
   }
