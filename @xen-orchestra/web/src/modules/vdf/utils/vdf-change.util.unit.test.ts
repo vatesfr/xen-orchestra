@@ -1,5 +1,5 @@
 import type { VdfDocument } from '@/modules/vdf/types.ts'
-import { changeDetails, isEmptyChange, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
+import { changeDetails, hostWarnings, isEmptyChange, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { cloneDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -70,5 +70,18 @@ describe('publishWarnings', () => {
     after.policies[0].mode = 'monitor'
 
     expect(publishWarnings(changeDetails(BEFORE, after), { memberCount: () => 2 })).toEqual([])
+  })
+})
+
+describe('hostWarnings', () => {
+  it('warns about hosts without an agent, then those with a stopped one', () => {
+    expect(hostWarnings({ missing: ['xcp2'], stale: ['xcp3', 'xcp4'] })).toEqual([
+      { type: 'hosts-without-agent', hosts: ['xcp2'] },
+      { type: 'hosts-stale-agent', hosts: ['xcp3', 'xcp4'] },
+    ])
+  })
+
+  it('says nothing when every host has a working agent', () => {
+    expect(hostWarnings({ missing: [], stale: [] })).toEqual([])
   })
 })

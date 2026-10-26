@@ -1,5 +1,6 @@
 import type { VdfDocument, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
 import {
+  agentGaps,
   effectiveLockingMode,
   enforcedVersion,
   hostState,
@@ -129,5 +130,35 @@ describe('effectiveLockingMode', () => {
     expect(effectiveLockingMode('network_default', false)).toBe('unlocked')
     expect(effectiveLockingMode('network_default', undefined)).toBe('unlocked')
     expect(effectiveLockingMode('network_default', true)).toBe('disabled')
+  })
+})
+
+describe('agentGaps', () => {
+  it('names the running hosts with no agent or a stopped one, apart', () => {
+    expect(
+      agentGaps(
+        [
+          { name: 'xcp2', status: undefined, running: true },
+          { name: 'xcp1', status: status(), running: true },
+          { name: 'xcp4', status: status({ heartbeat: '2026-10-22T09:00:00Z' }), running: true },
+          { name: 'xcp3', status: undefined, running: true },
+          { name: 'xcp5', status: status({ heartbeat: 'garbage' }), running: true },
+        ],
+        now
+      )
+    ).toEqual({ missing: ['xcp2', 'xcp3'], stale: ['xcp4', 'xcp5'] })
+  })
+
+  it("doesn't count an agent behind or rejecting as missing, nor a halted host", () => {
+    expect(
+      agentGaps(
+        [
+          { name: 'behind', status: status({ doc: 'old' }), running: true },
+          { name: 'rejected', status: status({ rejected: 'bad' }), running: true },
+          { name: 'halted', status: undefined, running: false },
+        ],
+        now
+      )
+    ).toEqual({ missing: [], stale: [] })
   })
 })
