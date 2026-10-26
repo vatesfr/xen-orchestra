@@ -157,3 +157,46 @@ export function insertRule(policy: VdfPolicy, rule: VdfRule, before?: number) {
   }
   setRules(policy, direction, rules)
 }
+
+// A flow of the report, the same from one poll to the next: what "Expected"
+// remembers (vdf#13)
+export const monitorFlowKey = (entry: VdfMonitorEntry) =>
+  [
+    entry.policy,
+    entry.egress ? 'out' : 'in',
+    entry.src,
+    entry.dst ?? '',
+    entry.vm,
+    entry.proto,
+    entry.port ?? '',
+    entry.rule ?? '',
+  ].join('|')
+
+// Flows marked expected (a drop that's wanted: no rule to add), by key,
+// with when: marking one keeps the newest `max`, unmarking removes it.
+export function markExpected(
+  expected: Record<string, number>,
+  key: string,
+  isExpected: boolean,
+  { now = Date.now(), max = 2000 }: { now?: number; max?: number } = {}
+): Record<string, number> {
+  const next = { ...expected }
+
+  if (!isExpected) {
+    delete next[key]
+
+    return next
+  }
+
+  next[key] = now
+
+  const keys = Object.keys(next)
+
+  if (keys.length > max) {
+    for (const old of keys.sort((a, b) => next[a] - next[b]).slice(0, keys.length - max)) {
+      delete next[old]
+    }
+  }
+
+  return next
+}

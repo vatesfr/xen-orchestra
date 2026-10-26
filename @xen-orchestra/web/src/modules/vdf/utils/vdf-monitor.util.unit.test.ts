@@ -3,6 +3,8 @@ import {
   coveredBy,
   enforcedPolicies,
   insertRule,
+  markExpected,
+  monitorFlowKey,
   seenSince,
   suggestRules,
   withFormatVersion,
@@ -146,5 +148,42 @@ describe('coveredBy', () => {
     p.ingress.push({ id: 9, from: 'any', proto: 'tcp', ports: [22] })
     expect(coveredBy(p, entry({ port: 22, rule: 2 }), groupsOf)).toBe(false)
     expect(coveredBy(p, entry({ port: 22 }), groupsOf)).toBe(true)
+  })
+})
+
+describe('monitorFlowKey', () => {
+  it('is the same for the same flow from one poll to the next', () => {
+    expect(monitorFlowKey(entry({ count: 3, last: '2026-10-25T10:00:00Z' }))).toBe(monitorFlowKey(entry({ count: 9 })))
+  })
+
+  it('tells flows apart by policy, direction, ends, service and rule', () => {
+    const keys = [
+      entry({}),
+      entry({ policy: 'other' }),
+      entry({ egress: true, dst: '10.0.0.7' }),
+      entry({ src: '10.0.0.8' }),
+      entry({ vm: 'vm-app' }),
+      entry({ proto: 'udp' }),
+      entry({ port: 22 }),
+      entry({ rule: 2 }),
+    ].map(monitorFlowKey)
+
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+})
+
+describe('markExpected', () => {
+  it('marks and unmarks a flow, leaving the record given as is', () => {
+    const before = { a: 1 }
+    const marked = markExpected(before, 'b', true, { now: 2 })
+
+    expect(marked).toEqual({ a: 1, b: 2 })
+    expect(before).toEqual({ a: 1 })
+    expect(markExpected(marked, 'a', false)).toEqual({ b: 2 })
+    expect(markExpected(marked, 'c', false)).toEqual(marked)
+  })
+
+  it('keeps the newest ones past its bound', () => {
+    expect(markExpected({ a: 1, b: 3, c: 2 }, 'd', true, { now: 4, max: 2 })).toEqual({ b: 3, d: 4 })
   })
 })

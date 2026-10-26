@@ -23,6 +23,9 @@
         </VtsInputWrapper>
         <UiQuerySearchBar class="search" @search="value => (search = value)" />
         <UiToggle v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</UiToggle>
+        <UiToggle v-if="expectedCount > 0" v-model="showExpected">
+          {{ t('firewall:monitor:show-expected', { n: expectedCount }, expectedCount) }}
+        </UiToggle>
       </div>
 
       <section v-for="group of suggestionGroups" :key="group.policy.name" class="suggestions">
@@ -111,6 +114,7 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
+import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
@@ -119,6 +123,7 @@ import {
   isMonitored,
   liveEntries,
   MONITOR_OTHER,
+  monitorFlowKey,
   suggestRules,
   type VdfSuggestion,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
@@ -127,6 +132,7 @@ import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { IconName } from '@core/icons'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -171,7 +177,7 @@ const { document, publishedDocument, saveRule } = useVdfScope(() => ({ kind: 'po
 
 const { vmByIp, groupsOfIp } = useVdfIpNames(publishedDocument)
 
-const { netTagsOfAddress, interfaceLabel, vifLabel } = useVdfInterfaces()
+const { netTagsOfAddress, interfaceLabel, vifLabel, interfacesOf } = useVdfInterfaces()
 
 const { membersOf } = useVdfMembers(() => pool.id, publishedDocument)
 
@@ -196,6 +202,11 @@ const { id: policySelectId } = useFormSelect(policyOptions, {
 const search = ref('')
 
 const showExpired = ref(false)
+
+// would-be drops marked expected: hidden unless asked, never suggested
+const { isExpected, setExpected } = useVdfMonitorExpected(poolId)
+
+const showExpected = ref(false)
 
 // a source (or an egress destination), as a rule would name it: the most
 // specific tagged group its VM belongs to, a group listing the address,
@@ -256,7 +267,11 @@ function isInDraft(suggestion: VdfSuggestion) {
 const suggestionGroups = computed(() =>
   shownPolicies.value
     .map((policy: VdfPolicy) => {
-      const suggestions = suggestRules(monitor.value?.entries ?? [], policy, sourceOf)
+      const suggestions = suggestRules(
+        (monitor.value?.entries ?? []).filter(entry => !isExpected(entry)),
+        policy,
+        sourceOf
+      )
 
       return {
         policy,
@@ -307,6 +322,8 @@ type Row = {
   key: string
   entry: VdfMonitorEntry
   allow: RouteLocationRaw | undefined
+  trace: RouteLocationRaw | undefined
+  expected: boolean
 }
 
 const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm.id, vm])))
@@ -342,7 +359,47 @@ function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
     : { name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: { policy: entry.policy, ...query } }
 }
 
-const rows = computed<Row[]>(() => {
+// the same flow, traced (as from the rule log): the source and destination
+// VMs of this pool (the interface of one with several, vdf#36), else the
+// address; a monitored drop is what the trace calls allowed
+function traceRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
+  const peer = entry.egress ? entry.dst : entry.src
+
+  if (peer === undefined || peer === MONITOR_OTHER || !['tcp', 'udp', 'icmp'].includes(entry.proto)) {
+    return undefined
+  }
+
+  const ifaceOf = (vm: FrontXoVm | undefined, match: (iface: ReturnType<typeof interfacesOf>[number]) => boolean) =>
+    vm === undefined ? undefined : interfacesOf(vm).find(iface => iface.ips.length > 0 && match(iface))?.ips[0]
+
+  const vm = vmById.value.get(entry.vm)
+  const peerVm = vmByIp.value.get(peer)
+  const isPoolVm = peerVm !== undefined && peerVm.$pool === pool.id
+  const own = { id: entry.vm, ip: undefined, iface: ifaceOf(vm, iface => iface.vif.id === entry.vif) }
+  const other = isPoolVm
+    ? { id: peerVm.id, ip: undefined, iface: ifaceOf(peerVm, iface => iface.ips.includes(peer)) }
+    : { id: 'external', ip: peer, iface: undefined }
+  const [from, to] = entry.egress ? [own, other] : [other, own]
+
+  return {
+    name: '/pool/[id]/firewall/trace',
+    params: { id: pool.id },
+    query: {
+      from: from.id,
+      fromip: from.ip,
+      fromiface: from.iface,
+      to: to.id,
+      toip: to.ip,
+      toiface: to.iface,
+      proto: entry.proto,
+      port: entry.proto !== 'icmp' && entry.port ? String(entry.port) : undefined,
+      run: '1',
+    },
+  }
+}
+
+// every filter but the expected flows
+const filteredRows = computed<Row[]>(() => {
   const term = search.value.trim().toLocaleLowerCase()
   const names = new Set(shownPolicies.value.map(policy => policy.name))
   const entries = showExpired.value ? (monitor.value?.entries ?? []) : liveEntries(monitor.value?.entries ?? [])
@@ -363,11 +420,17 @@ const rows = computed<Row[]>(() => {
         ].some(value => value?.toLocaleLowerCase().includes(term))
     )
     .map(entry => ({
-      key: [entry.src, entry.dst, entry.vm, entry.proto, entry.port, entry.policy, entry.rule].join('|'),
+      key: monitorFlowKey(entry),
       entry,
       allow: allowRoute(entry),
+      trace: traceRoute(entry),
+      expected: isExpected(entry),
     }))
 })
+
+const expectedCount = computed(() => filteredRows.value.filter(row => row.expected).length)
+
+const rows = computed(() => (showExpected.value ? filteredRows.value : filteredRows.value.filter(row => !row.expected)))
 
 const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-monitor', rows)
 
@@ -377,6 +440,13 @@ const state = useTableState({
   empty: () => {
     if ((monitor.value?.entries.length ?? 0) === 0) {
       return { type: 'no-data', message: t('firewall:monitor:empty') }
+    }
+
+    if (rows.value.length === 0 && expectedCount.value > 0 && expectedCount.value === filteredRows.value.length) {
+      return {
+        type: 'no-result',
+        message: t('firewall:monitor:all-expected', { n: expectedCount.value }, expectedCount.value),
+      }
     }
 
     return rows.value.length === 0 ? { type: 'no-result' } : false
@@ -413,19 +483,23 @@ function addressEndpoint(address: string, others: 'sources' | 'destinations') {
       })
 }
 
-function allowButton(row: Row) {
-  const label = t('firewall:monitor:allow-this')
+function rowButton(icon: IconName, label: string, onClick: () => void) {
+  return withDirectives(h(UiButtonIcon, { icon, size: 'small', accent: 'brand', 'aria-label': label, onClick }), [
+    [vTooltip, label],
+  ])
+}
 
-  return withDirectives(
-    h(UiButtonIcon, {
-      icon: 'fa:check',
-      size: 'small',
-      accent: 'brand',
-      'aria-label': label,
-      onClick: () => router.push(row.allow!),
-    }),
-    [[vTooltip, label]]
-  )
+// trace it, allow it, or mark it expected (and back)
+function rowButtons(row: Row) {
+  return h('span', { class: 'row-actions' }, [
+    row.trace === undefined ? null : rowButton('fa:route', t('firewall:monitor:trace'), () => router.push(row.trace!)),
+    row.allow === undefined || row.expected
+      ? null
+      : rowButton('fa:check', t('firewall:monitor:allow-this'), () => router.push(row.allow!)),
+    row.expected
+      ? rowButton('fa:rotate-left', t('firewall:monitor:not-expected'), () => setExpected(row.entry, false))
+      : rowButton('fa:eye-slash', t('firewall:monitor:expected:mark'), () => setExpected(row.entry, true)),
+  ])
 }
 
 const useMonitorColumns = defineColumns(() => ({
@@ -436,7 +510,7 @@ const useMonitorColumns = defineColumns(() => ({
   service: useLiteralColumn({ headerLabel: () => t('firewall:service') }),
   seen: useLiteralColumn({ headerLabel: () => t('firewall:monitor:last-seen') }),
   // its buttons say it (tooltip, label): a narrow column
-  allow: useLiteralColumn({ headerLabel: () => '' }),
+  actions: useLiteralColumn({ headerLabel: () => '' }),
 }))
 
 const { HeadCells, BodyCells } = useMonitorColumns({
@@ -450,6 +524,9 @@ const { HeadCells, BodyCells } = useMonitorColumns({
             { class: 'secondary typo-body-regular-small' },
             row.entry.expired ? `${decidedBy(row.entry)} · ${t('firewall:monitor:expired')}` : decidedBy(row.entry)
           ),
+          row.expected
+            ? h(UiTag, { accent: 'neutral', variant: 'secondary' }, () => t('firewall:monitor:expected'))
+            : null,
         ])
       ),
     // egress: the VM is the source, the address the destination
@@ -464,7 +541,7 @@ const { HeadCells, BodyCells } = useMonitorColumns({
           h('span', { class: 'secondary typo-body-regular-small' }, t('firewall:monitor:seen', { n: row.entry.count })),
         ])
       ),
-    allow: r => r(row.allow === undefined ? '' : allowButton(row)),
+    actions: r => r(rowButtons(row)),
   }),
 })
 </script>
@@ -533,6 +610,15 @@ const { HeadCells, BodyCells } = useMonitorColumns({
   :deep(.seen) {
     display: flex;
     flex-direction: column;
+  }
+
+  :deep(.policy .ui-tag) {
+    align-self: flex-start;
+  }
+
+  :deep(.row-actions) {
+    display: inline-flex;
+    gap: 0.4rem;
   }
 }
 </style>

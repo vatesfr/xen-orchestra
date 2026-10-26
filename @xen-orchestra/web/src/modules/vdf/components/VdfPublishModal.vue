@@ -23,9 +23,10 @@
 
         <section v-if="enforced.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:enforcing') }}</h3>
-          <UiInfo v-for="item of enforced" :key="item.policy" :accent="item.flows > 0 ? 'warning' : 'success'" wrap>
-            {{ item.text }}
-          </UiInfo>
+          <template v-for="item of enforced" :key="item.policy">
+            <UiInfo :accent="item.flows > 0 ? 'warning' : 'success'" wrap>{{ item.text }}</UiInfo>
+            <UiInfo v-if="item.expectedText !== undefined" accent="muted" wrap>{{ item.expectedText }}</UiInfo>
+          </template>
         </section>
 
         <section v-if="warnings.length > 0" class="section">
@@ -124,6 +125,7 @@ import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
+import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
@@ -245,15 +247,21 @@ function groupsOf(address: string) {
   return [...groupsOfIp(address), ...tagged]
 }
 
+// flows marked expected in the Monitor report (vdf#13): wanted drops,
+// told apart
+const { isExpected } = useVdfMonitorExpected(() => shown.value.scopeId)
+
 // the flows of the last day the draft's policy would still drop
 const enforced = computed(() =>
   monitorEntries.value === undefined
     ? []
     : enforcing.value.map(name => {
         const draftPolicy = shown.value.document.policies.find(policy => policy.name === name)
-        const flows = seenSince(monitorEntries.value!, name, Date.now() - DAY).filter(
+        const dropped = seenSince(monitorEntries.value!, name, Date.now() - DAY).filter(
           entry => draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf)
-        ).length
+        )
+        const flows = dropped.filter(entry => !isExpected(entry)).length
+        const expected = dropped.length - flows
         const policy = displayName(name)
 
         return {
@@ -262,10 +270,21 @@ const enforced = computed(() =>
           text:
             flows > 0
               ? t('firewall:publish:enforcing:flows', { policy, n: n(flows) }, flows)
-              : t('firewall:publish:enforcing:clean', { policy }),
+              : expected > 0
+                ? t('firewall:publish:enforcing:only-expected', { policy, n: n(expected) }, expected)
+                : t('firewall:publish:enforcing:clean', { policy }),
+          expectedText:
+            flows > 0 && expected > 0
+              ? t('firewall:publish:enforcing:expected', { n: n(expected) }, expected)
+              : undefined,
         }
       })
 )
+
+// what the pool master's agent makes of the draft, before anything is written
+const checkResult = ref<VdfCheckResult>()
+
+const checkError = ref<string>()
 
 const isRisky = computed(
   () =>
@@ -278,11 +297,6 @@ const isRisky = computed(
 )
 
 const accent = computed<ModalAccent>(() => (shown.value.isOutdated || isRisky.value ? 'warning' : 'info'))
-
-// what the pool master's agent makes of the draft, before anything is written
-const checkResult = ref<VdfCheckResult>()
-
-const checkError = ref<string>()
 
 const isRejected = computed(() => checkError.value !== undefined || checkResult.value?.ok === false)
 
