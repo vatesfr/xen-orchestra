@@ -1,3 +1,4 @@
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
@@ -39,6 +40,10 @@ export function ipMatches(ip: string, member: string) {
 export function useVdfIpNames(rawDocument: MaybeRefOrGetter<VdfDocument>) {
   const { vms } = useXoVmCollection()
 
+  // as agents count them: an address the guest reports for a device with
+  // no interface names nothing
+  const { vmAddresses } = useVdfInterfaces()
+
   const vmByIp = computed(() => {
     const byIp = new Map<string, FrontXoVm>()
 
@@ -47,7 +52,7 @@ export function useVdfIpNames(rawDocument: MaybeRefOrGetter<VdfDocument>) {
     const running = (vm: FrontXoVm) => (vm.power_state === 'Running' ? 1 : 0)
 
     for (const vm of [...vms.value].sort((vmA, vmB) => running(vmA) - running(vmB))) {
-      for (const ip of Object.values(vm.addresses ?? {})) {
+      for (const ip of vmAddresses(vm)) {
         byIp.set(ip, vm)
       }
     }

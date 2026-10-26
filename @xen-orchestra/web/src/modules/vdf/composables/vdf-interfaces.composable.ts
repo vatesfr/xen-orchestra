@@ -11,6 +11,7 @@ import {
   VDF_UNPROTECTED_TAG,
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { effectiveLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { computed, ref } from 'vue'
@@ -57,11 +58,23 @@ export function useVdfInterfaces() {
           vif,
           network,
           netTags,
-          ips: interfaceAddresses(vif, vm.addresses),
+          // a disabled interface sends nothing: what its guest says counts
+          // nowhere, as for agents
+          ips:
+            effectiveLockingMode(vif.lockingMode, network?.defaultIsLocked) === 'disabled'
+              ? []
+              : interfaceAddresses(vif, vm.addresses),
           unprotected: netTags.includes(VDF_UNPROTECTED_TAG),
         }
       })
       .sort((ifaceA, ifaceB) => Number(ifaceA.vif.device) - Number(ifaceB.vif.device))
+  }
+
+  // A VM's addresses as agents count them: its interfaces'. What the guest
+  // reports for a device the VM has no interface for counts nowhere (the
+  // guest writes those keys itself: agent b6846f8)
+  function vmAddresses(vm: FrontXoVm) {
+    return [...new Set(interfacesOf(vm).flatMap(iface => iface.ips))]
   }
 
   // the interfaces of a VM a group selects: on its networks, or all
@@ -105,6 +118,7 @@ export function useVdfInterfaces() {
     networks,
     networkById,
     interfacesOf,
+    vmAddresses,
     groupInterfaces,
     areInterfacesReady,
     interfaceLabel,

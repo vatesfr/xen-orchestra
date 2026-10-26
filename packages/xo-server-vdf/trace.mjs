@@ -17,14 +17,25 @@ function normalizeIp(ip) {
   return isIP(ip) === 0 ? undefined : ip.toLowerCase()
 }
 
-// IPs used for group membership: a locked VIF's allowed IPs are
-// authoritative, otherwise what the guest reports (inventory.go)
-function vmAddresses(vm, vifs) {
-  const locked = vifs.filter(vif => vif.locking_mode === 'locked')
-  const reported =
-    locked.length > 0
-      ? locked.flatMap(vif => [...vif.ipv4_allowed, ...vif.ipv6_allowed])
-      : Object.values(vm.$guest_metrics?.networks ?? {})
+// A VM's addresses as agents count them (agent/inventory.go vmIfaces and
+// ifaceAddrs, vdf#36), per VIF: a locked VIF's allowed IPs, nothing for a
+// disabled one (itself, or its network's default), else what the guest
+// reports for that VIF's device. What the guest reports for a device the
+// VM has no VIF for counts nowhere: the guest writes those keys itself, and
+// could otherwise claim any address (agent b6846f8).
+export function vmAddresses(vm, vifs) {
+  const guest = Object.entries(vm.$guest_metrics?.networks ?? {})
+  const reported = vifs.flatMap(vif => {
+    const mode =
+      vif.locking_mode === 'network_default' ? (vif.$network?.default_locking_mode ?? 'unlocked') : vif.locking_mode
+    if (mode === 'locked') {
+      return [...(vif.ipv4_allowed ?? []), ...(vif.ipv6_allowed ?? [])]
+    }
+    if (mode === 'disabled') {
+      return []
+    }
+    return guest.filter(([key]) => key.split('/')[0] === String(vif.device)).map(([, ip]) => ip)
+  })
 
   const ipv4 = new Set()
   const ipv6 = new Set()

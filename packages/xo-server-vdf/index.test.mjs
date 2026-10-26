@@ -44,8 +44,9 @@ const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
 // `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
 // `agent.beforePublish(poolId)` runs before a publish lands (to interleave
 // another write), `agent.refuse` lists pools whose agent refuses publishes.
-// `lag` (ms): XO's cached pool record changes that long after a write
-// returns, as XAPI's events bring it (vdf#32); none by default.
+// `lag` (ms, or a function giving each write's): XO's cached pool record
+// changes that long after a write returns, as XAPI's events bring it
+// (vdf#32); none by default.
 function fakeXo({
   store = fakeStore(),
   otherConfig = {},
@@ -55,7 +56,16 @@ function fakeXo({
   agent = {},
   lag,
 } = {}) {
-  const later = fn => (lag === undefined ? fn() : setTimeout(fn, lag))
+  const later = fn => (lag === undefined ? fn() : setTimeout(fn, typeof lag === 'function' ? lag() : lag))
+  // one unlocked VIF per VM, device 0, unless it lists its own: agents
+  // count no address the guest reports for a device with no VIF
+  const vifObjects = {}
+  for (const vm of vms) {
+    vm.VIFs ??= [`${vm.id}/vif0`]
+    for (const id of vm.VIFs) {
+      vifObjects[id] ??= { id, type: 'VIF', device: '0', lockingMode: 'network_default' }
+    }
+  }
   const calls = []
   const poolObjects = {}
   const xapis = {}
@@ -124,11 +134,12 @@ function fakeXo({
         : filter.type === 'VM'
           ? Object.fromEntries(vms.filter(vm => poolObjects[vm.$pool] !== undefined).map(vm => [vm.id, vm]))
           : {},
-    getObject(id) {
-      if (poolObjects[id] === undefined) {
+    getObject(id, type) {
+      const object = type === 'VIF' ? vifObjects[id] : poolObjects[id]
+      if (object === undefined) {
         throw new Error('no such object')
       }
-      return poolObjects[id]
+      return object
     },
     getXapi(id) {
       if (xapis[id] === undefined) {

@@ -1,3 +1,4 @@
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -22,9 +23,12 @@ export function useVdfRecentDrops(rawPoolId: MaybeRefOrGetter<string>, { limit }
 
   const poolVms = computed(() => vms.value.filter(vm => vm.$pool === poolId.value))
 
-  // a running VM first: a halted one keeps the addresses it last had
+  const { vmAddresses } = useVdfInterfaces()
+
+  // a running VM first: a halted one keeps the addresses it last had; an
+  // address the guest reports for a device with no interface names nothing
   function vmOfIp(ip: string) {
-    const candidates = poolVms.value.filter(vm => Object.values(vm.addresses ?? {}).includes(ip))
+    const candidates = poolVms.value.filter(vm => vmAddresses(vm).includes(ip))
 
     return candidates.find(vm => vm.power_state === 'Running') ?? candidates[0]
   }

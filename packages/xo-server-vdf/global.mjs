@@ -229,8 +229,11 @@ const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
 // A VM's interfaces as agents see them (agent/inventory.go vmIfaces,
 // vdf#36): each VIF with its network's tags and its own addresses, a
 // locked VIF's allowed ones (trusted), else what the guest reports for its
-// device ("N/ipv4/0"…, untrusted); addresses of no known VIF on no network.
-// A disabled VIF (itself, or its network's default) sends nothing: what its
+// device ("N/ipv4/0"…, untrusted). Addresses the guest reports for a
+// device the VM has no VIF for count nowhere: the guest writes those keys
+// itself, and counting them would let a fully locked VM add any address to
+// its groups, which XO would then write into every other pool (the agent's
+// own fix, vdf b6846f8). A disabled VIF (itself, or its network's default) sends nothing: what its
 // guest reports doesn't count, as for agents.
 // networkOf: a VIF's network object, if XO knows it.
 export function vmIfaces(vm, vifs, networkOf = () => undefined) {
@@ -259,12 +262,6 @@ export function vmIfaces(vm, vifs, networkOf = () => undefined) {
       trusted: locked,
     }
   })
-  const known = new Set(ifaces.map(iface => iface.device))
-  for (const [device, ips] of reported) {
-    if (!known.has(device)) {
-      ifaces.push({ device, network: undefined, netTags: [], ips: sortedIps(ips), trusted: false })
-    }
-  }
   return ifaces.sort((a, b) => (a.device < b.device ? -1 : a.device > b.device ? 1 : 0))
 }
 

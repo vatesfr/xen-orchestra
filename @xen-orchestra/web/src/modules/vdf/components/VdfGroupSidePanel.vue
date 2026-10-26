@@ -227,10 +227,10 @@ const memberRows = computed(() =>
     return {
       vm,
       icon: objectIcon('vm', toLower(vm.power_state)),
-      // IPv4 first: the guest reports link-local IPv6 too
-      ips: [...new Set(Object.values(vm.addresses ?? {}))]
-        .filter(ip => !ip.startsWith('fe80:'))
-        .sort((ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':'))),
+      // as agents count them, on the group's networks; IPv4 first
+      ips: [...new Set(groupInterfaces(vm, group).flatMap(iface => iface.ips))].sort(
+        (ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':'))
+      ),
       isRunning: vm.power_state === VM_POWER_STATE.RUNNING,
       isUnlocked: unlockedOf(vm).length > 0,
       pool: poolNameOf?.(vm),

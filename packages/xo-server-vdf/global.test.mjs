@@ -254,7 +254,8 @@ describe('members', () => {
       },
     ],
   }
-  const vifsOf = vm => vifs[vm.id] ?? []
+  // one VIF each, unlocked, unless said otherwise
+  const vifsOf = vm => vifs[vm.id] ?? [{ device: '0', lockingMode: 'network_default' }]
   const records = runningVmRecords(vms, vifsOf)
   const scope = { pools: ['A', 'B'] }
 
@@ -320,12 +321,36 @@ describe('members', () => {
 
   test('guest IPs when no VIF is locked', () => {
     assert.deepEqual(
-      vmIps({ addresses: { '0/ipv4/0': '10.0.0.1', '0/ipv6/0': 'fe80::2', '0/ipv6/1': 'fd00::2' } }, []),
+      vmIps({ addresses: { '0/ipv4/0': '10.0.0.1', '0/ipv6/0': 'fe80::2', '0/ipv6/1': 'fd00::2' } }, [
+        { device: '0', lockingMode: 'unlocked' },
+      ]),
       {
         ips: ['10.0.0.1', 'fd00::2'],
         trusted: false,
       }
     )
+  })
+
+  // the agent's red-team fix (vdf b6846f8): the guest writes these keys
+  test('addresses reported for a device the VM has no VIF for count nowhere', () => {
+    const locked = {
+      id: 'l1',
+      name_label: 'locked-1',
+      $pool: 'A',
+      power_state: 'Running',
+      tags: ['vdf:role=app'],
+      addresses: { '0/ipv4/0': '10.0.0.5', '7/ipv4/0': '10.9.9.9' },
+    }
+    const lockedVifs = [{ device: '0', lockingMode: 'locked', allowedIpv4Addresses: ['10.0.0.5'] }]
+    assert.deepEqual(vmIps(locked, lockedVifs), { ips: ['10.0.0.5'], trusted: true })
+    const members = globalMembers({
+      global: GLOBAL,
+      records: runningVmRecords([locked], () => lockedVifs),
+      scope: { all: true },
+    })
+    assert.deepEqual(members.app, [{ vm: 'l1', vmName: 'locked-1', pool: 'A', ips: ['10.0.0.5'], trusted: true }])
+    // nor does a VM without any VIF
+    assert.deepEqual(vmIps(locked, []), { ips: [], trusted: false })
   })
 })
 
@@ -348,14 +373,14 @@ describe('per-network groups (vdf#36)', () => {
   ]
 
   test('each interface has its network tags and addresses', () => {
+    // device 2 has no VIF: what the guest reports for it counts nowhere
     assert.deepEqual(vmIfaces(web, vifs, networkOf), [
       { device: '0', network: 'n-dmz', netTags: ['vdf:net=dmz'], ips: ['10.0.20.5'], trusted: false },
       // locked: the guest's address ignored
       { device: '1', network: 'n-backend', netTags: ['vdf:net=backend'], ips: ['10.0.30.5'], trusted: true },
-      { device: '2', network: undefined, netTags: [], ips: ['192.0.2.7'], trusted: false },
     ])
     // the unlocked NIC's guest addresses count too, untrusted
-    assert.deepEqual(vmIps(web, vifs, networkOf), { ips: ['10.0.20.5', '10.0.30.5', '192.0.2.7'], trusted: false })
+    assert.deepEqual(vmIps(web, vifs, networkOf), { ips: ['10.0.20.5', '10.0.30.5'], trusted: false })
   })
 
   test('a disabled interface sends nothing: its guest addresses count nowhere', () => {
@@ -391,7 +416,7 @@ describe('per-network groups (vdf#36)', () => {
     const members = globalMembers({ global, records, scope: { all: true } })
     assert.deepEqual(
       members.web.map(member => member.ips),
-      [['10.0.20.5', '10.0.30.5', '192.0.2.7'], ['10.0.30.7']]
+      [['10.0.20.5', '10.0.30.5'], ['10.0.30.7']]
     )
     assert.deepEqual(members['web-backend'], [
       { vm: 'web', vmName: 'web', pool: 'A', ips: ['10.0.30.5'], trusted: true },
