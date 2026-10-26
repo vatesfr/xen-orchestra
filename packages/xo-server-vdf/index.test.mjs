@@ -3,7 +3,7 @@ import { strict as assert } from 'node:assert'
 
 import Ajv from 'ajv'
 
-import createPlugin, { docId, mergeMonitor, publishedPolicy } from './index.mjs'
+import createPlugin, { docId, importStore, mergeMonitor, publishedPolicy } from './index.mjs'
 
 const POOL = 'pool-1'
 
@@ -858,5 +858,92 @@ describe('tiers kept for global policies', () => {
     } finally {
       plugin.unload()
     }
+  })
+})
+
+// vdf#20: an export imported on another XO doesn't make it the first one
+describe('identity on import', () => {
+  test('export, import on a second XO: the ids differ, its pools are taken over explicitly', async () => {
+    // fresh modules: one config manager per process, i.e. per module here
+    const { default: createA } = await import('./index.mjs?xo-a')
+    const { default: createB } = await import('./index.mjs?xo-b')
+    const xoA = fakeXo({ pools: { A: {}, B: {} } })
+    const pluginA = createA({ xo: xoA })
+    await pluginA.load()
+    const xoB = fakeXo({ pools: { A: {}, B: {} } })
+    const pluginB = createB({ xo: xoB })
+    await pluginB.load()
+    try {
+      await xoA.route('post', '/global/actions/publish', {
+        body: { policy: text(document()), scope: { all: true }, revision: 0 },
+      })
+      const a = (await xoA.route('get', '/global')).result.instance
+      // XO B is connected to the same pools: they hold what XO A wrote
+      for (const id of ['A', 'B']) {
+        xoB.xapis[id].pool.other_config = { ...xoA.xapis[id].pool.other_config }
+      }
+      const b = (await xoB.route('get', '/global')).result.instance
+
+      await xoB.configManagers.vdf.importer(JSON.parse(JSON.stringify(await xoA.configManagers.vdf.exporter())))
+
+      const status = (await xoB.route('get', '/global')).result
+      assert.notEqual(status.instance.id, a.id)
+      assert.deepEqual(status.instance, b)
+      assert.deepEqual([status.replaces.id, status.replaces.name], [a.id, a.name])
+      // the configuration came along, the pools stay XO A's
+      assert.equal(status.revision, 1)
+      assert.deepEqual(
+        status.pools.map(pool => [pool.id, pool.state, pool.ownerId]),
+        [
+          ['A', 'other-xo', a.id],
+          ['B', 'other-xo', a.id],
+        ]
+      )
+
+      // refused if this XO replaces another one than the user saw
+      const stale = await xoB.route('post', '/global/actions/take_over_replaced', { body: { replaces: 'other' } })
+      assert.deepEqual([stale.status, stale.result.conflict], [409, true])
+
+      const { result } = await xoB.route('post', '/global/actions/take_over_replaced', { body: { replaces: a.id } })
+      assert.deepEqual(
+        result.pools.map(pool => [pool.id, pool.ok, pool.previous.id]),
+        [
+          ['A', true, a.id],
+          ['B', true, a.id],
+        ]
+      )
+      for (const id of ['A', 'B']) {
+        assert.equal(JSON.parse(xoB.xapis[id].pool.other_config['vdf:global.owner']).id, b.id)
+      }
+    } finally {
+      pluginA.unload()
+      pluginB.unload()
+    }
+  })
+
+  test('importing its own export keeps the id, and replaces nothing', async () => {
+    const { default: create } = await import('./index.mjs?xo-self')
+    const xo = fakeXo()
+    const plugin = create({ xo })
+    await plugin.load()
+    try {
+      const before = (await xo.route('get', '/global')).result.instance
+      await xo.configManagers.vdf.importer(JSON.parse(JSON.stringify(await xo.configManagers.vdf.exporter())))
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(status.instance, before)
+      assert.equal(status.replaces, undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('an XO without the plugin loaded gets an identity of its own at import', async () => {
+    const source = fakeStore({ instance: { id: 'xo-a', name: 'xo-a.example.org' }, global: { revision: 3 } })
+    const target = fakeStore()
+    await importStore(target, Object.fromEntries([...source.data.entries()]))
+    const instance = await target.get('instance')
+    assert.notEqual(instance.id, 'xo-a')
+    assert.deepEqual((await target.get('replaces')).id, 'xo-a')
+    assert.equal((await target.get('global')).revision, 3)
   })
 })

@@ -184,6 +184,9 @@ export type VdfGlobalStatus = {
   // whether the current user may change it (XO administrators only)
   canEdit?: boolean
   instance?: { id: string; name: string }
+  // the XO whose configuration was imported here (vdf#20): the pools it
+  // owns stay its own until taken over
+  replaces?: { id: string; name: string; importedAt?: string }
   conflicts?: VdfAddressConflict[]
   overlaps?: VdfAddressOverlap[]
 }

@@ -14,6 +14,30 @@
 
     <UiAlert v-if="takeOverError" accent="danger" close @close="takeOverError = undefined">{{ takeOverError }}</UiAlert>
 
+    <UiAlert v-if="replaced !== undefined && replacedPools.length > 0" accent="warning">
+      {{
+        t(
+          'firewall:global:replaces:pools',
+          { xo: replaced.name, pools: formatList(replacedPools.map(pool => pool.name)), n: replacedPools.length },
+          replacedPools.length
+        )
+      }}
+      <template #description>
+        <p>{{ t('firewall:global:replaces:info', { xo: replaced.name }) }}</p>
+        <UiButton
+          v-if="canEdit"
+          variant="secondary"
+          accent="warning"
+          size="small"
+          left-icon="fa:link"
+          :busy="isTakingOverReplaced"
+          @click="takeOverReplaced()"
+        >
+          {{ t('firewall:global:replaces:take-over') }}
+        </UiButton>
+      </template>
+    </UiAlert>
+
     <UiAlert v-if="conflicts.length > 0" accent="warning">
       {{ t('firewall:global:conflicts') }}
       <template #description>
@@ -62,6 +86,14 @@
             <VtsRelativeTime v-if="globalStatus?.publishedAt" :date="globalStatus.publishedAt" />
           </template>
         </I18nT>
+        <span
+          v-if="replaced !== undefined"
+          v-tooltip="t('firewall:global:replaces:info', { xo: replaced.name })"
+          class="secondary"
+          tabindex="0"
+        >
+          {{ t('firewall:global:replaces', { xo: replaced.name }) }}
+        </span>
         <span class="scope">
           <span>{{ scopeLabel }}</span>
           <UiTag v-if="isScopeDrafted" accent="info" variant="secondary">{{
@@ -530,6 +562,66 @@ async function takeOver(pool: VdfGlobalPool) {
   } finally {
     reloadGlobal()
     takingOver.value = undefined
+  }
+}
+
+// TAKE OVER the pools of the XO whose configuration was imported here
+// (vdf#20): this XO keeps its own identity, so they stay that XO's until an
+// administrator says this XO replaces it
+
+const replaced = computed(() => globalStatus.value?.replaces)
+
+const replacedPools = computed(() =>
+  pools.value.filter(pool => pool.state === 'other-xo' && pool.ownerId === replaced.value?.id)
+)
+
+const isTakingOverReplaced = ref(false)
+
+async function takeOverReplaced() {
+  const xo = replaced.value
+
+  if (xo === undefined) {
+    return
+  }
+
+  const response = await openTakeOver({
+    props: {
+      accent: 'warning',
+      icon: 'fa:link',
+      title: t('firewall:global:replaces:take-over:title', { xo: xo.name }),
+      message: t('firewall:global:replaces:take-over:message', {
+        xo: xo.name,
+        pools: formatList(replacedPools.value.map(pool => pool.name)),
+      }),
+      confirmLabel: t('firewall:global:replaces:take-over'),
+    },
+  })
+
+  if (response.event !== 'onConfirm') {
+    return
+  }
+
+  isTakingOverReplaced.value = true
+
+  try {
+    takeOverError.value = undefined
+    // one take over per pool, each refused if its owner changed meanwhile
+    const { pools: results } = await fetchPost<{ pools: { name: string; ok: boolean; error?: string }[] }>(
+      'plugins/vdf/global/actions/take_over_replaced',
+      { replaces: xo.id }
+    )
+    const failed = results.filter(result => !result.ok)
+
+    if (failed.length > 0) {
+      takeOverError.value = t('firewall:global:replaces:take-over:failed', {
+        error: failed.map(result => `${result.name}: ${result.error}`).join('; '),
+      })
+    }
+  } catch (error) {
+    takeOverError.value = t('firewall:global:replaces:take-over:failed', { error: (error as Error).message })
+  } finally {
+    reloadGlobal()
+    isTakingOverReplaced.value = false
   }
 }
 
