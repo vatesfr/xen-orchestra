@@ -2,9 +2,11 @@ import type { XenApiNetwork, XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import { vifsArg } from '@/modules/vif/jobs/vif-args.ts'
 import type { BaseVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import { editVifPayloadArg } from '@/modules/vif/jobs/vif-edit-args.ts'
+import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VIF_LOCKING_MODE } from '@vates/types'
+import { xor } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 export type EditVifPayload = BaseVifPayload & {
@@ -50,6 +52,8 @@ export const useVifEditJob = defineJob('vif.edit', [vifsArg, editVifPayloadArg],
     return newVifRef
   }
 
+  const isSameIpList = (a: string[], b: string[]) => xor(a, b).length === 0
+
   async function update(vif: XenApiVif, payload: EditVifPayload) {
     if (payload.network !== vif.network) {
       try {
@@ -63,8 +67,13 @@ export const useVifEditJob = defineJob('vif.edit', [vifsArg, editVifPayloadArg],
     const ipv4 = payload.ipv4_allowed ?? []
     const ipv6 = payload.ipv6_allowed ?? []
 
-    await xapi.vif.setIpv4Allowed(vif.$ref, ipv4)
-    await xapi.vif.setIpv6Allowed(vif.$ref, ipv6)
+    if (!isSameIpList(ipv4, vif.ipv4_allowed)) {
+      await xapi.vif.setIpv4Allowed(vif.$ref, ipv4)
+    }
+
+    if (!isSameIpList(ipv6, vif.ipv6_allowed)) {
+      await xapi.vif.setIpv6Allowed(vif.$ref, ipv6)
+    }
 
     const lockingMode = getLockingMode(vif, payload)
 
@@ -73,9 +82,17 @@ export const useVifEditJob = defineJob('vif.edit', [vifsArg, editVifPayloadArg],
     }
 
     const kbps = payload.qos_algorithm_params?.kbps
-    await xapi.vif.setRateLimit(vif.$ref, kbps === undefined ? null : Number(kbps))
+    const currentKbps = vif.qos_algorithm_type === 'ratelimit' ? vif.qos_algorithm_params.kbps : undefined
 
-    await xapi.vif.setTxChecksumming(vif.$ref, payload.other_config['ethtool-tx'] === 'true')
+    if (kbps !== currentKbps) {
+      await xapi.vif.setRateLimit(vif.$ref, kbps === undefined ? null : Number(kbps))
+    }
+
+    const txChecksumming = payload.other_config['ethtool-tx'] === 'true'
+
+    if (txChecksumming !== isTxChecksummingEnabled(vif)) {
+      await xapi.vif.setTxChecksumming(vif.$ref, txChecksumming)
+    }
 
     return vif.$ref
   }

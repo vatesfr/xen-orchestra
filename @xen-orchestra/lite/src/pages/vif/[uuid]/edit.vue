@@ -4,31 +4,31 @@
   </UiHeadBar>
 
   <div class="card-container">
-    <VtsStateHero v-if="!areVifsReady" format="page" type="busy" size="large" />
+    <VtsOperationPendingCard v-if="isRunning" :title="t('editing-vif')" />
+
+    <VtsOperationErrorCard
+      v-else-if="error"
+      :title="t('unable-to-edit-vif')"
+      :error
+      :error-message="t('edit-vif:error-message')"
+    >
+      <template #actions>
+        <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
+          {{ t('action:go-back') }}
+        </UiButton>
+      </template>
+    </VtsOperationErrorCard>
+
+    <VtsStateHero v-else-if="!areVifsReady" format="page" type="busy" size="large" />
 
     <VtsStateHero v-else-if="!vif" format="page" type="not-found" size="large">
       {{ t('object-not-found', { id: vifUuid }) }}
     </VtsStateHero>
 
-    <template v-else>
-      <VtsOperationPendingCard v-if="isRunning" :title="t('editing-vif')" />
-      <VtsOperationErrorCard
-        v-else-if="error"
-        :title="t('unable-to-edit-vif')"
-        :error
-        :error-message="t('edit-vif:error-message')"
-      >
-        <template #actions>
-          <UiButton variant="secondary" accent="brand" size="medium" @click="handleGoBack()">
-            {{ t('action:go-back') }}
-          </UiButton>
-        </template>
-      </VtsOperationErrorCard>
-      <UiCard v-show="canDisplayForm">
-        <UiTitle>{{ t('configuration') }}</UiTitle>
-        <EditVifForm :vif :cancel-to="cancelRoute" @save="editVif" />
-      </UiCard>
-    </template>
+    <UiCard v-if="vif" v-show="canDisplayForm">
+      <UiTitle>{{ t('configuration') }}</UiTitle>
+      <EditVifForm :vif :cancel-to="cancelRoute" @save="editVif" />
+    </UiCard>
   </div>
 </template>
 
@@ -86,6 +86,8 @@ async function editVif(payload: EditVifPayload) {
     return
   }
 
+  const redirectRoute = cancelRoute.value
+
   try {
     const [promiseResult] = await edit()
 
@@ -93,7 +95,7 @@ async function editVif(payload: EditVifPayload) {
       throw promiseResult.reason
     }
 
-    await router.push(cancelRoute.value)
+    await router.push(redirectRoute)
   } catch (_error) {
     error.value = _error as Error
   }

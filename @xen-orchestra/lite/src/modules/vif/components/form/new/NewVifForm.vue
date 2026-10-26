@@ -26,11 +26,11 @@
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import VifAllowedIpsTextarea from '@/modules/vif/components/form/new/inputs/VifAllowedIpsTextarea.vue'
-import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vue'
-import VifNetworkSelect from '@/modules/vif/components/form/new/inputs/VifNetworkSelect.vue'
-import VifRateLimitInput from '@/modules/vif/components/form/new/inputs/VifRateLimitInput.vue'
-import VifTxChecksummingCheckbox from '@/modules/vif/components/form/new/inputs/VifTxChecksummingCheckbox.vue'
+import VifAllowedIpsTextarea from '@/modules/vif/components/form/inputs/VifAllowedIpsTextarea.vue'
+import VifMacInput from '@/modules/vif/components/form/inputs/VifMacInput.vue'
+import VifNetworkSelect from '@/modules/vif/components/form/inputs/VifNetworkSelect.vue'
+import VifRateLimitInput from '@/modules/vif/components/form/inputs/VifRateLimitInput.vue'
+import VifTxChecksummingCheckbox from '@/modules/vif/components/form/inputs/VifTxChecksummingCheckbox.vue'
 import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'

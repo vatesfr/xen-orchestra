@@ -6,6 +6,7 @@ import {
   useVifFormBaseValidation,
 } from '@/modules/vif/form/use-vif-form-base.ts'
 import type { EditVifPayload } from '@/modules/vif/jobs/vif-edit.job.ts'
+import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { objectIcon } from '@core/icons'
 import { mergeValidationConfigs, required } from '@core/packages/form-validation'
@@ -22,14 +23,13 @@ export function useEditVifForm(vif: XenApiVif) {
   const { getNetworkStatus } = useNetworkUtils()
 
   const { kbps } = vif.qos_algorithm_params
-  const txChecksumming = vif.other_config['ethtool-tx']
 
   const formData = reactive<EditVifFormData>({
     network: vif.network,
     mac: vif.MAC,
     rateLimit: vif.qos_algorithm_type === 'ratelimit' && kbps !== undefined ? Number(kbps) : undefined,
     allowedIps: [...vif.ipv4_allowed, ...vif.ipv6_allowed].join('; '),
-    txChecksumming: txChecksumming !== 'false' && txChecksumming !== 'off',
+    txChecksumming: isTxChecksummingEnabled(vif),
   })
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
