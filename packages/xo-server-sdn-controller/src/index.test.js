@@ -233,4 +233,68 @@ describe('SDN controller reliability', () => {
       await controller._pifUpdated(pif)
     })
   })
+
+  it('cleans up partial state when addNetwork fails', async () => {
+    const controller = createFakeController()
+
+    const networkUuid = 'network-uuid-1'
+    const poolUuid = 'pool-uuid-1'
+    const networkId = 'network-1'
+    const xapi = createFakeXapi()
+
+    const createHost = hostId => ({
+      $ref: `host-ref-${hostId}`,
+      $id: hostId,
+      uuid: hostId,
+      name_label: hostId,
+      enabled: true,
+      $metrics: { live: true },
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id` },
+      // host-1 has no PIF on the private network: addHost fails on it,
+      // while host-2 is eligible and gets elected center
+      $PIFs: hostId === 'host-2' ? [{ network: `network-ref-${networkId}`, currently_attached: true }] : [],
+    })
+    const host1 = createHost('host-1')
+    const host2 = createHost('host-2')
+
+    const testNetwork = {
+      $ref: `network-ref-${networkId}`,
+      $id: networkId,
+      name_label: 'test-network',
+      other_config: {
+        'xo:sdn-controller:private-network-uuid': networkUuid,
+        'xo:sdn-controller:vni': '100',
+      },
+      $PIFs: [{ $tunnel_access_PIF_of: [{ $transport_PIF: { ip_configuration_mode: 'static' } }] }],
+      $pool: { uuid: poolUuid, $ref: `pool-ref-${poolUuid}`, $id: `${poolUuid}-id`, $xapi: xapi },
+      $xapi: xapi,
+    }
+
+    xapi.objects.indexes = {
+      type: {
+        SDN_controller: [{ protocol: 'pssl', address: '', port: 0 }],
+        network: [testNetwork],
+        host: [host1, host2],
+      },
+    }
+    xapi.barrier = async ref => (ref === testNetwork.$ref ? testNetwork : undefined)
+    xapi.getRecord = async () => testNetwork
+
+    // OVSDB clients that reset fine; the addNetwork failure comes from the
+    // missing PIF of host-1, leaving the elected center (host-2) set without
+    // being registered in _starCenters
+    const ovsdbClient = { resetForNetwork: async () => undefined }
+    controller.ovsdbClients = { [host1.$ref]: ovsdbClient, [host2.$ref]: ovsdbClient }
+
+    controller._getOrCreateOvsdbClient = mock.fn(() => undefined)
+    controller._getOrCreateOfChannel = mock.fn(() => undefined)
+
+    await assert.doesNotReject(async () => {
+      await controller._handleConnectedXapi(xapi)
+    })
+
+    assert.equal(controller.privateNetworks[networkUuid], undefined)
+    assert.equal(controller._networks.size, 0)
+    assert.equal(controller._starCenters.size, 0)
+  })
 })
