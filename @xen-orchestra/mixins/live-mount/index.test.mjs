@@ -948,7 +948,7 @@ describe('the read cache', () => {
 
     await mountDisk(mixin, xapi, CACHE)
 
-    assert.notEqual(target.options.lun.isReadOnly?.(), true)
+    assert.notEqual(target.options.lun.readOnly, true)
     const vdiIntroduce = xapi.calls.find(([method]) => method === 'VDI.introduce')
     assert.equal(vdiIntroduce[7], false) // read_only
   })
