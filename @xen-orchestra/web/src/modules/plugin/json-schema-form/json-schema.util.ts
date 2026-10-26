@@ -20,6 +20,8 @@ export type JsonSchema = {
   $multiline?: boolean
 }
 
+export type GetItemLabel = (index: number, itemSchema: JsonSchema) => string
+
 export type JsonSchemaFieldType =
   | 'array'
   | 'boolean'

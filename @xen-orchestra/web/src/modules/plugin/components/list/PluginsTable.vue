@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { getPluginDescription, isPluginLoaded } from '@/modules/plugin/utils/xo-plugin.util.ts'
+import { getPluginDescription, getPluginRoute, isPluginLoaded } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -72,7 +72,7 @@ const { HeadCells, BodyCells } = usePluginColumns({
       plugin: r =>
         r({
           label: plugin.name,
-          to: { name: '/admin/plugin/[id]', params: { id: plugin.id } },
+          to: getPluginRoute(plugin.id),
           icon: 'object:plugin',
         }),
       version: r => r(plugin.version ?? ''),

@@ -1,6 +1,7 @@
 import { type JsonSchemaPath, toPathKey } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import {
   getFieldType,
+  type GetItemLabel,
   getPropertyLabel,
   getXoObjectReference,
   isMissingValue,
@@ -28,8 +29,6 @@ export type JsonSchemaValueSection = {
   labels: string[]
   rows: JsonSchemaValueRow[]
 }
-
-type GetItemLabel = (index: number, itemSchema: JsonSchema) => string
 
 function isEmptyValue(value: unknown): boolean {
   return isMissingValue(value) || (Array.isArray(value) && value.length === 0)

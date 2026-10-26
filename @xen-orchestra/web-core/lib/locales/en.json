@@ -1172,7 +1172,6 @@
   "report-when:error": "Error",
   "report-when:never": "Never",
   "report-when:skipped-and-failure": "Skipped and failure",
-  "required": "Required",
   "resident-on": "Resident on",
   "resource-management": "Resource management",
   "resources": "Resources",

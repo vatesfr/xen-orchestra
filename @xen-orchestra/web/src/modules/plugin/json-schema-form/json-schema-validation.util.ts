@@ -1,5 +1,6 @@
 import {
   getFieldType,
+  type GetItemLabel,
   getPropertyLabel,
   getSchemaType,
   isMissingValue,
@@ -19,7 +20,7 @@ type JsonSchemaMissingField = {
 type Location = {
   path: JsonSchemaPath
   labels: string[]
-  getItemLabel: (index: number, itemSchema: JsonSchema) => string
+  getItemLabel: GetItemLabel
 }
 
 function getMissingItems(schema: JsonSchema, items: unknown[], location: Location): JsonSchemaMissingField[] {

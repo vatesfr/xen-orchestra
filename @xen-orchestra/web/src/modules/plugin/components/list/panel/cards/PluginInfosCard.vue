@@ -44,6 +44,7 @@
 <script lang="ts" setup>
 import { useXoPluginUtils } from '@/modules/plugin/composables/xo-plugin-utils.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { getPluginRoute } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -63,7 +64,7 @@ const { t } = useI18n()
 
 const { description, isLoaded, keywords, configurationStatus } = useXoPluginUtils(() => plugin)
 
-const pluginRoute = computed(() => ({ name: '/admin/plugin/[id]', params: { id: plugin.id } }) as const)
+const pluginRoute = computed(() => getPluginRoute(plugin.id))
 </script>
 
 <style scoped lang="postcss">
