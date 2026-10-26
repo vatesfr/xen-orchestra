@@ -1,13 +1,10 @@
 import PluginInfosCard from '@/modules/plugin/components/list/panel/cards/PluginInfosCard.vue'
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { createPlugin } from '@/test/create-plugin.ts'
+import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
-
-const CONFIGURATION_SCHEMA = { type: 'object', properties: { host: { type: 'string' } } } satisfies JsonSchema
 
 function mountCard(plugin: FrontXoPlugin = createPlugin()) {
   return mount(PluginInfosCard, {
@@ -22,7 +19,7 @@ it('shows the information of the plugin', () => {
       version: '2.1.0',
       description: 'Send emails',
       keywords: ['email'],
-      configurationSchema: CONFIGURATION_SCHEMA,
+      configurationSchema: PLUGIN_CONFIGURATION_SCHEMA,
       configured: true,
       loaded: true,
       autoload: false,
@@ -82,13 +79,13 @@ it('links the title to the page of the plugin', () => {
 })
 
 it('shows no warning for a configured plugin', () => {
-  const wrapper = mountCard(createPlugin({ configurationSchema: CONFIGURATION_SCHEMA, configured: true }))
+  const wrapper = mountCard(createPlugin({ configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: true }))
 
   expect(wrapper.find('.ui-alert').exists()).toBe(false)
 })
 
 it('warns that a plugin which is not configured needs to be configured', () => {
-  const wrapper = mountCard(createPlugin({ configurationSchema: CONFIGURATION_SCHEMA, configured: false }))
+  const wrapper = mountCard(createPlugin({ configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: false }))
 
   expect(wrapper.get('.ui-alert').text()).toContain(t('plugin:needs-configuration-short'))
 })

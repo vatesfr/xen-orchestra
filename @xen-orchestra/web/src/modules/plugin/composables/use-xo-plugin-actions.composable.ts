@@ -1,8 +1,9 @@
 import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
-import { useXoPluginConfigure } from '@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'
-import { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test.composable.ts'
+import { useXoPluginDrawerJob } from '@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'
 import { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
+import { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-configure.job.ts'
+import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { isPluginLoaded } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
@@ -54,10 +55,25 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
     })
   )
 
-  const { configurePlugin, canConfigurePlugin, isConfiguringPlugin, configurePluginErrorMessage } =
-    useXoPluginConfigure(plugin)
+  const {
+    openDrawer: configurePlugin,
+    canRun: canConfigurePlugin,
+    isRunning: isConfiguringPlugin,
+    errorMessage: configurePluginErrorMessage,
+  } = useXoPluginDrawerJob(plugin, {
+    useJob: useXoPluginConfigureJob,
+    drawer: () => import('@/modules/plugin/components/drawer/PluginConfigurationDrawer.vue'),
+  })
 
-  const { testPlugin, canTestPlugin, isTestingPlugin, testPluginErrorMessage } = useXoPluginTest(plugin)
+  const {
+    openDrawer: testPlugin,
+    canRun: canTestPlugin,
+    isRunning: isTestingPlugin,
+    errorMessage: testPluginErrorMessage,
+  } = useXoPluginDrawerJob(plugin, {
+    useJob: useXoPluginTestJob,
+    drawer: () => import('@/modules/plugin/components/drawer/PluginTestDrawer.vue'),
+  })
 
   const { deleteConfiguration, canDeleteConfiguration, isDeletingConfiguration, deleteConfigurationErrorMessage } =
     useXoPluginConfigurationDelete(plugin)

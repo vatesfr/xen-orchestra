@@ -4,10 +4,9 @@ import {
   toPathKey,
 } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import { getItemLabel } from '@/test/json-schema-item-label.ts'
 
-const OPTIONS = {
-  getItemLabel: (index: number, itemSchema: JsonSchema) => `${itemSchema.title ?? 'Item'} ${index + 1}`,
-}
+const OPTIONS = { getItemLabel }
 
 const schema: JsonSchema = {
   type: 'object',

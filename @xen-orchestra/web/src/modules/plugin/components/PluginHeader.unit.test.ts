@@ -1,13 +1,10 @@
 import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue'
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { createPlugin } from '@/test/create-plugin.ts'
+import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
-
-const CONFIGURATION_SCHEMA = { type: 'object', properties: { host: { type: 'string' } } } satisfies JsonSchema
 
 function mountHeader(plugin: FrontXoPlugin = createPlugin()) {
   return mount(PluginHeader, {
@@ -46,7 +43,7 @@ it('links the breadcrumb back to the list of plugins', () => {
 
 it('shows the version and the configuration status of a configured plugin', () => {
   const wrapper = mountHeader(
-    createPlugin({ version: '2.1.0', configurationSchema: CONFIGURATION_SCHEMA, configured: true })
+    createPlugin({ version: '2.1.0', configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: true })
   )
 
   expect(findTags(wrapper)).toEqual([
@@ -56,7 +53,7 @@ it('shows the version and the configuration status of a configured plugin', () =
 })
 
 it('warns about a plugin which is not configured', () => {
-  const wrapper = mountHeader(createPlugin({ configurationSchema: CONFIGURATION_SCHEMA, configured: false }))
+  const wrapper = mountHeader(createPlugin({ configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: false }))
 
   expect(findTags(wrapper).at(-1)).toEqual({ text: t('status:not-configured'), accent: 'warning' })
 })

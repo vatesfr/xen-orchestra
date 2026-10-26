@@ -4,6 +4,7 @@ import {
   useJsonSchemaForm,
 } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, inject, type InjectionKey, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -84,7 +85,7 @@ describe('errors', () => {
       t('form:error:field-required', {
         field: t('json-schema:nested-label', {
           parent: 'uris',
-          label: t('json-schema:numbered-item', { label: t('item'), n: 1 }),
+          label: getNumberedItemLabel(1),
         }),
       }),
     ])

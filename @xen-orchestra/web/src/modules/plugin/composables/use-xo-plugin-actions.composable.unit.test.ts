@@ -1,9 +1,12 @@
+import PluginConfigurationDrawer from '@/modules/plugin/components/drawer/PluginConfigurationDrawer.vue'
+import PluginTestDrawer from '@/modules/plugin/components/drawer/PluginTestDrawer.vue'
 import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
 import type { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
-import type { useXoPluginConfigure } from '@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'
-import type { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test.composable.ts'
+import type { useXoPluginDrawerJob } from '@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'
 import type { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import type { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
+import { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-configure.job.ts'
+import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
@@ -14,8 +17,7 @@ import { toValue } from 'vue'
 const {
   useChangeStateJob,
   useAutoloadJob,
-  useConfigure,
-  useTest,
+  useDrawerJob,
   useDelete,
   changeState,
   updateAutoload,
@@ -25,8 +27,7 @@ const {
 } = vi.hoisted(() => ({
   useChangeStateJob: vi.fn(),
   useAutoloadJob: vi.fn(),
-  useConfigure: vi.fn(),
-  useTest: vi.fn(),
+  useDrawerJob: vi.fn(),
   useDelete: vi.fn(),
   changeState: vi.fn(),
   updateAutoload: vi.fn(),
@@ -44,23 +45,21 @@ vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
 }))
 
 // The composables open overlays and run jobs, which call the REST API
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'), () => ({
-  useXoPluginConfigure: useConfigure as unknown as typeof useXoPluginConfigure,
-}))
-
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-test.composable.ts'), () => ({
-  useXoPluginTest: useTest as unknown as typeof useXoPluginTest,
+vi.mock(import('@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'), () => ({
+  useXoPluginDrawerJob: useDrawerJob as unknown as typeof useXoPluginDrawerJob,
 }))
 
 vi.mock(import('@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'), () => ({
   useXoPluginConfigurationDelete: useDelete as unknown as typeof useXoPluginConfigurationDelete,
 }))
 
+// Both drawer actions use the same composable, told apart by the job they run
+const drawerJobs = new Map<unknown, unknown>()
+
 beforeEach(() => {
   useChangeStateJob.mockReset()
   useAutoloadJob.mockReset()
-  useConfigure.mockReset()
-  useTest.mockReset()
+  useDrawerJob.mockReset()
   useDelete.mockReset()
   changeState.mockReset()
   updateAutoload.mockReset()
@@ -70,31 +69,16 @@ beforeEach(() => {
 
   useChangeStateJob.mockReturnValue(createJobResult(changeState))
   useAutoloadJob.mockReturnValue(createJobResult(updateAutoload))
-  mockConfigure()
-  mockTest()
+  useDrawerJob.mockImplementation((_plugin, { useJob }) => drawerJobs.get(useJob))
+  mockDrawerJob(useXoPluginConfigureJob, configurePlugin)
+  mockDrawerJob(useXoPluginTestJob, testPlugin)
   mockDelete()
 })
 
-function mockConfigure(state: Parameters<typeof createJobResult>[1] = {}) {
-  const { run, canRun, isRunning, errorMessage } = createJobResult(configurePlugin, state)
+function mockDrawerJob(useJob: unknown, openDrawer: () => void, state: Parameters<typeof createJobResult>[1] = {}) {
+  const { run, ...jobState } = createJobResult(openDrawer, state)
 
-  useConfigure.mockReturnValue({
-    configurePlugin: run,
-    canConfigurePlugin: canRun,
-    isConfiguringPlugin: isRunning,
-    configurePluginErrorMessage: errorMessage,
-  })
-}
-
-function mockTest(state: Parameters<typeof createJobResult>[1] = {}) {
-  const { run, canRun, isRunning, errorMessage } = createJobResult(testPlugin, state)
-
-  useTest.mockReturnValue({
-    testPlugin: run,
-    canTestPlugin: canRun,
-    isTestingPlugin: isRunning,
-    testPluginErrorMessage: errorMessage,
-  })
+  drawerJobs.set(useJob, { openDrawer: run, ...jobState })
 }
 
 function mockDelete(state: Parameters<typeof createJobResult>[1] = {}) {
@@ -209,6 +193,19 @@ describe('autoloadAction', () => {
   })
 })
 
+describe('drawers', () => {
+  it.each([
+    { useJob: useXoPluginConfigureJob, drawer: PluginConfigurationDrawer, name: 'configuration' },
+    { useJob: useXoPluginTestJob, drawer: PluginTestDrawer, name: 'test' },
+  ])('runs the $name job from its drawer', async ({ useJob, drawer }) => {
+    mountActions()
+
+    const [, options] = useDrawerJob.mock.calls.find(([, options]) => options.useJob === useJob) ?? []
+
+    expect((await options.drawer()).default).toBe(drawer)
+  })
+})
+
 describe('configureAction', () => {
   it('opens the configuration drawer on click', () => {
     const { configureAction } = mountActions()
@@ -224,13 +221,13 @@ describe('configureAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the plugin cannot be configured', () => {
-    mockConfigure({ canRun: false, errorMessage: 'not configurable' })
+    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, errorMessage: 'not configurable' })
 
     expect(mountActions().configureAction).toMatchObject({ disabled: true, hint: 'not configurable' })
   })
 
   it('is busy while the configuration is being saved', () => {
-    mockConfigure({ canRun: false, isRunning: true })
+    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, isRunning: true })
 
     expect(mountActions().configureAction.busy).toBe(true)
   })
@@ -257,13 +254,13 @@ describe('testAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the plugin cannot be tested', () => {
-    mockTest({ canRun: false, errorMessage: 'not loaded' })
+    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, errorMessage: 'not loaded' })
 
     expect(mountActions().testAction).toMatchObject({ disabled: true, hint: 'not loaded' })
   })
 
   it('is busy while the plugin is being tested', () => {
-    mockTest({ canRun: false, isRunning: true })
+    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, isRunning: true })
 
     expect(mountActions().testAction.busy).toBe(true)
   })
@@ -301,7 +298,7 @@ describe('deleteConfigurationAction', () => {
   })
 
   it('is disabled while the configuration is being saved', () => {
-    mockConfigure({ canRun: false, isRunning: true })
+    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, isRunning: true })
 
     expect(mountActions().deleteConfigurationAction.disabled).toBe(true)
   })

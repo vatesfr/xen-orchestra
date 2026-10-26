@@ -2,7 +2,7 @@
   <UiCard>
     <UiTitle>{{ t('general-information') }}</UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('description')" :value="getPluginDescription(plugin)" />
+      <VtsTabularKeyValueRow :label="t('description')" :value="description" />
       <VtsTabularKeyValueRow :label="t('keywords')">
         <template v-if="keywords.length > 0" #value>
           <UiTagsList>
@@ -17,7 +17,6 @@
 <script lang="ts" setup>
 import { useXoPluginUtils } from '@/modules/plugin/composables/xo-plugin-utils.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { getPluginDescription } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -32,5 +31,5 @@ const { plugin } = defineProps<{
 
 const { t } = useI18n()
 
-const { keywords } = useXoPluginUtils(() => plugin)
+const { description, keywords } = useXoPluginUtils(() => plugin)
 </script>

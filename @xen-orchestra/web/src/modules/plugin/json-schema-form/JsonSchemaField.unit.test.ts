@@ -9,6 +9,7 @@ import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 
@@ -478,7 +479,7 @@ describe('array field', () => {
   it('labels the items without title by their position', () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', 'b'] })
 
-    expect(findLabels(wrapper)).toEqual([`${t('item')} 1`, `${t('item')} 2`])
+    expect(findLabels(wrapper)).toEqual([getNumberedItemLabel(1), getNumberedItemLabel(2)])
   })
 
   it('labels the items with the title of their schema', () => {
@@ -488,7 +489,7 @@ describe('array field', () => {
       modelValue: ['a'],
     })
 
-    expect(findLabels(wrapper)).toEqual(['URI 1'])
+    expect(findLabels(wrapper)).toEqual([getNumberedItemLabel(1, 'URI')])
   })
 
   it('adds an item', async () => {
@@ -525,7 +526,7 @@ describe('array field', () => {
     })
 
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
-    expect(findLabels(wrapper)).toEqual([`${t('item')} 1`, 'uri'])
+    expect(findLabels(wrapper)).toEqual([getNumberedItemLabel(1), 'uri'])
   })
 
   it('removes an item', async () => {

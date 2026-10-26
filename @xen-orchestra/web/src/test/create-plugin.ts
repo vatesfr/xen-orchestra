@@ -16,6 +16,11 @@ type PluginOverrides = Partial<
   }
 >
 
+export const PLUGIN_CONFIGURATION_SCHEMA = {
+  type: 'object',
+  properties: { host: { type: 'string' } },
+} satisfies JsonSchema
+
 /**
  * Builds a fully-populated FrontXoPlugin for use in tests. Pass overrides to
  * tweak only the fields relevant to the case under test.
