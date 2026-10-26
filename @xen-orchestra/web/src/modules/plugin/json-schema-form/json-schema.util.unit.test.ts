@@ -11,7 +11,7 @@ import {
   isSectionSchema,
   type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
+import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 describe('getSchemaType', () => {
   it('returns the type of the schema', () => {

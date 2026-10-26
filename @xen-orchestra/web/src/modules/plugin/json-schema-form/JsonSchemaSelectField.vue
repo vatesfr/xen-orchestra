@@ -31,13 +31,10 @@ const { t } = useI18n()
 
 const sources = computed(() => options.map((option, index) => ({ ...option, id: index })))
 
+// an unset list reads as empty, which the select never writes back, so it stays unset until an item is picked
 const selectModel = computed<unknown>({
   get: () => (multiple ? (model.value ?? []) : model.value),
   set: value => {
-    if (multiple && model.value === undefined && Array.isArray(value) && value.length === 0) {
-      return
-    }
-
     model.value = value
   },
 })

@@ -1,6 +1,6 @@
 <template>
   <template v-for="section of sections" :key="section.key">
-    <UiCardSubtitle v-if="section.labels.length > 0">{{ getNestedLabel(section.labels) }}</UiCardSubtitle>
+    <UiCardSubtitle v-if="section.title !== undefined">{{ section.title }}</UiCardSubtitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow
         v-for="row of section.rows"
@@ -41,5 +41,11 @@ const getItemLabel = useJsonSchemaItemLabel()
 
 const getNestedLabel = useJsonSchemaNestedLabel()
 
-const sections = computed(() => getJsonSchemaValueSections(schema, value, { getItemLabel }))
+// the root section is titled by its container (e.g. a card title)
+const sections = computed(() =>
+  getJsonSchemaValueSections(schema, value, { getItemLabel }).map(section => ({
+    ...section,
+    title: section.labels.length > 0 ? getNestedLabel(section.labels) : undefined,
+  }))
+)
 </script>

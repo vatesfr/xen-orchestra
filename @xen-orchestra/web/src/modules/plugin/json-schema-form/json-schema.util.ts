@@ -1,4 +1,4 @@
-import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
+import { isSensitiveParam, OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 export type JsonSchemaType = 'array' | 'boolean' | 'integer' | 'null' | 'number' | 'object' | 'string'
 
@@ -15,7 +15,6 @@ export type JsonSchema = {
   minimum?: number
   maximum?: number
   format?: string
-  // XO object type (e.g. VM, Host, Tag), the value is the object ID
   $type?: string
   'xo:type'?: string
   $multiline?: boolean
@@ -158,18 +157,11 @@ export function isMissingValue(value: unknown): boolean {
   return value === undefined || value === null || value === ''
 }
 
-// the properties obfuscated by xo-server, see `@vates/obfuscate`
-const SECRET_PROPERTY_NAMES = ['token', 'passphrase', 'encryptionKey']
-
-function isSecretPropertyName(name: string): boolean {
-  return SECRET_PROPERTY_NAMES.includes(name) || /password/i.test(name)
-}
-
 // the REST API also obfuscates secrets of some plugins (e.g. `clientSecret`), which are only known by their value
 export function isSecretProperty(name: string | undefined, schema: JsonSchema, value?: unknown): boolean {
   if (schema.format === 'password' || value === OBFUSCATED_VALUE) {
     return true
   }
 
-  return name !== undefined && isSecretPropertyName(name)
+  return name !== undefined && isSensitiveParam(name)
 }

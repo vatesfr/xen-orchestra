@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser'],
+      include: ['@vates/obfuscate', 'value-matcher', 'complex-matcher', 'xo-remote-parser'],
     },
     test: {
       globals: true,

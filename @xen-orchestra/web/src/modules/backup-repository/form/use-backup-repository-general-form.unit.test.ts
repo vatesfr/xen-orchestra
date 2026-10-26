@@ -9,6 +9,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,8 +20,6 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 }))
 
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
-
-const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 function createGeneralFormData(): BackupRepositoryGeneralFormData {
   return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }

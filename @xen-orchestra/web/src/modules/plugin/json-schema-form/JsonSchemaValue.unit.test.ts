@@ -57,16 +57,15 @@ it('titles a nested section with the labels of its parents', () => {
     { transport: { auth: { user: 'xo' } } }
   )
 
-  expect(wrapper.get('.ui-card-subtitle').text()).toBe(
-    t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' })
-  )
+  expect(wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())).toEqual([
+    t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' }),
+  ])
 })
 
 it('hides the value of a secret', () => {
   const wrapper = mountValue({ password: { type: 'string', title: 'Password' } }, { password: 'hunter2' })
 
-  expect(wrapper.text()).not.toContain('hunter2')
-  expect(findLabelledValues(wrapper).Password).not.toBe('')
+  expect(findLabelledValues(wrapper).Password).toBe('••••••••')
 })
 
 it('shows a boolean as a status', () => {

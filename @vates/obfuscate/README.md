@@ -61,6 +61,24 @@ merge(obfuscated, original)
 // → { username: 'foo', password: 'bar', token: 'qux' }
 ```
 
+### `isSensitiveParam(name)`
+
+> Whether an entry with this name is replaced by `replace()` and `obfuscate()`, so that a client can handle it as a secret.
+
+```js
+import { isSensitiveParam } from '@vates/obfuscate'
+
+isSensitiveParam('adminPassword')
+// → true
+
+isSensitiveParam('username')
+// → false
+```
+
+### `OBFUSCATED_VALUE`
+
+> The special tag `obfuscate()` puts in place of the sensitive entries.
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on

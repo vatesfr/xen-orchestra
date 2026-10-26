@@ -4,12 +4,13 @@ import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.v
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
+import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
@@ -29,11 +30,12 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
   })) as unknown as typeof useXoHostCollection,
 }))
 
+// The pools fail to load, to test a field without options
 vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     pools: ref([]),
-    arePoolsReady: ref(true),
-    hasPoolFetchError: ref(false),
+    arePoolsReady: ref(false),
+    hasPoolFetchError: ref(true),
   })) as unknown as typeof useXoPoolCollection,
 }))
 
@@ -324,6 +326,28 @@ describe('enum field', () => {
 
     expect(findSelectedLabel(wrapper)).toBe('636')
   })
+
+  const enumSchema: JsonSchema = { type: 'string', enum: ['ldap', 'ldaps'], enumNames: ['LDAP', 'LDAP over TLS'] }
+
+  it('offers to unset an optional value', async () => {
+    const wrapper = mountField({ schema: enumSchema, modelValue: 'ldaps' })
+
+    await openSelect(wrapper)
+
+    expect(findSelectOptionLabels(wrapper)).toEqual([t('none'), 'LDAP', 'LDAP over TLS'])
+
+    await pickSelectOption(wrapper, t('none'))
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[undefined]])
+  })
+
+  it('offers no empty option for a required value', async () => {
+    const wrapper = mountField({ schema: enumSchema, required: true, modelValue: 'ldaps' })
+
+    await openSelect(wrapper)
+
+    expect(findSelectOptionLabels(wrapper)).toEqual(['LDAP', 'LDAP over TLS'])
+  })
 })
 
 describe('XO object field', () => {
@@ -331,6 +355,45 @@ describe('XO object field', () => {
     const wrapper = mountField({ schema: { type: 'string', $type: 'VM' }, modelValue: 'vm-1' })
 
     expect(findSelectedLabel(wrapper)).toBe('Web server')
+  })
+
+  const vmListSchema: JsonSchema = { type: 'array', items: { type: 'string', $type: 'VM' } }
+
+  it('picks a list of objects, without empty option', async () => {
+    const wrapper = mountField({ schema: vmListSchema })
+
+    await openSelect(wrapper)
+
+    expect(findSelectOptionLabels(wrapper)).toEqual(['Web server'])
+
+    await pickSelectOption(wrapper, 'Web server')
+
+    expect(lastEmittedValue(wrapper)).toEqual(['vm-1'])
+  })
+
+  it('leaves an unset list unset until an object is picked', async () => {
+    const wrapper = mountField({ schema: vmListSchema })
+
+    expect(findSelectedLabel(wrapper)).toBe('')
+
+    await openSelect(wrapper)
+
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('waits for the objects to load', () => {
+    const wrapper = mountField({ schema: { type: 'string', $type: 'SR' } })
+
+    expect(wrapper.find('.ui-loader').exists()).toBe(true)
+    expect(wrapper.find('.vts-select').exists()).toBe(false)
+  })
+
+  it('explains that the objects could not be loaded', () => {
+    const wrapper = mountField({ schema: { type: 'string', $type: 'pool', description: 'The pool to watch' } })
+
+    expect(wrapper.find('.ui-loader').exists()).toBe(false)
+    expect(wrapper.text()).toContain(t('error-no-data'))
+    expect(wrapper.text()).not.toContain('The pool to watch')
   })
 })
 
