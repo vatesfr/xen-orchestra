@@ -1075,13 +1075,21 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged. Not taken from the
    *   previous attempts: asked again on each resume
+   * @param {boolean} [opts.acceptOperatorChanges] - Keep the settings an operator changed since the run, they are
+   *   no longer restored by the run. The accepted changes are logged and listed in the task
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
    * @throws {Error} `noSuchObject` if the pool has no recovery record
-   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed nor interrupted
+   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed, interrupted nor blocked
+   * @throws {Error} `incorrectState` (property `operatorChanges`) if an operator changed a setting the run left
+   *   changed, and `acceptOperatorChanges` is not set: the run is then blocked
    */
-  async resumeRollingPoolUpdate($defer, pool, { bypassBackupCheck = false, parentTask } = {}) {
+  async resumeRollingPoolUpdate(
+    $defer,
+    pool,
+    { bypassBackupCheck = false, acceptOperatorChanges = false, parentTask } = {}
+  ) {
     const app = this._app
     const poolId = pool.id
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
@@ -1090,8 +1098,17 @@ export default class XenServers {
 
     $defer(acquireRpuGuard(poolId, 'resumeRollingPoolUpdate'))
 
-    const { recorder, options, resume } = await app.resumeRpuRecoveryRun(pool)
+    const { recorder, options, resume, acceptedOperatorChanges } = await app.resumeRpuRecoveryRun(pool, {
+      acceptOperatorChanges,
+    })
+    if (acceptedOperatorChanges.length > 0) {
+      log.warn('rolling pool update resumed over operator changes, they are kept', {
+        poolId,
+        operatorChanges: acceptedOperatorChanges,
+      })
+    }
     return this._runRollingPoolUpdate($defer, pool, {
+      acceptedOperatorChanges,
       jobs,
       // a resume is the explicit acceptance of the state its run left
       options: { ...options, acceptCurrentStateAsBaseline: true },
@@ -1104,7 +1121,11 @@ export default class XenServers {
 
   // the part of a run shared by a rolling pool update and its resumes, once the
   // recovery record is ready
-  async _runRollingPoolUpdate($defer, pool, { jobs, options, parentTask, recorder, resume = noRpuResume, schedules }) {
+  async _runRollingPoolUpdate(
+    $defer,
+    pool,
+    { acceptedOperatorChanges = [], jobs, options, parentTask, recorder, resume = noRpuResume, schedules }
+  ) {
     const app = this._app
     const poolId = pool.id
     const { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms } = options
@@ -1210,6 +1231,7 @@ export default class XenServers {
         type: 'pool.rolling_update',
         ...(recorder.runId !== undefined && { runId: recorder.runId, attempt: recorder.attempt }),
         ...(trace !== undefined && { traceFile: trace.traceFile }),
+        ...(acceptedOperatorChanges.length > 0 && { acceptedOperatorChanges }),
       }
       const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
       trace?.attach(task)

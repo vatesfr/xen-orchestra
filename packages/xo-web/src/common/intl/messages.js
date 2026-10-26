@@ -1316,6 +1316,16 @@ const messages = {
   rpuUnrestoredHost: 'Host disabled',
   rpuUnrestoredVm: 'VM away from its original host',
   rpuUnrestoredHaltedPinnedVm: 'VM shut down for the update and not started again',
+  rpuRecoveryOperatorChanges:
+    'The resume of the last rolling pool update was stopped: some settings it left disabled were changed since. Resume again to keep these changes.',
+  rpuRecoveryOperatorChangesList: 'Changed since the update:',
+  rpuRecoveryAcceptOperatorChangesConfirm:
+    'The following settings were changed since the update left them disabled. Resume anyway? These changes are kept: the update will not restore these settings.',
+  rpuOperatorChangeHa: 'High Availability enabled again',
+  rpuOperatorChangeAutoPowerOn: 'Auto power on enabled again',
+  rpuOperatorChangeWlb: 'Workload Balancing enabled again',
+  rpuOperatorChangeSchedule: 'Backup schedule enabled again',
+  rpuOperatorChangeHaHeartbeatSr: 'HA heartbeat SR deleted, HA will not be enabled again',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',

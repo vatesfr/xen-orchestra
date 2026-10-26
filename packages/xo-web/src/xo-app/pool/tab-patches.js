@@ -18,6 +18,7 @@ import {
   installPatches,
   isSrShared,
   isSrWritable,
+  renderRpuOperatorChanges,
   resumeRollingPoolUpdate,
   rollingPoolUpdate,
   subscribeCurrentUser,
@@ -173,6 +174,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
     hosts = {},
     haltedPinnedVms = {},
     lastError,
+    operatorChanges = [],
     vmConflicts = [],
   } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
@@ -190,7 +192,15 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
           <h4>
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
-          <p>{_(recovery.status === 'failed' && onlyVmsLeft ? 'rpuRecoveryVmsNotBack' : message)}</p>
+          <p>
+            {_(
+              operatorChanges.length > 0
+                ? 'rpuRecoveryOperatorChanges'
+                : recovery.status === 'failed' && onlyVmsLeft
+                  ? 'rpuRecoveryVmsNotBack'
+                  : message
+            )}
+          </p>
           {attempt > 1 && <p>{_('rpuRecoveryAttempt', { attempt })}</p>}
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (
@@ -221,6 +231,12 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
                   <li key={vmId}>{renderXoItemFromId(vmId)}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {operatorChanges.length > 0 && (
+            <div>
+              <strong>{_('rpuRecoveryOperatorChangesList')}</strong>
+              {renderRpuOperatorChanges(operatorChanges)}
             </div>
           )}
           {vmConflicts.length > 0 && (

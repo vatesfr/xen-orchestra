@@ -12,7 +12,7 @@ for (const [method, orchestrator, params] of [
     { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false },
   ],
   ['rollingReboot', 'rollingPoolReboot', { shutdownPinnedVms: true }],
-  ['resumeRollingUpdate', 'resumeRollingPoolUpdate', {}],
+  ['resumeRollingUpdate', 'resumeRollingPoolUpdate', { acceptOperatorChanges: true }],
 ]) {
   describe(`pool.${method}`, function () {
     it('forwards bypassBackupCheck to the orchestrator', async function () {

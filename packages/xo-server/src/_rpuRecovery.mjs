@@ -151,6 +151,7 @@ export function buildRpuRecoveryView(record) {
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
     vmConflicts: record.vmConflicts ?? [],
+    operatorChanges: record.operatorChanges ?? [],
   }
 }
 
@@ -292,6 +293,76 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   }
 
   return items
+}
+
+/**
+ * Lists what an operator changed, since the run, on the settings the run left
+ * changed: a resume would otherwise silently override the operator.
+ *
+ * Settings enabled again by hand (HA, auto power-on, WLB, backup schedules)
+ * and HA heartbeat SRs which no longer exist, so HA cannot be restored as it
+ * was. Deleted schedules are not listed: there is nothing left to restore.
+ * The HA configuration is never exposed.
+ *
+ * @param {object | undefined} record
+ * @param {object} live
+ * @param {object} live.pool - XAPI pool object
+ * @param {(id: string) => object | undefined} live.getSchedule
+ * @param {(id: string) => object | undefined} live.getSr
+ * @returns {Array<{ type: string, id: string, name?: string, expected: string, observed: string }> | null} `null` when the record cannot be read
+ */
+export function listOperatorChanges(record, { pool, getSchedule, getSr }) {
+  if (record === null || typeof record !== 'object' || record.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
+    return null
+  }
+  const { poolId, changedByRun = {} } = record
+  const enabledAgain = (type, id, name) => ({ type, id, name, expected: 'disabled', observed: 'enabled' })
+  const changes = []
+
+  if (changedByRun.ha && pool.ha_enabled) {
+    changes.push(enabledAgain('ha', poolId))
+  }
+  if (changedByRun.autoPowerOn && pool.other_config?.auto_poweron === 'true') {
+    changes.push(enabledAgain('autoPowerOn', poolId))
+  }
+  if (changedByRun.wlb && pool.wlb_enabled) {
+    changes.push(enabledAgain('wlb', poolId))
+  }
+  for (const scheduleId of changedByRun.schedules ?? []) {
+    const schedule = getSchedule(scheduleId)
+    if (schedule?.enabled === true) {
+      changes.push(enabledAgain('schedule', scheduleId, schedule.name))
+    }
+  }
+  if (changedByRun.ha && !pool.ha_enabled) {
+    for (const srId of changedByRun.ha.srs ?? []) {
+      if (getSr(srId) === undefined) {
+        changes.push({ type: 'haHeartbeatSr', id: srId, expected: 'present', observed: 'missing' })
+      }
+    }
+  }
+
+  // JSON round trip of the store drops the undefined names
+  return JSON.parse(JSON.stringify(changes))
+}
+
+/**
+ * Takes the operator's state as the new baseline: the run no longer restores
+ * the settings listed in `changes`.
+ *
+ * @param {object} changedByRun - mutated
+ * @param {object[]} changes - see listOperatorChanges
+ */
+function adoptOperatorChanges(changedByRun, changes) {
+  for (const { type, id } of changes) {
+    if (type === 'ha' || type === 'haHeartbeatSr') {
+      delete changedByRun.ha
+    } else if (type === 'schedule') {
+      changedByRun.schedules = changedByRun.schedules.filter(_ => _ !== id)
+    } else {
+      delete changedByRun[type]
+    }
+  }
 }
 
 /**
@@ -634,7 +705,7 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
 }
 
 /** @type {PoolRollingUpdateRecoveryRun['status'][]} */
-const RESUMABLE_STATUSES = ['failed', 'interrupted']
+const RESUMABLE_STATUSES = ['failed', 'interrupted', 'blocked']
 
 const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
 
@@ -717,17 +788,25 @@ export const noRpuResume = Object.freeze({
  * The steps that failed or were running in the previous attempt are set back
  * to `pending`: `failed` is sticky within an attempt, not across attempts.
  *
+ * Settings an operator changed since the run (see listOperatorChanges) block
+ * the record until acknowledged with `acceptOperatorChanges`: the operator's
+ * state is then kept, the run no longer restores these settings. The
+ * `blocked` status is written best-effort, the resume is refused either way.
+ *
  * Strict write of the `resuming` status: a failure rejects and must abort the
  * resume before any side effect. The caller holds the RPU guard of the pool.
  *
  * @param {object} params
  * @param {object} params.store - LevelDB sublevel, keyed by pool id
  * @param {string} params.poolId
- * @returns {Promise<{ recorder: object, record: object, plan: object }>} see planRpuResume for `plan`
+ * @param {object} [params.live] - see listOperatorChanges, no detection when missing
+ * @param {boolean} [params.acceptOperatorChanges]
+ * @returns {Promise<{ recorder: object, record: object, plan: object, acceptedOperatorChanges: object[] }>} see planRpuResume for `plan`
  * @throws {Error} `noSuchObject` when the pool has no record
- * @throws {Error} `incorrectState` (property `status`) when the record is not failed nor interrupted
+ * @throws {Error} `incorrectState` (property `status`) when the record is not failed, interrupted nor blocked
+ * @throws {Error} `incorrectState` (property `operatorChanges`) when an operator changed a setting and it was not acknowledged
  */
-export async function resumeRpuRecoveryRun({ store, poolId }) {
+export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperatorChanges = false }) {
   let record
   try {
     record = await store.get(poolId)
@@ -743,6 +822,24 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
   if (!RESUMABLE_STATUSES.includes(record.status)) {
     throw incorrectState({ actual: record.status, expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
   }
+
+  const operatorChanges = live === undefined ? [] : listOperatorChanges(record, live)
+  if (operatorChanges.length > 0 && !acceptOperatorChanges) {
+    record.status = 'blocked'
+    record.operatorChanges = operatorChanges
+    record.updatedAt = new Date().toISOString()
+    try {
+      await store.put(poolId, record)
+    } catch (error) {
+      log.warn('could not write the blocked RPU recovery record', { error, poolId })
+    }
+    throw incorrectState({ actual: operatorChanges, expected: [], object: poolId, property: 'operatorChanges' })
+  }
+  // before planRpuResume, which shares changedByRun with the record
+  if (record.changedByRun !== undefined) {
+    adoptOperatorChanges(record.changedByRun, operatorChanges)
+  }
+  delete record.operatorChanges
 
   // before the reset below, which forgets the steps the previous attempt left
   // running or failed
@@ -767,7 +864,12 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
   delete record.finishedAt
   await store.put(poolId, record)
 
-  return { recorder: createRpuRecoveryRecorder({ store, record }), record, plan }
+  return {
+    recorder: createRpuRecoveryRecorder({ store, record }),
+    record,
+    plan,
+    acceptedOperatorChanges: operatorChanges,
+  }
 }
 
 /**

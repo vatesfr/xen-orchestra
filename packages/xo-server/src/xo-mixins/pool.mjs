@@ -99,15 +99,25 @@ export default class Pools {
    * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
    *
    * @param {object} pool - XO pool object
-   * @returns {Promise<object>} the recorder, the options of the run, and what the previous attempts did, the
-   *   settings they left changed included (see `planRpuResume`)
+   * @param {object} [opts]
+   * @param {boolean} [opts.acceptOperatorChanges] - keep the settings an operator changed since the run
+   * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did, the
+   *   settings they left changed included (see `planRpuResume`), and the operator changes accepted
    */
-  async resumeRpuRecoveryRun(pool) {
-    const { recorder, record, plan } = await resumeRpuRecoveryRunInStore({
+  async resumeRpuRecoveryRun(pool, { acceptOperatorChanges = false } = {}) {
+    const xapi = this._app.getXapi(pool)
+    const scheduleById = keyBy(await this._app.getAllSchedules(), 'id')
+    const { recorder, record, plan, acceptedOperatorChanges } = await resumeRpuRecoveryRunInStore({
       store: this._rpuRecoveryStore,
       poolId: pool.id,
+      live: {
+        pool: xapi.pool,
+        getSchedule: scheduleId => scheduleById[scheduleId],
+        getSr: srId => xapi.getObjectByUuid(srId, undefined),
+      },
+      acceptOperatorChanges,
     })
-    return { recorder, options: record.options, resume: plan }
+    return { recorder, options: record.options, resume: plan, acceptedOperatorChanges }
   }
 
   getRollingUpdateRecovery(poolId) {

@@ -7,6 +7,7 @@ import {
   buildRpuRecoveryView,
   createRpuRecoveryRecord,
   filterError,
+  listOperatorChanges,
   listUnrestoredItems,
   noopRpuRecorder,
   planRpuResume,
@@ -126,6 +127,7 @@ describe('buildRpuRecoveryView()', () => {
     record.hasMissingPatchesByHost = { h1: true, h2: false }
     record.haltedPinnedVms = { vm2: 'h1' }
     record.vmConflicts = [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }]
+    record.operatorChanges = [{ type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' }]
     record.hosts.h1 = {
       agentStartedAtBeforeUpdate: '123',
       steps: { evacuate: { status: 'observed-succeeded' }, reboot: { status: 'running', startedAt: 'T' } },
@@ -140,10 +142,15 @@ describe('buildRpuRecoveryView()', () => {
     assert.deepEqual(view.hostOrder, ['h1', 'h2'])
     assert.deepEqual(view.haltedPinnedVms, { vm2: 'h1' })
     assert.deepEqual(view.vmConflicts, [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }])
+    assert.deepEqual(view.operatorChanges, [{ type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' }])
     assert.equal(view.lastError, null)
     // a record written before the VM conflicts existed
     assert.deepEqual(
       buildRpuRecoveryView(createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })).vmConflicts,
+      []
+    )
+    assert.deepEqual(
+      buildRpuRecoveryView(createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })).operatorChanges,
       []
     )
 
@@ -206,7 +213,7 @@ describe('buildRpuRecoveryView()', () => {
     // live run
     assert.equal(buildRpuRecoveryView(record).resumable, false)
 
-    for (const status of ['failed', 'interrupted']) {
+    for (const status of ['failed', 'interrupted', 'blocked']) {
       record.status = status
       assert.equal(buildRpuRecoveryView(record).resumable, true)
     }
@@ -379,6 +386,59 @@ describe('listUnrestoredItems()', () => {
     assert.equal(listUnrestoredItems(undefined, makeLive()), null)
     assert.equal(listUnrestoredItems(null, makeLive()), null)
     assert.equal(listUnrestoredItems({ schemaVersion: 42, poolId: 'pool1' }, makeLive()), null)
+  })
+})
+
+describe('listOperatorChanges()', () => {
+  function makeRecord(changedByRun) {
+    return { ...createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS }), status: 'interrupted', changedByRun }
+  }
+  // a pool as the run left it: every setting it touched still disabled
+  function makeLive({ pool, schedules = {}, srs = {} } = {}) {
+    return {
+      pool: { ha_enabled: false, wlb_enabled: false, other_config: { auto_poweron: 'false' }, ...pool },
+      getSchedule: id => schedules[id],
+      getSr: id => srs[id],
+    }
+  }
+  const HA = { srs: ['sr1'], configuration: { timeout: '60' } }
+
+  it('lists nothing when the pool is as the run left it', () => {
+    const record = makeRecord({ ha: HA, autoPowerOn: true, wlb: true, schedules: ['s1'] })
+    const live = makeLive({ schedules: { s1: { enabled: false, name: 'nightly' } }, srs: { sr1: {} } })
+    assert.deepEqual(listOperatorChanges(record, live), [])
+  })
+
+  it('lists the settings enabled again since the run disabled them', () => {
+    const record = makeRecord({ ha: HA, autoPowerOn: true, wlb: true, schedules: ['s1', 's2', 's3'] })
+    const live = makeLive({
+      pool: { ha_enabled: true, wlb_enabled: true, other_config: { auto_poweron: 'true' } },
+      // s3 was deleted: nothing left to restore, not a change to acknowledge
+      schedules: { s1: { enabled: true, name: 'nightly' }, s2: { enabled: false, name: 'weekly' } },
+    })
+    assert.deepEqual(listOperatorChanges(record, live), [
+      { type: 'ha', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'autoPowerOn', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
+    ])
+  })
+
+  it('lists the HA heartbeat SRs which no longer exist', () => {
+    const record = makeRecord({ ha: { srs: ['sr1', 'sr2'], configuration: {} } })
+    assert.deepEqual(listOperatorChanges(record, makeLive({ srs: { sr1: {} } })), [
+      { type: 'haHeartbeatSr', id: 'sr2', expected: 'present', observed: 'missing' },
+    ])
+  })
+
+  it('never exposes the HA configuration', () => {
+    const record = makeRecord({ ha: { srs: ['sr1'], configuration: { secret: 'hunter2' } } })
+    const changes = listOperatorChanges(record, makeLive({ pool: { ha_enabled: true }, srs: { sr1: {} } }))
+    assert.equal(JSON.stringify(changes).includes('hunter2'), false)
+  })
+
+  it('returns null for an unreadable record', () => {
+    assert.equal(listOperatorChanges({ schemaVersion: 42 }, makeLive()), null)
   })
 })
 
@@ -936,6 +996,89 @@ describe('resumeRpuRecoveryRun()', () => {
     }
 
     await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), /disk full/)
+  })
+
+  describe('with settings changed by an operator since the run', () => {
+    const HA = { srs: ['sr1'], configuration: {} }
+    const changedByRun = { ha: HA, autoPowerOn: true, schedules: ['s1', 's2'] }
+    // HA and s1 enabled again by hand, s2 still disabled
+    const live = {
+      pool: { ha_enabled: true, wlb_enabled: false, other_config: { auto_poweron: 'false' } },
+      getSchedule: id => ({ s1: { enabled: true, name: 'nightly' }, s2: { enabled: false, name: 'weekly' } })[id],
+      getSr: () => ({}),
+    }
+    const CHANGES = [
+      { type: 'ha', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
+    ]
+
+    it('blocks the record and lists the changes', async () => {
+      const { store } = await storeWith({ changedByRun })
+
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live }), error =>
+        incorrectState.is(error, { actual: CHANGES, object: 'pool1', property: 'operatorChanges' })
+      )
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'blocked')
+      assert.deepEqual(stored.operatorChanges, CHANGES)
+      // nothing started: same attempt, the failed steps are kept
+      assert.equal(stored.attempt, undefined)
+      assert.deepEqual(stored.changedByRun, changedByRun)
+    })
+
+    it('still refuses when the blocked status cannot be written', async () => {
+      const { store } = await storeWith({ changedByRun })
+      store.put = async () => {
+        throw new Error('disk full')
+      }
+
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live }), error =>
+        incorrectState.is(error, { property: 'operatorChanges' })
+      )
+    })
+
+    it('adopts the changes once acknowledged', async () => {
+      const { store } = await storeWith({ changedByRun, status: 'blocked', operatorChanges: CHANGES })
+
+      const { plan, acceptedOperatorChanges } = await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live,
+        acceptOperatorChanges: true,
+      })
+
+      assert.deepEqual(acceptedOperatorChanges, CHANGES)
+      const expected = { autoPowerOn: true, schedules: ['s2'] }
+      assert.deepEqual(plan.changedByRun, expected)
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'resuming')
+      assert.deepEqual(stored.changedByRun, expected)
+      assert.equal(stored.operatorChanges, undefined)
+    })
+
+    it('gives up the HA restoration when a heartbeat SR is gone', async () => {
+      const { store } = await storeWith({ changedByRun: { ha: HA } })
+      const noSr = { ...live, pool: { ...live.pool, ha_enabled: false }, getSr: () => undefined }
+
+      const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1', live: noSr, acceptOperatorChanges: true })
+
+      assert.deepEqual(plan.changedByRun, {})
+    })
+
+    it('resumes a blocked record once the operator reverted the changes', async () => {
+      const { store } = await storeWith({
+        changedByRun: { autoPowerOn: true },
+        status: 'blocked',
+        operatorChanges: CHANGES,
+      })
+
+      const { acceptedOperatorChanges } = await resumeRpuRecoveryRun({ store, poolId: 'pool1', live })
+
+      assert.deepEqual(acceptedOperatorChanges, [])
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'resuming')
+      assert.equal(stored.operatorChanges, undefined)
+    })
   })
 })
 

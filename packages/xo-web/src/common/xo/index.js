@@ -1609,6 +1609,25 @@ const RPU_UNRESTORED_ITEM_LABELS = {
   wlb: 'rpuUnrestoredWlb',
 }
 
+const RPU_OPERATOR_CHANGE_LABELS = {
+  autoPowerOn: 'rpuOperatorChangeAutoPowerOn',
+  ha: 'rpuOperatorChangeHa',
+  haHeartbeatSr: 'rpuOperatorChangeHaHeartbeatSr',
+  schedule: 'rpuOperatorChangeSchedule',
+  wlb: 'rpuOperatorChangeWlb',
+}
+
+export const renderRpuOperatorChanges = changes => (
+  <ul>
+    {changes.map(({ type, id, name }) => (
+      <li key={type + id}>
+        {_(RPU_OPERATOR_CHANGE_LABELS[type])}
+        {name !== undefined && `: ${name}`}
+      </li>
+    ))}
+  </ul>
+)
+
 export const finalizeRollingPoolUpdate = async poolId => {
   await confirm({
     body: _('rpuRecoveryFinalizeConfirm'),
@@ -1676,6 +1695,22 @@ export const resumeRollingPoolUpdate = async poolId => {
           icon: 'pool-rolling-update',
         })
         return resume({ ...options, bypassBackupCheck: true })
+      }
+      // settings changed by an operator since the update: kept once confirmed
+      if (incorrectState.is(err, { property: 'operatorChanges' }) && !options.acceptOperatorChanges) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuRecoveryAcceptOperatorChangesConfirm')}
+              </p>
+              {renderRpuOperatorChanges(err.data.actual)}
+            </div>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, acceptOperatorChanges: true })
       }
       throw err
     }
