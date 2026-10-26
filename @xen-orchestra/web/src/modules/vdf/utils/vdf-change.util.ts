@@ -159,8 +159,10 @@ export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChang
 
   const beforeNames = before.policies.map(policy => policy.name)
   const afterOrder = after.policies.map(policy => policy.name)
-  const beforeSettings = omit(before, ['groups', 'policies']) as Record<string, unknown>
-  const afterSettings = omit(after, ['groups', 'policies']) as Record<string, unknown>
+  // the format version follows what the document holds (monitor mode,
+  // networks): no change of its own
+  const beforeSettings = omit(before, ['groups', 'policies', 'version']) as Record<string, unknown>
+  const afterSettings = omit(after, ['groups', 'policies', 'version']) as Record<string, unknown>
 
   return {
     policies,

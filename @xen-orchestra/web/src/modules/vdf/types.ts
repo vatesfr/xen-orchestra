@@ -279,6 +279,9 @@ export type VdfHistoryEntry = {
   summary: VdfHistorySummary
   // a pool's: a change made outside this XO, publishedAt is when XO saw it
   outside?: VdfOutsideChange
+  // a pool's: written by XO's global sync (the global configuration's
+  // revision then), successive syncs counted in one entry
+  sync?: { revision?: number; times?: number }
 }
 
 export type VdfHistoryVersion = VdfHistoryEntry & {

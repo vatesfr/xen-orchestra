@@ -28,12 +28,15 @@
 <script lang="ts" setup>
 import VdfRuleSentence from '@/modules/vdf/components/history/VdfRuleSentence.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
+import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type { VdfDefaultAction, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
 import type { VdfChangeDetails, VdfChangeType } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import { isEqual, omit } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -47,6 +50,8 @@ const { details, memberCount, isGlobal } = defineProps<{
 }>()
 
 const { t, n } = useI18n()
+
+const tierLabel = useVdfTierLabel()
 
 const accents: Record<VdfChangeType | 'moved', TagAccent> = {
   added: 'success',
@@ -102,6 +107,50 @@ function policyMeta(policy: VdfPolicy) {
   ]
 }
 
+// what changed in a policy's settings, named: "Monitor → Enforce"...;
+// anything else as "Settings changed"
+function settingChanges(previous: VdfPolicy | undefined, policy: VdfPolicy) {
+  if (previous === undefined) {
+    return [t('firewall:review:settings-changed')]
+  }
+
+  const named: string[] = []
+  const arrow = (from: string, to: string) => t('firewall:review:changed', { from, to })
+  const mode = (candidate: VdfPolicy) => t(isMonitored(candidate) ? 'firewall:mode:monitor' : 'firewall:mode:enforce')
+
+  if (isMonitored(previous) !== isMonitored(policy)) {
+    named.push(arrow(mode(previous), mode(policy)))
+  }
+
+  if (previous.default !== policy.default) {
+    named.push(
+      t('firewall:review:default-changed', {
+        change: arrow(actionText(previous.default), actionText(policy.default)),
+      })
+    )
+  }
+
+  if (tierValue(previous.tier) !== tierValue(policy.tier)) {
+    named.push(
+      t('firewall:review:tier-changed', {
+        change: arrow(tierLabel(tierValue(previous.tier)), tierLabel(tierValue(policy.tier))),
+      })
+    )
+  }
+
+  if (previous.appliedTo !== policy.appliedTo) {
+    named.push(
+      t('firewall:review:applied-to-changed', {
+        change: arrow(displayName(previous.appliedTo), displayName(policy.appliedTo)),
+      })
+    )
+  }
+
+  const known = ['mode', 'default', 'tier', 'appliedTo', 'ingress', 'egress']
+
+  return isEqual(omit(previous, known), omit(policy, known)) ? named : [...named, t('firewall:review:settings-changed')]
+}
+
 function actionText(action: VdfDefaultAction) {
   return action === 'pass' ? t('firewall:action:next-tier') : t(`firewall:action:${action}`)
 }
@@ -116,7 +165,7 @@ const items = computed<Item[]>(() => {
       typeLabel: t(`firewall:change:${change.type}`),
       title: t('firewall:change:policy', { name: displayName(change.name) }),
       meta: change.settingsChanged
-        ? [t('firewall:review:settings-changed'), ...policyMeta(change.policy)]
+        ? [...settingChanges(change.previous, change.policy), ...policyMeta(change.policy)]
         : policyMeta(change.policy),
       defaultAction: change.policy.default,
       rules: [

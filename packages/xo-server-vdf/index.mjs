@@ -685,7 +685,13 @@ class VdfPlugin {
         }
         return { ok: true, state, unchanged: true }
       }
-      return { ...(await this.#publishOnPool(xapi, serialize(expected))), state }
+      const result = await this.#publishOnPool(xapi, serialize(expected))
+      if (result.published) {
+        await this.#recordSyncWrite(poolId, published, { docId: result.document, document: expected }).catch(error =>
+          log.warn('recording the sync', { pool: poolId, error })
+        )
+      }
+      return { ...result, state }
     })
   }
 
@@ -1053,7 +1059,9 @@ class VdfPlugin {
     // unknown for a record from before the global part's id was kept
     const globalChanged = outsideDoc && seen.globalId !== undefined && state.globalId !== seen.globalId
     const entries = await this.#history(poolId)
-    const last = entries[entries.length - 1]
+    // the last change, past what the global sync wrote back after it
+    const lastIndex = entries.findLastIndex(entry => entry.sync === undefined)
+    const last = entries[lastIndex]
     let outside
     if (
       last?.outside !== undefined &&
@@ -1073,7 +1081,7 @@ class VdfPlugin {
           last.outside.sameIdentity ||
           (last.outside.globalChanged && state.owner?.id === ours && hasGlobalPart(document)),
       }
-      entries[entries.length - 1] = { ...last, outside }
+      entries[lastIndex] = { ...last, outside }
       await this.#store.put(historyKey(poolId), entries)
     } else {
       outside = {
@@ -1173,6 +1181,54 @@ class VdfPlugin {
       previousDocId: before.docId || null,
       publishedAt: new Date().toISOString(),
       publishedBy: userLabel(user) ?? null,
+      summary: summarize(before.document == null ? null : localPart(before.document), localPart(after.document)),
+      document: after.document,
+    })
+  }
+
+  // A pool document the global sync wrote (a global publish, new members):
+  // in the pool's history too, so every version the pool held is there and
+  // the next publish has the one it replaced. Successive syncs with nothing
+  // in between are one entry (members change often: they would push the
+  // publishes out), the version before the first one kept as its previous.
+  async #recordSyncWrite(poolId, before, after) {
+    let entries = await this.#history(poolId)
+    if (entries.length === 0 && before.document != null) {
+      entries = appendEntry(entries, {
+        id: 1,
+        docId: before.docId,
+        previousDocId: null,
+        publishedAt: null,
+        publishedBy: null,
+        summary: summarize(null, localPart(before.document)),
+        document: before.document,
+      })
+    }
+    const last = entries[entries.length - 1]
+    const revision = this.#global?.revision
+    const docId_ = after.docId ?? docId(serialize(after.document))
+    if (last?.docId === docId_) {
+      return
+    }
+    if (last?.sync !== undefined && last.docId === before.docId) {
+      const previous = entries.findLast(entry => entry.docId === last.previousDocId && entry !== last)
+      entries[entries.length - 1] = {
+        ...last,
+        docId: docId_,
+        publishedAt: new Date().toISOString(),
+        sync: { revision, times: (last.sync.times ?? 1) + 1 },
+        summary: summarize(previous?.document == null ? null : localPart(previous.document), localPart(after.document)),
+        document: after.document,
+      }
+      await this.#store.put(historyKey(poolId), entries)
+      return
+    }
+    await this.#appendHistory(poolId, entries, {
+      docId: docId_,
+      previousDocId: before.docId || null,
+      publishedAt: new Date().toISOString(),
+      publishedBy: null,
+      sync: { revision, times: 1 },
       summary: summarize(before.document == null ? null : localPart(before.document), localPart(after.document)),
       document: after.document,
     })

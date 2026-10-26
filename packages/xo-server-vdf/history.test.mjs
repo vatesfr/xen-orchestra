@@ -53,6 +53,12 @@ describe('summarize', () => {
     const summary = summarize({ ...BEFORE, scope: { all: true } }, { ...BEFORE, scope: { pools: ['a'] } })
     assert.equal(summary.modified, 1)
   })
+
+  test('the format version follows the document: a policy switched to enforce is one change, not two', () => {
+    const monitored = { ...BEFORE, version: 4, policies: BEFORE.policies.map(p => ({ ...p, mode: 'monitor' })) }
+    const summary = summarize(monitored, BEFORE)
+    assert.equal(summary.modified, BEFORE.policies.length)
+  })
 })
 
 describe('history list', () => {

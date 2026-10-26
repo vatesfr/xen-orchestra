@@ -17,8 +17,9 @@ const rulesOf = document =>
 const policiesOf = document =>
   new Map((document?.policies ?? []).map(({ ingress, egress, ...settings }) => [settings.name, settings]))
 
-// what a document holds besides its groups and policies
-const settingsOf = ({ groups, policies, ...settings } = {}) => settings
+// what a document holds besides its groups and policies; its format
+// version follows what it holds (monitor mode, networks): no change of its own
+const settingsOf = ({ groups, policies, version, ...settings } = {}) => settings
 
 const groupsOf = document => new Map(Object.entries(document?.groups ?? {}))
 

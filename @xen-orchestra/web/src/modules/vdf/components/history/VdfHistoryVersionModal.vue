@@ -16,7 +16,7 @@
             {{ hasPrevious ? t('firewall:history:version:changes') : t('firewall:history:version:content') }}
           </p>
           <p v-if="!hasPrevious" class="typo-body-regular-small secondary">
-            {{ t('firewall:history:version:no-previous') }}
+            {{ noPreviousText }}
           </p>
           <p v-if="isEmptyChange(details)" class="typo-body-regular-small">{{ t('firewall:history:no-change') }}</p>
           <VdfChangeList v-else :details :is-global="isGlobalScope(scopeId)" />
@@ -64,7 +64,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const { t, d } = useI18n()
+const { t, d, n } = useI18n()
 
 const version = ref<VdfHistoryVersion>()
 
@@ -98,6 +98,10 @@ const byline = computed(() => {
     return outsideText.full(entry.outside)
   }
 
+  if (entry.sync !== undefined) {
+    return t('firewall:history:sync:info', { n: entry.sync.revision ?? '?' })
+  }
+
   if (entry.revision !== undefined) {
     return t('firewall:history:revision-by', {
       n: entry.revision,
@@ -114,6 +118,22 @@ const byline = computed(() => {
 const ownPart = (document: VdfDocument) => (isGlobalScope(scopeId) ? document : withGlobalOf(document, emptyDocument()))
 
 const hasPrevious = computed(() => version.value?.previous != null)
+
+// the list's summary was counted at publish time, against the version then
+// replaced: say what it was, rather than have "Added" everywhere disagree
+// with it
+const noPreviousText = computed(() => {
+  const { summary } = entry
+  const parts = [
+    summary.added > 0 ? t('firewall:history:summary:added', { n: n(summary.added) }) : undefined,
+    summary.modified > 0 ? t('firewall:history:summary:modified', { n: n(summary.modified) }) : undefined,
+    summary.removed > 0 ? t('firewall:history:summary:removed', { n: n(summary.removed) }) : undefined,
+  ].filter(part => part !== undefined)
+
+  return entry.previousDocId == null || parts.length === 0
+    ? t('firewall:history:version:no-previous')
+    : t('firewall:history:version:no-previous:changed', { changes: parts.join(', ') })
+})
 
 const details = computed(() => {
   const current = version.value

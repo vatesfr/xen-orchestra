@@ -471,6 +471,48 @@ describe('global publish', () => {
     }
   })
 
+  test("the pool's history has what the global sync wrote: successive syncs are one entry", async () => {
+    const xo = fakeXo({ otherConfig: { 'vdf:policy': text(document(22)) } })
+    const plugin = await loaded(xo)
+    try {
+      const held = publishedPolicy(xo.xapi.pool.other_config).docId
+      await xo.route('post', '/global/actions/publish', { body: globalBody(0) })
+      const synced = publishedPolicy(xo.xapi.pool.other_config).docId
+      await xo.route('post', '/global/actions/publish', { body: globalBody(1, 80) })
+      const resynced = publishedPolicy(xo.xapi.pool.other_config).docId
+      assert.notEqual(synced, resynced)
+
+      let { entries } = (await xo.route('get', '/pools/{id}/history', { params: { id: POOL } })).result
+      assert.deepEqual(
+        entries.map(entry => [entry.docId, entry.previousDocId, entry.sync?.revision, entry.sync?.times]),
+        [
+          [held, null, undefined, undefined],
+          [resynced, held, 2, 2],
+        ]
+      )
+      // the pool's own part didn't change
+      assert.deepEqual([entries[1].summary.added, entries[1].summary.modified, entries[1].summary.removed], [0, 0, 0])
+
+      // a pool publish then has the version it replaced
+      const own = JSON.parse(xo.xapi.pool.other_config['vdf:policy'])
+      own.groups.extra = { ips: ['10.0.0.9'] }
+      const { result } = await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: POOL },
+        body: { policy: JSON.stringify(own), expectedDocId: resynced },
+      })
+      assert.equal(result.published, true)
+      ;({ entries } = (await xo.route('get', '/pools/{id}/history', { params: { id: POOL } })).result)
+      const last = entries[entries.length - 1]
+      assert.equal(last.summary.added, 1)
+      const version = (
+        await xo.route('get', '/pools/{id}/history/{entry}', { params: { id: POOL, entry: String(last.id) } })
+      ).result
+      assert.equal(version.previous.docId, resynced)
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('sync results survive a restart, the stored configuration starts the history', async () => {
     const store = fakeStore()
     const xo = fakeXo({ store })

@@ -174,3 +174,10 @@ describe('isMonitorOnlyChange', () => {
     expect(isMonitorOnlyChange(base, { ...base })).toBe(false)
   })
 })
+
+describe('changeDetails and the format version', () => {
+  it("doesn't count the version as a settings change: it follows the document", () => {
+    const before: VdfDocument = { version: 4, groups: {}, policies: [] }
+    expect(changeDetails(before, { groups: {}, policies: [] }).settings).toEqual([])
+  })
+})

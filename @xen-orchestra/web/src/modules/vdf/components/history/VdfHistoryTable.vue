@@ -62,7 +62,7 @@ const { pageRecords: pageEntries, paginationBindings } = usePagination(
 
 const state = useTableState({ empty: () => entries.length === 0 })
 
-function changesOf({ summary, outside }: VdfHistoryEntry) {
+function changesOf({ summary, outside, sync }: VdfHistoryEntry) {
   // only the owner changed outside this XO
   if (outside !== undefined && !outside.docChanged) {
     return outside.owner === null
@@ -75,6 +75,10 @@ function changesOf({ summary, outside }: VdfHistoryEntry) {
     summary.modified > 0 ? t('firewall:history:summary:modified', { n: n(summary.modified) }) : undefined,
     summary.removed > 0 ? t('firewall:history:summary:removed', { n: n(summary.removed) }) : undefined,
   ].filter(part => part !== undefined)
+
+  if (parts.length === 0 && sync !== undefined) {
+    return t('firewall:history:sync:changes', { n: sync.revision ?? '?' })
+  }
 
   return parts.length === 0 ? t('firewall:history:no-change') : parts.join(', ')
 }
@@ -110,16 +114,21 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
     // vdf#32: made outside this XO, publishedAt is when XO saw it
     publishedBy: r =>
       r(
-        entry.outside !== undefined
+        entry.sync !== undefined
           ? withDirectives(
-              h(
-                UiTag,
-                { accent: entry.outside.sameIdentity ? 'danger' : 'warning', variant: 'secondary', tabindex: 0 },
-                () => t('firewall:outside:by')
-              ),
-              [[vTooltip, outsideText.full(entry.outside)]]
+              h(UiTag, { accent: 'info', variant: 'secondary', tabindex: 0 }, () => t('firewall:history:sync:by')),
+              [[vTooltip, t('firewall:history:sync:info', { n: entry.sync.revision ?? '?' })]]
             )
-          : (entry.publishedBy ?? h('span', { class: 'secondary' }, t('firewall:history:unknown-user')))
+          : entry.outside !== undefined
+            ? withDirectives(
+                h(
+                  UiTag,
+                  { accent: entry.outside.sameIdentity ? 'danger' : 'warning', variant: 'secondary', tabindex: 0 },
+                  () => t('firewall:outside:by')
+                ),
+                [[vTooltip, outsideText.full(entry.outside)]]
+              )
+            : (entry.publishedBy ?? h('span', { class: 'secondary' }, t('firewall:history:unknown-user')))
       ),
     changes: r => r(changesOf(entry)),
     content: r =>
