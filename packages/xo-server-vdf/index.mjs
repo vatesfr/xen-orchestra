@@ -5,6 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import {
   addressOverlaps,
+  canonical,
   checkGlobalDocument,
   checkLocalDocument,
   compose,
@@ -23,7 +24,6 @@ import {
   remoteIpsFor,
   reservedTierPolicies,
   runningVmRecords,
-  sameDocument,
   serialize,
 } from './global.mjs'
 import { appendEntry, listEntry, nextEntryId, summarize } from './history.mjs'
@@ -140,8 +140,14 @@ const GLOBAL_SCOPE = 'global'
 
 const historyKey = scopeId => `history:${scopeId}`
 
-// what this XO last saw of a pool, or wrote there (vdf#32)
+// what this XO last saw of a pool, and what it wrote there (vdf#32)
 const seenKey = poolId => `seen:${poolId}`
+
+// an owner as compared: its id and since (null: none)
+const ownerKey = owner => (owner == null ? null : `${owner.id}\x00${owner.since ?? ''}`)
+
+// this XO's writes a pool's events may still bring: the latest ones
+const EXPECT_LENGTH = 8
 
 const BODY_TRACE = {
   from: { type: 'string', example: '6c51b800-7de2-3b18-23b3-26d89b749a46' },
@@ -282,11 +288,22 @@ async function writeStore(store, { history = {}, ...rest }) {
 // identity is recorded as the XO this one replaces, and its pools stay
 // its own until an administrator takes them over (take_over_replaced).
 // Importing an export of this same XO changes nothing.
+//
+// What this XO saw in its pools (seen:<pool id>, vdf#32) stays its own too:
+// an export's, older, would make every change since then look like one made
+// outside this XO.
 export async function importStore(store, { instance: imported, replaces, ...data }) {
   const own = (await store.has('instance')) ? await store.get('instance') : newInstance()
   const isOther = typeof imported?.id === 'string' && imported.id !== own.id
+  const seen = {}
+  for await (const { key, value } of store.createReadStream()) {
+    if (key.startsWith('seen:')) {
+      seen[key] = value
+    }
+  }
   await writeStore(store, {
-    ...data,
+    ...Object.fromEntries(Object.entries(data).filter(([key]) => !key.startsWith('seen:'))),
+    ...seen,
     instance: own,
     replaces: isOther ? { id: imported.id, name: imported.name, importedAt: new Date().toISOString() } : replaces,
   })
@@ -437,10 +454,21 @@ class VdfPlugin {
 
   #connectedXapi(poolId) {
     try {
-      return this.#xo.getXapi(poolId)
+      return this.#withPool(this.#xo.getXapi(poolId), poolId)
     } catch {
       return undefined
     }
+  }
+
+  // the pool of each Xapi this plugin uses, to record what it writes there
+  // (vdf#32)
+  #xapiPools = new WeakMap()
+
+  #withPool(xapi, poolId) {
+    if (xapi !== undefined && xapi !== null) {
+      this.#xapiPools.set(xapi, poolId)
+    }
+    return xapi
   }
 
   #vifsOf = vm =>
@@ -570,11 +598,10 @@ class VdfPlugin {
     return { text: serialize(composed) }
   }
 
-  #claim(xapi) {
-    return xapi.pool.update_other_config(
-      OWNER_KEY,
-      JSON.stringify({ ...this.#instance, since: new Date().toISOString() })
-    )
+  async #claim(xapi) {
+    const owner = { ...this.#instance, since: new Date().toISOString() }
+    await this.#expectOwn(xapi, { owner })
+    return xapi.pool.update_other_config(OWNER_KEY, JSON.stringify(owner))
   }
 
   // Makes this XO the owner of the pool's global part, if its owner is
@@ -610,10 +637,15 @@ class VdfPlugin {
     const writesGlobal = hasGlobalPart(document)
     const result = await this.#onMaster(xapi, 'publish', { policy: text })
     if (result.published) {
+      // what XAPI's events will bring (vdf#32)
+      await this.#expectOwn(xapi, {
+        docIds: [...new Set([docId(text), result.document].filter(id => typeof id === 'string' && id !== ''))],
+      })
       const owner = poolOwner(xapi.pool.other_config)
       if (writesGlobal && owner === undefined) {
         await this.#claim(xapi)
       } else if (!writesGlobal && owner?.id === this.#instance.id) {
+        await this.#expectOwn(xapi, { owner: null })
         await xapi.pool.update_other_config(OWNER_KEY, null)
       }
     }
@@ -884,10 +916,8 @@ class VdfPlugin {
   }
 
   // one publish at a time per scope: a compare-and-swap must see what the
-  // previous publish wrote
-  // A pool's lock also tells this XO's writes from the others (vdf#32): a
-  // change found on entering it was made outside this XO, what the pool
-  // holds on leaving it is this XO's doing.
+  // previous publish wrote. Taking a pool's lock also looks for changes made
+  // outside this XO since it last looked (vdf#32).
   #serialized(scopeId, fn) {
     const run = scopeId === GLOBAL_SCOPE ? fn : () => this.#watched(scopeId, fn)
     const previous = this.#publishing.get(scopeId) ?? Promise.resolve()
@@ -904,14 +934,24 @@ class VdfPlugin {
 
   // CHANGES OUTSIDE THIS XO (vdf#32, vdf#20): another XO, xe, `vdf-agent
   // publish`, or a copy of this XO (a cloned XO VM, same identity) wrote the
-  // pool's document or its owner. Seen when the pool's lock is taken, by
-  // each sync pass (at most every 5 s, at least every minute) and before
-  // each of this XO's writes: what the pool holds then, compared with what
-  // this XO saw or wrote last (store key seen:<pool id>).
+  // pool's document or its owner. Looked for when the pool's lock is taken:
+  // by each sync pass (at most every 5 s, at least every minute) and before
+  // each of this XO's writes. What the pool holds then is compared with what
+  // this XO last saw there (store key seen:<pool id>: the document's id, its
+  // global part's id, the owner), and a difference this XO didn't write is
+  // an outside change.
+  //
+  // XO's cache of the pool record follows XAPI's events, which arrive after
+  // a write returns: what this XO writes is recorded as expected (`expect`:
+  // the document ids and owners it wrote, the latest last), and an
+  // observation equal to one of them is this XO's own write, whenever it
+  // shows up.
 
   async #seenOf(poolId) {
     if (!this.#seen.has(poolId)) {
-      this.#seen.set(poolId, await this.#get(seenKey(poolId), null))
+      // the records 9234eab3 wrote held the document: not needed any more
+      const { document: _, ...seen } = (await this.#get(seenKey(poolId), null)) ?? {}
+      this.#seen.set(poolId, seen.docId === undefined ? null : seen)
     }
     return this.#seen.get(poolId)
   }
@@ -927,18 +967,37 @@ class VdfPlugin {
     const owner = poolOwner(otherConfig)
     return {
       docId: id,
-      document: document ?? null,
+      // the global part's id, to tell whether a change touched it
+      globalId: document == null ? '' : sha256Hex(JSON.stringify(canonical(globalPart(document))), 6),
       owner: owner === undefined ? null : { id: owner.id, name: owner.name, since: owner.since },
+      document: document ?? null,
     }
+  }
+
+  // Records what this XO is writing in a pool: a document (its id, as
+  // publishedPolicy will compute it) or an owner (null: removed)
+  async #expectOwn(xapi, { docIds = [], owner }) {
+    const poolId = this.#xapiPools.get(xapi)
+    if (poolId === undefined) {
+      return
+    }
+    const seen = await this.#seenOf(poolId)
+    if (seen === null) {
+      return // not seen yet: what it holds next is its first sight
+    }
+    const expect = seen.expect ?? { docIds: [], owners: [] }
+    await this.#saveSeen(poolId, {
+      ...seen,
+      expect: {
+        docIds: [...expect.docIds.filter(id => !docIds.includes(id)), ...docIds].slice(-EXPECT_LENGTH),
+        owners: owner === undefined ? expect.owners : [...expect.owners, ownerKey(owner)].slice(-EXPECT_LENGTH),
+      },
+    })
   }
 
   async #watched(poolId, fn) {
     await this.#noteOutside(poolId).catch(error => log.warn('changes outside this XO', { pool: poolId, error }))
-    try {
-      return await fn()
-    } finally {
-      await this.#noteOwn(poolId).catch(error => log.warn('changes outside this XO', { pool: poolId, error }))
-    }
+    return fn()
   }
 
   // a sync pass on a pool it doesn't write
@@ -946,24 +1005,10 @@ class VdfPlugin {
     return this.#serialized(poolId, async () => {})
   }
 
-  // what the pool holds after this XO's operation in its lock
-  async #noteOwn(poolId) {
-    const xapi = this.#connectedXapi(poolId)
-    if (xapi === undefined) {
-      return
-    }
-    const state = this.#poolState(xapi)
-    const seen = await this.#seenOf(poolId)
-    if (seen !== null && seen.docId === state.docId && isDeepStrictEqual(seen.owner, state.owner)) {
-      return
-    }
-    await this.#saveSeen(poolId, { ...state, at: new Date().toISOString(), outside: seen?.outside })
-  }
-
   // A change no lock of this XO made: recorded in the pool's history (its
   // document, so it can be reviewed and restored) and reported by GET policy
-  // and GET /global. The same change seen again (two writers alternating,
-  // as a copy of this XO with other global groups would) only counts again.
+  // and GET /global. The same change seen again (two writers alternating)
+  // only counts again.
   async #noteOutside(poolId) {
     const xapi = this.#connectedXapi(poolId)
     if (xapi === undefined) {
@@ -972,24 +1017,36 @@ class VdfPlugin {
     const state = this.#poolState(xapi)
     const seen = await this.#seenOf(poolId)
     const now = new Date().toISOString()
+    const { document, ...observed } = state
     if (seen === null) {
       // first sight: nothing to compare with
-      await this.#saveSeen(poolId, { ...state, at: now })
+      await this.#saveSeen(poolId, { ...observed, at: now })
       return
     }
     const docChanged = state.docId !== seen.docId
-    const ownerChanged = !isDeepStrictEqual(state.owner, seen.owner)
+    const ownerChanged = ownerKey(state.owner) !== ownerKey(seen.owner)
     if (!docChanged && !ownerChanged) {
       return
     }
-    const ours = this.#instance.id
-    const globalChanged = docChanged && !sameDocument(globalPart(state.document), globalPart(seen.document))
-    // this XO's identity wrote it: a copy of its data (vdf#20), only an XO
-    // writes the owner key and the global part of a pool it owns
-    const sameIdentity =
-      (ownerChanged && (state.owner?.id === ours || (state.owner === null && seen.owner?.id === ours))) ||
-      (!ownerChanged && globalChanged && state.owner?.id === ours)
 
+    // this XO's own writes: an expected one and the ones before it are done
+    const expect = seen.expect ?? { docIds: [], owners: [] }
+    const docIndex = docChanged ? expect.docIds.indexOf(state.docId) : -1
+    const ownerIndex = ownerChanged ? expect.owners.indexOf(ownerKey(state.owner)) : -1
+    const nextExpect = {
+      docIds: expect.docIds.slice(docIndex + 1),
+      owners: expect.owners.slice(ownerIndex + 1),
+    }
+    const outsideDoc = docChanged && docIndex === -1
+    const outsideOwner = ownerChanged && ownerIndex === -1
+    if (!outsideDoc && !outsideOwner) {
+      await this.#saveSeen(poolId, { ...observed, at: now, expect: nextExpect, outside: seen.outside })
+      return
+    }
+
+    const ours = this.#instance.id
+    // unknown for a record from before the global part's id was kept
+    const globalChanged = outsideDoc && seen.globalId !== undefined && state.globalId !== seen.globalId
     const entries = await this.#history(poolId)
     const last = entries[entries.length - 1]
     let outside
@@ -998,7 +1055,15 @@ class VdfPlugin {
       last.docId === state.docId &&
       isDeepStrictEqual(last.outside.owner, state.owner)
     ) {
-      outside = { ...last.outside, lastSeenAt: now, times: (last.outside.times ?? 1) + 1 }
+      // seen again after this XO wrote the pool back: two writers alternate.
+      // On a pool this XO owns, with its global part at stake, the other one
+      // runs with this XO's identity (or a script keeps rewriting it).
+      outside = {
+        ...last.outside,
+        lastSeenAt: now,
+        times: (last.outside.times ?? 1) + 1,
+        sameIdentity: last.outside.sameIdentity || (last.outside.globalChanged && state.owner?.id === ours),
+      }
       entries[entries.length - 1] = { ...last, outside }
       await this.#store.put(historyKey(poolId), entries)
     } else {
@@ -1006,38 +1071,40 @@ class VdfPlugin {
         seenAt: now,
         lastSeenAt: now,
         times: 1,
-        docChanged,
+        docChanged: outsideDoc,
         globalChanged,
-        ownerChanged,
+        ownerChanged: outsideOwner,
         previousOwner: seen.owner,
         owner: state.owner,
-        sameIdentity,
+        // the owner key rewritten with this XO's id, by another writer: only
+        // an XO writes it, so one runs with this XO's identity, a copy of
+        // its data (vdf#20)
+        sameIdentity: outsideOwner && state.owner?.id === ours,
       }
-      let list = entries
-      // what the pool held when this XO first saw it
-      if (list.length === 0 && seen.document != null) {
-        list = appendEntry(list, {
-          id: 1,
-          docId: seen.docId,
-          previousDocId: null,
-          publishedAt: null,
-          publishedBy: null,
-          summary: summarize(null, localPart(seen.document)),
-          document: seen.document,
-        })
-      }
-      await this.#appendHistory(poolId, list, {
+      // the version it replaced, when this XO's history has it
+      const previous = entries.findLast(entry => entry.docId === seen.docId)
+      await this.#appendHistory(poolId, entries, {
         docId: state.docId,
         previousDocId: seen.docId || null,
         publishedAt: now,
         publishedBy: null,
         outside,
-        summary: summarize(seen.document == null ? null : localPart(seen.document), localPart(state.document)),
-        document: state.document ?? emptyDocument(),
+        summary: summarize(previous?.document == null ? null : localPart(previous.document), localPart(document)),
+        document: document ?? emptyDocument(),
       })
     }
-    log.warn('pool changed outside this XO', { pool: poolId, docId: state.docId, owner: state.owner, sameIdentity })
-    await this.#saveSeen(poolId, { ...state, at: now, outside: { ...outside, docId: state.docId } })
+    log.warn('pool changed outside this XO', {
+      pool: poolId,
+      docId: state.docId,
+      owner: state.owner,
+      sameIdentity: outside.sameIdentity,
+    })
+    await this.#saveSeen(poolId, {
+      ...observed,
+      at: now,
+      expect: nextExpect,
+      outside: { ...outside, docId: state.docId },
+    })
   }
 
   // the last change made outside this XO, and whether the pool still holds it
@@ -1305,7 +1372,7 @@ class VdfPlugin {
   #getXapi(poolId) {
     // throws no such object for an unknown pool
     this.#xo.getObject(poolId, 'pool')
-    return this.#xo.getXapi(poolId)
+    return this.#withPool(this.#xo.getXapi(poolId), poolId)
   }
 
   async #callPlugin(xapi, hostRef, fn, args = {}) {

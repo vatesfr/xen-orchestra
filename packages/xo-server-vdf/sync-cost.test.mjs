@@ -7,6 +7,8 @@
 //
 // `node --test` runs a small case. VDF_SYNC_BENCH=1 runs the matrix and
 // prints a table: VDF_SYNC_BENCH=1 node --test sync-cost.test.mjs
+// (VDF_SYNC_BENCH=100x10000,200x20000 for these sizes only). The store
+// counts the bytes written, as XO's leveldb store would get them.
 
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
@@ -14,9 +16,11 @@ import { performance } from 'node:perf_hooks'
 
 import createPlugin, { docId } from './index.mjs'
 
+// counts what is written, as XO's leveldb store would have to
 function fakeStore() {
   const data = new Map()
   return {
+    written: 0,
     async has(key) {
       return data.has(key)
     },
@@ -27,6 +31,7 @@ function fakeStore() {
       return structuredClone(data.get(key))
     },
     async put(key, value) {
+      this.written += JSON.stringify(value).length
       data.set(key, structuredClone(value))
     },
     async del(key) {
@@ -103,6 +108,7 @@ function largeXo({ pools: poolCount, vms: vmCount }) {
     objects: { on() {}, removeListener() {} },
     xapis,
     publishes: () => publishes,
+    store,
     getStore: async () => store,
     registerRestRoutes(newRoutes) {
       routes = newRoutes
@@ -197,20 +203,24 @@ async function measure({ pools, vms }) {
 
     // a VM joins a global group: its IP goes into every other pool
     xo.all.get('vm-5').tags.push('vdf:role=db')
+    const writtenBefore = xo.store.written
     const changed = await time(() => plugin.syncNow())
+    // and the pass that sees the writes arrive
+    await plugin.syncNow()
+    const storeWrites = xo.store.written - writtenBefore
     const rewritten = xo.publishes() - before
     assert.equal(rewritten, pools - 1)
 
     const status = await time(() => xo.route('get', '/global'))
     const documentSize = Math.max(...Object.values(xo.xapis).map(xapi => xapi.pool.other_config['vdf:policy'].length))
-    return { pools, vms, publish, steady: median(steady), changed, rewritten, status, documentSize }
+    return { pools, vms, publish, steady: median(steady), changed, rewritten, status, documentSize, storeWrites }
   } finally {
     plugin.unload()
   }
 }
 
 const row = r =>
-  `| ${r.pools} | ${r.vms} | ${r.steady.toFixed(0)} ms | ${r.changed.toFixed(0)} ms (${r.rewritten} pools) | ${r.publish.toFixed(0)} ms | ${r.status.toFixed(0)} ms | ${(r.documentSize / 1024).toFixed(0)} KiB |`
+  `| ${r.pools} | ${r.vms} | ${r.steady.toFixed(0)} ms | ${r.changed.toFixed(0)} ms (${r.rewritten} pools) | ${r.publish.toFixed(0)} ms | ${r.status.toFixed(0)} ms | ${(r.documentSize / 1024).toFixed(0)} KiB | ${(r.storeWrites / 1024).toFixed(0)} KiB |`
 
 describe('global sync cost (vdf#42)', () => {
   test('a pass on 20 pools and 2,000 VMs', async t => {
@@ -220,16 +230,23 @@ describe('global sync cost (vdf#42)', () => {
 
   test('the matrix (VDF_SYNC_BENCH=1)', { skip: process.env.VDF_SYNC_BENCH === undefined }, async t => {
     const lines = [
-      '| pools | running VMs | pass, nothing changed | pass, a VM joins a group | global publish | GET /global | pool document |',
-      '| --- | --- | --- | --- | --- | --- | --- |',
+      '| pools | running VMs | pass, nothing changed | pass, a VM joins a group | global publish | GET /global | pool document | store written (that change) |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ]
-    for (const size of [
-      { pools: 10, vms: 1000 },
-      { pools: 50, vms: 5000 },
-      { pools: 100, vms: 10000 },
-      { pools: 200, vms: 20000 },
-      { pools: 200, vms: 50000 },
-    ]) {
+    // VDF_SYNC_BENCH=100x10000,200x20000: these sizes only
+    const sizes = /x/.test(process.env.VDF_SYNC_BENCH)
+      ? process.env.VDF_SYNC_BENCH.split(',').map(size => {
+          const [pools, vms] = size.split('x').map(Number)
+          return { pools, vms }
+        })
+      : [
+          { pools: 10, vms: 1000 },
+          { pools: 50, vms: 5000 },
+          { pools: 100, vms: 10000 },
+          { pools: 200, vms: 20000 },
+          { pools: 200, vms: 50000 },
+        ]
+    for (const size of sizes) {
       lines.push(row(await measure(size)))
     }
     t.diagnostic('\n' + lines.join('\n'))

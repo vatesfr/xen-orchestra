@@ -43,7 +43,9 @@ const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
 // pools of one host each, whose agent writes what it's asked to publish;
 // `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
 // `agent.beforePublish(poolId)` runs before a publish lands (to interleave
-// another write), `agent.refuse` lists pools whose agent refuses publishes
+// another write), `agent.refuse` lists pools whose agent refuses publishes.
+// `lag` (ms): XO's cached pool record changes that long after a write
+// returns, as XAPI's events bring it (vdf#32); none by default.
 function fakeXo({
   store = fakeStore(),
   otherConfig = {},
@@ -51,7 +53,9 @@ function fakeXo({
   vms = [],
   acls = [],
   agent = {},
+  lag,
 } = {}) {
+  const later = fn => (lag === undefined ? fn() : setTimeout(fn, lag))
   const calls = []
   const poolObjects = {}
   const xapis = {}
@@ -64,8 +68,10 @@ function fakeXo({
         other_config: { ...otherConfig },
         master: 'OpaqueRef:master',
         async update_other_config(key, value) {
-          const { [key]: _, ...rest } = xapi.pool.other_config
-          xapi.pool.other_config = value === null ? rest : { ...rest, [key]: value }
+          later(() => {
+            const { [key]: _, ...rest } = xapi.pool.other_config
+            xapi.pool.other_config = value === null ? rest : { ...rest, [key]: value }
+          })
         },
       },
       objects: { all: {} },
@@ -77,7 +83,7 @@ function fakeXo({
           if (agent.refuse?.includes(id)) {
             return JSON.stringify({ ok: false, published: false, error: 'refused by the agent', warnings: [] })
           }
-          xapi.pool.other_config = { ...xapi.pool.other_config, 'vdf:policy': args.policy }
+          later(() => (xapi.pool.other_config = { ...xapi.pool.other_config, 'vdf:policy': args.policy }))
           return JSON.stringify({ ok: true, published: true, document: docId(args.policy), warnings: [] })
         }
         return JSON.stringify({ ok: true, warnings: [] })
@@ -1099,65 +1105,76 @@ describe('what the plugin writes in XAPI', () => {
   })
 })
 
-// vdf#32, vdf#20: what changed in a pool without this XO
+// vdf#32, vdf#20: what changed in a pool without this XO. XO's cache of a
+// pool follows XAPI's events, after a write returns: the fakes lag too.
 describe('changes outside this XO', () => {
+  const LAG = 20
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+  // the events of the writes made so far have arrived
+  const settled = () => sleep(3 * LAG)
   const globalDocument = {
     groups: { web: { tags: ['vdf:role=web'] } },
     policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [] }],
   }
-  const publishGlobal = (xo, revision = 0) =>
-    xo.route('post', '/global/actions/publish', {
-      body: { policy: text(globalDocument), scope: { all: true }, revision },
+  const publishGlobal = async (xo, revision = 0, doc = globalDocument) => {
+    const { result } = await xo.route('post', '/global/actions/publish', {
+      body: { policy: text(doc), scope: { all: true }, revision },
     })
+    await settled()
+    return result
+  }
   const historyOf = async (xo, poolId = POOL) =>
     (await xo.route('get', '/pools/{id}/history', { params: { id: poolId } })).result.entries
+  const outsideOf = async (xo, poolId = POOL) => (await historyOf(xo, poolId)).filter(entry => entry.outside)
   const policyOf = async (xo, poolId = POOL) =>
     (await xo.route('get', '/pools/{id}/policy', { params: { id: poolId } })).result
+  // a sync pass once the events of the writes so far have arrived, then
+  // the events of its own writes
+  const pass = async plugin => {
+    await settled()
+    await plugin.syncNow()
+    await settled()
+  }
 
   test('a document written outside this XO is kept in the pool history, also while XO was stopped', async () => {
     const store = fakeStore()
     const before = text(document(22))
-    const xo = fakeXo({ store, otherConfig: { 'vdf:policy': before } })
+    const xo = fakeXo({ store, otherConfig: { 'vdf:policy': before }, lag: LAG })
     const plugin = await loaded(xo)
     try {
       // first sight: nothing to compare with
-      await plugin.syncNow()
+      await pass(plugin)
       assert.deepEqual(await historyOf(xo), [])
       assert.equal((await policyOf(xo)).outside, null)
 
       // vdf-agent publish, xe, another XO
       const outside = text(document(8080))
       xo.xapi.pool.other_config['vdf:policy'] = outside
-      await plugin.syncNow()
+      await pass(plugin)
       const entries = await historyOf(xo)
       assert.deepEqual(
-        entries.map(entry => [entry.id, entry.docId, entry.publishedBy, entry.outside?.docChanged]),
-        [
-          [1, docId(before), null, undefined],
-          [2, docId(outside), null, true],
-        ]
+        entries.map(entry => [entry.docId, entry.previousDocId, entry.publishedBy, entry.outside?.docChanged]),
+        [[docId(outside), docId(before), null, true]]
       )
-      assert.equal(entries[1].previousDocId, docId(before))
-      assert.equal(entries[1].summary.modified, 1)
-      assert.equal(entries[1].outside.sameIdentity, false)
+      assert.equal(entries[0].outside.sameIdentity, false)
       assert.equal((await policyOf(xo)).outside.current, true)
 
       // seen again: nothing new
-      await plugin.syncNow()
-      assert.equal((await historyOf(xo)).length, 2)
+      await pass(plugin)
+      assert.equal((await historyOf(xo)).length, 1)
 
-      // this XO's own publish is no outside change
+      // this XO's own publish is no outside change, whenever its event comes
       await xo.route('post', '/pools/{id}/actions/publish_policy', {
         params: { id: POOL },
         body: { policy: text(document(443)) },
       })
-      await plugin.syncNow()
+      await pass(plugin)
       const after = await historyOf(xo)
       assert.deepEqual(
         after.map(entry => entry.outside === undefined),
-        [true, false, true]
+        [false, true]
       )
-      assert.equal(after[2].previousDocId, docId(outside))
+      assert.equal(after[1].previousDocId, docId(outside))
       assert.equal((await policyOf(xo)).outside.current, false)
     } finally {
       plugin.unload()
@@ -1165,10 +1182,10 @@ describe('changes outside this XO', () => {
 
     // a change made while this XO was stopped is seen at its first pass
     const whileStopped = text(document(25))
-    const restarted = fakeXo({ store, otherConfig: { 'vdf:policy': whileStopped } })
+    const restarted = fakeXo({ store, otherConfig: { 'vdf:policy': whileStopped }, lag: LAG })
     const plugin2 = await loaded(restarted)
     try {
-      await plugin2.syncNow()
+      await pass(plugin2)
       const last = (await historyOf(restarted)).at(-1)
       assert.equal(last.docId, docId(whileStopped))
       assert.equal(last.outside.docChanged, true)
@@ -1177,18 +1194,60 @@ describe('changes outside this XO', () => {
     }
   })
 
+  test("this XO's own global writes and claims are not outside changes", async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await pass(plugin)
+      // the write, then the claim of the owner key, both lagging
+      await publishGlobal(xo)
+      await pass(plugin)
+      // a member changes: every pool is written again
+      await publishGlobal(xo, 1, { ...globalDocument, groups: { web: { tags: ['vdf:role=web'], ips: ['192.0.2.1'] } } })
+      await pass(plugin)
+      assert.deepEqual(await outsideOf(xo, 'A'), [])
+      assert.deepEqual(await outsideOf(xo, 'B'), [])
+      assert.equal(
+        (await xo.route('get', '/global')).result.pools.some(pool => pool.outside !== undefined),
+        false
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("this XO's own pool publish adds one entry, not an outside one", async () => {
+    const xo = fakeXo({ lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await pass(plugin)
+      await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: POOL },
+        body: { policy: text(document(443)) },
+      })
+      await pass(plugin)
+      const entries = await historyOf(xo)
+      assert.deepEqual(
+        entries.map(entry => [entry.publishedBy, entry.outside]),
+        [['admin@example.org', undefined]]
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('another XO taking the pool over is in the history, and in the global status', async () => {
-    const xo = fakeXo({ pools: { A: {}, B: {} } })
+    const xo = fakeXo({ pools: { A: {}, B: {} }, lag: LAG })
     const plugin = await loaded(xo)
     try {
       await publishGlobal(xo)
-      await plugin.syncNow()
+      await pass(plugin)
       xo.xapis.B.pool.other_config['vdf:global.owner'] = JSON.stringify({
         id: 'other',
         name: 'xo-b',
         since: '2026-10-26T12:00:00.000Z',
       })
-      await plugin.syncNow()
+      await pass(plugin)
       const { outside } = (await historyOf(xo, 'B')).at(-1)
       assert.deepEqual(
         [outside.ownerChanged, outside.docChanged, outside.owner.name, outside.sameIdentity],
@@ -1202,12 +1261,45 @@ describe('changes outside this XO', () => {
     }
   })
 
-  test('a copy of this XO writing the same pool is told apart, and counted once while they alternate', async () => {
-    const xo = fakeXo()
+  test('the owner key rewritten with this XO id by another writer: a copy of this XO', async () => {
+    const xo = fakeXo({ lag: LAG })
     const plugin = await loaded(xo)
     try {
       await publishGlobal(xo)
-      await plugin.syncNow()
+      await pass(plugin)
+      const { id, name } = (await xo.route('get', '/global')).result.instance
+      xo.xapi.pool.other_config['vdf:global.owner'] = JSON.stringify({ id, name, since: '2026-10-26T12:00:00.000Z' })
+      await pass(plugin)
+      const [entry] = await outsideOf(xo)
+      assert.deepEqual([entry.outside.ownerChanged, entry.outside.sameIdentity], [true, true])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('vdf-agent publish on a pool this XO owns is no copy of this XO', async () => {
+    const xo = fakeXo({ lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo)
+      await pass(plugin)
+      // an administrator on the pool master: vdf-agent -policy local.json publish
+      xo.xapi.pool.other_config['vdf:policy'] = text(document(8080))
+      await pass(plugin)
+      const outside = await outsideOf(xo)
+      assert.equal(outside.length, 1)
+      assert.deepEqual([outside[0].outside.globalChanged, outside[0].outside.sameIdentity], [true, false])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a copy of this XO writing other global groups: told apart once it recurs, counted once', async () => {
+    const xo = fakeXo({ lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo)
+      await pass(plugin)
       // a cloned XO VM: same identity, other global groups
       const ours = xo.xapi.pool.other_config['vdf:policy']
       const theirs = JSON.parse(ours)
@@ -1215,13 +1307,14 @@ describe('changes outside this XO', () => {
       const copyWrites = () => (xo.xapi.pool.other_config['vdf:policy'] = text(theirs))
 
       copyWrites()
-      await plugin.syncNow()
-      // this XO wrote its own global part back
+      await pass(plugin) // seen, and written back
       assert.equal(xo.xapi.pool.other_config['vdf:policy'], ours)
+      assert.equal((await outsideOf(xo))[0].outside.sameIdentity, false)
+      await pass(plugin) // this XO's own write back: nothing new
       copyWrites()
-      await plugin.syncNow()
+      await pass(plugin)
 
-      const outsideEntries = (await historyOf(xo)).filter(entry => entry.outside !== undefined)
+      const outsideEntries = await outsideOf(xo)
       assert.equal(outsideEntries.length, 1)
       assert.deepEqual(
         [
@@ -1234,6 +1327,50 @@ describe('changes outside this XO', () => {
       const { outside } = await policyOf(xo)
       assert.equal(outside.sameIdentity, true)
       assert.equal(outside.current, false)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("restoring this XO's own older export brings no outside change", async () => {
+    const xo = fakeXo({ lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo, 0, { ...globalDocument, policies: [{ ...globalDocument.policies[0], default: 'pass' }] })
+      await pass(plugin)
+      // a backup: the whole store, as the config manager exports it (it's
+      // registered once per process, by the first test's plugin)
+      const exported = { history: {} }
+      for await (const { key, value } of xo.store.createReadStream()) {
+        if (key.startsWith('history:')) {
+          exported.history[key.slice('history:'.length)] = value
+        } else {
+          exported[key] = value
+        }
+      }
+      await publishGlobal(xo, 1)
+      await pass(plugin)
+      // the administrator restores the backup
+      await importStore(xo.store, exported)
+      await plugin.reloadStore()
+      await pass(plugin) // the older configuration written back
+      await pass(plugin)
+      assert.deepEqual(await outsideOf(xo), [])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('the seen records hold no document', async () => {
+    const xo = fakeXo({ lag: LAG })
+    const plugin = await loaded(xo)
+    try {
+      await publishGlobal(xo)
+      await pass(plugin)
+      const seen = xo.store.data.get(`seen:${POOL}`)
+      assert.equal(seen.document, undefined)
+      assert.equal(typeof seen.docId, 'string')
+      assert.equal(typeof seen.globalId, 'string')
     } finally {
       plugin.unload()
     }

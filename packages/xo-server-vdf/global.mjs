@@ -187,7 +187,7 @@ export function withFormatVersion(document) {
 export const serialize = document => JSON.stringify(document, null, 2)
 
 // key order doesn't matter when comparing documents
-function canonical(value) {
+export function canonical(value) {
   if (Array.isArray(value)) {
     return value.map(canonical)
   }
