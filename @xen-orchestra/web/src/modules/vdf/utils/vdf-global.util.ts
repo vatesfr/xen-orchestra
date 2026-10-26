@@ -93,6 +93,23 @@ export function composeWithGlobal(own: VdfDocument, global: VdfDocument): VdfDoc
   }
 }
 
+// Where each global policy applies (vdf#47): per pool, the VMs its group
+// holds there (vmCount); pools where it holds none are left out
+export type VdfPolicyReach = { policy: string; pools: { id: string; name: string; vms: number }[] }
+
+export function policyReach(
+  document: VdfDocument,
+  pools: { id: string; name: string }[],
+  vmCount: (group: string, poolId: string) => number
+): VdfPolicyReach[] {
+  return document.policies.map(policy => ({
+    policy: policy.name,
+    pools: pools
+      .map(pool => ({ id: pool.id, name: pool.name, vms: vmCount(policy.appliedTo, pool.id) }))
+      .filter(pool => pool.vms > 0),
+  }))
+}
+
 type VdfPage = 'groups' | 'policies'
 
 // A scope's page for a group or a policy. In a pool, global objects are
