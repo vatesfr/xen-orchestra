@@ -2883,7 +2883,8 @@ const messages = {
   dropFileHere: 'Drop your data file here',
   airgapDataPackFileRejected: 'File {name} is not a valid airgap data pack (expected a .tar.xz archive)',
   airgapDataPack: 'Airgap data pack',
-  airgapDataPackDescription: 'Import the airgap data pack you received to update your licenses.',
+  airgapDataPackDescription:
+    'On an airgapped appliance, import the airgap data pack you received to register the appliance and update your licenses.',
   removeAirgapDataPack: 'Remove this file',
   exportAirgapLicenses: 'Export',
   exportAirgapLicensesDescription: 'Export your current licenses and their bindings to send them back to Vates.',

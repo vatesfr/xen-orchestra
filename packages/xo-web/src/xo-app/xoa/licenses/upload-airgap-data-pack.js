@@ -4,6 +4,7 @@ import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
+import xoaUpdater from 'xoa-updater'
 import { exportAirgapLicenses, uploadAirgapDataPack } from 'xo'
 
 export default class UploadAirgapDataPack extends Component {
@@ -22,6 +23,8 @@ export default class UploadAirgapDataPack extends Component {
   _handleUpload = async () => {
     await uploadAirgapDataPack(this.state.airgapDataPack)
     this.setState({ airgapDataPack: undefined })
+    // the first import registers the appliance: refresh the registration state so the licenses are displayed
+    await xoaUpdater.isRegistered()
     return this.props.updateLicenses()
   }
 
@@ -61,15 +64,17 @@ export default class UploadAirgapDataPack extends Component {
             </div>
           </div>
         )}
-        <div>
-          <h3>{_('exportAirgapLicenses')}</h3>
-          <p>
-            {_('exportAirgapLicensesDescription')}{' '}
-            <ActionButton btnStyle='primary' handler={exportAirgapLicenses} icon='export' size='small'>
-              {_('exportAirgapLicenses')}
-            </ActionButton>
-          </p>
-        </div>
+        {this.props.canExport && (
+          <div>
+            <h3>{_('exportAirgapLicenses')}</h3>
+            <p>
+              {_('exportAirgapLicensesDescription')}{' '}
+              <ActionButton btnStyle='primary' handler={exportAirgapLicenses} icon='export' size='small'>
+                {_('exportAirgapLicenses')}
+              </ActionButton>
+            </p>
+          </div>
+        )}
       </div>
     )
   }

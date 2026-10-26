@@ -189,6 +189,9 @@ export default class Licenses extends Component {
       () => this.setState({ isAirgap: false })
     )
 
+  // the first import makes the appliance airgap
+  _updateAfterAirgapDataPackUpload = () => Promise.all([this._updateIsAirgap(), this._updateLicenses()])
+
   _updateLicenses = () => {
     this.setState({ licenseError: undefined })
 
@@ -309,11 +312,24 @@ export default class Licenses extends Component {
   )
 
   render() {
+    const { isAirgap } = this.state
+    const airgapDataPack = (
+      <Row className='mt-3'>
+        <Col>
+          <UploadAirgapDataPack canExport={isAirgap} updateLicenses={this._updateAfterAirgapDataPackUpload} />
+        </Col>
+      </Row>
+    )
+
+    // an airgap XOA is delivered unregistered: it is registered by the first data pack import
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
       return (
-        <span>
-          <em>{_('licensesUnregisteredDisclaimer')}</em> <Link to='xoa/update'>{_('registerNow')}</Link>
-        </span>
+        <Container>
+          <span>
+            <em>{_('licensesUnregisteredDisclaimer')}</em> <Link to='xoa/update'>{_('registerNow')}</Link>
+          </span>
+          {airgapDataPack}
+        </Container>
       )
     }
 
@@ -322,21 +338,13 @@ export default class Licenses extends Component {
       return <em>{missingXoaPlugin}</em>
     }
 
-    const airgapDataPack = this.state.isAirgap && (
-      <Row className='mt-3'>
-        <Col>
-          <UploadAirgapDataPack updateLicenses={this._updateLicenses} />
-        </Col>
-      </Row>
-    )
-
     // in airgap, licenses can't be fetched until a data pack is installed on the local
     // license server so the upload must be displayed to get out of this state
     if (this.state.licenseError !== undefined) {
       return (
         <Container>
           <span className='text-danger'>{_('getLicensesError')}</span>
-          {airgapDataPack}
+          {isAirgap && airgapDataPack}
         </Container>
       )
     }
@@ -395,7 +403,7 @@ export default class Licenses extends Component {
             </Link>
           </Col>
         </Row>
-        {airgapDataPack}
+        {isAirgap && airgapDataPack}
       </Container>
     )
   }
