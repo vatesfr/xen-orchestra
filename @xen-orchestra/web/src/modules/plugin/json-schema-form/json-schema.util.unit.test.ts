@@ -1,5 +1,6 @@
 import {
   getFieldType,
+  getPropertyGroups,
   getSchemaDefaults,
   getSchemaType,
   getXoObjectReference,
@@ -141,6 +142,72 @@ describe('isObjectSchemaWithProperties', () => {
   it('rejects non-object schemas', () => {
     expect(isObjectSchemaWithProperties({ type: 'string', properties: {} })).toBe(false)
     expect(isObjectSchemaWithProperties(undefined)).toBe(false)
+  })
+})
+
+describe('getPropertyGroups', () => {
+  it('describes each property as a field', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: { host: { type: 'string', title: 'Host' }, port: { type: 'integer' } },
+      required: ['host'],
+    }
+
+    expect(getPropertyGroups(schema, ['server'])).toEqual([
+      {
+        fields: [
+          {
+            key: 'host',
+            schema: { type: 'string', title: 'Host' },
+            label: 'Host',
+            path: ['server', 'host'],
+            required: true,
+          },
+        ],
+        isBooleans: false,
+      },
+      {
+        fields: [
+          { key: 'port', schema: { type: 'integer' }, label: 'port', path: ['server', 'port'], required: false },
+        ],
+        isBooleans: false,
+      },
+    ])
+  })
+
+  it('groups the consecutive booleans only', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        tls: { type: 'boolean' },
+        verbose: { type: 'boolean' },
+        host: { type: 'string' },
+        debug: { type: 'boolean' },
+      },
+    }
+
+    const groups = getPropertyGroups(schema, [])
+
+    expect(groups.map(group => ({ keys: group.fields.map(field => field.key), isBooleans: group.isBooleans }))).toEqual(
+      [
+        { keys: ['tls', 'verbose'], isBooleans: true },
+        { keys: ['host'], isBooleans: false },
+        { keys: ['debug'], isBooleans: true },
+      ]
+    )
+  })
+
+  it('does not group a boolean enum, which is displayed as a select', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: { tls: { type: 'boolean' }, mode: { type: 'boolean', enum: [true, false] } },
+    }
+
+    expect(getPropertyGroups(schema, []).map(group => group.isBooleans)).toEqual([true, false])
+  })
+
+  it('has no group without properties', () => {
+    expect(getPropertyGroups({ type: 'object' }, [])).toEqual([])
   })
 })
 

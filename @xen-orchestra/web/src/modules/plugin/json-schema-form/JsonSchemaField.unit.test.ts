@@ -67,7 +67,7 @@ function lastEmittedValue(wrapper: ReturnType<typeof mountField>) {
   return wrapper.emitted('update:modelValue')?.at(-1)?.[0]
 }
 
-function findLabels(wrapper: VueWrapper) {
+function findLabels(wrapper: Pick<VueWrapper, 'findAll'>) {
   return wrapper.findAll('label').map(label => label.text())
 }
 
@@ -76,6 +76,10 @@ async function findRequiredLabels(wrapper: VueWrapper) {
   await nextTick()
 
   return wrapper.findAll('label.required').map(label => label.text())
+}
+
+function findSectionHeaders(wrapper: VueWrapper) {
+  return wrapper.findAll('.json-schema-fieldset.section > .header')
 }
 
 function findSelectedLabel(wrapper: VueWrapper) {
@@ -269,6 +273,32 @@ describe('validation', () => {
 
     expect(findFieldsInError(wrapper)).toEqual(['sr'])
     expect(wrapper.find(`[id="${wrapper.vm.errors[0].id}"]`).exists()).toBe(true)
+  })
+
+  it('displays the error of a list under its section', async () => {
+    const wrapper = mountForm(
+      { type: 'object', properties: { hosts: { type: 'array', items: { type: 'string' }, minItems: 2 } } },
+      { hosts: ['a'] }
+    )
+
+    wrapper.vm.submit()
+    await nextTick()
+
+    expect(findSectionHeaders(wrapper)[0].get('.ui-info').text()).toBe(t('form:error:min-items', { n: 2 }, 2))
+  })
+
+  it('displays the error of a field under its description', async () => {
+    const wrapper = mountForm(
+      { type: 'object', properties: { uri: { type: 'string', description: 'The LDAP URI' } }, required: ['uri'] },
+      {}
+    )
+
+    await wrapper.get('input').trigger('focusout')
+
+    expect(wrapper.findAll('.vts-input-wrapper .ui-info').map(info => info.text())).toEqual([
+      'The LDAP URI',
+      t('form:error:required'),
+    ])
   })
 
   it('validates a filled form', () => {
@@ -475,6 +505,32 @@ describe('object field', () => {
 
     expect(lastEmittedValue(wrapper)).toBeUndefined()
   })
+
+  it('shows only the description of the root object, which is labelled by its container', () => {
+    const wrapper = mountField({
+      schema: { type: 'object', description: 'The server settings', properties: { host: { type: 'string' } } },
+      required: true,
+    })
+
+    expect(wrapper.find('.json-schema-fieldset.section').exists()).toBe(false)
+    expect(wrapper.get('.json-schema-fieldset > .header').text()).toBe('The server settings')
+  })
+
+  it('groups the consecutive booleans', () => {
+    const wrapper = mountField({
+      schema: {
+        type: 'object',
+        properties: {
+          tls: { type: 'boolean' },
+          verbose: { type: 'boolean' },
+          host: { type: 'string' },
+        },
+      },
+      required: true,
+    })
+
+    expect(wrapper.findAll('.group.booleans').map(group => findLabels(group))).toEqual([['tls', 'verbose']])
+  })
 })
 
 describe('boolean field', () => {
@@ -583,9 +639,26 @@ describe('array field', () => {
       modelValue: [{ uri: 'a' }, { uri: 'b' }],
     })
 
-    await wrapper.findAll('.json-schema-fieldset.section .header button.ui-button-icon')[0].trigger('click')
+    await findSectionHeaders(wrapper)[0].get('button.ui-button-icon').trigger('click')
 
     expect(lastEmittedValue(wrapper)).toEqual([{ uri: 'b' }])
+  })
+
+  it('keeps the state of the following items when an item is removed', async () => {
+    const wrapper = mountField({ schema, required: true, modelValue: ['a', OBFUSCATED_VALUE] })
+
+    await wrapper.findAll('button.ui-button-icon')[0].trigger('click')
+    await wrapper.setProps({ modelValue: lastEmittedValue(wrapper) })
+
+    expect(wrapper.findAll('input').map(input => input.element.type)).toEqual(['password'])
+  })
+
+  it('adds an item to a list without item schema', async () => {
+    const wrapper = mountField({ schema: { type: 'array' }, required: true, modelValue: [] })
+
+    await getButton(wrapper, t('action:add')).trigger('click')
+
+    expect(lastEmittedValue(wrapper)).toEqual([undefined])
   })
 
   it('updates an item', async () => {

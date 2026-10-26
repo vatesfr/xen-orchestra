@@ -15,14 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
-import {
-  getFieldType,
-  getPropertyLabel,
-  isObject,
-  isRequiredProperty,
-  type JsonSchema,
-} from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import { getPropertyGroups, isObject } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import { computed } from 'vue'
@@ -31,31 +24,7 @@ const { schema, path = [] } = defineProps<JsonSchemaFieldComponentProps>()
 
 const model = defineModel<unknown>()
 
-type PropertyField = { key: string; schema: JsonSchema; label: string; path: JsonSchemaPath; required: boolean }
-
-const propertyGroups = computed(() => {
-  const groups: { fields: PropertyField[]; isBooleans: boolean }[] = []
-
-  for (const [key, propertySchema] of Object.entries(schema.properties ?? {})) {
-    const field: PropertyField = {
-      key,
-      schema: propertySchema,
-      label: getPropertyLabel(key, propertySchema),
-      path: [...path, key],
-      required: isRequiredProperty(schema, key),
-    }
-    const isBoolean = getFieldType(propertySchema) === 'boolean'
-    const lastGroup = groups.at(-1)
-
-    if (isBoolean && lastGroup?.isBooleans) {
-      lastGroup.fields.push(field)
-    } else {
-      groups.push({ fields: [field], isBooleans: isBoolean })
-    }
-  }
-
-  return groups
-})
+const propertyGroups = computed(() => getPropertyGroups(schema, path))
 
 const objectValue = computed(() => (isObject(model.value) ? model.value : {}))
 

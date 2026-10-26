@@ -1,3 +1,4 @@
+import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import { isSensitiveParam, OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 export type JsonSchemaType = 'array' | 'boolean' | 'integer' | 'null' | 'number' | 'object' | 'string'
@@ -127,6 +128,44 @@ export function isObjectSchemaWithProperties(
   schema: JsonSchema | undefined
 ): schema is JsonSchema & { properties: Record<string, JsonSchema> } {
   return getSchemaType(schema) === 'object' && schema?.properties !== undefined
+}
+
+export type JsonSchemaPropertyField = {
+  key: string
+  schema: JsonSchema
+  label: string
+  path: JsonSchemaPath
+  required: boolean
+}
+
+export type JsonSchemaPropertyGroup = {
+  fields: JsonSchemaPropertyField[]
+  isBooleans: boolean
+}
+
+// consecutive booleans are grouped, any other property stands alone
+export function getPropertyGroups(schema: JsonSchema, path: JsonSchemaPath): JsonSchemaPropertyGroup[] {
+  const groups: JsonSchemaPropertyGroup[] = []
+
+  for (const [key, propertySchema] of Object.entries(schema.properties ?? {})) {
+    const field: JsonSchemaPropertyField = {
+      key,
+      schema: propertySchema,
+      label: getPropertyLabel(key, propertySchema),
+      path: [...path, key],
+      required: isRequiredProperty(schema, key),
+    }
+    const isBoolean = getFieldType(propertySchema) === 'boolean'
+    const lastGroup = groups.at(-1)
+
+    if (isBoolean && lastGroup?.isBooleans) {
+      lastGroup.fields.push(field)
+    } else {
+      groups.push({ fields: [field], isBooleans: isBoolean })
+    }
+  }
+
+  return groups
 }
 
 export function getSchemaDefaults(schema: JsonSchema | undefined): Record<string, unknown> | undefined {
