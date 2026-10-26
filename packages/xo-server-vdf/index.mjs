@@ -165,6 +165,18 @@ const BODY_GLOBAL = {
   },
 }
 
+const BODY_DROP_GLOBAL = {
+  dropGlobal: {
+    type: 'boolean',
+    optional: true,
+    description:
+      "take over a pool holding a global part although this XO has no global configuration: the pool's global part is dropped at its next write (vdf#81)",
+  },
+}
+
+const NO_GLOBAL_ERROR =
+  "this XO has no global configuration: recover it from the pools first, or confirm dropping the pool's global rules"
+
 // pools whose sync failed are retried at most this often
 const SYNC_RETRY_MS = 60e3
 
@@ -559,9 +571,16 @@ class VdfPlugin {
     )
   }
 
+  // An XO without a global configuration that takes over a pool holding a
+  // global part writes the pool without it at the next write (vdf#81)
+  #dropsGlobal(xapi) {
+    return this.#global === undefined && hasGlobalPart(publishedPolicy(xapi.pool.other_config ?? {}).document)
+  }
+
   // Makes this XO the owner of the pool's global part, if its owner is
-  // still the one the user saw (expectedOwner, '' for none)
-  #takeOver(poolId, expectedOwner) {
+  // still the one the user saw (expectedOwner, '' for none), and unless
+  // that drops the pool's global part (vdf#81) without dropGlobal
+  #takeOver(poolId, expectedOwner, { dropGlobal = false } = {}) {
     const xapi = this.#getXapi(poolId)
     return this.#serialized(poolId, async () => {
       const previous = poolOwner(xapi.pool.other_config)
@@ -571,6 +590,9 @@ class VdfPlugin {
           owner: previous ?? null,
           error: `the pool's owner changed meanwhile (${previous?.name ?? 'none'} now): look again before taking it over`,
         }
+      }
+      if (!dropGlobal && this.#dropsGlobal(xapi)) {
+        return { conflict: true, noGlobal: true, error: NO_GLOBAL_ERROR }
       }
       await this.#claim(xapi)
       log.info('pool taken over for the global configuration', { pool: poolId, previous })
@@ -730,6 +752,38 @@ class VdfPlugin {
         .filter(overlap => overlap.holders.every(holder => visible.has(holder.pool)))
         .map(overlap => ({ ...overlap, holders: overlap.holders.map(withPoolName) })),
     }
+  }
+
+  // Takes over every pool the XO this one replaces owns, if it still
+  // replaces the one the user saw (replacesId)
+  async #takeOverReplaced(replacesId, { dropGlobal = false } = {}) {
+    const replaced = this.#replaces
+    if (replaced === undefined || replaced.id !== replacesId) {
+      return {
+        conflict: true,
+        replaces: replaced ?? null,
+        error: `this XO replaces ${replaced?.name ?? 'no other XO'} now: look again before taking its pools over`,
+      }
+    }
+    const owned = this.#pools().flatMap(pool => {
+      const xapi = this.#connectedXapi(pool.id)
+      return xapi !== undefined && poolOwner(xapi.pool?.other_config)?.id === replaced.id ? [{ pool, xapi }] : []
+    })
+    if (!dropGlobal && owned.some(({ xapi }) => this.#dropsGlobal(xapi))) {
+      return { conflict: true, noGlobal: true, error: NO_GLOBAL_ERROR }
+    }
+    const pools = await Promise.all(
+      owned.map(async ({ pool }) => {
+        const base = { id: pool.id, name: pool.name_label }
+        try {
+          const result = await this.#takeOver(pool.id, replaced.id, { dropGlobal })
+          return { ...base, ...result, ok: result.conflict !== true }
+        } catch (error) {
+          return { ...base, ok: false, error: error.message }
+        }
+      })
+    )
+    return { pools }
   }
 
   // Every pool in scope (and every pool still holding a global part)
@@ -1263,14 +1317,19 @@ class VdfPlugin {
             type: 'string',
             description: "id of the owner the user saw ('' for none), as GET /global reports it (ownerId)",
           },
+          ...BODY_DROP_GLOBAL,
         },
         middlewares: [{ name: 'json' }],
         responses: [
           { status: 200, description: 'The previous owner, if any' },
-          { status: 409, description: 'The owner changed since the user looked' },
+          {
+            status: 409,
+            description:
+              'The owner changed since the user looked, or the pool holds a global part and this XO has no global configuration (noGlobal: true)',
+          },
         ],
         callback: async ({ req, res }) => {
-          const result = await this.#takeOver(req.params.id, req.body.expectedOwner)
+          const result = await this.#takeOver(req.params.id, req.body.expectedOwner, req.body)
           if (result.conflict) {
             res.status(409)
           }
@@ -1285,38 +1344,23 @@ class VdfPlugin {
         tags: ['vdf'],
         body: {
           replaces: { type: 'string', description: 'id of the replaced XO the user saw (GET /global: replaces.id)' },
+          ...BODY_DROP_GLOBAL,
         },
         middlewares: [{ name: 'json' }],
         responses: [
           { status: 200, description: 'Per-pool results' },
-          { status: 409, description: 'This XO replaces another XO, or none, now' },
+          {
+            status: 409,
+            description:
+              'This XO replaces another XO, or none, now, or one of its pools holds a global part and this XO has no global configuration (noGlobal: true)',
+          },
         ],
         callback: async ({ req, res }) => {
-          const replaced = this.#replaces
-          if (replaced === undefined || replaced.id !== req.body.replaces) {
+          const result = await this.#takeOverReplaced(req.body.replaces, req.body)
+          if (result.conflict) {
             res.status(409)
-            return {
-              conflict: true,
-              replaces: replaced ?? null,
-              error: `this XO replaces ${replaced?.name ?? 'no other XO'} now: look again before taking its pools over`,
-            }
           }
-          const owned = this.#pools().filter(pool => {
-            const xapi = this.#connectedXapi(pool.id)
-            return xapi !== undefined && poolOwner(xapi.pool?.other_config)?.id === replaced.id
-          })
-          const pools = await Promise.all(
-            owned.map(async pool => {
-              const base = { id: pool.id, name: pool.name_label }
-              try {
-                const result = await this.#takeOver(pool.id, replaced.id)
-                return { ...base, ...result, ok: result.conflict !== true }
-              } catch (error) {
-                return { ...base, ok: false, error: error.message }
-              }
-            })
-          )
-          return { pools }
+          return result
         },
       },
       this.#poolRoute({

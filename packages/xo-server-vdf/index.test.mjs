@@ -948,6 +948,86 @@ describe('identity on import', () => {
   })
 })
 
+// vdf#81: an XO lost without a backup; its pools still hold its global part
+describe('recovery without a backup', () => {
+  const globalDocument = {
+    groups: { web: { tags: ['vdf:role=web'] }, admins: { ips: ['192.0.2.30'] } },
+    policies: [
+      {
+        name: 'web',
+        appliedTo: 'web',
+        default: 'drop',
+        ingress: [
+          { id: 1, from: 'admins', proto: 'tcp', ports: [22] },
+          { id: 2, from: 'web', proto: 'tcp', ports: [80] },
+        ],
+        egress: [{ id: 3, to: 'any', proto: 'udp', ports: [53] }],
+      },
+    ],
+  }
+  const scope = { pools: ['A', 'B'] }
+  const webVm = {
+    id: 'vm-a1',
+    name_label: 'web-1',
+    $pool: 'A',
+    power_state: 'Running',
+    tags: ['vdf:role=web'],
+    addresses: { '0/ipv4/0': '10.0.0.5' },
+  }
+  const policyOf = (xo, poolId) => xo.xapis[poolId].pool.other_config['vdf:policy']
+
+  // XO A publishes revision 2 to pools A and B, then is lost: what remains
+  // is what the pools hold
+  async function lostXo() {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, vms: [webVm] })
+    const plugin = await loaded(xo)
+    try {
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(document()), scope: { all: true }, revision: 0 },
+      })
+      await xo.route('post', '/global/actions/publish', { body: { policy: text(globalDocument), scope, revision: 1 } })
+      return {
+        owner: (await xo.route('get', '/global')).result.instance,
+        pools: { A: { otherConfig: xo.xapis.A.pool.other_config }, B: { otherConfig: xo.xapis.B.pool.other_config } },
+      }
+    } finally {
+      plugin.unload()
+    }
+  }
+
+  test('a take over that would drop the global part is refused, nothing written, unless confirmed', async () => {
+    const lost = await lostXo()
+    const xo = fakeXo({ pools: lost.pools, store: fakeStore({ replaces: { id: lost.owner.id, name: 'xo-a' } }) })
+    const plugin = await loaded(xo)
+    try {
+      const before = structuredClone(xo.xapis.A.pool.other_config)
+      const refused = await xo.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'A' },
+        body: { expectedOwner: lost.owner.id },
+      })
+      assert.deepEqual([refused.status, refused.result.conflict, refused.result.noGlobal], [409, true, true])
+      const all = await xo.route('post', '/global/actions/take_over_replaced', { body: { replaces: lost.owner.id } })
+      assert.deepEqual([all.status, all.result.noGlobal, all.result.pools], [409, true, undefined])
+      assert.deepEqual(xo.xapis.A.pool.other_config, before)
+      assert.deepEqual(xo.calls, [])
+
+      // confirmed: the pool's next write has no global part
+      const taken = await xo.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'A' },
+        body: { expectedOwner: lost.owner.id, dropGlobal: true },
+      })
+      assert.equal(taken.status, 200)
+      await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'A' },
+        body: { policy: text(document()) },
+      })
+      assert.deepEqual(Object.keys(JSON.parse(policyOf(xo, 'A')).groups), ['web'])
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
 // vdf#42: in XAPI, the plugin writes vdf:* keys of pool.other_config only
 // (vdf:global.owner itself, vdf:policy* through the agent's publish), and
 // asks the hosts' vdf plugin for nothing else that writes. It never writes
@@ -1057,6 +1137,7 @@ describe('what the plugin writes in XAPI', () => {
         ['get', '/pools/{id}/rule-log', { params: pool }],
         ['get', '/pools/{id}/monitor', { params: pool }],
         ['post', '/pools/{id}/actions/take_over_global', { params: { id: 'C' }, body: { expectedOwner: 'other' } }],
+        ['post', '/global/actions/take_over_replaced', { body: { replaces: 'other' } }],
         // B leaves the scope: its global part and owner key go
         ['post', '/global/actions/publish', { body: { ...global, scope: { pools: ['A', 'C'] }, revision: 1 } }],
       ]
