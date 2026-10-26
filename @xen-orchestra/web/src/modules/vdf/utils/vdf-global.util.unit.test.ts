@@ -2,6 +2,8 @@ import { VDF_GLOBAL_RULE_BASE, type VdfDocument } from '@/modules/vdf/types.ts'
 import {
   displayName,
   globalRuleId,
+  isReservedTier,
+  reservesTiers,
   vdfGlobalRoute,
   vdfPageRoute,
   withGlobalOf,
@@ -57,5 +59,18 @@ describe('names and routes', () => {
       name: '/(site)/firewall/groups',
       query: { group: 'admins' },
     })
+  })
+})
+
+describe('tiers kept for global policies (vdf#21)', () => {
+  it("in a pool in scope, or holding another XO's global configuration", () => {
+    expect(reservesTiers(undefined)).toBe(false)
+    expect(reservesTiers({ revision: 1, inScope: false })).toBe(false)
+    expect(reservesTiers({ revision: 1, inScope: true })).toBe(true)
+    expect(reservesTiers({ revision: 0, inScope: false, owner: 'xo-other' })).toBe(true)
+  })
+
+  it('up to securityops, numbered tiers included', () => {
+    expect([0, 10, 25, 26, 50, 100].map(isReservedTier)).toEqual([true, true, true, false, false, false])
   })
 })

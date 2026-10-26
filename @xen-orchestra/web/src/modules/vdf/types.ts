@@ -15,6 +15,11 @@ export type VdfTierName = (typeof VDF_TIERS)[number]['name']
 
 export const VDF_APPLICATION_TIER = 100
 
+// In a pool the global configuration applies to, the tiers up to
+// securityops are kept for global policies (vdf#21): a pool's own policy
+// there would decide before them. xo-server-vdf global.mjs refuses it too.
+export const VDF_LAST_RESERVED_TIER = 25
+
 export const VDF_QUARANTINE_TAG = 'vdf:quarantine'
 
 export const VDF_TAG_PREFIX = 'vdf:'
@@ -143,6 +148,9 @@ export type VdfGlobalPool = {
   ownerId?: string
   // a pool XO lost (no longer one of its objects): when XO last saw it
   seenAt?: number
+  // the pool's own policies in the tiers kept for global policies (vdf#21):
+  // they decide before them, and the pool can't publish until they move
+  reservedTiers?: string[]
 }
 
 export type VdfGlobalMember = {
@@ -201,6 +209,8 @@ export type VdfCheckResult = {
     // the pool holds another XO's global configuration
     otherXo?: boolean
     owner?: string
+    // its own policies in the tiers kept for global policies (vdf#21)
+    reservedTiers?: string[]
   })[]
   revision?: number
   // global publish saved, but not written into every pool yet

@@ -2,8 +2,10 @@ import {
   VDF_GLOBAL_PREFIX,
   VDF_GLOBAL_RULE_BASE,
   VDF_GLOBAL_SCOPE,
+  VDF_LAST_RESERVED_TIER,
   type VdfDocument,
   type VdfGlobalScope,
+  type VdfPublishedPolicy,
   type VdfScopeId,
 } from '@/modules/vdf/types.ts'
 import type { RouteLocationRaw } from 'vue-router'
@@ -28,6 +30,16 @@ export function isGlobalScope(scopeId: VdfScopeId) {
 
 export function inGlobalScope(scope: VdfGlobalScope | undefined, poolId: string) {
   return scope?.all === true || (scope?.pools ?? []).includes(poolId)
+}
+
+// A pool the global configuration applies to (this XO's, or another XO's
+// it holds) keeps the tiers up to securityops for global policies (vdf#21)
+export function reservesTiers(global: VdfPublishedPolicy['global'] | undefined) {
+  return global !== undefined && (global.inScope || global.owner !== undefined)
+}
+
+export function isReservedTier(value: number) {
+  return value <= VDF_LAST_RESERVED_TIER
 }
 
 // A pool document as the pool's UI edits it: its own part from `local`,

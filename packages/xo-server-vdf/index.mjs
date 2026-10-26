@@ -20,6 +20,7 @@ import {
   poolOwner,
   poolSyncState,
   remoteIpsFor,
+  reservedTierPolicies,
   runningVmRecords,
   serialize,
 } from './global.mjs'
@@ -493,6 +494,10 @@ class VdfPlugin {
     )
   }
 
+  #isInScope(poolId) {
+    return this.#global !== undefined && inScope(this.#global.scope, poolId)
+  }
+
   // the XO whose global configuration the pool holds, if not this one
   #otherOwner(xapi) {
     const owner = poolOwner(xapi.pool?.other_config)
@@ -509,15 +514,18 @@ class VdfPlugin {
     } catch {
       return { text } // the agent reports the parse error
     }
-    const errors = checkLocalDocument(document)
-    if (errors.length > 0) {
-      return { error: errors[0] }
-    }
     const xapi = this.#getXapi(poolId)
     const composed =
       this.#otherOwner(xapi) === undefined
         ? this.#composeFor(poolId, document)
         : keepGlobalPart(document, publishedPolicy(xapi.pool.other_config ?? {}).document)
+    // in scope, or holding another XO's global part: the earliest tiers are
+    // the global configuration's (vdf#21)
+    const globalScope = this.#isInScope(poolId) || hasGlobalPart(composed)
+    const errors = checkLocalDocument(document, { globalScope })
+    if (errors.length > 0) {
+      return { error: errors.join('; ') }
+    }
     return { text: serialize(composed) }
   }
 
@@ -621,11 +629,15 @@ class VdfPlugin {
         }
       }
       const expected = this.#composeFor(pool.id, published.document, { analysis })
+      // a pool in scope whose own policies came before the global ones
+      // (vdf#21): it holds the global part, but can't publish until moved
+      const reservedTiers = base.inScope ? reservedTierPolicies(published.document) : []
       return {
         ...base,
         docId: published.docId,
         state:
           global === undefined ? 'out-of-scope' : poolSyncState({ ...base, published: published.document, expected }),
+        ...(reservedTiers.length > 0 ? { reservedTiers } : {}),
         sync: this.#syncs[pool.id],
       }
     })
@@ -735,9 +747,34 @@ class VdfPlugin {
         if (state === 'out-of-scope') {
           return { ...base, ok: true, skipped: true }
         }
+        // The pool's own policies in the tiers kept for global policies
+        // (vdf#21) would decide before them. A pool entering the scope with
+        // some is refused: the publish would claim a guardrail the pool
+        // doesn't have. A pool already holding the global part is only
+        // warned about, so that one pool can't hold back a change of the
+        // global policies (it gets them anyway, and can't publish its own
+        // until moved).
+        const reservedTiers = base.inScope ? reservedTierPolicies(published.document) : []
+        const entering = !(this.#isInScope(pool.id) && hasGlobalPart(published.document))
+        if (reservedTiers.length > 0 && entering) {
+          return {
+            ...base,
+            ok: false,
+            reservedTiers,
+            error: `own policies of this pool in the emergency or securityops tier would decide before the global policies: move ${reservedTiers.map(name => `"${name}"`).join(', ')} to networkops or a later tier in the pool's firewall first`,
+          }
+        }
         try {
           const text = serialize(next)
-          return { ...base, ...(await this.#onMaster(xapi, 'check', { policy: text })), text }
+          const result = await this.#onMaster(xapi, 'check', { policy: text })
+          if (reservedTiers.length > 0) {
+            result.reservedTiers = reservedTiers
+            result.warnings = [
+              ...(result.warnings ?? []),
+              `own policies of this pool in the emergency or securityops tier decide before the global policies: ${reservedTiers.map(name => `"${name}"`).join(', ')}. The pool can't publish until they're moved to networkops or a later tier.`,
+            ]
+          }
+          return { ...base, ...result, text }
         } catch (error) {
           return { ...base, ok: false, error: error.message }
         }

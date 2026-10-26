@@ -16,7 +16,7 @@
           />
         </VtsInputWrapper>
 
-        <VtsInputWrapper :label="t('firewall:tier')" :message="tierInfo" wrap-message>
+        <VtsInputWrapper :label="t('firewall:tier')" :message="tierMessages" wrap-message>
           <VtsSelect :id="tierSelectId" accent="brand" />
         </VtsInputWrapper>
 
@@ -105,7 +105,7 @@ import {
   type VdfPolicy,
   type VdfPolicyMode,
 } from '@/modules/vdf/types.ts'
-import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierName, tierValue, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -128,12 +128,15 @@ import { omit } from 'lodash-es'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { policy, isNew, groups, otherPolicyNames } = defineProps<{
+const { policy, isNew, groups, otherPolicyNames, reservedTiers } = defineProps<{
   policy: VdfPolicy
   isNew: boolean
   // groups with tags: a policy applies to VMs, never to static IPs
   groups: VdfGroupOption[]
   otherPolicyNames: string[]
+  // a pool the global configuration applies to: the tiers up to
+  // securityops are the global policies' (vdf#21)
+  reservedTiers?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -186,6 +189,12 @@ const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, 
       appliedTo: {
         required: withMessage(required, () => t('firewall:policy-form:applied-to:required')),
       },
+      tier: {
+        reserved: withMessage(
+          (value: unknown) => !reservedTiers || !isReservedTier(Number(value)),
+          () => t('firewall:policy-form:tier:reserved')
+        ),
+      },
     }),
   },
 })
@@ -193,9 +202,11 @@ const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, 
 const nameField = useField('name')
 
 const tiers = computed(() => {
-  const values: number[] = VDF_TIERS.map(tier => tier.value)
+  // in a pool in scope, the global policies' tiers aren't offered
+  const values: number[] = VDF_TIERS.map(tier => tier.value).filter(value => !reservedTiers || !isReservedTier(value))
 
-  // a numeric tier from a hand-written document stays selectable
+  // a numeric tier from a hand-written document stays selectable, and so
+  // does a reserved one the policy is in (to see why it must move)
   if (!values.includes(form.tier)) {
     values.push(form.tier)
   }
@@ -208,10 +219,25 @@ const { id: tierSelectId } = useFormSelect('tier', tiers, {
   option: { id: 'value', value: 'value', label: 'label' },
 })
 
-const tierInfo = computed(() => {
-  const name = tierName(form.tier)
+const tierSelect = useSelect(tierSelectId)
 
-  return name === undefined ? undefined : t(`firewall:tier:${name}:owner`)
+const tierMessages = computed(() => {
+  const name = tierName(form.tier)
+  const messages: InputWrapperMessage = []
+
+  if (name !== undefined) {
+    messages.push(t(`firewall:tier:${name}:owner`))
+  }
+
+  if (reservedTiers && !isReservedTier(form.tier)) {
+    messages.push({ content: t('firewall:policy-form:tier:reserved-info'), accent: 'muted' })
+  }
+
+  if (tierSelect.value.error !== undefined) {
+    messages.push(tierSelect.value.error as { content: string; accent: 'danger' })
+  }
+
+  return messages
 })
 
 // the last option of the select opens the group drawer

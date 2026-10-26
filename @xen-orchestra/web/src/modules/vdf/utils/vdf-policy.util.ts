@@ -12,7 +12,7 @@ import {
   type VdfRuleAction,
   type VdfTierName,
 } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, globalRuleId, isGlobalName, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import {
@@ -40,6 +40,14 @@ export function tierValue(tier: VdfPolicy['tier']): number {
 
 export function tierName(value: number): VdfTierName | undefined {
   return VDF_TIERS.find(tier => tier.value === value)?.name
+}
+
+// the pool's own policies in the tiers kept for global policies, in a pool
+// the global configuration applies to (vdf#21)
+export function reservedTierPolicies(document: VdfDocument) {
+  return document.policies
+    .filter(policy => !isGlobalName(policy.name) && isReservedTier(tierValue(policy.tier)))
+    .map(policy => policy.name)
 }
 
 // Policies are written with a tier name, or without one for application:
