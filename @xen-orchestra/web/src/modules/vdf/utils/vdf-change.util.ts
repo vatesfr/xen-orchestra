@@ -1,5 +1,7 @@
-import type { VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfDefaultAction, VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import { isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules, rulesOf, VDF_DIRECTIONS } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import type { VdfAgentGaps } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { isEqual, omit } from 'lodash-es'
@@ -234,4 +236,72 @@ export function publishWarnings(
   }
 
   return warnings
+}
+
+// A pool policy's default that a global policy's decides for (vdf#27).
+// Agents merge the defaults of the policies of a tier that apply to an
+// interface: drop if one says drop, else allow if one does, else pass. A
+// global policy in the same tier with a stronger default therefore decides
+// for the VMs both apply to, whatever the pool's own policy says, and
+// nothing told the pool's owner.
+export type VdfOverriddenDefault = {
+  policy: string
+  global: string
+  tier: number
+  egress: boolean
+  own: VdfDefaultAction
+  theirs: VdfDefaultAction
+  // VMs of the pool both policies apply to
+  vms: number
+}
+
+const DEFAULT_STRENGTH: Record<VdfDefaultAction, number> = { pass: 0, allow: 1, drop: 2 }
+
+// a policy's default in a direction; undefined when it has nothing to say
+// there (no outbound rules nor outbound default)
+function defaultOf(policy: VdfPolicy, egress: boolean): VdfDefaultAction | undefined {
+  if (!egress) {
+    return policy.default
+  }
+
+  return policy.egressDefault ?? (rulesOf(policy, 'egress').length > 0 ? 'pass' : undefined)
+}
+
+// `document`: a pool's, with its global part; `sharedVms`: how many VMs of
+// the pool have an interface both groups apply to (groups scoped to
+// networks, vdf#36, only hold the interfaces on them)
+export function overriddenDefaults(
+  document: VdfDocument,
+  sharedVms: (group: string, other: string) => number
+): VdfOverriddenDefault[] {
+  const enforced = document.policies.filter(policy => !isMonitored(policy))
+  const globals = enforced.filter(policy => isGlobalName(policy.name))
+  const result: VdfOverriddenDefault[] = []
+
+  for (const own of enforced.filter(policy => !isGlobalName(policy.name))) {
+    const tier = tierValue(own.tier)
+
+    for (const global of globals.filter(policy => tierValue(policy.tier) === tier)) {
+      const vms = sharedVms(own.appliedTo, global.appliedTo)
+
+      if (vms === 0) {
+        continue
+      }
+
+      for (const egress of [false, true]) {
+        const ownDefault = defaultOf(own, egress)
+        const theirs = defaultOf(global, egress)
+
+        if (
+          ownDefault !== undefined &&
+          theirs !== undefined &&
+          DEFAULT_STRENGTH[theirs] > DEFAULT_STRENGTH[ownDefault]
+        ) {
+          result.push({ policy: own.name, global: global.name, tier, egress, own: ownDefault, theirs, vms })
+        }
+      }
+    }
+  }
+
+  return result
 }
