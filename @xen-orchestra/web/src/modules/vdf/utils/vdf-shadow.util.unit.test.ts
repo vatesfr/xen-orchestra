@@ -25,8 +25,10 @@ describe('monitorShadows (vdf#86)', () => {
       {
         policy: 'cache',
         by: 'web',
+        byMonitored: false,
         tier: 100,
         sameTier: true,
+        kind: 'default',
         byDefault: 'drop',
         vms: [{ id: 'a', name: 'name-a' }],
       },
@@ -43,7 +45,7 @@ describe('monitorShadows (vdf#86)', () => {
     expect(monitorShadows(doc(policy({}), cache), [iface('a', 'web'), iface('a', 'cache')])).toEqual([])
   })
 
-  it('a same-tier policy that neither allows nor drops by default hides nothing', () => {
+  it('a same-tier policy that only drops some, and passes by default, hides nothing', () => {
     const quiet = policy({
       default: 'pass',
       ingress: [{ id: 7, action: 'drop', from: 'any', proto: 'tcp', ports: [23] }],
@@ -55,23 +57,63 @@ describe('monitorShadows (vdf#86)', () => {
   it('a same-tier policy that only allows some: its rules hide what they match', () => {
     const shadows = monitorShadows(doc(policy({ default: 'pass' }), cache), [iface('a', 'web', 'cache')])
 
-    expect(shadows).toMatchObject([{ by: 'web', sameTier: true, byDefault: 'pass' }])
+    expect(shadows).toMatchObject([{ by: 'web', sameTier: true, kind: 'rules' }])
+  })
+
+  it('same tier: an enforced pass rule sends the flow past the monitored default', () => {
+    const passer = policy({
+      default: 'pass',
+      ingress: [{ id: 1, action: 'pass', from: 'any', proto: 'tcp', ports: [22] }],
+    })
+
+    expect(monitorShadows(doc(passer, cache), [iface('a', 'web', 'cache')])).toMatchObject([
+      { by: 'web', sameTier: true, kind: 'rules' },
+    ])
   })
 
   it('an earlier tier deciding everything hides the monitored tier', () => {
     const ops = policy({ name: 'ops', appliedTo: 'web', tier: 'platform', default: 'allow', ingress: [] })
     const shadows = monitorShadows(doc(ops, policy({}), cache), [iface('a', 'web', 'cache')])
 
-    expect(shadows).toMatchObject([{ policy: 'cache', by: 'ops', tier: 75, sameTier: false, byDefault: 'allow' }])
+    expect(shadows).toMatchObject([{ policy: 'cache', by: 'ops', tier: 75, sameTier: false, kind: 'default' }])
   })
 
-  it('an earlier tier that passes by default lets the monitored tier see the rest', () => {
-    const ops = policy({ name: 'ops', appliedTo: 'web', tier: 'platform', default: 'pass' })
+  it('an earlier tier whose allow rules decide (default pass): what they match is hidden', () => {
+    const early = policy({
+      name: 'ssh',
+      tier: 'securityops',
+      default: 'pass',
+      ingress: [
+        { id: 1, from: 'admins', proto: 'tcp', ports: [22] },
+        { id: 2, action: 'drop', from: 'any', proto: 'tcp', ports: [22] },
+      ],
+    })
+
+    expect(monitorShadows(doc(early, cache), [iface('a', 'web', 'cache')])).toMatchObject([
+      { by: 'ssh', tier: 25, sameTier: false, kind: 'rules' },
+    ])
+  })
+
+  it('an earlier tier that only drops and passes by default hides nothing', () => {
+    const ops = policy({
+      name: 'ops',
+      tier: 'platform',
+      default: 'pass',
+      ingress: [{ id: 1, action: 'drop', from: 'any', proto: 'tcp', ports: [23] }],
+    })
 
     expect(monitorShadows(doc(ops, cache), [iface('a', 'web', 'cache')])).toEqual([])
   })
 
-  it('monitored policies hide nothing, and a later tier never does', () => {
+  it("a monitored earlier tier's default drop hides a later monitored policy (the what-if takes both as enforced)", () => {
+    const early = policy({ name: 'early', tier: 'platform', mode: 'monitor', ingress: [] })
+
+    expect(monitorShadows(doc(early, cache), [iface('a', 'web', 'cache')])).toMatchObject([
+      { policy: 'cache', by: 'early', byMonitored: true, sameTier: false, kind: 'default' },
+    ])
+  })
+
+  it('other monitored policies of the same tier, and later tiers, hide nothing', () => {
     const later = policy({ name: 'base', appliedTo: 'web', tier: 'baseline' })
     const other = policy({ name: 'other', mode: 'monitor' })
 
@@ -81,6 +123,6 @@ describe('monitorShadows (vdf#86)', () => {
   it('keys tell a shadow by its policies and kind', () => {
     const [shadow] = monitorShadows(doc(policy({}), cache), [iface('a', 'web', 'cache')])
 
-    expect(shadowKey(shadow)).toBe('cache|web|same|drop')
+    expect(shadowKey(shadow)).toBe('cache|web|same|default')
   })
 })

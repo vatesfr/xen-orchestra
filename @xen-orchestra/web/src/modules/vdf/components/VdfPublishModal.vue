@@ -256,7 +256,9 @@ const details = computed(() => changeDetails(shown.value.baseDocument, shown.val
 
 // only policies in monitor mode change: nothing enforced changes, no
 // connection is cut
-const isMonitorOnly = computed(() => isMonitorOnlyChange(shown.value.baseDocument, shown.value.document))
+const isMonitorOnly = computed(() =>
+  isMonitorOnlyChange(shown.value.baseDocument, shown.value.document, { isGlobal: isGlobalScope(shown.value.scopeId) })
+)
 
 const memberCount = (group: string) => shown.value.memberCounts?.[group]
 

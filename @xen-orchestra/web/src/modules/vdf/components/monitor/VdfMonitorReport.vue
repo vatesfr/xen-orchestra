@@ -645,8 +645,11 @@ const { HeadCells, BodyCells } = useMonitorColumns({
             : null,
           row.coveredBy === undefined
             ? null
-            : h(UiTag, { accent: 'success', variant: 'secondary' }, () =>
-                t('firewall:monitor:now-allowed', { id: globalRuleId(row.coveredBy!) })
+            : withDirectives(
+                h(UiTag, { accent: 'success', variant: 'secondary', tabindex: 0 }, () =>
+                  t('firewall:monitor:now-allowed', { id: globalRuleId(row.coveredBy!) })
+                ),
+                [[vTooltip, t('firewall:monitor:now-allowed:info')]]
               ),
           answerButtons(row),
         ])

@@ -144,11 +144,13 @@ describe('coveredBy', () => {
     expect(coveredBy(p, entry({ port: 8100, rule: 2 }), groupsOf)).toBe(false)
   })
 
-  it('an allow after the dropping rule covers nothing; any allow covers the default', () => {
+  it('an allow after the dropping rule covers nothing; an allow matching first covers the default', () => {
     const p = policy()
-    p.ingress.push({ id: 9, from: 'any', proto: 'tcp', ports: [22] })
+    p.ingress.push({ id: 9, from: 'any', proto: 'tcp', ports: [22, 9100] })
     expect(coveredBy(p, entry({ port: 22, rule: 2 }), groupsOf)).toBe(false)
-    expect(coveredBy(p, entry({ port: 22 }), groupsOf)).toBe(true)
+    expect(coveredBy(p, entry({ port: 9100 }), groupsOf)).toBe(true)
+    // rule 2 drops tcp 22 first, whatever comes after
+    expect(coveredBy(p, entry({ port: 22 }), groupsOf)).toBe(false)
   })
 
   it('coveringRule names the first allow that covers it', () => {
@@ -157,6 +159,19 @@ describe('coveredBy', () => {
     expect(coveringRule(p, entry({}), groupsOf)?.id).toBe(9)
     expect(coveringRule(p, entry({ src: '10.0.0.8' }), groupsOf)?.id).toBe(10)
     expect(coveringRule(policy(), entry({}), groupsOf)).toBeUndefined()
+  })
+
+  it('the first matching rule decides: a drop or a pass before the allow covers nothing', () => {
+    const p = policy({
+      ingress: [
+        { id: 1, action: 'drop', from: 'bad', proto: 'tcp', ports: [22] },
+        { id: 2, from: 'any', proto: 'tcp', ports: [22] },
+      ],
+    })
+    expect(coveringRule(p, entry({ port: 22 }), () => ['bad'])).toBeUndefined()
+    expect(coveringRule(p, entry({ port: 22 }), () => [])?.id).toBe(2)
+    p.ingress[0].action = 'pass'
+    expect(coveringRule(p, entry({ port: 22 }), () => ['bad'])).toBeUndefined()
   })
 })
 

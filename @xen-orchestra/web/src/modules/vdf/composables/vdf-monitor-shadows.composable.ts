@@ -62,16 +62,13 @@ export function useVdfMonitorShadows() {
     const params = {
       policy: displayName(shadow.policy),
       by: displayName(shadow.by),
+      state: shadow.byMonitored ? t('firewall:monitor:shadow:monitored') : t('firewall:monitor:shadow:enforced'),
       tier: tierLabel(shadow.tier),
       vms: vmList(shadow),
       n: shadow.vms.length,
     }
 
-    const key = !shadow.sameTier
-      ? 'firewall:monitor:shadow:earlier-tier'
-      : shadow.byDefault === 'drop'
-        ? 'firewall:monitor:shadow:same-tier'
-        : 'firewall:monitor:shadow:same-tier-rules'
+    const key = `firewall:monitor:shadow:${shadow.sameTier ? 'same-tier' : 'earlier-tier'}${shadow.kind === 'rules' ? '-rules' : ''}`
 
     return t(key, params, shadow.vms.length)
   }

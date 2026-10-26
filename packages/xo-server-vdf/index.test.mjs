@@ -1589,3 +1589,66 @@ describe('global check', () => {
     }
   })
 })
+
+const syncHistoryOf = async (xo, poolId = POOL) =>
+  (await xo.route('get', '/pools/{id}/history', { params: { id: poolId } })).result.entries
+const syncGlobalDocument = {
+  groups: { web: { tags: ['vdf:role=web'] } },
+  policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [] }],
+}
+const publishSyncGlobal = (xo, revision = 0, doc = syncGlobalDocument) =>
+  xo.route('post', '/global/actions/publish', { body: { policy: text(doc), scope: { all: true }, revision } })
+
+describe("the global sync's writes in a pool's history (review)", () => {
+  test('two writers alternating keep the real publishes in the history', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      await plugin.syncNow()
+      await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: POOL },
+        body: { policy: text(document(443)) },
+      })
+      await publishSyncGlobal(xo)
+      await plugin.syncNow()
+      const ours = xo.xapi.pool.other_config['vdf:policy']
+      const theirs = JSON.parse(ours)
+      theirs.groups['global:web'] = { tags: ['vdf:role=web'], ips: ['192.0.2.9'] }
+      for (let i = 0; i < 60; i++) {
+        xo.xapi.pool.other_config['vdf:policy'] = text(theirs) // the copy
+        await plugin.syncNow() // seen, written back
+        await plugin.syncNow() // its own write back seen
+      }
+      const entries = await syncHistoryOf(xo)
+      const kinds = entries.map(e => (e.outside ? 'outside' : e.sync ? 'sync' : e.publishedBy ? 'publish' : 'initial'))
+      const count = k => kinds.filter(x => x === k).length
+      assert.equal(count('publish'), 1)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a real outside write between two sync writes splits them', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      await plugin.syncNow()
+      await publishSyncGlobal(xo)
+      await plugin.syncNow()
+      xo.xapi.pool.other_config['vdf:policy'] = text(document(8080)) // outside, no global part
+      await plugin.syncNow() // seen, global part written back
+      await publishSyncGlobal(xo, 1, {
+        ...syncGlobalDocument,
+        groups: { web: { tags: ['vdf:role=web'], ips: ['192.0.2.1'] } },
+      })
+      await plugin.syncNow()
+      const entries = await syncHistoryOf(xo)
+      assert.deepEqual(
+        entries.map(e => (e.outside ? 'outside' : e.sync ? 'sync' : 'other')),
+        ['sync', 'outside', 'sync']
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+})

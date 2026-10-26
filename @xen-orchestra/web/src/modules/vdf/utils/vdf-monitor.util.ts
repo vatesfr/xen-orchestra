@@ -130,8 +130,9 @@ export function coveredBy(policy: VdfPolicy, entry: VdfMonitorEntry, groupsOf: (
   return coveringRule(policy, entry, groupsOf) !== undefined
 }
 
-// the rule of coveredBy: the first allow rule that matches (in the Monitor
-// report, a published rule that now allows the flow)
+// the rule of coveredBy: the first rule before what would drop that matches
+// the flow, if it allows (a drop or a pass matching first decides
+// otherwise). The policy's own rules only: an earlier tier may decide first.
 export function coveringRule(
   policy: VdfPolicy,
   entry: VdfMonitorEntry,
@@ -144,13 +145,14 @@ export function coveringRule(
   const groups = new Set(groupsOf(peer))
   const peerOf = (rule: VdfRule) => (entry.egress ? rule.to : rule.from)
 
-  return rules.find(
+  const first = rules.find(
     rule =>
-      (rule.action ?? 'allow') === 'allow' &&
       (rule.proto === 'any' || rule.proto === entry.proto) &&
       (entry.port === undefined ? (rule.ports ?? []).length === 0 : portsContain(rule.ports, entry.port)) &&
       (peerOf(rule) === 'any' || peerOf(rule) === peer || groups.has(peerOf(rule) ?? ''))
   )
+
+  return first !== undefined && (first.action ?? 'allow') === 'allow' ? first : undefined
 }
 
 // Inserts a new rule before another of the policy's rules of its direction

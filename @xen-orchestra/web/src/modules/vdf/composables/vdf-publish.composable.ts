@@ -28,7 +28,7 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
   async function publish() {
     // what the banner says once published: nothing is cut when only
     // policies in monitor mode change
-    const monitorOnly = isMonitorOnlyChange(scope.publishedDocument.value, document.value)
+    const monitorOnly = isMonitorOnlyChange(scope.publishedDocument.value, document.value, { isGlobal: scope.isGlobal })
 
     if (scope.isGlobal) {
       const result = await globalJob.run()

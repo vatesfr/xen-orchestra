@@ -10,28 +10,37 @@ export type VdfInterfaceGroups = { vm: string; vmName: string; groups: string[] 
 // A monitored policy that can't see some of its VMs' traffic (vdf#86).
 // Agents record what the monitored policies would drop in a what-if pass
 // that takes them as enforced alongside the enforced ones (agent
-// compile.go): one tier's policies merge, first matching rule wins, and the
-// tier drops by default if one of them does. So an enforced policy deciding
-// for the same VMs hides what the monitored one would drop:
-// - same tier: what its allow rules match is allowed before the monitored
-//   default is reached, and its default drop makes the tier's (a drop that
-//   happens anyway, never recorded);
-// - an earlier tier whose default allows or drops: every new connection is
-//   decided there, the monitored tier is never reached.
+// compile.go): tier by tier, one tier's policies merge, first matching rule
+// wins, and the tier drops by default if one of them does. So a policy
+// deciding first for the same VMs hides what the monitored one would drop:
+// - same tier, an enforced policy: what its allow (or pass) rules match
+//   never reaches the monitored default, and its default drop makes the
+//   tier's (a drop that happens anyway, never recorded);
+// - an earlier tier: what its policies' allow rules match is decided
+//   there; when its default allows or drops, every new connection is, and
+//   the monitored tier is never reached. A monitored policy there decides
+//   too (the what-if pass takes it as enforced: what it would drop is
+//   recorded under its own name).
 export type VdfMonitorShadow = {
   // the monitored policy
   policy: string
-  // the enforced policy deciding first
+  // the policy deciding first
   by: string
+  // `by` is in monitor mode itself (an earlier tier's)
+  byMonitored: boolean
   tier: number
   sameTier: boolean
-  // by's default: in the same tier, a drop hides every default drop of the
-  // monitored policy, else only what by's rules allow
+  // 'default': by's default decides (a drop that happens anyway, or, in an
+  // earlier tier, everything); 'rules': what by's rules match only
+  kind: 'default' | 'rules'
   byDefault: VdfDefaultAction
   vms: { id: string; name: string }[]
 }
 
-const hasAllowRule = (policy: VdfPolicy) => rulesOf(policy, 'ingress').some(rule => ruleAction(rule) === 'allow')
+// rules deciding before the tier's default: an allow, and in the same tier
+// a pass (on to the next tier, past the monitored policy's default)
+const hasRule = (policy: VdfPolicy, actions: string[]) =>
+  rulesOf(policy, 'ingress').some(rule => actions.includes(ruleAction(rule)))
 
 // inbound only: what the Monitor report lists for incoming connections
 export function monitorShadows(document: VdfDocument, interfaces: VdfInterfaceGroups[]): VdfMonitorShadow[] {
@@ -41,51 +50,77 @@ export function monitorShadows(document: VdfDocument, interfaces: VdfInterfaceGr
     return []
   }
 
-  const enforced = document.policies.filter(policy => !isMonitored(policy))
   const byKey = new Map<string, VdfMonitorShadow>()
 
-  const add = (policy: VdfPolicy, by: VdfPolicy, sameTier: boolean, vm: string, vmName: string) => {
-    const key = `${policy.name}\0${by.name}`
+  const add = (
+    policy: VdfPolicy,
+    by: VdfPolicy,
+    { sameTier, kind }: Pick<VdfMonitorShadow, 'sameTier' | 'kind'>,
+    iface: VdfInterfaceGroups
+  ) => {
+    const key = `${policy.name}\0${by.name}\0${kind}`
     const shadow = byKey.get(key) ?? {
       policy: policy.name,
       by: by.name,
+      byMonitored: isMonitored(by),
       tier: tierValue(by.tier),
       sameTier,
+      kind,
       byDefault: by.default,
       vms: [],
     }
 
-    if (!shadow.vms.some(item => item.id === vm)) {
-      shadow.vms.push({ id: vm, name: vmName })
+    if (!shadow.vms.some(item => item.id === iface.vm)) {
+      shadow.vms.push({ id: iface.vm, name: iface.vmName })
     }
     byKey.set(key, shadow)
   }
 
   for (const iface of interfaces) {
     const groups = new Set(iface.groups)
-    const onIface = enforced.filter(policy => groups.has(policy.appliedTo))
+    const onIface = document.policies.filter(policy => groups.has(policy.appliedTo))
 
     for (const policy of monitored.filter(candidate => groups.has(candidate.appliedTo))) {
       const tier = tierValue(policy.tier)
-
-      // the first earlier tier deciding everything (agent: its default
-      // comes from the first policy that drops, else that allows)
-      const earlier = [...new Set(onIface.map(other => tierValue(other.tier)))]
+      const earlierTiers = [...new Set(onIface.map(other => tierValue(other.tier)))]
         .filter(value => value < tier)
         .sort((a, b) => a - b)
-        .map(value => onIface.filter(other => tierValue(other.tier) === value))
-        .find(policies => tierDefault(policies) !== 'pass')
+      let isDecided = false
 
-      if (earlier !== undefined) {
-        const action = tierDefault(earlier)
+      // earlier tiers in order, monitored policies included: their allow
+      // rules, then their default when it decides everything (the agent's:
+      // the first policy that drops, else that allows)
+      for (const value of earlierTiers) {
+        const policies = onIface.filter(other => tierValue(other.tier) === value)
+        const action = tierDefault(policies)
+        const decider = action === 'pass' ? undefined : policies.find(other => other.default === action)
 
-        add(policy, earlier.find(other => other.default === action)!, false, iface.vm, iface.vmName)
+        for (const other of policies) {
+          if (other !== decider && hasRule(other, ['allow'])) {
+            add(policy, other, { sameTier: false, kind: 'rules' }, iface)
+          }
+        }
+
+        if (decider !== undefined) {
+          add(policy, decider, { sameTier: false, kind: 'default' }, iface)
+          isDecided = true
+          break
+        }
+      }
+
+      if (isDecided) {
         continue
       }
 
       for (const other of onIface) {
-        if (tierValue(other.tier) === tier && (other.default === 'drop' || hasAllowRule(other))) {
-          add(policy, other, true, iface.vm, iface.vmName)
+        if (isMonitored(other) || tierValue(other.tier) !== tier) {
+          continue
+        }
+
+        if (other.default === 'drop') {
+          add(policy, other, { sameTier: true, kind: 'default' }, iface)
+        } else if (hasRule(other, ['allow', 'pass'])) {
+          add(policy, other, { sameTier: true, kind: 'rules' }, iface)
         }
       }
     }
@@ -96,4 +131,4 @@ export function monitorShadows(document: VdfDocument, interfaces: VdfInterfaceGr
 
 // a shadow, the same from one document to the next (to tell the new ones)
 export const shadowKey = (shadow: VdfMonitorShadow) =>
-  `${shadow.policy}|${shadow.by}|${shadow.sameTier ? 'same' : 'earlier'}|${shadow.byDefault}`
+  `${shadow.policy}|${shadow.by}|${shadow.sameTier ? 'same' : 'earlier'}|${shadow.kind}`

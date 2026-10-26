@@ -170,6 +170,17 @@ describe('isMonitorOnlyChange', () => {
     expect(isMonitorOnlyChange(base, { ...base, groups: { web: { tags: ['web', 'prod'] } } })).toBe(false)
   })
 
+  it("the global configuration: a group pools' policies may name changed, not monitor only", () => {
+    // used by a monitored global policy only, but a pool's enforced policy
+    // may have a rule from global:web
+    const mon: VdfPolicy = { name: 'mon', appliedTo: 'web', default: 'drop', mode: 'monitor', ingress: [] }
+    const before: VdfDocument = { groups: { web: { tags: ['vdf:role=web'] } }, policies: [mon] }
+    const after: VdfDocument = { groups: { web: { tags: ['vdf:role=web', 'vdf:env=prod'] } }, policies: [mon] }
+    expect(isMonitorOnlyChange(before, after, { isGlobal: true })).toBe(false)
+    // in a pool's document, only its own policies name its groups
+    expect(isMonitorOnlyChange(before, after)).toBe(true)
+  })
+
   it('no change at all is no monitor-only change', () => {
     expect(isMonitorOnlyChange(base, { ...base })).toBe(false)
   })

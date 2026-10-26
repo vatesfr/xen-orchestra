@@ -63,8 +63,9 @@ const commonOrder = (keys: (string | number)[], other: (string | number)[]) => k
 
 // What hosts enforce in a document: its enforced policies, in order, the
 // groups they name, and its other settings (limits...); not the format
-// version, which follows monitor mode
-function enforcement(document: VdfDocument) {
+// version, which follows monitor mode. `allGroups`: every group counts (the
+// global configuration's: pools' own policies may name them in rules)
+function enforcement(document: VdfDocument, allGroups: boolean) {
   const policies = document.policies.filter(policy => !isMonitored(policy))
   const used = new Set(
     policies.flatMap(policy => [policy.appliedTo, ...allRules(policy).map(rule => rule.to ?? rule.from)])
@@ -73,14 +74,21 @@ function enforcement(document: VdfDocument) {
   return {
     ...omit(document, ['version', 'policies', 'groups']),
     policies,
-    groups: Object.fromEntries(Object.entries(document.groups).filter(([name]) => used.has(name))),
+    groups: allGroups
+      ? document.groups
+      : Object.fromEntries(Object.entries(document.groups).filter(([name]) => used.has(name))),
   }
 }
 
-// A change of policies in monitor mode only (and of groups only they use):
-// nothing enforced changes, no connection is cut (vdf#13)
-export function isMonitorOnlyChange(before: VdfDocument, after: VdfDocument) {
-  return !isEqual(omit(before, 'version'), omit(after, 'version')) && isEqual(enforcement(before), enforcement(after))
+// A change of policies in monitor mode only (and, in a pool's document, of
+// groups only they use): nothing enforced changes, no connection is cut
+// (vdf#13). For the global configuration (`isGlobal`), a group change
+// always counts: a pool's own enforced policies may name a global group.
+export function isMonitorOnlyChange(before: VdfDocument, after: VdfDocument, { isGlobal = false } = {}) {
+  return (
+    !isEqual(omit(before, 'version'), omit(after, 'version')) &&
+    isEqual(enforcement(before, isGlobal), enforcement(after, isGlobal))
+  )
 }
 
 export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChangeDetails {
