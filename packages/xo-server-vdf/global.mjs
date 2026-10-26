@@ -395,7 +395,8 @@ export function remoteIpsFor(poolId, members, conflicts = []) {
 // A pool takes the global configuration of one XO only: the first one to
 // write a global part there records itself in the pool's other_config, and
 // the others leave that pool's global part alone until an administrator
-// takes the pool over.
+// takes the pool over. With it, what recovering the global configuration
+// from the pool needs (globalSource).
 export const OWNER_KEY = 'vdf:global.owner'
 
 export function poolOwner(otherConfig) {
@@ -418,4 +419,88 @@ export function keepGlobalPart(local, published) {
 export function hasGlobalPart(document) {
   const { groups, policies } = globalPart(document)
   return Object.keys(groups).length > 0 || policies.length > 0
+}
+
+// What a pool's owner records besides itself (vdf#81): the revision and
+// scope of the global part it wrote there, and the global groups' own IPs,
+// which the pool's document merges with their members' in the other pools.
+// Enough to rebuild the global configuration from the pools if that XO is
+// lost without a backup. Agents don't read it.
+export function globalSource(global) {
+  if (global === undefined) {
+    return {}
+  }
+  const ips = {}
+  for (const [name, group] of Object.entries(global.document.groups ?? {})) {
+    if (group.ips !== undefined) {
+      ips[name] = group.ips
+    }
+  }
+  return { revision: global.revision, scope: global.scope, ips }
+}
+
+const ownName = name => (isGlobalName(name) ? name.slice(GLOBAL_PREFIX.length) : name)
+
+// the global part of a pool's document as XO keeps it (compose, reversed):
+// names without prefix, rule ids from 1, groups without their IPs
+function heldGlobal(document) {
+  const { groups, policies } = globalPart(document)
+  const own = (rule, peer) => ({ ...rule, id: rule.id - GLOBAL_RULE_BASE, [peer]: ownName(rule[peer]) })
+  return {
+    groups: Object.fromEntries(Object.entries(groups).map(([name, { ips: _, ...group }]) => [ownName(name), group])),
+    policies: policies.map(policy => {
+      const held = {
+        ...policy,
+        name: ownName(policy.name),
+        appliedTo: ownName(policy.appliedTo),
+        ingress: (policy.ingress ?? []).map(rule => own(rule, 'from')),
+      }
+      if (policy.egress !== undefined) {
+        held.egress = policy.egress.map(rule => own(rule, 'to'))
+      }
+      return held
+    }),
+  }
+}
+
+// Rebuilds the global configuration of an XO lost without a backup from
+// the pools holding its global part (vdf#81): [{ id, name, owner,
+// document }], owner as poolOwner reads it. Pools holding different
+// versions (unreachable at the last publish, edited outside XO): the
+// highest recorded revision wins, else the most common version, and the
+// others are reported (differs). From pools whose owner recorded no source
+// (written before vdf#81), the result isn't exact: a group's IPs are those
+// all the pools hold, its own plus the members found in each pool's other
+// pools, and the scope is the pools holding it.
+export function recoverGlobal(pools) {
+  const versions = new Map()
+  for (const pool of pools) {
+    const { revision, scope, ips } = pool.owner
+    const held = heldGlobal(pool.document)
+    const key = JSON.stringify(canonical({ revision, scope, ips, held }))
+    versions.set(key, [...(versions.get(key) ?? []), { ...pool, held }])
+  }
+  const revisionOf = version => version[0].owner.revision ?? -1
+  const [chosen] = [...versions.values()].sort((a, b) => revisionOf(b) - revisionOf(a) || b.length - a.length)
+  const { owner, held } = chosen[0]
+  const exact = owner.revision !== undefined
+  const heldByAll = name =>
+    chosen
+      .map(pool => globalPart(pool.document).groups[globalName(name)].ips ?? [])
+      .reduce((common, ips) => common.filter(ip => ips.includes(ip)))
+  const groups = {}
+  for (const [name, group] of Object.entries(held.groups)) {
+    const ips = exact ? owner.ips?.[name] : heldByAll(name)
+    groups[name] = ips === undefined || (!exact && ips.length === 0) ? group : { ...group, ips }
+  }
+  const ref = ({ id, name }) => ({ id, name })
+  return {
+    owner: { id: owner.id, name: owner.name, since: owner.since },
+    document: { groups, policies: held.policies },
+    revision: owner.revision,
+    scope: exact ? owner.scope : { pools: pools.map(pool => pool.id) },
+    exact,
+    pools: chosen.map(ref),
+    differs: pools.filter(pool => !chosen.some(other => other.id === pool.id)).map(ref),
+  }
 }

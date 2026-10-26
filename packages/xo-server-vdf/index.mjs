@@ -11,6 +11,7 @@ import {
   duplicateAddresses,
   emptyDocument,
   globalMembers,
+  globalSource,
   hasGlobalPart,
   inScope,
   keepGlobalPart,
@@ -19,6 +20,7 @@ import {
   OWNER_KEY,
   poolOwner,
   poolSyncState,
+  recoverGlobal,
   remoteIpsFor,
   reservedTierPolicies,
   runningVmRecords,
@@ -564,11 +566,19 @@ class VdfPlugin {
     return { text: serialize(composed) }
   }
 
-  #claim(xapi) {
-    return xapi.pool.update_other_config(
-      OWNER_KEY,
-      JSON.stringify({ ...this.#instance, since: new Date().toISOString() })
-    )
+  // Records this XO as the pool's owner and, once it wrote the pool's
+  // global part, what recovering its configuration from the pool needs
+  // (vdf#81); written only when it changes
+  async #claim(xapi, source = globalSource(this.#global)) {
+    const previous = poolOwner(xapi.pool.other_config)
+    const owner = {
+      ...this.#instance,
+      since: previous?.id === this.#instance.id ? previous.since : new Date().toISOString(),
+      ...source,
+    }
+    if (!isDeepStrictEqual(owner, previous)) {
+      await xapi.pool.update_other_config(OWNER_KEY, JSON.stringify(owner))
+    }
   }
 
   // An XO without a global configuration that takes over a pool holding a
@@ -594,7 +604,8 @@ class VdfPlugin {
       if (!dropGlobal && this.#dropsGlobal(xapi)) {
         return { conflict: true, noGlobal: true, error: NO_GLOBAL_ERROR }
       }
-      await this.#claim(xapi)
+      // the global part it holds is still the previous owner's
+      await this.#claim(xapi, {})
       log.info('pool taken over for the global configuration', { pool: poolId, previous })
       this.#scheduleSync()
       return { previous: previous ?? null }
@@ -615,7 +626,7 @@ class VdfPlugin {
     const result = await this.#onMaster(xapi, 'publish', { policy: text })
     if (result.published) {
       const owner = poolOwner(xapi.pool.other_config)
-      if (writesGlobal && owner === undefined) {
+      if (writesGlobal && (owner === undefined || owner.id === this.#instance.id)) {
         await this.#claim(xapi)
       } else if (!writesGlobal && owner?.id === this.#instance.id) {
         await xapi.pool.update_other_config(OWNER_KEY, null)
@@ -647,12 +658,9 @@ class VdfPlugin {
         expected,
       })
       if (state === 'in-sync' || state === 'out-of-scope') {
-        // a global part this XO wrote before it recorded itself as the owner
-        if (
-          state === 'in-sync' &&
-          hasGlobalPart(published.document) &&
-          poolOwner(xapi.pool.other_config) === undefined
-        ) {
+        // a global part this XO wrote before it recorded itself as the
+        // owner, or before the owner recorded its source (vdf#81)
+        if (state === 'in-sync' && hasGlobalPart(published.document)) {
           await this.#claim(xapi)
         }
         return { ok: true, state, unchanged: true }
@@ -732,6 +740,9 @@ class VdfPlugin {
       // the XO whose configuration was imported here: its pools stay its own
       // until taken over
       replaces: this.#replaces,
+      // without a global configuration, the ones other XOs left in the pools
+      // (vdf#81)
+      recoverable: admin ? this.#recoverable() : [],
       pools: [...connected, ...lost].filter(pool => visible.has(pool.id)),
       members: Object.fromEntries(
         Object.entries(analysis.members).map(([name, list]) => [
@@ -784,6 +795,61 @@ class VdfPlugin {
       })
     )
     return { pools }
+  }
+
+  // Without a global configuration: per XO other than the one this one
+  // replaces, the configuration the pools holding its global part let
+  // rebuild (recoverGlobal)
+  #recoverable() {
+    if (this.#global !== undefined) {
+      return []
+    }
+    const byOwner = new Map()
+    for (const pool of this.#pools()) {
+      const xapi = this.#connectedXapi(pool.id)
+      const owner = xapi === undefined ? undefined : this.#otherOwner(xapi)
+      const { document } = publishedPolicy(xapi?.pool?.other_config ?? {})
+      if (owner !== undefined && owner.id !== this.#replaces?.id && hasGlobalPart(document)) {
+        byOwner.set(owner.id, [
+          ...(byOwner.get(owner.id) ?? []),
+          { id: pool.id, name: pool.name_label, owner, document },
+        ])
+      }
+    }
+    return [...byOwner.values()].map(recoverGlobal)
+  }
+
+  // An XO lost without a backup (vdf#81): its global configuration is
+  // rebuilt from the pools and saved as importing its export would (vdf#20),
+  // this XO keeping its own identity and replacing the lost one. Only then
+  // are its pools taken over: the first sync writes the same global parts.
+  async #recover({ from, scope }, user) {
+    const recovered = this.#recoverable().find(candidate => candidate.owner.id === from)
+    if (recovered === undefined) {
+      return {
+        conflict: true,
+        error:
+          this.#global === undefined
+            ? 'no pool holds the global configuration of that XO now: look again'
+            : 'this XO has a global configuration: nothing to recover',
+      }
+    }
+    const { owner, document, revision, ...found } = recovered
+    const now = new Date().toISOString()
+    this.#global = {
+      document,
+      revision: (revision ?? 0) + 1,
+      scope: scope ?? found.scope,
+      publishedAt: now,
+      publishedBy: userLabel(user),
+    }
+    this.#replaces = { id: owner.id, name: owner.name, recoveredAt: now }
+    await this.#store.put('global', this.#global)
+    await this.#store.put('replaces', this.#replaces)
+    await this.#appendHistory(GLOBAL_SCOPE, await this.#history(GLOBAL_SCOPE), this.#globalEntry(this.#global))
+    log.info('global configuration recovered from the pools', { from: owner, revision: this.#global.revision })
+    const { pools } = await this.#takeOverReplaced(owner.id)
+    return { ...found, revision: this.#global.revision, scope: this.#global.scope, takenOver: pools }
   }
 
   // Every pool in scope (and every pool still holding a global part)
@@ -1357,6 +1423,38 @@ class VdfPlugin {
         ],
         callback: async ({ req, res }) => {
           const result = await this.#takeOverReplaced(req.body.replaces, req.body)
+          if (result.conflict) {
+            res.status(409)
+          }
+          return result
+        },
+      },
+      {
+        endpoint: '/global/actions/recover',
+        method: 'post',
+        description:
+          "Without a global configuration: rebuild the one of the XO `from` from the pools holding its global part (GET /global: recoverable), save it as an import of that XO's export would (this XO replaces it), then take its pools over as take_over_replaced does (vdf#81). Refused (409) if this XO has a global configuration, or no pool holds that XO's now.",
+        tags: ['vdf'],
+        body: {
+          from: { type: 'string', description: 'id of the XO to recover (GET /global: recoverable[].owner.id)' },
+          scope: {
+            ...BODY_GLOBAL.scope,
+            optional: true,
+            description: 'the recorded scope (or, from pools written before vdf#81, the pools holding it) otherwise',
+          },
+        },
+        middlewares: [{ name: 'json' }],
+        responses: [
+          {
+            status: 200,
+            description:
+              'The saved revision and scope, the pools it was rebuilt from, and the take-over results (takenOver)',
+          },
+          { status: 409, description: "This XO has a global configuration, or no pool holds that XO's now" },
+        ],
+        callback: async ({ req, res, restApi }) => {
+          const user = restApi.getCurrentUser({ throwUnauthenticated: false })
+          const result = await this.#serialized(GLOBAL_SCOPE, () => this.#recover(req.body, user))
           if (result.conflict) {
             res.status(409)
           }
