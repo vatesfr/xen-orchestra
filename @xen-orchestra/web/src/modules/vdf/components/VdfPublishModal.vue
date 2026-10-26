@@ -80,6 +80,9 @@
                   {{ note.text }}
                 </UiInfo>
               </template>
+              <UiInfo v-for="note of overriddenPerPool[pool.id] ?? []" :key="note.key" accent="warning" wrap>
+                {{ note.text }}
+              </UiInfo>
             </div>
           </template>
           <template v-else-if="checkResult !== undefined">
@@ -147,7 +150,7 @@ import {
   overriddenDefaults,
   publishWarnings,
 } from '@/modules/vdf/utils/vdf-change.util.ts'
-import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { composeWithGlobal, displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
@@ -213,17 +216,12 @@ const defaultLabel = (action: VdfDefaultAction) =>
 const { netTagsOfAddress, interfacesOf } = useVdfInterfaces()
 
 // a pool policy's default that a global policy's decides for (vdf#27), on
-// the draft with the pool's global part, for the pool's VMs: the groups of
+// a pool's document with its global part, for the pool's VMs: the groups of
 // each of their interfaces (a group scoped to networks only holds those on
 // them)
-const overridden = computed(() => {
-  if (isGlobalScope(shown.value.scopeId)) {
-    return []
-  }
-
-  const { document, scopeId } = shown.value
+function overriddenIn(document: VdfDocument, poolId: string) {
   const interfaceGroups = vms.value
-    .filter(vm => vm.$pool === scopeId)
+    .filter(vm => vm.$pool === poolId)
     .map(vm => {
       const groups = vmGroupNames(vm.tags, document)
 
@@ -251,7 +249,12 @@ const overridden = computed(() => {
       item.vms
     ),
   }))
-})
+}
+
+// a pool's publish: its draft, with the pool's global part
+const overridden = computed(() =>
+  isGlobalScope(shown.value.scopeId) ? [] : overriddenIn(shown.value.document, shown.value.scopeId)
+)
 
 // open connections per rule, for the rules the draft removes (one sample
 // of the pool's live stats)
@@ -354,6 +357,18 @@ const checkResult = ref<VdfCheckResult>()
 
 const checkError = ref<string>()
 
+// a global publish: each pool in scope, its own part as the check found it
+// with the draft's global configuration
+const overriddenPerPool = computed<Record<string, { key: string; text: string }[]>>(() =>
+  isGlobalScope(shown.value.scopeId)
+    ? Object.fromEntries(
+        (checkResult.value?.pools ?? [])
+          .filter(pool => pool.own !== undefined)
+          .map(pool => [pool.id, overriddenIn(composeWithGlobal(pool.own!, shown.value.document), pool.id)])
+      )
+    : {}
+)
+
 // HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
 // for the pool, or each pool the global configuration is checked on
 
@@ -392,6 +407,7 @@ const isRisky = computed(
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
     Object.values(hostNotes.value).some(notes => notes.length > 0) ||
+    Object.values(overriddenPerPool.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
     details.value.policies.some(
       change => change.type === 'removed' || change.rules.some(rule => rule.type === 'removed')

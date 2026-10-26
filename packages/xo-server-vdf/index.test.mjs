@@ -1288,3 +1288,28 @@ describe('members from a pool another XO owns', () => {
     }
   })
 })
+
+// vdf#27: XO 6 warns, on a global publish, when a global default decides
+// for a pool policy's; it needs each pool's own part
+describe('global check', () => {
+  test("returns each pool's own part, for the pools in scope", async () => {
+    const own = {
+      groups: { db: { tags: ['vdf:role=db'] } },
+      policies: [{ name: 'db', appliedTo: 'db', default: 'pass', ingress: [] }],
+    }
+    const xo = fakeXo({ pools: { A: { otherConfig: { 'vdf:policy': text(own) } }, B: {} } })
+    const plugin = await loaded(xo)
+    try {
+      const { result } = await xo.route('post', '/global/actions/check', {
+        body: { policy: text(document()), scope: { pools: ['A'] } },
+      })
+      assert.equal(result.ok, true)
+      const [a, b] = ['A', 'B'].map(id => result.pools.find(pool => pool.id === id))
+      assert.deepEqual(a.own, own)
+      assert.equal(b.skipped, true)
+      assert.equal(b.own, undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+})

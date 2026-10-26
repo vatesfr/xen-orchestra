@@ -858,7 +858,11 @@ class VdfPlugin {
               `own policies of this pool in the emergency or securityops tier decide before the global policies: ${reservedTiers.map(name => `"${name}"`).join(', ')}. The pool can't publish until they're moved to networkops or a later tier.`,
             ]
           }
-          return { ...base, ...result, text }
+          // the pool's own part, for XO 6's review: a global default that
+          // decides for a pool policy's (vdf#27)
+          return base.inScope
+            ? { ...base, ...result, own: localPart(published.document), text }
+            : { ...base, ...result, text }
         } catch (error) {
           return { ...base, ok: false, error: error.message }
         }

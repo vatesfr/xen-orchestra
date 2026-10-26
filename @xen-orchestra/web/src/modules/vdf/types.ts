@@ -242,6 +242,8 @@ export type VdfCheckResult = {
     owner?: string
     // its own policies in the tiers kept for global policies (vdf#21)
     reservedTiers?: string[]
+    // a pool in scope: its own part, as it holds it (vdf#27)
+    own?: VdfDocument
   })[]
   revision?: number
   // global publish saved, but not written into every pool yet
