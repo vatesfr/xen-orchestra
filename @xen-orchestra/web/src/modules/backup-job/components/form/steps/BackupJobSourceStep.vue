@@ -1,16 +1,18 @@
 <template>
   <div class="backup-job-source-step">
     <BackupJobFormRadio v-bind="bindings.dataSource" />
-    <BackupJobFormRadio v-bind="bindings.mode" />
+    <BackupJobFormRadio v-if="!isMetadata" v-bind="bindings.mode" />
+    <div v-if="isMetadata" class="options">
+      <UiLabel accent="neutral">{{ t('options') }}</UiLabel>
+      <BackupJobFormCheckbox v-bind="bindings.saveXoConfig" />
+      <BackupJobFormCheckbox v-bind="bindings.savePoolsMetadata" />
+    </div>
     <template v-if="bindings.dataSource.modelValue === 'mirror'">
       <BackupJobFormSelect v-bind="bindings.proxy" />
-      <div class="backup-repository-source">
-        <BackupJobFormRadio v-bind="bindings.backupRepositorySourceType" />
-        <BackupJobBackupRepositorySelectionTable />
-      </div>
+      <BackupJobFormSelect v-bind="bindings.sourceBackupRepository" />
     </template>
-    <BackupJobFormRadio v-bind="bindings.scopeType">
-      <template #info>
+    <BackupJobFormRadio v-if="!isMetadata || bindings.savePoolsMetadata.modelValue" v-bind="bindings.scopeType">
+      <template v-if="!isMetadata" #info>
         <UiInfo wrap accent="info">{{ t('replications-excluded-from-selection') }}</UiInfo>
       </template>
     </BackupJobFormRadio>
@@ -18,18 +20,22 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobBackupRepositorySelectionTable from '@/modules/backup-job/components/form/BackupJobBackupRepositorySelectionTable.vue'
+import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { bindings } = defineProps<{
   bindings: BackupJobSourceForm['bindings']
 }>()
 
 const { t } = useI18n()
+
+const isMetadata = computed(() => bindings.dataSource.modelValue === 'metadata')
 </script>
 
 <style lang="postcss" scoped>
@@ -40,10 +46,10 @@ const { t } = useI18n()
   margin-block-start: 2.4rem;
   text-align: left;
 
-  .backup-repository-source {
+  .options {
     display: flex;
     flex-direction: column;
-    gap: 1.6rem;
+    gap: 0.8rem;
   }
 }
 </style>
