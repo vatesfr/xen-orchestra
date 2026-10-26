@@ -105,6 +105,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { isEqual } from 'lodash-es'
@@ -132,7 +133,6 @@ const {
   publishedDocument,
   isPublishedReady,
   deleteGroup,
-  savePolicy,
   isLocked,
   poolVms,
   membersOf,
@@ -143,7 +143,7 @@ const hasError = computed(() =>
   scopeState.isGlobal ? scopeState.hasGlobalError.value : scopeState.hasPublishedPolicyError.value
 )
 
-const { editGroup } = useVdfEditors(() => scope)
+const { editGroup, editPolicy } = useVdfEditors(() => scope)
 
 // the chips show what the groups they name are (their networks)
 provideVdfGroups(() => document.value.groups)
@@ -241,19 +241,41 @@ function removeVm(vm: FrontXoVm, entry: GroupEntry) {
 
 // DISCOVER (vdf#13): a policy in monitor mode for the group, with no rule
 // and a default drop: once published, the Monitor tab lists everything its
-// VMs receive, as suggested rules. In the draft, opened in Policies.
+// VMs receive, as suggested rules. The policy drawer opens prefilled, named
+// after the group (the user can rename it there); saved to the draft, it's
+// shown in Policies.
 function discover(entry: GroupEntry) {
   const taken = new Set(document.value.policies.map(policy => policy.name))
-  const base = `discover-${entry.label}`
-  let name = base
+  let name = entry.label
 
   for (let i = 2; taken.has(name); i++) {
-    name = `${base}-${i}`
+    name = `${entry.label}-${i}`
   }
 
-  savePolicy(undefined, { name, appliedTo: entry.name, default: 'drop', mode: 'monitor', ingress: [] })
+  return editPolicy(
+    undefined,
+    undefined,
+    saved => router.push(vdfPageRoute(scopeId.value, 'policies', { policy: saved })),
+    { name, appliedTo: entry.name, default: 'drop', mode: 'monitor', ingress: [] }
+  )
+}
 
-  return router.push(vdfPageRoute(scopeId.value, 'policies', { policy: name }))
+// DELETION: in the draft only, and restorable until a publish, but a
+// confirmation still avoids a slip of the menu (as for policies)
+const { open: openDeleteModal } = useDeleteModal()
+
+async function confirmDeleteGroup(entry: GroupEntry) {
+  const response = await openDeleteModal({
+    props: {
+      subject: t('firewall:delete-group:subject', { name: entry.label }),
+      description: t('firewall:delete:draft-info'),
+      confirmLabel: t('firewall:delete-group'),
+    },
+  })
+
+  if (response.event === 'onConfirm') {
+    deleteGroup(entry.name)
+  }
 }
 
 function groupActions(entry: GroupEntry): ActionItem[] {
@@ -263,8 +285,12 @@ function groupActions(entry: GroupEntry): ActionItem[] {
     label: t('firewall:add-vms'),
     icon: 'fa:plus',
     disabled: entry.tags.length === 0,
-    hint: entry.tags.length === 0 ? t('firewall:group-form:preview:no-tags') : t('firewall:membership:applies-now'),
-    onClick: () => addVms(entry),
+    hint: entry.tags.length === 0 ? t('firewall:group:no-tags:short') : t('firewall:membership:applies-now:short'),
+    // not awaited: the menu closes as the modal opens, rather than staying
+    // open behind it until the modal is answered
+    onClick: () => {
+      void addVms(entry)
+    },
   }
 
   if (entry.locked) {
@@ -278,8 +304,10 @@ function groupActions(entry: GroupEntry): ActionItem[] {
       label: t('firewall:discover'),
       icon: 'fa:eye',
       disabled: entry.tags.length === 0,
-      hint: entry.tags.length === 0 ? t('firewall:group-form:preview:no-tags') : t('firewall:discover:hint'),
-      onClick: () => discover(entry),
+      hint: entry.tags.length === 0 ? t('firewall:group:no-tags:short') : t('firewall:discover:hint:short'),
+      onClick: () => {
+        void discover(entry)
+      },
     },
     {
       label: t('firewall:delete-group'),
@@ -287,8 +315,12 @@ function groupActions(entry: GroupEntry): ActionItem[] {
       accent: 'danger',
       disabled: entry.usedBy.length > 0,
       hint:
-        entry.usedBy.length > 0 ? t('firewall:delete-group:used-by', { policies: entry.usedBy.join(', ') }) : undefined,
-      onClick: () => deleteGroup(entry.name),
+        entry.usedBy.length > 0
+          ? t('firewall:delete-group:used-by:short', { policies: entry.usedBy.join(', ') })
+          : undefined,
+      onClick: () => {
+        void confirmDeleteGroup(entry)
+      },
     },
   ]
 }

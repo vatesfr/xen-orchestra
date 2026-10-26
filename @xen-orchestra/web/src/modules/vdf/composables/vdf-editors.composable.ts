@@ -205,8 +205,14 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
 
   // resolves with the policy's name once saved. `onSaved` runs before the
   // rule drawer of "Save and add rule" opens: a navigation it makes would
-  // dismiss that drawer otherwise (overlays close on navigation)
-  async function editPolicy(policy?: VdfPolicy, tier?: number, onSaved?: (name: string) => unknown) {
+  // dismiss that drawer otherwise (overlays close on navigation).
+  // `prefill`: a new policy's fields (Discover on a group)
+  async function editPolicy(
+    policy?: VdfPolicy,
+    tier?: number,
+    onSaved?: (name: string) => unknown,
+    prefill: Partial<VdfPolicy> = {}
+  ) {
     const isNew = policy === undefined
     const current: VdfPolicy = policy ?? {
       name: '',
@@ -219,6 +225,7 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
       // a new policy starts by reporting what it would drop (vdf#13)
       mode: 'monitor',
       ingress: [],
+      ...prefill,
     }
 
     const props = reactiveComputed(() => ({
