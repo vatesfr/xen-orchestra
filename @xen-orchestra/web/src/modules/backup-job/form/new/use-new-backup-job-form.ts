@@ -3,6 +3,10 @@ import {
   useBackupJobSourceForm,
 } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import {
+  type BackupJobTargetFormData,
+  useBackupJobTargetForm,
+} from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import {
   type BackupJobTransferFormData,
   useBackupJobTransferForm,
 } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
@@ -13,6 +17,8 @@ import { useI18n } from 'vue-i18n'
 const STEPS = ['source', 'transfer', 'target', 'planning', 'review'] as const
 type Step = (typeof STEPS)[number]
 
+const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
+
 export function useNewBackupJobForm() {
   const { t } = useI18n()
 
@@ -20,8 +26,10 @@ export function useNewBackupJobForm() {
     reactive<BackupJobSourceFormData>({
       dataSource: 'vm',
       mode: 'delta',
+      saveXoConfig: false,
+      savePoolsMetadata: true,
       proxy: undefined,
-      backupRepositorySourceType: 'manual',
+      sourceBackupRepository: undefined,
       scopeType: 'all',
     })
   )
@@ -35,21 +43,51 @@ export function useNewBackupJobForm() {
       preferNbd: true,
       nbdConcurrency: 1,
       snapshotMode: 'default',
-      snapshotSync: 'disabled',
+      snapshotSync: 'none',
+      snapshotSyncTag: undefined,
     })
+  )
+
+  const target = useBackupJobTargetForm(
+    reactive<BackupJobTargetFormData>({
+      storageTargets: [],
+      targetProxy: undefined,
+      backupRepositoryScopeType: 'all',
+      backupDistribution: 'every',
+      exportRetention: 3,
+      ltrDailyRetention: 1,
+      ltrDailyKeep: undefined,
+      ltrWeeklyRetention: 1,
+      ltrWeeklyKeep: undefined,
+      ltrMonthlyRetention: 1,
+      ltrMonthlyKeep: undefined,
+      ltrYearlyRetention: 1,
+      ltrYearlyKeep: undefined,
+      strictGfs: false,
+      storageRepositoryScopeType: 'all',
+      replicaDistribution: 'every',
+      copyRetention: 1,
+      snapshotRetention: 1,
+    }),
+    () => source.formData.dataSource,
+    () => source.formData.mode === 'full' || transfer.formData.preferNbd
   )
 
   const currentStepIndex = ref(0)
 
-  const currentStep = computed(() => STEPS[currentStepIndex.value])
+  const stepKeys = computed<readonly Step[]>(() => (source.formData.dataSource === 'metadata' ? METADATA_STEPS : STEPS))
 
-  const steps = computed<StepDefinition[]>(() => [
-    { label: t('source') },
-    { label: t('transfer') },
-    { label: t('target') },
-    { label: t('planning') },
-    { label: t('review-and-confirm') },
-  ])
+  const currentStep = computed(() => stepKeys.value[currentStepIndex.value])
+
+  const stepLabels = computed<Record<Step, string>>(() => ({
+    source: t('source'),
+    transfer: t('transfer'),
+    target: t('target'),
+    planning: t('planning'),
+    review: t('review-and-confirm'),
+  }))
+
+  const steps = computed<StepDefinition[]>(() => stepKeys.value.map(step => ({ label: stepLabels.value[step] })))
 
   async function validateCurrentStep(): Promise<boolean> {
     switch (currentStep.value) {
@@ -57,19 +95,21 @@ export function useNewBackupJobForm() {
         return source.validate()
       case 'transfer':
         return transfer.validate()
+      case 'target':
+        return target.validate()
       default:
         return true
     }
   }
 
   function goToStep(step: Step): void {
-    currentStepIndex.value = STEPS.indexOf(step)
+    currentStepIndex.value = stepKeys.value.indexOf(step)
   }
 
   async function next(): Promise<boolean> {
     const isValid = await validateCurrentStep()
 
-    if (isValid && currentStepIndex.value < STEPS.length - 1) {
+    if (isValid && currentStepIndex.value < stepKeys.value.length - 1) {
       currentStepIndex.value++
     }
 
@@ -85,6 +125,7 @@ export function useNewBackupJobForm() {
   return {
     source,
     transfer,
+    target,
     currentStep,
     currentStepIndex,
     steps,

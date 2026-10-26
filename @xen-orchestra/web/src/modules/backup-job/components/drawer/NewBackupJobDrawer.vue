@@ -1,13 +1,21 @@
 <template>
   <UiDrawer @confirm="next()" @dismiss="emit('cancel')">
     <template #title>
-      {{ t('action:create-new-job') }}
+      {{ t('action:create-new-backup-job') }}
     </template>
 
     <template #content>
       <UiStepper :steps :current-step="currentStepIndex">
         <BackupJobSourceStep v-if="currentStep === 'source'" :bindings="source.bindings" />
         <BackupJobTransferStep v-else-if="currentStep === 'transfer'" :bindings="transfer.bindings" />
+        <BackupJobTargetStep
+          v-else-if="currentStep === 'target'"
+          :bindings="target.bindings"
+          :has-storage-target-choice="target.hasStorageTargetChoice.value"
+          :has-backup-repository-section="target.hasBackupRepositorySection.value"
+          :has-storage-repository-section="target.hasStorageRepositorySection.value"
+          :has-snapshot-retention-section="target.hasSnapshotRetentionSection.value"
+        />
       </UiStepper>
     </template>
 
@@ -25,6 +33,7 @@
 
 <script lang="ts" setup>
 import BackupJobSourceStep from '@/modules/backup-job/components/form/steps/BackupJobSourceStep.vue'
+import BackupJobTargetStep from '@/modules/backup-job/components/form/steps/BackupJobTargetStep.vue'
 import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -39,5 +48,5 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { source, transfer, currentStep, currentStepIndex, steps, next, back } = useNewBackupJobForm()
+const { source, transfer, target, currentStep, currentStepIndex, steps, next, back } = useNewBackupJobForm()
 </script>
