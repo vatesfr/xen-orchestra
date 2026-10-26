@@ -37,15 +37,14 @@ const { searchTerm, options, selectedOptions, selectedValues } = useFormSelect(s
 
 ## Return Value
 
-|                   | Type                        | Description                                           |
-| ----------------- | --------------------------- | ----------------------------------------------------- |
-| `elementId`       | `string`                    | ID of the select element, e.g. to bring it into focus |
-| `searchTerm`      | `Ref<string>`               | Reactive reference to control the search/filter term  |
-| `allOptions`      | `ComputedRef<FormOption[]>` | All options, regardless of search filtering           |
-| `options`         | `ComputedRef<FormOption[]>` | Options filtered by the current search term           |
-| `selectedOptions` | `ComputedRef<FormOption[]>` | Options that are currently selected                   |
-| `selectedValues`  | `ComputedRef<TValue[]>`     | Values of options that are currently selected         |
-| `selectedLabel`   | `ComputedRef<string>`       | Label for the selected options                        |
+|                   | Type                        | Description                                          |
+| ----------------- | --------------------------- | ---------------------------------------------------- |
+| `searchTerm`      | `Ref<string>`               | Reactive reference to control the search/filter term |
+| `allOptions`      | `ComputedRef<FormOption[]>` | All options, regardless of search filtering          |
+| `options`         | `ComputedRef<FormOption[]>` | Options filtered by the current search term          |
+| `selectedOptions` | `ComputedRef<FormOption[]>` | Options that are currently selected                  |
+| `selectedValues`  | `ComputedRef<TValue[]>`     | Values of options that are currently selected        |
+| `selectedLabel`   | `ComputedRef<string>`       | Label for the selected options                       |
 
 ## `FormOption` object
 

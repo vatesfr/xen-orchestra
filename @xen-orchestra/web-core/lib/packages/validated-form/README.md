@@ -64,7 +64,6 @@ const { useField, useFormSelect, useSelect, validate, reset, handleBlur } = useV
 Returns a `ComputedRef` merging:
 
 - `modelValue` / `onUpdate:modelValue` — the v-model pair for the field
-- `id` — a unique ID, set on the field element (usually its `VtsInputWrapper`) through the fallthrough attributes, so the error summary can bring it into focus
 - `error`, `warning`, `onBlur` — from `FieldMetadata`
 - Any additional props returned by the optional `extras` factory (e.g. `label`, `required`, `info`)
 
@@ -86,30 +85,13 @@ A wrapper around `useFormSelect` from `@core/packages/form-select` that:
 
 Both overloads return a `ComputedRef` merging `{ id }`, `FieldMetadata`, and any extras.
 
-#### Validation
+#### Delegated from `useFormValidation`
 
-| Property       | Type                                              | Description                                                                                                                                               |
-| -------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validate`     | `(options?: ValidateOptions) => Promise<boolean>` | Validates all error rules and touches warning fields, then focuses the first invalid field unless `{ focus: false }` is passed. Returns `true` when valid |
-| `reset`        | `() => void`                                      | Resets all dirty flags, clears all messages and hides the error summary                                                                                   |
-| `handleBlur`   | `(field: keyof TData) => void`                    | Marks a field dirty in the `onBlur` rule groups (called automatically by fields)                                                                          |
-| `errorSummary` | `ComputedRef<FormErrorSummaryItem[]>`             | Blocking errors of the fields bound with `useField` or `useFormSelect`, in binding order, once `validate()` has been called                               |
-
-### Error summary
-
-Pass `errorSummary` to `VtsFormErrorSummary`, at the top of the form: it lists the errors once the user tried to submit, and each one brings its field into focus.
-
-```vue
-<template>
-  <VtsForm @submit="onSubmit()">
-    <VtsFormErrorSummary :errors="errorSummary" />
-    <!-- fields -->
-  </VtsForm>
-</template>
-```
-
-> [!NOTE]
-> A select created by an external composable and bound with `useSelect(id, key)` is not listed, as its element is unknown to the form.
+| Property     | Type                           | Description                                                                      |
+| ------------ | ------------------------------ | -------------------------------------------------------------------------------- |
+| `validate`   | `() => Promise<boolean>`       | Validates all error rules and touches warning fields. Returns `true` when valid  |
+| `reset`      | `() => void`                   | Resets all dirty flags and clears all messages                                   |
+| `handleBlur` | `(field: keyof TData) => void` | Marks a field dirty in the `onBlur` rule groups (called automatically by fields) |
 
 ### Example: form with text inputs and a managed select
 
@@ -255,14 +237,13 @@ Each step config is a `FormValidationConfig` scoped to its own sub-object: writi
 
 #### Validation state
 
-| Property           | Type                                           | Description                                                                                            |
-| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `areAllStepsValid` | `ComputedRef<boolean>`                         | `true` only when every step has been validated and all pass                                            |
-| `isStepValid`      | `(step: keyof TSteps) => boolean \| undefined` | Last known validation result for a step; `undefined` if the step has never been validated              |
-| `isValidating`     | `Ref<boolean>`                                 | `true` while `validateAllSteps()` is in flight; guards against concurrent calls                        |
-| `validateStep`     | `(step: keyof TSteps) => Promise<boolean>`     | Validates a single step by name, stores the result and focuses its first invalid field                 |
-| `validateAllSteps` | `() => Promise<boolean>`                       | Validates all steps concurrently, without focusing any field. Returns `true` only if every step passes |
-| `errorSummary`     | `ComputedRef<FormErrorSummaryItem[]>`          | Error summary of the current step (see `useValidatedForm`)                                             |
+| Property           | Type                                           | Description                                                                               |
+| ------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `areAllStepsValid` | `ComputedRef<boolean>`                         | `true` only when every step has been validated and all pass                               |
+| `isStepValid`      | `(step: keyof TSteps) => boolean \| undefined` | Last known validation result for a step; `undefined` if the step has never been validated |
+| `isValidating`     | `Ref<boolean>`                                 | `true` while `validateAllSteps()` is in flight; guards against concurrent calls           |
+| `validateStep`     | `(step: keyof TSteps) => Promise<boolean>`     | Validates a single step by name and stores the result                                     |
+| `validateAllSteps` | `() => Promise<boolean>`                       | Validates all steps concurrently. Returns `true` only if every step passes                |
 
 `validateAllSteps` is a no-op (returns `false`) when `isValidating` is already `true`.
 

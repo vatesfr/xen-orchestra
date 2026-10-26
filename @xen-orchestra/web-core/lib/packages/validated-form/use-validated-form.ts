@@ -1,4 +1,3 @@
-import type { FormErrorSummaryItem } from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { CollectionItemProperties, GetItemId } from '@core/packages/collection'
 import { useFormBindings } from '@core/packages/form-bindings'
@@ -13,8 +12,7 @@ import type {
 import { useFormValidation } from '@core/packages/form-validation'
 import type { FormValidationConfig } from '@core/packages/form-validation/types.ts'
 import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
-import { focusField } from '@core/utils/focus-field.util.ts'
-import { computed, type ComputedRef, type MaybeRefOrGetter, ref, type Ref, toRef, useId } from 'vue'
+import { toRef, type MaybeRefOrGetter, type ComputedRef, type Ref } from 'vue'
 
 export type ModelBinding<T> = { modelValue: T; 'onUpdate:modelValue': (value: T) => void }
 
@@ -22,14 +20,6 @@ export type FieldMetadata = {
   error: InputWrapperMessage | undefined
   warning: InputWrapperMessage | undefined
   onBlur: () => void
-}
-
-export type FieldIdentity = {
-  id: string
-}
-
-export type ValidateOptions = {
-  focus?: boolean
 }
 
 function toMessage(content: string | undefined, accent: 'danger' | 'warning'): InputWrapperMessage | undefined {
@@ -69,84 +59,44 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
   config: FormValidationConfig<TData>
 ) {
   const { useField: _useField, useSelect: _useSelect } = useFormBindings(data)
-  const {
-    errors: rawErrors,
-    warnings: rawWarnings,
-    validate: validateFields,
-    reset: resetFields,
-    handleBlur,
-  } = useFormValidation(data, config)
-
-  const formId = useId()
-
-  const fieldElementIds = new Map<keyof TData, string>()
-
-  const isSubmitted = ref(false)
-
-  const errorSummary = computed<FormErrorSummaryItem[]>(() => {
-    if (!isSubmitted.value) {
-      return []
-    }
-
-    return [...fieldElementIds].flatMap(([key, id]) => {
-      const message = rawErrors.value[key]
-
-      return message === undefined ? [] : [{ id, message }]
-    })
-  })
-
-  async function validate({ focus = true }: ValidateOptions = {}) {
-    isSubmitted.value = true
-
-    const isValid = await validateFields()
-
-    if (isValid || !focus) {
-      return isValid
-    }
-
-    const [firstError] = errorSummary.value
-
-    if (firstError !== undefined) {
-      focusField(firstError.id)
-    }
-
-    return isValid
-  }
-
-  function reset() {
-    isSubmitted.value = false
-    resetFields()
-  }
+  const { errors: rawErrors, warnings: rawWarnings, validate, reset, handleBlur } = useFormValidation(data, config)
 
   const selectRegistry = new Map<FormSelectId, keyof TData>()
 
-  function fieldMetadata<E extends Record<string, unknown> = EmptyObject>(
+  function fieldMetadata(key: keyof TData): () => FieldMetadata {
+    return () => ({
+      error: toMessage(rawErrors.value[key], 'danger'),
+      warning: toMessage(rawWarnings.value[key], 'warning'),
+      onBlur: () => handleBlur(key),
+    })
+  }
+
+  function fieldMetadataWithExtras<E extends Record<string, unknown>>(
     key: keyof TData,
-    extras?: () => E
+    extras: () => E
   ): () => FieldMetadata & E {
     return () => ({
       error: toMessage(rawErrors.value[key], 'danger'),
       warning: toMessage(rawWarnings.value[key], 'warning'),
       onBlur: () => handleBlur(key),
-      ...(extras?.() as E),
+      ...extras(),
     })
   }
 
-  function useField<K extends keyof TData>(key: K): ComputedRef<ModelBinding<TData[K]> & FieldIdentity & FieldMetadata>
+  function useField<K extends keyof TData>(key: K): ComputedRef<ModelBinding<TData[K]> & FieldMetadata>
   function useField<K extends keyof TData, E extends Record<string, unknown>>(
     key: K,
     extras: () => E
-  ): ComputedRef<ModelBinding<TData[K]> & FieldIdentity & FieldMetadata & E>
+  ): ComputedRef<ModelBinding<TData[K]> & FieldMetadata & E>
   function useField<K extends keyof TData, E extends Record<string, unknown> = Record<string, unknown>>(
     key: K,
     extras?: () => E
   ) {
-    const id = `${formId}-${String(key)}`
-    const metadata = fieldMetadata(key, extras)
+    if (extras !== undefined) {
+      return _useField(key, fieldMetadataWithExtras(key, extras))
+    }
 
-    fieldElementIds.set(key, id)
-
-    return _useField(key, () => ({ id, ...metadata() }))
+    return _useField(key, fieldMetadata(key))
   }
 
   function useFormSelect<
@@ -174,7 +124,6 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     })
 
     selectRegistry.set(result.id, key)
-    fieldElementIds.set(key, result.elementId)
 
     return result
   }
@@ -195,14 +144,22 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     extras?: () => E
   ) {
     if (typeof keyOrExtras === 'string') {
-      return _useSelect(id, fieldMetadata(keyOrExtras as keyof TData, extras))
+      const key = keyOrExtras as keyof TData
+      const metadata = extras !== undefined ? fieldMetadataWithExtras(key, extras) : fieldMetadata(key)
+
+      return _useSelect(id, metadata)
     }
 
     const extrasFromRegistry = keyOrExtras as (() => E) | undefined
     const registryKey = selectRegistry.get(id)
 
     if (registryKey !== undefined) {
-      return _useSelect(id, fieldMetadata(registryKey, extrasFromRegistry))
+      const metadata =
+        extrasFromRegistry !== undefined
+          ? fieldMetadataWithExtras(registryKey, extrasFromRegistry)
+          : fieldMetadata(registryKey)
+
+      return _useSelect(id, metadata)
     }
 
     if (extrasFromRegistry !== undefined) {
@@ -219,6 +176,5 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     validate,
     reset,
     handleBlur,
-    errorSummary,
   }
 }
