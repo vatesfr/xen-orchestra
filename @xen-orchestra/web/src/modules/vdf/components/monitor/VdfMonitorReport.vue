@@ -26,6 +26,9 @@
         <UiToggle v-if="expectedCount > 0" v-model="showExpected">
           {{ t('firewall:monitor:show-expected', { n: expectedCount }, expectedCount) }}
         </UiToggle>
+        <UiToggle v-if="coveredCount > 0" v-model="showCovered">
+          {{ t('firewall:monitor:show-covered', { n: coveredCount }, coveredCount) }}
+        </UiToggle>
       </div>
 
       <!-- vdf#86: an enforced policy decides first for some of the VMs -->
@@ -129,8 +132,9 @@ import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shad
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
-import { displayName, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, globalRuleId, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import {
+  coveringRule,
   isMonitored,
   liveEntries,
   MONITOR_OTHER,
@@ -292,8 +296,9 @@ function isInDraft(suggestion: VdfSuggestion) {
 const suggestionGroups = computed(() =>
   shownPolicies.value
     .map((policy: VdfPolicy) => {
+      // what a published rule now allows needs none
       const suggestions = suggestRules(
-        (monitor.value?.entries ?? []).filter(entry => !isExpected(entry)),
+        (monitor.value?.entries ?? []).filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined),
         policy,
         sourceOf
       )
@@ -349,6 +354,33 @@ type Row = {
   allow: RouteLocationRaw | undefined
   trace: RouteLocationRaw | undefined
   expected: boolean
+  // the published rule that now allows it (the entry stays for 7 days)
+  coveredBy: number | undefined
+}
+
+// the groups an address belongs to: those listing it, and its VM's tagged
+// groups (one scoped to networks, vdf#36, only on them)
+function groupsOf(address: string) {
+  const vm = vmByIp.value.get(address)
+  const netTags = vm === undefined ? undefined : netTagsOfAddress(vm, address)
+  const groups = publishedDocument.value.groups
+  const tagged =
+    vm === undefined
+      ? []
+      : vmGroupNames(vm.tags, publishedDocument.value).filter(name => {
+          const networks = groupNetworks(groups[name])
+
+          return networks.length === 0 || (netTags !== undefined && isOnNetworks(netTags, networks))
+        })
+
+  return [...groupsOfIp(address), ...tagged]
+}
+
+// the published policy's allow rule that now lets the flow through, if any
+function coveringRuleId(entry: VdfMonitorEntry) {
+  const policy = publishedDocument.value.policies.find(candidate => candidate.name === entry.policy)
+
+  return policy === undefined ? undefined : coveringRule(policy, entry, groupsOf)?.id
 }
 
 const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm.id, vm])))
@@ -450,12 +482,22 @@ const filteredRows = computed<Row[]>(() => {
       allow: allowRoute(entry),
       trace: traceRoute(entry),
       expected: isExpected(entry),
+      coveredBy: coveringRuleId(entry),
     }))
 })
 
 const expectedCount = computed(() => filteredRows.value.filter(row => row.expected).length)
 
-const rows = computed(() => (showExpected.value ? filteredRows.value : filteredRows.value.filter(row => !row.expected)))
+// flows a published rule now allows: hidden unless asked
+const showCovered = ref(false)
+
+const coveredCount = computed(() => filteredRows.value.filter(row => row.coveredBy !== undefined).length)
+
+const rows = computed(() =>
+  filteredRows.value.filter(
+    row => (showExpected.value || !row.expected) && (showCovered.value || row.coveredBy === undefined)
+  )
+)
 
 const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-monitor', rows)
 
@@ -467,6 +509,13 @@ const state = useTableState({
       return {
         type: 'no-data',
         message: shadows.value.length > 0 ? t('firewall:monitor:empty:shadowed') : t('firewall:monitor:empty'),
+      }
+    }
+
+    if (rows.value.length === 0 && coveredCount.value > 0 && !showCovered.value) {
+      return {
+        type: 'no-result',
+        message: t('firewall:monitor:all-covered', { n: coveredCount.value }, coveredCount.value),
       }
     }
 
@@ -517,16 +566,46 @@ function rowButton(icon: IconName, label: string, onClick: () => void) {
   ])
 }
 
-// trace it, allow it, or mark it expected (and back)
+// a button that says what it does: allowing and marking expected are
+// opposite answers, never two look-alike icons
+function rowTextButton(icon: IconName, label: string, tooltip: string, onClick: () => void) {
+  return withDirectives(
+    h(UiButton, { variant: 'tertiary', accent: 'brand', size: 'small', leftIcon: icon, onClick }, () => label),
+    [[vTooltip, tooltip]]
+  )
+}
+
+// trace it
 function rowButtons(row: Row) {
+  return row.trace === undefined
+    ? null
+    : rowButton('fa:route', t('firewall:monitor:trace'), () => router.push(row.trace!))
+}
+
+// allow it, or mark it expected (and back): under what would drop it, where
+// a table at a laptop's width has room for their labels
+function answerButtons(row: Row) {
   return h('span', { class: 'row-actions' }, [
-    row.trace === undefined ? null : rowButton('fa:route', t('firewall:monitor:trace'), () => router.push(row.trace!)),
-    row.allow === undefined || row.expected
+    row.allow === undefined || row.expected || row.coveredBy !== undefined
       ? null
-      : rowButton('fa:check', t('firewall:monitor:allow-this'), () => router.push(row.allow!)),
-    row.expected
-      ? rowButton('fa:rotate-left', t('firewall:monitor:not-expected'), () => setExpected(row.entry, false))
-      : rowButton('fa:eye-slash', t('firewall:monitor:expected:mark'), () => setExpected(row.entry, true)),
+      : rowTextButton('fa:plus', t('firewall:monitor:action:allow'), t('firewall:monitor:allow-this'), () =>
+          router.push(row.allow!)
+        ),
+    row.coveredBy !== undefined
+      ? null
+      : row.expected
+        ? rowTextButton(
+            'fa:rotate-left',
+            t('firewall:monitor:action:not-expected'),
+            t('firewall:monitor:not-expected'),
+            () => setExpected(row.entry, false)
+          )
+        : rowTextButton(
+            'fa:eye-slash',
+            t('firewall:monitor:action:expected'),
+            t('firewall:monitor:expected:mark'),
+            () => setExpected(row.entry, true)
+          ),
   ])
 }
 
@@ -555,6 +634,12 @@ const { HeadCells, BodyCells } = useMonitorColumns({
           row.expected
             ? h(UiTag, { accent: 'neutral', variant: 'secondary' }, () => t('firewall:monitor:expected'))
             : null,
+          row.coveredBy === undefined
+            ? null
+            : h(UiTag, { accent: 'success', variant: 'secondary' }, () =>
+                t('firewall:monitor:now-allowed', { id: globalRuleId(row.coveredBy!) })
+              ),
+          answerButtons(row),
         ])
       ),
     // egress: the VM is the source, the address the destination
@@ -654,7 +739,10 @@ const { HeadCells, BodyCells } = useMonitorColumns({
 
   :deep(.row-actions) {
     display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.4rem;
+    margin-inline-start: -0.8rem;
   }
 }
 </style>

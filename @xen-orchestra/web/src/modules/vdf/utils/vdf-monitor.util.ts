@@ -127,6 +127,16 @@ export function suggestRules(
 // destination). groupsOf: the groups an address belongs to (static
 // members, VM tags).
 export function coveredBy(policy: VdfPolicy, entry: VdfMonitorEntry, groupsOf: (address: string) => string[]) {
+  return coveringRule(policy, entry, groupsOf) !== undefined
+}
+
+// the rule of coveredBy: the first allow rule that matches (in the Monitor
+// report, a published rule that now allows the flow)
+export function coveringRule(
+  policy: VdfPolicy,
+  entry: VdfMonitorEntry,
+  groupsOf: (address: string) => string[]
+): VdfRule | undefined {
   const all = rulesOf(policy, entry.egress ? 'egress' : 'ingress')
   const until = entry.rule ? all.findIndex(rule => rule.id === entry.rule) : -1
   const rules = until === -1 ? all : all.slice(0, until)
@@ -134,7 +144,7 @@ export function coveredBy(policy: VdfPolicy, entry: VdfMonitorEntry, groupsOf: (
   const groups = new Set(groupsOf(peer))
   const peerOf = (rule: VdfRule) => (entry.egress ? rule.to : rule.from)
 
-  return rules.some(
+  return rules.find(
     rule =>
       (rule.action ?? 'allow') === 'allow' &&
       (rule.proto === 'any' || rule.proto === entry.proto) &&

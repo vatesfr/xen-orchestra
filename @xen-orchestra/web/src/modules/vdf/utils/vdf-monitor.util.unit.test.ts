@@ -1,6 +1,7 @@
 import type { VdfDocument, VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
 import {
   coveredBy,
+  coveringRule,
   enforcedPolicies,
   insertRule,
   markExpected,
@@ -148,6 +149,14 @@ describe('coveredBy', () => {
     p.ingress.push({ id: 9, from: 'any', proto: 'tcp', ports: [22] })
     expect(coveredBy(p, entry({ port: 22, rule: 2 }), groupsOf)).toBe(false)
     expect(coveredBy(p, entry({ port: 22 }), groupsOf)).toBe(true)
+  })
+
+  it('coveringRule names the first allow that covers it', () => {
+    const p = policy()
+    p.ingress.push({ id: 9, from: 'monitoring', proto: 'tcp', ports: [9100] }, { id: 10, from: 'any', proto: 'any' })
+    expect(coveringRule(p, entry({}), groupsOf)?.id).toBe(9)
+    expect(coveringRule(p, entry({ src: '10.0.0.8' }), groupsOf)?.id).toBe(10)
+    expect(coveringRule(policy(), entry({}), groupsOf)).toBeUndefined()
   })
 })
 
