@@ -22,13 +22,7 @@ export function useXoPluginTest(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
 
   const isSuccess = ref(false)
 
-  const {
-    errors: validationErrors,
-    isSubmitted: isValidationDisplayed,
-    submit: submitForm,
-  } = useJsonSchemaForm(testSchema, testData)
-
-  const summaryErrors = computed(() => (isValidationDisplayed.value ? validationErrors.value : []))
+  const { summaryErrors, submit: submitForm } = useJsonSchemaForm(testSchema, testData)
 
   const {
     run,

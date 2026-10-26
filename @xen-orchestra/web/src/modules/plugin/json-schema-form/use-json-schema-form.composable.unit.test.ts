@@ -115,13 +115,21 @@ describe('errors', () => {
   })
 })
 
+describe('summaryErrors', () => {
+  it('is empty until the form is submitted', () => {
+    const { wrapper } = mountForm(SCHEMA, { server: {} })
+
+    expect(wrapper.vm.summaryErrors).toEqual([])
+  })
+})
+
 describe('submit', () => {
   it('shows all the errors', () => {
     const { wrapper, context } = mountForm(SCHEMA, { server: {} })
 
     wrapper.vm.submit()
 
-    expect(wrapper.vm.isSubmitted).toBe(true)
+    expect(wrapper.vm.summaryErrors).toEqual(wrapper.vm.errors)
     expect(context.countVisibleErrors([])).toBe(3)
   })
 
@@ -154,7 +162,7 @@ describe('reset', () => {
     wrapper.vm.submit()
     wrapper.vm.reset()
 
-    expect(wrapper.vm.isSubmitted).toBe(false)
+    expect(wrapper.vm.summaryErrors).toEqual([])
     expect(context.countVisibleErrors([])).toBe(0)
   })
 

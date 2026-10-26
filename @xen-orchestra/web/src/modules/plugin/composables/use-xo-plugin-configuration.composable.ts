@@ -44,14 +44,7 @@ export function useXoPluginConfiguration(rawPlugin: MaybeRefOrGetter<FrontXoPlug
     },
   })
 
-  const {
-    errors: validationErrors,
-    isSubmitted: isValidationDisplayed,
-    submit: submitForm,
-    reset: resetValidation,
-  } = useJsonSchemaForm(schema, formValue)
-
-  const summaryErrors = computed(() => (isValidationDisplayed.value ? validationErrors.value : []))
+  const { summaryErrors, submit: submitForm, reset: resetValidation } = useJsonSchemaForm(schema, formValue)
 
   function reset() {
     clearError()

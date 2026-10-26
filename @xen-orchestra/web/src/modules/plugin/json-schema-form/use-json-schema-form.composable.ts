@@ -58,6 +58,8 @@ export function useJsonSchemaForm(
     })
   })
 
+  const summaryErrors = computed(() => (isSubmitted.value ? errors.value : []))
+
   const visibleErrors = computed(() =>
     isSubmitted.value ? errors.value : errors.value.filter(error => touchedPathKeys.has(toPathKey(error.path)))
   )
@@ -92,5 +94,5 @@ export function useJsonSchemaForm(
     },
   })
 
-  return { errors, isSubmitted, submit, reset }
+  return { errors, summaryErrors, submit, reset }
 }
