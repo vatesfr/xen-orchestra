@@ -151,8 +151,9 @@ export type VdfGlobalPool = {
   // the pool's own policies in the tiers kept for global policies (vdf#21):
   // they decide before them, and the pool can't publish until they move
   reservedTiers?: string[]
-  // the pool records this XO's id with a newer revision: another copy of
-  // this XO writes there (vdf#81)
+  // the pool holds a newer revision of this XO's configuration: this XO is
+  // older (restored from a backup, a copy), and takes it back confirmed
+  // (vdf#81)
   cloned?: boolean
 }
 
@@ -177,24 +178,19 @@ export type VdfAddressConflict = { group: string; ip: string; member: VdfVmRef; 
 export type VdfAddressOverlap = { ip: string; holders: VdfVmRef[] }
 
 // a global configuration rebuilt from the pools holding another XO's
-// global part (vdf#81), one entry per version the pools hold. exact: false
-// from pools written before the owner recorded its source (group IPs may
-// include other pools' members). The scope is the pools other pools'
-// owners confirm; the others are unconfirmed, recovered only if named
-// (pools can be written by anyone with XAPI access to them)
+// global part (vdf#81), one entry per version the pools hold, the most
+// common first. The scope is the pools holding it, whatever their owner
+// recorded (pools can be written by anyone with XAPI access to them)
 export type VdfRecoverableVersion = {
   pools: { id: string; name: string }[]
-  revision?: number
-  exact: boolean
+  revision: number
   document: VdfDocument
   scope: { pools: string[] }
-  unconfirmed: { id: string; name: string }[]
   recordedScope?: VdfGlobalScope
   errors: string[]
 }
 
-// owner id '' for a global part without a readable owner; reason: why it
-// can't be recovered here
+// reason: why it can't be recovered here
 export type VdfRecoverable = {
   owner: { id: string; name: string; since?: string }
   versions: VdfRecoverableVersion[]

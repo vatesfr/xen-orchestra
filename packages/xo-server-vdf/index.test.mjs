@@ -1064,10 +1064,7 @@ describe('recovery without a backup', () => {
       assert.deepEqual(recoverable.owner.id, lost.owner.id)
       const [version] = recoverable.versions
       assert.deepEqual(version.document, globalDocument)
-      assert.deepEqual(
-        [recoverable.versions.length, version.revision, version.scope, version.exact],
-        [1, 2, scope, true]
-      )
+      assert.deepEqual([recoverable.versions.length, version.revision, version.scope], [1, 2, scope])
 
       // the configuration is saved before any pool changes owner
       const savedFirst = []
@@ -1142,16 +1139,10 @@ describe('recovery without a backup', () => {
     try {
       const [recoverable] = (await xo.route('get', '/global')).result.recoverable
       const [version] = recoverable.versions
-      // its own marker can't confirm it
-      assert.deepEqual(
-        [version.scope, version.unconfirmed, version.recordedScope],
-        [{ pools: [] }, [{ id: 'A', name: 'Pool A' }], { all: true }]
-      )
+      // the pools holding it, whatever their owner recorded
+      assert.deepEqual([version.scope, version.recordedScope], [{ pools: ['A'] }, { all: true }])
 
-      // named explicitly, A only
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: 'forged', scope: { pools: ['A'] } },
-      })
+      const { result } = await xo.route('post', '/global/actions/recover', { body: { from: 'forged' } })
       assert.deepEqual(result.scope, { pools: ['A'] })
       const status = (await xo.route('get', '/global')).result
       assert.deepEqual(
@@ -1166,52 +1157,6 @@ describe('recovery without a backup', () => {
         xo.calls.some(call => call.pool === 'B'),
         false
       )
-    } finally {
-      plugin.unload()
-    }
-  })
-
-  test('a pool the recovery brings into the scope with own policies in the tiers kept for global ones is refused', async () => {
-    const lost = await lostXo()
-    const own = {
-      groups: { web: { tags: ['vdf:role=web'] } },
-      policies: [{ name: 'early', tier: 'emergency', appliedTo: 'web', default: 'drop', ingress: [] }],
-    }
-    const xo = fakeXo({ pools: { ...lost.pools, Q: { otherConfig: { 'vdf:policy': text(own) } } } })
-    const plugin = await loaded(xo)
-    try {
-      const refused = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['Q'] } },
-      })
-      assert.deepEqual(
-        [refused.status, refused.result.reservedTiers],
-        [409, [{ id: 'Q', name: 'Pool Q', reservedTiers: ['early'] }]]
-      )
-      assert.equal((await xo.route('get', '/global')).result.revision, 0)
-    } finally {
-      plugin.unload()
-    }
-  })
-
-  test('from pools written before the source was recorded: the same document, the scope as named', async () => {
-    const lost = await lostXo()
-    for (const { otherConfig } of Object.values(lost.pools)) {
-      const { id, name, since } = JSON.parse(otherConfig['vdf:global.owner'])
-      otherConfig['vdf:global.owner'] = JSON.stringify({ id, name, since })
-    }
-    const xo = fakeXo({ pools: lost.pools, vms: [webVm] })
-    const plugin = await loaded(xo)
-    try {
-      const [version] = (await xo.route('get', '/global')).result.recoverable[0].versions
-      assert.deepEqual(version.document, globalDocument)
-      // nothing recorded, nothing confirmed: the administrator names the pools
-      assert.deepEqual([version.revision, version.scope, version.exact], [undefined, { pools: [] }, false])
-
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { all: true } },
-      })
-      assert.equal(result.revision, 1)
-      assert.deepEqual((await xo.route('get', '/global')).result.scope, { all: true })
     } finally {
       plugin.unload()
     }
@@ -1469,28 +1414,6 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     }
   })
 
-  test("a recover scope adds to the pools confirmed, it doesn't narrow them", async t => {
-    mockTimers(t)
-    const lost = await xoA({ poolIds: ['A', 'B'] })
-    const xo = fakeXo({ pools: lost.pools })
-    const plugin = await loaded(xo)
-    try {
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['A'] } },
-      })
-      assert.deepEqual(result.scope, { pools: ['A', 'B'] })
-      const unknown = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['nope'] } },
-      })
-      assert.equal(unknown.status, 409)
-      await runSync(t)
-      assert.deepEqual(globalNames(xo, 'A'), ['global:admins', 'global:web'])
-      assert.deepEqual(globalNames(xo, 'B'), ['global:admins', 'global:web'])
-    } finally {
-      plugin.unload()
-    }
-  })
-
   test('two lost XOs: once one is recovered, the other is listed with the reason, and its pools keep their rules', async t => {
     mockTimers(t)
     const lostA = await xoA({ poolIds: ['A', 'B'] })
@@ -1540,7 +1463,14 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     const lost = await xoA({ poolIds: ['A', 'B'], scope: { pools: ['A', 'B'] }, doc })
     // P was never in A's scope. Its admin (XAPI access to P only) writes
     // A's id, read from any of A's pools or XO's UI, and any global part
-    const forged = { id: lost.owner.id, name: lost.owner.name, since: '2026-01-01T00:00:00.000Z' }
+    const forged = {
+      id: lost.owner.id,
+      name: lost.owner.name,
+      since: '2026-01-01T00:00:00.000Z',
+      revision: 1,
+      scope: { pools: ['A', 'B', 'P'] },
+      ips: {},
+    }
     const pools = {
       ...lost.pools,
       P: {
@@ -1559,7 +1489,7 @@ describe('recovery: what the pools hold can be stale or forged', () => {
         recoverable.versions.map(version => [version.revision, version.pools.map(pool => pool.id), version.scope]),
         [
           [1, ['A', 'B'], { pools: ['A', 'B'] }],
-          [undefined, ['P'], { pools: [] }],
+          [1, ['P'], { pools: ['P'] }],
         ]
       )
       const unchosen = await xo.route('post', '/global/actions/recover', { body: { from: lost.owner.id } })
@@ -1615,8 +1545,8 @@ describe('recovery: what the pools hold can be stale or forged', () => {
       assert.deepEqual(
         recoverable.versions.map(version => [version.revision, version.pools.map(pool => pool.id)]),
         [
-          [99, ['B']],
           [1, ['A', 'C']],
+          [99, ['B']],
         ]
       )
       // refused until the administrator chooses
@@ -1640,55 +1570,36 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     }
   })
 
-  test('a revision recorded as a string is ignored: the recovered configuration is revision 1, and publishable', async () => {
-    const lost = await xoA({ poolIds: ['A'] })
+  test("a pool whose owner recorded an invalid source isn't recoverable, and GET /global still works", async () => {
+    const lost = await xoA({ poolIds: ['A', 'B'] })
     const marker = JSON.parse(lost.pools.A.otherConfig['vdf:global.owner'])
     lost.pools.A.otherConfig['vdf:global.owner'] = JSON.stringify({ ...marker, revision: '7' })
+    lost.pools.B.otherConfig['vdf:global.owner'] = JSON.stringify({ ...marker, ips: { admins: 5 } })
     const xo = fakeXo({ pools: lost.pools })
     const plugin = await loaded(xo)
     try {
-      const [version] = (await xo.route('get', '/global')).result.recoverable[0].versions
-      assert.deepEqual([version.revision, version.exact], [undefined, false])
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['A'] } },
-      })
-      assert.equal(result.revision, 1)
-      const publish = await publishGlobal(xo, 1)
-      assert.equal(publish.result.published, true)
-    } finally {
-      plugin.unload()
-    }
-  })
-
-  test("a group's IPs recorded as a number are ignored: GET /global and the pool's own publishes work", async () => {
-    const lost = await xoA({ poolIds: ['A'] })
-    const marker = JSON.parse(lost.pools.A.otherConfig['vdf:global.owner'])
-    lost.pools.A.otherConfig['vdf:global.owner'] = JSON.stringify({ ...marker, ips: { admins: 5 } })
-    const xo = fakeXo({ pools: lost.pools })
-    const plugin = await loaded(xo)
-    try {
-      const [version] = (await xo.route('get', '/global')).result.recoverable[0].versions
-      assert.deepEqual([version.exact, version.document.groups.admins.ips], [false, ['192.0.2.30']])
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['A'] } },
-      })
-      assert.equal(result.takenOver[0].ok, true)
-      // the revision is valid, the IPs ignored
-      assert.equal((await xo.route('get', '/global')).result.revision, 2)
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(status.recoverable, [])
+      assert.deepEqual(
+        status.pools.map(pool => pool.state),
+        ['other-xo', 'other-xo']
+      )
+      const recover = await xo.route('post', '/global/actions/recover', { body: { from: lost.owner.id } })
+      assert.equal(recover.status, 409)
+      // the pool's own publishes keep that XO's part
       const published = await xo.route('post', '/pools/{id}/actions/publish_policy', {
-        params: { id: 'A' },
+        params: { id: 'B' },
         body: { policy: text(document()) },
       })
       assert.equal(published.result.published, true)
-      assert.deepEqual(globalNames(xo, 'A'), ['global:admins', 'global:web'])
+      assert.deepEqual(globalNames(xo, 'B'), ['global:admins', 'global:web'])
     } finally {
       plugin.unload()
     }
   })
-
-  test("a global part without a readable marker is an unknown XO's: recoverable, kept by the pool's operator", async () => {
+  test("a global part without a readable marker is an unknown XO's, kept by the pool's operator", async () => {
     const lost = await xoA({ poolIds: ['A', 'B'] })
-    // A: written before the owner marker existed; B: its marker unreadable
+    // A: its owner marker gone; B: its marker unreadable
     delete lost.pools.A.otherConfig['vdf:global.owner']
     lost.pools.B.otherConfig['vdf:global.owner'] = '{"id":'
     const operator = { id: 'op', email: 'op@example.org', permission: 'none' }
@@ -1702,10 +1613,8 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     const plugin = await loaded(xo)
     try {
       const status = (await xo.route('get', '/global')).result
-      assert.deepEqual(
-        status.recoverable.map(candidate => [candidate.owner.id, candidate.versions[0].pools.map(pool => pool.id)]),
-        [['', ['A', 'B']]]
-      )
+      // nothing recorded to rebuild it from
+      assert.deepEqual(status.recoverable, [])
       assert.deepEqual(
         status.pools.map(pool => [pool.id, pool.state, pool.ownerId]),
         [
@@ -1723,19 +1632,6 @@ describe('recovery: what the pools hold can be stale or forged', () => {
         assert.equal(result.published, true)
         assert.deepEqual(globalNames(xo, id), ['global:admins', 'global:web'])
       }
-
-      // recovered with the pools named: they hold what this XO now writes
-      const { result } = await xo.route('post', '/global/actions/recover', {
-        body: { from: '', scope: { pools: ['A', 'B'] } },
-      })
-      assert.equal(result.revision, 1)
-      assert.deepEqual(
-        (await xo.route('get', '/global')).result.pools.map(pool => [pool.id, pool.state]),
-        [
-          ['A', 'in-sync'],
-          ['B', 'in-sync'],
-        ]
-      )
     } finally {
       plugin.unload()
     }
@@ -1782,7 +1678,7 @@ describe('recovery: what the pools hold can be stale or forged', () => {
       const taken = await xo.route('post', '/global/actions/take_over_replaced', { body: { replaces: lost.owner.id } })
       assert.equal(taken.status, 409)
       const recover = await xo.route('post', '/global/actions/recover', {
-        body: { from: lost.owner.id, scope: { pools: ['A'] } },
+        body: { from: lost.owner.id },
       })
       assert.deepEqual(
         recover.result.takenOver.map(pool => [pool.id, pool.ok]),
@@ -1844,7 +1740,7 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     const xo = fakeXo({ pools: lost.pools })
     const plugin = await loaded(xo)
     try {
-      await xo.route('post', '/global/actions/recover', { body: { from: lost.owner.id, scope: { pools: ['A'] } } })
+      await xo.route('post', '/global/actions/recover', { body: { from: lost.owner.id } })
       // edits made after the recovery
       const edited = structuredClone(globalDocument)
       edited.groups.admins.ips = ['192.0.2.31']
@@ -1942,7 +1838,8 @@ describe('recovery: what the pools hold can be stale or forged', () => {
   })
 })
 
-describe('REDTEAM2: normal life on one healthy XO', () => {
+// vdf#81, second red team: normal life on one healthy XO
+describe('normal life on one XO', () => {
   const globalDocument = {
     groups: { web: { tags: ['vdf:role=web'] }, admins: { ips: ['192.0.2.30'] } },
     policies: [
@@ -1972,55 +1869,34 @@ describe('REDTEAM2: normal life on one healthy XO', () => {
   }
   const mockTimers = t => t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
 
-  test('REDTEAM2: after the upgrade, a pool unreachable until it left the scope keeps the global rules for ever', async t => {
+  test('a pool unreachable while it left the scope loses its global part once back', async t => {
     mockTimers(t)
-    // the previous plugin version published to A and B: owner markers { id, name, since }
     const store = fakeStore()
-    const before = fakeXo({ store, pools: { A: {}, B: {} } })
-    const old = await loaded(before)
-    try {
-      await publishGlobal(before, 0)
-    } finally {
-      old.unload()
-    }
-    const pools = otherConfigs(before)
-    for (const { otherConfig } of Object.values(pools)) {
-      const { id, name, since } = JSON.parse(otherConfig['vdf:global.owner'])
-      otherConfig['vdf:global.owner'] = JSON.stringify({ id, name, since })
-    }
-
-    // the upgraded plugin starts while B is down; the admin takes B out of
-    // the scope meanwhile (it's being decommissioned, its agent misbehaves...)
-    const xo = fakeXo({ store, pools })
-    xo.disconnect('B')
+    const xo = fakeXo({ store, pools: { A: {}, B: {} } })
     const plugin = await loaded(xo)
     try {
-      await runSync(t)
+      await publishGlobal(xo, 0)
+      // B is down while the admin takes it out of the scope
+      xo.disconnect('B')
       const narrowed = await publishGlobal(xo, 1, globalDocument, { pools: ['A'] })
       assert.equal(narrowed.result.ok, true)
 
-      // B comes back: the sync should drop its global part, as before the upgrade
+      // B comes back: the sync drops its global part, and the owner key
       xo.reconnect('B')
       t.mock.timers.tick(60e3) // the sync of every minute
       await runSync(t)
-      // what happens: refused, with a reason about a take over that never happened
-      assert.deepEqual(globalNames(xo, 'B'), ['global:admins', 'global:web'])
-      const status = (await xo.route('get', '/global')).result.pools.find(pool => pool.id === 'B')
-      assert.equal(status.state, 'stale-global')
-      assert.match(status.sync.error, /took the pool over since/)
-      // and the pool's own publishes are refused too
+      assert.deepEqual(globalNames(xo, 'B'), [])
+      assert.equal(ownerOf(xo, 'B'), null)
       const own = await xo.route('post', '/pools/{id}/actions/publish_policy', {
         params: { id: 'B' },
         body: { policy: text(document()) },
       })
-      assert.equal(own.result.published, false)
-      assert.match(own.result.error, /took the pool over since/)
+      assert.equal(own.result.published, true)
     } finally {
       plugin.unload()
     }
   })
-
-  test('REDTEAM2: an XOA restored from yesterday\'s VM backup is stuck: "Copy of this XO", nothing to click', async t => {
+  test("an XOA restored from yesterday's VM backup takes its pools back, confirmed", async t => {
     t.mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'], now: Date.now() })
     const store = fakeStore()
     const xoa = fakeXo({ store, pools: { A: {} } })
@@ -2042,31 +1918,29 @@ describe('REDTEAM2: normal life on one healthy XO', () => {
     try {
       await runSync(t)
       const [pool] = (await restored.route('get', '/global')).result.pools
-      // no other XO, so no Take over button (overview.vue shows it for other-xo only)
-      assert.deepEqual([pool.cloned, pool.state === 'other-xo'], [true, false])
-      // the admin's global publishes fail for good, with "give the copy an identity of its own"
+      assert.equal(pool.cloned, true)
+      // nothing written meanwhile: the pool keeps revision 2
+      assert.deepEqual(policyOf(restored, 'A').groups['global:admins'].ips, ['192.0.2.31'])
       const publish = await publishGlobal(restored, 1)
-      assert.equal(publish.result.published, false)
-      assert.equal(publish.result.pools[0].globalLoss.cloned, true)
-      // and so do the pool's own publishes
-      const own = await restored.route('post', '/pools/{id}/actions/publish_policy', {
-        params: { id: 'A' },
-        body: { policy: text(document()) },
-      })
-      assert.equal(own.result.globalLoss?.cloned, true)
-      // the only way out, API only: take the pool over from this XO itself
+      assert.deepEqual([publish.result.published, publish.result.pools[0].globalLoss.cloned], [false, true])
+
+      // Take back: a rollback, refused unless confirmed
       const { instance } = (await restored.route('get', '/global')).result
-      const taken = await restored.route('post', '/pools/{id}/actions/take_over_global', {
+      const refused = await restored.route('post', '/pools/{id}/actions/take_over_global', {
         params: { id: 'A' },
         body: { expectedOwner: instance.id },
       })
+      assert.deepEqual([refused.status, refused.result.globalLoss.cloned], [409, true])
+      assert.deepEqual(policyOf(restored, 'A').groups['global:admins'].ips, ['192.0.2.31'])
+      const taken = await restored.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'A' },
+        body: { expectedOwner: instance.id, dropGlobal: true },
+      })
       assert.equal(taken.status, 200)
-      assert.equal(ownerOf(restored, 'A').revision, undefined)
-      // which rolls the pool back at the next sync, without the dropGlobal
-      // confirmation #takeOverLoss asks for when the XO replaced held it
-      t.mock.timers.tick(60e3) // past the retry delay of the refused sync
-      await runSync(t)
+      // written at once: this XO's revision, and its own again
       assert.deepEqual(policyOf(restored, 'A').groups['global:admins'].ips, ['192.0.2.30'])
+      assert.equal(ownerOf(restored, 'A').revision, 1)
+      assert.equal((await publishGlobal(restored, 1)).result.published, true)
     } finally {
       pluginRestored.unload()
     }

@@ -480,14 +480,14 @@ const withoutIps = global => ({
   groups: Object.fromEntries(Object.entries(global.groups ?? {}).map(([name, { ips: _, ...group }]) => [name, group])),
 })
 
-// whether a pool holds this global configuration: what it would hold, its
-// groups' own IPs as its owner recorded them, if it did
+// whether a pool holds this global configuration: what it would hold, and
+// its groups' own IPs as its owner recorded them
 export function holdsGlobal(global, { owner, document }) {
   const { ips } = recordedSource(owner)
   return (
+    ips !== undefined &&
     sameDocument(heldGlobal(document), withoutIps(global)) &&
-    (ips === undefined ||
-      Object.entries(global.groups ?? {}).every(([name, group]) => sameDocument(ips[name], group.ips)))
+    Object.entries(global.groups ?? {}).every(([name, group]) => sameDocument(ips[name], group.ips))
   )
 }
 
@@ -509,57 +509,44 @@ export function globalDiff(global, document) {
 
 // Rebuilds the global configuration of an XO lost without a backup from
 // the pools holding its global part (vdf#81): [{ id, name, owner,
-// document }], owner as poolOwner reads it. One entry per version the pools
-// hold (unreachable at the last publish, edited outside XO), most recent
-// first: none is chosen here, a revision being as writable as the rest.
-// From pools whose owner recorded no valid source (written before vdf#81),
-// a version isn't exact: a group's IPs are those all its pools hold, its
-// own plus the members found in each pool's other pools.
-// The scope is the pools of the version another pool's owner recorded in
-// its scope: one pool's marker can't bring that pool in, so the others are
-// left unconfirmed, for the administrator to name.
+// document }], owner as poolOwner reads it. Only pools whose owner recorded
+// a valid source count. One entry per version they hold (unreachable at
+// the last publish, edited outside XO), the most common first: none is
+// chosen here, a revision being as writable as the rest. A version's scope
+// is the pools holding it, whatever their owner recorded.
 export function recoverGlobal(pools) {
   const versions = new Map()
   for (const pool of pools) {
+    const source = recordedSource(pool.owner)
     let held
     try {
       held = heldGlobal(pool.document)
     } catch {
       continue // not a document compose wrote
     }
-    const source = recordedSource(pool.owner)
+    if (source.revision === undefined || source.ips === undefined) {
+      continue
+    }
     const key = JSON.stringify(canonical({ revision: source.revision, ips: source.ips, held }))
     versions.set(key, [...(versions.get(key) ?? []), { ...pool, source, held }])
   }
-  const named = id => pools.some(other => other.id !== id && inScope(recordedSource(other.owner).scope, id))
-  const ref = ({ id, name }) => ({ id, name })
-  const revisionOf = version => version[0].source.revision ?? -1
   const { id, name, since } = pools[0].owner
   return {
     owner: { id, name, since },
     versions: [...versions.values()]
-      .sort((a, b) => revisionOf(b) - revisionOf(a) || b.length - a.length)
+      .sort((a, b) => b.length - a.length || b[0].source.revision - a[0].source.revision)
       .map(version => {
         const [{ source, held }] = version
-        const exact = source.revision !== undefined && source.ips !== undefined
-        const heldByAll = name =>
-          version
-            .map(pool => globalPart(pool.document).groups[globalName(name)].ips)
-            .map(ips => (Array.isArray(ips) ? ips : []))
-            .reduce((common, ips) => common.filter(ip => ips.includes(ip)))
         const groups = {}
         for (const [name, group] of Object.entries(held.groups)) {
-          const ips = exact ? source.ips[name] : heldByAll(name)
-          groups[name] = ips === undefined || (!exact && ips.length === 0) ? group : { ...group, ips }
+          groups[name] = source.ips[name] === undefined ? group : { ...group, ips: source.ips[name] }
         }
         const document = { groups, policies: held.policies }
         return {
-          pools: version.map(ref),
+          pools: version.map(({ id, name }) => ({ id, name })),
           revision: source.revision,
-          exact,
           document,
-          scope: { pools: version.filter(pool => named(pool.id)).map(pool => pool.id) },
-          unconfirmed: version.filter(pool => !named(pool.id)).map(ref),
+          scope: { pools: version.map(pool => pool.id) },
           recordedScope: source.scope,
           errors: checkGlobalDocument(document),
         }
