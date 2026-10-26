@@ -127,8 +127,9 @@ export class V2vService {
 }
 
 /**
- * A failure of the source is not a failure of XO: an invalid login is the answer the first step of the
- * wizard waits for. 422 rather than 401, which would open the Basic authentication prompt of the browser
+ * Only a refused login is an answer of the source, the one the first step of the wizard waits for: 422
+ * rather than 401, which would open the Basic authentication prompt of the browser. Any other failure,
+ * like an unreachable host or a refused certificate, is rethrown as is
  */
 function toSourceError(error: unknown, host: string): unknown {
   if (!(error instanceof Error)) {

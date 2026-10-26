@@ -24,7 +24,7 @@ describe('V2vService.toConnectionParams', function () {
     assert.equal(V2vService.toConnectionParams({ ...connection, host: '[fe80::1]' }).host, '[fe80::1]')
   })
 
-  it('renames the user', function () {
+  it('keeps the username', function () {
     assert.equal(V2vService.toConnectionParams({ ...connection, host: 'vc' }).user, 'user')
   })
 })

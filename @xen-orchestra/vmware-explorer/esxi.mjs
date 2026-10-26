@@ -123,7 +123,7 @@ function isRetryableError(error) {
  *   'config.hardware.numCPU'?: unknown,
  *   'config.hardware.memoryMB'?: unknown,
  *   'config.hardware.device'?: import('./_inventory.mjs').RawDevices,
- *   'runtime.powerState'?: string,
+ *   'runtime.powerState'?: 'poweredOff' | 'poweredOn' | 'suspended',
  *   'runtime.host'?: unknown,
  *   datastore?: unknown,
  *   network?: unknown,
@@ -639,7 +639,10 @@ export default class Esxi extends EventEmitter {
    * Only the properties used are requested: `config` as a whole is large, and read for every VM.
    * The objects reference each other through their managed object references.
    *
-   * @returns {Promise<object>}
+   * The device list of every VM is built: the wizard shows the disks and the network cards of all of
+   * them, and a start reads the inventory again so that it is planned against the current state.
+   *
+   * @returns {Promise<import('@vates/types').VmwareInventory>}
    */
   async getInventory() {
     await this.#connected
