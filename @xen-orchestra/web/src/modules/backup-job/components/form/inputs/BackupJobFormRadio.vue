@@ -1,6 +1,7 @@
 <template>
   <UiRadioButtonGroup
     class="backup-job-form-radio"
+    :class="{ 'with-descriptions': hasDescriptions }"
     accent="brand"
     :gap="vertical || uiStore.isSmall ? 'narrow' : 'wide'"
     :vertical
@@ -26,8 +27,9 @@ import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { computed } from 'vue'
 
-defineProps<{
+const { options } = defineProps<{
   label: string
   options: { label: string; value: TValue; disabled?: boolean; description?: string }[]
   vertical?: boolean
@@ -40,11 +42,17 @@ const slots = defineSlots<{
 }>()
 
 const uiStore = useUiStore()
+
+const hasDescriptions = computed(() => options.some(option => option.description !== undefined))
 </script>
 
 <style lang="postcss" scoped>
 .backup-job-form-radio {
   :deep(.group.vertical) {
+    gap: 0.8rem;
+  }
+
+  &.with-descriptions :deep(.group.vertical) {
     gap: 1.6rem;
   }
 
