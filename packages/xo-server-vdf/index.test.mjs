@@ -1102,6 +1102,51 @@ describe('recovery without a backup', () => {
     }
   })
 
+  test("a pool's marker can't widen the scope: anyone with XAPI access to one pool can write it", async () => {
+    const forged = {
+      groups: { 'global:all': { tags: ['vdf:role=web'], ips: [] } },
+      policies: [
+        {
+          name: 'global:lockdown',
+          tier: 'emergency',
+          appliedTo: 'global:all',
+          default: 'drop',
+          ingress: [{ id: 0x800001, from: 'any', proto: 'tcp', ports: [22] }],
+        },
+      ],
+    }
+    const owner = { id: 'forged', name: 'xo-forged', revision: 9, scope: { all: true }, ips: {} }
+    const xo = fakeXo({
+      pools: {
+        A: { otherConfig: { 'vdf:policy': text(forged), 'vdf:global.owner': JSON.stringify(owner) } },
+        B: {},
+      },
+    })
+    const plugin = await loaded(xo)
+    try {
+      const [recoverable] = (await xo.route('get', '/global')).result.recoverable
+      assert.deepEqual([recoverable.scope, recoverable.recordedScope], [{ pools: ['A'] }, { all: true }])
+
+      const { result } = await xo.route('post', '/global/actions/recover', { body: { from: 'forged' } })
+      assert.deepEqual(result.scope, { pools: ['A'] })
+      const status = (await xo.route('get', '/global')).result
+      assert.deepEqual(
+        status.pools.map(pool => [pool.id, pool.inScope, pool.state]),
+        [
+          ['A', true, 'in-sync'],
+          ['B', false, 'out-of-scope'],
+        ]
+      )
+      assert.deepEqual(xo.xapis.B.pool.other_config, {})
+      assert.equal(
+        xo.calls.some(call => call.pool === 'B'),
+        false
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('from pools written before the source was recorded: the same document, the pools as the scope', async () => {
     const lost = await lostXo()
     for (const { otherConfig } of Object.values(lost.pools)) {

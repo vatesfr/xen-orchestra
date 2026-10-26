@@ -468,10 +468,14 @@ function heldGlobal(document) {
 // document }], owner as poolOwner reads it. Pools holding different
 // versions (unreachable at the last publish, edited outside XO): the
 // highest recorded revision wins, else the most common version, and the
-// others are reported (differs). From pools whose owner recorded no source
-// (written before vdf#81), the result isn't exact: a group's IPs are those
-// all the pools hold, its own plus the members found in each pool's other
-// pools, and the scope is the pools holding it.
+// others, whose global part will change, are reported (differs). From pools
+// whose owner recorded no source (written before vdf#81), the result isn't
+// exact: a group's IPs are those all the pools hold, its own plus the
+// members found in each pool's other pools.
+// What a pool holds can be written by anyone with XAPI access to it, so the
+// scope is capped to the pools holding the global part, whatever the owner
+// recorded (recordedScope): a forged marker in one pool can't reach the
+// others.
 export function recoverGlobal(pools) {
   const versions = new Map()
   for (const pool of pools) {
@@ -498,7 +502,8 @@ export function recoverGlobal(pools) {
     owner: { id: owner.id, name: owner.name, since: owner.since },
     document: { groups, policies: held.policies },
     revision: owner.revision,
-    scope: exact ? owner.scope : { pools: pools.map(pool => pool.id) },
+    scope: { pools: pools.map(pool => pool.id) },
+    recordedScope: owner.scope,
     exact,
     pools: chosen.map(ref),
     differs: pools.filter(pool => !chosen.some(other => other.id === pool.id)).map(ref),

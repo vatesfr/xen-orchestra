@@ -466,7 +466,9 @@ describe('recoverGlobal', () => {
       owner: lost,
       document: EGRESS,
       revision: 4,
-      scope: { all: true },
+      // capped to the pools holding it
+      scope: { pools: ['A', 'B'] },
+      recordedScope: { all: true },
       exact: true,
       pools: [
         { id: 'A', name: 'A' },

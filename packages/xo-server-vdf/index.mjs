@@ -1440,7 +1440,8 @@ class VdfPlugin {
           scope: {
             ...BODY_GLOBAL.scope,
             optional: true,
-            description: 'the recorded scope (or, from pools written before vdf#81, the pools holding it) otherwise',
+            description:
+              'the pools holding the global part otherwise, whatever scope its owner recorded (recoverable[].recordedScope)',
           },
         },
         middlewares: [{ name: 'json' }],
