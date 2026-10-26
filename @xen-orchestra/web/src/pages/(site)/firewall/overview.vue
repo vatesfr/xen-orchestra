@@ -669,16 +669,37 @@ const recoverable = computed(() => globalStatus.value?.recoverable ?? [])
 
 const isRecovering = ref(false)
 
+const scopeNames = (scope: VdfGlobalScope) =>
+  scope.all
+    ? t('firewall:global:scope:all', { n: pools.value.length })
+    : formatList((scope.pools ?? []).map(id => pools.value.find(pool => pool.id === id)?.name ?? id))
+
+// what's adopted, the pools being writable by anyone with XAPI access to
+// them: counts, tiers, and the scope, the recorded one flagged if wider
+function recoverySummary({ document, scope, recordedScope }: VdfRecoverable) {
+  const summary = t('firewall:global:recover:summary', {
+    groups: Object.keys(document.groups).length,
+    policies: document.policies.length,
+    rules: document.policies.reduce((count, policy) => count + allRules(policy).length, 0),
+    tiers: formatList(policiesByTier(document).map(tier => tierLabel(tier.value))),
+    pools: scopeNames(scope),
+  })
+
+  return recordedScope === undefined || isEqual(recordedScope, scope)
+    ? summary
+    : `${summary} ${t('firewall:global:recover:recorded-scope', { scope: scopeNames(recordedScope) })}`
+}
+
 async function recover(lost: VdfRecoverable) {
   const response = await openTakeOver({
     props: {
       accent: 'warning',
       icon: 'fa:link',
       title: t('firewall:global:recover:title', { xo: lost.owner.name }),
-      message: t('firewall:global:recover:message', {
+      message: `${t('firewall:global:recover:message', {
         xo: lost.owner.name,
         pools: formatList(lost.pools.map(pool => pool.name)),
-      }),
+      })} ${recoverySummary(lost)}`,
       confirmLabel: t('firewall:global:recover'),
     },
   })

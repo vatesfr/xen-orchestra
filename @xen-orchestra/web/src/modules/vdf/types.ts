@@ -175,12 +175,15 @@ export type VdfAddressOverlap = { ip: string; holders: VdfVmRef[] }
 
 // a global configuration rebuilt from the pools holding another XO's
 // global part (vdf#81); exact: false from pools written before the owner
-// recorded its source (group IPs may include other pools' members)
+// recorded its source (group IPs may include other pools' members). The
+// scope is the pools holding it: what the owner recorded is shown only
+// (pools can be written by anyone with XAPI access to them)
 export type VdfRecoverable = {
   owner: { id: string; name: string; since?: string }
   document: VdfDocument
   revision?: number
   scope: VdfGlobalScope
+  recordedScope?: VdfGlobalScope
   exact: boolean
   pools: { id: string; name: string }[]
   differs: { id: string; name: string }[]

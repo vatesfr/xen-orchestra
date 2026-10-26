@@ -568,6 +568,8 @@
   "firewall:global:recover:info": "{xo} est peut-être perdu sans sauvegarde : ses règles globales sont toujours appliquées, mais personne ne peut les modifier. La récupération reconstruit sa configuration à partir de ce que portent les pools, l'enregistre ici, puis reprend ses pools : ils continuent d'appliquer les mêmes règles.",
   "firewall:global:recover:message": "Ce XO enregistre la configuration globale que portent {pools}, puis les reprend, et {xo} cesse d'y écrire. À faire uniquement si {xo} a disparu pour de bon : s'il tourne encore, importez plutôt son export de configuration ici.",
   "firewall:global:recover:pools": "1 pool applique une configuration globale de {xo} que ce XO n'a pas : {pools} | {n} pools appliquent une configuration globale de {xo} que ce XO n'a pas : {pools}",
+  "firewall:global:recover:recorded-scope": "Son XO avait enregistré une autre portée ({scope}) : elle n'est pas reprise, puisque n'importe quel pool peut la porter. Changez la portée une fois récupérée si besoin.",
+  "firewall:global:recover:summary": "Repris : groupes {groups}, politiques {policies}, règles {rules}, niveaux {tiers}. Portée : {pools}.",
   "firewall:global:recover:title": "Récupérer la configuration globale de {xo} ?",
   "firewall:global:replaces": "Remplace {xo}",
   "firewall:global:replaces:info": "La configuration de ce XO a été importée depuis {xo}. Il garde sa propre identité, pour que les deux XO n'écrivent jamais dans les mêmes pools : les pools que gère {xo} restent les siens jusqu'à ce que vous les repreniez.",
