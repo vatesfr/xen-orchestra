@@ -13,6 +13,7 @@ import {
 
 export type JsonSchemaValueDisplay =
   | { kind: 'text'; text: string | undefined }
+  | { kind: 'list'; items: string[] }
   | { kind: 'secret' }
   | { kind: 'boolean'; enabled: boolean }
   | { kind: 'xo-object'; objectType: XoObjectType; ids: string[] }
@@ -76,6 +77,12 @@ function getValueDisplay(name: string, schema: JsonSchema, value: unknown): Json
     const ids = [value].flat().filter(id => typeof id === 'string')
 
     return { kind: 'xo-object', objectType: reference.objectType, ids }
+  }
+
+  if (Array.isArray(value)) {
+    const items = value.map(item => formatValue(schema.items ?? {}, item)).filter(item => item !== undefined)
+
+    return items.length > 0 ? { kind: 'list', items } : { kind: 'text', text: undefined }
   }
 
   return { kind: 'text', text: formatValue(schema, value) }

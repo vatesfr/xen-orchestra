@@ -95,11 +95,21 @@ describe('getJsonSchemaValueSections', () => {
         'error',
         'success',
       ])
-    ).toMatchObject({ text: 'Error, Success' })
+    ).toMatchObject({ kind: 'list', items: ['Error', 'Success'] })
   })
 
   it('skips the empty items of an array', () => {
-    expect(getRow({ type: 'array', items: { type: 'string' } }, ['web', '', 'db'])).toMatchObject({ text: 'web, db' })
+    expect(getRow({ type: 'array', items: { type: 'string' } }, ['web', '', 'db'])).toMatchObject({
+      kind: 'list',
+      items: ['web', 'db'],
+    })
+  })
+
+  it('displays an array of empty items as an empty value', () => {
+    expect(getRow({ type: 'array', items: { type: 'string' } }, ['', null])).toMatchObject({
+      kind: 'text',
+      text: undefined,
+    })
   })
 
   it('displays an object without properties as JSON', () => {

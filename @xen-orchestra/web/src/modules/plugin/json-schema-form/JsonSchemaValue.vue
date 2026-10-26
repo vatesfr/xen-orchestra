@@ -11,6 +11,9 @@
         <template v-if="row.kind !== 'text'" #value>
           <template v-if="row.kind === 'secret'">{{ SECRET_MASK }}</template>
           <VtsStatus v-else-if="row.kind === 'boolean'" :status="row.enabled" />
+          <div v-else-if="row.kind === 'list'" class="list">
+            <span v-for="(item, index) of row.items" :key="index">{{ item }}</span>
+          </div>
           <JsonSchemaXoObjectValue v-else :object-type="row.objectType" :ids="row.ids" />
         </template>
       </VtsTabularKeyValueRow>
@@ -49,3 +52,11 @@ const sections = computed(() =>
   }))
 )
 </script>
+
+<style lang="postcss" scoped>
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+</style>

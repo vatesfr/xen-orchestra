@@ -90,6 +90,18 @@ it('shows the ID of an unknown XO object', () => {
   expect(wrapper.getComponent(UiLink).text()).toBe('vm-1')
 })
 
+it('shows the items of an array one per line', () => {
+  const wrapper = mountValue(
+    { uris: { type: 'array', title: 'URIs', items: { type: 'string' } } },
+    { uris: ['ldap://a.example.org', 'ldap://b.example.org'] }
+  )
+
+  expect(wrapper.findAll('.list > span').map(item => item.text())).toEqual([
+    'ldap://a.example.org',
+    'ldap://b.example.org',
+  ])
+})
+
 it('shows tags as tags', () => {
   const wrapper = mountValue({ tags: { type: 'array', items: { type: 'string', $type: 'Tag' } } }, { tags: ['prod'] })
 
