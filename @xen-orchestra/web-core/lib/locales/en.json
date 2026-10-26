@@ -1278,6 +1278,7 @@
   "firewall:trace:step:unrevoke": "Allowed again by {vm}'s outbound rules: revocation lifted, on to the destination",
   "firewall:trace:title": "Trace a connection",
   "firewall:trace:to": "To",
+  "firewall:trace:typed-address": "The address {ip}",
   "firewall:trace:verdict:allowed": "Allowed",
   "firewall:trace:verdict:dropped": "Dropped",
   "firewall:trace:verdict:not-delivered": "Allowed by policy, not delivered",

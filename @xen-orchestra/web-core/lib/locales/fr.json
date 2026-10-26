@@ -1278,6 +1278,7 @@
   "firewall:trace:step:unrevoke": "De nouveau autorisée par les règles sortantes de {vm} : révocation levée, vers la destination",
   "firewall:trace:title": "Tracer une connexion",
   "firewall:trace:to": "Vers",
+  "firewall:trace:typed-address": "L'adresse {ip}",
   "firewall:trace:verdict:allowed": "Autorisé",
   "firewall:trace:verdict:dropped": "Bloqué",
   "firewall:trace:verdict:not-delivered": "Autorisé par la politique, non remis",

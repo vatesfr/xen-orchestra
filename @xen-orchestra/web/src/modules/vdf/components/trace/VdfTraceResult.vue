@@ -198,7 +198,7 @@ function stageLabel(stage: VdfTraceStage) {
   }
 
   if (stage.tier === undefined) {
-    return stage.text
+    return xoNames(stage.text)
   }
 
   const tier = tierLabel(stage.tier)
@@ -225,7 +225,14 @@ function stageLabel(stage: VdfTraceStage) {
         })
   }
 
-  return stage.text
+  return xoNames(stage.text)
+}
+
+// the agent's own words name the global configuration's groups and
+// policies as the pool's document does (`global:admins`): as the rest of
+// XO does ("admins (global)")
+function xoNames(text: string) {
+  return text.replace(/\bglobal:([\w.-]+)/g, (_, name: string) => t('firewall:global-name', { name }))
 }
 
 const explanation = computed(() =>

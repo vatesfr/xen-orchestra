@@ -61,6 +61,7 @@
 
 <script lang="ts" setup>
 import type { VdfProtocol, VdfTraceRequest } from '@/modules/vdf/types.ts'
+import { canonicalAddress } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -69,7 +70,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { computed, nextTick, onMounted, reactive, toRef, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, type Ref, shallowRef, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // interfaces: those with an address, for a VM with several (vdf#36)
@@ -140,21 +141,77 @@ const endOptions = computed(() => [
   { id: EXTERNAL, label: t('firewall:trace:external-address'), disabled: false },
 ])
 
-const { id: fromSelectId } = useFormSelect(endOptions, {
-  model: toRef(form, 'from'),
-  searchable: true,
-  required: true,
-  placeholder: t('firewall:trace:end:placeholder'),
-  option: { id: 'id', value: 'id', label: 'label', disabled: option => option.disabled },
-})
+// an address typed in an end's search is an option of its own: picking it
+// fills the external address (the agents resolve an address of a VM)
+const ADDRESS_PREFIX = 'address:'
 
-const { id: toSelectId } = useFormSelect(endOptions, {
-  model: toRef(form, 'to'),
-  searchable: true,
-  required: true,
-  placeholder: t('firewall:trace:end:placeholder'),
-  option: { id: 'id', value: 'id', label: 'label', disabled: option => option.disabled },
-})
+function withTypedAddress(search: string | undefined) {
+  const address = canonicalAddress((search ?? '').trim())?.address
+
+  return address === undefined
+    ? endOptions.value
+    : [
+        {
+          id: ADDRESS_PREFIX + address,
+          label: t('firewall:trace:typed-address', { ip: address }),
+          disabled: false,
+        },
+        ...endOptions.value,
+      ]
+}
+
+// the selects' search terms, once they exist
+const fromSearch = shallowRef<Ref<string>>(ref(''))
+
+const toSearch = shallowRef<Ref<string>>(ref(''))
+
+const fromSelect = useFormSelect(
+  computed(() => withTypedAddress(fromSearch.value.value)),
+  {
+    model: toRef(form, 'from'),
+    searchable: true,
+    required: true,
+    placeholder: t('firewall:trace:end:placeholder'),
+    option: { id: 'id', value: 'id', label: 'label', disabled: option => option.disabled },
+  }
+)
+
+const toSelect = useFormSelect(
+  computed(() => withTypedAddress(toSearch.value.value)),
+  {
+    model: toRef(form, 'to'),
+    searchable: true,
+    required: true,
+    placeholder: t('firewall:trace:end:placeholder'),
+    option: { id: 'id', value: 'id', label: 'label', disabled: option => option.disabled },
+  }
+)
+
+fromSearch.value = fromSelect.searchTerm
+
+toSearch.value = toSelect.searchTerm
+
+const { id: fromSelectId } = fromSelect
+
+const { id: toSelectId } = toSelect
+
+// a typed address picked: the external address, filled in
+watch(
+  () => [form.from, form.to],
+  async ([from, to]) => {
+    if (from.startsWith(ADDRESS_PREFIX)) {
+      form.fromIp = from.slice(ADDRESS_PREFIX.length)
+      await nextTick()
+      form.from = EXTERNAL
+    }
+
+    if (to.startsWith(ADDRESS_PREFIX)) {
+      form.toIp = to.slice(ADDRESS_PREFIX.length)
+      await nextTick()
+      form.to = EXTERNAL
+    }
+  }
+)
 
 // a select only flags the options it holds when its model changes: when the
 // VMs show up after mount (prefilled from a link), select the ends again
