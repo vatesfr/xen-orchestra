@@ -196,9 +196,20 @@
               <span class="secondary typo-body-regular-small">{{ tierLabel(row.tier) }}</span>
             </UiTableCell>
             <UiTableCell>
-              <UiLink :to="row.route" size="small" :icon="row.isGlobal ? 'fa:globe' : undefined">
-                {{ displayName(row.policy.name) }}
-              </UiLink>
+              <span class="policy-cell">
+                <UiLink :to="row.route" size="small" :icon="row.isGlobal ? 'fa:globe' : undefined">
+                  {{ displayName(row.policy.name) }}
+                </UiLink>
+                <UiTag
+                  v-if="row.untrusted.length > 0"
+                  v-tooltip="t('firewall:untrusted:info', { vms: formatList(row.untrusted) })"
+                  accent="warning"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{ t('firewall:untrusted') }}
+                </UiTag>
+              </span>
             </UiTableCell>
             <UiTableCell>
               <VdfGroupChip
@@ -293,6 +304,7 @@ import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { hostWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
@@ -336,7 +348,7 @@ const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
-const { t, n } = useI18n()
+const { t, n, locale } = useI18n()
 
 const tierLabel = useVdfTierLabel()
 
@@ -492,6 +504,10 @@ const hostSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 
 // POLICIES
 
+const { untrustedInPolicy } = useVdfUntrustedMembers(() => pool.id, publishedDocument)
+
+const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
+
 const ruleCount = computed(() =>
   publishedDocument.value.policies.reduce((count, policy) => count + allRules(policy).length, 0)
 )
@@ -519,6 +535,8 @@ const policyRows = computed(() =>
         accent,
         isGlobal: isGlobalName(policy.name),
         route: vdfPageRoute(pool.id, 'policies', { policy: policy.name }),
+        // vdf#41: its VMs or its rules' peers with addresses their guests choose
+        untrusted: isMonitored(policy) ? [] : untrustedInPolicy(policy),
       }
     })
   )
@@ -646,6 +664,13 @@ const hasStatus = computed(
       align-items: center;
       gap: 0.8rem;
     }
+  }
+
+  .policy-cell {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
   }
 
   .status-strip {

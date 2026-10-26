@@ -19,7 +19,18 @@
     <div v-else class="vm-firewall">
       <div class="status">
         <UiAlert :accent="statusAccent" class="status-alert">
-          <span class="typo-body-bold">{{ t(`firewall:vm:status:${protection}`) }}</span>
+          <span class="status-title">
+            <span class="typo-body-bold">{{ t(`firewall:vm:status:${protection}`) }}</span>
+            <UiTag
+              v-if="untrustedMembers.length > 0"
+              v-tooltip="t('firewall:untrusted:info', { vms: formatList(untrustedMembers) })"
+              accent="warning"
+              variant="secondary"
+              tabindex="0"
+            >
+              {{ t('firewall:untrusted') }}
+            </UiTag>
+          </span>
           <template #description>{{ statusDetail }}</template>
         </UiAlert>
         <div class="status-actions">
@@ -176,6 +187,7 @@ import { useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
@@ -197,6 +209,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -294,6 +307,24 @@ const statusDetail = computed(() => {
   }
 
   return t(`firewall:vm:status:${protection.value}:detail`, params)
+})
+
+// UNTRUSTED MEMBERS (vdf#41): the VM, or the peers its enforced policies
+// allow or drop, with addresses their guests choose (an interface not
+// locked, or one XAPI can't lock while an SDN controller is registered)
+
+const { untrustedInPolicy, isVmUntrusted } = useVdfUntrustedMembers(() => vm.$pool, publishedDocument)
+
+const untrustedMembers = computed(() => {
+  if (protection.value !== 'protected' && protection.value !== 'outdated' && protection.value !== 'exposed') {
+    return []
+  }
+
+  const peers = appliedPolicies.value
+    .filter(policy => !isMonitored(policy))
+    .flatMap(policy => untrustedInPolicy(policy, { peersOnly: true }))
+
+  return [...new Set([...(isVmUntrusted(vm) ? [vm.name_label] : []), ...peers])].sort((a, b) => a.localeCompare(b))
 })
 
 // GROUPS: membership is tags, written at once (no draft), after a
@@ -418,6 +449,13 @@ const { confirmLock } = useVdfLock()
   flex-direction: column;
   gap: 0.8rem;
   margin: 0.8rem;
+
+  .status-title {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+  }
 
   .status {
     display: flex;
