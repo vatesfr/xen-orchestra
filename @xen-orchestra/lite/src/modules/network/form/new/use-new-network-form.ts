@@ -6,6 +6,8 @@ import { type FormValidationConfig, integer, outOfRange, required, withMessage }
 import { reactive, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const VLAN_RANGE = { min: 0, max: 4094 }
+
 export type NewNetworkFormData = BaseNetworkFormData & {
   pifRef: XenApiPif['$ref'] | undefined
   vlan: number | undefined
@@ -35,8 +37,8 @@ export function useNewNetworkForm() {
     warnings: {
       onBlur: () => ({
         vlan: {
-          outOfRange: withMessage(outOfRange(0, 4094), () =>
-            t('network-create:warning:vlan-out-of-range', { max: 4094 })
+          outOfRange: withMessage(outOfRange(VLAN_RANGE.min, VLAN_RANGE.max), () =>
+            t('network-create:warning:vlan-out-of-range', VLAN_RANGE)
           ),
         },
       }),

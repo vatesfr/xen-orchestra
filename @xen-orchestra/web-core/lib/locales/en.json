@@ -853,7 +853,7 @@
   "network-block-device": "Network Block Device (NBD)",
   "network-config": "Network config",
   "network-create:warning:mtu-out-of-range": "MTU should be between {min} and {max}.",
-  "network-create:warning:vlan-out-of-range": "VLAN should be between 0 and {max}.",
+  "network-create:warning:vlan-out-of-range": "VLAN should be between {min} and {max}.",
   "network-default": "Network default",
   "network-download": "Download",
   "network-information": "Network information",

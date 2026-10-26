@@ -30,7 +30,7 @@ vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'
   useXoNetworkCollection: (() => ({ getNetworkById: () => undefined })) as unknown as typeof useXoNetworkCollection,
 }))
 
-const VLAN_MAX = 4094
+const VLAN_RANGE = { min: 0, max: 4094 }
 
 function mountNewNetworkForm() {
   return mountComposable(() => {
@@ -75,17 +75,17 @@ describe('vlanInputBindings', () => {
   it('warns when the VLAN is out of range', async () => {
     const result = mountNewNetworkForm()
 
-    await blurVlan(result, VLAN_MAX + 1)
+    await blurVlan(result, VLAN_RANGE.max + 1)
 
     expect(result.vlanInputBindings.warning).toMatchObject({
-      content: result.t('network-create:warning:vlan-out-of-range', { max: VLAN_MAX }),
+      content: result.t('network-create:warning:vlan-out-of-range', VLAN_RANGE),
     })
   })
 
   it('does not warn for a VLAN within range', async () => {
     const result = mountNewNetworkForm()
 
-    await blurVlan(result, VLAN_MAX)
+    await blurVlan(result, VLAN_RANGE.max)
 
     expect(result.vlanInputBindings.warning).toBeUndefined()
   })

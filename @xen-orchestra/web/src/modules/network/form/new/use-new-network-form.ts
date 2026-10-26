@@ -7,6 +7,8 @@ import { type FormValidationConfig, outOfRange, required, withMessage } from '@c
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const VLAN_RANGE = { min: 0, max: 4094 }
+
 export type NewNetworkFormData = BaseNetworkFormData & {
   pif: FrontXoPif['id'] | undefined
   vlan: number | undefined
@@ -25,8 +27,6 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
 
   const { t } = useI18n()
 
-  const vlanMax = 4094
-
   const extraConfig: FormValidationConfig<NewNetworkFormData> = {
     errors: {
       onSubmit: () => ({
@@ -37,8 +37,8 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
     warnings: {
       onBlur: () => ({
         vlan: {
-          outOfRange: withMessage(outOfRange(0, vlanMax), () =>
-            t('network-create:warning:vlan-out-of-range', { max: vlanMax })
+          outOfRange: withMessage(outOfRange(VLAN_RANGE.min, VLAN_RANGE.max), () =>
+            t('network-create:warning:vlan-out-of-range', VLAN_RANGE)
           ),
         },
       }),
@@ -64,9 +64,14 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
 
   async function validateAndBuildPayload(): Promise<NewNetworkPayload | undefined> {
     const valid = await validate()
+
+    if (!valid) {
+      return undefined
+    }
+
     const basePayload = buildBasePayload()
 
-    if (!valid || formData.pif === undefined || formData.vlan === undefined || basePayload === undefined) {
+    if (formData.pif === undefined || formData.vlan === undefined || basePayload === undefined) {
       return undefined
     }
 

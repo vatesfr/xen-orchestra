@@ -3,7 +3,6 @@ import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-sele
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useFormSelect } from '@core/packages/form-select'
 import { type FormValidationConfig, required, withMessage } from '@core/packages/form-validation'
 import { BOND_MODE } from '@vates/types'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
@@ -48,6 +47,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     descriptionInputBindings,
     mtuInputBindings,
     nbdRadioBindings,
+    useFormSelect,
   } = useNetworkFormBase(_poolId, formData, extraConfig)
 
   const { interfacesSelectId } = useNetworkPifSelect(selectedPool, toRef(formData, 'pifs'), {
@@ -56,17 +56,21 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     value: pif => ({ id: pif.id }),
   })
 
-  const { id: bondModeSelectId } = useFormSelect(BOND_MODES, {
+  const { id: bondModeSelectId } = useFormSelect('bondMode', BOND_MODES, {
     searchable: false,
     required: true,
-    model: toRef(formData, 'bondMode'),
   })
 
   async function validateAndBuildPayload(): Promise<NewBondedNetworkPayload | undefined> {
     const valid = await validate()
+
+    if (!valid) {
+      return undefined
+    }
+
     const basePayload = buildBasePayload()
 
-    if (!valid || formData.bondMode === undefined || basePayload === undefined) {
+    if (formData.bondMode === undefined || basePayload === undefined) {
       return undefined
     }
 
@@ -84,7 +88,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     mtuInputBindings,
     nbdRadioBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, 'pifs', () => ({ label: t('interfaces') })),
-    bondModeSelectBindings: useSelect(bondModeSelectId, 'bondMode', () => ({ label: t('bond-mode') })),
+    bondModeSelectBindings: useSelect(bondModeSelectId, () => ({ label: t('bond-mode') })),
     validateAndBuildPayload,
   }
 }

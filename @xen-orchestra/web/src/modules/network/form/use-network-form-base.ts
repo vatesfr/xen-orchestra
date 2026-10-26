@@ -11,6 +11,8 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import { type MaybeRefOrGetter, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const MTU_RANGE = { min: 1280, max: 9000 }
+
 // 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
 export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
 
@@ -41,8 +43,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const { t } = useI18n()
 
-  const mtuRange = { min: 1280, max: 9000 }
-
   const baseConfig: FormValidationConfig<BaseNetworkFormData> = {
     errors: {
       onSubmit: () => ({
@@ -53,8 +53,8 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     warnings: {
       onBlur: () => ({
         mtu: {
-          outOfRange: withMessage(outOfRange(mtuRange.min, mtuRange.max), () =>
-            t('network-create:warning:mtu-out-of-range', mtuRange)
+          outOfRange: withMessage(outOfRange(MTU_RANGE.min, MTU_RANGE.max), () =>
+            t('network-create:warning:mtu-out-of-range', MTU_RANGE)
           ),
         },
       }),

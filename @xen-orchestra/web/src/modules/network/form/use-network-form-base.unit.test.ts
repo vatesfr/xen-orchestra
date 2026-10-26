@@ -32,7 +32,7 @@ function mountNetworkFormBase(
       name: '',
       description: '',
       mtu: undefined,
-      nbd: false,
+      nbd: 'none',
       ...initialData,
     })
 
@@ -111,7 +111,7 @@ describe('buildBasePayload', () => {
       name: 'Network',
       description: 'Storage traffic',
       mtu: 9000,
-      nbd: true,
+      nbd: 'nbd',
     })
 
     expect(result.buildBasePayload()).toEqual({
