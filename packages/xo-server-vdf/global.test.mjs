@@ -8,6 +8,7 @@ import {
   compose,
   duplicateAddresses,
   GLOBAL_RULE_BASE,
+  globalDiff,
   globalMembers,
   globalSource,
   keepGlobalPart,
@@ -457,55 +458,86 @@ describe('recoverGlobal', () => {
     document: compose(LOCAL, global.document, { app: remote }),
   })
 
-  test("compose, then recover: the same document, scope and revision, whatever the pool's members", () => {
+  test("compose, then recover: the same document and revision, whatever the pool's members", () => {
     const global = { document: EGRESS, revision: 4, scope: { all: true } }
     const source = globalSource(global)
     assert.deepEqual(source.ips, { admins: ['192.0.2.30'] })
     const recovered = recoverGlobal([held('A', global, ['10.1.0.5'], source), held('B', global, ['10.2.0.5'], source)])
     assert.deepEqual(recovered, {
       owner: lost,
-      document: EGRESS,
-      revision: 4,
-      // capped to the pools holding it
-      scope: { pools: ['A', 'B'] },
-      recordedScope: { all: true },
-      exact: true,
-      pools: [
-        { id: 'A', name: 'A' },
-        { id: 'B', name: 'B' },
+      versions: [
+        {
+          pools: [
+            { id: 'A', name: 'A' },
+            { id: 'B', name: 'B' },
+          ],
+          revision: 4,
+          exact: true,
+          document: EGRESS,
+          // each pool named by the other's owner
+          scope: { pools: ['A', 'B'] },
+          unconfirmed: [],
+          recordedScope: { all: true },
+          errors: [],
+        },
       ],
-      differs: [],
     })
   })
 
-  test('written before the source was recorded: the IPs all the pools hold, the pools as the scope', () => {
-    const global = { document: GLOBAL }
-    const recovered = recoverGlobal([held('A', global, ['10.1.0.5']), held('B', global, ['10.2.0.5'])])
-    assert.deepEqual(recovered.document, GLOBAL)
-    assert.deepEqual([recovered.revision, recovered.exact], [undefined, false])
-    assert.deepEqual(recovered.scope, { pools: ['A', 'B'] })
-    // one pool: its own members are resolved by its agents, the others' are
-    // indistinguishable from typed addresses
-    assert.deepEqual(recoverGlobal([held('A', global, ['10.1.0.5'])]).document.groups.app.ips, ['10.1.0.5'])
+  test('a pool no other pool records in its scope is unconfirmed, whatever its own marker says', () => {
+    const global = { document: GLOBAL, revision: 1, scope: { all: true } }
+    const [version] = recoverGlobal([held('A', global, [], globalSource(global))]).versions
+    assert.deepEqual([version.scope, version.unconfirmed], [{ pools: [] }, [{ id: 'A', name: 'A' }]])
+    const narrow = { ...global, scope: { pools: ['A'] } }
+    const [both] = recoverGlobal([
+      held('A', global, [], globalSource(narrow)),
+      held('B', global, [], globalSource(narrow)),
+    ]).versions
+    assert.deepEqual([both.scope, both.unconfirmed], [{ pools: ['A'] }, [{ id: 'B', name: 'B' }]])
   })
 
-  test('pools that differ: the highest revision, else the most common version', () => {
+  test('written before the source was recorded: the IPs all the pools hold, nothing confirmed', () => {
+    const global = { document: GLOBAL }
+    const [version] = recoverGlobal([held('A', global, ['10.1.0.5']), held('B', global, ['10.2.0.5'])]).versions
+    assert.deepEqual(version.document, GLOBAL)
+    assert.deepEqual([version.revision, version.exact, version.scope], [undefined, false, { pools: [] }])
+    // one pool: its own members are resolved by its agents, the others' are
+    // indistinguishable from typed addresses
+    const [one] = recoverGlobal([held('A', global, ['10.1.0.5'])]).versions
+    assert.deepEqual(one.document.groups.app.ips, ['10.1.0.5'])
+  })
+
+  test('a recorded source that is not valid is ignored, the version not exact', () => {
+    const global = { document: GLOBAL, revision: 1, scope: { all: true } }
+    for (const bad of [{ revision: '7' }, { revision: -1 }, { revision: 1.5 }, { ips: { admins: 5 } }, { ips: [1] }]) {
+      const [version] = recoverGlobal([held('A', global, [], { ...globalSource(global), ...bad })]).versions
+      assert.equal(version.exact, false, JSON.stringify(bad))
+      assert.ok(version.revision === undefined || Number.isSafeInteger(version.revision))
+    }
+    const [scoped] = recoverGlobal([
+      held('A', global, [], { ...globalSource(global), scope: 'all' }),
+      held('B', global, [], { ...globalSource(global), scope: { pools: 5 } }),
+    ]).versions
+    assert.deepEqual(scoped.scope, { pools: [] })
+  })
+
+  test('pools that differ: every version, most recent first, none chosen', () => {
     const v1 = { document: GLOBAL, revision: 1, scope: { all: true } }
     const v2 = { document: EGRESS, revision: 2, scope: { all: true } }
-    const recovered = recoverGlobal([
+    const { versions } = recoverGlobal([
       held('A', v1, [], globalSource(v1)),
       held('B', v1, [], globalSource(v1)),
       held('C', v2, [], globalSource(v2)),
     ])
-    assert.deepEqual([recovered.revision, recovered.document], [2, EGRESS])
     assert.deepEqual(
-      recovered.differs.map(pool => pool.id),
-      ['A', 'B']
+      versions.map(version => [version.revision, version.pools.map(pool => pool.id)]),
+      [
+        [2, ['C']],
+        [1, ['A', 'B']],
+      ]
     )
-
-    const common = recoverGlobal([held('A', v1, []), held('B', v2, []), held('C', v2, [])])
-    assert.deepEqual(common.document, EGRESS)
-    assert.deepEqual([common.pools.map(pool => pool.id), common.differs.map(pool => pool.id)], [['B', 'C'], ['A']])
+    assert.deepEqual(versions[0].document, EGRESS)
+    assert.deepEqual(globalDiff(GLOBAL, held('C', v2, []).document), ['policy app'])
   })
 })
 

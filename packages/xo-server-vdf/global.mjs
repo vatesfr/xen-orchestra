@@ -463,49 +463,106 @@ function heldGlobal(document) {
   }
 }
 
+// What a pool's owner recorded (globalSource), the parts that are valid: a
+// pool's other_config can be written by anyone with XAPI access to it
+export function recordedSource(owner) {
+  const { revision, scope, ips } = owner ?? {}
+  const isList = list => Array.isArray(list) && list.every(item => typeof item === 'string')
+  return {
+    revision: Number.isSafeInteger(revision) && revision >= 0 ? revision : undefined,
+    scope: scope?.all === true ? { all: true } : isList(scope?.pools) ? { pools: scope.pools } : undefined,
+    ips: ips !== null && typeof ips === 'object' && Object.values(ips).every(isList) ? ips : undefined,
+  }
+}
+
+const withoutIps = global => ({
+  ...global,
+  groups: Object.fromEntries(Object.entries(global.groups ?? {}).map(([name, { ips: _, ...group }]) => [name, group])),
+})
+
+// whether a pool holds this global configuration: what it would hold, its
+// groups' own IPs as its owner recorded them, if it did
+export function holdsGlobal(global, { owner, document }) {
+  const { ips } = recordedSource(owner)
+  return (
+    sameDocument(heldGlobal(document), withoutIps(global)) &&
+    (ips === undefined ||
+      Object.entries(global.groups ?? {}).every(([name, group]) => sameDocument(ips[name], group.ips)))
+  )
+}
+
+// what a pool's global part changes from a global configuration, IPs
+// aside: the groups and policies added, removed or modified
+export function globalDiff(global, document) {
+  const held = heldGlobal(document)
+  const kept = withoutIps(global)
+  const byName = policies => Object.fromEntries((policies ?? []).map(policy => [policy.name, policy]))
+  const changed = (kind, a, b) =>
+    [...new Set([...Object.keys(a), ...Object.keys(b)])]
+      .filter(name => !sameDocument(a[name], b[name]))
+      .map(name => `${kind} ${name}`)
+  return [
+    ...changed('group', kept.groups, held.groups),
+    ...changed('policy', byName(kept.policies), byName(held.policies)),
+  ]
+}
+
 // Rebuilds the global configuration of an XO lost without a backup from
 // the pools holding its global part (vdf#81): [{ id, name, owner,
-// document }], owner as poolOwner reads it. Pools holding different
-// versions (unreachable at the last publish, edited outside XO): the
-// highest recorded revision wins, else the most common version, and the
-// others, whose global part will change, are reported (differs). From pools
-// whose owner recorded no source (written before vdf#81), the result isn't
-// exact: a group's IPs are those all the pools hold, its own plus the
-// members found in each pool's other pools.
-// What a pool holds can be written by anyone with XAPI access to it, so the
-// scope is capped to the pools holding the global part, whatever the owner
-// recorded (recordedScope): a forged marker in one pool can't reach the
-// others.
+// document }], owner as poolOwner reads it. One entry per version the pools
+// hold (unreachable at the last publish, edited outside XO), most recent
+// first: none is chosen here, a revision being as writable as the rest.
+// From pools whose owner recorded no valid source (written before vdf#81),
+// a version isn't exact: a group's IPs are those all its pools hold, its
+// own plus the members found in each pool's other pools.
+// The scope is the pools of the version another pool's owner recorded in
+// its scope: one pool's marker can't bring that pool in, so the others are
+// left unconfirmed, for the administrator to name.
 export function recoverGlobal(pools) {
   const versions = new Map()
   for (const pool of pools) {
-    const { revision, scope, ips } = pool.owner
-    const held = heldGlobal(pool.document)
-    const key = JSON.stringify(canonical({ revision, scope, ips, held }))
-    versions.set(key, [...(versions.get(key) ?? []), { ...pool, held }])
+    let held
+    try {
+      held = heldGlobal(pool.document)
+    } catch {
+      continue // not a document compose wrote
+    }
+    const source = recordedSource(pool.owner)
+    const key = JSON.stringify(canonical({ revision: source.revision, ips: source.ips, held }))
+    versions.set(key, [...(versions.get(key) ?? []), { ...pool, source, held }])
   }
-  const revisionOf = version => version[0].owner.revision ?? -1
-  const [chosen] = [...versions.values()].sort((a, b) => revisionOf(b) - revisionOf(a) || b.length - a.length)
-  const { owner, held } = chosen[0]
-  const exact = owner.revision !== undefined
-  const heldByAll = name =>
-    chosen
-      .map(pool => globalPart(pool.document).groups[globalName(name)].ips ?? [])
-      .reduce((common, ips) => common.filter(ip => ips.includes(ip)))
-  const groups = {}
-  for (const [name, group] of Object.entries(held.groups)) {
-    const ips = exact ? owner.ips?.[name] : heldByAll(name)
-    groups[name] = ips === undefined || (!exact && ips.length === 0) ? group : { ...group, ips }
-  }
+  const named = id => pools.some(other => other.id !== id && inScope(recordedSource(other.owner).scope, id))
   const ref = ({ id, name }) => ({ id, name })
+  const revisionOf = version => version[0].source.revision ?? -1
+  const { id, name, since } = pools[0].owner
   return {
-    owner: { id: owner.id, name: owner.name, since: owner.since },
-    document: { groups, policies: held.policies },
-    revision: owner.revision,
-    scope: { pools: pools.map(pool => pool.id) },
-    recordedScope: owner.scope,
-    exact,
-    pools: chosen.map(ref),
-    differs: pools.filter(pool => !chosen.some(other => other.id === pool.id)).map(ref),
+    owner: { id, name, since },
+    versions: [...versions.values()]
+      .sort((a, b) => revisionOf(b) - revisionOf(a) || b.length - a.length)
+      .map(version => {
+        const [{ source, held }] = version
+        const exact = source.revision !== undefined && source.ips !== undefined
+        const heldByAll = name =>
+          version
+            .map(pool => globalPart(pool.document).groups[globalName(name)].ips)
+            .map(ips => (Array.isArray(ips) ? ips : []))
+            .reduce((common, ips) => common.filter(ip => ips.includes(ip)))
+        const groups = {}
+        for (const [name, group] of Object.entries(held.groups)) {
+          const ips = exact ? source.ips[name] : heldByAll(name)
+          groups[name] = ips === undefined || (!exact && ips.length === 0) ? group : { ...group, ips }
+        }
+        const document = { groups, policies: held.policies }
+        return {
+          pools: version.map(ref),
+          revision: source.revision,
+          exact,
+          document,
+          scope: { pools: version.filter(pool => named(pool.id)).map(pool => pool.id) },
+          unconfirmed: version.filter(pool => !named(pool.id)).map(ref),
+          recordedScope: source.scope,
+          errors: checkGlobalDocument(document),
+        }
+      }),
   }
 }
