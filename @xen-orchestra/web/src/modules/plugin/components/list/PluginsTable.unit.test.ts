@@ -47,7 +47,7 @@ function mountTable(router = createTestRouter()) {
 it('offers to load and configure the plugin in its row, then the other actions', () => {
   const actionCell = mountTable().getComponent(VtsActionCell)
 
-  expect(actionCell.props('actions')).toEqual([loadAction, configureAction, ...moreActions])
+  expect(actionCell.props('actions')).toEqual([configureAction, loadAction, ...moreActions])
 })
 
 it('selects the plugin of the row to show it in the side panel', async () => {

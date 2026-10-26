@@ -66,7 +66,7 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = usePluginColumns({
   body: (plugin: FrontXoPlugin) => {
-    const { loadAction, configureAction, moreActions } = useXoPluginActions(() => plugin)
+    const { configureAction, loadAction, moreActions } = useXoPluginActions(() => plugin)
 
     return {
       plugin: r =>
@@ -82,7 +82,7 @@ const { HeadCells, BodyCells } = usePluginColumns({
       actions: r =>
         r({
           onClick: () => (selectedPluginId.value = plugin.id),
-          actions: [loadAction.value, configureAction.value, ...moreActions.value],
+          actions: [configureAction.value, loadAction.value, ...moreActions.value],
         }),
     }
   },

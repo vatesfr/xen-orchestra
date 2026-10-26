@@ -45,7 +45,7 @@ function mountButtons(plugin: FrontXoPlugin = createPlugin()) {
   }).findAllComponents(UiButton)
 }
 
-it('offers to load the plugin, then to configure it as main action', () => {
+it('offers to configure the plugin as main action, then to load it', () => {
   const buttons = mountButtons().map(button => ({
     label: button.text(),
     icon: button.props('leftIcon'),
@@ -53,8 +53,8 @@ it('offers to load the plugin, then to configure it as main action', () => {
   }))
 
   expect(buttons).toEqual([
-    { label: 'Load', icon: 'action:connect', variant: 'tertiary' },
     { label: 'Configure', icon: 'action:edit', variant: 'primary' },
+    { label: 'Load', icon: 'action:connect', variant: 'tertiary' },
   ])
 })
 
@@ -66,32 +66,32 @@ it('builds the actions of the plugin', () => {
 })
 
 it('runs the action of the clicked button', async () => {
-  const [loadButton, configureButton] = mountButtons()
+  const [configureButton, loadButton] = mountButtons()
 
-  await loadButton.trigger('click')
   await configureButton.trigger('click')
+  await loadButton.trigger('click')
 
-  expect(changeState).toHaveBeenCalledOnce()
   expect(configure).toHaveBeenCalledOnce()
+  expect(changeState).toHaveBeenCalledOnce()
 })
 
 it('disables the button, with the reason as tooltip, when its action cannot run', async () => {
   mockActions({ disabled: true, hint: 'Plugin already loaded' })
-  const [loadButton] = mountButtons()
+  const [, loadButton] = mountButtons()
 
   expect(loadButton.props('disabled')).toBe(true)
   expect(await findTooltipContent(loadButton.element)).toBe('Plugin already loaded')
 })
 
 it('has no tooltip when the action can run', async () => {
-  const [loadButton] = mountButtons()
+  const [, loadButton] = mountButtons()
 
   expect(await findTooltipContent(loadButton.element)).toBe(false)
 })
 
 it('shows the button as busy while its action runs', () => {
   mockActions({ busy: true })
-  const [loadButton] = mountButtons()
+  const [, loadButton] = mountButtons()
 
   expect(loadButton.props('busy')).toBe(true)
 })

@@ -26,10 +26,10 @@ const { plugin } = defineProps<{
   plugin: FrontXoPlugin
 }>()
 
-const { loadAction, configureAction } = useXoPluginActions(() => plugin)
+const { configureAction, loadAction } = useXoPluginActions(() => plugin)
 
 const buttons = computed(() => [
-  { action: loadAction.value, variant: 'tertiary' as const },
   { action: configureAction.value, variant: 'primary' as const },
+  { action: loadAction.value, variant: 'tertiary' as const },
 ])
 </script>
