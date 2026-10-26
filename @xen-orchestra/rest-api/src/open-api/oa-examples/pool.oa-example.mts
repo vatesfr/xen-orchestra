@@ -576,4 +576,12 @@ export const poolRollingUpdateRecovery = {
   haltedPinnedVms: {
     '883b6265-6d54-c48b-6a24-4b0e6d88801f': 'b61a5c92-700e-4966-a13b-00633f03eea8',
   },
+  vmConflicts: [
+    {
+      vmId: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
+      vmName: 'Debian 12',
+      hostId: '46522969-d891-4c48-a839-316b767b7b7b',
+      reason: 'stopped',
+    },
+  ],
 }
