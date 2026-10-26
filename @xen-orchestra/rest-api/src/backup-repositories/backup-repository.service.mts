@@ -15,7 +15,7 @@ export class BackupRepositoryService {
     }
 
     if (typeof idsToCheck === 'string') {
-      return false
+      return true
     } else {
       const { id } = idsToCheck
       const ids = typeof id === 'string' ? [id] : id.__or

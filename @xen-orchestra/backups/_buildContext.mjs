@@ -55,7 +55,7 @@ export function buildRunContext(date, timezone) {
  * @returns {VmContext}
  */
 export function buildVmContext(vm, run, chainLength) {
-  /** @type {Record<string, any>} */
+  /** @type {Record<string, unknown>} */
   const vmObject = {}
   for (const [key, value] of Object.entries(vm)) {
     if (!key.startsWith('$') && typeof value !== 'function') {
