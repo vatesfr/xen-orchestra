@@ -85,8 +85,8 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { formatDateTime } from '@core/utils/time.util.ts'
 import { formatSize } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

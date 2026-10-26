@@ -8,7 +8,6 @@ export type BackupLogTask = NonNullable<FrontXoBackupLog['tasks']>[number] & { m
 type VmTransfer = { size: number; start: number; end: number | undefined }
 
 export function useXoBackupLogsUtils() {
-
   function getBackupLogDate(value: number): string
   function getBackupLogDate(value: number | undefined): string | undefined
   function getBackupLogDate(value: number | undefined) {

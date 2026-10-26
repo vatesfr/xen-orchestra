@@ -19,7 +19,7 @@ function createVmTaskWithTransfer(vmId: string, transfer: Parameters<typeof crea
 }
 
 describe('getBackupLogDate', () => {
-  it('formats the date with formatDateTime ', () => {
+  it('formats the date with formatDateTime', () => {
     const { getBackupLogDate } = mountBackupLogsUtils()
 
     expect(getBackupLogDate(1_700_000_000_000)).toBe(formatDateTime(1_700_000_000_000))
