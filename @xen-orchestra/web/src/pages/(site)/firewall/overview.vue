@@ -384,6 +384,15 @@
           >
             {{ t('firewall:global:member:stale') }}
           </UiTag>
+          <UiTag
+            v-if="member.otherXo !== undefined"
+            v-tooltip="t('firewall:global:member:other-xo:info', { xo: member.otherXo })"
+            accent="warning"
+            variant="secondary"
+            tabindex="0"
+          >
+            {{ t('firewall:global:member:other-xo', { xo: member.otherXo }) }}
+          </UiTag>
         </div>
       </div>
     </UiCard>

@@ -188,6 +188,9 @@ export type VdfGlobalMember = {
   // last known: XO lost the member's pool (fail static)
   stale?: boolean
   seenAt?: number
+  // its pool holds another XO's global configuration (vdf#30): it counts
+  // here, its pool never gets this XO's
+  otherXo?: string
 }
 
 export type VdfVmRef = Pick<VdfGlobalMember, 'vm' | 'vmName' | 'pool' | 'poolName'>
