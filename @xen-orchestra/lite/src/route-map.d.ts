@@ -415,6 +415,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/menu/vts-action-items': RouteRecordInfo<
+      '/story/web-core/menu/vts-action-items',
+      '/story/web-core/menu/vts-action-items',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
@@ -1452,6 +1459,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/legend-group/vts-legend-group.story.vue': {
       routes:
         | '/story/web-core/legend-group/vts-legend-group'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-action-items.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-action-items'
       views:
         | never
     }
