@@ -1,4 +1,18 @@
-import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -11,6 +25,7 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import {
   badRequestResp,
   forbiddenOperationResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -114,6 +129,24 @@ export class PifController extends XapiXoController<XoPif> {
       limit,
       privilege: { action: 'read', resource: 'alarm' },
     })
+  }
+
+  /**
+   * Required privilege:
+   * - resource: pif, action: delete
+   *
+   * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Delete('{id}')
+  @Middlewares(acl({ resource: 'pif', action: 'delete', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deletePif(@Path() id: string): Promise<void> {
+    const pifId = id as XoPif['id']
+
+    await this.getXapiObject(pifId).$xapi.deletePif(pifId)
   }
 
   /**
