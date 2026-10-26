@@ -1,7 +1,7 @@
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -9,7 +9,7 @@ export type BackupJobKeyBackup = 'never' | 'dynamic' | 'always'
 
 export type BackupJobSnapshotMode = 'default' | 'with-memory' | 'offline'
 
-export type BackupJobSnapshotSync = 'disabled' | 'enabled'
+export type BackupJobSnapshotSync = 'none' | 'all' | 'smart'
 
 export type BackupJobTransferFormData = {
   maxExportRate: number | undefined
@@ -20,6 +20,7 @@ export type BackupJobTransferFormData = {
   nbdConcurrency: number | undefined
   snapshotMode: BackupJobSnapshotMode
   snapshotSync: BackupJobSnapshotSync
+  snapshotSyncTag: string | undefined
 }
 
 type RadioOption<TValue extends string> = { label: string; value: TValue; description?: string }
@@ -29,17 +30,44 @@ export type BackupJobTransferForm = ReturnType<typeof useBackupJobTransferForm>
 export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
   const { t } = useI18n()
 
-  const { useField, validate, reset } = useValidatedForm(formData, {})
+  const { vms } = useXoVmCollection()
+
+  const { schema: keyBackupFilterSchema } = useVmQueryBuilder('backup-job-key-backup', vms, { ignoreRoute: true })
+
+  const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
+    errors: {
+      onSubmit: () => ({
+        concurrency: {
+          required: withMessage(required, () => t('vm-read-concurrency-mandatory')),
+        },
+        nbdConcurrency: {
+          requiredIf: withMessage(
+            requiredIf(() => formData.preferNbd),
+            () => t('nbd-concurrency-per-disk-mandatory')
+          ),
+          minValue: withMessage(
+            (value: number | undefined) => !formData.preferNbd || typeof value !== 'number' || value >= 1,
+            () => t('must-be-at-least-n', { n: 1 })
+          ),
+        },
+        keyBackupFilter: {
+          requiredIf: withMessage(
+            requiredIf(() => formData.keyBackup === 'dynamic'),
+            () => t('query-required')
+          ),
+        },
+        snapshotSyncTag: {
+          requiredIf: requiredIf(() => formData.snapshotSync === 'smart'),
+        },
+      }),
+    },
+  })
 
   const keyBackupOptions = computed<RadioOption<BackupJobKeyBackup>[]>(() => [
     { label: t('never'), value: 'never' },
     { label: t('dynamic-selection'), value: 'dynamic' },
     { label: t('always'), value: 'always' },
   ])
-
-  const keyBackupFilterSchema = useQueryBuilderSchema<FrontXoVm>({
-    '': useStringSchema(t('any-property')),
-  })
 
   const snapshotModeOptions = computed<RadioOption<BackupJobSnapshotMode>[]>(() => [
     { label: t('default'), value: 'default', description: t('snapshot-mode:default-description') },
@@ -48,9 +76,17 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
   ])
 
   const snapshotSyncOptions = computed<RadioOption<BackupJobSnapshotSync>[]>(() => [
-    { label: t('disabled'), value: 'disabled' },
-    { label: t('enabled'), value: 'enabled' },
+    { label: t('none'), value: 'none' },
+    { label: t('all-objects-vms'), value: 'all' },
+    { label: t('dynamic-selection'), value: 'smart' },
   ])
+
+  const vmTags = computed(() => [...new Set(vms.value.flatMap(vm => vm.tags))].sort())
+
+  const { id: snapshotSyncTagSelectId } = useFormSelect('snapshotSyncTag', vmTags, {
+    searchable: true,
+    required: true,
+  })
 
   const bindings = reactive({
     maxExportRate: useField('maxExportRate', () => ({ label: t('source-speed-limit') })),
@@ -60,7 +96,11 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
       info: t('value-by-default', { value: 2 }),
     })),
     keyBackup: useField('keyBackup', () => ({ label: t('key-backup'), options: keyBackupOptions.value })),
-    keyBackupFilter: useField('keyBackupFilter', () => ({ schema: keyBackupFilterSchema })),
+    keyBackupFilter: useField('keyBackupFilter', () => ({
+      label: t('dynamic-selection-query'),
+      required: true,
+      schema: keyBackupFilterSchema,
+    })),
     preferNbd: useField('preferNbd', () => ({ label: t('network-block-device-nbd'), info: t('nbd-backup-info') })),
     nbdConcurrency: useField('nbdConcurrency', () => ({
       label: t('nbd-concurrency-per-disk'),
@@ -72,6 +112,7 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
       label: t('snapshot-synchronisation'),
       options: snapshotSyncOptions.value,
     })),
+    snapshotSyncTag: useSelect(snapshotSyncTagSelectId, () => ({ label: t('tag') })),
   })
 
   return {

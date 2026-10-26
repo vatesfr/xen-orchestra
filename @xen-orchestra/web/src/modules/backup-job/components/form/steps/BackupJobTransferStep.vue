@@ -12,13 +12,8 @@
     <div class="section">
       <UiTitle>{{ t('incremental-specifics') }}</UiTitle>
 
-      <BackupJobFormRadio v-bind="bindings.keyBackup">
-        <template #info>
-          <UiInfo wrap accent="info">{{ t('key-backup-info') }}</UiInfo>
-        </template>
-      </BackupJobFormRadio>
-
-      <VtsQueryBuilder v-if="bindings.keyBackup.modelValue === 'dynamic'" v-bind="bindings.keyBackupFilter" />
+      <UiLabel accent="neutral">{{ t('key-backup') }}</UiLabel>
+      <BackupJobPendingMockup />
 
       <BackupJobFormCheckbox v-bind="bindings.preferNbd" />
 
@@ -32,23 +27,24 @@
 
       <BackupJobFormRadio v-bind="bindings.snapshotMode" vertical />
 
-      <BackupJobFormRadio v-bind="bindings.snapshotSync">
-        <template #info>
-          <UiInfo wrap accent="info">{{ t('snapshot-synchronisation-info') }}</UiInfo>
-        </template>
-      </BackupJobFormRadio>
+      <BackupJobFormRadio v-bind="bindings.snapshotSync" />
+
+      <BackupJobFormRow v-if="bindings.snapshotSync.modelValue === 'smart'">
+        <BackupJobFormSelect v-bind="bindings.snapshotSyncTag" />
+      </BackupJobFormRow>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
+import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
+import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
