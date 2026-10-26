@@ -728,6 +728,15 @@ class VdfPlugin {
       }
     }
     const withPoolName = vm => ({ ...vm, poolName: poolName[vm.pool] })
+    // members from a pool another XO owns (vdf#30): they count here, but
+    // their pool never gets this XO's global policies
+    const otherXo = Object.fromEntries(
+      connected.filter(pool => pool.owner !== undefined).map(pool => [pool.id, pool.owner])
+    )
+    const withOrigin = member =>
+      otherXo[member.pool] === undefined
+        ? withPoolName(member)
+        : { ...withPoolName(member), otherXo: otherXo[member.pool] }
     return {
       document: global?.document ?? emptyDocument(),
       revision: global?.revision ?? 0,
@@ -743,7 +752,7 @@ class VdfPlugin {
       members: Object.fromEntries(
         Object.entries(analysis.members).map(([name, list]) => [
           name,
-          list.filter(member => visible.has(member.pool)).map(withPoolName),
+          list.filter(member => visible.has(member.pool)).map(withOrigin),
         ])
       ),
       // a member's IP another VM holds too: left out of the other pools

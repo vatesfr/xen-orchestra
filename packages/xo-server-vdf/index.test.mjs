@@ -1239,3 +1239,52 @@ describe('changes outside this XO', () => {
     }
   })
 })
+
+// vdf#30: one XO governs the global configuration; a pool another XO owns
+// still feeds members into this XO's pools
+describe('members from a pool another XO owns', () => {
+  test('are marked with that XO', async () => {
+    const globalDocument = {
+      groups: { web: { tags: ['vdf:role=web'] } },
+      policies: [
+        {
+          name: 'web',
+          appliedTo: 'web',
+          default: 'drop',
+          ingress: [{ id: 1, from: 'web', proto: 'tcp', ports: [80] }],
+        },
+      ],
+    }
+    const vm = (id, pool, ip) => ({
+      id,
+      name_label: id,
+      $pool: pool,
+      power_state: 'Running',
+      tags: ['vdf:role=web'],
+      addresses: { '0/ipv4/0': ip },
+    })
+    const xo = fakeXo({
+      pools: { A: {}, B: { otherConfig: { 'vdf:global.owner': '{"id":"other","name":"xo-other"}' } } },
+      vms: [vm('vm-a', 'A', '10.0.0.1'), vm('vm-b', 'B', '10.0.0.2')],
+    })
+    const plugin = await loaded(xo)
+    try {
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(globalDocument), scope: { all: true }, revision: 0 },
+      })
+      const { members } = (await xo.route('get', '/global')).result
+      assert.deepEqual(
+        members.web.map(member => [member.vm, member.otherXo]),
+        [
+          ['vm-a', undefined],
+          ['vm-b', 'xo-other'],
+        ]
+      )
+      // one way: A gets B's member, B never gets this XO's policies
+      assert.deepEqual(JSON.parse(xo.xapis.A.pool.other_config['vdf:policy']).groups['global:web'].ips, ['10.0.0.2'])
+      assert.equal(xo.xapis.B.pool.other_config['vdf:policy'], undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+})
