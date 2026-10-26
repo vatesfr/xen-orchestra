@@ -10,6 +10,7 @@ import { openVhd } from '../index.js'
 import { resolveVhdAlias } from '../aliases.js'
 import computeGeometryForSize from '../_computeGeometryForSize.js'
 import { writeToVhdDirectory } from './index.mjs'
+import { getFullSize } from '../tests/utils.js'
 
 const DEFAULT_BLOCK_SIZE = 0x00200000 // 2MB, from vhd-lib spec
 
@@ -69,7 +70,7 @@ describe('DiskConsumerVhdDirectory', () => {
         const aliasPath = 'disk.alias.vhd'
         const disk = new MockDisk(2, [0, 1], 0x42)
 
-        const size = await writeToVhdDirectory({
+        const { size } = await writeToVhdDirectory({
           disk,
           target: { handler, path: aliasPath, concurrency: 1, validator: async () => {} },
         })
@@ -194,6 +195,31 @@ describe('DiskConsumerVhdDirectory', () => {
           data.every(byte => byte === 0xbb),
           'block 0 should contain only the second attempt data, found leftover bytes from the first attempt'
         )
+      })
+    } finally {
+      await rimraf(tempDir)
+    }
+  })
+
+  it('records the size on disk of the VHD directory', async () => {
+    const tempDir = await pFromCallback(cb => tmp.dir(cb))
+    try {
+      await Disposable.use(async function* () {
+        const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+        const aliasPath = 'disk.alias.vhd'
+        const disk = new MockDisk(2, [0, 1], 0x42)
+
+        const { size, sizeOnDisk } = await writeToVhdDirectory({
+          disk,
+          target: { handler, path: aliasPath, compression: 'gzip', concurrency: 2, validator: async () => {} },
+        })
+
+        assert.equal(
+          sizeOnDisk,
+          (await getFullSize(handler, 'data/disk.vhd')) + (await handler.getSizeOnDisk(aliasPath))
+        )
+        // blocks full of the same byte compress well: the transferred size is much bigger
+        assert.ok(sizeOnDisk < size)
       })
     } finally {
       await rimraf(tempDir)

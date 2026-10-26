@@ -674,6 +674,9 @@ export class RemoteAdapter {
     return path
   }
 
+  /**
+   * @returns {Promise<{size: number, sizeOnDisk: number}>}
+   */
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
@@ -700,7 +703,8 @@ export class RemoteAdapter {
         checksum: false,
       })
       await validator(path)
-      return size
+      const sizeOnDisk = await this._handler.getSizeOnDisk(path)
+      return { size, sizeOnDisk }
     }
   }
 

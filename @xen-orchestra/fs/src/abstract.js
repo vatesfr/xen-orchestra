@@ -23,6 +23,14 @@ const computeRate = (hrtime, size) => {
   return size / seconds
 }
 
+const getDataSize = data => {
+  if (Array.isArray(data)) {
+    return data.reduce((size, buffer) => size + Buffer.byteLength(buffer), 0)
+  }
+
+  return Buffer.byteLength(data)
+}
+
 const DEFAULT_TIMEOUT = 12e5 // 20 min
 const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 
@@ -407,6 +415,7 @@ export default class RemoteHandlerAbstract {
       encryptedData = Buffer.concat(encryptedData)
     }
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
+    return getDataSize(encryptedData)
   }
 
   async read(file, buffer, position) {
@@ -596,6 +605,7 @@ export default class RemoteHandlerAbstract {
   async __writeFile(file, data, { flags = 'wx' } = {}) {
     const encryptedData = this.#encryptor.encryptData(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
+    return getDataSize(encryptedData)
   }
 
   // Methods that can be called by private methods to avoid parallel limit on public methods

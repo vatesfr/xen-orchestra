@@ -109,6 +109,28 @@ async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
 }
 exports.convertToVhdDirectory = convertToVhdDirectory
 
+// sum of the stored size of every file under `entry`, the reference `VhdDirectory#sizeOnDisk` is checked against
+async function getFullSize(handler, entry) {
+  let files
+  try {
+    files = await handler.list(entry, { prependDir: true })
+  } catch (error) {
+    if (error.code === 'ENOTDIR') {
+      return await handler.getSizeOnDisk(entry)
+    } else {
+      throw error
+    }
+  }
+
+  let size = 0
+  for (const file of files) {
+    size += await getFullSize(handler, file)
+  }
+
+  return size
+}
+exports.getFullSize = getFullSize
+
 exports.createRandomVhdDirectory = async function createRandomVhdDirectory(path, sizeMB) {
   await fs.mkdirp(path)
   const rawFileName = `${path}/temp.raw`

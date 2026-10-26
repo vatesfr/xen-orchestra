@@ -37,6 +37,8 @@ export async function toVhdStream(disk, { signal, uuid, parentUuid, parentPath }
  * @param {Disk} param.disk
  * @param {VhdRemoteTarget} param.target
  * @param {AbortSignal} [param.signal]
+ *
+ * @returns {Promise<{ size: number, sizeOnDisk: number }>}
  */
 export async function writeToVhdDirectory({ disk, target, signal }) {
   const consumer = new DiskConsumerVhdDirectory(disk, target)

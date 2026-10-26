@@ -69,6 +69,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
       await deleteOldBackups()
     }
 
+    let sizeOnDisk = 0
     await Task.run({ properties: { name: 'transfer' } }, async () => {
       await adapter.outputStream(dataFilename, stream, {
         checksum,
@@ -76,9 +77,19 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
         streamLength,
         validator: tmpPath => adapter.isValidXva(tmpPath),
       })
+      sizeOnDisk = await adapter.handler.getSizeOnDisk(dataFilename)
+      try {
+        sizeOnDisk += await adapter.handler.getSizeOnDisk(`${dataFilename}.checksum`)
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error
+        }
+      }
+
       return { size: sizeContainer.size }
     })
     metadata.size = sizeContainer.size
+    metadata.sizeOnDisk = sizeOnDisk
     metadata.tags = await this.getLongTermRetentionTags(metadata)
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadata)
 
