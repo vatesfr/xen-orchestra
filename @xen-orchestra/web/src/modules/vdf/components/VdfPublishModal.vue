@@ -139,14 +139,20 @@ import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
-import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
+import type { VdfCheckResult, VdfDefaultAction, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
 import { parseAgentWarning } from '@/modules/vdf/utils/vdf-agent-warning.util.ts'
-import { changeDetails, hostWarnings, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
+import {
+  changeDetails,
+  hostWarnings,
+  overriddenDefaults,
+  publishWarnings,
+} from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -196,12 +202,63 @@ const details = computed(() => changeDetails(shown.value.baseDocument, shown.val
 
 const memberCount = (group: string) => shown.value.memberCounts?.[group]
 
+const tierLabel = useVdfTierLabel()
+
+const { vms } = useXoVmCollection()
+
+// a default as the policies board shows it: pass goes to the next tier
+const defaultLabel = (action: VdfDefaultAction) =>
+  action === 'pass' ? t('firewall:action:next-tier') : t(`firewall:action:${action}`)
+
+const { netTagsOfAddress, interfacesOf } = useVdfInterfaces()
+
+// a pool policy's default that a global policy's decides for (vdf#27), on
+// the draft with the pool's global part, for the pool's VMs: the groups of
+// each of their interfaces (a group scoped to networks only holds those on
+// them)
+const overridden = computed(() => {
+  if (isGlobalScope(shown.value.scopeId)) {
+    return []
+  }
+
+  const { document, scopeId } = shown.value
+  const interfaceGroups = vms.value
+    .filter(vm => vm.$pool === scopeId)
+    .map(vm => {
+      const groups = vmGroupNames(vm.tags, document)
+
+      return interfacesOf(vm).map(iface =>
+        groups.filter(name => isOnNetworks(iface.netTags, groupNetworks(document.groups[name])))
+      )
+    })
+  const sharedVms = (group: string, other: string) =>
+    interfaceGroups.filter(ifaces => ifaces.some(groups => groups.includes(group) && groups.includes(other))).length
+
+  return overriddenDefaults(document, sharedVms).map(item => ({
+    key: `overridden:${item.policy}:${item.global}:${item.egress}`,
+    text: t(
+      item.egress
+        ? 'firewall:publish:warning:overridden-egress-default'
+        : 'firewall:publish:warning:overridden-default',
+      {
+        policy: displayName(item.policy),
+        global: displayName(item.global),
+        tier: tierLabel(item.tier),
+        own: defaultLabel(item.own),
+        theirs: defaultLabel(item.theirs),
+        n: n(item.vms),
+      },
+      item.vms
+    ),
+  }))
+})
+
 // open connections per rule, for the rules the draft removes (one sample
 // of the pool's live stats)
 const openConnections = ref<Map<number, number>>()
 
-const warnings = computed(() =>
-  publishWarnings(details.value, {
+const warnings = computed(() => [
+  ...publishWarnings(details.value, {
     memberCount,
     openConnections: id => openConnections.value?.get(id),
   }).map(warning => {
@@ -222,8 +279,9 @@ const warnings = computed(() =>
       key: `${warning.type}:${warning.policy}`,
       text: t(`firewall:publish:warning:${warning.type}`, { policy, group: displayName(warning.group) }),
     }
-  })
-)
+  }),
+  ...overridden.value,
+])
 
 // policies the draft switches from monitor mode to enforce (vdf#13): what
 // they would have dropped over the last day, from the pool's report
@@ -240,8 +298,6 @@ const DAY = 24 * 60 * 60 * 1000
 
 // who a source address is, to tell the flows the draft now allows
 const { vmByIp, groupsOfIp } = useVdfIpNames(() => shown.value.document)
-
-const { netTagsOfAddress } = useVdfInterfaces()
 
 // a group scoped to networks (vdf#36) only holds the address on them
 function groupsOf(address: string) {
@@ -355,8 +411,6 @@ function confirm() {
     emit('confirm')
   }
 }
-
-const tierLabel = useVdfTierLabel()
 
 // the agent's warnings in an admin's words, its own text in the tooltip;
 // a text it is not known to write is shown as is

@@ -1,5 +1,11 @@
 import type { VdfDocument } from '@/modules/vdf/types.ts'
-import { changeDetails, hostWarnings, isEmptyChange, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
+import {
+  changeDetails,
+  hostWarnings,
+  isEmptyChange,
+  overriddenDefaults,
+  publishWarnings,
+} from '@/modules/vdf/utils/vdf-change.util.ts'
 import { cloneDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -83,5 +89,52 @@ describe('hostWarnings', () => {
 
   it('says nothing when every host has a working agent', () => {
     expect(hostWarnings({ missing: [], stale: [] })).toEqual([])
+  })
+})
+
+describe('overriddenDefaults (vdf#27)', () => {
+  const composed: VdfDocument = {
+    groups: {
+      'global:all': { tags: ['vdf:managed'] },
+      web: { tags: ['vdf:role=web'] },
+      db: { tags: ['vdf:role=db'] },
+    },
+    policies: [
+      { name: 'global:baseline', appliedTo: 'global:all', default: 'drop', ingress: [] },
+      { name: 'global:watch', appliedTo: 'global:all', default: 'drop', mode: 'monitor', ingress: [] },
+      {
+        name: 'global:out',
+        tier: 'networkops',
+        appliedTo: 'global:all',
+        default: 'pass',
+        egressDefault: 'drop',
+        ingress: [],
+      },
+      { name: 'web', appliedTo: 'web', default: 'pass', ingress: [{ id: 1, from: 'any', proto: 'tcp', ports: [443] }] },
+      { name: 'db', appliedTo: 'db', default: 'drop', ingress: [] },
+      { name: 'net', tier: 'networkops', appliedTo: 'web', default: 'pass', egressDefault: 'allow', ingress: [] },
+      { name: 'lonely', tier: 'platform', appliedTo: 'web', default: 'pass', ingress: [] },
+    ],
+  }
+  // the groups of each VM's interfaces
+  const sharedVms = (vms: string[][]) => (group: string, other: string) =>
+    vms.filter(groups => groups.includes(group) && groups.includes(other)).length
+  const vms = sharedVms([['global:all', 'web'], ['global:all', 'web'], ['global:all', 'db'], ['web']])
+
+  it("names a pool policy whose default a global one's decides, in the same tier, with the VMs both apply to", () => {
+    expect(overriddenDefaults(composed, vms)).toEqual([
+      { policy: 'web', global: 'global:baseline', tier: 100, egress: false, own: 'pass', theirs: 'drop', vms: 2 },
+      { policy: 'net', global: 'global:out', tier: 50, egress: true, own: 'allow', theirs: 'drop', vms: 2 },
+    ])
+  })
+
+  it('says nothing without a VM both apply to, or a global policy in monitor mode', () => {
+    expect(overriddenDefaults(composed, sharedVms([['web'], ['global:all', 'db']]))).toEqual([])
+    expect(
+      overriddenDefaults(
+        { ...composed, policies: composed.policies.filter(policy => policy.name !== 'global:baseline') },
+        vms
+      ).map(item => item.global)
+    ).toEqual(['global:out'])
   })
 })

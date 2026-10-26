@@ -1040,6 +1040,8 @@
   "firewall:publish:warning:egress-drop-without-rules": "Policy {policy} has no outbound rule and drops outbound by default: every connection {group} starts is dropped (DNS, updates, everything).",
   "firewall:publish:warning:empty-group": "Policy {policy} applies to {group}, which has no VMs: it protects nothing yet.",
   "firewall:publish:warning:open-connections": "Rule #{rule} removed from {policy} has an open connection: it may be cut. | Rule #{rule} removed from {policy} has {n} open connections: they may be cut.",
+  "firewall:publish:warning:overridden-default": "The default of policy {policy}, {own}, doesn't decide for its VM that global policy {global} also applies to: in the {tier} tier, the default of {global}, {theirs}, wins (Drop over Allow, Allow over Next tier). | The default of policy {policy}, {own}, doesn't decide for its {n} VMs that global policy {global} also applies to: in the {tier} tier, the default of {global}, {theirs}, wins (Drop over Allow, Allow over Next tier).",
+  "firewall:publish:warning:overridden-egress-default": "The outbound default of policy {policy}, {own}, doesn't decide for its VM that global policy {global} also applies to: in the {tier} tier, the outbound default of {global}, {theirs}, wins (Drop over Allow, Allow over Next tier). | The outbound default of policy {policy}, {own}, doesn't decide for its {n} VMs that global policy {global} also applies to: in the {tier} tier, the outbound default of {global}, {theirs}, wins (Drop over Allow, Allow over Next tier).",
   "firewall:publish:warnings": "Warnings",
   "firewall:published:done": "Every host enforces the new policy. Open connections it denies were cut.",
   "firewall:published:enforcing": "Published: enforced on {n}/{total} hosts",
