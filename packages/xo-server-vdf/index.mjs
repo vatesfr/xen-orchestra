@@ -271,6 +271,24 @@ async function writeStore(store, { history = {}, ...rest }) {
   }
 }
 
+// An import keeps this XO's identity (vdf#20): an export restored on a
+// second XO (upgrade test, staging copy, DR rehearsal) while the first one
+// still runs must not make both the owner of the same pools. The imported
+// identity is recorded as the XO this one replaces, and its pools stay
+// its own until an administrator takes them over (take_over_replaced).
+// Importing an export of this same XO changes nothing.
+export async function importStore(store, { instance: imported, replaces, ...data }) {
+  const own = (await store.has('instance')) ? await store.get('instance') : newInstance()
+  const isOther = typeof imported?.id === 'string' && imported.id !== own.id
+  await writeStore(store, {
+    ...data,
+    instance: own,
+    replaces: isOther ? { id: imported.id, name: imported.name, importedAt: new Date().toISOString() } : replaces,
+  })
+}
+
+const newInstance = () => ({ id: randomUUID(), name: hostname() })
+
 function registerConfigManager(xo) {
   if (configManagerRegistered || typeof xo.addConfigManager !== 'function') {
     return
@@ -280,7 +298,7 @@ function registerConfigManager(xo) {
     'vdf',
     async () => readStore(await xo.getStore('vdf')),
     async data => {
-      await writeStore(await xo.getStore('vdf'), data)
+      await importStore(await xo.getStore('vdf'), data)
       await loadedPlugin?.reloadStore()
     }
   )
@@ -319,8 +337,12 @@ class VdfPlugin {
   #syncs = {}
 
   // this XO, as it records itself in the pools whose global part it writes
-  // (OWNER_KEY); kept in the store, so a restored configuration keeps it
+  // (OWNER_KEY); kept in the store, never imported (importStore)
   #instance
+
+  // the XO whose configuration was imported here, if another one: { id,
+  // name, importedAt }
+  #replaces
 
   // per pool: { at, name, serverId, records }, the running VMs of each pool
   // when XO last saw them. A pool XO loses keeps its members in the other
@@ -352,9 +374,10 @@ class VdfPlugin {
     this.#vmCache = await this.#get('vms', {})
     this.#instance = await this.#get('instance')
     if (this.#instance === undefined) {
-      this.#instance = { id: randomUUID(), name: hostname() }
+      this.#instance = newInstance()
       await this.#store.put('instance', this.#instance)
     }
+    this.#replaces = await this.#get('replaces')
     // the history starts with the configuration published before it was kept
     if (this.#global !== undefined && !(await this.#store.has(historyKey(GLOBAL_SCOPE)))) {
       await this.#appendHistory(GLOBAL_SCOPE, [], this.#globalEntry(this.#global, undefined))
@@ -536,6 +559,26 @@ class VdfPlugin {
     )
   }
 
+  // Makes this XO the owner of the pool's global part, if its owner is
+  // still the one the user saw (expectedOwner, '' for none)
+  #takeOver(poolId, expectedOwner) {
+    const xapi = this.#getXapi(poolId)
+    return this.#serialized(poolId, async () => {
+      const previous = poolOwner(xapi.pool.other_config)
+      if ((previous?.id ?? '') !== expectedOwner) {
+        return {
+          conflict: true,
+          owner: previous ?? null,
+          error: `the pool's owner changed meanwhile (${previous?.name ?? 'none'} now): look again before taking it over`,
+        }
+      }
+      await this.#claim(xapi)
+      log.info('pool taken over for the global configuration', { pool: poolId, previous })
+      this.#scheduleSync()
+      return { previous: previous ?? null }
+    })
+  }
+
   // Publishes a pool's document and, once it's written, records this XO as
   // the owner of the pool's global part when it wrote the first one (or
   // forgets it when it removed it): a refused publish claims nothing.
@@ -664,6 +707,9 @@ class VdfPlugin {
       publishedBy: global?.publishedBy,
       canEdit: admin,
       instance: this.#instance,
+      // the XO whose configuration was imported here: its pools stay its own
+      // until taken over
+      replaces: this.#replaces,
       pools: [...connected, ...lost].filter(pool => visible.has(pool.id)),
       members: Object.fromEntries(
         Object.entries(analysis.members).map(([name, list]) => [
@@ -1223,23 +1269,54 @@ class VdfPlugin {
           { status: 200, description: 'The previous owner, if any' },
           { status: 409, description: 'The owner changed since the user looked' },
         ],
-        callback: ({ req, res }) => {
-          const xapi = this.#getXapi(req.params.id)
-          return this.#serialized(req.params.id, async () => {
-            const previous = poolOwner(xapi.pool.other_config)
-            if ((previous?.id ?? '') !== req.body.expectedOwner) {
-              res.status(409)
-              return {
-                conflict: true,
-                owner: previous ?? null,
-                error: `the pool's owner changed meanwhile (${previous?.name ?? 'none'} now): look again before taking it over`,
-              }
+        callback: async ({ req, res }) => {
+          const result = await this.#takeOver(req.params.id, req.body.expectedOwner)
+          if (result.conflict) {
+            res.status(409)
+          }
+          return result
+        },
+      },
+      {
+        endpoint: '/global/actions/take_over_replaced',
+        method: 'post',
+        description:
+          "Take over every pool holding the global configuration of the XO this one replaces (its configuration was imported here, GET /global: replaces), one take_over_global per pool with that XO as the expected owner. Refused (409) if this XO doesn't replace `replaces` any more.",
+        tags: ['vdf'],
+        body: {
+          replaces: { type: 'string', description: 'id of the replaced XO the user saw (GET /global: replaces.id)' },
+        },
+        middlewares: [{ name: 'json' }],
+        responses: [
+          { status: 200, description: 'Per-pool results' },
+          { status: 409, description: 'This XO replaces another XO, or none, now' },
+        ],
+        callback: async ({ req, res }) => {
+          const replaced = this.#replaces
+          if (replaced === undefined || replaced.id !== req.body.replaces) {
+            res.status(409)
+            return {
+              conflict: true,
+              replaces: replaced ?? null,
+              error: `this XO replaces ${replaced?.name ?? 'no other XO'} now: look again before taking its pools over`,
             }
-            await this.#claim(xapi)
-            log.info('pool taken over for the global configuration', { pool: req.params.id, previous })
-            this.#scheduleSync()
-            return { previous: previous ?? null }
+          }
+          const owned = this.#pools().filter(pool => {
+            const xapi = this.#connectedXapi(pool.id)
+            return xapi !== undefined && poolOwner(xapi.pool?.other_config)?.id === replaced.id
           })
+          const pools = await Promise.all(
+            owned.map(async pool => {
+              const base = { id: pool.id, name: pool.name_label }
+              try {
+                const result = await this.#takeOver(pool.id, replaced.id)
+                return { ...base, ...result, ok: result.conflict !== true }
+              } catch (error) {
+                return { ...base, ok: false, error: error.message }
+              }
+            })
+          )
+          return { pools }
         },
       },
       this.#poolRoute({
