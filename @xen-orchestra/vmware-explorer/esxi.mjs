@@ -1627,6 +1627,49 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Whether the change tracking of a VM already answers for every disk a transfer would read, in
+   * which case no snapshot is needed to start it.
+   *
+   * - powered on: the disks are read up to the current snapshot, which must have recorded a
+   *   `changeId` for each of them, the precondition of the delta which follows
+   * - powered off: the host is asked for every used block of each disk. It answers the same
+   *   FileFault whether the tracking was never started, or reset: a snapshot cures both
+   *
+   * An independent disk is left out: it is never snapshotted, so a snapshot cannot start its tracking.
+   *
+   * @param {string} vmId - id of the VM, its change tracking enabled
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>}
+   */
+  async isChangeTrackingReady(vmId, { signal } = {}) {
+    const { currentSnapshotId, devices, powerState, snapshotDevices } = await this.getChangeTracking(vmId, { signal })
+    const isSnapshotted = device => isVirtualDisk(device) && !device.backing?.diskMode?.startsWith('independent')
+
+    if (powerState !== 'poweredOff') {
+      if (currentSnapshotId === undefined) {
+        // a powered on VM can only be asked through a snapshot
+        return false
+      }
+      const snapshotDisks = asArray(snapshotDevices.get(currentSnapshotId)?.VirtualDevice).filter(isSnapshotted)
+      return snapshotDisks.every(disk => disk.backing?.changeId !== undefined)
+    }
+
+    for (const disk of asArray(devices?.VirtualDevice).filter(isSnapshotted)) {
+      signal?.throwIfAborted()
+      try {
+        // the first answer is enough: a disk which is not tracked fails at once, no need to walk it
+        await this.#queryChangedDiskAreas(vmId, { changeId: '*', deviceKey: Number(disk.key), startOffset: 0 })
+      } catch (error) {
+        signal?.throwIfAborted()
+        info('the change tracking does not answer for a disk', { deviceKey: disk.key, error, vmId })
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
    * Blocks of a disk to read, from the change tracking of the host.
    *
    * Needs nothing installed and no disk export: one call answers from the `-ctk.vmdk` the host

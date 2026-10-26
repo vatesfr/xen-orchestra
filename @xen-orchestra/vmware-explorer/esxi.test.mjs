@@ -1703,6 +1703,42 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
       )
       assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 1)
     })
+
+    describe('isChangeTrackingReady', function () {
+      it('is ready when the host answers for every disk of a powered off VM', async function () {
+        const { esxi, vimClient } = await cbtEsxi()
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), true)
+        // a single answer per disk is enough, the disk is not walked
+        const queries = vimClient.callsTo('QueryChangedDiskAreas')
+        assert.equal(queries.length, 1)
+        assert.deepEqual(queries[0].args, { _this: 'vm-1', deviceKey: 2000, startOffset: 0, changeId: '*' })
+      })
+
+      it('is not ready when the host refuses to answer for a disk of a powered off VM', async function () {
+        const { esxi } = await cbtEsxi({
+          queryChangedDiskAreas: () => {
+            throw Object.assign(new Error('FileFault'), { code: 'FileFault' })
+          },
+        })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), false)
+      })
+
+      it('is ready when the current snapshot of a running VM recorded a changeId', async function () {
+        const { esxi, vimClient } = await cbtEsxi({ powerState: 'poweredOn' })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), true)
+        assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 0)
+      })
+
+      it('is not ready when the current snapshot of a running VM predates the tracking', async function () {
+        // e.g. a previous run turned the tracking on, then failed before taking its snapshot
+        const { esxi } = await cbtEsxi({ powerState: 'poweredOn', changeId: null })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), false)
+      })
+    })
   })
 })
 
