@@ -20,23 +20,24 @@
     <div class="tx-checksumming">
       <VifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
     </div>
-    <EditVifButtonsSection :cancel-to />
+    <VifFormButtonsSection :cancel-to :submit-label="t('action:save')" />
   </VtsForm>
 </template>
 
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
-import EditVifButtonsSection from '@/modules/vif/components/form/edit/EditVifButtonsSection.vue'
 import VifAllowedIpsTextarea from '@/modules/vif/components/form/inputs/VifAllowedIpsTextarea.vue'
 import VifMacInput from '@/modules/vif/components/form/inputs/VifMacInput.vue'
 import VifNetworkSelect from '@/modules/vif/components/form/inputs/VifNetworkSelect.vue'
 import VifRateLimitInput from '@/modules/vif/components/form/inputs/VifRateLimitInput.vue'
 import VifTxChecksummingCheckbox from '@/modules/vif/components/form/inputs/VifTxChecksummingCheckbox.vue'
+import VifFormButtonsSection from '@/modules/vif/components/form/VifFormButtonsSection.vue'
 import { useEditVifForm } from '@/modules/vif/form/edit/use-edit-vif-form.ts'
 import type { EditVifPayload } from '@/modules/vif/jobs/vif-edit.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
+import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 const { vif } = defineProps<{
@@ -47,6 +48,8 @@ const { vif } = defineProps<{
 const emit = defineEmits<{
   save: [data: EditVifPayload]
 }>()
+
+const { t } = useI18n()
 
 const {
   networkSelectBindings,
