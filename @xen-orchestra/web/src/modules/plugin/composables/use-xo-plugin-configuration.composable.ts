@@ -68,7 +68,15 @@ export function useXoPluginConfiguration(rawPlugin: MaybeRefOrGetter<FrontXoPlug
   async function save() {
     isSaved.value = false
 
-    if (!submitForm() || !(await runAction(configure))) {
+    const isValid = submitForm()
+
+    if (!isValid) {
+      return
+    }
+
+    const isConfigured = await runAction(configure)
+
+    if (!isConfigured) {
       return
     }
 

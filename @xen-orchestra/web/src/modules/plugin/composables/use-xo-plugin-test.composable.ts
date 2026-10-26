@@ -34,7 +34,9 @@ export function useXoPluginTest(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
   async function test() {
     isSuccess.value = false
 
-    if (!submitForm()) {
+    const isValid = submitForm()
+
+    if (!isValid) {
       return
     }
 
