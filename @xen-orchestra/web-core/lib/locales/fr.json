@@ -1082,6 +1082,7 @@
   "firewall:publish:outdated": "Quelqu'un a publié depuis le début de ce brouillon. Mettez-le d'abord à jour avec ses modifications : le publier tel quel les annulerait.",
   "firewall:publish:rejected": "L'agent a refusé la politique",
   "firewall:publish:title": "Publier la politique de pare-feu",
+  "firewall:publish:unchanged-warnings": "1 avertissement déjà présent avant ce changement | {n} avertissements déjà présents avant ce changement",
   "firewall:publish:valid": "Valide",
   "firewall:publish:valid:details": "Document en version {version}, écrit dans {keys}",
   "firewall:publish:validation": "Validation",

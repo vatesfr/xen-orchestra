@@ -39,11 +39,11 @@
         </section>
 
         <!-- vdf#86: monitored policies an enforced policy decides first for -->
-        <section v-if="shadowNotes.length > 0" class="section">
+        <section v-if="newShadowNotes.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:monitor-blind') }}</h3>
-          <template v-for="note of shadowNotes" :key="note.key">
+          <template v-for="note of newShadowNotes" :key="note.key">
             <span v-if="note.pool !== undefined" class="typo-body-bold-small pool-name">{{ note.pool }}</span>
-            <UiInfo :accent="note.isNew ? 'warning' : 'muted'" wrap>{{ note.text }}</UiInfo>
+            <UiInfo accent="warning" wrap>{{ note.text }}</UiInfo>
           </template>
         </section>
 
@@ -85,7 +85,7 @@
                 {{ t('firewall:publish:validation-failed', { error: pool.error }) }}
               </UiInfo>
               <UiInfo
-                v-for="warning of agentWarnings(pool.warnings)"
+                v-for="warning of newAgentWarnings(pool.warnings, pool.id)"
                 :key="warning.raw"
                 v-tooltip="warning.tooltip"
                 accent="warning"
@@ -121,7 +121,7 @@
               {{ t('firewall:publish:validation-failed', { error: checkResult.error }) }}
             </UiInfo>
             <UiInfo
-              v-for="warning of agentWarnings(checkResult.warnings)"
+              v-for="warning of newAgentWarnings(checkResult.warnings)"
               :key="warning.raw"
               v-tooltip="warning.tooltip"
               accent="warning"
@@ -136,6 +136,16 @@
             </UiInfo>
           </template>
         </section>
+
+        <!-- what the published document already warned about: once, folded -->
+        <details v-if="unchanged.length > 0" class="unchanged">
+          <summary class="typo-body-regular-small secondary">
+            {{ t('firewall:publish:unchanged-warnings', { n: unchanged.length }, unchanged.length) }}
+          </summary>
+          <div class="unchanged-list">
+            <UiInfo v-for="note of unchanged" :key="note.key" accent="muted" wrap>{{ note.text }}</UiInfo>
+          </div>
+        </details>
 
         <UiAlert v-if="shown.publishError" accent="danger">{{ shown.publishError }}</UiAlert>
         <UiAlert v-else-if="!shown.isOutdated" accent="info">
@@ -297,9 +307,16 @@ function overriddenIn(document: VdfDocument, poolId: string) {
 }
 
 // a pool's publish: its draft, with the pool's global part
-const overridden = computed(() =>
-  isGlobalScope(shown.value.scopeId) ? [] : overriddenIn(shown.value.document, shown.value.scopeId)
+const overriddenAll = computed(() =>
+  isGlobalScope(shown.value.scopeId)
+    ? { fresh: [], known: [] }
+    : splitKnown(
+        overriddenIn(shown.value.document, shown.value.scopeId),
+        overriddenIn(shown.value.baseDocument, shown.value.scopeId)
+      )
 )
+
+const overridden = computed(() => overriddenAll.value.fresh)
 
 // A GLOBAL PUBLISH: where each policy applies, in the pools of the draft's
 // scope that get this configuration (vdf#47)
@@ -464,14 +481,22 @@ const checkError = ref<string>()
 
 // a global publish: each pool in scope, its own part as the check found it
 // with the draft's global configuration
-const overriddenPerPool = computed<Record<string, { key: string; text: string }[]>>(() =>
+const overriddenPerPoolAll = computed(() =>
   isGlobalScope(shown.value.scopeId)
-    ? Object.fromEntries(
-        (checkResult.value?.pools ?? [])
-          .filter(pool => pool.own !== undefined)
-          .map(pool => [pool.id, overriddenIn(composeWithGlobal(pool.own!, shown.value.document), pool.id)])
-      )
-    : {}
+    ? (checkResult.value?.pools ?? [])
+        .filter(pool => pool.own !== undefined)
+        .map(pool => ({
+          pool,
+          ...splitKnown(
+            overriddenIn(composeWithGlobal(pool.own!, shown.value.document), pool.id),
+            overriddenIn(composeWithGlobal(pool.own!, shown.value.baseDocument), pool.id)
+          ),
+        }))
+    : []
+)
+
+const overriddenPerPool = computed<Record<string, Note[]>>(() =>
+  Object.fromEntries(overriddenPerPoolAll.value.map(item => [item.pool.id, item.fresh]))
 )
 
 // MONITORED POLICIES that can't see some of their VMs (vdf#86): an enforced
@@ -517,6 +542,8 @@ const shadowNotes = computed(() => {
   return [...notes.filter(note => note.isNew), ...notes.filter(note => !note.isNew)]
 })
 
+const newShadowNotes = computed(() => shadowNotes.value.filter(note => note.isNew))
+
 // HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
 // for the pool, or each pool the global configuration is checked on
 
@@ -554,7 +581,7 @@ const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
-    shadowNotes.value.some(note => note.isNew) ||
+    newShadowNotes.value.length > 0 ||
     Object.values(hostNotes.value).some(notes => notes.length > 0) ||
     Object.values(overriddenPerPool.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
@@ -576,6 +603,63 @@ function confirm() {
     emit('confirm')
   }
 }
+
+// UNCHANGED WARNINGS: what the published document already warned about
+// (the agent's check of it, XO's own notes on it) is told once, folded,
+// rather than in every review (vdf#86 walkthrough)
+
+type Note = { key: string; text: string }
+
+function splitKnown(notes: Note[], before: Note[]) {
+  const known = new Set(before.map(note => note.key))
+
+  return { fresh: notes.filter(note => !known.has(note.key)), known: notes.filter(note => known.has(note.key)) }
+}
+
+// the agent's check of the published document
+const baseCheck = ref<VdfCheckResult>()
+
+const knownAgentWarnings = computed(
+  () =>
+    new Set([
+      ...(baseCheck.value?.warnings ?? []),
+      ...(baseCheck.value?.pools ?? []).flatMap(pool => (pool.warnings ?? []).map(raw => `${pool.id}|${raw}`)),
+    ])
+)
+
+const isKnownWarning = (raw: string, poolId?: string) =>
+  knownAgentWarnings.value.has(poolId === undefined ? raw : `${poolId}|${raw}`)
+
+function newAgentWarnings(raws: string[] | undefined, poolId?: string) {
+  return agentWarnings((raws ?? []).filter(raw => !isKnownWarning(raw, poolId)))
+}
+
+const unchanged = computed<Note[]>(() => {
+  const poolName = (name: string, text: string) => `${name}: ${text}`
+  const agent =
+    checkResult.value?.pools !== undefined
+      ? checkResult.value.pools.flatMap(pool =>
+          agentWarnings((pool.warnings ?? []).filter(raw => isKnownWarning(raw, pool.id))).map(warning => ({
+            key: `agent:${pool.id}:${warning.raw}`,
+            text: poolName(pool.name, warning.text),
+          }))
+        )
+      : agentWarnings((checkResult.value?.warnings ?? []).filter(raw => isKnownWarning(raw))).map(warning => ({
+          key: `agent:${warning.raw}`,
+          text: warning.text,
+        }))
+
+  return [
+    ...agent,
+    ...overriddenAll.value.known,
+    ...overriddenPerPoolAll.value.flatMap(item =>
+      item.known.map(note => ({ key: `${item.pool.id}:${note.key}`, text: poolName(item.pool.name, note.text) }))
+    ),
+    ...shadowNotes.value
+      .filter(note => !note.isNew)
+      .map(note => ({ key: note.key, text: note.pool === undefined ? note.text : poolName(note.pool, note.text) })),
+  ]
+})
 
 // the agent's warnings in an admin's words, its own text in the tooltip;
 // a text it is not known to write is shown as is
@@ -634,6 +718,13 @@ onMounted(async () => {
     return
   }
 
+  // what the published document already warns about (a failure: nothing
+  // is folded)
+  checkVdfDocument(scopeId, props.baseDocument).then(
+    result => (baseCheck.value = result),
+    () => undefined
+  )
+
   try {
     checkResult.value = await checkVdfDocument(scopeId, document)
   } catch (error) {
@@ -663,6 +754,17 @@ onMounted(async () => {
   .pool-name,
   .secondary {
     color: var(--color-neutral-txt-secondary);
+  }
+
+  .unchanged summary {
+    cursor: pointer;
+  }
+
+  .unchanged-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-block-start: 0.8rem;
   }
 
   .checking {

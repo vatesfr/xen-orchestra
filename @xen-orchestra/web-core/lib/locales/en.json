@@ -1082,6 +1082,7 @@
   "firewall:publish:outdated": "Someone published since this draft started. Rebase it onto their changes first: publishing it as is would undo them.",
   "firewall:publish:rejected": "The agent rejected the policy",
   "firewall:publish:title": "Publish the firewall policy",
+  "firewall:publish:unchanged-warnings": "1 warning already there before this change | {n} warnings already there before this change",
   "firewall:publish:valid": "Valid",
   "firewall:publish:valid:details": "Version {version} document, written to {keys}",
   "firewall:publish:validation": "Validation",
