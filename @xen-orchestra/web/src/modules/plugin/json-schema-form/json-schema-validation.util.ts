@@ -3,6 +3,7 @@ import {
   getPropertyLabel,
   getSchemaType,
   isObject,
+  isObjectSchemaWithProperties,
   isRequiredProperty,
   type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
@@ -41,7 +42,7 @@ function getMissingItems(schema: JsonSchema, items: unknown[], location: Locatio
 }
 
 function getMissingProperties(schema: JsonSchema, value: unknown, location: Location): JsonSchemaMissingField[] {
-  if (getSchemaType(schema) !== 'object' || schema.properties === undefined) {
+  if (!isObjectSchemaWithProperties(schema)) {
     return []
   }
 
@@ -59,12 +60,15 @@ function getMissingProperties(schema: JsonSchema, value: unknown, location: Loca
 
     // a required object is always displayed, so its own fields are reported instead of the object, and an optional one
     // is only checked once used
-    if (fieldType === 'object' && (isRequired || isObject(propertyValue))) {
+    const isDisplayedObject = fieldType === 'object' && (isRequired || isObject(propertyValue))
+    // a boolean is never missing, as it is displayed unchecked
+    const isMissingRequiredValue = isRequired && fieldType !== 'boolean' && isMissing(propertyValue)
+
+    if (isDisplayedObject) {
       return getMissingProperties(propertySchema, propertyValue, propertyLocation)
     }
 
-    // a boolean is never missing, as it is displayed unchecked
-    if (isRequired && fieldType !== 'boolean' && isMissing(propertyValue)) {
+    if (isMissingRequiredValue) {
       return [{ path: propertyLocation.path, labels: propertyLocation.labels }]
     }
 

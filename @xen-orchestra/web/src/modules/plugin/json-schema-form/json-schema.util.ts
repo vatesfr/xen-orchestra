@@ -73,8 +73,9 @@ export function getXoObjectType(schema: JsonSchema | undefined): XoObjectType | 
 export function getXoObjectReference(schema: JsonSchema): { objectType: XoObjectType; multiple: boolean } | undefined {
   const type = getSchemaType(schema)
   const multiple = type === 'array'
+  const canReferenceXoObject = type === 'string' || multiple
 
-  if (type !== 'string' && !multiple) {
+  if (!canReferenceXoObject) {
     return undefined
   }
 
@@ -111,8 +112,14 @@ export function isRequiredProperty(schema: JsonSchema, key: string): boolean {
   return schema.required?.includes(key) ?? false
 }
 
+export function isObjectSchemaWithProperties(
+  schema: JsonSchema | undefined
+): schema is JsonSchema & { properties: Record<string, JsonSchema> } {
+  return getSchemaType(schema) === 'object' && schema?.properties !== undefined
+}
+
 export function getSchemaDefaults(schema: JsonSchema | undefined): Record<string, unknown> | undefined {
-  if (getSchemaType(schema) !== 'object' || schema?.properties === undefined) {
+  if (!isObjectSchemaWithProperties(schema)) {
     return undefined
   }
 
@@ -120,10 +127,12 @@ export function getSchemaDefaults(schema: JsonSchema | undefined): Record<string
   let hasDefaults = false
 
   for (const [key, propertySchema] of Object.entries(schema.properties)) {
+    const isRequiredObject = isRequiredProperty(schema, key) && getSchemaType(propertySchema) === 'object'
+
     if (propertySchema.default !== undefined) {
       result[key] = propertySchema.default
       hasDefaults = true
-    } else if (isRequiredProperty(schema, key) && getSchemaType(propertySchema) === 'object') {
+    } else if (isRequiredObject) {
       const nested = getSchemaDefaults(propertySchema)
 
       if (nested !== undefined) {

@@ -4,6 +4,7 @@ import {
   getSchemaType,
   getXoObjectReference,
   getXoObjectType,
+  isObjectSchemaWithProperties,
   isRequiredProperty,
   isSecretProperty,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
@@ -105,6 +106,21 @@ describe('isRequiredProperty', () => {
 
   it('considers every property optional without required', () => {
     expect(isRequiredProperty({ type: 'object' }, 'foo')).toBe(false)
+  })
+})
+
+describe('isObjectSchemaWithProperties', () => {
+  it('detects an object schema with properties', () => {
+    expect(isObjectSchemaWithProperties({ type: 'object', properties: {} })).toBe(true)
+  })
+
+  it('rejects an object schema without properties', () => {
+    expect(isObjectSchemaWithProperties({ type: 'object' })).toBe(false)
+  })
+
+  it('rejects non-object schemas', () => {
+    expect(isObjectSchemaWithProperties({ type: 'string', properties: {} })).toBe(false)
+    expect(isObjectSchemaWithProperties(undefined)).toBe(false)
   })
 })
 
