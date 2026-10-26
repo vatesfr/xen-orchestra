@@ -1,0 +1,99 @@
+import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import JsonSchemaValue from '@/modules/plugin/json-schema-form/JsonSchemaValue.vue'
+import type { useXoObjectOptions } from '@/modules/plugin/json-schema-form/use-xo-object-options.composable.ts'
+import { createTestRouter } from '@/test/create-test-router.ts'
+import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { mount } from '@vue/test-utils'
+import { computed, toValue } from 'vue'
+
+const { objectOptions } = vi.hoisted(() => ({
+  objectOptions: vi.fn(),
+}))
+
+// The options come from the XO object collections, which subscribe to server events
+vi.mock(import('@/modules/plugin/json-schema-form/use-xo-object-options.composable.ts'), () => ({
+  useXoObjectOptions: objectOptions as unknown as typeof useXoObjectOptions,
+}))
+
+beforeEach(() => {
+  objectOptions.mockReset()
+
+  objectOptions.mockImplementation(rawType => ({
+    options: computed(() => (toValue(rawType) === 'pool' ? [{ value: 'pool-1', label: 'Main pool' }] : [])),
+    isReady: computed(() => true),
+    hasError: computed(() => false),
+  }))
+})
+
+function mountValue(properties: Record<string, JsonSchema>, value: unknown) {
+  return mount(JsonSchemaValue, {
+    props: { schema: { type: 'object', properties }, value },
+    global: createGlobalTestConfig({ router: createTestRouter() }),
+  })
+}
+
+it('shows each property of the schema with its value', () => {
+  const wrapper = mountValue(
+    { host: { type: 'string', title: 'Host' }, port: { type: 'integer', title: 'Port' } },
+    { host: 'smtp.example.org' }
+  )
+
+  expect(findLabelledValues(wrapper)).toEqual({ Host: 'smtp.example.org', Port: '' })
+})
+
+it('titles a nested section with the labels of its parents', () => {
+  const wrapper = mountValue(
+    {
+      transport: {
+        type: 'object',
+        title: 'Transport',
+        properties: { auth: { type: 'object', title: 'Auth', properties: { user: { type: 'string' } } } },
+      },
+    },
+    { transport: { auth: { user: 'xo' } } }
+  )
+
+  expect(wrapper.get('.ui-card-subtitle').text()).toBe(
+    t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' })
+  )
+})
+
+it('hides the value of a secret', () => {
+  const wrapper = mountValue({ password: { type: 'string', title: 'Password' } }, { password: 'hunter2' })
+
+  expect(wrapper.text()).not.toContain('hunter2')
+  expect(findLabelledValues(wrapper).Password).not.toBe('')
+})
+
+it('shows a boolean as a status', () => {
+  const wrapper = mountValue({ secure: { type: 'boolean' } }, { secure: true })
+
+  expect(wrapper.getComponent(VtsStatus).props('status')).toBe(true)
+})
+
+it('links an XO object to its page, by its name', () => {
+  const link = mountValue({ pool: { type: 'string', $type: 'Pool' } }, { pool: 'pool-1' }).getComponent(UiLink)
+
+  expect(link.text()).toBe('Main pool')
+  expect(link.props()).toMatchObject({
+    icon: 'object:pool',
+    to: { name: '/pool/[id]/dashboard', params: { id: 'pool-1' } },
+  })
+})
+
+it('shows the ID of an unknown XO object', () => {
+  const wrapper = mountValue({ vm: { type: 'string', $type: 'VM' } }, { vm: 'vm-1' })
+
+  expect(wrapper.getComponent(UiLink).text()).toBe('vm-1')
+})
+
+it('shows tags as tags', () => {
+  const wrapper = mountValue({ tags: { type: 'array', items: { type: 'string', $type: 'Tag' } } }, { tags: ['prod'] })
+
+  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['prod'])
+  expect(wrapper.findComponent(UiLink).exists()).toBe(false)
+})

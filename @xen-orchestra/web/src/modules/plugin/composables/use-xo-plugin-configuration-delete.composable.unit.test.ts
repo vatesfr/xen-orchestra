@@ -1,11 +1,10 @@
 import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
 import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
-import { useActionError } from '@/shared/composables/action-error.composable.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
+import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-import { useI18n } from 'vue-i18n'
 
 const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
   run: vi.fn(),
@@ -13,6 +12,7 @@ const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
   openModal: vi.fn(),
 }))
 
+// The job deletes the configuration through the REST API
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), () => ({
   useXoPluginDeleteConfigurationJob: useDeleteConfigurationJob as unknown as typeof useXoPluginDeleteConfigurationJob,
 }))
@@ -22,68 +22,56 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
 }))
 
 beforeEach(() => {
-  run.mockReset().mockResolvedValue(undefined)
+  run.mockReset()
   useDeleteConfigurationJob.mockReset().mockReturnValue(createJobResult(run))
   openModal.mockReset()
 })
 
 const plugin = createPlugin({
+  loaded: false,
   configuration: { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org' } },
 })
 
 function mountDelete() {
-  const onSuccess = vi.fn()
-
-  const { wrapper } = mountComposable(() => {
-    const { error, runAction } = useActionError()
-
-    return { ...useXoPluginConfigurationDelete(plugin, { runAction, onSuccess }), error, t: useI18n().t }
-  })
-
-  return { result: wrapper.vm, onSuccess }
+  return mountComposable(() => useXoPluginConfigurationDelete(plugin)).wrapper.vm
 }
 
-async function confirmDeletion() {
-  await openModal.mock.calls[0][0].events.onConfirm()
+function confirmDeletion() {
+  openModal.mock.calls[0][0].events.onConfirm()
 }
 
 it('asks to confirm the deletion of the configuration of the plugin', () => {
-  const { result } = mountDelete()
-
-  result.deleteConfiguration()
+  mountDelete().deleteConfiguration()
 
   expect(openModal.mock.calls[0][0].props).toEqual({
-    subject: result.t('plugin:configuration-of', { name: 'transport-email' }),
-    description: result.t('plugin:delete-configuration-info'),
-    confirmLabel: result.t('action:delete-configuration'),
+    subject: t('plugin:configuration-of', { name: 'transport-email' }),
+    description: t('plugin:delete-configuration-info'),
+    confirmLabel: t('action:delete-configuration'),
   })
 })
 
 it('does not delete anything until confirmed', () => {
-  mountDelete().result.deleteConfiguration()
+  mountDelete().deleteConfiguration()
 
   expect(run).not.toHaveBeenCalled()
 })
 
-it('deletes the configuration once confirmed', async () => {
-  const { result, onSuccess } = mountDelete()
+it('deletes the configuration in the background once confirmed, so the modal closes right away', () => {
+  mountDelete().deleteConfiguration()
 
-  result.deleteConfiguration()
-  await confirmDeletion()
+  confirmDeletion()
 
-  expect({ runs: run.mock.calls.length, successes: onSuccess.mock.calls.length }).toEqual({
-    runs: 1,
-    successes: 1,
-  })
+  expect(run).toHaveBeenCalledWith({ detached: true })
 })
 
-it('keeps the error of a failed deletion', async () => {
-  const error = new Error('request failed')
-  run.mockRejectedValue(error)
-  const { result, onSuccess } = mountDelete()
+it('exposes whether the configuration can be deleted, is being deleted, and why it cannot be', () => {
+  useDeleteConfigurationJob.mockReturnValue(
+    createJobResult(run, { canRun: false, isRunning: true, errorMessage: 'In progress' })
+  )
 
-  result.deleteConfiguration()
-  await confirmDeletion()
+  const result = mountDelete()
 
-  expect({ error: result.error, successes: onSuccess.mock.calls.length }).toEqual({ error, successes: 0 })
+  expect(result.canDeleteConfiguration).toBe(false)
+  expect(result.isDeletingConfiguration).toBe(true)
+  expect(result.deleteConfigurationErrorMessage).toBe('In progress')
 })

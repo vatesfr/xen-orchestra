@@ -1,47 +1,48 @@
 import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
-import { getSchemaDefaults } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { useActionError } from '@/shared/composables/action-error.composable.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter, ref } from 'vue'
+import { reactiveComputed } from '@vueuse/core'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
 export function useXoPluginTest(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
   const plugin = toComputed(rawPlugin)
 
-  const { error, runAction } = useActionError()
-
-  const testSchema = computed(() => plugin.value.testSchema)
-
-  // xo-server rejects a test without data when the plugin has a test schema
-  function getInitialTestData() {
-    return testSchema.value === undefined ? undefined : (getSchemaDefaults(testSchema.value) ?? {})
-  }
-
-  const testData = ref<unknown>(getInitialTestData())
-
-  const isSuccess = ref(false)
-
-  const { summaryErrors, submit: submitForm } = useJsonSchemaForm(testSchema, testData)
+  const testData = ref<unknown>()
 
   const {
     run,
-    canRun: canTest,
-    isRunning: isTesting,
-    errorMessage: testErrorMessage,
+    canRun: canTestPlugin,
+    isRunning: isTestingPlugin,
+    errorMessage: testPluginErrorMessage,
   } = useXoPluginTestJob(plugin, testData)
 
-  async function test() {
-    isSuccess.value = false
+  const { open } = useOverlay({
+    component: () => import('@/modules/plugin/components/drawer/PluginTestDrawer.vue'),
+    events: {
+      onConfirm: async (newTestData: unknown) => {
+        testData.value = newTestData
 
-    const isValid = submitForm()
+        try {
+          await run()
+        } catch (error) {
+          console.error('Error when testing the plugin', error)
 
-    if (!isValid) {
-      return
-    }
+          return KEEP_OVERLAY_OPEN
+        }
+      },
+      onCancel: true,
+    },
+  })
 
-    isSuccess.value = await runAction(run)
+  const props = reactiveComputed(() => ({
+    plugin: plugin.value,
+  }))
+
+  function testPlugin() {
+    return open({ props })
   }
 
-  return { testSchema, testData, summaryErrors, isSuccess, test, canTest, isTesting, testErrorMessage, error }
+  return { testPlugin, canTestPlugin, isTestingPlugin, testPluginErrorMessage }
 }

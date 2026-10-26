@@ -7,26 +7,28 @@
     <PluginHeader v-if="uiStore.hasUi" :key="plugin.id" :plugin />
     <div :key="plugin.id" class="container">
       <UiAlert v-if="!plugin.configured" accent="warning">{{ t('plugin:needs-configuration') }}</UiAlert>
-      <div class="columns">
-        <PluginConfiguration class="configuration" :plugin />
-        <div class="aside">
+      <VtsColumns>
+        <VtsColumn>
           <PluginGeneralInfo :plugin />
-          <PluginTest v-if="plugin.testable" :plugin />
-        </div>
-      </div>
+        </VtsColumn>
+        <VtsColumn>
+          <PluginConfigurationDetail :plugin />
+        </VtsColumn>
+      </VtsColumns>
     </div>
   </template>
 </template>
 
 <script lang="ts" setup>
-import PluginConfiguration from '@/modules/plugin/components/detail/PluginConfiguration.vue'
+import PluginConfigurationDetail from '@/modules/plugin/components/detail/PluginConfigurationDetail.vue'
 import PluginGeneralInfo from '@/modules/plugin/components/detail/PluginGeneralInfo.vue'
-import PluginTest from '@/modules/plugin/components/detail/PluginTest.vue'
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
 import {
   type FrontXoPlugin,
   useXoPluginCollection,
 } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -50,27 +52,5 @@ const plugin = useGetPluginById(() => route.params.id as FrontXoPlugin['id'])
   flex-direction: column;
   gap: 0.8rem;
   margin: 0.8rem;
-}
-
-.columns {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.8rem;
-
-  .configuration {
-    flex: 999 1 56rem;
-    min-width: 0;
-  }
-
-  .aside {
-    position: sticky;
-    inset-block-start: 0.8rem;
-    flex: 1 1 32rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    min-width: 0;
-  }
 }
 </style>

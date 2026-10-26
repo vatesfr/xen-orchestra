@@ -1,15 +1,17 @@
 <template>
   <UiButton
-    v-tooltip="loadAction.hint ?? false"
+    v-for="{ action, variant } of buttons"
+    :key="variant"
+    v-tooltip="action.hint ?? false"
     size="medium"
-    variant="tertiary"
+    :variant
     accent="brand"
-    :disabled="loadAction.disabled"
-    :left-icon="loadAction.icon"
-    :busy="loadAction.busy"
-    @click="loadAction.onClick()"
+    :disabled="action.disabled"
+    :left-icon="action.icon"
+    :busy="action.busy"
+    @click="action.onClick()"
   >
-    {{ loadAction.label }}
+    {{ action.label }}
   </UiButton>
 </template>
 
@@ -18,10 +20,16 @@ import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-a
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed } from 'vue'
 
 const { plugin } = defineProps<{
   plugin: FrontXoPlugin
 }>()
 
-const { loadAction } = useXoPluginActions(() => plugin)
+const { loadAction, configureAction } = useXoPluginActions(() => plugin)
+
+const buttons = computed(() => [
+  { action: loadAction.value, variant: 'tertiary' as const },
+  { action: configureAction.value, variant: 'primary' as const },
+])
 </script>

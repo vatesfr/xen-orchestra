@@ -1,4 +1,7 @@
 import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
+import type { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
+import type { useXoPluginConfigure } from '@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'
+import type { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test.composable.ts'
 import type { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import type { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
@@ -8,11 +11,28 @@ import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { toValue } from 'vue'
 
-const { useChangeStateJob, useAutoloadJob, changeState, updateAutoload } = vi.hoisted(() => ({
+const {
+  useChangeStateJob,
+  useAutoloadJob,
+  useConfigure,
+  useTest,
+  useDelete,
+  changeState,
+  updateAutoload,
+  configurePlugin,
+  testPlugin,
+  deleteConfiguration,
+} = vi.hoisted(() => ({
   useChangeStateJob: vi.fn(),
   useAutoloadJob: vi.fn(),
+  useConfigure: vi.fn(),
+  useTest: vi.fn(),
+  useDelete: vi.fn(),
   changeState: vi.fn(),
   updateAutoload: vi.fn(),
+  configurePlugin: vi.fn(),
+  testPlugin: vi.fn(),
+  deleteConfiguration: vi.fn(),
 }))
 
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-change-state.job.ts'), () => ({
@@ -23,15 +43,70 @@ vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
   useXoPluginAutoloadJob: useAutoloadJob as unknown as typeof useXoPluginAutoloadJob,
 }))
 
+// The composables open overlays and run jobs, which call the REST API
+vi.mock(import('@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'), () => ({
+  useXoPluginConfigure: useConfigure as unknown as typeof useXoPluginConfigure,
+}))
+
+vi.mock(import('@/modules/plugin/composables/use-xo-plugin-test.composable.ts'), () => ({
+  useXoPluginTest: useTest as unknown as typeof useXoPluginTest,
+}))
+
+vi.mock(import('@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'), () => ({
+  useXoPluginConfigurationDelete: useDelete as unknown as typeof useXoPluginConfigurationDelete,
+}))
+
 beforeEach(() => {
   useChangeStateJob.mockReset()
   useAutoloadJob.mockReset()
+  useConfigure.mockReset()
+  useTest.mockReset()
+  useDelete.mockReset()
   changeState.mockReset()
   updateAutoload.mockReset()
+  configurePlugin.mockReset()
+  testPlugin.mockReset()
+  deleteConfiguration.mockReset()
 
   useChangeStateJob.mockReturnValue(createJobResult(changeState))
   useAutoloadJob.mockReturnValue(createJobResult(updateAutoload))
+  mockConfigure()
+  mockTest()
+  mockDelete()
 })
+
+function mockConfigure(state: Parameters<typeof createJobResult>[1] = {}) {
+  const { run, canRun, isRunning, errorMessage } = createJobResult(configurePlugin, state)
+
+  useConfigure.mockReturnValue({
+    configurePlugin: run,
+    canConfigurePlugin: canRun,
+    isConfiguringPlugin: isRunning,
+    configurePluginErrorMessage: errorMessage,
+  })
+}
+
+function mockTest(state: Parameters<typeof createJobResult>[1] = {}) {
+  const { run, canRun, isRunning, errorMessage } = createJobResult(testPlugin, state)
+
+  useTest.mockReturnValue({
+    testPlugin: run,
+    canTestPlugin: canRun,
+    isTestingPlugin: isRunning,
+    testPluginErrorMessage: errorMessage,
+  })
+}
+
+function mockDelete(state: Parameters<typeof createJobResult>[1] = {}) {
+  const { run, canRun, isRunning, errorMessage } = createJobResult(deleteConfiguration, state)
+
+  useDelete.mockReturnValue({
+    deleteConfiguration: run,
+    canDeleteConfiguration: canRun,
+    isDeletingConfiguration: isRunning,
+    deleteConfigurationErrorMessage: errorMessage,
+  })
+}
 
 function mountActions(plugin: FrontXoPlugin = createPlugin()) {
   return mountComposable(() => useXoPluginActions(plugin)).wrapper.vm
@@ -131,5 +206,111 @@ describe('autoloadAction', () => {
     useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
 
     expect(mountActions().autoloadAction).toMatchObject({ disabled: true, hint: undefined })
+  })
+})
+
+describe('configureAction', () => {
+  it('opens the configuration drawer on click', () => {
+    const { configureAction } = mountActions()
+
+    configureAction.onClick()
+
+    expect(configureAction).toMatchObject({ label: t('action:configure'), icon: 'action:edit' })
+    expect(configurePlugin).toHaveBeenCalledOnce()
+  })
+
+  it('can run when the plugin can be configured', () => {
+    expect(mountActions().configureAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
+  })
+
+  it('is disabled, with the reason as hint, when the plugin cannot be configured', () => {
+    mockConfigure({ canRun: false, errorMessage: 'not configurable' })
+
+    expect(mountActions().configureAction).toMatchObject({ disabled: true, hint: 'not configurable' })
+  })
+
+  it('is busy while the configuration is being saved', () => {
+    mockConfigure({ canRun: false, isRunning: true })
+
+    expect(mountActions().configureAction.busy).toBe(true)
+  })
+
+  it('is disabled while the configuration is being deleted', () => {
+    mockDelete({ canRun: false, isRunning: true })
+
+    expect(mountActions().configureAction.disabled).toBe(true)
+  })
+})
+
+describe('testAction', () => {
+  it('opens the test drawer on click', () => {
+    const { testAction } = mountActions()
+
+    testAction.onClick()
+
+    expect(testAction).toMatchObject({ label: t('action:test-plugin'), icon: 'action:scan' })
+    expect(testPlugin).toHaveBeenCalledOnce()
+  })
+
+  it('can run when the plugin can be tested', () => {
+    expect(mountActions().testAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
+  })
+
+  it('is disabled, with the reason as hint, when the plugin cannot be tested', () => {
+    mockTest({ canRun: false, errorMessage: 'not loaded' })
+
+    expect(mountActions().testAction).toMatchObject({ disabled: true, hint: 'not loaded' })
+  })
+
+  it('is busy while the plugin is being tested', () => {
+    mockTest({ canRun: false, isRunning: true })
+
+    expect(mountActions().testAction.busy).toBe(true)
+  })
+})
+
+describe('deleteConfigurationAction', () => {
+  it('asks to delete the configuration on click, apart from the other actions', () => {
+    const { deleteConfigurationAction } = mountActions()
+
+    deleteConfigurationAction.onClick()
+
+    expect(deleteConfigurationAction).toMatchObject({
+      label: t('action:delete-configuration'),
+      icon: 'action:delete',
+      accent: 'danger',
+      separator: true,
+    })
+    expect(deleteConfiguration).toHaveBeenCalledOnce()
+  })
+
+  it('can run when the configuration can be deleted', () => {
+    expect(mountActions().deleteConfigurationAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
+  })
+
+  it('is disabled, with the reason as hint, when the configuration cannot be deleted', () => {
+    mockDelete({ canRun: false, errorMessage: 'plugin loaded' })
+
+    expect(mountActions().deleteConfigurationAction).toMatchObject({ disabled: true, hint: 'plugin loaded' })
+  })
+
+  it('is busy while the configuration is being deleted', () => {
+    mockDelete({ canRun: false, isRunning: true })
+
+    expect(mountActions().deleteConfigurationAction.busy).toBe(true)
+  })
+
+  it('is disabled while the configuration is being saved', () => {
+    mockConfigure({ canRun: false, isRunning: true })
+
+    expect(mountActions().deleteConfigurationAction.disabled).toBe(true)
+  })
+})
+
+describe('moreActions', () => {
+  it('lists the secondary actions, the deletion last', () => {
+    const { moreActions, autoloadAction, testAction, deleteConfigurationAction } = mountActions()
+
+    expect(moreActions).toEqual([autoloadAction, testAction, deleteConfigurationAction])
   })
 })

@@ -20,6 +20,7 @@ beforeEach(() => {
 })
 
 const configuredPlugin = createPlugin({
+  loaded: false,
   configurationSchema: { type: 'object' },
   configuration: { from: { address: 'xo@example.org' }, transport: { host: 'smtp.example.org' } },
 })
@@ -44,7 +45,7 @@ describe('run', () => {
 })
 
 describe('validate', () => {
-  it('can run on a plugin with a saved configuration', () => {
+  it('can run on an unloaded plugin with a saved configuration', () => {
     const job = mountDeleteConfigurationJob(configuredPlugin)
 
     expect(job.canRun).toBe(true)
@@ -65,6 +66,13 @@ describe('validate', () => {
 
     expect(job.canRun).toBe(false)
     expect(job.errorMessage).toBe(t('job:plugin-delete-configuration:no-configuration'))
+  })
+
+  it('cannot run on a loaded plugin, as the API rejects it', () => {
+    const job = mountDeleteConfigurationJob(createPlugin({ ...configuredPlugin, loaded: true }))
+
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(t('job:plugin-delete-configuration:loaded'))
   })
 
   it('cannot run while the configuration is being deleted', () => {

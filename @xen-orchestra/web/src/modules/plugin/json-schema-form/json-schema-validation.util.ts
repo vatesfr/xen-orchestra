@@ -2,6 +2,7 @@ import {
   getFieldType,
   getPropertyLabel,
   getSchemaType,
+  isMissingValue,
   isObject,
   isObjectSchemaWithProperties,
   isRequiredProperty,
@@ -13,10 +14,6 @@ export type JsonSchemaPath = string[]
 type JsonSchemaMissingField = {
   path: JsonSchemaPath
   labels: string[]
-}
-
-function isMissing(value: unknown): boolean {
-  return value === undefined || value === null || value === ''
 }
 
 type Location = {
@@ -37,7 +34,7 @@ function getMissingItems(schema: JsonSchema, items: unknown[], location: Locatio
     }
 
     // an empty item would be sent as `null`, it must be filled or removed
-    return isMissing(item) ? [{ path: itemPath, labels: itemLabels }] : []
+    return isMissingValue(item) ? [{ path: itemPath, labels: itemLabels }] : []
   })
 }
 
@@ -62,7 +59,7 @@ function getMissingProperties(schema: JsonSchema, value: unknown, location: Loca
     // is only checked once used
     const isDisplayedObject = fieldType === 'object' && (isRequired || isObject(propertyValue))
     // a boolean is never missing, as it is displayed unchecked
-    const isMissingRequiredValue = isRequired && fieldType !== 'boolean' && isMissing(propertyValue)
+    const isMissingRequiredValue = isRequired && fieldType !== 'boolean' && isMissingValue(propertyValue)
 
     if (isDisplayedObject) {
       return getMissingProperties(propertySchema, propertyValue, propertyLocation)

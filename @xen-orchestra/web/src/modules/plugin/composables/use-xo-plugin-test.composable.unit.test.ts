@@ -1,114 +1,122 @@
 import { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test.composable.ts'
 import type { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { type MaybeRefOrGetter, toValue } from 'vue'
+import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
+import type { Ref } from 'vue'
 
-const { run, useTestJob } = vi.hoisted(() => ({
-  run: vi.fn(),
+type OverlayOptions = {
+  events: {
+    onConfirm: (testData: unknown) => Promise<unknown>
+    onCancel: true
+  }
+}
+
+const { useTestJob, run, useOverlayMock, open } = vi.hoisted(() => ({
   useTestJob: vi.fn(),
+  run: vi.fn(),
+  useOverlayMock: vi.fn(),
+  open: vi.fn(),
 }))
 
+// The job tests the plugin through the REST API
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-test.job.ts'), () => ({
   useXoPluginTestJob: useTestJob as unknown as typeof useXoPluginTestJob,
 }))
 
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+  useOverlay: useOverlayMock as unknown as typeof useOverlay,
+}))
+
+const TEST_DATA = { to: 'admin@example.org' }
+
 beforeEach(() => {
-  run.mockReset().mockResolvedValue(undefined)
-  useTestJob.mockReset().mockReturnValue(createJobResult(run))
+  useTestJob.mockReset()
+  run.mockReset()
+  useOverlayMock.mockReset()
+  open.mockReset()
+
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  useTestJob.mockReturnValue(createJobResult(run))
+  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
 })
 
-const testSchema = {
-  type: 'object',
-  properties: {
-    to: { type: 'string' },
-    subject: { type: 'string', default: 'Test' },
-  },
-  required: ['to'],
-} satisfies JsonSchema
-
-const testablePlugin = createPlugin({ testable: true, testSchema })
-
-function mountTest(plugin: MaybeRefOrGetter<FrontXoPlugin>) {
+function mountTest(plugin: FrontXoPlugin = createPlugin({ testable: true })) {
   return mountComposable(() => useXoPluginTest(plugin)).wrapper.vm
 }
 
-describe('testData', () => {
-  it('starts with the defaults of the test schema', () => {
-    expect(mountTest(testablePlugin).testData).toEqual({ subject: 'Test' })
+function getOverlayOptions(): OverlayOptions {
+  return useOverlayMock.mock.calls[0][0]
+}
+
+function getJobArgs() {
+  const [plugin, testData] = useTestJob.mock.calls[0] as [Ref<FrontXoPlugin>, Ref<unknown>]
+
+  return { plugin, testData }
+}
+
+describe('job', () => {
+  it('runs on the plugin', () => {
+    const plugin = createPlugin({ name: 'transport-slack', testable: true })
+    mountTest(plugin)
+
+    expect(getJobArgs().plugin.value).toEqual(plugin)
   })
 
-  it('starts empty when the test schema has no defaults', () => {
-    const plugin = createPlugin({
-      testable: true,
-      testSchema: { type: 'object', properties: { to: { type: 'string' } } },
-    })
+  it('has no test data before the drawer is confirmed', () => {
+    mountTest()
 
-    expect(mountTest(plugin).testData).toEqual({})
+    expect(getJobArgs().testData.value).toBeUndefined()
   })
 
-  it('is undefined when the plugin has no test schema', () => {
-    expect(mountTest(createPlugin({ testable: true, testSchema: undefined })).testData).toBeUndefined()
-  })
+  it('exposes whether the plugin can be tested, is being tested, and why it cannot be', () => {
+    useTestJob.mockReturnValue(createJobResult(run, { canRun: false, isRunning: true, errorMessage: 'In progress' }))
 
-  it('is the data sent by the test', async () => {
-    const result = mountTest(testablePlugin)
-    result.testData = { to: 'admin@example.org' }
+    const result = mountTest()
 
-    await result.test()
-
-    expect(toValue(useTestJob.mock.calls[0][1])).toEqual({ to: 'admin@example.org' })
+    expect(result.canTestPlugin).toBe(false)
+    expect(result.isTestingPlugin).toBe(true)
+    expect(result.testPluginErrorMessage).toBe('In progress')
   })
 })
 
-describe('test', () => {
-  it('does not run the test while a required field is missing', async () => {
-    const result = mountTest(testablePlugin)
+describe('testPlugin', () => {
+  it('opens the drawer with the plugin', () => {
+    const plugin = createPlugin({ name: 'transport-slack', testable: true })
 
-    await result.test()
+    mountTest(plugin).testPlugin()
 
-    expect({ runs: run.mock.calls.length, isSuccess: result.isSuccess }).toEqual({ runs: 0, isSuccess: false })
+    expect(open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
   })
 
-  it('reports a successful test', async () => {
-    const result = mountTest(testablePlugin)
-    result.testData = { to: 'admin@example.org' }
+  it('closes the drawer when it is cancelled', () => {
+    mountTest()
 
-    await result.test()
+    expect(getOverlayOptions().events.onCancel).toBe(true)
+  })
+})
 
-    expect({ isSuccess: result.isSuccess, error: result.error }).toEqual({ isSuccess: true, error: undefined })
+describe('onConfirm', () => {
+  it('tests the plugin with the confirmed data, then closes the drawer', async () => {
+    run.mockImplementation(async () => expect(getJobArgs().testData.value).toEqual(TEST_DATA))
+    mountTest()
+
+    const response = await getOverlayOptions().events.onConfirm(TEST_DATA)
+
+    expect(run).toHaveBeenCalledOnce()
+    expect(response).toBeUndefined()
   })
 
-  it('keeps the error of a failed test', async () => {
-    const error = new Error('email not sent')
-    run.mockRejectedValue(error)
-    const result = mountTest(testablePlugin)
-    result.testData = { to: 'admin@example.org' }
+  it('keeps the drawer open when the test fails', async () => {
+    run.mockRejectedValue(new Error('SMTP connection refused'))
+    mountTest()
 
-    await result.test()
+    const response = await getOverlayOptions().events.onConfirm(TEST_DATA)
 
-    expect({ isSuccess: result.isSuccess, error: result.error }).toEqual({ isSuccess: false, error })
-  })
-
-  it('runs the test of a plugin without test schema', async () => {
-    const result = mountTest(createPlugin({ testable: true, testSchema: undefined }))
-
-    await result.test()
-
-    expect({ runs: run.mock.calls.length, isSuccess: result.isSuccess }).toEqual({ runs: 1, isSuccess: true })
-  })
-
-  it('clears the previous success when the next test is not run', async () => {
-    const result = mountTest(testablePlugin)
-    result.testData = { to: 'admin@example.org' }
-    await result.test()
-    result.testData = {}
-
-    await result.test()
-
-    expect(result.isSuccess).toBe(false)
+    expect(response).toBe(KEEP_OVERLAY_OPEN)
   })
 })

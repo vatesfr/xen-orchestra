@@ -6,6 +6,7 @@ import {
 } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import { useJsonSchemaItemLabel } from '@/modules/plugin/json-schema-form/use-json-schema-item-label.composable.ts'
+import { useJsonSchemaNestedLabel } from '@/modules/plugin/json-schema-form/use-json-schema-nested-label.composable.ts'
 import type { FormErrorSummaryItem } from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import { focusField } from '@core/utils/focus-field.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -36,6 +37,8 @@ export function useJsonSchemaForm(
 
   const getItemLabel = useJsonSchemaItemLabel()
 
+  const getNestedLabel = useJsonSchemaNestedLabel()
+
   const formId = useId()
 
   const isSubmitted = ref(false)
@@ -51,11 +54,11 @@ export function useJsonSchemaForm(
       return []
     }
 
-    return getMissingFields(schema.value, value.value, { getItemLabel }).map(({ path, labels }) => {
-      const label = labels.reduce((parent, label) => t('json-schema:nested-label', { parent, label }))
-
-      return { path, id: getFieldId(path), message: t('form:error:field-required', { field: label }) }
-    })
+    return getMissingFields(schema.value, value.value, { getItemLabel }).map(({ path, labels }) => ({
+      path,
+      id: getFieldId(path),
+      message: t('form:error:field-required', { field: getNestedLabel(labels) }),
+    }))
   })
 
   const summaryErrors = computed(() => (isSubmitted.value ? errors.value : []))

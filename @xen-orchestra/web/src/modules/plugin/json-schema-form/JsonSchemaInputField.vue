@@ -64,12 +64,19 @@ const schemaType = computed(() => getSchemaType(schema))
 
 const isNumeric = computed(() => schemaType.value === 'number' || schemaType.value === 'integer')
 
+// read once, so that a value typed over a secret obfuscated by the API stays hidden
+function getInitialValue() {
+  return model.value
+}
+
+const initialValue = getInitialValue()
+
 const type = computed<InputType>(() => {
   if (isNumeric.value) {
     return 'number'
   }
 
-  return isSecretProperty(path.at(-1), schema) ? 'password' : 'text'
+  return isSecretProperty(path.at(-1), schema, initialValue) ? 'password' : 'text'
 })
 
 const placeholder = computed(() => (schema.default === undefined ? undefined : String(schema.default)))

@@ -1,3 +1,6 @@
+import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
+import { useXoPluginConfigure } from '@/modules/plugin/composables/use-xo-plugin-configure.composable.ts'
+import { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test.composable.ts'
 import { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
@@ -36,7 +39,7 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
       onClick: () => changeState(),
       disabled: !canChangeState.value || isUpdatingAutoload.value,
       busy: isChangingState.value,
-      hint: canChangeState.value ? undefined : changeStateErrorMessage.value,
+      hint: changeStateErrorMessage.value,
     })
   )
 
@@ -47,9 +50,55 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
       onClick: () => updateAutoload(),
       disabled: !canUpdateAutoload.value || isChangingState.value,
       busy: isUpdatingAutoload.value,
-      hint: canUpdateAutoload.value ? undefined : updateAutoloadErrorMessage.value,
+      hint: updateAutoloadErrorMessage.value,
     })
   )
 
-  return { loadAction, autoloadAction }
+  const { configurePlugin, canConfigurePlugin, isConfiguringPlugin, configurePluginErrorMessage } =
+    useXoPluginConfigure(plugin)
+
+  const { testPlugin, canTestPlugin, isTestingPlugin, testPluginErrorMessage } = useXoPluginTest(plugin)
+
+  const { deleteConfiguration, canDeleteConfiguration, isDeletingConfiguration, deleteConfigurationErrorMessage } =
+    useXoPluginConfigurationDelete(plugin)
+
+  // saving and deleting the configuration must not run at the same time
+  const configureAction = computed(
+    (): LeafActionItem => ({
+      label: t('action:configure'),
+      icon: 'action:edit',
+      onClick: () => configurePlugin(),
+      disabled: !canConfigurePlugin.value || isDeletingConfiguration.value,
+      busy: isConfiguringPlugin.value,
+      hint: configurePluginErrorMessage.value,
+    })
+  )
+
+  const testAction = computed(
+    (): LeafActionItem => ({
+      label: t('action:test-plugin'),
+      icon: 'action:scan',
+      onClick: () => testPlugin(),
+      disabled: !canTestPlugin.value,
+      busy: isTestingPlugin.value,
+      hint: testPluginErrorMessage.value,
+    })
+  )
+
+  const deleteConfigurationAction = computed(
+    (): LeafActionItem => ({
+      label: t('action:delete-configuration'),
+      icon: 'action:delete',
+      accent: 'danger',
+      separator: true,
+      onClick: () => deleteConfiguration(),
+      disabled: !canDeleteConfiguration.value || isConfiguringPlugin.value,
+      busy: isDeletingConfiguration.value,
+      hint: deleteConfigurationErrorMessage.value,
+    })
+  )
+
+  const moreActions = computed(() => [autoloadAction.value, testAction.value, deleteConfigurationAction.value])
+
+  return { loadAction, autoloadAction, configureAction, testAction, deleteConfigurationAction, moreActions }
 }

@@ -4,10 +4,12 @@ import {
   getSchemaType,
   getXoObjectReference,
   getXoObjectType,
+  isMissingValue,
   isObjectSchemaWithProperties,
   isRequiredProperty,
   isSecretProperty,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 
 describe('getSchemaType', () => {
   it('returns the type of the schema', () => {
@@ -193,17 +195,35 @@ describe('getSchemaDefaults', () => {
 })
 
 describe('isSecretProperty', () => {
-  it('detects a property named password', () => {
-    expect(isSecretProperty('password', { type: 'string' })).toBe(true)
-  })
+  it.each(['password', 'smtpPassword', 'PASSWORD', 'token', 'passphrase', 'encryptionKey'])(
+    'detects a property named %s, as xo-server obfuscates it',
+    name => {
+      expect(isSecretProperty(name, { type: 'string' })).toBe(true)
+    }
+  )
 
   it('detects a property with the password format', () => {
     expect(isSecretProperty('secret', { type: 'string', format: 'password' })).toBe(true)
     expect(isSecretProperty(undefined, { type: 'string', format: 'password' })).toBe(true)
   })
 
+  it('detects a property obfuscated by the API, whatever its name', () => {
+    expect(isSecretProperty('clientSecret', { type: 'string' }, OBFUSCATED_VALUE)).toBe(true)
+  })
+
   it('does not consider other properties as secret', () => {
-    expect(isSecretProperty('username', { type: 'string' })).toBe(false)
+    expect(isSecretProperty('username', { type: 'string' }, 'admin')).toBe(false)
+    expect(isSecretProperty('tokens', { type: 'string' })).toBe(false)
     expect(isSecretProperty(undefined, { type: 'string' })).toBe(false)
+  })
+})
+
+describe('isMissingValue', () => {
+  it.each([undefined, null, ''])('considers %j as missing', value => {
+    expect(isMissingValue(value)).toBe(true)
+  })
+
+  it.each([0, false, [], 'value'])('considers %j as set', value => {
+    expect(isMissingValue(value)).toBe(false)
   })
 })

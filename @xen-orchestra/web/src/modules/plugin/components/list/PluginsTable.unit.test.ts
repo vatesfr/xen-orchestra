@@ -20,12 +20,21 @@ vi.mock(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts
 
 const loadAction = createActionItem({ label: 'Load' })
 
-const autoloadAction = createActionItem({ label: 'Enable load at startup' })
+const configureAction = createActionItem({ label: 'Configure' })
+
+const moreActions = [
+  createActionItem({ label: 'Enable load at startup' }),
+  createActionItem({ label: 'Delete configuration', separator: true }),
+]
 
 beforeEach(() => {
   useActions.mockReset()
 
-  useActions.mockReturnValue({ loadAction: ref(loadAction), autoloadAction: ref(autoloadAction) })
+  useActions.mockReturnValue({
+    loadAction: ref(loadAction),
+    configureAction: ref(configureAction),
+    moreActions: ref(moreActions),
+  })
 })
 
 function mountTable(router = createTestRouter()) {
@@ -35,10 +44,10 @@ function mountTable(router = createTestRouter()) {
   })
 }
 
-it('offers the load and autoload actions of the plugin in its row', () => {
+it('offers to load and configure the plugin in its row, then the other actions', () => {
   const actionCell = mountTable().getComponent(VtsActionCell)
 
-  expect(actionCell.props('actions')).toEqual([loadAction, autoloadAction])
+  expect(actionCell.props('actions')).toEqual([loadAction, configureAction, ...moreActions])
 })
 
 it('selects the plugin of the row to show it in the side panel', async () => {

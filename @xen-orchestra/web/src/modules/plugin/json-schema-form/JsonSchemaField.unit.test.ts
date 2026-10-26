@@ -5,6 +5,7 @@ import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-sc
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -133,6 +134,14 @@ describe('string field', () => {
 
   it('hides passwords', () => {
     const wrapper = mountField({ schema: { type: 'string' }, path: ['password'] })
+
+    expect(wrapper.get('input').attributes('type')).toBe('password')
+  })
+
+  it('keeps hiding a secret obfuscated by the API once edited', async () => {
+    const wrapper = mountField({ schema: { type: 'string' }, path: ['clientSecret'], modelValue: OBFUSCATED_VALUE })
+
+    await wrapper.setProps({ modelValue: 'new secret' })
 
     expect(wrapper.get('input').attributes('type')).toBe('password')
   })

@@ -29,6 +29,9 @@ export const RULE_STATUS = {
 
 export const ONE_GB = 1024 ** 3
 
+// sent by the API in place of a secret, see `@vates/obfuscate`
+export const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
+
 export const VDI_SOURCE = {
   EMPTY: 'empty',
   FILE: 'file',
