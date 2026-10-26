@@ -1,9 +1,7 @@
 <!-- v2 -->
 <template>
-  <label :class="{ capitalize }" class="ui-toggle typo-caption">
-    <span v-if="slots.default" class="label">
-      <slot />
-    </span>
+  <label class="ui-toggle typo-caption">
+    <slot />
     <span class="toggle-container">
       <input v-model="checked" :disabled="isDisabled || busy" class="input" type="checkbox" />
       <span :class="{ checked }" class="toggle-icon">
@@ -17,16 +15,15 @@
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 
-const { busy, disabled, capitalize } = defineProps<{
+const { busy, disabled } = defineProps<{
   disabled?: boolean
   busy?: boolean
-  capitalize?: boolean
 }>()
 
 const checked = defineModel<boolean>()
 
-const slots = defineSlots<{
-  default?(): any
+defineSlots<{
+  default(): any
 }>()
 
 const isDisabled = useDisabled(() => disabled)
@@ -37,14 +34,6 @@ const isDisabled = useDisabled(() => disabled)
   display: inline-flex;
   gap: 1.6rem;
   align-items: center;
-
-  &.capitalize .label {
-    text-transform: none;
-
-    &::first-letter {
-      text-transform: uppercase;
-    }
-  }
 
   .toggle-container {
     --transition-timing: 0.25s ease-in-out;

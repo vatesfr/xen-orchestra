@@ -5,7 +5,6 @@
       :model-value="isLoaded"
       :busy="isTogglingLoaded"
       :disabled="!canToggleLoaded"
-      capitalize
       @update:model-value="toggleLoaded()"
     >
       {{ t('loaded') }}
@@ -15,7 +14,6 @@
       :model-value="plugin.autoload"
       :busy="isTogglingAutoload"
       :disabled="!canToggleAutoload"
-      capitalize
       @update:model-value="toggleAutoload()"
     >
       {{ t('load-at-startup') }}

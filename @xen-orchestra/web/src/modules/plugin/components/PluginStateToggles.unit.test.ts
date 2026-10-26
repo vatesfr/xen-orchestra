@@ -69,13 +69,13 @@ function findToggles(wrapper: ReturnType<typeof mountToggles>) {
     wrapper.findAll('.ui-toggle').map(toggle => {
       const input = toggle.get<HTMLInputElement>('input')
 
-      return [toggle.get('.label').text(), { checked: input.element.checked, disabled: input.element.disabled }]
+      return [toggle.text(), { checked: input.element.checked, disabled: input.element.disabled }]
     })
   )
 }
 
 async function changeToggle(wrapper: ReturnType<typeof mountToggles>, label: string, checked: boolean) {
-  const toggle = wrapper.findAll('.ui-toggle').find(toggle => toggle.get('.label').text() === label)
+  const toggle = wrapper.findAll('.ui-toggle').find(toggle => toggle.text() === label)
 
   if (toggle === undefined) {
     throw new Error(`no "${label}" toggle`)

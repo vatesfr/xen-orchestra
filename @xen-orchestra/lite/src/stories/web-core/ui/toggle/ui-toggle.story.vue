@@ -4,7 +4,6 @@
     :params="[
       prop('busy').bool().widget(),
       prop('disabled').bool().widget().ctx(),
-      prop('capitalize').bool().widget(),
       slot(),
       setting('defaultSlotContent').preset('Label').widget(text()).help('Content for default slot'),
     ]"
