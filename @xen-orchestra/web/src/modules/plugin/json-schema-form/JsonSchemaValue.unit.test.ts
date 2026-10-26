@@ -3,6 +3,7 @@ import JsonSchemaValue from '@/modules/plugin/json-schema-form/JsonSchemaValue.v
 import type { useXoObjectOptions } from '@/modules/plugin/json-schema-form/use-xo-object-options.composable.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTags } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -105,6 +106,6 @@ it('shows the items of an array one per line', () => {
 it('shows tags as tags', () => {
   const wrapper = mountValue({ tags: { type: 'array', items: { type: 'string', $type: 'Tag' } } }, { tags: ['prod'] })
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['prod'])
+  expect(findTags(wrapper)).toEqual(['prod'])
   expect(wrapper.findComponent(UiLink).exists()).toBe(false)
 })

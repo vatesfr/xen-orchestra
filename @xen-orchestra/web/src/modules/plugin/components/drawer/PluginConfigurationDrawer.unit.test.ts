@@ -4,8 +4,10 @@ import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.v
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import { mount } from '@vue/test-utils'
 
@@ -48,6 +50,16 @@ it('offers the presets of the plugin', () => {
 
   expect(wrapper.text()).toContain(t('plugin:configuration-presets'))
   expect(wrapper.text()).toContain(t('action:apply'))
+})
+
+it('fills the form with the applied preset', async () => {
+  const wrapper = mountDrawer(createPlugin({ ...configuredPlugin, configurationPresets: { gmail: GMAIL_PRESET } }))
+
+  await openSelect(wrapper)
+  await pickSelectOption(wrapper, 'gmail')
+  await getButton(wrapper, t('action:apply')).trigger('click')
+
+  expect(wrapper.getComponent(JsonSchemaField).props('modelValue')).toEqual(GMAIL_PRESET)
 })
 
 it('offers no preset for a plugin without presets', () => {

@@ -26,7 +26,7 @@ const poolStats = createPoolStats({
 })
 ```
 
-Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `create-job-result.ts` (what a mocked `defineJob` composable returns), `create-action-item.ts` (a menu / button `LeafActionItem`), `find-labelled-values.ts`, `find-tooltip-content.ts` (the tooltip an element shows on hover), `i18n.ts` and `linear-chart-stub.ts`.
+Shared _helper_ factories live there too — `mount-composable.ts`, `mount-chart-card.ts`, `create-enhanced-data-helpers.ts`, `global-test-config.ts`, `create-test-router.ts`, `create-job-result.ts` (what a mocked `defineJob` composable returns), `create-action-item.ts` (a menu / button `LeafActionItem`), `create-plugin-actions.ts` (what a mocked `useXoPluginActions` returns), `find-labelled-values.ts`, `find-tags.ts` (the labels of the rendered tags), `find-titles.ts` (the card and section titles), `find-tooltip-content.ts` (the tooltip an element shows on hover), `get-button.ts` (a button by its label), `drawer.ts` (submit or cancel a drawer, read its buttons), `select.ts` (open a `VtsSelect`, read or pick its options), `mount-json-schema-form.ts` (a JSON schema form, or a composable run in one of its fields), `json-schema-item-label.ts` (the labels of the items of a JSON schema list), `i18n.ts` and `linear-chart-stub.ts`.
 
 Each factory returns a **fully-populated** object of the real front-end type and accepts a `Partial<T>` of overrides, spread last, so a test only states the fields relevant to its case:
 

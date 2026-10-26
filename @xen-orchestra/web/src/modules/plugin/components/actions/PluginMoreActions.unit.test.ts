@@ -3,8 +3,9 @@ import type { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plu
 import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import { mount } from '@vue/test-utils'
+import { toValue } from 'vue'
 
 const { useActions } = vi.hoisted(() => ({
   useActions: vi.fn(),
@@ -21,17 +22,24 @@ beforeEach(() => {
   useActions.mockReturnValue(createPluginActions())
 })
 
-function mountMoreActions() {
+function mountMoreActions(plugin = createPlugin()) {
   return mount(PluginMoreActions, {
-    props: { plugin: createPlugin() },
+    props: { plugin },
     global: createGlobalTestConfig(),
   })
 }
 
-it('offers the secondary actions of the plugin', () => {
-  const labels = mountMoreActions()
-    .findAllComponents(MenuItem)
-    .map(menuItem => menuItem.text())
+it('runs the actions on its plugin', () => {
+  const plugin = createPlugin({ name: 'backup-reports' })
 
-  expect(labels).toEqual(['Enable load at startup', 'Test plugin', 'Delete configuration'])
+  mountMoreActions(plugin)
+
+  expect(toValue(useActions.mock.calls[0][0])).toEqual(plugin)
+})
+
+it('offers the secondary actions only, the main ones being buttons', () => {
+  const actions = createPluginActions()
+  useActions.mockReturnValue(actions)
+
+  expect(mountMoreActions().getComponent(VtsActionItems).props('actions')).toEqual(actions.moreActions.value)
 })

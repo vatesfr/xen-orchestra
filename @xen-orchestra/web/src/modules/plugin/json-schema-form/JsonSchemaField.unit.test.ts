@@ -5,6 +5,7 @@ import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
@@ -64,16 +65,6 @@ function mountField(props: {
 
 function lastEmittedValue(wrapper: ReturnType<typeof mountField>) {
   return wrapper.emitted('update:modelValue')?.at(-1)?.[0]
-}
-
-function getButton(wrapper: VueWrapper, text: string) {
-  const button = wrapper.findAll('button').find(button => button.text() === text)
-
-  if (button === undefined) {
-    throw new Error(`no "${text}" button`)
-  }
-
-  return button
 }
 
 function findLabels(wrapper: VueWrapper) {
