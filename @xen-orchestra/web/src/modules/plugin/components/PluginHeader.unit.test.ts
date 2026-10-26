@@ -1,5 +1,5 @@
+import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue'
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
-import PluginStateToggles from '@/modules/plugin/components/PluginStateToggles.vue'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
@@ -12,7 +12,7 @@ const CONFIGURATION_SCHEMA = { type: 'object', properties: { host: { type: 'stri
 function mountHeader(plugin: FrontXoPlugin = createPlugin()) {
   return mount(PluginHeader, {
     props: { plugin },
-    global: { ...createGlobalTestConfig(), stubs: { PluginStateToggles: true } },
+    global: { ...createGlobalTestConfig(), stubs: { PluginActions: true } },
   })
 }
 
@@ -73,9 +73,9 @@ it('shows no version for a plugin without version', () => {
   expect(findTags(wrapper)).toEqual([])
 })
 
-it('displays the state toggles of the plugin', () => {
+it('displays the actions of the plugin', () => {
   const plugin = createPlugin()
   const wrapper = mountHeader(plugin)
 
-  expect(wrapper.getComponent(PluginStateToggles).props('plugin')).toEqual(plugin)
+  expect(wrapper.getComponent(PluginActions).props('plugin')).toEqual(plugin)
 })

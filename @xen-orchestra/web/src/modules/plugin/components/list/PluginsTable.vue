@@ -17,8 +17,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { getPluginDescription } from '@/modules/plugin/utils/xo-plugin.util.ts'
+import { getPluginDescription, isPluginLoaded } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -64,18 +65,26 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = usePluginColumns({
-  body: (plugin: FrontXoPlugin) => ({
-    plugin: r =>
-      r({
-        label: plugin.name,
-        to: { name: '/admin/plugin/[id]', params: { id: plugin.id } },
-        icon: 'object:plugin',
-      }),
-    version: r => r(plugin.version ?? ''),
-    description: r => r(getPluginDescription(plugin) ?? ''),
-    loaded: r => r(plugin.loaded === true),
-    autoload: r => r(plugin.autoload),
-    selectItem: r => r(() => (selectedPluginId.value = plugin.id)),
-  }),
+  body: (plugin: FrontXoPlugin) => {
+    const { loadAction, autoloadAction } = useXoPluginActions(() => plugin)
+
+    return {
+      plugin: r =>
+        r({
+          label: plugin.name,
+          to: { name: '/admin/plugin/[id]', params: { id: plugin.id } },
+          icon: 'object:plugin',
+        }),
+      version: r => r(plugin.version ?? ''),
+      description: r => r(getPluginDescription(plugin) ?? ''),
+      loaded: r => r(isPluginLoaded(plugin)),
+      autoload: r => r(plugin.autoload),
+      actions: r =>
+        r({
+          onClick: () => (selectedPluginId.value = plugin.id),
+          actions: [loadAction.value, autoloadAction.value],
+        }),
+    }
+  },
 })
 </script>

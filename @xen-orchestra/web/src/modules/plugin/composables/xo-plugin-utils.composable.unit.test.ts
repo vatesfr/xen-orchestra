@@ -9,12 +9,6 @@ function mountUtils(plugin: FrontXoPlugin) {
   return mountComposable(() => ({ ...useXoPluginUtils(plugin), t: useI18n().t })).wrapper.vm
 }
 
-describe('description', () => {
-  it('is the trimmed description of the plugin', () => {
-    expect(mountUtils(createPlugin({ description: ' Send emails ' })).description).toBe('Send emails')
-  })
-})
-
 describe('keywords', () => {
   it('are the keywords of the plugin', () => {
     expect(mountUtils(createPlugin({ keywords: ['ldap', 'auth'] })).keywords).toEqual(['ldap', 'auth'])

@@ -2,13 +2,14 @@ import PluginTest from '@/modules/plugin/components/detail/PluginTest.vue'
 import type { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
+import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
+import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { useTooltipStore } from '@core/stores/tooltip.store.ts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { nextTick, ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
 const { useTestJob, run } = vi.hoisted(() => ({
   useTestJob: vi.fn(),
@@ -25,17 +26,8 @@ beforeEach(() => {
   run.mockReset()
 
   run.mockResolvedValue(undefined)
-  mockTestJob()
+  useTestJob.mockReturnValue(createJobResult(run))
 })
-
-function mockTestJob({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
-  useTestJob.mockReturnValue({
-    run,
-    canRun: ref(canRun),
-    isRunning: ref(isRunning),
-    errorMessage: ref(canRun ? undefined : 'Plugin not loaded'),
-  })
-}
 
 const TEST_SCHEMA = {
   type: 'object',
@@ -57,15 +49,6 @@ function findTestButton(wrapper: ReturnType<typeof mountCard>) {
 async function runTest(wrapper: ReturnType<typeof mountCard>) {
   await findTestButton(wrapper).trigger('click')
   await flushPromises()
-}
-
-async function findTestButtonTooltip(wrapper: ReturnType<typeof mountCard>) {
-  const button = findTestButton(wrapper).element
-  // `trigger` ignores disabled elements
-  button.dispatchEvent(new MouseEvent('mouseenter'))
-  await nextTick()
-
-  return useTooltipStore().tooltips.find(tooltip => tooltip.target === button)?.options.content
 }
 
 function findInfos(wrapper: ReturnType<typeof mountCard>) {
@@ -123,21 +106,21 @@ it('focuses the first missing field instead of running the test', async () => {
 })
 
 it('explains why the test cannot be run', async () => {
-  mockTestJob({ canRun: false })
+  useTestJob.mockReturnValue(createJobResult(run, { canRun: false, errorMessage: 'Plugin not loaded' }))
   const wrapper = mountCard()
 
   expect(findTestButton(wrapper).props('disabled')).toBe(true)
-  expect(await findTestButtonTooltip(wrapper)).toBe('Plugin not loaded')
+  expect(await findTooltipContent(findTestButton(wrapper).element)).toBe('Plugin not loaded')
 })
 
 it('has no tooltip when the test can be run', async () => {
   const wrapper = mountCard()
 
-  expect(await findTestButtonTooltip(wrapper)).toBe(false)
+  expect(await findTooltipContent(findTestButton(wrapper).element)).toBe(false)
 })
 
 it('disables the form while the test is running', () => {
-  mockTestJob({ isRunning: true })
+  useTestJob.mockReturnValue(createJobResult(run, { isRunning: true }))
   const wrapper = mountCard(createTestablePlugin({ testSchema: TEST_SCHEMA }))
 
   expect(wrapper.getComponent(JsonSchemaField).props('disabled')).toBe(true)

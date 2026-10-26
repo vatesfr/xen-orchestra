@@ -3,6 +3,7 @@ import type { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-co
 import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
@@ -37,21 +38,9 @@ beforeEach(() => {
 
   configure.mockResolvedValue(undefined)
   deleteConfiguration.mockResolvedValue(undefined)
-  mockJob(useConfigureJob, configure)
-  mockJob(useDeleteConfigurationJob, deleteConfiguration)
+  useConfigureJob.mockReturnValue(createJobResult(configure))
+  useDeleteConfigurationJob.mockReturnValue(createJobResult(deleteConfiguration))
 })
-
-function mockJob(
-  useJob: typeof useConfigureJob,
-  run: typeof configure,
-  {
-    canRun = true,
-    isRunning = false,
-    errorMessage = canRun ? undefined : 'Plugin action in progress…',
-  }: { canRun?: boolean; isRunning?: boolean; errorMessage?: string } = {}
-) {
-  useJob.mockReturnValue({ run, canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) })
-}
 
 const configurationSchema = {
   type: 'object',
@@ -247,13 +236,13 @@ describe('canSave', () => {
   })
 
   it('is false when the configure job cannot run', () => {
-    mockJob(useConfigureJob, configure, { canRun: false })
+    useConfigureJob.mockReturnValue(createJobResult(configure, { canRun: false }))
 
     expect(mountConfiguration(unconfiguredPlugin).canSave).toBe(false)
   })
 
   it('is false while the configuration is being deleted', () => {
-    mockJob(useDeleteConfigurationJob, deleteConfiguration, { isRunning: true })
+    useDeleteConfigurationJob.mockReturnValue(createJobResult(deleteConfiguration, { isRunning: true }))
 
     expect(mountConfiguration(unconfiguredPlugin).canSave).toBe(false)
   })
@@ -265,13 +254,13 @@ describe('canDeleteConfiguration', () => {
   })
 
   it('is false when the delete job cannot run', () => {
-    mockJob(useDeleteConfigurationJob, deleteConfiguration, { canRun: false })
+    useDeleteConfigurationJob.mockReturnValue(createJobResult(deleteConfiguration, { canRun: false }))
 
     expect(mountConfiguration(configuredPlugin).canDeleteConfiguration).toBe(false)
   })
 
   it('is false while the configuration is being saved', () => {
-    mockJob(useConfigureJob, configure, { isRunning: true })
+    useConfigureJob.mockReturnValue(createJobResult(configure, { isRunning: true }))
 
     expect(mountConfiguration(configuredPlugin).canDeleteConfiguration).toBe(false)
   })
@@ -283,13 +272,13 @@ describe('isBusy', () => {
   })
 
   it('is true while the configuration is being saved', () => {
-    mockJob(useConfigureJob, configure, { isRunning: true })
+    useConfigureJob.mockReturnValue(createJobResult(configure, { isRunning: true }))
 
     expect(mountConfiguration(configuredPlugin).isBusy).toBe(true)
   })
 
   it('is true while the configuration is being deleted', () => {
-    mockJob(useDeleteConfigurationJob, deleteConfiguration, { isRunning: true })
+    useDeleteConfigurationJob.mockReturnValue(createJobResult(deleteConfiguration, { isRunning: true }))
 
     expect(mountConfiguration(configuredPlugin).isBusy).toBe(true)
   })

@@ -2,9 +2,10 @@ import { useXoPluginTest } from '@/modules/plugin/composables/use-xo-plugin-test
 import type { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { type MaybeRefOrGetter, ref, toValue } from 'vue'
+import { type MaybeRefOrGetter, toValue } from 'vue'
 
 const { run, useTestJob } = vi.hoisted(() => ({
   run: vi.fn(),
@@ -17,12 +18,7 @@ vi.mock(import('@/modules/plugin/jobs/xo-plugin-test.job.ts'), () => ({
 
 beforeEach(() => {
   run.mockReset().mockResolvedValue(undefined)
-  useTestJob.mockReset().mockReturnValue({
-    run,
-    canRun: ref(true),
-    isRunning: ref(false),
-    errorMessage: ref(undefined),
-  })
+  useTestJob.mockReset().mockReturnValue(createJobResult(run))
 })
 
 const testSchema = {

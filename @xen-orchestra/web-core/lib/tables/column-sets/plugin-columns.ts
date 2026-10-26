@@ -1,6 +1,6 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
@@ -15,6 +15,6 @@ export const usePluginColumns = defineColumns(() => {
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     loaded: useStatusColumn({ headerLabel: () => t('loaded') }),
     autoload: useStatusColumn({ headerLabel: () => t('load-at-startup') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

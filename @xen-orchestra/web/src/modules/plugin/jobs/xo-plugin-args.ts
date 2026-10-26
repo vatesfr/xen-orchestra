@@ -11,7 +11,7 @@ export const xoPluginPayloadArg = defineJobArg<unknown>({
   toArray: false,
 })
 
-export const xoPluginAutoloadArg = defineJobArg<boolean>({
+export const xoPluginStateArg = defineJobArg<boolean>({
   identify: false,
   toArray: false,
 })

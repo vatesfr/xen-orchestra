@@ -14,13 +14,13 @@
       </UiTag>
     </template>
     <template #actions>
-      <PluginStateToggles :plugin />
+      <PluginActions :plugin />
     </template>
   </UiHeadBar>
 </template>
 
 <script lang="ts" setup>
-import PluginStateToggles from '@/modules/plugin/components/PluginStateToggles.vue'
+import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue'
 import { useXoPluginUtils } from '@/modules/plugin/composables/xo-plugin-utils.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'

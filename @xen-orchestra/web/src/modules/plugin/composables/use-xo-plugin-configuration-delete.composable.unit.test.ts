@@ -1,10 +1,10 @@
 import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
 import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
 import { useActionError } from '@/shared/composables/action-error.composable.ts'
+import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
@@ -23,9 +23,7 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
 
 beforeEach(() => {
   run.mockReset().mockResolvedValue(undefined)
-  useDeleteConfigurationJob
-    .mockReset()
-    .mockReturnValue({ run, canRun: ref(true), isRunning: ref(false), errorMessage: ref<string>() })
+  useDeleteConfigurationJob.mockReset().mockReturnValue(createJobResult(run))
   openModal.mockReset()
 })
 

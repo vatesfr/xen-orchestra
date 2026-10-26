@@ -4,6 +4,7 @@ import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -11,7 +12,7 @@ import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErro
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
 const { useConfigureJob, useDeleteConfigurationJob, configure, deleteConfiguration } = vi.hoisted(() => ({
   useConfigureJob: vi.fn(),
@@ -37,17 +38,9 @@ beforeEach(() => {
 
   configure.mockResolvedValue(undefined)
   deleteConfiguration.mockResolvedValue(undefined)
-  mockJob(useConfigureJob, configure)
-  mockJob(useDeleteConfigurationJob, deleteConfiguration)
+  useConfigureJob.mockReturnValue(createJobResult(configure))
+  useDeleteConfigurationJob.mockReturnValue(createJobResult(deleteConfiguration))
 })
-
-function mockJob(
-  useJob: typeof useConfigureJob,
-  run: typeof configure,
-  { isRunning = false }: { isRunning?: boolean } = {}
-) {
-  useJob.mockReturnValue({ run, canRun: ref(true), isRunning: ref(isRunning), errorMessage: ref(undefined) })
-}
 
 const SCHEMA = {
   type: 'object',
@@ -166,7 +159,7 @@ describe('save', () => {
   })
 
   it('disables the form while the configuration is saved', () => {
-    mockJob(useConfigureJob, configure, { isRunning: true })
+    useConfigureJob.mockReturnValue(createJobResult(configure, { isRunning: true }))
     const wrapper = mountCard()
 
     expect(wrapper.getComponent(JsonSchemaField).props('disabled')).toBe(true)
@@ -258,7 +251,7 @@ describe('configuration deletion', () => {
   })
 
   it('cannot delete the configuration while it is saved', () => {
-    mockJob(useConfigureJob, configure, { isRunning: true })
+    useConfigureJob.mockReturnValue(createJobResult(configure, { isRunning: true }))
     const wrapper = mountCard()
 
     expect(findButton(wrapper, t('action:delete')).props('disabled')).toBe(true)
