@@ -254,6 +254,33 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * Write the disk size to its size.json metadata file
+   *
+   * @returns  {Promise<void>}
+   */
+  async writeSize() {
+    throw new Error(`Can't flush write size on a disk chain`)
+  }
+
+  /**
+   * Computes the real size of the disk
+   *
+   * @returns  {Promise<number>}
+   */
+  async computeSizeOnDisk() {
+    throw new Error(`Can't compute size on disk on a disk chain`)
+  }
+
+  /**
+   * Returns the size on disk
+   *
+   * @returns  {number}
+   */
+  getStoredSize() {
+    throw new Error(`Can't get stored size on a disk chain`)
+  }
+
+  /**
    * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */

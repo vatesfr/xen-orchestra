@@ -230,7 +230,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    */
   async _writeFile(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(file))
-    await blobClient.upload(data, data.length)
+    await blobClient.upload(data, Buffer.byteLength(data))
   }
 
   async _createReadStream(file) {

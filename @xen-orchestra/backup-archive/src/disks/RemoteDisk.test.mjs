@@ -13,11 +13,34 @@ import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 import { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
+import { resolveVhdAlias } from 'vhd-lib/aliases.js'
+import { normalize } from '@xen-orchestra/fs/path'
 
 const { beforeEach, afterEach, describe } = test
 
 let tempDir, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID'
+
+// sum of the stored size of every file under `entry`, the reference `VhdDirectory#sizeOnDisk` is checked against
+async function getFullSize(handler, entry) {
+  let files
+  try {
+    files = await handler.list(entry, { prependDir: true })
+  } catch (error) {
+    if (error.code === 'ENOTDIR') {
+      return await handler.getSizeOnDisk(entry)
+    } else {
+      throw error
+    }
+  }
+
+  let size = 0
+  for (const file of files) {
+    size += await getFullSize(handler, file)
+  }
+
+  return size
+}
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -75,6 +98,9 @@ async function generateVhd(path, opts = {}) {
   await vhd.writeBlockAllocationTable()
   await vhd.writeHeader()
   await vhd.writeFooter()
+  if (opts.mode === 'directory' && opts.writeSize !== false) {
+    await vhd.writeSize()
+  }
   return vhd
 }
 
@@ -350,7 +376,9 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, child)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.equal(result.finalSizeOnDisk, await handler.getSizeOnDisk(`${basePath}/child.vhd`))
+
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -412,7 +440,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, childDiskChain)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -450,7 +478,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, child)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -505,7 +533,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, childDiskChain)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -546,7 +574,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, child)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -587,7 +615,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, child)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -595,11 +623,33 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
     const remainingDisks = await handler.list(basePath)
     assert.deepEqual(remainingDisks, ['child.vhd.alias.vhd', 'data'])
 
+    // the ancestor is a plain file: it has been moved under `data` to be the target of the alias
     const remainingDatas = await handler.list(basePath + '/data')
-    assert.deepEqual(remainingDatas, [])
+    assert.deepEqual(remainingDatas, ['ancestor.vhd'])
+
+    const aliasPath = `${basePath}/child.vhd.alias.vhd`
+    const dataPath = `${basePath}/data/ancestor.vhd`
+    assert.equal(normalize(await resolveVhdAlias(handler, aliasPath)), normalize(dataPath))
+    assert.equal(
+      result.finalSizeOnDisk,
+      (await handler.getSizeOnDisk(dataPath)) + (await handler.getSizeOnDisk(aliasPath))
+    )
 
     const parentIndexes = parent.getBlockIndexes()
     assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+
+    // the merged data are readable through the alias
+    const merged = new RemoteVhdDisk({ handler, path: aliasPath })
+    await merged.init()
+    try {
+      const { data } = await merged.readBlock(2)
+      assert.ok(
+        data.every(byte => byte === 2),
+        'block 2 should come from the child'
+      )
+    } finally {
+      await merged.close()
+    }
   })
 
   test('MergeRemoteDisk merges a alias ancestor VHD directory + alias child VHD directory', async () => {
@@ -628,7 +678,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent, child)
 
-    assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+    assert.ok(result.finalSizeOnDisk > 0, 'merged disks should have non-zero size')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
     assert.ok(progressCalls > 0, 'onProgress should have been called')
 
@@ -767,7 +817,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
     const result = await mergeRemoteDisk.merge(parent2, child2)
 
     // Verify merge completed
-    assert.ok(result.finalDiskSize > 0, 'final disk size should be > 0')
+    assert.ok(result.finalSizeOnDisk > 0, 'final disk size should be > 0')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
 
     // Verify state file removed after successful resume
@@ -863,7 +913,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
     const result = await mergeRemoteDisk.merge(parent2, child2)
 
     // Verify merge completed
-    assert.ok(result.finalDiskSize > 0, 'final disk size should be > 0')
+    assert.ok(result.finalSizeOnDisk > 0, 'final disk size should be > 0')
     assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
 
     // Verify state file removed after successful resume
@@ -957,7 +1007,7 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const result = await mergeRemoteDisk.merge(parent2, childDiskChain2)
 
-    assert.ok(result.finalDiskSize > 0, 'final disk size should be > 0')
+    assert.ok(result.finalSizeOnDisk > 0, 'final disk size should be > 0')
 
     assert.equal(
       (await handler.list(basePath)).includes(stateFileName),
@@ -1046,6 +1096,149 @@ describe('tests MergeRemoteDisk', { concurrency: 1 }, () => {
 
     const parentIndexes = parent.getBlockIndexes()
     assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+  })
+
+  test('mergeRemoteDisk merge on a parent with a size computes the correct size', async () => {
+    // Create ancestor and child VHDs
+    await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
+    await generateVhd(`${basePath}/child.vhd`, { blocks: [2, 3], mode: 'directory', useAlias: true })
+
+    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+    const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
+
+    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+    await parent.init({ force: isResumingMerge })
+    await child.init({ force: isResumingMerge })
+
+    assert.strictEqual(typeof parent.getStoredSize(), 'number')
+
+    const result = await mergeRemoteDisk.merge(parent, child)
+
+    assert.equal(
+      result.finalSizeOnDisk,
+      (await getFullSize(handler, `${basePath}/data/ancestor.vhd`)) +
+        (await handler.getSizeOnDisk(`${basePath}/child.vhd.alias.vhd`))
+    )
+
+    const resultingDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+    await resultingDisk.init()
+
+    assert.strictEqual(resultingDisk.getStoredSize(), await getFullSize(handler, `${basePath}/data/ancestor.vhd`))
+  })
+
+  test('mergeRemoteDisk merge on a parent without a size computes the correct size', async () => {
+    // Create ancestor and child VHDs
+    await generateVhd(`${basePath}/ancestor.vhd`, {
+      blocks: [0, 1],
+      mode: 'directory',
+      useAlias: true,
+      writeSize: false,
+    })
+    await generateVhd(`${basePath}/child.vhd`, { blocks: [2, 3], mode: 'directory', useAlias: true, writeSize: false })
+
+    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+    const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
+
+    const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+    await parent.init({ force: isResumingMerge })
+    await child.init({ force: isResumingMerge })
+
+    assert.strictEqual(parent.getStoredSize(), undefined)
+
+    const result = await mergeRemoteDisk.merge(parent, child)
+
+    assert.equal(
+      result.finalSizeOnDisk,
+      (await getFullSize(handler, `${basePath}/data/ancestor.vhd`)) +
+        (await handler.getSizeOnDisk(`${basePath}/child.vhd.alias.vhd`))
+    )
+
+    const resultingDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+    await resultingDisk.init()
+
+    assert.strictEqual(resultingDisk.getStoredSize(), await getFullSize(handler, `${basePath}/data/ancestor.vhd`))
+  })
+
+  test('mergeRemoteDisk resumes after interruption with correct size', async () => {
+    // Create parent and child VHDs
+    await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
+    await generateVhd(`${basePath}/child.vhd`, {
+      blocks: [2, 3, 4, 5, 6, 7, 8, 9, 10],
+      mode: 'directory',
+      useAlias: true,
+    })
+
+    const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+    const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
+
+    let isResuming = await mergeRemoteDisk.isResuming(parent)
+
+    assert.ok(!isResuming, 'merge is not resuming')
+
+    await parent.init({ force: isResuming })
+    await child.init({ force: isResuming })
+
+    // Track merge progress
+    let blocksMerged = 0
+    const originalMergeBlock = parent.mergeBlock.bind(parent)
+
+    // Make mergeBlock fail on the second block
+    parent.mergeBlock = async (childDisk, index, isResumingMerge) => {
+      if (blocksMerged === 5) {
+        throw new Error('simulated interruption')
+      }
+      blocksMerged++
+      return originalMergeBlock(childDisk, index, isResumingMerge)
+    }
+
+    // First merge attempt should throw
+    let threw = false
+    try {
+      await mergeRemoteDisk.merge(parent, child)
+    } catch (err) {
+      threw = true
+      assert.equal(err.message, 'simulated interruption')
+    }
+    assert.equal(threw, true, 'merge should throw on simulated interruption')
+
+    // Verify that state file exists
+    assert.ok(
+      (await handler.list(dirname(parent.getPath()))).includes(`.${basename(parent.getPath())}.merge.json`),
+      'merge state file should exist after failure'
+    )
+
+    // Recreate new remoteDisks to simulate a new operation
+    const parent2 = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+    const child2 = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+    isResuming = await mergeRemoteDisk.isResuming(parent)
+
+    assert.ok(isResuming, 'merge is resuming')
+
+    await parent2.init({ force: isResuming })
+    await child2.init({ force: isResuming })
+
+    // Resume merge
+    const result = await mergeRemoteDisk.merge(parent2, child2)
+
+    assert.equal(
+      result.finalSizeOnDisk,
+      (await getFullSize(handler, `${basePath}/data/ancestor.vhd`)) +
+        (await handler.getSizeOnDisk(`${basePath}/child.vhd.alias.vhd`))
+    )
+
+    const resultingDisk = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+    await resultingDisk.init()
+
+    assert.strictEqual(resultingDisk.getStoredSize(), await getFullSize(handler, `${basePath}/data/ancestor.vhd`))
   })
 })
 

@@ -11,6 +11,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
 import { relativeFromFile, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
+import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
@@ -23,7 +24,7 @@ const { warn } = createLogger('remote-disk:merge')
  * @property {number} currentBlock
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
- * @property {number} diskSize
+ * @property {number} sizeOnDisk
  * @typedef {(message: string, data?: Record<string, unknown>) => void} Logger
  */
 
@@ -38,7 +39,7 @@ export class MergeRemoteDisk {
     currentBlock: 0,
     mergedDataSize: 0,
     step: 'mergeBlocks',
-    diskSize: 0,
+    sizeOnDisk: 0,
   }
 
   /**
@@ -223,7 +224,11 @@ export class MergeRemoteDisk {
     await this.#mergeBlocks(parentDisk, childDisk)
     await parentDisk.flushMetadata(childDisk)
     await parentDisk.mergeMetadata(childDisk)
-    this.#state.diskSize = parentDisk.getSizeOnDisk()
+
+    if (this.#isResuming || parentDisk.getStoredSize() === undefined) {
+      await parentDisk.computeSizeOnDisk()
+    }
+    await parentDisk.writeSize()
   }
 
   /**
@@ -301,6 +306,27 @@ export class MergeRemoteDisk {
         throw error
       }
     }
+
+    this.#state.sizeOnDisk = await this.#getFinalSizeOnDisk(parentDisk, mergeTargetPath)
+  }
+
+  /**
+   * @param {RemoteDisk} parentDisk
+   * @param {string} mergeTargetPath
+   * @returns {Promise<number>}
+   */
+  async #getFinalSizeOnDisk(parentDisk, mergeTargetPath) {
+    const storedSize = parentDisk.getStoredSize()
+    if (typeof storedSize === 'number') {
+      return storedSize + (await this.#handler.getSizeOnDisk(mergeTargetPath))
+    }
+
+    let finalSizeOnDisk = await this.#handler.getSizeOnDisk(await resolveVhdAlias(this.#handler, mergeTargetPath))
+    if (isVhdAlias(mergeTargetPath)) {
+      finalSizeOnDisk += await this.#handler.getSizeOnDisk(mergeTargetPath)
+    }
+
+    return finalSizeOnDisk
   }
 
   /**
@@ -308,10 +334,10 @@ export class MergeRemoteDisk {
    * @param {RemoteDisk} childDisk
    * @param {boolean} cleanStateFile
    *
-   * @returns {Promise<{mergedDataSize: number, finalDiskSize: number}>} result
+   * @returns {Promise<{mergedDataSize: number, finalSizeOnDisk: number}>} result
    */
   async #cleanup(parentDisk, childDisk, cleanStateFile) {
-    const finalDiskSize = this.#state?.diskSize ?? 0
+    const finalSizeOnDisk = this.#state?.sizeOnDisk ?? 0
     const mergedDataSize = this.#state?.mergedDataSize ?? 0
     await parentDisk.close().catch(warn)
     await childDisk.close().catch(warn)
@@ -320,7 +346,7 @@ export class MergeRemoteDisk {
       await this.#handler.unlink(this.#statePath).catch(warn)
     }
 
-    return { mergedDataSize, finalDiskSize }
+    return { mergedDataSize, finalSizeOnDisk }
   }
 
   /**
