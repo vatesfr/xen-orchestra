@@ -1,6 +1,6 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { AccordionItemContext } from '@core/components/ui/accordion/accordion-item/UiAccordionItem.vue'
 import type { AccordionController } from '@core/components/ui/accordion/UiAccordion.vue'
+import type { AccordionItemContext } from '@core/components/ui/accordion-item/UiAccordionItem.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'

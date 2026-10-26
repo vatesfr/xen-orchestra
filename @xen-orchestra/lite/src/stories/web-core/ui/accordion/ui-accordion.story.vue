@@ -53,10 +53,10 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param.ts'
-import UiAccordionItem from '@core/components/ui/accordion/accordion-item/UiAccordionItem.vue'
-import UiAccordionItemContent from '@core/components/ui/accordion/accordion-item-content/UiAccordionItemContent.vue'
-import UiAccordionItemTitle from '@core/components/ui/accordion/accordion-item-title/UiAccordionItemTitle.vue'
 import UiAccordion from '@core/components/ui/accordion/UiAccordion.vue'
+import UiAccordionItem from '@core/components/ui/accordion-item/UiAccordionItem.vue'
+import UiAccordionItemContent from '@core/components/ui/accordion-item-content/UiAccordionItemContent.vue'
+import UiAccordionItemTitle from '@core/components/ui/accordion-item-title/UiAccordionItemTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed, ref } from 'vue'
