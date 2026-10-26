@@ -38,30 +38,40 @@
       </template>
     </UiAlert>
 
+    <UiAlert v-if="globalStatus?.replacedBy" accent="danger">
+      {{ t('firewall:global:replaced-by', { xo: globalStatus.replacedBy.name }) }}
+    </UiAlert>
+
     <UiAlert v-for="lost of recoverable" :key="lost.owner.id" accent="warning">
       {{
         t(
           'firewall:global:recover:pools',
-          { xo: lost.owner.name, pools: formatList(lost.pools.map(pool => pool.name)), n: lost.pools.length },
-          lost.pools.length
+          { xo: lostName(lost), pools: formatList(heldBy(lost).map(pool => pool.name)), n: heldBy(lost).length },
+          heldBy(lost).length
         )
       }}
       <template #description>
-        <p>{{ t('firewall:global:recover:info', { xo: lost.owner.name }) }}</p>
-        <p v-if="!lost.exact">{{ t('firewall:global:recover:inexact') }}</p>
-        <p v-if="lost.differs.length > 0">
-          {{ t('firewall:global:recover:differs', { pools: formatList(lost.differs.map(pool => pool.name)) }) }}
-        </p>
-        <UiButton
-          variant="secondary"
-          accent="warning"
-          size="small"
-          left-icon="fa:link"
-          :busy="isRecovering"
-          @click="recover(lost)"
-        >
-          {{ t('firewall:global:recover') }}
-        </UiButton>
+        <p>{{ t('firewall:global:recover:info', { xo: lostName(lost) }) }}</p>
+        <p v-if="lost.versions.length > 1">{{ t('firewall:global:recover:versions') }}</p>
+        <div v-for="version of lost.versions" :key="version.pools[0].id" class="recover-version">
+          <p v-if="lost.versions.length > 1">
+            {{ versionLabel(version) }}
+            <span v-if="versionDiff(lost, version)" class="secondary">{{ versionDiff(lost, version) }}</span>
+          </p>
+          <p v-if="!version.exact">{{ t('firewall:global:recover:inexact') }}</p>
+          <p v-if="version.errors.length > 0">{{ version.errors.join('; ') }}</p>
+          <UiButton
+            v-else
+            variant="secondary"
+            accent="warning"
+            size="small"
+            left-icon="fa:link"
+            :busy="isRecovering"
+            @click="recover(lost, version)"
+          >
+            {{ lost.versions.length > 1 ? t('firewall:global:recover:version') : t('firewall:global:recover') }}
+          </UiButton>
+        </div>
       </template>
     </UiAlert>
 
@@ -230,6 +240,15 @@
                 </UiTag>
                 <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
                   {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
+                </UiTag>
+                <UiTag
+                  v-if="row.pool.cloned"
+                  v-tooltip="t('firewall:global:cloned:info')"
+                  accent="danger"
+                  variant="secondary"
+                  tabindex="0"
+                >
+                  {{ t('firewall:global:cloned') }}
                 </UiTag>
                 <UiTag
                   v-if="row.pool.reservedTiers !== undefined"
@@ -410,7 +429,9 @@ import type {
   VdfGlobalScope,
   VdfHostState,
   VdfPoolSyncState,
+  VdfDocument,
   VdfRecoverable,
+  VdfRecoverableVersion,
   VdfVmRef,
 } from '@/modules/vdf/types.ts'
 import { inGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -665,7 +686,43 @@ async function takeOverReplaced() {
 // RECOVER the global configuration of an XO lost without a backup from
 // its pools (vdf#81): saved first, then its pools taken over
 
-const recoverable = computed(() => globalStatus.value?.recoverable ?? [])
+// the ones this XO can recover: none once it has a configuration (reason)
+const recoverable = computed(() => (globalStatus.value?.recoverable ?? []).filter(lost => lost.reason === undefined))
+
+const lostName = (lost: VdfRecoverable) => lost.owner.name || t('firewall:global:unknown-xo')
+
+const heldBy = (lost: VdfRecoverable) => lost.versions.flatMap(version => version.pools)
+
+const ruleTotal = (document: VdfDocument) =>
+  document.policies.reduce((count, policy) => count + allRules(policy).length, 0)
+
+const versionLabel = (version: VdfRecoverableVersion) =>
+  t('firewall:global:recover:version-label', {
+    pools: formatList(version.pools.map(pool => pool.name)),
+    revision: version.revision ?? '?',
+    groups: Object.keys(version.document.groups).length,
+    policies: version.document.policies.length,
+    rules: ruleTotal(version.document),
+  })
+
+// group and policy names a version has that the others don't, and lacks
+function versionDiff(lost: VdfRecoverable, version: VdfRecoverableVersion) {
+  const names = (document: VdfDocument) => [
+    ...Object.keys(document.groups),
+    ...document.policies.map(policy => policy.name),
+  ]
+  const own = names(version.document)
+  const others = new Set(lost.versions.filter(other => other !== version).flatMap(other => names(other.document)))
+  const only = own.filter(name => !others.has(name))
+  const lacks = [...others].filter(name => !own.includes(name))
+
+  return [
+    only.length > 0 ? t('firewall:global:recover:only', { names: formatList(only) }) : '',
+    lacks.length > 0 ? t('firewall:global:recover:lacks', { names: formatList(lacks) }) : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
 
 const isRecovering = ref(false)
 
@@ -675,31 +732,40 @@ const scopeNames = (scope: VdfGlobalScope) =>
     : formatList((scope.pools ?? []).map(id => pools.value.find(pool => pool.id === id)?.name ?? id))
 
 // what's adopted, the pools being writable by anyone with XAPI access to
-// them: counts, tiers, and the scope, the recorded one flagged if wider
-function recoverySummary({ document, scope, recordedScope }: VdfRecoverable) {
-  const summary = t('firewall:global:recover:summary', {
-    groups: Object.keys(document.groups).length,
-    policies: document.policies.length,
-    rules: document.policies.reduce((count, policy) => count + allRules(policy).length, 0),
-    tiers: formatList(policiesByTier(document).map(tier => tierLabel(tier.value))),
-    pools: scopeNames(scope),
-  })
+// them: counts, tiers, and the scope, the pools no other pool confirms and
+// the recorded scope flagged
+function recoverySummary({ document, scope, unconfirmed, recordedScope }: VdfRecoverableVersion) {
+  const summary = [
+    t('firewall:global:recover:summary', {
+      groups: Object.keys(document.groups).length,
+      policies: document.policies.length,
+      rules: ruleTotal(document),
+      tiers: formatList(policiesByTier(document).map(tier => tierLabel(tier.value))),
+      pools: scope.pools.length > 0 ? scopeNames(scope) : '-',
+    }),
+  ]
 
-  return recordedScope === undefined || isEqual(recordedScope, scope)
-    ? summary
-    : `${summary} ${t('firewall:global:recover:recorded-scope', { scope: scopeNames(recordedScope) })}`
+  if (unconfirmed.length > 0) {
+    summary.push(t('firewall:global:recover:unconfirmed', { pools: formatList(unconfirmed.map(pool => pool.name)) }))
+  }
+
+  if (recordedScope !== undefined && !isEqual(recordedScope, scope)) {
+    summary.push(t('firewall:global:recover:recorded-scope', { scope: scopeNames(recordedScope) }))
+  }
+
+  return summary.join(' ')
 }
 
-async function recover(lost: VdfRecoverable) {
+async function recover(lost: VdfRecoverable, version: VdfRecoverableVersion) {
   const response = await openTakeOver({
     props: {
       accent: 'warning',
       icon: 'fa:link',
-      title: t('firewall:global:recover:title', { xo: lost.owner.name }),
+      title: t('firewall:global:recover:title', { xo: lostName(lost) }),
       message: `${t('firewall:global:recover:message', {
-        xo: lost.owner.name,
-        pools: formatList(lost.pools.map(pool => pool.name)),
-      })} ${recoverySummary(lost)}`,
+        xo: lostName(lost),
+        pools: formatList(version.pools.map(pool => pool.name)),
+      })} ${recoverySummary(version)}`,
       confirmLabel: t('firewall:global:recover'),
     },
   })
@@ -714,7 +780,13 @@ async function recover(lost: VdfRecoverable) {
     takeOverError.value = undefined
     const { takenOver } = await fetchPost<{ takenOver: { name: string; ok: boolean; error?: string }[] }>(
       'plugins/vdf/global/actions/recover',
-      { from: lost.owner.id }
+      // the pools no other pool confirms, named: the administrator confirmed
+      // them above
+      {
+        from: lost.owner.id,
+        version: version.pools[0].id,
+        scope: { pools: version.unconfirmed.map(pool => pool.id) },
+      }
     )
     const failed = takenOver.filter(result => !result.ok)
 

@@ -151,6 +151,9 @@ export type VdfGlobalPool = {
   // the pool's own policies in the tiers kept for global policies (vdf#21):
   // they decide before them, and the pool can't publish until they move
   reservedTiers?: string[]
+  // the pool records this XO's id with a newer revision: another copy of
+  // this XO writes there (vdf#81)
+  cloned?: boolean
 }
 
 export type VdfGlobalMember = {
@@ -174,19 +177,28 @@ export type VdfAddressConflict = { group: string; ip: string; member: VdfVmRef; 
 export type VdfAddressOverlap = { ip: string; holders: VdfVmRef[] }
 
 // a global configuration rebuilt from the pools holding another XO's
-// global part (vdf#81); exact: false from pools written before the owner
-// recorded its source (group IPs may include other pools' members). The
-// scope is the pools holding it: what the owner recorded is shown only
+// global part (vdf#81), one entry per version the pools hold. exact: false
+// from pools written before the owner recorded its source (group IPs may
+// include other pools' members). The scope is the pools other pools'
+// owners confirm; the others are unconfirmed, recovered only if named
 // (pools can be written by anyone with XAPI access to them)
+export type VdfRecoverableVersion = {
+  pools: { id: string; name: string }[]
+  revision?: number
+  exact: boolean
+  document: VdfDocument
+  scope: { pools: string[] }
+  unconfirmed: { id: string; name: string }[]
+  recordedScope?: VdfGlobalScope
+  errors: string[]
+}
+
+// owner id '' for a global part without a readable owner; reason: why it
+// can't be recovered here
 export type VdfRecoverable = {
   owner: { id: string; name: string; since?: string }
-  document: VdfDocument
-  revision?: number
-  scope: VdfGlobalScope
-  recordedScope?: VdfGlobalScope
-  exact: boolean
-  pools: { id: string; name: string }[]
-  differs: { id: string; name: string }[]
+  versions: VdfRecoverableVersion[]
+  reason?: string
 }
 
 export type VdfGlobalStatus = {
@@ -207,6 +219,9 @@ export type VdfGlobalStatus = {
   // without a global configuration, the ones other XOs left in the pools
   // (vdf#81), XO administrators only
   recoverable?: VdfRecoverable[]
+  // the XO that took over this one's pools (vdf#81): this one writes no
+  // pool it doesn't own already
+  replacedBy?: { id: string; name: string }
   conflicts?: VdfAddressConflict[]
   overlaps?: VdfAddressOverlap[]
 }
