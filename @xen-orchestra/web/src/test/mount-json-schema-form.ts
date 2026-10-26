@@ -2,7 +2,7 @@ import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.u
 import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mount } from '@vue/test-utils'
-import { defineComponent, type Ref, ref, type VNode } from 'vue'
+import { defineComponent, h, type Ref, ref, type VNode } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // The form provides its context to the fields rendered under it
@@ -22,4 +22,30 @@ export function mountJsonSchemaForm(
   )
 
   return { wrapper, value }
+}
+
+// A component does not inject what it provides itself, so the composable runs in a field rendered under the form
+export function mountInJsonSchemaForm<TResult>(
+  schema: JsonSchema | undefined,
+  initialValue: unknown,
+  composable: () => TResult
+) {
+  // wrapped, as the composable may return `undefined`
+  let result: { value: TResult } | undefined
+
+  const Field = defineComponent({
+    setup() {
+      result = { value: composable() }
+
+      return () => null
+    },
+  })
+
+  const { wrapper, value } = mountJsonSchemaForm(schema, initialValue, () => h(Field))
+
+  if (result === undefined) {
+    throw new Error('the composable did not run in the form')
+  }
+
+  return { wrapper, value, result: result.value }
 }

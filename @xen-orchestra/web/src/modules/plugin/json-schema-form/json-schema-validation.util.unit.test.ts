@@ -1,5 +1,5 @@
 import {
-  getMissingFields,
+  getInvalidFields,
   isPathWithin,
   toPathKey,
 } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
@@ -7,6 +7,8 @@ import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.u
 import { getItemLabel } from '@/test/json-schema-item-label.ts'
 
 const OPTIONS = { getItemLabel }
+
+const REQUIRED = { rule: 'required' }
 
 const schema: JsonSchema = {
   type: 'object',
@@ -34,20 +36,20 @@ const schema: JsonSchema = {
   required: ['uri', 'checkCertificate', 'mapping'],
 }
 
-function getMissingPaths(value: unknown) {
-  return getMissingFields(schema, value, OPTIONS).map(field => field.path.join('.'))
+function getInvalidPaths(value: unknown) {
+  return getInvalidFields(schema, value, OPTIONS).map(field => field.path.join('.'))
 }
 
-describe('getMissingFields', () => {
+describe('getInvalidFields', () => {
   it('reports the missing required fields, including the ones of a required object', () => {
-    expect(getMissingFields(schema, undefined, OPTIONS)).toEqual([
-      { path: ['uri'], labels: ['URI'] },
-      { path: ['mapping', 'attribute'], labels: ['Mapping', 'attribute'] },
+    expect(getInvalidFields(schema, undefined, OPTIONS)).toEqual([
+      { path: ['uri'], labels: ['URI'], error: REQUIRED },
+      { path: ['mapping', 'attribute'], labels: ['Mapping', 'attribute'], error: REQUIRED },
     ])
   })
 
   it.each(['', null])('considers %j as missing', uri => {
-    expect(getMissingPaths({ uri, mapping: { attribute: 'uid' } })).toEqual(['uri'])
+    expect(getInvalidPaths({ uri, mapping: { attribute: 'uid' } })).toEqual(['uri'])
   })
 
   it('never reports a required boolean, as it is displayed unchecked', () => {
@@ -57,41 +59,41 @@ describe('getMissingFields', () => {
       required: ['enabled'],
     }
 
-    expect(getMissingFields(booleanSchema, {}, OPTIONS)).toEqual([])
+    expect(getInvalidFields(booleanSchema, {}, OPTIONS)).toEqual([])
   })
 
   it('checks a value which is not an object as an empty object', () => {
-    expect(getMissingPaths('ldap://foo')).toEqual(['uri', 'mapping.attribute'])
+    expect(getInvalidPaths('ldap://foo')).toEqual(['uri', 'mapping.attribute'])
   })
 
   it('reports a required list which is missing', () => {
     expect(
-      getMissingFields({ type: 'object', properties: { uris: { type: 'array' } }, required: ['uris'] }, {}, OPTIONS)
-    ).toEqual([{ path: ['uris'], labels: ['uris'] }])
+      getInvalidFields({ type: 'object', properties: { uris: { type: 'array' } }, required: ['uris'] }, {}, OPTIONS)
+    ).toEqual([{ path: ['uris'], labels: ['uris'], error: REQUIRED }])
   })
 
   it('only checks an optional object when it is used', () => {
     const value = { uri: 'ldap://foo', mapping: { attribute: 'uid' } }
 
-    expect(getMissingPaths(value)).toEqual([])
-    expect(getMissingPaths({ ...value, bind: { dn: 'cn=admin' } })).toEqual(['bind.password'])
+    expect(getInvalidPaths(value)).toEqual([])
+    expect(getInvalidPaths({ ...value, bind: { dn: 'cn=admin' } })).toEqual(['bind.password'])
   })
 
   it('labels the items without title like the list field', () => {
     expect(
-      getMissingFields(schema, { uri: 'ldap://foo', mapping: { attribute: 'uid' }, failoverUris: [''] }, OPTIONS)
-    ).toEqual([{ path: ['failoverUris', '0'], labels: ['failoverUris', 'Item 1'] }])
+      getInvalidFields(schema, { uri: 'ldap://foo', mapping: { attribute: 'uid' }, failoverUris: [''] }, OPTIONS)
+    ).toEqual([{ path: ['failoverUris', '0'], labels: ['failoverUris', 'Item 1'], error: REQUIRED }])
   })
 
   it('reports the empty items of a list', () => {
     expect(
-      getMissingPaths({ uri: 'ldap://foo', mapping: { attribute: 'uid' }, failoverUris: ['ldap://bar', ''] })
+      getInvalidPaths({ uri: 'ldap://foo', mapping: { attribute: 'uid' }, failoverUris: ['ldap://bar', ''] })
     ).toEqual(['failoverUris.1'])
   })
 
   it('checks the items of a list of objects', () => {
     expect(
-      getMissingFields(
+      getInvalidFields(
         schema,
         {
           uri: 'ldap://foo',
@@ -100,11 +102,61 @@ describe('getMissingFields', () => {
         },
         OPTIONS
       )
-    ).toEqual([{ path: ['domains', '1', 'uri'], labels: ['domains', 'Domain 2', 'uri'] }])
+    ).toEqual([{ path: ['domains', '1', 'uri'], labels: ['domains', 'Domain 2', 'uri'], error: REQUIRED }])
+  })
+
+  describe('constraints', () => {
+    const constrainedSchema: JsonSchema = {
+      type: 'object',
+      properties: {
+        port: { type: 'integer', minimum: 1, maximum: 65535 },
+        ratio: { type: 'number' },
+        hosts: { type: 'array', items: { type: 'string' }, minItems: 2 },
+        ports: { type: 'array', items: { type: 'integer', minimum: 1 } },
+      },
+    }
+
+    function getErrors(value: unknown) {
+      return getInvalidFields(constrainedSchema, value, OPTIONS).map(({ path, error }) => ({ path, error }))
+    }
+
+    it.each([
+      [{ port: 1.5 }, { rule: 'integer' }],
+      [{ port: 0 }, { rule: 'minimum', limit: 1 }],
+      [{ port: 65536 }, { rule: 'maximum', limit: 65535 }],
+    ])('reports %j as breaking the %j rule', (value, error) => {
+      expect(getErrors(value)).toEqual([{ path: ['port'], error }])
+    })
+
+    it.each([1, 389, 65535])('accepts %j, the limits being included', port => {
+      expect(getErrors({ port })).toEqual([])
+    })
+
+    it('accepts a decimal number for a number field', () => {
+      expect(getErrors({ ratio: 1.5 })).toEqual([])
+    })
+
+    it('reports a list with too few items', () => {
+      expect(getErrors({ hosts: ['ldap.example.org'] })).toEqual([
+        { path: ['hosts'], error: { rule: 'min-items', limit: 2 } },
+      ])
+    })
+
+    it('accepts a list with enough items', () => {
+      expect(getErrors({ hosts: ['ldap.example.org', 'ldap.example.com'] })).toEqual([])
+    })
+
+    it('does not check the items count of an optional list which is not set', () => {
+      expect(getErrors({})).toEqual([])
+    })
+
+    it('checks the constraints of the items of a list', () => {
+      expect(getErrors({ ports: [389, 0] })).toEqual([{ path: ['ports', '1'], error: { rule: 'minimum', limit: 1 } }])
+    })
   })
 
   it('returns nothing for a schema which is not an object', () => {
-    expect(getMissingFields({ type: 'string' }, undefined, OPTIONS)).toEqual([])
+    expect(getInvalidFields({ type: 'string' }, undefined, OPTIONS)).toEqual([])
   })
 })
 

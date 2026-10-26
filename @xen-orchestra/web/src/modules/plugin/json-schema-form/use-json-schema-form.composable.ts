@@ -1,6 +1,7 @@
 import {
-  getMissingFields,
+  getInvalidFields,
   isPathWithin,
+  type JsonSchemaFieldError,
   type JsonSchemaPath,
   toPathKey,
 } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
@@ -15,11 +16,13 @@ import { useI18n } from 'vue-i18n'
 
 export type JsonSchemaFormError = FormErrorSummaryItem & {
   path: JsonSchemaPath
+  // shown under the field, while `message` names the field in the summary
+  fieldMessage: string
 }
 
 type JsonSchemaFormContext = {
   getFieldId: (path: JsonSchemaPath) => string
-  hasVisibleError: (path: JsonSchemaPath) => boolean
+  getVisibleError: (path: JsonSchemaPath) => JsonSchemaFormError | undefined
   countVisibleErrors: (path: JsonSchemaPath) => number
   touch: (path: JsonSchemaPath) => void
 }
@@ -49,15 +52,39 @@ export function useJsonSchemaForm(
     return `${formId}-${toPathKey(path)}`
   }
 
+  function getErrorMessages(error: JsonSchemaFieldError, field: string) {
+    switch (error.rule) {
+      case 'required':
+        return { fieldMessage: t('form:error:required'), message: t('form:error:field-required', { field }) }
+      case 'integer':
+        return { fieldMessage: t('form:error:integer'), message: t('form:error:field-integer', { field }) }
+      case 'minimum':
+        return {
+          fieldMessage: t('form:error:minimum', { min: error.limit }),
+          message: t('form:error:field-minimum', { field, min: error.limit }),
+        }
+      case 'maximum':
+        return {
+          fieldMessage: t('form:error:maximum', { max: error.limit }),
+          message: t('form:error:field-maximum', { field, max: error.limit }),
+        }
+      case 'min-items':
+        return {
+          fieldMessage: t('form:error:min-items', { n: error.limit }, error.limit),
+          message: t('form:error:field-min-items', { field, n: error.limit }, error.limit),
+        }
+    }
+  }
+
   const errors = computed<JsonSchemaFormError[]>(() => {
     if (schema.value === undefined) {
       return []
     }
 
-    return getMissingFields(schema.value, value.value, { getItemLabel }).map(({ path, labels }) => ({
+    return getInvalidFields(schema.value, value.value, { getItemLabel }).map(({ path, labels, error }) => ({
       path,
       id: getFieldId(path),
-      message: t('form:error:field-required', { field: getNestedLabel(labels) }),
+      ...getErrorMessages(error, getNestedLabel(labels)),
     }))
   })
 
@@ -67,7 +94,9 @@ export function useJsonSchemaForm(
     isSubmitted.value ? errors.value : errors.value.filter(error => touchedPathKeys.has(toPathKey(error.path)))
   )
 
-  const visibleErrorKeys = computed(() => new Set(visibleErrors.value.map(error => toPathKey(error.path))))
+  const visibleErrorsByPathKey = computed(
+    () => new Map(visibleErrors.value.map(error => [toPathKey(error.path), error]))
+  )
 
   function submit() {
     isSubmitted.value = true
@@ -90,7 +119,7 @@ export function useJsonSchemaForm(
 
   provide(IK_JSON_SCHEMA_FORM, {
     getFieldId,
-    hasVisibleError: path => visibleErrorKeys.value.has(toPathKey(path)),
+    getVisibleError: path => visibleErrorsByPathKey.value.get(toPathKey(path)),
     countVisibleErrors: path => visibleErrors.value.filter(error => isPathWithin(error.path, path)).length,
     touch: path => {
       touchedPathKeys.add(toPathKey(path))

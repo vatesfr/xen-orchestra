@@ -12,9 +12,17 @@ import {
 
 export type JsonSchemaPath = string[]
 
-type JsonSchemaMissingField = {
+export type JsonSchemaFieldError =
+  | { rule: 'required' }
+  | { rule: 'integer' }
+  | { rule: 'minimum'; limit: number }
+  | { rule: 'maximum'; limit: number }
+  | { rule: 'min-items'; limit: number }
+
+type JsonSchemaInvalidField = {
   path: JsonSchemaPath
   labels: string[]
+  error: JsonSchemaFieldError
 }
 
 type Location = {
@@ -23,23 +31,67 @@ type Location = {
   getItemLabel: GetItemLabel
 }
 
-function getMissingItems(schema: JsonSchema, items: unknown[], location: Location): JsonSchemaMissingField[] {
+function getValueError(schema: JsonSchema, value: unknown): JsonSchemaFieldError | undefined {
+  if (Array.isArray(value)) {
+    const { minItems } = schema
+
+    return minItems !== undefined && value.length < minItems ? { rule: 'min-items', limit: minItems } : undefined
+  }
+
+  if (typeof value !== 'number') {
+    return undefined
+  }
+
+  const isNotInteger = getSchemaType(schema) === 'integer' && !Number.isInteger(value)
+
+  if (isNotInteger) {
+    return { rule: 'integer' }
+  }
+
+  if (schema.minimum !== undefined && value < schema.minimum) {
+    return { rule: 'minimum', limit: schema.minimum }
+  }
+
+  if (schema.maximum !== undefined && value > schema.maximum) {
+    return { rule: 'maximum', limit: schema.maximum }
+  }
+
+  return undefined
+}
+
+// the server rejects any other constraint (e.g. `oneOf`), which the form does not display
+function getInvalidValue(schema: JsonSchema, value: unknown, location: Location): JsonSchemaInvalidField[] {
+  const error = getValueError(schema, value)
+  const invalidValue = error === undefined ? [] : [{ path: location.path, labels: location.labels, error }]
+  const isList = getFieldType(schema) === 'array' && Array.isArray(value)
+
+  return isList ? [...invalidValue, ...getInvalidItems(schema, value, location)] : invalidValue
+}
+
+function getInvalidItems(schema: JsonSchema, items: unknown[], location: Location): JsonSchemaInvalidField[] {
   const itemSchema = schema.items ?? {}
 
   return items.flatMap((item, index) => {
-    const itemPath = [...location.path, String(index)]
-    const itemLabels = [...location.labels, location.getItemLabel(index, itemSchema)]
+    const itemLocation = {
+      ...location,
+      path: [...location.path, String(index)],
+      labels: [...location.labels, location.getItemLabel(index, itemSchema)],
+    }
 
     if (getSchemaType(itemSchema) === 'object') {
-      return getMissingProperties(itemSchema, item, { ...location, path: itemPath, labels: itemLabels })
+      return getInvalidProperties(itemSchema, item, itemLocation)
     }
 
     // an empty item would be sent as `null`, it must be filled or removed
-    return isMissingValue(item) ? [{ path: itemPath, labels: itemLabels }] : []
+    if (isMissingValue(item)) {
+      return [{ path: itemLocation.path, labels: itemLocation.labels, error: { rule: 'required' } }]
+    }
+
+    return getInvalidValue(itemSchema, item, itemLocation)
   })
 }
 
-function getMissingProperties(schema: JsonSchema, value: unknown, location: Location): JsonSchemaMissingField[] {
+function getInvalidProperties(schema: JsonSchema, value: unknown, location: Location): JsonSchemaInvalidField[] {
   if (!isObjectSchemaWithProperties(schema)) {
     return []
   }
@@ -63,27 +115,23 @@ function getMissingProperties(schema: JsonSchema, value: unknown, location: Loca
     const isMissingRequiredValue = isRequired && fieldType !== 'boolean' && isMissingValue(propertyValue)
 
     if (isDisplayedObject) {
-      return getMissingProperties(propertySchema, propertyValue, propertyLocation)
+      return getInvalidProperties(propertySchema, propertyValue, propertyLocation)
     }
 
     if (isMissingRequiredValue) {
-      return [{ path: propertyLocation.path, labels: propertyLocation.labels }]
+      return [{ path: propertyLocation.path, labels: propertyLocation.labels, error: { rule: 'required' } }]
     }
 
-    if (fieldType === 'array' && Array.isArray(propertyValue)) {
-      return getMissingItems(propertySchema, propertyValue, propertyLocation)
-    }
-
-    return []
+    return getInvalidValue(propertySchema, propertyValue, propertyLocation)
   })
 }
 
-export function getMissingFields(
+export function getInvalidFields(
   schema: JsonSchema,
   value: unknown,
   { getItemLabel }: Pick<Location, 'getItemLabel'>
-): JsonSchemaMissingField[] {
-  return getMissingProperties(schema, value, { path: [], labels: [], getItemLabel })
+): JsonSchemaInvalidField[] {
+  return getInvalidProperties(schema, value, { path: [], labels: [], getItemLabel })
 }
 
 export function toPathKey(path: JsonSchemaPath): string {

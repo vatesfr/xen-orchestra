@@ -1,10 +1,9 @@
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import { IK_JSON_SCHEMA_FORM } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
+import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
-import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
-import { defineComponent, h, inject, type InjectionKey } from 'vue'
-
-type JsonSchemaFormContext = typeof IK_JSON_SCHEMA_FORM extends InjectionKey<infer TContext> ? TContext : never
+import { mountInJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
+import { inject } from 'vue'
 
 const SCHEMA: JsonSchema = {
   type: 'object',
@@ -23,17 +22,11 @@ const SCHEMA: JsonSchema = {
 const VALID_VALUE = { server: { host: 'ldap.example.org', port: 389 }, base: 'dc=example,dc=org' }
 
 function mountForm(schema: JsonSchema | undefined, initialValue: unknown) {
-  let context: JsonSchemaFormContext | undefined
-
-  const Field = defineComponent({
-    setup() {
-      context = inject(IK_JSON_SCHEMA_FORM)
-
-      return () => null
-    },
-  })
-
-  const { wrapper, value } = mountJsonSchemaForm(schema, initialValue, () => h(Field))
+  const {
+    wrapper,
+    value,
+    result: context,
+  } = mountInJsonSchemaForm(schema, initialValue, () => inject(IK_JSON_SCHEMA_FORM))
 
   if (context === undefined) {
     throw new Error('the form context is not provided')
@@ -50,8 +43,6 @@ describe('errors', () => {
   it('lists the missing fields with the titles of their sections, or their key', () => {
     const { wrapper } = mountForm(SCHEMA, { server: {} })
 
-    const { t } = wrapper.vm
-
     expect(findErrorMessages(wrapper.vm.errors)).toEqual(
       [
         t('json-schema:nested-label', { parent: 'Server', label: 'Host' }),
@@ -67,8 +58,6 @@ describe('errors', () => {
       { uris: [''] }
     )
 
-    const { t } = wrapper.vm
-
     expect(findErrorMessages(wrapper.vm.errors)).toEqual([
       t('form:error:field-required', {
         field: t('json-schema:nested-label', {
@@ -77,6 +66,51 @@ describe('errors', () => {
         }),
       }),
     ])
+  })
+
+  describe('constraints', () => {
+    const constrainedSchema: JsonSchema = {
+      type: 'object',
+      properties: {
+        port: { type: 'integer', title: 'Port', minimum: 1, maximum: 65535 },
+        hosts: { type: 'array', title: 'Hosts', items: { type: 'string' }, minItems: 2 },
+      },
+    }
+
+    function findMessages(initialValue: unknown) {
+      const { wrapper } = mountForm(constrainedSchema, initialValue)
+
+      return wrapper.vm.errors.map(({ fieldMessage, message }) => ({ fieldMessage, message }))
+    }
+
+    it.each([
+      [
+        'a decimal number given for an integer',
+        { port: 1.5 },
+        t('form:error:integer'),
+        t('form:error:field-integer', { field: 'Port' }),
+      ],
+      [
+        'a number under the minimum',
+        { port: 0 },
+        t('form:error:minimum', { min: 1 }),
+        t('form:error:field-minimum', { field: 'Port', min: 1 }),
+      ],
+      [
+        'a number over the maximum',
+        { port: 65536 },
+        t('form:error:maximum', { max: 65535 }),
+        t('form:error:field-maximum', { field: 'Port', max: 65535 }),
+      ],
+      [
+        'a list with too few items, pluralized with the minimum count',
+        { hosts: ['ldap.example.org'] },
+        t('form:error:min-items', { n: 2 }, 2),
+        t('form:error:field-min-items', { field: 'Hosts', n: 2 }, 2),
+      ],
+    ])('reports %s', (_, initialValue, fieldMessage, message) => {
+      expect(findMessages(initialValue)).toEqual([{ fieldMessage, message }])
+    })
   })
 
   it('gives each missing field the ID of its field', () => {
@@ -161,7 +195,7 @@ describe('reset', () => {
     context.touch(['base'])
     wrapper.vm.reset()
 
-    expect(context.hasVisibleError(['base'])).toBe(false)
+    expect(context.getVisibleError(['base'])).toBeUndefined()
   })
 })
 
@@ -173,52 +207,52 @@ describe('getFieldId', () => {
   })
 })
 
-describe('hasVisibleError', () => {
-  it('is false for a missing field which is not left yet', () => {
+describe('getVisibleError', () => {
+  it('is undefined for a missing field which is not left yet', () => {
     const { context } = mountForm(SCHEMA, { server: {} })
 
-    expect(context.hasVisibleError(['base'])).toBe(false)
+    expect(context.getVisibleError(['base'])).toBeUndefined()
   })
 
-  it('is true for a missing field once it is left', () => {
+  it('is the error of a missing field once it is left', () => {
     const { context } = mountForm(SCHEMA, { server: {} })
 
     context.touch(['base'])
 
-    expect(context.hasVisibleError(['base'])).toBe(true)
+    expect(context.getVisibleError(['base'])?.fieldMessage).toBe(t('form:error:required'))
   })
 
-  it('is false for a filled field which is left', () => {
+  it('is undefined for a filled field which is left', () => {
     const { context } = mountForm(SCHEMA, { server: {}, base: 'dc=example,dc=org' })
 
     context.touch(['base'])
 
-    expect(context.hasVisibleError(['base'])).toBe(false)
+    expect(context.getVisibleError(['base'])).toBeUndefined()
   })
 
-  it('stays true for a field left several times', () => {
+  it('stays defined for a field left several times', () => {
     const { context } = mountForm(SCHEMA, { server: {} })
 
     context.touch(['base'])
     context.touch(['base'])
 
-    expect(context.hasVisibleError(['base'])).toBe(true)
+    expect(context.getVisibleError(['base'])).toBeDefined()
   })
 
-  it('is true for every missing field once the form is validated', () => {
+  it('is defined for every missing field once the form is validated', () => {
     const { wrapper, context } = mountForm(SCHEMA, { server: {} })
 
     wrapper.vm.submit()
 
-    expect(context.hasVisibleError(['server', 'port'])).toBe(true)
+    expect(context.getVisibleError(['server', 'port'])).toBeDefined()
   })
 
-  it('is false for a section containing a visible error', () => {
+  it('is undefined for a section containing a visible error', () => {
     const { wrapper, context } = mountForm(SCHEMA, { server: {} })
 
     wrapper.vm.submit()
 
-    expect(context.hasVisibleError(['server'])).toBe(false)
+    expect(context.getVisibleError(['server'])).toBeUndefined()
   })
 })
 
