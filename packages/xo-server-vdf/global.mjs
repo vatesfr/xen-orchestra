@@ -395,7 +395,8 @@ export function remoteIpsFor(poolId, members, conflicts = []) {
 // A pool takes the global configuration of one XO only: the first one to
 // write a global part there records itself in the pool's other_config, and
 // the others leave that pool's global part alone until an administrator
-// takes the pool over.
+// takes the pool over. With it, what recovering the global configuration
+// from the pool needs (globalSource).
 export const OWNER_KEY = 'vdf:global.owner'
 
 export function poolOwner(otherConfig) {
@@ -418,4 +419,137 @@ export function keepGlobalPart(local, published) {
 export function hasGlobalPart(document) {
   const { groups, policies } = globalPart(document)
   return Object.keys(groups).length > 0 || policies.length > 0
+}
+
+// What a pool's owner records besides itself (vdf#81): the revision and
+// scope of the global part it wrote there, and the global groups' own IPs,
+// which the pool's document merges with their members' in the other pools.
+// Enough to rebuild the global configuration from the pools if that XO is
+// lost without a backup. Agents don't read it.
+export function globalSource(global) {
+  if (global === undefined) {
+    return {}
+  }
+  const ips = {}
+  for (const [name, group] of Object.entries(global.document.groups ?? {})) {
+    if (group.ips !== undefined) {
+      ips[name] = group.ips
+    }
+  }
+  return { revision: global.revision, scope: global.scope, ips }
+}
+
+const ownName = name => (isGlobalName(name) ? name.slice(GLOBAL_PREFIX.length) : name)
+
+// the global part of a pool's document as XO keeps it (compose, reversed):
+// names without prefix, rule ids from 1, groups without their IPs
+function heldGlobal(document) {
+  const { groups, policies } = globalPart(document)
+  const own = (rule, peer) => ({ ...rule, id: rule.id - GLOBAL_RULE_BASE, [peer]: ownName(rule[peer]) })
+  return {
+    groups: Object.fromEntries(Object.entries(groups).map(([name, { ips: _, ...group }]) => [ownName(name), group])),
+    policies: policies.map(policy => {
+      const held = {
+        ...policy,
+        name: ownName(policy.name),
+        appliedTo: ownName(policy.appliedTo),
+        ingress: (policy.ingress ?? []).map(rule => own(rule, 'from')),
+      }
+      if (policy.egress !== undefined) {
+        held.egress = policy.egress.map(rule => own(rule, 'to'))
+      }
+      return held
+    }),
+  }
+}
+
+// What a pool's owner recorded (globalSource), the parts that are valid: a
+// pool's other_config can be written by anyone with XAPI access to it
+export function recordedSource(owner) {
+  const { revision, scope, ips } = owner ?? {}
+  const isList = list => Array.isArray(list) && list.every(item => typeof item === 'string')
+  return {
+    revision: Number.isSafeInteger(revision) && revision >= 0 ? revision : undefined,
+    scope: scope?.all === true ? { all: true } : isList(scope?.pools) ? { pools: scope.pools } : undefined,
+    ips: ips !== null && typeof ips === 'object' && Object.values(ips).every(isList) ? ips : undefined,
+  }
+}
+
+const withoutIps = global => ({
+  ...global,
+  groups: Object.fromEntries(Object.entries(global.groups ?? {}).map(([name, { ips: _, ...group }]) => [name, group])),
+})
+
+// whether a pool holds this global configuration: what it would hold, and
+// its groups' own IPs as its owner recorded them
+export function holdsGlobal(global, { owner, document }) {
+  const { ips } = recordedSource(owner)
+  return (
+    ips !== undefined &&
+    sameDocument(heldGlobal(document), withoutIps(global)) &&
+    Object.entries(global.groups ?? {}).every(([name, group]) => sameDocument(ips[name], group.ips))
+  )
+}
+
+// what a pool's global part changes from a global configuration, IPs
+// aside: the groups and policies added, removed or modified
+export function globalDiff(global, document) {
+  const held = heldGlobal(document)
+  const kept = withoutIps(global)
+  const byName = policies => Object.fromEntries((policies ?? []).map(policy => [policy.name, policy]))
+  const changed = (kind, a, b) =>
+    [...new Set([...Object.keys(a), ...Object.keys(b)])]
+      .filter(name => !sameDocument(a[name], b[name]))
+      .map(name => `${kind} ${name}`)
+  return [
+    ...changed('group', kept.groups, held.groups),
+    ...changed('policy', byName(kept.policies), byName(held.policies)),
+  ]
+}
+
+// Rebuilds the global configuration of an XO lost without a backup from
+// the pools holding its global part (vdf#81): [{ id, name, owner,
+// document }], owner as poolOwner reads it. Only pools whose owner recorded
+// a valid source count. One entry per version they hold (unreachable at
+// the last publish, edited outside XO), the most common first: none is
+// chosen here, a revision being as writable as the rest. A version's scope
+// is the pools holding it, whatever their owner recorded.
+export function recoverGlobal(pools) {
+  const versions = new Map()
+  for (const pool of pools) {
+    const source = recordedSource(pool.owner)
+    let held
+    try {
+      held = heldGlobal(pool.document)
+    } catch {
+      continue // not a document compose wrote
+    }
+    if (source.revision === undefined || source.ips === undefined) {
+      continue
+    }
+    const key = JSON.stringify(canonical({ revision: source.revision, ips: source.ips, held }))
+    versions.set(key, [...(versions.get(key) ?? []), { ...pool, source, held }])
+  }
+  const { id, name, since } = pools[0].owner
+  return {
+    owner: { id, name, since },
+    versions: [...versions.values()]
+      .sort((a, b) => b.length - a.length || b[0].source.revision - a[0].source.revision)
+      .map(version => {
+        const [{ source, held }] = version
+        const groups = {}
+        for (const [name, group] of Object.entries(held.groups)) {
+          groups[name] = source.ips[name] === undefined ? group : { ...group, ips: source.ips[name] }
+        }
+        const document = { groups, policies: held.policies }
+        return {
+          pools: version.map(({ id, name }) => ({ id, name })),
+          revision: source.revision,
+          document,
+          scope: { pools: version.map(pool => pool.id) },
+          recordedScope: source.scope,
+          errors: checkGlobalDocument(document),
+        }
+      }),
+  }
 }

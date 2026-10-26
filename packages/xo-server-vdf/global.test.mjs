@@ -8,13 +8,16 @@ import {
   compose,
   duplicateAddresses,
   GLOBAL_RULE_BASE,
+  globalDiff,
   globalMembers,
+  globalSource,
   keepGlobalPart,
   localPart,
   memberConflicts,
   OWNER_KEY,
   poolOwner,
   poolSyncState,
+  recoverGlobal,
   remoteIpsFor,
   reservedTierPolicies,
   runningVmRecords,
@@ -428,6 +431,82 @@ describe('ownership', () => {
       kept.policies.map(policy => policy.name),
       ['global:db']
     )
+  })
+})
+
+// vdf#81: an XO lost without a backup, rebuilt from what the pools hold
+describe('recoverGlobal', () => {
+  const EGRESS = {
+    ...GLOBAL,
+    policies: [
+      ...GLOBAL.policies,
+      {
+        name: 'app',
+        appliedTo: 'app',
+        default: 'pass',
+        ingress: [],
+        egress: [{ id: 3, to: 'db', proto: 'tcp', ports: [5432] }],
+      },
+    ],
+  }
+  const lost = { id: 'xo-a', name: 'xo-a', since: '2026-10-01T00:00:00.000Z' }
+  // what XO A writes into pool `id`: app members elsewhere at `remote`
+  const held = (id, global, remote, source = {}) => ({
+    id,
+    name: id,
+    owner: { ...lost, ...source },
+    document: compose(LOCAL, global.document, { app: remote }),
+  })
+
+  test("compose, then recover: the same document and revision, whatever the pool's members", () => {
+    const global = { document: EGRESS, revision: 4, scope: { all: true } }
+    const source = globalSource(global)
+    assert.deepEqual(source.ips, { admins: ['192.0.2.30'] })
+    const recovered = recoverGlobal([held('A', global, ['10.1.0.5'], source), held('B', global, ['10.2.0.5'], source)])
+    assert.deepEqual(recovered, {
+      owner: lost,
+      versions: [
+        {
+          pools: [
+            { id: 'A', name: 'A' },
+            { id: 'B', name: 'B' },
+          ],
+          revision: 4,
+          document: EGRESS,
+          // the pools holding it, whatever their owner recorded
+          scope: { pools: ['A', 'B'] },
+          recordedScope: { all: true },
+          errors: [],
+        },
+      ],
+    })
+  })
+
+  test('a pool whose owner recorded no valid source is left out', () => {
+    const global = { document: GLOBAL, revision: 1, scope: { all: true } }
+    for (const bad of [{}, { revision: '7' }, { revision: -1 }, { revision: 1.5 }, { ips: { admins: 5 } }]) {
+      const source = Object.keys(bad).length === 0 ? {} : { ...globalSource(global), ...bad }
+      assert.deepEqual(recoverGlobal([held('A', global, [], source)]).versions, [], JSON.stringify(bad))
+    }
+  })
+
+  test('pools that differ: every version, the most common first, none chosen', () => {
+    const v1 = { document: GLOBAL, revision: 1, scope: { all: true } }
+    const v2 = { document: EGRESS, revision: 2, scope: { all: true } }
+    const { versions } = recoverGlobal([
+      held('A', v1, [], globalSource(v1)),
+      held('B', v1, [], globalSource(v1)),
+      held('C', v2, [], globalSource(v2)),
+    ])
+    assert.deepEqual(
+      versions.map(version => [version.revision, version.pools.map(pool => pool.id)]),
+      [
+        [1, ['A', 'B']],
+        [2, ['C']],
+      ]
+    )
+    assert.deepEqual(versions[1].document, EGRESS)
+    assert.deepEqual(globalDiff(GLOBAL, held('C', v2, []).document), ['policy app'])
   })
 })
 
