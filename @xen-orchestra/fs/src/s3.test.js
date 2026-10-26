@@ -111,6 +111,14 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
         if (current === undefined) {
           throw s3Error('NoSuchKey', 404)
         }
+        // `read()` takes the `Date` header from a middleware of the command, which this stub bypasses: run it on a
+        // response of its own
+        if (!faults.omitGetDate) {
+          await command.middlewareStack.resolve(
+            async () => ({ response: { headers: { date: new Date().toUTCString() } } }),
+            {}
+          )({ input: command.input })
+        }
         return {
           ETag: faults.omitGetETag ? undefined : current.etag,
           Body: { transformToString: async () => current.body },
@@ -228,6 +236,7 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     ['answers PutObject without ETag', { omitPutETag: true }],
     ['ignores If-None-Match', { ignoreIfNoneMatch: true }],
     ['answers GetObject without ETag', { omitGetETag: true }],
+    ['answers GetObject without Date', { omitGetDate: true }],
   ]) {
     it(`takes no lock, and does not probe again, when the provider ${what}`, async () => {
       Object.assign(faults, fault)

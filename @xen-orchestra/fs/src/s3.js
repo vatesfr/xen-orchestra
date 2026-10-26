@@ -89,16 +89,20 @@ function createLockStore(s3, params) {
 
       try {
         const { Body, ETag, LastModified } = await s3.send(command)
+        const now = Date.parse(date)
 
         // some providers omit these: without an ETag, `replace()` would send `IfMatch: undefined`, an
-        // unconditional write; `probeConditionalWrites()` reads the object too, and reports this as unsupported
-        if (Body === undefined || ETag === undefined || LastModified === undefined) {
+        // unconditional write, and without a `Date` (`now` is then NaN), the age could only be measured on the
+        // local clock, which can find a fresh lock stale; `probeConditionalWrites()` reads the object too, and
+        // reports this as unsupported
+        if (Body === undefined || ETag === undefined || LastModified === undefined || Number.isNaN(now)) {
           // read the response to its end so its socket goes back to the keep-alive pool
           await Body?.transformToString()
-          throw Object.assign(new Error('GetObject returned no Body, ETag or Last-Modified'), { code: 'ENOTSUP' })
+          throw Object.assign(new Error('GetObject returned no Body, ETag, Last-Modified or Date'), {
+            code: 'ENOTSUP',
+          })
         }
 
-        const now = date !== undefined ? Date.parse(date) : Date.now()
         return { etag: ETag, body: await Body.transformToString(), age: now - LastModified.getTime() }
       } catch (error) {
         if (error.name === 'NoSuchKey') {
