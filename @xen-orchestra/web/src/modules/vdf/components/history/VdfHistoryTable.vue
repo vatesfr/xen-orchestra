@@ -23,6 +23,7 @@
 
 <script lang="ts" setup>
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
+import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import type { VdfHistoryEntry } from '@/modules/vdf/types.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -30,10 +31,11 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h, useTemplateRef, watchEffect } from 'vue'
+import { computed, h, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // newest first
@@ -51,6 +53,8 @@ const emit = defineEmits<{
 
 const { t, n } = useI18n()
 
+const outsideText = useVdfOutsideText()
+
 const { pageRecords: pageEntries, paginationBindings } = usePagination(
   id,
   computed(() => entries)
@@ -58,7 +62,14 @@ const { pageRecords: pageEntries, paginationBindings } = usePagination(
 
 const state = useTableState({ empty: () => entries.length === 0 })
 
-function changesOf({ summary }: VdfHistoryEntry) {
+function changesOf({ summary, outside }: VdfHistoryEntry) {
+  // only the owner changed outside this XO
+  if (outside !== undefined && !outside.docChanged) {
+    return outside.owner === null
+      ? t('firewall:outside:no-owner')
+      : t('firewall:outside:owner-now', { xo: outside.owner.name })
+  }
+
   const parts = [
     summary.added > 0 ? t('firewall:history:summary:added', { n: n(summary.added) }) : undefined,
     summary.modified > 0 ? t('firewall:history:summary:modified', { n: n(summary.modified) }) : undefined,
@@ -96,7 +107,20 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
             : null,
         ])
       ),
-    publishedBy: r => r(entry.publishedBy ?? h('span', { class: 'secondary' }, t('firewall:history:unknown-user'))),
+    // vdf#32: made outside this XO, publishedAt is when XO saw it
+    publishedBy: r =>
+      r(
+        entry.outside !== undefined
+          ? withDirectives(
+              h(
+                UiTag,
+                { accent: entry.outside.sameIdentity ? 'danger' : 'warning', variant: 'secondary', tabindex: 0 },
+                () => t('firewall:outside:by')
+              ),
+              [[vTooltip, outsideText.full(entry.outside)]]
+            )
+          : (entry.publishedBy ?? h('span', { class: 'secondary' }, t('firewall:history:unknown-user')))
+      ),
     changes: r => r(changesOf(entry)),
     content: r =>
       r(

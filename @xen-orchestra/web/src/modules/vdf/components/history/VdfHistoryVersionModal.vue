@@ -9,6 +9,9 @@
         </VtsStateHero>
         <template v-else>
           <p class="typo-body-regular-small secondary">{{ byline }}</p>
+          <p v-if="entry.outside?.globalChanged" class="typo-body-regular-small secondary">
+            {{ t('firewall:outside:global-changed') }}
+          </p>
           <p class="typo-body-bold">
             {{ hasPrevious ? t('firewall:history:version:changes') : t('firewall:history:version:content') }}
           </p>
@@ -36,6 +39,7 @@
 <script lang="ts" setup>
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
+import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import { fetchVdfHistoryVersion } from '@/modules/vdf/remote-resources/use-vdf-history.ts'
 import type { VdfDocument, VdfHistoryEntry, VdfHistoryVersion, VdfScopeId } from '@/modules/vdf/types.ts'
 import { changeDetails, isEmptyChange } from '@/modules/vdf/utils/vdf-change.util.ts'
@@ -74,13 +78,26 @@ onMounted(async () => {
   }
 })
 
-const title = computed(() =>
-  entry.publishedAt === null
-    ? t('firewall:history:before-history')
-    : t('firewall:history:version:title', { date: d(entry.publishedAt, { dateStyle: 'medium', timeStyle: 'short' }) })
-)
+const title = computed(() => {
+  if (entry.publishedAt === null) {
+    return t('firewall:history:before-history')
+  }
+
+  const date = d(entry.publishedAt, { dateStyle: 'medium', timeStyle: 'short' })
+
+  return entry.outside === undefined
+    ? t('firewall:history:version:title', { date })
+    : t('firewall:outside:title', { date })
+})
+
+const outsideText = useVdfOutsideText()
 
 const byline = computed(() => {
+  // vdf#32: who made it is unknown
+  if (entry.outside !== undefined) {
+    return outsideText.full(entry.outside)
+  }
+
   if (entry.revision !== undefined) {
     return t('firewall:history:revision-by', {
       n: entry.revision,

@@ -15,6 +15,16 @@
       {{ t('firewall:error:unreadable', { error: publishedPolicy.parseError }) }}
     </UiAlert>
 
+    <UiAlert v-if="outside !== undefined" :accent="outside.sameIdentity ? 'danger' : 'warning'">
+      {{ t('firewall:outside') }}
+      <template #description>
+        <p>{{ outsideText.full(outside) }}</p>
+        <UiLink :to="{ name: '/pool/[id]/firewall/history', params: { id: pool.id } }" size="small">
+          {{ t('firewall:outside:open-history') }}
+        </UiLink>
+      </template>
+    </UiAlert>
+
     <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
 
     <template v-if="publishedDocument.policies.length > 0">
@@ -273,6 +283,7 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
 import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
+import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
@@ -280,6 +291,7 @@ import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -307,6 +319,7 @@ import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { VM_POWER_STATE } from '@vates/types'
+import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
@@ -341,6 +354,19 @@ const { runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVm
 )
 
 const isReady = logicAnd(isPublishedPolicyReady, areHostsReady, areVmsReady)
+
+// CHANGED OUTSIDE THIS XO (vdf#32): another XO, xe, vdf-agent publish, or a
+// copy of this XO wrote the pool's document or owner
+
+const outsideText = useVdfOutsideText()
+
+const outsideNow = useNow({ interval: 60_000 })
+
+const outside = computed(() => {
+  const change = publishedPolicy.value?.outside
+
+  return change != null && isOutsideNotable(change, outsideNow.value.getTime()) ? change : undefined
+})
 
 // PROTECTION: what matters now is the running VMs; a halted VM has nothing
 // to enforce on until it starts
