@@ -728,6 +728,10 @@ export default class BackupNg {
           )
         })
       }
+
+      // without a transfer to wait for, as when every disk is live mounted, the restore ends before
+      // XO has seen the VM: a call right after, like starting it, would not find it
+      await xapi.barrier()
       return result.id
     } finally {
       this._runningRestores.delete(rootTaskId)
