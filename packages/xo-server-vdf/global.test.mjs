@@ -358,6 +358,22 @@ describe('per-network groups (vdf#36)', () => {
     assert.deepEqual(vmIps(web, vifs, networkOf), { ips: ['10.0.20.5', '10.0.30.5', '192.0.2.7'], trusted: false })
   })
 
+  test('a disabled interface sends nothing: its guest addresses count nowhere', () => {
+    const quiet = { id: 'n-quiet', tags: [], defaultIsLocked: true }
+    const withQuiet = vif => (vif.$network === 'n-quiet' ? quiet : networkOf(vif))
+    const disabledVifs = [
+      { device: '0', $network: 'n-dmz', lockingMode: 'disabled' },
+      // the network's default locking mode is disabled
+      { device: '1', $network: 'n-quiet', lockingMode: 'network_default' },
+    ]
+    const vm = { ...web, addresses: { '0/ipv4/0': '10.0.20.5', '1/ipv4/0': '10.0.40.5' } }
+    assert.deepEqual(
+      vmIfaces(vm, disabledVifs, withQuiet).map(iface => iface.ips),
+      [[], []]
+    )
+    assert.deepEqual(vmIps(vm, disabledVifs, withQuiet), { ips: [], trusted: false })
+  })
+
   test("a group with networks gets its members' addresses there only", () => {
     const global = {
       groups: {

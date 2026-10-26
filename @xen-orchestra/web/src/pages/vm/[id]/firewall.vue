@@ -366,7 +366,7 @@ const { rulesOfVm, ruleText, statusOf } = useVdfTrafficRules()
 
 const vmTrafficRules = computed(() => rulesOfVm(vm))
 
-const shadowed = computed(() => shadowedVifs(hosts.value.map(({ status }) => status)))
+const shadowed = computed(() => shadowedVifs(hosts.value))
 
 const vmShadows = computed(() => [...shadowed.value.values()].filter(shadow => shadow.vm === vm.id))
 

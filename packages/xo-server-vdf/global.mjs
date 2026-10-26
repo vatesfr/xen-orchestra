@@ -230,6 +230,8 @@ const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
 // vdf#36): each VIF with its network's tags and its own addresses, a
 // locked VIF's allowed ones (trusted), else what the guest reports for its
 // device ("N/ipv4/0"…, untrusted); addresses of no known VIF on no network.
+// A disabled VIF (itself, or its network's default) sends nothing: what its
+// guest reports doesn't count, as for agents.
 // networkOf: a VIF's network object, if XO knows it.
 export function vmIfaces(vm, vifs, networkOf = () => undefined) {
   const reported = new Map()
@@ -241,15 +243,19 @@ export function vmIfaces(vm, vifs, networkOf = () => undefined) {
     const network = networkOf(vif)
     // a network's default is unlocked or disabled, never locked
     const locked = vif.lockingMode === 'locked'
+    const disabled =
+      vif.lockingMode === 'disabled' || (vif.lockingMode === 'network_default' && network?.defaultIsLocked === true)
     return {
       device: String(vif.device),
       network: vif.$network,
       netTags: network?.tags ?? [],
-      ips: sortedIps(
-        locked
-          ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
-          : (reported.get(String(vif.device)) ?? [])
-      ),
+      ips: disabled
+        ? []
+        : sortedIps(
+            locked
+              ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
+              : (reported.get(String(vif.device)) ?? [])
+          ),
       trusted: locked,
     }
   })

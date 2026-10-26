@@ -1,4 +1,5 @@
-import type { VdfHostStatusDocument, VdfShadowedVif } from '@/modules/vdf/types.ts'
+import type { VdfHostState, VdfHostStatusDocument, VdfShadowedVif } from '@/modules/vdf/types.ts'
+import { hostEnforces } from '@/modules/vdf/utils/vdf-status.util.ts'
 
 // XO's Traffic Rules (SDN controller) on a VM VDF protects (vdf#40): Open
 // vSwitch applies them in table 0 at priority 32768, above VDF's flows, so
@@ -26,7 +27,14 @@ export function trafficRuleStatus(rule: { allow: boolean }, shadow: VdfShadowedV
   return 'not-applied'
 }
 
-// what the hosts' agents report, by VIF uuid
-export function shadowedVifs(statuses: (VdfHostStatusDocument | undefined)[]): Map<string, VdfShadowedVif> {
-  return new Map(statuses.flatMap(status => (status?.shadowed ?? []).map(shadow => [shadow.vif, shadow] as const)))
+// what the hosts' agents report, by VIF uuid; a stale agent's report is
+// left out (what it saw may be long gone)
+export function shadowedVifs(
+  hosts: { status: VdfHostStatusDocument | undefined; state: VdfHostState }[]
+): Map<string, VdfShadowedVif> {
+  return new Map(
+    hosts
+      .filter(({ state }) => hostEnforces(state))
+      .flatMap(({ status }) => (status?.shadowed ?? []).map(shadow => [shadow.vif, shadow] as const))
+  )
 }

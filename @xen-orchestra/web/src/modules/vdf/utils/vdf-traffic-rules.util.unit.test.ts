@@ -22,8 +22,13 @@ describe('trafficRuleStatus', () => {
 })
 
 describe('shadowedVifs', () => {
-  it('indexes the reports of every host by VIF', () => {
-    const byVif = shadowedVifs([{ shadowed: [shadow({ allows: 1 })] }, undefined, {}])
+  it('indexes the reports of every host by VIF, without stale agents', () => {
+    const byVif = shadowedVifs([
+      { status: { shadowed: [shadow({ allows: 1 })] }, state: 'up-to-date' },
+      { status: undefined, state: 'unknown' },
+      { status: { shadowed: [shadow({ vif: 'vif-2', drops: 1 })] }, state: 'stale' },
+      { status: {}, state: 'behind' },
+    ])
 
     expect([...byVif.keys()]).toEqual(['vif-1'])
     expect(byVif.get('vif-1')?.allows).toBe(1)

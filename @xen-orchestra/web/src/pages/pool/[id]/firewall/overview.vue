@@ -25,7 +25,7 @@
       </template>
     </UiAlert>
 
-    <UiAlert v-if="gapNotes.length > 0" accent="warning">
+    <UiAlert v-if="isPublished && gapNotes.length > 0" accent="warning">
       {{ t('firewall:overview:agent-gaps') }}
       <template #description>
         <p v-for="note of gapNotes" :key="note.key">{{ note.text }}</p>
@@ -372,6 +372,7 @@ const {
   isPublishedPolicyReady,
   hasPublishedPolicyError,
   hasDraft,
+  isPublished,
   hosts,
   areHostsReady,
   upToDateHostCount,
@@ -628,7 +629,7 @@ const issueLabel = (issue: VdfLockIssue) =>
 const shadowedVms = computed(() => {
   const byVm = new Map<string, VdfShadowedVif>()
 
-  for (const shadow of shadowedVifs(hosts.value.map(({ status }) => status)).values()) {
+  for (const shadow of shadowedVifs(hosts.value).values()) {
     if (!byVm.has(shadow.vm)) {
       byVm.set(shadow.vm, shadow)
     }

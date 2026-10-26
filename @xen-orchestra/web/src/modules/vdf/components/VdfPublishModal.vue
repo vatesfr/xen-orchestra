@@ -180,7 +180,7 @@ import { coveredBy, enforcedPolicies, isMonitored, seenSince } from '@/modules/v
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -307,16 +307,25 @@ const { rulesOfVm } = useVdfTrafficRules()
 const trafficRuleWarnings = computed(() => {
   const { scopeId, document, baseDocument } = shown.value
   const poolIds = new Set(isGlobalScope(scopeId) ? reachPools.value.map(pool => pool.id) : [scopeId])
+  // by tags, and for a group scoped to networks (vdf#36) an interface on them
   const protects = (doc: VdfDocument) => {
     const appliedTo = new Set(enforcedPolicies(doc).map(policy => policy.appliedTo))
 
-    return (tags: string[]) => vmGroupNames(tags, doc).some(name => appliedTo.has(name))
+    return (vm: FrontXoVm) =>
+      vmGroupNames(vm.tags, doc).some(name => {
+        const networks = groupNetworks(doc.groups[name])
+
+        return (
+          appliedTo.has(name) &&
+          (networks.length === 0 || interfacesOf(vm).some(iface => isOnNetworks(iface.netTags, networks)))
+        )
+      })
   }
   const now = protects(document)
   const before = protects(baseDocument)
 
   return vms.value
-    .filter(vm => poolIds.has(vm.$pool) && now(vm.tags) && !before(vm.tags))
+    .filter(vm => poolIds.has(vm.$pool) && now(vm) && !before(vm))
     .flatMap(vm => {
       const count = rulesOfVm(vm).length
 
