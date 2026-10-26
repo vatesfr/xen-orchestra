@@ -116,8 +116,10 @@ whenever(
   }
 )
 
+// `consoleContainer` is a shallow ref: passing it directly in a multi-source watch forces the callback
+// to run each time `url` gets a new (but identical) URL object, which reconnected the console on every VM update
 watch(
-  [consoleContainer, () => isConsoleAvailable, () => url.toString()],
+  [() => consoleContainer.value, () => isConsoleAvailable, () => url.toString()],
   ([container, isAvailable]) => {
     if (container === null || !isAvailable) {
       return

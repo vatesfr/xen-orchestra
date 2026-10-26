@@ -17,6 +17,7 @@
 
 - Fix `cannot read properties of undefined (reading code)` (PR [#10668](https://github.com/vatesfr/xen-orchestra/pull/10668))
 - [SDN Controller] A Global Private Network that fails to be set up, or whose preferred star-center host was removed, no longer blocks the other private networks (PR [#10629](https://github.com/vatesfr/xen-orchestra/pull/10629))
+- [XO6] Fix console flickering during boot (PR [#10672](https://github.com/vatesfr/xen-orchestra/pull/10672))
 
 ### Packages to release
 
@@ -34,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web-core patch
 - xo-server patch
 - xo-server-sdn-controller patch
 
