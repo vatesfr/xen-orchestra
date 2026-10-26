@@ -12,6 +12,8 @@ import { useValidatedForm } from '@core/packages/validated-form'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const MTU_RANGE = { min: 1280, max: 9000 }
+
 // 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
 export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
 
@@ -37,8 +39,8 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(formData: T, e
     warnings: {
       onBlur: () => ({
         mtu: {
-          outOfRange: withMessage(outOfRange(1280, 9000), () =>
-            t('network-create:warning:mtu-out-of-range', { min: 1280, max: 9000 })
+          outOfRange: withMessage(outOfRange(MTU_RANGE.min, MTU_RANGE.max), () =>
+            t('network-create:warning:mtu-out-of-range', MTU_RANGE)
           ),
         },
       }),
