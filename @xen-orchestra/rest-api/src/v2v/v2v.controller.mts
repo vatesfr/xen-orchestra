@@ -62,7 +62,7 @@ export class V2vController extends Controller {
    * Reads the whole inventory of the source: datacenters, clusters, hosts, datastores, networks and VMs
    * with their disks and network cards, with the product, version and instance UUID of the source.
    *
-   * Also validates the credentials: 400 when they are refused by the source.
+   * Also validates the credentials: 422 with the `V2V_INVALID_CREDENTIALS` code when they are refused by the source.
    *
    * @example body { "platform": "vmware", "connection": { "host": "vcenter.example.org", "username": "administrator@vsphere.local", "password": "secret", "skipSslCheck": true } }
    */
