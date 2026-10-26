@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Web-Core/UiDropdownButton] Update dropdown buttons design and add a smaller size (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -33,6 +35,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core minor
 - xo-server patch
 
 <!--packages-end-->
