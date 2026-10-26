@@ -25,6 +25,13 @@
       </template>
     </UiAlert>
 
+    <UiAlert v-if="gapNotes.length > 0" accent="warning">
+      {{ t('firewall:overview:agent-gaps') }}
+      <template #description>
+        <p v-for="note of gapNotes" :key="note.key">{{ note.text }}</p>
+      </template>
+    </UiAlert>
+
     <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
 
     <template v-if="publishedDocument.policies.length > 0">
@@ -288,13 +295,14 @@ import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
+import { hostWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { agentGaps, hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -360,12 +368,12 @@ const isReady = logicAnd(isPublishedPolicyReady, areHostsReady, areVmsReady)
 
 const outsideText = useVdfOutsideText()
 
-const outsideNow = useNow({ interval: 60_000 })
+const now = useNow({ interval: 60_000 })
 
 const outside = computed(() => {
   const change = publishedPolicy.value?.outside
 
-  return change != null && isOutsideNotable(change, outsideNow.value.getTime()) ? change : undefined
+  return change != null && isOutsideNotable(change, now.value.getTime()) ? change : undefined
 })
 
 // PROTECTION: what matters now is the running VMs; a halted VM has nothing
@@ -431,6 +439,24 @@ const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() =>
 ])
 
 // HOSTS
+
+// hosts whose agent won't apply anything (vdf#38): none, or one stopped or
+// stuck. A host that joins the pool without the agent shows here at once.
+const gapNotes = computed(() => {
+  const gaps = agentGaps(
+    hosts.value.map(({ host, status }) => ({
+      name: host.name_label,
+      status,
+      running: host.power_state === 'Running',
+    })),
+    now.value.getTime()
+  )
+
+  return hostWarnings(gaps).map(warning => ({
+    key: warning.type,
+    text: t(`firewall:overview:${warning.type}`, { hosts: warning.hosts.join(', ') }, warning.hosts.length),
+  }))
+})
 
 const hostRows = computed(() =>
   [...hosts.value].sort((rowA, rowB) => rowA.host.name_label.localeCompare(rowB.host.name_label))
