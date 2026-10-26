@@ -33,6 +33,14 @@
             {{ t('firewall:remove-vm:also-leaves', { groups: list(alsoLeaves) }) }}
           </li>
         </ul>
+        <UiAlert v-for="item of takesOver" :key="item.policy" accent="warning">
+          {{
+            t(item.monitored ? 'firewall:remove-vm:takes-over:monitored' : 'firewall:remove-vm:takes-over', {
+              policy: item.policy,
+              policies: list(item.instead),
+            })
+          }}
+        </UiAlert>
         <UiAlert accent="warning">{{ t('firewall:remove-vm:effect') }}</UiAlert>
       </div>
     </template>
@@ -52,7 +60,7 @@ import UiModal from '@core/components/ui/modal/UiModal.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
-defineProps<{
+const { takesOver = [] } = defineProps<{
   vmName: string
   // unknown when the caller didn't give the scope's document
   groupName?: string
@@ -64,6 +72,9 @@ defineProps<{
   sourceIn: string[]
   // no policy protects the VM anymore once it has left
   losesProtection: boolean
+  // policies of the same tier still applying whose default drop then
+  // decides what the policies it leaves allowed (vdf#86)
+  takesOver?: { policy: string; monitored: boolean; instead: string[] }[]
 }>()
 
 const emit = defineEmits<{

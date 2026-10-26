@@ -28,6 +28,16 @@
         </UiToggle>
       </div>
 
+      <!-- vdf#86: an enforced policy decides first for some of the VMs -->
+      <UiAlert v-if="shadows.length > 0" accent="warning">
+        {{ t('firewall:monitor:shadow:title', { n: shadows.length }, shadows.length) }}
+        <template #description>
+          <ul class="shadows">
+            <li v-for="shadow of shadows" :key="shadowKey(shadow)">{{ shadowText(shadow) }}</li>
+          </ul>
+        </template>
+      </UiAlert>
+
       <section v-for="group of suggestionGroups" :key="group.policy.name" class="suggestions">
         <div class="suggestions-title">
           <span class="typo-body-bold">
@@ -115,6 +125,7 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
+import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
@@ -131,6 +142,7 @@ import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.ut
 import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
+import { shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -243,6 +255,19 @@ function sourceOf(address: string) {
 const shownPolicies = computed(() =>
   monitoredPolicies.value.filter(policy => selectedPolicy.value === ALL || policy.name === selectedPolicy.value)
 )
+
+// VMs a monitored policy can't see (vdf#86): an enforced policy of its tier,
+// or an earlier tier deciding everything, decides first for them
+const { shadowsIn, shadowText } = useVdfMonitorShadows()
+
+const shadows = computed(() => {
+  const names = new Set(shownPolicies.value.map(policy => policy.name))
+
+  return shadowsIn(
+    publishedDocument.value,
+    vms.value.filter(vm => vm.$pool === pool.id).map(vm => ({ vm }))
+  ).filter(shadow => names.has(shadow.policy))
+})
 
 // SUGGESTED RULES, per monitored policy (the pool's own are added to the
 // draft from here; a global one is edited in the global firewall)
@@ -439,7 +464,10 @@ const state = useTableState({
   error: () => (!isMonitorReady.value && hasMonitorError.value ? t('firewall:monitor:error') : false),
   empty: () => {
     if ((monitor.value?.entries.length ?? 0) === 0) {
-      return { type: 'no-data', message: t('firewall:monitor:empty') }
+      return {
+        type: 'no-data',
+        message: shadows.value.length > 0 ? t('firewall:monitor:empty:shadowed') : t('firewall:monitor:empty'),
+      }
     }
 
     if (rows.value.length === 0 && expectedCount.value > 0 && expectedCount.value === filteredRows.value.length) {
@@ -583,6 +611,14 @@ const { HeadCells, BodyCells } = useMonitorColumns({
     border: 0.1rem solid var(--color-info-item-base);
     border-radius: 0.8rem;
     background-color: var(--color-info-background-selected);
+  }
+
+  .shadows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-inline-start: 1.6rem;
+    margin: 0;
   }
 
   .suggestions-title,

@@ -38,6 +38,15 @@
           </template>
         </section>
 
+        <!-- vdf#86: monitored policies an enforced policy decides first for -->
+        <section v-if="shadowNotes.length > 0" class="section">
+          <h3 class="typo-body-bold">{{ t('firewall:publish:monitor-blind') }}</h3>
+          <template v-for="note of shadowNotes" :key="note.key">
+            <span v-if="note.pool !== undefined" class="typo-body-bold-small pool-name">{{ note.pool }}</span>
+            <UiInfo :accent="note.isNew ? 'warning' : 'muted'" wrap>{{ note.text }}</UiInfo>
+          </template>
+        </section>
+
         <section v-if="warnings.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:warnings') }}</h3>
           <UiInfo v-for="warning of warnings" :key="warning.key" accent="warning" wrap>{{ warning.text }}</UiInfo>
@@ -150,6 +159,7 @@ import { useVdfGlobalReach } from '@/modules/vdf/composables/vdf-global-reach.co
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
+import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
@@ -179,6 +189,7 @@ import {
 import { coveredBy, enforcedPolicies, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
@@ -454,6 +465,49 @@ const overriddenPerPool = computed<Record<string, { key: string; text: string }[
     : {}
 )
 
+// MONITORED POLICIES that can't see some of their VMs (vdf#86): an enforced
+// policy of their tier (or an earlier tier deciding everything) decides
+// first there, so their report stays empty for them. Those the published
+// document already has are kept, muted, after the new ones.
+
+const { shadowsIn, shadowText } = useVdfMonitorShadows()
+
+const sameShadow = (shadow: VdfMonitorShadow) =>
+  `${shadowKey(shadow)}|${shadow.vms
+    .map(vm => vm.id)
+    .sort()
+    .join(',')}`
+
+function shadowsOf(document: VdfDocument, base: VdfDocument, poolId: string, pool?: string) {
+  const poolVms = vms.value.filter(vm => vm.$pool === poolId).map(vm => ({ vm }))
+  const before = new Set(shadowsIn(base, poolVms).map(sameShadow))
+
+  return shadowsIn(document, poolVms).map(shadow => ({
+    key: `${poolId}|${sameShadow(shadow)}`,
+    pool,
+    text: shadowText(shadow),
+    isNew: !before.has(sameShadow(shadow)),
+  }))
+}
+
+const shadowNotes = computed(() => {
+  const { scopeId, document, baseDocument } = shown.value
+  const notes = isGlobalScope(scopeId)
+    ? (checkResult.value?.pools ?? [])
+        .filter(pool => pool.own !== undefined && pool.inScope)
+        .flatMap(pool =>
+          shadowsOf(
+            composeWithGlobal(pool.own!, document),
+            composeWithGlobal(pool.own!, baseDocument),
+            pool.id,
+            pool.name
+          )
+        )
+    : shadowsOf(document, baseDocument, scopeId)
+
+  return [...notes.filter(note => note.isNew), ...notes.filter(note => !note.isNew)]
+})
+
 // HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
 // for the pool, or each pool the global configuration is checked on
 
@@ -491,6 +545,7 @@ const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
+    shadowNotes.value.some(note => note.isNew) ||
     Object.values(hostNotes.value).some(notes => notes.length > 0) ||
     Object.values(overriddenPerPool.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||

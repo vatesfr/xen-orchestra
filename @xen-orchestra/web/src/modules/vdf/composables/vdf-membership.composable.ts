@@ -1,7 +1,8 @@
 import { useVdfVmTagJob } from '@/modules/vdf/jobs/vdf-vm-tag.job.ts'
 import { VDF_QUARANTINE_TAG, type VdfDocument, type VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { groupUsage, isVmInGroup, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { groupUsage, isVmInGroup, tierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -82,8 +83,16 @@ export function useVdfMembership() {
   })
 
   // `isPublished`: whether hosts know the group yet (if not, the tags are
-  // written all the same, and only matter once it's published)
-  async function addVmsToGroup(name: string, group: VdfGroup, poolVms: FrontXoVm[], isPublished = true) {
+  // written all the same, and only matter once it's published). `context`:
+  // a pool's document (its draft) and the group's name in it, to tell
+  // which monitored policies an enforced one decides first for (vdf#86)
+  async function addVmsToGroup(
+    name: string,
+    group: VdfGroup,
+    poolVms: FrontXoVm[],
+    isPublished = true,
+    context?: { name: string; document: VdfDocument }
+  ) {
     const tags = group.tags ?? []
     const response = await openAddVms({
       props: {
@@ -91,6 +100,8 @@ export function useVdfMembership() {
         tags,
         candidates: poolVms.filter(vm => !isVmInGroup(vm.tags, group)),
         isPublished,
+        groupName: context?.name,
+        document: context?.document,
       },
     })
 
@@ -129,8 +140,27 @@ export function useVdfMembership() {
           )
     )
 
+    // a policy of the same tier still applying, that drops by default,
+    // then decides what the policies it leaves allowed (vdf#86); in monitor
+    // mode, once enforced (its report couldn't see that traffic until now)
+    const leaving = new Set([name, ...alsoLeaves])
+    const lost = (context?.document.policies ?? []).filter(
+      policy => !isMonitored(policy) && leaving.has(policy.appliedTo) && !remainingGroups.has(policy.appliedTo)
+    )
+    const takesOver = (context?.document.policies ?? [])
+      .filter(policy => remainingGroups.has(policy.appliedTo) && policy.default === 'drop')
+      .map(policy => ({
+        policy: displayName(policy.name),
+        monitored: isMonitored(policy),
+        instead: lost
+          .filter(other => tierValue(other.tier) === tierValue(policy.tier))
+          .map(other => displayName(other.name)),
+      }))
+      .filter(item => item.instead.length > 0)
+
     const response = await openRemove({
       props: {
+        takesOver,
         vmName: vm.name_label,
         groupName: context === undefined ? undefined : displayName(name),
         tags,

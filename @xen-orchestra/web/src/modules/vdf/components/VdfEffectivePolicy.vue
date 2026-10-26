@@ -47,6 +47,10 @@
               </li>
             </ul>
             <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:no-rule') }}</span>
+            <!-- vdf#86: an enforced policy decides first, the report can't see it -->
+            <UiInfo v-for="note of shadowNotes?.[policy.name] ?? []" :key="note" accent="warning" wrap>
+              {{ note }}
+            </UiInfo>
           </div>
           <div class="tier-default typo-body-regular-small">
             <span class="secondary">{{ t('firewall:no-rule-matches') }}</span>
@@ -93,6 +97,8 @@ const { poolId, document, vmTags } = defineProps<{
   document: VdfDocument
   vmTags: string[]
   quarantined: boolean
+  // per monitored policy: why its report can't see this VM (vdf#86)
+  shadowNotes?: Record<string, string[]>
 }>()
 
 const { t } = useI18n()

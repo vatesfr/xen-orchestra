@@ -14,6 +14,15 @@
         </div>
         <UiAlert v-if="!isPublished" accent="info">{{ t('firewall:add-vms:not-published') }}</UiAlert>
         <UiAlert accent="warning">{{ t('firewall:add-vms:effect') }}</UiAlert>
+        <!-- vdf#86: a monitored policy of the group an enforced one decides first for -->
+        <UiAlert v-if="shadowTexts.length > 0" accent="warning">
+          {{ t('firewall:add-vms:monitor-blind') }}
+          <template #description>
+            <ul class="shadows">
+              <li v-for="text of shadowTexts" :key="text">{{ text }}</li>
+            </ul>
+          </template>
+        </UiAlert>
       </div>
     </template>
     <template #buttons>
@@ -27,6 +36,8 @@
 
 <script lang="ts" setup>
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
+import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
+import type { VdfDocument } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -39,12 +50,22 @@ import { useFormSelect } from '@core/packages/form-select'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { candidates, isPublished = true } = defineProps<{
+const {
+  candidates,
+  tags,
+  isPublished = true,
+  groupName,
+  document,
+} = defineProps<{
   group: string
   tags: string[]
   candidates: FrontXoVm[]
   // a group only in the draft: hosts don't know it until it's published
   isPublished?: boolean
+  // the group's name in the pool's document (its draft), to tell the
+  // monitored policies on it an enforced one decides first for (vdf#86)
+  groupName?: string
+  document?: VdfDocument
 }>()
 
 // confirming with no VM selected keeps the modal open
@@ -65,6 +86,25 @@ const { id: vmSelectId } = useFormSelect(() => candidates, {
 })
 
 const selectedVms = computed(() => candidates.filter(vm => selectedIds.value.includes(vm.id)))
+
+// the selected VMs, with the group's tags: where a monitored policy on the
+// group won't see their traffic
+const { shadowsIn, shadowText } = useVdfMonitorShadows()
+
+const shadowTexts = computed(() => {
+  if (document === undefined || groupName === undefined || selectedVms.value.length === 0) {
+    return []
+  }
+
+  const onGroup = new Set(document.policies.filter(policy => policy.appliedTo === groupName).map(policy => policy.name))
+
+  return shadowsIn(
+    document,
+    selectedVms.value.map(vm => ({ vm, tags: [...new Set([...vm.tags, ...tags])] }))
+  )
+    .filter(shadow => onGroup.has(shadow.policy))
+    .map(shadowText)
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -72,6 +112,14 @@ const selectedVms = computed(() => candidates.filter(vm => selectedIds.value.inc
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+
+  .shadows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-inline-start: 1.6rem;
+    margin: 0;
+  }
 
   .tags {
     display: flex;

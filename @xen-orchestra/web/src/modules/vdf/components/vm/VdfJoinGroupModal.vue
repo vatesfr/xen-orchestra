@@ -22,6 +22,8 @@
           {{ t('firewall:vm:join:protected-by', { n: protectedBy.length, policies }) }}
         </UiAlert>
         <UiAlert v-else accent="info">{{ t('firewall:vm:join:no-policy') }}</UiAlert>
+        <!-- vdf#86: a monitored policy of the group an enforced one decides first for -->
+        <UiAlert v-for="text of monitorBlind" :key="text" accent="warning">{{ text }}</UiAlert>
         <UiAlert v-if="protectedBy.length > 0 && trafficRules > 0" accent="warning">
           {{ t('firewall:vm:join:traffic-rules', { n: trafficRules }, trafficRules) }}
         </UiAlert>
@@ -46,7 +48,11 @@ import { I18nT, useI18n } from 'vue-i18n'
 
 // Joining a group tags the VM right away, without publishing: the group's
 // policies then decide its inbound traffic
-const { protectedBy, trafficRules = 0 } = defineProps<{
+const {
+  protectedBy,
+  trafficRules = 0,
+  monitorBlind = [],
+} = defineProps<{
   vmName: string
   groupName: string
   tags: string[]
@@ -54,6 +60,9 @@ const { protectedBy, trafficRules = 0 } = defineProps<{
   protectedBy: string[]
   // XO's Traffic Rules on the VM (vdf#40)
   trafficRules?: number
+  // the group's monitored policies an enforced one decides first for on
+  // the VM (vdf#86): why their report won't show its traffic
+  monitorBlind?: string[]
 }>()
 
 const emit = defineEmits<{

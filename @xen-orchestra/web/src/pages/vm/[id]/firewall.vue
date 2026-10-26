@@ -96,6 +96,7 @@
               :document="publishedDocument"
               :vm-tags="vm.tags"
               :quarantined="protection === 'quarantined'"
+              :shadow-notes
             />
           </UiCard>
         </VtsColumn>
@@ -214,6 +215,7 @@ import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
+import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
@@ -285,6 +287,20 @@ const policyNames = computed(() =>
 )
 
 const monitoredNames = computed(() => appliedPolicies.value.filter(isMonitored).map(policy => displayName(policy.name)))
+
+// monitored policies an enforced one decides first for on this VM (vdf#86):
+// their report stays empty for it
+const { shadowsIn, shadowText } = useVdfMonitorShadows()
+
+const shadowNotes = computed(() => {
+  const notes: Record<string, string[]> = {}
+
+  for (const shadow of shadowsIn(publishedDocument.value, [{ vm }])) {
+    notes[shadow.policy] = [...(notes[shadow.policy] ?? []), shadowText(shadow)]
+  }
+
+  return notes
+})
 
 // enforcement happens on the host the VM runs on only (#37)
 const host = computed(() => (isRunning.value ? hostOf(vm) : undefined))
@@ -437,6 +453,11 @@ async function joinGroup(name: string) {
       protectedBy: groupUsage(publishedDocument.value, name).appliedTo.map(displayName),
       // vdf#40: they keep deciding first once the VM is protected
       trafficRules: vmTrafficRules.value.length,
+      monitorBlind: shadowsIn(publishedDocument.value, [
+        { vm, tags: [...new Set([...vm.tags, ...(group.tags ?? [])])] },
+      ])
+        .filter(shadow => publishedDocument.value.policies.some(p => p.name === shadow.policy && p.appliedTo === name))
+        .map(shadowText),
     },
   })
 

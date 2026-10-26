@@ -223,7 +223,15 @@ const selectedGroup = useRouteQuery('group')
 const selected = computed(() => entries.value.find(entry => entry.name === selectedGroup.value))
 
 function addVms(entry: GroupEntry) {
-  return addVmsToGroup(entry.label, entry.group, poolVms.value, entry.isPublished)
+  // a pool's draft: what its VMs will get (the global configuration's
+  // document isn't a pool's)
+  return addVmsToGroup(
+    entry.label,
+    entry.group,
+    poolVms.value,
+    entry.isPublished,
+    isGlobal ? undefined : { name: entry.name, document: document.value }
+  )
 }
 
 // membership follows what hosts enforce: the published document
