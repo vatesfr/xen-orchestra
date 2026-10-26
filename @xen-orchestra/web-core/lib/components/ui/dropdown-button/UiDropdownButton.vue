@@ -72,7 +72,8 @@ const className = computed(() => toVariants({ size, variant, selected }))
     }
 
     &.selected:not(:disabled) {
-      outline: 0.2rem solid var(--color-brand-item-base);
+      border-color: var(--color-brand-item-base);
+      box-shadow: inset 0 0 0 0.1rem var(--color-brand-item-base);
       color: var(--color-brand-txt-base);
     }
 
