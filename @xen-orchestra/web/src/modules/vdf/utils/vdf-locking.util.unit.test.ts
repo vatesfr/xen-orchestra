@@ -5,12 +5,14 @@ import {
   isAllowed,
   isStableIpv6,
   lockDrift,
+  lockErrorKind,
   lockProposal,
   lockRelevant,
   mergeLocking,
   parseAddressList,
   parseIpv6,
   reportedAddresses,
+  untrustedInPolicy,
 } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -193,5 +195,52 @@ describe('locking', () => {
     expect(report.unlocked.map(entry => `${entry.vmName}/${entry.device}`)).toEqual(['app/0', 'app/1', 'web/0'])
     expect(report.staleCount).toBe(1)
     expect(report.stale[0].vmName).toBe('db')
+  })
+})
+
+describe('lockErrorKind', () => {
+  it("tells XAPI's refusal under an SDN controller from other errors", () => {
+    expect(lockErrorKind('OPERATION_NOT_ALLOWED(A vswitch controller is active)')).toEqual({
+      kind: 'sdn-controller',
+      detail: 'A vswitch controller is active',
+    })
+    expect(lockErrorKind('OPERATION_NOT_ALLOWED(something else)')?.kind).toBe('not-allowed')
+    expect(lockErrorKind('HANDLE_INVALID(VIF, OpaqueRef:1)')?.kind).toBe('gone')
+    expect(lockErrorKind('no such VIF', 404)?.kind).toBe('gone')
+    expect(lockErrorKind('not enough permissions', 403)?.kind).toBe('permission')
+    expect(lockErrorKind('INVALID_IP_ADDRESS_SPECIFIED(10.0.0.300)')).toEqual({ kind: 'invalid', detail: '10.0.0.300' })
+    expect(lockErrorKind('something unexpected', 500)).toBeUndefined()
+  })
+})
+
+describe('untrustedInPolicy', () => {
+  it('counts its VMs and its rules peers, not any', () => {
+    const untrusted: Record<string, string[]> = { web: ['web-1'], app: ['app-1', 'web-1'], db: ['db-1'] }
+
+    expect(
+      untrustedInPolicy(
+        {
+          appliedTo: 'web',
+          ingress: [
+            { id: 1, from: 'app', proto: 'tcp' },
+            { id: 2, from: 'any', proto: 'tcp' },
+          ],
+          egress: [{ id: 3, to: 'db', proto: 'tcp' }],
+        },
+        group => untrusted[group] ?? []
+      )
+    ).toEqual(['app-1', 'db-1', 'web-1'])
+  })
+
+  it('leaves its own VMs out for peersOnly', () => {
+    const untrusted: Record<string, string[]> = { web: ['web-1'], app: ['app-1'] }
+
+    expect(
+      untrustedInPolicy(
+        { appliedTo: 'web', ingress: [{ id: 1, from: 'app', proto: 'tcp' }] },
+        group => untrusted[group] ?? [],
+        { peersOnly: true }
+      )
+    ).toEqual(['app-1'])
   })
 })
