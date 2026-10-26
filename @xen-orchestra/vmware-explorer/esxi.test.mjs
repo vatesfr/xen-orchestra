@@ -355,8 +355,14 @@ describe('shutdown', function () {
    * @param {Array<string | Error>} params.powerStates - successive answers for `runtime.powerState`, an
    * error is thrown, the last one repeats
    * @param {() => object} [params.shutdownGuest] - answer to `ShutdownGuest`, may throw
+   * @param {string} [params.powerOffState] - state of the `PowerOffVM_Task`
    */
-  const shutdownEsxi = ({ toolsStatus = 'guestToolsRunning', powerStates, shutdownGuest = () => ({}) }) => {
+  const shutdownEsxi = ({
+    toolsStatus = 'guestToolsRunning',
+    powerStates,
+    shutdownGuest = () => ({}),
+    powerOffState = 'success',
+  }) => {
     const states = [...powerStates]
     return connectedEsxi({
       responses: {
@@ -365,7 +371,15 @@ describe('shutdown', function () {
         RetrievePropertiesEx: ({ specSet }) => {
           const { pathSet, type } = specSet[0].propSet[0]
           if (type === 'Task') {
-            return taskInfo('success')
+            return powerOffState === 'success'
+              ? taskInfo('success')
+              : taskInfo(powerOffState, {
+                  error: {
+                    attributes: { 'xsi:type': 'LocalizedMethodFault' },
+                    fault: { attributes: { 'xsi:type': 'InvalidPowerState' } },
+                    localizedMessage: 'The attempted operation cannot be performed in the current state (Powered off).',
+                  },
+                })
           }
           if (pathSet[0] === 'guest.toolsRunningStatus') {
             return propertyOf('VirtualMachine', 'vm-1', pathSet[0], toolsStatus)
@@ -418,12 +432,22 @@ describe('shutdown', function () {
     assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
   })
 
-  it('does not power off a guest which completed its shut down after the timeout', async function () {
-    // the read while waiting, then the one before the power off
-    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOff'] })
+  it('succeeds when the power off is refused because the VM is already off', async function () {
+    // the read while waiting, then the one after the refused power off
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOff'], powerOffState: 'error' })
 
     assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1, timeout: 0 }), 'shutdown')
-    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('fails when the power off is refused and the VM is still running', async function () {
+    const { esxi } = await shutdownEsxi({
+      toolsStatus: 'guestToolsNotRunning',
+      powerStates: ['poweredOn'],
+      powerOffState: 'error',
+    })
+
+    await assert.rejects(esxi.shutdown('vm-1', { pollInterval: 1 }))
   })
 })
 

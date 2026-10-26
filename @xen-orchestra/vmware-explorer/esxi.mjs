@@ -944,11 +944,19 @@ export default class Esxi extends EventEmitter {
       info('the VMware tools do not run, powering the VM off', { toolsStatus, vmId })
     }
 
-    // the guest may have completed its shut down meanwhile, the power off would then be refused
-    if ((await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })) === 'poweredOff') {
-      return 'shutdown'
+    try {
+      await this.powerOff(vmId, { signal })
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the host refuses to power off a VM which is already off: the guest may have completed a shut
+      // down whose request failed on our side, or the VM may have been stopped since the caller read
+      // its power state, possibly long before
+      const powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      if (powerState === 'poweredOff') {
+        return 'shutdown'
+      }
+      throw error
     }
-    await this.powerOff(vmId, { signal })
     return 'powerOff'
   }
 
