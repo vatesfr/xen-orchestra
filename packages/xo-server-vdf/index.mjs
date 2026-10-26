@@ -1029,16 +1029,21 @@ class VdfPlugin {
       return
     }
 
-    // this XO's own writes: an expected one and the ones before it are done
+    // this XO's own writes: an expected one and the ones before it are
+    // done. A write from outside supersedes this XO's pending ones: XAPI's
+    // events come in order, so theirs arrived before it, unseen (a document
+    // or owner they wrote coming back later is another outside change).
+    // Only a write from outside that landed during this XO's own, before
+    // it, gets this wrong: this XO's write then shows as an outside one.
     const expect = seen.expect ?? { docIds: [], owners: [] }
     const docIndex = docChanged ? expect.docIds.indexOf(state.docId) : -1
     const ownerIndex = ownerChanged ? expect.owners.indexOf(ownerKey(state.owner)) : -1
-    const nextExpect = {
-      docIds: expect.docIds.slice(docIndex + 1),
-      owners: expect.owners.slice(ownerIndex + 1),
-    }
     const outsideDoc = docChanged && docIndex === -1
     const outsideOwner = ownerChanged && ownerIndex === -1
+    const nextExpect = {
+      docIds: outsideDoc ? [] : expect.docIds.slice(docIndex + 1),
+      owners: outsideOwner ? [] : expect.owners.slice(ownerIndex + 1),
+    }
     if (!outsideDoc && !outsideOwner) {
       await this.#saveSeen(poolId, { ...observed, at: now, expect: nextExpect, outside: seen.outside })
       return
@@ -1056,13 +1061,17 @@ class VdfPlugin {
       isDeepStrictEqual(last.outside.owner, state.owner)
     ) {
       // seen again after this XO wrote the pool back: two writers alternate.
-      // On a pool this XO owns, with its global part at stake, the other one
-      // runs with this XO's identity (or a script keeps rewriting it).
+      // On a pool this XO owns, a document coming back with a global part
+      // of its own was written by another XO with this XO's identity, or a
+      // tool rewriting the pool. One without a global part (vdf-agent
+      // publish of a local file, run again) is no such thing.
       outside = {
         ...last.outside,
         lastSeenAt: now,
         times: (last.outside.times ?? 1) + 1,
-        sameIdentity: last.outside.sameIdentity || (last.outside.globalChanged && state.owner?.id === ours),
+        sameIdentity:
+          last.outside.sameIdentity ||
+          (last.outside.globalChanged && state.owner?.id === ours && hasGlobalPart(document)),
       }
       entries[entries.length - 1] = { ...last, outside }
       await this.#store.put(historyKey(poolId), entries)

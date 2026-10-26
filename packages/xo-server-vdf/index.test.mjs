@@ -1372,6 +1372,92 @@ describe('changes outside this XO', () => {
     }
   })
 
+  const publishPool = (xo, port) =>
+    xo.route('post', '/pools/{id}/actions/publish_policy', {
+      params: { id: POOL },
+      body: { policy: text(document(port)) },
+    })
+
+  test('two own writes land before either event arrives', async () => {
+    const xo = fakeXo({ lag: 50 })
+    const plugin = await loaded(xo)
+    try {
+      await plugin.syncNow()
+      await publishPool(xo, 1)
+      await publishPool(xo, 2)
+      await sleep(150)
+      await plugin.syncNow()
+      assert.deepEqual(await outsideOf(xo), [])
+      assert.equal((await historyOf(xo)).length, 2)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('an event arrives after a later write, a pass in between', async () => {
+    const lags = [30, 200]
+    const xo = fakeXo({ lag: () => lags.shift() ?? 0 })
+    const plugin = await loaded(xo)
+    try {
+      await plugin.syncNow()
+      await publishPool(xo, 1) // event at +30
+      await plugin.syncNow() // sees the old document
+      await publishPool(xo, 2) // event at +200
+      await sleep(80)
+      await plugin.syncNow() // sees the first
+      await sleep(250)
+      await plugin.syncNow() // sees the second
+      assert.deepEqual(await outsideOf(xo), [])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('an outside writer restoring a document of this XO it never saw arrive', async () => {
+    const xo = fakeXo({ lag: 20 })
+    const plugin = await loaded(xo)
+    try {
+      await plugin.syncNow()
+      await publishPool(xo, 1)
+      const own = text(document(1))
+      await sleep(40) // its event arrived, no pass yet
+      xo.xapi.pool.other_config['vdf:policy'] = text(document(9999)) // outside, before XO looked
+      await plugin.syncNow()
+      const first = (await outsideOf(xo)).length
+      xo.xapi.pool.other_config['vdf:policy'] = own // outside again: brings back XO's document
+      await plugin.syncNow()
+      assert.equal((await outsideOf(xo)).length, first + 1)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('vdf-agent publish of the same local file, run again, is no copy of this XO', async () => {
+    const xo = fakeXo({ lag: 20 })
+    const plugin = await loaded(xo)
+    const settle = () => sleep(60)
+    try {
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(document(22)), scope: { all: true }, revision: 0 },
+      })
+      await settle()
+      await plugin.syncNow()
+      await settle()
+      const local = text(document(8080)) // no global part
+      for (let i = 0; i < 2; i++) {
+        xo.xapi.pool.other_config['vdf:policy'] = local
+        await settle()
+        await plugin.syncNow() // seen, and XO writes its global part back
+        await settle()
+        await plugin.syncNow()
+      }
+      const last = (await outsideOf(xo)).at(-1)
+      assert.deepEqual([last.outside.times, last.outside.sameIdentity], [2, false])
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('the seen records hold no document', async () => {
     const xo = fakeXo({ lag: LAG })
     const plugin = await loaded(xo)
