@@ -402,35 +402,42 @@ export default class MigrateVm {
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
     const esxiDisposable = await this.#connectToEsxi(host, user, password, false)
     const esxi = esxiDisposable.value
-    const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
-      return esxi.getTransferableVmMetadata(vmId)
-    })
+    let disk
+    try {
+      const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
+        return esxi.getTransferableVmMetadata(vmId)
+      })
 
-    const { disks, powerState, snapshots } = metadata
+      const { disks, powerState, snapshots } = metadata
 
-    const isRunning = powerState !== 'poweredOff'
+      const isRunning = powerState !== 'poweredOff'
 
-    const chainsByNodes = await Task.run(
-      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
-      () => {
-        return buildDiskChainByNode(disks, snapshots)
+      const chainsByNodes = await Task.run(
+        { properties: { name: `build disks and snapshots chains for ${vmId}` } },
+        () => {
+          return buildDiskChainByNode(disks, snapshots)
+        }
+      )
+
+      if (!diskId) {
+        throw new Error(`No diskId provided, detected : ${Object.keys(chainsByNodes).join(',')}`)
       }
-    )
-
-    if (!diskId) {
-      throw new Error(`No diskId provided, detected : ${Object.keys(chainsByNodes).join(',')}`)
-    }
-    if (!chainsByNodes[diskId]) {
-      throw new Error(`disk ${diskId} is not in the migrable disks : ${Object.keys(chainsByNodes).join(',')}`)
-    }
-    const chain = chainsByNodes[diskId]
-    if (isRunning) {
-      if (chain.length < 2) {
-        throw new Error(`Can't migrate any data from a running VM without a snapshot`)
+      if (!chainsByNodes[diskId]) {
+        throw new Error(`disk ${diskId} is not in the migrable disks : ${Object.keys(chainsByNodes).join(',')}`)
       }
-      chain.pop() // remove the active disk
+      const chain = chainsByNodes[diskId]
+      if (isRunning) {
+        if (chain.length < 2) {
+          throw new Error(`Can't migrate any data from a running VM without a snapshot`)
+        }
+        chain.pop() // remove the active disk
+      }
+      disk = chain.pop()
+    } catch (error) {
+      // no transfer has started to release the session once done
+      await esxiDisposable.dispose()
+      throw error
     }
-    const disk = chain.pop()
     const stream = new PassThrough()
     // the transfer outlives this call, so the session cannot be released before the stream is done
     importStream({ esxi, disk, vmId, format }, source => {
