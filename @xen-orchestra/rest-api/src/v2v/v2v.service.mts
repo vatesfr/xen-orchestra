@@ -2,7 +2,13 @@ import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import { V2V_ERROR_CODE, type EsxiConnectionParams, type VmwareInventory, type XoPool } from '@vates/types'
+import {
+  V2V_ERROR_CODE,
+  type EsxiConnectionParams,
+  type VmwareInventory,
+  type XoPool,
+  type XoV2vStatus,
+} from '@vates/types'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -36,6 +42,10 @@ export class V2vService {
       address = `${address}:${port}`
     }
     return { host: address, user: username, password, sslVerify: !skipSslCheck } satisfies EsxiConnectionParams
+  }
+
+  getStatus(): Promise<XoV2vStatus> {
+    return this.#restApi.xoApp.checkEsxiDependencies()
   }
 
   async getInventory(connection: V2vConnection): Promise<V2vInventory> {
