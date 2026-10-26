@@ -232,20 +232,29 @@ const showExpected = ref(false)
 // A group scoped to networks (vdf#36) names the address only if it's on
 // one of its networks, and wins a tie: the rule then covers that interface
 // of the VM, not its others.
-function sourceOf(address: string) {
+// A pool policy's rule prefers the pool's own group to a global one of the
+// same reach (both can be named `admins`); a global policy's rule can only
+// name a global group.
+function sourceOf(address: string, policyName = '') {
   const vm = vmByIp.value.get(address)
   const groups = publishedDocument.value.groups
+  const forGlobal = isGlobalName(policyName)
+  const usable = (name: string) => !forGlobal || isGlobalName(name)
+  const ownFirst = (a: string, b: string) => Number(isGlobalName(a)) - Number(isGlobalName(b))
 
   if (vm !== undefined) {
     const netTags = netTagsOfAddress(vm, address)
     const scoped = (name: string) => groupNetworks(groups[name]).length > 0
     const tagged = vmGroupNames(vm.tags, publishedDocument.value)
       .filter(name => (groups[name]?.tags?.length ?? 0) > 0)
-      .filter(name => vm.$pool === pool.id || isGlobalName(name))
+      .filter(name => (vm.$pool === pool.id || isGlobalName(name)) && usable(name))
       .filter(name => !scoped(name) || (netTags !== undefined && isOnNetworks(netTags, groupNetworks(groups[name]))))
       .sort(
         (a, b) =>
-          membersOf(a).length - membersOf(b).length || Number(scoped(b)) - Number(scoped(a)) || a.localeCompare(b)
+          membersOf(a).length - membersOf(b).length ||
+          Number(scoped(b)) - Number(scoped(a)) ||
+          ownFirst(a, b) ||
+          a.localeCompare(b)
       )
 
     if (tagged.length > 0) {
@@ -253,7 +262,7 @@ function sourceOf(address: string) {
     }
   }
 
-  return groupsOfIp(address)[0] ?? address
+  return groupsOfIp(address).filter(usable).sort(ownFirst)[0] ?? address
 }
 
 const shownPolicies = computed(() =>
@@ -300,7 +309,7 @@ const suggestionGroups = computed(() =>
       const suggestions = suggestRules(
         (monitor.value?.entries ?? []).filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined),
         policy,
-        sourceOf
+        address => sourceOf(address, policy.name)
       )
 
       return {
@@ -397,7 +406,7 @@ function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
   // an outbound rule to the destination, or a rule from the source
   const query = {
     newRule: '1',
-    [entry.egress ? 'to' : 'from']: sourceOf(peer),
+    [entry.egress ? 'to' : 'from']: sourceOf(peer, entry.policy),
     proto: entry.proto,
     port: entry.port ? String(entry.port) : undefined,
     before: entry.rule ? String(entry.rule) : undefined,
@@ -410,7 +419,7 @@ function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
         query: {
           ...query,
           policy: displayName(entry.policy),
-          [entry.egress ? 'to' : 'from']: displayName(sourceOf(peer)),
+          [entry.egress ? 'to' : 'from']: displayName(sourceOf(peer, entry.policy)),
         },
       }
     : { name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: { policy: entry.policy, ...query } }

@@ -31,6 +31,7 @@ import {
   VDF_RECENT_DROPS_WINDOW_MINUTES,
 } from '@/modules/vdf/composables/vdf-recent-drops.composable.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -60,7 +61,15 @@ const { decision } = useVdfDecision(
   () => document
 )
 
-const { groupsOfIp } = useVdfIpNames(() => document)
+const { groupsOfIp, vmByIp } = useVdfIpNames(() => document)
+
+// a source as the Monitor report and the rule log show it: its VM, of any
+// pool (the trace only knows this pool's), else the groups listing it
+function sourceEnd(ip: string, vm: FrontXoVm | undefined) {
+  const shown = vm ?? vmByIp.value.get(ip)
+
+  return { ip, vm: shown, groups: shown === undefined ? groupsOfIp(ip) : [] }
+}
 
 const rows = computed<VdfDroppedRow[]>(() =>
   drops.value.map(drop => {
@@ -72,10 +81,8 @@ const rows = computed<VdfDroppedRow[]>(() =>
       key: drop.key,
       src: drop.egress
         ? { ip: drop.src, vm: drop.source, name: drop.source === undefined ? drop.vm : undefined, groups: [] }
-        : { ip: drop.src, vm: drop.source, groups: groupsOfIp(drop.src) },
-      dst: drop.egress
-        ? { ip: drop.dst, vm: drop.destination, groups: groupsOfIp(drop.dst) }
-        : { ip: '', vm: drop.destination, name: drop.vm },
+        : sourceEnd(drop.src, drop.source),
+      dst: drop.egress ? sourceEnd(drop.dst, drop.destination) : { ip: '', vm: drop.destination, name: drop.vm },
       egress: drop.egress,
       revoked: false,
       proto: drop.proto,

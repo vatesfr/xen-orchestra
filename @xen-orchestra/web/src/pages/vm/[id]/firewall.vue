@@ -419,7 +419,11 @@ const joinableGroups = computed(() =>
     .filter(([name, group]) => (group.tags ?? []).length > 0 && !vmGroups.value.some(vmGroup => vmGroup.name === name))
     .map(([name, group]) => ({
       name,
-      label: t('firewall:vm:group-option', { group: displayName(name), tags: formatList(group.tags ?? []) }),
+      // a global group and the pool's own can share a name: "app (global)"
+      label: t('firewall:vm:group-option', {
+        group: isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name,
+        tags: formatList(group.tags ?? []),
+      }),
     }))
     .sort((groupA, groupB) => groupA.label.localeCompare(groupB.label))
 )
