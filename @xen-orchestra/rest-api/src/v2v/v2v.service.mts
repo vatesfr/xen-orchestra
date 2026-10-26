@@ -2,10 +2,11 @@ import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import { V2V_ERROR_CODE, type EsxiConnectionParams, type XoPool } from '@vates/types'
+import { V2V_ERROR_CODE, type EsxiConnectionParams, type VmwareInventory, type XoPool } from '@vates/types'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import { toXoV2vInventory } from './v2v.inventory.mjs'
 import { planMigration, type V2vVmPlan } from './v2v.plan.mjs'
 import type { V2vConnection, V2vInventory, V2vStartBody, V2vStartResult } from './v2v.type.mjs'
 
@@ -38,9 +39,13 @@ export class V2vService {
   }
 
   async getInventory(connection: V2vConnection): Promise<V2vInventory> {
+    return toXoV2vInventory(await this.#readSourceInventory(connection))
+  }
+
+  // the import plans against the raw inventory, which keeps what the contract of the wizard leaves out
+  async #readSourceInventory(connection: V2vConnection): Promise<VmwareInventory> {
     try {
-      const inventory = await this.#restApi.xoApp.getEsxiInventory(V2vService.toConnectionParams(connection))
-      return { platform: 'vmware', ...inventory }
+      return await this.#restApi.xoApp.getEsxiInventory(V2vService.toConnectionParams(connection))
     } catch (error) {
       throw toSourceError(error, connection.host)
     }
@@ -53,7 +58,7 @@ export class V2vService {
     // the pool has to exist
     this.#restApi.getObject<XoPool>(body.pool as XoPool['id'], 'pool')
 
-    const { vms } = await this.getInventory(body.connection)
+    const { vms } = await this.#readSourceInventory(body.connection)
 
     const { plans, problems } = planMigration(body, new Map(vms.map(vm => [vm.id, vm])))
 

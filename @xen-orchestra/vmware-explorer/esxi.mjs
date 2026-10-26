@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
-import { flattenSnapshots, parseDevices, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
+import { findDatacenter, flattenSnapshots, parseDevices, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -106,7 +106,8 @@ function isRetryableError(error) {
  * @typedef {{ name?: string, datastore?: unknown, network?: unknown }} RawDatacenter
  * @typedef {{ name?: string, parent?: unknown, host?: unknown }} RawCluster
  * @typedef {{ name?: string, parent?: unknown }} RawHost
- * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown } }} RawDatastore
+ * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown }, host?: unknown }} RawDatastore
+ * @typedef {{ parent?: unknown }} RawChild
  * @typedef {{ name?: string }} RawNetwork
  * @typedef {{ name?: string, apiType?: string, version?: string, build?: string, instanceUuid?: string }} RawAboutInfo
  * @typedef {{ name?: string, key?: string, 'config.defaultPortConfig'?: import('./_inventory.mjs').RawPortConfig }} RawPortgroup
@@ -642,34 +643,48 @@ export default class Esxi extends EventEmitter {
    */
   async getInventory() {
     await this.#connected
-    /** @type {[Record<string, RawDatacenter>, Record<string, RawCluster>, Record<string, RawHost>, Record<string, RawDatastore>, Record<string, RawNetwork>, Record<string, RawPortgroup>, Record<string, RawVm>]} */
-    const [datacenters, clusters, hosts, datastores, networks, portgroups, vms] = await Promise.all([
-      this.search('Datacenter', ['name', 'datastore', 'network']),
-      this.search('ClusterComputeResource', ['name', 'parent', 'host']),
-      this.search('HostSystem', ['name', 'parent']),
-      this.search('Datastore', ['summary']),
-      // the distributed port groups are networks too, with more properties of their own below
-      this.search('Network', ['name']),
-      this.search('DistributedVirtualPortgroup', ['name', 'key', 'config.defaultPortConfig']),
-      this.search('VirtualMachine', [
-        'config.name',
-        'config.annotation',
-        'config.instanceUuid',
-        'config.firmware',
-        'config.bootOptions.efiSecureBootEnabled',
-        'config.guestId',
-        'config.guestFullName',
-        'config.template',
-        'config.hardware.numCPU',
-        'config.hardware.memoryMB',
-        'config.hardware.device',
-        'runtime.powerState',
-        'runtime.host',
-        'datastore',
-        'network',
-        'snapshot',
-      ]),
-    ])
+    /** @type {[Record<string, RawDatacenter>, Record<string, RawCluster>, Record<string, RawHost>, Record<string, RawDatastore>, Record<string, RawNetwork>, Record<string, RawPortgroup>, Record<string, RawVm>, Record<string, RawChild>, Record<string, RawChild>]} */
+    const [datacenters, clusters, hosts, datastores, networks, portgroups, vms, folders, computeResources] =
+      await Promise.all([
+        this.search('Datacenter', ['name', 'datastore', 'network']),
+        this.search('ClusterComputeResource', ['name', 'parent', 'host']),
+        this.search('HostSystem', ['name', 'parent']),
+        this.search('Datastore', ['summary', 'host']),
+        // the distributed port groups are networks too, with more properties of their own below
+        this.search('Network', ['name']),
+        this.search('DistributedVirtualPortgroup', ['name', 'key', 'config.defaultPortConfig']),
+        this.search('VirtualMachine', [
+          'config.name',
+          'config.annotation',
+          'config.instanceUuid',
+          'config.firmware',
+          'config.bootOptions.efiSecureBootEnabled',
+          'config.guestId',
+          'config.guestFullName',
+          'config.template',
+          'config.hardware.numCPU',
+          'config.hardware.memoryMB',
+          'config.hardware.device',
+          'runtime.powerState',
+          'runtime.host',
+          'datastore',
+          'network',
+          'snapshot',
+        ]),
+        // only to walk up from a host or a cluster to its datacenter. A compute resource is the parent
+        // of a standalone host, and the clusters are compute resources too
+        this.search('Folder', ['parent']),
+        this.search('ComputeResource', ['parent']),
+      ])
+
+    /** @type {Map<string, string | undefined>} */
+    const parents = new Map()
+    for (const objects of [folders, computeResources, hosts]) {
+      for (const [id, { parent }] of Object.entries(objects)) {
+        parents.set(id, refOf(parent))
+      }
+    }
+    const datacenterIds = new Set(Object.keys(datacenters))
 
     /** @type {Record<string, string>} */
     const portgroupsByKey = {}
@@ -703,10 +718,16 @@ export default class Esxi extends EventEmitter {
         id,
         name,
         parent: refOf(parent),
+        datacenter: findDatacenter(refOf(parent), parents, datacenterIds),
         hosts: refsOf(host),
       })),
-      hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({ id, name, parent: refOf(parent) })),
-      datastores: Object.entries(datastores).map(([id, { summary }]) => ({
+      hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({
+        id,
+        name,
+        parent: refOf(parent),
+        datacenter: findDatacenter(id, parents, datacenterIds),
+      })),
+      datastores: Object.entries(datastores).map(([id, { summary, host }]) => ({
         id,
         name: summary?.name,
         type: summary?.type,
@@ -714,6 +735,7 @@ export default class Esxi extends EventEmitter {
         capacity: toNumber(summary?.capacity),
         freeSpace: toNumber(summary?.freeSpace),
         accessible: isTrue(summary?.accessible),
+        hosts: [...reachingHostIds(host)],
       })),
       networks: Object.entries(networks).map(([id, { name }]) => {
         const portgroup = portgroups[id]

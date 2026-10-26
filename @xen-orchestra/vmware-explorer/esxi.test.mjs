@@ -132,6 +132,34 @@ describe('getInventory', function () {
           ],
         },
       ],
+      // the cluster sits in a subfolder of the host folder of its datacenter
+      ComputeResource: [
+        {
+          obj: moRef('ClusterComputeResource', 'domain-c7'),
+          propSet: { name: 'parent', val: moRef('Folder', 'group-h20') },
+        },
+      ],
+      Folder: [
+        { obj: moRef('Folder', 'group-h20'), propSet: { name: 'parent', val: moRef('Folder', 'group-h4') } },
+        { obj: moRef('Folder', 'group-h4'), propSet: { name: 'parent', val: moRef('Datacenter', 'datacenter-1') } },
+      ],
+      Datastore: [
+        {
+          obj: moRef('Datastore', 'datastore-11'),
+          propSet: [
+            { name: 'summary', val: { name: 'ds1', accessible: 'true' } },
+            {
+              name: 'host',
+              val: {
+                DatastoreHostMount: [
+                  { key: moRef('HostSystem', 'host-10'), mountInfo: { mounted: 'true', accessible: 'true' } },
+                  { key: moRef('HostSystem', 'host-11'), mountInfo: { mounted: 'true', accessible: 'false' } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
       Network: [{ obj: moRef('DistributedVirtualPortgroup', 'dvportgroup-5'), propSet: { name: 'name', val: 'prod' } }],
       DistributedVirtualPortgroup: [
         {
@@ -181,7 +209,10 @@ describe('getInventory', function () {
 
     assert.equal(inventory.productType, 'VirtualCenter')
     assert.equal(inventory.instanceUuid, 'vc-1')
-    assert.deepEqual(inventory.hosts, [{ id: 'host-10', name: 'esx1', parent: 'domain-c7' }])
+    assert.deepEqual(inventory.hosts, [
+      { id: 'host-10', name: 'esx1', parent: 'domain-c7', datacenter: 'datacenter-1' },
+    ])
+    assert.deepEqual(inventory.datastores[0].hosts, ['host-10'], 'only the hosts which can reach the datastore')
     assert.deepEqual(inventory.networks, [
       { id: 'dvportgroup-5', name: 'prod', distributed: true, key: 'dvpg-key', vlan: 12 },
     ])

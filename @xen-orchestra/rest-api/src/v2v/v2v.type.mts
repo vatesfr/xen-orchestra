@@ -1,4 +1,4 @@
-import type { VmwareInventory } from '@vates/types'
+import type { XoV2vInventory } from '@vates/types'
 
 /** only VMware in v1, other platforms will follow */
 export type V2vPlatform = 'vmware'
@@ -26,10 +26,8 @@ export type V2vInventoryBody = {
   connection: V2vConnection
 }
 
-/** the raw inventory of the source, tagged with its platform */
-export type V2vVmwareInventory = VmwareInventory & { platform: 'vmware' }
-
-export type V2vInventory = V2vVmwareInventory
+/** the inventory of the source, as the migration wizard shows it */
+export type V2vInventory = XoV2vInventory
 
 /** options which can be set for the whole launch, then overridden for a VM */
 export type V2vVmOptions = {

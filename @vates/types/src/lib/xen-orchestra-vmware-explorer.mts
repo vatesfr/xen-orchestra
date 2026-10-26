@@ -12,6 +12,7 @@ export type VmwareCluster = {
   id: string
   name: string
   parent?: string
+  datacenter?: string
   hosts: string[]
 }
 
@@ -20,6 +21,7 @@ export type VmwareHost = {
   name: string
   /** a cluster, or the compute resource of a standalone host */
   parent?: string
+  datacenter?: string
 }
 
 export type VmwareDatastore = {
@@ -30,6 +32,8 @@ export type VmwareDatastore = {
   capacity?: number
   freeSpace?: number
   accessible: boolean
+  /** the hosts which mount the datastore and can reach it */
+  hosts: string[]
 }
 
 export type VmwareVlan = number | { start: number; end: number }[]
