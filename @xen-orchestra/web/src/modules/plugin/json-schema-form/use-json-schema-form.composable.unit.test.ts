@@ -1,13 +1,8 @@
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import {
-  IK_JSON_SCHEMA_FORM,
-  useJsonSchemaForm,
-} from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { IK_JSON_SCHEMA_FORM } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h, inject, type InjectionKey, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
+import { defineComponent, h, inject, type InjectionKey } from 'vue'
 
 type JsonSchemaFormContext = typeof IK_JSON_SCHEMA_FORM extends InjectionKey<infer TContext> ? TContext : never
 
@@ -28,7 +23,6 @@ const SCHEMA: JsonSchema = {
 const VALID_VALUE = { server: { host: 'ldap.example.org', port: 389 }, base: 'dc=example,dc=org' }
 
 function mountForm(schema: JsonSchema | undefined, initialValue: unknown) {
-  const value = ref(initialValue)
   let context: JsonSchemaFormContext | undefined
 
   const Field = defineComponent({
@@ -39,13 +33,7 @@ function mountForm(schema: JsonSchema | undefined, initialValue: unknown) {
     },
   })
 
-  const wrapper = mount(
-    defineComponent({
-      setup: () => ({ ...useJsonSchemaForm(schema, value), t: useI18n().t }),
-      render: () => h(Field),
-    }),
-    { global: createGlobalTestConfig() }
-  )
+  const { wrapper, value } = mountJsonSchemaForm(schema, initialValue, () => h(Field))
 
   if (context === undefined) {
     throw new Error('the form context is not provided')

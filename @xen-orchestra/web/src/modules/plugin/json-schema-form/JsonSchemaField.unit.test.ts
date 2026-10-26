@@ -1,7 +1,6 @@
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
-import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -10,8 +9,9 @@ import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
+import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { h, nextTick, ref } from 'vue'
 
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
@@ -90,24 +90,9 @@ function findSelectedLabel(wrapper: VueWrapper) {
 }
 
 function mountForm(schema: JsonSchema, modelValue: unknown) {
-  let form: ReturnType<typeof useJsonSchemaForm> | undefined
-
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        form = useJsonSchemaForm(schema, modelValue)
-
-        return () => h(JsonSchemaField, { schema, label: 'Form', required: true, modelValue })
-      },
-    }),
-    { global: createGlobalTestConfig() }
-  )
-
-  if (form === undefined) {
-    throw new Error('the form is not set up')
-  }
-
-  return { wrapper, form }
+  return mountJsonSchemaForm(schema, modelValue, value =>
+    h(JsonSchemaField, { schema, label: 'Form', required: true, modelValue: value.value })
+  ).wrapper
 }
 
 describe('string field', () => {
@@ -249,7 +234,7 @@ describe('validation', () => {
   }
 
   it('displays the error of a required field once the user left it', async () => {
-    const { wrapper } = mountForm(schema, {})
+    const wrapper = mountForm(schema, {})
 
     expect(findFieldsInError(wrapper)).toEqual([])
 
@@ -259,9 +244,9 @@ describe('validation', () => {
   })
 
   it('displays all the errors once validated, with their count in the sections', async () => {
-    const { wrapper, form } = mountForm(schema, { bind: {} })
+    const wrapper = mountForm(schema, { bind: {} })
 
-    form.submit()
+    wrapper.vm.submit()
     await wrapper.vm.$nextTick()
 
     expect(findFieldsInError(wrapper)).toEqual(['uri', 'dn'])
@@ -269,34 +254,34 @@ describe('validation', () => {
   })
 
   it('does not count the errors of a section until they are displayed', () => {
-    const { wrapper } = mountForm(schema, { bind: {} })
+    const wrapper = mountForm(schema, { bind: {} })
 
     expect(wrapper.find('.ui-counter').exists()).toBe(false)
   })
 
   it('gives each field the ID of its error, so that the error summary can focus it', () => {
-    const { wrapper, form } = mountForm(schema, { bind: {} })
+    const wrapper = mountForm(schema, { bind: {} })
 
-    expect(form.errors.value.map(error => wrapper.find(`[id="${error.id}"] input`).exists())).toEqual([true, true])
+    expect(wrapper.vm.errors.map(error => wrapper.find(`[id="${error.id}"] input`).exists())).toEqual([true, true])
   })
 
   it('displays the error of an XO object field whose options are loading, and gives it its ID', async () => {
-    const { wrapper, form } = mountForm(
+    const wrapper = mountForm(
       { type: 'object', properties: { sr: { type: 'string', $type: 'SR' } }, required: ['sr'] },
       {}
     )
 
-    form.submit()
+    wrapper.vm.submit()
     await nextTick()
 
     expect(findFieldsInError(wrapper)).toEqual(['sr'])
-    expect(wrapper.find(`[id="${form.errors.value[0].id}"]`).exists()).toBe(true)
+    expect(wrapper.find(`[id="${wrapper.vm.errors[0].id}"]`).exists()).toBe(true)
   })
 
   it('validates a filled form', () => {
-    const { form } = mountForm(schema, { uri: 'ldap://foo' })
+    const wrapper = mountForm(schema, { uri: 'ldap://foo' })
 
-    expect(form.submit()).toBe(true)
+    expect(wrapper.vm.submit()).toBe(true)
   })
 })
 
@@ -544,7 +529,7 @@ describe('array field', () => {
       modelValue: [{ uri: 'a' }, { uri: 'b' }],
     })
 
-    await wrapper.findAll('.json-schema-object-field .header button.ui-button-icon')[0].trigger('click')
+    await wrapper.findAll('.json-schema-fieldset.section .header button.ui-button-icon')[0].trigger('click')
 
     expect(lastEmittedValue(wrapper)).toEqual([{ uri: 'b' }])
   })

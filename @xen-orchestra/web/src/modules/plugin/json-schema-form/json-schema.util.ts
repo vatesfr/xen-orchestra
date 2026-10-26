@@ -110,6 +110,13 @@ export function getFieldType(schema: JsonSchema): JsonSchemaFieldType | undefine
   }
 }
 
+// an object or an array is laid out as a section of fields
+export function isSectionSchema(schema: JsonSchema): boolean {
+  const fieldType = getFieldType(schema)
+
+  return fieldType === 'object' || fieldType === 'array'
+}
+
 export function isRequiredProperty(schema: JsonSchema, key: string): boolean {
   return schema.required?.includes(key) ?? false
 }

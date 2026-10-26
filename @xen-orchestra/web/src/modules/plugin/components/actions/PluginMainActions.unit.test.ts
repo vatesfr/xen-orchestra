@@ -1,14 +1,12 @@
 import PluginMainActions from '@/modules/plugin/components/actions/PluginMainActions.vue'
 import type { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
-import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { createActionItem } from '@/test/create-action-item.ts'
+import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
 
 const { useActions, changeState, configure } = vi.hoisted(() => ({
   useActions: vi.fn(),
@@ -30,17 +28,17 @@ beforeEach(() => {
 })
 
 function mockActions(loadOverrides: Partial<LeafActionItem> = {}) {
-  useActions.mockReturnValue({
-    loadAction: ref(
-      createActionItem({ label: 'Load', icon: 'action:connect', onClick: changeState, ...loadOverrides })
-    ),
-    configureAction: ref(createActionItem({ label: 'Configure', icon: 'action:edit', onClick: configure })),
-  })
+  useActions.mockReturnValue(
+    createPluginActions({
+      loadAction: { onClick: changeState, ...loadOverrides },
+      configureAction: { onClick: configure },
+    })
+  )
 }
 
-function mountButtons(plugin: FrontXoPlugin = createPlugin()) {
+function mountButtons() {
   return mount(PluginMainActions, {
-    props: { plugin },
+    props: { plugin: createPlugin() },
     global: createGlobalTestConfig(),
   }).findAllComponents(UiButton)
 }
@@ -56,13 +54,6 @@ it('offers to configure the plugin as main action, then to load it', () => {
     { label: 'Configure', icon: 'action:edit', variant: 'primary' },
     { label: 'Load', icon: 'action:connect', variant: 'tertiary' },
   ])
-})
-
-it('builds the actions of the plugin', () => {
-  const plugin = createPlugin()
-  mountButtons(plugin)
-
-  expect(toValue(useActions.mock.lastCall?.[0])).toEqual(plugin)
 })
 
 it('runs the action of the clicked button', async () => {

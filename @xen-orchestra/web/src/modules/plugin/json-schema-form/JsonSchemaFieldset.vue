@@ -39,6 +39,7 @@
 import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
 import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
+import { useOptionalValue } from '@/modules/plugin/json-schema-form/use-optional-value.composable.ts'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
@@ -50,15 +51,17 @@ const {
   description,
   required,
   path = [],
+  createValue,
 } = defineProps<{
   label: string
   description?: string
   path?: JsonSchemaPath
   required?: boolean
   disabled?: boolean
+  createValue: () => unknown
 }>()
 
-const isUsed = defineModel<boolean>('used', { required: true })
+const model = defineModel<unknown>()
 
 const slots = defineSlots<{
   default(): any
@@ -68,6 +71,11 @@ const slots = defineSlots<{
 const { t } = useI18n()
 
 const labelId = useId()
+
+const isUsed = useOptionalValue(model, {
+  required: () => required,
+  createValue: () => createValue(),
+})
 
 const { fieldId, errorMessage, errorCount } = useJsonSchemaFieldValidation(() => path)
 

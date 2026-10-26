@@ -1,16 +1,24 @@
 <template>
-  <component
-    :is="FIELD_COMPONENTS[fieldType]"
-    v-if="fieldType !== undefined"
+  <UiInfo v-if="fieldType === undefined" accent="warning" wrap>
+    {{ t('json-schema:unsupported-field', { label }) }}
+  </UiInfo>
+  <JsonSchemaFieldset
+    v-else-if="isSectionSchema(schema)"
     :key="fieldKey"
     v-model="model"
-    v-bind="fieldProps"
+    :label
+    :description="description.text"
+    :path
+    :required
+    :disabled
+    :create-value="createSectionValue"
   >
     <template v-if="slots.actions" #actions>
       <slot name="actions" />
     </template>
-  </component>
-  <UiInfo v-else accent="warning" wrap>{{ t('json-schema:unsupported-field', { label }) }}</UiInfo>
+    <component :is="FIELD_COMPONENTS[fieldType]" v-model="model" v-bind="fieldProps" />
+  </JsonSchemaFieldset>
+  <component :is="FIELD_COMPONENTS[fieldType]" v-else :key="fieldKey" v-model="model" v-bind="fieldProps" />
 </template>
 
 <script lang="ts" setup>
@@ -21,13 +29,16 @@ import {
 import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import {
   getFieldType,
+  getSchemaDefaults,
   getSchemaType,
+  isSectionSchema,
   type JsonSchema,
   type JsonSchemaFieldType,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaArrayField from '@/modules/plugin/json-schema-form/JsonSchemaArrayField.vue'
 import JsonSchemaBooleanField from '@/modules/plugin/json-schema-form/JsonSchemaBooleanField.vue'
 import JsonSchemaEnumField from '@/modules/plugin/json-schema-form/JsonSchemaEnumField.vue'
+import JsonSchemaFieldset from '@/modules/plugin/json-schema-form/JsonSchemaFieldset.vue'
 import JsonSchemaInputField from '@/modules/plugin/json-schema-form/JsonSchemaInputField.vue'
 import JsonSchemaObjectField from '@/modules/plugin/json-schema-form/JsonSchemaObjectField.vue'
 import JsonSchemaXoObjectField from '@/modules/plugin/json-schema-form/JsonSchemaXoObjectField.vue'
@@ -82,4 +93,9 @@ const fieldProps = computed<JsonSchemaFieldComponentProps>(() => ({
   disabled,
   description: description.value,
 }))
+
+// the value a section gets when it is turned on
+function createSectionValue() {
+  return fieldType.value === 'array' ? [] : (getSchemaDefaults(schema) ?? {})
+}
 </script>

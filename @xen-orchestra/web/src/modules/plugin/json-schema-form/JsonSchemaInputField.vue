@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :id="fieldId" class="json-schema-input-field" :label :message wrap-message @focusout="touch()">
+  <JsonSchemaInputWrapper class="json-schema-input-field" :label :description="description.text" :path>
     <UiTextarea v-if="schema.$multiline" v-model="textareaModel" accent="brand" :required :disabled />
     <UiInput
       v-else
@@ -33,19 +33,14 @@
         </UiButton>
       </div>
     </div>
-    <template #message="{ content }">
-      <JsonSchemaText :text="content" />
-    </template>
-  </VtsInputWrapper>
+  </JsonSchemaInputWrapper>
 </template>
 
 <script lang="ts" setup>
 import { getSchemaType, isSecretProperty } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaExamples from '@/modules/plugin/json-schema-form/JsonSchemaExamples.vue'
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
-import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
-import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
-import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import JsonSchemaInputWrapper from '@/modules/plugin/json-schema-form/JsonSchemaInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInput, { type InputType } from '@core/components/ui/input/UiInput.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
@@ -57,8 +52,6 @@ const { schema, description, path = [] } = defineProps<JsonSchemaFieldComponentP
 const model = defineModel<unknown>()
 
 const { t } = useI18n()
-
-const { fieldId, errorMessage, touch } = useJsonSchemaFieldValidation(() => path)
 
 const schemaType = computed(() => getSchemaType(schema))
 
@@ -80,10 +73,6 @@ const type = computed<InputType>(() => {
 })
 
 const placeholder = computed(() => (schema.default === undefined ? undefined : String(schema.default)))
-
-const message = computed<InputWrapperMessage>(() =>
-  [description.text, errorMessage.value].filter(item => item !== undefined)
-)
 
 const hasExamples = computed(() => description.exampleGroups.length > 0)
 

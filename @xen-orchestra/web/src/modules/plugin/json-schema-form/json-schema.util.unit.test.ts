@@ -8,6 +8,8 @@ import {
   isObjectSchemaWithProperties,
   isRequiredProperty,
   isSecretProperty,
+  isSectionSchema,
+  type JsonSchema,
 } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 
@@ -97,6 +99,22 @@ describe('getFieldType', () => {
   it('returns undefined for unsupported schemas', () => {
     expect(getFieldType({})).toBeUndefined()
     expect(getFieldType({ type: 'null' })).toBeUndefined()
+  })
+})
+
+describe('isSectionSchema', () => {
+  it.each([{ type: 'object' }, { type: 'array' }] as const)('is true for the $type type', schema => {
+    expect(isSectionSchema(schema)).toBe(true)
+  })
+
+  it.each<JsonSchema>([
+    { type: 'string' },
+    { type: 'boolean' },
+    { type: 'string', enum: ['a'] },
+    { type: 'array', items: { type: 'string', $type: 'Tag' } },
+    {},
+  ])('is false for %j', schema => {
+    expect(isSectionSchema(schema)).toBe(false)
   })
 })
 

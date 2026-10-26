@@ -1,31 +1,19 @@
 <template>
-  <VtsInputWrapper :id="fieldId" :label :message wrap-message @focusout="touch()">
+  <JsonSchemaInputWrapper :label :description :path>
     <VtsSelect :id accent="brand" />
-    <template #message="{ content }">
-      <JsonSchemaText :text="content" />
-    </template>
-  </VtsInputWrapper>
+  </JsonSchemaInputWrapper>
 </template>
 
 <script lang="ts" setup>
 import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-schema-validation.util.ts'
 import type { JsonSchemaSelectOption } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
-import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
-import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import JsonSchemaInputWrapper from '@/modules/plugin/json-schema-form/JsonSchemaInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  options,
-  description,
-  path = [],
-  multiple,
-  required,
-  disabled,
-} = defineProps<{
+const { options, multiple, required, disabled } = defineProps<{
   options: JsonSchemaSelectOption[]
   label: string
   description?: string
@@ -40,12 +28,6 @@ const model = defineModel<unknown>()
 const SEARCHABLE_OPTIONS_THRESHOLD = 10
 
 const { t } = useI18n()
-
-const { fieldId, errorMessage, touch } = useJsonSchemaFieldValidation(() => path)
-
-const message = computed<InputWrapperMessage>(() =>
-  [description, errorMessage.value].filter(item => item !== undefined)
-)
 
 const sources = computed(() => options.map((option, index) => ({ ...option, id: index })))
 

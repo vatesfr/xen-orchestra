@@ -57,14 +57,11 @@ it.each([{ description: undefined }, { description: ' \n' }])(
   }
 )
 
-it.each([{ keywords: [] }, { keywords: undefined }])(
-  'hides the keywords of a plugin with $keywords as keywords',
-  ({ keywords }) => {
-    const wrapper = mountCard(createPlugin({ keywords }))
+it('hides the keywords of a plugin without keywords', () => {
+  const wrapper = mountCard(createPlugin({ keywords: [] }))
 
-    expect(Object.keys(findCardLabelledValues(wrapper))).not.toContain(t('keywords'))
-  }
-)
+  expect(Object.keys(findCardLabelledValues(wrapper))).not.toContain(t('keywords'))
+})
 
 it('shows that a plugin without configuration schema is not configurable', () => {
   const wrapper = mountCard(createPlugin({ configurationSchema: undefined }))
