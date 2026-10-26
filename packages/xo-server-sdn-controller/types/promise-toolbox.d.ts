@@ -1,4 +1,4 @@
-// promise-toolbox ships no types for its `timeout` module: this is what traffic-rules.js uses of it.
+// promise-toolbox ships no types for its `timeout` module: this is what openflow-plugin.js uses of it.
 // Only that subpath is declared: declaring the root module would hide the types of the others
 declare module 'promise-toolbox/timeout' {
   /**

@@ -472,7 +472,7 @@ describe('TrafficRules', () => {
 
     await assert.rejects(
       trafficRules.addRule(vif1, SSH),
-      // `callPlugin` gathers the failures of every host
+      // OpenFlowPlugin gathers the failures of every host
       ({ errors }) => errors.length === 1 && errors[0].code === '4' && errors[0].message === 'plugin failed'
     )
 

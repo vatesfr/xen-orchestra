@@ -1,13 +1,13 @@
 // @ts-check
 /// <reference path="../types/decorator-synchronized.d.ts" />
-/// <reference path="../types/promise-toolbox.d.ts" />
 
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 import { createHash, randomBytes } from 'crypto'
-import pTimeout from 'promise-toolbox/timeout'
 import { synchronized } from 'decorator-synchronized'
+
+import { OpenFlowPlugin } from './openflow-plugin.js'
 
 // TypeScript reads this Babel package as CommonJS, and `@vates/types` is ESM
 /**
@@ -70,12 +70,8 @@ import { synchronized } from 'decorator-synchronized'
 
 const log = createLogger('xo:sdn-controller:traffic-rules')
 
-const PLUGIN_NAME = 'sdncontroller.py'
-
-// The plugin installs or removes a few flows, in milliseconds. A host silent for 30 s is hung,
-// not slow: the call fails, and releases the network lock every other rule change on this
-// network waits for. xen-api's default of an hour would hold that lock for as long.
-const CALL_PLUGIN_TIMEOUT = 30e3
+// It keeps no state: one serves every network
+const plugin = new OpenFlowPlugin()
 
 // `SDN_CONTROLLER_OF_RULES_KEY` of `@vates/types`, a value TypeScript does not
 // let this file import, for the same reason as above
@@ -96,21 +92,6 @@ const MAX_PRIORITY = 65535
 // to the middle of its neighbours'.
 const FIRST_PRIORITY = 60000
 const APPEND_STEP = 5
-
-// Not failures: an offline host restarts without any flow. A network rule builds no flow on a
-// host where its network has no VIF (sdncontroller.py's E_PORTS, code '4'), and is saved anyway,
-// as in the legacy code. A VIF rule always has its MAC, so the plugin builds it on every host:
-// a '4' from it is a real failure.
-/**
- * @param {Owner} owner
- * @param {unknown} error
- */
-function isIgnored(owner, error) {
-  if (!(error instanceof Error) || !('code' in error)) {
-    return false
-  }
-  return error.code === 'HOST_OFFLINE' || (error.code === '4' && owner.$type !== 'VIF')
-}
 
 /**
  * @param {Owner} owner
@@ -358,51 +339,6 @@ function liveRules(entries) {
   return entries.flatMap(({ rules, live }) => (live ? rules : []))
 }
 
-// Runs a sdncontroller.py method on every host with a PIF on the network. A VIF rule matches its
-// MAC on the whole bridge, so it is on every host too, and keeps applying while its VM migrates.
-/**
- * @param {Owner} owner
- * @param {'add-rule' | 'del-rule'} method
- * @param {Rule} rule
- * @param {Record<string, string>} extraArgs
- */
-function callPlugin(owner, method, rule, extraArgs) {
-  const network = networkOf(owner)
-  // the plugin takes strings, and no key for a missing value
-  /** @type {Record<string, string>} */
-  const args = { bridge: network.bridge, protocol: rule.protocol, ipRange: rule.ipRange, direction: rule.direction }
-  if (owner.$type === 'VIF') {
-    args.mac = owner.MAC
-  }
-  if (rule.port !== undefined) {
-    args.port = String(rule.port)
-  }
-  return asyncEach(
-    network.$PIFs,
-    async ({ $host: host }) => {
-      try {
-        await pTimeout.call(
-          host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...args, ...extraArgs }),
-          CALL_PLUGIN_TIMEOUT
-        )
-      } catch (error) {
-        if (!isIgnored(owner, error)) {
-          throw error
-        }
-        log.info('sdncontroller.py failure ignored', {
-          method,
-          host: host.uuid,
-          network: network.uuid,
-          vif: owner.$type === 'VIF' ? owner.uuid : undefined,
-          rule,
-          error,
-        })
-      }
-    },
-    { stopOnError: false }
-  )
-}
-
 // add-rule first deletes the flows carrying the rule's cookie: the same call
 // installs a rule, and moves it to another priority or match
 /**
@@ -418,7 +354,7 @@ function addFlows(owner, rule) {
     args.cookie = cookie
   }
   args.priority = String(rule.ofPriority ?? LAST_PRIORITY)
-  return callPlugin(owner, 'add-rule', rule, args)
+  return plugin.addRule(owner, rule, args)
 }
 
 // With a cookie, del-rule deletes exactly the flows carrying it
@@ -428,7 +364,7 @@ function addFlows(owner, rule) {
  */
 function deleteFlows(owner, rule) {
   const cookie = cookieOf(owner, rule)
-  return callPlugin(owner, 'del-rule', rule, cookie === undefined ? {} : { cookie })
+  return plugin.deleteRule(owner, rule, cookie === undefined ? {} : { cookie })
 }
 
 // TODO: remove when Node >=15.0, as in `@xen-orchestra/xapi/_AggregateError.mjs`
@@ -709,7 +645,7 @@ export class TrafficRules {
           const options = { concurrency: 4 }
           await asyncEach(
             rules.filter(rule => legacy.has(rule)),
-            rule => callPlugin(owner, 'del-rule', rule, {}),
+            rule => plugin.deleteRule(owner, rule, {}),
             options
           )
           await writeRules(owner, rules)
