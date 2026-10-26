@@ -3,6 +3,7 @@ import {
   Controller,
   Example,
   Extension,
+  Get,
   Middlewares,
   Post,
   Query,
@@ -29,9 +30,9 @@ import { BASE_URL } from '../helpers/utils.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import { v2vInventory, v2vStartResult } from '../open-api/oa-examples/v2v.oa-example.mjs'
+import { v2vInventory, v2vStartResult, v2vStatus } from '../open-api/oa-examples/v2v.oa-example.mjs'
 import { V2vService, V2V_TASK_NAME } from './v2v.service.mjs'
-import type { V2vInventory, V2vInventoryBody, V2vStartBody, V2vStartResult } from './v2v.type.mjs'
+import type { V2vInventory, V2vInventoryBody, V2vStartBody, V2vStartResult, V2vStatus } from './v2v.type.mjs'
 
 const noop = () => {}
 
@@ -56,6 +57,19 @@ export class V2vController extends Controller {
     super()
     this.#restApi = restApi
     this.#v2vService = v2vService
+  }
+
+  /**
+   * Whether this XO can migrate VMs: the tools of an import must run on its system, whatever the source.
+   *
+   * Checked before connecting to a source, which needs no credentials.
+   */
+  @Example(v2vStatus)
+  @Get('status')
+  @SuccessResponse(200, 'OK')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  getV2vStatus(): Promise<V2vStatus> {
+    return this.#v2vService.getStatus()
   }
 
   /**

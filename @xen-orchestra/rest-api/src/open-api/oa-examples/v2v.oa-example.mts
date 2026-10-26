@@ -1,3 +1,7 @@
+export const v2vStatus = {
+  vectura: { status: 'success' },
+}
+
 export const v2vInventory = {
   product: 'VMware vCenter Server',
   version: '8.0.2',
