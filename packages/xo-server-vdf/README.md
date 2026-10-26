@@ -10,7 +10,17 @@ This plugin never re-implements the agent's rules: validation, publication and t
 
 Installed is not enabled: the plugin has a required setting, so xo-server leaves it unloaded until an administrator ticks **Enable the VDF firewall (tech preview)** in Settings > Plugins and loads it ([vdf#42](https://git.vates.tech/vates/vdf/issues/42)).
 
-XO 6 shows the firewall only while `GET /rest/v0/plugins/vdf/info` answers, and the VM tab and Quarantine only in pools VDF manages: a host's agent wrote a status, or a policy is published (so a pool whose agents stopped or were removed still shows its VMs as exposed). Unloading the plugin is the off switch for XO: its routes and background sync stop, and the interface disappears within a minute. Policies already published stay enforced by the hosts' agents. To stop enforcement too, see the agent's README (`vdf-agent clear`).
+XO 6 shows the firewall only while `GET /rest/v0/plugins/vdf/info` answers, and the VM tab and Quarantine only in pools VDF manages: a host's agent wrote a status, or a policy is published (so a pool whose agents stopped or were removed still shows its VMs as exposed). Unloading the plugin is the off switch for XO: its routes and background sync stop, and the interface disappears within a minute. Policies already published stay enforced by the hosts' agents.
+
+In XAPI, the plugin writes `vdf:*` keys of `pool.other_config` only: `vdf:global.owner` itself, the `vdf:policy*` keys through the master agent's `publish`. It never writes host or network `other_config`, nor tags: XO 6 tags VMs and networks through XO's own REST API, as any tag edit. `index.test.mjs` ("what the plugin writes in XAPI") checks the code and every route.
+
+To stop enforcement too, without XO (from any host's shell, with the agent's own commands):
+
+- **A pool:** `vdf-agent unpublish` with no argument, on any host of the pool, removes every `vdf:policy*` key of `pool.other_config` in one write. Each agent then drops its VDF flows after a 3 s grace and forgets its last valid policy, so the policy doesn't come back. Unload this plugin first, or take the pool out of the global configuration's scope: while it's loaded, the global sync writes the pool's global part back within seconds.
+- **A host:** `systemctl stop vdf-agent`, then `vdf-agent clear`, which removes the VDF flows, port flags and MAC pins from the host's bridges and its status. A stopped agent alone leaves the last flows in place.
+- **Quarantine** follows the `vdf:quarantine` VM tag, whatever the pool's document: an unpublished pool still cuts its quarantined VMs off. Remove the tag, or stop and clear the agents.
+
+XO has no off switch of its own yet beyond unloading the plugin ([vdf#42](https://git.vates.tech/vates/vdf/issues/42)).
 
 ## Routes
 

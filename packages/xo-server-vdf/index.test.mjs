@@ -947,3 +947,154 @@ describe('identity on import', () => {
     assert.equal((await target.get('global')).revision, 3)
   })
 })
+
+// vdf#42: in XAPI, the plugin writes vdf:* keys of pool.other_config only
+// (vdf:global.owner itself, vdf:policy* through the agent's publish), and
+// asks the hosts' vdf plugin for nothing else that writes. It never writes
+// host or network other_config, nor VM or network tags (XO 6 tags VMs and
+// networks through XO's own REST API, as any tag edit).
+describe('what the plugin writes in XAPI', () => {
+  const sources = ['index.mjs', 'global.mjs', 'history.mjs', 'trace.mjs']
+
+  test('in the code: host.call_plugin, and pool.update_other_config of the owner key', async () => {
+    const { readFile } = await import('node:fs/promises')
+    for (const file of sources) {
+      const code = await readFile(new URL(file, import.meta.url), 'utf8')
+      for (const [, method] of code.matchAll(/\bxapi\.call\(\s*'([^']+)'/g)) {
+        assert.equal(method, 'host.call_plugin', file)
+      }
+      for (const [, key] of code.matchAll(/update_other_config\(\s*([^,\s]+)/g)) {
+        assert.equal(key, 'OWNER_KEY', file)
+      }
+      assert.doesNotMatch(
+        code,
+        /\b(callAsync|set_other_config|add_to_other_config|remove_from_other_config|set_tags|add_tags|remove_tags|setField\w*|_setObjectProperties|setObjectProperties|editVm|editNetwork|editPool|editHost)\b/,
+        file
+      )
+      assert.doesNotMatch(code, /xapi\.(host|network|VM|VIF)\b/, file)
+    }
+  })
+
+  // every XAPI access of the plugin through every route: what it calls,
+  // what it sets
+  function watch(xo) {
+    const seen = []
+    for (const [id, xapi] of Object.entries(xo.xapis)) {
+      const pool = new Proxy(xapi.pool, {
+        get(target, key) {
+          if (key === 'other_config') {
+            return Object.freeze({ ...target.other_config })
+          }
+          if (key === 'update_other_config') {
+            return (name, value) => {
+              seen.push({ pool: id, write: `pool.other_config:${name}` })
+              return target.update_other_config(name, value)
+            }
+          }
+          return typeof target[key] === 'function' ? seen.push({ pool: id, unexpected: `pool.${key}` }) : target[key]
+        },
+        set(target, key) {
+          seen.push({ pool: id, unexpected: `set pool.${String(key)}` })
+          return true
+        },
+      })
+      xo.xapis[id] = new Proxy(xapi, {
+        get(target, key) {
+          if (key === 'pool') {
+            return pool
+          }
+          if (key === 'call') {
+            return (method, ...args) => {
+              seen.push({ pool: id, call: method, plugin: args[1], fn: args[2] })
+              return target.call(method, ...args)
+            }
+          }
+          return target[key]
+        },
+        set(target, key) {
+          seen.push({ pool: id, unexpected: `set xapi.${String(key)}` })
+          return true
+        },
+      })
+    }
+    return seen
+  }
+
+  test('through every route: vdf:* pool keys, other keys untouched', async () => {
+    const foreign = { 'xo:resource-set': 'x', 'memory-ratio-hvm': '0.25' }
+    const vm = {
+      id: 'vm-a1',
+      name_label: 'web-1',
+      $pool: 'A',
+      power_state: 'Running',
+      tags: ['vdf:role=web'],
+      addresses: { '0/ipv4/0': '10.0.0.5' },
+    }
+    const xo = fakeXo({
+      pools: { A: { otherConfig: foreign }, B: { otherConfig: foreign }, C: { otherConfig: foreign } },
+      vms: [vm],
+    })
+    xo.xapis.C.pool.other_config['vdf:global.owner'] = '{"id":"other","name":"xo-other"}'
+    const seen = watch(xo)
+    const plugin = await loaded(xo)
+    try {
+      const policy = text(document())
+      const global = { policy, scope: { all: true } }
+      const pool = { id: 'A' }
+      const routes = [
+        ['get', '/info'],
+        ['post', '/global/actions/check', { body: global }],
+        ['post', '/global/actions/publish', { body: { ...global, revision: 0 } }],
+        ['get', '/global'],
+        ['get', '/global/history'],
+        ['get', '/global/history/{entry}', { params: { entry: '1' } }],
+        ['get', '/pools/{id}/policy', { params: pool }],
+        ['post', '/pools/{id}/actions/check_policy', { params: pool, body: { policy } }],
+        ['post', '/pools/{id}/actions/publish_policy', { params: pool, body: { policy: text(document(80)) } }],
+        ['get', '/pools/{id}/history', { params: pool }],
+        ['get', '/pools/{id}/history/{entry}', { params: { id: 'A', entry: '1' } }],
+        ['get', '/pools/{id}/stats', { params: pool }],
+        ['get', '/pools/{id}/rule-log', { params: pool }],
+        ['get', '/pools/{id}/monitor', { params: pool }],
+        ['post', '/pools/{id}/actions/take_over_global', { params: { id: 'C' }, body: { expectedOwner: 'other' } }],
+        // B leaves the scope: its global part and owner key go
+        ['post', '/global/actions/publish', { body: { ...global, scope: { pools: ['A', 'C'] }, revision: 1 } }],
+      ]
+      for (const [method, endpoint, options] of routes) {
+        await xo.route(method, endpoint, options)
+      }
+
+      assert.deepEqual(
+        seen.filter(entry => entry.unexpected),
+        []
+      )
+      for (const entry of seen.filter(entry => entry.call !== undefined)) {
+        assert.equal(entry.call, 'host.call_plugin')
+        assert.equal(entry.plugin, 'vdf')
+        assert.ok(['check', 'publish', 'stats', 'rule_log', 'monitor', 'trace'].includes(entry.fn), entry.fn)
+      }
+      const writes = seen.filter(entry => entry.write !== undefined).map(entry => entry.write)
+      assert.ok(writes.length > 0)
+      assert.ok(
+        writes.every(write => write === 'pool.other_config:vdf:global.owner'),
+        writes.join(', ')
+      )
+      // what the agent wrote on publish is vdf:policy*, the rest is as it was
+      for (const id of ['A', 'B', 'C']) {
+        const otherConfig = xo.xapis[id].pool.other_config
+        for (const key of Object.keys(otherConfig).filter(key => !key.startsWith('vdf:'))) {
+          assert.equal(otherConfig[key], foreign[key], `${id} ${key}`)
+        }
+        assert.deepEqual(
+          Object.keys(otherConfig)
+            .filter(key => !key.startsWith('vdf:'))
+            .sort(),
+          Object.keys(foreign).sort()
+        )
+      }
+      assert.equal(xo.xapis.B.pool.other_config['vdf:global.owner'], undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+})
