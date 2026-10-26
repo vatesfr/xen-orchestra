@@ -4,25 +4,18 @@
       <span class="typo-body-bold">{{ t('action:delete-configuration') }}</span>
       <UiInfo accent="info" wrap>{{ t('plugin:delete-configuration-info') }}</UiInfo>
     </div>
-    <UiButton
-      v-tooltip="!canDelete && errorMessage"
-      variant="secondary"
-      accent="danger"
-      size="medium"
-      left-icon="action:delete"
+    <VtsDeleteButton
+      :tooltip="!canDelete && errorMessage"
       :disabled="!canDelete"
       :busy="isDeleting"
       @click="emit('delete')"
-    >
-      {{ t('action:delete') }}
-    </UiButton>
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
