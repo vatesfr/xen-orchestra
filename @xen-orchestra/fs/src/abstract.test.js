@@ -248,4 +248,21 @@ describe('encryption', () => {
       code: 'MISSING_ENCRYPTION_KEY',
     })
   })
+
+  it('encrypted write returns the correct size', async () => {
+    const data = '0000000000'
+
+    await Disposable.use(
+      getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` }),
+      async handler => {
+        const outputDataSize = await handler.outputFile('file', data)
+        const writeDataSize = await handler.writeFile('other', data)
+
+        assert.equal(outputDataSize, await handler.getSizeOnDisk(`file`))
+        assert(outputDataSize > Buffer.byteLength(data))
+        assert.equal(writeDataSize, await handler.getSizeOnDisk(`other`))
+        assert(writeDataSize > Buffer.byteLength(data))
+      }
+    )
+  })
 })
