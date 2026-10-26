@@ -138,6 +138,7 @@
               :vm
               :network="getNetworkById(vif.$network)"
               :policies="interfacePolicies(vif)"
+              :monitored="interfacePolicies(vif, true)"
               :unprotected="getNetworkById(vif.$network)?.tags.includes(VDF_UNPROTECTED_TAG)"
               class="interface"
               @lock="target => confirmLock([target])"
@@ -491,15 +492,16 @@ function leaveGroup(name: string) {
 
 // INTERFACES
 
-// the enforced policies on an interface: those whose group has no
-// networks, or one its network carries (vdf#36)
-function interfacePolicies(vif: FrontXoVif) {
+// the enforced policies on an interface (or those in monitor mode): those
+// whose group has no networks, or one its network carries (vdf#36)
+function interfacePolicies(vif: FrontXoVif, monitored = false) {
   const netTags = getNetworkById(vif.$network)?.tags ?? []
 
   return appliedPolicies.value
     .filter(
       policy =>
-        !isMonitored(policy) && isOnNetworks(netTags, groupNetworks(publishedDocument.value.groups[policy.appliedTo]))
+        isMonitored(policy) === monitored &&
+        isOnNetworks(netTags, groupNetworks(publishedDocument.value.groups[policy.appliedTo]))
     )
     .map(policy => displayName(policy.name))
 }

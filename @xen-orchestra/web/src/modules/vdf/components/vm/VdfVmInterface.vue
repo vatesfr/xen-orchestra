@@ -22,6 +22,9 @@
       <span class="secondary">{{ t('firewall:vm:interface:policies') }}</span>
       <span v-if="policies.length > 0">{{ policies.join(', ') }}</span>
       <span v-else class="secondary">{{ t('firewall:vm:interface:no-policy') }}</span>
+      <span v-if="monitored.length > 0" class="secondary">
+        {{ t('firewall:vm:interface:monitored', { policies: monitored.join(', ') }) }}
+      </span>
     </div>
     <div class="locking">
       <UiInfo :accent="lockingAccent" wrap>{{ t(`firewall:vm:locking:${lockingMode}`) }}</UiInfo>
@@ -83,13 +86,21 @@ import { useI18n } from 'vue-i18n'
 
 // One network interface of a VM, as the firewall sees it: its addresses
 // (IPv4 first), and whether its IPs can be trusted (locked)
-const { vif, vm, network } = defineProps<{
+const {
+  vif,
+  vm,
+  network,
+  monitored = [],
+} = defineProps<{
   vif: FrontXoVif
   vm: FrontXoVm
   network: FrontXoNetwork | undefined
   // the policies enforced on this interface (vdf#36): a group scoped to
   // networks applies to its VMs' interfaces there only
   policies?: string[]
+  // the policies in monitor mode on it: they decide nothing, they record
+  // what they would drop
+  monitored?: string[]
   // its network is left out of the firewall (vdf:unprotected)
   unprotected?: boolean
 }>()

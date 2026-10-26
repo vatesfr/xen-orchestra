@@ -47,13 +47,21 @@
               </li>
             </ul>
             <span v-else class="secondary typo-body-regular-small">{{ t('firewall:vm:no-rule') }}</span>
+            <!-- its own default, which the tier's below doesn't count: it decides nothing yet -->
+            <div v-if="policy.monitored" class="tier-default typo-body-regular-small">
+              <span class="secondary">{{ t('firewall:vm:monitor-default') }}</span>
+              <VdfActionTag :action="policy.default" is-default />
+              <span class="secondary">{{ t('firewall:vm:monitor-default:not-enforced') }}</span>
+            </div>
             <!-- vdf#86: an enforced policy decides first, the report can't see it -->
             <UiInfo v-for="note of shadowNotes?.[policy.name] ?? []" :key="note" accent="warning" wrap>
               {{ note }}
             </UiInfo>
           </div>
           <div class="tier-default typo-body-regular-small">
-            <span class="secondary">{{ t('firewall:no-rule-matches') }}</span>
+            <span class="secondary">
+              {{ tier.hasMonitored ? t('firewall:vm:no-rule-matches:enforced') : t('firewall:no-rule-matches') }}
+            </span>
             <VdfActionTag :action="tier.default" is-default />
           </div>
           <div v-if="tier.egressDefault !== undefined" class="tier-default typo-body-regular-small">
@@ -109,11 +117,15 @@ const tiers = computed(() =>
   effectiveTiers(vmTags, document).map(tier => ({
     ...tier,
     label: tierLabel(tier.value),
+    // the tier's default is its enforced policies': say so next to a
+    // monitored one with its own
+    hasMonitored: tier.policies.some(isMonitored),
     policies: tier.policies.map(policy => ({
       name: policy.name,
       label: displayName(policy.name),
       isGlobal: isGlobalName(policy.name),
       monitored: isMonitored(policy),
+      default: policy.default,
       route: vdfPageRoute(poolId, 'policies', { policy: policy.name }),
       rules: allRules(policy).map(rule => ({ rule, id: globalRuleId(rule.id) })),
     })),
