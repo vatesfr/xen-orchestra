@@ -75,6 +75,11 @@
               >
                 {{ warning.text }}
               </UiInfo>
+              <template v-if="!pool.skipped && !pool.unreachable">
+                <UiInfo v-for="note of hostNotes[pool.id] ?? []" :key="note.key" accent="warning" wrap>
+                  {{ note.text }}
+                </UiInfo>
+              </template>
             </div>
           </template>
           <template v-else-if="checkResult !== undefined">
@@ -104,6 +109,11 @@
               {{ warning.text }}
             </UiInfo>
           </template>
+          <template v-if="!isGlobalScope(shown.scopeId)">
+            <UiInfo v-for="note of hostNotes[shown.scopeId] ?? []" :key="note.key" accent="warning" wrap>
+              {{ note.text }}
+            </UiInfo>
+          </template>
         </section>
 
         <UiAlert v-if="shown.publishError" accent="danger">{{ shown.publishError }}</UiAlert>
@@ -121,6 +131,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VdfChangeList from '@/modules/vdf/components/history/VdfChangeList.vue'
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
@@ -130,11 +141,12 @@ import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.compos
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import type { VdfCheckResult, VdfDocument, VdfMonitorEntry, VdfScopeId } from '@/modules/vdf/types.ts'
 import { parseAgentWarning } from '@/modules/vdf/utils/vdf-agent-warning.util.ts'
-import { changeDetails, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
+import { changeDetails, hostWarnings, publishWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, globalRuleId, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -286,10 +298,44 @@ const checkResult = ref<VdfCheckResult>()
 
 const checkError = ref<string>()
 
+// HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
+// for the pool, or each pool the global configuration is checked on
+
+const { hosts: allHosts } = useXoHostCollection()
+
+const hostNotes = computed(() => {
+  const poolIds = isGlobalScope(shown.value.scopeId)
+    ? (checkResult.value?.pools ?? []).map(pool => pool.id)
+    : [shown.value.scopeId]
+
+  return Object.fromEntries(
+    poolIds.map(poolId => {
+      const gaps = agentGaps(
+        allHosts.value
+          .filter(host => host.$pool === poolId)
+          .map(host => ({
+            name: host.name_label,
+            status: parseHostStatus(host.otherConfig),
+            running: host.power_state === 'Running',
+          }))
+      )
+
+      return [
+        poolId,
+        hostWarnings(gaps).map(warning => ({
+          key: warning.type,
+          text: t(`firewall:publish:${warning.type}`, { hosts: warning.hosts.join(', ') }, warning.hosts.length),
+        })),
+      ]
+    })
+  )
+})
+
 const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
+    Object.values(hostNotes.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
     details.value.policies.some(
       change => change.type === 'removed' || change.rules.some(rule => rule.type === 'removed')

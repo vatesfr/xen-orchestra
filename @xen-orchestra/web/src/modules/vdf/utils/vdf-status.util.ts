@@ -49,6 +49,34 @@ export function hostState(
   return 'up-to-date'
 }
 
+// Hosts whose agent won't apply what a publish writes (vdf#38): none (it
+// never wrote its status) or one stopped or stuck (stale). Their VMs keep
+// the policy that agent last applied, or have none. A halted host runs no
+// VM: left out.
+export type VdfAgentGaps = { missing: string[]; stale: string[] }
+
+export function agentGaps(
+  hosts: { name: string; status: VdfHostStatusDocument | undefined; running: boolean }[],
+  now = Date.now()
+): VdfAgentGaps {
+  const gaps: VdfAgentGaps = { missing: [], stale: [] }
+
+  for (const { name, status, running } of hosts) {
+    const state = hostState(status, '', { live: running, now })
+
+    if (state === 'unknown') {
+      gaps.missing.push(name)
+    } else if (state === 'stale') {
+      gaps.stale.push(name)
+    }
+  }
+
+  gaps.missing.sort((a, b) => a.localeCompare(b))
+  gaps.stale.sort((a, b) => a.localeCompare(b))
+
+  return gaps
+}
+
 // The policy format a host's agent enforces, from the pool key it reads
 // (`vdf:policy.v5`: 5, `vdf:policy`: 1); undefined for none, or its last
 // valid policy after a rejection

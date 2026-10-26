@@ -1,6 +1,7 @@
 import type { VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { allRules, rulesOf, VDF_DIRECTIONS } from '@/modules/vdf/utils/vdf-rules.util.ts'
+import type { VdfAgentGaps } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
 // What a publish changes (or changed, in the history), object by object,
@@ -165,6 +166,26 @@ export type VdfPublishWarning =
   | { type: 'egress-drop-without-rules'; policy: string; group: string }
   // open connections that let in a removed rule
   | { type: 'open-connections'; policy: string; rule: number; count: number }
+
+// Hosts of a pool a publish (or check) doesn't reach (vdf#38): no agent, or
+// one stopped or stuck
+export type VdfHostWarning =
+  | { type: 'hosts-without-agent'; hosts: string[] }
+  | { type: 'hosts-stale-agent'; hosts: string[] }
+
+export function hostWarnings({ missing, stale }: VdfAgentGaps): VdfHostWarning[] {
+  const warnings: VdfHostWarning[] = []
+
+  if (missing.length > 0) {
+    warnings.push({ type: 'hosts-without-agent', hosts: missing })
+  }
+
+  if (stale.length > 0) {
+    warnings.push({ type: 'hosts-stale-agent', hosts: stale })
+  }
+
+  return warnings
+}
 
 export function publishWarnings(
   details: VdfChangeDetails,

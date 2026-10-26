@@ -1003,6 +1003,8 @@
   "firewall:publish:enforcing:flows": "{policy} : 1 flux vu ces dernières 24 h serait bloqué | {policy} : {n} flux vus ces dernières 24 h seraient bloqués",
   "firewall:publish:enforcing:only-expected": "{policy} : seul un flux marqué attendu dans le rapport Observation serait bloqué (dans ce navigateur) | {policy} : seuls les {n} flux marqués attendus dans le rapport Observation seraient bloqués (dans ce navigateur)",
   "firewall:publish:fix-errors": "Corrigez ces erreurs dans le brouillon avant de publier.",
+  "firewall:publish:hosts-stale-agent": "L'agent VDF de {hosts} ne rend plus compte (arrêté ou bloqué) : les VM qui y tournent gardent la politique qu'il a appliquée en dernier, ou n'en ont aucune si elles ont démarré ou sont arrivées depuis. | Les agents VDF de {hosts} ne rendent plus compte (arrêtés ou bloqués) : les VM qui y tournent gardent la politique que leur agent a appliquée en dernier, ou n'en ont aucune si elles ont démarré ou sont arrivées depuis.",
+  "firewall:publish:hosts-without-agent": "L'hôte {hosts} n'a pas d'agent VDF : les VM qui y tournent n'ont aucune politique de pare-feu, et n'auront pas celle-ci. | Les hôtes {hosts} n'ont pas d'agent VDF : les VM qui y tournent n'ont aucune politique de pare-feu, et n'auront pas celle-ci.",
   "firewall:publish:in-progress": "Publication en cours…",
   "firewall:publish:outdated": "Quelqu'un a publié depuis le début de ce brouillon. Mettez-le d'abord à jour avec ses modifications : le publier tel quel les annulerait.",
   "firewall:publish:rejected": "L'agent a refusé la politique",
