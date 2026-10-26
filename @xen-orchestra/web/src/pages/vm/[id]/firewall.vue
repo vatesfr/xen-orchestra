@@ -30,6 +30,15 @@
             >
               {{ t('firewall:untrusted') }}
             </UiTag>
+            <UiTag
+              v-if="vmShadows.length > 0"
+              v-tooltip="bypassedInfo"
+              accent="danger"
+              variant="secondary"
+              tabindex="0"
+            >
+              {{ t('firewall:vm:bypassed') }}
+            </UiTag>
           </span>
           <template #description>{{ statusDetail }}</template>
         </UiAlert>
@@ -164,6 +173,26 @@
         </VtsColumn>
       </VtsColumns>
 
+      <!-- vdf#40: XO's Traffic Rules decide before VDF for what they match -->
+      <UiCard v-if="isGuarded && vmTrafficRules.length > 0">
+        <UiTitle>{{ t('firewall:traffic-rules') }}</UiTitle>
+        <p class="secondary typo-body-regular-small">{{ t('firewall:traffic-rules:info') }}</p>
+        <div v-for="(item, index) of vmTrafficRules" :key="index" class="traffic-rule typo-body-regular-small">
+          <span>{{ ruleText(item) }}</span>
+          <UiTag
+            v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}:info`)"
+            :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed)]"
+            variant="secondary"
+            tabindex="0"
+          >
+            {{ t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}`) }}
+          </UiTag>
+        </div>
+        <UiLink :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" size="small">
+          {{ t('firewall:traffic-rules:open') }}
+        </UiLink>
+      </UiCard>
+
       <!-- full width: a table of eight columns -->
       <UiCard>
         <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
@@ -187,12 +216,14 @@ import { useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { shadowedVifs, type VdfTrafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -231,7 +262,7 @@ const pool = useGetPoolById(() => vm.$pool)
 
 // what the hosts enforce for this VM: the published document, never the
 // draft (the page only renders once the pool is known)
-const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hostOf, areHostsReady } =
+const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hosts, hostOf, areHostsReady } =
   useVdfPolicy(() => pool.value!)
 
 const membership = useVdfMembership()
@@ -327,6 +358,35 @@ const untrustedMembers = computed(() => {
   return [...new Set([...(isVmUntrusted(vm) ? [vm.name_label] : []), ...peers])].sort((a, b) => a.localeCompare(b))
 })
 
+// TRAFFIC RULES (vdf#40): XO's SDN controller writes them in table 0 above
+// VDF's flows, so for what they match they decide first; the hosts' agents
+// report the guarded VIFs they shadow
+
+const { rulesOfVm, ruleText, statusOf } = useVdfTrafficRules()
+
+const vmTrafficRules = computed(() => rulesOfVm(vm))
+
+const shadowed = computed(() => shadowedVifs(hosts.value.map(({ status }) => status)))
+
+const vmShadows = computed(() => [...shadowed.value.values()].filter(shadow => shadow.vm === vm.id))
+
+// VDF decides for its interfaces (it protects or quarantines it)
+const isGuarded = computed(() => protection.value !== 'unprotected' && protection.value !== 'monitored')
+
+const bypassedInfo = computed(() =>
+  t('firewall:vm:bypassed:info', {
+    allows: vmShadows.value.reduce((sum, shadow) => sum + shadow.allows, 0),
+    drops: vmShadows.value.reduce((sum, shadow) => sum + shadow.drops, 0),
+    sample: vmShadows.value[0]?.sample ?? '',
+  })
+)
+
+const TRAFFIC_RULE_ACCENTS: Record<VdfTrafficRuleStatus, 'danger' | 'warning' | 'muted'> = {
+  bypasses: 'danger',
+  'decides-first': 'warning',
+  'not-applied': 'muted',
+}
+
 // GROUPS: membership is tags, written at once (no draft), after a
 // confirmation that says what changes
 
@@ -375,6 +435,8 @@ async function joinGroup(name: string) {
       groupName: displayName(name),
       tags: group.tags ?? [],
       protectedBy: groupUsage(publishedDocument.value, name).appliedTo.map(displayName),
+      // vdf#40: they keep deciding first once the VM is protected
+      trafficRules: vmTrafficRules.value.length,
     },
   })
 
@@ -449,6 +511,13 @@ const { confirmLock } = useVdfLock()
   flex-direction: column;
   gap: 0.8rem;
   margin: 0.8rem;
+
+  .traffic-rule {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+  }
 
   .status-title {
     display: inline-flex;

@@ -306,6 +306,23 @@ export type VdfHostStatusDocument = {
   // VIF locking of the host's protected or grouped VIFs (vdf#15); absent
   // from agents before it
   locking?: VdfHostLocking
+  // guarded VIFs (protected or quarantined) that flows VDF didn't install
+  // decide for first, Traffic Rules usually (vdf#40); absent from agents
+  // before it
+  shadowed?: VdfShadowedVif[]
+}
+
+// a guarded VIF non-VDF flows of table 0 decide for before VDF does
+export type VdfShadowedVif = {
+  vm: string
+  vmName: string
+  vif: string
+  // flows letting traffic past VDF (to NORMAL)
+  allows: number
+  // flows dropping traffic VDF may allow
+  drops: number
+  // one of them, as ovs-ofctl shows it
+  sample: string
 }
 
 // a VIF the agent reports: unlocked, or locked to addresses its guest no

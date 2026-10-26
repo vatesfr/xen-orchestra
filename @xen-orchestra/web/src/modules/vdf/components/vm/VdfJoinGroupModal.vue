@@ -22,6 +22,9 @@
           {{ t('firewall:vm:join:protected-by', { n: protectedBy.length, policies }) }}
         </UiAlert>
         <UiAlert v-else accent="info">{{ t('firewall:vm:join:no-policy') }}</UiAlert>
+        <UiAlert v-if="protectedBy.length > 0 && trafficRules > 0" accent="warning">
+          {{ t('firewall:vm:join:traffic-rules', { n: trafficRules }, trafficRules) }}
+        </UiAlert>
       </div>
     </template>
     <template #buttons>
@@ -43,12 +46,14 @@ import { I18nT, useI18n } from 'vue-i18n'
 
 // Joining a group tags the VM right away, without publishing: the group's
 // policies then decide its inbound traffic
-const { protectedBy } = defineProps<{
+const { protectedBy, trafficRules = 0 } = defineProps<{
   vmName: string
   groupName: string
   tags: string[]
   // published policies protecting the group
   protectedBy: string[]
+  // XO's Traffic Rules on the VM (vdf#40)
+  trafficRules?: number
 }>()
 
 const emit = defineEmits<{

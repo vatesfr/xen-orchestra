@@ -116,6 +116,18 @@
             {{ t('firewall:overview:exposed:vm', { vm: vm.name_label, host: hostOf(vm)?.host.name_label ?? '?' }) }}
           </UiLink>
         </div>
+        <div v-if="shadowedVms.length > 0" class="status-item">
+          <UiInfo accent="danger" wrap>{{ t('firewall:overview:shadowed', { n: shadowedVms.length }) }}</UiInfo>
+          <UiLink
+            v-for="shadow of shadowedVms"
+            :key="shadow.vm"
+            v-tooltip="shadow.sample"
+            :to="{ name: '/vm/[id]/firewall', params: { id: shadow.vm } }"
+            size="small"
+          >
+            {{ shadow.vmName }}
+          </UiLink>
+        </div>
         <div v-if="enforcedQuarantines.length > 0" class="status-item">
           <UiInfo accent="danger" wrap>
             {{ t('firewall:overview:quarantined', { n: enforcedQuarantines.length }) }}
@@ -306,7 +318,7 @@ import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
-import type { VdfPoolSyncState } from '@/modules/vdf/types.ts'
+import type { VdfPoolSyncState, VdfShadowedVif } from '@/modules/vdf/types.ts'
 import { hostWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
@@ -315,6 +327,7 @@ import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
 import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { agentGaps, hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { shadowedVifs } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -609,9 +622,25 @@ const issueLabel = (issue: VdfLockIssue) =>
     network: issue.networkName ?? '?',
   })
 
+// TRAFFIC RULES (vdf#40): VMs VDF protects or quarantines that non-VDF
+// flows (XO's Traffic Rules, usually) decide for first, as the agents
+// report them; one entry per VM
+const shadowedVms = computed(() => {
+  const byVm = new Map<string, VdfShadowedVif>()
+
+  for (const shadow of shadowedVifs(hosts.value.map(({ status }) => status)).values()) {
+    if (!byVm.has(shadow.vm)) {
+      byVm.set(shadow.vm, shadow)
+    }
+  }
+
+  return [...byVm.values()].sort((a, b) => a.vmName.localeCompare(b.vmName))
+})
+
 const hasStatus = computed(
   () =>
     globalInfo.value?.inScope === true ||
+    shadowedVms.value.length > 0 ||
     monitoredPolicyCount.value > 0 ||
     exposedVms.value.length > 0 ||
     enforcedQuarantines.value.length > 0 ||

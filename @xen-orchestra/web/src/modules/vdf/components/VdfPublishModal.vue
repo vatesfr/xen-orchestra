@@ -151,6 +151,7 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { checkVdfDocument, fetchVdfMonitor, fetchVdfOpenConnections } from '@/modules/vdf/jobs/vdf-publish.job.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type {
@@ -175,7 +176,7 @@ import {
   inGlobalScope,
   isGlobalScope,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { coveredBy, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { coveredBy, enforcedPolicies, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -298,6 +299,38 @@ const reachPools = computed(() =>
 
 const { reachText } = useVdfGlobalReach(() => shown.value.document, reachPools)
 
+// VMs the draft brings under an enforced policy that have XO's Traffic
+// Rules (vdf#40): those keep deciding first for what they match
+
+const { rulesOfVm } = useVdfTrafficRules()
+
+const trafficRuleWarnings = computed(() => {
+  const { scopeId, document, baseDocument } = shown.value
+  const poolIds = new Set(isGlobalScope(scopeId) ? reachPools.value.map(pool => pool.id) : [scopeId])
+  const protects = (doc: VdfDocument) => {
+    const appliedTo = new Set(enforcedPolicies(doc).map(policy => policy.appliedTo))
+
+    return (tags: string[]) => vmGroupNames(tags, doc).some(name => appliedTo.has(name))
+  }
+  const now = protects(document)
+  const before = protects(baseDocument)
+
+  return vms.value
+    .filter(vm => poolIds.has(vm.$pool) && now(vm.tags) && !before(vm.tags))
+    .flatMap(vm => {
+      const count = rulesOfVm(vm).length
+
+      return count === 0
+        ? []
+        : [
+            {
+              key: `traffic-rules:${vm.id}`,
+              text: t('firewall:publish:warning:traffic-rules', { vm: vm.name_label, n: n(count) }, count),
+            },
+          ]
+    })
+})
+
 // open connections per rule, for the rules the draft removes (one sample
 // of the pool's live stats)
 const openConnections = ref<Map<number, number>>()
@@ -326,6 +359,7 @@ const warnings = computed(() => [
     }
   }),
   ...overridden.value,
+  ...trafficRuleWarnings.value,
 ])
 
 // policies the draft switches from monitor mode to enforce (vdf#13): what
