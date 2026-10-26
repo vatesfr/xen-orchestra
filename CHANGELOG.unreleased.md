@@ -33,17 +33,6 @@
 
 <!--packages-start-->
 
-- @vates/iscsi minor
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/mixins minor
-- @xen-orchestra/proxy minor
-- @xen-orchestra/rest-api patch
-- @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
 - xo-server minor
-- xo-server-sdn-controller patch
-- xo-web minor
 
 <!--packages-end-->
