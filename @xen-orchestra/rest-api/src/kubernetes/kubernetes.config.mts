@@ -15,7 +15,6 @@ export async function getCAPIUrl(restApi: RestApi): Promise<string> {
   let CAPIUrl = DEV_URL
 
   const configCAPIUrl = restApi.xoApp.config.getOptional<string>('rest-api.kubernetesProxyUrl')
-  console.log(`------------------ ${configCAPIUrl} -------------------`)
   if (configCAPIUrl !== undefined) CAPIUrl = configCAPIUrl
 
   let url: URL

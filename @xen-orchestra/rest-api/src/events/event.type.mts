@@ -1,4 +1,5 @@
 import type { Branded, XapiXoRecord } from '@vates/types'
+import { KubernetesCollections } from '../kubernetes/kubernetes.event.mjs'
 
 export type SubscriberId = Branded<'Subscriber'>
 
@@ -18,7 +19,7 @@ export type NonXapiListenerType =
   | 'backup-archive'
   | 'schedule'
   | 'authentication_token'
-  | 'kubernetes-cluster'
+  | KubernetesCollections
 
 export type XoListenerType = XapiListenerType | NonXapiListenerType
 

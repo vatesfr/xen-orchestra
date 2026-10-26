@@ -21,7 +21,7 @@ export function createSseParser() {
     buffer += decoder.decode(chunk, { stream: true })
 
     if (buffer.length > MAX_BUFFER_LENGTH) {
-      log.warn(`SSE buffer exceeded memory limiy (1 MiB)`)
+      log.warn(`SSE buffer exceeded memory limit (1 MiB)`)
 
       buffer = ''
       eventName = ''

@@ -9,6 +9,7 @@ import { default as gpuGroup } from './gpuGroup.mjs'
 import { default as group } from './group.mjs'
 import { default as host } from './host.mjs'
 import { default as kubernetesCluster } from './kubernetes-cluster.mjs'
+import { default as kubernetesNode } from './kubernetes-node.mjs'
 import { default as message } from './message.mjs'
 import { default as network } from './network.mjs'
 import { default as pbd } from './pbd.mjs'
@@ -52,6 +53,7 @@ export const SUPPORTED_ACTIONS_BY_RESOURCE = {
   gpuGroup,
   host,
   'kubernetes-cluster': kubernetesCluster,
+  'kubernetes-node': kubernetesNode,
   message,
   network,
   pbd,

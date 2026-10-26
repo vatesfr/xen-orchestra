@@ -195,11 +195,11 @@ describe('openEventStream', () => {
       return new Response('event: ping\ndata: {}\n\n', { headers: { 'content-type': 'text/event-stream' } })
     })
 
-    const stream = await service.openEventStream('api/kubernetes/clusters/cluster-1/events', {
+    const stream = await service.openEventStream('kubernetes/clusters/cluster-1/events', {
       signal: abortController.signal,
     })
 
-    assert.equal(url, `${CAPI_URL}/api/kubernetes/clusters/cluster-1/events`)
+    assert.equal(url, `${CAPI_URL}/kubernetes/clusters/cluster-1/events`)
     assert.equal(opts!.headers!.accept, 'text/event-stream')
     assert.equal(opts!.signal, abortController.signal)
 
@@ -214,7 +214,7 @@ describe('openEventStream', () => {
     const service = makeService(throwingHttpRequest(jsonResponse({ detail: 'unknown cluster' }, 404)))
 
     await assertApiError(
-      service.openEventStream('api/kubernetes/clusters/nope/events', { signal: abortController.signal }),
+      service.openEventStream('kubernetes/clusters/nope/events', { signal: abortController.signal }),
       { status: 404, message: 'unknown cluster' }
     )
   })
@@ -223,7 +223,7 @@ describe('openEventStream', () => {
     const service = makeService(async () => new Response(null, { status: 204 }))
 
     await assertApiError(
-      service.openEventStream('api/kubernetes/clusters/cluster-1/events', { signal: abortController.signal }),
+      service.openEventStream('kubernetes/clusters/cluster-1/events', { signal: abortController.signal }),
       { status: 502 }
     )
   })
@@ -234,7 +234,7 @@ describe('openEventStream', () => {
     })
 
     const error = await service
-      .openEventStream('api/kubernetes/clusters/cluster-1/events', { signal: abortController.signal })
+      .openEventStream('kubernetes/clusters/cluster-1/events', { signal: abortController.signal })
       .then(
         () => assert.fail('expected the promise to be rejected'),
         (error: unknown) => error

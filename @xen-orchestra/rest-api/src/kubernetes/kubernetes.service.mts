@@ -81,7 +81,11 @@ export class KubernetesService {
   }
 
   async listClusters(): Promise<unknown> {
-    return this.#callCAPI('api/kubernetes/clusters/')
+    return this.#callCAPI('kubernetes/clusters')
+  }
+
+  async listNodes(): Promise<unknown> {
+    return this.#callCAPI('kubernetes/nodes')
   }
 
   async openEventStream(CAPIPath: string, { signal }: { signal: AbortSignal }): Promise<NonNullable<Response['body']>> {
@@ -96,7 +100,7 @@ export class KubernetesService {
     })
 
     if (!CAPIRes.ok) {
-      throw await this.#getCAPIError(CAPIUrl, CAPIRes)
+      await this.#throwCAPIError(CAPIUrl, CAPIRes)
     }
 
     if (CAPIRes.body === null) {
