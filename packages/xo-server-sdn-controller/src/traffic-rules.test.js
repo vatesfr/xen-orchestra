@@ -394,6 +394,36 @@ describe('TrafficRules', () => {
     ])
   })
 
+  it('deletes legacy flows only for the rules from before priorities', async () => {
+    const { calls, network, trafficRules } = setup()
+    await trafficRules.addRule(network, SSH)
+    const [ssh] = rulesOf(network)
+    calls.length = 0
+
+    await trafficRules.refresh(network)
+
+    assert.deepEqual(summary(calls, 'cookie'), [
+      ['host1', 'add-rule', ssh.cookie],
+      ['host2', 'add-rule', ssh.cookie],
+    ])
+  })
+
+  it('numbers a rule from before priorities once its legacy flows are deleted', async () => {
+    const failures = { host2: '3' }
+    const { network, vif1, trafficRules } = setup({
+      vif1Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([WEB]) },
+      failures,
+    })
+
+    // logged, not thrown
+    await trafficRules.refresh(network)
+    assert.deepEqual(ofPriorities(vif1), [undefined])
+
+    delete failures.host2
+    await trafficRules.refresh(network)
+    assert.deepEqual(ofPriorities(vif1), [60000])
+  })
+
   it('installs a rule from before priorities at 8001 until it is numbered', async () => {
     const { calls, vif1, trafficRules } = setup({
       vif1Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([WEB]) },
@@ -463,6 +493,19 @@ describe('TrafficRules', () => {
     await assert.rejects(trafficRules.addRule(network, SSH))
 
     assert.equal(rulesOf(network).length, 1)
+  })
+
+  it('throws the failures of every step of a change together', async () => {
+    const { vif1, trafficRules } = setup({
+      vif1Config: { [SDN_CONTROLLER_OF_RULES_KEY]: legacy([{ ...SSH, ofPriority: 60000 }]) },
+      failures: { host2: '3' },
+    })
+
+    await assert.rejects(
+      trafficRules.updateRule(vif1, SSH, { ...SSH, port: 2222 }),
+      // the flows of the new match, then the deletion of those of the old one
+      ({ errors }) => errors.length === 2 && errors.every(({ errors }) => errors[0].code === '3')
+    )
   })
 })
 

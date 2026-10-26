@@ -249,16 +249,6 @@ async function writeRules(owner, rules) {
   }
 }
 
-// A rank, as the API takes it. Exported for the REST API, which checks it before its task starts.
-/**
- * @param {number} priority
- */
-export function checkPriorityValue(priority) {
-  if (!Number.isInteger(priority) || priority < 1) {
-    throw invalidParameters(`traffic rule priority must be an integer from 1, which applies first, not ${priority}`)
-  }
-}
-
 // The distinct OpenFlow priorities of `rules`, highest first. With `legacy`, those
 // of rules from before priorities count as LAST_PRIORITY.
 /**
@@ -399,6 +389,14 @@ function callPlugin(owner, method, rule, extraArgs) {
         if (!isIgnored(owner, error)) {
           throw error
         }
+        log.info('sdncontroller.py failure ignored', {
+          method,
+          host: host.uuid,
+          network: network.uuid,
+          vif: owner.$type === 'VIF' ? owner.uuid : undefined,
+          rule,
+          error,
+        })
       }
     },
     { stopOnError: false }
@@ -433,12 +431,24 @@ function deleteFlows(owner, rule) {
   return callPlugin(owner, 'del-rule', rule, cookie === undefined ? {} : { cookie })
 }
 
+// TODO: remove when Node >=15.0, as in `@xen-orchestra/xapi/_AggregateError.mjs`
+class AggregateError extends Error {
+  /**
+   * @param {unknown[]} errors
+   * @param {string} message
+   */
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 // Saves `owner`, and the owners of the rules `moved` to another priority, then installs the
 // flows of `rule`. The moved rules' flows follow in any case, even if those of `rule` fail:
 // they are saved at their new priority, and a retry would not move them again. When an update
 // changes the match of a VIF rule, `previous` is that rule before the change: its flows are
 // deleted after those of `rule`, even if these fail, or they would stay installed under a
-// cookie no rule carries any more.
+// cookie no rule carries any more. The failures of these steps are thrown together.
 /**
  * @param {Entry[]} entries
  * @param {Owner} owner
@@ -452,31 +462,45 @@ async function applyChange(entries, owner, rule, moved, previous) {
       await writeRules(entry.owner, entry.rules)
     }
   }
-  try {
-    if (isActive(owner)) {
-      await addFlows(owner, rule)
-    }
-  } finally {
+  /** @type {unknown[]} */
+  const errors = []
+  /** @param {() => Promise<void>} step */
+  const attempt = async step => {
     try {
-      // a VIF rule's cookie comes from its match: its previous flows carry another
-      if (previous !== undefined && owner.$type === 'VIF' && !sameMatch(previous, rule)) {
-        await deleteFlows(owner, previous)
-      }
-    } finally {
-      // The moved rules have distinct cookies, and OVS picks a flow by its priority, not by the
-      // order it was added in: their flows are installed concurrently, as in refresh, since a
-      // respace can move every rule of a network. Past a failed one the others still go.
-      const movedSet = new Set(moved)
-      const toAdd = entries.flatMap(entry =>
-        isActive(entry.owner)
-          ? entry.rules.filter(other => movedSet.has(other)).map(rule => ({ owner: entry.owner, rule }))
-          : []
-      )
-      await asyncEach(toAdd, ({ owner: movedOwner, rule }) => addFlows(movedOwner, rule), {
-        concurrency: 4,
-        stopOnError: false,
-      })
+      await step()
+    } catch (error) {
+      errors.push(error)
     }
+  }
+
+  if (isActive(owner)) {
+    await attempt(() => addFlows(owner, rule))
+  }
+  // a VIF rule's cookie comes from its match: its previous flows carry another
+  if (previous !== undefined && owner.$type === 'VIF' && !sameMatch(previous, rule)) {
+    await attempt(() => deleteFlows(owner, previous))
+  }
+  // The moved rules have distinct cookies, and OVS picks a flow by its priority, not by the
+  // order it was added in: their flows are installed concurrently, as in refresh, since a
+  // respace can move every rule of a network. Past a failed one the others still go.
+  const movedSet = new Set(moved)
+  const toAdd = entries.flatMap(entry =>
+    isActive(entry.owner)
+      ? entry.rules.filter(other => movedSet.has(other)).map(rule => ({ owner: entry.owner, rule }))
+      : []
+  )
+  await attempt(() =>
+    asyncEach(toAdd, ({ owner: movedOwner, rule }) => addFlows(movedOwner, rule), {
+      concurrency: 4,
+      stopOnError: false,
+    })
+  )
+
+  if (errors.length > 1) {
+    throw new AggregateError(errors, 'the flows of a traffic rule change were not all updated')
+  }
+  if (errors.length === 1) {
+    throw errors[0]
   }
 }
 
@@ -530,6 +554,17 @@ export class TrafficRules {
   #withLock = synchronized.withKey((/** @type {Owner} */ owner) => networkOf(owner).$id)((owner, fn) =>
     fn(owner.$xapi.getObjectByRef(owner.$ref))
   )
+
+  // A rank, as the API takes it: from 1, which applies first. The REST API checks it before its
+  // task starts, so that an async call gets its 422 too.
+  /**
+   * @param {number | null | undefined} priority
+   */
+  checkPriority(priority) {
+    if (priority != null && (!Number.isInteger(priority) || priority < 1)) {
+      throw invalidParameters(`traffic rule priority must be an integer from 1, which applies first, not ${priority}`)
+    }
+  }
 
   // A rule with the same match on the same owner only gets the new action, and moves to the new
   // rank. Without one it keeps its place (XO 5 knows nothing of priorities), and a new rule goes
@@ -649,6 +684,8 @@ export class TrafficRules {
       async network => {
         const { entries } = await this.#read(network)
         const all = liveRules(entries)
+        // before they are numbered
+        const legacy = new Set(all.filter(rule => rule.ofPriority === undefined))
         for (const rule of all) {
           // the flows of every rule are installed below, those a respace moves too
           if (rule.ofPriority === undefined) {
@@ -657,7 +694,6 @@ export class TrafficRules {
         }
 
         for (const { owner, rules } of entries) {
-          await writeRules(owner, rules)
           // Every legacy delete goes before every add: on hosts whose xcp-ng-xapi-plugins
           // is older than 1.16.0, del-rule ignores the cookie and deletes by match, so the
           // legacy delete of one rule must not run after another rule with the same match
@@ -666,9 +702,17 @@ export class TrafficRules {
           //
           // Without a cookie, del-rule deletes by match the flows with cookie 0: those of
           // the legacy code, and of network rules from before cookies. Rules installed here
-          // always have a cookie.
+          // always have a cookie, so only the rules read without a priority need it: an XO
+          // rolled back to a release without priorities also saves the rules it installs
+          // without one. Their priority is saved once their legacy flows are gone, so that a
+          // delete that failed is tried again at the next connection.
           const options = { concurrency: 4 }
-          await asyncEach(rules, rule => callPlugin(owner, 'del-rule', rule, {}), options)
+          await asyncEach(
+            rules.filter(rule => legacy.has(rule)),
+            rule => callPlugin(owner, 'del-rule', rule, {}),
+            options
+          )
+          await writeRules(owner, rules)
           await asyncEach(rules, rule => (isActive(owner) ? addFlows(owner, rule) : deleteFlows(owner, rule)), options)
         }
       }
@@ -696,6 +740,13 @@ export class TrafficRules {
       }
     )
   }
+
+  // A VIF is being unplugged, or its VM migrated, rebooted or halted: its rules stay
+  // until vifDetached, once it is down
+  /**
+   * @param {Vif} vif
+   */
+  async vifDetaching(vif) {}
 
   // A VIF was unplugged, or its VM halted: its rules go until it is back, and the
   // network rules drop its port. A migration or a reboot keeps them.
