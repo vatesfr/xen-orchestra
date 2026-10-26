@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { flattenSnapshots, parseDevices, parseVlan } from './_inventory.mjs'
+import { findDatacenter, flattenSnapshots, parseDevices, parseVlan } from './_inventory.mjs'
 
 // shaped as the SOAP library returns them: the nested references and types are not normalized
 const typed = (type, value) => ({ attributes: { 'xsi:type': type }, ...value })
@@ -135,5 +135,30 @@ describe('parseVlan', function () {
 
   it('returns undefined without VLAN', function () {
     assert.equal(parseVlan(undefined), undefined)
+  })
+})
+
+describe('findDatacenter', function () {
+  const datacenterIds = new Set(['datacenter-1'])
+
+  it('walks up the nested folders', function () {
+    const parents = new Map([
+      ['host-10', 'domain-s9'],
+      ['domain-s9', 'group-h20'],
+      ['group-h20', 'group-h4'],
+      ['group-h4', 'datacenter-1'],
+    ])
+
+    assert.equal(findDatacenter('host-10', parents, datacenterIds), 'datacenter-1')
+  })
+
+  it('is undefined for an object outside of any datacenter, or a parent loop', function () {
+    assert.equal(findDatacenter('host-10', new Map([['host-10', 'group-d1']]), datacenterIds), undefined)
+    assert.equal(findDatacenter(undefined, new Map(), datacenterIds), undefined)
+    const loop = new Map([
+      ['group-a', 'group-b'],
+      ['group-b', 'group-a'],
+    ])
+    assert.equal(findDatacenter('group-a', loop, datacenterIds), undefined)
   })
 })

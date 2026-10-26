@@ -198,5 +198,24 @@ export function parseVlan(defaultPortConfig) {
   return asArray(vlanId).map(({ start, end }) => ({ start: Number(start), end: Number(end) }))
 }
 
+/**
+ * The datacenter an object belongs to, found by walking up its parents: the folders and compute
+ * resources between a host and its datacenter can be nested at any depth.
+ *
+ * @param {string | undefined} id - managed object reference
+ * @param {Map<string, string | undefined>} parents - parent of each folder, compute resource and host
+ * @param {Set<string>} datacenterIds
+ * @returns {string | undefined}
+ */
+export function findDatacenter(id, parents, datacenterIds) {
+  // a parent loop would be a broken answer, not a deep tree
+  for (let depth = 0; id !== undefined && depth <= parents.size; depth++) {
+    if (datacenterIds.has(id)) {
+      return id
+    }
+    id = parents.get(id)
+  }
+}
+
 export const refsOf = value => asArray(value?.ManagedObjectReference).map(refOf)
 export { refOf, toNumber }
