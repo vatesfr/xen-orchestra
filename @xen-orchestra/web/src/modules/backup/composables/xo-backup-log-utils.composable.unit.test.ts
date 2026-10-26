@@ -6,9 +6,9 @@ import {
   createBackupLogTransferTask,
   createBackupLogVmTask,
 } from '@/test/create-backup-log.ts'
-import { d } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 
 function mountBackupLogsUtils() {
   return mountComposable(() => useXoBackupLogsUtils()).wrapper.vm
@@ -19,10 +19,10 @@ function createVmTaskWithTransfer(vmId: string, transfer: Parameters<typeof crea
 }
 
 describe('getBackupLogDate', () => {
-  it('formats the date as a short date with the time', () => {
+  it('formats the date with formatDateTime ', () => {
     const { getBackupLogDate } = mountBackupLogsUtils()
 
-    expect(getBackupLogDate(1_700_000_000_000)).toBe(d(1_700_000_000_000, { dateStyle: 'short', timeStyle: 'medium' }))
+    expect(getBackupLogDate(1_700_000_000_000)).toBe(formatDateTime(1_700_000_000_000))
   })
 
   it('returns undefined without a date', () => {
