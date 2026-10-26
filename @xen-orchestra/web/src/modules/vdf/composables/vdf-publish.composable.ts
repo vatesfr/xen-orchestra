@@ -1,6 +1,6 @@
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfGlobalPublishJob, useVdfPublishJob } from '@/modules/vdf/jobs/vdf-publish.job.ts'
-import { changeDetails } from '@/modules/vdf/utils/vdf-change.util.ts'
+import { changeDetails, isMonitorOnlyChange } from '@/modules/vdf/utils/vdf-change.util.ts'
 import type { VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -26,14 +26,18 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
   const isPublishing = computed(() => (scope.isGlobal ? globalJob.isRunning.value : poolJob.isRunning.value))
 
   async function publish() {
+    // what the banner says once published: nothing is cut when only
+    // policies in monitor mode change
+    const monitorOnly = isMonitorOnlyChange(scope.publishedDocument.value, document.value)
+
     if (scope.isGlobal) {
       const result = await globalJob.run()
 
-      scope.recordPublish(result.revision ?? scope.revision.value + 1)
+      scope.recordPublish(result.revision ?? scope.revision.value + 1, monitorOnly)
     } else {
       const result = await poolJob.run()
 
-      scope.recordPublish(result.document ?? '')
+      scope.recordPublish(result.document ?? '', monitorOnly)
     }
   }
 

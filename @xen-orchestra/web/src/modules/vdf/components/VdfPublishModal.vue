@@ -139,7 +139,11 @@
 
         <UiAlert v-if="shown.publishError" accent="danger">{{ shown.publishError }}</UiAlert>
         <UiAlert v-else-if="!shown.isOutdated" accent="info">
-          {{ isGlobalScope(shown.scopeId) ? t('firewall:global:publish:effect') : t('firewall:publish:effect') }}
+          {{
+            t(
+              `${isGlobalScope(shown.scopeId) ? 'firewall:global:publish:effect' : 'firewall:publish:effect'}${isMonitorOnly ? ':monitor' : ''}`
+            )
+          }}
         </UiAlert>
         <UiInfo v-if="isRejected" accent="danger" wrap>{{ t('firewall:publish:fix-errors') }}</UiInfo>
       </div>
@@ -176,6 +180,7 @@ import { parseAgentWarning } from '@/modules/vdf/utils/vdf-agent-warning.util.ts
 import {
   changeDetails,
   hostWarnings,
+  isMonitorOnlyChange,
   overriddenDefaults,
   publishWarnings,
 } from '@/modules/vdf/utils/vdf-change.util.ts'
@@ -238,6 +243,10 @@ const shown = computed(() => frozen.value ?? props)
 
 // the draft's own changes, never what others published meanwhile
 const details = computed(() => changeDetails(shown.value.baseDocument, shown.value.document))
+
+// only policies in monitor mode change: nothing enforced changes, no
+// connection is cut
+const isMonitorOnly = computed(() => isMonitorOnlyChange(shown.value.baseDocument, shown.value.document))
 
 const memberCount = (group: string) => shown.value.memberCounts?.[group]
 

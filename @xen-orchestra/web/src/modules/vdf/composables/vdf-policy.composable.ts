@@ -9,8 +9,9 @@ import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useNow } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, ref, toValue, watch } from 'vue'
 
-// last publish per pool, to show how fast every host enforced it
-const lastPublishes = ref<Record<string, { docId: string; at: number }>>({})
+// last publish per pool, to show how fast every host enforced it;
+// monitorOnly: only policies in monitor mode changed (nothing is cut)
+const lastPublishes = ref<Record<string, { docId: string; at: number; monitorOnly?: boolean }>>({})
 
 export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
   const pool = computed(() => toValue(rawPool))
@@ -91,8 +92,8 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
 
   const lastPublish = computed(() => lastPublishes.value[poolId.value])
 
-  function recordPublish(docId: string) {
-    lastPublishes.value = { ...lastPublishes.value, [poolId.value]: { docId, at: Date.now() } }
+  function recordPublish(docId: string, monitorOnly = false) {
+    lastPublishes.value = { ...lastPublishes.value, [poolId.value]: { docId, at: Date.now(), monitorOnly } }
     draftState.clearDraft()
     reloadPublishedPolicy()
   }

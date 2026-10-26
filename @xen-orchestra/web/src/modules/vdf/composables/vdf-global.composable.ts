@@ -16,7 +16,7 @@ import { useNow } from '@vueuse/core'
 import { computed, type ComputedRef, ref } from 'vue'
 
 // last global publish, to follow the pools and hosts catching up
-const lastPublish = ref<{ revision: number; at: number }>()
+const lastPublish = ref<{ revision: number; at: number; monitorOnly?: boolean }>()
 
 // The XO-wide configuration: groups and policies XO writes into every pool
 // in scope (xo-server-vdf global.mjs). Edited like a pool's document, with
@@ -107,8 +107,8 @@ export function useVdfGlobalPolicy() {
     return policyRealization(VDF_GLOBAL_PREFIX + policyName, hosts.value)
   }
 
-  function recordPublish(nextRevision: number) {
-    lastPublish.value = { revision: nextRevision, at: Date.now() }
+  function recordPublish(nextRevision: number, monitorOnly = false) {
+    lastPublish.value = { revision: nextRevision, at: Date.now(), monitorOnly }
     draftState.clearDraft()
     reloadGlobal()
   }

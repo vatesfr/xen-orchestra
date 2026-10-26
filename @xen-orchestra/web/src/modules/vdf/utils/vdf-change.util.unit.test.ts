@@ -1,8 +1,9 @@
-import type { VdfDocument } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
 import {
   changeDetails,
   hostWarnings,
   isEmptyChange,
+  isMonitorOnlyChange,
   overriddenDefaults,
   publishWarnings,
 } from '@/modules/vdf/utils/vdf-change.util.ts'
@@ -136,5 +137,40 @@ describe('overriddenDefaults (vdf#27)', () => {
         vms
       ).map(item => item.global)
     ).toEqual(['global:out'])
+  })
+})
+
+describe('isMonitorOnlyChange', () => {
+  const web: VdfPolicy = {
+    name: 'web',
+    appliedTo: 'web',
+    default: 'drop',
+    ingress: [{ id: 1, from: 'any', proto: 'tcp' }],
+  }
+  const cache: VdfPolicy = { name: 'cache', appliedTo: 'cache', default: 'drop', mode: 'monitor', ingress: [] }
+  const base: VdfDocument = { groups: { web: { tags: ['web'] } }, policies: [web] }
+
+  it('a monitored policy and its own group added: monitor only', () => {
+    const after = {
+      ...base,
+      version: 4,
+      groups: { ...base.groups, cache: { tags: ['cache'] } },
+      policies: [web, cache],
+    }
+    expect(isMonitorOnlyChange(base, after)).toBe(true)
+  })
+
+  it('a monitored policy switched to enforce: not monitor only', () => {
+    const before = { ...base, policies: [web, cache], groups: { ...base.groups, cache: { tags: ['cache'] } } }
+    const after = { ...before, policies: [web, { ...cache, mode: 'enforce' as const }] }
+    expect(isMonitorOnlyChange(before, after)).toBe(false)
+  })
+
+  it('a group an enforced policy uses changed: not monitor only', () => {
+    expect(isMonitorOnlyChange(base, { ...base, groups: { web: { tags: ['web', 'prod'] } } })).toBe(false)
+  })
+
+  it('no change at all is no monitor-only change', () => {
+    expect(isMonitorOnlyChange(base, { ...base })).toBe(false)
   })
 })

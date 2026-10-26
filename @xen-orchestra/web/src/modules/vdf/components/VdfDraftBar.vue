@@ -52,16 +52,22 @@
     <UiAlert
       :accent="publishProgress.done ? 'success' : publishProgress.failed.length > 0 ? 'warning' : 'info'"
       close
-      @close="dismissedDocId = publishProgress.id"
+      @close="dismiss(publishProgress.id)"
     >
       {{
-        t(isGlobal ? 'firewall:global:published:in-sync' : 'firewall:published:enforcing', {
-          n: publishProgress.enforcing,
-          total: publishProgress.total,
-        })
+        t(
+          isGlobal
+            ? 'firewall:global:published:in-sync'
+            : publishProgress.monitorOnly
+              ? 'firewall:published:monitoring'
+              : 'firewall:published:enforcing',
+          { n: publishProgress.enforcing, total: publishProgress.total }
+        )
       }}
       <template #description>
-        <template v-if="publishProgress.done">{{ t('firewall:published:done') }}</template>
+        <template v-if="publishProgress.done">
+          {{ publishProgress.monitorOnly ? t('firewall:published:done:monitor') : t('firewall:published:done') }}
+        </template>
         <template v-else-if="publishProgress.failed.length > 0">
           {{ t('firewall:global:published:not-written', { pools: publishProgress.failed.join(', ') }) }}
         </template>
@@ -81,7 +87,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { scope } = defineProps<{
@@ -93,8 +99,13 @@ const { t } = useI18n()
 const isGlobal = scope.kind === 'global'
 
 // after a publish, the bar follows the hosts (the pools, for the global
-// configuration) until all of them enforce it
+// configuration) until all of them enforce it, then closes by itself
+// (it's on every tab of the firewall)
 const dismissedDocId = ref<string>()
+
+function dismiss(id: string) {
+  dismissedDocId.value = id
+}
 
 const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } = (() => {
   if (scope.kind === 'global') {
@@ -119,7 +130,7 @@ const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } 
           .filter(pool => pool.inScope && pool.state !== 'in-sync' && pool.sync?.ok === false)
           .map(pool => (pool.sync?.error ? `${pool.name} (${pool.sync.error})` : pool.name))
 
-        return { id, enforcing, total, done: enforcing === total, failed }
+        return { id, enforcing, total, done: enforcing === total, failed, monitorOnly: publish.monitorOnly === true }
       }),
     }
   }
@@ -144,10 +155,35 @@ const { hasDraft, changes, isDraftOutdated, publishProgress, canEdit, otherXo } 
       const total = policy.liveHostCount.value
 
       // a pool publish is written by the call itself, or refused
-      return { id: publish.docId, enforcing, total, done: enforcing === total, failed: [] as string[] }
+      return {
+        id: publish.docId,
+        enforcing,
+        total,
+        done: enforcing === total,
+        failed: [] as string[],
+        monitorOnly: publish.monitorOnly === true,
+      }
     }),
   }
 })()
+
+const DONE_SHOWN_MS = 10_000
+
+let closeTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(
+  () => (publishProgress.value?.done ? publishProgress.value.id : undefined),
+  id => {
+    clearTimeout(closeTimer)
+
+    if (id !== undefined) {
+      closeTimer = setTimeout(() => dismiss(id), DONE_SHOWN_MS)
+    }
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => clearTimeout(closeTimer))
 
 const { openPublish, openRebase, openDiscard, isPublishing } = useVdfPublish(() => scope)
 

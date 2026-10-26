@@ -61,6 +61,28 @@ function ruleChanges(before: VdfRule[], after: VdfRule[]): VdfRuleChange[] {
 
 const commonOrder = (keys: (string | number)[], other: (string | number)[]) => keys.filter(key => other.includes(key))
 
+// What hosts enforce in a document: its enforced policies, in order, the
+// groups they name, and its other settings (limits...); not the format
+// version, which follows monitor mode
+function enforcement(document: VdfDocument) {
+  const policies = document.policies.filter(policy => !isMonitored(policy))
+  const used = new Set(
+    policies.flatMap(policy => [policy.appliedTo, ...allRules(policy).map(rule => rule.to ?? rule.from)])
+  )
+
+  return {
+    ...omit(document, ['version', 'policies', 'groups']),
+    policies,
+    groups: Object.fromEntries(Object.entries(document.groups).filter(([name]) => used.has(name))),
+  }
+}
+
+// A change of policies in monitor mode only (and of groups only they use):
+// nothing enforced changes, no connection is cut (vdf#13)
+export function isMonitorOnlyChange(before: VdfDocument, after: VdfDocument) {
+  return !isEqual(omit(before, 'version'), omit(after, 'version')) && isEqual(enforcement(before), enforcement(after))
+}
+
 export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChangeDetails {
   const groups: VdfGroupChange[] = []
 
