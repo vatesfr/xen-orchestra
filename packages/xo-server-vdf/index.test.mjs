@@ -1941,3 +1941,134 @@ describe('recovery: what the pools hold can be stale or forged', () => {
     }
   })
 })
+
+describe('REDTEAM2: normal life on one healthy XO', () => {
+  const globalDocument = {
+    groups: { web: { tags: ['vdf:role=web'] }, admins: { ips: ['192.0.2.30'] } },
+    policies: [
+      {
+        name: 'web',
+        appliedTo: 'web',
+        default: 'drop',
+        ingress: [{ id: 1, from: 'admins', proto: 'tcp', ports: [22] }],
+      },
+    ],
+  }
+  const policyOf = (xo, poolId) => JSON.parse(xo.xapis[poolId].pool.other_config['vdf:policy'])
+  const ownerOf = (xo, poolId) => JSON.parse(xo.xapis[poolId].pool.other_config['vdf:global.owner'] ?? 'null')
+  const globalNames = (xo, poolId) =>
+    Object.keys(policyOf(xo, poolId).groups)
+      .filter(name => name.startsWith('global:'))
+      .sort()
+  const publishGlobal = (xo, revision, doc = globalDocument, scope = { all: true }) =>
+    xo.route('post', '/global/actions/publish', { body: { policy: text(doc), scope, revision } })
+  const otherConfigs = xo =>
+    Object.fromEntries(Object.keys(xo.xapis).map(id => [id, { otherConfig: { ...xo.xapis[id].pool.other_config } }]))
+  async function runSync(t) {
+    t.mock.timers.tick(5e3)
+    for (let i = 0; i < 50; i++) {
+      await new Promise(resolve => setImmediate(resolve))
+    }
+  }
+  const mockTimers = t => t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
+
+  test('REDTEAM2: after the upgrade, a pool unreachable until it left the scope keeps the global rules for ever', async t => {
+    mockTimers(t)
+    // the previous plugin version published to A and B: owner markers { id, name, since }
+    const store = fakeStore()
+    const before = fakeXo({ store, pools: { A: {}, B: {} } })
+    const old = await loaded(before)
+    try {
+      await publishGlobal(before, 0)
+    } finally {
+      old.unload()
+    }
+    const pools = otherConfigs(before)
+    for (const { otherConfig } of Object.values(pools)) {
+      const { id, name, since } = JSON.parse(otherConfig['vdf:global.owner'])
+      otherConfig['vdf:global.owner'] = JSON.stringify({ id, name, since })
+    }
+
+    // the upgraded plugin starts while B is down; the admin takes B out of
+    // the scope meanwhile (it's being decommissioned, its agent misbehaves...)
+    const xo = fakeXo({ store, pools })
+    xo.disconnect('B')
+    const plugin = await loaded(xo)
+    try {
+      await runSync(t)
+      const narrowed = await publishGlobal(xo, 1, globalDocument, { pools: ['A'] })
+      assert.equal(narrowed.result.ok, true)
+
+      // B comes back: the sync should drop its global part, as before the upgrade
+      xo.reconnect('B')
+      t.mock.timers.tick(60e3) // the sync of every minute
+      await runSync(t)
+      // what happens: refused, with a reason about a take over that never happened
+      assert.deepEqual(globalNames(xo, 'B'), ['global:admins', 'global:web'])
+      const status = (await xo.route('get', '/global')).result.pools.find(pool => pool.id === 'B')
+      assert.equal(status.state, 'stale-global')
+      assert.match(status.sync.error, /took the pool over since/)
+      // and the pool's own publishes are refused too
+      const own = await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'B' },
+        body: { policy: text(document()) },
+      })
+      assert.equal(own.result.published, false)
+      assert.match(own.result.error, /took the pool over since/)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('REDTEAM2: an XOA restored from yesterday\'s VM backup is stuck: "Copy of this XO", nothing to click', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'], now: Date.now() })
+    const store = fakeStore()
+    const xoa = fakeXo({ store, pools: { A: {} } })
+    const plugin = await loaded(xoa)
+    let yesterday
+    try {
+      await publishGlobal(xoa, 0)
+      yesterday = structuredClone(Object.fromEntries(store.data)) // the nightly VM backup
+      const edited = structuredClone(globalDocument)
+      edited.groups.admins.ips = ['192.0.2.31']
+      await publishGlobal(xoa, 1, edited)
+    } finally {
+      plugin.unload()
+    }
+
+    // the XOA VM is broken by an update and restored from that backup
+    const restored = fakeXo({ store: fakeStore(yesterday), pools: otherConfigs(xoa) })
+    const pluginRestored = await loaded(restored)
+    try {
+      await runSync(t)
+      const [pool] = (await restored.route('get', '/global')).result.pools
+      // no other XO, so no Take over button (overview.vue shows it for other-xo only)
+      assert.deepEqual([pool.cloned, pool.state === 'other-xo'], [true, false])
+      // the admin's global publishes fail for good, with "give the copy an identity of its own"
+      const publish = await publishGlobal(restored, 1)
+      assert.equal(publish.result.published, false)
+      assert.equal(publish.result.pools[0].globalLoss.cloned, true)
+      // and so do the pool's own publishes
+      const own = await restored.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'A' },
+        body: { policy: text(document()) },
+      })
+      assert.equal(own.result.globalLoss?.cloned, true)
+      // the only way out, API only: take the pool over from this XO itself
+      const { instance } = (await restored.route('get', '/global')).result
+      const taken = await restored.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'A' },
+        body: { expectedOwner: instance.id },
+      })
+      assert.equal(taken.status, 200)
+      assert.equal(ownerOf(restored, 'A').revision, undefined)
+      // which rolls the pool back at the next sync, without the dropGlobal
+      // confirmation #takeOverLoss asks for when the XO replaced held it
+      t.mock.timers.tick(60e3) // past the retry delay of the refused sync
+      await runSync(t)
+      assert.deepEqual(policyOf(restored, 'A').groups['global:admins'].ips, ['192.0.2.30'])
+    } finally {
+      pluginRestored.unload()
+    }
+  })
+})
