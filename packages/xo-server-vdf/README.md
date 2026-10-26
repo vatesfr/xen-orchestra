@@ -64,7 +64,7 @@ Groups and policies defined once in XO and written into every pool in scope (all
 | Route                                       | What                                                                                                                                          |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /global`                               | The global configuration, each pool's sync state, and the members of global groups                                                            |
-| `POST /global/actions/check`                | `{ policy, scope }`: every pool in scope checks its resulting document, nothing written                                                       |
+| `POST /global/actions/check`                | `{ policy, scope }`: every pool in scope checks its resulting document, nothing written; each one's own part comes back (`own`, vdf#27)       |
 | `POST /global/actions/publish`              | `{ policy, scope, revision }`: check, then publish to every pool                                                                              |
 | `GET /global/history`                       | The last published global configurations, oldest first, without their content                                                                 |
 | `GET /global/history/{entry}`               | One of them (document and scope), with the one before it (`previous`)                                                                         |
