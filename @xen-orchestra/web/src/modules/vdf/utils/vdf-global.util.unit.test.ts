@@ -4,6 +4,7 @@ import {
   displayName,
   globalRuleId,
   isReservedTier,
+  policyReach,
   reservesTiers,
   vdfGlobalRoute,
   vdfPageRoute,
@@ -105,5 +106,32 @@ describe('composeWithGlobal', () => {
     ])
     expect(document.policies[0].ingress[0]).toMatchObject({ id: VDF_GLOBAL_RULE_BASE + 1, from: 'global:app' })
     expect(document.policies[0].egress?.[0]).toMatchObject({ id: VDF_GLOBAL_RULE_BASE + 2, to: 'any' })
+  })
+})
+
+describe('policyReach', () => {
+  it('counts the VMs each policy applies to, per pool, without the pools where it has none', () => {
+    const document: VdfDocument = {
+      groups: { db: { tags: ['vdf:role=db'] }, web: { tags: ['vdf:role=web'] } },
+      policies: [
+        { name: 'db', appliedTo: 'db', default: 'drop', ingress: [] },
+        { name: 'web', appliedTo: 'web', default: 'drop', ingress: [] },
+      ],
+    }
+    const counts: Record<string, number> = { 'db/A': 2, 'db/B': 0, 'web/A': 0, 'web/B': 0 }
+
+    expect(
+      policyReach(
+        document,
+        [
+          { id: 'A', name: 'Pool A' },
+          { id: 'B', name: 'Pool B' },
+        ],
+        (group, poolId) => counts[`${group}/${poolId}`]
+      )
+    ).toEqual([
+      { policy: 'db', pools: [{ id: 'A', name: 'Pool A', vms: 2 }] },
+      { policy: 'web', pools: [] },
+    ])
   })
 })

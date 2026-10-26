@@ -220,7 +220,13 @@
                 >
                   {{ t('firewall:outside') }}
                 </UiTag>
-                <UiTag v-if="row.inDraftScope !== row.pool.inScope" accent="info" variant="secondary">
+                <UiTag
+                  v-if="row.inDraftScope !== row.pool.inScope"
+                  v-tooltip="row.inDraftScope ? joinText(row.pool.id) : false"
+                  accent="info"
+                  variant="secondary"
+                  :tabindex="row.inDraftScope ? 0 : undefined"
+                >
                   {{ row.inDraftScope ? t('firewall:global:joins') : t('firewall:global:leaves') }}
                 </UiTag>
                 <UiTag
@@ -402,6 +408,7 @@
 <script lang="ts" setup>
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
+import { useVdfGlobalReach } from '@/modules/vdf/composables/vdf-global-reach.composable.ts'
 import { useVdfGlobalPolicy } from '@/modules/vdf/composables/vdf-global.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
@@ -466,6 +473,8 @@ const {
   publishedDocument,
   publishedScope,
   hasDraft,
+  // the draft
+  document,
   scope,
   setScope,
   pools,
@@ -509,7 +518,7 @@ const { open: openScope } = useOverlay({
 })
 
 async function changeScope() {
-  const response = await openScope({ props: { pools: pools.value, scope: scope.value } })
+  const response = await openScope({ props: { pools: pools.value, scope: scope.value, document: document.value } })
 
   if (response.event === 'onConfirm') {
     setScope(response.payload)
@@ -517,6 +526,18 @@ async function changeScope() {
 }
 
 // POOLS
+
+// what a pool the draft brings into the scope will receive (vdf#47)
+const joiningPools = computed(() =>
+  pools.value.filter(pool => !pool.inScope && pool.state !== 'other-xo' && inGlobalScope(scope.value, pool.id))
+)
+
+const { receivesText } = useVdfGlobalReach(document, joiningPools)
+
+const joinText = (poolId: string) =>
+  document.value.policies.length === 0
+    ? t('firewall:global:scope:receives:none')
+    : t('firewall:global:scope:receives', { policies: receivesText(poolId) })
 
 // changed outside this XO (vdf#32)
 const outsideText = useVdfOutsideText()
