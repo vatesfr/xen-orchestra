@@ -8,10 +8,11 @@ import { mountComposable } from '@/test/mount-composable.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { type MaybeRefOrGetter, nextTick, ref, toValue } from 'vue'
 
-const { jobs, useConfigureJob, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
-  jobs: {} as Record<'configure' | 'deleteConfiguration', ReturnType<typeof createJob>>,
+const { useConfigureJob, useDeleteConfigurationJob, configure, deleteConfiguration, openModal } = vi.hoisted(() => ({
   useConfigureJob: vi.fn(),
   useDeleteConfigurationJob: vi.fn(),
+  configure: vi.fn(),
+  deleteConfiguration: vi.fn(),
   openModal: vi.fn(),
 }))
 
@@ -27,22 +28,30 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
   useDeleteModal: (() => ({ open: openModal })) as unknown as typeof useDeleteModal,
 }))
 
-function createJob() {
-  return {
-    run: vi.fn().mockResolvedValue(undefined),
-    canRun: ref(true),
-    isRunning: ref(false),
-    errorMessage: ref<string>(),
-  }
-}
-
 beforeEach(() => {
-  jobs.configure = createJob()
-  jobs.deleteConfiguration = createJob()
-  useConfigureJob.mockReset().mockReturnValue(jobs.configure)
-  useDeleteConfigurationJob.mockReset().mockReturnValue(jobs.deleteConfiguration)
+  useConfigureJob.mockReset()
+  useDeleteConfigurationJob.mockReset()
+  configure.mockReset()
+  deleteConfiguration.mockReset()
   openModal.mockReset()
+
+  configure.mockResolvedValue(undefined)
+  deleteConfiguration.mockResolvedValue(undefined)
+  mockJob(useConfigureJob, configure)
+  mockJob(useDeleteConfigurationJob, deleteConfiguration)
 })
+
+function mockJob(
+  useJob: typeof useConfigureJob,
+  run: typeof configure,
+  {
+    canRun = true,
+    isRunning = false,
+    errorMessage = canRun ? undefined : 'Plugin action in progress…',
+  }: { canRun?: boolean; isRunning?: boolean; errorMessage?: string } = {}
+) {
+  useJob.mockReturnValue({ run, canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) })
+}
 
 const configurationSchema = {
   type: 'object',
@@ -84,8 +93,8 @@ describe('formValue', () => {
 
   it('is the configuration sent when saving', async () => {
     let sentConfiguration: unknown
-    // the job reads its arguments when it runs
-    jobs.configure.run.mockImplementation(() => {
+    // The job reads its arguments when it runs
+    configure.mockImplementation(() => {
       sentConfiguration = toValue(useConfigureJob.mock.calls[0][1])
     })
     const configuration = mountConfiguration(configuredPlugin)
@@ -142,7 +151,7 @@ describe('save', () => {
 
     expect({
       isSaved: configuration.isSaved,
-      runs: jobs.configure.run.mock.calls.length,
+      runs: configure.mock.calls.length,
       missingPaths: configuration.summaryErrors.map(error => error.path),
     }).toEqual({
       isSaved: false,
@@ -162,7 +171,7 @@ describe('save', () => {
 
     expect({
       isSaved: configuration.isSaved,
-      runs: jobs.configure.run.mock.calls.length,
+      runs: configure.mock.calls.length,
       isDirty: configuration.isDirty,
     }).toEqual({ isSaved: true, runs: 1, isDirty: false })
   })
@@ -194,7 +203,7 @@ describe('save', () => {
 
   it('keeps the edits and the error when the configuration is rejected', async () => {
     const error = new Error('invalid configuration')
-    jobs.configure.run.mockRejectedValue(error)
+    configure.mockRejectedValue(error)
     const configuration = mountConfiguration(configuredPlugin)
     configuration.formValue = editedConfiguration
 
@@ -238,13 +247,13 @@ describe('canSave', () => {
   })
 
   it('is false when the configure job cannot run', () => {
-    jobs.configure.canRun.value = false
+    mockJob(useConfigureJob, configure, { canRun: false })
 
     expect(mountConfiguration(unconfiguredPlugin).canSave).toBe(false)
   })
 
   it('is false while the configuration is being deleted', () => {
-    jobs.deleteConfiguration.isRunning.value = true
+    mockJob(useDeleteConfigurationJob, deleteConfiguration, { isRunning: true })
 
     expect(mountConfiguration(unconfiguredPlugin).canSave).toBe(false)
   })
@@ -256,13 +265,13 @@ describe('canDeleteConfiguration', () => {
   })
 
   it('is false when the delete job cannot run', () => {
-    jobs.deleteConfiguration.canRun.value = false
+    mockJob(useDeleteConfigurationJob, deleteConfiguration, { canRun: false })
 
     expect(mountConfiguration(configuredPlugin).canDeleteConfiguration).toBe(false)
   })
 
   it('is false while the configuration is being saved', () => {
-    jobs.configure.isRunning.value = true
+    mockJob(useConfigureJob, configure, { isRunning: true })
 
     expect(mountConfiguration(configuredPlugin).canDeleteConfiguration).toBe(false)
   })
@@ -274,13 +283,13 @@ describe('isBusy', () => {
   })
 
   it('is true while the configuration is being saved', () => {
-    jobs.configure.isRunning.value = true
+    mockJob(useConfigureJob, configure, { isRunning: true })
 
     expect(mountConfiguration(configuredPlugin).isBusy).toBe(true)
   })
 
   it('is true while the configuration is being deleted', () => {
-    jobs.deleteConfiguration.isRunning.value = true
+    mockJob(useDeleteConfigurationJob, deleteConfiguration, { isRunning: true })
 
     expect(mountConfiguration(configuredPlugin).isBusy).toBe(true)
   })
@@ -294,7 +303,7 @@ describe('deleteConfiguration', () => {
     configuration.deleteConfiguration()
     await confirmDeletion()
 
-    expect({ runs: jobs.deleteConfiguration.run.mock.calls.length, isDirty: configuration.isDirty }).toEqual({
+    expect({ runs: deleteConfiguration.mock.calls.length, isDirty: configuration.isDirty }).toEqual({
       runs: 1,
       isDirty: false,
     })
@@ -302,7 +311,7 @@ describe('deleteConfiguration', () => {
 
   it('keeps the edits and the error when the deletion fails', async () => {
     const error = new Error('request failed')
-    jobs.deleteConfiguration.run.mockRejectedValue(error)
+    deleteConfiguration.mockRejectedValue(error)
     const configuration = mountConfiguration(configuredPlugin)
     configuration.formValue = editedConfiguration
 

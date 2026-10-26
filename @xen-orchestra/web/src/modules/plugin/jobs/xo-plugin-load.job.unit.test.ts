@@ -1,108 +1,112 @@
 import { useXoPluginLoadJob } from '@/modules/plugin/jobs/xo-plugin-load.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import type { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
+import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { useI18n } from 'vue-i18n'
 
-const { fetchPost, fetchPatch, monitorTask } = vi.hoisted(() => ({
-  fetchPost: vi.fn(),
-  fetchPatch: vi.fn(),
+const { post, patch, monitorTask } = vi.hoisted(() => ({
+  post: vi.fn(),
+  patch: vi.fn(),
   monitorTask: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), async importOriginal => ({
-  ...(await importOriginal()),
-  fetchPost,
-  fetchPatch,
+vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+  fetchPost: post as unknown as typeof fetchPost,
+  fetchPatch: patch as unknown as typeof fetchPatch,
 }))
 
+// The task collection would open an SSE subscription
 vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
 }))
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  fetchPost.mockReset().mockResolvedValue({ taskId: 'task-1' })
-  fetchPatch.mockReset().mockResolvedValue(undefined)
-  monitorTask.mockReset().mockResolvedValue(undefined)
-})
+  post.mockReset()
+  patch.mockReset()
+  monitorTask.mockReset()
 
-function mountJob(plugin: FrontXoPlugin | undefined) {
-  return mountComposable(() => ({ ...useXoPluginLoadJob(plugin), t: useI18n().t })).wrapper.vm
-}
+  post.mockResolvedValue({ taskId: 'task-1' })
+  patch.mockResolvedValue(undefined)
+  monitorTask.mockResolvedValue(undefined)
+})
 
 const unloadedPlugin = createPlugin({ loaded: false })
 
-describe('validation', () => {
-  it('allows loading a configured plugin which is not loaded', () => {
-    const job = mountJob(unloadedPlugin)
-
-    expect({ canRun: job.canRun, errorMessage: job.errorMessage }).toEqual({ canRun: true, errorMessage: undefined })
-  })
-
-  it('prevents running without plugin', () => {
-    const job = mountJob(undefined)
-
-    expect({ canRun: job.canRun, errorMessage: job.errorMessage }).toEqual({
-      canRun: false,
-      errorMessage: job.t('job:plugin-load:missing-plugin'),
-    })
-  })
-
-  it('reports a plugin which is already loaded', () => {
-    const job = mountJob(createPlugin({ loaded: true }))
-
-    expect(job.errorMessage).toBe(job.t('job:plugin-load:already-loaded'))
-  })
-
-  it('reports a plugin which is not configured', () => {
-    const job = mountJob(createPlugin({ loaded: false, configured: false }))
-
-    expect(job.errorMessage).toBe(job.t('job:plugin-load:not-configured'))
-  })
-
-  it('reports a load in progress', () => {
-    fetchPost.mockReturnValue(new Promise(() => {}))
-    const job = mountJob(unloadedPlugin)
-
-    void job.run()
-
-    expect({ isRunning: job.isRunning, errorMessage: job.errorMessage }).toEqual({
-      isRunning: true,
-      errorMessage: job.t('job:plugin-load:in-progress'),
-    })
-  })
-})
+function mountLoadJob(plugin: FrontXoPlugin | undefined) {
+  return mountComposable(() => useXoPluginLoadJob(plugin)).wrapper.vm
+}
 
 describe('run', () => {
   it('loads the plugin, waits for the task and enables its autoload', async () => {
-    await mountJob(unloadedPlugin).run()
+    await mountLoadJob(unloadedPlugin).run()
 
-    expect(fetchPost).toHaveBeenCalledWith('plugins/transport-email/actions/load')
+    expect(post).toHaveBeenCalledWith('plugins/transport-email/actions/load')
     expect(monitorTask).toHaveBeenCalledWith('task-1')
-    expect(fetchPatch).toHaveBeenCalledWith('plugins/transport-email', { autoload: true })
+    expect(patch).toHaveBeenCalledWith('plugins/transport-email', { autoload: true })
   })
 
   it('succeeds when only the autoload update fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    fetchPatch.mockRejectedValue(new Error('autoload update failed'))
+    patch.mockRejectedValue(new Error('autoload update failed'))
 
-    await expect(mountJob(unloadedPlugin).run()).resolves.toBeUndefined()
+    await expect(mountLoadJob(unloadedPlugin).run()).resolves.toBeUndefined()
   })
 
   it('fails, without enabling the autoload, when the load task fails', async () => {
     const error = new Error('plugin load failed')
     monitorTask.mockRejectedValue(error)
 
-    await expect(mountJob(unloadedPlugin).run()).rejects.toBe(error)
-    expect(fetchPatch).not.toHaveBeenCalled()
+    await expect(mountLoadJob(unloadedPlugin).run()).rejects.toBe(error)
+    expect(patch).not.toHaveBeenCalled()
   })
 
   it('does not run when the plugin cannot be loaded', async () => {
-    const job = mountJob(createPlugin({ loaded: true }))
+    const job = mountLoadJob(createPlugin({ loaded: true }))
 
-    await expect(job.run()).rejects.toThrow(job.t('job:plugin-load:already-loaded'))
-    expect(fetchPost).not.toHaveBeenCalled()
+    await expect(job.run()).rejects.toThrow(t('job:plugin-load:already-loaded'))
+    expect(post).not.toHaveBeenCalled()
+  })
+})
+
+describe('validate', () => {
+  it('can run on a plugin which can be loaded', () => {
+    const job = mountLoadJob(unloadedPlugin)
+
+    expect(job.canRun).toBe(true)
+    expect(job.errorMessage).toBeUndefined()
+  })
+
+  it('cannot run without plugin', () => {
+    const job = mountLoadJob(undefined)
+
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(t('job:plugin-load:missing-plugin'))
+  })
+
+  it('cannot run on a plugin which is already loaded', () => {
+    const job = mountLoadJob(createPlugin({ loaded: true }))
+
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(t('job:plugin-load:already-loaded'))
+  })
+
+  it('cannot run on a plugin which is not configured', () => {
+    const job = mountLoadJob(createPlugin({ loaded: false, configured: false }))
+
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(t('job:plugin-load:not-configured'))
+  })
+
+  it('cannot run while the plugin is being loaded', () => {
+    post.mockReturnValue(new Promise(() => {}))
+    const job = mountLoadJob(unloadedPlugin)
+
+    void job.run()
+
+    expect(job.isRunning).toBe(true)
+    expect(job.errorMessage).toBe(t('job:plugin-load:in-progress'))
   })
 })

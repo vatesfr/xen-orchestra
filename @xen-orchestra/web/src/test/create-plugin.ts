@@ -1,7 +1,7 @@
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 
-// the JSON schema form is generic: tests describe any plugin, not only the ones typed in `@vates/types`
+// The JSON schema form is generic: tests describe any plugin, not only the ones typed in `@vates/types`
 type PluginOverrides = Partial<
   Omit<
     FrontXoPlugin,
@@ -16,6 +16,10 @@ type PluginOverrides = Partial<
   }
 >
 
+/**
+ * Builds a fully-populated FrontXoPlugin for use in tests. Pass overrides to
+ * tweak only the fields relevant to the case under test.
+ */
 export function createPlugin(overrides: PluginOverrides = {}): FrontXoPlugin {
   return {
     id: 'transport-email' as FrontXoPlugin['id'],

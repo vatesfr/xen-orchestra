@@ -1,28 +1,41 @@
 import PluginTest from '@/modules/plugin/components/detail/PluginTest.vue'
+import type { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useTooltipStore } from '@core/stores/tooltip.store.ts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { nextTick, ref, toValue } from 'vue'
 
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), async () => {
-  const { ref } = await import('vue')
+const { useTestJob, run } = vi.hoisted(() => ({
+  useTestJob: vi.fn(),
+  run: vi.fn(),
+}))
 
-  return {
-    useXoTaskCollection: (() => ({
-      useGetTaskById: () => ref({ status: 'success' }),
-    })) as unknown as typeof useXoTaskCollection,
-  }
-})
+// The job tests the plugin through the REST API
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-test.job.ts'), () => ({
+  useXoPluginTestJob: useTestJob as unknown as typeof useXoPluginTestJob,
+}))
 
 beforeEach(() => {
-  vi.mocked(fetch).mockReset()
+  useTestJob.mockReset()
+  run.mockReset()
+
+  run.mockResolvedValue(undefined)
+  mockTestJob()
 })
+
+function mockTestJob({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
+  useTestJob.mockReturnValue({
+    run,
+    canRun: ref(canRun),
+    isRunning: ref(isRunning),
+    errorMessage: ref(canRun ? undefined : 'Plugin not loaded'),
+  })
+}
 
 const TEST_SCHEMA = {
   type: 'object',
@@ -34,7 +47,7 @@ function createTestablePlugin(overrides: Parameters<typeof createPlugin>[0] = {}
 }
 
 function mountCard(plugin = createTestablePlugin()) {
-  return mount(PluginTest, { props: { plugin }, global: createGlobalTestConfig() })
+  return mount(PluginTest, { props: { plugin }, global: createGlobalTestConfig(), attachTo: document.body })
 }
 
 function findTestButton(wrapper: ReturnType<typeof mountCard>) {
@@ -59,8 +72,9 @@ function findInfos(wrapper: ReturnType<typeof mountCard>) {
   return wrapper.findAll('.ui-info').map(info => info.text())
 }
 
-function findRequests() {
-  return vi.mocked(fetch).mock.calls.map(([url, init]) => ({ url, method: init?.method, body: init?.body }))
+// The job receives the data of the test as a getter
+function findTestData() {
+  return toValue(useTestJob.mock.lastCall?.[1])
 }
 
 it('explains what the test does', () => {
@@ -91,45 +105,29 @@ it('runs the test with the data of the form', async () => {
 
   await findTestButton(wrapper).trigger('click')
 
-  expect(findRequests()).toEqual([
-    {
-      url: '/rest/v0/plugins/transport-email/actions/test',
-      method: 'POST',
-      body: JSON.stringify({ data: { to: 'admin@example.org' } }),
-    },
-  ])
+  expect(run).toHaveBeenCalledOnce()
+  expect(findTestData()).toEqual({ to: 'admin@example.org' })
 })
 
 it('focuses the first missing field instead of running the test', async () => {
-  const wrapper = mount(PluginTest, {
-    props: {
-      plugin: createTestablePlugin({
-        testSchema: { type: 'object', properties: { to: { type: 'string' } }, required: ['to'] },
-      }),
-    },
-    global: createGlobalTestConfig(),
-    attachTo: document.body,
-  })
+  const wrapper = mountCard(
+    createTestablePlugin({
+      testSchema: { type: 'object', properties: { to: { type: 'string' } }, required: ['to'] },
+    })
+  )
 
   await runTest(wrapper)
 
-  expect({ focused: document.activeElement, requests: findRequests() }).toEqual({
-    focused: wrapper.get('input').element,
-    requests: [],
-  })
-  wrapper.unmount()
+  expect(document.activeElement).toBe(wrapper.get('input').element)
+  expect(run).not.toHaveBeenCalled()
 })
 
 it('explains why the test cannot be run', async () => {
-  const wrapper = mountCard(createTestablePlugin({ loaded: false }))
+  mockTestJob({ canRun: false })
+  const wrapper = mountCard()
 
-  expect({
-    disabled: findTestButton(wrapper).props('disabled'),
-    tooltip: await findTestButtonTooltip(wrapper),
-  }).toEqual({
-    disabled: true,
-    tooltip: t('job:plugin-test:not-loaded'),
-  })
+  expect(findTestButton(wrapper).props('disabled')).toBe(true)
+  expect(await findTestButtonTooltip(wrapper)).toBe('Plugin not loaded')
 })
 
 it('has no tooltip when the test can be run', async () => {
@@ -138,16 +136,14 @@ it('has no tooltip when the test can be run', async () => {
   expect(await findTestButtonTooltip(wrapper)).toBe(false)
 })
 
-it('disables the form while the test is running', async () => {
+it('disables the form while the test is running', () => {
+  mockTestJob({ isRunning: true })
   const wrapper = mountCard(createTestablePlugin({ testSchema: TEST_SCHEMA }))
-
-  await findTestButton(wrapper).trigger('click')
 
   expect(wrapper.getComponent(JsonSchemaField).props('disabled')).toBe(true)
 })
 
 it('displays the success of the test', async () => {
-  vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ taskId: 'task-1' })))
   const wrapper = mountCard()
 
   await runTest(wrapper)
@@ -156,7 +152,7 @@ it('displays the success of the test', async () => {
 })
 
 it('displays the error of the test', async () => {
-  vi.mocked(fetch).mockRejectedValueOnce(new Error('SMTP connection refused'))
+  run.mockRejectedValue(new Error('SMTP connection refused'))
   const wrapper = mountCard()
 
   await runTest(wrapper)

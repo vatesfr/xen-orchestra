@@ -1,4 +1,6 @@
 import PluginConfiguration from '@/modules/plugin/components/detail/PluginConfiguration.vue'
+import type { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-configure.job.ts'
+import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
@@ -9,10 +11,43 @@ import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErro
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
 import { flushPromises, mount } from '@vue/test-utils'
+import { ref, toValue } from 'vue'
+
+const { useConfigureJob, useDeleteConfigurationJob, configure, deleteConfiguration } = vi.hoisted(() => ({
+  useConfigureJob: vi.fn(),
+  useDeleteConfigurationJob: vi.fn(),
+  configure: vi.fn(),
+  deleteConfiguration: vi.fn(),
+}))
+
+// The jobs save and delete the configuration through the REST API
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-configure.job.ts'), () => ({
+  useXoPluginConfigureJob: useConfigureJob as unknown as typeof useXoPluginConfigureJob,
+}))
+
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), () => ({
+  useXoPluginDeleteConfigurationJob: useDeleteConfigurationJob as unknown as typeof useXoPluginDeleteConfigurationJob,
+}))
 
 beforeEach(() => {
-  vi.mocked(fetch).mockReset()
+  useConfigureJob.mockReset()
+  useDeleteConfigurationJob.mockReset()
+  configure.mockReset()
+  deleteConfiguration.mockReset()
+
+  configure.mockResolvedValue(undefined)
+  deleteConfiguration.mockResolvedValue(undefined)
+  mockJob(useConfigureJob, configure)
+  mockJob(useDeleteConfigurationJob, deleteConfiguration)
 })
+
+function mockJob(
+  useJob: typeof useConfigureJob,
+  run: typeof configure,
+  { isRunning = false }: { isRunning?: boolean } = {}
+) {
+  useJob.mockReturnValue({ run, canRun: ref(true), isRunning: ref(isRunning), errorMessage: ref(undefined) })
+}
 
 const SCHEMA = {
   type: 'object',
@@ -72,8 +107,9 @@ async function save(wrapper: ReturnType<typeof mountCard>) {
   await flushPromises()
 }
 
-function findRequests() {
-  return vi.mocked(fetch).mock.calls.map(([url, init]) => ({ url, method: init?.method, body: init?.body }))
+// The configure job receives the configuration as a getter
+function findSentConfiguration() {
+  return toValue(useConfigureJob.mock.lastCall?.[1])
 }
 
 it('displays the saved configuration in a required form', () => {
@@ -119,13 +155,8 @@ describe('save', () => {
     await editConfiguration(wrapper, EDITED_CONFIGURATION)
     await save(wrapper)
 
-    expect(findRequests()).toEqual([
-      {
-        url: '/rest/v0/plugins/transport-email/configuration',
-        method: 'PUT',
-        body: JSON.stringify(EDITED_CONFIGURATION),
-      },
-    ])
+    expect(configure).toHaveBeenCalledOnce()
+    expect(findSentConfiguration()).toEqual(EDITED_CONFIGURATION)
   })
 
   it('cannot save the saved configuration again', () => {
@@ -134,17 +165,14 @@ describe('save', () => {
     expect(findButton(wrapper, t('action:save')).props('disabled')).toBe(true)
   })
 
-  it('disables the form while the configuration is saved', async () => {
+  it('disables the form while the configuration is saved', () => {
+    mockJob(useConfigureJob, configure, { isRunning: true })
     const wrapper = mountCard()
-
-    await editConfiguration(wrapper, EDITED_CONFIGURATION)
-    await save(wrapper)
 
     expect(wrapper.getComponent(JsonSchemaField).props('disabled')).toBe(true)
   })
 
   it('displays the success of the save', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 204 }))
     const wrapper = mountCard()
 
     await editConfiguration(wrapper, EDITED_CONFIGURATION)
@@ -154,7 +182,7 @@ describe('save', () => {
   })
 
   it('displays the error of the save', async () => {
-    vi.mocked(fetch).mockRejectedValueOnce(new Error('invalid configuration'))
+    configure.mockRejectedValue(new Error('invalid configuration'))
     const wrapper = mountCard()
 
     await editConfiguration(wrapper, EDITED_CONFIGURATION)
@@ -189,7 +217,7 @@ describe('missing fields', () => {
       t('form:error:field-required', { field: 'from › address' }),
       t('form:error:field-required', { field: 'transport › host' }),
     ])
-    expect(findRequests()).toEqual([])
+    expect(configure).not.toHaveBeenCalled()
   })
 
   it('focuses the first missing field', async () => {
@@ -239,11 +267,9 @@ describe('configuration deletion', () => {
     ])
   })
 
-  it('cannot delete the configuration while it is saved', async () => {
+  it('cannot delete the configuration while it is saved', () => {
+    mockJob(useConfigureJob, configure, { isRunning: true })
     const wrapper = mountCard()
-
-    await editConfiguration(wrapper, EDITED_CONFIGURATION)
-    await save(wrapper)
 
     expect(findButton(wrapper, t('action:delete')).props('disabled')).toBe(true)
   })

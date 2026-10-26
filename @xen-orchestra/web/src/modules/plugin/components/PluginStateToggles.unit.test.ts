@@ -1,18 +1,64 @@
 import PluginStateToggles from '@/modules/plugin/components/PluginStateToggles.vue'
+import type { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
+import type { useXoPluginLoadJob } from '@/modules/plugin/jobs/xo-plugin-load.job.ts'
+import type { useXoPluginUnloadJob } from '@/modules/plugin/jobs/xo-plugin-unload.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount } from '@vue/test-utils'
+import { ref, toValue } from 'vue'
 
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({ useGetTaskById: vi.fn() })) as unknown as typeof useXoTaskCollection,
+const { useLoadJob, useUnloadJob, useAutoloadJob, load, unload, updateAutoload } = vi.hoisted(() => ({
+  useLoadJob: vi.fn(),
+  useUnloadJob: vi.fn(),
+  useAutoloadJob: vi.fn(),
+  load: vi.fn(),
+  unload: vi.fn(),
+  updateAutoload: vi.fn(),
+}))
+
+// The jobs load, unload and patch the plugin through the REST API
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-load.job.ts'), () => ({
+  useXoPluginLoadJob: useLoadJob as unknown as typeof useXoPluginLoadJob,
+}))
+
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-unload.job.ts'), () => ({
+  useXoPluginUnloadJob: useUnloadJob as unknown as typeof useXoPluginUnloadJob,
+}))
+
+vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
+  useXoPluginAutoloadJob: useAutoloadJob as unknown as typeof useXoPluginAutoloadJob,
 }))
 
 beforeEach(() => {
-  vi.mocked(fetch).mockReset()
+  useLoadJob.mockReset()
+  useUnloadJob.mockReset()
+  useAutoloadJob.mockReset()
+  load.mockReset()
+  unload.mockReset()
+  updateAutoload.mockReset()
+
+  load.mockResolvedValue(undefined)
+  unload.mockResolvedValue(undefined)
+  updateAutoload.mockResolvedValue(undefined)
+  mockJob(useLoadJob, load)
+  mockJob(useUnloadJob, unload)
+  mockJob(useAutoloadJob, updateAutoload)
 })
+
+function mockJob(
+  useJob: typeof useLoadJob,
+  run: typeof load,
+  { canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}
+) {
+  useJob.mockReturnValue({
+    run,
+    canRun: ref(canRun),
+    isRunning: ref(isRunning),
+    errorMessage: ref(canRun ? undefined : 'Plugin action in progress…'),
+  })
+}
 
 function mountToggles(plugin: FrontXoPlugin = createPlugin()) {
   return mount(PluginStateToggles, { props: { plugin }, global: createGlobalTestConfig() })
@@ -38,10 +84,6 @@ async function changeToggle(wrapper: ReturnType<typeof mountToggles>, label: str
   await toggle.get('input').setValue(checked)
 }
 
-function findRequests() {
-  return vi.mocked(fetch).mock.calls.map(([url, init]) => ({ url, method: init?.method, body: init?.body }))
-}
-
 it('reflects whether the plugin is loaded and loaded at startup', () => {
   const wrapper = mountToggles(createPlugin({ loaded: true, autoload: false }))
 
@@ -51,8 +93,9 @@ it('reflects whether the plugin is loaded and loaded at startup', () => {
   })
 })
 
-it('disables the loaded toggle of a plugin which cannot be unloaded', () => {
-  const wrapper = mountToggles(createPlugin({ loaded: true, unloadable: false }))
+it('disables the loaded toggle when the plugin cannot be unloaded', () => {
+  mockJob(useUnloadJob, unload, { canRun: false })
+  const wrapper = mountToggles(createPlugin({ loaded: true }))
 
   expect(findToggles(wrapper)).toEqual({
     [t('loaded')]: { checked: true, disabled: true },
@@ -60,58 +103,49 @@ it('disables the loaded toggle of a plugin which cannot be unloaded', () => {
   })
 })
 
-it('disables the loaded toggle of a plugin which must be configured before being loaded', () => {
-  const wrapper = mountToggles(createPlugin({ loaded: false, configured: false }))
-
-  expect(findToggles(wrapper)[t('loaded')]).toEqual({ checked: false, disabled: true })
-})
-
 it('unloads a loaded plugin when the loaded toggle is turned off', async () => {
-  const wrapper = mountToggles(createPlugin({ id: 'auth-ldap' as FrontXoPlugin['id'], loaded: true }))
-
-  await changeToggle(wrapper, t('loaded'), false)
-
-  expect(findRequests()).toEqual([
-    { url: '/rest/v0/plugins/auth-ldap/actions/unload', method: 'POST', body: undefined },
-  ])
-})
-
-it('loads an unloaded plugin when the loaded toggle is turned on', async () => {
-  const wrapper = mountToggles(createPlugin({ id: 'auth-ldap' as FrontXoPlugin['id'], loaded: false }))
-
-  await changeToggle(wrapper, t('loaded'), true)
-
-  expect(findRequests()).toEqual([{ url: '/rest/v0/plugins/auth-ldap/actions/load', method: 'POST', body: undefined }])
-})
-
-it('turns off the autoload when the autoload toggle is turned off', async () => {
-  const wrapper = mountToggles(createPlugin({ id: 'auth-ldap' as FrontXoPlugin['id'], autoload: true }))
-
-  await changeToggle(wrapper, t('load-at-startup'), false)
-
-  expect(findRequests()).toEqual([
-    { url: '/rest/v0/plugins/auth-ldap', method: 'PATCH', body: JSON.stringify({ autoload: false }) },
-  ])
-})
-
-it('disables both toggles while the plugin is being loaded or unloaded', async () => {
   const wrapper = mountToggles(createPlugin({ loaded: true }))
 
   await changeToggle(wrapper, t('loaded'), false)
+
+  expect(unload).toHaveBeenCalledOnce()
+  expect(load).not.toHaveBeenCalled()
+})
+
+it('loads an unloaded plugin when the loaded toggle is turned on', async () => {
+  const wrapper = mountToggles(createPlugin({ loaded: false }))
+
+  await changeToggle(wrapper, t('loaded'), true)
+
+  expect(load).toHaveBeenCalledOnce()
+  expect(unload).not.toHaveBeenCalled()
+})
+
+it('turns off the autoload when the autoload toggle is turned off', async () => {
+  const wrapper = mountToggles(createPlugin({ autoload: true }))
+
+  await changeToggle(wrapper, t('load-at-startup'), false)
+
+  expect(updateAutoload).toHaveBeenCalledOnce()
+  expect(toValue(useAutoloadJob.mock.lastCall?.[1])).toBe(false)
+})
+
+it('disables both toggles while the plugin is being loaded or unloaded', () => {
+  mockJob(useUnloadJob, unload, { isRunning: true })
+  const wrapper = mountToggles(createPlugin({ loaded: true }))
 
   expect(Object.values(findToggles(wrapper)).map(toggle => toggle.disabled)).toEqual([true, true])
 })
 
-it('disables both toggles while the autoload is being updated', async () => {
+it('disables both toggles while the autoload is being updated', () => {
+  mockJob(useAutoloadJob, updateAutoload, { isRunning: true })
   const wrapper = mountToggles(createPlugin({ loaded: true }))
-
-  await changeToggle(wrapper, t('load-at-startup'), false)
 
   expect(Object.values(findToggles(wrapper)).map(toggle => toggle.disabled)).toEqual([true, true])
 })
 
 it('displays the error of the last action', async () => {
-  vi.mocked(fetch).mockRejectedValueOnce(new Error('plugin not configured'))
+  updateAutoload.mockRejectedValue(new Error('plugin not configured'))
   const wrapper = mountToggles(createPlugin({ autoload: true }))
 
   await changeToggle(wrapper, t('load-at-startup'), false)

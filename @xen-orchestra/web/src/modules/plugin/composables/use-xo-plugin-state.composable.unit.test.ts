@@ -7,11 +7,13 @@ import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref, toValue } from 'vue'
 
-const { jobs, useLoadJob, useUnloadJob, useAutoloadJob } = vi.hoisted(() => ({
-  jobs: {} as Record<'load' | 'unload' | 'autoload', ReturnType<typeof createJob>>,
+const { useLoadJob, useUnloadJob, useAutoloadJob, load, unload, updateAutoload } = vi.hoisted(() => ({
   useLoadJob: vi.fn(),
   useUnloadJob: vi.fn(),
   useAutoloadJob: vi.fn(),
+  load: vi.fn(),
+  unload: vi.fn(),
+  updateAutoload: vi.fn(),
 }))
 
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-load.job.ts'), () => ({
@@ -26,23 +28,33 @@ vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
   useXoPluginAutoloadJob: useAutoloadJob as unknown as typeof useXoPluginAutoloadJob,
 }))
 
-function createJob() {
-  return {
-    run: vi.fn().mockResolvedValue(undefined),
-    canRun: ref(true),
-    isRunning: ref(false),
-    errorMessage: ref<string>(),
-  }
-}
-
 beforeEach(() => {
-  jobs.load = createJob()
-  jobs.unload = createJob()
-  jobs.autoload = createJob()
-  useLoadJob.mockReset().mockReturnValue(jobs.load)
-  useUnloadJob.mockReset().mockReturnValue(jobs.unload)
-  useAutoloadJob.mockReset().mockReturnValue(jobs.autoload)
+  useLoadJob.mockReset()
+  useUnloadJob.mockReset()
+  useAutoloadJob.mockReset()
+  load.mockReset()
+  unload.mockReset()
+  updateAutoload.mockReset()
+
+  load.mockResolvedValue(undefined)
+  unload.mockResolvedValue(undefined)
+  updateAutoload.mockResolvedValue(undefined)
+  mockJob(useLoadJob, load)
+  mockJob(useUnloadJob, unload)
+  mockJob(useAutoloadJob, updateAutoload)
 })
+
+function mockJob(
+  useJob: typeof useLoadJob,
+  run: typeof load,
+  {
+    canRun = true,
+    isRunning = false,
+    errorMessage = canRun ? undefined : 'Plugin action in progress…',
+  }: { canRun?: boolean; isRunning?: boolean; errorMessage?: string } = {}
+) {
+  useJob.mockReturnValue({ run, canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) })
+}
 
 function mountState(plugin: FrontXoPlugin) {
   return mountComposable(() => useXoPluginState(plugin)).wrapper.vm
@@ -62,7 +74,7 @@ describe('toggleLoaded', () => {
   it('unloads a loaded plugin', async () => {
     await mountState(createPlugin({ loaded: true })).toggleLoaded()
 
-    expect({ unload: jobs.unload.run.mock.calls.length, load: jobs.load.run.mock.calls.length }).toEqual({
+    expect({ unload: unload.mock.calls.length, load: load.mock.calls.length }).toEqual({
       unload: 1,
       load: 0,
     })
@@ -71,7 +83,7 @@ describe('toggleLoaded', () => {
   it('loads an unloaded plugin', async () => {
     await mountState(createPlugin({ loaded: false })).toggleLoaded()
 
-    expect({ unload: jobs.unload.run.mock.calls.length, load: jobs.load.run.mock.calls.length }).toEqual({
+    expect({ unload: unload.mock.calls.length, load: load.mock.calls.length }).toEqual({
       unload: 0,
       load: 1,
     })
@@ -80,19 +92,19 @@ describe('toggleLoaded', () => {
 
 describe('canToggleLoaded', () => {
   it('follows the unload job for a loaded plugin', () => {
-    jobs.unload.canRun.value = false
+    mockJob(useUnloadJob, unload, { canRun: false })
 
     expect(mountState(createPlugin({ loaded: true })).canToggleLoaded).toBe(false)
   })
 
   it('follows the load job for an unloaded plugin', () => {
-    jobs.load.canRun.value = false
+    mockJob(useLoadJob, load, { canRun: false })
 
     expect(mountState(createPlugin({ loaded: false })).canToggleLoaded).toBe(false)
   })
 
   it('is false while the autoload is being updated', () => {
-    jobs.autoload.isRunning.value = true
+    mockJob(useAutoloadJob, updateAutoload, { isRunning: true })
 
     expect(mountState(createPlugin({ loaded: false })).canToggleLoaded).toBe(false)
   })
@@ -100,15 +112,15 @@ describe('canToggleLoaded', () => {
 
 describe('toggleLoadedErrorMessage', () => {
   it('is the error of the unload job for a loaded plugin', () => {
-    jobs.load.errorMessage.value = 'load error'
-    jobs.unload.errorMessage.value = 'unload error'
+    mockJob(useLoadJob, load, { errorMessage: 'load error' })
+    mockJob(useUnloadJob, unload, { errorMessage: 'unload error' })
 
     expect(mountState(createPlugin({ loaded: true })).toggleLoadedErrorMessage).toBe('unload error')
   })
 
   it('is the error of the load job for an unloaded plugin', () => {
-    jobs.load.errorMessage.value = 'load error'
-    jobs.unload.errorMessage.value = 'unload error'
+    mockJob(useLoadJob, load, { errorMessage: 'load error' })
+    mockJob(useUnloadJob, unload, { errorMessage: 'unload error' })
 
     expect(mountState(createPlugin({ loaded: false })).toggleLoadedErrorMessage).toBe('load error')
   })
@@ -120,13 +132,13 @@ describe('isTogglingLoaded', () => {
   })
 
   it('is true while the plugin is being loaded', () => {
-    jobs.load.isRunning.value = true
+    mockJob(useLoadJob, load, { isRunning: true })
 
     expect(mountState(createPlugin({ loaded: false })).isTogglingLoaded).toBe(true)
   })
 
   it('is true while the plugin is being unloaded', () => {
-    jobs.unload.isRunning.value = true
+    mockJob(useUnloadJob, unload, { isRunning: true })
 
     expect(mountState(createPlugin()).isTogglingLoaded).toBe(true)
   })
@@ -138,7 +150,7 @@ describe('toggleAutoload', () => {
 
     await state.toggleAutoload()
 
-    expect({ autoload: toValue(useAutoloadJob.mock.calls[0][1]), runs: jobs.autoload.run.mock.calls.length }).toEqual({
+    expect({ autoload: toValue(useAutoloadJob.mock.calls[0][1]), runs: updateAutoload.mock.calls.length }).toEqual({
       autoload: false,
       runs: 1,
     })
@@ -151,13 +163,13 @@ describe('canToggleAutoload', () => {
   })
 
   it('is false when the autoload job cannot run', () => {
-    jobs.autoload.canRun.value = false
+    mockJob(useAutoloadJob, updateAutoload, { canRun: false })
 
     expect(mountState(createPlugin()).canToggleAutoload).toBe(false)
   })
 
   it('is false while the plugin is being loaded or unloaded', () => {
-    jobs.load.isRunning.value = true
+    mockJob(useLoadJob, load, { isRunning: true })
 
     expect(mountState(createPlugin()).canToggleAutoload).toBe(false)
   })
@@ -166,7 +178,7 @@ describe('canToggleAutoload', () => {
 describe('error', () => {
   it('keeps the error of a failed toggle', async () => {
     const error = new Error('plugin load failed')
-    jobs.load.run.mockRejectedValue(error)
+    load.mockRejectedValue(error)
     const state = mountState(createPlugin({ loaded: false }))
 
     await state.toggleLoaded()
@@ -175,7 +187,7 @@ describe('error', () => {
   })
 
   it('is cleared by a successful toggle', async () => {
-    jobs.autoload.run.mockRejectedValueOnce(new Error('request failed'))
+    updateAutoload.mockRejectedValueOnce(new Error('request failed'))
     const state = mountState(createPlugin())
 
     await state.toggleAutoload()

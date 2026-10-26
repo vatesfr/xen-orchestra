@@ -35,7 +35,7 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-// the SRs never load, to test a field waiting for its options
+// The SRs never load, to test a field waiting for its options
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     srs: ref([]),
@@ -76,7 +76,7 @@ function findLabels(wrapper: VueWrapper) {
   return wrapper.findAll('label').map(label => label.text())
 }
 
-// an input wrapper learns that its input is required once the input is mounted
+// An input wrapper learns that its input is required once the input is mounted
 async function findRequiredLabels(wrapper: VueWrapper) {
   await nextTick()
 
