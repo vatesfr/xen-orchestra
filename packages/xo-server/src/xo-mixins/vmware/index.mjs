@@ -254,9 +254,11 @@ export default class MigrateVm {
     }
   ) {
     const app = this._app
-    const { value: esxi, dispose } = await this.#connectToEsxi(host, user, password, sslVerify)
-    // every transfer is awaited below, nothing is left reading from the host when this returns
-    $defer(dispose)
+    const esxiDisposable = await this.#connectToEsxi(host, user, password, sslVerify)
+    const esxi = esxiDisposable.value
+    // every transfer is awaited below, nothing is left reading from the host when this returns.
+    // `dispose` reads `this`: it cannot be detached from its disposable
+    $defer(() => esxiDisposable.dispose())
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
@@ -398,7 +400,8 @@ export default class MigrateVm {
   }
 
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
-    const { value: esxi, dispose } = await this.#connectToEsxi(host, user, password, false)
+    const esxiDisposable = await this.#connectToEsxi(host, user, password, false)
+    const esxi = esxiDisposable.value
     const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
@@ -448,7 +451,8 @@ export default class MigrateVm {
         warn('error while reading the disk from esxi', { diskId, error, vmId })
         stream.destroy(error)
       })
-      .finally(dispose)
+      // `dispose` reads `this`: it cannot be detached from its disposable
+      .finally(() => esxiDisposable.dispose())
     return stream
   }
 
