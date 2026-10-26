@@ -9,7 +9,7 @@
       variant="secondary"
       accent="danger"
       size="medium"
-      left-icon="fa:trash"
+      left-icon="action:delete"
       :disabled="!canDelete"
       :busy="isDeleting"
       @click="emit('delete')"

@@ -1,5 +1,5 @@
 <template>
-  <UiButtonIcon v-tooltip="t('action:delete')" icon="fa:trash" accent="danger" size="small" :disabled />
+  <UiButtonIcon v-tooltip="t('action:delete')" icon="action:delete" accent="danger" size="small" :disabled />
 </template>
 
 <script lang="ts" setup>
