@@ -54,3 +54,12 @@ describe('V2vService#getInventory', function () {
     await assert.rejects(service.getInventory({ ...connection, host: 'vc' }), networkError)
   })
 })
+
+describe('V2vService#getStatus', function () {
+  it('reports the dependency check of xo-server as is', async function () {
+    const status = { vectura: { status: 'error', error: 'vectura is not runnable: ENOENT' } } as const
+    const service = new V2vService({ xoApp: { checkEsxiDependencies: async () => status } } as unknown as RestApi)
+
+    assert.deepEqual(await service.getStatus(), status)
+  })
+})

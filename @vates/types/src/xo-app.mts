@@ -27,6 +27,7 @@ import type {
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
+import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -309,6 +310,8 @@ export type XoApp = EventEmitter & {
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* whether this machine can run the tools of an import from VMware */
+  checkEsxiDependencies(): Promise<XoV2vStatus>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   connectToEsxiAndList(params: EsxiConnectionParams): Promise<EsxiVmMetadata[]>

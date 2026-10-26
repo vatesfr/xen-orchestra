@@ -1,4 +1,4 @@
-import type { XoV2vInventory } from '@vates/types'
+import type { XoV2vInventory, XoV2vStatus } from '@vates/types'
 
 /** only VMware in v1, other platforms will follow */
 export type V2vPlatform = 'vmware'
@@ -25,6 +25,9 @@ export type V2vInventoryBody = {
   platform: V2vPlatform
   connection: V2vConnection
 }
+
+/** the prerequisites of a migration on this XO: an error carries the reason to show */
+export type V2vStatus = XoV2vStatus
 
 /** the inventory of the source, as the migration wizard shows it */
 export type V2vInventory = XoV2vInventory
