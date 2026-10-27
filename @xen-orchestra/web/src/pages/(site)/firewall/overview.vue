@@ -133,7 +133,7 @@
       <VtsColumn>
         <UiCard class="stat-card">
           <UiCardTitle>
-            {{ t('firewall:overview:protection') }}
+            {{ t('firewall:global:protection') }}
             <template #description>{{ t('firewall:global:protection:description') }}</template>
           </UiCardTitle>
           <VtsStateHero v-if="runningVms.length === 0" format="card" type="no-data" size="extra-small" horizontal>
@@ -181,6 +181,7 @@
             <VtsHeaderCell>{{ t('firewall:global:sync') }}</VtsHeaderCell>
             <VtsHeaderCell>{{ t('firewall:stat:hosts') }}</VtsHeaderCell>
             <VtsHeaderCell>{{ t('firewall:global:last-sync') }}</VtsHeaderCell>
+            <VtsHeaderCell>{{ t('firewall:global:attention') }}</VtsHeaderCell>
             <VtsHeaderCell>
               <span class="visually-hidden">{{ t('firewall:global:open-pool') }}</span>
             </VtsHeaderCell>
@@ -278,6 +279,30 @@
               >
                 {{ t('firewall:global:last-sync:none') }}
               </span>
+            </UiTableCell>
+            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent -->
+            <UiTableCell class="typo-body-regular-small">
+              <span v-if="row.exposed + row.hostsWithoutAgent > 0" class="attention-tags">
+                <RouterLink
+                  v-if="row.exposed > 0"
+                  :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                  class="tag-link"
+                >
+                  <UiTag accent="danger" variant="secondary">
+                    {{ t('firewall:global:attention:exposed', { n: row.exposed }, row.exposed) }}
+                  </UiTag>
+                </RouterLink>
+                <RouterLink
+                  v-if="row.hostsWithoutAgent > 0"
+                  :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                  class="tag-link"
+                >
+                  <UiTag accent="warning" variant="secondary">
+                    {{ t('firewall:global:attention:hosts', { n: row.hostsWithoutAgent }, row.hostsWithoutAgent) }}
+                  </UiTag>
+                </RouterLink>
+              </span>
+              <span v-else-if="row.pool.inScope" class="secondary">{{ t('firewall:global:attention:none') }}</span>
             </UiTableCell>
             <UiTableCell>
               <UiButton
@@ -575,6 +600,12 @@ const poolRows = computed(() =>
         hosts: { n: poolHosts.filter(({ state }) => state === 'up-to-date').length, total: poolHosts.length },
         // agents older than outbound rules (vdf#53): the global ones are ignored there
         ignoringEgress: poolHosts.filter(({ status }) => ignoresEgress(status, publishedDocument.value)).length,
+        // what needs attention there: VMs the global policies protect on a
+        // host without a working agent, and those hosts
+        exposed: runningVms.value.filter(
+          vm => vm.$pool === pool.id && protectedVms.value.includes(vm) && !hostEnforces(hostOf(vm)?.state)
+        ).length,
+        hostsWithoutAgent: poolHosts.filter(({ state }) => !hostEnforces(state)).length,
       }
     })
 )
@@ -847,6 +878,16 @@ const memberGroups = computed(() =>
 
   .sync,
   .hosts,
+  .attention-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag-link {
+    text-decoration: none;
+  }
+
   .last-sync {
     display: inline-flex;
     flex-wrap: wrap;

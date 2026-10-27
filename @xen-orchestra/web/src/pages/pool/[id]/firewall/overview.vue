@@ -87,7 +87,7 @@
       </VtsColumns>
 
       <UiCard v-if="hasStatus" class="status-strip">
-        <div v-if="globalInfo?.inScope" class="status-item">
+        <div v-if="globalInfo?.inScope" class="status-item severity-info">
           <UiInfo accent="info" wrap>{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
           <UiTag v-if="globalSyncState" v-tooltip="globalSyncTooltip" :accent="globalSyncAccent" variant="secondary">
             {{ globalSyncLabel }}
@@ -96,7 +96,7 @@
             {{ t('firewall:global:open') }}
           </UiLink>
         </div>
-        <div v-if="monitoredPolicyCount > 0" class="status-item">
+        <div v-if="monitoredPolicyCount > 0" class="status-item severity-info">
           <UiInfo accent="info" wrap>
             {{ t('firewall:overview:monitored-policies', { n: monitoredPolicyCount }) }}
           </UiInfo>
@@ -104,7 +104,7 @@
             {{ t('firewall:monitor:open') }}
           </UiLink>
         </div>
-        <div v-if="exposedVms.length > 0" class="status-item">
+        <div v-if="exposedVms.length > 0" class="status-item severity-danger">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:exposed:info', { n: exposedVms.length }) }}</UiInfo>
           <UiLink
             v-for="vm of exposedVms"
@@ -116,7 +116,7 @@
             {{ t('firewall:overview:exposed:vm', { vm: vm.name_label, host: hostOf(vm)?.host.name_label ?? '?' }) }}
           </UiLink>
         </div>
-        <div v-if="shadowedVms.length > 0" class="status-item">
+        <div v-if="shadowedVms.length > 0" class="status-item severity-danger">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:shadowed', { n: shadowedVms.length }) }}</UiInfo>
           <UiLink
             v-for="shadow of shadowedVms"
@@ -128,7 +128,7 @@
             {{ shadow.vmName }}
           </UiLink>
         </div>
-        <div v-if="enforcedQuarantines.length > 0" class="status-item">
+        <div v-if="enforcedQuarantines.length > 0" class="status-item severity-danger">
           <UiInfo accent="danger" wrap>
             {{ t('firewall:overview:quarantined', { n: enforcedQuarantines.length }) }}
           </UiInfo>
@@ -141,7 +141,7 @@
             {{ vm.name_label }}
           </UiLink>
         </div>
-        <div v-if="staleCount > 0" class="status-item">
+        <div v-if="staleCount > 0" class="status-item severity-danger">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:stale-locks', { n: staleCount }) }}</UiInfo>
           <UiLink
             v-for="issue of stale"
@@ -161,7 +161,7 @@
             {{ t('firewall:more', { n: staleCount - stale.length }) }}
           </span>
         </div>
-        <div v-if="unlockedCount > 0" class="status-item">
+        <div v-if="unlockedCount > 0" class="status-item severity-warning">
           <UiInfo accent="warning" wrap>{{ t('firewall:overview:unlocked', { n: unlockedCount }) }}</UiInfo>
           <UiLink
             v-for="issue of unlocked"
@@ -176,7 +176,7 @@
           </span>
           <span class="secondary typo-body-regular-small">{{ t('firewall:overview:unlocked:hint') }}</span>
         </div>
-        <div v-if="vdfUnenforced.length > 0" class="status-item">
+        <div v-if="vdfUnenforced.length > 0" class="status-item severity-warning">
           <UiInfo accent="warning" wrap>
             {{ t('firewall:overview:vdf-unenforced', { n: vdfUnenforced.length }) }}
           </UiInfo>
@@ -189,7 +189,7 @@
             {{ issueLabel(issue) }}
           </UiLink>
         </div>
-        <div v-if="prefixed.length > 0" class="status-item">
+        <div v-if="prefixed.length > 0" class="status-item severity-warning">
           <UiInfo accent="warning" wrap>{{ t('firewall:overview:prefix-locks', { n: prefixed.length }) }}</UiInfo>
           <UiLink
             v-for="issue of prefixed"
@@ -202,6 +202,33 @@
         </div>
       </UiCard>
     </template>
+
+    <!-- which running VMs no policy protects, not only how many -->
+    <UiCard v-if="publishedDocument.policies.length > 0 && unprotectedVms.length > 0" class="unprotected">
+      <UiTitle>{{ t('firewall:overview:not-protected:list', { n: unprotectedVms.length }) }}</UiTitle>
+      <div class="vm-links">
+        <UiLink
+          v-for="vm of shownUnprotected"
+          :key="vm.id"
+          :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }"
+          size="small"
+          icon="object:vm"
+        >
+          {{ vm.name_label }}
+        </UiLink>
+      </div>
+      <UiButton
+        v-if="unprotectedVms.length > UNPROTECTED_SHOWN"
+        variant="tertiary"
+        accent="brand"
+        size="small"
+        @click="showAllUnprotected = !showAllUnprotected"
+      >
+        {{
+          showAllUnprotected ? t('action:show-less') : t('firewall:membership:show-all', { n: unprotectedVms.length })
+        }}
+      </UiButton>
+    </UiCard>
 
     <VdfOverviewOnboarding v-if="publishedDocument.policies.length === 0" :pool-id="pool.id" />
 
@@ -236,6 +263,10 @@
                 <UiLink :to="row.route" size="small" :icon="row.isGlobal ? 'fa:globe' : undefined">
                   {{ displayName(row.policy.name) }}
                 </UiLink>
+                <!-- a monitored policy blocks nothing: as on the Policies board -->
+                <UiTag v-if="isMonitored(row.policy)" accent="info" variant="primary">
+                  {{ t('firewall:mode:monitor') }}
+                </UiTag>
                 <UiTag
                   v-if="row.untrusted.length > 0"
                   v-tooltip="t('firewall:untrusted:info', { vms: formatList(row.untrusted) })"
@@ -366,6 +397,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -378,7 +410,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
@@ -457,6 +489,21 @@ const protectionTitle = computed(() =>
 // only policies in monitor mode apply: not protected yet, observed (vdf#13)
 const runningMonitoredCount = computed(
   () => monitoredVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING).length
+)
+
+// running VMs no policy applies to (not even in monitor mode), by name
+const unprotectedVms = computed(() =>
+  runningVms.value
+    .filter(vm => !protectedVms.value.includes(vm) && !monitoredVms.value.includes(vm))
+    .sort((vmA, vmB) => vmA.name_label.localeCompare(vmB.name_label))
+)
+
+const UNPROTECTED_SHOWN = 5
+
+const showAllUnprotected = ref(false)
+
+const shownUnprotected = computed(() =>
+  showAllUnprotected.value ? unprotectedVms.value : unprotectedVms.value.slice(0, UNPROTECTED_SHOWN)
 )
 
 const monitoredPolicyCount = computed(() => publishedDocument.value.policies.filter(isMonitored).length)
@@ -735,10 +782,34 @@ const hasStatus = computed(
     padding-block: 1.6rem;
   }
 
+  /* dangers first, then warnings, then information */
+  .status-strip {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .severity-danger {
+    order: 0;
+  }
+
+  .severity-warning {
+    order: 1;
+  }
+
+  .severity-info {
+    order: 2;
+  }
+
   .status-item {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    gap: 0.4rem 1.6rem;
+  }
+
+  .vm-links {
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem 1.6rem;
   }
 
