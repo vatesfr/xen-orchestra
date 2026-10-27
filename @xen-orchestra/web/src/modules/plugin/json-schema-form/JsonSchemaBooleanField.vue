@@ -1,6 +1,6 @@
 <template>
   <div class="json-schema-boolean-field">
-    <UiToggle v-model="checked">{{ label }}</UiToggle>
+    <UiCheckbox v-model="checked" accent="brand">{{ label }}</UiCheckbox>
     <UiInfo v-if="description.text !== undefined" accent="info" wrap>
       <JsonSchemaText :text="description.text" />
     </UiInfo>
@@ -10,8 +10,8 @@
 <script lang="ts" setup>
 import type { JsonSchemaFieldComponentProps } from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { computed } from 'vue'
 
 const { schema } = defineProps<JsonSchemaFieldComponentProps>()

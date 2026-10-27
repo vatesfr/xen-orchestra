@@ -12,6 +12,7 @@ import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
@@ -457,6 +458,13 @@ describe('object field', () => {
     expect(wrapper.get('.optional').text()).toBe(t('optional'))
   })
 
+  it('labels an optional object by the checkbox which uses it', () => {
+    const wrapper = mountField({ schema })
+    const labelId = wrapper.get('[role="group"]').attributes('aria-labelledby')
+
+    expect(wrapper.findComponent(UiCheckbox).get(`#${labelId}`).text()).toBe('Field')
+  })
+
   it('displays an optional object which is already filled', () => {
     const wrapper = mountField({ schema, modelValue: { host: 'example.org' } })
 
@@ -550,7 +558,7 @@ describe('boolean field', () => {
   it('displays the label and the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'boolean', description: 'Check the certificate' }, label: 'TLS' })
 
-    expect(wrapper.get('label').text()).toBe('TLS')
+    expect(wrapper.findComponent(UiCheckbox).text()).toBe('TLS')
     expect(wrapper.get('.ui-info').text()).toBe('Check the certificate')
   })
 })

@@ -8,9 +8,9 @@
   >
     <div v-if="hasHeader" class="header">
       <div class="title">
-        <UiToggle v-if="!required" :id="labelId" v-model="isUsed">
+        <UiCheckbox v-if="!required" v-model="isUsed" accent="brand" :wrapper-attrs="{ id: labelId }">
           {{ label }}
-        </UiToggle>
+        </UiCheckbox>
         <UiLabel v-else-if="isSection" :id="labelId" accent="neutral">{{ label }}</UiLabel>
         <span v-if="!required" class="optional typo-body-regular-small">{{ t('optional') }}</span>
         <UiCounter
@@ -40,10 +40,10 @@ import type { JsonSchemaPath } from '@/modules/plugin/json-schema-form/json-sche
 import JsonSchemaText from '@/modules/plugin/json-schema-form/JsonSchemaText.vue'
 import { useJsonSchemaFieldValidation } from '@/modules/plugin/json-schema-form/use-json-schema-field-validation.composable.ts'
 import { useOptionalValue } from '@/modules/plugin/json-schema-form/use-optional-value.composable.ts'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
