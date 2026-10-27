@@ -17,10 +17,10 @@
       <div v-else class="form">
         <div class="section">
           <UiTitle>{{ t('storage-repositories') }}</UiTitle>
-          <UiAlert v-if="hasNothingToMigrate" :accent="showMappingErrors ? 'danger' : 'warning'">
+          <UiAlert v-if="hasNothingToMigrate" accent="warning">
             {{ t('vm-not-running-no-disk-nothing-to-migrate') }}
           </UiAlert>
-          <UiAlert v-else-if="isMissingDiskMigration" :accent="showMappingErrors ? 'danger' : 'warning'">
+          <UiAlert v-else-if="isMissingDiskMigration" accent="warning">
             {{ t('vm-not-running-intra-pool-requires-sr-change') }}
           </UiAlert>
           <UiAlert v-else-if="areAllSrsShared && !isDiskMigrationRequired" accent="info">

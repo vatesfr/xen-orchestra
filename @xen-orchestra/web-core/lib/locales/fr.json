@@ -724,7 +724,6 @@
   "job:vm-migrate:in-progress": "Migration en cours…",
   "job:vm-migrate:missing-host": "L'hôte de destination est requis",
   "job:vm-migrate:missing-vm": "Aucune VM à migrer",
-  "job:vm-migrate:not-running-requires-disk-migration": "Dans son pool, une VM non démarrée ne peut être migrée que si au moins un disque change de SR",
   "job:vm-migrate:paused": "La VM ne doit pas être en pause",
   "job:vm-not-running": "La VM doit être en cours d'exécution",
   "job:vm-pause:bad-power-state": "La VM doit être allumée",

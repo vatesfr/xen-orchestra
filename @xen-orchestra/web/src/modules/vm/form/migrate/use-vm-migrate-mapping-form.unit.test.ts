@@ -357,14 +357,14 @@ describe('intra-pool migration', () => {
     expect(form.isValid).toBe(true)
   })
 
-  it('is invalid for a halted VM while no disk changes SR', () => {
+  it('stays valid for a halted VM while no disk changes SR', () => {
     const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
     expect(form.isMissingDiskMigration).toBe(true)
     expect(form.hasNothingToMigrate).toBe(false)
-    expect(form.isValid).toBe(false)
-    expect(form.buildPayload()).toBeUndefined()
+    expect(form.isValid).toBe(true)
+    expect(form.buildPayload()).toEqual({})
   })
 
   it('has nothing to migrate for a halted VM without disk', () => {
@@ -374,17 +374,17 @@ describe('intra-pool migration', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
     expect(form.hasNothingToMigrate).toBe(true)
-    expect(form.isValid).toBe(false)
-    expect(form.buildPayload()).toBeUndefined()
+    expect(form.isValid).toBe(true)
+    expect(form.buildPayload()).toEqual({})
   })
 
-  it('is invalid for a suspended VM while no disk changes SR', () => {
+  it('stays valid for a suspended VM while no disk changes SR', () => {
     const vm = createVm({ $pool: POOL_A, $container: HOST_A1, power_state: VM_POWER_STATE.SUSPENDED })
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
     expect(form.isMissingDiskMigration).toBe(true)
-    expect(form.isValid).toBe(false)
-    expect(form.buildPayload()).toBeUndefined()
+    expect(form.isValid).toBe(true)
+    expect(form.buildPayload()).toEqual({})
   })
 
   it('is valid for a halted VM once a disk changes SR', () => {

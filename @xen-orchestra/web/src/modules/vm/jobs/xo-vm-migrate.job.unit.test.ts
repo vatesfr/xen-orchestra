@@ -108,11 +108,11 @@ describe('validate', () => {
     expect(job.errorMessage).toBeUndefined()
   })
 
-  it('cannot run for a halted VM migrated within its pool without any disk changing SR', () => {
+  it('can run for a halted VM migrated within its pool without any disk changing SR', () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }))
 
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:not-running-requires-disk-migration'))
+    expect(job.canRun).toBe(true)
+    expect(job.errorMessage).toBeUndefined()
   })
 
   it('can run for a suspended VM migrated to another pool', () => {
@@ -133,11 +133,11 @@ describe('validate', () => {
     expect(job.errorMessage).toBeUndefined()
   })
 
-  it('cannot run for a suspended VM migrated within its pool without any disk changing SR', () => {
+  it('can run for a suspended VM migrated within its pool without any disk changing SR', () => {
     const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }))
 
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:not-running-requires-disk-migration'))
+    expect(job.canRun).toBe(true)
+    expect(job.errorMessage).toBeUndefined()
   })
 
   it('can run for a running VM migrated within its pool without any disk changing SR', () => {

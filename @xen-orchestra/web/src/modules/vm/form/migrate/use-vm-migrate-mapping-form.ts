@@ -257,7 +257,7 @@ export function useVmMigrateMappingForm(
 
   const hasMissingNetwork = computed(() => missingNetworkRows.value.length > 0)
 
-  const isValid = computed(() => !hasMissingSr.value && !hasMissingNetwork.value && !isMissingDiskMigration.value)
+  const isValid = computed(() => !hasMissingSr.value && !hasMissingNetwork.value)
 
   function buildPayload(): VmMigrateMappingPayload | undefined {
     if (!isValid.value) {

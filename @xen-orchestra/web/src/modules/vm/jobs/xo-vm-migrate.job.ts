@@ -1,4 +1,4 @@
-import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -18,26 +18,6 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
   const { getHostById } = useXoHostCollection()
-
-  function isNotRunningIntraPoolMigrationWithoutDisk(
-    vm: FrontXoVm,
-    targetHost: FrontXoHost,
-    payload: VmMigratePayload
-  ) {
-    if (vm.power_state === VM_POWER_STATE.RUNNING) {
-      return false
-    }
-
-    if (targetHost.$pool !== vm.$pool) {
-      return false
-    }
-
-    if (payload.srIdByVdiId === undefined) {
-      return true
-    }
-
-    return Object.keys(payload.srIdByVdiId).length === 0
-  }
 
   return {
     async run(vm: FrontXoVm, payload: VmMigratePayload | undefined) {
@@ -71,14 +51,8 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
         return
       }
 
-      const targetHost = getHostById(payload.hostId)
-
-      if (targetHost === undefined) {
+      if (getHostById(payload.hostId) === undefined) {
         throw new JobError(t('job:vm-migrate:missing-host'))
-      }
-
-      if (isNotRunningIntraPoolMigrationWithoutDisk(vm, targetHost, payload)) {
-        throw new JobError(t('job:vm-migrate:not-running-requires-disk-migration'))
       }
     },
   }
