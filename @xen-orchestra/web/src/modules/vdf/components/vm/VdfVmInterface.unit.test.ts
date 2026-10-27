@@ -26,6 +26,7 @@ const SUPPORTING: VdfHostLocking = {
   vdfLocked: 1,
   vdfEnforced: ['vif-1'],
   vdfUnenforced: [],
+  vdfEnforcedAllowed: { 'vif-1': ['192.168.1.100'] },
 }
 
 // the VM's host, whose agent wrote this status (now, unless `heartbeat`)
@@ -84,6 +85,10 @@ it('Locked by VDF, not enforced: the agent stopped, older, or says so', () => {
 
   withHost({ ...SUPPORTING, vdfEnforced: [], vdfUnenforced: ['vif-1'] })
   expect(shown(vif())).toContain(t('firewall:vm:locking:vdf-unenforced:reported', { host: 'host-a' }))
+
+  // its gate still enforces the previous address
+  withHost({ ...SUPPORTING, vdfEnforcedAllowed: { 'vif-1': ['192.168.1.99'] } })
+  expect(shown(vif())).toContain(t('firewall:vm:locking:vdf-unenforced:changing', { host: 'host-a' }))
 
   // just locked: not listed yet
   withHost({ ...SUPPORTING, vdfEnforced: [] })

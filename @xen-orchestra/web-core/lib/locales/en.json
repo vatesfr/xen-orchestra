@@ -1372,6 +1372,7 @@
   "firewall:vm:locking:unlocked": "Unlocked: its IPs are what the guest reports, so drops of its traffic on other hosts are best effort",
   "firewall:vm:locking:vdf": "Locked by VDF: its IPs are known for sure, the VDF agent of its host drops anything else it sends",
   "firewall:vm:locking:vdf-unenforced:agent": "Locked by VDF, not enforced: the VDF agent of {host} isn't running. Until it is, its IPs are what the guest reports",
+  "firewall:vm:locking:vdf-unenforced:changing": "Locked by VDF, change pending: the VDF agent of {host} still enforces other addresses than these. Until it applies them, its IPs are what the guest reports",
   "firewall:vm:locking:vdf-unenforced:old-agent": "Locked by VDF, not enforced: the VDF agent of {host} is older than VDF locks. Until it's updated, its IPs are what the guest reports",
   "firewall:vm:locking:vdf-unenforced:pending": "Locked by VDF, not yet enforced: the VDF agent of {host} doesn't list it as enforced yet (just locked, or the VM just arrived there). Until it does, its IPs are what the guest reports",
   "firewall:vm:locking:vdf-unenforced:reported": "Locked by VDF, not enforced: the VDF agent of {host} reports it can't enforce this lock. Its IPs are what the guest reports",

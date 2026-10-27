@@ -360,6 +360,9 @@ export type VdfHostLocking = {
   vdfLocked?: number
   vdfEnforced?: string[]
   vdfUnenforced?: string[]
+  // per VIF, the addresses its gate enforces now (canonical): trusted only
+  // while they're XAPI's allowed ones
+  vdfEnforcedAllowed?: Record<string, string[]>
 }
 
 export type VdfHostState = 'up-to-date' | 'behind' | 'rejected' | 'stale' | 'unknown' | 'disabled'

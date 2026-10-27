@@ -19,6 +19,7 @@ import {
   inScope,
   isFresh,
   isStopping,
+  isVdfLocked,
   keepGlobalPart,
   localPart,
   memberConflicts,
@@ -1663,19 +1664,32 @@ class VdfPlugin {
     return xapi.call('VIF.get_record', vif._xapiRef)
   }
 
-  // what the route answers: the VIF as XAPI has it after the writes
+  // what the route answers: the VIF as XAPI has it after the writes, and
+  // for a VDF lock whether the agent of the VM's host enforces these
+  // addresses yet (just locked: not until its next round lists them)
   async #vifLocking(xapi, vif) {
     const record = await this.#vifRecord(xapi, vif)
+    const locking =
+      record.locking_mode === 'locked'
+        ? 'xapi'
+        : record.other_config?.[VDF_LOCKING_KEY] === 'locked'
+          ? 'vdf'
+          : 'unlocked'
+    let vm
+    try {
+      vm = this.#xo.getObject(vif.$VM, 'VM')
+    } catch {}
     return {
       vif: vif.id,
-      locking:
-        record.locking_mode === 'locked'
-          ? 'xapi'
-          : record.other_config?.[VDF_LOCKING_KEY] === 'locked'
-            ? 'vdf'
-            : 'unlocked',
+      locking,
       ipv4: record.ipv4_allowed,
       ipv6: record.ipv6_allowed,
+      ...(locking === 'vdf'
+        ? {
+            enforced:
+              vm?.power_state === 'Running' && isVdfLocked({ ...record, uuid: vif.id }, this.#enforcementOf()(vm)),
+          }
+        : {}),
     }
   }
 

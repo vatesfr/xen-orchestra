@@ -497,7 +497,15 @@ describe('VDF locks', () => {
     heartbeatSec,
     ...(locking === undefined ? {} : { locking }),
   })
-  const LOCKING = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfEnforced: ['vif-1'], vdfUnenforced: [] }
+  const LOCKING = {
+    unlocked: 0,
+    stale: 0,
+    vdfLock: true,
+    vdfLocked: 1,
+    vdfEnforced: ['vif-1'],
+    vdfUnenforced: [],
+    vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5'] },
+  }
   const supporting = status(LOCKING)
   const vm = {
     id: 'vm-1',
@@ -555,6 +563,33 @@ describe('VDF locks', () => {
     assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: { 'vif-1': true } })), untrusted)
   })
 
+  // the addresses its gate enforces now must be XAPI's: a hung agent may
+  // still enforce the previous ones, given since to another VM
+  test('trusted only while its gate enforces the addresses XAPI holds', () => {
+    const v6 = { ...vdfLocked, allowedIpv6Addresses: ['2001:db8::5'] }
+    const gate = allowed => withLocking({ vdfEnforcedAllowed: { 'vif-1': allowed } })
+    // equal, whatever the order and the writing (case, zeros compressed or not)
+    assert.equal(ipsOf([v6], gate(['10.0.0.5', '2001:db8::5'])).trusted, true)
+    assert.equal(ipsOf([v6], gate(['2001:db8::5', '10.0.0.5'])).trusted, true)
+    assert.equal(
+      ipsOf([{ ...v6, allowedIpv6Addresses: ['2001:DB8:0:0::5'] }], gate(['10.0.0.5', '2001:db8::5'])).trusted,
+      true
+    )
+    assert.equal(ipsOf([v6], gate(['10.0.0.5', '2001:0db8:0000::0005'])).trusted, true)
+    // differing: the previous address, one more, one less
+    assert.deepEqual(ipsOf([vdfLocked], gate(['10.0.0.4'])), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], gate(['10.0.0.5', '10.0.0.4'])), untrusted)
+    assert.equal(ipsOf([v6], gate(['10.0.0.5'])).trusted, false)
+    // no entry, no map, not an array, not strings
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforcedAllowed: {} })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforcedAllowed: undefined })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforcedAllowed: [['10.0.0.5']] })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], gate('10.0.0.5')), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], gate([167772165])), untrusted)
+    // listed as enforced is needed too
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: [] })), untrusted)
+  })
+
   test('the lists are arrays of uuids or nothing', () => {
     // no list of those it enforces: an agent too old to vouch for any
     assert.equal(vdfLockEnforcement(withLocking({ vdfEnforced: 'vif-1' }), { now: NOW }), undefined)
@@ -577,7 +612,10 @@ describe('VDF locks', () => {
       ips: ['10.0.0.5'],
       trusted: false,
     })
-    assert.deepEqual(ipsOf([{ ...vdfLocked, ...prefixed }], supporting), { ips: ['10.0.0.5'], trusted: false })
+    // VDF: its gate can't enforce what XAPI holds, a change pending at best
+    assert.equal(ipsOf([{ ...vdfLocked, ...prefixed }], supporting).trusted, false)
+    const prefixGate = withLocking({ vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5', '10.0.0.0/8'] } })
+    assert.deepEqual(ipsOf([{ ...vdfLocked, ...prefixed }], prefixGate), { ips: ['10.0.0.5'], trusted: false })
     assert.equal(
       ipsOf([{ ...vdfLocked, lockingMode: 'locked', allowedIpv6Addresses: ['fd00::/64'] }], undefined).trusted,
       false

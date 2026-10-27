@@ -232,8 +232,18 @@ export type VdfLockHost = { status: VdfHostStatusDocument | undefined; state: Vd
 // why a VDF lock isn't enforced: no agent, or one stopped or stuck (a stale
 // heartbeat), on the VM's host; an agent before VDF locks; the agent says
 // it can't enforce this VIF's; or it doesn't list it as enforced yet (just
-// locked, hot-plugged, the VM just migrated there)
-export type VdfUnenforcedReason = 'agent' | 'old-agent' | 'reported' | 'pending'
+// locked, hot-plugged, the VM just migrated there); or its gate still
+// enforces other addresses than XAPI's (a change pending)
+export type VdfUnenforcedReason = 'agent' | 'old-agent' | 'reported' | 'pending' | 'changing'
+
+// the same addresses, whatever their order and writing (case, zeros)
+export function sameAddresses(listA: readonly string[], listB: readonly string[]) {
+  const canonical = (list: readonly string[]) => new Set(list.map(ip => canonicalAddress(ip)?.address ?? ip))
+  const setA = canonical(listA)
+  const setB = canonical(listB)
+
+  return setA.size === setB.size && [...setA].every(ip => setB.has(ip))
+}
 
 // a VIF list an agent reports: anything else is no list
 const vifList = (value: unknown): string[] =>
@@ -254,8 +264,15 @@ const supportsVdfLock = (host: VdfLockHost) =>
   host.status?.locking?.vdfLock === true && Array.isArray(host.status.locking.vdfEnforced)
 
 // Positive only: a VDF lock is enforced when the agent lists it in
-// vdfEnforced, the complete list of those it enforces
-export function vdfLockUnenforced(vifId: string, host: VdfLockHost | undefined): VdfUnenforcedReason | undefined {
+// vdfEnforced, the complete list of those it enforces, and its gate
+// enforces the addresses XAPI holds now (vdfEnforcedAllowed: a hung agent
+// may still enforce the previous ones, given since to another VM)
+export function vdfLockUnenforced(
+  vif: VdfInterfaceVif & { id: string },
+  host: VdfLockHost | undefined
+): VdfUnenforcedReason | undefined {
+  const vifId = vif.id
+
   if (host === undefined || !isAgentRunning(host)) {
     return 'agent'
   }
@@ -267,7 +284,18 @@ export function vdfLockUnenforced(vifId: string, host: VdfLockHost | undefined):
   const locking = host.status!.locking!
 
   if (vifList(locking.vdfEnforced).includes(vifId)) {
-    return undefined
+    const map = locking.vdfEnforcedAllowed
+    const enforcedAllowed: unknown =
+      map !== null && typeof map === 'object' && !Array.isArray(map) ? map[vifId] : undefined
+    const isList = Array.isArray(enforcedAllowed) && enforcedAllowed.every(ip => typeof ip === 'string')
+
+    return isList &&
+      sameAddresses(enforcedAllowed as string[], [
+        ...(vif.allowedIpv4Addresses ?? []),
+        ...(vif.allowedIpv6Addresses ?? []),
+      ])
+      ? undefined
+      : 'changing'
   }
 
   return vifList(locking.vdfUnenforced).includes(vifId) ? 'reported' : 'pending'
@@ -313,7 +341,7 @@ export function vifLock(
     return { lock: 'unlocked', untrusted: true }
   }
 
-  const reason = running ? vdfLockUnenforced(vif.id, host) : undefined
+  const reason = running ? vdfLockUnenforced(vif, host) : undefined
 
   return reason === undefined
     ? { lock: 'vdf', prefix, untrusted: prefix === true }

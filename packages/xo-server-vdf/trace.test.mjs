@@ -41,7 +41,11 @@ describe('trace: a VM addresses', () => {
 // host lists it as enforced, as in the global sync
 describe('trace: a VM locked by VDF', () => {
   const status = locking =>
-    JSON.stringify({ heartbeat: new Date().toISOString(), heartbeatSec: 30, locking: { vdfLock: true, ...locking } })
+    JSON.stringify({
+      heartbeat: new Date().toISOString(),
+      heartbeatSec: 30,
+      locking: { vdfLock: true, vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5'] }, ...locking },
+    })
   const vmOn = (locking, { live = true, power = 'Running' } = {}) => ({
     power_state: power,
     $resident_on: { other_config: { 'vdf:status': status(locking) }, $metrics: { live } },
@@ -59,6 +63,11 @@ describe('trace: a VM locked by VDF', () => {
 
   test("its allowed addresses while enforced, the guest's otherwise", () => {
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] })), ['10.0.0.5'])
+    // its gate still enforces the previous address: a change pending
+    assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'], vdfEnforcedAllowed: { 'vif-1': ['10.0.0.4'] } })), [
+      '10.0.0.5',
+      '10.0.0.99',
+    ])
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: [] })), ['10.0.0.5', '10.0.0.99'])
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { live: false })), ['10.0.0.5', '10.0.0.99'])
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { power: 'Halted' })), ['10.0.0.5', '10.0.0.99'])

@@ -263,6 +263,7 @@ describe('VDF lock', () => {
     vdfLocked: 1,
     vdfEnforced: ['vif-1'],
     vdfUnenforced: [],
+    vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5'] },
   }
   // a host as XO reads it: its agent's status, and the state the usual
   // staleness rule gives (a heartbeat older than twice its period); null:
@@ -345,6 +346,34 @@ describe('VDF lock', () => {
     expect(reason({ ...host(), status: { ...host().status, heartbeatSec: 0 } })).toBe('agent')
   })
 
+  // a hung agent may still enforce the previous addresses, given since to
+  // another VM: trusted only while its gate enforces XAPI's
+  it('trusts a VDF lock only while its gate enforces the addresses XAPI holds', () => {
+    const v6 = vif({ allowedIpv6Addresses: ['2001:db8::5'] })
+    const gate = (allowed: unknown) => withLocking({ vdfEnforcedAllowed: { 'vif-1': allowed } })
+    const state = (lockVif: ReturnType<typeof vif>, lockHost: VdfLockHost) => vifLock(lockVif, false, running(lockHost))
+
+    // equal, whatever the order and the writing (case, zeros compressed or not)
+    expect(state(v6, gate(['2001:db8::5', '10.0.0.5']))).toMatchObject({ lock: 'vdf', untrusted: false })
+    expect(state(vif({ allowedIpv6Addresses: ['2001:DB8:0:0::5'] }), gate(['10.0.0.5', '2001:db8::5'])).lock).toBe(
+      'vdf'
+    )
+    expect(state(v6, gate(['10.0.0.5', '2001:0db8:0000::0005'])).lock).toBe('vdf')
+    // differing: the previous address, one more, one less
+    expect(state(vif(), gate(['10.0.0.4']))).toMatchObject({
+      lock: 'vdf-unenforced',
+      reason: 'changing',
+      untrusted: true,
+    })
+    expect(state(vif(), gate(['10.0.0.5', '10.0.0.4'])).reason).toBe('changing')
+    expect(state(v6, gate(['10.0.0.5'])).reason).toBe('changing')
+    // no entry, no map, not an array, not strings
+    expect(state(vif(), withLocking({ vdfEnforcedAllowed: {} })).reason).toBe('changing')
+    expect(state(vif(), withLocking({ vdfEnforcedAllowed: undefined })).reason).toBe('changing')
+    expect(state(vif(), gate('10.0.0.5')).reason).toBe('changing')
+    expect(state(vif(), gate([167772165])).reason).toBe('changing')
+  })
+
   it('a lock to a prefix is untrusted, XAPI or VDF', () => {
     const prefixed = { allowedIpv4Addresses: ['10.0.0.5', '10.0.0.0/8'] }
 
@@ -353,7 +382,10 @@ describe('VDF lock', () => {
       prefix: true,
       untrusted: true,
     })
-    expect(vifLock(vif(prefixed), false, running(host()))).toMatchObject({ lock: 'vdf', untrusted: true })
+    // VDF: untrusted whether its gate says it holds the prefix or not
+    expect(vifLock(vif(prefixed), false, running(host()))).toMatchObject({ reason: 'changing', untrusted: true })
+    const prefixGate = withLocking({ vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5', '10.0.0.0/8'] } })
+    expect(vifLock(vif(prefixed), false, running(prefixGate))).toMatchObject({ lock: 'vdf', untrusted: true })
     expect(vifLock(vif({ allowedIpv6Addresses: ['fd00::/64'] }), false, running(host())).untrusted).toBe(true)
   })
 

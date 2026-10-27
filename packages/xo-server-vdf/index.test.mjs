@@ -1857,7 +1857,8 @@ describe('VDF lock', () => {
     await withPlugin(xo, async () => {
       const { status, result } = await lock(xo)
       assert.equal(status, 200)
-      assert.deepEqual(result, { vif: vifId(), locking: 'vdf', ...lockBody })
+      // the agent's next round lists it: not enforced yet
+      assert.deepEqual(result, { vif: vifId(), locking: 'vdf', ...lockBody, enforced: false })
       // the addresses first: the agent never enforces the previous ones under the key
       assert.deepEqual(vifCalls(xo), [
         ['VIF.set_ipv4_allowed', ref, ['10.0.0.5']],
@@ -1869,7 +1870,16 @@ describe('VDF lock', () => {
       assert.equal(vif.lockingMode, 'network_default')
       assert.deepEqual(vif.other_config, { 'vdf:locking': 'locked' })
 
-      // a relock: the key is there already (XAPI says so), kept
+      // a relock: the key is there already (XAPI says so), kept. The answer
+      // says enforced only once the gate holds the new addresses
+      const gate = allowed => ({
+        'vdf:status': fresh({ ...SUPPORTING, vdfEnforced: [vifId()], vdfEnforcedAllowed: { [vifId()]: allowed } }),
+      })
+      xo.hosts['host-1'].otherConfig = gate(['10.0.0.6'])
+      xo.calls.length = 0
+      assert.equal((await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })).result.enforced, true)
+      xo.hosts['host-1'].otherConfig = gate(['10.0.0.5', '2001:db8::5'])
+      assert.equal((await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })).result.enforced, false)
       xo.calls.length = 0
       await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })
       assert.deepEqual(vifCalls(xo), [
@@ -2132,7 +2142,12 @@ describe('VDF lock', () => {
       groups: { web: { tags: ['vdf:role=web'] } },
       policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [{ id: 1, from: 'web', proto: 'tcp' }] }],
     }
-    const ENFORCING = { ...SUPPORTING, vdfLocked: 1, vdfEnforced: [vifId('A')] }
+    const ENFORCING = {
+      ...SUPPORTING,
+      vdfLocked: 1,
+      vdfEnforced: [vifId('A')],
+      vdfEnforcedAllowed: { [vifId('A')]: ['10.0.0.5'] },
+    }
     const setup = vm =>
       fakeXo({
         pools: { A: {}, B: {} },
@@ -2164,6 +2179,9 @@ describe('VDF lock', () => {
           fresh({ ...ENFORCING, vdfEnforced: [], vdfUnenforced: [vifId('A')] }),
           // a malformed list
           fresh({ ...ENFORCING, vdfEnforced: vifId('A') }),
+          // its gate still enforces the previous address, or says nothing of it
+          fresh({ ...ENFORCING, vdfEnforcedAllowed: { [vifId('A')]: ['10.0.0.4'] } }),
+          fresh({ ...ENFORCING, vdfEnforcedAllowed: {} }),
           // the agent stopped, or its heartbeat is from the future
           fresh(ENFORCING, new Date(Date.now() - 120e3)),
           fresh(ENFORCING, new Date(Date.now() + 300e3)),

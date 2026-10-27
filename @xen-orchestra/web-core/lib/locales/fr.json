@@ -1372,6 +1372,7 @@
   "firewall:vm:locking:unlocked": "Non verrouillée : ses IPs sont celles que remonte l'invité, le blocage de son trafic sur les autres hôtes n'est donc pas garanti",
   "firewall:vm:locking:vdf": "Verrouillée par VDF : ses IPs sont connues avec certitude, l'agent VDF de son hôte bloque tout autre envoi",
   "firewall:vm:locking:vdf-unenforced:agent": "Verrouillée par VDF, non appliqué : l'agent VDF de {host} ne tourne pas. D'ici là, ses IPs sont celles que remonte l'invité",
+  "firewall:vm:locking:vdf-unenforced:changing": "Verrouillée par VDF, changement en attente : l'agent VDF de {host} applique encore d'autres adresses que celles-ci. Jusqu'à ce qu'il les applique, ses IPs sont celles que remonte l'invité",
   "firewall:vm:locking:vdf-unenforced:old-agent": "Verrouillée par VDF, non appliqué : l'agent VDF de {host} est antérieur aux verrouillages VDF. Jusqu'à sa mise à jour, ses IPs sont celles que remonte l'invité",
   "firewall:vm:locking:vdf-unenforced:pending": "Verrouillée par VDF, pas encore appliqué : l'agent VDF de {host} ne la liste pas encore comme appliquée (verrouillage récent, ou VM tout juste arrivée). D'ici là, ses IPs sont celles que remonte l'invité",
   "firewall:vm:locking:vdf-unenforced:reported": "Verrouillée par VDF, non appliqué : l'agent VDF de {host} signale qu'il ne peut pas appliquer ce verrouillage. Ses IPs sont celles que remonte l'invité",

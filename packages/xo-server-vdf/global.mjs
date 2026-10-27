@@ -1,3 +1,5 @@
+import { isIP } from 'node:net'
+
 // XO-wide firewall configuration: groups and policies XO writes into every
 // pool in scope, next to the pool's own. Agents never see XO, only their
 // pool's document, so a pool keeps enforcing its last document whatever
@@ -283,18 +285,60 @@ export function vdfLockEnforcement(status, { now = Date.now(), live = true } = {
   ) {
     return undefined
   }
+  const enforcedAllowed = status.locking.vdfEnforcedAllowed
   return {
     enforced: new Set(uuidList(status.locking.vdfEnforced)),
     unenforced: new Set(uuidList(status.locking.vdfUnenforced)),
+    // per VIF, the addresses its gate enforces now (arrays of strings only)
+    allowed: new Map(
+      enforcedAllowed !== null && typeof enforcedAllowed === 'object' && !Array.isArray(enforcedAllowed)
+        ? Object.entries(enforcedAllowed).filter(
+            ([, list]) => Array.isArray(list) && list.every(ip => typeof ip === 'string')
+          )
+        : []
+    ),
   }
 }
 
-// A VIF whose addresses VDF enforces: the key, and the agent of the VM's
-// host listing it as enforced (XAPI's own lock is told apart by the
-// caller). Positive only: a VIF the agent hasn't listed yet (just locked,
-// hot-plugged, or on a VM that just migrated there) isn't.
-export const isVdfLocked = (vif, enforcement) =>
-  hasVdfLock(vif) && enforcement !== undefined && enforcement.enforced.has(vif.uuid ?? vif.id)
+// an address as agents write it (IPv4 dotted, IPv6 RFC 5952 lower case),
+// anything else as it is
+export function canonicalIp(ip) {
+  const text = String(ip).trim()
+  const version = isIP(text)
+  return version === 6 ? new URL(`http://[${text}]`).hostname.slice(1, -1) : version === 4 ? text : String(ip)
+}
+
+// the same addresses, whatever their order and writing
+export function sameAddresses(listA, listB) {
+  const setA = new Set(listA.map(canonicalIp))
+  const setB = new Set(listB.map(canonicalIp))
+  return setA.size === setB.size && [...setA].every(ip => setB.has(ip))
+}
+
+// a VIF's allowed addresses in XAPI now (XO's object, or XAPI's record)
+const allowedOf = vif => [
+  ...(vif.allowedIpv4Addresses ?? vif.ipv4_allowed ?? []),
+  ...(vif.allowedIpv6Addresses ?? vif.ipv6_allowed ?? []),
+]
+
+// A VIF whose addresses VDF enforces: the key, the agent of the VM's host
+// listing it as enforced, and its gate enforcing the addresses XAPI holds
+// now (vdfEnforcedAllowed: a hung agent may still enforce the previous
+// ones, now another VM's). XAPI's own lock is told apart by the caller.
+// Positive only: a VIF the agent hasn't listed yet (just locked,
+// hot-plugged, or on a VM that just migrated there), or whose change it
+// hasn't applied, isn't.
+export function isVdfLocked(vif, enforcement) {
+  const uuid = vif.uuid ?? vif.id
+  const enforcedAllowed = enforcement?.allowed.get(uuid)
+  return (
+    hasVdfLock(vif) &&
+    enforcement !== undefined &&
+    enforcement.enforced.has(uuid) &&
+    enforcedAllowed !== undefined &&
+    sameAddresses(enforcedAllowed, allowedOf(vif))
+  )
+}
 
 // an allowed list holding a prefix (XAPI accepts CIDRs): a lock to it lets
 // the guest use any address in it, so its addresses aren't trusted
