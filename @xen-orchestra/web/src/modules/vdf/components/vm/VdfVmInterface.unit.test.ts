@@ -19,7 +19,14 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
   useXoHostCollection: (() => ({ hosts: ref(hosts.value) })) as unknown as typeof useXoHostCollection,
 }))
 
-const SUPPORTING: VdfHostLocking = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: [] }
+const SUPPORTING: VdfHostLocking = {
+  unlocked: 0,
+  stale: 0,
+  vdfLock: true,
+  vdfLocked: 1,
+  vdfEnforced: ['vif-1'],
+  vdfUnenforced: [],
+}
 
 // the VM's host, whose agent wrote this status (now, unless `heartbeat`)
 function withHost(locking: VdfHostLocking | undefined, heartbeat = new Date().toISOString()) {
@@ -75,8 +82,19 @@ it('Locked by VDF, not enforced: the agent stopped, older, or says so', () => {
   withHost({ unlocked: 1, stale: 0 })
   expect(shown(vif())).toContain(t('firewall:vm:locking:vdf-unenforced:old-agent', { host: 'host-a' }))
 
-  withHost({ ...SUPPORTING, vdfUnenforced: ['vif-1'] })
+  withHost({ ...SUPPORTING, vdfEnforced: [], vdfUnenforced: ['vif-1'] })
   expect(shown(vif())).toContain(t('firewall:vm:locking:vdf-unenforced:reported', { host: 'host-a' }))
+
+  // just locked: not listed yet
+  withHost({ ...SUPPORTING, vdfEnforced: [] })
+  expect(shown(vif())).toContain(t('firewall:vm:locking:vdf-unenforced:pending', { host: 'host-a' }))
+})
+
+it('a lock to a prefix says its addresses are not trusted', () => {
+  const text = shown(vif({ lockingMode: 'locked', allowedIpv4Addresses: ['10.0.0.0/8'], other_config: {} }))
+
+  expect(text).toContain(t('firewall:vm:locking:xapi'))
+  expect(text).toContain(t('firewall:vm:locking:prefix'))
 })
 
 it('Unlocked, with its lock action', () => {

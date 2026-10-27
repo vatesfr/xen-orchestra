@@ -489,7 +489,7 @@ describe('withFormatVersion (vdf#36)', () => {
 })
 
 // vdf#41: a VIF locked by VDF (other_config vdf:locking) counts as locked
-// only while the agent of the VM's host enforces it
+// only while the agent of the VM's host lists it as enforced
 describe('VDF locks', () => {
   const NOW = Date.parse('2026-10-27T12:00:00Z')
   const status = (locking, { heartbeat = '2026-10-27T11:59:30Z', heartbeatSec = 30 } = {}) => ({
@@ -497,7 +497,8 @@ describe('VDF locks', () => {
     heartbeatSec,
     ...(locking === undefined ? {} : { locking }),
   })
-  const supporting = status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: [] })
+  const LOCKING = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfEnforced: ['vif-1'], vdfUnenforced: [] }
+  const supporting = status(LOCKING)
   const vm = {
     id: 'vm-1',
     name_label: 'app-1',
@@ -514,10 +515,12 @@ describe('VDF locks', () => {
     allowedIpv4Addresses: ['10.0.0.5'],
     other_config: { 'vdf:locking': 'locked' },
   }
-  const ipsOf = (vifs, hostStatus_, now = NOW) => vmIps(vm, vifs, undefined, vdfLockEnforcement(hostStatus_, now))
+  const ipsOf = (vifs, hostStatus_, { now = NOW, live = true } = {}) =>
+    vmIps(vm, vifs, undefined, vdfLockEnforcement(hostStatus_, { now, live }))
   const untrusted = { ips: ['10.0.0.5', '10.0.0.99'], trusted: false }
+  const withLocking = fields => status({ ...LOCKING, ...fields })
 
-  test('trusted, with its allowed addresses, while the agent enforces it', () => {
+  test('trusted, with its allowed addresses, while the agent lists it as enforced', () => {
     assert.deepEqual(ipsOf([vdfLocked], supporting), { ips: ['10.0.0.5'], trusted: true })
   })
 
@@ -525,31 +528,52 @@ describe('VDF locks', () => {
     // no key, or another value than locked
     assert.deepEqual(ipsOf([{ ...vdfLocked, other_config: {} }], supporting), untrusted)
     assert.deepEqual(ipsOf([{ ...vdfLocked, other_config: { 'vdf:locking': 'yes' } }], supporting), untrusted)
-    // no agent status
+    // no agent status, or a host not running
     assert.deepEqual(ipsOf([vdfLocked], undefined), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], supporting, { live: false }), untrusted)
     // a stale heartbeat (twice its period): the agent is stopped or stuck
-    assert.deepEqual(ipsOf([vdfLocked], supporting, NOW + 31e3), untrusted)
-    assert.deepEqual(ipsOf([vdfLocked], supporting, NOW + 29e3).trusted, true)
+    assert.deepEqual(ipsOf([vdfLocked], supporting, { now: NOW + 31e3 }), untrusted)
+    assert.equal(ipsOf([vdfLocked], supporting, { now: NOW + 29e3 }).trusted, true)
+    // a heartbeat from the future says nothing about now (a little skew passes)
+    assert.deepEqual(ipsOf([vdfLocked], supporting, { now: Date.parse('2026-10-27T11:57:00Z') }), untrusted)
+    assert.equal(ipsOf([vdfLocked], supporting, { now: Date.parse('2026-10-27T11:59:00Z') }).trusted, true)
     // an agent before VDF locks
     assert.deepEqual(ipsOf([vdfLocked], status({ unlocked: 1, stale: 0 })), untrusted)
     assert.deepEqual(ipsOf([vdfLocked], status(undefined)), untrusted)
-    // the agent reports it doesn't enforce this one
-    assert.deepEqual(
-      ipsOf([vdfLocked], status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 0, vdfUnenforced: ['vif-1'] })),
-      untrusted
-    )
-    // another VIF unenforced: not this one's business
-    assert.deepEqual(
-      ipsOf([vdfLocked], status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: ['vif-2'] }))
-        .trusted,
-      true
-    )
+    // not listed as enforced: just locked, hot-plugged, just migrated here
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: ['vif-2'] })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: [], vdfUnenforced: ['vif-1'] })), untrusted)
+    // a missing or malformed list enforces nothing
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: undefined })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: 'vif-1' })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: { 'vif-1': true } })), untrusted)
+  })
+
+  test('the lists are arrays of uuids or nothing', () => {
+    const enforcement = vdfLockEnforcement(withLocking({ vdfEnforced: 'vif-1', vdfUnenforced: 'v' }), { now: NOW })
+    assert.deepEqual([...enforcement.enforced], [])
+    assert.deepEqual([...enforcement.unenforced], [])
+    const filtered = vdfLockEnforcement(withLocking({ vdfEnforced: ['vif-1', 7, null] }), { now: NOW })
+    assert.deepEqual([...filtered.enforced], ['vif-1'])
   })
 
   test("XAPI's lock comes first, and a disabled interface sends nothing", () => {
     const xapiLocked = { ...vdfLocked, lockingMode: 'locked' }
     assert.deepEqual(ipsOf([xapiLocked], undefined), { ips: ['10.0.0.5'], trusted: true })
     assert.deepEqual(ipsOf([{ ...vdfLocked, lockingMode: 'disabled' }], supporting), { ips: [], trusted: false })
+  })
+
+  test('a lock to a prefix is untrusted, XAPI or VDF', () => {
+    const prefixed = { allowedIpv4Addresses: ['10.0.0.5', '10.0.0.0/8'] }
+    assert.deepEqual(ipsOf([{ ...vdfLocked, lockingMode: 'locked', ...prefixed }], undefined), {
+      ips: ['10.0.0.5'],
+      trusted: false,
+    })
+    assert.deepEqual(ipsOf([{ ...vdfLocked, ...prefixed }], supporting), { ips: ['10.0.0.5'], trusted: false })
+    assert.equal(
+      ipsOf([{ ...vdfLocked, lockingMode: 'locked', allowedIpv6Addresses: ['fd00::/64'] }], undefined).trusted,
+      false
+    )
   })
 
   test("global members' trust follows the host each VM runs on", () => {
@@ -559,13 +583,13 @@ describe('VDF locks', () => {
     ]
     const statuses = {
       'host-ok': supporting,
-      'host-stale': status(supporting.locking, { heartbeat: '2026-10-27T11:00:00Z' }),
+      'host-stale': status(LOCKING, { heartbeat: '2026-10-27T11:00:00Z' }),
     }
     const records = runningVmRecords(
       vms,
       () => [vdfLocked],
       undefined,
-      ({ $container }) => vdfLockEnforcement(statuses[$container], NOW)
+      ({ $container }) => vdfLockEnforcement(statuses[$container], { now: NOW })
     )
     const members = globalMembers({ global: GLOBAL, records, scope: { all: true } })
     assert.deepEqual(
@@ -583,6 +607,8 @@ describe('VDF locks', () => {
     assert.deepEqual(hostStatus({ 'vdf:status': '{"heartbeat":"x"}' }), { heartbeat: 'x' })
     assert.equal(isFresh({ heartbeat: '2026-10-27T11:50:00Z' }, NOW), true) // 600 s by default
     assert.equal(isFresh({ heartbeat: '2026-10-27T11:30:00Z' }, NOW), false)
+    assert.equal(isFresh({ heartbeat: '2026-10-27T11:30:00Z', heartbeatSec: 'x' }, NOW), false)
+    assert.equal(isFresh({ heartbeat: '2026-10-27T12:05:00Z' }, NOW), false)
     assert.equal(isFresh({}, NOW), false)
   })
 })

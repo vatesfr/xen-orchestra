@@ -6,7 +6,6 @@ import {
   isAllowed,
   isEnforcedLock,
   isStableIpv6,
-  isUntrustedLock,
   lockDrift,
   lockErrorKind,
   lockProposal,
@@ -257,10 +256,17 @@ describe('untrustedInPolicy', () => {
 // enforces the allowed addresses of a VIF with other_config vdf:locking
 describe('VDF lock', () => {
   const NOW = Date.parse('2026-10-27T12:00:00Z')
-  const SUPPORTING: VdfHostLocking = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: [] }
+  const SUPPORTING: VdfHostLocking = {
+    unlocked: 0,
+    stale: 0,
+    vdfLock: true,
+    vdfLocked: 1,
+    vdfEnforced: ['vif-1'],
+    vdfUnenforced: [],
+  }
   // a host as XO reads it: its agent's status, and the state the usual
-  // staleness rule gives (a heartbeat older than twice its period)
-  // null: an agent before locking reports
+  // staleness rule gives (a heartbeat older than twice its period); null:
+  // an agent before locking reports
   const host = (
     locking: VdfHostLocking | null = SUPPORTING,
     { heartbeat = '2026-10-27T11:59:30Z', live = true }: { heartbeat?: string; live?: boolean } = {}
@@ -269,6 +275,7 @@ describe('VDF lock', () => {
 
     return { status, state: hostState(status, '', { live, now: NOW }) }
   }
+  const withLocking = (fields: Record<string, unknown>) => host({ ...SUPPORTING, ...fields } as VdfHostLocking)
   const vif = (fields: Record<string, unknown> = {}) => ({
     id: 'vif-1',
     device: '0',
@@ -280,42 +287,68 @@ describe('VDF lock', () => {
   })
   const running = (lockHost: VdfLockHost | undefined) => ({ running: true, host: lockHost })
 
-  it('shows Locked (XAPI), Locked by VDF, not enforced, Unlocked', () => {
-    expect(vifLock(vif({ lockingMode: 'locked', other_config: {} }), false, running(undefined))).toEqual({
+  it('shows Locked (XAPI), Locked by VDF, not (yet) enforced, Unlocked', () => {
+    expect(vifLock(vif({ lockingMode: 'locked', other_config: {} }), false, running(undefined))).toMatchObject({
       lock: 'xapi',
+      untrusted: false,
     })
-    expect(vifLock(vif(), false, running(host()))).toEqual({ lock: 'vdf' })
-    expect(vifLock(vif(), false, running(host(null)))).toEqual({ lock: 'vdf-unenforced', reason: 'old-agent' })
-    expect(vifLock(vif({ other_config: {} }), false, running(host()))).toEqual({ lock: 'unlocked' })
+    expect(vifLock(vif(), false, running(host()))).toMatchObject({ lock: 'vdf', untrusted: false })
+    expect(vifLock(vif(), false, running(host(null)))).toMatchObject({ lock: 'vdf-unenforced', reason: 'old-agent' })
+    expect(vifLock(vif({ other_config: {} }), false, running(host()))).toMatchObject({
+      lock: 'unlocked',
+      untrusted: true,
+    })
     expect(vifLock(vif({ lockingMode: 'unlocked' }), false, running(host())).lock).toBe('vdf')
     // XAPI's own lock comes first; disabled sends nothing
     expect(vifLock(vif({ lockingMode: 'locked' }), false, running(undefined)).lock).toBe('xapi')
-    expect(vifLock(vif({ lockingMode: 'disabled' }), false, running(host())).lock).toBe('disabled')
+    expect(vifLock(vif({ lockingMode: 'disabled' }), false, running(host()))).toMatchObject({
+      lock: 'disabled',
+      untrusted: false,
+    })
     expect(vifLock(vif(), true, running(host())).lock).toBe('disabled')
     // a halted VM sends nothing: its lock applies on the host it starts on
-    expect(vifLock(vif(), false, { running: false, host: undefined })).toEqual({ lock: 'vdf' })
+    expect(vifLock(vif(), false, { running: false, host: undefined }).lock).toBe('vdf')
   })
 
-  it('trusts a VDF lock only while every condition holds', () => {
+  it('trusts a VDF lock only while every condition holds, the VIF listed as enforced', () => {
     const trusted = (lockVif: ReturnType<typeof vif>, lockHost: VdfLockHost | undefined) =>
-      !isUntrustedLock(vifLock(lockVif, false, running(lockHost)).lock)
+      !vifLock(lockVif, false, running(lockHost)).untrusted
+    const reason = (lockHost: VdfLockHost | undefined) => vifLock(vif(), false, running(lockHost)).reason
 
     expect(trusted(vif(), host())).toBe(true)
     // the key: absent, or not "locked"
     expect(trusted(vif({ other_config: {} }), host())).toBe(false)
     expect(trusted(vif({ other_config: { 'vdf:locking': 'on' } }), host())).toBe(false)
-    // the VM's host: unknown, no status, a stale heartbeat, halted
-    expect(vifLock(vif(), false, running(undefined))).toEqual({ lock: 'vdf-unenforced', reason: 'agent' })
+    // the VM's host: unknown, no status, a stale heartbeat, one from the
+    // future, halted
+    expect(reason(undefined)).toBe('agent')
     expect(trusted(vif(), { status: undefined, state: 'unknown' })).toBe(false)
     expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T11:58:59Z' }))).toBe(false)
     expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T11:59:01Z' }))).toBe(true)
+    expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T12:01:30Z' }))).toBe(false)
+    expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T12:00:30Z' }))).toBe(true)
     expect(trusted(vif(), host(SUPPORTING, { live: false }))).toBe(false)
     // an agent before VDF locks
     expect(trusted(vif(), host({ unlocked: 1, stale: 0 }))).toBe(false)
-    // the agent says it doesn't enforce this one
-    const unenforced = host({ ...SUPPORTING, vdfUnenforced: ['vif-1'] })
-    expect(vifLock(vif(), false, running(unenforced))).toEqual({ lock: 'vdf-unenforced', reason: 'reported' })
-    expect(trusted(vif(), host({ ...SUPPORTING, vdfUnenforced: ['vif-2'] }))).toBe(true)
+    // not listed as enforced: not yet, or the agent says it can't
+    expect(reason(withLocking({ vdfEnforced: ['vif-2'] }))).toBe('pending')
+    expect(reason(withLocking({ vdfEnforced: [], vdfUnenforced: ['vif-1'] }))).toBe('reported')
+    // a missing or malformed list enforces nothing
+    expect(reason(withLocking({ vdfEnforced: undefined }))).toBe('pending')
+    expect(reason(withLocking({ vdfEnforced: 'vif-1' }))).toBe('pending')
+    expect(reason(withLocking({ vdfEnforced: [], vdfUnenforced: 'vif-1' }))).toBe('pending')
+  })
+
+  it('a lock to a prefix is untrusted, XAPI or VDF', () => {
+    const prefixed = { allowedIpv4Addresses: ['10.0.0.5', '10.0.0.0/8'] }
+
+    expect(vifLock(vif({ lockingMode: 'locked', ...prefixed }), false, running(undefined))).toMatchObject({
+      lock: 'xapi',
+      prefix: true,
+      untrusted: true,
+    })
+    expect(vifLock(vif(prefixed), false, running(host()))).toMatchObject({ lock: 'vdf', untrusted: true })
+    expect(vifLock(vif({ allowedIpv6Addresses: ['fd00::/64'] }), false, running(host())).untrusted).toBe(true)
   })
 
   it("counts the allowed addresses of an enforced lock, the guest's otherwise", () => {
@@ -327,6 +360,7 @@ describe('VDF lock', () => {
 
     expect(addresses(host())).toEqual(['10.0.0.5'])
     expect(addresses(host(null))).toEqual(['10.0.0.5', '10.0.0.99'])
+    expect(addresses(withLocking({ vdfEnforced: [] }))).toEqual(['10.0.0.5', '10.0.0.99'])
   })
 
   it("is offered where the agent of the VM's host supports it", () => {
@@ -343,24 +377,15 @@ describe('VDF lock', () => {
     expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [stopped] })).toBe('agent')
   })
 
-  it('flags a VDF lock its guest moved away from', () => {
+  it('flags a VDF lock its guest moved away from, not a disabled interface', () => {
     const guestAddresses = { '0/ipv4/0': '10.0.0.6' }
 
     expect(lockDrift(vif(), guestAddresses)?.outside).toEqual(['10.0.0.6'])
     expect(lockDrift(vif({ other_config: {} }), guestAddresses)).toBeUndefined()
     expect(lockDrift(vif({ lockingMode: 'disabled' }), guestAddresses)).toBeUndefined()
-  })
-
-  it("merges the agents' unenforced VDF locks, not an older agent's", () => {
-    const report = mergeLocking([
-      { hostId: 'h1', status: { locking: { ...SUPPORTING, vdfUnenforced: ['vif-1'] } }, current: true },
-      // an older agent: no VDF lock fields, its VIFs with the key are unlocked ones
-      { hostId: 'h2', status: { locking: { unlocked: 1, stale: 0, vdfUnenforced: ['vif-x'] } }, current: true },
-      // a stopped agent's report is outdated
-      { hostId: 'h3', status: { locking: { ...SUPPORTING, vdfUnenforced: ['vif-3'] } }, current: false },
-    ])
-
-    expect(report.vdfUnenforced).toEqual(['vif-1'])
+    // network_default on a network whose default is disabled
+    expect(lockDrift(vif(), guestAddresses, true)).toBeUndefined()
+    expect(lockDrift(vif({ lockingMode: 'locked' }), guestAddresses, true)?.outside).toEqual(['10.0.0.6'])
   })
 
   it('locks with XAPI first, with VDF once offered', () => {

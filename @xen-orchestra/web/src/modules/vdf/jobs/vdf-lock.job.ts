@@ -66,9 +66,15 @@ export function lockCall(request: VdfLockRequest) {
 export const useVdfLockJob = defineJob('vdf.lock-vifs', [vdfLockRequestsArg], () => {
   const { t } = useI18n()
 
-  // in words rather than XAPI's code (vdf#41), the raw error kept at the end
-  function failure(reason: unknown): VdfLockFailure {
+  // in words rather than XAPI's code (vdf#41), the raw error kept at the
+  // end; the plugin's own refusals of a VDF lock are words already
+  function failure(reason: unknown, request: VdfLockRequest): VdfLockFailure {
     const { message, status } = errorOf(reason)
+
+    if (request.withVdf && (status === 409 || status === 422)) {
+      return { message }
+    }
+
     const known = lockErrorKind(message, status)
 
     return known === undefined
@@ -88,7 +94,9 @@ export const useVdfLockJob = defineJob('vdf.lock-vifs', [vdfLockRequestsArg], ()
 
       return new Map(
         results.flatMap((result, index) =>
-          result.status === 'rejected' ? [[requests[index].vifId, failure(result.reason)] as const] : []
+          result.status === 'rejected'
+            ? [[requests[index].vifId, failure(result.reason, requests[index])] as const]
+            : []
         )
       )
     },

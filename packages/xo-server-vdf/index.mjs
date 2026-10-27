@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto'
+import { isIP } from 'node:net'
 import { hostname } from 'node:os'
 import { isDeepStrictEqual } from 'node:util'
 import { createLogger } from '@xen-orchestra/log'
@@ -14,7 +15,6 @@ import {
   globalMembers,
   globalPart,
   hasGlobalPart,
-  hasVdfLock,
   hostStatus,
   inScope,
   isFresh,
@@ -162,6 +162,41 @@ const BODY_TRACE = {
   state: { type: 'enum', enum: ['new', 'established', 'revoked'], optional: true },
   family: { type: 'number', optional: true },
   broadcast: { type: 'boolean', optional: true },
+}
+
+// The addresses of a VDF lock (vdf#41), per family: single addresses only
+// (XAPI takes prefixes, which would let the guest pick any address in
+// one), no IPv6 link-local (always allowed) nor IPv4-mapped, canonical as
+// agents compare them. { ipv4, ipv6 }, or { error }.
+export function lockAddresses({ ipv4, ipv6 } = {}) {
+  const lists = { ipv4, ipv6 }
+  const result = { ipv4: [], ipv6: [] }
+  for (const [family, list] of Object.entries(lists)) {
+    const version = family === 'ipv4' ? 4 : 6
+    if (!Array.isArray(list)) {
+      return { error: `${family}: a list of addresses` }
+    }
+    for (const entry of list) {
+      if (typeof entry !== 'string' || entry.includes('%') || isIP(entry.trim()) !== version) {
+        return { error: `${family}: ${JSON.stringify(entry)} isn't an IPv${version} address (a prefix neither)` }
+      }
+      const address = version === 4 ? entry.trim() : new URL(`http://[${entry.trim()}]`).hostname.slice(1, -1)
+      if (address === '0.0.0.0' || address === '::' || address === '255.255.255.255') {
+        return { error: `${family}: ${entry} can't be an interface's address` }
+      }
+      if (version === 6 && (/^fe[89ab][0-9a-f]:/.test(address) || address.startsWith('::ffff:'))) {
+        return { error: `ipv6: ${entry}: link-local and IPv4-mapped addresses can't be locked to` }
+      }
+      if (!result[family].includes(address)) {
+        result[family].push(address)
+      }
+    }
+  }
+  if (result.ipv4.length + result.ipv6.length === 0) {
+    // locked to nothing, the interface would be cut off
+    return { error: 'an interface locked to no address would be cut off: give its addresses' }
+  }
+  return result
 }
 
 const BODY_VDF_LOCK = {
@@ -511,12 +546,19 @@ class VdfPlugin {
   }
 
   // The VDF locks the host of a running VM enforces (vdf#41), from what
-  // its agent reports: each host's status read once per pass
+  // its agent reports (none on a host XO doesn't know or that isn't
+  // running): each host's status read once per pass
   #enforcementOf(now = Date.now()) {
     const byHost = new Map()
     return vm => {
       if (!byHost.has(vm.$container)) {
-        byHost.set(vm.$container, vdfLockEnforcement(hostStatus(this.#hostOf(vm.$container)?.otherConfig), now))
+        const host = this.#hostOf(vm.$container)
+        byHost.set(
+          vm.$container,
+          host === undefined
+            ? undefined
+            : vdfLockEnforcement(hostStatus(host.otherConfig), { now, live: host.power_state === 'Running' })
+        )
       }
       return byHost.get(vm.$container)
     }
@@ -1580,7 +1622,9 @@ class VdfPlugin {
       ? [this.#hostOf(vm.$container)].filter(host => host !== undefined)
       : Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(host => host.$pool === vm?.$pool)
     const statuses = hosts.map(host => ({ host, status: hostStatus(host.otherConfig) }))
-    const current = statuses.filter(({ status }) => status !== undefined && isFresh(status, now))
+    const current = statuses.filter(
+      ({ host, status }) => host.power_state === 'Running' && status !== undefined && isFresh(status, now)
+    )
     const name = ({ host }) => host.name_label ?? host.id
     if (current.length === 0 || (running && current.length < statuses.length)) {
       return running
@@ -1593,25 +1637,39 @@ class VdfPlugin {
     }
   }
 
-  async #vdfLock(vif, { ipv4 = [], ipv6 = [] }, res) {
+  // the VIF as XAPI has it now: XO's object follows XAPI's events, after
+  // writes return, so another lock or unlock may have landed meanwhile
+  async #vifRecord(xapi, vif) {
+    return xapi.call('VIF.get_record', vif._xapiRef)
+  }
+
+  // what the route answers: the VIF as XAPI has it after the writes
+  async #vifLocking(xapi, vif) {
+    const record = await this.#vifRecord(xapi, vif)
+    return {
+      vif: vif.id,
+      locking:
+        record.locking_mode === 'locked'
+          ? 'xapi'
+          : record.other_config?.[VDF_LOCKING_KEY] === 'locked'
+            ? 'vdf'
+            : 'unlocked',
+      ipv4: record.ipv4_allowed,
+      ipv6: record.ipv6_allowed,
+    }
+  }
+
+  async #vdfLock(vif, body, res) {
     const refuse = (status, error) => {
       res.status(status)
       return { error }
     }
-    if (ipv4.length + ipv6.length === 0) {
-      // locked to nothing, the interface would be cut off
-      return refuse(422, 'an interface locked to no address would be cut off: give its addresses')
+    // everything checked before the first write
+    const addresses = lockAddresses(body)
+    if (addresses.error !== undefined) {
+      return refuse(422, addresses.error)
     }
-    const network = this.#networkOf(vif)
-    if (
-      vif.lockingMode === 'disabled' ||
-      (vif.lockingMode === 'network_default' && network?.defaultIsLocked === true)
-    ) {
-      return refuse(409, 'this interface is disabled: it sends nothing')
-    }
-    if (vif.lockingMode === 'locked') {
-      return refuse(409, 'this interface is locked by XAPI already: relock it with XAPI')
-    }
+    const { ipv4, ipv6 } = addresses
     let vm
     try {
       vm = this.#xo.getObject(vif.$VM, 'VM')
@@ -1620,47 +1678,100 @@ class VdfPlugin {
     if (unavailable !== undefined) {
       return refuse(409, unavailable)
     }
-
     const xapi = this.#getXapi(vif.$pool)
-    // XO's IP pools follow the allowed addresses, as with XO's VIF edit
-    const before = [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
-    const after = [...ipv4, ...ipv6]
-    await this.#xo.allocIpAddresses?.(
-      vif.id,
-      after.filter(ip => !before.includes(ip)),
-      before.filter(ip => !after.includes(ip))
-    )
-    // the addresses first: with the key first, the agent would enforce the
-    // previous ones meanwhile
-    await xapi.call('VIF.set_ipv4_allowed', vif._xapiRef, ipv4)
-    await xapi.call('VIF.set_ipv6_allowed', vif._xapiRef, ipv6)
-    if (!hasVdfLock(vif)) {
-      if (vif.other_config?.[VDF_LOCKING_KEY] !== undefined) {
-        await xapi.call('VIF.remove_from_other_config', vif._xapiRef, VDF_LOCKING_KEY)
-      }
-      await xapi.call('VIF.add_to_other_config', vif._xapiRef, VDF_LOCKING_KEY, 'locked')
+    const record = await this.#vifRecord(xapi, vif)
+    const network = this.#networkOf(vif)
+    if (
+      record.locking_mode === 'disabled' ||
+      (record.locking_mode === 'network_default' && network?.defaultIsLocked === true)
+    ) {
+      return refuse(409, 'this interface is disabled: it sends nothing')
     }
-    return { vif: vif.id, locking: 'vdf', ipv4, ipv6 }
+    if (record.locking_mode === 'locked') {
+      return refuse(409, 'this interface is locked by XAPI already: relock it with XAPI')
+    }
+
+    const previous = { ipv4: record.ipv4_allowed ?? [], ipv6: record.ipv6_allowed ?? [] }
+    const ref = vif._xapiRef
+    // what was written, undone if a later step fails: the VIF is left as it
+    // was, its lists never half changed
+    const undo = []
+    const rollBack = async () => {
+      for (const step of undo.reverse()) {
+        await step().catch(error => log.warn('rolling back a VDF lock', { vif: vif.id, error }))
+      }
+    }
+    try {
+      // the addresses first: with the key first, the agent would enforce
+      // the previous ones meanwhile
+      await xapi.call('VIF.set_ipv4_allowed', ref, ipv4)
+      undo.push(() => xapi.call('VIF.set_ipv4_allowed', ref, previous.ipv4))
+      await xapi.call('VIF.set_ipv6_allowed', ref, ipv6)
+      undo.push(() => xapi.call('VIF.set_ipv6_allowed', ref, previous.ipv6))
+      // set before (a relock, or another lock meanwhile): kept on a failure
+      if (await this.#addLockKey(xapi, ref)) {
+        undo.push(() => xapi.call('VIF.remove_from_other_config', ref, VDF_LOCKING_KEY))
+      }
+      // XO's IP pools follow the allowed addresses, as with XO's VIF edit,
+      // once XAPI took them (a resource set's quota may refuse: undone)
+      const before = [...previous.ipv4, ...previous.ipv6]
+      const after = [...ipv4, ...ipv6]
+      await this.#xo.allocIpAddresses?.(
+        vif.id,
+        after.filter(ip => !before.includes(ip)),
+        before.filter(ip => !after.includes(ip))
+      )
+    } catch (error) {
+      await rollBack()
+      throw error
+    }
+    return this.#vifLocking(xapi, vif)
   }
 
-  // the key removed; the allowed addresses too with `clear` (a VIF XAPI
-  // locks keeps them: it would be cut off)
+  // the vdf:locking key set to locked, whatever another writer did
+  // meanwhile: true when this call added it
+  async #addLockKey(xapi, ref) {
+    try {
+      await xapi.call('VIF.add_to_other_config', ref, VDF_LOCKING_KEY, 'locked')
+      return true
+    } catch (error) {
+      if (!/MAP_DUPLICATE_KEY/.test(error.code ?? error.message)) {
+        throw error
+      }
+    }
+    // already there: with another value, replaced
+    const record = await this.#vifRecord(xapi, { _xapiRef: ref })
+    if (record.other_config?.[VDF_LOCKING_KEY] === 'locked') {
+      return false
+    }
+    await xapi.call('VIF.remove_from_other_config', ref, VDF_LOCKING_KEY)
+    await xapi.call('VIF.add_to_other_config', ref, VDF_LOCKING_KEY, 'locked')
+    return true
+  }
+
+  // The key removed first (removing a missing key is no error, so whatever
+  // XO's object says), then the allowed addresses with `clear`: the agent
+  // never enforces an empty list. A VIF XAPI locks keeps its addresses: it
+  // would be cut off.
   async #vdfUnlock(vif, { clear = false }, res) {
-    if (clear && vif.lockingMode === 'locked') {
+    const xapi = this.#getXapi(vif.$pool)
+    const ref = vif._xapiRef
+    const record = await this.#vifRecord(xapi, vif)
+    if (clear && record.locking_mode === 'locked') {
       res.status(409)
       return { error: 'this interface is locked by XAPI: its allowed addresses are what it may send from' }
     }
-    const xapi = this.#getXapi(vif.$pool)
-    if (vif.other_config?.[VDF_LOCKING_KEY] !== undefined) {
-      await xapi.call('VIF.remove_from_other_config', vif._xapiRef, VDF_LOCKING_KEY)
-    }
+    await xapi.call('VIF.remove_from_other_config', ref, VDF_LOCKING_KEY)
     if (clear) {
-      const before = [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
-      await this.#xo.allocIpAddresses?.(vif.id, [], before)
-      await xapi.call('VIF.set_ipv4_allowed', vif._xapiRef, [])
-      await xapi.call('VIF.set_ipv6_allowed', vif._xapiRef, [])
+      await xapi.call('VIF.set_ipv4_allowed', ref, [])
+      await xapi.call('VIF.set_ipv6_allowed', ref, [])
+      const before = [...(record.ipv4_allowed ?? []), ...(record.ipv6_allowed ?? [])]
+      // XAPI holds no address any more: XO's IP pools can't be wrong for long
+      await this.#xo
+        .allocIpAddresses?.(vif.id, [], before)
+        ?.catch(error => log.warn('releasing the addresses of a VDF unlock', { vif: vif.id, error }))
     }
-    return { vif: vif.id, locking: vif.lockingMode === 'locked' ? 'xapi' : 'unlocked' }
+    return this.#vifLocking(xapi, vif)
   }
 
   #routes() {

@@ -351,9 +351,11 @@ export type VdfHostLocking = {
   staleVifs?: VdfLockedVif[]
   // VDF locks (vdf#41), absent from agents before them: the agent enforces
   // VIF.other_config['vdf:locking'] = 'locked'; how many it enforces; the
-  // VIFs (uuids) with the key whose lock it doesn't enforce (complete)
+  // VIFs (uuids) whose VDF lock it enforces now (complete: trust follows
+  // it); those with the key it can't enforce (why one isn't)
   vdfLock?: boolean
   vdfLocked?: number
+  vdfEnforced?: string[]
   vdfUnenforced?: string[]
 }
 

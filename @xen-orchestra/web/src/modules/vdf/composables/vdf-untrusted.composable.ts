@@ -2,7 +2,7 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { isUntrustedLock, untrustedInPolicy } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { untrustedInPolicy } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
@@ -33,7 +33,7 @@ export function useVdfUntrustedMembers(
 
   // an interface of the VM the firewall protects whose guest may use any
   // address
-  const isVmUntrusted = (vm: FrontXoVm) => interfacesOf(vm).some(iface => isUntrustedLock(iface.lock))
+  const isVmUntrusted = (vm: FrontXoVm) => interfacesOf(vm).some(iface => iface.untrusted)
 
   const byGroup = computed(() => {
     const poolId = toValue(rawPoolId)
@@ -41,7 +41,7 @@ export function useVdfUntrustedMembers(
 
     for (const [name, group] of Object.entries(toValue(rawDocument).groups)) {
       const local = runningVms.value
-        .filter(vm => groupInterfaces(vm, group).some(iface => isUntrustedLock(iface.lock)))
+        .filter(vm => groupInterfaces(vm, group).some(iface => iface.untrusted))
         .map(vm => vm.name_label)
       const remote = isGlobalName(name)
         ? (globalStatus.value?.members[displayName(name)] ?? [])

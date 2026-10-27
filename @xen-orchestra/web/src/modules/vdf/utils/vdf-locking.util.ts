@@ -231,9 +231,16 @@ export type VdfLockHost = { status: VdfHostStatusDocument | undefined; state: Vd
 
 // why a VDF lock isn't enforced: no agent, or one stopped or stuck (a stale
 // heartbeat), on the VM's host; an agent before VDF locks; the agent says
-// it doesn't enforce this VIF's
-export type VdfUnenforcedReason = 'agent' | 'old-agent' | 'reported'
+// it can't enforce this VIF's; or it doesn't list it as enforced yet (just
+// locked, hot-plugged, the VM just migrated there)
+export type VdfUnenforcedReason = 'agent' | 'old-agent' | 'reported' | 'pending'
 
+// a VIF list an agent reports: anything else is no list
+const vifList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((uuid): uuid is string => typeof uuid === 'string') : []
+
+// Positive only: a VDF lock is enforced when the agent lists it in
+// vdfEnforced, the complete list of those it enforces (none when missing)
 export function vdfLockUnenforced(vifId: string, host: VdfLockHost | undefined): VdfUnenforcedReason | undefined {
   if (host === undefined || !hostEnforces(host.state)) {
     return 'agent'
@@ -245,45 +252,59 @@ export function vdfLockUnenforced(vifId: string, host: VdfLockHost | undefined):
     return 'old-agent'
   }
 
-  return (locking.vdfUnenforced ?? []).includes(vifId) ? 'reported' : undefined
+  if (vifList(locking.vdfEnforced).includes(vifId)) {
+    return undefined
+  }
+
+  return vifList(locking.vdfUnenforced).includes(vifId) ? 'reported' : 'pending'
 }
+
+// an allowed list holding a prefix (XAPI accepts CIDRs): a lock to it lets
+// the guest use any address in it
+export const hasPrefix = (vif: VdfInterfaceVif) =>
+  [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])].some(ip => ip.includes('/'))
 
 // how a VIF is locked: by XAPI, by VDF (enforced or not), not at all, or
 // disabled (it sends nothing)
 export type VdfVifLock = 'xapi' | 'vdf' | 'vdf-unenforced' | 'unlocked' | 'disabled'
 
+// a VIF's lock, and whether its guest may use any address (`untrusted`:
+// drops of its traffic on other hosts are best effort, and it can take
+// another VM's address); `prefix`: a lock to a prefix
+export type VdfVifLockState = { lock: VdfVifLock; reason?: VdfUnenforcedReason; prefix?: boolean; untrusted: boolean }
+
 // A VIF's lock as the firewall trusts it. A VDF lock counts only where the
-// agent of the host the VM runs on enforces it (the same rule as XO's
-// global sync, xo-server-vdf vmIfaces): otherwise the guest may use any
-// address, as on an unlocked VIF. A halted VM sends nothing: its VDF lock
-// applies on the host it starts on.
+// agent of the host the VM runs on lists it as enforced (the same rule as
+// XO's global sync, xo-server-vdf vmIfaces): otherwise the guest may use
+// any address, as on an unlocked VIF. A lock to a prefix, XAPI's or VDF's,
+// is untrusted too. A halted VM sends nothing: its VDF lock applies on the
+// host it starts on.
 export function vifLock(
   vif: VdfLockVif & { id: string },
   networkDefaultIsLocked: boolean | undefined,
   { running, host }: { running: boolean; host: VdfLockHost | undefined }
-): { lock: VdfVifLock; reason?: VdfUnenforcedReason } {
+): VdfVifLockState {
   const mode = effectiveLockingMode(vif.lockingMode, networkDefaultIsLocked)
+  const prefix = hasPrefix(vif) || undefined
 
   if (mode === 'locked') {
-    return { lock: 'xapi' }
+    return { lock: 'xapi', prefix, untrusted: prefix === true }
   }
 
   if (mode === 'disabled') {
-    return { lock: 'disabled' }
+    return { lock: 'disabled', untrusted: false }
   }
 
   if (!hasVdfLockKey(vif)) {
-    return { lock: 'unlocked' }
+    return { lock: 'unlocked', untrusted: true }
   }
 
   const reason = running ? vdfLockUnenforced(vif.id, host) : undefined
 
-  return reason === undefined ? { lock: 'vdf' } : { lock: 'vdf-unenforced', reason }
+  return reason === undefined
+    ? { lock: 'vdf', prefix, untrusted: prefix === true }
+    : { lock: 'vdf-unenforced', reason, untrusted: true }
 }
-
-// the guest may use any address: drops of its traffic on other hosts are
-// best effort, and a guest can take another VM's address
-export const isUntrustedLock = (lock: VdfVifLock) => lock === 'unlocked' || lock === 'vdf-unenforced'
 
 // what a VIF sends from is its allowed addresses
 export const isEnforcedLock = (lock: VdfVifLock) => lock === 'xapi' || lock === 'vdf'
@@ -356,12 +377,16 @@ export function lockRelevant(
 
 // a locked VIF whose guest reports an address outside its allowed list:
 // the guest changed address, XAPI (or VDF, for a VDF lock) drops its
-// traffic from the new one
+// traffic from the new one. Not for a disabled VIF (itself, or its
+// network's default: `networkDefaultIsLocked`), which sends nothing.
 export function lockDrift(
   vif: VdfLockVif,
-  guestAddresses: Record<string, string> | undefined
+  guestAddresses: Record<string, string> | undefined,
+  networkDefaultIsLocked?: boolean
 ): VdfLockDrift | undefined {
-  if (vif.lockingMode !== 'locked' && (vif.lockingMode === 'disabled' || !hasVdfLockKey(vif))) {
+  const mode = effectiveLockingMode(vif.lockingMode, networkDefaultIsLocked)
+
+  if (mode === 'disabled' || (mode !== 'locked' && !hasVdfLockKey(vif))) {
     return undefined
   }
 
@@ -389,10 +414,6 @@ export type VdfLockingReport = {
   unlockedCount: number
   stale: VdfLockedVif[]
   staleCount: number
-  // VIFs (uuids) with the VDF lock key their host's agent doesn't enforce
-  // (vdf#41), from agents that support VDF locks: an older one counts them
-  // among its unlocked VIFs, as XAPI shows them
-  vdfUnenforced: string[]
 }
 
 // the agents' locking reports of a pool's hosts, merged
@@ -405,7 +426,6 @@ export function mergeLocking(
     unlockedCount: 0,
     stale: [],
     staleCount: 0,
-    vdfUnenforced: [],
   }
 
   for (const { hostId, status, current } of hosts) {
@@ -421,10 +441,6 @@ export function mergeLocking(
     report.unlockedCount += Math.max(locking.unlocked ?? 0, locking.unlockedVifs?.length ?? 0)
     report.stale.push(...(locking.staleVifs ?? []))
     report.staleCount += Math.max(locking.stale ?? 0, locking.staleVifs?.length ?? 0)
-
-    if (locking.vdfLock === true) {
-      report.vdfUnenforced.push(...(locking.vdfUnenforced ?? []))
-    }
   }
 
   const byName = (vifA: VdfLockedVif, vifB: VdfLockedVif) =>

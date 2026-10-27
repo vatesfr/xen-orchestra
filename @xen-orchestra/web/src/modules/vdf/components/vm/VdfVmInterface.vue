@@ -57,7 +57,7 @@
     <div v-if="drift" class="locking">
       <UiInfo v-tooltip="driftDetail" accent="danger" wrap>
         {{
-          t(lockState.lock === 'xapi' ? 'firewall:lock:drift' : 'firewall:lock:drift:vdf', {
+          t(DRIFT_TEXTS[lockState.lock] ?? 'firewall:lock:drift', {
             outside: formatAddressList(drift.outside),
             allowed: shortList(drift.allowed),
           })
@@ -154,17 +154,30 @@ const LOCKING_ACCENTS: Record<VdfVifLock, InfoAccent> = {
   disabled: 'danger',
 }
 
-const lockingAccent = computed(() => LOCKING_ACCENTS[lockState.value.lock])
+const lockingAccent = computed(() => (lockState.value.prefix ? 'warning' : LOCKING_ACCENTS[lockState.value.lock]))
 
-const lockingText = computed(() =>
-  lockState.value.lock === 'vdf-unenforced'
-    ? t(`firewall:vm:locking:vdf-unenforced:${lockState.value.reason}`, { host: hostName.value ?? '?' })
-    : t(`firewall:vm:locking:${lockState.value.lock}`)
-)
+// who drops its traffic from the new address: nobody yet when VDF doesn't
+// enforce its lock
+const DRIFT_TEXTS: Partial<Record<VdfVifLock, string>> = {
+  xapi: 'firewall:lock:drift',
+  vdf: 'firewall:lock:drift:vdf',
+  'vdf-unenforced': 'firewall:lock:drift:vdf-unenforced',
+}
+
+const lockingText = computed(() => {
+  const { lock, reason, prefix } = lockState.value
+  const text =
+    lock === 'vdf-unenforced'
+      ? t(`firewall:vm:locking:vdf-unenforced:${reason}`, { host: hostName.value ?? '?' })
+      : t(`firewall:vm:locking:${lock}`)
+
+  // a lock to a prefix lets the guest pick any address in it
+  return prefix ? `${text}. ${t('firewall:vm:locking:prefix')}` : text
+})
 
 // locked, but the guest moved to another address (DHCP): XAPI (or VDF)
 // drops its traffic from it until it's locked again
-const drift = computed(() => lockDrift(vif, vm.addresses))
+const drift = computed(() => lockDrift(vif, vm.addresses, network?.defaultIsLocked))
 
 // the first address, and how many more
 const shortList = (addresses: string[]) =>

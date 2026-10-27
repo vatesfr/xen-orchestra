@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 
-import { vmAddresses } from './trace.mjs'
+import { enforcementOf, vmAddresses } from './trace.mjs'
 
 // a trace's ends resolve addresses as agents count them (vdf#36)
 describe('trace: a VM addresses', () => {
@@ -34,5 +34,35 @@ describe('trace: a VM addresses', () => {
       ipv6: [],
     })
     assert.deepEqual(vmAddresses(vm, []), { ipv4: [], ipv6: [] })
+  })
+})
+
+// vdf#41: a VIF locked by VDF counts as locked while the agent of the VM's
+// host lists it as enforced, as in the global sync
+describe('trace: a VM locked by VDF', () => {
+  const status = locking =>
+    JSON.stringify({ heartbeat: new Date().toISOString(), heartbeatSec: 30, locking: { vdfLock: true, ...locking } })
+  const vmOn = (locking, { live = true, power = 'Running' } = {}) => ({
+    power_state: power,
+    $resident_on: { other_config: { 'vdf:status': status(locking) }, $metrics: { live } },
+    $guest_metrics: { networks: { '0/ipv4/0': '10.0.0.5', '0/ipv4/1': '10.0.0.99' } },
+  })
+  const vif = {
+    uuid: 'vif-1',
+    device: '0',
+    locking_mode: 'network_default',
+    ipv4_allowed: ['10.0.0.5'],
+    ipv6_allowed: [],
+    other_config: { 'vdf:locking': 'locked' },
+  }
+  const ipv4 = vm => vmAddresses(vm, [vif]).ipv4
+
+  test("its allowed addresses while enforced, the guest's otherwise", () => {
+    assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] })), ['10.0.0.5'])
+    assert.deepEqual(ipv4(vmOn({ vdfEnforced: [] })), ['10.0.0.5', '10.0.0.99'])
+    assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { live: false })), ['10.0.0.5', '10.0.0.99'])
+    assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { power: 'Halted' })), ['10.0.0.5', '10.0.0.99'])
+    assert.deepEqual(ipv4({ ...vmOn({ vdfEnforced: ['vif-1'] }), $resident_on: undefined }), ['10.0.0.5', '10.0.0.99'])
+    assert.deepEqual(enforcementOf(vmOn({ vdfEnforced: 'vif-1' })).enforced.size, 0)
   })
 })

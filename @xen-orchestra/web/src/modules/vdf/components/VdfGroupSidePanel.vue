@@ -150,7 +150,7 @@ import {
   vdfGlobalRoute,
   vdfPageRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { isUntrustedLock, lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -220,8 +220,9 @@ watch(
 const isGlobal = computed(() => isGlobalName(name) || isGlobalScope(scopeId))
 
 // the interfaces the group selects (on its networks, vdf#36) whose guest
-// may use any address: unlocked, or a VDF lock not enforced (vdf#41)
-const untrustedOf = (vm: FrontXoVm) => groupInterfaces(vm, group).filter(iface => isUntrustedLock(iface.lock))
+// may use any address: unlocked, a VDF lock not enforced, a lock to a
+// prefix (vdf#41)
+const untrustedOf = (vm: FrontXoVm) => groupInterfaces(vm, group).filter(iface => iface.untrusted)
 
 const memberRows = computed(() =>
   members.map(vm => {

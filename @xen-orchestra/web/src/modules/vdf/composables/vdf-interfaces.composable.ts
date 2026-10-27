@@ -26,9 +26,14 @@ export type VdfInterface = {
   // as agents count them: locked IPs, else what the guest reports
   ips: string[]
   // its lock as the firewall trusts it (vdf#41): a VDF lock its host's
-  // agent doesn't enforce is vdf-unenforced, for `lockReason`
+  // agent doesn't list as enforced is vdf-unenforced, for `lockReason`;
+  // `lockPrefix`: locked to a prefix
   lock: VdfVifLock
   lockReason?: VdfUnenforcedReason
+  lockPrefix?: boolean
+  // its guest may use any address (unlocked, a VDF lock not enforced, a
+  // lock to a prefix)
+  untrusted: boolean
   // its network is left out of the firewall (vdf:unprotected)
   unprotected: boolean
 }
@@ -60,7 +65,7 @@ export function useVdfInterfaces() {
       .map(vif => {
         const network = networkById.value.get(vif.$network)
         const netTags = network?.tags ?? []
-        const { lock, reason } = lockOf(vm, vif, network)
+        const { lock, reason, prefix, untrusted } = lockOf(vm, vif, network)
 
         return {
           vif,
@@ -71,6 +76,8 @@ export function useVdfInterfaces() {
           ips: lock === 'disabled' ? [] : interfaceAddresses(vif, vm.addresses, { locked: isEnforcedLock(lock) }),
           lock,
           lockReason: reason,
+          lockPrefix: prefix,
+          untrusted,
           unprotected: netTags.includes(VDF_UNPROTECTED_TAG),
         }
       })

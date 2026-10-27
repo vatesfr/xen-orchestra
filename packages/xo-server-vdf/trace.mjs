@@ -1,5 +1,7 @@
 import { isIP } from 'node:net'
 
+import { hostStatus, isVdfLocked, vdfLockEnforcement } from './global.mjs'
+
 // Port of vdf-agent's trace orchestration (agent/trace.go: trace, endpoint,
 // pickVIF, traceSteps): XO resolves both ends from XAPI, plans the hops and
 // asks each host's vdf plugin for its own hop only (`side` set), as the
@@ -22,13 +24,15 @@ function normalizeIp(ip) {
 // disabled one (itself, or its network's default), else what the guest
 // reports for that VIF's device. What the guest reports for a device the
 // VM has no VIF for counts nowhere: the guest writes those keys itself, and
-// could otherwise claim any address (agent b6846f8).
-export function vmAddresses(vm, vifs) {
+// could otherwise claim any address (agent b6846f8). A VIF locked by VDF
+// counts as locked while the agent of the VM's host reports enforcing it
+// (vdf#41, `enforcement`: vdfLockEnforcement).
+export function vmAddresses(vm, vifs, enforcement = enforcementOf(vm)) {
   const guest = Object.entries(vm.$guest_metrics?.networks ?? {})
   const reported = vifs.flatMap(vif => {
     const mode =
       vif.locking_mode === 'network_default' ? (vif.$network?.default_locking_mode ?? 'unlocked') : vif.locking_mode
-    if (mode === 'locked') {
+    if (mode === 'locked' || (mode !== 'disabled' && isVdfLocked(vif, enforcement))) {
       return [...(vif.ipv4_allowed ?? []), ...(vif.ipv6_allowed ?? [])]
     }
     if (mode === 'disabled') {
@@ -53,15 +57,26 @@ export function vmAddresses(vm, vifs) {
   return { ipv4: [...ipv4].sort(), ipv6: [...ipv6].sort() }
 }
 
-// the VIF carrying ip: locking first, then the guest's per-device report,
-// else the lowest device (pickVIF)
-function pickVif(vifs, guestNetworks, ip) {
+// The VDF locks the host a running VM is on enforces (XAPI's records: its
+// resident host, live per its metrics)
+export function enforcementOf(vm) {
+  const host = vm.power_state === 'Running' ? vm.$resident_on : undefined
+  return host === undefined
+    ? undefined
+    : vdfLockEnforcement(hostStatus(host.other_config), { live: host.$metrics?.live !== false })
+}
+
+// the VIF carrying ip: locking first (XAPI's, or VDF's where enforced),
+// then the guest's per-device report, else the lowest device (pickVIF)
+function pickVif(vifs, guestNetworks, ip, enforcement) {
   if (vifs.length === 0) {
     return undefined
   }
   const sorted = [...vifs].sort((a, b) => Number(a.device) - Number(b.device) || a.uuid.localeCompare(b.uuid))
   const locked = sorted.find(
-    vif => vif.locking_mode === 'locked' && (vif.ipv4_allowed.includes(ip) || vif.ipv6_allowed.includes(ip))
+    vif =>
+      (vif.locking_mode === 'locked' || (vif.locking_mode !== 'disabled' && isVdfLocked(vif, enforcement))) &&
+      (vif.ipv4_allowed.includes(ip) || vif.ipv6_allowed.includes(ip))
   )
   if (locked !== undefined) {
     return locked
@@ -115,7 +130,7 @@ function endpoint(xapi, spec, family) {
     throw new Error(`VM ${vm.name_label} isn't running`)
   }
 
-  const vif = pickVif(vm.$VIFs, vm.$guest_metrics?.networks, ip)
+  const vif = pickVif(vm.$VIFs, vm.$guest_metrics?.networks, ip, enforcementOf(vm))
   return {
     ...end,
     vm: vm.name_label,

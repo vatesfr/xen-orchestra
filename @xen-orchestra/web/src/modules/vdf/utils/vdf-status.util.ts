@@ -17,6 +17,10 @@ export function parseHostStatus(otherConfig: Record<string, string> | undefined)
   }
 }
 
+// a heartbeat this far ahead of XO's clock is still read as current (the
+// plugin's FUTURE_HEARTBEAT_MS)
+export const FUTURE_HEARTBEAT_MS = 60_000
+
 // Same reading as `vdf-agent status`: a heartbeat older than twice its
 // period means the agent is stopped or stuck.
 export function hostState(
@@ -33,8 +37,10 @@ export function hostState(
   }
 
   const heartbeat = Date.parse(status.heartbeat ?? '')
+  const period = typeof status.heartbeatSec === 'number' && status.heartbeatSec > 0 ? status.heartbeatSec : 600
 
-  if (Number.isNaN(heartbeat) || now - heartbeat > 2 * (status.heartbeatSec ?? 600) * 1000) {
+  // a heartbeat further ahead than clock skew says nothing about now
+  if (Number.isNaN(heartbeat) || heartbeat - now > FUTURE_HEARTBEAT_MS || now - heartbeat > 2 * period * 1000) {
     return 'stale'
   }
 

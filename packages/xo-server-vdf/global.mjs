@@ -241,27 +241,49 @@ export function hostStatus(otherConfig) {
   }
 }
 
+// a heartbeat this far ahead of XO's clock is still read as current (clock
+// skew); further ahead, it says nothing about now
+export const FUTURE_HEARTBEAT_MS = 60e3
+
 // Same reading as `vdf-agent status` and XO 6: a heartbeat older than
 // twice its period means the agent is stopped or stuck.
 export function isFresh(status, now = Date.now()) {
   const heartbeat = Date.parse(status?.heartbeat ?? '')
-  return !Number.isNaN(heartbeat) && now - heartbeat <= 2 * (status.heartbeatSec ?? 600) * 1000
+  const period = typeof status?.heartbeatSec === 'number' && status.heartbeatSec > 0 ? status.heartbeatSec : 600
+  return !Number.isNaN(heartbeat) && heartbeat - now <= FUTURE_HEARTBEAT_MS && now - heartbeat <= 2 * period * 1000
 }
 
-// The VDF locks a host's agent enforces: undefined when it enforces none
-// (no status, a stopped or stuck agent, one before VDF locks), else the
-// VIFs with the key it reports it doesn't enforce (a complete list).
-export function vdfLockEnforcement(status, now = Date.now()) {
-  if (status === undefined || !isFresh(status, now) || status.locking?.vdfLock !== true) {
+// a list of VIF uuids an agent reports: anything else is no list
+const uuidList = value => (Array.isArray(value) ? value.filter(uuid => typeof uuid === 'string') : [])
+
+// The VDF locks a host's agent enforces now (vdf#41): undefined when it
+// enforces none (a host not running, no status, a stopped or stuck agent,
+// one before VDF locks), else the VIFs it reports enforcing (a complete
+// list: none when it's missing) and those it reports it can't.
+export function vdfLockEnforcement(status, { now = Date.now(), live = true } = {}) {
+  if (!live || status === undefined || !isFresh(status, now) || status.locking?.vdfLock !== true) {
     return undefined
   }
-  return { unenforced: new Set(status.locking.vdfUnenforced ?? []) }
+  return {
+    enforced: new Set(uuidList(status.locking.vdfEnforced)),
+    unenforced: new Set(uuidList(status.locking.vdfUnenforced)),
+  }
 }
 
-// a VIF whose addresses VDF enforces: the key, and the agent of the VM's
-// host enforcing it (XAPI's own lock is told apart by the caller)
+// A VIF whose addresses VDF enforces: the key, and the agent of the VM's
+// host listing it as enforced (XAPI's own lock is told apart by the
+// caller). Positive only: a VIF the agent hasn't listed yet (just locked,
+// hot-plugged, or on a VM that just migrated there) isn't.
 export const isVdfLocked = (vif, enforcement) =>
-  hasVdfLock(vif) && enforcement !== undefined && !enforcement.unenforced.has(vif.uuid ?? vif.id)
+  hasVdfLock(vif) && enforcement !== undefined && enforcement.enforced.has(vif.uuid ?? vif.id)
+
+// an allowed list holding a prefix (XAPI accepts CIDRs): a lock to it lets
+// the guest use any address in it, so its addresses aren't trusted
+export const hasPrefix = vif =>
+  [
+    ...(vif.allowedIpv4Addresses ?? vif.ipv4_allowed ?? []),
+    ...(vif.allowedIpv6Addresses ?? vif.ipv6_allowed ?? []),
+  ].some(ip => typeof ip !== 'string' || ip.includes('/'))
 
 const usableIp = ip => typeof ip === 'string' && !ip.includes('/') && !/^fe80:/i.test(ip)
 
@@ -276,8 +298,9 @@ const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
 // its groups, which XO would then write into every other pool (the agent's
 // own fix, vdf b6846f8). A disabled VIF (itself, or its network's default) sends nothing: what its
 // guest reports doesn't count, as for agents. A VIF locked by VDF counts
-// as locked while the agent of the VM's host enforces its lock (vdf#41),
-// else as an unlocked one.
+// as locked while the agent of the VM's host reports enforcing its lock
+// (vdf#41), else as an unlocked one. A lock whose allowed list holds a
+// prefix keeps its addresses, untrusted.
 // networkOf: a VIF's network object, if XO knows it; enforcement: the VDF
 // locks the VM's host enforces (vdfLockEnforcement).
 export function vmIfaces(vm, vifs, networkOf = () => undefined, enforcement = undefined) {
@@ -303,7 +326,8 @@ export function vmIfaces(vm, vifs, networkOf = () => undefined, enforcement = un
               ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
               : (reported.get(String(vif.device)) ?? [])
           ),
-      trusted: locked,
+      // a lock to a prefix lets the guest pick in it
+      trusted: locked && !hasPrefix(vif),
     }
   })
   return ifaces.sort((a, b) => (a.device < b.device ? -1 : a.device > b.device ? 1 : 0))
