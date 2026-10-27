@@ -1,8 +1,9 @@
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { defineJobArg } from '@core/packages/job'
 
-export const xoPluginArg = defineJobArg({
-  identify: (plugin: FrontXoPlugin) => plugin.id,
+// `validate` reports a missing plugin, but the job identifies its arguments before
+export const xoPluginArg = defineJobArg<FrontXoPlugin>({
+  identify: (plugin: FrontXoPlugin | undefined) => plugin?.id,
   toArray: false,
 })
 
