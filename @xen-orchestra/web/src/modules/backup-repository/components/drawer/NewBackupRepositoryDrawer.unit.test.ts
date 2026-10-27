@@ -3,6 +3,8 @@ import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import NewBackupRepositoryReviewStep from '@/modules/backup-repository/components/form/steps/NewBackupRepositoryReviewStep.vue'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -30,10 +32,6 @@ async function mountDrawer() {
 
 function findRenderedSteps(wrapper: VueWrapper) {
   return (Object.keys(STEPS) as (keyof typeof STEPS)[]).filter(step => wrapper.findComponent(STEPS[step]).exists())
-}
-
-function findButtonLabels(wrapper: VueWrapper) {
-  return wrapper.findAll('.buttons button').map(button => button.text())
 }
 
 function getField(wrapper: VueWrapper, label: string) {
@@ -64,19 +62,8 @@ async function select(wrapper: VueWrapper, label: string, optionLabel: string) {
   await flushPromises()
 }
 
-async function submit(wrapper: VueWrapper) {
-  await wrapper.get('form').trigger('submit')
-  await flushPromises()
-}
-
 async function clickButton(wrapper: VueWrapper, label: string) {
-  const button = wrapper.findAll('.buttons button').find(button => button.text() === label)
-
-  if (button === undefined) {
-    throw new Error(`No button "${label}"`)
-  }
-
-  await button.trigger('click')
+  await getButton(wrapper, label).trigger('click')
   await flushPromises()
 }
 
@@ -85,7 +72,7 @@ async function mountDrawerAtDetailsStep() {
   await fill(wrapper, t('name'), 'My repository')
   await select(wrapper, t('type'), t('nfs'))
   await select(wrapper, t('backup-format'), t('vhd-file'))
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   return wrapper
 }
@@ -94,7 +81,7 @@ async function mountDrawerAtReviewStep() {
   const wrapper = await mountDrawerAtDetailsStep()
   await fill(wrapper, t('host-or-ip-address'), '192.168.1.10')
   await fill(wrapper, t('path-on-share'), '/exports/backups')
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   return wrapper
 }
@@ -105,7 +92,7 @@ it.each([
 ] as const)('stays on the %s step when it is submitted while invalid', async (step, mountDrawerAtStep) => {
   const wrapper = await mountDrawerAtStep()
 
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   expect(findRenderedSteps(wrapper)).toEqual([step])
 })
@@ -115,7 +102,7 @@ describe('general step', () => {
     const wrapper = await mountDrawer()
 
     expect(findRenderedSteps(wrapper)).toEqual(['general'])
-    expect(findButtonLabels(wrapper)).toEqual([t('cancel'), t('action:continue')])
+    expect(findDrawerButtonLabels(wrapper)).toEqual([t('cancel'), t('action:continue')])
   })
 
   it('cancels from the cancel button', async () => {
@@ -132,7 +119,7 @@ describe('details step', () => {
     const wrapper = await mountDrawerAtDetailsStep()
 
     expect(findRenderedSteps(wrapper)).toEqual(['details'])
-    expect(findButtonLabels(wrapper)).toEqual([t('action:back'), t('action:continue')])
+    expect(findDrawerButtonLabels(wrapper)).toEqual([t('action:back'), t('action:continue')])
   })
 
   it('goes back to the general step, without cancelling', async () => {
@@ -150,7 +137,7 @@ describe('review step', () => {
     const wrapper = await mountDrawerAtReviewStep()
 
     expect(findRenderedSteps(wrapper)).toEqual(['review'])
-    expect(findButtonLabels(wrapper)).toEqual([t('action:back'), t('action:create')])
+    expect(findDrawerButtonLabels(wrapper)).toEqual([t('action:back'), t('action:create')])
   })
 
   it('does not confirm before it is submitted', async () => {
@@ -162,7 +149,7 @@ describe('review step', () => {
   it('confirms with the repository to create when it is submitted', async () => {
     const wrapper = await mountDrawerAtReviewStep()
 
-    await submit(wrapper)
+    await submitDrawer(wrapper)
 
     expect(wrapper.emitted('confirm')).toEqual([[{ name: 'My repository', url: expect.any(String) }]])
   })

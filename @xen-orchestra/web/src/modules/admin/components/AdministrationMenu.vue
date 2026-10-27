@@ -2,9 +2,9 @@
   <nav class="administration-menu" :aria-label="t('administration')">
     <section v-for="(section, index) in sections" :key="index" class="menu-section">
       <div class="section-title typo-h6">{{ section.title }}</div>
-      <ul class="links">
+      <ul class="menu-links">
         <MenuItem v-for="(item, itemIndex) in section.items" :key="itemIndex" accent="neutral">
-          <UiLink size="small" class="link" :href="item.href" :to="item.to" @click="closeSidebarOnSmallScreen()">
+          <UiLink size="small" class="menu-link" :href="item.href" :to="item.to" @click="closeSidebarOnSmallScreen()">
             {{ item.label }}
           </UiLink>
         </MenuItem>
@@ -62,10 +62,14 @@ const sections = computed<AdminMenuSection[]>(() => [
       { label: t('roles'), href: buildXo5Route('/settings/acls'), to: undefined },
       {
         label: t('ldap-auth-providers'),
-        href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
-        to: undefined,
+        href: undefined,
+        to: { name: '/admin/plugins', query: { 'qb.plugins': 'name:/^auth-/' } },
       },
     ],
+  },
+  {
+    title: t('settings'),
+    items: [{ label: t('plugins'), href: undefined, to: { name: '/admin/plugins' } }],
   },
 ])
 </script>
@@ -90,11 +94,11 @@ const sections = computed<AdminMenuSection[]>(() => [
     border-block-start: 0.1rem solid var(--color-neutral-border);
   }
 
-  .links {
+  .menu-links {
     margin: 0;
     padding: 0.4rem 0;
 
-    .link {
+    .menu-link {
       flex-grow: 1;
       padding-block: 1.2rem;
       text-decoration: none;

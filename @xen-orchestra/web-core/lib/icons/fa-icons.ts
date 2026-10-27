@@ -92,7 +92,6 @@ import {
   faPlug,
   faPlus,
   faPowerOff,
-  faPuzzlePiece,
   faRemove,
   faRepeat,
   faRotateLeft,
@@ -115,6 +114,7 @@ import {
   faUpRightFromSquare,
   faUserAstronaut,
   faWarning,
+  faWindowMaximize,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -223,7 +223,7 @@ export const faIcons = defineIconPack({
   star: { icon: faStar },
   stop: { icon: faStop },
   tags: { icon: faTags },
-  template: { icon: faPuzzlePiece },
+  template: { icon: faWindowMaximize },
   time: { icon: faClock },
   'thumb-tack': { icon: faThumbTack },
   'thumb-tack-slash': { icon: faThumbTackSlash },
