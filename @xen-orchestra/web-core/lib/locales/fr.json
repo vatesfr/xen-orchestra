@@ -285,6 +285,7 @@
   "bootable": "Amorçable",
   "br-details": "Détails du BR",
   "br-type-details": "Détails {type}",
+  "brotli": "Brotli",
   "bucket-name": "Nom du bucket",
   "build-number": "Numéro de build",
   "by": "Par",
@@ -422,7 +423,7 @@
   "enabled": "Activé",
   "encrypted": "Encrypté",
   "encryption": "Chiffrement",
-  "encryption-available-for-block-modes-only": "Le cryptage est disponible uniquement pour les modes par blocs.",
+  "encryption-and-compression-available-for-block-modes-only": "Le cryptage et la compression sont disponibles uniquement pour les modes par blocs.",
   "encryption-key-invalid": "La clé doit contenir exactement {n} caractères hexadécimaux.",
   "encryption-key-loss-warning": "Si vous perdez la clé de cryptage, vos données ne peuvent pas être récupérées.",
   "end-date": "Date de fin",
@@ -1537,5 +1538,8 @@
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
-  "zstd": "ZSTD"
+  "zeros-compression": "Suppression des pages vides",
+  "zeros-compression-hint": "Quasiment pas de CPU, réduction de taille moindre",
+  "zstd": "ZSTD",
+  "zstd-node-requirement": "Nécessite Node.js 22.15 ou plus récent là où s'exécutent les sauvegardes"
 }

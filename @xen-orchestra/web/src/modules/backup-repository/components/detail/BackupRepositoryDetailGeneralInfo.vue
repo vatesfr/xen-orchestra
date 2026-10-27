@@ -13,6 +13,7 @@
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('type')" :value="brType" />
       <VtsTabularKeyValueRow :label="t('storage-mode')" :value="brStorageMode" />
+      <VtsTabularKeyValueRow v-if="parsedBrUrl?.useVhdDirectory" :label="t('compression')" :value="brCompression" />
       <VtsTabularKeyValueRow :label="t('proxy')">
         <template v-if="brProxy" #value>
           <VtsIcon size="medium" name="object:proxy" />
@@ -47,7 +48,7 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
+const { brStatus, brType, brStorageMode, brCompression, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
   () => br,
   () => parsedBrUrl
 )

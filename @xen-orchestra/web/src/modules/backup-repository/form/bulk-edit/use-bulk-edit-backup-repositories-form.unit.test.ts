@@ -122,6 +122,25 @@ describe('validateAndBuildPayloads', () => {
     ])
   })
 
+  it('keeps the compression of each repository when the details are changed', async () => {
+    const ZSTD_NFS_BR = createBr({
+      id: 'backup-repository-4' as FrontXoBackupRepository['id'],
+      name: 'Zstd backups',
+      url: 'nfs://192.168.1.10:2049:/exports/zstd?useVhdDirectory=true&compressionType=%22zstd%22',
+    })
+
+    const form = mountBulkEditForm([ENCRYPTED_NFS_BR, ZSTD_NFS_BR])
+    form.details.nfs.formData.host = '192.168.1.20'
+
+    const payloads = await form.validateAndBuildPayloads()
+
+    expect(parseBackupRepositoryUrl(payloads!.get(ENCRYPTED_NFS_BR.id)!.url)).not.toHaveProperty('compressionType')
+    expect(parseBackupRepositoryUrl(payloads!.get(ZSTD_NFS_BR.id)!.url)).toMatchObject({
+      host: '192.168.1.20',
+      compressionType: 'zstd',
+    })
+  })
+
   it('keeps the url and the options of repositories of different types', async () => {
     const form = mountBulkEditForm([ENCRYPTED_NFS_BR, S3_BR])
     form.general.formData.proxy = null

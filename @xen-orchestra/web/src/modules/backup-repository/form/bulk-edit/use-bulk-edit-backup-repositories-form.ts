@@ -65,6 +65,8 @@ export function useBulkEditBackupRepositoriesForm(brs: FrontXoBackupRepository[]
       proxy: undefined,
       encrypted: false,
       encryptionKey: '',
+      // not editable in multi-edition, the one of each repository is kept
+      compression: undefined,
       ...general.data,
     }),
     {
@@ -98,9 +100,10 @@ export function useBulkEditBackupRepositoriesForm(brs: FrontXoBackupRepository[]
           ? br.url
           : formatBackupRepositoryUrl({
               ...detailsPayload.urlInfo,
-              // The encryption and the backup format can't be changed in edit mode
+              // The encryption, the backup format and the compression can't be changed in edit mode
               ...(parsedUrl.encryptionKey !== undefined && { encryptionKey: parsedUrl.encryptionKey }),
               ...(parsedUrl.useVhdDirectory === true && { useVhdDirectory: true }),
+              ...(parsedUrl.compressionType !== undefined && { compressionType: parsedUrl.compressionType }),
             }),
       options: detailsPayload === undefined ? (br.options ?? null) : (detailsPayload.options ?? null),
       proxy: proxy === undefined ? (br.proxy ?? null) : proxy,
@@ -119,7 +122,8 @@ export function useBulkEditBackupRepositoriesForm(brs: FrontXoBackupRepository[]
       return undefined
     }
 
-    const detailsChanges = detailsForm === undefined ? undefined : omitMixedValues(detailsForm.formData, t('mixed-value'))
+    const detailsChanges =
+      detailsForm === undefined ? undefined : omitMixedValues(detailsForm.formData, t('mixed-value'))
 
     return new Map(initialBrs.map(initialBr => [initialBr.br.id, buildPayload(initialBr, detailsChanges)]))
   }

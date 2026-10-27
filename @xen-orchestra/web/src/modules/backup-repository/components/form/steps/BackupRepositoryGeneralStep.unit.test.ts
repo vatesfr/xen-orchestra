@@ -25,6 +25,7 @@ function mountGeneralStep(formData: Partial<BackupRepositoryGeneralFormData> = {
     proxy: undefined,
     encrypted: false,
     encryptionKey: '',
+    compression: 'brotli',
     ...formData,
   })
 
@@ -68,13 +69,18 @@ it('offers the name, type, backup format and proxy fields', () => {
   const { wrapper } = mountGeneralStep()
 
   expect(findLabels(wrapper, BackupRepositoryFormTextInput)).toEqual([t('name')])
-  expect(findLabels(wrapper, BackupRepositoryFormSelect)).toEqual([t('type'), t('backup-format'), t('proxy')])
+  expect(findLabels(wrapper, BackupRepositoryFormSelect)).toEqual([
+    t('type'),
+    t('backup-format'),
+    t('proxy'),
+    t('compression'),
+  ])
 })
 
-it('warns that the encryption is available for the block based format only', () => {
+it('warns that the encryption and the compression are available for the block based format only', () => {
   const { wrapper } = mountGeneralStep()
 
-  expect(wrapper.get('.ui-alert').text()).toContain(t('encryption-available-for-block-modes-only'))
+  expect(wrapper.get('.ui-alert').text()).toContain(t('encryption-and-compression-available-for-block-modes-only'))
 })
 
 it('hides the encryption key until the encryption is enabled', () => {

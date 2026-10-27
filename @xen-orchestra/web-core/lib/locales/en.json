@@ -285,6 +285,7 @@
   "bootable": "Bootable",
   "br-details": "Backup repository details",
   "br-type-details": "{type} details",
+  "brotli": "Brotli",
   "bucket-name": "Bucket name",
   "build-number": "Build number",
   "by": "By",
@@ -422,7 +423,7 @@
   "enabled": "Enabled",
   "encrypted": "Encrypted",
   "encryption": "Encryption",
-  "encryption-available-for-block-modes-only": "Encryption is available for block modes only.",
+  "encryption-and-compression-available-for-block-modes-only": "Encryption and compression are available for block modes only.",
   "encryption-key-invalid": "The key must contain exactly {n} hexadecimal characters.",
   "encryption-key-loss-warning": "If you lose the encryption key, your data cannot be recovered.",
   "end-date": "End date",
@@ -1537,5 +1538,8 @@
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "xva": "XVA",
   "you-are-currently-on": "You are currently on: {0}",
-  "zstd": "ZSTD"
+  "zeros-compression": "Zero pages removal",
+  "zeros-compression-hint": "Nearly no CPU usage, smaller size reduction",
+  "zstd": "ZSTD",
+  "zstd-node-requirement": "Requires Node.js 22.15 or later where the backups run"
 }

@@ -58,6 +58,18 @@ describe('useXoBackupRepositoryUtils', () => {
     expect(result.isEncrypted).toBe(true)
   })
 
+  it('shows the compression of the repository, brotli without compressionType', () => {
+    const compressionOf = (url: string) => mountUtils(createBr({ url })).brCompression
+    const { t } = mountUtils()
+
+    expect(compressionOf('nfs://192.168.100.225:/media/nfs?useVhdDirectory=true')).toBe(t('brotli'))
+    expect(compressionOf('nfs://192.168.100.225:/media/nfs?useVhdDirectory=true&compressionType=%22zstd%22')).toBe(
+      t('zstd')
+    )
+    // written by hand: shown as is
+    expect(compressionOf('nfs://192.168.100.225:/media/nfs?useVhdDirectory=true&compressionType=%22lz4%22')).toBe('lz4')
+  })
+
   it('falls back to unknown type and storage mode for an unrecognized url', () => {
     const result = mountUtils(createBr({ url: 'ftp://192.168.100.225/backup' }))
 

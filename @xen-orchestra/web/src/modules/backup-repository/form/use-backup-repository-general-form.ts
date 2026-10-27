@@ -1,9 +1,15 @@
 import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
+import { useXoBackupRepositoryCompressionLabels } from '@/modules/backup-repository/composables/use-xo-backup-repository-compression-label.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import {
+  BACKUP_REPOSITORY_COMPRESSIONS,
+  DEFAULT_BACKUP_REPOSITORY_COMPRESSION,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
+import type { BACKUP_REPOSITORY_COMPRESSION } from '@vates/types'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
@@ -15,6 +21,8 @@ export type BackupRepositoryGeneralFormData = {
   proxy: FrontXoProxy['id'] | null | undefined
   encrypted: boolean
   encryptionKey: string
+  // undefined when the compression of the URL is not one of the known ones (written by hand), or in multi-edition
+  compression: BACKUP_REPOSITORY_COMPRESSION | undefined
 }
 
 export type BackupRepositoryGeneralFormOptions = {
@@ -68,6 +76,8 @@ export function useBackupRepositoryGeneralForm(
 
   const isEncryptionAvailable = computed(() => formData.backupFormat === 'block')
 
+  const isBlockFormat = computed(() => formData.backupFormat === 'block')
+
   watch(isBackupFormatLocked, isLocked => {
     formData.backupFormat = isLocked ? 'block' : undefined
   })
@@ -75,6 +85,13 @@ export function useBackupRepositoryGeneralForm(
   watch(isEncryptionAvailable, isAvailable => {
     if (!isAvailable) {
       formData.encrypted = false
+    }
+  })
+
+  // the compression only applies to the block based format
+  watch(isBlockFormat, isBlock => {
+    if (!isBlock) {
+      formData.compression = DEFAULT_BACKUP_REPOSITORY_COMPRESSION
     }
   })
 
@@ -132,6 +149,29 @@ export function useBackupRepositoryGeneralForm(
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
+  const compressionLabels = useXoBackupRepositoryCompressionLabels()
+
+  const compressionHints = computed<Partial<Record<BACKUP_REPOSITORY_COMPRESSION, string>>>(() => ({
+    zstd: t('zstd-node-requirement'),
+    zeros: t('zeros-compression-hint'),
+  }))
+
+  const compressionOptions = computed(() =>
+    BACKUP_REPOSITORY_COMPRESSIONS.map(compression => ({
+      id: compression,
+      label: compressionLabels.value[compression],
+      value: compression,
+      hint: compressionHints.value[compression],
+    }))
+  )
+
+  const { id: compressionSelectId } = useFormSelect('compression', compressionOptions, {
+    required: true,
+    // changing the compression would start new full backup chains: it can't be changed in edit mode, like the format
+    disabled: () => isEditing || !isBlockFormat.value,
+    option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
+  })
+
   const mixedProxyOption = { id: MIXED_OPTION_ID, name: t('mixed-value') }
 
   const proxyOptions = computed(() => [...(isMixed('proxy') ? [mixedProxyOption] : []), ...proxies.value])
@@ -162,12 +202,19 @@ export function useBackupRepositoryGeneralForm(
       disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
+    compression: useSelect(compressionSelectId, () => ({ label: t('compression') })),
   })
 
   function buildUrlOptions(): BackupRepositoryUrlOptions {
     return {
       ...(formData.encrypted && { encryptionKey: formData.encryptionKey }),
       ...(formData.backupFormat === 'block' && { useVhdDirectory: true }),
+      // no compressionType in the URL means the default compression
+      // in edit mode, the compression of the URL is kept as is by the caller (urlOptionsToKeep)
+      ...(!isEditing &&
+        isBlockFormat.value &&
+        formData.compression !== undefined &&
+        formData.compression !== DEFAULT_BACKUP_REPOSITORY_COMPRESSION && { compressionType: formData.compression }),
     }
   }
 
