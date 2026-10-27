@@ -28,7 +28,6 @@
               accent="brand"
               icon="action:more-actions"
               size="small"
-              :selected="isOpen"
               @click="open($event)"
             />
           </template>
