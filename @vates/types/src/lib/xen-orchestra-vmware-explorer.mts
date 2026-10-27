@@ -4,16 +4,12 @@
 export type VmwareDatacenter = {
   id: string
   name: string
-  datastores: string[]
-  networks: string[]
 }
 
 export type VmwareCluster = {
   id: string
   name: string
-  parent?: string
   datacenter?: string
-  hosts: string[]
 }
 
 export type VmwareHost = {
@@ -28,10 +24,8 @@ export type VmwareDatastore = {
   id: string
   name?: string
   type?: string
-  url?: string
   capacity?: number
   freeSpace?: number
-  accessible: boolean
   /** the hosts which mount the datastore and can reach it */
   hosts: string[]
 }
@@ -48,7 +42,6 @@ export type VmwareDistributedPortgroup = {
   id: string
   name: string
   distributed: true
-  key: string
   vlan?: VmwareVlan
 }
 
@@ -59,11 +52,8 @@ export type VmwareVmDisk = {
   key: string
   label: string
   capacity: number
-  fileName?: string
   datastore?: string
   diskMode?: string
-  backingType?: string
-  thinProvisioned: boolean
   rdm: boolean
   encrypted: boolean
 }
@@ -75,16 +65,6 @@ export type VmwareVmNic = {
   macAddress?: string
   addressType?: string
   network?: string
-  portgroupKey?: string
-  opaqueNetworkId?: string
-}
-
-export type VmwareVmSnapshot = {
-  id: string
-  name: string
-  description?: string
-  createTime?: string
-  parent?: string
 }
 
 export type VmwareVm = {
@@ -94,17 +74,14 @@ export type VmwareVm = {
   instanceUuid?: string
   firmware?: string
   secureBoot: boolean
-  guestId?: string
-  guestFullName?: string
   isTemplate: boolean
   cpus?: number
   memory?: number
   powerState?: 'poweredOff' | 'poweredOn' | 'suspended'
   host?: string
   datastores: string[]
-  networks: string[]
   currentSnapshot?: string
-  snapshots: VmwareVmSnapshot[]
+  snapshotCount: number
   disks: VmwareVmDisk[]
   nics: VmwareVmNic[]
 }
@@ -112,10 +89,7 @@ export type VmwareVm = {
 export type VmwareInventory = {
   /** e.g. `VMware vCenter Server`, `VMware ESXi` */
   product?: string
-  /** `VirtualCenter` or `HostAgent` */
-  productType?: string
   version?: string
-  build?: string
   /** only set by a vCenter */
   instanceUuid?: string
   datacenters: VmwareDatacenter[]

@@ -9,8 +9,7 @@ const sourceVm = (vm: Partial<VmwareVm> = {}): VmwareVm => ({
   secureBoot: false,
   isTemplate: false,
   datastores: [],
-  networks: [],
-  snapshots: [],
+  snapshotCount: 0,
   disks: [],
   nics: [],
   ...vm,
@@ -31,7 +30,6 @@ describe('toXoV2vInventory', function () {
     const inventory = toXoV2vInventory(
       sourceInventory({
         product: 'VMware vCenter Server',
-        productType: 'VirtualCenter',
         version: '8.0.2',
         instanceUuid: 'vc-1',
       })
@@ -46,10 +44,8 @@ describe('toXoV2vInventory', function () {
   it('points the hosts and the clusters up to their cluster and datacenter', function () {
     const inventory = toXoV2vInventory(
       sourceInventory({
-        datacenters: [{ id: 'datacenter-1', name: 'DC', datastores: ['datastore-1'], networks: [] }],
-        clusters: [
-          { id: 'domain-c7', name: 'Cluster', parent: 'group-h4', datacenter: 'datacenter-1', hosts: ['host-10'] },
-        ],
+        datacenters: [{ id: 'datacenter-1', name: 'DC' }],
+        clusters: [{ id: 'domain-c7', name: 'Cluster', datacenter: 'datacenter-1' }],
         hosts: [
           { id: 'host-10', name: 'esx1', parent: 'domain-c7', datacenter: 'datacenter-1' },
           // a standalone host: its parent is its own compute resource
@@ -69,7 +65,7 @@ describe('toXoV2vInventory', function () {
   it('leaves out the hosts and the clusters outside of any datacenter', function () {
     const inventory = toXoV2vInventory(
       sourceInventory({
-        clusters: [{ id: 'domain-c7', name: 'Cluster', hosts: [] }],
+        clusters: [{ id: 'domain-c7', name: 'Cluster' }],
         hosts: [{ id: 'host-10', name: 'esx1', parent: 'domain-c7' }],
       })
     )
@@ -85,13 +81,11 @@ describe('toXoV2vInventory', function () {
             id: 'datastore-1',
             name: 'ds1',
             type: 'VMFS',
-            url: 'ds:///vmfs/volumes/1/',
             capacity: 1000,
             freeSpace: 400,
-            accessible: true,
             hosts: ['host-10'],
           },
-          { id: 'datastore-2', accessible: false, hosts: [] },
+          { id: 'datastore-2', hosts: [] },
         ],
       })
     )
@@ -107,8 +101,8 @@ describe('toXoV2vInventory', function () {
       sourceInventory({
         networks: [
           { id: 'network-1', name: 'VM Network', distributed: false },
-          { id: 'dvportgroup-2', name: 'prod', distributed: true, key: 'dvpg-2', vlan: 12 },
-          { id: 'dvportgroup-3', name: 'trunk', distributed: true, key: 'dvpg-3', vlan: [{ start: 1, end: 4094 }] },
+          { id: 'dvportgroup-2', name: 'prod', distributed: true, vlan: 12 },
+          { id: 'dvportgroup-3', name: 'trunk', distributed: true, vlan: [{ start: 1, end: 4094 }] },
         ],
       })
     )
@@ -138,10 +132,7 @@ describe('toXoV2vInventory', function () {
             host: 'host-10',
             datastores: ['datastore-1'],
             currentSnapshot: 'snapshot-2',
-            snapshots: [
-              { id: 'snapshot-1', name: 'a' },
-              { id: 'snapshot-2', name: 'b', parent: 'snapshot-1' },
-            ],
+            snapshotCount: 2,
           }),
         ],
       })
@@ -180,7 +171,6 @@ describe('toXoV2vInventory', function () {
                 capacity: 1024,
                 datastore: 'datastore-1',
                 diskMode: 'independent_persistent',
-                thinProvisioned: true,
                 rdm: true,
                 encrypted: true,
               },
@@ -188,7 +178,7 @@ describe('toXoV2vInventory', function () {
             nics: [
               { key: '4000', label: 'Network adapter 1', macAddress: '00:50:56:aa:bb:cc', network: 'dvportgroup-2' },
               // an NSX opaque network is not a port group
-              { key: '4001', label: 'Network adapter 2', opaqueNetworkId: 'nsx-1' },
+              { key: '4001', label: 'Network adapter 2' },
             ],
           }),
         ],
@@ -224,7 +214,6 @@ describe('toXoV2vInventory', function () {
                 key: 'scsi0:0',
                 label: 'Hard disk 1',
                 capacity: 1024,
-                thinProvisioned: false,
                 rdm: false,
                 encrypted: false,
               },

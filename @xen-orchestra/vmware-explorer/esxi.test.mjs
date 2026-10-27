@@ -198,7 +198,7 @@ describe('getInventory', function () {
     const { esxi, vimClient } = await connectedEsxi({
       responses: { RetrievePropertiesEx: ({ specSet }) => page(typesByPage[specSet[0].propSet[0].type] ?? []) },
     })
-    vimClient.serviceContent.about = { name: 'VMware vCenter Server', apiType: 'VirtualCenter', instanceUuid: 'vc-1' }
+    vimClient.serviceContent.about = { name: 'VMware vCenter Server', instanceUuid: 'vc-1' }
 
     const inventory = await esxi.getInventory()
 
@@ -207,15 +207,13 @@ describe('getInventory', function () {
     assert.ok(!vmSpec.pathSet.includes('config'), 'the whole config is never requested')
     assert.equal(vimClient.callsTo('DestroyView').length, requested.length)
 
-    assert.equal(inventory.productType, 'VirtualCenter')
+    assert.equal(inventory.product, 'VMware vCenter Server')
     assert.equal(inventory.instanceUuid, 'vc-1')
     assert.deepEqual(inventory.hosts, [
       { id: 'host-10', name: 'esx1', parent: 'domain-c7', datacenter: 'datacenter-1' },
     ])
     assert.deepEqual(inventory.datastores[0].hosts, ['host-10'], 'only the hosts which can reach the datastore')
-    assert.deepEqual(inventory.networks, [
-      { id: 'dvportgroup-5', name: 'prod', distributed: true, key: 'dvpg-key', vlan: 12 },
-    ])
+    assert.deepEqual(inventory.networks, [{ id: 'dvportgroup-5', name: 'prod', distributed: true, vlan: 12 }])
     const [vm] = inventory.vms
     assert.equal(vm.id, 'vm-1')
     assert.equal(vm.firmware, 'uefi')
