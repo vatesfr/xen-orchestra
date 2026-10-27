@@ -98,16 +98,26 @@ export function aloneSince(
   entries: VdfMonitorEntry[],
   policyName: string,
   since: number,
-  keep: (entry: VdfMonitorEntry) => boolean = () => true
+  keep: (entry: VdfMonitorEntry) => boolean = () => true,
+  options?: { rank?: (tier: string) => number }
 ) {
-  return aloneGroups(entries, policyName).flatMap(({ shadowedBy, shadowedTier, earlier, entries: groupEntries }) => {
-    const count = groupEntries.filter(entry => Date.parse(entry.last) >= since && keep(entry)).length
+  return aloneGroups(entries, policyName, options).flatMap(
+    ({ shadowedBy, shadowedTier, earlier, entries: groupEntries }) => {
+      const count = groupEntries.filter(entry => Date.parse(entry.last) >= since && keep(entry)).length
 
-    return count === 0 ? [] : [{ shadowedBy, shadowedTier, earlier, count }]
-  })
+      return count === 0 ? [] : [{ shadowedBy, shadowedTier, earlier, count }]
+    }
+  )
 }
 
-export function aloneGroups(entries: VdfMonitorEntry[], policyName?: string): VdfAloneGroup[] {
+// Ordered per policy, then per shadowed tier: by `rank` (a tier as agents
+// name it, to its rank: reportedTierValue, which this module can't import),
+// else by name; those without a shadowed tier first.
+export function aloneGroups(
+  entries: VdfMonitorEntry[],
+  policyName?: string,
+  { rank }: { rank?: (tier: string) => number } = {}
+): VdfAloneGroup[] {
   const byKey = new Map<string, VdfAloneGroup>()
 
   for (const entry of liveEntries(entries, policyName, { alone: true })) {
@@ -125,11 +135,19 @@ export function aloneGroups(entries: VdfMonitorEntry[], policyName?: string): Vd
     byKey.set(key, group)
   }
 
+  const tierOrder = (a: VdfAloneGroup, b: VdfAloneGroup) => {
+    if (a.shadowedTier === undefined || b.shadowedTier === undefined) {
+      return Number(a.shadowedTier !== undefined) - Number(b.shadowedTier !== undefined)
+    }
+
+    return rank === undefined
+      ? a.shadowedTier.localeCompare(b.shadowedTier)
+      : rank(a.shadowedTier) - rank(b.shadowedTier)
+  }
+
   return [...byKey.values()].sort(
     (a, b) =>
-      a.policy.localeCompare(b.policy) ||
-      (a.shadowedTier ?? '').localeCompare(b.shadowedTier ?? '') ||
-      a.shadowedBy.join().localeCompare(b.shadowedBy.join())
+      a.policy.localeCompare(b.policy) || tierOrder(a, b) || a.shadowedBy.join().localeCompare(b.shadowedBy.join())
   )
 }
 

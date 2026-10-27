@@ -168,11 +168,27 @@ it('gives each shadowed tier its section, an earlier one said', async () => {
   const sections = wrapper.findAll('section.alone')
 
   expect(sections).toHaveLength(2)
-  expect(sections[0].text()).toContain(t('firewall:monitor:alone:title', { policy: 'cache', by: 'web' }))
-  expect(sections[1].text()).toContain(
+  expect(sections[1].text()).toContain(t('firewall:monitor:alone:title', { policy: 'cache', by: 'web' }))
+  // securityops ranks before application
+  expect(sections[0].text()).toContain(
     t('firewall:monitor:alone:title:earlier', { policy: 'cache', by: 'e25', tier: t('firewall:tier:securityops') })
   )
-  expect(sections[1].text()).toContain('TCP 6380')
+  expect(sections[0].text()).toContain('TCP 6380')
+})
+
+it('orders the sections by tier rank, not by name', async () => {
+  data.entries = [
+    entry({ port: 6381, alone: true, shadowedBy: ['b'], shadowedTier: 'baseline' }),
+    entry({ port: 6380, alone: true, shadowedBy: ['p'], shadowedTier: 'platform' }),
+    entry({ port: 6379, alone: true, shadowedBy: ['s'], shadowedTier: 'securityops' }),
+  ]
+  const wrapper = await mountReport()
+
+  expect(wrapper.findAll('section.alone').map(section => section.find('.alone-flow').text())).toEqual([
+    expect.stringContaining('6379'),
+    expect.stringContaining('6380'),
+    expect.stringContaining('6381'),
+  ])
 })
 
 it('an older agent: no alone entries, no section', async () => {

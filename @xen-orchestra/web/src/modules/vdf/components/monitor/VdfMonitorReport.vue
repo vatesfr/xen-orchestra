@@ -490,7 +490,7 @@ const monitorTierLabel = (tier: string) => tierLabel(reportedTierValue(tier))
 const aloneSections = computed(() => {
   const names = new Set(shownPolicies.value.map(policy => policy.name))
 
-  return aloneGroups(monitor.value?.entries ?? [])
+  return aloneGroups(monitor.value?.entries ?? [], undefined, { rank: reportedTierValue })
     .filter(group => names.has(group.policy))
     .flatMap(group => {
       const policy = publishedDocument.value.policies.find(candidate => candidate.name === group.policy)

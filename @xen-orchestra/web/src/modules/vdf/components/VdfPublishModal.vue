@@ -472,7 +472,9 @@ const enforced = computed(() =>
           monitorEntries.value!,
           name,
           Date.now() - DAY,
-          entry => !isExpected(entry) && (draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf))
+          entry => !isExpected(entry) && (draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf)),
+          // per shadowed tier, in tier order
+          { rank: reportedTierValue }
         ).map(({ shadowedBy, shadowedTier, earlier, count }) => ({
           key: `${shadowedTier ?? ''}|${shadowedBy.join('|')}`,
           // a later tier's policy, reached once an earlier tier's no longer decide

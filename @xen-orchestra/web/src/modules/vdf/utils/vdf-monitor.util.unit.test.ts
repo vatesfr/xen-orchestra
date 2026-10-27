@@ -291,6 +291,39 @@ describe('alone entries per shadowed tier', () => {
     ])
   })
 
+  // names that sort otherwise than their rank: securityops (25) before
+  // platform (75) before baseline (110), and a numbered tier
+  it('are ordered by tier rank when the caller gives it', () => {
+    const at = (shadowedTier: string, port: number) =>
+      entry({ port, alone: true, shadowedBy: [`by-${shadowedTier}`], shadowedTier })
+    const groups = [at('baseline', 1), at('platform', 2), at('securityops', 3), at('30', 4), legacy]
+    const ranks: Record<string, number> = { securityops: 25, platform: 75, baseline: 110 }
+    const rank = (tier: string) => ranks[tier] ?? Number(tier)
+
+    expect(aloneGroups(groups, 'db', { rank }).map(group => group.shadowedTier)).toEqual([
+      undefined,
+      'securityops',
+      '30',
+      'platform',
+      'baseline',
+    ])
+    expect(aloneSince(groups, 'db', 0, undefined, { rank }).map(group => group.shadowedTier)).toEqual([
+      undefined,
+      'securityops',
+      '30',
+      'platform',
+      'baseline',
+    ])
+    // without: by name
+    expect(aloneGroups(groups, 'db').map(group => group.shadowedTier)).toEqual([
+      undefined,
+      '30',
+      'baseline',
+      'platform',
+      'securityops',
+    ])
+  })
+
   it('have a flow key per shadowed tier; one without keeps its key', () => {
     expect(new Set([own, earlier, legacy].map(monitorFlowKey)).size).toBe(3)
     expect(monitorFlowKey(legacy)).toBe('db|in|10.0.0.7||vm-db|tcp|6379||alone')
