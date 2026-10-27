@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isReady">
+  <VtsQuickInfoCard :loading="!isReady" class="vm-dashboard-quick-info">
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
@@ -19,11 +19,11 @@
         <template #value>
           <UiLink
             v-if="host"
-            :to="`/host/${host.uuid}`"
-            size="medium"
             :icon="hostIcon"
             :is-primary="isPoolMaster"
             :primary-tooltip="t('master')"
+            :to="`/host/${host.uuid}`"
+            size="medium"
           >
             {{ host.name_label }}
           </UiLink>
@@ -55,8 +55,8 @@
 
 <script lang="ts" setup>
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { getHostIcon } from '@/modules/host/utils/host.util.ts'
+import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
