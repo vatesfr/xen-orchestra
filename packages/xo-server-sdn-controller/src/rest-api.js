@@ -14,13 +14,13 @@ const RULE_FIELDS = {
   port: { type: 'number', example: 443, optional: true },
 }
 
-// optional for the schema: required with the XAPI plugin, refused without it
+// refused without the XAPI plugin
 const PRIORITY_FIELD = { type: 'number', example: 100, optional: true }
 
 const PRIORITY_DESCRIPTION = [
-  '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, required with the XAPI plugin and refused without it (`useDirectChannel` in the configuration).',
+  '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
   'Of the rules of a network matching a packet, network and VIF rules alike, the one with the highest priority applies: a rule of priority 30 applies before a rule of priority 20.',
-  'Two rules of a network cannot have the same priority.',
+  'Two rules of a network cannot be given the same priority.',
   'Leave room between priorities (100, 110, 120…, not 101, 102, 103…): a rule can then go between two others without renumbering them.',
 ].join(' ')
 
@@ -204,7 +204,7 @@ function addRuleRoute(controller, resource) {
       { status: 409, description: 'Another rule of the network has this priority' },
       {
         status: 422,
-        description: 'Invalid rule, priority missing with the XAPI plugin, or given without it',
+        description: 'Invalid rule or priority, or priority given without the XAPI plugin',
       },
     ],
     middlewares: jsonAndAcl(resource.acl),
@@ -281,7 +281,7 @@ function updateRuleRoute(controller, resource) {
       { status: 409, description: 'Another rule of the network has the new priority' },
       {
         status: 422,
-        description: 'Invalid rule, priority missing with the XAPI plugin, or given without it',
+        description: 'Invalid rule or priority, or priority given without the XAPI plugin',
       },
     ],
     middlewares: jsonAndAcl(resource.acl),

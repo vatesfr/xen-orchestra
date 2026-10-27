@@ -683,8 +683,10 @@ class SDNController extends EventEmitter {
       return
     }
 
+    // Optional until XO 5 and XO 6 send one: without it, the rule has the OVS default, 32768, as
+    // the rules from before priorities
     if (priority === undefined) {
-      throw invalidParameters('a traffic rule needs a priority with the XAPI plugin')
+      return
     }
     if (!Number.isInteger(priority) || priority < 0 || priority > 65535) {
       throw invalidParameters(`traffic rule priority must be an integer from 0 to 65535, not ${priority}`)

@@ -100,10 +100,13 @@ describe('the priority of a rule', () => {
     }
   })
 
-  it('is required with the XAPI plugin', async () => {
-    await rejectsBeforeTheTask(createController(), ADD, 'net', WEB, invalidParameters)
-    const body = { oldRule: SSH, newRule: { priority: null } }
-    await rejectsBeforeTheTask(createController(), UPDATE, 'net', body, invalidParameters)
+  // XO 5 and XO 6 send none yet
+  it('is optional with the XAPI plugin', async () => {
+    const controller = createController()
+    controller._addNetworkRule = noop
+    controller._deleteNetworkOfRule = noop
+    assert.equal(await runAction(controller, ADD, 'net', WEB), true)
+    assert.equal(await runAction(controller, UPDATE, 'net', { oldRule: SSH, newRule: { priority: null } }), true)
   })
 
   it('is refused without the XAPI plugin', async () => {
@@ -153,8 +156,9 @@ describe('the update of a rule', () => {
     assert.deepEqual(await update({ allow: true }), { ...SSH, allow: true, priority: 40000, networkId: 'net' })
   })
 
-  it('changes the priority', async () => {
+  it('changes the priority, and removes it with `null`', async () => {
     assert.deepEqual(await update({ priority: 100 }), { ...SSH, priority: 100, networkId: 'net' })
+    assert.deepEqual(await update({ priority: null }), { ...SSH, networkId: 'net' })
   })
 })
 

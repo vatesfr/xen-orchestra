@@ -67,7 +67,7 @@
 - [Backup] New `zeros` compression for the remotes in block mode: only the pages full of zeroes are removed, much cheaper than a real compression (PR [#10545](https://github.com/vatesfr/xen-orchestra/pull/10545))
 - [REST API] Add `/rest/v0/plugins` endpoints to list, configure, load, unload and test the plugins (PR [#10588](https://github.com/vatesfr/xen-orchestra/pull/10588))
 - [REST API] `POST /rest/v0/vms/{id}/actions/migrate` Add `bypassCpuCheck` parameter (PR [#10614](https://github.com/vatesfr/xen-orchestra/pull/10614))
-- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an OpenFlow `priority`, required and unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`, and `GET /rest/v0/plugins/sdn-controller/vifs/{id}/traffic-rules` and `GET /rest/v0/plugins/sdn-controller/networks/{id}/traffic-rules` list the rules of a VIF, or of a network and its VIFs (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
+- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an optional OpenFlow `priority`, unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`, and `GET /rest/v0/plugins/sdn-controller/vifs/{id}/traffic-rules` and `GET /rest/v0/plugins/sdn-controller/networks/{id}/traffic-rules` list the rules of a VIF, or of a network and its VIFs (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
 
 ### Bug fixes
 

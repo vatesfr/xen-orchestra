@@ -477,10 +477,18 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(rule.priority, 45000)
     })
 
-    itSdn('should reject a rule without a priority, or an update removing it', async () => {
-      await rejectsWithStatus(addRule('networks', networkId, { ...NET_RULE, port: 1443 }), 422)
-      await rejectsWithStatus(updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: null }), 422)
-      assert.strictEqual(findRule(await listRules('networks', networkId), NET_RULE, networkId)?.priority, 45000)
+    // XO 5 and XO 6 send none yet: such a rule has the OpenFlow default, as the rules from before priorities
+    itSdn('should accept a rule without a priority, and an update removing it', async () => {
+      const rule = { ...NET_RULE, port: 1444 }
+      await addRule('networks', networkId, rule)
+      await updateRule('networks', networkId, rule, { priority: 46000 })
+      assert.strictEqual(findRule(await listRules('networks', networkId), rule, networkId)?.priority, 46000)
+      await updateRule('networks', networkId, rule, { priority: null })
+      assert.deepStrictEqual(findRule(await listRules('networks', networkId), rule, networkId), {
+        ...rule,
+        type: 'network',
+        sourceId: networkId,
+      })
     })
 
     // network and VIF rules alike
@@ -514,7 +522,6 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       await assert.rejects(
         dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match, priority: 65536 })
       )
-      await assert.rejects(dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match }))
       await dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match, priority: 0 })
       assert.strictEqual(findRule(await listRules('networks', networkId), match, networkId)?.priority, 0)
 
