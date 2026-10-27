@@ -62,10 +62,9 @@ export type V2vStartVm = V2vVmOptions & {
   keepMac?: boolean
 }
 
+/** the pool is the one of the route, and the platform is VMware */
 export type V2vStartBody = {
-  platform: V2vPlatform
   connection: V2vConnection
-  pool: string
   defaults: V2vDefaults
   /**
    * @minItems 1
