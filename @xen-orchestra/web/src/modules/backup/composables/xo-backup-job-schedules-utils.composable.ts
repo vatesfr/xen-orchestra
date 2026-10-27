@@ -4,17 +4,18 @@ import {
   type FrontXoBackupLog,
 } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupJobSchedulesUtils() {
-  const { t, d } = useI18n()
+  const { t } = useI18n()
 
   const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
   const { schedulesByJobId } = useXoScheduleCollection()
 
   const getRunInfo = (backupLog: FrontXoBackupLog, index: number) => ({
     status: backupLog.status,
-    tooltip: `${t('last-run-number', { n: index + 1 })}: ${d(backupLog.end ?? backupLog.start, 'datetime_short')}, ${t(backupLog.status)}`,
+    tooltip: `${t('last-run-number', { n: index + 1 })}: ${formatDateTime(backupLog.end ?? backupLog.start)}, ${t(backupLog.status)}`,
   })
 
   function getLastThreeRunsStatuses(backupJob: FrontAnyXoBackupJob | undefined) {

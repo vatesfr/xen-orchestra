@@ -1,7 +1,6 @@
 import AdminBackupLogInfosCard from '@/modules/admin-backup-log/components/list/panel/cards/AdminBackupLogInfosCard.vue'
 import type { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { formatBackupLogDate } from '@/modules/backup/utils/xo-backup-log.util.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type {
@@ -15,10 +14,11 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 
@@ -87,10 +87,6 @@ function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
   })
 }
 
-function formatDate(timestamp: number) {
-  return d(timestamp, { dateStyle: 'short', timeStyle: 'medium' })
-}
-
 function findRows(wrapper: ReturnType<typeof mountCard>) {
   return wrapper.findAll('.vts-card-row-key-value').map(row => [row.get('.key').text(), row.get('.value').text()])
 }
@@ -111,7 +107,7 @@ describe('title', () => {
 
     const title = mountCard(backupLog).get('.ui-panel-card-title')
 
-    expect(title.text()).toContain(t('log-name', { date: formatBackupLogDate(backupLog.start) }))
+    expect(title.text()).toContain(t('log-name', { date: formatDateTime(backupLog.start) }))
     expect(title.text()).toContain('backup-log-42')
   })
 
@@ -155,7 +151,7 @@ it('shows the information of the log and offers to copy them', () => {
   })
 
   const wrapper = mountCard(backupLog)
-  const backupDate = formatDate(backupLog.start)
+  const backupDate = formatDateTime(backupLog.start)
 
   expect(findCardLabelledValues(wrapper)).toEqual({
     [t('backup-date')]: backupDate,
