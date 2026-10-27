@@ -1,5 +1,5 @@
 import VdfTraceResult from '@/modules/vdf/components/trace/VdfTraceResult.vue'
-import type { VdfTraceResult as Result, VdfTraceWhatIf } from '@/modules/vdf/types.ts'
+import type { VdfTraceResult as Result, VdfTraceStage, VdfTraceWhatIf } from '@/modules/vdf/types.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -21,7 +21,7 @@ const whatIf = (fields: Partial<VdfTraceWhatIf>): VdfTraceWhatIf => ({
   ...fields,
 })
 
-function mountResult(monitor?: VdfTraceWhatIf[]) {
+function mountResult(monitor?: VdfTraceWhatIf[], stages: VdfTraceStage[] = []) {
   const result: Result = {
     from: { spec: '10.0.0.7', ip: '10.0.0.7', external: true },
     to: { spec: 'vm-cache', vm: 'cache', uuid: 'vm-cache', ip: '10.0.0.5' },
@@ -37,7 +37,7 @@ function mountResult(monitor?: VdfTraceWhatIf[]) {
         bridge: 'xenbr0',
         packet: 'tcp',
         conntrack: 'new',
-        stages: [],
+        stages,
         datapath_actions: 'output:3',
         delivered: true,
         policy_allowed: true,
@@ -112,4 +112,29 @@ it('says which shadowed tiers a pass left unchecked', () => {
 
 it('an older agent: no monitor, nothing shown', () => {
   expect(mountResult().find('.monitor').exists()).toBe(false)
+})
+
+// UX P2-6: the steps that decide; the agent's plumbing on demand
+it('lists the steps that decide, the others behind "Show all steps"', async () => {
+  const stage = (fields: Partial<VdfTraceStage>): VdfTraceStage => ({
+    table: 2,
+    priority: 100,
+    match: '',
+    vdf: true,
+    kind: 'step',
+    text: 'conntrack lookup',
+    decides: false,
+    ...fields,
+  })
+  const wrapper = mountResult(undefined, [
+    stage({}),
+    stage({ kind: 'rule', tier: 100, policy: 'web', rule: 1, action: 'allow', text: 'rule', decides: true }),
+  ])
+
+  expect(wrapper.text()).not.toContain('conntrack lookup')
+  expect(wrapper.get('.all-steps').text()).toContain(t('firewall:trace:all-steps', { n: 1 }))
+
+  await wrapper.get('.all-steps').trigger('click')
+
+  expect(wrapper.text()).toContain('conntrack lookup')
 })

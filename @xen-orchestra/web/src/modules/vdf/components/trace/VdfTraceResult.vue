@@ -71,6 +71,17 @@
           </div>
         </li>
       </ol>
+      <UiButton
+        v-if="hop.hidden > 0"
+        variant="tertiary"
+        accent="brand"
+        size="small"
+        :left-icon="showAllSteps ? 'fa:angle-up' : 'fa:angle-down'"
+        class="all-steps"
+        @click="showAllSteps = !showAllSteps"
+      >
+        {{ showAllSteps ? t('firewall:trace:main-steps') : t('firewall:trace:all-steps', { n: hop.hidden }) }}
+      </UiButton>
       <!-- monitor mode's what-if passes (vdf#13); an isolated pass (vdf#86) apart, after the pass it forks from -->
       <div v-if="(hop.hop.monitor ?? []).length > 0" class="monitor">
         <span class="typo-body-bold-small">{{ t('firewall:trace:monitor') }}</span>
@@ -136,7 +147,7 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRouter } from 'vue-router'
 
@@ -366,9 +377,25 @@ const uncheckedTiers = (pass: VdfTraceWhatIf) =>
 const whatIfAccent = (pass: VdfTraceWhatIf) =>
   pass.verdict === 'would-drop' ? 'warning' : pass.verdict === 'would-allow' ? 'success' : 'muted'
 
+// the steps that say what decides (tiers, policies, rules, the source's
+// outbound steps, what decides the verdict); the agent's plumbing
+// (conntrack lookup, address classification, counters, the rule log) only
+// with "Show all steps": it's in English, and half the list otherwise
+function isMainStage(stage: VdfTraceStage) {
+  return (
+    stage.decides ||
+    stage.tier !== undefined ||
+    EGRESS_STEP_KINDS.includes(stage.kind) ||
+    (stage.kind === 'egress' && stage.table === 1 && (stage.priority === 110 || stage.priority === 125))
+  )
+}
+
+const showAllSteps = ref(false)
+
 const hops = computed(() =>
   result.hops.map((hop, hopIndex) => {
-    const stages = hop.stages.filter(stage => stage.vdf || stage.decides)
+    const vdfStages = hop.stages.filter(stage => stage.vdf || stage.decides)
+    const stages = showAllSteps.value ? vdfStages : vdfStages.filter(isMainStage)
     const hasEgress = stages.some(isEgressStage)
     let previous: 'egress' | 'ingress' | undefined
 
@@ -376,6 +403,8 @@ const hops = computed(() =>
       key: hopIndex,
       hop,
       side: sideLabel(hop.side),
+      // VDF steps left out of the main list
+      hidden: vdfStages.length - vdfStages.filter(isMainStage).length,
       stages: stages.map((stage, stageIndex) => {
         const outcome = stageOutcome(stage)
         // the rule log follows the stage that dropped, and the commit for an
