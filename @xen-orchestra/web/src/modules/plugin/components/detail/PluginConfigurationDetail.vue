@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import JsonSchemaValue from '@/modules/plugin/json-schema-form/JsonSchemaValue.vue'
+import JsonSchemaValue from '@/modules/plugin/components/json-schema-form/JsonSchemaValue.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

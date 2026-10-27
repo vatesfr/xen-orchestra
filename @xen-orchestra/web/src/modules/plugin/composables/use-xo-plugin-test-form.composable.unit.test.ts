@@ -1,6 +1,6 @@
 import { useXoPluginTestForm } from '@/modules/plugin/composables/use-xo-plugin-test-form.composable.ts'
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 

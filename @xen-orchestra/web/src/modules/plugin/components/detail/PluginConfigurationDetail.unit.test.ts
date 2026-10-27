@@ -1,5 +1,5 @@
 import PluginConfigurationDetail from '@/modules/plugin/components/detail/PluginConfigurationDetail.vue'
-import JsonSchemaValue from '@/modules/plugin/json-schema-form/JsonSchemaValue.vue'
+import JsonSchemaValue from '@/modules/plugin/components/json-schema-form/JsonSchemaValue.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
 import { findTitles } from '@/test/find-titles.ts'

@@ -1,4 +1,4 @@
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { t } from '@/test/i18n.ts'
 
 // Stands in for `useJsonSchemaItemLabel` in the utils, which take the label builder as an option

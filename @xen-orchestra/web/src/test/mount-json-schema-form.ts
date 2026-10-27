@@ -1,5 +1,5 @@
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
+import { useJsonSchemaForm } from '@/modules/plugin/form/use-json-schema-form.ts'
+import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, type Ref, ref, type VNode } from 'vue'

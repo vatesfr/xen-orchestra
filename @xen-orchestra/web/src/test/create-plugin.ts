@@ -1,5 +1,5 @@
-import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 
 // The JSON schema form is generic: tests describe any plugin, not only the ones typed in `@vates/types`
 type PluginOverrides = Partial<

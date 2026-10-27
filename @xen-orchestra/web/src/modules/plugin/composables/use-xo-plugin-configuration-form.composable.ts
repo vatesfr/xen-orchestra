@@ -1,7 +1,7 @@
 import { useXoPluginConfigurationPresets } from '@/modules/plugin/composables/use-xo-plugin-configuration-presets.composable.ts'
-import { getSchemaDefaults } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
-import { useJsonSchemaForm } from '@/modules/plugin/json-schema-form/use-json-schema-form.composable.ts'
+import { useJsonSchemaForm } from '@/modules/plugin/form/use-json-schema-form.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { getSchemaDefaults } from '@/modules/plugin/utils/json-schema.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, ref } from 'vue'
 

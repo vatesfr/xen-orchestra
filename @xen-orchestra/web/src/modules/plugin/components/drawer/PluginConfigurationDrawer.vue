@@ -31,8 +31,8 @@
 </template>
 
 <script lang="ts" setup>
+import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import { useXoPluginConfigurationForm } from '@/modules/plugin/composables/use-xo-plugin-configuration-form.composable.ts'
-import JsonSchemaField from '@/modules/plugin/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
