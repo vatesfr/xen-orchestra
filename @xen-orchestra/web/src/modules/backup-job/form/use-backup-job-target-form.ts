@@ -1,5 +1,15 @@
 import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
+import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
+import { useBackupRepositoryFilterableData } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
+import {
+  type FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import {
+  type FrontXoSr,
+  useXoSrCollection,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -18,6 +28,8 @@ export type BackupJobTargetFormData = {
   storageTargets: BackupJobStorageTarget[]
   targetProxy: FrontXoProxy['id'] | undefined
   backupRepositoryScopeType: BackupJobTargetScopeType
+  backupRepositoryIds: FrontXoBackupRepository['id'][]
+  backupRepositoryFilter: string
   backupDistribution: BackupJobBackupDistribution
   exportRetention: number | undefined
   ltrDailyRetention: number | undefined
@@ -30,6 +42,8 @@ export type BackupJobTargetFormData = {
   ltrYearlyKeep: number | undefined
   strictGfs: boolean
   storageRepositoryScopeType: BackupJobTargetScopeType
+  storageRepositoryIds: FrontXoSr['id'][]
+  storageRepositoryFilter: string
   replicaDistribution: BackupJobReplicaDistribution
   copyRetention: number | undefined
   snapshotRetention: number | undefined
@@ -44,7 +58,8 @@ export type BackupJobTargetForm = ReturnType<typeof useBackupJobTargetForm>
 export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
-  rawIsEphemeralSnapshotAllowed: MaybeRefOrGetter<boolean>
+  rawIsEphemeralSnapshotAllowed: MaybeRefOrGetter<boolean>,
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
 ) {
   const { t, locale } = useI18n()
 
@@ -53,6 +68,28 @@ export function useBackupJobTargetForm(
   const dataSource = toComputed(rawDataSource)
 
   const isEphemeralSnapshotAllowed = toComputed(rawIsEphemeralSnapshotAllowed)
+
+  const sourceBackupRepositoryId = toComputed(rawSourceBackupRepositoryId)
+
+  const { backupRepositories } = useXoBackupRepositoryCollection()
+
+  const { srs } = useXoSrCollection()
+
+  const availableBackupRepositories = computed(() =>
+    backupRepositories.value.filter(br => br.id !== sourceBackupRepositoryId.value)
+  )
+
+  const availableStorageRepositories = computed(() => srs.value.filter(sr => sr.content_type !== 'iso'))
+
+  const filterableBackupRepositories = useBackupRepositoryFilterableData(availableBackupRepositories)
+
+  const matchedBackupRepositories = computed(() =>
+    filterByQuery(filterableBackupRepositories.value, formData.backupRepositoryFilter)
+  )
+
+  const matchedStorageRepositories = computed(() =>
+    filterByQuery(availableStorageRepositories.value, formData.storageRepositoryFilter)
+  )
 
   const hasStorageTargetChoice = computed(() => dataSource.value === 'vm')
 
@@ -93,10 +130,46 @@ export function useBackupJobTargetForm(
           ),
           minValue: atLeast(1, () => hasBackupRepositorySection.value),
         },
+        backupRepositoryIds: {
+          atLeastOne: withMessage(
+            () =>
+              !hasBackupRepositorySection.value ||
+              formData.backupRepositoryScopeType !== 'manual' ||
+              formData.backupRepositoryIds.length > 0,
+            () => t('select-at-least-one-backup-repository')
+          ),
+        },
+        backupRepositoryFilter: {
+          atLeastOneMatch: withMessage(
+            () =>
+              !hasBackupRepositorySection.value ||
+              formData.backupRepositoryScopeType !== 'smart' ||
+              matchedBackupRepositories.value.length > 0,
+            () => t('query-matches-no-backup-repository')
+          ),
+        },
         ltrDailyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
         ltrWeeklyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
         ltrMonthlyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
         ltrYearlyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
+        storageRepositoryIds: {
+          atLeastOne: withMessage(
+            () =>
+              !hasStorageRepositorySection.value ||
+              formData.storageRepositoryScopeType !== 'manual' ||
+              formData.storageRepositoryIds.length > 0,
+            () => t('select-at-least-one-storage-repository')
+          ),
+        },
+        storageRepositoryFilter: {
+          atLeastOneMatch: withMessage(
+            () =>
+              !hasStorageRepositorySection.value ||
+              formData.storageRepositoryScopeType !== 'smart' ||
+              matchedStorageRepositories.value.length > 0,
+            () => t('query-matches-no-storage-repository')
+          ),
+        },
         copyRetention: {
           requiredIf: withMessage(
             requiredIf(() => hasStorageRepositorySection.value),
@@ -190,6 +263,30 @@ export function useBackupJobTargetForm(
     return useSelect(id)
   }
 
+  type LongTermRetentionPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+  const keepOptionsByPeriod = computed<Record<LongTermRetentionPeriod, KeepOption[]>>(() => ({
+    daily: hourOptions.value,
+    weekly: weekDayOptions.value,
+    monthly: monthDayOptions.value,
+    yearly: monthOptions.value,
+  }))
+
+  const firstKeepLabels = computed<Record<LongTermRetentionPeriod, string>>(() => ({
+    daily: t('first-of-day'),
+    weekly: t('first-of-week'),
+    monthly: t('first-of-month'),
+    yearly: t('first-of-year'),
+  }))
+
+  function getKeepLabel(period: LongTermRetentionPeriod, value: number | undefined): string {
+    if (value === undefined) {
+      return firstKeepLabels.value[period]
+    }
+
+    return keepOptionsByPeriod.value[period].find(option => option.value === value)?.label ?? String(value)
+  }
+
   const bindings = reactive({
     storageTargets: useField('storageTargets', () => ({
       label: t('storage-target'),
@@ -200,6 +297,8 @@ export function useBackupJobTargetForm(
       label: t('scope-type'),
       options: backupRepositoryScopeTypeOptions.value,
     })),
+    backupRepositoryIds: useField('backupRepositoryIds'),
+    backupRepositoryFilter: useField('backupRepositoryFilter'),
     backupDistribution: useField('backupDistribution', () => ({
       label: t('backup-distribution-strategy'),
       options: backupDistributionOptions.value,
@@ -241,6 +340,8 @@ export function useBackupJobTargetForm(
       label: t('scope-type'),
       options: storageRepositoryScopeTypeOptions.value,
     })),
+    storageRepositoryIds: useField('storageRepositoryIds'),
+    storageRepositoryFilter: useField('storageRepositoryFilter'),
     replicaDistribution: useField('replicaDistribution', () => ({
       label: t('replica-distribution-strategy'),
       options: replicaDistributionOptions.value,
@@ -262,6 +363,11 @@ export function useBackupJobTargetForm(
     hasBackupRepositorySection,
     hasStorageRepositorySection,
     hasSnapshotRetentionSection,
+    availableBackupRepositories,
+    availableStorageRepositories,
+    matchedBackupRepositories,
+    matchedStorageRepositories,
+    getKeepLabel,
     validate,
     reset,
   }

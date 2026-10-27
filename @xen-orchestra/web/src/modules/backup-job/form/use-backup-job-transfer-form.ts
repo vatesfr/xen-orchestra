@@ -1,4 +1,3 @@
-import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -15,7 +14,6 @@ export type BackupJobTransferFormData = {
   maxExportRate: number | undefined
   concurrency: number | undefined
   keyBackup: BackupJobKeyBackup
-  keyBackupFilter: string
   preferNbd: boolean
   nbdConcurrency: number | undefined
   snapshotMode: BackupJobSnapshotMode
@@ -32,8 +30,6 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
 
   const { vms } = useXoVmCollection()
 
-  const { schema: keyBackupFilterSchema } = useVmQueryBuilder('backup-job-key-backup', vms, { ignoreRoute: true })
-
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
@@ -48,12 +44,6 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
           minValue: withMessage(
             (value: number | undefined) => !formData.preferNbd || typeof value !== 'number' || value >= 1,
             () => t('must-be-at-least-n', { n: 1 })
-          ),
-        },
-        keyBackupFilter: {
-          requiredIf: withMessage(
-            requiredIf(() => formData.keyBackup === 'dynamic'),
-            () => t('query-required')
           ),
         },
         snapshotSyncTag: {
@@ -96,11 +86,6 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
       info: t('value-by-default', { value: 2 }),
     })),
     keyBackup: useField('keyBackup', () => ({ label: t('key-backup'), options: keyBackupOptions.value })),
-    keyBackupFilter: useField('keyBackupFilter', () => ({
-      label: t('dynamic-selection-query'),
-      required: true,
-      schema: keyBackupFilterSchema,
-    })),
     preferNbd: useField('preferNbd', () => ({ label: t('network-block-device-nbd'), info: t('nbd-backup-info') })),
     nbdConcurrency: useField('nbdConcurrency', () => ({
       label: t('nbd-concurrency-per-disk'),

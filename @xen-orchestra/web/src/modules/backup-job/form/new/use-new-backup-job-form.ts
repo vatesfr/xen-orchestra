@@ -1,4 +1,8 @@
 import {
+  type BackupJobPlanningFormData,
+  useBackupJobPlanningForm,
+} from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
+import {
   type BackupJobSourceFormData,
   useBackupJobSourceForm,
 } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
@@ -10,6 +14,7 @@ import {
   type BackupJobTransferFormData,
   useBackupJobTransferForm,
 } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
+import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,6 +36,8 @@ export function useNewBackupJobForm() {
       proxy: undefined,
       sourceBackupRepository: undefined,
       scopeType: 'all',
+      vmIds: [],
+      vmFilter: '',
     })
   )
 
@@ -39,7 +46,6 @@ export function useNewBackupJobForm() {
       maxExportRate: undefined,
       concurrency: 2,
       keyBackup: 'never',
-      keyBackupFilter: '',
       preferNbd: true,
       nbdConcurrency: 1,
       snapshotMode: 'default',
@@ -53,6 +59,8 @@ export function useNewBackupJobForm() {
       storageTargets: [],
       targetProxy: undefined,
       backupRepositoryScopeType: 'all',
+      backupRepositoryIds: [],
+      backupRepositoryFilter: '',
       backupDistribution: 'every',
       exportRetention: 3,
       ltrDailyRetention: 1,
@@ -65,12 +73,22 @@ export function useNewBackupJobForm() {
       ltrYearlyKeep: undefined,
       strictGfs: false,
       storageRepositoryScopeType: 'all',
+      storageRepositoryIds: [],
+      storageRepositoryFilter: '',
       replicaDistribution: 'every',
       copyRetention: 1,
       snapshotRetention: 1,
     }),
     () => source.formData.dataSource,
-    () => source.formData.mode === 'full' || transfer.formData.preferNbd
+    () => source.formData.mode === 'full' || transfer.formData.preferNbd,
+    () => source.formData.sourceBackupRepository
+  )
+
+  const planning = useBackupJobPlanningForm(
+    reactive<BackupJobPlanningFormData>({
+      cron: DEFAULT_CRON,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })
   )
 
   const currentStepIndex = ref(0)
@@ -97,6 +115,8 @@ export function useNewBackupJobForm() {
         return transfer.validate()
       case 'target':
         return target.validate()
+      case 'planning':
+        return planning.validate()
       default:
         return true
     }
@@ -126,6 +146,7 @@ export function useNewBackupJobForm() {
     source,
     transfer,
     target,
+    planning,
     currentStep,
     currentStepIndex,
     steps,

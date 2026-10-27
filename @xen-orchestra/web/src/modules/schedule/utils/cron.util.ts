@@ -14,7 +14,7 @@ export const CRON_FIELD_RANGES: Record<CronFieldName, CronFieldRange> = {
   minute: { min: 0, max: 59 },
   hour: { min: 0, max: 23 },
   monthDay: { min: 1, max: 31 },
-  month: { min: 0, max: 11 },
+  month: { min: 1, max: 12 },
   weekDay: { min: 0, max: 6 },
 }
 
@@ -26,10 +26,6 @@ export function getRangeValues({ min, max }: CronFieldRange): number[] {
 
 export function getMaxStep(range: CronFieldRange): number {
   return Math.floor(getRangeValues(range).length / 2)
-}
-
-export function getStepValues(values: number[], step: number): number[] {
-  return values.filter((_, index) => index % step === 0)
 }
 
 export function splitCron(cron: string): CronFields {
@@ -100,7 +96,7 @@ export function getSelectedValues(value: CronFieldValue, range: CronFieldRange):
     case 'all':
       return rangeValues
     case 'step':
-      return getStepValues(rangeValues, value.step)
+      return rangeValues.filter(rangeValue => (rangeValue - range.min) % value.step === 0)
     case 'list':
       return value.values
   }
@@ -137,7 +133,7 @@ export function getCronFieldStep(value: CronFieldValue): number | undefined {
   }
 }
 
-export function toCronFieldStepValue(step: number): CronFieldValue {
+export function setCronFieldStep(step: number): CronFieldValue {
   return step <= 1 ? { type: 'all' } : { type: 'step', step }
 }
 
