@@ -1,15 +1,19 @@
+import { useBackupJobMirrorVms } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { getBackupRepositoryType } from '@/modules/backup-repository/utils/xo-backup-repository-type.util.ts'
+import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
+import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-preview-items.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { computed, reactive } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BackupJobDataSource = 'vm' | 'mirror' | 'metadata'
@@ -47,11 +51,43 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const { filterableVms } = useVmEnhancedData(vms)
 
+  const isMirror = computed(() => formData.dataSource === 'mirror')
+
+  const hasVmSelection = computed(() => formData.dataSource === 'vm' || isMirror.value)
+
+  const { mirrorVms, mirrorVmSchema, areMirrorVmsReady, toPreviewItems } = useBackupJobMirrorVms(
+    () => formData.sourceBackupRepository,
+    () => formData.mode,
+    isMirror
+  )
+
+  watch(
+    () => [formData.dataSource, formData.sourceBackupRepository, formData.mode],
+    () => {
+      formData.vmIds = []
+      formData.vmFilter = ''
+    }
+  )
+
+  const vmSelectionSchema = computed(() => (isMirror.value ? mirrorVmSchema : vmSchema))
+
   const matchedVms = computed(() => filterByQuery(filterableVms.value, formData.vmFilter))
 
   const selectedVms = computed(() => vms.value.filter(vm => formData.vmIds.includes(vm.id)))
 
-  const hasVmSelection = computed(() => formData.dataSource === 'vm')
+  const matchedVmItems = useVmQueryPreviewItems(matchedVms)
+
+  const selectedVmItems = useVmQueryPreviewItems(selectedVms)
+
+  const matchedSelectionItems = computed(() =>
+    isMirror.value ? toPreviewItems(filterByQuery(mirrorVms.value, formData.vmFilter)) : matchedVmItems.value
+  )
+
+  const selectedSelectionItems = computed(() =>
+    isMirror.value
+      ? toPreviewItems(mirrorVms.value.filter(mirrorVm => formData.vmIds.includes(mirrorVm.id)))
+      : selectedVmItems.value
+  )
 
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
@@ -101,7 +137,11 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
   const { id: sourceBackupRepositorySelectId } = useFormSelect('sourceBackupRepository', backupRepositories, {
     searchable: true,
     required: true,
-    option: { label: 'name', value: 'id' },
+    option: {
+      label: 'name',
+      value: 'id',
+      properties: br => ({ icon: getBackupRepositoryIcon(br, getBackupRepositoryType(br.url)) }),
+    },
   })
 
   const scopeTypeOptions = computed<RadioOption<BackupJobScopeType>[]>(() => [
@@ -128,10 +168,15 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     formData,
     bindings,
     vms,
-    vmSchema,
-    matchedVms,
-    selectedVms,
+    mirrorVms,
+    mirrorVmSchema,
+    areMirrorVmsReady,
+    toPreviewItems,
+    isMirror,
     hasVmSelection,
+    vmSelectionSchema,
+    matchedSelectionItems,
+    selectedSelectionItems,
     validate,
     reset,
   }
