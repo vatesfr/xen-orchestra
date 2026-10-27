@@ -73,7 +73,7 @@
           </VtsInputWrapper>
         </div>
 
-        <UiToggle v-model="form.log">{{ t('firewall:rule-form:log') }}</UiToggle>
+        <UiCheckbox v-model="form.log" accent="brand">{{ t('firewall:rule-form:log') }}</UiCheckbox>
         <UiInfo v-if="form.action === 'pass' && form.log" accent="warning" wrap>
           {{ t('firewall:rule-form:log:pass') }}
         </UiInfo>
@@ -109,12 +109,12 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { omit } from 'lodash-es'

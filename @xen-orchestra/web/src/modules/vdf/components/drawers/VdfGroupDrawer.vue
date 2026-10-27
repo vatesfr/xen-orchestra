@@ -26,8 +26,11 @@
         <section class="section">
           <UiLabel accent="neutral">{{ t('firewall:group-form:tags') }}</UiLabel>
           <UiInfo accent="muted" wrap>{{ t('firewall:group-form:tags:info') }}</UiInfo>
-          <div class="chips">
-            <UiChip v-for="tag of form.tags" :key="tag" accent="info" @remove="removeTag(tag)">{{ tag }}</UiChip>
+          <!-- a tag reads as everywhere else: its two-tone pair -->
+          <div v-if="form.tags.length > 0" class="chips">
+            <UiChip v-for="tag of form.tags" :key="tag" accent="info" class="tag-chip" @remove="removeTag(tag)">
+              <VtsTag :value="tag" />
+            </UiChip>
           </div>
           <div class="add">
             <UiInput
@@ -52,7 +55,7 @@
         <section class="section">
           <UiLabel accent="neutral">{{ t('firewall:group-form:ips') }}</UiLabel>
           <UiInfo accent="muted" wrap>{{ t('firewall:group-form:ips:info') }}</UiInfo>
-          <div class="chips">
+          <div v-if="form.ips.length > 0" class="chips">
             <UiChip v-for="ip of form.ips" :key="ip" accent="info" @remove="removeIp(ip)">{{ ip }}</UiChip>
           </div>
           <VtsInputWrapper :message="ipError" wrap-message>
@@ -121,6 +124,10 @@
           <UiLabel accent="neutral">{{ previewTitle }}</UiLabel>
           <UiInfo v-if="form.tags.length === 0" accent="muted" wrap>
             {{ t('firewall:group-form:preview:no-tags') }}
+          </UiInfo>
+          <!-- "only interfaces on some networks", none picked: why nothing matches -->
+          <UiInfo v-else-if="isScoped && form.networkIds.length === 0" accent="muted" wrap>
+            {{ t('firewall:group-form:preview:pick-network') }}
           </UiInfo>
           <div v-else class="vms">
             <div v-for="vm of matchingVms" :key="vm.id" class="vm-entry">
@@ -474,6 +481,15 @@ async function submit() {
     gap: 0.8rem;
   }
 
+  /* under "Only interfaces on some networks", the box apart from its label */
+  .networks {
+    padding-inline-start: 2.4rem;
+
+    :deep(.checkbox-label) {
+      gap: 0.8rem;
+    }
+  }
+
   .network {
     display: inline-flex;
     flex-wrap: wrap;
@@ -504,6 +520,12 @@ async function submit() {
   .add {
     display: flex;
     gap: 0.8rem;
+
+    /* "Add tag", "Add IP" on one line */
+    .ui-button {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
   }
 
   .suggestion {

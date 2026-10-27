@@ -132,14 +132,21 @@ function submit() {
     gap: 1.6rem;
   }
 
+  /* under "Selected pools" */
   .pools {
     gap: 0.8rem;
+    padding-inline-start: 2.4rem;
   }
 
   .pool {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+
+    /* the box apart from its label */
+    :deep(.checkbox-label) {
+      gap: 0.8rem;
+    }
   }
 
   .hint {

@@ -33,7 +33,7 @@
           />
         </VtsInputWrapper>
 
-        <UiToggle v-model="meterOn">{{ t('firewall:limits:meter') }}</UiToggle>
+        <UiCheckbox v-model="meterOn" accent="brand">{{ t('firewall:limits:meter') }}</UiCheckbox>
         <UiInfo accent="muted" wrap>{{ t('firewall:limits:meter:info') }}</UiInfo>
         <VtsInputWrapper
           v-if="meterOn"
@@ -65,12 +65,12 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive, ref } from 'vue'

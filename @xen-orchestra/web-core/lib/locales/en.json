@@ -685,6 +685,7 @@
   "firewall:group-form:preview:interface-unprotected": "eth{device} · {network} · {ips} · left out of the firewall",
   "firewall:group-form:preview:interfaces": "Matches {n} interfaces of {vms} VMs",
   "firewall:group-form:preview:no-tags": "Without tags, the group has no VM members.",
+  "firewall:group-form:preview:pick-network": "Pick at least one network: until then, no interface matches.",
   "firewall:group-form:rename": "Policies and rules using this group follow the rename.",
   "firewall:group-form:tags": "Membership tags",
   "firewall:group-form:tags:info": "A VM is a member when it carries all these tags. Members change as soon as VMs are tagged, without publishing.",
