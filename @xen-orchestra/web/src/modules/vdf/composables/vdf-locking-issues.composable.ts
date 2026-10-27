@@ -77,6 +77,17 @@ export function useVdfLockingIssues({
       .sort(byName)
   )
 
+  // locks to a prefix, XAPI's or VDF's: the guest may use any address in it
+  const prefixed = computed(() =>
+    toValue(runningVms)
+      .flatMap(vm =>
+        interfacesOf(vm)
+          .filter(iface => iface.lockPrefix === true)
+          .map(iface => fromInterface(vm, iface))
+      )
+      .sort(byName)
+  )
+
   const vdfUnenforcedIds = computed(() => new Set(vdfUnenforced.value.map(issue => issue.vifId)))
 
   const worked = computed(() => {
@@ -132,5 +143,6 @@ export function useVdfLockingIssues({
     stale,
     staleCount: computed(() => report.value.staleCount + worked.value.stale.length),
     vdfUnenforced,
+    prefixed,
   }
 }

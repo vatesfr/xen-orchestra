@@ -239,18 +239,32 @@ export type VdfUnenforcedReason = 'agent' | 'old-agent' | 'reported' | 'pending'
 const vifList = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((uuid): uuid is string => typeof uuid === 'string') : []
 
+// a host whose agent runs, as a VDF lock needs it: its state (a fresh
+// heartbeat, not stopping), and a heartbeat period (the agent's own rule,
+// lock.go enforces)
+const isAgentRunning = (host: VdfLockHost) => {
+  const period = host.status?.heartbeatSec
+
+  return hostEnforces(host.state) && typeof period === 'number' && period > 0
+}
+
+// an agent that supports VDF locks as XO reads them: vdfLock, and the list
+// of those it enforces (agents in between had vdfLock without it)
+const supportsVdfLock = (host: VdfLockHost) =>
+  host.status?.locking?.vdfLock === true && Array.isArray(host.status.locking.vdfEnforced)
+
 // Positive only: a VDF lock is enforced when the agent lists it in
-// vdfEnforced, the complete list of those it enforces (none when missing)
+// vdfEnforced, the complete list of those it enforces
 export function vdfLockUnenforced(vifId: string, host: VdfLockHost | undefined): VdfUnenforcedReason | undefined {
-  if (host === undefined || !hostEnforces(host.state)) {
+  if (host === undefined || !isAgentRunning(host)) {
     return 'agent'
   }
 
-  const locking = host.status?.locking
-
-  if (locking?.vdfLock !== true) {
+  if (!supportsVdfLock(host)) {
     return 'old-agent'
   }
+
+  const locking = host.status!.locking!
 
   if (vifList(locking.vdfEnforced).includes(vifId)) {
     return undefined
@@ -322,17 +336,13 @@ export function vdfLockUnavailable({
   host: VdfLockHost | undefined
   poolHosts: VdfLockHost[]
 }): 'agent' | 'old-agent' | undefined {
-  const hosts = running
-    ? host === undefined
-      ? []
-      : [host]
-    : poolHosts.filter(candidate => hostEnforces(candidate.state))
+  const hosts = running ? (host === undefined ? [] : [host]) : poolHosts.filter(isAgentRunning)
 
-  if (hosts.length === 0 || hosts.some(candidate => !hostEnforces(candidate.state))) {
+  if (hosts.length === 0 || hosts.some(candidate => !isAgentRunning(candidate))) {
     return 'agent'
   }
 
-  return hosts.some(candidate => candidate.status?.locking?.vdfLock !== true) ? 'old-agent' : undefined
+  return hosts.some(candidate => !supportsVdfLock(candidate)) ? 'old-agent' : undefined
 }
 
 export type VdfLockDrift = {

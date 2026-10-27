@@ -309,6 +309,9 @@ export type VdfHostStatusDocument = {
   // VIF locking of the host's protected or grouped VIFs (vdf#15); absent
   // from agents before it
   locking?: VdfHostLocking
+  // when the agent stopped (SIGTERM), written as it exits: what its status
+  // says no longer holds (vdf#41); absent while it runs
+  stopping?: string
   // guarded VIFs (protected or quarantined) that flows VDF didn't install
   // decide for first, Traffic Rules usually (vdf#40); absent from agents
   // before it

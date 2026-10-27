@@ -333,10 +333,16 @@ describe('VDF lock', () => {
     // not listed as enforced: not yet, or the agent says it can't
     expect(reason(withLocking({ vdfEnforced: ['vif-2'] }))).toBe('pending')
     expect(reason(withLocking({ vdfEnforced: [], vdfUnenforced: ['vif-1'] }))).toBe('reported')
-    // a missing or malformed list enforces nothing
-    expect(reason(withLocking({ vdfEnforced: undefined }))).toBe('pending')
-    expect(reason(withLocking({ vdfEnforced: 'vif-1' }))).toBe('pending')
+    // no list of those it enforces: an agent too old to vouch for one
+    expect(reason(withLocking({ vdfEnforced: undefined }))).toBe('old-agent')
+    expect(reason(withLocking({ vdfEnforced: 'vif-1' }))).toBe('old-agent')
     expect(reason(withLocking({ vdfEnforced: [], vdfUnenforced: 'vif-1' }))).toBe('pending')
+    // a clean stop says so at once; no heartbeat period
+    const stopping = host()
+    stopping.status!.stopping = '2026-10-27T11:59:40Z'
+    expect(reason({ ...stopping, state: hostState(stopping.status, '', { now: NOW }) })).toBe('agent')
+    expect(reason({ ...host(), status: { ...host().status, heartbeatSec: undefined } })).toBe('agent')
+    expect(reason({ ...host(), status: { ...host().status, heartbeatSec: 0 } })).toBe('agent')
   })
 
   it('a lock to a prefix is untrusted, XAPI or VDF', () => {
@@ -371,6 +377,13 @@ describe('VDF lock', () => {
     expect(vdfLockUnavailable({ running: true, host: old, poolHosts: [] })).toBe('old-agent')
     expect(vdfLockUnavailable({ running: true, host: stopped, poolHosts: [] })).toBe('agent')
     expect(vdfLockUnavailable({ running: true, host: undefined, poolHosts: [host()] })).toBe('agent')
+    expect(vdfLockUnavailable({ running: true, host: withLocking({ vdfEnforced: undefined }), poolHosts: [] })).toBe(
+      'old-agent'
+    )
+    const stopping = host()
+    stopping.status!.stopping = '2026-10-27T11:59:40Z'
+    stopping.state = hostState(stopping.status, '', { now: NOW })
+    expect(vdfLockUnavailable({ running: true, host: stopping, poolHosts: [] })).toBe('agent')
     // a halted VM: every host with a running agent, one at least
     expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [host(), stopped] })).toBeUndefined()
     expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [host(), old] })).toBe('old-agent')

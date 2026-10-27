@@ -245,9 +245,17 @@ export function hostStatus(otherConfig) {
 // skew); further ahead, it says nothing about now
 export const FUTURE_HEARTBEAT_MS = 60e3
 
+// an agent that stopped cleanly (SIGTERM) says so as it exits: what its
+// status says no longer holds (agent stoppingStatus)
+export const isStopping = status => status?.stopping !== undefined && status.stopping !== null && status.stopping !== ''
+
 // Same reading as `vdf-agent status` and XO 6: a heartbeat older than
-// twice its period means the agent is stopped or stuck.
+// twice its period means the agent is stopped or stuck, as does a stop
+// status.
 export function isFresh(status, now = Date.now()) {
+  if (isStopping(status)) {
+    return false
+  }
   const heartbeat = Date.parse(status?.heartbeat ?? '')
   const period = typeof status?.heartbeatSec === 'number' && status.heartbeatSec > 0 ? status.heartbeatSec : 600
   return !Number.isNaN(heartbeat) && heartbeat - now <= FUTURE_HEARTBEAT_MS && now - heartbeat <= 2 * period * 1000
@@ -256,12 +264,23 @@ export function isFresh(status, now = Date.now()) {
 // a list of VIF uuids an agent reports: anything else is no list
 const uuidList = value => (Array.isArray(value) ? value.filter(uuid => typeof uuid === 'string') : [])
 
+// an agent that supports VDF locks as XO reads them: vdfLock, and the
+// list of those it enforces (agents in between had vdfLock without it)
+export const supportsVdfLock = status => status?.locking?.vdfLock === true && Array.isArray(status.locking.vdfEnforced)
+
 // The VDF locks a host's agent enforces now (vdf#41): undefined when it
-// enforces none (a host not running, no status, a stopped or stuck agent,
-// one before VDF locks), else the VIFs it reports enforcing (a complete
-// list: none when it's missing) and those it reports it can't.
+// enforces none (a host not running, no status, a stopped, stopping or
+// stuck agent, one before VDF locks, no heartbeat period: the agent's own
+// rule, lock.go enforces), else the VIFs it reports enforcing (a complete
+// list) and those it reports it can't.
 export function vdfLockEnforcement(status, { now = Date.now(), live = true } = {}) {
-  if (!live || status === undefined || !isFresh(status, now) || status.locking?.vdfLock !== true) {
+  if (
+    !live ||
+    status === undefined ||
+    !(typeof status.heartbeatSec === 'number' && status.heartbeatSec > 0) ||
+    !isFresh(status, now) ||
+    !supportsVdfLock(status)
+  ) {
     return undefined
   }
   return {

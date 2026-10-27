@@ -58,12 +58,12 @@ export function vmAddresses(vm, vifs, enforcement = enforcementOf(vm)) {
 }
 
 // The VDF locks the host a running VM is on enforces (XAPI's records: its
-// resident host, live per its metrics)
+// resident host, live per its metrics; without metrics, not known live)
 export function enforcementOf(vm) {
   const host = vm.power_state === 'Running' ? vm.$resident_on : undefined
   return host === undefined
     ? undefined
-    : vdfLockEnforcement(hostStatus(host.other_config), { live: host.$metrics?.live !== false })
+    : vdfLockEnforcement(hostStatus(host.other_config), { live: host.$metrics?.live === true })
 }
 
 // the VIF carrying ip: locking first (XAPI's, or VDF's where enforced),

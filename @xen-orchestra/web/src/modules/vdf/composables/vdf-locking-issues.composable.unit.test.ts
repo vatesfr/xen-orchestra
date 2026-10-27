@@ -63,4 +63,21 @@ it("lists an older agent's VDF-locked VIFs as not enforced, not as unlocked", ()
   expect(wrapper.vm.vdfUnenforced.map(issue => issue.vifId)).toEqual(['vif-app'])
   expect(wrapper.vm.unlocked.map(issue => issue.vifId)).toEqual(['vif-web'])
   expect(wrapper.vm.unlockedCount).toBe(1)
+  expect(wrapper.vm.prefixed).toEqual([])
+})
+
+it('lists the locks to a prefix', () => {
+  const db = createVm({ id: 'vm-db' as FrontXoVm['id'], name_label: 'db' })
+  interfaces.value = new Map([['vm-db', [{ ...iface('vif-db', 'xapi'), lockPrefix: true, untrusted: true }]]])
+
+  const { wrapper } = mountComposable(() =>
+    useVdfLockingIssues({
+      hosts: [],
+      hostOf: () => undefined,
+      runningVms: [db],
+      document: { groups: {}, policies: [] },
+    })
+  )
+
+  expect(wrapper.vm.prefixed.map(issue => issue.vifId)).toEqual(['vif-db'])
 })

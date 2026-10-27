@@ -543,6 +543,12 @@ describe('VDF locks', () => {
     // not listed as enforced: just locked, hot-plugged, just migrated here
     assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: ['vif-2'] })), untrusted)
     assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: [], vdfUnenforced: ['vif-1'] })), untrusted)
+    // a stop status: what it says no longer holds
+    assert.deepEqual(ipsOf([vdfLocked], { ...supporting, stopping: '2026-10-27T11:59:40Z' }), untrusted)
+    // no heartbeat period, or not a number: the agent's own rule
+    assert.deepEqual(ipsOf([vdfLocked], { ...supporting, heartbeatSec: undefined }), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], { ...supporting, heartbeatSec: '30' }), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], { ...supporting, heartbeatSec: 0 }), untrusted)
     // a missing or malformed list enforces nothing
     assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: undefined })), untrusted)
     assert.deepEqual(ipsOf([vdfLocked], withLocking({ vdfEnforced: 'vif-1' })), untrusted)
@@ -550,8 +556,10 @@ describe('VDF locks', () => {
   })
 
   test('the lists are arrays of uuids or nothing', () => {
-    const enforcement = vdfLockEnforcement(withLocking({ vdfEnforced: 'vif-1', vdfUnenforced: 'v' }), { now: NOW })
-    assert.deepEqual([...enforcement.enforced], [])
+    // no list of those it enforces: an agent too old to vouch for any
+    assert.equal(vdfLockEnforcement(withLocking({ vdfEnforced: 'vif-1' }), { now: NOW }), undefined)
+    assert.equal(vdfLockEnforcement(withLocking({ vdfEnforced: undefined }), { now: NOW }), undefined)
+    const enforcement = vdfLockEnforcement(withLocking({ vdfUnenforced: 'v' }), { now: NOW })
     assert.deepEqual([...enforcement.unenforced], [])
     const filtered = vdfLockEnforcement(withLocking({ vdfEnforced: ['vif-1', 7, null] }), { now: NOW })
     assert.deepEqual([...filtered.enforced], ['vif-1'])
@@ -610,5 +618,7 @@ describe('VDF locks', () => {
     assert.equal(isFresh({ heartbeat: '2026-10-27T11:30:00Z', heartbeatSec: 'x' }, NOW), false)
     assert.equal(isFresh({ heartbeat: '2026-10-27T12:05:00Z' }, NOW), false)
     assert.equal(isFresh({}, NOW), false)
+    // a clean stop says so
+    assert.equal(isFresh({ heartbeat: '2026-10-27T11:59:50Z', stopping: '2026-10-27T11:59:55Z' }, NOW), false)
   })
 })

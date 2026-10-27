@@ -63,6 +63,10 @@ describe('trace: a VM locked by VDF', () => {
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { live: false })), ['10.0.0.5', '10.0.0.99'])
     assert.deepEqual(ipv4(vmOn({ vdfEnforced: ['vif-1'] }, { power: 'Halted' })), ['10.0.0.5', '10.0.0.99'])
     assert.deepEqual(ipv4({ ...vmOn({ vdfEnforced: ['vif-1'] }), $resident_on: undefined }), ['10.0.0.5', '10.0.0.99'])
-    assert.deepEqual(enforcementOf(vmOn({ vdfEnforced: 'vif-1' })).enforced.size, 0)
+    // no metrics: not known live
+    const noMetrics = vmOn({ vdfEnforced: ['vif-1'] })
+    delete noMetrics.$resident_on.$metrics
+    assert.deepEqual(ipv4(noMetrics), ['10.0.0.5', '10.0.0.99'])
+    assert.equal(enforcementOf(vmOn({ vdfEnforced: 'vif-1' })), undefined)
   })
 })

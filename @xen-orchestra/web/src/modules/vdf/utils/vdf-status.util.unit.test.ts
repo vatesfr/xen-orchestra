@@ -59,6 +59,8 @@ describe('hostState', () => {
     expect(hostState(status({ doc: 'old' }), 'abc', { now })).toBe('behind')
     expect(hostState(status({ rejected: 'unknown field' }), 'abc', { now })).toBe('rejected')
     expect(hostState(status({ heartbeat: '2026-10-22T09:30:00Z' }), 'abc', { now })).toBe('stale')
+    // a clean stop says so at once
+    expect(hostState(status({ stopping: '2026-10-22T09:55:30Z' }), 'abc', { now })).toBe('stale')
     // a heartbeat from the future says nothing about now (a minute of skew passes)
     expect(hostState(status({ heartbeat: '2026-10-22T10:30:00Z' }), 'abc', { now })).toBe('stale')
     expect(hostState(status({ heartbeat: new Date(now + 30e3).toISOString() }), 'abc', { now })).toBe('up-to-date')

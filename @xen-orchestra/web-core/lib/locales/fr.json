@@ -1026,6 +1026,7 @@
   "firewall:overview:policies": "Politiques publiées",
   "firewall:overview:policies:description": "Ce que les hôtes appliquent actuellement",
   "firewall:overview:pool-key": "Clé du pool",
+  "firewall:overview:prefix-locks": "1 interface est verrouillée sur une plage : son invité peut utiliser n'importe quelle adresse de celle-ci, ses adresses ne sont donc pas fiables | {n} interfaces sont verrouillées sur une plage : leurs invités peuvent utiliser n'importe quelle adresse de celle-ci, leurs adresses ne sont donc pas fiables",
   "firewall:overview:protected": "Protégées",
   "firewall:overview:protected-when-running": "1 VM arrêtée sera protégée à son démarrage | {n} VMs arrêtées seront protégées à leur démarrage",
   "firewall:overview:protection": "VMs protégées",

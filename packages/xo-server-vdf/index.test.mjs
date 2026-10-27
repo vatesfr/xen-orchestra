@@ -1896,6 +1896,18 @@ describe('VDF lock', () => {
         { ipv4: [], ipv6: ['fe80::1%eth0'] },
         { ipv4: ['010.0.0.5'], ipv6: [] },
         { ipv4: ['0.0.0.0'], ipv6: [] },
+        // loopback, multicast, broadcast, IPv4-compatible, unspecified
+        { ipv4: ['127.0.0.1'], ipv6: [] },
+        { ipv4: ['127.1.2.3'], ipv6: [] },
+        { ipv4: ['224.0.0.251'], ipv6: [] },
+        { ipv4: ['239.1.1.1'], ipv6: [] },
+        { ipv4: ['255.255.255.255'], ipv6: [] },
+        { ipv4: [], ipv6: ['::1'] },
+        { ipv4: [], ipv6: ['::'] },
+        { ipv4: [], ipv6: ['ff02::1'] },
+        { ipv4: [], ipv6: ['FF05::2'] },
+        { ipv4: [], ipv6: ['::10.0.0.5'] },
+        { ipv4: [], ipv6: ['::a00:5'] },
         { ipv4: [5], ipv6: [] },
         { ipv4: '10.0.0.5', ipv6: [] },
       ]
@@ -1919,6 +1931,22 @@ describe('VDF lock', () => {
       // a stopped agent: its heartbeat is old, or from the future
       [hostWith({ 'vdf:status': fresh(SUPPORTING, new Date(Date.now() - 120e3)) }), {}, /isn't running/],
       [hostWith({ 'vdf:status': fresh(SUPPORTING, new Date(Date.now() + 300e3)) }), {}, /isn't running/],
+      // a clean stop (SIGTERM): its status says so at once
+      [
+        hostWith({
+          'vdf:status': JSON.stringify({ ...JSON.parse(fresh(SUPPORTING)), stopping: new Date().toISOString() }),
+        }),
+        {},
+        /isn't running \(it stopped at/,
+      ],
+      // no heartbeat period: not the agent's own reading of fresh
+      [
+        hostWith({ 'vdf:status': JSON.stringify({ heartbeat: new Date().toISOString(), locking: SUPPORTING }) }),
+        {},
+        /isn't running/,
+      ],
+      // an agent with vdfLock but no vdfEnforced: too old to vouch for one
+      [hostWith({ 'vdf:status': fresh({ ...SUPPORTING, vdfEnforced: undefined }) }), {}, /doesn't support VDF locks/],
       // no agent at all, a host not running, a host XO doesn't know
       [hostWith({}), {}, /isn't running/],
       [hostWith({ 'vdf:status': fresh(SUPPORTING) }, { power_state: 'Halted' }), {}, /isn't running/],

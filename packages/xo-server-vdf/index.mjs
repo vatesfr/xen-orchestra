@@ -18,6 +18,7 @@ import {
   hostStatus,
   inScope,
   isFresh,
+  isStopping,
   keepGlobalPart,
   localPart,
   memberConflicts,
@@ -28,6 +29,7 @@ import {
   reservedTierPolicies,
   runningVmRecords,
   serialize,
+  supportsVdfLock,
   VDF_LOCKING_KEY,
   vdfLockEnforcement,
 } from './global.mjs'
@@ -181,11 +183,23 @@ export function lockAddresses({ ipv4, ipv6 } = {}) {
         return { error: `${family}: ${JSON.stringify(entry)} isn't an IPv${version} address (a prefix neither)` }
       }
       const address = version === 4 ? entry.trim() : new URL(`http://[${entry.trim()}]`).hostname.slice(1, -1)
-      if (address === '0.0.0.0' || address === '::' || address === '255.255.255.255') {
-        return { error: `${family}: ${entry} can't be an interface's address` }
+      if (version === 4 && (address === '0.0.0.0' || /^127\./.test(address) || Number(address.split('.')[0]) >= 224)) {
+        // unspecified, loopback, multicast (224/4) or reserved and broadcast
+        return { error: `ipv4: ${entry} can't be an interface's address` }
       }
-      if (version === 6 && (/^fe[89ab][0-9a-f]:/.test(address) || address.startsWith('::ffff:'))) {
-        return { error: `ipv6: ${entry}: link-local and IPv4-mapped addresses can't be locked to` }
+      // unspecified, loopback (::1) and IPv4-compatible (::a.b.c.d, the
+      // first 96 bits zero), multicast (ff00::/8), link-local (fe80::/10),
+      // IPv4-mapped (::ffff:0:0/96)
+      if (
+        version === 6 &&
+        (/^::(([0-9a-f]{1,4}:)?[0-9a-f]{1,4})?$/.test(address) ||
+          /^ff[0-9a-f]{2}:/.test(address) ||
+          /^fe[89ab][0-9a-f]:/.test(address) ||
+          address.startsWith('::ffff:'))
+      ) {
+        return {
+          error: `ipv6: ${entry} can't be an interface's address (loopback, multicast, link-local, IPv4-mapped or compatible)`,
+        }
       }
       if (!result[family].includes(address)) {
         result[family].push(address)
@@ -1623,15 +1637,21 @@ class VdfPlugin {
       : Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(host => host.$pool === vm?.$pool)
     const statuses = hosts.map(host => ({ host, status: hostStatus(host.otherConfig) }))
     const current = statuses.filter(
-      ({ host, status }) => host.power_state === 'Running' && status !== undefined && isFresh(status, now)
+      ({ host, status }) =>
+        host.power_state === 'Running' &&
+        typeof status?.heartbeatSec === 'number' &&
+        status.heartbeatSec > 0 &&
+        isFresh(status, now)
     )
     const name = ({ host }) => host.name_label ?? host.id
     if (current.length === 0 || (running && current.length < statuses.length)) {
+      const stopped =
+        running && isStopping(statuses[0]?.status) ? ` (it stopped at ${statuses[0].status.stopping})` : ''
       return running
-        ? `the vdf agent of ${hosts[0]?.name_label ?? 'its host'} isn't running: it can't enforce a VDF lock`
+        ? `the vdf agent of ${hosts[0]?.name_label ?? 'its host'} isn't running${stopped}: it can't enforce a VDF lock`
         : 'no host of the pool has a running vdf agent to enforce a VDF lock'
     }
-    const older = current.filter(({ status }) => status.locking?.vdfLock !== true)
+    const older = current.filter(({ status }) => !supportsVdfLock(status))
     if (older.length > 0) {
       return `the vdf agent of ${older.map(name).join(', ')} doesn't support VDF locks (older than this XO)`
     }

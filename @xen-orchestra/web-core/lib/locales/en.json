@@ -1026,6 +1026,7 @@
   "firewall:overview:policies": "Published policies",
   "firewall:overview:policies:description": "What the hosts enforce now",
   "firewall:overview:pool-key": "Pool key",
+  "firewall:overview:prefix-locks": "1 interface is locked to a range: its guest may use any address in it, so its addresses aren't trusted | {n} interfaces are locked to a range: their guests may use any address in it, so their addresses aren't trusted",
   "firewall:overview:protected": "Protected",
   "firewall:overview:protected-when-running": "1 halted VM is protected when it starts | {n} halted VMs are protected when they start",
   "firewall:overview:protection": "Protected VMs",

@@ -36,6 +36,11 @@ export function hostState(
     return 'unknown'
   }
 
+  // a clean stop (SIGTERM) says so as the agent exits: nothing it says holds
+  if (status.stopping !== undefined && status.stopping !== '') {
+    return 'stale'
+  }
+
   const heartbeat = Date.parse(status.heartbeat ?? '')
   const period = typeof status.heartbeatSec === 'number' && status.heartbeatSec > 0 ? status.heartbeatSec : 600
 
