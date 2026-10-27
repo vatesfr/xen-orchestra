@@ -10,7 +10,7 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
-import { assertKnownDevices } from './_deviceMapping.mjs'
+import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -269,36 +269,14 @@ export default class MigrateVm {
     // before anything is done on either side: a mapping which cannot be applied would import the
     // device to the default destination
     assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
-    const srsByNode = {}
-    for (const [node, diskSrId] of Object.entries(srIdsByNode)) {
-      const diskSr = app.getXapiObject(diskSrId, 'SR')
-      // the VM is created on the pool of `sr`: a VDI on another pool could not be attached to it
-      if (diskSr.$pool.uuid !== sr.$pool.uuid) {
-        const error = new Error(`the SR ${diskSrId} of disk ${node} is not in the pool of the SR ${srId}`)
-        error.code = 'SR_NOT_IN_POOL'
-        Object.assign(error, { vmId, node, srId: diskSrId, poolId: sr.$pool.uuid })
-        throw error
-      }
-      srsByNode[node] = diskSr
-    }
-    const getPoolNetwork = (id, nic) => {
-      const network = app.getXapiObject(id, 'network')
-      // the VIFs are created on the VM, in the pool of `sr`
-      if (network.$pool.uuid !== sr.$pool.uuid) {
-        const error = new Error(
-          `the network ${id}${nic === undefined ? '' : ` of NIC ${nic}`} is not in the pool of the SR ${srId}`
-        )
-        error.code = 'NETWORK_NOT_IN_POOL'
-        Object.assign(error, { vmId, nic, networkId: id, poolId: sr.$pool.uuid })
-        throw error
-      }
-      return network
-    }
-    const network = getPoolNetwork(networkId)
-    const networksByNic = {}
-    for (const [nic, nicNetworkId] of Object.entries(networkIdsByNic)) {
-      networksByNic[nic] = getPoolNetwork(nicNetworkId, nic)
-    }
+    const { srsByNode, network, networksByNic } = resolveDestinations(app, {
+      sr,
+      srId,
+      networkId,
+      srIdsByNode,
+      networkIdsByNic,
+      vmId,
+    })
 
     // the change tracking of the host gives the blocks to read: every block the disk uses for the
     // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
