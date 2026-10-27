@@ -83,6 +83,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@xen-orchestra/backups": "^0.77.0"
+    "@xen-orchestra/backups": "^0.77.0",
+    "@xen-orchestra/cron": "^1.0.7"
   }
 }

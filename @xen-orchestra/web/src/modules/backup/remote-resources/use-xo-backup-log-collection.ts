@@ -12,10 +12,12 @@ export type FrontXoBackupLog = Pick<XoBackupLog, (typeof backupLogFields)[number
 const backupLogFields = [
   'id',
   'jobId',
+  'scheduleId',
   'status',
   'start',
   'end',
   'tasks',
+  'result',
 ] as const satisfies readonly (keyof XoBackupLog)[]
 
 export const useXoBackupLogCollection = defineRemoteResource({
