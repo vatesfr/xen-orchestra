@@ -66,6 +66,7 @@ const className = computed(() =>
 <style lang="postcss" scoped>
 .ui-accordion-item-title {
   margin: 0;
+  transition: margin-bottom 0.3s ease;
 
   .trigger {
     display: flex;

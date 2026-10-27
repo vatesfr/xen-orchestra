@@ -63,7 +63,9 @@ const isDividerVisible = computed(() => item.isExpanded || controller.size === '
     display: grid;
     grid-template-rows: 0fr;
     overflow: hidden;
-    transition: grid-template-rows 0.3s ease;
+    transition:
+      grid-template-rows 0.3s ease,
+      margin-top 0.3s ease;
 
     .panel-inner {
       min-height: 0;
