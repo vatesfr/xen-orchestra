@@ -13,10 +13,10 @@
         <li v-for="rule of item.rules" :key="rule.key" class="rule">
           <UiTag :accent="rule.accent" variant="secondary" class="type">{{ rule.typeLabel }}</UiTag>
           <span class="sentence" :class="{ removed: rule.isRemoved }">
-            <VdfRuleSentence :rule="rule.rule" />
+            <VdfRuleSentence :rule="rule.rule" :global="isGlobal" />
             <span v-if="rule.previous" class="previous typo-body-regular-small">
               {{ t('firewall:review:was') }}
-              <VdfRuleSentence :rule="rule.previous" />
+              <VdfRuleSentence :rule="rule.previous" :global="isGlobal" />
             </span>
           </span>
         </li>

@@ -13,6 +13,10 @@
   >
     <VtsIcon :name="icon" size="small" />
     <span class="name">{{ displayName(group) }}</span>
+    <!-- in a pool, a global group next to the pool's own of the same name -->
+    <span v-if="isGlobalName(group) && !isGlobalScope(scopeId)" class="global-mark">
+      {{ t('firewall:global:mark') }}
+    </span>
     <span v-if="networks.length > 0" class="networks">
       <VtsIcon name="fa:network-wired" size="small" />
       {{ networks.map(networkTagLabel).join(', ') }}
@@ -126,6 +130,10 @@ const ariaLabel = computed(() =>
   .name {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .global-mark {
+    color: var(--color-neutral-txt-secondary);
   }
 
   .networks {

@@ -12,7 +12,13 @@ import {
   type VdfRuleAction,
   type VdfTierName,
 } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
+import {
+  displayName,
+  globalRuleId,
+  isGlobalName,
+  isReservedTier,
+  ruleNumber,
+} from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import {
@@ -515,7 +521,10 @@ function policyTexts(policy: VdfPolicy) {
 
 function ruleTexts(rule: VdfRule) {
   return [
+    // what a search finds a rule by: #10, G10 for a global one, and 10
+    ruleNumber(rule.id),
     `#${globalRuleId(rule.id)}`,
+    `g${globalRuleId(rule.id)}`,
     displayName(rulePeer(rule)),
     isEgressRule(rule) ? 'outbound' : '',
     rule.proto,

@@ -31,7 +31,7 @@
                 >
                   <span class="side">
                     <span class="typo-body-regular-small secondary">{{ side.label }}</span>
-                    <VdfRuleSentence v-if="side.rule" :rule="side.rule" />
+                    <VdfRuleSentence v-if="side.rule" :rule="side.rule" :global="isGlobalScope(scopeId)" />
                     <span v-else class="typo-body-regular-small">{{ side.text }}</span>
                   </span>
                 </UiRadioButton>
@@ -39,7 +39,13 @@
             </div>
           </template>
           <UiInfo v-for="rule of renumbered" :key="rule.from" accent="info" wrap>
-            {{ t('firewall:rebase:renumbered', { from: rule.from, to: rule.to, policy: displayName(rule.policy) }) }}
+            {{
+              t('firewall:rebase:renumbered', {
+                from: ruleNumber(rule.from, { global: isGlobalScope(scopeId) }),
+                to: ruleNumber(rule.to, { global: isGlobalScope(scopeId) }),
+                policy: displayName(rule.policy),
+              })
+            }}
           </UiInfo>
         </section>
 
@@ -59,7 +65,7 @@ import VdfRuleSentence from '@/modules/vdf/components/history/VdfRuleSentence.vu
 import VdfContentModal from '@/modules/vdf/components/VdfContentModal.vue'
 import type { VdfGroup, VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
 import { isEmptyChange, type VdfChangeDetails } from '@/modules/vdf/utils/vdf-change.util.ts'
-import { displayName, isGlobalScope } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalScope, ruleNumber } from '@/modules/vdf/utils/vdf-global.util.ts'
 import type { VdfConflict, VdfMergeResult, VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
@@ -106,7 +112,12 @@ function titleOf(conflict: VdfConflict) {
     case 'policy':
       return t('firewall:change:policy', { name: displayName(conflict.label) })
     case 'rule':
-      return t('firewall:change:rule', { id: conflict.label, policy: displayName(conflict.context ?? '') })
+      return t('firewall:change:rule', {
+        id: /^\d+$/.test(conflict.label)
+          ? ruleNumber(Number(conflict.label), { global: isGlobalScope(scopeId) })
+          : conflict.label,
+        policy: displayName(conflict.context ?? ''),
+      })
     default:
       return conflict.label === 'limits'
         ? t('firewall:limits')

@@ -8,7 +8,7 @@
   >
     <UiTableCell class="cell">
       <span class="id">
-        <code class="typo-body-regular-small">{{ t('firewall:rule-number', { id: globalRuleId(rule.id) }) }}</code>
+        <code class="typo-body-regular-small">{{ t('firewall:rule-number', { id: number }) }}</code>
         <VtsIcon
           v-if="isEgress"
           v-tooltip="t('firewall:egress:rule')"
@@ -78,7 +78,7 @@
           accent="brand"
           size="small"
           left-icon="action:undo"
-          :aria-label="t('firewall:restore-rule', { id: globalRuleId(rule.id) })"
+          :aria-label="t('firewall:restore-rule', { id: number })"
           @click="emit('restore')"
         >
           {{ t('firewall:restore') }}
@@ -104,7 +104,7 @@ import VdfRuleService from '@/modules/vdf/components/policies/VdfRuleService.vue
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
-import { globalRuleId } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isGlobalScope, ruleNumber } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { ruleAction, type VdfMove, type VdfRuleBaseRule } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import type { IconName } from '@core/icons'
@@ -124,7 +124,7 @@ import { useI18n } from 'vue-i18n'
 // #31  Allow  from [app]  TCP 5432  to [db]
 // An egress rule (vdf#53) goes from the policy's group to its destination:
 // #32 →  Allow  from [app]  UDP 53  to [any]
-const { entry, hits } = defineProps<{
+const { entry, hits, scopeId } = defineProps<{
   scopeId: VdfScopeId
   entry: VdfRuleBaseRule
   // the policy's group: where the rule's connections go (egress: where
@@ -173,7 +173,10 @@ const stateIcons: Record<NonNullable<VdfRuleBaseRule['state']>, IconName> = {
 
 const stateLabel = computed(() => (entry.state === undefined ? undefined : t(`firewall:draft-state:${entry.state}`)))
 
-const editLabel = computed(() => t('firewall:rule-form:edit', { id: globalRuleId(rule.value.id) }))
+// G10 for a global rule, #10 for the pool's own
+const number = computed(() => ruleNumber(rule.value.id, { global: isGlobalScope(scopeId) }))
+
+const editLabel = computed(() => t('firewall:rule-form:edit', { id: number.value }))
 
 const logLabel = computed(() => rule.value.logLabel ?? t('firewall:log:on'))
 

@@ -98,7 +98,7 @@
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfGroupOption } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import type { VdfGroup, VdfProtocol, VdfRule, VdfRuleAction } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, ruleNumber } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatPorts, parsePorts, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -121,7 +121,14 @@ import { omit } from 'lodash-es'
 import { computed, reactive, watch } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
-const { policyName, rule, isNew, groups, appliedTo } = defineProps<{
+const {
+  policyName,
+  rule,
+  isNew,
+  groups,
+  appliedTo,
+  global = false,
+} = defineProps<{
   policyName: string
   // the policy's group: where the rule's connections go (egress: where
   // they come from)
@@ -132,6 +139,8 @@ const { policyName, rule, isNew, groups, appliedTo } = defineProps<{
   groups: VdfGroupOption[]
   // a prefilled source (egress: destination) address no group holds yet
   address?: string
+  // a rule of the global configuration: numbered G10
+  global?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -143,7 +152,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const displayId = computed(() => globalRuleId(rule.id))
+const displayId = computed(() => ruleNumber(rule.id, { global }))
 
 // an egress rule's form asks for a destination, the rest is the same
 const isEgress = isEgressRule(rule)

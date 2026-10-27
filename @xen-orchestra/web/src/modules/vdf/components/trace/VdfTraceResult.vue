@@ -125,7 +125,7 @@ import {
   type VdfTraceStage,
   type VdfTraceWhatIf,
 } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, ruleNumber, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
@@ -228,7 +228,7 @@ function stageLabel(stage: VdfTraceStage) {
     return t(stage.egress ? 'firewall:trace:stage:egress-rule' : 'firewall:trace:stage:rule', {
       tier,
       policy: displayName(stage.policy),
-      rule: globalRuleId(stage.rule),
+      rule: ruleNumber(stage.rule),
       action: actionLabel(stage.action),
     })
   }

@@ -18,6 +18,10 @@
         <UiInfo v-if="!isNew && form.name !== name" accent="info" wrap>
           {{ t('firewall:group-form:rename') }}
         </UiInfo>
+        <!-- a pool group named as a global one would read the same in rules: said as it's typed -->
+        <UiInfo v-if="isNamedAsGlobal && !nameField.error" accent="warning" wrap>
+          {{ t('firewall:group-form:name:global', { name: form.name }) }}
+        </UiInfo>
 
         <section class="section">
           <UiLabel accent="neutral">{{ t('firewall:group-form:tags') }}</UiLabel>
@@ -159,8 +163,8 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
-import { VDF_QUARANTINE_TAG, VDF_TAG_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
-import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { VDF_GLOBAL_PREFIX, VDF_QUARANTINE_TAG, VDF_TAG_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
+import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isNetworkTag, networkTagFor, VDF_NET_TAG_PREFIX } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -365,6 +369,10 @@ function removeIp(ip: string) {
   form.ips = form.ips.filter(value => value !== ip)
 }
 
+const isNamedAsGlobal = computed(
+  () => form.name !== '' && !isGlobalName(form.name) && otherGroupNames.includes(VDF_GLOBAL_PREFIX + form.name)
+)
+
 // in a pool, a global group reads by its global name: no local one may
 // take it, or the two would read the same in rules
 const takenNames = computed(() => ['any', ...otherGroupNames.map(displayName)])
@@ -377,7 +385,10 @@ const { useField, validate } = useValidatedForm(form, {
         pattern: withMessage(regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/), () => t('firewall:group-form:name:invalid')),
         taken: withMessage(
           (value: unknown) => !takenNames.value.includes(String(value ?? '')),
-          () => t('firewall:group-form:name:taken')
+          () =>
+            isNamedAsGlobal.value
+              ? t('firewall:group-form:name:global', { name: form.name })
+              : t('firewall:group-form:name:taken')
         ),
       },
     }),

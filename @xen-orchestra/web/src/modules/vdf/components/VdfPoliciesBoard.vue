@@ -182,7 +182,13 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfRuleHits } from '@/modules/vdf/composables/vdf-rule-hits.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfPolicyMode, VdfProtocol } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
+import {
+  displayName,
+  globalRuleId,
+  isGlobalScope,
+  isReservedTier,
+  ruleNumber,
+} from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   filterRuleBase,
@@ -470,7 +476,10 @@ async function confirmDeletePolicy(name: string) {
 async function confirmDeleteRule(policyName: string, id: number) {
   const response = await openDeleteModal({
     props: {
-      subject: t('firewall:delete-rule:subject', { id: globalRuleId(id), policy: displayName(policyName) }),
+      subject: t('firewall:delete-rule:subject', {
+        id: ruleNumber(id, { global: isGlobalScope(scopeId.value) }),
+        policy: displayName(policyName),
+      }),
       description: t('firewall:delete:draft-info'),
       confirmLabel: t('firewall:delete-rule'),
     },

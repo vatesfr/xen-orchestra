@@ -83,7 +83,7 @@ import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import type { VdfDocument } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, ruleNumber, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { effectiveTiers, ruleAction } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules, isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
@@ -127,7 +127,7 @@ const tiers = computed(() =>
       monitored: isMonitored(policy),
       default: policy.default,
       route: vdfPageRoute(poolId, 'policies', { policy: policy.name }),
-      rules: allRules(policy).map(rule => ({ rule, id: globalRuleId(rule.id) })),
+      rules: allRules(policy).map(rule => ({ rule, id: ruleNumber(rule.id) })),
     })),
   }))
 )

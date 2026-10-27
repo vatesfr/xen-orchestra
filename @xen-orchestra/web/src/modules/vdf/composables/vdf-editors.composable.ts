@@ -9,7 +9,7 @@ import {
   type VdfProtocol,
   type VdfRule,
 } from '@/modules/vdf/types.ts'
-import { reservesTiers } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { byOwnThenGlobal, reservesTiers } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupUsage, nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -50,9 +50,10 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
   // where group members are looked for
   const poolIds = computed(() => (scope.isGlobal ? scope.scopePoolIds.value : [scope.pool.value.id]))
 
+  // the pool's own groups first, then the global ones, by name in each
   const groupOptions = computed<VdfGroupOption[]>(() =>
     Object.keys(document.value.groups)
-      .sort()
+      .sort(byOwnThenGlobal)
       .map(name => ({
         name,
         members: membersOf(name).length,
@@ -178,6 +179,8 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
       isNew,
       groups: groupOptions.value,
       address: source.address,
+      // a rule of the global configuration is numbered G10
+      global: scope.isGlobal,
     }))
 
     const response = await openRule({

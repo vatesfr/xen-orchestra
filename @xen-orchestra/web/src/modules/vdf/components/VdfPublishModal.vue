@@ -199,7 +199,7 @@ import {
 import {
   composeWithGlobal,
   displayName,
-  globalRuleId,
+  ruleNumber,
   inGlobalScope,
   isGlobalScope,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -403,7 +403,11 @@ const warnings = computed(() => [
         key: `${warning.type}:${warning.rule}`,
         text: t(
           'firewall:publish:warning:open-connections',
-          { rule: globalRuleId(warning.rule), policy, n: n(warning.count) },
+          {
+            rule: ruleNumber(warning.rule, { global: isGlobalScope(shown.value.scopeId) }),
+            policy,
+            n: n(warning.count),
+          },
           warning.count
         ),
       }
@@ -716,7 +720,7 @@ function agentWarnings(raws: string[] | undefined) {
     }
 
     if ('rule' in warning) {
-      params.rule = globalRuleId(warning.rule)
+      params.rule = ruleNumber(warning.rule, { global: isGlobalScope(shown.value.scopeId) })
     }
 
     if ('tier' in warning) {

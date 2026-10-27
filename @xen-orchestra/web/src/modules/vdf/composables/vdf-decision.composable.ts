@@ -1,6 +1,6 @@
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { VDF_TIERS, type VdfDocument } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, ruleNumber, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
@@ -43,7 +43,7 @@ export function useVdfDecision(rawPoolId: MaybeRefOrGetter<string>, rawDocument:
     const parts = {
       tier: tierText(tier),
       policy: displayName(policy),
-      rule: isDefault ? t('firewall:log:default') : t('firewall:log:rule', { id: globalRuleId(Number(rule)) }),
+      rule: isDefault ? t('firewall:log:default') : t('firewall:log:rule', { id: ruleNumber(Number(rule)) }),
     }
 
     return {

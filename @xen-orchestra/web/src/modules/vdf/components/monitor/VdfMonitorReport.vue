@@ -107,7 +107,7 @@
               {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
             </span>
             <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
-              {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
+              {{ t('firewall:monitor:before-rule', { id: ruleNumber(suggestion.before) }) }}
             </span>
             <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
               {{ t('firewall:monitor:in-draft') }}
@@ -189,7 +189,7 @@
                 {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
               </span>
               <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
-                {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
+                {{ t('firewall:monitor:before-rule', { id: ruleNumber(suggestion.before) }) }}
               </span>
               <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
                 {{ t('firewall:monitor:in-draft') }}
@@ -248,7 +248,7 @@ import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
-import { displayName, globalRuleId, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalName, ruleNumber, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import {
   aloneGroups,
   coveringRule,
@@ -833,8 +833,8 @@ function decidedBy(entry: VdfMonitorEntry) {
   }
 
   return entry.pass
-    ? t('firewall:monitor:by-pass', { id: entry.rule })
-    : t('firewall:monitor:by-rule', { id: entry.rule })
+    ? t('firewall:monitor:by-pass', { id: ruleNumber(entry.rule) })
+    : t('firewall:monitor:by-rule', { id: ruleNumber(entry.rule) })
 }
 
 // the VM, and which of its interfaces when it has several (vdf#36)
@@ -935,7 +935,7 @@ const { HeadCells, BodyCells } = useMonitorColumns({
             ? null
             : withDirectives(
                 h(UiTag, { accent: 'success', variant: 'secondary', tabindex: 0 }, () =>
-                  t('firewall:monitor:now-allowed', { id: globalRuleId(row.coveredBy!) })
+                  t('firewall:monitor:now-allowed', { id: ruleNumber(row.coveredBy!) })
                 ),
                 [[vTooltip, t('firewall:monitor:now-allowed:info')]]
               ),

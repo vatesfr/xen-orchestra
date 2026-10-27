@@ -1,11 +1,13 @@
 import { VDF_GLOBAL_RULE_BASE, type VdfDocument } from '@/modules/vdf/types.ts'
 import {
+  byOwnThenGlobal,
   composeWithGlobal,
   displayName,
   globalRuleId,
   isReservedTier,
   policyReach,
   reservesTiers,
+  ruleNumber,
   vdfGlobalRoute,
   vdfPageRoute,
   withGlobalOf,
@@ -132,6 +134,31 @@ describe('policyReach', () => {
     ).toEqual([
       { policy: 'db', pools: [{ id: 'A', name: 'Pool A', vms: 2 }] },
       { policy: 'web', pools: [] },
+    ])
+  })
+})
+
+// UX P1-3: a global object and the pool's own of the same name told apart
+describe('ruleNumber', () => {
+  it('numbers a global rule G10, a pool rule #10', () => {
+    expect(ruleNumber(10)).toBe('#10')
+    // in a pool's document: from the global base up
+    expect(ruleNumber(VDF_GLOBAL_RULE_BASE + 10)).toBe('G10')
+    // in the global configuration: all of them
+    expect(ruleNumber(10, { global: true })).toBe('G10')
+  })
+})
+
+describe('byOwnThenGlobal', () => {
+  it("orders the pool's groups first, then the global ones, by name in each", () => {
+    expect(['web', 'global:prod', 'app', 'global:app', 'prod', 'global:db', 'db'].sort(byOwnThenGlobal)).toEqual([
+      'app',
+      'db',
+      'prod',
+      'web',
+      'global:app',
+      'global:db',
+      'global:prod',
     ])
   })
 })

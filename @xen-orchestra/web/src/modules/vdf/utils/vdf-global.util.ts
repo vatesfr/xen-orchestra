@@ -24,6 +24,19 @@ export function globalRuleId(id: number) {
   return id >= VDF_GLOBAL_RULE_BASE ? id - VDF_GLOBAL_RULE_BASE : id
 }
 
+// A rule's number as shown: a global (XO-wide) rule's with a G (in a
+// pool's document, the ids from VDF_GLOBAL_RULE_BASE up; in the global
+// configuration, all of them: `global`), a pool rule's with # (G10, #10)
+export function ruleNumber(id: number, { global = false }: { global?: boolean } = {}) {
+  return id >= VDF_GLOBAL_RULE_BASE || global ? `G${globalRuleId(id)}` : `#${id}`
+}
+
+// group names as lists and selects order them: the pool's own first, then
+// the global ones, by name in each (a global group may share a pool
+// group's name)
+export const byOwnThenGlobal = (nameA: string, nameB: string) =>
+  Number(isGlobalName(nameA)) - Number(isGlobalName(nameB)) || displayName(nameA).localeCompare(displayName(nameB))
+
 export function isGlobalScope(scopeId: VdfScopeId) {
   return scopeId === VDF_GLOBAL_SCOPE
 }

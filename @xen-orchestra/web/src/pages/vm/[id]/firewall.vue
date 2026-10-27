@@ -409,10 +409,18 @@ const TRAFFIC_RULE_ACCENTS: Record<VdfTrafficRuleStatus, 'danger' | 'warning' | 
 // GROUPS: membership is tags, written at once (no draft), after a
 // confirmation that says what changes
 
+// the pool's own groups first, then the global ones ("app · global": a
+// global group can share its name with the pool's own)
 const vmGroups = computed(() =>
   vmGroupNames(vm.tags, publishedDocument.value)
-    .map(name => ({ name, label: displayName(name), isGlobal: isGlobalName(name) }))
-    .sort((groupA, groupB) => groupA.label.localeCompare(groupB.label))
+    .map(name => ({
+      name,
+      label: isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name,
+      isGlobal: isGlobalName(name),
+    }))
+    .sort(
+      (groupA, groupB) => Number(groupA.isGlobal) - Number(groupB.isGlobal) || groupA.label.localeCompare(groupB.label)
+    )
 )
 
 // published groups only: hosts don't know the draft's
@@ -427,7 +435,11 @@ const joinableGroups = computed(() =>
         tags: formatList(group.tags ?? []),
       }),
     }))
-    .sort((groupA, groupB) => groupA.label.localeCompare(groupB.label))
+    .sort(
+      (groupA, groupB) =>
+        Number(isGlobalName(groupA.name)) - Number(isGlobalName(groupB.name)) ||
+        groupA.label.localeCompare(groupB.label)
+    )
 )
 
 const groupToJoin = ref('')
