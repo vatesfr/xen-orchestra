@@ -68,8 +68,7 @@ const RESOURCES = [
   },
 ]
 
-// The ACL middleware runs before the body is validated: a body which is not a rule
-// counts as one changing the order, so that the check fails closed
+// The ACL runs before the body is validated: a body that is not a rule fails closed
 function isRule(value) {
   return typeof value === 'object' && value !== null && typeof value.protocol === 'string'
 }
@@ -78,9 +77,8 @@ function hasPriority(vif, rule) {
   return findRule(vif, rule)?.ofPriority !== undefined
 }
 
-// Whether a request to a VIF route changes the order of the network's rules: it sets a priority,
-// or changes or deletes a rule that has one. Rules added since priorities always have one, so
-// with only the VIF's privileges a user can add rules after the network's, but not change them.
+// Whether a VIF route request reorders the network's rules: it sets a priority, or changes or
+// deletes a rule that has one, as every rule added since priorities has.
 const REORDERS = {
   add: (vif, body) => !isRule(body) || body.priority != null || hasPriority(vif, body),
   delete: (vif, body) => !isRule(body) || hasPriority(vif, body),
@@ -92,9 +90,8 @@ const REORDERS = {
     hasPriority(vif, oldRule),
 }
 
-// On a VIF route, a change of the network's rule order also needs the privilege on the network,
-// or a user with privileges on a VIF could put its rules above the network's. The middleware
-// resolves `objectIds` in its try, where a missing VIF is a 404; an empty list checks nothing.
+// Else a user with privileges on a VIF only could put its rules above the network's. The
+// middleware resolves `objectIds` in its try (a missing VIF is a 404), and `[]` checks nothing.
 function networkAcl(reorders) {
   return {
     resource: 'network',
@@ -334,8 +331,7 @@ function updateRuleRoute(controller, resource) {
           if (stored === undefined) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
-          // patching the stored rule keeps what `oldRule` does not mention; its
-          // OpenFlow priority is not a rank
+          // the stored rule keeps what `oldRule` omits, but its OpenFlow priority is not a rank
           const { ofPriority, ...storedRule } = stored
           const newRule = { ...applyRulePatch(storedRule, patch), priority }
 

@@ -262,8 +262,7 @@ function isControllerNeeded(xapi) {
 class SDNController extends EventEmitter {
   #staticConfig
 
-  // With sdncontroller.py, traffic rules can have an OpenFlow priority
-  // (./traffic-rules.js). The direct OpenFlow channel keeps the legacy methods.
+  // Ordered rules (./traffic-rules.js) need sdncontroller.py, not the direct OpenFlow channel
   #useOrderedTrafficRules
   #trafficRules = new TrafficRules()
 
@@ -682,8 +681,7 @@ class SDNController extends EventEmitter {
   }
 
   // ===========================================================================
-  // Traffic rules: TrafficRules when #useOrderedTrafficRules, otherwise the
-  // legacy methods after these ones
+  // Traffic rules: TrafficRules when #useOrderedTrafficRules, else the legacy methods below
 
   // The network or the VIF holding a rule
   async _getTrafficRuleTarget({ networkId, vifId }) {
@@ -727,8 +725,7 @@ class SDNController extends EventEmitter {
   // `target` is `{ networkId }` or `{ vifId }`. Returns as _addTrafficRule does.
   async _updateTrafficRule(target, oldRule, newRule) {
     if (!this.#useOrderedTrafficRules) {
-      // a `null` priority, which moves the rule last, means nothing to the legacy
-      // methods: kept, it would fail the add after the delete
+      // `priority: null` (last) means nothing here, and would fail the add after the delete
       const { priority, ...rule } = newRule
       await this._deleteTrafficRule({ ...oldRule, ...target })
       return this._addTrafficRule({ ...rule, ...target })
@@ -737,8 +734,7 @@ class SDNController extends EventEmitter {
   }
 
   _listTrafficRules(networkId) {
-    // without the XAPI plugin no rule has a priority, so every rule reads rank 1 in owner order: answered, and logged
-    // at debug level only, as a client polling this route would otherwise fill the warnings
+    // every rule reads rank 1: debug, not warn, as a client polling the list would fill the logs
     if (!this.#useOrderedTrafficRules) {
       log.debug('traffic rules listed without the XAPI plugin: their ranks are meaningless', { networkId })
     }
@@ -779,10 +775,8 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
-      // compare the fields, not the strings: rules written with a priority have more
-      // the protocol is compared case-sensitively, unlike `sameMatch`: the OpenFlow channel
-      // maps only `TCP`, `UDP`, `ICMP`, `IP` and `ARP` (`openflow-channel.js`), so `tcp` is a
-      // flow without protocol on the host, a different match from `TCP`
+      // Fields, not strings: a rule written with a priority has more. Case-sensitive, unlike
+      // `sameMatch`: openflow-channel.js maps `TCP`, not `tcp`, which is a flow without protocol.
       const match = Object.entries({ allow, protocol, port, ipRange, direction })
       if (
         !newVifRules.some(entry => {

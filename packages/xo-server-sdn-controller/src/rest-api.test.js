@@ -92,8 +92,7 @@ describe('the ACL of the VIF routes', () => {
 })
 
 describe('the priority of a rule', () => {
-  // the callback of an action route returns once its task is created, without
-  // `sync`: a check inside the task would answer 202
+  // without `sync`, an action route answers once its task is created: a check inside answers 202
   async function rejectsBeforeTheTask(controller, action, body) {
     const route = findRoute(controller, 'post', `/networks/{id}/actions/${action}_traffic_rule`)
     let created = false

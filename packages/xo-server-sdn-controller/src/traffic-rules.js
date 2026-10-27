@@ -34,8 +34,7 @@ import { synchronized } from 'decorator-synchronized'
  * @typedef {Network | Vif} Owner
  */
 
-// A rule as the API sends it. Its priority is its rank among the rules of its
-// network, 1 applying first.
+// A rule as the API sends it: `priority` is its rank in its network, 1 applying first
 /**
  * @typedef {object} RuleParams
  * @property {boolean} allow
@@ -55,15 +54,12 @@ import { synchronized } from 'decorator-synchronized'
  * @property {string} direction
  */
 
-// A rule as its owner stores it, in `xo:sdn-controller:of-rules`, with its
-// OpenFlow priority. Only a network rule stores its cookie: a VIF rule's is
-// derived (cookieOf).
+// A rule as its owner stores it, in `of-rules`. A VIF rule's cookie is not stored, see cookieOf
 /**
  * @typedef {Match & { allow: boolean, ofPriority?: number, cookie?: string }} Rule
  */
 
-// The rules of an owner, as a change reads them under the lock. The VIF of a
-// snapshot or a template is not `live`: its rules never apply.
+// The rules of an owner. Those of the VIF of a snapshot or a template are not `live`: never applied
 /**
  * @typedef {{ owner: Owner, rules: Rule[], live: boolean }} Entry
  */
@@ -72,35 +68,27 @@ const log = createLogger('xo:sdn-controller:traffic-rules')
 
 const PLUGIN_NAME = 'sdncontroller.py'
 
-// The plugin installs or removes a few flows, in milliseconds. A host silent for 30 s is hung,
-// not slow: the call fails, and releases the network lock every other rule change on this
-// network waits for. xen-api's default of an hour would hold that lock for as long.
+// A host silent for 30 s is hung: failing releases the network lock, which xen-api's default
+// would hold for an hour
 const CALL_PLUGIN_TIMEOUT = 30e3
 
-// `SDN_CONTROLLER_OF_RULES_KEY` of `@vates/types`, a value TypeScript does not
-// let this file import, for the same reason as above
+// `SDN_CONTROLLER_OF_RULES_KEY` of `@vates/types`, which this file cannot import either
 const OF_RULES_KEY = 'xo:sdn-controller:of-rules'
 
-// XAPI installs the flows of a locked VIF from 4000 to 8000, ending with a drop at 4000:
-// every rule goes above them, so none ties with them, nor sits under that drop unreached.
-// See https://github.com/xapi-project/xen-api/blob/master/ocaml/xenopsd/scripts/setup-vif-rules
-//
-// A rule has an OpenFlow priority from LAST_PRIORITY + 1 to MAX_PRIORITY. One from
-// before priorities is installed at LAST_PRIORITY until refresh() numbers it.
+// Above the flows of a locked VIF, which XAPI installs from 4000 to 8000, down to a drop: no rule
+// ties with them, or sits unreached under that drop. See
+// https://github.com/xapi-project/xen-api/blob/master/ocaml/xenopsd/scripts/setup-vif-rules
+// A rule from before priorities is installed at LAST_PRIORITY until refresh() numbers it.
 const LAST_PRIORITY = 8001
 const MAX_PRIORITY = 65535
 
-// The API speaks of ranks, which fit() turns into priorities: a rule put last goes
-// APPEND_STEP below the lowest one, or to FIRST_PRIORITY when it is the first, which
-// leaves room above it; put first, it goes APPEND_STEP above the highest one; in between,
-// to the middle of its neighbours'.
+// fit() puts a network's first rule at FIRST_PRIORITY, one put first or last APPEND_STEP past its
+// neighbour, and any other between its neighbours
 const FIRST_PRIORITY = 60000
 const APPEND_STEP = 5
 
-// Not failures: an offline host restarts without any flow. A network rule builds no flow on a
-// host where its network has no VIF (sdncontroller.py's E_PORTS, code '4'), and is saved anyway,
-// as in the legacy code. A VIF rule always has its MAC, so the plugin builds it on every host:
-// a '4' from it is a real failure.
+// Not failures: an offline host restarts without flows, and a network rule builds none on a host
+// where its network has no VIF (E_PORTS, code '4'). A VIF rule is built on every host.
 /**
  * @param {Owner} owner
  * @param {unknown} error
@@ -120,8 +108,7 @@ function networkOf(owner) {
   return owner.$type === 'VIF' ? owner.$network : owner
 }
 
-// A network rule needs a PIF, as in the legacy code: saved without one, no host would apply it,
-// yet the call would answer a success. Checked before the lock, on the target as given.
+// As in the legacy code: without a PIF, no host would apply a network rule, yet the call succeeds
 /**
  * @param {Owner} target
  * @param {'add' | 'update' | 'delete'} action
@@ -140,8 +127,7 @@ function isActive(owner) {
   return owner.$type !== 'VIF' || owner.currently_attached
 }
 
-// The owners of the rules a network's priorities order, without the VIFs of snapshots and
-// templates, which keep a frozen copy of their VM's
+// A network and its VIFs, but not those of snapshots and templates, whose rules never apply
 /**
  * @param {Network} network
  * @returns {Owner[]}
@@ -159,7 +145,7 @@ function toMatch({ protocol, port, ipRange = '', direction }) {
   return { protocol, port: port == null ? undefined : Number(port), ipRange, direction }
 }
 
-// In the field order of the legacy code, without the OpenFlow priority, which only placing gives.
+// In the field order of the legacy code, without an OpenFlow priority: place() gives it
 /**
  * @param {RuleParams} params
  * @returns {Rule}
@@ -194,9 +180,8 @@ function newCookie(rules) {
   return cookie
 }
 
-// XAPI copies the other_config of a VM's VIFs to its clones, whose rules must not
-// share their cookies: add-rule first deletes the flows carrying its cookie. So a
-// VIF rule's cookie comes from its VIF's MAC and its match instead.
+// XAPI copies a VIF's other_config to the clones of its VM, and add-rule first deletes the flows
+// of its cookie: a VIF rule's comes from the MAC and the match, so that clones don't share it
 /**
  * @param {Owner} owner
  * @param {Rule} rule
@@ -228,12 +213,8 @@ function readRules(owner) {
   return rules.filter((rule, index) => !rules.slice(index + 1).some(other => sameMatch(other, rule)))
 }
 
-// Highest priority first, as they apply. A key already up to date is not written again.
-//
-// Unlike the plugin call, these XAPI calls have no timeout of their own: xen-api's default is an
-// hour, which XO does not lower. A `pTimeout` would only reject the wait, not the write: the key
-// could still land after the lock is released, and the next change would read stale rules. So the
-// wait is accepted, and a hung XAPI holds this network's rule changes until its call fails.
+// Highest priority first, and only when changed. No timeout, unlike the plugin call: rejecting
+// the wait would release the lock while the write can still land, unseen by the next change.
 /**
  * @param {Owner} owner
  * @param {Rule[]} rules
@@ -259,8 +240,7 @@ export function checkPriorityValue(priority) {
   }
 }
 
-// The distinct OpenFlow priorities of `rules`, highest first. With `legacy`, those
-// of rules from before priorities count as LAST_PRIORITY.
+// Highest first. With `legacy`, a rule from before priorities counts as LAST_PRIORITY.
 /**
  * @param {Rule[]} rules
  * @param {boolean} legacy
@@ -272,8 +252,7 @@ function prioritiesOf(rules, legacy) {
   return [...new Set(priorities)].sort((a, b) => b - a)
 }
 
-// The rank of `rule` among `rules`, those of its network: 1 for the highest priority, one more
-// for each lower one. Rules of the same priority, like a clone's copies, share their rank.
+// 1 for the network's highest priority. Rules of one priority, like a clone's copies, share it.
 /**
  * @param {Rule[]} rules
  * @param {Rule} rule
@@ -282,9 +261,8 @@ function rankOf(rules, rule) {
   return prioritiesOf([...rules, rule], true).indexOf(rule.ofPriority ?? LAST_PRIORITY) + 1
 }
 
-// Gives `rule` an OpenFlow priority between those of the ranks `rank - 1` and `rank` among
-// `others`, the other rules of its network, keeping its own when still in place. A rank
-// past the last one puts it last. Returns false when no priority is free between them.
+// Gives `rule` a priority between those of the ranks `rank - 1` and `rank` among `others` (past
+// the last: last), keeping its own when still in place. False when none is free there.
 /**
  * @param {Rule[]} others
  * @param {Rule} rule
@@ -320,8 +298,7 @@ function fit(others, rule, rank) {
   return true
 }
 
-// Spreads the OpenFlow priorities of `rules` down from FIRST_PRIORITY, as far apart as the
-// range allows, keeping their order and ties. Returns the rules whose priority changed.
+// Spreads the priorities down from FIRST_PRIORITY, keeping order and ties. Returns the moved rules.
 /**
  * @param {Rule[]} rules
  */
@@ -341,9 +318,8 @@ function respace(rules) {
   return moved
 }
 
-// Moves `rule` to `rank` (Infinity: after the last rule) among `rules`, those of its
-// network, spreading their priorities again when none is free there. Returns the
-// other rules whose priority changed: their flows must be installed again.
+// Moves `rule` to `rank` (Infinity: last), spreading the priorities when none is free there.
+// Returns the other rules it moved: their flows must be installed again.
 /**
  * @param {Rule[]} rules
  * @param {Rule} rule
@@ -413,8 +389,7 @@ function callPlugin(owner, method, rule, extraArgs) {
   )
 }
 
-// add-rule first deletes the flows carrying the rule's cookie: the same call
-// installs a rule, and moves it to another priority or match
+// add-rule first deletes the flows of the rule's cookie: the same call moves a rule
 /**
  * @param {Owner} owner
  * @param {Rule} rule
@@ -453,12 +428,9 @@ class AggregateError extends Error {
   }
 }
 
-// Saves `owner`, and the owners of the rules `moved` to another priority, then installs the
-// flows of `rule`. The moved rules' flows follow in any case, even if those of `rule` fail:
-// they are saved at their new priority, and a retry would not move them again. When an update
-// changes the match of a VIF rule, `previous` is that rule before the change: its flows are
-// deleted after those of `rule`, even if these fail, or they would stay installed under a
-// cookie no rule carries any more. The failures of these steps are thrown together.
+// Saves the changed owners, installs the flows of `rule`, deletes those of `previous` (the old
+// match of an updated VIF rule) and installs those of the `moved` rules. The rules are saved
+// already, so each step runs past a failed one, and their failures are thrown together.
 /**
  * @param {Entry[]} entries
  * @param {Owner} owner
@@ -490,9 +462,7 @@ async function applyChange(entries, owner, rule, moved, previous) {
   if (previous !== undefined && owner.$type === 'VIF' && !sameMatch(previous, rule)) {
     await attempt(() => deleteFlows(owner, previous))
   }
-  // The moved rules have distinct cookies, and OVS picks a flow by its priority, not by the
-  // order it was added in: their flows are installed concurrently, as in refresh, since a
-  // respace can move every rule of a network. Past a failed one the others still go.
+  // concurrently, as a respace can move every rule: OVS orders flows by priority, not insertion
   const movedSet = new Set(moved)
   const toAdd = entries.flatMap(entry =>
     isActive(entry.owner)
@@ -514,8 +484,7 @@ async function applyChange(entries, owner, rule, moved, previous) {
   }
 }
 
-// The rules of a network and of its VIFs, by rank: the order in which they apply. Rules of the
-// same rank, with no defined order in OVS either, keep network rules first, then in VIF order.
+// The rules of a network and of its VIFs, by rank, then network rules first and in VIF order
 /**
  * @param {Network} network
  */
@@ -536,8 +505,7 @@ export function listRules(network) {
   return rules.sort((a, b) => a.priority - b.priority)
 }
 
-// The rule `owner` stores with this match, for the ACL of the REST API. It only
-// reads `other_config`, so XO records do too.
+// For the ACL of the REST API: it only reads `other_config`, so it takes XO records too
 /**
  * @param {Pick<Owner, 'other_config'>} owner
  * @param {Omit<RuleParams, 'allow' | 'priority'>} params
@@ -547,30 +515,23 @@ export function findRule(owner, params) {
 }
 
 // =============================================================================
-// With sdncontroller.py, traffic rules carry an OpenFlow priority: of the rules
-// of a network matching a packet, network and VIF rules alike, the highest one
-// decides. The API gives a rule a rank instead, from which its priority follows.
-// Rules stay where they always were, in the `xo:sdn-controller:of-rules` of their
-// network or VIF.
+// With sdncontroller.py, the matching rule of highest OpenFlow priority decides,
+// network and VIF rules alike. The API speaks of ranks. Rules stay in the
+// `of-rules` of their network or VIF.
 // =============================================================================
 
-// Unlike the rule changes, refresh (on connections), vifAttached and vifDetached (on VM or VIF
-// events) never throw.
+// refresh, vifAttached and vifDetached, which XO runs on its own events, never throw
 export class TrafficRules {
-  // A change reads the rules of the network to check the priority, and writes
-  // those of its owner back: one at a time per network. The owner is fetched
-  // again, as its record may have been replaced while waiting.
+  // One change at a time per network, as each reads all its rules. The owner is fetched again:
+  // its record may have been replaced while waiting.
   /** @type {<O extends Owner, T>(owner: O, fn: (owner: O) => Promise<T>) => Promise<T>} */
   #withLock = synchronized.withKey((/** @type {Owner} */ owner) => networkOf(owner).$id)((owner, fn) =>
     fn(owner.$xapi.getObjectByRef(owner.$ref))
   )
 
-  // A rule with the same match on the same owner only gets the new action, and moves to the new
-  // rank. Without one it keeps its place (XO 5 knows nothing of priorities), and a new rule goes
-  // last. Returns the rank of the rule.
-  //
-  // The rule is saved before its flows are installed: if that failed on some host, it is still
-  // listed, so it can be deleted, and is installed again at the next connection.
+  // A rule with the same match gets the new action, and moves only to a given rank (XO 5 gives
+  // none). A new rule goes last by default. Returns the rank. Saved before its flows, a rule
+  // stays listed if a host fails: it can be deleted, and is installed at the next connection.
   /**
    * @param {Owner} target the network or the VIF
    * @param {RuleParams} params
@@ -598,8 +559,7 @@ export class TrafficRules {
     })
   }
 
-  // A missing rule is not an error, as for the legacy code: the REST API checks
-  // that it exists beforehand
+  // A missing rule is not an error, as in the legacy code: the REST API checks it first
   /**
    * @param {Owner} target the network or the VIF
    * @param {Omit<RuleParams, 'allow' | 'priority'>} params
@@ -642,8 +602,7 @@ export class TrafficRules {
       const previous = { ...rule }
       Object.assign(rule, newRule)
       const network = liveRules(entries)
-      // a clone's copy shares the priority of its original: it can still change
-      // without moving
+      // a clone's copy shares its original's priority: it can change without moving
       const rank = newParams.priority === null ? Infinity : newParams.priority
       const moved = rank === undefined ? [] : place(network, rule, rank)
       await applyChange(entries, owner, rule, moved, previous)
@@ -651,8 +610,7 @@ export class TrafficRules {
     })
   }
 
-  // Runs `fn` under the lock of `target`. The methods that call it are the ones
-  // XO runs on its own events, so the error is logged here rather than thrown.
+  // For the methods XO runs on its own events: the error is logged, not thrown
   /**
    * @template {Owner} O
    * @param {O} target
@@ -668,10 +626,8 @@ export class TrafficRules {
     }
   }
 
-  // At every connection to a pool, as hosts may have restarted while XO was away.
-  // Rules from before priorities are numbered first, put last one after the other,
-  // network rules first. Flows of rules whose VIF is unplugged go, and so do the legacy
-  // flows (cookie 0): that is all a network from before priorities needs.
+  // At each pool connection, as hosts may have restarted: numbers the rules from before
+  // priorities (last, network rules first), then installs every rule but an unplugged VIF's.
   /**
    * @param {Network} network
    */
@@ -693,18 +649,10 @@ export class TrafficRules {
         }
 
         for (const { owner, rules } of entries) {
-          // Every legacy delete goes before every add: on hosts whose xcp-ng-xapi-plugins
-          // is older than 1.16.0, del-rule ignores the cookie and deletes by match, so the
-          // legacy delete of one rule must not run after another rule with the same match
-          // was installed. Concurrency is modest as each call already reaches every host
-          // of the network.
-          //
-          // Without a cookie, del-rule deletes by match the flows with cookie 0: those of
-          // the legacy code, and of network rules from before cookies. Rules installed here
-          // always have a cookie, so only the rules read without a priority need it: an XO
-          // rolled back to a release without priorities also saves the rules it installs
-          // without one. Their priority is saved once their legacy flows are gone, so that a
-          // delete that failed is tried again at the next connection.
+          // Legacy flows (cookie 0) go before any add: before xcp-ng-xapi-plugins 1.16.0,
+          // del-rule ignores the cookie and deletes by match. Only rules read without a priority
+          // have them (a rolled-back XO saves rules without one), and their priority is saved
+          // after the delete, so that a failed one is retried at the next connection.
           const options = { concurrency: 4 }
           await asyncEach(
             rules.filter(rule => legacy.has(rule)),
@@ -729,8 +677,7 @@ export class TrafficRules {
       'error while installing the traffic rules of a VIF',
       { vif: vif.uuid },
       async vif => {
-        // Past a failed rule the others still go, the VIF's own rules included: they are
-        // the more restrictive ones, and skipping them would leave the VIF fail-open
+        // past a failed rule, the VIF's own, more restrictive ones still go: never fail-open
         const rules = [
           ...(await this.#rulesOf(vif.$network)).map(rule => ({ owner: vif.$network, rule })),
           ...readRules(vif).map(rule => ({ owner: vif, rule })),
@@ -756,8 +703,7 @@ export class TrafficRules {
     })
   }
 
-  // The rules of the network of `owner`, by owner, and those of `owner`, which is
-  // not live when it is the VIF of a snapshot
+  // The rules of the network of `owner`, by owner, and those of `owner`, live or not
   /**
    * @param {Owner} owner
    */
@@ -776,8 +722,7 @@ export class TrafficRules {
     return { entries, rules: entry.rules }
   }
 
-  // A network rule from before cookies gets one here, saved before any flow is
-  // installed with it
+  // A network rule from before cookies gets one, saved before any flow uses it
   /**
    * @param {Owner} owner
    */

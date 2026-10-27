@@ -392,8 +392,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
   // ---------------------------------------------------------------------------
 
-  // The rules of a network, network and VIF rules alike, apply in the order of their
-  // priority, which is their rank: 1 applies first
+  // A network's rules, network and VIF ones alike, apply by priority, their rank: 1 first
   describe('Traffic rule priorities', () => {
     // a range VALID_RULE does not use: the cleanup deletes every network rule in it
     const TEST_IP_RANGE = '198.51.100.0/24'
@@ -434,8 +433,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       )
     const rankOf = async (type, match, sourceId) => findListed(await listRules(), type, match, sourceId)?.priority
 
-    // rules from before priorities, the only ones which may come after a rule put
-    // last, are numbered when XO connects to the pool
+    // only rules from before priorities, numbered at the next pool connection, may come after
     const assertLast = async (type, match) => {
       const rules = await listRules()
       assert.strictEqual(findListed(rules, type, match), rules[rules.length - 1])
@@ -583,8 +581,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(findListed(rules, 'VIF', VIF_RULE).priority, 2)
     })
 
-    // A new rule put first gets a priority 5 above the rule that was first, which leaves 4 free between them:
-    // the 4th rule inserted under it finds none, and the priorities of the network are spread again, VIF rules too
+    // A rule put first gets 5 above the previous first: the 4th inserted under it finds no free
+    // priority, and the network's priorities are spread again, VIF rules too
     itSdn('should keep the order of the rules when no priority is free at a rank', async () => {
       const ofPriorityOfVifRule = async () =>
         parseRules(await dispatchClient.restApiClient.get(`/rest/v0/vifs/${vifId}?fields=*`)).find(
@@ -623,8 +621,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(listed.active, false)
     })
 
-    // XAPI copies the VIFs' other_config to a clone, whose rules share the priorities of
-    // the original ones. VM.clone needs the VM halted, as the previous test left it
+    // A clone's rules copy the original's priorities. VM.clone needs the VM halted, as it is now
     itSdn('should let a clone edit the rules it copied, and move them', async () => {
       const cloneName = `${vm.name_label}-sdn-clone`
       const cloneId = await dispatchClient.vm.clone(vm.uuid, cloneName)
@@ -665,9 +662,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.deepStrictEqual(await listRules(), rules)
     })
 
-    // Without the privilege on the network, a user with privileges on a VIF could put its
-    // rules above those of the network: it can add rules, put last, but neither give a
-    // priority nor change a rule that has one, as every rule added since priorities has
+    // With privileges on a VIF only, a user can add rules, put last, but neither give a priority
+    // nor change a rule that has one (all since priorities): it could rank them above the network's
     describe('privileges', () => {
       const USER_RULE = { allow: true, direction: 'from', ipRange: TEST_IP_RANGE, protocol: 'UDP', port: 53 }
 

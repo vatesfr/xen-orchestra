@@ -29,8 +29,7 @@ function createRecord(xapi, record, otherConfig = {}) {
   return record
 }
 
-// One network on two hosts, with two VIFs: vif1 plugged, vif2 not. `failures`
-// maps a host to the code its plugin calls fail with.
+// One network on two hosts, vif1 plugged, vif2 not. `failures`: a host's plugin error code
 function setup({ networkConfig, vif1Config, vif2Config, failures = {} } = {}) {
   const calls = []
   const xapi = {
@@ -156,8 +155,7 @@ describe('TrafficRules', () => {
 
     assert.equal(await trafficRules.addRule(network, { ...ICMP, priority: 2 }), 2)
 
-    // two priorities were taken, now as far apart as (60000 - 8001) / 3 lets them:
-    // the order and the tie are kept
+    // two priorities, now (60000 - 8001) / 3 apart, keeping the order and the tie
     const rows = [...rulesOf(network), ...rulesOf(vif1), ...rulesOf(vif2)].map(rule => [rule.protocol, rule.ofPriority])
     assert.deepEqual(rows, [
       ['TCP', 60000],
