@@ -1,5 +1,5 @@
-import { lockErrorKind } from '@/modules/vdf/utils/vdf-locking.util.ts'
-import { fetchPatch } from '@/shared/utils/fetch.util.ts'
+import { lockErrorKind, type VdfLockErrorKind } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
@@ -8,7 +8,16 @@ export type VdfLockRequest = {
   vifId: string
   ipv4: string[]
   ipv6: string[]
+  // through VDF (vdf#41): where XAPI refuses to lock, VDF enforces the
+  // allowed addresses itself (xo-server-vdf vdf_lock)
+  withVdf?: boolean
+  // XAPI locks it already (a relock): its mode is left alone, since XAPI
+  // refuses to set it, even to locked, while an SDN controller is registered
+  xapiLocked?: boolean
 }
+
+// why a VIF wasn't locked, in words, and what XAPI's refusal was
+export type VdfLockFailure = { message: string; kind?: VdfLockErrorKind }
 
 const vdfLockRequestsArg = defineJobArg({
   identify: (request: VdfLockRequest) => request.vifId,
@@ -17,7 +26,7 @@ const vdfLockRequestsArg = defineJobArg({
 
 // why a request failed: the REST API's message when there is one, and
 // its status
-function errorOf(reason: unknown) {
+export function errorOf(reason: unknown) {
   const { cause, status } = (reason ?? {}) as { cause?: { error?: unknown }; status?: number }
 
   if (typeof cause?.error === 'string') {
@@ -27,36 +36,59 @@ function errorOf(reason: unknown) {
   return { message: reason instanceof Error ? reason.message : String(reason), status }
 }
 
+// the call that locks a VIF: XO's VIF update locks with XAPI, setting the
+// mode and both allowed lists in one call (and keeping its IP pools in
+// sync). A VDF lock (vdf#41) goes through the plugin, since XO's VIF
+// update locks with XAPI as soon as it sets the lists.
+export function lockCall(request: VdfLockRequest) {
+  if (request.withVdf) {
+    return {
+      method: 'post' as const,
+      endpoint: `plugins/vdf/vifs/${request.vifId}/actions/vdf_lock`,
+      body: { ipv4: request.ipv4, ipv6: request.ipv6 },
+    }
+  }
+
+  return {
+    method: 'patch' as const,
+    endpoint: `vifs/${request.vifId}`,
+    body: {
+      ...(request.xapiLocked ? {} : { lockingMode: 'locked' }),
+      allowedIpv4Addresses: request.ipv4,
+      allowedIpv6Addresses: request.ipv6,
+    },
+  }
+}
+
 // VIF locking (vdf#15) is XAPI's, not the firewall's: it applies at once.
-// XO's VIF update sets the locking mode and both allowed lists in one call
-// (and keeps its IP pools in sync). Each VIF on its own: resolves to the
-// error of each one that failed, by VIF id.
+// Each VIF on its own: resolves to the failure of each one that failed, by
+// VIF id.
 export const useVdfLockJob = defineJob('vdf.lock-vifs', [vdfLockRequestsArg], () => {
   const { t } = useI18n()
 
   // in words rather than XAPI's code (vdf#41), the raw error kept at the end
-  function errorMessage(reason: unknown) {
+  function failure(reason: unknown): VdfLockFailure {
     const { message, status } = errorOf(reason)
     const known = lockErrorKind(message, status)
 
-    return known === undefined ? message : t(`firewall:lock:error:${known.kind}`, { detail: known.detail })
+    return known === undefined
+      ? { message }
+      : { message: t(`firewall:lock:error:${known.kind}`, { detail: known.detail }), kind: known.kind }
+  }
+
+  function lock(request: VdfLockRequest) {
+    const { method, endpoint, body } = lockCall(request)
+
+    return method === 'post' ? fetchPost(endpoint, body) : fetchPatch(endpoint, body)
   }
 
   return {
     async run(requests) {
-      const results = await Promise.allSettled(
-        requests.map(request =>
-          fetchPatch(`vifs/${request.vifId}`, {
-            lockingMode: 'locked',
-            allowedIpv4Addresses: request.ipv4,
-            allowedIpv6Addresses: request.ipv6,
-          })
-        )
-      )
+      const results = await Promise.allSettled(requests.map(lock))
 
       return new Map(
         results.flatMap((result, index) =>
-          result.status === 'rejected' ? [[requests[index].vifId, errorMessage(result.reason)] as const] : []
+          result.status === 'rejected' ? [[requests[index].vifId, failure(result.reason)] as const] : []
         )
       )
     },

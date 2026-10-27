@@ -11,7 +11,7 @@
       <div class="vdf-lock-modal">
         <p v-if="isRelock">
           {{
-            t('firewall:lock:relock:message', {
+            t(isWithVdf(rows[0]) ? 'firewall:lock:relock:message:vdf' : 'firewall:lock:relock:message', {
               allowed: formatAddressList(targets[0].lockedTo ?? []) || t('none'),
               reported: formatAddressList(newAddresses),
             })
@@ -35,7 +35,12 @@
                   t('firewall:live:interface', { device: row.target.device, network: row.target.networkName ?? '?' })
                 }}
               </span>
-              <UiInfo v-if="isLocked(row)" accent="success">{{ t('firewall:lock:locked') }}</UiInfo>
+              <UiInfo v-if="isLocked(row)" accent="success">
+                {{ t(isWithVdf(row) ? 'firewall:lock:locked:vdf' : 'firewall:lock:locked') }}
+              </UiInfo>
+              <UiTag v-else-if="isBulk && isWithVdf(row)" accent="info" variant="secondary">
+                {{ t('firewall:lock:with-vdf') }}
+              </UiTag>
             </div>
             <UiTextarea
               v-if="!isLocked(row)"
@@ -71,10 +76,24 @@
             <UiInfo v-if="state.errors[row.target.vifId] && !isLocked(row)" accent="danger" wrap>
               {{ t('firewall:lock:failed', { error: state.errors[row.target.vifId] }) }}
             </UiInfo>
+            <!-- vdf#41: XAPI refused because an SDN controller is registered -->
+            <template v-if="isSdnRefused(row) && !isLocked(row)">
+              <UiInfo v-if="row.target.vdfUnavailable === undefined" accent="info" wrap>
+                {{ t('firewall:lock:vdf-offer', { host: row.target.hostName ?? '?' }) }}
+              </UiInfo>
+              <UiInfo v-else accent="warning" wrap>
+                {{
+                  t(`firewall:lock:vdf-unavailable:${row.target.vdfUnavailable}`, { host: row.target.hostName ?? '?' })
+                }}
+              </UiInfo>
+            </template>
           </li>
         </ul>
 
-        <UiAlert accent="warning">{{ t('firewall:lock:dhcp-warning') }}</UiAlert>
+        <UiAlert accent="warning">
+          {{ t(rows.every(row => isWithVdf(row)) ? 'firewall:lock:dhcp-warning:vdf' : 'firewall:lock:dhcp-warning') }}
+        </UiAlert>
+        <UiAlert v-if="rows.some(row => isWithVdf(row))" accent="info">{{ t('firewall:lock:vdf-note') }}</UiAlert>
         <UiAlert v-if="state.error" accent="danger">{{ state.error }}</UiAlert>
       </div>
     </template>
@@ -83,7 +102,11 @@
         {{ state.locked.length > 0 ? t('action:close') : t('cancel') }}
       </VtsOverlayCancelButton>
       <VtsOverlayConfirmButton>
-        {{ isBulk ? t('firewall:lock:confirm:group', { n: toLock.length }) : t('firewall:lock:confirm') }}
+        {{
+          isBulk
+            ? t('firewall:lock:confirm:group', { n: toLock.length })
+            : t(isWithVdf(rows[0]) ? 'firewall:lock:confirm:vdf' : 'firewall:lock:confirm')
+        }}
       </VtsOverlayConfirmButton>
     </template>
   </VdfContentModal>
@@ -99,6 +122,7 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -107,7 +131,9 @@ import { useI18n } from 'vue-i18n'
 // reports are proposed, and can be edited. An interface locked to none
 // would be cut off, so one without reported addresses asks for them. In a
 // group's confirmation, each row can be left out; one with no address
-// starts left out.
+// starts left out. One XAPI refuses to lock while an SDN controller is
+// registered is offered a VDF lock (vdf#41): confirming again locks it
+// with VDF, where the agent of its host supports it.
 const { targets, group, state } = defineProps<{
   targets: VdfLockTarget[]
   // a group's interfaces at once
@@ -149,6 +175,16 @@ const rows = reactive<Row[]>(
 )
 
 const isLocked = (row: Row) => state.locked.includes(row.target.vifId)
+
+// vdf#41: XAPI refused to lock it, an SDN controller being registered
+const isSdnRefused = (row: Row) => state.sdnRefused.includes(row.target.vifId)
+
+// locked with VDF: a relock of a VDF lock, or one XAPI refused that VDF
+// can lock (confirming again is the user's choice)
+const isWithVdf = (row: Row) =>
+  row.target.lock === 'vdf' ||
+  row.target.lock === 'vdf-unenforced' ||
+  (isSdnRefused(row) && row.target.vdfUnavailable === undefined)
 
 // the rows confirming sends: selected, and not locked yet
 const toLock = computed(() => rows.filter(row => row.selected && !isLocked(row)))
@@ -210,7 +246,13 @@ function submit() {
     toLock.value.map(row => {
       const { ipv4, ipv6 } = rowAddresses(row)
 
-      return { vifId: row.target.vifId, ipv4, ipv6 }
+      return {
+        vifId: row.target.vifId,
+        ipv4,
+        ipv6,
+        withVdf: isWithVdf(row),
+        xapiLocked: row.target.lock === 'xapi',
+      }
     })
   )
 }

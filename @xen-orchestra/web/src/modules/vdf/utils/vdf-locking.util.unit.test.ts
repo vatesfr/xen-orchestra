@@ -1,9 +1,12 @@
-import type { VdfHostStatusDocument } from '@/modules/vdf/types.ts'
+import { lockCall } from '@/modules/vdf/jobs/vdf-lock.job.ts'
+import type { VdfHostLocking, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
 import {
   canonicalAddress,
   eui64InterfaceId,
   isAllowed,
+  isEnforcedLock,
   isStableIpv6,
+  isUntrustedLock,
   lockDrift,
   lockErrorKind,
   lockProposal,
@@ -13,7 +16,12 @@ import {
   parseIpv6,
   reportedAddresses,
   untrustedInPolicy,
+  type VdfLockHost,
+  vdfLockUnavailable,
+  vifLock,
 } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { interfaceAddresses } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { hostState } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { describe, expect, it } from 'vitest'
 
 const guest = {
@@ -242,5 +250,136 @@ describe('untrustedInPolicy', () => {
         { peersOnly: true }
       )
     ).toEqual(['app-1'])
+  })
+})
+
+// vdf#41: where XAPI refuses to lock (an SDN controller is registered), VDF
+// enforces the allowed addresses of a VIF with other_config vdf:locking
+describe('VDF lock', () => {
+  const NOW = Date.parse('2026-10-27T12:00:00Z')
+  const SUPPORTING: VdfHostLocking = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: [] }
+  // a host as XO reads it: its agent's status, and the state the usual
+  // staleness rule gives (a heartbeat older than twice its period)
+  // null: an agent before locking reports
+  const host = (
+    locking: VdfHostLocking | null = SUPPORTING,
+    { heartbeat = '2026-10-27T11:59:30Z', live = true }: { heartbeat?: string; live?: boolean } = {}
+  ): VdfLockHost => {
+    const status: VdfHostStatusDocument = { heartbeat, heartbeatSec: 30, locking: locking ?? undefined }
+
+    return { status, state: hostState(status, '', { live, now: NOW }) }
+  }
+  const vif = (fields: Record<string, unknown> = {}) => ({
+    id: 'vif-1',
+    device: '0',
+    lockingMode: 'network_default',
+    allowedIpv4Addresses: ['10.0.0.5'],
+    allowedIpv6Addresses: [],
+    other_config: { 'vdf:locking': 'locked' },
+    ...fields,
+  })
+  const running = (lockHost: VdfLockHost | undefined) => ({ running: true, host: lockHost })
+
+  it('shows Locked (XAPI), Locked by VDF, not enforced, Unlocked', () => {
+    expect(vifLock(vif({ lockingMode: 'locked', other_config: {} }), false, running(undefined))).toEqual({
+      lock: 'xapi',
+    })
+    expect(vifLock(vif(), false, running(host()))).toEqual({ lock: 'vdf' })
+    expect(vifLock(vif(), false, running(host(null)))).toEqual({ lock: 'vdf-unenforced', reason: 'old-agent' })
+    expect(vifLock(vif({ other_config: {} }), false, running(host()))).toEqual({ lock: 'unlocked' })
+    expect(vifLock(vif({ lockingMode: 'unlocked' }), false, running(host())).lock).toBe('vdf')
+    // XAPI's own lock comes first; disabled sends nothing
+    expect(vifLock(vif({ lockingMode: 'locked' }), false, running(undefined)).lock).toBe('xapi')
+    expect(vifLock(vif({ lockingMode: 'disabled' }), false, running(host())).lock).toBe('disabled')
+    expect(vifLock(vif(), true, running(host())).lock).toBe('disabled')
+    // a halted VM sends nothing: its lock applies on the host it starts on
+    expect(vifLock(vif(), false, { running: false, host: undefined })).toEqual({ lock: 'vdf' })
+  })
+
+  it('trusts a VDF lock only while every condition holds', () => {
+    const trusted = (lockVif: ReturnType<typeof vif>, lockHost: VdfLockHost | undefined) =>
+      !isUntrustedLock(vifLock(lockVif, false, running(lockHost)).lock)
+
+    expect(trusted(vif(), host())).toBe(true)
+    // the key: absent, or not "locked"
+    expect(trusted(vif({ other_config: {} }), host())).toBe(false)
+    expect(trusted(vif({ other_config: { 'vdf:locking': 'on' } }), host())).toBe(false)
+    // the VM's host: unknown, no status, a stale heartbeat, halted
+    expect(vifLock(vif(), false, running(undefined))).toEqual({ lock: 'vdf-unenforced', reason: 'agent' })
+    expect(trusted(vif(), { status: undefined, state: 'unknown' })).toBe(false)
+    expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T11:58:59Z' }))).toBe(false)
+    expect(trusted(vif(), host(SUPPORTING, { heartbeat: '2026-10-27T11:59:01Z' }))).toBe(true)
+    expect(trusted(vif(), host(SUPPORTING, { live: false }))).toBe(false)
+    // an agent before VDF locks
+    expect(trusted(vif(), host({ unlocked: 1, stale: 0 }))).toBe(false)
+    // the agent says it doesn't enforce this one
+    const unenforced = host({ ...SUPPORTING, vdfUnenforced: ['vif-1'] })
+    expect(vifLock(vif(), false, running(unenforced))).toEqual({ lock: 'vdf-unenforced', reason: 'reported' })
+    expect(trusted(vif(), host({ ...SUPPORTING, vdfUnenforced: ['vif-2'] }))).toBe(true)
+  })
+
+  it("counts the allowed addresses of an enforced lock, the guest's otherwise", () => {
+    const guestAddresses = { '0/ipv4/0': '10.0.0.5', '0/ipv4/1': '10.0.0.99' }
+    const addresses = (lockHost: VdfLockHost) =>
+      interfaceAddresses(vif(), guestAddresses, {
+        locked: isEnforcedLock(vifLock(vif(), false, running(lockHost)).lock),
+      })
+
+    expect(addresses(host())).toEqual(['10.0.0.5'])
+    expect(addresses(host(null))).toEqual(['10.0.0.5', '10.0.0.99'])
+  })
+
+  it("is offered where the agent of the VM's host supports it", () => {
+    const old = host({ unlocked: 0, stale: 0 })
+    const stopped = host(SUPPORTING, { heartbeat: '2026-10-27T11:00:00Z' })
+
+    expect(vdfLockUnavailable({ running: true, host: host(), poolHosts: [] })).toBeUndefined()
+    expect(vdfLockUnavailable({ running: true, host: old, poolHosts: [] })).toBe('old-agent')
+    expect(vdfLockUnavailable({ running: true, host: stopped, poolHosts: [] })).toBe('agent')
+    expect(vdfLockUnavailable({ running: true, host: undefined, poolHosts: [host()] })).toBe('agent')
+    // a halted VM: every host with a running agent, one at least
+    expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [host(), stopped] })).toBeUndefined()
+    expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [host(), old] })).toBe('old-agent')
+    expect(vdfLockUnavailable({ running: false, host: undefined, poolHosts: [stopped] })).toBe('agent')
+  })
+
+  it('flags a VDF lock its guest moved away from', () => {
+    const guestAddresses = { '0/ipv4/0': '10.0.0.6' }
+
+    expect(lockDrift(vif(), guestAddresses)?.outside).toEqual(['10.0.0.6'])
+    expect(lockDrift(vif({ other_config: {} }), guestAddresses)).toBeUndefined()
+    expect(lockDrift(vif({ lockingMode: 'disabled' }), guestAddresses)).toBeUndefined()
+  })
+
+  it("merges the agents' unenforced VDF locks, not an older agent's", () => {
+    const report = mergeLocking([
+      { hostId: 'h1', status: { locking: { ...SUPPORTING, vdfUnenforced: ['vif-1'] } }, current: true },
+      // an older agent: no VDF lock fields, its VIFs with the key are unlocked ones
+      { hostId: 'h2', status: { locking: { unlocked: 1, stale: 0, vdfUnenforced: ['vif-x'] } }, current: true },
+      // a stopped agent's report is outdated
+      { hostId: 'h3', status: { locking: { ...SUPPORTING, vdfUnenforced: ['vif-3'] } }, current: false },
+    ])
+
+    expect(report.vdfUnenforced).toEqual(['vif-1'])
+  })
+
+  it('locks with XAPI first, with VDF once offered', () => {
+    const request = { vifId: 'vif-1', ipv4: ['10.0.0.5'], ipv6: ['2001:db8::5'] }
+
+    expect(lockCall(request)).toEqual({
+      method: 'patch',
+      endpoint: 'vifs/vif-1',
+      body: { lockingMode: 'locked', allowedIpv4Addresses: ['10.0.0.5'], allowedIpv6Addresses: ['2001:db8::5'] },
+    })
+    // XAPI refuses to set the mode, even to locked, under an SDN controller:
+    // a relock of a XAPI lock leaves it alone
+    expect(lockCall({ ...request, xapiLocked: true }).body).not.toHaveProperty('lockingMode')
+    // the refusal, then the VDF lock: the plugin's own path, no locking mode
+    expect(lockErrorKind('OPERATION_NOT_ALLOWED(A vswitch controller is active)', 500)?.kind).toBe('sdn-controller')
+    expect(lockCall({ ...request, withVdf: true })).toEqual({
+      method: 'post',
+      endpoint: 'plugins/vdf/vifs/vif-1/actions/vdf_lock',
+      body: { ipv4: ['10.0.0.5'], ipv6: ['2001:db8::5'] },
+    })
   })
 })

@@ -1,9 +1,8 @@
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
-import { isUnlocked } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { untrustedInPolicy } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { isUntrustedLock, untrustedInPolicy } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
@@ -12,9 +11,10 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 // of the pool with an interface in the group their guest may use any
 // address on (unlocked: XAPI can't lock it while an SDN controller is
 // registered, or nobody did; on a vdf:unprotected network too, whose
-// addresses count in groups all the same, as for agents), and, for a
-// global group, its members in other pools whose IPs come from their
-// guests. A guest can then claim
+// addresses count in groups all the same, as for agents; or locked by VDF
+// where the agent of the VM's host doesn't enforce it), and, for a global
+// group, its members in other pools whose IPs come from their guests (the
+// plugin applies the same rule there). A guest can then claim
 // another VM's address, and drops against it on other hosts are best
 // effort.
 export function useVdfUntrustedMembers(
@@ -33,7 +33,7 @@ export function useVdfUntrustedMembers(
 
   // an interface of the VM the firewall protects whose guest may use any
   // address
-  const isVmUntrusted = (vm: FrontXoVm) => interfacesOf(vm).some(iface => isUnlocked(iface.vif, iface.network))
+  const isVmUntrusted = (vm: FrontXoVm) => interfacesOf(vm).some(iface => isUntrustedLock(iface.lock))
 
   const byGroup = computed(() => {
     const poolId = toValue(rawPoolId)
@@ -41,7 +41,7 @@ export function useVdfUntrustedMembers(
 
     for (const [name, group] of Object.entries(toValue(rawDocument).groups)) {
       const local = runningVms.value
-        .filter(vm => groupInterfaces(vm, group).some(iface => isUnlocked(iface.vif, iface.network)))
+        .filter(vm => groupInterfaces(vm, group).some(iface => isUntrustedLock(iface.lock)))
         .map(vm => vm.name_label)
       const remote = isGlobalName(name)
         ? (globalStatus.value?.members[displayName(name)] ?? [])

@@ -176,6 +176,19 @@
           </span>
           <span class="secondary typo-body-regular-small">{{ t('firewall:overview:unlocked:hint') }}</span>
         </div>
+        <div v-if="vdfUnenforced.length > 0" class="status-item">
+          <UiInfo accent="warning" wrap>
+            {{ t('firewall:overview:vdf-unenforced', { n: vdfUnenforced.length }) }}
+          </UiInfo>
+          <UiLink
+            v-for="issue of vdfUnenforced"
+            :key="issue.vifId"
+            :to="{ name: '/vm/[id]/firewall', params: { id: issue.vmId } }"
+            size="small"
+          >
+            {{ issueLabel(issue) }}
+          </UiLink>
+        </div>
       </UiCard>
     </template>
 
@@ -608,8 +621,9 @@ const globalSyncTooltip = computed(() =>
 
 // VIF LOCKING (vdf#15), as the agents report it: a drop against an
 // unlocked interface's traffic from other hosts is best effort (its IPs are
-// whatever the guest reports); a lock the guest moved away from cuts it off
-const { unlocked, unlockedCount, stale, staleCount } = useVdfLockingIssues({
+// whatever the guest reports); a lock the guest moved away from cuts it off;
+// a VDF lock its host's agent doesn't enforce is as good as unlocked (vdf#41)
+const { unlocked, unlockedCount, stale, staleCount, vdfUnenforced } = useVdfLockingIssues({
   hosts,
   hostOf,
   runningVms,
@@ -646,7 +660,8 @@ const hasStatus = computed(
     exposedVms.value.length > 0 ||
     enforcedQuarantines.value.length > 0 ||
     unlockedCount.value > 0 ||
-    staleCount.value > 0
+    staleCount.value > 0 ||
+    vdfUnenforced.value.length > 0
 )
 </script>
 

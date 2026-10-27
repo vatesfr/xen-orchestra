@@ -1,7 +1,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useVdfLockJob, type VdfLockRequest } from '@/modules/vdf/jobs/vdf-lock.job.ts'
-import type { VdfLockProposal } from '@/modules/vdf/utils/vdf-locking.util.ts'
-import { effectiveLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { useVdfUnlockJob, type VdfUnlockRequest } from '@/modules/vdf/jobs/vdf-unlock.job.ts'
+import type { VdfLockProposal, VdfVifLock } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -20,20 +20,23 @@ export type VdfLockTarget = {
   optional: string[]
   // a relock: what it's locked to now
   lockedTo?: string[]
+  // how it's locked now (vdf#41): a relock keeps XAPI's or VDF's lock
+  lock?: VdfVifLock
+  // why VDF can't lock it (the agent of its host), if XAPI refuses to
+  vdfUnavailable?: 'agent' | 'old-agent'
+  // the host whose agent would enforce a VDF lock
+  hostName?: string
 }
 
 // what the confirmation shows of the lock in progress: the VIFs locked,
-// and why the others failed (by VIF id), or why nothing was sent
+// why the others failed (by VIF id), or why nothing was sent; the VIFs
+// XAPI refused to lock because an SDN controller is registered (vdf#41)
 export type VdfLockState = {
   locked: string[]
   errors: Record<string, string>
+  sdnRefused: string[]
   error?: string
 }
-
-// an interface XAPI lets use any address (network_default follows its
-// network, whose default is either unlocked or disabled)
-export const isUnlocked = (vif: FrontXoVif, network: FrontXoNetwork | undefined) =>
-  effectiveLockingMode(vif.lockingMode, network?.defaultIsLocked) === 'unlocked'
 
 export function lockTarget(
   vif: FrontXoVif,
@@ -42,7 +45,18 @@ export function lockTarget(
     network,
     proposal,
     lockedTo,
-  }: { vmName: string; network?: FrontXoNetwork; proposal: VdfLockProposal; lockedTo?: string[] }
+    lock,
+    vdfUnavailable,
+    hostName,
+  }: {
+    vmName: string
+    network?: FrontXoNetwork
+    proposal: VdfLockProposal
+    lockedTo?: string[]
+    lock?: VdfVifLock
+    vdfUnavailable?: 'agent' | 'old-agent'
+    hostName?: string
+  }
 ): VdfLockTarget {
   return {
     vifId: vif.id,
@@ -52,6 +66,9 @@ export function lockTarget(
     addresses: proposal.addresses,
     optional: proposal.optional,
     lockedTo,
+    lock,
+    vdfUnavailable,
+    hostName,
   }
 }
 
@@ -59,6 +76,9 @@ export function lockTarget(
 // confirmation listing them, addresses editable. It stays open until every
 // interface is locked: one that fails shows its error in its row, the
 // others are locked anyway, and confirming again retries the failed ones.
+// One XAPI refuses to lock because an SDN controller is registered is
+// offered a VDF lock instead (vdf#41), where its host's agent supports it:
+// confirming again locks it with VDF.
 export function useVdfLock() {
   const requests = ref<VdfLockRequest[]>([])
 
@@ -71,7 +91,7 @@ export function useVdfLock() {
 
   // resolves to the VIFs locked (some may be, even when it was cancelled)
   async function confirmLock(targets: VdfLockTarget[], { group }: { group?: string } = {}) {
-    const state = reactive<VdfLockState>({ locked: [], errors: {} })
+    const state = reactive<VdfLockState>({ locked: [], errors: {}, sdnRefused: [] })
 
     await open({
       props: { targets, group, state },
@@ -83,8 +103,14 @@ export function useVdfLock() {
           try {
             const failures = await run()
 
-            state.errors = Object.fromEntries(failures)
+            state.errors = Object.fromEntries([...failures].map(([vifId, failure]) => [vifId, failure.message]))
             state.locked.push(...confirmed.map(request => request.vifId).filter(vifId => !failures.has(vifId)))
+
+            for (const [vifId, failure] of failures) {
+              if (failure.kind === 'sdn-controller' && !state.sdnRefused.includes(vifId)) {
+                state.sdnRefused.push(vifId)
+              }
+            }
 
             return failures.size > 0 ? KEEP_OVERLAY_OPEN : confirmed
           } catch (error) {
@@ -100,4 +126,59 @@ export function useVdfLock() {
   }
 
   return { confirmLock, isLocking: isRunning }
+}
+
+// an interface VDF locks, to unlock
+export type VdfUnlockTarget = {
+  vifId: string
+  device: string
+  vmName: string
+  // what it's locked to
+  allowed: string[]
+}
+
+// Removing a VDF lock (vdf#41), after a confirmation: the interface may
+// then use any address. Its allowed addresses stay (XAPI ignores them on
+// an unlocked interface, and a later lock proposes them), unless the user
+// clears them. Resolves to whether it was unlocked; a failure shows in the
+// confirmation, which stays open.
+export function useVdfUnlock() {
+  const requests = ref<VdfUnlockRequest[]>([])
+
+  const { run, isRunning } = useVdfUnlockJob(requests)
+
+  const { open } = useOverlay({
+    component: () => import('@/modules/vdf/components/vm/VdfUnlockModal.vue'),
+    events: { onConfirm: (clear: boolean) => clear, onCancel: true },
+  })
+
+  async function confirmUnlock(target: VdfUnlockTarget) {
+    const state = reactive<{ error?: string }>({})
+    let isUnlocked = false
+
+    await open({
+      props: { target, state },
+      events: {
+        onConfirm: async clear => {
+          requests.value = [{ vifId: target.vifId, clear }]
+          state.error = undefined
+
+          try {
+            await run()
+            isUnlocked = true
+
+            return clear
+          } catch (error) {
+            state.error = error instanceof Error ? error.message : String(error)
+
+            return KEEP_OVERLAY_OPEN
+          }
+        },
+      },
+    })
+
+    return isUnlocked
+  }
+
+  return { confirmUnlock, isUnlocking: isRunning }
 }

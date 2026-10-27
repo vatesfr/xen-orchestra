@@ -142,6 +142,7 @@
               :unprotected="getNetworkById(vif.$network)?.tags.includes(VDF_UNPROTECTED_TAG)"
               class="interface"
               @lock="target => confirmLock([target])"
+              @unlock="target => confirmUnlock(target)"
             />
           </UiCard>
 
@@ -214,7 +215,7 @@ import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
-import { useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { useVdfLock, useVdfUnlock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
@@ -359,7 +360,8 @@ const statusDetail = computed(() => {
 
 // UNTRUSTED MEMBERS (vdf#41): the VM, or the peers its enforced policies
 // allow or drop, with addresses their guests choose (an interface not
-// locked, or one XAPI can't lock while an SDN controller is registered)
+// locked, one XAPI can't lock while an SDN controller is registered, or a
+// VDF lock its host's agent doesn't enforce)
 
 const { untrustedInPolicy, isVmUntrusted } = useVdfUntrustedMembers(() => vm.$pool, publishedDocument)
 
@@ -523,9 +525,12 @@ const vmVifs = computed(() =>
 const { confirmQuarantine } = useVdfQuarantine(membership)
 
 // LOCKING: an interface locked to the addresses its guest reports, after
-// a confirmation (vdf#15)
+// a confirmation (vdf#15); with VDF where XAPI refuses, and unlocked from
+// here then (vdf#41)
 
 const { confirmLock } = useVdfLock()
+
+const { confirmUnlock } = useVdfUnlock()
 </script>
 
 <style lang="postcss" scoped>

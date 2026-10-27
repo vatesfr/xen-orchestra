@@ -2,8 +2,10 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
 import { useVdfNetworkTagJob } from '@/modules/vdf/jobs/vdf-network-tag.job.ts'
 import type { VdfGroup } from '@/modules/vdf/types.ts'
+import { isEnforcedLock, type VdfUnenforcedReason, type VdfVifLock } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import {
   groupNetworks,
   interfaceAddresses,
@@ -11,7 +13,6 @@ import {
   VDF_UNPROTECTED_TAG,
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { effectiveLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { computed, ref } from 'vue'
@@ -24,6 +25,10 @@ export type VdfInterface = {
   netTags: string[]
   // as agents count them: locked IPs, else what the guest reports
   ips: string[]
+  // its lock as the firewall trusts it (vdf#41): a VDF lock its host's
+  // agent doesn't enforce is vdf-unenforced, for `lockReason`
+  lock: VdfVifLock
+  lockReason?: VdfUnenforcedReason
   // its network is left out of the firewall (vdf:unprotected)
   unprotected: boolean
 }
@@ -33,6 +38,8 @@ export function useVdfInterfaces() {
   const { vifs, areVifsReady } = useXoVifCollection()
 
   const { networks, areNetworksReady } = useXoNetworkCollection()
+
+  const { lockOf } = useVdfVifLocks()
 
   const areInterfacesReady = computed(() => areVifsReady.value && areNetworksReady.value)
 
@@ -53,6 +60,7 @@ export function useVdfInterfaces() {
       .map(vif => {
         const network = networkById.value.get(vif.$network)
         const netTags = network?.tags ?? []
+        const { lock, reason } = lockOf(vm, vif, network)
 
         return {
           vif,
@@ -60,10 +68,9 @@ export function useVdfInterfaces() {
           netTags,
           // a disabled interface sends nothing: what its guest says counts
           // nowhere, as for agents
-          ips:
-            effectiveLockingMode(vif.lockingMode, network?.defaultIsLocked) === 'disabled'
-              ? []
-              : interfaceAddresses(vif, vm.addresses),
+          ips: lock === 'disabled' ? [] : interfaceAddresses(vif, vm.addresses, { locked: isEnforcedLock(lock) }),
+          lock,
+          lockReason: reason,
           unprotected: netTags.includes(VDF_UNPROTECTED_TAG),
         }
       })

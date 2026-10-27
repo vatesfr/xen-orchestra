@@ -349,6 +349,12 @@ export type VdfHostLocking = {
   unlockedVifs?: VdfLockedVif[]
   stale: number
   staleVifs?: VdfLockedVif[]
+  // VDF locks (vdf#41), absent from agents before them: the agent enforces
+  // VIF.other_config['vdf:locking'] = 'locked'; how many it enforces; the
+  // VIFs (uuids) with the key whose lock it doesn't enforce (complete)
+  vdfLock?: boolean
+  vdfLocked?: number
+  vdfUnenforced?: string[]
 }
 
 export type VdfHostState = 'up-to-date' | 'behind' | 'rejected' | 'stale' | 'unknown' | 'disabled'

@@ -140,7 +140,8 @@
 
 <script lang="ts" setup>
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
-import { isUnlocked, lockTarget, useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { lockTarget, useVdfLock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
 import type { VdfGroup, VdfScopeId } from '@/modules/vdf/types.ts'
 import {
   displayName,
@@ -149,7 +150,7 @@ import {
   vdfGlobalRoute,
   vdfPageRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { isUntrustedLock, lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -218,9 +219,9 @@ watch(
 
 const isGlobal = computed(() => isGlobalName(name) || isGlobalScope(scopeId))
 
-// the interfaces the group selects (on its networks, vdf#36) that XAPI
-// lets use any address
-const unlockedOf = (vm: FrontXoVm) => groupInterfaces(vm, group).filter(iface => isUnlocked(iface.vif, iface.network))
+// the interfaces the group selects (on its networks, vdf#36) whose guest
+// may use any address: unlocked, or a VDF lock not enforced (vdf#41)
+const untrustedOf = (vm: FrontXoVm) => groupInterfaces(vm, group).filter(iface => isUntrustedLock(iface.lock))
 
 const memberRows = computed(() =>
   members.map(vm => {
@@ -232,7 +233,7 @@ const memberRows = computed(() =>
         (ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':'))
       ),
       isRunning: vm.power_state === VM_POWER_STATE.RUNNING,
-      isUnlocked: unlockedOf(vm).length > 0,
+      isUnlocked: untrustedOf(vm).length > 0,
       pool: poolNameOf?.(vm),
     }
   })
@@ -241,14 +242,22 @@ const memberRows = computed(() =>
 const visibleMembers = computed(() => (showAll.value ? memberRows.value : memberRows.value.slice(0, COLLAPSED_MEMBERS)))
 
 // LOCK ALL (vdf#15): the running members' unlocked interfaces, one
-// confirmation listing them (a halted VM reports no address to lock to)
+// confirmation listing them (a halted VM reports no address to lock to). A
+// VDF lock not enforced is locked already: its host's agent is what's
+// missing.
 const unlockedInterfaces = computed(() =>
   members
     .filter(vm => vm.power_state === VM_POWER_STATE.RUNNING)
-    .flatMap(vm => unlockedOf(vm).map(iface => ({ vm, iface })))
+    .flatMap(vm =>
+      untrustedOf(vm)
+        .filter(iface => iface.lock === 'unlocked')
+        .map(iface => ({ vm, iface }))
+    )
 )
 
 const { confirmLock } = useVdfLock()
+
+const { lockHostOf, vdfLockUnavailableFor } = useVdfVifLocks()
 
 function lockAll() {
   if (name === undefined) {
@@ -261,6 +270,9 @@ function lockAll() {
         vmName: vm.name_label,
         network: iface.network,
         proposal: lockProposal(reportedAddresses(iface.vif, vm.addresses), iface.vif.MAC),
+        lock: iface.lock,
+        vdfUnavailable: vdfLockUnavailableFor(vm),
+        hostName: lockHostOf(vm)?.host.name_label,
       })
     ),
     { group: displayName(name) }

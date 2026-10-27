@@ -27,8 +27,8 @@
       </span>
     </div>
     <div class="locking">
-      <UiInfo :accent="lockingAccent" wrap>{{ t(`firewall:vm:locking:${lockingMode}`) }}</UiInfo>
-      <template v-if="lockingMode === 'unlocked'">
+      <UiInfo :accent="lockingAccent" wrap>{{ lockingText }}</UiInfo>
+      <template v-if="lockState.lock === 'unlocked'">
         <UiButton
           size="small"
           variant="secondary"
@@ -42,10 +42,26 @@
           {{ t('firewall:vm:locking:open-network') }}
         </UiLink>
       </template>
+      <!-- vdf#41: a VDF lock is removed here, XAPI's from the VM's network settings -->
+      <UiButton
+        v-else-if="lockState.lock === 'vdf' || lockState.lock === 'vdf-unenforced'"
+        size="small"
+        variant="secondary"
+        accent="brand"
+        left-icon="fa:lock-open"
+        @click="unlock()"
+      >
+        {{ t('firewall:unlock:action') }}
+      </UiButton>
     </div>
     <div v-if="drift" class="locking">
       <UiInfo v-tooltip="driftDetail" accent="danger" wrap>
-        {{ t('firewall:lock:drift', { outside: formatAddressList(drift.outside), allowed: shortList(drift.allowed) }) }}
+        {{
+          t(lockState.lock === 'xapi' ? 'firewall:lock:drift' : 'firewall:lock:drift:vdf', {
+            outside: formatAddressList(drift.outside),
+            allowed: shortList(drift.allowed),
+          })
+        }}
       </UiInfo>
       <UiButton
         size="small"
@@ -66,15 +82,16 @@
 
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { lockTarget, type VdfLockTarget } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { lockTarget, type VdfLockTarget, type VdfUnlockTarget } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
 import {
   formatAddressList,
   lockDrift,
   lockProposal,
   reportedAddresses,
   type VdfLockProposal,
+  type VdfVifLock,
 } from '@/modules/vdf/utils/vdf-locking.util.ts'
-import { effectiveLockingMode, type VdfLockingMode } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -105,9 +122,11 @@ const {
   unprotected?: boolean
 }>()
 
-// Lock (vdf#15): the page confirms, with the addresses the guest reports
+// Lock (vdf#15): the page confirms, with the addresses the guest reports;
+// unlock a VDF lock (vdf#41)
 const emit = defineEmits<{
   lock: [target: VdfLockTarget]
+  unlock: [target: VdfUnlockTarget]
 }>()
 
 const { t } = useI18n()
@@ -119,18 +138,32 @@ const ips = computed(() =>
     .sort((ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':')))
 )
 
-const lockingMode = computed(() => effectiveLockingMode(vif.lockingMode, network?.defaultIsLocked))
+// XAPI's lock, VDF's (vdf#41: enforced only where the agent of the VM's
+// host says so), none, or disabled
+const { lockOf, lockHostOf, vdfLockUnavailableFor } = useVdfVifLocks()
 
-const LOCKING_ACCENTS: Record<VdfLockingMode, InfoAccent> = {
-  locked: 'success',
+const lockState = computed(() => lockOf(vm, vif, network))
+
+const hostName = computed(() => lockHostOf(vm)?.host.name_label)
+
+const LOCKING_ACCENTS: Record<VdfVifLock, InfoAccent> = {
+  xapi: 'success',
+  vdf: 'success',
+  'vdf-unenforced': 'warning',
   unlocked: 'warning',
   disabled: 'danger',
 }
 
-const lockingAccent = computed(() => LOCKING_ACCENTS[lockingMode.value])
+const lockingAccent = computed(() => LOCKING_ACCENTS[lockState.value.lock])
 
-// locked, but the guest moved to another address (DHCP): XAPI drops its
-// traffic from it until it's locked again
+const lockingText = computed(() =>
+  lockState.value.lock === 'vdf-unenforced'
+    ? t(`firewall:vm:locking:vdf-unenforced:${lockState.value.reason}`, { host: hostName.value ?? '?' })
+    : t(`firewall:vm:locking:${lockState.value.lock}`)
+)
+
+// locked, but the guest moved to another address (DHCP): XAPI (or VDF)
+// drops its traffic from it until it's locked again
 const drift = computed(() => lockDrift(vif, vm.addresses))
 
 // the first address, and how many more
@@ -150,7 +183,27 @@ const driftDetail = computed(() =>
 
 // proposal: what to propose; lockedTo: a relock, from what it's locked to
 function lock(proposal: VdfLockProposal, lockedTo?: string[]) {
-  emit('lock', lockTarget(vif, { vmName: vm.name_label, network, proposal, lockedTo }))
+  emit(
+    'lock',
+    lockTarget(vif, {
+      vmName: vm.name_label,
+      network,
+      proposal,
+      lockedTo,
+      lock: lockState.value.lock,
+      vdfUnavailable: vdfLockUnavailableFor(vm),
+      hostName: hostName.value,
+    })
+  )
+}
+
+function unlock() {
+  emit('unlock', {
+    vifId: vif.id,
+    device: vif.device,
+    vmName: vm.name_label,
+    allowed: [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])],
+  })
 }
 </script>
 

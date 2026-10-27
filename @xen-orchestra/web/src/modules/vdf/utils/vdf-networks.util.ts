@@ -39,7 +39,8 @@ export const isNetworkTag = (tag: string) => /^vdf:net=[a-z0-9][a-z0-9._-]*$/.te
 
 // A VM's interface as agents see it (agent/inventory.go vmIfaces): a locked
 // VIF's allowed addresses (trusted), else what the guest reports for its
-// device; IPv6 link-local left out.
+// device; IPv6 link-local left out. `locked`: XAPI's lock, or a VDF lock
+// its host's agent enforces (vdf#41, vifLock).
 export type VdfInterfaceVif = {
   device: string
   lockingMode: string
@@ -47,13 +48,16 @@ export type VdfInterfaceVif = {
   allowedIpv6Addresses?: string[]
 }
 
-export function interfaceAddresses(vif: VdfInterfaceVif, guestAddresses: Record<string, string> | undefined) {
-  const raw =
-    vif.lockingMode === 'locked'
-      ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
-      : Object.entries(guestAddresses ?? {})
-          .filter(([key]) => key.split('/')[0] === String(vif.device))
-          .map(([, ip]) => ip)
+export function interfaceAddresses(
+  vif: VdfInterfaceVif,
+  guestAddresses: Record<string, string> | undefined,
+  { locked = vif.lockingMode === 'locked' }: { locked?: boolean } = {}
+) {
+  const raw = locked
+    ? [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
+    : Object.entries(guestAddresses ?? {})
+        .filter(([key]) => key.split('/')[0] === String(vif.device))
+        .map(([, ip]) => ip)
 
   return [...new Set(raw.filter(ip => !ip.includes('/') && !/^fe80:/i.test(ip)))].sort(
     (ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':')) || ipA.localeCompare(ipB)
