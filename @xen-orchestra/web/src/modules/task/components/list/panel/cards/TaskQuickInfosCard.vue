@@ -1,17 +1,20 @@
 <template>
   <UiPanelCard class="task-quick-infos-card">
-    <UiCardTitle v-if="nameParts !== undefined || task.properties.name !== undefined" class="text-ellipsis">
-      <div v-if="nameParts" class="title">
-        <VtsIcon name="fa:bars-progress" size="medium" />
-        <template v-for="(part, index) in nameParts" :key="index">
-          <UiLink size="small" :to="part.to">{{ part.text }}</UiLink>
-        </template>
-      </div>
-      <UiLink v-else size="small" icon="fa:bars-progress">
-        {{ task.properties.name }}
-      </UiLink>
-    </UiCardTitle>
-    <VtsCardObjectTitle :id="task.id" />
+    <UiPanelCardTitle
+      :id="task.id"
+      size="medium"
+      :label="task.properties.name"
+      :icon="task.properties.name !== undefined ? 'fa:bars-progress' : undefined"
+    >
+      <template v-if="nameParts" #label>
+        <span>
+          <template v-for="(part, index) in nameParts" :key="index">
+            <UiLink v-if="part.to !== undefined" size="medium" :to="part.to">{{ part.text }}</UiLink>
+            <template v-else>{{ part.text }}</template>
+          </template>
+        </span>
+      </template>
+    </UiPanelCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
@@ -46,7 +49,10 @@
           {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
-
+      <VtsCardRowKeyValue v-if="formattedSize !== undefined">
+        <template #key>{{ t('size') }}</template>
+        <template #value>{{ formattedSize }}</template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -70,17 +76,17 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatSize } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -88,7 +94,7 @@ const { task } = defineProps<{
   task: FrontXoTask
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { resolveTaskName } = useXoTaskNameResolver()
 
@@ -109,10 +115,17 @@ const progress = computed(() => {
   return task.properties.progress ?? 100
 })
 
-const formattedStartDate = computed(() => d(task.start, { dateStyle: 'short', timeStyle: 'medium' }))
+// backup writers return `{ size }` in bytes as task result
+const formattedSize = computed(() => {
+  const size = task.result?.size
+
+  return typeof size === 'number' ? formatSize(size, 2) : undefined
+})
+
+const formattedStartDate = computed(() => formatDateTime(task.start))
 const formattedEndDate = computed(() => {
   if (task.end) {
-    return d(task.end, { dateStyle: 'short', timeStyle: 'medium' })
+    return formatDateTime(task.end)
   }
 
   const progress = task.properties.progress
@@ -121,24 +134,17 @@ const formattedEndDate = computed(() => {
     return '-'
   }
 
-  // TODO need to be improved and test with real data...
+  // progress is a percentage (0-100), not a ratio
   const elapsed = Date.now() - task.start
-  const estimatedTotal = elapsed / progress
+  const estimatedTotal = (elapsed * 100) / progress
   const endTimestamp = task.start + estimatedTotal
 
-  return d(endTimestamp, 'datetime_short')
+  return formatDateTime(endTimestamp)
 })
 </script>
 
 <style scoped lang="postcss">
 .task-quick-infos-card {
-  .title {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    align-items: center;
-  }
-
   .content {
     display: flex;
     flex-direction: column;

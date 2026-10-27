@@ -2,7 +2,7 @@
   <VtsTabularKeyValueRow :label="t('host')" :value="form.formData.hostName" />
   <VtsTabularKeyValueRow v-if="isAzurite" :label="t('https')">
     <template #value>
-      <VtsStatus :status="form.formData.useHttps" />
+      <VtsStatus :status="form.formData.useHttps === true" />
     </template>
   </VtsTabularKeyValueRow>
   <VtsTabularKeyValueRow :label="t('account-name')" :value="form.formData.accountName" />

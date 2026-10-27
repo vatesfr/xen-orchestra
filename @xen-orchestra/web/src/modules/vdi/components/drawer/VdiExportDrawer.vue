@@ -25,7 +25,7 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+import { SUPPORTED_VDI_EXPORT_FORMAT } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,10 +36,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const exportFormat = ref<VdiExportFormat>(SUPPORTED_VDI_FORMAT.vhd)
+const exportFormat = ref<VdiExportFormat>(SUPPORTED_VDI_EXPORT_FORMAT.vhd)
 
-const options = Object.entries(SUPPORTED_VDI_FORMAT)
-  .filter(([, value]) => value !== SUPPORTED_VDI_FORMAT.qcow2)
+const options = Object.entries(SUPPORTED_VDI_EXPORT_FORMAT)
+  .filter(([, value]) => value !== SUPPORTED_VDI_EXPORT_FORMAT.qcow2)
   .map(([key, value]) => ({
     value,
     label: key,

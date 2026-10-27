@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
-import { resolveDiskLocation } from './_paths.mjs'
+import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -22,6 +22,10 @@ import {
   queryChangedDiskAreasArgs,
   retrieveOptions,
   traversalSpec,
+  virtualDeviceConfigSpec,
+  virtualDisk,
+  virtualDiskFlatVer2BackingInfo,
+  virtualMachineConfigSpec,
 } from './soap/specs.mjs'
 import { VimClient } from './soap/VimClient.mjs'
 
@@ -33,6 +37,8 @@ const DEFAULT_DOWNLOAD_RETRIES = 4
 const DESCRIPTOR_READ_LENGTH = 4096
 // a vmdk descriptor is a small file, but the /folder endpoint of a host is not fast
 const DESCRIPTOR_CONCURRENCY = 4
+// each datastore is two small property reads
+const DATASTORE_CONCURRENCY = 4
 const DEFAULT_HEADERS_TIMEOUT = 60e3
 const DEFAULT_RETRY_DELAY = 2e3
 // every caller of `#waitForTaskEnd` passes its own deadline, this is only the guardrail for the
@@ -117,6 +123,90 @@ function collectSnapshotIds(rootList, ids = []) {
 // a device of `config.hardware.device` is a VirtualDisk only through its declared type
 const isVirtualDisk = device => device?.attributes?.['xsi:type'] === 'VirtualDisk'
 
+// the SCSI controllers a disk can be hot added to, SATA and NVMe ones have to be named by the caller
+const SCSI_CONTROLLER_TYPES = new Set([
+  'ParaVirtualSCSIController',
+  'VirtualBusLogicController',
+  'VirtualLsiLogicController',
+  'VirtualLsiLogicSASController',
+])
+const SCSI_UNITS_PER_CONTROLLER = 16
+// the controller itself sits on the bus, at this unit unless it says otherwise
+const DEFAULT_SCSI_CONTROLLER_UNIT = 7
+
+// vSphere has no read-only disk mode: the writes of the guest go to a redo log, which is dropped
+// when the disk is detached or the VM powered off. The file itself is never written to, and an
+// independent disk is left out of the snapshots of the VM
+const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
+
+/**
+ * A disk {@link Esxi#checkDiskAttachable} found nothing against.
+ *
+ * @typedef {object} AttachableDisk
+ * @property {true} attachable
+ * @property {string} datastoreType - `VMFS`, `NFS`, `NFS41`, `vsan`, `VVOL`, `PMEM`…
+ * @property {boolean} shared - whether more than one host can mount the datastore
+ */
+
+/**
+ * A disk the VM cannot be given, and why.
+ *
+ * @typedef {object} UnattachableDisk
+ * @property {false} attachable
+ * @property {'DATASTORE_INACCESSIBLE' | 'DATASTORE_NOT_MOUNTED'} code
+ * @property {string} reason
+ * @property {string} datastoreType
+ * @property {boolean} shared
+ */
+
+// the SOAP library does not always convert the booleans of the answer
+const isTrue = value => String(value) === 'true'
+
+/**
+ * The hosts which mount a datastore and can reach it.
+ *
+ * @param {unknown} mounts - value of the `host` property of the datastore
+ * @returns {Set<string>} managed object references of the hosts
+ */
+function reachingHostIds(mounts) {
+  const hostIds = new Set()
+  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
+    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
+      // the references nested in the value are not normalized, only the value itself is
+      hostIds.add(key?.$value ?? key)
+    }
+  }
+  return hostIds
+}
+
+const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
+
+/**
+ * The first SCSI controller slot no device uses.
+ *
+ * @param {unknown} devices - value of `config.hardware.device`
+ * @returns {{ controllerKey: number, unitNumber: number } | undefined}
+ */
+function findFreeScsiSlot(devices) {
+  const allDevices = asArray(devices?.VirtualDevice)
+  // the SOAP library does not always convert the integers of the answer
+  const controllers = allDevices.filter(isScsiController).sort((a, b) => Number(a.busNumber) - Number(b.busNumber))
+  for (const controller of controllers) {
+    const controllerKey = Number(controller.key)
+    const usedUnits = new Set(
+      allDevices
+        .filter(device => Number(device.controllerKey) === controllerKey)
+        .map(device => Number(device.unitNumber))
+    )
+    usedUnits.add(Number(controller.scsiCtlrUnitNumber ?? DEFAULT_SCSI_CONTROLLER_UNIT))
+    for (let unitNumber = 0; unitNumber < SCSI_UNITS_PER_CONTROLLER; unitNumber++) {
+      if (!usedUnits.has(unitNumber)) {
+        return { controllerKey, unitNumber }
+      }
+    }
+  }
+}
+
 // `TaskInfo.error` is a LocalizedMethodFault: the concrete fault type is the `xsi:type` of its
 // `fault` element, and the parser may expose it at either level depending on the response
 const taskFaultType = error => error?.fault?.attributes?.['xsi:type'] ?? error?.attributes?.['xsi:type']
@@ -125,6 +215,7 @@ const taskFaultMessage = error => error?.localizedMessage ?? error?.fault?.local
 export default class Esxi extends EventEmitter {
   #connected
   #cookies
+  #datastoreIds // map datastore name => managed object reference
   #dcPaths // map datastore name => datacenter name
   #fetchImpl
   #host
@@ -217,6 +308,7 @@ export default class Esxi extends EventEmitter {
       }
     }
     this.#dcPaths = dcPaths
+    this.#datastoreIds = Object.fromEntries(Object.entries(datastores).map(([id, { name }]) => [name, id]))
   }
 
   #findDatacenter(dataStore) {
@@ -231,6 +323,33 @@ export default class Esxi extends EventEmitter {
       throw error
     }
     return dcPath
+  }
+
+  // the paths come from the inventory: a path which cannot be placed is not an answer about the disk,
+  // it is a bug or a stale inventory. The datastores are only known once connected
+  /**
+   * @param {string} fileName - datastore path, e.g. `[datastore1] vm/vm.vmdk`
+   * @returns {{ datastoreId: string, datastoreName: string }}
+   */
+  #findDatastore(fileName) {
+    const datastoreName = parseDatastorePath(fileName)?.datastoreName
+    if (datastoreName === undefined) {
+      const error = new Error(`${fileName} is not a datastore path`)
+      error.code = 'INVALID_PATH'
+      error.filePath = fileName
+      throw error
+    }
+    const datastoreId = this.#datastoreIds[datastoreName]
+    if (datastoreId === undefined) {
+      const error = new Error(`the datastore ${datastoreName} of ${fileName} is unknown to ${this.#host}`)
+      error.code = 'DATASTORE_NOT_FOUND'
+      // same context as DATACENTER_NOT_FOUND
+      error.dataStore = datastoreName
+      error.dataStores = Object.keys(this.#datastoreIds)
+      error.filePath = fileName
+      throw error
+    }
+    return { datastoreId, datastoreName }
   }
 
   async #fetch(url, { range, signal, headersTimeout = DEFAULT_HEADERS_TIMEOUT } = {}) {
@@ -550,15 +669,15 @@ export default class Esxi extends EventEmitter {
     ])
 
     const vmPathName = config.files.vmPathName
-    const matches = vmPathName.match(/^\[(.*)\] (.+\.vmx)$/)
-    if (matches === null) {
+    const vmxLocation = parseDatastorePath(vmPathName)
+    if (vmxLocation === undefined || !vmxLocation.path.endsWith('.vmx')) {
       // destructuring the null used to throw a TypeError naming nothing
       const error = new Error(`can't parse the path of the vmx of the VM ${vmId}: ${vmPathName}`)
       error.code = 'BAD_VMX_PATH'
       error.vmId = vmId
       throw error
     }
-    const [, dataStore, vmxPath] = matches
+    const { datastoreName: dataStore, path: vmxPath } = vmxLocation
 
     const res = await this.download(dataStore, vmxPath, { signal })
     const vmx = parseVmx(await res.text())
@@ -790,6 +909,85 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Shuts the guest down cleanly through the VMware tools, and waits for the VM to be off.
+   *
+   * A power off is the guest losing power: Windows leaves its NTFS volumes dirty, which then cannot be
+   * written offline, e.g. by the repair ISO. The VM is powered off anyway when its tools do not run, when
+   * the guest refuses to shut down, or does not within `timeout`.
+   *
+   * @param {string} vmId - id of the VM, powered on
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, how long the guest is given to shut down
+   * @param {number} [options.pollInterval] - in ms, between two reads of the power state
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<'shutdown' | 'powerOff'>} how the VM was stopped
+   */
+  async shutdown(vmId, { signal, timeout = 10 * 60e3, pollInterval = 5e3 } = {}) {
+    const toolsStatus = await this.#retrieveProperty('VirtualMachine', vmId, 'guest.toolsRunningStatus', {
+      signal,
+    }).catch(error => {
+      signal?.throwIfAborted()
+      warn('failed to read the state of the VMware tools', { error, vmId })
+    })
+
+    if (toolsStatus === 'guestToolsRunning') {
+      try {
+        // not a task: the call returns once the guest has been asked to shut down
+        await this.#vimClient.call('ShutdownGuest', { _this: vmId })
+        await this.#waitPoweredOff(vmId, { signal, timeout, pollInterval })
+        return 'shutdown'
+      } catch (error) {
+        signal?.throwIfAborted()
+        warn('the guest did not shut down, powering it off', { error, vmId })
+      }
+    } else {
+      info('the VMware tools do not run, powering the VM off', { toolsStatus, vmId })
+    }
+
+    try {
+      await this.powerOff(vmId, { signal })
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the host refuses to power off a VM which is already off: the guest may have completed a shut
+      // down whose request failed on our side, or the VM may have been stopped since the caller read
+      // its power state, possibly long before
+      const powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      if (powerState === 'poweredOff') {
+        return 'shutdown'
+      }
+      throw error
+    }
+    return 'powerOff'
+  }
+
+  async #waitPoweredOff(vmId, { signal, timeout, pollInterval }) {
+    const deadline = Date.now() + timeout
+    for (;;) {
+      let powerState
+      try {
+        powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      } catch (error) {
+        // the guest keeps shutting down on the host: a transient failure of a single poll must not
+        // end in powering off a guest which is about to be off
+        if (!isRetryableError(error) || Date.now() >= deadline) {
+          throw error
+        }
+        warn('failed to read the power state of a VM, will poll again', { error, vmId })
+      }
+      if (powerState === 'poweredOff') {
+        return
+      }
+      if (Date.now() >= deadline) {
+        const error = new Error(`the VM ${vmId} is still running ${timeout}ms after its guest was asked to shut down`)
+        error.code = 'SHUTDOWN_TIMEOUT'
+        error.vmId = vmId
+        throw error
+      }
+      await delay(pollInterval, undefined, { signal })
+    }
+  }
+
+  /**
    * Powers on a VM, and waits for the hypervisor to have started it.
    *
    * @param {string} vmId - id of the VM
@@ -851,6 +1049,288 @@ export default class Esxi extends EventEmitter {
       { _this: vmId, name, description, memory: false },
       { signal, timeout }
     )
+  }
+
+  /**
+   * Removes a single snapshot, its children are kept, and consolidates its disks.
+   *
+   * @param {string} snapshotId - id of the snapshot, e.g. the `result` of {@link snapshot}
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async removeSnapshot(snapshotId, { signal, timeout = 30 * 60e3 } = {}) {
+    return this.#runTask(
+      'RemoveSnapshot_Task',
+      { _this: snapshotId, removeChildren: false, consolidate: true },
+      { signal, timeout }
+    )
+  }
+
+  /**
+   * Turns the change tracking (CBT) of a VM on, when it is not already.
+   *
+   * The host only starts tracking when the disks are next opened, e.g. by a snapshot, running or
+   * not: until then it has no tracking file to answer from, and a snapshot taken before carries no
+   * `changeId`, no delta can be computed from it.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>} whether this call turned the tracking on
+   */
+  async enableChangeTracking(vmId, { signal, timeout = 5 * 60e3 } = {}) {
+    const enabled = await this.#retrieveProperty('VirtualMachine', vmId, 'config.changeTrackingEnabled', {
+      signal,
+    }).catch(error => {
+      // absent when the VM has never been tracked
+      if (error.code !== 'NO_PROPERTY') {
+        throw error
+      }
+    })
+    if (isTrue(enabled)) {
+      return false
+    }
+
+    await this.#runTask(
+      'ReconfigVM_Task',
+      { _this: vmId, spec: virtualMachineConfigSpec({ changeTrackingEnabled: true }) },
+      { signal, timeout }
+    )
+    info('change tracking enabled', { vmId })
+    return true
+  }
+
+  /**
+   * Attaches an existing vmdk to a VM, powered on or not, without ever writing to it.
+   *
+   * The disk is attached in `independent_nonpersistent` mode: the guest sees a writable disk, but its
+   * writes go to a redo log next to the VM, dropped on detach or power off. Whether the VM can open
+   * the file (datastore reachable from its host, file not locked by another running VM) is not
+   * checked here: the host refuses the reconfiguration and the task fails with its fault.
+   *
+   * Without a slot, the first free unit of the SCSI controllers of the VM is used, the controller
+   * sitting on the lowest bus first. Two concurrent attachments to the same VM may pick the same
+   * one, the second then fails.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {string} fileName - datastore path of the descriptor, e.g. `[datastore1] vm/vm.vmdk`
+   * @param {object} [options]
+   * @param {number} [options.controllerKey] - key of the controller, with `unitNumber`
+   * @param {number} [options.unitNumber]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<{ controllerKey: number, deviceKey: number, unitNumber: number }>} what
+   * {@link detachDisk} expects
+   */
+  async attachDisk(vmId, fileName, { controllerKey, unitNumber, signal, timeout = 5 * 60e3 } = {}) {
+    if ((controllerKey === undefined) !== (unitNumber === undefined)) {
+      const error = new Error('controllerKey and unitNumber go together')
+      error.code = 'INVALID_SLOT'
+      throw error
+    }
+
+    const slot =
+      controllerKey === undefined
+        ? findFreeScsiSlot(await this.#retrieveProperty('VirtualMachine', vmId, 'config.hardware.device', { signal }))
+        : { controllerKey, unitNumber }
+    if (slot === undefined) {
+      const error = new Error(`no free SCSI slot on the VM ${vmId}`)
+      error.code = 'NO_FREE_SLOT'
+      error.vmId = vmId
+      throw error
+    }
+
+    await this.#runTask(
+      'ReconfigVM_Task',
+      {
+        _this: vmId,
+        spec: virtualMachineConfigSpec({
+          deviceChange: [
+            virtualDeviceConfigSpec({
+              operation: 'add',
+              // no `fileOperation`: the file already exists and must be used as is
+              device: virtualDisk({
+                // a negative key names a device which does not exist yet, the host assigns the real one
+                key: -1,
+                backing: virtualDiskFlatVer2BackingInfo({ fileName, diskMode: READ_ONLY_DISK_MODE }),
+                controllerKey: slot.controllerKey,
+                unitNumber: slot.unitNumber,
+                // mandatory in the schema, the host reads the capacity from the file
+                capacityInKB: 0,
+              }),
+            }),
+          ],
+        }),
+      },
+      { signal, timeout }
+    )
+
+    // the task does not tell which key the host assigned
+    const devices = await this.#retrieveProperty('VirtualMachine', vmId, 'config.hardware.device', { signal })
+    const attached = asArray(devices?.VirtualDevice).find(
+      device =>
+        isVirtualDisk(device) &&
+        Number(device.controllerKey) === slot.controllerKey &&
+        Number(device.unitNumber) === slot.unitNumber
+    )
+    if (attached === undefined || attached.backing?.fileName !== fileName) {
+      const error = new Error(`the disk ${fileName} is not on the VM ${vmId} after its attachment`)
+      error.code = 'DISK_NOT_ATTACHED'
+      error.vmId = vmId
+      throw error
+    }
+    info('disk attached', { fileName, vmId, ...slot })
+    return { ...slot, deviceKey: Number(attached.key) }
+  }
+
+  /**
+   * Whether a vmdk can be given to a VM by {@link attachDisk}, on any kind of datastore: local, shared
+   * or vSAN all come down to whether the host the VM runs on mounts the datastore.
+   *
+   * What is checked:
+   * - the datastore is accessible
+   * - the host of the VM mounts it, and can reach it
+   *
+   * The file itself is not looked at: its path comes from the inventory, and reading it could take
+   * a lock of its own. Nor is its lock: a disk of a snapshot or of a stopped VM can always be
+   * opened. A failure to ask the host is thrown, it is not an answer about the disk, and so is a
+   * path which is not a datastore path (`INVALID_PATH`) or on a datastore unknown to the host
+   * (`DATASTORE_NOT_FOUND`): it is a bug, or an inventory read before the datastore was added.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {string} fileName - datastore path of the descriptor, e.g. `[datastore1] vm/vm.vmdk`
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<AttachableDisk | UnattachableDisk>}
+   */
+  async checkDiskAttachable(vmId, fileName, { signal } = {}) {
+    await this.#connected
+    const { datastoreId, datastoreName } = this.#findDatastore(fileName)
+
+    const [hostId, summary, mounts] = await Promise.all([
+      this.#retrieveProperty('VirtualMachine', vmId, 'runtime.host', { signal }),
+      this.#retrieveProperty('Datastore', datastoreId, 'summary', { signal }),
+      this.#retrieveProperty('Datastore', datastoreId, 'host', { signal }),
+    ])
+
+    const datastoreType = summary?.type
+    const shared = isTrue(summary?.multipleHostAccess)
+    const unattachable = (code, reason) => ({ attachable: false, code, reason, datastoreType, shared })
+
+    if (!isTrue(summary?.accessible)) {
+      return unattachable(
+        'DATASTORE_INACCESSIBLE',
+        `the datastore ${datastoreName} is not accessible: ${summary?.inaccessibleReason ?? 'unknown reason'}`
+      )
+    }
+
+    if (!reachingHostIds(mounts).has(hostId)) {
+      // the reason of a host which mounts the datastore but cannot reach it
+      const mountInfo = asArray(mounts?.DatastoreHostMount).find(
+        ({ key }) => (key?.$value ?? key) === hostId
+      )?.mountInfo
+      return unattachable(
+        'DATASTORE_NOT_MOUNTED',
+        mountInfo === undefined
+          ? `the host ${hostId} of the VM ${vmId} does not mount the datastore ${datastoreName}`
+          : `the host ${hostId} of the VM ${vmId} cannot reach the datastore ${datastoreName}: ${mountInfo.inaccessibleReason ?? 'unknown reason'}`
+      )
+    }
+
+    return { attachable: true, datastoreType, shared }
+  }
+
+  /**
+   * The hosts on which a VM can be given every one of these disks by {@link attachDisk}.
+   *
+   * A host qualifies when it mounts, and can reach, the datastore of each disk. As in
+   * {@link checkDiskAttachable}, neither the files nor their locks are looked at. Whether the host is
+   * connected, or in maintenance, is not either: it only tells where the disks can be read from.
+   *
+   * @param {ReadonlyArray<string>} fileNames - datastore paths of the descriptors, e.g.
+   * `[datastore1] vm/vm.vmdk`
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<string[]>} managed object references of the hosts, e.g. `host-12`. Empty when
+   * no host reaches all the datastores, which includes a datastore which is not accessible
+   */
+  async listHostsAbleToAttach(fileNames, { signal } = {}) {
+    await this.#connected
+
+    // the disks of a VM usually share a few datastores, each is only asked once
+    const datastoreIds = new Set(fileNames.map(fileName => this.#findDatastore(fileName).datastoreId))
+
+    if (datastoreIds.size === 0) {
+      // nothing to attach: any host will do
+      return Object.keys(await this.search('HostSystem', ['name']))
+    }
+
+    const reachingHostsByDatastore = []
+    await asyncEach(
+      datastoreIds,
+      async datastoreId => {
+        const [summary, mounts] = await Promise.all([
+          this.#retrieveProperty('Datastore', datastoreId, 'summary', { signal }),
+          this.#retrieveProperty('Datastore', datastoreId, 'host', { signal }),
+        ])
+        reachingHostsByDatastore.push(isTrue(summary?.accessible) ? reachingHostIds(mounts) : new Set())
+      },
+      { concurrency: DATASTORE_CONCURRENCY, signal }
+    )
+
+    const [first, ...others] = reachingHostsByDatastore
+    return [...first].filter(hostId => others.every(hostIds => hostIds.has(hostId)))
+  }
+
+  /**
+   * Detaches a disk from a VM, keeping its file.
+   *
+   * Any disk can be detached, not only one from {@link attachDisk}: removing the system disk of a
+   * running guest is the business of the caller. For a disk attached by {@link attachDisk}, the
+   * writes of the guest are dropped with it.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {number} deviceKey - key of the VirtualDisk, as returned by {@link attachDisk}
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<void>}
+   */
+  async detachDisk(vmId, deviceKey, { signal, timeout = 5 * 60e3 } = {}) {
+    const devices = await this.#retrieveProperty('VirtualMachine', vmId, 'config.hardware.device', { signal })
+    const disk = asArray(devices?.VirtualDevice).find(device => Number(device.key) === deviceKey)
+    if (!isVirtualDisk(disk)) {
+      const error = new Error(`the VM ${vmId} has no disk ${deviceKey}`)
+      error.code = 'NO_SUCH_DISK'
+      error.vmId = vmId
+      throw error
+    }
+
+    await this.#runTask(
+      'ReconfigVM_Task',
+      {
+        _this: vmId,
+        spec: virtualMachineConfigSpec({
+          deviceChange: [
+            virtualDeviceConfigSpec({
+              operation: 'remove',
+              // never a `fileOperation`: `destroy` would delete the file from the datastore
+              device: virtualDisk({
+                key: deviceKey,
+                controllerKey: Number(disk.controllerKey),
+                unitNumber: Number(disk.unitNumber),
+                capacityInKB: Number(disk.capacityInKB ?? 0),
+              }),
+            }),
+          ],
+        }),
+      },
+      { signal, timeout }
+    )
+    info('disk detached', { deviceKey, fileName: disk.backing?.fileName, vmId })
   }
 
   /**
@@ -1144,6 +1624,49 @@ export default class Esxi extends EventEmitter {
       snapshotDevices,
       snapshotIds,
     }
+  }
+
+  /**
+   * Whether the change tracking of a VM already answers for every disk a transfer would read, in
+   * which case no snapshot is needed to start it.
+   *
+   * - powered on: the disks are read up to the current snapshot, which must have recorded a
+   *   `changeId` for each of them, the precondition of the delta which follows
+   * - powered off: the host is asked for every used block of each disk. It answers the same
+   *   FileFault whether the tracking was never started, or reset: a snapshot cures both
+   *
+   * An independent disk is left out: it is never snapshotted, so a snapshot cannot start its tracking.
+   *
+   * @param {string} vmId - id of the VM, its change tracking enabled
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>}
+   */
+  async isChangeTrackingReady(vmId, { signal } = {}) {
+    const { currentSnapshotId, devices, powerState, snapshotDevices } = await this.getChangeTracking(vmId, { signal })
+    const isSnapshotted = device => isVirtualDisk(device) && !device.backing?.diskMode?.startsWith('independent')
+
+    if (powerState !== 'poweredOff') {
+      if (currentSnapshotId === undefined) {
+        // a powered on VM can only be asked through a snapshot
+        return false
+      }
+      const snapshotDisks = asArray(snapshotDevices.get(currentSnapshotId)?.VirtualDevice).filter(isSnapshotted)
+      return snapshotDisks.every(disk => disk.backing?.changeId !== undefined)
+    }
+
+    for (const disk of asArray(devices?.VirtualDevice).filter(isSnapshotted)) {
+      signal?.throwIfAborted()
+      try {
+        // the first answer is enough: a disk which is not tracked fails at once, no need to walk it
+        await this.#queryChangedDiskAreas(vmId, { changeId: '*', deviceKey: Number(disk.key), startOffset: 0 })
+      } catch (error) {
+        signal?.throwIfAborted()
+        info('the change tracking does not answer for a disk', { deviceKey: disk.key, error, vmId })
+        return false
+      }
+    }
+    return true
   }
 
   /**

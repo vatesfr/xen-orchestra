@@ -67,9 +67,17 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 | ------------------------ | ---------------------------------------------------------- |
 | `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
 | `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
+| `findCopiedValues`       | what each copyable key/value row copies, keyed by label    |
+| `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order   |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
+```
+
+A row offers a copy button through its `copy` prop (copies its `value`) or its `copy-value` prop (copies that string). `findCopiedValues` leaves rows without one out, so a `toEqual` pins both which rows are copyable and what they copy — including a row that must offer no copy because its value is empty:
+
+```typescript
+expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
 
 Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
@@ -81,11 +89,11 @@ expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').t
 ])
 ```
 
-When a card mixes deterministic values with environment-derived ones (a relative start time, a locale-formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
+When a card mixes deterministic values with environment-derived ones (a relative start time, a formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
 
 ### Never spell out a translation
 
-A rendered label or a translated value is wording the component does not own, so [asserting behaviour](./assert-behaviour.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` and `d` of the very instance `createGlobalTestConfig()` installs:
+A rendered label or a translated value is wording the component does not own, so [asserting behaviour](./assert-behaviour.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` of the very instance `createGlobalTestConfig()` installs:
 
 ```typescript
 // ✗ rewording the translation breaks the test although the component still picks the same key
@@ -99,13 +107,13 @@ A mistyped key does not pass quietly — `t` returns a `⟨key⟩` marker for a 
 
 Where the line falls:
 
-| Value                                                      | Assert as                                          |
-| ---------------------------------------------------------- | -------------------------------------------------- |
-| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)` |
-| a locale-formatted date                                    | `d(timestamp, { …the component's options })`       |
-| a string the component composes from several translations  | a template literal of those `t(…)` calls           |
-| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
-| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
+| Value                                                      | Assert as                                                                          |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)`                                 |
+| a formatted date                                           | `formatDateTime(timestamp)` from `@core/utils/time.util.ts`, as the component does |
+| a string the component composes from several translations  | a template literal of those `t(…)` calls                                           |
+| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input                                           |
+| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template                                  |
 
 ## Chart cards
 

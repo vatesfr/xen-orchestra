@@ -1,10 +1,12 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import {
+  buildSmbBackupRepositoryDetailsPayload,
+  SMB_DEFAULT_DOMAIN,
+} from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { required } from '@core/packages/form-validation'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export const SMB_DEFAULT_DOMAIN = 'WORKGROUP'
 
 export type SmbBackupRepositoryDetailsForm = ReturnType<typeof useSmbBackupRepositoryDetailsForm>
 
@@ -17,18 +19,23 @@ const INITIAL_FORM_DATA = {
   customOptions: '',
 }
 
-export function useSmbBackupRepositoryDetailsForm() {
+export type SmbBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useSmbBackupRepositoryDetailsForm(initialData?: Partial<SmbBackupRepositoryDetailsFormData>) {
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onSubmit: () => ({
-        pathOnShare: { required },
-        username: { required },
-        password: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          pathOnShare: { required },
+          username: { required },
+          password: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     pathOnShare: useField('pathOnShare', () => ({
@@ -53,17 +60,7 @@ export function useSmbBackupRepositoryDetailsForm() {
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: 'smb',
-        host: formData.pathOnShare,
-        path: formData.subfolder,
-        domain: formData.domain !== '' ? formData.domain : SMB_DEFAULT_DOMAIN,
-        username: formData.username,
-        password: formData.password,
-      },
-      ...(formData.customOptions !== '' && { options: formData.customOptions }),
-    }
+    return buildSmbBackupRepositoryDetailsPayload(formData)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

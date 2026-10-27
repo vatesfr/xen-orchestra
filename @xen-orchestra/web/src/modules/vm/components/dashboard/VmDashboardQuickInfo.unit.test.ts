@@ -7,7 +7,8 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCopiedValues, findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTags } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
@@ -122,6 +123,12 @@ it('shows the identity, power state and resources of the VM', () => {
   })
 })
 
+it('offers to copy the IP address and the UUID of the VM', () => {
+  const wrapper = mountQuickInfo(createVm({ id: 'vm-42' as FrontXoVm['id'], mainIpAddress: '10.0.0.1' }))
+
+  expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
+})
+
 it('reports an HVM guest running the PV drivers as pvhvm', () => {
   const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'hvm', pvDriversDetected: true }))
 
@@ -169,5 +176,5 @@ it('falls back to "Unknown" when the creator of the VM is not known', () => {
 it('renders one tag per VM tag', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })

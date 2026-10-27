@@ -26,20 +26,22 @@
                 :vertical="uiStore.isSmall"
                 :gap="uiStore.isSmall ? 'narrow' : 'wide'"
               >
-                <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
-                  {{ t('no-config') }}
-                </UiRadioButton>
-                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="ssh-key">
-                  {{ t('ssh-key') }}
-                </UiRadioButton>
-                <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
-                  {{ t('cloud-init-config') }}
+                <template v-if="isDiskTemplate">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
+                    {{ t('no-config') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                    {{ t('ssh-key') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cloud-init-config">
+                    {{ t('cloud-init-config') }}
+                  </UiRadioButton>
+                </template>
+                <UiRadioButton v-else v-model="vmState.installMode" accent="brand" value="network">
+                  {{ t('pxe') }}
                 </UiRadioButton>
                 <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                   {{ t('iso-dvd') }}
-                </UiRadioButton>
-                <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="network">
-                  {{ t('pxe') }}
                 </UiRadioButton>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
@@ -189,7 +191,17 @@
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <NewVmSrTable :srs="filteredSrs" :vm-state @add="addStorageEntry()" @remove="removeVdi" />
+            <NewVmSrTable
+              :srs="filteredSrs"
+              :vm-state
+              :can-resize-existing-disks="canResizeExistingDisks"
+              :default-existing-vdis="defaultExistingVdis"
+              @add="addStorageEntry()"
+              @remove="removeVdi"
+            />
+            <UiInfo v-for="vdi in undersizedExistingVdis" :key="vdi.key" accent="danger" wrap>
+              {{ t('new-vm:disk-size-below-template', { name: vdi.name, size: vdi.minSize }) }}
+            </UiInfo>
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand" :vertical="uiStore.isSmall">
@@ -227,7 +239,7 @@
               accent="brand"
               size="medium"
               :busy="isRunning"
-              :disabled="!canRun"
+              :disabled="!canRun || undersizedExistingVdis.length > 0"
               type="submit"
             >
               {{ t('action:create') }}
@@ -255,7 +267,7 @@ import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import type { InstallMode, Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -266,6 +278,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -638,21 +651,36 @@ const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
-function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
+function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi, includeSize: boolean) {
   const changes: Record<string, unknown> = {}
-  let hasChanged = false
 
   for (const _key in vdi1) {
     const key = _key as keyof Vdi
 
-    if (vdi1[key] !== vdi2[key]) {
-      hasChanged = true
-      changes[key] = vdi2[key]
+    if (vdi1[key] === vdi2[key] || (key === 'size' && !includeSize)) {
+      continue
     }
+
+    changes[key] = vdi2[key]
   }
 
-  return hasChanged ? (changes as Partial<Vdi>) : undefined
+  return Object.keys(changes).length > 0 ? (changes as Partial<Vdi>) : undefined
 }
+
+// Same as XO 5. With 'cdrom', there is no auto-grow on existing disks
+const resizableDisksInstallModes: InstallMode[] = ['ssh-key', 'cloud-init-config', 'cdrom']
+
+const canResizeExistingDisks = computed(() => {
+  return resizableDisksInstallModes.includes(vmState.installMode)
+})
+
+const undersizedExistingVdis = computed(() =>
+  vmState.existingVdis.flatMap(vdi => {
+    const minSize = defaultExistingVdis.value.find(existingVdi => existingVdi.id === vdi.id)?.size
+
+    return minSize !== undefined && Number(vdi.size) < minSize ? [{ key: vdi.key, name: vdi.name_label, minSize }] : []
+  })
+)
 
 const existingVdisToSend = computed(() => {
   return defaultExistingVdis.value.reduce<NewVmVdiPayload[]>((acc, defaultVdi) => {
@@ -669,7 +697,7 @@ const existingVdisToSend = computed(() => {
       return acc
     }
 
-    const changes = getExistingVdisDiff(defaultVdi, currentVdi)
+    const changes = getExistingVdisDiff(defaultVdi, currentVdi, canResizeExistingDisks.value)
 
     if (changes) {
       acc.push({ ...changes, ...(changes.size && { size: giBToBytes(changes.size) }), userdevice })
@@ -1008,6 +1036,20 @@ watch(
   }
 )
 watch(() => vmState.sshKeys, buildCloudConfig, { deep: true })
+
+watch(canResizeExistingDisks, canResize => {
+  if (canResize) {
+    return
+  }
+
+  vmState.existingVdis.forEach(vdi => {
+    const defaultVdi = defaultExistingVdis.value.find(existingVdi => existingVdi.id === vdi.id)
+
+    if (defaultVdi !== undefined) {
+      vdi.size = defaultVdi.size
+    }
+  })
+})
 </script>
 
 <style scoped lang="postcss">

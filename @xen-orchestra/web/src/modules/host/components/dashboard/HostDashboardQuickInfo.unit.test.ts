@@ -2,7 +2,8 @@ import HostDashboardQuickInfo from '@/modules/host/components/dashboard/HostDash
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCopiedValues, findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTags } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { HOST_POWER_STATE } from '@vates/types'
@@ -92,6 +93,12 @@ it('shows the identity, state and resources of the host', () => {
   })
 })
 
+it('offers to copy the IP address and the UUID of the host', () => {
+  const wrapper = mountQuickInfo(createHost({ id: 'host-42' as FrontXoHost['id'], address: '10.0.0.1' }))
+
+  expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'host-42' })
+})
+
 it('shows a running host that is not enabled as disabled', () => {
   const wrapper = mountQuickInfo(createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false }))
 
@@ -156,5 +163,5 @@ it('leaves the master row empty when the master of the pool is not known', () =>
 it('renders one tag per host tag', () => {
   const wrapper = mountQuickInfo(createHost({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })

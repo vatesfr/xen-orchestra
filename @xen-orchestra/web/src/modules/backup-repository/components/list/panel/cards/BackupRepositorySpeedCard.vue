@@ -1,18 +1,10 @@
 <template>
   <UiPanelCard class="backup-repository-speed-card">
-    <UiCardTitle>
-      {{ t('speed') }}
-      <template #info>
-        <UiButtonIcon
-          v-tooltip="canBenchmark ? t('click-test-br-speed') : benchmarkErrorMessage"
-          :icon="isBenchmarking ? 'fa:spinner' : 'action:scan'"
-          :disabled="!canBenchmark"
-          accent="brand"
-          size="small"
-          @click="runBenchmark()"
-        />
+    <UiPanelCardTitle size="medium" :label="t('speed')">
+      <template #more-actions>
+        <BackupRepositoryBenchmarkButton :br />
       </template>
-    </UiCardTitle>
+    </UiPanelCardTitle>
 
     <div class="content">
       <VtsCardRowKeyValue>
@@ -34,14 +26,13 @@
 </template>
 
 <script lang="ts" setup>
+import BackupRepositoryBenchmarkButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryBenchmarkButton.vue'
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{
@@ -50,8 +41,7 @@ const { br } = defineProps<{
 
 const { t } = useI18n()
 
-const { writeSpeed, readSpeed, runBenchmark, canBenchmark, isBenchmarking, benchmarkErrorMessage } =
-  useXoBackupRepositoryBenchmark(() => br)
+const { writeSpeed, readSpeed } = useXoBackupRepositoryBenchmark(() => br)
 </script>
 
 <style scoped lang="postcss">

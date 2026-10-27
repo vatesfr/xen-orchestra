@@ -631,8 +631,13 @@ export default class XenServers {
         this.updateXenServer(id, props)::ignoreErrors()
       }
 
+      // the grace period must not outlive this connection: forgetting the pool
+      // and marking the server `connecting` would hit the next connection of
+      // this server, or stop the auto-reconnect loop which waits for
+      // `disconnected`
+      let markDisconnectedTimeout
       const onEventFetchingError = () => {
-        const timeout = setTimeout(() => {
+        markDisconnectedTimeout = setTimeout(() => {
           xapi.xo.uninstall()
 
           // switch server status from connected to connecting
@@ -648,13 +653,14 @@ export default class XenServers {
             xapi.xo.install()
             _updateXenServer(server.id, { error: null, status: 'connected' })
           } else {
-            clearTimeout(timeout)
+            clearTimeout(markDisconnectedTimeout)
           }
         })
       }
       xapi.once('eventFetchingError', onEventFetchingError)
 
       xapi.once('disconnected', async () => {
+        clearTimeout(markDisconnectedTimeout)
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         this._forgetXenServerPool(server.id)
@@ -779,7 +785,8 @@ export default class XenServers {
     const lastEventFetchedTimestamp = xapis[server.id]?.lastEventFetchedTimestamp
     if (
       lastEventFetchedTimestamp !== undefined &&
-      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay &&
+      xapis[server.id].watchEventsError !== undefined
     ) {
       server.error = serializeError(xapis[server.id].watchEventsError)
     }

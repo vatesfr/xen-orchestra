@@ -12,6 +12,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTags } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoUser } from '@vates/types'
@@ -89,8 +90,8 @@ function mountInfoCard(vm: FrontXoVm = createVm()) {
 it('renders the name and the id of the VM as the card title', () => {
   const wrapper = mountInfoCard(createVm({ name_label: 'Web server', id: 'vm-42' as FrontXoVm['id'] }))
 
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('Web server')
-  expect(wrapper.get('.vts-card-object-title').text()).toContain('vm-42')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Web server')
+  expect(wrapper.get('.ui-panel-card-title').text()).toContain('vm-42')
 })
 
 it('lists every row of the card, in order', () => {
@@ -130,7 +131,7 @@ it('shows the power state, description and OS name of the VM', () => {
 it('renders one tag per VM tag', () => {
   const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })
 
 it('shows the name of the pool hosting the VM', () => {

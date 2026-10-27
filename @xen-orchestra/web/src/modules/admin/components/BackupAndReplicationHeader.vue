@@ -12,6 +12,11 @@
         {{ t('backup-repositories') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/backup-and-replication/logs' }" custom>
+      <UiTabItem :active="isExactActive" :href tag="a">
+        {{ t('logs') }}
+      </UiTabItem>
+    </RouterLink>
   </TabList>
 </template>
 

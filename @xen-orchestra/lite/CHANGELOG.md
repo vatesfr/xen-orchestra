@@ -2,11 +2,21 @@
 
 ## **next**
 
+- [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 - [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
 - [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
 - [Host] Add possibility to restart a host toolstack (PR [#10480](https://github.com/vatesfr/xen-orchestra/pull/10480))
+- [Host] Add possibility to detach a host (PR [#10520](https://github.com/vatesfr/xen-orchestra/pull/10520))
+- [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
+- [VM/New] Fix UEFI VMs booting in BIOS mode when created with a network install or without disk (PR [#10521](https://github.com/vatesfr/xen-orchestra/pull/10521))
+- [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
+- [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
+- [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [New/VM] Fix `MAP_DUPLICATE_KEY` error that could randomly prevent the VM creation (PR [#10552](https://github.com/vatesfr/xen-orchestra/pull/10552))
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
+- [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 
 ## **0.26.0** (2026-10-01)
 

@@ -21,6 +21,29 @@ import type {
 import type * as CMType from './lib/complex-matcher.mjs'
 import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
+import type {
+  XoAuditPlugin,
+  XoAuthGithubPlugin,
+  XoAuthGooglePlugin,
+  XoAuthLdapPlugin,
+  XoAuthOidcPlugin,
+  XoAuthSamlPlugin,
+  XoBackupReportsPlugin,
+  XoIpmiSensorsPlugin,
+  XoLoadBalancerPlugin,
+  XoNetboxPlugin,
+  XoOpenmetricsPlugin,
+  XoPerfAlertPlugin,
+  XoSdnControllerPlugin,
+  XoTestPluginPlugin,
+  XoTransportEmailPlugin,
+  XoTransportIcinga2Plugin,
+  XoTransportNagiosPlugin,
+  XoTransportSlackPlugin,
+  XoTransportXmppPlugin,
+  XoUsageReportPlugin,
+  XoWebHooksPlugin,
+} from './lib/xen-orchestra-plugins.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -118,7 +141,7 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
         major: null | number
@@ -208,6 +231,7 @@ export type XoBackupRepositoryBenchmark = {
 }
 
 export type XoBackupRepository = {
+  available?: number
   benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
@@ -215,7 +239,9 @@ export type XoBackupRepository = {
   name: string
   options?: string
   proxy?: XoProxy['id']
+  size?: number
   url: string
+  used?: number
 }
 
 export type XoGpuGroup = BaseXapiXo & {
@@ -457,6 +483,29 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+export type XoPlugin =
+  | XoAuditPlugin
+  | XoAuthGithubPlugin
+  | XoAuthGooglePlugin
+  | XoAuthLdapPlugin
+  | XoAuthOidcPlugin
+  | XoAuthSamlPlugin
+  | XoBackupReportsPlugin
+  | XoIpmiSensorsPlugin
+  | XoLoadBalancerPlugin
+  | XoNetboxPlugin
+  | XoOpenmetricsPlugin
+  | XoPerfAlertPlugin
+  | XoSdnControllerPlugin
+  | XoTestPluginPlugin
+  | XoTransportEmailPlugin
+  | XoTransportIcinga2Plugin
+  | XoTransportNagiosPlugin
+  | XoTransportSlackPlugin
+  | XoTransportXmppPlugin
+  | XoUsageReportPlugin
+  | XoWebHooksPlugin
+
 export type XoProxy = {
   id: Branded<'proxy'>
   url: string
@@ -609,6 +658,7 @@ export type XoServer = {
   label?: string
   master?: XoHost['id']
   poolId?: XoPool['id']
+  poolMembersAddresses?: string[]
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
@@ -697,6 +747,7 @@ export type XoTask = {
       | 'backup-log'
       | 'backup-repository'
       | 'group'
+      | 'plugin'
       | 'proxy'
       | 'restore'
       | 'restore-log'
@@ -910,7 +961,9 @@ export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
+  | XoAuthenticationToken
   | XoGroup
+  | XoPlugin
   | XoProxy
   | XoJob
   | XoBackupRepository

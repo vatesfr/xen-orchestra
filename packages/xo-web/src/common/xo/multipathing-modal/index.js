@@ -16,10 +16,15 @@ import { Sr } from '../../render-xo-item'
           pbd =>
             hostIds.includes(pbd.host)
       ),
-      pbds => {
+      createGetObjectsOfType('SR'),
+      (pbds, srs) => {
         const srIds = new Set([])
         for (const id in pbds) {
-          srIds.add(pbds[id].SR)
+          const pbd = pbds[id]
+          const sr = srs[pbd.SR]
+          if (sr !== undefined && sr.shared) {
+            srIds.add(pbd.SR)
+          }
         }
         return [...srIds]
       }

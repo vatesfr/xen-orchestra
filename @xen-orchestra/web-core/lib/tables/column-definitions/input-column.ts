@@ -1,4 +1,4 @@
-import UiInput, { type InputType } from '@core/components/ui/input/UiInput.vue'
+import UiInput, { type InputAccent, type InputType } from '@core/components/ui/input/UiInput.vue'
 import { defineColumn } from '@core/packages/table/define-column.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
@@ -12,7 +12,10 @@ type InputConfig = {
 
 export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (model: Ref<string | number | undefined>, inputProps?: { disabled?: boolean }) =>
+  renderBody: (
+    model: Ref<string | number | undefined>,
+    inputProps?: { accent?: InputAccent; disabled?: boolean; min?: number }
+  ) =>
     renderBodyCell(() =>
       h(UiInput, {
         accent: 'brand',

@@ -211,10 +211,11 @@ const schema = useQueryBuilderSchema<User>({...})
 // - Filters your items in real-time
 // - Handles invalid filter expressions gracefully
 const { items: filteredItems, filter } = useQueryBuilderFilter(
-  'users',           // Unique ID (used in URL)
+  'users',           // Unique ID (used in URL, unless ignoreRoute is true)
   () => items.value, // Your data source
   {
-    initialFilter: 'name:John'  // Optional: pre-set filter
+    initialFilter: 'name:John', // Optional: pre-set filter
+    ignoreRoute: true,          // Optional: keep the filter in memory instead of the URL
   }
 )
 
@@ -240,14 +241,16 @@ const { rootGroup, isUsable, updateFilter, resetFilter } = useQueryBuilder(filte
 // rootGroup is a reactive tree structure you can traverse and modify
 // It represents the parsed query
 
-// If the filter string is invalid, isUsable will be false
+// If the filter string cannot be parsed, isUsable is false and rootGroup is undefined
 if (!isUsable.value) {
   console.log('Current filter is not valid')
-  resetFilter()  // Reset to an empty query
 }
 
 // After modifying the tree, sync back to the filter string
 updateFilter()  // Updates filterString.value from rootGroup
+
+// Or discard the changes made to the tree
+resetFilter()  // Rebuilds rootGroup from filterString.value
 
 // You can also directly modify the tree structure:
 rootGroup.value.addChildFilter()  // Add a new filter condition
@@ -372,6 +375,19 @@ The component handles the complete filtering workflow:
 2. Or click the builder button to construct queries visually with dropdowns and inputs
 3. The `v-model` binding keeps the filter string synchronized
 
+**Updating the filter:**
+
+- `v-model` updates the filter on every keystroke
+- The `search` event is emitted with the filter on Enter, on a click on the search button, when the input is cleared and when the visual query builder is confirmed
+
+To apply the filter only on search, bind it one-way and update it from the `search` event:
+
+```vue
+<template>
+  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+</template>
+```
+
 ### Building Blocks
 
 The `VtsQueryBuilder` component is built from smaller, composable components:
@@ -493,13 +509,11 @@ const schema = useQueryBuilderSchema<User>({
 Always check `isUsable` before relying on the parsed query:
 
 ```typescript
-const { rootGroup, isUsable, resetFilter } = useQueryBuilder(filterString, schema)
+const { rootGroup, isUsable } = useQueryBuilder(filterString, schema)
 
 // In your UI:
 if (!isUsable.value) {
-  // Show error or reset
   console.warn('Filter syntax is invalid')
-  resetFilter()
 }
 ```
 

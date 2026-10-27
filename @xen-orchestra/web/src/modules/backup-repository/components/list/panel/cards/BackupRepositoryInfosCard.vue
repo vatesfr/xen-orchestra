@@ -1,6 +1,12 @@
 <template>
   <UiPanelCard class="backup-repository-infos-card">
-    <VtsCardObjectTitle :id="br.id" :label="br.name" :icon="brIcon" :href="xo5BrHref" />
+    <UiPanelCardTitle
+      :id="br.id"
+      :label="br.name"
+      :to="{ name: '/admin/backup-repository/[id]/general', params: { id: br.id } }"
+      :icon="brIcon"
+      size="medium"
+    />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
@@ -43,17 +49,15 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composables/use-xo-backup-repository-utils.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { getBackupRepositoryIcon, getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ParsedBackupRepositoryUrl } from 'xo-remote-parser'
@@ -65,28 +69,12 @@ const { br, parsedBrUrl } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-const xo5BrHref = computed(() => buildXo5Route('/settings/remotes'))
-
-const { useGetProxyById } = useXoProxyCollection()
-
-const brType = useXoBackupRepositoryTypeLabel(() => parsedBrUrl?.type)
+const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRepositoryUtils(
+  () => br,
+  () => parsedBrUrl
+)
 
 const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
-
-const brStatus = computed(() => getBackupRepositoryStatus(br))
-
-const brStorageMode = computed(() => {
-  if (parsedBrUrl?.type === undefined) {
-    return t('unknown')
-  }
-
-  return parsedBrUrl.useVhdDirectory ? t('block-based') : t('file-based')
-})
-
-const isEncrypted = computed(() => parsedBrUrl?.encryptionKey !== undefined)
-
-const brProxy = useGetProxyById(() => br.proxy)
 </script>
 
 <style scoped lang="postcss">

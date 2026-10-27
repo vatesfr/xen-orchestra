@@ -5,13 +5,14 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
+import { BaseVhd } from './BaseVhd.mjs'
 import { basename, dirname } from 'node:path'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 import assert from 'node:assert'
+import { isCompressedBlock } from './compressedBlock.mjs'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -74,11 +75,22 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
        * @type {import('@xen-orchestra/disk-transform').DiskBlock | null}
        */
       let truncatedBlock = null
-      const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
       await asyncEach(
         generator,
-        async ({ index, data }) => {
+        async block => {
           signal?.throwIfAborted()
+          const { index, data } = block
+          if (isCompressedBlock(block)) {
+            // writing it with another compression would produce an unreadable block
+            assert.strictEqual(
+              block.compression,
+              compression,
+              `can't write a ${block.compression} compressed block ${index} in ${dataPath}`
+            )
+            // the size of a compressed block is not related to the block size
+            await vhd.writeCompressedBlock(index, data)
+            return
+          }
           if (truncatedBlock !== null) {
             throw new Error(
               `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`
@@ -87,10 +99,11 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
           if (data.length < DEFAULT_BLOCK_SIZE) {
             truncatedBlock = { data, index }
           }
-          await vhd.writeEntireBlock({
-            id: index,
-            buffer: Buffer.concat([FULL_BLOCK_BITMAP, data], EXPECTED_FULL_BUFFER_SIZE),
-          })
+          // the last block of a disk may be shorter: pad it with zeros
+          await vhd.writeBlockData(
+            index,
+            data.length < DEFAULT_BLOCK_SIZE ? Buffer.concat([data], DEFAULT_BLOCK_SIZE) : data
+          )
         },
         { concurrency }
       )
