@@ -38,9 +38,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- @xen-orchestra/vmware-explorer minor
 - xo-server patch
 - xo-server-sdn-controller patch
 
