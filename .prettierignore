@@ -5,6 +5,10 @@
 # Generated files
 /@xen-orchestra/web/src/route-map.d.ts
 /@xen-orchestra/lite/src/route-map.d.ts
+/@xen-orchestra/web-core/lib/icons/kit.generated.ts
+
+# Font Awesome kit export, kept as provided and read by `check-kit-icons` during lint-staged
+/@xen-orchestra/web-core/scripts/fa-kit/icons.json
 
 # Docusaurus MDX content: prettier's markdown parser corrupts JSX
 # comments ({/* … */} becomes {/_ … _/}) and other MDX constructs

@@ -2,14 +2,16 @@
 
 A flexible icon system for Vue applications supporting single icons, icon stacks, icon packs, and transformations.
 
-Currently supported icon format: FontAwesome
+In XO, raw SVG paths come from `@core/icons/kit.generated.ts` (see [docs/icons.md](../../../docs/icons.md)). Pack files in
+`lib/icons/` wire those into named icons (`fa:plus`, `object:vm`, …) consumed by `VtsIcon`. The examples below import from
+the kit directly; use icons that exist in your kit export.
 
 ## Core Concepts
 
 - **Icon**: A single SVG icon with transformations
 - **Icon Stack**: Multiple icons layered on top of each other
 - **Icon Pack**: A collection of related icons
-- **Transformations**: Size, color, rotation, flip, and other visual modifications
+- **Transformations**: Size, color, rotation, flip, spin, and other visual modifications
 
 ## Usage
 
@@ -21,8 +23,11 @@ Currently supported icon format: FontAwesome
 </template>
 
 <script lang="ts" setup>
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
+
 const icon = defineIcon({
-  icon: faUser,
+  icon: solid.faUserCircle,
   color: 'blue',
   size: 24,
 })
@@ -37,9 +42,12 @@ const icon = defineIcon({
 </template>
 
 <script lang="ts" setup>
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
+
 const stackedIcon = defineIcon([
-  { icon: faCircle, size: 24, color: 'blue' },
-  { icon: faStar, size: 18, color: 'white' },
+  { icon: solid.faCircle, size: 24, color: 'blue' },
+  { icon: solid.faStar, size: 18, color: 'white' },
 ])
 </script>
 ```
@@ -53,9 +61,12 @@ const stackedIcon = defineIcon([
 </template>
 
 <script lang="ts" setup>
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIconPack } from '@core/packages/icon'
+
 const icons = defineIconPack({
-  user: { icon: faUser, color: 'blue' },
-  star: { icon: faStar, color: 'gold' },
+  user: { icon: solid.faUserCircle, color: 'blue' },
+  star: { icon: solid.faStar, color: 'gold' },
 })
 </script>
 ```
@@ -69,6 +80,9 @@ const icons = defineIconPack({
 </template>
 
 <script lang="ts" setup>
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
+
 const alerts = defineIcon(
   [
     ['error', 'warning'],
@@ -81,13 +95,13 @@ const alerts = defineIcon(
     }
 
     const shapes = {
-      circle: faCircle,
-      triangle: defineIcon({ icon: faPlay, rotate: 90, size: 20 }),
+      circle: solid.faCircle,
+      triangle: defineIcon({ icon: solid.faPlay, rotate: 90, size: 20 }),
     }
 
     return [
       { icon: shapes[shape], color: colors[status] },
-      { icon: faExclamation, color: 'white' },
+      { icon: solid.faExclamation, color: 'white' },
     ]
   }
 )
@@ -139,6 +153,14 @@ Root component that renders either a single icon or an icon stack.
 
 ### Types
 
+#### `IconDefinition`
+
+Minimal SVG data consumed by `normalizeIcon`. Usually taken from `kit.generated.ts`, not built by hand.
+
+```ts
+type IconDefinition = [width: number, height: number, path: string | string[]]
+```
+
 #### `IconTransforms`
 
 Transformations that can be applied to icons.
@@ -150,6 +172,7 @@ type IconTransforms = {
   size?: number | [number, number] // Resize the icon
   rotate?: number // Rotate the icon (in degrees)
   flip?: 'horizontal' | 'vertical' | 'both' // Flip the icon
+  spin?: boolean | number // Spin animation (true or duration in seconds)
   color?: string // Change icon color
 }
 ```
@@ -178,21 +201,28 @@ type IconStackConfig = IconTransforms
 
 ```vue
 <script lang="ts" setup>
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
+
 // Color
-const blueIcon = defineIcon({ icon: faUser, color: 'blue' })
+const blueIcon = defineIcon({ icon: solid.faUserCircle, color: 'blue' })
 
 // Size
-const largeIcon = defineIcon({ icon: faUser, size: 32 })
+const largeIcon = defineIcon({ icon: solid.faUserCircle, size: 32 })
 
 // Rotate
-const rotatedIcon = defineIcon({ icon: faUser, rotate: 45 })
+const rotatedIcon = defineIcon({ icon: solid.faUserCircle, rotate: 45 })
 
 // Flip
-const flippedIcon = defineIcon({ icon: faUser, flip: 'horizontal' })
+const flippedIcon = defineIcon({ icon: solid.faUserCircle, flip: 'horizontal' })
+
+// Spin (`true` = 2s per rotation, or pass a duration in seconds)
+const loadingIcon = defineIcon({ icon: solid.faSpinner, spin: true })
+const slowSpinner = defineIcon({ icon: solid.faSpinner, spin: 4 })
 
 // Multiple transformations
 const customIcon = defineIcon({
-  icon: faUser,
+  icon: solid.faUserCircle,
   color: 'green',
   size: 24,
   rotate: 15,
@@ -201,44 +231,27 @@ const customIcon = defineIcon({
 </script>
 ```
 
+In the app, `lib/icons/fa-icons.ts` registers the same pattern as `fa:spinner` (`spin: true`), used for example while a backup benchmark runs:
+
+```vue
+<VtsIcon :name="isBusy ? 'fa:spinner' : 'action:scan'" size="medium" />
+```
+
 ### Complex Icon Stack
 
 ```vue
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faCircle, faSquare, faStar } from '@fortawesome/free-solid-svg-icons'
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
 
 const notificationIcon = defineIcon(
   [
-    { icon: faCircle, size: 24, color: 'red' },
-    { icon: faSquare, size: 16, color: 'white', rotate: 45 },
-    { icon: faStar, size: 10, color: 'gold' },
+    { icon: solid.faCircle, size: 24, color: 'red' },
+    { icon: solid.faSquare, size: 16, color: 'white', rotate: 45 },
+    { icon: solid.faStar, size: 10, color: 'gold' },
   ],
   { translate: [2, 0] } // Global transforms applied to the entire stack
 )
-</script>
-```
-
-### Icon Variants
-
-```vue
-<script lang="ts" setup>
-const icon = defineIcon(
-  [
-    ['circle', 'square'],
-    ['!', '?'],
-  ],
-  (shape, type) => [
-    { icon: shape === 'circle' ? faCircle : faSquare },
-    {
-      icon: type === '!' ? faExclamation : faQuestion,
-      color: 'white',
-      size: 12,
-    },
-  ]
-)
-
-// You can now use icon['circle:!'], icon['circle:?'], icon['square:!'], icon['square:?']
 </script>
 ```
 
@@ -246,20 +259,19 @@ const icon = defineIcon(
 
 ```vue
 <script lang="ts" setup>
-import { defineIconPack, DisplayIconAny } from '@core/packages/icon'
-import { faUser, faUsers, faUserPlus } from '@fortawesome/free-solid-svg-icons'
-import { faFile, faFolder, faImage } from '@fortawesome/free-solid-svg-icons'
+import { regular, solid } from '@core/icons/kit.generated.ts'
+import { defineIconPack } from '@core/packages/icon'
 
 const icons = defineIconPack({
   user: defineIconPack({
-    single: { icon: faUser },
-    group: { icon: faUsers },
-    add: { icon: faUserPlus },
+    single: { icon: solid.faUserCircle },
+    group: { icon: solid.faUsers },
+    add: { icon: solid.faPlus },
   }),
   file: defineIconPack({
-    document: { icon: faFile },
-    folder: { icon: faFolder },
-    image: { icon: faImage },
+    document: { icon: regular.faFile },
+    folder: { icon: regular.faFolderOpen },
+    export: { icon: solid.faFileExport },
   }),
 })
 
@@ -273,11 +285,11 @@ const icons = defineIconPack({
 
 ```vue
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
+import { solid } from '@core/icons/kit.generated.ts'
+import { defineIcon } from '@core/packages/icon'
 
 // Define base icon
-const warningIcon = defineIcon({ icon: faExclamationTriangle })
+const warningIcon = defineIcon({ icon: solid.faExclamationTriangle })
 
 // Create variations with different transformations
 const smallWarningIcon = defineIcon({ icon: warningIcon, size: 12 })

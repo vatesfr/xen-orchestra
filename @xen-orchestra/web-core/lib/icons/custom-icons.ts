@@ -1,15 +1,15 @@
+import { solid } from '@core/icons/kit.generated.ts'
 import { defineIcon } from '@core/packages/icon'
-import { faSlash } from '@fortawesome/free-solid-svg-icons'
 
 export const slash = defineIcon([
   {
-    icon: faSlash,
+    icon: solid.faSlash,
     color: 'var(--color-neutral-background-primary)',
     translate: [-0.5, 0.5],
     size: 20,
   },
   {
-    icon: faSlash,
+    icon: solid.faSlash,
     translate: [0.5, -0.5],
     size: 20,
   },
