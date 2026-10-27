@@ -11,6 +11,7 @@ export const useVmMigrateVifColumns = defineColumns(() => {
   return {
     fromNetwork: useTextColumn({ headerLabel: () => t('from-network') }),
     fromDevice: useTextColumn({ headerLabel: () => t('from-device') }),
+    fromVlan: useNumberColumn({ headerLabel: () => t('from-vlan') }),
     toNetwork: useSelectColumn({ headerLabel: () => t('to-network') }),
     toVlan: useNumberColumn({ headerLabel: () => t('to-vlan') }),
     flag: useFlagColumn(),

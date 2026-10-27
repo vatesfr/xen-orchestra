@@ -61,6 +61,20 @@ const { pageRecords: paginatedRows, paginationBindings } = usePagination('vm-mig
 
 const flaggedVifIds = computed(() => new Set(flaggedRows.map(row => row.vif.id)))
 
+function getNetworkVlan(network: FrontXoNetwork | undefined) {
+  if (network === undefined) {
+    return undefined
+  }
+
+  const [firstPif] = getPifsByIds(network.PIFs)
+
+  if (firstPif === undefined || firstPif.vlan === -1) {
+    return undefined
+  }
+
+  return firstPif.vlan
+}
+
 const { HeadCells, BodyCells } = useVmMigrateVifColumns({
   body: (row: VmMigrateVifRow) => {
     const targetNetworkId = computed({
@@ -78,25 +92,14 @@ const { HeadCells, BodyCells } = useVmMigrateVifColumns({
       },
     })
 
-    const targetVlan = computed(() => {
-      const targetNetwork = networks.find(network => network.id === row.targetNetworkId)
+    const sourceVlan = computed(() => getNetworkVlan(row.sourceNetwork))
 
-      if (targetNetwork === undefined) {
-        return undefined
-      }
-
-      const [firstPif] = getPifsByIds(targetNetwork.PIFs)
-
-      if (firstPif === undefined || firstPif.vlan === -1) {
-        return undefined
-      }
-
-      return firstPif.vlan
-    })
+    const targetVlan = computed(() => getNetworkVlan(networks.find(network => network.id === row.targetNetworkId)))
 
     return {
       fromNetwork: r => r(row.sourceNetwork?.name_label ?? ''),
-      fromDevice: r => r(row.sourcePif?.device ?? ''),
+      fromDevice: r => r(t('vif-device', { device: row.vif.device })),
+      fromVlan: r => r(sourceVlan.value),
       toNetwork: r => r(networkSelectId),
       toVlan: r => r(targetVlan.value),
       flag: r => r(flaggedVifIds.value.has(row.vif.id)),

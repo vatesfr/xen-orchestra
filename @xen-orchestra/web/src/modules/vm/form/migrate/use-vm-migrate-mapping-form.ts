@@ -4,7 +4,7 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type FrontXoSr,
@@ -30,7 +30,6 @@ export type VmMigrateVdiRow = {
 export type VmMigrateVifRow = {
   vif: FrontXoVif
   sourceNetwork: FrontXoNetwork | undefined
-  sourcePif: FrontXoPif | undefined
   targetNetworkId: FrontXoNetwork['id'] | undefined
 }
 
@@ -58,7 +57,7 @@ export function useVmMigrateMappingForm(
   function isSrConnectedToTargetHost(srId: FrontXoSr['id']) {
     const srPbds = pbdsBySr.value.get(srId) ?? []
 
-    return srPbds.some(pbd => pbd.host === targetHostId.value)
+    return srPbds.some(pbd => pbd.host === targetHostId.value && pbd.attached)
   }
 
   const availableSrs = computed(() =>
@@ -144,23 +143,6 @@ export function useVmMigrateMappingForm(
     return availableNetworks.value.find(network => getNetworkVlans(network).some(vlan => sourceVlans.includes(vlan)))
   }
 
-  function findSourcePif(vif: FrontXoVif, sourceNetwork: FrontXoNetwork | undefined) {
-    const sourceHostPifs = pifsByHost.value.get(vm.value.$container as FrontXoHost['id']) ?? []
-    const sourceHostPif = sourceHostPifs.find(pif => pif.$network === vif.$network)
-
-    if (sourceHostPif !== undefined) {
-      return sourceHostPif
-    }
-
-    if (sourceNetwork === undefined) {
-      return undefined
-    }
-
-    const [firstNetworkPif] = getPifsByIds(sourceNetwork.PIFs)
-
-    return firstNetworkPif
-  }
-
   const vifRows = computed<VmMigrateVifRow[]>(() => {
     if (targetHostId.value === undefined || isIntraPool.value) {
       return []
@@ -176,7 +158,6 @@ export function useVmMigrateMappingForm(
       return {
         vif,
         sourceNetwork,
-        sourcePif: findSourcePif(vif, sourceNetwork),
         targetNetworkId,
       }
     })

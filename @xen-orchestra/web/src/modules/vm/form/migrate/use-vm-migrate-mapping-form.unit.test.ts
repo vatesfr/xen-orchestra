@@ -265,6 +265,18 @@ describe('intra-pool migration', () => {
     expect(form.availableSrs.map(sr => sr.id)).toEqual([SR_SHARED])
   })
 
+  it('treats an SR whose PBD on the target host is detached as not connected', () => {
+    loadedPbds.value = pbds.map(pbd => (pbd.host === HOST_A2 ? { ...pbd, attached: false } : pbd))
+
+    const { form } = mountMappingForm(POOL_A, HOST_A2)
+
+    expect(form.vdiRows.map(row => [row.vdi.id, row.requiresSr])).toEqual([
+      [VDI_SHARED, true],
+      [VDI_LOCAL, true],
+    ])
+    expect(form.availableSrs).toEqual([])
+  })
+
   it('is invalid while a flagged disk has no target SR', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A2)
 
@@ -431,19 +443,6 @@ describe('inter-pool migration', () => {
     expect(form.areAllVifsFollowing).toBe(false)
     expect(form.missingNetworkRows.map(row => row.vif.id)).toEqual([VIF_GUEST])
     expect(form.hasMissingNetwork).toBe(true)
-  })
-
-  it('reads the source device from the PIF of the VM host', () => {
-    const { form } = mountMappingForm(POOL_B, HOST_B1)
-
-    expect(form.vifRows.map(row => row.sourcePif?.id)).toEqual([undefined, PIF_A_GUEST])
-  })
-
-  it('falls back to any PIF of the source network when the VM runs on no host', () => {
-    const vm = createVm({ $pool: POOL_A, $container: POOL_A, VIFs: [VIF_PROD, VIF_GUEST] })
-    const { form } = mountMappingForm(POOL_B, HOST_B1, vm)
-
-    expect(form.vifRows.map(row => row.sourcePif?.id)).toEqual([undefined, PIF_A2_GUEST])
   })
 
   it('offers only the networks of the target pool that have a PIF on the target host', () => {
