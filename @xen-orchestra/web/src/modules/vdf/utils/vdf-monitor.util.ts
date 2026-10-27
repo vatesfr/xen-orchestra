@@ -52,14 +52,66 @@ export const enforcedPolicies = (document: VdfDocument) => document.policies.fil
 
 export const MONITOR_OTHER = 'other'
 
-// entries that say something about a policy now: its own, not expired
-export function liveEntries(entries: VdfMonitorEntry[], policyName?: string) {
-  return entries.filter(entry => !entry.expired && (policyName === undefined || entry.policy === policyName))
+// entries that say something about a policy now: its own, not expired;
+// what enforcing breaks now, or with `alone` (vdf#86) what it would drop
+// once the enforced policies of its tier no longer apply
+export function liveEntries(
+  entries: VdfMonitorEntry[],
+  policyName?: string,
+  { alone = false }: { alone?: boolean } = {}
+) {
+  return entries.filter(
+    entry =>
+      !entry.expired && Boolean(entry.alone) === alone && (policyName === undefined || entry.policy === policyName)
+  )
 }
 
-// flows of a policy last seen since a time (the warning before enforcing)
-export function seenSince(entries: VdfMonitorEntry[], policyName: string, since: number) {
-  return liveEntries(entries, policyName).filter(entry => Date.parse(entry.last) >= since)
+// flows of a policy last seen since a time (the warning before enforcing:
+// what it breaks now, not its alone entries)
+export function seenSince(
+  entries: VdfMonitorEntry[],
+  policyName: string,
+  since: number,
+  options?: { alone?: boolean }
+) {
+  return liveEntries(entries, policyName, options).filter(entry => Date.parse(entry.last) >= since)
+}
+
+// A policy's alone entries (vdf#86), by the enforced policies that decide
+// first today: what it would drop once those no longer apply to the VMs
+export type VdfAloneGroup = { policy: string; shadowedBy: string[]; entries: VdfMonitorEntry[] }
+
+// what the review before enforcing says of a policy's alone entries: per
+// set of enforced policies deciding first, the flows seen since a time
+// that `keep` keeps (not expected, not covered by the draft), if any
+export function aloneSince(
+  entries: VdfMonitorEntry[],
+  policyName: string,
+  since: number,
+  keep: (entry: VdfMonitorEntry) => boolean = () => true
+) {
+  return aloneGroups(entries, policyName).flatMap(({ shadowedBy, entries: groupEntries }) => {
+    const count = groupEntries.filter(entry => Date.parse(entry.last) >= since && keep(entry)).length
+
+    return count === 0 ? [] : [{ shadowedBy, count }]
+  })
+}
+
+export function aloneGroups(entries: VdfMonitorEntry[], policyName?: string): VdfAloneGroup[] {
+  const byKey = new Map<string, VdfAloneGroup>()
+
+  for (const entry of liveEntries(entries, policyName, { alone: true })) {
+    const shadowedBy = [...(entry.shadowedBy ?? [])].sort()
+    const key = `${entry.policy}\0${shadowedBy.join('\0')}`
+    const group = byKey.get(key) ?? { policy: entry.policy, shadowedBy, entries: [] }
+
+    group.entries.push(entry)
+    byKey.set(key, group)
+  }
+
+  return [...byKey.values()].sort(
+    (a, b) => a.policy.localeCompare(b.policy) || a.shadowedBy.join().localeCompare(b.shadowedBy.join())
+  )
 }
 
 export type VdfSuggestion = {
@@ -79,14 +131,16 @@ const PROTOCOLS: VdfProtocol[] = ['tcp', 'udp', 'icmp']
 // for the address (a group its VM belongs to), else the address itself.
 // An egress would-be drop gives an egress rule to its destination, named
 // the same way. Most seen first.
+// `alone`: from its alone entries (vdf#86) instead.
 export function suggestRules(
   entries: VdfMonitorEntry[],
   policy: VdfPolicy,
-  sourceOf: (address: string) => string = address => address
+  sourceOf: (address: string) => string = address => address,
+  { alone = false }: { alone?: boolean } = {}
 ): VdfSuggestion[] {
   const byKey = new Map<string, VdfSuggestion>()
 
-  for (const entry of liveEntries(entries, policy.name)) {
+  for (const entry of liveEntries(entries, policy.name, { alone })) {
     const proto = PROTOCOLS.find(candidate => candidate === entry.proto)
     const peer = entry.egress ? entry.dst : entry.src
 
@@ -182,6 +236,8 @@ export const monitorFlowKey = (entry: VdfMonitorEntry) =>
     entry.proto,
     entry.port ?? '',
     entry.rule ?? '',
+    // vdf#86: the same flow, as what the policy alone would drop
+    ...(entry.alone === true ? ['alone'] : []),
   ].join('|')
 
 // Flows marked expected (a drop that's wanted: no rule to add), by key,

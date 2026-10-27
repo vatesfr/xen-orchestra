@@ -71,6 +71,25 @@
           </div>
         </li>
       </ol>
+      <!--
+ monitor mode's what-if passes (vdf#13); an isolated pass (vdf#86)
+           apart, after the pass it forks from 
+-->
+      <div v-if="(hop.hop.monitor ?? []).length > 0" class="monitor">
+        <span class="typo-body-bold-small">{{ t('firewall:trace:monitor') }}</span>
+        <UiInfo
+          v-for="(pass, index) of hop.hop.monitor"
+          :key="index"
+          :accent="whatIfAccent(pass)"
+          :class="{ alone: pass.alone }"
+          class="what-if"
+          wrap
+        >
+          <span class="typo-body-bold-small">{{ whatIfLabel(pass) }}</span>
+          {{ pass.text }}
+          <span v-if="pass.recorded" class="secondary">{{ t('firewall:trace:monitor:recorded') }}</span>
+        </UiInfo>
+      </div>
       <VdfTechnicalDetails :label="t('firewall:trace:ovs-details')">
         <VtsTabularKeyValueList>
           <VtsTabularKeyValueRow :label="t('firewall:trace:bridge')" :value="hop.hop.bridge" />
@@ -103,6 +122,7 @@ import {
   type VdfTraceEnd,
   type VdfTraceResult,
   type VdfTraceStage,
+  type VdfTraceWhatIf,
 } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
@@ -126,7 +146,7 @@ const { result, poolId, document } = defineProps<{
   document: VdfDocument
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const router = useRouter()
 
@@ -321,6 +341,21 @@ function endName(end: VdfTraceEnd) {
 // VDF's own stages: the rest is XAPI's anti-spoofing and OVS switching,
 // left in the technical details. A hop through the source's egress has
 // them in two sections: leaving the source, then reaching the destination.
+// a what-if pass: inbound or outbound, or the isolated pass of a policy as
+// if alone in its tier, once the enforced policies named no longer apply
+function whatIfLabel(pass: VdfTraceWhatIf) {
+  if (pass.alone) {
+    return t('firewall:trace:monitor:alone', {
+      by: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format((pass.shadowedBy ?? []).map(displayName)),
+    })
+  }
+
+  return t(pass.egress ? 'firewall:trace:monitor:egress' : 'firewall:trace:monitor:ingress')
+}
+
+const whatIfAccent = (pass: VdfTraceWhatIf) =>
+  pass.verdict === 'would-drop' ? 'warning' : pass.verdict === 'would-allow' ? 'success' : 'muted'
+
 const hops = computed(() =>
   result.hops.map((hop, hopIndex) => {
     const stages = hop.stages.filter(stage => stage.vdf || stage.decides)
@@ -485,6 +520,17 @@ function allowFlow() {
     flex-wrap: wrap;
     align-items: center;
     gap: 1.6rem;
+  }
+
+  .monitor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  /* the isolated pass, under the pass it forks from */
+  .what-if.alone {
+    margin-inline-start: 2.4rem;
   }
 
   .hop {

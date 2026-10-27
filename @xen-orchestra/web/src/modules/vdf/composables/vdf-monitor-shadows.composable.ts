@@ -73,5 +73,15 @@ export function useVdfMonitorShadows() {
     return t(key, params, shadow.vms.length)
   }
 
-  return { interfaceGroups, shadowsIn, shadowText }
+  // a same-tier shadow the hosts' agents cover (vdf#86): the report has what
+  // the policy alone would drop there, in its own section
+  function coveredShadowText(shadow: VdfMonitorShadow) {
+    return t(
+      'firewall:monitor:shadow:covered',
+      { policy: displayName(shadow.policy), by: displayName(shadow.by), vms: vmList(shadow), n: shadow.vms.length },
+      shadow.vms.length
+    )
+  }
+
+  return { interfaceGroups, shadowsIn, shadowText, coveredShadowText }
 }

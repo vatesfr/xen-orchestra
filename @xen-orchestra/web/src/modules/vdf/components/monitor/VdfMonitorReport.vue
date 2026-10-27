@@ -31,7 +31,18 @@
         </UiToggle>
       </div>
 
-      <!-- vdf#86: an enforced policy decides first for some of the VMs -->
+      <!--
+ vdf#86: an enforced policy decides first for some of the VMs; the
+           agents' isolated pass covers what it alone would drop (below) 
+-->
+      <UiAlert v-if="coveredShadows.length > 0" accent="info">
+        {{ t('firewall:monitor:shadow:covered:title', { n: coveredShadows.length }, coveredShadows.length) }}
+        <template #description>
+          <ul class="shadows">
+            <li v-for="shadow of coveredShadows" :key="shadowKey(shadow)">{{ coveredShadowText(shadow) }}</li>
+          </ul>
+        </template>
+      </UiAlert>
       <UiAlert v-if="shadows.length > 0" accent="warning">
         {{ t('firewall:monitor:shadow:title', { n: shadows.length }, shadows.length) }}
         <template #description>
@@ -103,6 +114,79 @@
         </ul>
       </section>
 
+      <!--
+ vdf#86: what a policy alone would drop, once the enforced
+           policies of its tier no longer apply to the VMs 
+-->
+      <section v-for="group of aloneSections" :key="group.key" class="suggestions alone">
+        <div class="suggestions-title">
+          <span class="typo-body-bold">
+            {{ t('firewall:monitor:alone:title', { policy: displayName(group.policy.name), by: group.by }) }}
+          </span>
+          <UiButton
+            v-if="!group.isGlobal && group.pending.length > 1"
+            variant="secondary"
+            accent="brand"
+            size="small"
+            left-icon="fa:plus"
+            @click="addAll(group.policy.name, group.pending)"
+          >
+            {{ t('firewall:monitor:add-all', { n: group.pending.length }) }}
+          </UiButton>
+        </div>
+        <span class="secondary typo-body-regular-small">
+          {{ t('firewall:monitor:alone:info', { policy: displayName(group.policy.name), by: group.by }) }}
+        </span>
+        <ul class="suggestion-list">
+          <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
+            <VdfActionTag action="allow" />
+            <span class="typo-body-regular-small">
+              {{
+                t(
+                  suggestion.rule.to === undefined
+                    ? 'firewall:monitor:suggestion'
+                    : 'firewall:monitor:suggestion:egress',
+                  suggestionText(suggestion)
+                )
+              }}
+            </span>
+            <span class="secondary typo-body-regular-small">
+              {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
+            </span>
+            <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
+              {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
+            </span>
+            <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
+              {{ t('firewall:monitor:in-draft') }}
+            </UiTag>
+            <UiButton
+              v-else-if="!group.isGlobal"
+              variant="tertiary"
+              accent="brand"
+              size="small"
+              left-icon="fa:plus"
+              @click="addToDraft(suggestion)"
+            >
+              {{ t('firewall:monitor:add') }}
+            </UiButton>
+          </li>
+        </ul>
+        <ul class="alone-flows">
+          <li v-for="row of group.rows" :key="row.key" class="alone-flow typo-body-regular-small">
+            <component :is="() => flowSource(row.entry)" />
+            <VtsIcon name="fa:arrow-right" size="small" />
+            <component :is="() => flowDestination(row.entry)" />
+            <VdfService :proto="row.entry.proto" :port="row.entry.port ? String(row.entry.port) : ''" />
+            <span class="secondary">{{ decidedBy(row.entry) }}</span>
+            <span class="secondary">{{ t('firewall:monitor:seen', { n: row.entry.count }) }}</span>
+            <VtsRelativeTime :date="row.entry.last" class="secondary" />
+            <UiLink v-if="row.trace" :to="row.trace" size="small" icon="fa:route">
+              {{ t('firewall:monitor:trace') }}
+            </UiLink>
+          </li>
+        </ul>
+      </section>
+
       <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
@@ -120,6 +204,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
@@ -134,6 +219,7 @@ import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import {
+  aloneGroups,
   coveringRule,
   isMonitored,
   liveEntries,
@@ -146,9 +232,12 @@ import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.ut
 import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import { isShadowCovered, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import { parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -180,7 +269,7 @@ const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const router = useRouter()
 
@@ -198,6 +287,8 @@ const { netTagsOfAddress, interfaceLabel, vifLabel, interfacesOf } = useVdfInter
 const { membersOf } = useVdfMembers(() => pool.id, publishedDocument)
 
 const { vms } = useXoVmCollection()
+
+const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm.id, vm])))
 
 const monitoredPolicies = computed(() => publishedDocument.value.policies.filter(isMonitored))
 
@@ -271,9 +362,9 @@ const shownPolicies = computed(() =>
 
 // VMs a monitored policy can't see (vdf#86): an enforced policy of its tier,
 // or an earlier tier deciding everything, decides first for them
-const { shadowsIn, shadowText } = useVdfMonitorShadows()
+const { shadowsIn, shadowText, coveredShadowText } = useVdfMonitorShadows()
 
-const shadows = computed(() => {
+const allShadows = computed(() => {
   const names = new Set(shownPolicies.value.map(policy => policy.name))
 
   return shadowsIn(
@@ -281,6 +372,26 @@ const shadows = computed(() => {
     vms.value.filter(vm => vm.$pool === pool.id).map(vm => ({ vm }))
   ).filter(shadow => names.has(shadow.policy))
 })
+
+// what each VM's host agent reports (vdf:status): agents since vdf#86 record
+// what a policy shadowed in its tier alone would drop
+const { hosts } = useXoHostCollection()
+
+const statusByHost = computed(() => new Map(hosts.value.map(host => [host.id, parseHostStatus(host.otherConfig)])))
+
+function statusOfVm(vmId: string) {
+  const vm = vmById.value.get(vmId)
+  const running = vm?.power_state === 'Running'
+  const hostId = running ? extractVmHostId(vm) : undefined
+
+  return { running, status: hostId === undefined ? undefined : statusByHost.value.get(hostId) }
+}
+
+// the agents cover these: the report has what the policy alone would drop
+const coveredShadows = computed(() => allShadows.value.filter(shadow => isShadowCovered(shadow, statusOfVm)))
+
+// these they don't (older agents, an earlier tier deciding first)
+const shadows = computed(() => allShadows.value.filter(shadow => !isShadowCovered(shadow, statusOfVm)))
 
 // SUGGESTED RULES, per monitored policy (the pool's own are added to the
 // draft from here; a global one is edited in the global firewall)
@@ -355,6 +466,49 @@ function addAll(_policy: string, suggestions: VdfSuggestion[]) {
   }
 }
 
+// WHAT A POLICY ALONE WOULD DROP (vdf#86), per policy and the enforced
+// policies of its tier deciding first today: suggested rules and flows, as
+// for the rest (a rule added now covers them once those stop applying)
+
+const formatNames = (names: string[]) =>
+  new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(names.map(name => displayName(name)))
+
+const aloneSections = computed(() => {
+  const names = new Set(shownPolicies.value.map(policy => policy.name))
+
+  return aloneGroups(monitor.value?.entries ?? [])
+    .filter(group => names.has(group.policy))
+    .flatMap(group => {
+      const policy = publishedDocument.value.policies.find(candidate => candidate.name === group.policy)
+      const entries = group.entries.filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined)
+
+      if (policy === undefined || entries.length === 0) {
+        return []
+      }
+
+      const suggestions = suggestRules(entries, policy, address => sourceOf(address, policy.name), { alone: true })
+
+      return [
+        {
+          key: `${group.policy}|${group.shadowedBy.join('|')}`,
+          policy,
+          isGlobal: isGlobalName(policy.name),
+          by: formatNames(group.shadowedBy),
+          suggestions,
+          pending: suggestions.filter(suggestion => !isInDraft(suggestion)),
+          rows: entries.map(entry => ({ key: monitorFlowKey(entry), entry, trace: traceRoute(entry) })),
+        },
+      ]
+    })
+})
+
+// a flow's two ends, as the table shows them
+const flowSource = (entry: VdfMonitorEntry) =>
+  entry.egress ? vmEndpoint(entry) : addressEndpoint(entry.src, 'sources')
+
+const flowDestination = (entry: VdfMonitorEntry) =>
+  entry.egress ? addressEndpoint(entry.dst ?? '', 'destinations') : vmEndpoint(entry)
+
 // EVERY FLOW
 
 type Row = {
@@ -391,8 +545,6 @@ function coveringRuleId(entry: VdfMonitorEntry) {
 
   return policy === undefined ? undefined : coveringRule(policy, entry, groupsOf)?.id
 }
-
-const vmById = computed(() => new Map<string, FrontXoVm>(vms.value.map(vm => [vm.id, vm])))
 
 // "allow this": the rule drawer, prefilled, in the policy's place (before
 // the rule that would drop)
@@ -468,7 +620,10 @@ function traceRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
 const filteredRows = computed<Row[]>(() => {
   const term = search.value.trim().toLocaleLowerCase()
   const names = new Set(shownPolicies.value.map(policy => policy.name))
-  const entries = showExpired.value ? (monitor.value?.entries ?? []) : liveEntries(monitor.value?.entries ?? [])
+  // what enforcing breaks now: the alone entries have their sections
+  const entries = showExpired.value
+    ? (monitor.value?.entries ?? []).filter(entry => !entry.alone)
+    : liveEntries(monitor.value?.entries ?? [])
 
   return entries
     .filter(entry => selectedPolicy.value === ALL || names.has(entry.policy))
@@ -514,7 +669,7 @@ const state = useTableState({
   busy: () => !isMonitorReady.value && !hasMonitorError.value,
   error: () => (!isMonitorReady.value && hasMonitorError.value ? t('firewall:monitor:error') : false),
   empty: () => {
-    if ((monitor.value?.entries.length ?? 0) === 0) {
+    if (!(monitor.value?.entries ?? []).some(entry => !entry.alone)) {
       return {
         type: 'no-data',
         message: shadows.value.length > 0 ? t('firewall:monitor:empty:shadowed') : t('firewall:monitor:empty'),
@@ -708,6 +863,19 @@ const { HeadCells, BodyCells } = useMonitorColumns({
     border: 0.1rem solid var(--color-info-item-base);
     border-radius: 0.8rem;
     background-color: var(--color-info-background-selected);
+  }
+
+  .alone-flows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .alone-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
   }
 
   .shadows {

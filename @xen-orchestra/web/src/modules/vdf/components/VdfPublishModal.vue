@@ -35,6 +35,8 @@
           <template v-for="item of enforced" :key="item.policy">
             <UiInfo :accent="item.flows > 0 ? 'warning' : 'success'" wrap>{{ item.text }}</UiInfo>
             <UiInfo v-if="item.expectedText !== undefined" accent="muted" wrap>{{ item.expectedText }}</UiInfo>
+            <!-- vdf#86: what it would drop once the enforced policies of its tier stop applying -->
+            <UiInfo v-for="alone of item.alone" :key="alone.key" accent="info" wrap>{{ alone.text }}</UiInfo>
           </template>
         </section>
 
@@ -201,7 +203,13 @@ import {
   inGlobalScope,
   isGlobalScope,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { coveredBy, enforcedPolicies, isMonitored, seenSince } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import {
+  aloneSince,
+  coveredBy,
+  enforcedPolicies,
+  isMonitored,
+  seenSince,
+} from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
@@ -238,7 +246,7 @@ const emit = defineEmits<{
   rebase: []
 }>()
 
-const { t, n } = useI18n()
+const { t, n, locale } = useI18n()
 
 // A publish clears the draft before the modal has faded out: while the
 // overlay handles Publish (or Cancel), the modal keeps showing what it had,
@@ -458,6 +466,25 @@ const enforced = computed(() =>
         const flows = dropped.filter(entry => !isExpected(entry)).length
         const expected = dropped.length - flows
         const policy = displayName(name)
+        // vdf#86: apart, what it would drop once the enforced policies of
+        // its tier no longer apply (nothing enforcing breaks now)
+        const alone = aloneSince(
+          monitorEntries.value!,
+          name,
+          Date.now() - DAY,
+          entry => !isExpected(entry) && (draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf))
+        ).map(({ shadowedBy, count }) => ({
+          key: shadowedBy.join('|'),
+          text: t(
+            'firewall:publish:enforcing:alone',
+            {
+              policy,
+              by: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(shadowedBy.map(displayName)),
+              n: n(count),
+            },
+            count
+          ),
+        }))
 
         return {
           policy: name,
@@ -472,6 +499,7 @@ const enforced = computed(() =>
             flows > 0 && expected > 0
               ? t('firewall:publish:enforcing:expected', { n: n(expected) }, expected)
               : undefined,
+          alone,
         }
       })
 )

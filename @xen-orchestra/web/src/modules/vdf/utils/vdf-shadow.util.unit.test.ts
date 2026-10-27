@@ -1,5 +1,5 @@
-import type { VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
-import { monitorShadows, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import type { VdfDocument, VdfHostStatusDocument, VdfPolicy } from '@/modules/vdf/types.ts'
+import { isShadowCovered, monitorShadows, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { describe, expect, it } from 'vitest'
 
 const policy = (fields: Partial<VdfPolicy>): VdfPolicy => ({
@@ -124,5 +124,47 @@ describe('monitorShadows (vdf#86)', () => {
     const [shadow] = monitorShadows(doc(policy({}), cache), [iface('a', 'web', 'cache')])
 
     expect(shadowKey(shadow)).toBe('cache|web|same|default')
+  })
+})
+
+// vdf#86: agents since the isolated pass report a policy shadowed in its
+// tier (vdf:status policies[].shadowedBy) and record what it alone would drop
+describe('isShadowCovered', () => {
+  const status = (shadowedBy?: string[]): VdfHostStatusDocument => ({
+    policies: [{ name: 'cache', tier: 'application', vifs: 1, realized: true, monitorShadowed: 1, shadowedBy }],
+  })
+  const newAgent = status(['web'])
+  // an agent before it: no shadowedBy
+  const oldAgent: VdfHostStatusDocument = {
+    policies: [{ name: 'cache', tier: 'application', vifs: 1, realized: true }],
+  }
+  const [sameTier] = monitorShadows(doc(policy({}), cache), [iface('a', 'web', 'cache'), iface('b', 'web', 'cache')])
+  const on =
+    (statuses: Record<string, VdfHostStatusDocument | undefined>, halted: string[] = []) =>
+    (vm: string) => ({
+      running: !halted.includes(vm),
+      status: statuses[vm],
+    })
+
+  it("covered where every running VM's host reports the policy shadowed by that one", () => {
+    expect(isShadowCovered(sameTier, on({ a: newAgent, b: newAgent }))).toBe(true)
+    // a halted VM sends nothing
+    expect(isShadowCovered(sameTier, on({ a: newAgent }, ['b']))).toBe(true)
+  })
+
+  it('not with an older agent, another policy named, or no VM running', () => {
+    expect(isShadowCovered(sameTier, on({ a: newAgent, b: oldAgent }))).toBe(false)
+    expect(isShadowCovered(sameTier, on({ a: newAgent, b: undefined }))).toBe(false)
+    expect(isShadowCovered(sameTier, on({ a: status(['api']), b: newAgent }))).toBe(false)
+    expect(isShadowCovered(sameTier, on({}, ['a', 'b']))).toBe(false)
+  })
+
+  it('never for an earlier tier deciding first, nor a monitored policy', () => {
+    const early = policy({ tier: 'securityops', default: 'drop' })
+    const [earlier] = monitorShadows(doc(early, cache), [iface('a', 'web', 'cache')])
+
+    expect(earlier.sameTier).toBe(false)
+    expect(isShadowCovered(earlier, on({ a: newAgent }))).toBe(false)
+    expect(isShadowCovered({ ...sameTier, byMonitored: true }, on({ a: newAgent, b: newAgent }))).toBe(false)
   })
 })

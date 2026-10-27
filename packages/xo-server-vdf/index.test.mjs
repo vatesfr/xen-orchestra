@@ -445,6 +445,31 @@ describe('mergeMonitor', () => {
     assert.equal(merged.length, 4)
   })
 
+  // vdf#86: what the policy alone would drop, once the enforced policies of
+  // its tier no longer apply, is its own entry
+  test('an alone entry stays apart from the same flow, its shadowedBy the newest', () => {
+    const at = (last, fields = {}) => entry({ count: 1, first: last, last, ...fields })
+    const merged = mergeMonitor([
+      {
+        host: 'h1',
+        entries: [
+          at('2026-10-24T09:00:00Z'),
+          at('2026-10-24T09:00:00Z', { alone: true, shadowedBy: ['web'], expired: true }),
+        ],
+      },
+      { host: 'h2', entries: [at('2026-10-24T10:00:00Z', { alone: true, shadowedBy: ['web', 'api'] })] },
+      { host: 'h3', entries: [at('2026-10-24T08:00:00Z', { alone: true, shadowedBy: ['old'] })] },
+    ])
+    assert.equal(merged.length, 2)
+    const alone = merged.find(e => e.alone)
+    assert.deepEqual(
+      [alone.count, alone.hosts, alone.shadowedBy, alone.expired],
+      [3, ['h1', 'h2', 'h3'], ['web', 'api'], false]
+    )
+    const now = merged.find(e => !e.alone)
+    assert.deepEqual([now.count, now.shadowedBy], [1, undefined])
+  })
+
   test('distinct flows stay apart, most recently seen first', () => {
     const merged = mergeMonitor([
       {

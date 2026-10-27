@@ -305,7 +305,7 @@ export type VdfHostStatusDocument = {
   appliedAt?: string
   errors?: string[]
   saturated?: string[]
-  policies?: { name: string; tier: string; vifs: number; realized: boolean; reason?: string }[]
+  policies?: VdfHostPolicyStatus[]
   // VIF locking of the host's protected or grouped VIFs (vdf#15); absent
   // from agents before it
   locking?: VdfHostLocking
@@ -316,6 +316,22 @@ export type VdfHostStatusDocument = {
   // decide for first, Traffic Rules usually (vdf#40); absent from agents
   // before it
   shadowed?: VdfShadowedVif[]
+}
+
+// a policy as a host's agent realizes it
+export type VdfHostPolicyStatus = {
+  name: string
+  tier: string
+  vifs: number
+  realized: boolean
+  reason?: string
+  // monitor mode shadowed (vdf#86): the policy's VIFs on this host where
+  // enforced policies of its tier (shadowedBy) decide first; the agent
+  // records what it would drop alone there (alone entries), wouldDropsAlone
+  // of them in the last wouldDropSec. Absent from agents before it.
+  monitorShadowed?: number
+  shadowedBy?: string[]
+  wouldDropsAlone?: number
 }
 
 // a guarded VIF non-VDF flows of table 0 decide for before VDF does
@@ -410,6 +426,30 @@ export type VdfTraceHop = {
   decision?: VdfTraceStage
   model?: { allowed: boolean; rule?: number; agrees: boolean }
   otherwise?: string
+  // monitor mode's what-if passes on this hop (vdf#13), absent when no
+  // monitored policy applies
+  monitor?: VdfTraceWhatIf[]
+}
+
+// one what-if pass of a hop: the monitored policies taken as enforced, or
+// (alone, vdf#86) as if alone in their tier, without the enforced ones
+// shadowedBy names, reported after the pass it forks from
+export type VdfTraceWhatIf = {
+  egress?: boolean
+  vm?: string
+  alone?: boolean
+  shadowedBy?: string[]
+  policies: string[]
+  verdict: 'would-drop' | 'would-allow' | 'dropped' | 'not-evaluated' | string
+  policy?: string
+  monitored?: boolean
+  tier?: number
+  rule?: number
+  pass?: boolean
+  then?: string
+  recorded: boolean
+  text: string
+  warning?: string
 }
 
 export type VdfTraceResult = {
@@ -556,8 +596,13 @@ export type VdfMonitorEntry = {
   count: number // sampled packets: a lower bound
   first: string
   last: string
-  expired?: boolean // the policy is no longer monitored there
+  expired?: boolean // the policy is no longer monitored there (alone: or no longer shadowed for the VM)
   hosts?: string[]
+  // vdf#86: what the policy alone would drop, once the enforced policies of
+  // its tier it names (shadowedBy) no longer apply to the VM; entries
+  // without it are what enforcing breaks now (agents before it: all)
+  alone?: boolean
+  shadowedBy?: string[]
 }
 
 export type VdfMonitorReport = {

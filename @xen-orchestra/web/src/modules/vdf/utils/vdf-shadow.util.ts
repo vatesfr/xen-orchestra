@@ -1,4 +1,4 @@
-import type { VdfDefaultAction, VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
+import type { VdfDefaultAction, VdfDocument, VdfHostStatusDocument, VdfPolicy } from '@/modules/vdf/types.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { ruleAction, tierDefault, tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
@@ -127,6 +127,34 @@ export function monitorShadows(document: VdfDocument, interfaces: VdfInterfaceGr
   }
 
   return [...byKey.values()]
+}
+
+// Whether the hosts' agents record what the monitored policy alone would
+// drop where the shadow is (vdf#86): an isolated pass, the shadowed tier
+// left to its monitored policies, gives the report's "alone" entries. Only
+// for a same-tier shadow by an enforced policy (an earlier tier deciding
+// first stays true once the policy is enforced), and only where the agent
+// of each running VM's host reports the policy shadowed by it (vdf:status
+// policies[].shadowedBy; agents before it don't). statusOf: a VM's host
+// status, `running` false for a VM that isn't.
+export function isShadowCovered(
+  shadow: VdfMonitorShadow,
+  statusOf: (vmId: string) => { running: boolean; status?: VdfHostStatusDocument }
+) {
+  if (!shadow.sameTier || shadow.byMonitored) {
+    return false
+  }
+
+  const running = shadow.vms.map(vm => statusOf(vm.id)).filter(vm => vm.running)
+
+  return (
+    running.length > 0 &&
+    running.every(({ status }) =>
+      (status?.policies ?? []).some(
+        policy => policy.name === shadow.policy && (policy.shadowedBy ?? []).includes(shadow.by)
+      )
+    )
+  )
 }
 
 // a shadow, the same from one document to the next (to tell the new ones)

@@ -1,9 +1,12 @@
 import type { VdfDocument, VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
 import {
+  aloneGroups,
+  aloneSince,
   coveredBy,
   coveringRule,
   enforcedPolicies,
   insertRule,
+  liveEntries,
   markExpected,
   monitorFlowKey,
   seenSince,
@@ -209,5 +212,59 @@ describe('markExpected', () => {
 
   it('keeps the newest ones past its bound', () => {
     expect(markExpected({ a: 1, b: 3, c: 2 }, 'd', true, { now: 4, max: 2 })).toEqual({ b: 3, d: 4 })
+  })
+})
+
+// vdf#86: what a policy alone would drop, once the enforced policies of its
+// tier no longer apply, comes in "alone" entries apart from what enforcing
+// breaks now; older agents send none
+describe('alone entries', () => {
+  const now = entry({ port: 9100 })
+  const alone = entry({ port: 6379, alone: true, shadowedBy: ['web'], count: 3 })
+  const aloneApi = entry({ port: 6380, alone: true, shadowedBy: ['web', 'api'] })
+  const entries = [now, alone, aloneApi, entry({ alone: true, shadowedBy: ['web'], expired: true })]
+
+  it('stay out of the live entries, the enforce warning and the main suggestions', () => {
+    expect(liveEntries(entries)).toEqual([now])
+    expect(seenSince(entries, 'db', 0)).toEqual([now])
+    expect(suggestRules(entries, policy()).map(suggestion => suggestion.rule.ports)).toEqual([[9100]])
+  })
+
+  it('give their own suggestions, as for the others', () => {
+    expect(liveEntries(entries, 'db', { alone: true })).toEqual([alone, aloneApi])
+    expect(seenSince(entries, 'db', 0, { alone: true })).toEqual([alone, aloneApi])
+    expect(suggestRules(entries, policy(), undefined, { alone: true })).toMatchObject([
+      { rule: { from: '10.0.0.7', proto: 'tcp', ports: [6379, 6380] }, count: 4 },
+    ])
+    // coveringRule takes them as any entry
+    expect(coveringRule(policy(), { ...alone, src: '10.0.0.7', port: 5432 }, () => ['app'])?.id).toBe(1)
+  })
+
+  it('are grouped by policy and the enforced policies deciding first', () => {
+    expect(aloneGroups(entries)).toEqual([
+      { policy: 'db', shadowedBy: ['api', 'web'], entries: [aloneApi] },
+      { policy: 'db', shadowedBy: ['web'], entries: [alone] },
+    ])
+    expect(aloneGroups([now])).toEqual([])
+  })
+
+  it('the review before enforcing counts them apart, per enforced policies deciding first', () => {
+    const since = Date.parse('2026-10-24T09:00:00Z')
+
+    expect(aloneSince(entries, 'db', since)).toEqual([
+      { shadowedBy: ['api', 'web'], count: 1 },
+      { shadowedBy: ['web'], count: 1 },
+    ])
+    // not expected, not covered by the draft: what `keep` keeps
+    expect(aloneSince(entries, 'db', since, item => item.port !== 6380)).toEqual([{ shadowedBy: ['web'], count: 1 }])
+    // seen before: nothing
+    expect(aloneSince(entries, 'db', Date.parse('2026-10-25T00:00:00Z'))).toEqual([])
+  })
+
+  it('have their own flow key; the others keep theirs', () => {
+    const same = entry({ port: 9100, alone: true, shadowedBy: ['web'] })
+
+    expect(monitorFlowKey(same)).not.toBe(monitorFlowKey(now))
+    expect(monitorFlowKey(now)).toBe('db|in|10.0.0.7||vm-db|tcp|9100|')
   })
 })
