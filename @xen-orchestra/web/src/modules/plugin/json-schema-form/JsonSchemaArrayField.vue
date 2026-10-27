@@ -7,18 +7,17 @@
         :label="field.label"
         :path="field.path"
         :required="isSectionItem"
-        :disabled
         @update:model-value="updateItem(index, $event)"
       >
         <template v-if="isSectionItem" #actions>
-          <JsonSchemaArrayItemDeleteButton :disabled @click="removeItem(index)" />
+          <JsonSchemaArrayItemDeleteButton @click="removeItem(index)" />
         </template>
       </JsonSchemaField>
     </div>
-    <JsonSchemaArrayItemDeleteButton v-if="!isSectionItem" class="delete-button" :disabled @click="removeItem(index)" />
+    <JsonSchemaArrayItemDeleteButton v-if="!isSectionItem" class="delete-button" @click="removeItem(index)" />
   </div>
   <div>
-    <UiButton variant="secondary" accent="brand" size="small" left-icon="fa:plus" :disabled @click="addItem()">
+    <UiButton variant="secondary" accent="brand" size="small" left-icon="fa:plus" @click="addItem()">
       {{ t('action:add') }}
     </UiButton>
   </div>

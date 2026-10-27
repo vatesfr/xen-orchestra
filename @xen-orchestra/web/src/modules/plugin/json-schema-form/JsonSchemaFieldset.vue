@@ -8,7 +8,7 @@
   >
     <div v-if="hasHeader" class="header">
       <div class="title">
-        <UiToggle v-if="!required" :id="labelId" v-model="isUsed" :disabled>
+        <UiToggle v-if="!required" :id="labelId" v-model="isUsed">
           {{ label }}
         </UiToggle>
         <UiLabel v-else-if="isSection" :id="labelId" accent="neutral">{{ label }}</UiLabel>
@@ -57,7 +57,6 @@ const {
   description?: string
   path?: JsonSchemaPath
   required?: boolean
-  disabled?: boolean
   createValue: () => unknown
 }>()
 

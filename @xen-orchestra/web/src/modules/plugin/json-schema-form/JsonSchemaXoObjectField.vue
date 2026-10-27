@@ -8,7 +8,6 @@
     :path
     :multiple
     :required
-    :disabled
   />
   <JsonSchemaInputWrapper v-else :label :description="loadingDescription" :path>
     <UiLoader v-if="!hasError" />

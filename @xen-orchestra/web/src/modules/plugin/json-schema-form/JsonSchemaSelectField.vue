@@ -13,14 +13,13 @@ import { useFormSelect } from '@core/packages/form-select'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { options, multiple, required, disabled } = defineProps<{
+const { options, multiple, required } = defineProps<{
   options: JsonSchemaSelectOption[]
   label: string
   description?: string
   path?: JsonSchemaPath
   multiple?: boolean
   required?: boolean
-  disabled?: boolean
 }>()
 
 const model = defineModel<unknown>()
@@ -43,7 +42,6 @@ const { id } = useFormSelect(sources, {
   model: selectModel,
   multiple: () => multiple,
   required: () => required,
-  disabled: () => disabled,
   searchable: () => options.length > SEARCHABLE_OPTIONS_THRESHOLD,
   emptyOption: multiple || required ? undefined : () => ({ label: t('none'), value: undefined }),
   option: {

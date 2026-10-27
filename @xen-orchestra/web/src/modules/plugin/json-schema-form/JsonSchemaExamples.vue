@@ -19,7 +19,6 @@
             variant="secondary"
             accent="brand"
             size="small"
-            :disabled
             @click="emit('pick', value)"
           >
             {{ value }}
@@ -39,7 +38,6 @@ import { useI18n } from 'vue-i18n'
 
 const { groups } = defineProps<{
   groups: JsonSchemaExampleGroup[]
-  disabled?: boolean
 }>()
 
 const emit = defineEmits<{

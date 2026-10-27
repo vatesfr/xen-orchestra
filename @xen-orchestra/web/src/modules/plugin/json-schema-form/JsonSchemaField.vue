@@ -10,7 +10,6 @@
     :description="description.text"
     :path
     :required
-    :disabled
     :create-value="createSectionValue"
   >
     <template v-if="slots.actions" #actions>
@@ -51,14 +50,13 @@ export type JsonSchemaFieldProps = {
   label: string
   path?: JsonSchemaPath
   required?: boolean
-  disabled?: boolean
 }
 
 export type JsonSchemaFieldComponentProps = JsonSchemaFieldProps & {
   description: JsonSchemaDescription
 }
 
-const { schema, label, path = [], required, disabled } = defineProps<JsonSchemaFieldProps>()
+const { schema, label, path = [], required } = defineProps<JsonSchemaFieldProps>()
 
 const model = defineModel<unknown>()
 
@@ -90,7 +88,6 @@ const fieldProps = computed<JsonSchemaFieldComponentProps>(() => ({
   label,
   path,
   required,
-  disabled,
   description: description.value,
 }))
 

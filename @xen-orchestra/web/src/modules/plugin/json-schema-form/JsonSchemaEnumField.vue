@@ -1,5 +1,5 @@
 <template>
-  <JsonSchemaSelectField v-model="model" :options :label :description="description.text" :path :required :disabled />
+  <JsonSchemaSelectField v-model="model" :options :label :description="description.text" :path :required />
 </template>
 
 <script lang="ts" setup>

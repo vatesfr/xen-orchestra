@@ -1,32 +1,25 @@
 <template>
   <JsonSchemaInputWrapper class="json-schema-input-field" :label :description="description.text" :path>
-    <UiTextarea v-if="schema.$multiline" v-model="textareaModel" accent="brand" :required :disabled />
+    <UiTextarea v-if="schema.$multiline" v-model="textareaModel" accent="brand" :required />
     <UiInput
       v-else
       v-model="inputModel"
       accent="brand"
       :type
       :required
-      :disabled
       :placeholder
       :min="schema.minimum"
       :max="schema.maximum"
       :step="schemaType === 'integer' ? 1 : undefined"
     />
     <div v-if="hasExamples || canResetToDefault" class="helpers">
-      <JsonSchemaExamples
-        v-if="hasExamples"
-        :groups="description.exampleGroups"
-        :disabled
-        @pick="inputModel = $event"
-      />
+      <JsonSchemaExamples v-if="hasExamples" :groups="description.exampleGroups" @pick="inputModel = $event" />
       <div v-if="canResetToDefault">
         <UiButton
           variant="tertiary"
           accent="brand"
           size="small"
           left-icon="fa:rotate-left"
-          :disabled
           @click="model = schema.default"
         >
           {{ t('action:reset-to-default') }}

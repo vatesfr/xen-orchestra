@@ -54,7 +54,6 @@ function mountField(props: {
   label?: string
   path?: string[]
   required?: boolean
-  disabled?: boolean
   modelValue?: unknown
 }) {
   return mount(JsonSchemaField, {
@@ -160,12 +159,6 @@ describe('string field', () => {
     const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
 
     expect(wrapper.findAll('.ui-info code').map(code => code.text())).toEqual(['dn'])
-  })
-
-  it('disables the input', () => {
-    const wrapper = mountField({ schema: { type: 'string' }, disabled: true })
-
-    expect(wrapper.get('input').element.disabled).toBe(true)
   })
 })
 

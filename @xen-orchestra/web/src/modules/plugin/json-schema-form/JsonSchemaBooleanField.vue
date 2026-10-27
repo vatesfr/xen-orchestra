@@ -1,6 +1,6 @@
 <template>
   <div class="json-schema-boolean-field">
-    <UiToggle v-model="checked" :disabled>{{ label }}</UiToggle>
+    <UiToggle v-model="checked">{{ label }}</UiToggle>
     <UiInfo v-if="description.text !== undefined" accent="info" wrap>
       <JsonSchemaText :text="description.text" />
     </UiInfo>

@@ -8,7 +8,6 @@
       :label="field.label"
       :path="field.path"
       :required="field.required"
-      :disabled
       @update:model-value="updateProperty(field.key, $event)"
     />
   </div>

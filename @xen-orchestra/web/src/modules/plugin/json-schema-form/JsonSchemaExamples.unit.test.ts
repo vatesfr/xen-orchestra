@@ -4,12 +4,12 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
-function mountExamples(groups: JsonSchemaExampleGroup[], disabled = false) {
-  return mount(JsonSchemaExamples, { props: { groups, disabled }, global: createGlobalTestConfig() })
+function mountExamples(groups: JsonSchemaExampleGroup[]) {
+  return mount(JsonSchemaExamples, { props: { groups }, global: createGlobalTestConfig() })
 }
 
 function findExampleButtons(wrapper: ReturnType<typeof mountExamples>) {
-  return wrapper.findAll<HTMLButtonElement>('.values button')
+  return wrapper.findAll('.values button')
 }
 
 function findExamples(wrapper: ReturnType<typeof mountExamples>) {
@@ -45,18 +45,6 @@ it('emits the picked example', async () => {
   await findExampleButtons(wrapper)[1].trigger('click')
 
   expect(wrapper.emitted('pick')).toEqual([['bar']])
-})
-
-it('enables the examples by default', () => {
-  const wrapper = mountExamples([{ values: ['foo', 'bar'] }])
-
-  expect(findExampleButtons(wrapper).map(button => button.element.disabled)).toEqual([false, false])
-})
-
-it('disables the examples', () => {
-  const wrapper = mountExamples([{ values: ['foo', 'bar'] }], true)
-
-  expect(findExampleButtons(wrapper).map(button => button.element.disabled)).toEqual([true, true])
 })
 
 it('collapses many examples, with their count', () => {
