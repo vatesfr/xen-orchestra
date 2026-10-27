@@ -46,9 +46,9 @@
   <VtsQueryBuilderPreview
     v-if="isDynamicVmSelection"
     :filter="form.formData.vmFilter"
-    :schema="form.vmSchema"
-    :items="matchedVmItems"
-    :count-label="t('n-vms', { n: matchedVmItems.length })"
+    :schema="vmSelectionSchema"
+    :items="matchedSelectionItems"
+    :count-label="t('n-vms', { n: matchedSelectionItems.length })"
   />
 </template>
 
@@ -57,7 +57,6 @@ import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-j
 import { getOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-preview-items.composable.ts'
 import VtsQueryBuilderPreview from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -89,9 +88,7 @@ const isDynamicVmSelection = computed(
   () => form.hasVmSelection.value && form.formData.scopeType === 'smart' && form.formData.vmFilter !== ''
 )
 
-const selectedVmItems = useVmQueryPreviewItems(form.selectedVms)
-
-const matchedVmItems = useVmQueryPreviewItems(form.matchedVms)
+const { vmSelectionSchema, matchedSelectionItems, selectedSelectionItems: selectedVmItems } = form
 </script>
 
 <style lang="postcss" scoped>
