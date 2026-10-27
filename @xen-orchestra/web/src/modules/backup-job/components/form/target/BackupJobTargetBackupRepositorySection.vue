@@ -9,7 +9,20 @@
 
     <div class="block">
       <BackupJobFormRadio v-bind="bindings.backupRepositoryScopeType" />
-      <BackupJobPendingMockup v-if="bindings.backupRepositoryScopeType.modelValue !== 'all'" />
+      <BackupJobTargetBackupRepositoryTable
+        v-if="bindings.backupRepositoryScopeType.modelValue !== 'all'"
+        :key="bindings.backupRepositoryScopeType.modelValue"
+        v-model:selected-ids="selectedIds"
+        v-model:filter="filter"
+        :mode="bindings.backupRepositoryScopeType.modelValue"
+        :brs
+        :matched-brs="matchedBrs"
+        :error="
+          bindings.backupRepositoryScopeType.modelValue === 'manual'
+            ? bindings.backupRepositoryIds.error
+            : bindings.backupRepositoryFilter.error
+        "
+      />
     </div>
 
     <BackupJobFormRadio v-bind="bindings.backupDistribution" vertical />
@@ -58,21 +71,35 @@
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
-import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobLongTermRetentionRow from '@/modules/backup-job/components/form/inputs/BackupJobLongTermRetentionRow.vue'
+import BackupJobTargetBackupRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositoryTable.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { bindings } = defineProps<{
   bindings: BackupJobTargetForm['bindings']
+  brs: FrontXoBackupRepository[]
+  matchedBrs: FrontXoBackupRepository[]
 }>()
 
 const { t } = useI18n()
+
+const selectedIds = computed({
+  get: () => bindings.backupRepositoryIds.modelValue,
+  set: ids => bindings.backupRepositoryIds['onUpdate:modelValue'](ids),
+})
+
+const filter = computed({
+  get: () => bindings.backupRepositoryFilter.modelValue,
+  set: value => bindings.backupRepositoryFilter['onUpdate:modelValue'](value),
+})
 </script>
 
 <style lang="postcss" scoped>
