@@ -9,7 +9,7 @@ export function useKubernetesClusterReconciliationResume(rawCluster: MaybeRefOrG
 
   const { run, canRun, isRunning: isResumingReconciliation } = useXoKubernetesClusterReconciliationResumeJob(cluster)
 
-  const canResumeReconciliation = computed(() => canRun.value && isClusterReconciliationToggleable(cluster.value.phase))
+  const canResumeReconciliation = computed(() => canRun.value && isClusterReconciliationToggleable(cluster.value))
 
   async function resumeReconciliation() {
     try {

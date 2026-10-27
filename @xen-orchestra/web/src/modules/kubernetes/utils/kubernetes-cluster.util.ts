@@ -1,5 +1,6 @@
 import type { KubernetesClusterEditPayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
 import type {
+  KubernetesClusterOperation,
   KubernetesClusterPhase,
   KubernetesAvailabilityStatus,
   XoKubernetesCluster,
@@ -11,8 +12,19 @@ export function formatNodesCount(status: XoKubernetesNodesStatus): string {
   return `${status.ready_replicas}/${status.desired_replicas}`
 }
 
-export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
-  switch (phase) {
+/**
+ * The events stream flags a cluster being deleted with `is_deleting` while its phase can still be the previous one
+ */
+export function isClusterDeleting(cluster: XoKubernetesCluster): boolean {
+  return cluster.is_deleting === true || cluster.phase === 'Deleting'
+}
+
+export function isClusterDeletable(cluster: XoKubernetesCluster): boolean {
+  if (isClusterDeleting(cluster)) {
+    return false
+  }
+
+  switch (cluster.phase) {
     case 'Running':
     case 'Provisioned':
     case 'Failed':
@@ -23,8 +35,12 @@ export function isClusterDeletable(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function isClusterEditable(phase: KubernetesClusterPhase): boolean {
-  switch (phase) {
+export function isClusterEditable(cluster: XoKubernetesCluster): boolean {
+  if (isClusterDeleting(cluster)) {
+    return false
+  }
+
+  switch (cluster.phase) {
     case 'Running':
     case 'Provisioned':
     case 'Updating':
@@ -34,14 +50,8 @@ export function isClusterEditable(phase: KubernetesClusterPhase): boolean {
   }
 }
 
-export function isClusterReconciliationToggleable(phase: KubernetesClusterPhase): boolean {
-  switch (phase) {
-    case 'Deleting':
-    case 'Deleted':
-      return false
-    default:
-      return true
-  }
+export function isClusterReconciliationToggleable(cluster: XoKubernetesCluster): boolean {
+  return !isClusterDeleting(cluster) && cluster.phase !== 'Deleted'
 }
 
 export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
@@ -55,7 +65,45 @@ export function isClusterPhaseReady(phase: KubernetesClusterPhase): boolean {
 }
 
 export function isClusterUpgradable(cluster: XoKubernetesCluster): boolean {
-  return isClusterPhaseReady(cluster.phase) && !cluster.is_upgrading && !cluster.is_reconciliation_paused
+  return (
+    isClusterPhaseReady(cluster.phase) &&
+    !isClusterDeleting(cluster) &&
+    !cluster.is_upgrading &&
+    !cluster.is_reconciliation_paused
+  )
+}
+
+function isScalingNodes(status: XoKubernetesNodesStatus): boolean {
+  return status.replicas !== status.desired_replicas
+}
+
+/**
+ * Operation in progress on the cluster, by order of precedence
+ *
+ * Provisioning is checked before scaling: a new cluster has fewer replicas than desired while its nodes are created
+ */
+export function clusterCurrentOperation(cluster: XoKubernetesCluster): KubernetesClusterOperation | undefined {
+  if (isClusterDeleting(cluster)) {
+    return 'deleting'
+  }
+
+  if (cluster.is_upgrading) {
+    return 'upgrading'
+  }
+
+  if (cluster.phase === 'Pending' || cluster.phase === 'Provisioning') {
+    return 'provisioning'
+  }
+
+  if (isScalingNodes(cluster.control_plane_status) || isScalingNodes(cluster.worker_status)) {
+    return 'scaling'
+  }
+
+  if (cluster.phase === 'Updating') {
+    return 'updating'
+  }
+
+  return undefined
 }
 
 export function clusterStatus(cluster: XoKubernetesCluster): KubernetesAvailabilityStatus {

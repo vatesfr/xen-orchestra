@@ -11,7 +11,7 @@ export function useKubernetesClusterReconciliationPause(rawCluster: MaybeRefOrGe
 
   const { run, canRun, isRunning: isPausingReconciliation } = useXoKubernetesClusterReconciliationPauseJob(cluster)
 
-  const canPauseReconciliation = computed(() => canRun.value && isClusterReconciliationToggleable(cluster.value.phase))
+  const canPauseReconciliation = computed(() => canRun.value && isClusterReconciliationToggleable(cluster.value))
 
   const { open } = useActionModal()
 

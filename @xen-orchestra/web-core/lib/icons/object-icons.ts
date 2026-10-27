@@ -284,7 +284,10 @@ export const objectIcons = defineIconPack({
   organization: constructIcon(faUsers),
   kubernetes: constructIcon(faKubernetes),
   cluster: constructIcon(faKubernetes),
+  'cluster:paused': [constructIcon(faKubernetes), ...constructCircleStatus('paused-circle')],
   node: constructIcon(faDesktop),
+  'node:paused': [constructIcon(faDesktop), ...constructCircleStatus('paused-circle')],
+  'node:cordoned': [constructIcon(faDesktop), ...constructCircleStatus('host-disabled-circle')],
   namespace: constructIcon(faFolderOpen),
   pod: constructIcon(faXRay),
 })

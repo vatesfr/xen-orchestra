@@ -15,7 +15,7 @@ export function useKubernetesClusterEdit(rawCluster: MaybeRefOrGetter<XoKubernet
 
   const { run, canRun, isRunning: isEditingCluster } = useXoKubernetesClusterEditJob(cluster, payload)
 
-  const canEditCluster = computed(() => canRun.value && isClusterEditable(cluster.value.phase))
+  const canEditCluster = computed(() => canRun.value && isClusterEditable(cluster.value))
 
   const { open } = useOverlay({
     component: () => import('@/modules/kubernetes/components/drawer/CreateClusterDrawer.vue'),

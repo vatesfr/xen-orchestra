@@ -21,9 +21,7 @@ export function useKubernetesClusterDelete(rawClusters: MaybeRefOrGetter<XoKuber
 
   const { run, canRun, isRunning: isDeletingClusters } = useXoKubernetesClusterDeleteJob(clusters)
 
-  const canDeleteClusters = computed(
-    () => canRun.value && clusters.value.every(cluster => isClusterDeletable(cluster.phase))
-  )
+  const canDeleteClusters = computed(() => canRun.value && clusters.value.every(cluster => isClusterDeletable(cluster)))
 
   const { redirectIfOnObjectPage } = useRedirectAfterDelete({
     isOnObjectPage: () => route.name?.startsWith('/kubernetes/cluster/[id]') ?? false,

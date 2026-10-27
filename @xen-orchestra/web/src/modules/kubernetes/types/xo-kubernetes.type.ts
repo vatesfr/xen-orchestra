@@ -17,6 +17,12 @@ export type KubernetesClusterPhase =
   | 'Failed'
   | 'Unknown'
 
+export type KubernetesClusterOperation = 'deleting' | 'upgrading' | 'scaling' | 'updating' | 'provisioning'
+
+export type KubernetesNodeOperation =
+  | Extract<KubernetesClusterOperation, 'deleting' | 'upgrading' | 'scaling'>
+  | 'draining'
+
 export type KubernetesStatus =
   | KubernetesAvailabilityStatus
   | KubernetesClusterPhase
@@ -64,6 +70,7 @@ export type XoKubernetesCluster = {
   id: string
   is_available: boolean
   is_control_plane_initialized: boolean
+  is_deleting?: boolean
   is_infrastructure_provisioned: boolean
   is_reconciliation_paused: boolean
   is_upgrading: boolean

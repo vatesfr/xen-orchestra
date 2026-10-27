@@ -1,27 +1,65 @@
 import type { KubernetesClusterPhase, XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import {
+  clusterCurrentOperation,
   clusterStatus,
   clusterVersion,
   formatNodesCount,
   getClusterUpdates,
   isClusterDeletable,
+  isClusterDeleting,
+  isClusterEditable,
   isClusterPhaseReady,
   isClusterReconciliationToggleable,
   isClusterUpgradable,
 } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 
+describe('isClusterDeleting', () => {
+  it('returns false for a cluster that is not being deleted', () => {
+    expect(isClusterDeleting(createKubernetesCluster())).toBe(false)
+  })
+
+  it('returns true when the cluster phase is Deleting', () => {
+    expect(isClusterDeleting(createKubernetesCluster({ phase: 'Deleting' }))).toBe(true)
+  })
+
+  it('returns true when the cluster is flagged as deleting while its phase is still the previous one', () => {
+    expect(isClusterDeleting(createKubernetesCluster({ phase: 'Provisioned', is_deleting: true }))).toBe(true)
+  })
+})
+
 describe('isClusterDeletable', () => {
   it.each<KubernetesClusterPhase>(['Running', 'Provisioned', 'Failed', 'Updating'])('returns true for %s', phase => {
-    expect(isClusterDeletable(phase)).toBe(true)
+    expect(isClusterDeletable(createKubernetesCluster({ phase }))).toBe(true)
   })
 
   it.each<KubernetesClusterPhase>(['Pending', 'Provisioning', 'Deleting', 'Deleted', 'Unknown'])(
     'returns false for %s',
     phase => {
-      expect(isClusterDeletable(phase)).toBe(false)
+      expect(isClusterDeletable(createKubernetesCluster({ phase }))).toBe(false)
     }
   )
+
+  it('returns false when the cluster is flagged as deleting', () => {
+    expect(isClusterDeletable(createKubernetesCluster({ phase: 'Provisioned', is_deleting: true }))).toBe(false)
+  })
+})
+
+describe('isClusterEditable', () => {
+  it.each<KubernetesClusterPhase>(['Running', 'Provisioned', 'Updating'])('returns true for %s', phase => {
+    expect(isClusterEditable(createKubernetesCluster({ phase }))).toBe(true)
+  })
+
+  it.each<KubernetesClusterPhase>(['Pending', 'Provisioning', 'Deleting', 'Deleted', 'Failed', 'Unknown'])(
+    'returns false for %s',
+    phase => {
+      expect(isClusterEditable(createKubernetesCluster({ phase }))).toBe(false)
+    }
+  )
+
+  it('returns false when the cluster is flagged as deleting', () => {
+    expect(isClusterEditable(createKubernetesCluster({ phase: 'Provisioned', is_deleting: true }))).toBe(false)
+  })
 })
 
 describe('isClusterReconciliationToggleable', () => {
@@ -34,11 +72,17 @@ describe('isClusterReconciliationToggleable', () => {
     'Failed',
     'Unknown',
   ])('returns true for %s', phase => {
-    expect(isClusterReconciliationToggleable(phase)).toBe(true)
+    expect(isClusterReconciliationToggleable(createKubernetesCluster({ phase }))).toBe(true)
   })
 
   it.each<KubernetesClusterPhase>(['Deleting', 'Deleted'])('returns false for %s', phase => {
-    expect(isClusterReconciliationToggleable(phase)).toBe(false)
+    expect(isClusterReconciliationToggleable(createKubernetesCluster({ phase }))).toBe(false)
+  })
+
+  it('returns false when the cluster is flagged as deleting', () => {
+    expect(
+      isClusterReconciliationToggleable(createKubernetesCluster({ phase: 'Provisioned', is_deleting: true }))
+    ).toBe(false)
   })
 })
 
@@ -62,6 +106,10 @@ describe('isClusterUpgradable', () => {
 
   it('returns false when the cluster phase is not ready', () => {
     expect(isClusterUpgradable(createKubernetesCluster({ phase: 'Updating' }))).toBe(false)
+  })
+
+  it('returns false when the cluster is flagged as deleting', () => {
+    expect(isClusterUpgradable(createKubernetesCluster({ is_deleting: true }))).toBe(false)
   })
 
   it('returns false when the cluster is upgrading', () => {
@@ -191,4 +239,83 @@ describe('getClusterUpdates', () => {
       },
     ])
   })
+})
+
+describe('clusterCurrentOperation', () => {
+  const settledNodesStatus: XoKubernetesCluster['control_plane_status'] = {
+    available_replicas: 1,
+    desired_replicas: 1,
+    ready_replicas: 1,
+    up_to_date_replicas: 1,
+    replicas: 1,
+    versions: [],
+  }
+
+  const createSettledCluster = (overrides: Partial<XoKubernetesCluster> = {}) =>
+    createKubernetesCluster({
+      control_plane_status: settledNodesStatus,
+      worker_status: settledNodesStatus,
+      ...overrides,
+    })
+
+  it('returns undefined when no operation is in progress', () => {
+    expect(clusterCurrentOperation(createSettledCluster())).toBeUndefined()
+  })
+
+  it('returns deleting when the cluster is being deleted, even while upgrading', () => {
+    expect(clusterCurrentOperation(createSettledCluster({ phase: 'Deleting', is_upgrading: true }))).toBe('deleting')
+  })
+
+  it('returns deleting when the cluster is flagged as deleting while its phase is still the previous one', () => {
+    expect(clusterCurrentOperation(createSettledCluster({ phase: 'Provisioned', is_deleting: true }))).toBe('deleting')
+  })
+
+  it('returns upgrading when the cluster is upgrading, even while scaling', () => {
+    const cluster = createSettledCluster({
+      is_upgrading: true,
+      worker_status: { ...settledNodesStatus, desired_replicas: 3 },
+    })
+
+    expect(clusterCurrentOperation(cluster)).toBe('upgrading')
+  })
+
+  it('returns scaling when the control plane replicas differ from the desired ones', () => {
+    const cluster = createSettledCluster({ control_plane_status: { ...settledNodesStatus, desired_replicas: 3 } })
+
+    expect(clusterCurrentOperation(cluster)).toBe('scaling')
+  })
+
+  it('returns scaling when the worker replicas differ from the desired ones', () => {
+    const cluster = createSettledCluster({ worker_status: { ...settledNodesStatus, replicas: 2 } })
+
+    expect(clusterCurrentOperation(cluster)).toBe('scaling')
+  })
+
+  it('returns updating when the cluster phase is Updating', () => {
+    expect(clusterCurrentOperation(createSettledCluster({ phase: 'Updating' }))).toBe('updating')
+  })
+
+  it.each<KubernetesClusterPhase>(['Pending', 'Provisioning'])('returns provisioning for %s', phase => {
+    expect(clusterCurrentOperation(createSettledCluster({ phase }))).toBe('provisioning')
+  })
+
+  it.each<KubernetesClusterPhase>(['Pending', 'Provisioning'])(
+    'returns provisioning for %s while the replicas are being created',
+    phase => {
+      const cluster = createSettledCluster({
+        phase,
+        control_plane_status: { ...settledNodesStatus, replicas: 0, desired_replicas: 3 },
+        worker_status: { ...settledNodesStatus, replicas: 0, desired_replicas: 2 },
+      })
+
+      expect(clusterCurrentOperation(cluster)).toBe('provisioning')
+    }
+  )
+
+  it.each<KubernetesClusterPhase>(['Running', 'Provisioned', 'Failed', 'Deleted', 'Unknown'])(
+    'returns undefined for %s',
+    phase => {
+      expect(clusterCurrentOperation(createSettledCluster({ phase }))).toBeUndefined()
+    }
+  )
 })
