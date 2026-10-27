@@ -22,6 +22,7 @@
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import type { VmFilterableData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
+import { useVmLastBackupDates } from '@/modules/vm/composables/use-vm-last-backup-dates.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -32,6 +33,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
+import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -63,6 +65,8 @@ const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = u
   paginatedVms
 )
 
+const { getVmLastBackupDate, areBackupLogsReady } = useVmLastBackupDates()
+
 const state = useTableState({
   empty: () =>
     vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
@@ -81,6 +85,7 @@ const { HeadCells, BodyCells } = useVmColumns({
     checkbox: r => r({ selected: isSelected(vm.id), onToggle: () => toggleSelection(vm.id) }),
     vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: getDisplayData(vm).vmIcon }),
     tags: r => r(vm.tags),
+    lastBackupDate: r => (areBackupLogsReady.value ? r(getVmLastBackupDate(vm.id)) : renderLoadingCell()),
   }),
 })
 </script>
@@ -90,5 +95,14 @@ const { HeadCells, BodyCells } = useVmColumns({
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+
+  :deep(.table) {
+    width: 100%;
+  }
+
+  :deep(th:last-child),
+  :deep(td:last-child) {
+    white-space: nowrap;
+  }
 }
 </style>

@@ -1,16 +1,27 @@
 <template>
   <div class="backup-job-source-step">
     <BackupJobFormRadio v-bind="bindings.dataSource" />
-    <BackupJobFormRadio v-if="!isMetadata" v-bind="bindings.mode" />
+    <div v-if="!isMetadata" class="mode">
+      <BackupJobFormRadio v-bind="bindings.mode" />
+      <template v-if="bindings.dataSource.modelValue === 'mirror'">
+        <BackupJobFormSelect v-bind="bindings.proxy" />
+        <BackupJobFormSelect v-bind="bindings.sourceBackupRepository">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="option-content">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </BackupJobFormSelect>
+      </template>
+    </div>
     <div v-if="isMetadata" class="options">
       <UiLabel accent="neutral">{{ t('options') }}</UiLabel>
       <BackupJobFormCheckbox v-bind="bindings.saveXoConfig" />
       <BackupJobFormCheckbox v-bind="bindings.savePoolsMetadata" />
     </div>
-    <template v-if="bindings.dataSource.modelValue === 'mirror'">
-      <BackupJobFormSelect v-bind="bindings.proxy" />
-      <BackupJobFormSelect v-bind="bindings.sourceBackupRepository" />
-    </template>
     <div v-if="!isMetadata || bindings.savePoolsMetadata.modelValue" class="scope">
       <BackupJobFormRadio v-bind="bindings.scopeType">
         <template v-if="!isMetadata" #info>
@@ -18,21 +29,27 @@
         </template>
       </BackupJobFormRadio>
       <template v-if="hasVmSelection">
-        <BackupJobSourceVmTable
-          v-if="bindings.scopeType.modelValue === 'manual'"
-          v-model:selected-ids="selectedVmIds"
-          :vms
-          :error="bindings.vmIds.error"
-        />
+        <template v-if="bindings.scopeType.modelValue === 'manual'">
+          <BackupJobSourceBackupVmTable
+            v-if="isMirror"
+            v-model:selected-ids="selectedVmIds"
+            :vms="mirrorVms"
+            :busy="!areMirrorVmsReady"
+            :schema="mirrorVmSchema"
+            :to-preview-items
+            :error="bindings.vmIds.error"
+          />
+          <BackupJobSourceVmTable v-else v-model:selected-ids="selectedVmIds" :vms :error="bindings.vmIds.error" />
+        </template>
         <template v-else-if="bindings.scopeType.modelValue === 'smart'">
-          <VtsQueryBuilder :model-value="vmFilter" :schema="vmSchema" @search="vmFilter = $event" />
+          <VtsQueryBuilder :model-value="vmFilter" :schema="vmSelectionSchema" @search="vmFilter = $event" />
           <UiInfo v-for="message of vmFilterErrors" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
           <VtsQueryBuilderPreview
             v-if="vmFilter !== ''"
             :filter="vmFilter"
-            :schema="vmSchema"
-            :items="matchedVmItems"
-            :count-label="t('n-vms', { n: matchedVmItems.length })"
+            :schema="vmSelectionSchema"
+            :items="matchedSelectionItems"
+            :count-label="t('n-vms', { n: matchedSelectionItems.length })"
           />
         </template>
       </template>
@@ -46,11 +63,13 @@ import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJ
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
+import BackupJobSourceBackupVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceBackupVmTable.vue'
 import BackupJobSourceVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceVmTable.vue'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
-import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-preview-items.composable.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsQueryBuilderPreview from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { toArray } from '@core/utils/to-array.utils.ts'
@@ -63,9 +82,18 @@ const { form } = defineProps<{
 
 const { t } = useI18n()
 
-const { bindings, vms, vmSchema, matchedVms, hasVmSelection } = form
-
-const matchedVmItems = useVmQueryPreviewItems(matchedVms)
+const {
+  bindings,
+  vms,
+  mirrorVms,
+  areMirrorVmsReady,
+  mirrorVmSchema,
+  toPreviewItems,
+  isMirror,
+  hasVmSelection,
+  vmSelectionSchema,
+  matchedSelectionItems,
+} = form
 
 const selectedVmIds = computed({
   get: () => bindings.vmIds.modelValue,
@@ -91,6 +119,18 @@ const isMetadata = computed(() => bindings.dataSource.modelValue === 'metadata')
   gap: 4.8rem;
   margin-block-start: 2.4rem;
   text-align: left;
+
+  .mode {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  .option-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .scope {
     display: flex;

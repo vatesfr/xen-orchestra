@@ -5,7 +5,7 @@ import type { XoBackupRepository, XoVmBackupArchive } from '@vates/types'
 
 export type FrontXoVmBackupArchive = Pick<XoVmBackupArchive, (typeof vmBackupArchiveFields)[number]>
 
-const vmBackupArchiveFields = ['id', 'size', 'vm', 'type'] as const satisfies readonly (keyof XoVmBackupArchive)[]
+const vmBackupArchiveFields = ['id', 'size', 'vm', 'type', 'mode', 'timestamp'] as const satisfies readonly (keyof XoVmBackupArchive)[]
 
 export const useXoVmBackupArchiveCollection = defineRemoteResource({
   url: (backupRepositoriesIds: XoBackupRepository['id'][]) => {
