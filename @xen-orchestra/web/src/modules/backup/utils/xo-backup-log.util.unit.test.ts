@@ -1,6 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import {
-  formatBackupLogDate,
   getBackupLogRunRoute,
   getBackupLogSrIds,
   getBackupLogVmIds,
@@ -72,14 +71,6 @@ describe('getBackupLogSrIds', () => {
 
   it('returns an empty list for a log without tasks', () => {
     expect(getBackupLogSrIds(createBackupLog({ tasks: undefined }))).toEqual([])
-  })
-})
-
-describe('formatBackupLogDate', () => {
-  it('formats the timestamp as a date and a time down to the second', () => {
-    const date = new Date(2026, 6, 19, 3, 4, 5)
-
-    expect(formatBackupLogDate(date.getTime())).toBe('2026-07-19 03:04:05')
   })
 })
 
