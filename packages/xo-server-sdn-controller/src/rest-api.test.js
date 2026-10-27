@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
 import createSdnController from './index.js'
@@ -159,18 +159,6 @@ describe('the update of a rule', () => {
   it('changes the priority, and removes it with `null`', async () => {
     assert.deepEqual(await update({ priority: 100 }), { ...SSH, priority: 100, networkId: 'net' })
     assert.deepEqual(await update({ priority: null }), { ...SSH, networkId: 'net' })
-  })
-})
-
-describe('the deletion of a rule', () => {
-  it('refuses a missing rule before the task, as the update does', async () => {
-    await rejectsBeforeTheTask(
-      createController(),
-      '/networks/{id}/actions/delete_traffic_rule',
-      'net',
-      WEB,
-      noSuchObject
-    )
   })
 })
 

@@ -89,9 +89,7 @@ export class OpenFlowChannel extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  // The caller passes the rule's `priority` too, for the XAPI plugin (openflow-plugin.js) to set: this
-  // channel writes its flows at the OpenFlow default, so a rule stored with a priority is installed without it.
-  async addRule({ vif, allow, protocol, port, ipRange, direction, priority, ofport }) {
+  async addRule({ vif, allow, protocol, port, ipRange, direction, ofport }) {
     log.info('Adding OF rule', {
       allow,
       protocol,

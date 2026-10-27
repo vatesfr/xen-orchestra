@@ -212,7 +212,7 @@ Parameters:
 - _protocol_: IP, TCP, UDP, ICMP or ARP (case-insensitive).
 - _port_: required for TCP/UDP protocol. Use `json:22` so the number is passed as an integer.
 - _allow_: true or false. If set to false the packets are dropped.
-- _priority_ (optional, add only): the OpenFlow priority of the rule, an integer from 0 to 65535, refused with the OpenFlow protocol. The XAPI plugin takes it since xcp-ng-xapi-plugins 1.13.0, the first release shipping `sdncontroller.py`. A rule without one has the OpenFlow default, 32768, unless it replaces a rule with the same match, which keeps that rule's priority. When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the **highest** priority applies: a rule of priority 30 applies before a rule of priority 20. Two rules of a network can't be given the same priority. A rule stored with a priority before switching to the OpenFlow Protocol is still listed with it, but is installed at the OpenFlow default, 32768. Use `json:100` so the number is passed as an integer.
+- _priority_ (optional, add only): the OpenFlow priority of the rule, an integer from 0 to 65535, refused with the OpenFlow protocol. A rule without one has the OpenFlow default, 32768. When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the **highest** priority applies: a rule of priority 30 applies before a rule of priority 20. Two rules of a network can't be given the same priority. Use `json:100` so the number is passed as an integer.
 
 :::tip
 Leave room between the priorities of your rules (for example 100, 110, 120…) rather than numbering them one after the other (101, 102, 103…): a new rule can then go between two existing ones without renumbering them.

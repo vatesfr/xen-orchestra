@@ -56,7 +56,7 @@ const RESOURCES = [
     acl: 'network',
     type: 'network',
     idKey: 'networkId',
-    addRule: (controller, rule) => controller._addUserRule(rule),
+    addRule: (controller, rule) => controller._addNetworkRule(rule),
     deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule),
   },
   {
@@ -64,7 +64,7 @@ const RESOURCES = [
     acl: 'vif',
     type: 'VIF',
     idKey: 'vifId',
-    addRule: (controller, rule) => controller._addUserRule(rule),
+    addRule: (controller, rule) => controller._addRule(rule),
     deleteRule: (controller, rule) => controller._deleteRule(rule),
   },
 ]
@@ -107,11 +107,6 @@ function rulesEqual(a, b) {
     a.port === b.port &&
     a.protocol.toLowerCase() === b.protocol.toLowerCase()
   )
-}
-
-// The stored rule matching `rule`, with its priority, or `undefined`
-function findStoredRule(object, rule) {
-  return parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY]).find(stored => rulesEqual(stored, rule))
 }
 
 // Apply a partial update on a rule: a `null` value removes the field
@@ -205,7 +200,6 @@ function addRuleRoute(controller, resource) {
     body: { ...RULE_FIELDS, priority: PRIORITY_FIELD },
     responses: [
       { status: 204, description: 'Rule added successfully' },
-      { status: 403, description: 'Access denied' },
       { status: 404, description: `No ${resource.type} found for this ID` },
       { status: 409, description: 'Another rule of the network has this priority' },
       {
@@ -242,19 +236,19 @@ function deleteRuleRoute(controller, resource) {
     body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule deleted successfully' },
-      { status: 403, description: 'Access denied' },
       { status: 404, description: `No ${resource.type} found for this ID, or rule not found` },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey)
       const id = req.params.id
-      const object = controller._xo.getObject(id, resource.type)
-      if (findStoredRule(object, rule) === undefined) {
-        throw noSuchObject(JSON.stringify(rule), 'traffic-rule')
-      }
       return createAction(
         async () => {
+          const object = controller._xo.getObject(id, resource.type)
+          const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
+          if (!rules.some(r => rulesEqual(r, rule))) {
+            throw noSuchObject(JSON.stringify(rule), 'traffic-rule')
+          }
           await resource.deleteRule(controller, rule)
         },
         {
@@ -283,7 +277,6 @@ function updateRuleRoute(controller, resource) {
     body: BODY_UPDATE_RULE,
     responses: [
       { status: 204, description: 'Rule updated successfully' },
-      { status: 403, description: 'Access denied' },
       { status: 404, description: `Old rule does not exist on this ${resource.type}` },
       { status: 409, description: 'Another rule of the network has the new priority' },
       {
@@ -296,8 +289,9 @@ function updateRuleRoute(controller, resource) {
       const { oldRule, newRule: partialNewRule } = req.body
       const id = req.params.id
       const object = controller._xo.getObject(id, resource.type)
+      const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
       // patched rather than `oldRule`, so that a priority `newRule` leaves out is kept
-      const storedRule = findStoredRule(object, oldRule)
+      const storedRule = rules.find(rule => rulesEqual(rule, oldRule))
       if (storedRule === undefined) {
         throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
       }
@@ -305,12 +299,10 @@ function updateRuleRoute(controller, resource) {
       controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority, storedRule.priority)
 
       return createAction(
-        () =>
-          controller._updateUserRule(
-            { ...oldRule, [resource.idKey]: id },
-            { ...newRule, [resource.idKey]: id },
-            storedRule.priority
-          ),
+        async () => {
+          await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
+          await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+        },
         {
           sync: req.query.sync ?? false,
           statusCode: 204,

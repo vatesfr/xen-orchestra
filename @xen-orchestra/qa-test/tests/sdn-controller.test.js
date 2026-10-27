@@ -29,9 +29,6 @@ const parseRules = object => {
   return raw !== undefined ? JSON.parse(raw).map(JSON.parse) : []
 }
 
-// the REST API answers an error with its status in the message, `HTTP <status>: …`
-const rejectsWithStatus = (promise, status) => assert.rejects(promise, { message: new RegExp(`^HTTP ${status}:`) })
-
 describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID }, () => {
   let dispatchClient
   let tracker
@@ -253,7 +250,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     })
 
     itSdn('should return 404 when deleting a non-existent rule', () =>
-      rejectsWithStatus(
+      assert.rejects(
         dispatchClient.restApiClient.post(`${BASE}/networks/${networkId}/actions/delete_traffic_rule?sync=true`, {
           allow: true,
           direction: 'to',
@@ -261,7 +258,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
           protocol: 'UDP',
           port: 9999,
         }),
-        404
+        { message: /^HTTP 404:/ }
       )
     )
   })
@@ -367,9 +364,9 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     })
 
     itSdn('should reject the rule added again with its priority, without duplicating it', async () => {
-      await rejectsWithStatus(
+      await assert.rejects(
         dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/add_traffic_rule?sync=true`, VALID_RULE),
-        409
+        { message: /^HTTP 409:/ }
       )
       const rules = await getVifRules()
       const matching = rules.filter(r => ruleKey(r) === ruleKey(VALID_RULE))
@@ -391,7 +388,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     })
 
     itSdn('should return 404 when deleting a non-existent rule', () =>
-      rejectsWithStatus(
+      assert.rejects(
         dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
           allow: true,
           direction: 'to',
@@ -399,7 +396,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
           protocol: 'UDP',
           port: 9999,
         }),
-        404
+        { message: /^HTTP 404:/ }
       )
     )
   })
@@ -436,6 +433,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     const listRules = (collection, id) => dispatchClient.restApiClient.get(`${BASE}/${collection}/${id}/traffic-rules`)
     const findRule = (rules, rule, sourceId) => rules.find(r => r.sourceId === sourceId && ruleKey(r) === ruleKey(rule))
+
+    const rejectsWithStatus = (promise, status) => assert.rejects(promise, { message: new RegExp(`^HTTP ${status}:`) })
 
     // VIF rules go with the VMs, at teardown
     after(async () => {
