@@ -66,7 +66,9 @@ export function clusterStatus(cluster: XoKubernetesCluster): KubernetesAvailabil
  * Versions run by the control plane and worker nodes, with duplicates
  */
 export function clusterVersions(cluster: XoKubernetesCluster): string[] {
-  return [...cluster.control_plane_status.versions, ...cluster.worker_status.versions].map(({ version }) => version)
+  return [...(cluster.control_plane_status.versions ?? []), ...(cluster.worker_status.versions ?? [])].map(
+    ({ version }) => version
+  )
 }
 
 export function clusterVersion(cluster: XoKubernetesCluster): string {

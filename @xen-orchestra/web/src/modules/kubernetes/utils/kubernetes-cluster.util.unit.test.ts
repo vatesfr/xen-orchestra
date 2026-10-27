@@ -119,6 +119,18 @@ describe('clusterVersion', () => {
     expect(clusterVersion(createClusterWithVersions([], []))).toBe('')
   })
 
+  it('returns an empty string when the versions are not reported yet', () => {
+    const cluster = createKubernetesCluster()
+
+    expect(
+      clusterVersion({
+        ...cluster,
+        control_plane_status: { ...cluster.control_plane_status, versions: null },
+        worker_status: { ...cluster.worker_status, versions: null },
+      })
+    ).toBe('')
+  })
+
   it('deduplicates versions across control plane and workers', () => {
     expect(clusterVersion(createClusterWithVersions(['v1.30.0'], ['v1.30.0']))).toBe('v1.30.0')
   })

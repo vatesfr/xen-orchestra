@@ -1,6 +1,5 @@
 import { useXoKubernetesClusterEditJob } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
 import type { KubernetesClusterEditPayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit.job.ts'
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isClusterEditable } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -16,8 +15,6 @@ export function useKubernetesClusterEdit(rawCluster: MaybeRefOrGetter<XoKubernet
 
   const { run, canRun, isRunning: isEditingCluster } = useXoKubernetesClusterEditJob(cluster, payload)
 
-  const { $context } = useXoKubernetesClusterCollection()
-
   const canEditCluster = computed(() => canRun.value && isClusterEditable(cluster.value.phase))
 
   const { open } = useOverlay({
@@ -28,9 +25,6 @@ export function useKubernetesClusterEdit(rawCluster: MaybeRefOrGetter<XoKubernet
 
         try {
           await run()
-
-          // TODO Remove forceReload when the collection uses events subscription instead of polling
-          $context.forceReload()
         } catch (error) {
           console.error(`Failed to edit cluster ${cluster.value.name}:`, error)
 

@@ -46,7 +46,7 @@ export type XoKubernetesNodesStatus = {
   ready_replicas: number
   up_to_date_replicas: number
   replicas: number
-  versions: XoKubernetesReplicasVersion[]
+  versions: XoKubernetesReplicasVersion[] | null
 }
 
 export type XoKubernetesVersionGroup = {

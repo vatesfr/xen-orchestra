@@ -1,5 +1,4 @@
 import { useXoKubernetesClusterReconciliationPauseJob } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-reconciliation-pause.job.ts'
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isClusterReconciliationToggleable } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
@@ -11,8 +10,6 @@ export function useKubernetesClusterReconciliationPause(rawCluster: MaybeRefOrGe
   const cluster = toComputed(rawCluster)
 
   const { run, canRun, isRunning: isPausingReconciliation } = useXoKubernetesClusterReconciliationPauseJob(cluster)
-
-  const { $context } = useXoKubernetesClusterCollection()
 
   const canPauseReconciliation = computed(() => canRun.value && isClusterReconciliationToggleable(cluster.value.phase))
 
@@ -31,9 +28,6 @@ export function useKubernetesClusterReconciliationPause(rawCluster: MaybeRefOrGe
         onConfirm: async () => {
           try {
             await run()
-
-            // TODO Remove forceReload when the collection uses events subscription instead of polling
-            $context.forceReload()
           } catch (error) {
             console.error(`Failed to pause reconciliation of cluster ${cluster.value.name}:`, error)
 

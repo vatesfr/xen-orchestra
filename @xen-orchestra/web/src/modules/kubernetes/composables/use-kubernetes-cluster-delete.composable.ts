@@ -1,5 +1,4 @@
 import { useXoKubernetesClusterDeleteJob } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-delete.job.ts'
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isClusterDeletable } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
@@ -21,8 +20,6 @@ export function useKubernetesClusterDelete(rawClusters: MaybeRefOrGetter<XoKuber
   const selectedClusterId = useRouteQuery('id')
 
   const { run, canRun, isRunning: isDeletingClusters } = useXoKubernetesClusterDeleteJob(clusters)
-
-  const { $context } = useXoKubernetesClusterCollection()
 
   const canDeleteClusters = computed(
     () => canRun.value && clusters.value.every(cluster => isClusterDeletable(cluster.phase))
@@ -61,10 +58,6 @@ export function useKubernetesClusterDelete(rawClusters: MaybeRefOrGetter<XoKuber
           }
 
           await redirectIfOnObjectPage(result)
-
-          // TODO Remove delay + forceReload when the collection uses events subscription instead of polling
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          $context.forceReload()
         },
       },
       props: {

@@ -1,5 +1,4 @@
 import { useXoKubernetesNodeCordonJob } from '@/modules/kubernetes/jobs/xo-kubernetes-node-cordon.job.ts'
-import { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
@@ -9,14 +8,9 @@ export function useKubernetesNodeCordon(rawNode: MaybeRefOrGetter<XoKubernetesNo
 
   const { run, canRun: canCordonNode, isRunning: isCordoningNode } = useXoKubernetesNodeCordonJob(node)
 
-  const { $context } = useXoKubernetesNodeCollection()
-
   async function cordonNode() {
     try {
       await run()
-
-      // TODO Remove forceReload when the collection uses events subscription instead of polling
-      $context.forceReload()
     } catch (error) {
       console.error(`Failed to cordon node ${node.value.name}:`, error)
     }

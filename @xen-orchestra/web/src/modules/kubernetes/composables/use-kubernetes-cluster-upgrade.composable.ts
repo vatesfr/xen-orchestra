@@ -1,6 +1,5 @@
 import { useXoKubernetesClusterUpgradeJob } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-upgrade.job.ts'
 import type { KubernetesClusterUpgradePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-upgrade.job.ts'
-import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -19,8 +18,6 @@ export function useKubernetesClusterUpgrade(rawCluster: MaybeRefOrGetter<XoKuber
     isRunning: isUpgradingCluster,
   } = useXoKubernetesClusterUpgradeJob(cluster, payload)
 
-  const { $context } = useXoKubernetesClusterCollection()
-
   const { open } = useOverlay({
     component: () => import('@/modules/kubernetes/components/drawer/UpgradeClusterDrawer.vue'),
     events: {
@@ -29,9 +26,6 @@ export function useKubernetesClusterUpgrade(rawCluster: MaybeRefOrGetter<XoKuber
 
         try {
           await run()
-
-          // TODO Remove forceReload when the collection uses events subscription instead of polling
-          $context.forceReload()
         } catch (error) {
           console.error(`Failed to upgrade cluster ${cluster.value.name}:`, error)
 

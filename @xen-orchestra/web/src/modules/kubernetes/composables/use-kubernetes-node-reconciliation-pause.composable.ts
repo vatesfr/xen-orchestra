@@ -1,5 +1,4 @@
 import { useXoKubernetesNodeReconciliationPauseJob } from '@/modules/kubernetes/jobs/xo-kubernetes-node-reconciliation-pause.job.ts'
-import { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -14,8 +13,6 @@ export function useKubernetesNodeReconciliationPause(rawNode: MaybeRefOrGetter<X
     canRun: canPauseReconciliation,
     isRunning: isPausingReconciliation,
   } = useXoKubernetesNodeReconciliationPauseJob(node)
-
-  const { $context } = useXoKubernetesNodeCollection()
 
   const { open } = useActionModal()
 
@@ -32,9 +29,6 @@ export function useKubernetesNodeReconciliationPause(rawNode: MaybeRefOrGetter<X
         onConfirm: async () => {
           try {
             await run()
-
-            // TODO Remove forceReload when the collection uses events subscription instead of polling
-            $context.forceReload()
           } catch (error) {
             console.error(`Failed to pause reconciliation of node ${node.value.name}:`, error)
 
