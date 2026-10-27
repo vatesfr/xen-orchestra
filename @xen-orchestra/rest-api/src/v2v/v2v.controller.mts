@@ -78,12 +78,14 @@ export class V2vController extends Controller {
    *
    * Also validates the credentials: 422 with the `V2V_INVALID_CREDENTIALS` code when they are refused by the source.
    *
+   * A read, not an action: it is a `POST` only because the credentials have to stay out of the URL.
+   *
    * @example body { "platform": "vmware", "connection": { "host": "vcenter.example.org", "username": "administrator@vsphere.local", "password": "secret", "skipSslCheck": true } }
    */
   @Example(v2vInventory)
   // the body carries the credentials of the source
   @Extension('x-mcp-exposure', 'deny')
-  @Post('actions/inventory')
+  @Post('inventory')
   @Middlewares(json())
   @SuccessResponse(200, 'OK')
   @Response(invalidParameters.status, invalidParameters.description)
