@@ -1,4 +1,5 @@
 import { decorateWith } from '@vates/decorate-with'
+import { V2V_START_BLOCKED_REASON, V2V_VM_OTHER_CONFIG } from '@vates/types'
 import { defer as deferrable } from 'golike-defer'
 import { Disposable, fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -11,6 +12,7 @@ import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
+import { getSourceId } from './_sourceId.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -64,8 +66,8 @@ export default class MigrateVm {
         isFromThisPlatform(object.other_config) &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
-        object.blocked_operations?.start === 'Esxi migration in progress...' &&
-        object.blocked_operations?.start_on === 'Esxi migration in progress...'
+        object.blocked_operations?.start === V2V_START_BLOCKED_REASON &&
+        object.blocked_operations?.start_on === V2V_START_BLOCKED_REASON
     )
     if (candidates.length === 0) {
       Task.info(`No previously transfered VM found, do a full transfer`)
@@ -128,7 +130,7 @@ export default class MigrateVm {
       await Promise.all([
         vm.update_HVM_boot_params('firmware', firmware),
         vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
-        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
+        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, V2V_START_BLOCKED_REASON)),
         vm.set_name_label(`[Importing...] ${name_label}`),
       ])
 
@@ -159,7 +161,7 @@ export default class MigrateVm {
     })
   }
 
-  async #importDisks($defer, { esxi, metadata, sr, srsByNode, stopSource, vm, vmId }) {
+  async #importDisks($defer, { esxi, metadata, sourceId, sr, srsByNode, stopSource, vm, vmId }) {
     const { disks, powerState, snapshots } = metadata
 
     const isRunning = powerState !== 'poweredOff'
@@ -203,8 +205,12 @@ export default class MigrateVm {
     })
     await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
       sourcePlatform: SOURCE_PLATFORM,
-      sourceVmId: vmId,
-      sourceSnapshotId: snapshots?.current,
+      [V2V_VM_OTHER_CONFIG.SOURCE_VM_ID]: vmId,
+      [V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID]: snapshots?.current,
+      // read by the XO6 front: a clone, a restore or a replica inherits these keys, but not the UUID of the VM
+      [V2V_VM_OTHER_CONFIG.IMPORTED_VM_UUID]: vm.uuid,
+      [V2V_VM_OTHER_CONFIG.SOURCE_ID]: sourceId,
+      [V2V_VM_OTHER_CONFIG.SOURCE_VM_INSTANCE_UUID]: metadata.instanceUuid,
     })
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
@@ -357,7 +363,9 @@ export default class MigrateVm {
     const vm = await this.#createVmAndNetworks($defer, { metadata, network, networksByNic, template, xapi })
     Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
-    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, srsByNode, vmId })
+    // the moref of a VM is only unique within its vCenter
+    const sourceId = getSourceId(esxi.instanceUuid, host)
+    await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
