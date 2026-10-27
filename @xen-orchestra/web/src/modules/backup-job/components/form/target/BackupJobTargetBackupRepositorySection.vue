@@ -16,6 +16,7 @@
         v-model:filter="filter"
         :mode="bindings.backupRepositoryScopeType.modelValue"
         :brs
+        :compatible-brs="compatibleBrs"
         :matched-brs="matchedBrs"
         :error="
           bindings.backupRepositoryScopeType.modelValue === 'manual'
@@ -86,6 +87,7 @@ import { useI18n } from 'vue-i18n'
 const { bindings } = defineProps<{
   bindings: BackupJobTargetForm['bindings']
   brs: FrontXoBackupRepository[]
+  compatibleBrs: FrontXoBackupRepository[]
   matchedBrs: FrontXoBackupRepository[]
 }>()
 

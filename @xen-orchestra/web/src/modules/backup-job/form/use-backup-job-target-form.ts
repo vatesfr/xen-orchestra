@@ -6,14 +6,16 @@ import {
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { useSrFormFilterableData } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
 import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter, reactive } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BackupJobStorageTarget = 'backup-repository' | 'storage-repository' | 'snapshot-retention'
@@ -79,17 +81,31 @@ export function useBackupJobTargetForm(
     backupRepositories.value.filter(br => br.id !== sourceBackupRepositoryId.value)
   )
 
-  const availableStorageRepositories = computed(() => srs.value.filter(sr => sr.content_type !== 'iso'))
+  const availableStorageRepositories = computed(() => srs.value.filter(isSrWritable))
 
-  const filterableBackupRepositories = useBackupRepositoryFilterableData(availableBackupRepositories)
+  const filterableStorageRepositories = useSrFormFilterableData(availableStorageRepositories)
+
+  const compatibleBackupRepositories = computed(() =>
+    availableBackupRepositories.value.filter(br => br.proxy === formData.targetProxy)
+  )
+
+  const filterableBackupRepositories = useBackupRepositoryFilterableData(compatibleBackupRepositories)
 
   const matchedBackupRepositories = computed(() =>
     filterByQuery(filterableBackupRepositories.value, formData.backupRepositoryFilter)
   )
 
   const matchedStorageRepositories = computed(() =>
-    filterByQuery(availableStorageRepositories.value, formData.storageRepositoryFilter)
+    filterByQuery(filterableStorageRepositories.value, formData.storageRepositoryFilter)
   )
+
+  watch(compatibleBackupRepositories, brs => {
+    const compatibleIds = new Set(brs.map(br => br.id))
+
+    if (formData.backupRepositoryIds.some(id => !compatibleIds.has(id))) {
+      formData.backupRepositoryIds = formData.backupRepositoryIds.filter(id => compatibleIds.has(id))
+    }
+  })
 
   const hasStorageTargetChoice = computed(() => dataSource.value === 'vm')
 
@@ -292,7 +308,13 @@ export function useBackupJobTargetForm(
       label: t('storage-target'),
       options: storageTargetOptions.value,
     })),
-    targetProxy: useSelect(targetProxySelectId, () => ({ label: t('target-proxy') })),
+    targetProxy: useSelect(targetProxySelectId, () => ({
+      label: t('target-proxy'),
+      info:
+        formData.targetProxy !== undefined
+          ? t('only-backup-repositories-using-this-proxy')
+          : t('only-backup-repositories-without-proxy'),
+    })),
     backupRepositoryScopeType: useField('backupRepositoryScopeType', () => ({
       label: t('scope-type'),
       options: backupRepositoryScopeTypeOptions.value,
@@ -306,7 +328,6 @@ export function useBackupJobTargetForm(
     exportRetention: useField('exportRetention', () => ({
       label: t('minimum-backups-to-retain'),
       required: true,
-      info: t('value-by-default', { value: 3 }),
     })),
     ltrDailyRetention: useField('ltrDailyRetention'),
     ltrDailyKeep: useKeepSelect(
@@ -349,7 +370,6 @@ export function useBackupJobTargetForm(
     copyRetention: useField('copyRetention', () => ({
       label: t('minimum-replicas-to-retain'),
       required: true,
-      info: t('value-by-default', { value: 1 }),
     })),
     snapshotRetention: useField('snapshotRetention', () => ({
       label: t('minimum-snapshots-to-retain'),
@@ -364,6 +384,7 @@ export function useBackupJobTargetForm(
     hasStorageRepositorySection,
     hasSnapshotRetentionSection,
     availableBackupRepositories,
+    compatibleBackupRepositories,
     availableStorageRepositories,
     matchedBackupRepositories,
     matchedStorageRepositories,

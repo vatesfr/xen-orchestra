@@ -134,15 +134,29 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     option: { label: 'name', value: 'id' },
   })
 
-  const { id: sourceBackupRepositorySelectId } = useFormSelect('sourceBackupRepository', backupRepositories, {
-    searchable: true,
-    required: true,
-    option: {
-      label: 'name',
-      value: 'id',
-      properties: br => ({ icon: getBackupRepositoryIcon(br, getBackupRepositoryType(br.url)) }),
-    },
+  const compatibleSourceBackupRepositories = computed(() =>
+    backupRepositories.value.filter(br => br.proxy === formData.proxy)
+  )
+
+  watch(compatibleSourceBackupRepositories, brs => {
+    if (formData.sourceBackupRepository !== undefined && !brs.some(br => br.id === formData.sourceBackupRepository)) {
+      formData.sourceBackupRepository = undefined
+    }
   })
+
+  const { id: sourceBackupRepositorySelectId } = useFormSelect(
+    'sourceBackupRepository',
+    compatibleSourceBackupRepositories,
+    {
+      searchable: true,
+      required: true,
+      option: {
+        label: 'name',
+        value: 'id',
+        properties: br => ({ icon: getBackupRepositoryIcon(br, getBackupRepositoryType(br.url)) }),
+      },
+    }
+  )
 
   const scopeTypeOptions = computed<RadioOption<BackupJobScopeType>[]>(() => [
     { label: formData.dataSource === 'metadata' ? t('all-objects-pools') : t('all-objects-vms'), value: 'all' },
@@ -155,7 +169,13 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     mode: useField('mode', () => ({ label: t('backup-mode'), options: modeOptions.value })),
     saveXoConfig: useField('saveXoConfig', () => ({ label: t('save-xo-config') })),
     savePoolsMetadata: useField('savePoolsMetadata', () => ({ label: t('save-pools-metadata') })),
-    proxy: useSelect(proxySelectId, () => ({ label: t('source-proxy') })),
+    proxy: useSelect(proxySelectId, () => ({
+      label: t('source-proxy'),
+      info:
+        formData.proxy !== undefined
+          ? t('only-backup-repositories-using-this-proxy')
+          : t('only-backup-repositories-without-proxy'),
+    })),
     sourceBackupRepository: useSelect(sourceBackupRepositorySelectId, () => ({
       label: t('source-backup-repository'),
     })),

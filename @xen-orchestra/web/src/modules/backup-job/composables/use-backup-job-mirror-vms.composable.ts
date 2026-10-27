@@ -87,7 +87,7 @@ export function useBackupJobMirrorVms(
   return {
     mirrorVms,
     mirrorVmSchema,
-    areMirrorVmsReady: areBackupArchivesReady,
+    areMirrorVmsReady: computed(() => backupRepositoryId.value === undefined || areBackupArchivesReady.value),
     toPreviewItems,
   }
 }

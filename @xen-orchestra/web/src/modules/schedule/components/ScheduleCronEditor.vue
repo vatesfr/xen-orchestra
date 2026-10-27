@@ -136,7 +136,7 @@ const monthOptions = computed<ScheduleCronCardOption[]>(() => {
 
   return Array.from({ length: 12 }, (_, month) => ({
     label: format.format(Date.UTC(2024, month, 1)),
-    value: month + 1,
+    value: month,
   }))
 })
 
