@@ -1,108 +1,85 @@
-/// <reference path="../types/promise-toolbox.d.ts" />
-
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { strictEqual } from 'node:assert'
-import pTimeout from 'promise-toolbox/timeout'
 
 const PLUGIN_NAME = 'sdncontroller.py'
 
-// The plugin installs or removes a few flows, in milliseconds. A host silent for 30 s is hung,
-// not slow: the call fails, and releases the network lock every other rule change on this
-// network waits for. xen-api's default of an hour would hold that lock for as long.
-const CALL_PLUGIN_TIMEOUT = 30e3
-
 const log = createLogger('xo:sdn-controller:openflowplugin')
-
-// Not failures: an offline host restarts without any flow. A network rule builds no flow on a
-// host where its network has no VIF (sdncontroller.py's E_PORTS, code '4'), and is saved anyway,
-// as in the legacy code. A VIF rule always has its MAC, so the plugin builds it on every host:
-// a '4' from it is a real failure.
-/**
- * @param {import('./traffic-rules.js').Owner} owner
- * @param {unknown} error
- */
-function isIgnored(owner, error) {
-  if (!(error instanceof Error) || !('code' in error)) {
-    return false
-  }
-  return error.code === 'HOST_OFFLINE' || (error.code === '4' && owner.$type !== 'VIF')
-}
-
 export class OpenFlowPlugin {
   #getBridge(network) {
     return network.bridge // following discussion with David, it may not be the right bridge
     // the plugin may need the bridge name on dom0 sides
   }
 
-  // Runs a sdncontroller.py method on every host with a PIF on the network. A VIF rule matches its
-  // MAC on the whole bridge, so it is on every host too, and keeps applying while its VM migrates.
-  /**
-   * @param {import('./traffic-rules.js').Owner} owner
-   * @param {'add-rule' | 'del-rule'} method
-   * @param {import('./traffic-rules.js').Rule} rule
-   * @param {Record<string, string>} extraArgs
-   */
-  #callPluginOnAllNetwork(owner, method, rule, extraArgs) {
-    const network = owner.$type === 'VIF' ? owner.$network : owner
-    // the plugin takes strings, and no key for a missing value
-    /** @type {Record<string, string>} */
-    const args = {
-      bridge: this.#getBridge(network),
-      protocol: rule.protocol,
-      ipRange: rule.ipRange,
-      direction: rule.direction,
-    }
-    if (owner.$type === 'VIF') {
-      args.mac = owner.MAC
-    }
-    if (rule.port !== undefined) {
-      args.port = String(rule.port)
-    }
+  async #callPluginOnAllNetwork(network, method, parameters) {
+    const bridge = this.#getBridge(network)
     return asyncEach(
       network.$PIFs,
-      async ({ $host: host }) => {
-        try {
-          await pTimeout.call(
-            host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...args, ...extraArgs }),
-            CALL_PLUGIN_TIMEOUT
-          )
-        } catch (error) {
-          if (!isIgnored(owner, error)) {
-            throw error
-          }
-          log.info('sdncontroller.py failure ignored', {
-            method,
-            host: host.uuid,
-            network: network.uuid,
-            vif: owner.$type === 'VIF' ? owner.uuid : undefined,
-            rule,
-            error,
-          })
-        }
+      async PIF => {
+        const host = PIF.$host
+        return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
       },
       { stopOnError: false }
     )
   }
 
-  // `args` holds `allow`, `priority` and the `cookie` of the rule, see traffic-rules.js
-  /**
-   * @param {import('./traffic-rules.js').Owner} owner the network or the VIF of the rule
-   * @param {import('./traffic-rules.js').Rule} rule
-   * @param {Record<string, string>} args
-   */
-  addRule(owner, rule, args) {
-    return this.#callPluginOnAllNetwork(owner, 'add-rule', rule, args)
+  async addRule({ vif, allow, protocol, ipRange, direction, port }) {
+    if (port) {
+      port = String(port)
+    }
+    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
+      mac: vif.MAC,
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+    })
   }
 
-  // `args` holds the `cookie` of the rule, if any, see traffic-rules.js
-  /**
-   * @param {import('./traffic-rules.js').Owner} owner the network or the VIF of the rule
-   * @param {import('./traffic-rules.js').Rule} rule
-   * @param {Record<string, string>} args
-   */
-  deleteRule(owner, rule, args) {
-    return this.#callPluginOnAllNetwork(owner, 'del-rule', rule, args)
+  async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
+    if (port) {
+      port = String(port)
+    }
+    log.debug('deleteRule', { vif, allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(vif.$network, 'del-rule', {
+      mac: vif.MAC,
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+    })
+  }
+
+  async addNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
+    if (port) {
+      port = String(port)
+    }
+    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
+    return this.#callPluginOnAllNetwork(network, 'add-rule', {
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+      cookie,
+    })
+  }
+  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
+    if (port) {
+      port = String(port)
+    }
+    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
+    return this.#callPluginOnAllNetwork(network, 'del-rule', {
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+      cookie,
+    })
   }
 
   async check(host) {

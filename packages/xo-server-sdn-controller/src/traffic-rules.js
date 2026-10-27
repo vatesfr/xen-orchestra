@@ -1,13 +1,13 @@
 // @ts-check
 /// <reference path="../types/decorator-synchronized.d.ts" />
+/// <reference path="../types/promise-toolbox.d.ts" />
 
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 import { createHash, randomBytes } from 'crypto'
+import pTimeout from 'promise-toolbox/timeout'
 import { synchronized } from 'decorator-synchronized'
-
-import { OpenFlowPlugin } from './openflow-plugin.js'
 
 // TypeScript reads this Babel package as CommonJS, and `@vates/types` is ESM
 /**
@@ -70,8 +70,12 @@ import { OpenFlowPlugin } from './openflow-plugin.js'
 
 const log = createLogger('xo:sdn-controller:traffic-rules')
 
-// It keeps no state: one serves every network
-const plugin = new OpenFlowPlugin()
+const PLUGIN_NAME = 'sdncontroller.py'
+
+// The plugin installs or removes a few flows, in milliseconds. A host silent for 30 s is hung,
+// not slow: the call fails, and releases the network lock every other rule change on this
+// network waits for. xen-api's default of an hour would hold that lock for as long.
+const CALL_PLUGIN_TIMEOUT = 30e3
 
 // `SDN_CONTROLLER_OF_RULES_KEY` of `@vates/types`, a value TypeScript does not
 // let this file import, for the same reason as above
@@ -92,6 +96,21 @@ const MAX_PRIORITY = 65535
 // to the middle of its neighbours'.
 const FIRST_PRIORITY = 60000
 const APPEND_STEP = 5
+
+// Not failures: an offline host restarts without any flow. A network rule builds no flow on a
+// host where its network has no VIF (sdncontroller.py's E_PORTS, code '4'), and is saved anyway,
+// as in the legacy code. A VIF rule always has its MAC, so the plugin builds it on every host:
+// a '4' from it is a real failure.
+/**
+ * @param {Owner} owner
+ * @param {unknown} error
+ */
+function isIgnored(owner, error) {
+  if (!(error instanceof Error) || !('code' in error)) {
+    return false
+  }
+  return error.code === 'HOST_OFFLINE' || (error.code === '4' && owner.$type !== 'VIF')
+}
 
 /**
  * @param {Owner} owner
@@ -230,6 +249,16 @@ async function writeRules(owner, rules) {
   }
 }
 
+// A rank, as the API takes it. Exported for the REST API, which checks it before its task starts.
+/**
+ * @param {number} priority
+ */
+export function checkPriorityValue(priority) {
+  if (!Number.isInteger(priority) || priority < 1) {
+    throw invalidParameters(`traffic rule priority must be an integer from 1, which applies first, not ${priority}`)
+  }
+}
+
 // The distinct OpenFlow priorities of `rules`, highest first. With `legacy`, those
 // of rules from before priorities count as LAST_PRIORITY.
 /**
@@ -339,6 +368,51 @@ function liveRules(entries) {
   return entries.flatMap(({ rules, live }) => (live ? rules : []))
 }
 
+// Runs a sdncontroller.py method on every host with a PIF on the network. A VIF rule matches its
+// MAC on the whole bridge, so it is on every host too, and keeps applying while its VM migrates.
+/**
+ * @param {Owner} owner
+ * @param {'add-rule' | 'del-rule'} method
+ * @param {Rule} rule
+ * @param {Record<string, string>} extraArgs
+ */
+function callPlugin(owner, method, rule, extraArgs) {
+  const network = networkOf(owner)
+  // the plugin takes strings, and no key for a missing value
+  /** @type {Record<string, string>} */
+  const args = { bridge: network.bridge, protocol: rule.protocol, ipRange: rule.ipRange, direction: rule.direction }
+  if (owner.$type === 'VIF') {
+    args.mac = owner.MAC
+  }
+  if (rule.port !== undefined) {
+    args.port = String(rule.port)
+  }
+  return asyncEach(
+    network.$PIFs,
+    async ({ $host: host }) => {
+      try {
+        await pTimeout.call(
+          host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...args, ...extraArgs }),
+          CALL_PLUGIN_TIMEOUT
+        )
+      } catch (error) {
+        if (!isIgnored(owner, error)) {
+          throw error
+        }
+        log.info('sdncontroller.py failure ignored', {
+          method,
+          host: host.uuid,
+          network: network.uuid,
+          vif: owner.$type === 'VIF' ? owner.uuid : undefined,
+          rule,
+          error,
+        })
+      }
+    },
+    { stopOnError: false }
+  )
+}
+
 // add-rule first deletes the flows carrying the rule's cookie: the same call
 // installs a rule, and moves it to another priority or match
 /**
@@ -354,7 +428,7 @@ function addFlows(owner, rule) {
     args.cookie = cookie
   }
   args.priority = String(rule.ofPriority ?? LAST_PRIORITY)
-  return plugin.addRule(owner, rule, args)
+  return callPlugin(owner, 'add-rule', rule, args)
 }
 
 // With a cookie, del-rule deletes exactly the flows carrying it
@@ -364,7 +438,7 @@ function addFlows(owner, rule) {
  */
 function deleteFlows(owner, rule) {
   const cookie = cookieOf(owner, rule)
-  return plugin.deleteRule(owner, rule, cookie === undefined ? {} : { cookie })
+  return callPlugin(owner, 'del-rule', rule, cookie === undefined ? {} : { cookie })
 }
 
 // TODO: remove when Node >=15.0, as in `@xen-orchestra/xapi/_AggregateError.mjs`
@@ -490,17 +564,6 @@ export class TrafficRules {
   #withLock = synchronized.withKey((/** @type {Owner} */ owner) => networkOf(owner).$id)((owner, fn) =>
     fn(owner.$xapi.getObjectByRef(owner.$ref))
   )
-
-  // A rank, as the API takes it: from 1, which applies first. The REST API checks it before its
-  // task starts, so that an async call gets its 422 too.
-  /**
-   * @param {number | null | undefined} priority
-   */
-  checkPriority(priority) {
-    if (priority != null && (!Number.isInteger(priority) || priority < 1)) {
-      throw invalidParameters(`traffic rule priority must be an integer from 1, which applies first, not ${priority}`)
-    }
-  }
 
   // A rule with the same match on the same owner only gets the new action, and moves to the new
   // rank. Without one it keeps its place (XO 5 knows nothing of priorities), and a new rule goes
@@ -645,7 +708,7 @@ export class TrafficRules {
           const options = { concurrency: 4 }
           await asyncEach(
             rules.filter(rule => legacy.has(rule)),
-            rule => plugin.deleteRule(owner, rule, {}),
+            rule => callPlugin(owner, 'del-rule', rule, {}),
             options
           )
           await writeRules(owner, rules)
@@ -676,13 +739,6 @@ export class TrafficRules {
       }
     )
   }
-
-  // A VIF is being unplugged, or its VM migrated, rebooted or halted: its rules stay
-  // until vifDetached, once it is down
-  /**
-   * @param {Vif} vif
-   */
-  async vifDetaching(vif) {}
 
   // A VIF was unplugged, or its VM halted: its rules go until it is back, and the
   // network rules drop its port. A migration or a reboot keeps them.
