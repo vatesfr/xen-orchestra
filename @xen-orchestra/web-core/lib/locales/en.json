@@ -1123,6 +1123,7 @@
   "firewall:publish:fix-errors": "Fix these errors in the draft before publishing.",
   "firewall:publish:hosts-stale-agent": "The VDF agent on {hosts} isn't reporting (stopped or stuck): VMs running there keep the policy it last applied, or have none if they started or arrived since. | The VDF agents on {hosts} aren't reporting (stopped or stuck): VMs running there keep the policy their agent last applied, or have none if they started or arrived since.",
   "firewall:publish:hosts-without-agent": "Host {hosts} has no VDF agent: VMs running there have no firewall policy, and won't get this one. | Hosts {hosts} have no VDF agent: VMs running there have no firewall policy, and won't get this one.",
+  "firewall:publish:in-pool": "{pool}: {text}",
   "firewall:publish:in-progress": "Publishing in progress…",
   "firewall:publish:monitor-blind": "Monitor mode",
   "firewall:publish:outdated": "Someone published since this draft started. Rebase it onto their changes first: publishing it as is would undo them.",

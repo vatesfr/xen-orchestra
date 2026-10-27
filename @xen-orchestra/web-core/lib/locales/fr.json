@@ -1123,6 +1123,7 @@
   "firewall:publish:fix-errors": "Corrigez ces erreurs dans le brouillon avant de publier.",
   "firewall:publish:hosts-stale-agent": "L'agent VDF de {hosts} ne rend plus compte (arrêté ou bloqué) : les VMs qui y tournent gardent la politique qu'il a appliquée en dernier, ou n'en ont aucune si elles ont démarré ou sont arrivées depuis. | Les agents VDF de {hosts} ne rendent plus compte (arrêtés ou bloqués) : les VMs qui y tournent gardent la politique que leur agent a appliquée en dernier, ou n'en ont aucune si elles ont démarré ou sont arrivées depuis.",
   "firewall:publish:hosts-without-agent": "L'hôte {hosts} n'a pas d'agent VDF : les VMs qui y tournent n'ont aucune politique de pare-feu, et n'auront pas celle-ci. | Les hôtes {hosts} n'ont pas d'agent VDF : les VMs qui y tournent n'ont aucune politique de pare-feu, et n'auront pas celle-ci.",
+  "firewall:publish:in-pool": "{pool} : {text}",
   "firewall:publish:in-progress": "Publication en cours…",
   "firewall:publish:monitor-blind": "Mode observation",
   "firewall:publish:outdated": "Quelqu'un a publié depuis le début de ce brouillon. Mettez-le d'abord à jour avec ses modifications : le publier tel quel les annulerait.",

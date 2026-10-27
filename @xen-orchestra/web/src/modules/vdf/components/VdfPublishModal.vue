@@ -40,20 +40,29 @@
           </template>
         </section>
 
-        <!-- vdf#86: monitored policies an enforced policy decides first for -->
-        <section v-if="newShadowNotes.length > 0" class="section">
-          <h3 class="typo-body-bold">{{ t('firewall:publish:monitor-blind') }}</h3>
-          <template v-for="note of newShadowNotes" :key="note.key">
-            <span v-if="note.pool !== undefined" class="typo-body-bold-small pool-name">{{ note.pool }}</span>
-            <UiInfo accent="warning" wrap>{{ note.text }}</UiInfo>
-          </template>
-        </section>
-
-        <section v-if="warnings.length > 0" class="section">
+        <!-- every warning in one place, dangers first; a global policy's links to where it's edited -->
+        <section v-if="allWarnings.length > 0" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:warnings') }}</h3>
-          <UiInfo v-for="warning of warnings" :key="warning.key" accent="warning" wrap>{{ warning.text }}</UiInfo>
+          <div v-for="warning of allWarnings" :key="warning.key" class="warning">
+            <UiInfo v-tooltip="warning.tooltip ?? false" :accent="warning.accent" wrap>
+              {{
+                warning.pool === undefined
+                  ? warning.text
+                  : t('firewall:publish:in-pool', { pool: warning.pool, text: warning.text })
+              }}
+            </UiInfo>
+            <UiLink
+              v-if="warning.globalPolicy !== undefined"
+              size="small"
+              icon="fa:globe"
+              :to="vdfGlobalRoute('policies', { policy: warning.globalPolicy })"
+            >
+              {{ t('firewall:global:edit-xo-wide') }}
+            </UiLink>
+          </div>
         </section>
 
+        <!-- one line per pool: valid, rejected, checking -->
         <section v-if="!shown.isOutdated" class="section">
           <h3 class="typo-body-bold">{{ t('firewall:publish:validation') }}</h3>
           <UiInfo v-if="checkResult === undefined && checkError === undefined" accent="muted">
@@ -86,23 +95,6 @@
               <UiInfo v-else accent="danger" wrap>
                 {{ t('firewall:publish:validation-failed', { error: pool.error }) }}
               </UiInfo>
-              <UiInfo
-                v-for="warning of newAgentWarnings(pool.warnings, pool.id)"
-                :key="warning.raw"
-                v-tooltip="warning.tooltip"
-                accent="warning"
-                wrap
-              >
-                {{ warning.text }}
-              </UiInfo>
-              <template v-if="!pool.skipped && !pool.unreachable">
-                <UiInfo v-for="note of hostNotes[pool.id] ?? []" :key="note.key" accent="warning" wrap>
-                  {{ note.text }}
-                </UiInfo>
-              </template>
-              <UiInfo v-for="note of overriddenPerPool[pool.id] ?? []" :key="note.key" accent="warning" wrap>
-                {{ note.text }}
-              </UiInfo>
             </div>
           </template>
           <template v-else-if="checkResult !== undefined">
@@ -121,20 +113,6 @@
             </UiInfo>
             <UiInfo v-else accent="danger" wrap>
               {{ t('firewall:publish:validation-failed', { error: checkResult.error }) }}
-            </UiInfo>
-            <UiInfo
-              v-for="warning of newAgentWarnings(checkResult.warnings)"
-              :key="warning.raw"
-              v-tooltip="warning.tooltip"
-              accent="warning"
-              wrap
-            >
-              {{ warning.text }}
-            </UiInfo>
-          </template>
-          <template v-if="!isGlobalScope(shown.scopeId)">
-            <UiInfo v-for="note of hostNotes[shown.scopeId] ?? []" :key="note.key" accent="warning" wrap>
-              {{ note.text }}
             </UiInfo>
           </template>
         </section>
@@ -199,9 +177,11 @@ import {
 import {
   composeWithGlobal,
   displayName,
-  ruleNumber,
   inGlobalScope,
+  isGlobalName,
   isGlobalScope,
+  ruleNumber,
+  vdfGlobalRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import {
   aloneSince,
@@ -222,6 +202,7 @@ import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmB
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger.ts'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
@@ -299,6 +280,8 @@ function overriddenIn(document: VdfDocument, poolId: string) {
 
   return overriddenDefaults(document, sharedVms).map(item => ({
     key: `overridden:${item.policy}:${item.global}:${item.egress}`,
+    // the global policy whose default decides: edited in the global firewall
+    policy: item.global,
     text: t(
       item.egress
         ? 'firewall:publish:warning:overridden-egress-default'
@@ -391,7 +374,7 @@ const trafficRuleWarnings = computed(() => {
 // of the pool's live stats)
 const openConnections = ref<Map<number, number>>()
 
-const warnings = computed(() => [
+const warnings = computed<(Note & { policy?: string })[]>(() => [
   ...publishWarnings(details.value, {
     memberCount,
     openConnections: id => openConnections.value?.get(id),
@@ -415,6 +398,7 @@ const warnings = computed(() => [
 
     return {
       key: `${warning.type}:${warning.policy}`,
+      policy: warning.policy,
       text: t(`firewall:publish:warning:${warning.type}`, { policy, group: displayName(warning.group) }),
     }
   }),
@@ -615,6 +599,84 @@ const hostNotes = computed(() => {
   )
 })
 
+// EVERY WARNING, in one list: the draft's own, the monitored policies it
+// leaves blind (vdf#86), the agents' (pool by pool for a global publish),
+// the hosts it doesn't reach (danger: their VMs get nothing), the defaults
+// a global policy overrides. Dangers first. In a pool, one about a global
+// policy links to the global firewall: the pool can't edit it.
+type Warning = {
+  key: string
+  text: string
+  accent: 'danger' | 'warning'
+  pool?: string
+  tooltip?: string
+  globalPolicy?: string
+}
+
+const inPool = computed(() => !isGlobalScope(shown.value.scopeId))
+
+const globalOf = (policy: string | undefined) =>
+  inPool.value && policy !== undefined && isGlobalName(policy) ? policy : undefined
+
+const poolNames = computed(() => new Map((checkResult.value?.pools ?? []).map(pool => [pool.id, pool.name] as const)))
+
+const allWarnings = computed<Warning[]>(() => {
+  const agent =
+    checkResult.value?.pools !== undefined
+      ? checkResult.value.pools.flatMap(pool =>
+          newAgentWarnings(pool.warnings, pool.id).map(warning => ({
+            key: `agent:${pool.id}:${warning.raw}`,
+            text: warning.text,
+            tooltip: warning.tooltip,
+            pool: pool.name,
+            accent: 'warning' as const,
+            globalPolicy: globalOf(warning.policy),
+          }))
+        )
+      : newAgentWarnings(checkResult.value?.warnings).map(warning => ({
+          key: `agent:${warning.raw}`,
+          text: warning.text,
+          tooltip: warning.tooltip,
+          accent: 'warning' as const,
+          globalPolicy: globalOf(warning.policy),
+        }))
+  const hosts = Object.entries(hostNotes.value).flatMap(([poolId, notes]) =>
+    (checkResult.value?.pools ?? []).some(pool => pool.id === poolId && (pool.skipped || pool.unreachable))
+      ? []
+      : notes.map(note => ({
+          key: `hosts:${poolId}:${note.key}`,
+          text: note.text,
+          pool: inPool.value ? undefined : poolNames.value.get(poolId),
+          accent: 'danger' as const,
+        }))
+  )
+  const all: Warning[] = [
+    ...hosts,
+    ...newShadowNotes.value.map(note => ({
+      key: note.key,
+      text: note.text,
+      pool: note.pool,
+      accent: 'warning' as const,
+    })),
+    ...warnings.value.map(({ policy, ...warning }) => ({
+      ...warning,
+      accent: 'warning' as const,
+      globalPolicy: globalOf(policy),
+    })),
+    ...agent,
+    ...Object.entries(overriddenPerPool.value).flatMap(([poolId, notes]) =>
+      notes.map(note => ({
+        key: `${poolId}:${note.key}`,
+        text: note.text,
+        pool: poolNames.value.get(poolId),
+        accent: 'warning' as const,
+      }))
+    ),
+  ]
+
+  return [...all.filter(warning => warning.accent === 'danger'), ...all.filter(warning => warning.accent !== 'danger')]
+})
+
 const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
@@ -646,7 +708,7 @@ function confirm() {
 // (the agent's check of it, XO's own notes on it) is told once, folded,
 // rather than in every review (vdf#86 walkthrough)
 
-type Note = { key: string; text: string }
+type Note = { key: string; text: string; policy?: string }
 
 function splitKnown(notes: Note[], before: Note[]) {
   const known = new Set(before.map(note => note.key))
@@ -706,7 +768,7 @@ function agentWarnings(raws: string[] | undefined) {
     const warning = parseAgentWarning(raw)
 
     if (warning === undefined) {
-      return { raw, text: raw, tooltip: undefined }
+      return { raw, text: raw, tooltip: undefined, policy: undefined }
     }
 
     const params: Record<string, unknown> = { ...warning }
@@ -731,7 +793,13 @@ function agentWarnings(raws: string[] | undefined) {
       params.max = n(warning.max)
     }
 
-    return { raw, text: t(`firewall:publish:agent-warning:${warning.type}`, params), tooltip: raw }
+    return {
+      raw,
+      text: t(`firewall:publish:agent-warning:${warning.type}`, params),
+      tooltip: raw,
+      // the policy it's about, as the document names it
+      policy: 'policy' in warning ? warning.policy : undefined,
+    }
   })
 }
 
