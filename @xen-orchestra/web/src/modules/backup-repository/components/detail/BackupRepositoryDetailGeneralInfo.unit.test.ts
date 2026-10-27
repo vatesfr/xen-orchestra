@@ -2,7 +2,7 @@ import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/compo
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoProxy } from '@vates/types'

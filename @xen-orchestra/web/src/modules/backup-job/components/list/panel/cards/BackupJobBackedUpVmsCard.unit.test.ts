@@ -4,7 +4,7 @@ import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-res
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
