@@ -3,10 +3,14 @@
     <th :colspan="columns" scope="rowgroup" class="cell">
       <div class="content">
         <div class="title">
-          <span :class="isEmpty ? 'typo-body-regular' : 'typo-body-bold'">{{ label }}</span>
-          <code v-tooltip="t('firewall:tier:order', { n: tier.value })" class="order typo-body-regular-small">
-            {{ tier.value }}
-          </code>
+          <!-- its evaluation order in a tooltip: the name says it -->
+          <span
+            v-tooltip="t('firewall:tier:order', { n: tier.value })"
+            :class="isEmpty ? 'typo-body-regular' : 'typo-body-bold'"
+            tabindex="0"
+          >
+            {{ label }}
+          </span>
           <UiTag
             v-if="reserved"
             v-tooltip="t('firewall:tier:reserved:info')"
@@ -23,7 +27,9 @@
         </div>
         <div class="actions">
           <span v-if="!isEmpty" class="default typo-body-regular-small">
-            <span class="secondary">{{ t('firewall:tier-default') }}</span>
+            <span v-tooltip="t('firewall:tier-default:info')" class="secondary" tabindex="0">
+              {{ t('firewall:tier-default') }}
+            </span>
             <VdfActionTag :action="tier.default" is-default />
           </span>
           <UiButton
@@ -120,13 +126,6 @@ const isEmpty = computed(() => tier.policies.length === 0)
   .actions {
     gap: 1.6rem;
     margin-inline-start: auto;
-  }
-
-  .order {
-    padding-inline: 0.4rem;
-    border: 0.1rem solid var(--color-neutral-border);
-    border-radius: 0.4rem;
-    color: var(--color-neutral-txt-secondary);
   }
 
   .secondary {
