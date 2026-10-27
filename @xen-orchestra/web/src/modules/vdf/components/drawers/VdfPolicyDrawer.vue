@@ -16,10 +16,6 @@
           />
         </VtsInputWrapper>
 
-        <VtsInputWrapper :label="t('firewall:tier')" :message="tierMessages" wrap-message>
-          <VtsSelect :id="tierSelectId" accent="brand" />
-        </VtsInputWrapper>
-
         <UiAlert v-if="groups.length === 0" accent="info">
           {{ t('firewall:policy-form:no-group') }}
           <template #description>
@@ -34,7 +30,6 @@
             </UiButton>
           </template>
         </UiAlert>
-
         <VtsInputWrapper :label="t('firewall:applied-to')" :message="appliedToMessages" wrap-message>
           <VtsSelect :id="appliedToSelectId" accent="brand">
             <template #default="{ option }">
@@ -49,29 +44,9 @@
           </VtsSelect>
         </VtsInputWrapper>
 
-        <UiRadioButtonGroup :label="t('firewall:policy-form:default')" accent="brand" gap="wide">
-          <UiRadioButton v-for="action of defaults" :key="action" v-model="form.default" :value="action" accent="brand">
-            <VdfActionTag :action is-default />
-          </UiRadioButton>
-        </UiRadioButtonGroup>
-        <UiInfo v-if="defaultWarning" accent="warning" wrap>{{ defaultWarning }}</UiInfo>
-        <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:default:${form.default}`) }}</UiInfo>
-
-        <UiRadioButtonGroup :label="t('firewall:policy-form:egress-default')" accent="brand" gap="wide">
-          <UiRadioButton
-            v-for="action of egressDefaults"
-            :key="action"
-            v-model="form.egressDefault"
-            :value="action"
-            accent="brand"
-          >
-            <VdfActionTag :action is-default />
-          </UiRadioButton>
-        </UiRadioButtonGroup>
-        <UiInfo v-if="egressDefaultWarning" accent="warning" wrap>{{ egressDefaultWarning }}</UiInfo>
-        <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:egress-default:${form.egressDefault}`) }}</UiInfo>
-
-        <UiToggle v-model="form.logDefault">{{ t('firewall:policy-form:log-default') }}</UiToggle>
+        <VtsInputWrapper :label="t('firewall:tier')" :message="tierMessages" wrap-message>
+          <VtsSelect :id="tierSelectId" accent="brand" />
+        </VtsInputWrapper>
 
         <UiRadioButtonGroup :label="t('firewall:policy-form:mode')" accent="brand" gap="wide">
           <UiRadioButton v-for="mode of modes" :key="mode" v-model="form.mode" :value="mode" accent="brand">
@@ -81,6 +56,38 @@
         <UiInfo :accent="form.mode === 'monitor' ? 'info' : 'muted'" wrap>
           {{ t(`firewall:policy-form:mode:${form.mode}`) }}
         </UiInfo>
+
+        <UiRadioButtonGroup :label="t('firewall:policy-form:default')" accent="brand" gap="wide">
+          <UiRadioButton v-for="action of defaults" :key="action" v-model="form.default" :value="action" accent="brand">
+            <VdfActionTag :action is-default />
+          </UiRadioButton>
+        </UiRadioButtonGroup>
+        <UiInfo v-if="defaultWarning" accent="warning" wrap>{{ defaultWarning }}</UiInfo>
+        <UiInfo v-else accent="muted" wrap>{{ t(`firewall:policy-form:default:${form.default}`) }}</UiInfo>
+
+        <!-- what the default drops, logged: a checkbox, as XO's forms have, shown when a default drops -->
+        <UiCheckbox v-if="isLogShown" v-model="form.logDefault" accent="brand">
+          {{ t('firewall:policy-form:log-default') }}
+        </UiCheckbox>
+
+        <!-- most policies are inbound only: the outbound default out of the way unless it's set -->
+        <VdfTechnicalDetails :label="t('firewall:policy-form:outbound')" :open="isOutboundOpen">
+          <UiRadioButtonGroup :label="t('firewall:policy-form:egress-default')" accent="brand" gap="wide">
+            <UiRadioButton
+              v-for="action of egressDefaults"
+              :key="action"
+              v-model="form.egressDefault"
+              :value="action"
+              accent="brand"
+            >
+              <VdfActionTag :action is-default />
+            </UiRadioButton>
+          </UiRadioButtonGroup>
+          <UiInfo v-if="egressDefaultWarning" accent="warning" wrap>{{ egressDefaultWarning }}</UiInfo>
+          <UiInfo v-else accent="muted" wrap>
+            {{ t(`firewall:policy-form:egress-default:${form.egressDefault}`) }}
+          </UiInfo>
+        </VdfTechnicalDetails>
       </div>
     </template>
 
@@ -95,6 +102,7 @@
 </template>
 
 <script lang="ts" setup>
+import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import type { VdfGroupOption } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
@@ -116,12 +124,12 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { omit } from 'lodash-es'
@@ -156,8 +164,9 @@ const title = computed(() =>
 
 const defaults: VdfDefaultAction[] = ['drop', 'allow', 'pass']
 
-// what the VMs may reach (vdf#53): next tier unless a policy says otherwise
-const egressDefaults: VdfDefaultAction[] = ['pass', 'drop', 'allow']
+// what the VMs may reach (vdf#53): next tier unless a policy says
+// otherwise; the same order as the inbound default's
+const egressDefaults: VdfDefaultAction[] = ['drop', 'allow', 'pass']
 
 // monitor: the normal start for a new policy (vdf#13)
 const modes: VdfPolicyMode[] = ['monitor', 'enforce']
@@ -171,6 +180,12 @@ const form = reactive({
   egressDefault: policy.egressDefault ?? 'pass',
   mode: (policy.mode === 'monitor' ? 'monitor' : 'enforce') as VdfPolicyMode,
 })
+
+// a default (inbound or outbound) that drops: what it drops can be logged
+const isLogShown = computed(() => form.default === 'drop' || form.egressDefault === 'drop')
+
+// open when the policy has an outbound default or outbound rules
+const isOutboundOpen = (policy.egressDefault ?? 'pass') !== 'pass' || (policy.egress ?? []).length > 0
 
 const { useField, useFormSelect, useSelect, validate } = useValidatedForm(form, {
   errors: {
@@ -341,7 +356,8 @@ async function submit(addRule = false) {
     next.tier = tier
   }
 
-  if (form.logDefault) {
+  // only when a default drops: there is nothing else to log
+  if (form.logDefault && isLogShown.value) {
     next.logDefault = true
   }
 

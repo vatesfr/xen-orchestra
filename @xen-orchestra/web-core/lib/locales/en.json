@@ -1091,6 +1091,7 @@
   "firewall:policy-form:name:taken": "Another policy has this name",
   "firewall:policy-form:new": "New policy",
   "firewall:policy-form:no-group": "A policy protects a group of VMs, chosen by their tags. No group has tags yet: create one.",
+  "firewall:policy-form:outbound": "Outbound traffic",
   "firewall:policy-form:save-and-add-rule": "Save and add rule",
   "firewall:policy-form:tier:reserved": "The global configuration applies to this pool: Emergency and Security ops are kept for its policies. Choose Network ops or a later tier.",
   "firewall:policy-form:tier:reserved-info": "Emergency and Security ops aren't offered: the global configuration applies to this pool, and they're kept for its policies.",

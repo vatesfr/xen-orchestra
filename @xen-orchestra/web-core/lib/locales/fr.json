@@ -1091,6 +1091,7 @@
   "firewall:policy-form:name:taken": "Une autre politique porte déjà ce nom",
   "firewall:policy-form:new": "Nouvelle politique",
   "firewall:policy-form:no-group": "Une politique protège un groupe de VMs, choisies par leurs tags. Aucun groupe n'a encore de tags : créez-en un.",
+  "firewall:policy-form:outbound": "Trafic sortant",
   "firewall:policy-form:save-and-add-rule": "Enregistrer et ajouter une règle",
   "firewall:policy-form:tier:reserved": "La configuration globale s'applique à ce pool : Urgence et Opérations sécurité sont réservés à ses politiques. Choisissez Opérations réseau ou un niveau suivant.",
   "firewall:policy-form:tier:reserved-info": "Urgence et Opérations sécurité ne sont pas proposés : la configuration globale s'applique à ce pool, et ils sont réservés à ses politiques.",

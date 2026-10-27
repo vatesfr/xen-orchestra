@@ -26,8 +26,10 @@ import { useI18n } from 'vue-i18n'
 
 // Ids, hashes and Open vSwitch internals: there for admins who need them,
 // out of the way otherwise.
-defineProps<{
+const { open = false } = defineProps<{
   label?: string
+  // open at first
+  open?: boolean
 }>()
 
 defineSlots<{
@@ -36,7 +38,7 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const isOpen = ref(false)
+const isOpen = ref(open)
 
 const contentId = useId()
 </script>
