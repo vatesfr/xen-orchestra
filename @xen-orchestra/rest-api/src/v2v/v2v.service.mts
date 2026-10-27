@@ -2,13 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { Task } from '@vates/task'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import {
-  V2V_ERROR_CODE,
-  type EsxiConnectionParams,
-  type VmwareInventory,
-  type XoPool,
-  type XoV2vStatus,
-} from '@vates/types'
+import { V2V_ERROR_CODE, type EsxiConnectionParams, type VmwareInventory, type XoV2vStatus } from '@vates/types'
 
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -65,9 +59,6 @@ export class V2vService {
    * Everything is checked before the task is created: a refused launch imports nothing
    */
   async prepareStart(body: V2vStartBody): Promise<V2vVmPlan[]> {
-    // the pool has to exist
-    this.#restApi.getObject<XoPool>(body.pool as XoPool['id'], 'pool')
-
     const { vms } = await this.#readSourceInventory(body.connection)
 
     const { plans, problems } = planMigration(body, new Map(vms.map(vm => [vm.id, vm])))
