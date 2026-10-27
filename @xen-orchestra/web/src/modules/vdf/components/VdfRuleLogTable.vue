@@ -186,8 +186,9 @@ const logSince = computed(() => {
 })
 
 const logSeries = computed(() => {
-  // a single minute isn't a trend: the table says it all
-  if (logSince.value === undefined || Date.now() - logSince.value < 2 * LOG_BUCKET_MS) {
+  // a single minute isn't a trend: the table says it all; nothing logged
+  // (UX P3-6): no empty chart, the table's empty state says it
+  if (logSince.value === undefined || Date.now() - logSince.value < 2 * LOG_BUCKET_MS || rows.value.length === 0) {
     return undefined
   }
 

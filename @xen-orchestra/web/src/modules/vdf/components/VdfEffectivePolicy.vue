@@ -2,7 +2,8 @@
   <div class="vdf-effective-policy">
     <UiAlert v-if="quarantined" accent="danger">{{ t('firewall:vm:quarantine-overrides') }}</UiAlert>
     <VtsStateHero v-if="tiers.length === 0" format="card" type="no-data" size="small" horizontal>
-      {{ t('firewall:vm:no-policy') }}
+      <!-- the status above says what it means (UX P3-6) -->
+      {{ t('firewall:vm:no-policy:short') }}
     </VtsStateHero>
     <ol v-else class="tiers">
       <li v-for="tier of tiers" :key="tier.value" class="tier">

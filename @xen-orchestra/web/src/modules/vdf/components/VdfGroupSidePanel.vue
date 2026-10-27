@@ -74,7 +74,7 @@
             </UiButton>
           </template>
         </UiPanelCardTitle>
-        <UiInfo v-if="group.tags?.length" accent="warning" wrap>{{ t('firewall:membership:applies-now') }}</UiInfo>
+        <UiInfo v-if="group.tags?.length" accent="info" wrap>{{ t('firewall:membership:applies-now') }}</UiInfo>
         <UiAlert v-if="tagError" accent="danger" close @close="emit('dismissError')">
           {{ t('firewall:tags:error') }}
           <template #description>{{ tagError }}</template>
