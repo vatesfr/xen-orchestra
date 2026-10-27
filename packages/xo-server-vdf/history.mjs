@@ -81,4 +81,67 @@ export function appendEntry(entries, entry, max = HISTORY_LENGTH) {
 // the history list goes without the documents
 export const listEntry = ({ document, ...entry }) => entry
 
+const rulesByPolicy = document => new Map((document?.policies ?? []).map(policy => [policy.name, policy]))
+
+// What a publish changed, object by object, for the history list (UX
+// P2-10): each policy added, removed, or modified (its rules added,
+// removed, modified, and whether its settings changed), each group added,
+// removed or modified, policies first; at most `max`, the rest counted.
+export function describeChanges(previous, next, max = 4) {
+  const items = []
+  const before = rulesByPolicy(previous)
+  const after = rulesByPolicy(next)
+  for (const [name, policy] of after) {
+    const old = before.get(name)
+    if (old === undefined) {
+      items.push({ kind: 'policy', name, change: 'added' })
+      continue
+    }
+    const rules = countChanges(rulesOf({ policies: [old] }), rulesOf({ policies: [policy] }))
+    const { ingress: _a, egress: _b, ...settings } = policy
+    const { ingress: _c, egress: _d, ...oldSettings } = old
+    const settingsChanged = !isDeepStrictEqual(settings, oldSettings)
+    if (rules.added + rules.removed + rules.modified > 0 || settingsChanged) {
+      items.push({ kind: 'policy', name, change: 'modified', rules, settings: settingsChanged })
+    }
+  }
+  for (const name of before.keys()) {
+    if (!after.has(name)) {
+      items.push({ kind: 'policy', name, change: 'removed' })
+    }
+  }
+  const groupsBefore = groupsOf(previous)
+  for (const [name, group] of groupsOf(next)) {
+    if (!groupsBefore.has(name)) {
+      items.push({ kind: 'group', name, change: 'added' })
+    } else if (!isDeepStrictEqual(groupsBefore.get(name), group)) {
+      items.push({ kind: 'group', name, change: 'modified' })
+    }
+  }
+  for (const name of groupsBefore.keys()) {
+    if (!groupsOf(next).has(name)) {
+      items.push({ kind: 'group', name, change: 'removed' })
+    }
+  }
+  if (previous != null && !isDeepStrictEqual(settingsOf(previous), settingsOf(next ?? undefined))) {
+    // limits, the global scope...
+    items.push({ kind: 'settings', change: 'modified' })
+  }
+  return { items: items.slice(0, max), more: Math.max(0, items.length - max) }
+}
+
+// The history list, each entry with what it changed object by object
+// (against the entry before it, when kept): `comparable` turns an entry
+// into the document compared (a pool's own part, the global
+// configuration with its scope)
+export function listEntries(entries, comparable = entry => entry.document) {
+  return entries.map((entry, index) => ({
+    ...listEntry(entry),
+    changes: describeChanges(
+      index === 0 || entries[index - 1].document == null ? null : comparable(entries[index - 1]),
+      entry.document == null ? null : comparable(entry)
+    ),
+  }))
+}
+
 export const nextEntryId = entries => (entries.length === 0 ? 1 : entries[entries.length - 1].id + 1)

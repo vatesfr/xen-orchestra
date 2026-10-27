@@ -282,7 +282,22 @@ export type VdfHistoryEntry = {
   // a pool's: written by XO's global sync (the global configuration's
   // revision then), successive syncs counted in one entry
   sync?: { revision?: number; times?: number }
+  // what it changed, object by object (the first ones; absent from older
+  // plugins)
+  changes?: { items: VdfHistoryChangeItem[]; more: number }
 }
+
+export type VdfHistoryChangeItem =
+  | { kind: 'policy'; name: string; change: 'added' | 'removed' }
+  | {
+      kind: 'policy'
+      name: string
+      change: 'modified'
+      rules: { added: number; removed: number; modified: number }
+      settings: boolean
+    }
+  | { kind: 'group'; name: string; change: 'added' | 'removed' | 'modified' }
+  | { kind: 'settings'; change: 'modified' }
 
 export type VdfHistoryVersion = VdfHistoryEntry & {
   document: VdfDocument

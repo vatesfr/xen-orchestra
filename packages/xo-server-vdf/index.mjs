@@ -35,7 +35,7 @@ import {
   VDF_LOCKING_KEY,
   vdfLockEnforcement,
 } from './global.mjs'
-import { appendEntry, listEntry, nextEntryId, summarize } from './history.mjs'
+import { appendEntry, listEntries, nextEntryId, summarize } from './history.mjs'
 import { trace } from './trace.mjs'
 
 const log = createLogger('xo:xo-server-vdf')
@@ -1913,7 +1913,9 @@ class VdfPlugin {
           'The last published global configurations, oldest first, without their content: id, revision, publishedAt, publishedBy, summary.',
         tags: ['vdf'],
         responses: [{ status: 200, description: 'Publish history' }],
-        callback: async () => ({ entries: (await this.#history(GLOBAL_SCOPE)).map(listEntry) }),
+        callback: async () => ({
+          entries: listEntries(await this.#history(GLOBAL_SCOPE), ({ document, scope }) => ({ ...document, scope })),
+        }),
       },
       {
         endpoint: '/global/history/{entry}',
@@ -2072,7 +2074,9 @@ class VdfPlugin {
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Publish history' }],
-        callback: async ({ req }) => ({ entries: (await this.#history(req.params.id)).map(listEntry) }),
+        callback: async ({ req }) => ({
+          entries: listEntries(await this.#history(req.params.id), entry => localPart(entry.document)),
+        }),
       }),
       this.#poolRoute({
         endpoint: '/pools/{id}/history/{entry}',

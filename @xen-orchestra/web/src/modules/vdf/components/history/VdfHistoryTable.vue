@@ -1,5 +1,9 @@
 <template>
   <div ref="root" class="vdf-history-table">
+    <!-- versions that changed nothing in this document (global syncs that only rewrote members…) -->
+    <UiToggle v-if="unchangedCount > 0" v-model="showUnchanged" class="show-unchanged">
+      {{ t('firewall:history:show-unchanged', { n: unchangedCount }, unchangedCount) }}
+    </UiToggle>
     <!-- remeasured when a column drops: its sticky column's scroll shadow -->
     <VtsTable
       :key="String(isNarrow)"
@@ -24,18 +28,20 @@
 <script lang="ts" setup>
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
-import type { VdfHistoryEntry } from '@/modules/vdf/types.ts'
+import type { VdfHistoryChangeItem, VdfHistoryEntry } from '@/modules/vdf/types.ts'
+import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h, useTemplateRef, watchEffect, withDirectives } from 'vue'
+import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // newest first
@@ -51,16 +57,72 @@ const emit = defineEmits<{
   restore: [entry: VdfHistoryEntry]
 }>()
 
-const { t, n } = useI18n()
+const { t, n, d } = useI18n()
 
 const outsideText = useVdfOutsideText()
 
-const { pageRecords: pageEntries, paginationBindings } = usePagination(
-  id,
-  computed(() => entries)
-)
+const showUnchanged = ref(false)
 
-const state = useTableState({ empty: () => entries.length === 0 })
+// changed nothing in the document: not the current version, no change
+// made outside this XO, no global sync (it rewrote the global part), no
+// change counted
+const isUnchanged = (entry: VdfHistoryEntry) =>
+  entry.id !== currentId &&
+  entry.outside === undefined &&
+  entry.sync === undefined &&
+  entry.summary.added + entry.summary.modified + entry.summary.removed === 0
+
+const unchangedCount = computed(() => entries.filter(isUnchanged).length)
+
+const shownEntries = computed(() => (showUnchanged.value ? entries : entries.filter(entry => !isUnchanged(entry))))
+
+const { pageRecords: pageEntries, paginationBindings } = usePagination(id, shownEntries)
+
+const state = useTableState({ empty: () => shownEntries.value.length === 0 })
+
+// one changed object in words: "db: 2 rules added, 1 removed", "group
+// cache added"
+function itemText(item: VdfHistoryChangeItem) {
+  if (item.kind === 'settings') {
+    return t('firewall:history:item:settings')
+  }
+
+  if (item.kind === 'group') {
+    return t(`firewall:history:item:group:${item.change}`, { name: displayName(item.name) })
+  }
+
+  if (item.change !== 'modified') {
+    return t(`firewall:history:item:policy:${item.change}`, { name: displayName(item.name) })
+  }
+
+  const parts = [
+    item.rules.added > 0
+      ? t('firewall:history:item:rules-added', { n: item.rules.added }, item.rules.added)
+      : undefined,
+    item.rules.removed > 0
+      ? t('firewall:history:item:rules-removed', { n: item.rules.removed }, item.rules.removed)
+      : undefined,
+    item.rules.modified > 0
+      ? t('firewall:history:item:rules-modified', { n: item.rules.modified }, item.rules.modified)
+      : undefined,
+    item.settings ? t('firewall:history:item:policy-settings') : undefined,
+  ].filter(part => part !== undefined)
+
+  return t('firewall:history:item:policy:modified', { name: displayName(item.name), changes: parts.join(', ') })
+}
+
+// what it changed, object by object (an older plugin: the counts)
+function objectChanges(entry: VdfHistoryEntry) {
+  const items = entry.changes?.items ?? []
+
+  if (items.length === 0) {
+    return undefined
+  }
+
+  const texts = items.map(itemText)
+
+  return (entry.changes!.more > 0 ? [...texts, t('firewall:more', { n: entry.changes!.more })] : texts).join(' · ')
+}
 
 function changesOf({ summary, outside, sync }: VdfHistoryEntry) {
   // only the owner changed outside this XO
@@ -105,7 +167,11 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
         h('span', { class: 'when' }, [
           entry.publishedAt === null
             ? h('span', { class: 'secondary' }, t('firewall:history:before-history'))
-            : h(VtsRelativeTime, { date: entry.publishedAt }),
+            : h('span', { class: 'date' }, [
+                // the date and time, and how long ago
+                h('span', d(new Date(entry.publishedAt), 'datetime_short')),
+                h(VtsRelativeTime, { date: entry.publishedAt, class: 'secondary typo-body-regular-small' }),
+              ]),
           entry.id === currentId
             ? h(UiTag, { accent: 'success', variant: 'secondary' }, () => t('firewall:history:current'))
             : null,
@@ -130,7 +196,15 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
               )
             : (entry.publishedBy ?? h('span', { class: 'secondary' }, t('firewall:history:unknown-user')))
       ),
-    changes: r => r(changesOf(entry)),
+    changes: r => {
+      const objects = entry.outside !== undefined && !entry.outside.docChanged ? undefined : objectChanges(entry)
+      const text = objects ?? changesOf(entry)
+
+      // long: cut, whole on hover
+      return r(
+        withDirectives(h('span', { class: 'changes' }, text), [[vTooltip, objects === undefined ? false : text]])
+      )
+    },
     content: r =>
       r(
         entry.revision === undefined
@@ -166,6 +240,23 @@ watchEffect(() => toggle('content', !isNarrow.value))
     display: inline-flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  :deep(.date) {
+    display: inline-flex;
+    flex-direction: column;
+  }
+
+  :deep(.changes) {
+    display: inline-block;
+    max-width: 48rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   :deep(.secondary) {
