@@ -109,6 +109,7 @@ const {
   vm,
   network,
   monitored = [],
+  isOutsideGroups = false,
 } = defineProps<{
   vif: FrontXoVif
   vm: FrontXoVm
@@ -121,6 +122,9 @@ const {
   monitored?: string[]
   // its network is left out of the firewall (vdf:unprotected)
   unprotected?: boolean
+  // the VM is in no group: no policy or rule counts on its addresses, its
+  // being unlocked is no warning
+  isOutsideGroups?: boolean
 }>()
 
 // Lock (vdf#15): the page confirms, with the addresses the guest reports;
@@ -155,7 +159,13 @@ const LOCKING_ACCENTS: Record<VdfVifLock, InfoAccent> = {
   disabled: 'danger',
 }
 
-const lockingAccent = computed(() => (lockState.value.prefix ? 'warning' : LOCKING_ACCENTS[lockState.value.lock]))
+const lockingAccent = computed(() =>
+  lockState.value.prefix
+    ? 'warning'
+    : lockState.value.lock === 'unlocked' && isOutsideGroups
+      ? 'muted'
+      : LOCKING_ACCENTS[lockState.value.lock]
+)
 
 // who drops its traffic from the new address: nobody yet when VDF doesn't
 // enforce its lock
@@ -167,6 +177,11 @@ const DRIFT_TEXTS: Partial<Record<VdfVifLock, string>> = {
 
 const lockingText = computed(() => {
   const { lock, reason, prefix } = lockState.value
+
+  // in no group, nothing counts on its addresses: just the state
+  if (lock === 'unlocked' && isOutsideGroups) {
+    return t('firewall:vm:locking:unlocked:short')
+  }
   const text =
     lock === 'vdf-unenforced'
       ? t(`firewall:vm:locking:vdf-unenforced:${reason}`, { host: hostName.value ?? '?' })

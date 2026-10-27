@@ -173,6 +173,7 @@
               :policies="interfacePolicies(vif)"
               :monitored="interfacePolicies(vif, true)"
               :unprotected="getNetworkById(vif.$network)?.tags.includes(VDF_UNPROTECTED_TAG)"
+              :is-outside-groups="vmGroups.length === 0"
               class="interface"
               @lock="target => confirmLock([target])"
               @unlock="target => confirmUnlock(target)"

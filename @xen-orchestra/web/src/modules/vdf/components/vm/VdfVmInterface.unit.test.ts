@@ -6,6 +6,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -130,4 +131,17 @@ it('a lock asked for says how it is locked now and whether VDF could lock it', a
     vdfUnavailable: 'old-agent',
     hostName: 'host-a',
   })
+})
+
+// UX P2-9: unlocked is no warning for a VM in no group: nothing counts on it
+it('says just "Unlocked", muted, for a VM in no group', () => {
+  const wrapper = mount(VdfVmInterface, {
+    props: { vif: vif({ other_config: {} }), vm: createVm(), network: undefined, isOutsideGroups: true },
+    global: createGlobalTestConfig(),
+  })
+  const info = wrapper.getComponent(UiInfo)
+
+  expect(info.text()).toBe(t('firewall:vm:locking:unlocked:short'))
+  expect(info.props('accent')).toBe('muted')
+  expect(wrapper.get('.locking').text()).toContain(t('firewall:lock:action'))
 })
