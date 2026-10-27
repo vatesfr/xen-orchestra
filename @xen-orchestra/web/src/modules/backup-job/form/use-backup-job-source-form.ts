@@ -1,8 +1,12 @@
+import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
+import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive } from 'vue'
@@ -22,6 +26,8 @@ export type BackupJobSourceFormData = {
   proxy: FrontXoProxy['id'] | undefined
   sourceBackupRepository: FrontXoBackupRepository['id'] | undefined
   scopeType: BackupJobScopeType
+  vmIds: FrontXoVm['id'][]
+  vmFilter: string
 }
 
 type RadioOption<TValue extends string> = { label: string; value: TValue }
@@ -35,11 +41,35 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const { backupRepositories } = useXoBackupRepositoryCollection()
 
+  const { vms } = useXoVmCollection()
+
+  const { schema: vmSchema } = useVmQueryBuilder('backup-job-source-vms-schema', vms, { ignoreRoute: true })
+
+  const { filterableVms } = useVmEnhancedData(vms)
+
+  const matchedVms = computed(() => filterByQuery(filterableVms.value, formData.vmFilter))
+
+  const selectedVms = computed(() => vms.value.filter(vm => formData.vmIds.includes(vm.id)))
+
+  const hasVmSelection = computed(() => formData.dataSource === 'vm')
+
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
         sourceBackupRepository: {
           requiredIf: requiredIf(() => formData.dataSource === 'mirror'),
+        },
+        vmIds: {
+          atLeastOne: withMessage(
+            () => !hasVmSelection.value || formData.scopeType !== 'manual' || formData.vmIds.length > 0,
+            () => t('select-at-least-one-object')
+          ),
+        },
+        vmFilter: {
+          requiredIf: withMessage(
+            requiredIf(() => hasVmSelection.value && formData.scopeType === 'smart'),
+            () => t('query-required')
+          ),
         },
         savePoolsMetadata: {
           atLeastOneOption: withMessage(
@@ -89,12 +119,19 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     sourceBackupRepository: useSelect(sourceBackupRepositorySelectId, () => ({
       label: t('source-backup-repository'),
     })),
+    vmIds: useField('vmIds'),
+    vmFilter: useField('vmFilter'),
     scopeType: useField('scopeType', () => ({ label: t('scope-type'), options: scopeTypeOptions.value })),
   })
 
   return {
     formData,
     bindings,
+    vms,
+    vmSchema,
+    matchedVms,
+    selectedVms,
+    hasVmSelection,
     validate,
     reset,
   }

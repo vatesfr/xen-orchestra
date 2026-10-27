@@ -5,16 +5,18 @@
     </template>
 
     <template #content>
-      <UiStepper :steps :current-step="currentStepIndex">
-        <BackupJobSourceStep v-if="currentStep === 'source'" :bindings="source.bindings" />
+      <UiStepper ref="stepper" :steps :current-step="currentStepIndex">
+        <BackupJobSourceStep v-if="currentStep === 'source'" :form="source" />
         <BackupJobTransferStep v-else-if="currentStep === 'transfer'" :bindings="transfer.bindings" />
-        <BackupJobTargetStep
-          v-else-if="currentStep === 'target'"
-          :bindings="target.bindings"
-          :has-storage-target-choice="target.hasStorageTargetChoice.value"
-          :has-backup-repository-section="target.hasBackupRepositorySection.value"
-          :has-storage-repository-section="target.hasStorageRepositorySection.value"
-          :has-snapshot-retention-section="target.hasSnapshotRetentionSection.value"
+        <BackupJobTargetStep v-else-if="currentStep === 'target'" :form="target" />
+        <BackupJobPlanningStep v-else-if="currentStep === 'planning'" :bindings="planning.bindings" />
+        <BackupJobReviewStep
+          v-else-if="currentStep === 'review'"
+          :source
+          :transfer="source.formData.dataSource === 'metadata' ? undefined : transfer"
+          :target
+          :planning
+          @edit="step => goToStep(step)"
         />
       </UiStepper>
     </template>
@@ -25,13 +27,15 @@
       </VtsOverlayCancelButton>
       <VtsOverlayCancelButton v-else @click="emit('cancel')" />
       <VtsOverlayConfirmButton>
-        {{ t('action:continue') }}
+        {{ currentStep === 'review' ? t('action:create') : t('action:continue') }}
       </VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
 </template>
 
 <script lang="ts" setup>
+import BackupJobPlanningStep from '@/modules/backup-job/components/form/steps/BackupJobPlanningStep.vue'
+import BackupJobReviewStep from '@/modules/backup-job/components/form/steps/BackupJobReviewStep.vue'
 import BackupJobSourceStep from '@/modules/backup-job/components/form/steps/BackupJobSourceStep.vue'
 import BackupJobTargetStep from '@/modules/backup-job/components/form/steps/BackupJobTargetStep.vue'
 import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
@@ -40,6 +44,7 @@ import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelBut
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
+import { useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -48,5 +53,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { source, transfer, target, currentStep, currentStepIndex, steps, next, back } = useNewBackupJobForm()
+const { source, transfer, target, planning, currentStep, currentStepIndex, steps, next, back, goToStep } =
+  useNewBackupJobForm()
+
+const stepper = useTemplateRef('stepper')
+
+watch(currentStepIndex, () => stepper.value?.$el.scrollIntoView({ block: 'start' }))
 </script>
