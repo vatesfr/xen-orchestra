@@ -4,6 +4,7 @@ import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resou
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { useI18n } from 'vue-i18n'
 
 const { getLastNBackupLogsByJobId } = vi.hoisted(() => ({
@@ -21,9 +22,9 @@ beforeEach(() => {
 
 function mountLastRuns(backupJob: FrontAnyXoBackupJob) {
   return mountComposable(() => {
-    const { t, d } = useI18n()
+    const { t } = useI18n()
 
-    return { lastRuns: useXoBackupJobLastRuns(backupJob), t, d }
+    return { lastRuns: useXoBackupJobLastRuns(backupJob), t }
   }).wrapper.vm
 }
 
@@ -49,11 +50,11 @@ describe('useXoBackupJobLastRuns', () => {
     expect(result.lastRuns).toEqual([
       {
         status: 'failure',
-        tooltip: `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_300_000, 'datetime_short')}, ${result.t('failure')}`,
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_300_000)}, ${result.t('failure')}`,
       },
       {
         status: 'success',
-        tooltip: `${result.t('last-run-number', { n: 2 })}: ${result.d(1_700_000_100_000, 'datetime_short')}, ${result.t('success')}`,
+        tooltip: `${result.t('last-run-number', { n: 2 })}: ${formatDateTime(1_700_000_100_000)}, ${result.t('success')}`,
       },
     ])
   })
@@ -68,7 +69,7 @@ describe('useXoBackupJobLastRuns', () => {
     expect(result.lastRuns).toEqual([
       {
         status: 'pending',
-        tooltip: `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_000_000, 'datetime_short')}, ${result.t('pending')}`,
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_000_000)}, ${result.t('pending')}`,
       },
     ])
   })
