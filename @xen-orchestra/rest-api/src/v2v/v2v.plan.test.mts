@@ -1,9 +1,19 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import type { VmwareVm } from '@vates/types'
+import type { VmwareVm, XoV2vStartPayload, XoV2vStartPayloadVm } from '@vates/types'
 
 import { planMigration } from './v2v.plan.mjs'
-import type { V2vStartBody } from './v2v.type.mjs'
+import type { V2vStartBody, V2vStartVm } from './v2v.type.mjs'
+
+// The front builds its request as `XoV2vStartPayload`, which cannot be the body of the route itself: its ids are
+// branded, which tsoa would validate as objects. Checked here at build time instead: the payload must be accepted,
+// and must not carry a key the route refuses (`throw-on-extras`)
+const frontPayload = {} as XoV2vStartPayload
+export const acceptedFrontPayload: V2vStartBody = frontPayload
+type ExtraKeys =
+  | Exclude<keyof XoV2vStartPayload, keyof V2vStartBody>
+  | Exclude<keyof XoV2vStartPayloadVm, keyof V2vStartVm>
+export const noExtraKeyInFrontPayload: [ExtraKeys] extends [never] ? true : false = true
 
 const sourceVm = (id: string, { disks = ['scsi0:0'], nics = ['4000'] } = {}): VmwareVm => ({
   id,
@@ -20,9 +30,7 @@ const sourceVm = (id: string, { disks = ['scsi0:0'], nics = ['4000'] } = {}): Vm
 const makeContext = ({ vms = [sourceVm('vm-1')] }: { vms?: VmwareVm[] } = {}) => new Map(vms.map(vm => [vm.id, vm]))
 
 const makeBody = (body: Partial<V2vStartBody> = {}): V2vStartBody => ({
-  platform: 'vmware',
   connection: { host: 'vcenter', username: 'user', password: 'password' },
-  pool: 'pool-1',
   defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1' },
   vms: [{ id: 'vm-1' }],
   ...body,

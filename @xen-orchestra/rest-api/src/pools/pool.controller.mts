@@ -95,6 +95,10 @@ import { BASE_URL, escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../he
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { NetworkService } from '../networks/network.service.mjs'
+import { v2vStartResult } from '../open-api/oa-examples/v2v.oa-example.mjs'
+import { V2V_TASK_PROPERTY } from '@vates/types'
+import { V2vService, V2V_TASK_NAME } from '../v2v/v2v.service.mjs'
+import type { V2vStartBody, V2vStartResult } from '../v2v/v2v.type.mjs'
 
 @Route('pools')
 @Security('*')
@@ -107,19 +111,22 @@ export class PoolController extends XapiXoController<XoPool> {
   #poolService: PoolService
   #alarmService: AlarmService
   #networkService: NetworkService
+  #v2vService: V2vService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(VmService) vmService: VmService,
     @inject(PoolService) poolService: PoolService,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(NetworkService) networkService: NetworkService
+    @inject(NetworkService) networkService: NetworkService,
+    @inject(V2vService) v2vService: V2vService
   ) {
     super('pool', restApi)
     this.#vmService = vmService
     this.#poolService = poolService
     this.#alarmService = alarmService
     this.#networkService = networkService
+    this.#v2vService = v2vService
   }
 
   /**
@@ -604,6 +611,68 @@ export class PoolController extends XapiXoController<XoPool> {
         args: body,
         name: 'create VM',
         objectId: poolId,
+      },
+    })
+  }
+
+  /**
+   * Imports a list of VMs from VMware (vCenter or ESXi) into this pool. A VM already partially imported
+   * on this pool is resumed with a delta, otherwise it is imported entirely. With `stopSource`, the
+   * source VM is stopped before the last delta, which completes the import.
+   *
+   * Each disk goes to the SR given for its key in `disks` (e.g. `scsi0:0`, as listed by
+   * `POST /v2v/inventory`), each network card to the network given for its key in `nics` (e.g. `4000`),
+   * the others to the defaults. A resumed import keeps the SRs and networks of its first run. An unknown
+   * key fails the import of the VM before anything is done on either side.
+   *
+   * For now, the MAC addresses are kept, and `tags`, `startVm` and `cleanup` are refused.
+   *
+   * The request is checked before the import starts: 422 with the list of the problems.
+   *
+   * As in XO5, the XCP-ng side is not checked: that the SRs, networks and templates belong to this pool,
+   * that no import of the same VM is already running, and that the VM has not already been imported.
+   * Launching a VM twice at the same time leads to two imports competing for the same partial import:
+   * wait for the end of a task before launching its VMs again. A VM already fully imported is imported
+   * again, as a second VM.
+   *
+   * The task result is the UUID of the XCP-ng VM, by VMware VM id.
+   *
+   * No ACL privilege covers this route: it is restricted to administrators.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body { "connection": { "host": "vcenter.example.org", "username": "administrator@vsphere.local", "password": "secret" }, "defaults": { "sr": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "network": "6b6ca0f5-6611-0636-4b0a-1fb1c815e898", "template": "0f3b3b5d-ef02-4fb5-9b7a-d4a2e5eb8e14", "stopSource": true }, "vms": [{ "id": "vm-1042" }], "concurrency": 2 }
+   */
+  @Example(taskLocation)
+  @Example(v2vStartResult)
+  // the body carries the credentials of the source
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/import_vms_from_vmware')
+  @Middlewares(json())
+  @Tags('v2v')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async importVmsFromVmware(
+    @Path() id: string,
+    @Body() body: V2vStartBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<V2vStartResult> {
+    const poolId = id as XoPool['id']
+    // 404 before anything is read from the source
+    this.getObject(poolId)
+    const plans = await this.#v2vService.prepareStart(body)
+
+    return this.createAction<V2vStartResult>(task => this.#v2vService.start(task, body, plans), {
+      sync,
+      taskProperties: {
+        name: V2V_TASK_NAME,
+        objectId: poolId,
+        // read by the front to tell which source VMs are being imported
+        [V2V_TASK_PROPERTY.SOURCE_VM_IDS]: plans.map(plan => plan.id),
+        // the credentials stay out of the task, which every administrator can read
+        params: { host: body.connection.host },
       },
     })
   }

@@ -1,5 +1,5 @@
 import type { Branded } from '../common.mjs'
-import type { XoNetwork, XoPool, XoSr, XoVmTemplate } from '../xo.mjs'
+import type { XoNetwork, XoSr, XoVmTemplate } from '../xo.mjs'
 
 // Stateless API: requests needing the source carry the connection in a POST body (never in URLs or access logs) and
 // xo-server stores nothing it reads from the source.
@@ -193,9 +193,10 @@ export type XoV2vStartPayloadVm = Partial<XoV2vStartOptions> & {
   keepMac: boolean
 }
 
+// Body of `POST /pools/{id}/actions/import_vms_from_vmware`: the pool is in the path. Checked against the body of the
+// route when the REST API is built, which refuses any extra key
 export type XoV2vStartPayload = {
   connection: XoV2vConnection
-  pool: XoPool['id']
   defaults: XoV2vStartOptions & {
     sr: XoSr['id']
     network: XoNetwork['id']
@@ -204,5 +205,4 @@ export type XoV2vStartPayload = {
   vms: XoV2vStartPayloadVm[]
   stopOnError: boolean
   concurrency: number
-  confirmDuplicates: XoV2vVm['id'][]
 }
