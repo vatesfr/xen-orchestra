@@ -1,0 +1,51 @@
+<template>
+  <div class="backup-job-target-step">
+    <BackupJobFormCheckboxGroup v-if="hasStorageTargetChoice" v-bind="form.bindings.storageTargets" />
+    <BackupJobTargetBackupRepositorySection
+      v-if="hasBackupRepositorySection"
+      :bindings="form.bindings"
+      :brs="availableBackupRepositories"
+      :matched-brs="matchedBackupRepositories"
+    />
+    <BackupJobTargetStorageRepositorySection
+      v-if="hasStorageRepositorySection"
+      :bindings="form.bindings"
+      :srs="availableStorageRepositories"
+      :matched-srs="matchedStorageRepositories"
+    />
+    <BackupJobTargetSnapshotRetentionSection v-if="hasSnapshotRetentionSection" :bindings="form.bindings" />
+  </div>
+</template>
+
+<script lang="ts" setup>
+import BackupJobFormCheckboxGroup from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckboxGroup.vue'
+import BackupJobTargetBackupRepositorySection from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositorySection.vue'
+import BackupJobTargetSnapshotRetentionSection from '@/modules/backup-job/components/form/target/BackupJobTargetSnapshotRetentionSection.vue'
+import BackupJobTargetStorageRepositorySection from '@/modules/backup-job/components/form/target/BackupJobTargetStorageRepositorySection.vue'
+import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+
+const { form } = defineProps<{
+  form: BackupJobTargetForm
+}>()
+
+const {
+  hasStorageTargetChoice,
+  hasBackupRepositorySection,
+  hasStorageRepositorySection,
+  hasSnapshotRetentionSection,
+  availableBackupRepositories,
+  availableStorageRepositories,
+  matchedBackupRepositories,
+  matchedStorageRepositories,
+} = form
+</script>
+
+<style lang="postcss" scoped>
+.backup-job-target-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4.8rem;
+  margin-block-start: 2.4rem;
+  text-align: left;
+}
+</style>
