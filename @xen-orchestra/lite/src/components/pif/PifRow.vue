@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { getHostState } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
@@ -41,7 +42,7 @@ const { pif } = defineProps<{
 const { t } = useI18n()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
+const { getHostPowerState } = useHostMetricsStore().subscribe()
 const { getPifStatus } = usePifStore().subscribe()
 
 const router = useRouter()
@@ -57,7 +58,7 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    powerState: isHostRunning(host) ? 'running' : 'halted',
+    powerState: getHostState(host, getHostPowerState(host)),
     redirect() {
       router.push({
         name: '/host/[uuid]/network',
