@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { findDatacenter, flattenSnapshots, parseDevices, parseVlan } from './_inventory.mjs'
+import { countSnapshots, findDatacenter, parseDevices, parseVlan } from './_inventory.mjs'
 
 // shaped as the SOAP library returns them: the nested references and types are not normalized
 const typed = (type, value) => ({ attributes: { 'xsi:type': type }, ...value })
@@ -62,11 +62,8 @@ describe('parseDevices', function () {
       key: 'scsi0:1',
       label: 'Hard disk 1',
       capacity: 10737418240,
-      fileName: '[ds1] vm/vm.vmdk',
       datastore: 'datastore-11',
       diskMode: 'persistent',
-      backingType: 'VirtualDiskFlatVer2BackingInfo',
-      thinProvisioned: true,
       rdm: false,
       encrypted: false,
     })
@@ -98,28 +95,23 @@ describe('parseDevices', function () {
   })
 })
 
-describe('flattenSnapshots', function () {
-  it('walks the tree down, keeping the parent of each snapshot', function () {
-    const snapshots = flattenSnapshots({
+describe('countSnapshots', function () {
+  it('counts the snapshots at every depth of the tree', function () {
+    const count = countSnapshots({
       snapshot: ref('VirtualMachineSnapshot', 'snapshot-1'),
-      name: 'root',
       childSnapshotList: [
-        { snapshot: ref('VirtualMachineSnapshot', 'snapshot-2'), name: 'a' },
-        { snapshot: ref('VirtualMachineSnapshot', 'snapshot-3'), name: 'b' },
+        { snapshot: ref('VirtualMachineSnapshot', 'snapshot-2') },
+        {
+          snapshot: ref('VirtualMachineSnapshot', 'snapshot-3'),
+          childSnapshotList: { snapshot: ref('VirtualMachineSnapshot', 'snapshot-4') },
+        },
       ],
     })
-    assert.deepEqual(
-      snapshots.map(({ id, name, parent }) => ({ id, name, parent })),
-      [
-        { id: 'snapshot-1', name: 'root', parent: undefined },
-        { id: 'snapshot-2', name: 'a', parent: 'snapshot-1' },
-        { id: 'snapshot-3', name: 'b', parent: 'snapshot-1' },
-      ]
-    )
+    assert.equal(count, 4)
   })
 
-  it('returns an empty list without snapshot', function () {
-    assert.deepEqual(flattenSnapshots(undefined), [])
+  it('is zero without snapshot', function () {
+    assert.equal(countSnapshots(undefined), 0)
   })
 })
 
