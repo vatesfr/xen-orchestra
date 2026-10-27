@@ -303,8 +303,26 @@ export function vdfLockUnenforced(
 
 // an allowed list holding a prefix (XAPI accepts CIDRs): a lock to it lets
 // the guest use any address in it
+// (or a special address: an unspecified, broadcast or multicast one is
+// never a source, agent specialAddr), whether XO or XAPI directly set it
 export const hasPrefix = (vif: VdfInterfaceVif) =>
-  [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])].some(ip => ip.includes('/'))
+  [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])].some(
+    ip => ip.includes('/') || isSpecialIp(ip)
+  )
+
+export function isSpecialIp(ip: string) {
+  const v4 = parseIpv4(ip)
+
+  if (v4 !== undefined) {
+    const first = v4 >>> 24
+
+    return v4 === 0 || v4 === 0xffffffff || (first >= 224 && first <= 239)
+  }
+
+  const v6 = parseIpv6(ip)
+
+  return v6 !== undefined && (v6 === 0n || v6 >> 120n === 0xffn)
+}
 
 // how a VIF is locked: by XAPI, by VDF (enforced or not), not at all, or
 // disabled (it sends nothing)

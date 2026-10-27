@@ -92,6 +92,7 @@ import {
   type VdfLockProposal,
   type VdfVifLock,
 } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { isLinkLocal } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -133,7 +134,7 @@ const { t } = useI18n()
 
 const ips = computed(() =>
   Object.entries(vm.addresses ?? {})
-    .filter(([key, ip]) => key.startsWith(`${vif.device}/`) && !ip.startsWith('fe80:'))
+    .filter(([key, ip]) => key.startsWith(`${vif.device}/`) && !isLinkLocal(ip))
     .map(([, ip]) => ip)
     .sort((ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':')))
 )

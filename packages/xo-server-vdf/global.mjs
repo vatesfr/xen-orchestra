@@ -340,15 +340,34 @@ export function isVdfLocked(vif, enforcement) {
   )
 }
 
-// an allowed list holding a prefix (XAPI accepts CIDRs): a lock to it lets
-// the guest use any address in it, so its addresses aren't trusted
+// an unspecified, broadcast or multicast address: never a source, so an
+// allowed list holding one isn't what the guest sends from (agent
+// specialAddr)
+export function isSpecialIp(ip) {
+  const address = canonicalIp(ip)
+  const version = isIP(address)
+  if (version === 4) {
+    const first = Number(address.split('.')[0])
+    return address === '0.0.0.0' || address === '255.255.255.255' || (first >= 224 && first <= 239)
+  }
+  return version === 6 && (address === '::' || /^ff/.test(address))
+}
+
+// an allowed list holding a prefix (XAPI accepts CIDRs: a lock to it lets
+// the guest use any address in it) or a special address, set through
+// XO's lock or straight through XAPI: its addresses aren't trusted
 export const hasPrefix = vif =>
   [
     ...(vif.allowedIpv4Addresses ?? vif.ipv4_allowed ?? []),
     ...(vif.allowedIpv6Addresses ?? vif.ipv6_allowed ?? []),
-  ].some(ip => typeof ip !== 'string' || ip.includes('/'))
+  ].some(ip => typeof ip !== 'string' || ip.includes('/') || isSpecialIp(ip))
 
-const usableIp = ip => typeof ip === 'string' && !ip.includes('/') && !/^fe80:/i.test(ip)
+// IPv6 link-local (fe80::/10): per link, meaningless on another host; a
+// lock may allow one (the guest's own, random or stable-privacy), it's no
+// member address
+export const isLinkLocal = ip => isIP(String(ip)) === 6 && /^fe[89ab][0-9a-f]:/.test(canonicalIp(ip))
+
+const usableIp = ip => typeof ip === 'string' && !ip.includes('/') && !isLinkLocal(ip)
 
 const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
 

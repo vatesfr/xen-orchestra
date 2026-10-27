@@ -48,6 +48,10 @@ export type VdfInterfaceVif = {
   allowedIpv6Addresses?: string[]
 }
 
+// IPv6 link-local (fe80::/10): per link, meaningless on another host, so
+// never a member address (agent splitAddrs); a lock may allow one
+export const isLinkLocal = (ip: string) => /^fe[89ab][0-9a-f]:/i.test(ip.trim())
+
 export function interfaceAddresses(
   vif: VdfInterfaceVif,
   guestAddresses: Record<string, string> | undefined,
@@ -59,7 +63,7 @@ export function interfaceAddresses(
         .filter(([key]) => key.split('/')[0] === String(vif.device))
         .map(([, ip]) => ip)
 
-  return [...new Set(raw.filter(ip => !ip.includes('/') && !/^fe80:/i.test(ip)))].sort(
+  return [...new Set(raw.filter(ip => !ip.includes('/') && !isLinkLocal(ip)))].sort(
     (ipA, ipB) => Number(ipA.includes(':')) - Number(ipB.includes(':')) || ipA.localeCompare(ipB)
   )
 }

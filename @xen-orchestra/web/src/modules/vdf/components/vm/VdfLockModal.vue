@@ -93,7 +93,10 @@
         <UiAlert accent="warning">
           {{ t(rows.every(row => isWithVdf(row)) ? 'firewall:lock:dhcp-warning:vdf' : 'firewall:lock:dhcp-warning') }}
         </UiAlert>
-        <UiAlert v-if="rows.some(row => isWithVdf(row))" accent="info">{{ t('firewall:lock:vdf-note') }}</UiAlert>
+        <UiAlert v-if="rows.some(row => isWithVdf(row))" accent="info">
+          {{ t('firewall:lock:vdf-note') }}
+          <template #description>{{ t('firewall:lock:vdf-link-local') }}</template>
+        </UiAlert>
         <UiAlert v-if="state.error" accent="danger">{{ state.error }}</UiAlert>
       </div>
     </template>

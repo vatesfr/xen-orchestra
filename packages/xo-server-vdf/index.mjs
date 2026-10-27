@@ -189,17 +189,19 @@ export function lockAddresses({ ipv4, ipv6 } = {}) {
         return { error: `ipv4: ${entry} can't be an interface's address` }
       }
       // unspecified, loopback (::1) and IPv4-compatible (::a.b.c.d, the
-      // first 96 bits zero), multicast (ff00::/8), link-local (fe80::/10),
-      // IPv4-mapped (::ffff:0:0/96)
+      // first 96 bits zero), multicast (ff00::/8), IPv4-mapped
+      // (::ffff:0:0/96). A link-local address (fe80::/10) is one: the agent
+      // lets ND from link-local through from the VIF's own EUI-64 one only,
+      // so a guest using another (random, stable-privacy) needs it listed;
+      // it never counts as a member address.
       if (
         version === 6 &&
         (/^::(([0-9a-f]{1,4}:)?[0-9a-f]{1,4})?$/.test(address) ||
           /^ff[0-9a-f]{2}:/.test(address) ||
-          /^fe[89ab][0-9a-f]:/.test(address) ||
           address.startsWith('::ffff:'))
       ) {
         return {
-          error: `ipv6: ${entry} can't be an interface's address (loopback, multicast, link-local, IPv4-mapped or compatible)`,
+          error: `ipv6: ${entry} can't be an interface's address (loopback, multicast, IPv4-mapped or compatible)`,
         }
       }
       if (!result[family].includes(address)) {

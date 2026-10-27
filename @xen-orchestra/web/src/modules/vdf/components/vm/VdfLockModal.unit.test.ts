@@ -53,6 +53,8 @@ it('locks with XAPI, then offers VDF once XAPI refused for the SDN controller', 
 
   expect(document.body.textContent).toContain(t('firewall:lock:vdf-offer'))
   expect(document.body.textContent).toContain(t('firewall:lock:confirm:vdf'))
+  // the EUI-64 link-local is implicit, another one is to list
+  expect(document.body.textContent).toContain(t('firewall:lock:vdf-link-local'))
   expect(await confirm(wrapper)).toEqual([
     { vifId: 'vif-1', ipv4: ['10.0.0.5'], ipv6: [], withVdf: true, xapiLocked: false },
   ])

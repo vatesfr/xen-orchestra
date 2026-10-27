@@ -374,6 +374,34 @@ describe('VDF lock', () => {
     expect(state(vif(), gate([167772165])).reason).toBe('changing')
   })
 
+  // the agent's specialAddr: never a source, whoever set it in XAPI
+  it('a lock holding an unspecified, broadcast or multicast address is untrusted, XAPI or VDF', () => {
+    for (const special of ['0.0.0.0', '255.255.255.255', '224.0.0.1', '239.255.255.250', '::', 'ff02::1', 'FF05::2']) {
+      const lists = special.includes(':')
+        ? { allowedIpv6Addresses: [special] }
+        : { allowedIpv4Addresses: ['10.0.0.5', special] }
+      const gate = withLocking({
+        vdfEnforcedAllowed: {
+          'vif-1': [...(lists.allowedIpv4Addresses ?? ['10.0.0.5']), ...(lists.allowedIpv6Addresses ?? [])],
+        },
+      })
+
+      expect(vifLock(vif({ lockingMode: 'locked', ...lists }), false, running(undefined)).untrusted).toBe(true)
+      expect(vifLock(vif(lists), false, running(gate))).toMatchObject({ lock: 'vdf', untrusted: true })
+    }
+  })
+
+  // per link, meaningless across hosts: allowed, never a member address
+  it('a link-local address in a lock keeps it trusted, and counts nowhere', () => {
+    const lists = { allowedIpv6Addresses: ['fe80::1234', 'FEBF::1', '2001:db8::5'] }
+    const gate = withLocking({ vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5', '2001:db8::5', 'fe80::1234', 'febf::1'] } })
+
+    expect(vifLock(vif({ lockingMode: 'locked', ...lists }), false, running(undefined)).untrusted).toBe(false)
+    expect(vifLock(vif(lists), false, running(gate))).toMatchObject({ lock: 'vdf', untrusted: false })
+    expect(interfaceAddresses(vif(lists), {}, { locked: true })).toEqual(['10.0.0.5', '2001:db8::5'])
+    expect(interfaceAddresses(vif(), { '0/ipv6/0': 'fea0::1', '0/ipv4/0': '10.0.0.6' })).toEqual(['10.0.0.6'])
+  })
+
   it('a lock to a prefix is untrusted, XAPI or VDF', () => {
     const prefixed = { allowedIpv4Addresses: ['10.0.0.5', '10.0.0.0/8'] }
 

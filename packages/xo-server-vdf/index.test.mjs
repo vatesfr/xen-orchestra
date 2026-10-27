@@ -1900,8 +1900,7 @@ describe('VDF lock', () => {
         { ipv4: [], ipv6: ['2001:db8::/64'] },
         { ipv4: ['2001:db8::5'], ipv6: [] },
         { ipv4: [], ipv6: ['10.0.0.5'] },
-        { ipv4: [], ipv6: ['fe80::1'] },
-        { ipv4: [], ipv6: ['FEBF::1'] },
+        { ipv4: [], ipv6: ['fe80::/64'] },
         { ipv4: [], ipv6: ['::ffff:10.0.0.5'] },
         { ipv4: [], ipv6: ['fe80::1%eth0'] },
         { ipv4: ['010.0.0.5'], ipv6: [] },
@@ -1930,6 +1929,12 @@ describe('VDF lock', () => {
 
       const { result } = await lock(xo, { body: { ipv4: ['10.0.0.5', '10.0.0.5'], ipv6: ['2001:DB8:0:0::5'] } })
       assert.deepEqual([result.ipv4, result.ipv6], [['10.0.0.5'], ['2001:db8::5']])
+
+      // a link-local address the guest uses (random, stable-privacy): the
+      // agent only lets its EUI-64 one through unlisted
+      const linkLocal = await lock(xo, { body: { ipv4: ['10.0.0.5'], ipv6: ['FE80::1234', 'febf::1'] } })
+      assert.equal(linkLocal.status, 200)
+      assert.deepEqual(linkLocal.result.ipv6, ['fe80::1234', 'febf::1'])
     })
   })
 

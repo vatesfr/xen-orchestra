@@ -16,7 +16,14 @@ describe('trace: a VM addresses', () => {
   test('per VIF: locked, guest-reported for its device, nothing when disabled', () => {
     const vm = {
       $guest_metrics: {
-        networks: { '0/ipv4/0': '10.0.0.99', '1/ipv4/0': '10.0.1.5', '2/ipv4/0': '10.0.2.5', '1/ipv6/0': 'fe80::1' },
+        networks: {
+          '0/ipv4/0': '10.0.0.99',
+          '1/ipv4/0': '10.0.1.5',
+          '2/ipv4/0': '10.0.2.5',
+          '1/ipv6/0': 'fe80::1',
+          // fe80::/10, not only fe80::/16
+          '1/ipv6/1': 'fea0::1',
+        },
       },
     }
     const vifs = [

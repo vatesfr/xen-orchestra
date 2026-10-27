@@ -622,6 +622,46 @@ describe('VDF locks', () => {
     )
   })
 
+  // the agent's specialAddr: never a source, so not what the guest sends from
+  test('a lock holding an unspecified, broadcast or multicast address is untrusted, XAPI or VDF', () => {
+    for (const special of ['0.0.0.0', '255.255.255.255', '224.0.0.1', '239.255.255.250', '::', 'ff02::1', 'FF05::2']) {
+      const lists = special.includes(':')
+        ? { allowedIpv6Addresses: [special] }
+        : { allowedIpv4Addresses: ['10.0.0.5', special] }
+      const xapiLock = { ...vdfLocked, lockingMode: 'locked', ...lists }
+      assert.equal(ipsOf([xapiLock], undefined).trusted, false, special)
+      // VDF: listed as enforced, and equal, all the same
+      const gate = withLocking({
+        vdfEnforcedAllowed: {
+          'vif-1': [...(lists.allowedIpv4Addresses ?? ['10.0.0.5']), ...(lists.allowedIpv6Addresses ?? [])],
+        },
+      })
+      assert.equal(ipsOf([{ ...vdfLocked, ...lists }], gate).trusted, false, special)
+    }
+    // not special: 240/4 isn't multicast, a unicast IPv6
+    assert.equal(
+      ipsOf([{ ...vdfLocked, lockingMode: 'locked', allowedIpv4Addresses: ['10.0.0.5'] }], undefined).trusted,
+      true
+    )
+  })
+
+  // per link, meaningless across hosts: allowed, never a member address
+  test('a link-local address in a lock keeps it trusted, and counts nowhere', () => {
+    const lists = { allowedIpv6Addresses: ['fe80::1234', 'febf::1', '2001:db8::5'] }
+    assert.deepEqual(ipsOf([{ ...vdfLocked, lockingMode: 'locked', ...lists }], undefined), {
+      ips: ['10.0.0.5', '2001:db8::5'],
+      trusted: true,
+    })
+    const gate = withLocking({ vdfEnforcedAllowed: { 'vif-1': ['10.0.0.5', '2001:db8::5', 'fe80::1234', 'febf::1'] } })
+    assert.deepEqual(ipsOf([{ ...vdfLocked, ...lists }], gate), { ips: ['10.0.0.5', '2001:db8::5'], trusted: true })
+    // what an unlocked guest reports there neither
+    const linkLocalVm = { ...vm, addresses: { '0/ipv4/0': '10.0.0.5', '0/ipv6/0': 'fe90::1' } }
+    assert.deepEqual(vmIps(linkLocalVm, [{ device: '0', lockingMode: 'unlocked' }]), {
+      ips: ['10.0.0.5'],
+      trusted: false,
+    })
+  })
+
   test("global members' trust follows the host each VM runs on", () => {
     const vms = [
       { ...vm, $container: 'host-ok' },

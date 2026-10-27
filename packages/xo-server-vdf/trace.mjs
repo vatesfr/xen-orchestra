@@ -1,6 +1,6 @@
 import { isIP } from 'node:net'
 
-import { hostStatus, isVdfLocked, vdfLockEnforcement } from './global.mjs'
+import { hostStatus, isLinkLocal, isVdfLocked, vdfLockEnforcement } from './global.mjs'
 
 // Port of vdf-agent's trace orchestration (agent/trace.go: trace, endpoint,
 // pickVIF, traceSteps): XO resolves both ends from XAPI, plans the hops and
@@ -50,7 +50,7 @@ export function vmAddresses(vm, vifs, enforcement = enforcementOf(vm)) {
     }
     if (isIP(ip) === 4) {
       ipv4.add(ip)
-    } else if (!ip.startsWith('fe80:')) {
+    } else if (!isLinkLocal(ip)) {
       ipv6.add(ip)
     }
   }
