@@ -63,7 +63,7 @@ const displayVms = computed(() => filteredVms.value.map(vm => getDisplayData(vm)
 const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', displayVms)
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['checkbox'],
+  exclude: ['checkbox', 'lastBackupDate'],
   body: (vm: VmDisplayData) => {
     return {
       vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon }),
