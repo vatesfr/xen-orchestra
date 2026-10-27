@@ -29,7 +29,9 @@ import type { VdfDecision } from '@/modules/vdf/composables/vdf-decision.composa
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
+import { allowFlowRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -99,6 +101,33 @@ function traceButton(row: VdfDroppedRow) {
   )
 }
 
+// a row's menu: allow it (the rule drawer, prefilled, in the policy that
+// dropped it), trace it, and, apart, quarantine the source when it's a VM
+// of this pool
+function rowActions(row: VdfDroppedRow): ActionItem[] {
+  const peer = row.egress ? row.dst.ip : row.src.ip
+  const allow =
+    row.decision !== undefined && !row.revoked && row.proto !== undefined && ['tcp', 'udp', 'icmp'].includes(row.proto)
+      ? allowFlowRoute(String(scopeId), {
+          policy: row.decision.policy,
+          egress: row.egress,
+          peer,
+          proto: row.proto,
+          port: row.port,
+        })
+      : undefined
+
+  return [
+    ...(allow === undefined
+      ? []
+      : [{ label: t('firewall:trace:allow-flow'), icon: 'fa:plus' as const, onClick: () => router.push(allow) }]),
+    ...(row.trace === undefined
+      ? []
+      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => router.push(row.trace!) }]),
+    ...(row.src.vm?.$pool === scopeId ? [quarantineAction(row.src.vm, { named: true })] : []),
+  ]
+}
+
 // on a laptop (XO's tree open): the columns don't all fit
 const isNarrow = useVdfNarrow(useTemplateRef('table'), 100)
 
@@ -133,20 +162,11 @@ const { HeadCells, BodyCells, toggle } = useDroppedColumns({
     },
     rate: r => r(withDirectives(h('span', { class: 'rate' }, row.rate), [[vTooltip, row.rateDetail ?? false]])),
     trace: r => r(row.trace === undefined ? '' : traceButton(row)),
-    // the source, when it's a VM of this pool
-    actions: r => r(row.src.vm?.$pool === scopeId ? [quarantineAction(row.src.vm, { named: true })] : []),
+    actions: r => r(rowActions(row)),
   }),
 })
 
 watchEffect(() => toggle('trace', !isNarrow.value))
-
-// a source VM of this pool to quarantine: no empty column otherwise
-watchEffect(() =>
-  toggle(
-    'actions',
-    rows.some(row => row.src.vm?.$pool === scopeId)
-  )
-)
 </script>
 
 <style lang="postcss" scoped>

@@ -158,6 +158,37 @@ export function vdfPageRoute(
 }
 
 // where a global object is edited
+// "Allow this flow…": the policies page's rule drawer, prefilled, in the
+// policy that dropped it (a global one in the global firewall): from the
+// source (egress: to the destination), an address the drawer offers to
+// make a group of, or a group
+export function allowFlowRoute(
+  poolId: string,
+  {
+    policy,
+    egress = false,
+    peer,
+    proto,
+    port,
+  }: { policy: string; egress?: boolean; peer: string; proto: string; port?: string }
+): RouteLocationRaw {
+  const isGlobal = isGlobalName(policy)
+  const route = vdfPageRoute(isGlobal ? VDF_GLOBAL_SCOPE : poolId, 'policies', { policy }) as {
+    query: Record<string, string>
+  }
+
+  return {
+    ...route,
+    query: {
+      ...route.query,
+      newRule: '1',
+      [egress ? 'to' : 'from']: isGlobal && isGlobalName(peer) ? displayName(peer) : peer,
+      proto,
+      port: port === undefined || port === '' ? undefined : port,
+    },
+  } as RouteLocationRaw
+}
+
 export function vdfGlobalRoute(page: VdfPage, query: { group?: string; policy?: string; rule?: number } = {}) {
   return vdfPageRoute(VDF_GLOBAL_SCOPE, page, query)
 }

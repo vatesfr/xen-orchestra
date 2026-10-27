@@ -16,6 +16,8 @@ export type VdfDecision = {
   tier: string
   isGlobal: boolean
   route: RouteLocationRaw
+  // the policy, as the pool's document names it
+  policy: string
 }
 
 // What decided a connection, as the policies page names it: the tier's
@@ -51,6 +53,7 @@ export function useVdfDecision(rawPoolId: MaybeRefOrGetter<string>, rawDocument:
       name: `${parts.policy} · ${parts.rule}`,
       tier: parts.tier,
       isGlobal: isGlobalName(policy),
+      policy,
       route: vdfPageRoute(toValue(rawPoolId), 'policies', {
         policy,
         rule: isDefault ? undefined : Number(rule),

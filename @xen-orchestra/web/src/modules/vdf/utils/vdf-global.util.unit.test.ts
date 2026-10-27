@@ -1,5 +1,6 @@
 import { VDF_GLOBAL_RULE_BASE, type VdfDocument } from '@/modules/vdf/types.ts'
 import {
+  allowFlowRoute,
   byOwnThenGlobal,
   composeWithGlobal,
   displayName,
@@ -160,5 +161,25 @@ describe('byOwnThenGlobal', () => {
       'global:db',
       'global:prod',
     ])
+  })
+})
+
+// UX P2-8: "Allow this flow…" from a row of the rule log or the drops
+describe('allowFlowRoute', () => {
+  it("opens the rule drawer in the pool's policy, from the source", () => {
+    expect(allowFlowRoute('pool-1', { policy: 'db', peer: '10.0.0.7', proto: 'tcp', port: '5432' })).toEqual({
+      name: '/pool/[id]/firewall/policies',
+      params: { id: 'pool-1' },
+      query: { policy: 'db', newRule: '1', from: '10.0.0.7', proto: 'tcp', port: '5432' },
+    })
+  })
+
+  it('in the global firewall for a global policy; to the destination for outbound', () => {
+    expect(
+      allowFlowRoute('pool-1', { policy: 'global:web', egress: true, peer: 'global:dns', proto: 'udp', port: '' })
+    ).toEqual({
+      name: '/(site)/firewall/policies',
+      query: { policy: 'web', newRule: '1', to: 'dns', proto: 'udp', port: undefined },
+    })
   })
 })

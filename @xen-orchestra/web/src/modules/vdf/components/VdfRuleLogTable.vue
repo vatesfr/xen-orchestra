@@ -49,9 +49,11 @@ import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.compo
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
+import { allowFlowRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { logRateSeries } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -253,6 +255,33 @@ function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: str
   }
 }
 
+// a row's menu: allow a drop (the rule drawer, prefilled, in the policy
+// that dropped it), trace it, and, apart, quarantine the source when it's
+// a VM of this pool
+function rowActions(row: Row): ActionItem[] {
+  const proto = row.entry.proto.split(' ')[0].toLowerCase()
+  const allow =
+    row.entry.verdict === 'DROP' && ['tcp', 'udp', 'icmp'].includes(proto)
+      ? allowFlowRoute(poolId, {
+          policy: row.entry.policy,
+          egress: row.entry.egress,
+          peer: row.entry.egress ? row.entry.dst : row.entry.src,
+          proto,
+          port: row.entry.dport,
+        })
+      : undefined
+
+  return [
+    ...(allow === undefined
+      ? []
+      : [{ label: t('firewall:trace:allow-flow'), icon: 'fa:plus' as const, onClick: () => router.push(allow) }]),
+    ...(row.why === undefined
+      ? []
+      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => router.push(row.why!) }]),
+    ...(row.source.vm?.$pool === poolId ? [quarantineAction(row.source.vm, { named: true })] : []),
+  ]
+}
+
 // a row's trace button
 function traceButton(row: Row) {
   const label = t('firewall:live:trace', { from: row.source.vm?.name_label ?? row.entry.src, to: row.entry.vm })
@@ -339,18 +368,9 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
     },
     label: r => r(row.entry.label ?? ''),
     why: r => r(row.why === undefined ? '' : traceButton(row)),
-    // the source, when it's a VM of this pool
-    actions: r => r(row.source.vm?.$pool === poolId ? [quarantineAction(row.source.vm, { named: true })] : []),
+    actions: r => r(rowActions(row)),
   }),
 })
-
-// a source VM of this pool to quarantine: no empty column otherwise
-watchEffect(() =>
-  toggle(
-    'actions',
-    rows.value.some(row => row.source.vm?.$pool === poolId)
-  )
-)
 
 watchEffect(() => toggle('why', !isNarrow.value))
 
