@@ -654,6 +654,14 @@ describe('array field', () => {
     expect(wrapper.findAll('input').map(input => input.element.type)).toEqual(['password'])
   })
 
+  it('resets the state of the items when the list is replaced from the outside', async () => {
+    const wrapper = mountField({ schema, required: true, modelValue: [OBFUSCATED_VALUE, 'b'] })
+
+    await wrapper.setProps({ modelValue: ['a'] })
+
+    expect(wrapper.findAll('input').map(input => input.element.type)).toEqual(['text'])
+  })
+
   it('adds an item to a list without item schema', async () => {
     const wrapper = mountField({ schema: { type: 'array' }, required: true, modelValue: [] })
 
