@@ -1,6 +1,7 @@
 <template>
   <div class="backup-job-target-storage-repository-table">
-    <VtsQueryBuilder :model-value="query" :schema @search="search($event)" />
+    <VtsQueryBuilder v-if="isManual" :model-value="query" :schema @search="search($event)" />
+    <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
 
     <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
       <thead>
@@ -15,13 +16,15 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-for="message of isManual ? errorMessages : []" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { useSrQueryBuilder } from '@/modules/storage-repository/composables/use-sr-query-builder.composable.ts'
+import { useSrFormQueryBuilder } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -56,7 +59,7 @@ const {
   items: searchedSrs,
   filter: searchFilter,
   schema,
-} = useSrQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
+} = useSrFormQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
 
 const query = computed(() => (isManual.value ? searchFilter.value : filter.value))
 
@@ -99,17 +102,21 @@ const { HeadCells, BodyCells, toggle } = useSrColumns({
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
-  body: (sr: FrontXoSr) => ({
-    checkbox: r => r({ selected: isSelected(sr.id), onToggle: () => toggleSelection(sr.id) }),
-    storageRepository: r =>
-      r({
-        label: sr.name_label,
-        to: getSrPageLocation(sr, { type: SR_SCOPE_TYPE.POOL }),
-        icon: 'object:sr',
-      }),
-    storageFormat: r => r(sr.SR_type),
-    usedSpace: r => r(sr.physical_usage, sr.size),
-  }),
+  body: (sr: FrontXoSr) => {
+    const { srStatusIcon } = useXoSrUtils(sr)
+
+    return {
+      checkbox: r => r({ selected: isSelected(sr.id), onToggle: () => toggleSelection(sr.id) }),
+      storageRepository: r =>
+        r({
+          label: sr.name_label,
+          to: getSrPageLocation(sr, { type: SR_SCOPE_TYPE.POOL }),
+          icon: srStatusIcon.value,
+        }),
+      storageFormat: r => r(sr.SR_type),
+      usedSpace: r => r(sr.physical_usage, sr.size),
+    }
+  },
 })
 
 if (mode === 'smart') {

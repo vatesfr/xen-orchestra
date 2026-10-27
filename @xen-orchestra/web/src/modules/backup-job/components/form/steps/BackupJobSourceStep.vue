@@ -26,6 +26,9 @@
       <BackupJobFormRadio v-bind="bindings.scopeType">
         <template v-if="!isMetadata" #info>
           <UiInfo wrap accent="info">{{ t('replications-excluded-from-selection') }}</UiInfo>
+          <UiInfo v-if="isSourceBackupRepositoryMissing" wrap accent="danger">
+            {{ t('select-source-backup-repository-first') }}
+          </UiInfo>
         </template>
       </BackupJobFormRadio>
       <template v-if="hasVmSelection">
@@ -42,8 +45,13 @@
           <BackupJobSourceVmTable v-else v-model:selected-ids="selectedVmIds" :vms :error="bindings.vmIds.error" />
         </template>
         <template v-else-if="bindings.scopeType.modelValue === 'smart'">
-          <VtsQueryBuilder :model-value="vmFilter" :schema="vmSelectionSchema" @search="vmFilter = $event" />
-          <UiInfo v-for="message of vmFilterErrors" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+          <BackupJobFormQueryInput
+            v-model="vmFilter"
+            :label="t('dynamic-selection-query')"
+            :schema="vmSelectionSchema"
+            :error="bindings.vmFilter.error"
+            required
+          />
           <VtsQueryBuilderPreview
             v-if="vmFilter !== ''"
             :filter="vmFilter"
@@ -61,18 +69,17 @@
 <script lang="ts" setup>
 import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
+import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobSourceBackupVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceBackupVmTable.vue'
 import BackupJobSourceVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceVmTable.vue'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsQueryBuilderPreview from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -105,11 +112,11 @@ const vmFilter = computed({
   set: value => bindings.vmFilter['onUpdate:modelValue'](value),
 })
 
-const vmFilterErrors = computed(() =>
-  toArray(bindings.vmFilter.error).map(message => (typeof message === 'object' ? message.content : message))
-)
-
 const isMetadata = computed(() => bindings.dataSource.modelValue === 'metadata')
+
+const isSourceBackupRepositoryMissing = computed(
+  () => isMirror.value && bindings.scopeType.modelValue !== 'all' && form.formData.sourceBackupRepository === undefined
+)
 </script>
 
 <style lang="postcss" scoped>

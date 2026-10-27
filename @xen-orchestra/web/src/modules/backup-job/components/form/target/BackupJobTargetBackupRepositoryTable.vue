@@ -1,6 +1,7 @@
 <template>
   <div class="backup-job-target-backup-repository-table">
-    <VtsQueryBuilder :model-value="query" :schema @search="search($event)" />
+    <VtsQueryBuilder v-if="isManual" :model-value="query" :schema @search="search($event)" />
+    <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
 
     <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
       <thead>
@@ -15,11 +16,12 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-for="message of isManual ? errorMessages : []" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
+import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import { useBackupRepositoryQueryBuilder } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
@@ -41,9 +43,10 @@ import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { mode, brs, matchedBrs, error } = defineProps<{
+const { mode, brs, compatibleBrs, matchedBrs, error } = defineProps<{
   mode: 'manual' | 'smart'
   brs: FrontXoBackupRepository[]
+  compatibleBrs: FrontXoBackupRepository[]
   matchedBrs?: FrontXoBackupRepository[]
   error?: InputWrapperMessage
 }>()
@@ -74,15 +77,19 @@ function search(value: string) {
   }
 }
 
+const compatibleBrIds = computed(() => new Set(compatibleBrs.map(br => br.id)))
+
+const isCompatible = (br: FrontXoBackupRepository) => compatibleBrIds.value.has(br.id)
+
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('backup-job-target-brs', displayedBrs, {
   ignoreRoute: true,
 })
 
 const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = useBackupJobIdSelection(
   selectedIds,
-  () => brs,
-  displayedBrs,
-  paginatedBrs
+  () => compatibleBrs,
+  () => displayedBrs.value.filter(isCompatible),
+  () => paginatedBrs.value.filter(isCompatible)
 )
 
 const state = useTableState({
@@ -108,7 +115,8 @@ const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
     const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
 
     return {
-      checkbox: r => r({ selected: isSelected(br.id), onToggle: () => toggleSelection(br.id) }),
+      checkbox: r =>
+        r({ selected: isSelected(br.id), onToggle: () => toggleSelection(br.id), disabled: !isCompatible(br) }),
       backupRepository: r =>
         r({
           label: br.name,
