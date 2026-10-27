@@ -84,7 +84,9 @@
 
       <UiCard>
         <UiTitle>{{ t('firewall:live:blocked-attempts') }}</UiTitle>
-        <VdfDroppedTable :scope-id="pool.id" :rows="droppedRows" />
+        <!-- the same counters as "Dropped / s" above, but a source stays listed a while after its last drop -->
+        <UiInfo accent="muted" wrap>{{ t('firewall:live:blocked-attempts:info') }}</UiInfo>
+        <VdfDroppedTable :scope-id="pool.id" :rows="droppedRows" :rate-label="t('firewall:live:dropped-rate:last')" />
       </UiCard>
 
       <UiCard>

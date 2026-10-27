@@ -18,7 +18,12 @@
     <VtsStateHero v-else-if="rows.length === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('firewall:recent-drops:none', { n: VDF_RECENT_DROPS_WINDOW_MINUTES }) }}
     </VtsStateHero>
-    <VdfDroppedTable v-else :scope-id="poolId" :rows />
+    <VdfDroppedTable
+      v-else
+      :scope-id="poolId"
+      :rows
+      :rate-label="t('firewall:recent-drops:count', { minutes: VDF_RECENT_DROPS_WINDOW_MINUTES })"
+    />
   </UiCard>
 </template>
 

@@ -63,9 +63,11 @@ export type VdfDroppedRow = {
   traceLabel: string
 }
 
-const { rows, scopeId } = defineProps<{
+const { rows, scopeId, rateLabel } = defineProps<{
   scopeId: VdfScopeId
   rows: VdfDroppedRow[]
+  // what the rate column holds: a rate (Live), or a count over a window
+  rateLabel?: string
 }>()
 
 const { t } = useI18n()
@@ -105,7 +107,7 @@ const useDroppedColumns = defineColumns(() => ({
   destination: useLiteralColumn({ headerLabel: () => t('firewall:destination') }),
   service: useLiteralColumn({ headerLabel: () => t('firewall:service') }),
   decidedBy: useLiteralColumn({ headerLabel: () => t('firewall:log:decided-by') }),
-  rate: useEndColumn({ headerLabel: () => t('firewall:live:dropped-rate') }),
+  rate: useEndColumn({ headerLabel: () => rateLabel ?? t('firewall:live:dropped-rate') }),
   trace: useLiteralColumn({ headerLabel: () => t('firewall:live:why') }),
   actions: useVdfActionsColumn(),
 }))
