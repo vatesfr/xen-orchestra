@@ -69,16 +69,30 @@
             {{ t('firewall:restore') }}
           </UiButton>
           <template v-else>
-            <UiButton
-              variant="tertiary"
-              accent="brand"
-              size="small"
-              left-icon="fa:plus"
-              :aria-label="t('firewall:add-rule-to', { policy: displayName(entry.policy.name) })"
-              @click="emit('addRule')"
-            >
-              {{ t('firewall:add-rule') }}
-            </UiButton>
+            <!-- inbound or outbound: both in reach (outbound was in the ⋯ menu only) -->
+            <MenuList placement="bottom-end">
+              <template #trigger="{ open }">
+                <UiButton
+                  variant="tertiary"
+                  accent="brand"
+                  size="small"
+                  left-icon="fa:plus"
+                  :aria-label="t('firewall:add-rule-to', { policy: displayName(entry.policy.name) })"
+                  aria-haspopup="menu"
+                  class="add-rule"
+                  @click="open($event)"
+                >
+                  {{ t('firewall:add-rule') }}
+                  <VtsIcon name="fa:angle-down" size="small" />
+                </UiButton>
+              </template>
+              <MenuItem accent="neutral" icon="fa:arrow-right" @click="emit('addRule')">
+                {{ t('firewall:add-rule:inbound') }}
+              </MenuItem>
+              <MenuItem accent="neutral" icon="fa:arrow-right-from-bracket" @click="emit('addEgressRule')">
+                {{ t('firewall:add-rule:outbound') }}
+              </MenuItem>
+            </MenuList>
             <UiButtonIcon
               v-tooltip="editLabel"
               :aria-label="editLabel"
@@ -118,6 +132,8 @@ import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import type { VdfMove, VdfRuleBasePolicy } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { VdfPolicyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsActionsMenu, { type ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -194,7 +210,6 @@ const enforcement = computed<{ accent: InfoAccent; label: string } | undefined>(
 })
 
 const actions = computed<ActionItem[]>(() => [
-  { label: t('firewall:add-egress-rule'), icon: 'fa:arrow-right-from-bracket', onClick: () => emit('addEgressRule') },
   monitored.value
     ? { label: t('firewall:mode:switch-enforce'), icon: 'fa:shield', onClick: () => emit('setMode', 'enforce') }
     : { label: t('firewall:mode:switch-monitor'), icon: 'fa:eye', onClick: () => emit('setMode', 'monitor') },
