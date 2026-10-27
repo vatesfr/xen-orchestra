@@ -394,11 +394,13 @@ describe('listOperatorChanges()', () => {
     return { ...createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS }), status: 'interrupted', changedByRun }
   }
   // a pool as the run left it: every setting it touched still disabled
-  function makeLive({ pool, schedules = {}, srs = {} } = {}) {
+  function makeLive({ pool, hosts = {}, schedules = {}, srs = {}, vms = {} } = {}) {
     return {
       pool: { ha_enabled: false, wlb_enabled: false, other_config: { auto_poweron: 'false' }, ...pool },
+      getHost: id => hosts[id],
       getSchedule: id => schedules[id],
       getSr: id => srs[id],
+      getVm: id => vms[id],
     }
   }
   const HA = { srs: ['sr1'], configuration: { timeout: '60' } }
@@ -413,7 +415,7 @@ describe('listOperatorChanges()', () => {
     const record = makeRecord({ ha: HA, autoPowerOn: true, wlb: true, schedules: ['s1', 's2', 's3'] })
     const live = makeLive({
       pool: { ha_enabled: true, wlb_enabled: true, other_config: { auto_poweron: 'true' } },
-      // s3 was deleted: nothing left to restore, not a change to acknowledge
+      // s3 was deleted
       schedules: { s1: { enabled: true, name: 'nightly' }, s2: { enabled: false, name: 'weekly' } },
     })
     assert.deepEqual(listOperatorChanges(record, live), [
@@ -421,7 +423,33 @@ describe('listOperatorChanges()', () => {
       { type: 'autoPowerOn', id: 'pool1', expected: 'disabled', observed: 'enabled' },
       { type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' },
       { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's3', expected: 'disabled', observed: 'missing' },
     ])
+  })
+
+  it('lists the hosts and VMs of the run which no longer exist', () => {
+    const record = {
+      ...makeRecord({}),
+      hostOrder: ['h1', 'h2'],
+      hosts: { h1: { steps: {} }, h2: { steps: {} } },
+      vmHomeById: { vm1: 'h1', vm2: 'h2' },
+      haltedPinnedVms: { vm3: 'h1' },
+    }
+    const live = makeLive({ hosts: { h1: {} }, vms: { vm1: {} } })
+    assert.deepEqual(listOperatorChanges(record, live), [
+      { type: 'host', id: 'h2', expected: 'present', observed: 'missing' },
+      { type: 'vm', id: 'vm2', expected: 'present', observed: 'missing' },
+      { type: 'vm', id: 'vm3', expected: 'present', observed: 'missing' },
+    ])
+  })
+
+  it('does not list again the VMs the run already reported as deleted', () => {
+    const record = {
+      ...makeRecord({}),
+      vmHomeById: { vm1: 'h1' },
+      vmConflicts: [{ vmId: 'vm1', hostId: 'h1', reason: 'deleted' }],
+    }
+    assert.deepEqual(listOperatorChanges(record, makeLive({ hosts: { h1: {} } })), [])
   })
 
   it('lists the HA heartbeat SRs which no longer exist', () => {
@@ -1054,6 +1082,44 @@ describe('resumeRpuRecoveryRun()', () => {
       assert.equal(stored.status, 'resuming')
       assert.deepEqual(stored.changedByRun, expected)
       assert.equal(stored.operatorChanges, undefined)
+    })
+
+    it('forgets the hosts, VMs and schedules gone since the run once acknowledged', async () => {
+      const { store } = await storeWith({
+        changedByRun: { schedules: ['s1', 's2'] },
+        hostOrder: ['h1', 'h2'],
+        hosts: { h1: { steps: {} }, h2: { steps: {} } },
+        hasMissingPatchesByHost: { h1: true, h2: true },
+        // vm2 still exists, but its home host is gone
+        vmHomeById: { vm1: 'h1', vm2: 'h2', vm3: 'h1' },
+        haltedPinnedVms: { vm4: 'h2', vm5: 'h1' },
+      })
+      const gone = {
+        ...live,
+        getHost: id => ({ h1: {} })[id],
+        getSchedule: id => ({ s2: { enabled: false, name: 'weekly' } })[id],
+        getVm: id => ({ vm1: {}, vm2: {}, vm4: {}, vm5: {} })[id],
+      }
+
+      const { acceptedOperatorChanges } = await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live: gone,
+        acceptOperatorChanges: true,
+      })
+
+      assert.deepEqual(acceptedOperatorChanges, [
+        { type: 'schedule', id: 's1', expected: 'disabled', observed: 'missing' },
+        { type: 'host', id: 'h2', expected: 'present', observed: 'missing' },
+        { type: 'vm', id: 'vm3', expected: 'present', observed: 'missing' },
+      ])
+      const stored = store.data.get('pool1')
+      assert.deepEqual(stored.changedByRun, { schedules: ['s2'] })
+      assert.deepEqual(stored.hostOrder, ['h1'])
+      assert.deepEqual(Object.keys(stored.hosts), ['h1'])
+      assert.deepEqual(stored.hasMissingPatchesByHost, { h1: true })
+      assert.deepEqual(stored.vmHomeById, { vm1: 'h1' })
+      assert.deepEqual(stored.haltedPinnedVms, { vm5: 'h1' })
     })
 
     it('gives up the HA restoration when a heartbeat SR is gone', async () => {

@@ -723,9 +723,10 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
    * step statuses, last error, pinned VMs still halted, VMs the update could
-   * not migrate back to their original host (`vmConflicts`), settings an
-   * operator changed since the update left them changed, which block its
-   * resume until accepted (`operatorChanges`). 404 when the last
+   * not migrate back to their original host (`vmConflicts`), what an
+   * operator changed since: settings the update left changed, hosts, VMs or
+   * backup schedules of the update removed, which block its resume until
+   * accepted (`operatorChanges`). 404 when the last
    * rolling pool update completed successfully (no recovery needed), or when
    * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
    * record is kept for those pools).
@@ -808,9 +809,11 @@ export class PoolController extends XapiXoController<XoPool> {
    * interrupted nor blocked.
    *
    * When an operator changed a setting the update left changed (HA, auto power on, WLB or a backup schedule enabled
-   * again, a heartbeat SR of HA deleted), the update is blocked and the resume refused with an `incorrect state`
-   * error on `operatorChanges` listing them. Set `acceptOperatorChanges` to keep them: the update no longer restores
-   * these settings.
+   * again, a heartbeat SR of HA deleted) or removed a host, a VM or a backup schedule of the update, the update is
+   * blocked and the resume refused with an `incorrect state` error on `operatorChanges` listing them. Set
+   * `acceptOperatorChanges` to keep them: the update starts from the current state, as a new one would. A setting
+   * enabled again is disabled while the update runs and enabled again at its end, HA whose heartbeat SR was deleted
+   * stays disabled, and the removed hosts and VMs are left out.
    *
    * Required privilege:
    * - resource: pool, action: rolling-update

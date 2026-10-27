@@ -296,27 +296,31 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
 }
 
 /**
- * Lists what an operator changed, since the run, on the settings the run left
- * changed: a resume would otherwise silently override the operator.
+ * Lists what an operator changed, since the run, on what the run left changed
+ * or works on: a resume would otherwise silently override the operator, or
+ * skip what is gone without a word.
  *
- * Settings enabled again by hand (HA, auto power-on, WLB, backup schedules)
- * and HA heartbeat SRs which no longer exist, so HA cannot be restored as it
- * was. Deleted schedules are not listed: there is nothing left to restore.
- * The HA configuration is never exposed.
+ * Settings enabled again by hand (HA, auto power-on, WLB, backup schedules),
+ * deleted backup schedules, HA heartbeat SRs which no longer exist, so HA
+ * cannot be restored as it was, and hosts or VMs of the run which no longer
+ * exist. The HA configuration is never exposed.
  *
  * @param {object | undefined} record
  * @param {object} live
  * @param {object} live.pool - XAPI pool object
+ * @param {(id: string) => object | undefined} live.getHost
  * @param {(id: string) => object | undefined} live.getSchedule
  * @param {(id: string) => object | undefined} live.getSr
+ * @param {(id: string) => object | undefined} live.getVm
  * @returns {Array<{ type: string, id: string, name?: string, expected: string, observed: string }> | null} `null` when the record cannot be read
  */
-export function listOperatorChanges(record, { pool, getSchedule, getSr }) {
+export function listOperatorChanges(record, { pool, getHost, getSchedule, getSr, getVm }) {
   if (record === null || typeof record !== 'object' || record.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
     return null
   }
   const { poolId, changedByRun = {} } = record
   const enabledAgain = (type, id, name) => ({ type, id, name, expected: 'disabled', observed: 'enabled' })
+  const missing = (type, id) => ({ type, id, expected: 'present', observed: 'missing' })
   const changes = []
 
   if (changedByRun.ha && pool.ha_enabled) {
@@ -330,15 +334,30 @@ export function listOperatorChanges(record, { pool, getSchedule, getSr }) {
   }
   for (const scheduleId of changedByRun.schedules ?? []) {
     const schedule = getSchedule(scheduleId)
-    if (schedule?.enabled === true) {
+    if (schedule === undefined) {
+      changes.push({ type: 'schedule', id: scheduleId, expected: 'disabled', observed: 'missing' })
+    } else if (schedule.enabled === true) {
       changes.push(enabledAgain('schedule', scheduleId, schedule.name))
     }
   }
   if (changedByRun.ha && !pool.ha_enabled) {
     for (const srId of changedByRun.ha.srs ?? []) {
       if (getSr(srId) === undefined) {
-        changes.push({ type: 'haHeartbeatSr', id: srId, expected: 'present', observed: 'missing' })
+        changes.push(missing('haHeartbeatSr', srId))
       }
+    }
+  }
+  for (const hostId of new Set([...(record.hostOrder ?? []), ...Object.keys(record.hosts ?? {})])) {
+    if (getHost(hostId) === undefined) {
+      changes.push(missing('host', hostId))
+    }
+  }
+  // the VMs to migrate back home or to start again, but the ones the run
+  // already reported as deleted: they stay listed until Finalize
+  const reportedDeleted = new Set((record.vmConflicts ?? []).filter(_ => _.reason === 'deleted').map(_ => _.vmId))
+  for (const vmId of new Set([...Object.keys(record.vmHomeById ?? {}), ...Object.keys(record.haltedPinnedVms ?? {})])) {
+    if (getVm(vmId) === undefined && !reportedDeleted.has(vmId)) {
+      changes.push(missing('vm', vmId))
     }
   }
 
@@ -346,16 +365,32 @@ export function listOperatorChanges(record, { pool, getSchedule, getSr }) {
   return JSON.parse(JSON.stringify(changes))
 }
 
+const withoutHost = (byId, hostId) => Object.fromEntries(Object.entries(byId ?? {}).filter(([, _]) => _ !== hostId))
+
 /**
  * Takes the operator's state as the new baseline: the run no longer restores
- * the settings listed in `changes`.
+ * the settings listed in `changes` from the record, it handles them as a new
+ * run would, and forgets the hosts and VMs which no longer exist.
  *
- * @param {object} changedByRun - mutated
+ * @param {object} record - mutated
  * @param {object[]} changes - see listOperatorChanges
  */
-function adoptOperatorChanges(changedByRun, changes) {
+function adoptOperatorChanges(record, changes) {
+  const { changedByRun = {} } = record
   for (const { type, id } of changes) {
-    if (type === 'ha' || type === 'haHeartbeatSr') {
+    if (type === 'host') {
+      if (record.hostOrder !== undefined) {
+        record.hostOrder = record.hostOrder.filter(_ => _ !== id)
+      }
+      delete record.hosts?.[id]
+      delete record.hasMissingPatchesByHost?.[id]
+      // the VMs of a host which no longer exists stay where they are
+      record.vmHomeById = withoutHost(record.vmHomeById, id)
+      record.haltedPinnedVms = withoutHost(record.haltedPinnedVms, id)
+    } else if (type === 'vm') {
+      delete record.vmHomeById?.[id]
+      delete record.haltedPinnedVms?.[id]
+    } else if (type === 'ha' || type === 'haHeartbeatSr') {
       delete changedByRun.ha
     } else if (type === 'schedule') {
       changedByRun.schedules = changedByRun.schedules.filter(_ => _ !== id)
@@ -788,10 +823,12 @@ export const noRpuResume = Object.freeze({
  * The steps that failed or were running in the previous attempt are set back
  * to `pending`: `failed` is sticky within an attempt, not across attempts.
  *
- * Settings an operator changed since the run (see listOperatorChanges) block
- * the record until acknowledged with `acceptOperatorChanges`: the operator's
- * state is then kept, the run no longer restores these settings. The
- * `blocked` status is written best-effort, the resume is refused either way.
+ * What an operator changed since the run (see listOperatorChanges) blocks the
+ * record until acknowledged with `acceptOperatorChanges`: the current state is
+ * then the baseline, as for a new run. A setting enabled now is disabled while
+ * the run goes on and enabled again at its end, a setting still disabled stays
+ * so, and the hosts and VMs which no longer exist are forgotten. The `blocked`
+ * status is written best-effort, the resume is refused either way.
  *
  * Strict write of the `resuming` status: a failure rejects and must abort the
  * resume before any side effect. The caller holds the RPU guard of the pool.
@@ -804,7 +841,7 @@ export const noRpuResume = Object.freeze({
  * @returns {Promise<{ recorder: object, record: object, plan: object, acceptedOperatorChanges: object[] }>} see planRpuResume for `plan`
  * @throws {Error} `noSuchObject` when the pool has no record
  * @throws {Error} `incorrectState` (property `status`) when the record is not failed, interrupted nor blocked
- * @throws {Error} `incorrectState` (property `operatorChanges`) when an operator changed a setting and it was not acknowledged
+ * @throws {Error} `incorrectState` (property `operatorChanges`) when an operator changed a setting, or removed a host, VM or schedule of the run, and it was not acknowledged
  */
 export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperatorChanges = false }) {
   let record
@@ -836,9 +873,7 @@ export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperator
     throw incorrectState({ actual: operatorChanges, expected: [], object: poolId, property: 'operatorChanges' })
   }
   // before planRpuResume, which shares changedByRun with the record
-  if (record.changedByRun !== undefined) {
-    adoptOperatorChanges(record.changedByRun, operatorChanges)
-  }
+  adoptOperatorChanges(record, operatorChanges)
   delete record.operatorChanges
 
   // before the reset below, which forgets the steps the previous attempt left

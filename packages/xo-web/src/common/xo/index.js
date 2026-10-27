@@ -1613,18 +1613,25 @@ const RPU_OPERATOR_CHANGE_LABELS = {
   autoPowerOn: 'rpuOperatorChangeAutoPowerOn',
   ha: 'rpuOperatorChangeHa',
   haHeartbeatSr: 'rpuOperatorChangeHaHeartbeatSr',
+  host: 'rpuOperatorChangeHost',
   schedule: 'rpuOperatorChangeSchedule',
+  vm: 'rpuOperatorChangeVm',
   wlb: 'rpuOperatorChangeWlb',
 }
 
 export const renderRpuOperatorChanges = changes => (
   <ul>
-    {changes.map(({ type, id, name }) => (
-      <li key={type + id}>
-        {_(RPU_OPERATOR_CHANGE_LABELS[type])}
-        {name !== undefined && `: ${name}`}
-      </li>
-    ))}
+    {changes.map(({ type, id, name, observed }) => {
+      const missing = observed === 'missing'
+      // a deleted object has no name left: its UUID identifies it
+      const object = name ?? (missing ? id : undefined)
+      return (
+        <li key={type + id}>
+          {_(type === 'schedule' && missing ? 'rpuOperatorChangeScheduleDeleted' : RPU_OPERATOR_CHANGE_LABELS[type])}
+          {object !== undefined && `: ${object}`}
+        </li>
+      )
+    })}
   </ul>
 )
 

@@ -100,7 +100,7 @@ export default class Pools {
    *
    * @param {object} pool - XO pool object
    * @param {object} [opts]
-   * @param {boolean} [opts.acceptOperatorChanges] - keep the settings an operator changed since the run
+   * @param {boolean} [opts.acceptOperatorChanges] - take what an operator changed since the run as the new baseline
    * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did, the
    *   settings they left changed included (see `planRpuResume`), and the operator changes accepted
    */
@@ -112,8 +112,10 @@ export default class Pools {
       poolId: pool.id,
       live: {
         pool: xapi.pool,
+        getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
         getSchedule: scheduleId => scheduleById[scheduleId],
         getSr: srId => xapi.getObjectByUuid(srId, undefined),
+        getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
       },
       acceptOperatorChanges,
     })

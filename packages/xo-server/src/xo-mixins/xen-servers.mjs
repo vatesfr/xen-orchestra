@@ -1075,15 +1075,18 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged. Not taken from the
    *   previous attempts: asked again on each resume
-   * @param {boolean} [opts.acceptOperatorChanges] - Keep the settings an operator changed since the run, they are
-   *   no longer restored by the run. The accepted changes are logged and listed in the task
+   * @param {boolean} [opts.acceptOperatorChanges] - Take what an operator changed since the run as the new baseline,
+   *   as for a new run: a setting enabled again is disabled while the run goes on and enabled again at its end, HA
+   *   whose heartbeat SR is gone stays disabled, the hosts and VMs which no longer exist are forgotten. The accepted
+   *   changes are logged and listed in the task
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
    * @throws {Error} `noSuchObject` if the pool has no recovery record
    * @throws {Error} `incorrectState` (property `status`) if the run is neither failed, interrupted nor blocked
    * @throws {Error} `incorrectState` (property `operatorChanges`) if an operator changed a setting the run left
-   *   changed, and `acceptOperatorChanges` is not set: the run is then blocked
+   *   changed, or removed a host, VM or backup schedule of the run, and `acceptOperatorChanges` is not set: the run
+   *   is then blocked, and a failed task with its trace lists the changes
    */
   async resumeRollingPoolUpdate(
     $defer,
@@ -1098,11 +1101,21 @@ export default class XenServers {
 
     $defer(acquireRpuGuard(poolId, 'resumeRollingPoolUpdate'))
 
-    const { recorder, options, resume, acceptedOperatorChanges } = await app.resumeRpuRecoveryRun(pool, {
-      acceptOperatorChanges,
-    })
+    let resumed
+    try {
+      resumed = await app.resumeRpuRecoveryRun(pool, { acceptOperatorChanges })
+    } catch (error) {
+      if (incorrectState.is(error, { property: 'operatorChanges' })) {
+        // the caller needs this error to offer the acknowledgement
+        await this._reportBlockedRpuResume(pool, error, parentTask).catch(reportError =>
+          log.warn('could not report a blocked rolling pool update resume', { error: reportError, poolId })
+        )
+      }
+      throw error
+    }
+    const { recorder, options, resume, acceptedOperatorChanges } = resumed
     if (acceptedOperatorChanges.length > 0) {
-      log.warn('rolling pool update resumed over operator changes, they are kept', {
+      log.warn('rolling pool update resumed over operator changes, they are accepted', {
         poolId,
         operatorChanges: acceptedOperatorChanges,
       })
@@ -1117,6 +1130,36 @@ export default class XenServers {
       resume,
       schedules,
     })
+  }
+
+  // a resume refused over operator changes leaves what an attempt leaves: a
+  // failed task with its trace, and a log listing the changes
+  async _reportBlockedRpuResume(pool, error, parentTask) {
+    const app = this._app
+    const poolId = pool.id
+    const operatorChanges = error.data.actual
+    log.warn('rolling pool update resume blocked by operator changes', { poolId, operatorChanges })
+    const trace = openRpuTrace({ dir: getRpuTracesConfig(app).dir, kind: 'rpu', poolId })
+    try {
+      const properties = {
+        name: 'Rolling pool update',
+        objectId: poolId,
+        poolId,
+        poolName: pool.name_label,
+        type: 'pool.rolling_update',
+        operatorChanges,
+        ...(trace !== undefined && { traceFile: trace.traceFile }),
+      }
+      const task = parentTask === undefined ? app.tasks.create(properties) : new Task({ properties })
+      trace?.attach(task)
+      await task
+        .run(() => {
+          throw error
+        })
+        .catch(() => {})
+    } finally {
+      trace?.stop()
+    }
   }
 
   // the part of a run shared by a rolling pool update and its resumes, once the

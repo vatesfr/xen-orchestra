@@ -162,16 +162,17 @@ export type PoolRollingUpdateRecoveryVmConflict = {
   message?: string
 }
 
-/** a setting the run left changed which an operator changed since */
+/** what an operator changed, since the run, on a setting the run left changed or on an object of the run */
 export type PoolRollingUpdateRecoveryOperatorChange = {
   /** `haHeartbeatSr`: a heartbeat SR HA must be enabled again with no longer exists */
-  type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr'
-  /** pool, schedule or SR UUID */
+  type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr' | 'host' | 'vm'
+  /** pool, schedule, SR, host or VM UUID */
   id: string
-  /** schedules only */
+  /** schedules enabled again only */
   name?: string
-  /** `disabled` as the run left it, `present` for a heartbeat SR */
+  /** `disabled` as the run left it, `present` for a heartbeat SR, a host or a VM */
   expected: 'disabled' | 'present'
+  /** `missing` for a deleted schedule, heartbeat SR, host or VM */
   observed: 'enabled' | 'missing'
 }
 
