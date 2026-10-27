@@ -32,29 +32,6 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
     errorMessage: updateAutoloadErrorMessage,
   } = useXoPluginAutoloadJob(plugin, () => !plugin.value.autoload)
 
-  // changing the state also updates the autoload, so both actions must not run at the same time
-  const loadAction = computed(
-    (): LeafActionItem => ({
-      label: isLoaded.value ? t('action:unload') : t('action:load'),
-      icon: isLoaded.value ? 'action:disconnect' : 'action:connect',
-      onClick: () => changeState(),
-      disabled: !canChangeState.value || isUpdatingAutoload.value,
-      busy: isChangingState.value,
-      hint: changeStateErrorMessage.value,
-    })
-  )
-
-  const autoloadAction = computed(
-    (): LeafActionItem => ({
-      label: plugin.value.autoload ? t('action:disable-load-at-startup') : t('action:enable-load-at-startup'),
-      icon: 'action:change-state',
-      onClick: () => updateAutoload(),
-      disabled: !canUpdateAutoload.value || isChangingState.value,
-      busy: isUpdatingAutoload.value,
-      hint: updateAutoloadErrorMessage.value,
-    })
-  )
-
   const {
     openDrawer: configurePlugin,
     canRun: canConfigurePlugin,
@@ -74,6 +51,30 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
     useJob: useXoPluginTestJob,
     drawer: () => import('@/modules/plugin/components/drawer/PluginTestDrawer.vue'),
   })
+
+  // changing the state also updates the autoload, and a test needs the plugin loaded, so none of them must run while
+  // the plugin is being loaded or unloaded
+  const loadAction = computed(
+    (): LeafActionItem => ({
+      label: isLoaded.value ? t('action:unload') : t('action:load'),
+      icon: isLoaded.value ? 'action:disconnect' : 'action:connect',
+      onClick: () => changeState(),
+      disabled: !canChangeState.value || isUpdatingAutoload.value || isTestingPlugin.value,
+      busy: isChangingState.value,
+      hint: changeStateErrorMessage.value,
+    })
+  )
+
+  const autoloadAction = computed(
+    (): LeafActionItem => ({
+      label: plugin.value.autoload ? t('action:disable-load-at-startup') : t('action:enable-load-at-startup'),
+      icon: 'action:change-state',
+      onClick: () => updateAutoload(),
+      disabled: !canUpdateAutoload.value || isChangingState.value,
+      busy: isUpdatingAutoload.value,
+      hint: updateAutoloadErrorMessage.value,
+    })
+  )
 
   const { deleteConfiguration, canDeleteConfiguration, isDeletingConfiguration, deleteConfigurationErrorMessage } =
     useXoPluginConfigurationDelete(plugin)
@@ -95,7 +96,7 @@ export function useXoPluginActions(rawPlugin: MaybeRefOrGetter<FrontXoPlugin>) {
       label: t('action:test-plugin'),
       icon: 'action:scan',
       onClick: () => testPlugin(),
-      disabled: !canTestPlugin.value,
+      disabled: !canTestPlugin.value || isChangingState.value,
       busy: isTestingPlugin.value,
       hint: testPluginErrorMessage.value,
     })

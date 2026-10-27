@@ -145,6 +145,12 @@ describe('loadAction', () => {
 
     expect(mountActions().loadAction).toMatchObject({ disabled: true, hint: undefined })
   })
+
+  it('is disabled while the plugin is being tested', () => {
+    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, isRunning: true })
+
+    expect(mountActions().loadAction).toMatchObject({ disabled: true, hint: undefined })
+  })
 })
 
 describe('autoloadAction', () => {
@@ -263,6 +269,12 @@ describe('testAction', () => {
     mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, isRunning: true })
 
     expect(mountActions().testAction.busy).toBe(true)
+  })
+
+  it('is disabled while the plugin is being loaded or unloaded', () => {
+    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
+
+    expect(mountActions().testAction).toMatchObject({ disabled: true, hint: undefined })
   })
 })
 
