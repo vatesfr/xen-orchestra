@@ -11,7 +11,7 @@ export const useAdminBackupLogColumns = defineColumns(() => {
 
   return {
     job: useLinkColumn({ headerLabel: () => t('job') }),
-    backupDate: useDateColumn({ headerLabel: () => t('backup-date'), dateStyle: 'short', timeStyle: 'medium' }),
+    backupDate: useDateColumn({ headerLabel: () => t('backup-date') }),
     vm: useLinkOrTextColumn({ headerLabel: () => t('vm') }),
     sr: useLinkOrTextColumn({ headerLabel: () => t('sr') }),
     status: useStatusColumn(),

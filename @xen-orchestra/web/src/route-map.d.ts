@@ -97,11 +97,19 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/admin/backup-and-replication/backup-repositories'
+      | '/admin/backup-and-replication/jobs'
       | '/admin/backup-and-replication/logs'
     >,
     '/admin/backup-and-replication/backup-repositories': RouteRecordInfo<
       '/admin/backup-and-replication/backup-repositories',
       '/admin/backup-and-replication/backup-repositories',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/backup-and-replication/jobs': RouteRecordInfo<
+      '/admin/backup-and-replication/jobs',
+      '/admin/backup-and-replication/jobs',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -125,6 +133,20 @@ declare module 'vue-router/auto-routes' {
       '/admin/backup-repository/:id/general',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/plugin/[id]': RouteRecordInfo<
+      '/admin/plugin/[id]',
+      '/admin/plugin/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/plugins': RouteRecordInfo<
+      '/admin/plugins',
+      '/admin/plugins',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/admin/user-management': RouteRecordInfo<
@@ -622,6 +644,7 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/admin/backup-and-replication'
         | '/admin/backup-and-replication/backup-repositories'
+        | '/admin/backup-and-replication/jobs'
         | '/admin/backup-and-replication/logs'
       views:
         | 'default'
@@ -629,6 +652,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-and-replication/backup-repositories.vue': {
       routes:
         | '/admin/backup-and-replication/backup-repositories'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-and-replication/jobs.vue': {
+      routes:
+        | '/admin/backup-and-replication/jobs'
       views:
         | never
     }
@@ -648,6 +677,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-repository/[id]/general.vue': {
       routes:
         | '/admin/backup-repository/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/admin/plugin/[id].vue': {
+      routes:
+        | '/admin/plugin/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/plugins.vue': {
+      routes:
+        | '/admin/plugins'
       views:
         | never
     }

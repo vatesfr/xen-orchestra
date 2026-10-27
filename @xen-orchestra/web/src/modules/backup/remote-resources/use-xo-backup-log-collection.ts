@@ -1,3 +1,4 @@
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { safePushInMap } from '@/shared/utils/map.util.ts'
@@ -11,14 +12,18 @@ export type FrontXoBackupLog = Pick<XoBackupLog, (typeof backupLogFields)[number
 const backupLogFields = [
   'id',
   'jobId',
+  'scheduleId',
   'status',
   'start',
   'end',
   'tasks',
+  'result',
 ] as const satisfies readonly (keyof XoBackupLog)[]
 
 export const useXoBackupLogCollection = defineRemoteResource({
-  url: `${BASE_URL}/backup-logs?fields=${backupLogFields.join(',')}`,
+  url: `${BASE_URL}/backup-logs?fields=${backupLogFields.join(',')}&ndjson=true`,
+  stream: true,
+  initWatchCollection: () => useWatchCollection({ resource: 'backup-log', fields: backupLogFields }),
   initialData: () => [] as FrontXoBackupLog[],
   state: (rawBackupLogs, context) => {
     const sortedBackupLogs = useSorted(rawBackupLogs, (log1, log2) => log2.start - log1.start)

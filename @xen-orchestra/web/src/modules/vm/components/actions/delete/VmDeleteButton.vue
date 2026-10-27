@@ -58,6 +58,7 @@ function openModal() {
   return openDeleteModal({
     props: {
       subject: vm.name_label,
+      description: t('vm-delete-warning'),
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
     },
     events: {

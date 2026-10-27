@@ -524,6 +524,7 @@ class SDNController extends EventEmitter {
       // Add already existing private networks
       const networks = Object.values(xapi.objects.indexes.type.network ?? {})
       const noVniNetworks = []
+      const registeredNetworks = new Set()
       await Promise.all(
         networks.map(async network => {
           // 2019-09-03
@@ -548,29 +549,73 @@ class SDNController extends EventEmitter {
           let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
             const preferredCenterUuid = otherConfig['xo:sdn-controller:preferred-center']
-            const preferredCenter =
-              preferredCenterUuid !== undefined
-                ? this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
-                : undefined
+            let preferredCenter
+            if (preferredCenterUuid !== undefined) {
+              try {
+                preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
+              } catch (error) {
+                log.warn('Stale preferred center, will be elected when a host becomes available', {
+                  network: network.name_label,
+                  preferredCenterUuid,
+                  error,
+                })
+              }
+            }
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
             this.privateNetworks[uuid] = privateNetwork
           }
 
-          const vni = otherConfig['xo:sdn-controller:vni']
-          if (vni === undefined) {
-            noVniNetworks.push(network)
-          } else {
-            this._prevVni = Math.max(this._prevVni, +vni)
-          }
+          try {
+            const vni = otherConfig['xo:sdn-controller:vni']
+            if (vni !== undefined) {
+              this._prevVni = Math.max(this._prevVni, +vni)
+            }
 
-          await privateNetwork.addNetwork(network)
+            await privateNetwork.addNetwork(network)
 
-          this._networks.set(network.$id, network.$ref)
-          if (privateNetwork.center !== undefined) {
-            this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            this._networks.set(network.$id, network.$ref)
+            registeredNetworks.add(network.$ref)
+            if (privateNetwork.center !== undefined) {
+              this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            }
+
+            // Only networks successfully registered get a VNI: a failed
+            // addNetwork must not reach the re-election loop below
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            }
+          } catch (error) {
+            log.warn('Error registering network for SDN controller', {
+              network: network.name_label,
+              error,
+            })
           }
         })
       )
+
+      // Undo the partial state left by failed addNetwork calls: the network
+      // has already been inserted in privateNetwork.networks, and a center
+      // may have been set without being recorded in this._starCenters
+      forOwn(this.privateNetworks, (privateNetwork, uuid) => {
+        const network = privateNetwork.networks[xapi.pool.uuid]
+        if (network === undefined || registeredNetworks.has(network.$ref)) {
+          return
+        }
+
+        delete privateNetwork.networks[xapi.pool.uuid]
+        if (
+          privateNetwork.center !== undefined &&
+          privateNetwork.networks[privateNetwork.center.$pool.uuid] === undefined
+        ) {
+          // The election was never finished: drop the orphaned center. No
+          // this._starCenters cleanup is needed as it was only set on success
+          delete privateNetwork.center
+        }
+
+        if (Object.keys(privateNetwork.networks).length === 0) {
+          delete this.privateNetworks[uuid]
+        }
+      })
 
       // Add VNI to other config of networks without VNI
       //
@@ -1188,7 +1233,7 @@ class SDNController extends EventEmitter {
     if (!pif.currently_attached) {
       const tunnel = getHostTunnelForNetwork(pif.$host, pif.network)
       await tunnel.set_status({ active: 'false' })
-      if (privateNetwork.center.$ref !== pif.host) {
+      if (privateNetwork.center?.$ref !== pif.host) {
         return
       }
 
@@ -1499,7 +1544,7 @@ class SDNController extends EventEmitter {
 
   async _hostUnreachable(host) {
     let privateNetworks = filter(this.privateNetworks, privateNetwork => {
-      return privateNetwork.center.$ref === host.$ref
+      return privateNetwork.center?.$ref === host.$ref
     })
     for (const privateNetwork of privateNetworks) {
       log.debug('Unreachable star-center, electing a new one', {

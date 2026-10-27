@@ -8,6 +8,7 @@ import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
+import { asyncEach } from '@vates/async-each'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
@@ -2721,7 +2722,21 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
-  }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
+  }).then(async () => {
+    let nErrors = 0
+    await asyncEach(
+      map(vdis, resolveId),
+      id =>
+        _call('vdi.delete', { id }).catch(() => {
+          nErrors++
+        }),
+      { concurrency: 5 }
+    )
+
+    if (nErrors !== 0) {
+      error(_('failedToDeleteVdisTitle', { nVdis: nErrors }), _('failedToDeleteVdisMessage', { nVdis: nErrors }))
+    }
+  }, noop)
 
 export const migrateVdi = (vdi, sr, resourceSet) =>
   _call('vdi.migrate', {

@@ -630,7 +630,7 @@ export interface XenApiPif extends XenApiRecord<'pif'> {
   MTU: number
   PCI: XenApiPci['$ref']
   VLAN: number
-  VLAN_master_of: XenApiVlan['$ref']
+  VLAN_master_of: XenApiVlan['$ref'] | OPAQUE_REF_NULL
   VLAN_slave_of: XenApiVlan['$ref'][]
   bond_master_of: XenApiBond['$ref'][]
   bond_slave_of: XenApiBond['$ref']

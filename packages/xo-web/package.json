@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.206.1",
+  "version": "5.207.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -38,6 +38,7 @@
     "@babel/preset-react": "^7.12.13",
     "@babel/register": "^7.29.0",
     "@nraynaud/novnc": "0.6.1",
+    "@vates/async-each": "^1.0.3",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/log": "^0.7.2",
@@ -133,7 +134,7 @@
     "watchify": "^3.7.0",
     "whatwg-fetch": "^3.0.0",
     "xml2js": "^0.6.2",
-    "xo-acl-resolver": "^0.5.4",
+    "xo-acl-resolver": "^0.6.0",
     "xo-common": "^0.11.0",
     "xo-lib": "^0.11.2",
     "xo-remote-parser": "^2.0.0",

@@ -3,6 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findCopiedValues, findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findTags } from '@/test/find-tags.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { HOST_POWER_STATE } from '@vates/types'
@@ -162,5 +163,5 @@ it('leaves the master row empty when the master of the pool is not known', () =>
 it('renders one tag per host tag', () => {
   const wrapper = mountQuickInfo(createHost({ tags: ['production', 'billing'] }))
 
-  expect(wrapper.findAll('.ui-tag').map(tag => tag.text())).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })
