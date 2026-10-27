@@ -1,6 +1,10 @@
 <template>
   <div class="vts-clipboard-console">
-    <VtsInputWrapper :label="t('console-keyboard-layout')">
+    <VtsInputWrapper
+      :label="t('console-keyboard-layout')"
+      :message="isKeyboardLayoutDisabled ? t('console-keyboard-layout-not-applicable') : undefined"
+      wrap-message
+    >
       <VtsSelect :id="keyboardLayoutSelectId" accent="brand" />
     </VtsInputWrapper>
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
@@ -42,16 +46,22 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { useCopyToClipboard } from '@core/composables/copy.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { KEYBOARD_LAYOUTS } from '@core/keyboard-layouts/keyboard-layouts.ts'
 import { useFormSelect } from '@core/packages/form-select'
-import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
-import { guessKeyboardLayoutId, KEYBOARD_LAYOUTS } from '@core/utils/keyboard-layout/keyboard-layout.util.ts'
+import type { KeyboardLayoutId } from '@core/types/keyboard-layout.type.ts'
+import { guessKeyboardLayoutId } from '@core/utils/keyboard-layout.util.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { isConsoleConnected = false, sendToConsole } = defineProps<{
+const {
+  isConsoleConnected = false,
+  isKeyboardLayoutDisabled,
+  sendToConsole,
+} = defineProps<{
   isConsoleConnected?: boolean
-  sendToConsole?: (layoutId: KeyboardLayoutId) => Promise<string[]> | undefined
+  isKeyboardLayoutDisabled?: boolean
+  sendToConsole?: (text: string, layoutId?: KeyboardLayoutId) => Promise<string[]> | undefined
 }>()
 
 const clipboardText = defineModel<string>({ default: '' })
@@ -67,6 +77,7 @@ const keyboardLayoutId = useLocalStorage<KeyboardLayoutId>(
 
 const { id: keyboardLayoutSelectId } = useFormSelect(KEYBOARD_LAYOUTS, {
   model: keyboardLayoutId,
+  disabled: () => isKeyboardLayoutDisabled,
   option: {
     value: 'id',
   },
@@ -82,8 +93,10 @@ watch(clipboardText, () => {
 async function typeTextToConsole() {
   isTyping.value = true
 
+  const layoutId = isKeyboardLayoutDisabled ? undefined : keyboardLayoutId.value
+
   try {
-    skippedChars.value = (await sendToConsole?.(keyboardLayoutId.value)) ?? []
+    skippedChars.value = (await sendToConsole?.(clipboardText.value, layoutId)) ?? []
   } finally {
     isTyping.value = false
   }

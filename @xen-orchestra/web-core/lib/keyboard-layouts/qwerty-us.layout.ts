@@ -1,4 +1,4 @@
-import type { KeyStroke } from './keyboard-layout.types.ts'
+import type { KeyStroke } from '@core/types/keyboard-layout.type.ts'
 import { defineKeyboardLayout } from './define-keyboard-layout.ts'
 
 const SYMBOLS: Record<string, KeyStroke[]> = {

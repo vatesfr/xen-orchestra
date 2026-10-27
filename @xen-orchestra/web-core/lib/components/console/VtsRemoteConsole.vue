@@ -8,8 +8,8 @@
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
-import { getKeyboardLayout, getKeysymKeyStrokes, typeText } from '@core/utils/keyboard-layout/keyboard-layout.util.ts'
+import type { KeyboardLayoutId } from '@core/types/keyboard-layout.type.ts'
+import { getKeyboardLayout, getKeysymKeyStrokes, typeText } from '@core/utils/keyboard-layout.util.ts'
 import type NoVncClient from '@novnc/novnc/lib/rfb'
 import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
@@ -25,7 +25,6 @@ const { url, isConsoleAvailable } = defineProps<{
 
 const emit = defineEmits<{
   clipboard: [text: string]
-  connectionChange: [isConnected: boolean]
 }>()
 
 const { t } = useI18n()
@@ -64,7 +63,6 @@ function handleDisconnectionEvent() {
 function handleConnectionEvent() {
   nConnectionAttempts = 0
   isReady.value = true
-  emit('connectionChange', true)
 }
 
 function handleClipboardEvent(event: CustomEvent<{ text: string }>) {
@@ -77,7 +75,6 @@ function clearVncClient() {
     return
   }
 
-  emit('connectionChange', false)
   vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
@@ -150,7 +147,7 @@ onBeforeUnmount(() => {
   clearVncClient()
 })
 
-function typeTextInConsole(text: string, layoutId: KeyboardLayoutId) {
+function typeTextInConsole(text: string, layoutId?: KeyboardLayoutId) {
   const client = vncClient
 
   if (client === undefined) {
@@ -158,17 +155,18 @@ function typeTextInConsole(text: string, layoutId: KeyboardLayoutId) {
   }
 
   // not exposed by noVNC and only true when the server announced the QEMU extended key event, which the host console does not
-  const isScancodeSupported = (client as unknown as { _qemuExtKeyEventSupported: boolean })._qemuExtKeyEventSupported
+  const isScancodeSupported = '_qemuExtKeyEventSupported' in client && client._qemuExtKeyEventSupported === true
 
   return typeText(
     (keysym, code, down) => client.sendKey(keysym, code, down),
     text,
-    isScancodeSupported ? getKeyboardLayout(layoutId).getKeyStrokes : getKeysymKeyStrokes,
+    isScancodeSupported && layoutId !== undefined ? getKeyboardLayout(layoutId).getKeyStrokes : getKeysymKeyStrokes,
     () => vncClient !== client
   )
 }
 
 defineExpose({
+  isConnected: isReady,
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
   typeText: typeTextInConsole,
 })

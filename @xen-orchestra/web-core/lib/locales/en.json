@@ -331,6 +331,7 @@
   "console-actions": "Console actions",
   "console-clipboard": "Console clipboard",
   "console-keyboard-layout": "Guest keyboard layout",
+  "console-keyboard-layout-not-applicable": "Not applicable: characters are sent as-is to this console",
   "console-offline": "Console offline",
   "console-type-text-skipped": "Not typed, missing from the selected keyboard layout: {chars}",
   "console-unavailable": "Console unavailable",

@@ -331,6 +331,7 @@
   "console-actions": "Actions de la console",
   "console-clipboard": "Presse-papiers de la console",
   "console-keyboard-layout": "Disposition du clavier invité",
+  "console-keyboard-layout-not-applicable": "Non applicable : les caractères sont envoyés tels quels à cette console",
   "console-offline": "Console hors ligne",
   "console-type-text-skipped": "Non tapés, absents de la disposition choisie : {chars}",
   "console-unavailable": "Console indisponible",

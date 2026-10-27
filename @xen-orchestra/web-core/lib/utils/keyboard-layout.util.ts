@@ -1,10 +1,8 @@
-import type { KeyboardLayout, KeyboardLayoutId, KeyStroke } from './keyboard-layout.types.ts'
+import { KEYBOARD_LAYOUTS } from '@core/keyboard-layouts/keyboard-layouts.ts'
+import { qwertyUsLayout } from '@core/keyboard-layouts/qwerty-us.layout.ts'
+import type { KeyboardLayout, KeyboardLayoutId, KeyStroke } from '@core/types/keyboard-layout.type.ts'
 import { getKeysym } from '@novnc/novnc/lib/input/util'
 import { promiseTimeout } from '@vueuse/shared'
-import { azertyFrLayout } from './azerty-fr.layout.ts'
-import { qwertyUsLayout } from './qwerty-us.layout.ts'
-
-export const KEYBOARD_LAYOUTS: KeyboardLayout[] = [qwertyUsLayout, azertyFrLayout]
 
 const XK_SHIFT_L = 0xffe1
 const XK_ISO_LEVEL3_SHIFT = 0xfe03

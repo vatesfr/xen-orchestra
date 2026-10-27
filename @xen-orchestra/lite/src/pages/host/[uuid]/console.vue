@@ -18,7 +18,6 @@
           :url
           :is-console-available="isConsoleAvailable"
           @clipboard="clipboardText = $event"
-          @connection-change="isConsoleConnected = $event"
         />
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
@@ -27,6 +26,7 @@
             v-model="clipboardText"
             :is-console-connected="isConsoleConnected"
             :send-to-console="sendToConsole"
+            is-keyboard-layout-disabled
           />
         </template>
       </VtsLayoutConsole>
@@ -43,7 +43,6 @@ import { useConsoleStore } from '@/stores/xen-api/console.store.ts'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
-import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -51,8 +50,9 @@ import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -119,12 +119,9 @@ const isConsoleAvailable = computed(() =>
   controlDomain.value !== undefined ? !isHostOperationPending(host.value!, STOP_OPERATIONS) : false
 )
 
-const consoleElement = useTemplateRef('console-element')
-const clipboardText = ref('')
-const isConsoleConnected = ref(false)
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const sendToConsole = (layoutId: KeyboardLayoutId) => consoleElement.value?.typeText(clipboardText.value, layoutId)
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style lang="postcss" scoped>

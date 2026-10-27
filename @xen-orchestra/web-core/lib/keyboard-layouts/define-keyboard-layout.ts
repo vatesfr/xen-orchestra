@@ -1,4 +1,4 @@
-import type { KeyboardLayout, KeyboardLayoutId, KeyStroke } from './keyboard-layout.types.ts'
+import type { KeyboardLayout, KeyboardLayoutId, KeyStroke } from '@core/types/keyboard-layout.type.ts'
 
 export function defineKeyboardLayout(config: {
   id: KeyboardLayoutId

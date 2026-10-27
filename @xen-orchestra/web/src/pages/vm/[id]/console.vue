@@ -13,7 +13,6 @@
       :url
       :is-console-available="isConsoleAvailable"
       @clipboard="clipboardText = $event"
-      @connection-change="isConsoleConnected = $event"
     />
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
@@ -30,15 +29,15 @@
 <script lang="ts" setup>
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
-import type { KeyboardLayoutId } from '@core/utils/keyboard-layout/keyboard-layout.types.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
 import { VM_OPERATIONS } from '@vates/types'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -64,12 +63,9 @@ const isVmConsoleRunning = computed(() => props.vm.power_state === 'Running' && 
 const isConsoleAvailable = computed(() =>
   props.vm !== undefined ? !isVmOperationPending(props.vm, STOP_OPERATIONS) : false
 )
-const consoleElement = useTemplateRef('console-element')
-const clipboardText = ref('')
-const isConsoleConnected = ref(false)
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
-const sendToConsole = (layoutId: KeyboardLayoutId) => consoleElement.value?.typeText(clipboardText.value, layoutId)
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style scoped lang="postcss">
