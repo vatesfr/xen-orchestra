@@ -194,17 +194,17 @@ export function useVmMigrateMappingForm(
     vdiRows.value.filter(row => row.targetSrId !== undefined && row.targetSrId !== row.vdi.$SR)
   )
 
-  const isDiskMigrationRequired = computed(() => vm.value.power_state !== VM_POWER_STATE.RUNNING && isIntraPool.value)
+  const isOnlyStorageMigratable = computed(() => vm.value.power_state !== VM_POWER_STATE.RUNNING && isIntraPool.value)
 
-  const isMissingDiskMigration = computed(() => {
-    if (!isDiskMigrationRequired.value) {
+  const isNothingToMigrate = computed(() => {
+    if (!isOnlyStorageMigratable.value) {
       return false
     }
 
     return movedVdiRows.value.length === 0
   })
 
-  const hasNothingToMigrate = computed(() => isMissingDiskMigration.value && vdiRows.value.length === 0)
+  const hasNothingToMigrate = computed(() => isNothingToMigrate.value && vdiRows.value.length === 0)
 
   const areAllSrsShared = computed(() => vdiRows.value.length > 0 && flaggedVdiRows.value.length === 0)
 
@@ -288,8 +288,8 @@ export function useVmMigrateMappingForm(
     missingNetworkRows,
     hasMissingSr,
     hasMissingNetwork,
-    isDiskMigrationRequired,
-    isMissingDiskMigration,
+    isOnlyStorageMigratable,
+    isNothingToMigrate,
     hasNothingToMigrate,
     isValid,
     setTargetSrId,

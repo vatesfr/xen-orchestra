@@ -20,10 +20,10 @@
           <UiAlert v-if="hasNothingToMigrate" accent="warning">
             {{ t('vm-not-running-no-disk-nothing-to-migrate') }}
           </UiAlert>
-          <UiAlert v-else-if="isMissingDiskMigration" accent="warning">
+          <UiAlert v-else-if="isNothingToMigrate" accent="warning">
             {{ t('vm-not-running-intra-pool-requires-sr-change') }}
           </UiAlert>
-          <UiAlert v-else-if="areAllSrsShared && !isDiskMigrationRequired" accent="info">
+          <UiAlert v-else-if="areAllSrsShared && !isOnlyStorageMigratable" accent="info">
             {{ t('all-srs-shared-storage-migration-optional') }}
           </UiAlert>
           <VmMigrateMappingToolbar
@@ -135,8 +135,8 @@ const {
   areAllVifsFollowing,
   missingSrRows,
   missingNetworkRows,
-  isDiskMigrationRequired,
-  isMissingDiskMigration,
+  isOnlyStorageMigratable,
+  isNothingToMigrate,
   hasNothingToMigrate,
   setTargetSrId,
   setTargetNetworkId,

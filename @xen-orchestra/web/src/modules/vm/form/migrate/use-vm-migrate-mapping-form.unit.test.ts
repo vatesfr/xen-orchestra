@@ -364,8 +364,8 @@ describe('intra-pool migration', () => {
   it('does not require a disk migration for a running VM', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A1)
 
-    expect(form.isDiskMigrationRequired).toBe(false)
-    expect(form.isMissingDiskMigration).toBe(false)
+    expect(form.isOnlyStorageMigratable).toBe(false)
+    expect(form.isNothingToMigrate).toBe(false)
     expect(form.isValid).toBe(true)
   })
 
@@ -373,7 +373,7 @@ describe('intra-pool migration', () => {
     const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
-    expect(form.isMissingDiskMigration).toBe(true)
+    expect(form.isNothingToMigrate).toBe(true)
     expect(form.hasNothingToMigrate).toBe(false)
     expect(form.isValid).toBe(true)
     expect(form.buildPayload()).toEqual({})
@@ -394,7 +394,7 @@ describe('intra-pool migration', () => {
     const vm = createVm({ $pool: POOL_A, $container: HOST_A1, power_state: VM_POWER_STATE.SUSPENDED })
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
-    expect(form.isMissingDiskMigration).toBe(true)
+    expect(form.isNothingToMigrate).toBe(true)
     expect(form.isValid).toBe(true)
     expect(form.buildPayload()).toEqual({})
   })
@@ -405,8 +405,8 @@ describe('intra-pool migration', () => {
 
     form.setTargetSrId(VDI_SHARED, SR_LOCAL_A1)
 
-    expect(form.isDiskMigrationRequired).toBe(true)
-    expect(form.isMissingDiskMigration).toBe(false)
+    expect(form.isOnlyStorageMigratable).toBe(true)
+    expect(form.isNothingToMigrate).toBe(false)
     expect(form.buildPayload()).toEqual({ srIdByVdiId: { [VDI_SHARED]: SR_LOCAL_A1 } })
   })
 })
@@ -416,8 +416,8 @@ describe('inter-pool migration', () => {
     const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
     const { form } = mountMappingForm(POOL_B, HOST_B1, vm)
 
-    expect(form.isDiskMigrationRequired).toBe(false)
-    expect(form.isMissingDiskMigration).toBe(false)
+    expect(form.isOnlyStorageMigratable).toBe(false)
+    expect(form.isNothingToMigrate).toBe(false)
   })
 
   it('flags every disk', () => {
