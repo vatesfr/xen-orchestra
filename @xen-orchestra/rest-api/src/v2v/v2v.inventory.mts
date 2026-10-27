@@ -106,7 +106,7 @@ function toVm(vm: MigratableVm): XoV2vVm {
     firmware: vm.firmware === V2V_FIRMWARE.UEFI ? V2V_FIRMWARE.UEFI : V2V_FIRMWARE.BIOS,
     secureBoot: vm.secureBoot,
     datastoreIds: vm.datastores as XoV2vDatastore['id'][],
-    snapshotCount: vm.snapshots.length,
+    snapshotCount: vm.snapshotCount,
     currentSnapshotId: vm.currentSnapshot,
     disks: vm.disks.map(toDisk),
     nics: vm.nics.map(toNic),

@@ -215,21 +215,6 @@ export type EsxiConnectionParams = {
   sslVerify: boolean
 }
 
-/** a VM as listed by `Esxi#getAllVmMetadata()` */
-export type EsxiVmMetadata = {
-  /** VMware managed object reference */
-  id: string
-  /** false when a disk cannot be read through its datastore, e.g. on vSAN */
-  hasAllExtentsListed: boolean
-  nameLabel: string
-  memory: number
-  nCpus: number
-  guestToolsInstalled: boolean
-  firmware: 'bios' | 'uefi'
-  powerState: 'poweredOff' | 'poweredOn' | 'suspended'
-  storage: { used: number; free: number }
-}
-
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -275,13 +260,7 @@ export type XoApp = EventEmitter & {
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
-    create: (params: {
-      name: string
-      objectId?: string
-      objectType?: string
-      params?: unknown
-      type?: string
-    }) => VatesTask
+    create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
     deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
@@ -320,7 +299,6 @@ export type XoApp = EventEmitter & {
   checkEsxiDependencies(): Promise<XoV2vStatus>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
-  connectToEsxiAndList(params: EsxiConnectionParams): Promise<EsxiVmMetadata[]>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   // TODO: replace all XoAclBasePrivilege with a more strict type. (discriminate union)

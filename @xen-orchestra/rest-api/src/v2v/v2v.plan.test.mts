@@ -21,9 +21,8 @@ const sourceVm = (id: string, { disks = ['scsi0:0'], nics = ['4000'] } = {}): Vm
   secureBoot: false,
   isTemplate: false,
   datastores: [],
-  networks: [],
-  snapshots: [],
-  disks: disks.map(key => ({ key, label: key, capacity: 1, thinProvisioned: false, rdm: false, encrypted: false })),
+  snapshotCount: 0,
+  disks: disks.map(key => ({ key, label: key, capacity: 1, rdm: false, encrypted: false })),
   nics: nics.map(key => ({ key, label: key })),
 })
 

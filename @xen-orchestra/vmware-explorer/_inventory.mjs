@@ -61,10 +61,6 @@ const CONTROLLER_PREFIXES = {
  * A `VirtualMachineSnapshotTree`, as the SOAP library returns it: only the fields read here.
  *
  * @typedef {object} RawSnapshotTree
- * @property {unknown} snapshot
- * @property {string} name
- * @property {string} [description]
- * @property {string} [createTime]
  * @property {RawSnapshotTree | RawSnapshotTree[]} [childSnapshotList]
  */
 
@@ -78,13 +74,13 @@ const CONTROLLER_PREFIXES = {
  * The objects of the inventory, as {@link Esxi#search} returns them: only the properties read by
  * `Esxi#getInventory`, any of them can be missing from the answer.
  *
- * @typedef {{ name?: string, datastore?: unknown, network?: unknown }} RawDatacenter
- * @typedef {{ name?: string, parent?: unknown, host?: unknown }} RawCluster
+ * @typedef {{ name?: string }} RawDatacenter
+ * @typedef {{ name?: string, parent?: unknown }} RawCluster
  * @typedef {{ name?: string, parent?: unknown }} RawHost
- * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown }, host?: unknown }} RawDatastore
+ * @typedef {{ summary?: { name?: string, type?: string, capacity?: unknown, freeSpace?: unknown }, host?: unknown }} RawDatastore
  * @typedef {{ parent?: unknown }} RawChild
  * @typedef {{ name?: string }} RawNetwork
- * @typedef {{ name?: string, apiType?: string, version?: string, build?: string, instanceUuid?: string }} RawAboutInfo
+ * @typedef {{ name?: string, version?: string, instanceUuid?: string }} RawAboutInfo
  * @typedef {{ name?: string, key?: string, 'config.defaultPortConfig'?: RawPortConfig }} RawPortgroup
  * @typedef {{
  *   'config.name'?: string,
@@ -92,8 +88,6 @@ const CONTROLLER_PREFIXES = {
  *   'config.instanceUuid'?: string,
  *   'config.firmware'?: string,
  *   'config.bootOptions.efiSecureBootEnabled'?: unknown,
- *   'config.guestId'?: string,
- *   'config.guestFullName'?: string,
  *   'config.template'?: unknown,
  *   'config.hardware.numCPU'?: unknown,
  *   'config.hardware.memoryMB'?: unknown,
@@ -101,18 +95,8 @@ const CONTROLLER_PREFIXES = {
  *   'runtime.powerState'?: 'poweredOff' | 'poweredOn' | 'suspended',
  *   'runtime.host'?: unknown,
  *   datastore?: unknown,
- *   network?: unknown,
  *   snapshot?: { currentSnapshot?: unknown, rootSnapshotList?: RawSnapshotTree | RawSnapshotTree[] },
  * }} RawVm
- */
-
-/**
- * @typedef {object} InventorySnapshot
- * @property {string} id
- * @property {string} name
- * @property {string | undefined} description
- * @property {string | undefined} createTime
- * @property {string | undefined} parent
  */
 
 /**
@@ -120,11 +104,8 @@ const CONTROLLER_PREFIXES = {
  * @property {string} key - the node of the disk, as the vmx and the import name it, e.g. `scsi0:0`
  * @property {string} label
  * @property {number} capacity - in bytes
- * @property {string | undefined} fileName - datastore path of the descriptor
  * @property {string | undefined} datastore - managed object reference
  * @property {string | undefined} diskMode - `persistent`, `independent_persistent`…
- * @property {string | undefined} backingType - e.g. `VirtualDiskFlatVer2BackingInfo`
- * @property {boolean} thinProvisioned
  * @property {boolean} rdm - raw device mapping, which cannot be read through the datastore
  * @property {boolean} encrypted
  */
@@ -136,8 +117,6 @@ const CONTROLLER_PREFIXES = {
  * @property {string | undefined} macAddress
  * @property {string | undefined} addressType - `generated`, `manual` or `assigned`
  * @property {string | undefined} network - managed object reference, of a port group when distributed
- * @property {string | undefined} portgroupKey - only for a distributed port group
- * @property {string | undefined} opaqueNetworkId - only for an NSX opaque network
  */
 
 /**
@@ -171,11 +150,8 @@ export function parseDevices(devices, portgroupsByKey = {}) {
         key: controller === undefined ? `device-${device.key}` : `${controller}:${Number(device.unitNumber)}`,
         label,
         capacity: toNumber(device.capacityInBytes) ?? Number(device.capacityInKB) * 1024,
-        fileName: backing?.fileName,
         datastore: refOf(backing?.datastore),
         diskMode: backing?.diskMode,
-        backingType,
-        thinProvisioned: isTrue(backing?.thinProvisioned),
         rdm: backingType === 'VirtualDiskRawDiskMappingVer1BackingInfo',
         encrypted: backing?.keyId !== undefined,
       })
@@ -189,8 +165,6 @@ export function parseDevices(devices, portgroupsByKey = {}) {
         macAddress: device.macAddress,
         addressType: device.addressType,
         network: portgroupKey === undefined ? refOf(backing?.network) : portgroupsByKey[portgroupKey],
-        portgroupKey,
-        opaqueNetworkId: backing?.opaqueNetworkId,
       })
     }
   }
@@ -198,20 +172,17 @@ export function parseDevices(devices, portgroupsByKey = {}) {
 }
 
 /**
- * The snapshots of a VM, flattened.
+ * The number of snapshots of a VM, at every depth of its tree.
  *
  * @param {RawSnapshotTree | RawSnapshotTree[] | undefined} rootList - a `rootSnapshotList`, or the `childSnapshotList` of the recursion
- * @param {string} [parent]
- * @param {InventorySnapshot[]} [snapshots] - accumulator of the recursion
- * @returns {InventorySnapshot[]}
+ * @returns {number}
  */
-export function flattenSnapshots(rootList, parent, snapshots = []) {
+export function countSnapshots(rootList) {
+  let count = 0
   for (const node of asArray(rootList)) {
-    const id = refOf(node.snapshot)
-    snapshots.push({ id, name: node.name, description: node.description, createTime: node.createTime, parent })
-    flattenSnapshots(node.childSnapshotList, id, snapshots)
+    count += 1 + countSnapshots(node.childSnapshotList)
   }
-  return snapshots
+  return count
 }
 
 /**
@@ -318,22 +289,13 @@ export function buildInventory({
 
   return {
     product: about.name,
-    productType: about.apiType,
     version: about.version,
-    build: about.build,
     instanceUuid: about.instanceUuid,
-    datacenters: Object.entries(datacenters).map(([id, { name, datastore, network }]) => ({
+    datacenters: Object.entries(datacenters).map(([id, { name }]) => ({ id, name })),
+    clusters: Object.entries(clusters).map(([id, { name, parent }]) => ({
       id,
       name,
-      datastores: refsOf(datastore),
-      networks: refsOf(network),
-    })),
-    clusters: Object.entries(clusters).map(([id, { name, parent, host }]) => ({
-      id,
-      name,
-      parent: refOf(parent),
       datacenter: findDatacenter(refOf(parent), parents, datacenterIds),
-      hosts: refsOf(host),
     })),
     hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({
       id,
@@ -345,17 +307,15 @@ export function buildInventory({
       id,
       name: summary?.name,
       type: summary?.type,
-      url: summary?.url,
       capacity: toNumber(summary?.capacity),
       freeSpace: toNumber(summary?.freeSpace),
-      accessible: isTrue(summary?.accessible),
       hosts: [...reachingHostIds(host)],
     })),
     networks: Object.entries(networks).map(([id, { name }]) => {
       const portgroup = portgroups[id]
       return portgroup === undefined
         ? { id, name, distributed: false }
-        : { id, name, distributed: true, key: portgroup.key, vlan: parseVlan(portgroup['config.defaultPortConfig']) }
+        : { id, name, distributed: true, vlan: parseVlan(portgroup['config.defaultPortConfig']) }
     }),
     vms: Object.entries(vms).map(([id, properties]) => {
       const { disks, nics } = parseDevices(properties['config.hardware.device'], portgroupsByKey)
@@ -369,17 +329,14 @@ export function buildInventory({
         instanceUuid: properties['config.instanceUuid'],
         firmware: firmware === 'efi' ? 'uefi' : firmware,
         secureBoot: isTrue(properties['config.bootOptions.efiSecureBootEnabled']),
-        guestId: properties['config.guestId'],
-        guestFullName: properties['config.guestFullName'],
         isTemplate: isTrue(properties['config.template']),
         cpus: toNumber(properties['config.hardware.numCPU']),
         memory: memoryMb === undefined ? undefined : memoryMb * 1024 * 1024,
         powerState: properties['runtime.powerState'],
         host: refOf(properties['runtime.host']),
         datastores: refsOf(properties.datastore),
-        networks: refsOf(properties.network),
         currentSnapshot: refOf(snapshot?.currentSnapshot),
-        snapshots: flattenSnapshots(snapshot?.rootSnapshotList),
+        snapshotCount: countSnapshots(snapshot?.rootSnapshotList),
         disks,
         nics,
       }

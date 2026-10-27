@@ -611,8 +611,8 @@ export default class Esxi extends EventEmitter {
     /** @type {[Record<string, import('./_inventory.mjs').RawDatacenter>, Record<string, import('./_inventory.mjs').RawCluster>, Record<string, import('./_inventory.mjs').RawHost>, Record<string, import('./_inventory.mjs').RawDatastore>, Record<string, import('./_inventory.mjs').RawNetwork>, Record<string, import('./_inventory.mjs').RawPortgroup>, Record<string, import('./_inventory.mjs').RawVm>, Record<string, import('./_inventory.mjs').RawChild>, Record<string, import('./_inventory.mjs').RawChild>]} */
     const [datacenters, clusters, hosts, datastores, networks, portgroups, vms, folders, computeResources] =
       await Promise.all([
-        this.search('Datacenter', ['name', 'datastore', 'network']),
-        this.search('ClusterComputeResource', ['name', 'parent', 'host']),
+        this.search('Datacenter', ['name']),
+        this.search('ClusterComputeResource', ['name', 'parent']),
         this.search('HostSystem', ['name', 'parent']),
         this.search('Datastore', ['summary', 'host']),
         // the distributed port groups are networks too, with more properties of their own below
@@ -624,8 +624,6 @@ export default class Esxi extends EventEmitter {
           'config.instanceUuid',
           'config.firmware',
           'config.bootOptions.efiSecureBootEnabled',
-          'config.guestId',
-          'config.guestFullName',
           'config.template',
           'config.hardware.numCPU',
           'config.hardware.memoryMB',
@@ -633,7 +631,6 @@ export default class Esxi extends EventEmitter {
           'runtime.powerState',
           'runtime.host',
           'datastore',
-          'network',
           'snapshot',
         ]),
         // only to walk up from a host or a cluster to its datacenter. A compute resource is the parent
