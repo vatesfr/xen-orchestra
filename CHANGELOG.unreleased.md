@@ -42,7 +42,7 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - xo-server minor
-- xo-web minor
 - xo-server-sdn-controller patch
+- xo-web minor
 
 <!--packages-end-->
