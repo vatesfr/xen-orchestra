@@ -408,6 +408,7 @@ class SDNController extends EventEmitter {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
@@ -435,6 +436,7 @@ class SDNController extends EventEmitter {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
@@ -728,17 +730,21 @@ class SDNController extends EventEmitter {
       return
     }
 
-    // Optional until XO 5 and XO 6 send one: without it, the rule has the OVS default, 32768, as
-    // the rules from before priorities
+    // TODO: throw once XO 5 and XO 6 send a priority. Until then, a rule without one has the OVS
+    // default, 32768, as the rules from before priorities
     if (priority === undefined) {
       return
     }
     if (!Number.isInteger(priority) || priority < 0 || priority > 65535) {
       throw invalidParameters(`traffic rule priority must be an integer from 0 to 65535, not ${priority}`)
     }
+    if (priority === oldPriority) {
+      return
+    }
     networkId ??= this._xo.getObject(vifId, 'VIF').$network
-    if (priority !== oldPriority && listNetworkRules(this._xo, networkId).some(rule => rule.priority === priority)) {
-      throw objectAlreadyExists({ objectId: String(priority), objectType: 'traffic rule priority' })
+    const ruleWithPriority = listNetworkRules(this._xo, networkId).find(rule => rule.priority === priority)
+    if (ruleWithPriority !== undefined) {
+      throw objectAlreadyExists({ objectId: JSON.stringify(ruleWithPriority), objectType: 'traffic-rule' })
     }
   }
 
@@ -804,7 +810,11 @@ class SDNController extends EventEmitter {
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
         return (
-          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+          rule.direction === direction &&
+          rule.ipRange === ipRange &&
+          rule.port === port &&
+          rule.priority === priority &&
+          rule.protocol === protocol
         )
       })
 
@@ -830,7 +840,11 @@ class SDNController extends EventEmitter {
       // update the rule if already here (don't compare allow and cookie) to behave like OpenVSwitch
       const newNetworkRules = networkRules.filter(rule => {
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction ||
+          rule.priority !== priority
         )
       })
       const newRule = {
@@ -880,7 +894,7 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _deleteRule({ direction, ipRange = '', port, protocol, vifId }, updateOtherConfig = true) {
+  async _deleteRule({ direction, ipRange = '', port, priority, protocol, vifId }, updateOtherConfig = true) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -916,7 +930,11 @@ class SDNController extends EventEmitter {
       const newVifRules = JSON.parse(vifRules).filter(vifRule => {
         const rule = JSON.parse(vifRule)
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction ||
+          rule.priority !== priority
         )
       })
 
@@ -942,7 +960,10 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _deleteNetworkOfRule({ direction, ipRange = '', port, protocol, networkId }, updateOtherConfig = true) {
+  async _deleteNetworkOfRule(
+    { direction, ipRange = '', port, priority, protocol, networkId },
+    updateOtherConfig = true
+  ) {
     try {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
@@ -952,7 +973,11 @@ class SDNController extends EventEmitter {
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
         return (
-          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+          rule.direction === direction &&
+          rule.ipRange === ipRange &&
+          rule.port === port &&
+          rule.priority === priority &&
+          rule.protocol === protocol
         )
       })
 
@@ -995,6 +1020,7 @@ class SDNController extends EventEmitter {
           rule.port !== port ||
           rule.ipRange !== ipRange ||
           rule.direction !== direction ||
+          rule.priority !== priority ||
           rule.cookie !== cookie
         )
       })

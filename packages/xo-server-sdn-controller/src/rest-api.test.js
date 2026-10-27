@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
 import createSdnController from './index.js'
@@ -10,6 +10,8 @@ const noop = () => undefined
 
 const SSH = { allow: false, protocol: 'TCP', port: 22, ipRange: '10.0.0.0/8', direction: 'to' }
 const WEB = { allow: true, protocol: 'TCP', port: 443, ipRange: '10.0.0.0/8', direction: 'to' }
+const NETWORK_RULE = { ...SSH, priority: 40000 }
+const VIF_RULE = { ...WEB, priority: 30000 }
 
 const storeRules = rules => ({ [SDN_CONTROLLER_OF_RULES_KEY]: JSON.stringify(rules.map(rule => JSON.stringify(rule))) })
 
@@ -17,14 +19,14 @@ const NETWORK = {
   id: 'net',
   type: 'network',
   VIFs: ['vif1', 'vif2', 'vif3'],
-  other_config: storeRules([{ ...SSH, priority: 40000, cookie: '0x1' }]),
+  other_config: storeRules([{ ...NETWORK_RULE, cookie: '0x1' }]),
 }
 const VIF = {
   id: 'vif1',
   type: 'VIF',
   $VM: 'vm',
   $network: 'net',
-  other_config: storeRules([{ ...WEB, priority: 30000 }]),
+  other_config: storeRules([VIF_RULE]),
 }
 // XAPI copies the rules of a VIF to the VIFs of the snapshots and the clones of its VM
 const SNAPSHOT_VIF = { ...VIF, id: 'vif2', $VM: 'snapshot' }
@@ -71,30 +73,34 @@ async function runAction(controller, endpoint, id, body) {
   return created
 }
 
-// without `sync`, an action route answers once its task is created: a check inside answers 202
-async function rejectsBeforeTheTask(controller, endpoint, id, body, error) {
-  let created = false
-  const route = findRoute(controller, 'post', endpoint)
-  await assert.rejects(
-    async () =>
-      route.callback({ req: { params: { id }, query: {}, body }, createAction: async () => (created = true) }),
-    actual => error.is(actual)
-  )
-  assert.equal(created, false)
+// the checks run in the task: without `sync`, the route answers 202 and the error shows in the task
+function rejectsInTheTask(controller, endpoint, id, body, error) {
+  return assert.rejects(runAction(controller, endpoint, id, body), actual => error.is(actual))
 }
 
 const ADD = '/networks/{id}/actions/add_traffic_rule'
 const UPDATE = '/networks/{id}/actions/update_traffic_rule'
+const DELETE = '/networks/{id}/actions/delete_traffic_rule'
+
+describe('a rule', () => {
+  it('is found with all its fields, its priority included', async () => {
+    const controller = createController()
+    for (const oldRule of [SSH, { ...SSH, priority: 100 }]) {
+      await rejectsInTheTask(controller, UPDATE, 'net', { oldRule, newRule: { allow: true } }, noSuchObject)
+      await rejectsInTheTask(controller, DELETE, 'net', oldRule, noSuchObject)
+    }
+  })
+})
 
 describe('the priority of a rule', () => {
   it('is an integer from 0 to 65535', async () => {
     for (const priority of [-1, 1.5, 65536]) {
-      await rejectsBeforeTheTask(createController(), ADD, 'net', { ...WEB, priority }, invalidParameters)
-      await rejectsBeforeTheTask(
+      await rejectsInTheTask(createController(), ADD, 'net', { ...WEB, priority }, invalidParameters)
+      await rejectsInTheTask(
         createController(),
         UPDATE,
         'net',
-        { oldRule: SSH, newRule: { priority } },
+        { oldRule: NETWORK_RULE, newRule: { priority } },
         invalidParameters
       )
     }
@@ -104,36 +110,34 @@ describe('the priority of a rule', () => {
   it('is optional with the XAPI plugin', async () => {
     const controller = createController()
     controller._addNetworkRule = noop
-    controller._deleteNetworkOfRule = noop
     assert.equal(await runAction(controller, ADD, 'net', WEB), true)
-    assert.equal(await runAction(controller, UPDATE, 'net', { oldRule: SSH, newRule: { priority: null } }), true)
   })
 
   it('is refused without the XAPI plugin', async () => {
     const controller = createController({ useDirectChannel: true })
-    await rejectsBeforeTheTask(controller, ADD, 'net', { ...WEB, priority: 100 }, invalidParameters)
-    await rejectsBeforeTheTask(
+    await rejectsInTheTask(controller, ADD, 'net', { ...WEB, priority: 100 }, invalidParameters)
+    await rejectsInTheTask(
       controller,
       UPDATE,
       'net',
-      { oldRule: SSH, newRule: { priority: 100 } },
+      { oldRule: NETWORK_RULE, newRule: { priority: 100 } },
       invalidParameters
     )
   })
 
   it('is unique on the network, among its rules and those of the VIFs of its VMs', async () => {
-    await rejectsBeforeTheTask(createController(), ADD, 'net', { ...WEB, priority: 30000 }, objectAlreadyExists)
-    const body = { oldRule: SSH, newRule: { priority: 30000 } }
-    await rejectsBeforeTheTask(createController(), UPDATE, 'net', body, objectAlreadyExists)
+    await rejectsInTheTask(createController(), ADD, 'net', { ...WEB, priority: 30000 }, objectAlreadyExists)
+    const body = { oldRule: NETWORK_RULE, newRule: { priority: 30000 } }
+    await rejectsInTheTask(createController(), UPDATE, 'net', body, objectAlreadyExists)
     const endpoint = '/vifs/{id}/actions/add_traffic_rule'
-    await rejectsBeforeTheTask(createController(), endpoint, 'vif1', { ...SSH, priority: 40000 }, objectAlreadyExists)
+    await rejectsInTheTask(createController(), endpoint, 'vif1', { ...SSH, priority: 40000 }, objectAlreadyExists)
   })
 
   it('may be kept by a rule that shares it, like the copy a clone makes', async () => {
     const controller = createController()
     controller._deleteRule = noop
     controller._addRule = noop
-    const body = { oldRule: WEB, newRule: { allow: false } }
+    const body = { oldRule: VIF_RULE, newRule: { allow: false } }
     assert.equal(await runAction(controller, '/vifs/{id}/actions/update_traffic_rule', 'vif3', body), true)
   })
 })
@@ -147,31 +151,29 @@ describe('the update of a rule', () => {
     controller._addNetworkRule = rule => {
       added = rule
     }
-    await runAction(controller, UPDATE, 'net', { oldRule: SSH, newRule })
-    const { cookie, ...rule } = added
-    return rule
+    await runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule })
+    return added
   }
 
-  it('keeps the stored priority when `newRule` leaves it out', async () => {
+  it('keeps the priority when `newRule` leaves it out', async () => {
     assert.deepEqual(await update({ allow: true }), { ...SSH, allow: true, priority: 40000, networkId: 'net' })
   })
 
-  it('changes the priority, and removes it with `null`', async () => {
+  it('changes the priority', async () => {
     assert.deepEqual(await update({ priority: 100 }), { ...SSH, priority: 100, networkId: 'net' })
-    assert.deepEqual(await update({ priority: null }), { ...SSH, networkId: 'net' })
   })
 })
 
 describe('the lists of rules', () => {
   it('give the rules of a VIF', async () => {
-    const route = findRoute(createController(), 'get', '/vifs/{id}/traffic-rules')
+    const route = findRoute(createController(), 'get', '/vifs/{id}/traffic_rules')
     assert.deepEqual(await route.callback({ req: { params: { id: 'vif1' } } }), [
       { ...WEB, priority: 30000, type: 'VIF', sourceId: 'vif1' },
     ])
   })
 
   it('give the rules of a network, without their cookie, then those of the VIFs of its VMs', async () => {
-    const route = findRoute(createController(), 'get', '/networks/{id}/traffic-rules')
+    const route = findRoute(createController(), 'get', '/networks/{id}/traffic_rules')
     assert.deepEqual(await route.callback({ req: { params: { id: 'net' } } }), [
       { ...SSH, priority: 40000, type: 'network', sourceId: 'net' },
       { ...WEB, priority: 30000, type: 'VIF', sourceId: 'vif1' },
@@ -180,7 +182,7 @@ describe('the lists of rules', () => {
   })
 
   it('require the privilege to read every VIF of the VMs of the network', () => {
-    const route = findRoute(createController(), 'get', '/networks/{id}/traffic-rules')
+    const route = findRoute(createController(), 'get', '/networks/{id}/traffic_rules')
     const [, vifAcl] = route.middlewares.find(middleware => middleware.name === 'acl').acls
     assert.equal(vifAcl.resource, 'vif')
     assert.equal(vifAcl.action, 'read')

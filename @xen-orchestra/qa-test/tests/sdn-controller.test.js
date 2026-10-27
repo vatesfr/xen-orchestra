@@ -412,26 +412,24 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
 
     const ruleKey = r => `${r.direction}:${r.ipRange}:${r.protocol}:${r.port}`
 
-    const addRule = (collection, id, rule, { sync = true } = {}) =>
-      dispatchClient.restApiClient.post(
-        `${BASE}/${collection}/${id}/actions/add_traffic_rule${sync ? '?sync=true' : ''}`,
-        rule
-      )
+    const addRule = (collection, id, rule) =>
+      dispatchClient.restApiClient.post(`${BASE}/${collection}/${id}/actions/add_traffic_rule?sync=true`, rule)
     const updateRule = (collection, id, oldRule, newRule) =>
       dispatchClient.restApiClient.post(`${BASE}/${collection}/${id}/actions/update_traffic_rule?sync=true`, {
         oldRule,
         newRule,
       })
-    const deleteRule = (collection, id, { allow, direction, ipRange, protocol, port }) =>
+    const deleteRule = (collection, id, { allow, direction, ipRange, protocol, port, priority }) =>
       dispatchClient.restApiClient.post(`${BASE}/${collection}/${id}/actions/delete_traffic_rule?sync=true`, {
         allow,
         direction,
         ipRange,
         protocol,
         port,
+        priority,
       })
 
-    const listRules = (collection, id) => dispatchClient.restApiClient.get(`${BASE}/${collection}/${id}/traffic-rules`)
+    const listRules = (collection, id) => dispatchClient.restApiClient.get(`${BASE}/${collection}/${id}/traffic_rules`)
     const findRule = (rules, rule, sourceId) => rules.find(r => r.sourceId === sourceId && ruleKey(r) === ruleKey(rule))
 
     const rejectsWithStatus = (promise, status) => assert.rejects(promise, { message: new RegExp(`^HTTP ${status}:`) })
@@ -466,29 +464,29 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     })
 
     itSdn('should change the priority of a rule', async () => {
-      await updateRule('networks', networkId, NET_RULE, { priority: 45000 })
+      await updateRule('networks', networkId, { ...NET_RULE, priority: 40000 }, { priority: 45000 })
       assert.strictEqual(findRule(await listRules('networks', networkId), NET_RULE, networkId)?.priority, 45000)
     })
 
     itSdn('should keep the priority when an update leaves it out', async () => {
-      await updateRule('networks', networkId, NET_RULE, { allow: false })
+      await updateRule('networks', networkId, { ...NET_RULE, priority: 45000 }, { allow: false })
       const rule = findRule(await listRules('networks', networkId), NET_RULE, networkId)
       assert.strictEqual(rule?.allow, false)
       assert.strictEqual(rule.priority, 45000)
     })
 
     // XO 5 and XO 6 send none yet: such a rule has the OpenFlow default, as the rules from before priorities
-    itSdn('should accept a rule without a priority, and an update removing it', async () => {
+    itSdn('should accept a rule without a priority, and refuse an update removing one', async () => {
       const rule = { ...NET_RULE, port: 1444 }
       await addRule('networks', networkId, rule)
-      await updateRule('networks', networkId, rule, { priority: 46000 })
-      assert.strictEqual(findRule(await listRules('networks', networkId), rule, networkId)?.priority, 46000)
-      await updateRule('networks', networkId, rule, { priority: null })
       assert.deepStrictEqual(findRule(await listRules('networks', networkId), rule, networkId), {
         ...rule,
         type: 'network',
         sourceId: networkId,
       })
+      await updateRule('networks', networkId, rule, { priority: 46000 })
+      assert.strictEqual(findRule(await listRules('networks', networkId), rule, networkId)?.priority, 46000)
+      await rejectsWithStatus(updateRule('networks', networkId, { ...rule, priority: 46000 }, { priority: null }), 422)
     })
 
     // network and VIF rules alike
@@ -496,22 +494,19 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       await rejectsWithStatus(addRule('networks', networkId, { ...NET_RULE, port: 2443, priority: 50000 }), 409)
       await rejectsWithStatus(addRule('vifs', vifId, { ...VIF_RULE, port: 2222, priority: 45000 }), 409)
       await rejectsWithStatus(
-        updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: 50000 }),
+        updateRule('networks', networkId, { ...NET_RULE, allow: false, priority: 45000 }, { priority: 50000 }),
         409
       )
     })
 
-    // without sync, the 422 comes before the task, which an async call does not wait for
-    itSdn('should reject a priority that is not an integer from 0 to 65535, with or without sync', async () => {
+    itSdn('should reject a priority that is not an integer from 0 to 65535', async () => {
       const rule = { ...NET_RULE, port: 1443 }
-      for (const sync of [true, false]) {
-        for (const priority of [-1, 1.5, 65536, '1']) {
-          await rejectsWithStatus(addRule('networks', networkId, { ...rule, priority }, { sync }), 422)
-        }
+      for (const priority of [-1, 1.5, 65536, '1']) {
+        await rejectsWithStatus(addRule('networks', networkId, { ...rule, priority }), 422)
       }
       assert.strictEqual(findRule(await listRules('networks', networkId), rule, networkId), undefined)
       await rejectsWithStatus(
-        updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: 65536 }),
+        updateRule('networks', networkId, { ...NET_RULE, allow: false, priority: 45000 }, { priority: 65536 }),
         422
       )
     })
@@ -525,12 +520,13 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       await dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match, priority: 0 })
       assert.strictEqual(findRule(await listRules('networks', networkId), match, networkId)?.priority, 0)
 
-      await dispatchClient.xoClient.call('sdnController.deleteNetworkRule', { networkId, ...match })
+      await dispatchClient.xoClient.call('sdnController.deleteNetworkRule', { networkId, ...match, priority: 0 })
       assert.strictEqual(findRule(await listRules('networks', networkId), match, networkId), undefined)
     })
 
-    itSdn('should delete a rule that has a priority', async () => {
-      await deleteRule('vifs', vifId, VIF_RULE)
+    itSdn('should delete a rule that has a priority, only when given it', async () => {
+      await rejectsWithStatus(deleteRule('vifs', vifId, VIF_RULE), 404)
+      await deleteRule('vifs', vifId, { ...VIF_RULE, priority: 50000 })
       assert.strictEqual(findRule(await listRules('vifs', vifId), VIF_RULE, vifId), undefined)
     })
 

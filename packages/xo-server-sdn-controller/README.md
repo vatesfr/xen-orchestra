@@ -52,6 +52,7 @@ POST /vifs/{id}/actions/delete_traffic_rule :
 | `ipRange`   | string | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                |
 | `port`      | string | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`. |
 | `protocol`  | string | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).           |
+| `priority`  | number | No       | The priority of the rule, required when it has one.                                 |
 
 Creates a new rule at network level
 POST /networks/{id}/actions/add_traffic_rule :
@@ -78,6 +79,7 @@ POST /networks/{id}/actions/delete_traffic_rule :
 | `ipRange`   | string | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                |
 | `port`      | string | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`. |
 | `protocol`  | string | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).           |
+| `priority`  | number | No       | The priority of the rule, required when it has one.                                 |
 
 Updates a rule at VIF or network level
 POST /vifs/{id}/actions/update_traffic_rule :
@@ -85,14 +87,14 @@ POST /networks/{id}/actions/update_traffic_rule :
 
 ### Fields
 
-| Field     | Type   | Required | Description                                                                                   |
-| --------- | ------ | -------- | --------------------------------------------------------------------------------------------- |
-| `oldRule` | object | Yes      | Rule to update: `allow`, `direction`, `ipRange`, `protocol` and `port`. Its priority is kept. |
-| `newRule` | object | Yes      | Fields to change, `priority` included. `null` removes a field.                                |
+| Field     | Type   | Required | Description                                                                                 |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------------- |
+| `oldRule` | object | Yes      | Rule to update: `allow`, `direction`, `ipRange`, `protocol`, `port` and `priority`, if set. |
+| `newRule` | object | Yes      | Fields to change, `priority` included. `null` removes the `port`.                           |
 
 Lists the rules of a VIF, or of a network and then of each VIF of its VMs (not of snapshots or templates)
-GET /vifs/{id}/traffic-rules :
-GET /networks/{id}/traffic-rules :
+GET /vifs/{id}/traffic_rules :
+GET /networks/{id}/traffic_rules :
 
 Each rule has `allow`, `direction`, `ipRange`, `protocol`, `port` and `priority` when set, `type` (`network` or `VIF`) and `sourceId`, the network or the VIF it belongs to.
 

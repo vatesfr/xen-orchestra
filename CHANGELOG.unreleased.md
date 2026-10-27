@@ -17,7 +17,7 @@
 - [XO6/VM] Warn that deleting a VM also deletes its snapshots and disks (PR [#10554](https://github.com/vatesfr/xen-orchestra/pull/10554))
 - [Backup jobs] Add backup job list in admin menu (PR [#10630](https://github.com/vatesfr/xen-orchestra/pull/10630))
 - [Backup jobs] Add backup job side panel in admin menu (PR [#10631](https://github.com/vatesfr/xen-orchestra/pull/10631))
-- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an optional OpenFlow `priority`, unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`, and `GET /rest/v0/plugins/sdn-controller/vifs/{id}/traffic-rules` and `GET /rest/v0/plugins/sdn-controller/networks/{id}/traffic-rules` list the rules of a VIF, or of a network and its VIFs (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
+- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an optional OpenFlow `priority`, unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`; a rule that has one is deleted or updated only when it is given too, in `delete_traffic_rule`, the `oldRule` of `update_traffic_rule` and the JSON-RPC methods `sdnController.deleteRule` and `sdnController.deleteNetworkRule`; and `GET /rest/v0/plugins/sdn-controller/vifs/{id}/traffic_rules` and `GET /rest/v0/plugins/sdn-controller/networks/{id}/traffic_rules` list the rules of a VIF, or of a network and its VIFs (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
 
 ### Bug fixes
 

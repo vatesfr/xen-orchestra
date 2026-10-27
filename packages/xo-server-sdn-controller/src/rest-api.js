@@ -6,16 +6,17 @@ const QUERY_SYNC = { sync: { type: 'boolean', optional: true } }
 
 const PARAMS_ID = { id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' } }
 
+// only the XAPI plugin sets one
+const PRIORITY_FIELD = { type: 'number', example: 100, optional: true }
+
 const RULE_FIELDS = {
   allow: { type: 'boolean', example: true },
   direction: { type: 'string', example: 'to' },
   ipRange: { type: 'string', example: '192.168.0.0/24' },
   protocol: { type: 'string', example: 'tcp' },
   port: { type: 'number', example: 443, optional: true },
+  priority: PRIORITY_FIELD,
 }
-
-// refused without the XAPI plugin
-const PRIORITY_FIELD = { type: 'number', example: 100, optional: true }
 
 const PRIORITY_DESCRIPTION = [
   '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
@@ -34,7 +35,7 @@ const BODY_UPDATE_RULE = {
       ipRange: { type: 'string', example: '10.0.0.0/8', optional: true },
       protocol: { type: 'string', example: 'tcp', optional: true },
       port: { type: 'number', example: 80, optional: true, nullable: true },
-      priority: { ...PRIORITY_FIELD, nullable: true },
+      priority: PRIORITY_FIELD,
     },
   },
 }
@@ -43,7 +44,6 @@ const LISTED_RULE = {
   type: 'object',
   fields: {
     ...RULE_FIELDS,
-    priority: PRIORITY_FIELD,
     type: { type: 'enum', enum: ['network', 'VIF'], example: 'VIF' },
     sourceId: { type: 'string', example: 'f0a8a0f6-6c63-4a8e-b4d5-0f5e1d3a2c71' },
   },
@@ -105,6 +105,7 @@ function rulesEqual(a, b) {
     a.direction === b.direction &&
     a.ipRange === b.ipRange &&
     a.port === b.port &&
+    a.priority === b.priority &&
     a.protocol.toLowerCase() === b.protocol.toLowerCase()
   )
 }
@@ -141,7 +142,7 @@ function ruleFromBody(req, idKey) {
 
 function listNetworkRulesRoute(controller) {
   return {
-    endpoint: '/networks/{id}/traffic-rules',
+    endpoint: '/networks/{id}/traffic_rules',
     description: `List the traffic rules of a network, then those of each VIF of its VMs. The VIFs of snapshots and templates, whose copies of the rules never apply, are left out.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privileges:\n - resource: network, action: read\n - resource: vif, action: read, on every VIF of its VMs`,
     method: 'get',
     tags: ['sdn-controller'],
@@ -152,7 +153,7 @@ function listNetworkRulesRoute(controller) {
         description: 'The rules of the network and of the VIFs of its VMs',
         schema: { type: 'array', items: LISTED_RULE },
       },
-      { status: 403, description: 'Access denied' },
+      { status: 403, description: 'Forbidden' },
       { status: 404, description: 'No network found for this ID' },
     ],
     middlewares: [
@@ -174,14 +175,14 @@ function listNetworkRulesRoute(controller) {
 
 function listVifRulesRoute(controller) {
   return {
-    endpoint: '/vifs/{id}/traffic-rules',
+    endpoint: '/vifs/{id}/traffic_rules',
     description: `List the traffic rules of a VIF.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: vif, action: read`,
     method: 'get',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     responses: [
       { status: 200, description: 'The rules of the VIF', schema: { type: 'array', items: LISTED_RULE } },
-      { status: 403, description: 'Access denied' },
+      { status: 403, description: 'Forbidden' },
       { status: 404, description: 'No VIF found for this ID' },
     ],
     middlewares: [{ name: 'acl', acls: { resource: 'vif', action: 'read', objectId: 'params.id' } }],
@@ -197,7 +198,7 @@ function addRuleRoute(controller, resource) {
     tags: ['sdn-controller'],
     params: PARAMS_ID,
     query: QUERY_SYNC,
-    body: { ...RULE_FIELDS, priority: PRIORITY_FIELD },
+    body: RULE_FIELDS,
     responses: [
       { status: 204, description: 'Rule added successfully' },
       { status: 404, description: `No ${resource.type} found for this ID` },
@@ -210,17 +211,22 @@ function addRuleRoute(controller, resource) {
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const rule = ruleFromBody(req, resource.idKey)
-      controller._checkTrafficRulePriority(rule, req.body.priority)
-      return createAction(() => resource.addRule(controller, rule), {
-        sync: req.query.sync ?? false,
-        statusCode: 204,
-        taskProperties: {
-          name: `add ${resource.acl} traffic rule`,
-          objectId: rule[resource.idKey],
-          objectType: resource.type,
-          params: req.body,
+      return createAction(
+        async () => {
+          controller._checkTrafficRulePriority(rule, req.body.priority)
+          await resource.addRule(controller, rule)
         },
-      })
+        {
+          sync: req.query.sync ?? false,
+          statusCode: 204,
+          taskProperties: {
+            name: `add ${resource.acl} traffic rule`,
+            objectId: rule[resource.idKey],
+            objectType: resource.type,
+            params: req.body,
+          },
+        }
+      )
     },
   }
 }
@@ -269,7 +275,7 @@ function deleteRuleRoute(controller, resource) {
 function updateRuleRoute(controller, resource) {
   return {
     endpoint: `/${resource.collection}/{id}/actions/update_traffic_rule`,
-    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, except its priority, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
+    description: `Update a rule on a ${resource.type}: \`oldRule\` identifies the rule to update and must be given in full, its priority included, \`newRule\` is a partial update where a field set to \`null\` is removed from the rule.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: ${resource.acl}, action: update:other_config`,
     method: 'post',
     tags: ['sdn-controller'],
     params: PARAMS_ID,
@@ -288,18 +294,16 @@ function updateRuleRoute(controller, resource) {
     callback: ({ req, createAction }) => {
       const { oldRule, newRule: partialNewRule } = req.body
       const id = req.params.id
-      const object = controller._xo.getObject(id, resource.type)
-      const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
-      // patched rather than `oldRule`, so that a priority `newRule` leaves out is kept
-      const storedRule = rules.find(rule => rulesEqual(rule, oldRule))
-      if (storedRule === undefined) {
-        throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
-      }
-      const newRule = applyRulePatch(storedRule, partialNewRule)
-      controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority, storedRule.priority)
-
       return createAction(
         async () => {
+          const object = controller._xo.getObject(id, resource.type)
+          const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
+          if (!rules.some(rule => rulesEqual(rule, oldRule))) {
+            throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
+          }
+          const newRule = applyRulePatch(oldRule, partialNewRule)
+          controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority, oldRule.priority)
+
           await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
           await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
         },
