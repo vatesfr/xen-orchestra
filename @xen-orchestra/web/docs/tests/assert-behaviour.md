@@ -17,8 +17,8 @@ expect(displayData.vmIcon).toBe(objectIcon('vm', 'running'))
 expect(wrapper.vm.powerState.text).toBe(t('vm:status:running'))
 ```
 
-- A component test takes that `t` — and the `d` for a locale-formatted date — from `src/test/i18n.ts`, the very instance `createGlobalTestConfig()` installs; a composable test calls `useI18n()` inside the `setup` callback (see [Testing composables](./testing-composables.md)).
+- A component test takes that `t` from `src/test/i18n.ts`, the very instance `createGlobalTestConfig()` installs; a composable test calls `useI18n()` inside the `setup` callback (see [Testing composables](./testing-composables.md)).
 - This is not tautological, because the helper is not the code under test: `objectIcon` and the translation files have their own tests. A test _of_ `objectIcon` does assert literals — that is where its format is pinned, once.
 - Values that are literals in production stay literals in the test. `powerState.icon` is written as `'status:running-circle'` in the source, so `expect(wrapper.vm.powerState.icon).toBe('status:running-circle')` is the right assertion; there is no helper to defer to.
-- Environment-dependent values — a relative timestamp, a locale-formatted date — are derived the way production derives them, and the test says so.
+- Environment-dependent values — a relative timestamp, a formatted date — are derived the way production derives them (`formatDateTime` from `@core/utils/time.util.ts`), and the test says so.
 - Every mock couples the test to the mocked surface, which is why the boundary stays tight — see [Mocking dependencies](./mocking.md).
