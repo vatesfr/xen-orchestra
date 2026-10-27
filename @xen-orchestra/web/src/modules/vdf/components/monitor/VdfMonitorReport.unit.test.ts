@@ -129,6 +129,13 @@ function withHost(shadowedBy?: string[]) {
   data.hosts = [createHost({ otherConfig: { 'vdf:status': JSON.stringify({ policies }) } })]
 }
 
+// "Later, if other policies stop applying": collapsed until opened
+async function openLater(wrapper: Awaited<ReturnType<typeof mountReport>>) {
+  await wrapper.get('.later button').trigger('click')
+
+  return wrapper
+}
+
 async function mountReport(path = '/pool/pool-1/firewall/monitor') {
   const router = createTestRouter()
 
@@ -155,6 +162,17 @@ beforeEach(() => {
 
 it('keeps the alone entries out of the report and its suggestions, in their own section', async () => {
   const wrapper = await mountReport()
+
+  // UX P1-2: what enforcing breaks now first, the rest collapsed below it
+  expect(wrapper.find('section.alone').exists()).toBe(false)
+  expect(wrapper.get('.later').text()).toContain(t('firewall:monitor:later', { n: 1 }, 1))
+  const html = wrapper.html()
+
+  expect(html.indexOf('<table')).toBeGreaterThan(-1)
+  expect(html.indexOf('<table')).toBeLessThan(html.indexOf('class="vdf-technical-details later"'))
+
+  await openLater(wrapper)
+
   const sections = wrapper.findAll('section.suggestions')
   const alone = wrapper.get('section.alone')
 
@@ -178,14 +196,16 @@ it('gives each shadowed tier its section, an earlier one said', async () => {
     entry({ port: 6379, alone: true, shadowedBy: ['web'], shadowedTier: 'application' }),
     entry({ port: 6380, alone: true, shadowedBy: ['e25'], shadowedTier: 'securityops' }),
   ]
-  const wrapper = await mountReport()
+  const wrapper = await openLater(await mountReport())
   const sections = wrapper.findAll('section.alone')
 
   expect(sections).toHaveLength(2)
-  expect(sections[1].text()).toContain(t('firewall:monitor:alone:title', { policy: 'cache', by: 'web' }))
+  expect(sections[1].text()).toContain(
+    t('firewall:monitor:alone:title:tier', { policy: 'cache', by: 'web', tier: t('firewall:tier:application') })
+  )
   // securityops ranks before application
   expect(sections[0].text()).toContain(
-    t('firewall:monitor:alone:title:earlier', { policy: 'cache', by: 'e25', tier: t('firewall:tier:securityops') })
+    t('firewall:monitor:alone:title:tier', { policy: 'cache', by: 'e25', tier: t('firewall:tier:securityops') })
   )
   expect(sections[0].text()).toContain('TCP 6380')
 })
@@ -196,7 +216,7 @@ it('orders the sections by tier rank, not by name', async () => {
     entry({ port: 6380, alone: true, shadowedBy: ['p'], shadowedTier: 'platform' }),
     entry({ port: 6379, alone: true, shadowedBy: ['s'], shadowedTier: 'securityops' }),
   ]
-  const wrapper = await mountReport()
+  const wrapper = await openLater(await mountReport())
 
   expect(wrapper.findAll('section.alone').map(section => section.find('.alone-flow').text())).toEqual([
     expect.stringContaining('6379'),
@@ -220,10 +240,14 @@ it('says which shadowed tiers were not checked, and keeps the warning there', as
       shadowedBy: ['web'],
     },
   ]
-  const wrapper = await mountReport()
+  const wrapper = await openLater(await mountReport())
 
-  expect(wrapper.get('.unchecked').text()).toContain(
-    t('firewall:monitor:unchecked:egress', { policy: 'cache', tier: t('firewall:tier:platform'), vm: VM.name_label })
+  expect(wrapper.get('.later-notes').text()).toContain(
+    t('firewall:monitor:unchecked', {
+      direction: t('firewall:monitor:direction:out'),
+      tier: t('firewall:tier:platform'),
+      vm: VM.name_label,
+    })
   )
   expect(wrapper.text()).toContain('blind:cache')
   expect(wrapper.text()).not.toContain('covered:cache')
@@ -239,14 +263,14 @@ it('an older agent: no alone entries, no section', async () => {
 
 it('says the agents cover a same-tier shadow, else warns as before', async () => {
   data.shadows = [SHADOW]
-  const covered = await mountReport()
+  const covered = await openLater(await mountReport())
 
   expect(covered.text()).toContain('covered:cache')
   expect(covered.text()).not.toContain('blind:cache')
 
   // an older agent on the VM's host: XO's own warning
   withHost(undefined)
-  const blind = await mountReport()
+  const blind = await openLater(await mountReport())
 
   expect(blind.text()).toContain('blind:cache')
   expect(blind.text()).not.toContain('covered:cache')

@@ -64,24 +64,6 @@
         </UiButton>
       </div>
 
-      <!-- vdf#86: an enforced policy decides first for some of the VMs; the agents' isolated pass covers what it alone would drop (below) -->
-      <UiAlert v-if="coveredShadows.length > 0" accent="info">
-        {{ t('firewall:monitor:shadow:covered:title', { n: coveredShadows.length }, coveredShadows.length) }}
-        <template #description>
-          <ul class="shadows">
-            <li v-for="shadow of coveredShadows" :key="shadowKey(shadow)">{{ coveredShadowText(shadow) }}</li>
-          </ul>
-        </template>
-      </UiAlert>
-      <UiAlert v-if="shadows.length > 0" accent="warning">
-        {{ t('firewall:monitor:shadow:title', { n: shadows.length }, shadows.length) }}
-        <template #description>
-          <ul class="shadows">
-            <li v-for="shadow of shadows" :key="shadowKey(shadow)">{{ shadowText(shadow) }}</li>
-          </ul>
-        </template>
-      </UiAlert>
-
       <section v-for="group of suggestionGroups" :key="group.policy.name" class="suggestions">
         <div class="suggestions-title">
           <span class="typo-body-bold">
@@ -144,88 +126,8 @@
         </ul>
       </section>
 
-      <!-- vdf#86: shadowed tiers past the agents' cap: not checked -->
-      <UiAlert v-if="uncheckedItems.length > 0" accent="warning" class="unchecked">
-        {{ t('firewall:monitor:unchecked:title', { n: uncheckedItems.length }, uncheckedItems.length) }}
-        <template #description>
-          <ul class="shadows">
-            <li v-for="item of uncheckedItems" :key="item.key">{{ item.text }}</li>
-          </ul>
-        </template>
-      </UiAlert>
-
-      <!-- vdf#86: what a policy alone would drop, once the enforced policies of its tier no longer apply to the VMs -->
-      <section v-for="group of aloneSections" :key="group.key" class="suggestions alone">
-        <div class="suggestions-title">
-          <span class="typo-body-bold">
-            {{
-              t(group.earlier ? 'firewall:monitor:alone:title:earlier' : 'firewall:monitor:alone:title', group.params)
-            }}
-          </span>
-          <UiButton
-            v-if="!group.isGlobal && group.pending.length > 1"
-            variant="secondary"
-            accent="brand"
-            size="small"
-            left-icon="fa:plus"
-            @click="addAll(group.policy.name, group.pending)"
-          >
-            {{ t('firewall:monitor:add-all', { n: group.pending.length }) }}
-          </UiButton>
-        </div>
-        <span class="secondary typo-body-regular-small">
-          {{ t(group.earlier ? 'firewall:monitor:alone:info:earlier' : 'firewall:monitor:alone:info', group.params) }}
-        </span>
-        <ul class="suggestion-list">
-          <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
-            <VdfActionTag action="allow" />
-            <span class="typo-body-regular-small">
-              {{
-                t(
-                  suggestion.rule.to === undefined
-                    ? 'firewall:monitor:suggestion'
-                    : 'firewall:monitor:suggestion:egress',
-                  suggestionText(suggestion)
-                )
-              }}
-            </span>
-            <span class="secondary typo-body-regular-small">
-              {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
-            </span>
-            <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
-              {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
-            </span>
-            <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
-              {{ t('firewall:monitor:in-draft') }}
-            </UiTag>
-            <UiButton
-              v-else-if="!group.isGlobal"
-              variant="tertiary"
-              accent="brand"
-              size="small"
-              left-icon="fa:plus"
-              @click="addToDraft(suggestion)"
-            >
-              {{ t('firewall:monitor:add') }}
-            </UiButton>
-          </li>
-        </ul>
-        <ul class="alone-flows">
-          <li v-for="row of group.rows" :key="row.key" class="alone-flow typo-body-regular-small">
-            <component :is="() => flowSource(row.entry)" />
-            <VtsIcon name="fa:arrow-right" size="small" />
-            <component :is="() => flowDestination(row.entry)" />
-            <VdfService :proto="row.entry.proto" :port="row.entry.port ? String(row.entry.port) : ''" />
-            <span class="secondary">{{ decidedBy(row.entry) }}</span>
-            <span class="secondary">{{ t('firewall:monitor:seen', { n: row.entry.count }) }}</span>
-            <VtsRelativeTime :date="row.entry.last" class="secondary" />
-            <UiLink v-if="row.trace" :to="row.trace" size="small" icon="fa:route">
-              {{ t('firewall:monitor:trace') }}
-            </UiLink>
-          </li>
-        </ul>
-      </section>
-
+      <!-- what enforcing breaks now: the operator's question -->
+      <span class="typo-body-bold">{{ t('firewall:monitor:now:title') }}</span>
       <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
@@ -238,6 +140,94 @@
           </VtsRow>
         </tbody>
       </VtsTable>
+
+      <!-- vdf#86: later, if other policies stop applying to these VMs: what the agents' isolated passes record, and what this report can't see -->
+      <VdfTechnicalDetails
+        v-if="laterCount > 0"
+        :label="t('firewall:monitor:later', { n: laterCount }, laterCount)"
+        class="later"
+      >
+        <!-- vdf#86: what a policy alone would drop, once the enforced policies of its tier no longer apply to the VMs -->
+        <section v-for="group of aloneSections" :key="group.key" class="suggestions alone">
+          <div class="suggestions-title">
+            <span class="typo-body-bold">
+              {{
+                t(
+                  group.params.tier === '' ? 'firewall:monitor:alone:title' : 'firewall:monitor:alone:title:tier',
+                  group.params
+                )
+              }}
+            </span>
+            <UiButton
+              v-if="!group.isGlobal && group.pending.length > 1"
+              variant="secondary"
+              accent="brand"
+              size="small"
+              left-icon="fa:plus"
+              @click="addAll(group.policy.name, group.pending)"
+            >
+              {{ t('firewall:monitor:add-all', { n: group.pending.length }) }}
+            </UiButton>
+          </div>
+          <span class="secondary typo-body-regular-small">
+            {{ t('firewall:monitor:alone:info', group.params) }}
+          </span>
+          <ul class="suggestion-list">
+            <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
+              <VdfActionTag action="allow" />
+              <span class="typo-body-regular-small">
+                {{
+                  t(
+                    suggestion.rule.to === undefined
+                      ? 'firewall:monitor:suggestion'
+                      : 'firewall:monitor:suggestion:egress',
+                    suggestionText(suggestion)
+                  )
+                }}
+              </span>
+              <span class="secondary typo-body-regular-small">
+                {{ t('firewall:monitor:seen', { n: suggestion.count }) }}
+              </span>
+              <span v-if="suggestion.before !== undefined" class="secondary typo-body-regular-small">
+                {{ t('firewall:monitor:before-rule', { id: suggestion.before }) }}
+              </span>
+              <UiTag v-if="isInDraft(suggestion)" accent="success" variant="secondary">
+                {{ t('firewall:monitor:in-draft') }}
+              </UiTag>
+              <UiButton
+                v-else-if="!group.isGlobal"
+                variant="tertiary"
+                accent="brand"
+                size="small"
+                left-icon="fa:plus"
+                @click="addToDraft(suggestion)"
+              >
+                {{ t('firewall:monitor:add') }}
+              </UiButton>
+            </li>
+          </ul>
+          <ul class="alone-flows">
+            <li v-for="row of group.rows" :key="row.key" class="alone-flow typo-body-regular-small">
+              <component :is="() => flowSource(row.entry)" />
+              <VtsIcon name="fa:arrow-right" size="small" />
+              <component :is="() => flowDestination(row.entry)" />
+              <VdfService :proto="row.entry.proto" :port="row.entry.port ? String(row.entry.port) : ''" />
+              <span class="secondary">{{ decidedBy(row.entry) }}</span>
+              <span class="secondary">{{ t('firewall:monitor:seen', { n: row.entry.count }) }}</span>
+              <VtsRelativeTime :date="row.entry.last" class="secondary" />
+              <UiLink v-if="row.trace" :to="row.trace" size="small" icon="fa:route">
+                {{ t('firewall:monitor:trace') }}
+              </UiLink>
+            </li>
+          </ul>
+        </section>
+        <UiInfo v-if="laterNotes.length > 0" accent="muted" wrap class="later-notes">
+          <span class="typo-body-bold-small">{{ t('firewall:monitor:shadow:title') }}</span>
+          <ul class="shadows">
+            <li v-for="note of laterNotes" :key="note.key">{{ note.text }}</li>
+          </ul>
+        </UiInfo>
+      </VdfTechnicalDetails>
     </template>
   </div>
 </template>
@@ -247,6 +237,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
+import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
@@ -475,13 +466,22 @@ const uncheckedItems = computed(() => {
     .filter(item => names.has(item.policy))
     .map(item => ({
       key: `${item.policy}|${item.vif}|${item.egress ? 'out' : 'in'}|${item.tier}`,
-      text: t(item.egress ? 'firewall:monitor:unchecked:egress' : 'firewall:monitor:unchecked:ingress', {
-        policy: displayName(item.policy),
+      text: t('firewall:monitor:unchecked', {
+        direction: t(item.egress ? 'firewall:monitor:direction:out' : 'firewall:monitor:direction:in'),
         tier: tierLabel(reportedTierValue(item.tier)),
         vm: vmById.value.get(item.vm)?.name_label ?? item.vmName,
       }),
     }))
 })
+
+// what the report can't see, or sees apart, as one muted list at the end
+// of "Later": shadows XO works out (older agents, an earlier tier deciding
+// first), those the agents cover, and the tiers they left unchecked
+const laterNotes = computed(() => [
+  ...shadows.value.map(shadow => ({ key: `blind|${shadowKey(shadow)}`, text: shadowText(shadow) })),
+  ...coveredShadows.value.map(shadow => ({ key: `covered|${shadowKey(shadow)}`, text: coveredShadowText(shadow) })),
+  ...uncheckedItems.value,
+])
 
 // SUGGESTED RULES, per monitored policy (the pool's own are added to the
 // draft from here; a global one is edited in the global firewall)
@@ -619,9 +619,7 @@ const aloneSections = computed(() => {
           key: `${group.policy}|${group.shadowedTier ?? ''}|${group.shadowedBy.join('|')}`,
           policy,
           isGlobal: isGlobalName(policy.name),
-          // a later tier's policy, reached once an earlier tier's enforced
-          // policies no longer decide first: their tier said
-          earlier: group.earlier,
+          // the tier of those policies (agents before it don't say)
           params: {
             policy: displayName(policy.name),
             by: formatNames(group.shadowedBy),
@@ -634,6 +632,8 @@ const aloneSections = computed(() => {
       ]
     })
 })
+
+const laterCount = computed(() => aloneSections.value.length + laterNotes.value.length)
 
 // a flow's two ends, as the table shows them
 const flowSource = (entry: VdfMonitorEntry) =>
@@ -1016,6 +1016,10 @@ const { HeadCells, BodyCells } = useMonitorColumns({
     flex-wrap: wrap;
     align-items: center;
     gap: 0.8rem 1.6rem;
+  }
+
+  .later-notes .shadows {
+    margin-block-start: 0.4rem;
   }
 
   .shadows {
