@@ -7,12 +7,12 @@ import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { getButton } from '@/test/get-button.ts'
+import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
@@ -447,7 +447,7 @@ describe('object field', () => {
 
     expect(findLabels(wrapper)).toEqual(['Field'])
 
-    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await getCheckbox(wrapper, 'Field').setValue(true)
 
     expect(findLabels(wrapper)).toEqual(['Field', 'Host', 'port'])
   })
@@ -462,7 +462,7 @@ describe('object field', () => {
     const wrapper = mountField({ schema })
     const labelId = wrapper.get('[role="group"]').attributes('aria-labelledby')
 
-    expect(wrapper.findComponent(UiCheckbox).get(`#${labelId}`).text()).toBe('Field')
+    expect(getCheckbox(wrapper, 'Field').element.closest(`#${labelId}`)).not.toBeNull()
   })
 
   it('displays an optional object which is already filled', () => {
@@ -484,7 +484,7 @@ describe('object field', () => {
       schema: { type: 'object', properties: { port: { type: 'integer', default: 25 } } },
     })
 
-    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await getCheckbox(wrapper, 'Field').setValue(true)
 
     expect(lastEmittedValue(wrapper)).toEqual({ port: 25 })
   })
@@ -492,7 +492,7 @@ describe('object field', () => {
   it('closes an optional object opened without value when it is reset from the outside', async () => {
     const wrapper = mountField({ schema })
 
-    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await getCheckbox(wrapper, 'Field').setValue(true)
     await wrapper.setProps({ modelValue: lastEmittedValue(wrapper) })
     await wrapper.setProps({ modelValue: undefined })
 
@@ -502,7 +502,7 @@ describe('object field', () => {
   it('clears an optional object when it is not used anymore', async () => {
     const wrapper = mountField({ schema, modelValue: { host: 'example.org' } })
 
-    await wrapper.get('input[type="checkbox"]').setValue(false)
+    await getCheckbox(wrapper, 'Field').setValue(false)
 
     expect(lastEmittedValue(wrapper)).toBeUndefined()
   })
@@ -538,19 +538,19 @@ describe('boolean field', () => {
   it('uses the default value until it is changed', () => {
     const wrapper = mountField({ schema: { type: 'boolean', default: true } })
 
-    expect(wrapper.get<HTMLInputElement>('input[type="checkbox"]').element.checked).toBe(true)
+    expect(getCheckbox(wrapper, 'Field').element.checked).toBe(true)
   })
 
   it('prefers the current value over the default', () => {
     const wrapper = mountField({ schema: { type: 'boolean', default: true }, modelValue: false })
 
-    expect(wrapper.get<HTMLInputElement>('input[type="checkbox"]').element.checked).toBe(false)
+    expect(getCheckbox(wrapper, 'Field').element.checked).toBe(false)
   })
 
   it('emits the checked value', async () => {
     const wrapper = mountField({ schema: { type: 'boolean' } })
 
-    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await getCheckbox(wrapper, 'Field').setValue(true)
 
     expect(lastEmittedValue(wrapper)).toBe(true)
   })
@@ -558,7 +558,7 @@ describe('boolean field', () => {
   it('displays the label and the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'boolean', description: 'Check the certificate' }, label: 'TLS' })
 
-    expect(wrapper.findComponent(UiCheckbox).text()).toBe('TLS')
+    expect(wrapper.get('.ui-checkbox').text()).toBe('TLS')
     expect(wrapper.get('.ui-info').text()).toBe('Check the certificate')
   })
 })
@@ -621,7 +621,7 @@ describe('array field', () => {
       modelValue: [{}],
     })
 
-    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    expect(wrapper.find('.ui-checkbox').exists()).toBe(false)
     expect(findLabels(wrapper)).toEqual([getNumberedItemLabel(1), 'uri'])
   })
 
@@ -675,7 +675,7 @@ describe('array field', () => {
 
     expect(wrapper.find('button').exists()).toBe(false)
 
-    await wrapper.get('input[type="checkbox"]').setValue(true)
+    await getCheckbox(wrapper, 'Field').setValue(true)
 
     expect(lastEmittedValue(wrapper)).toEqual([])
   })
