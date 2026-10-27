@@ -585,6 +585,17 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * The instance UUID of the vCenter, a standalone ESXi has none.
+   *
+   * @returns {string | undefined}
+   */
+  get instanceUuid() {
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    return vimClient.serviceContent?.about?.instanceUuid
+  }
+
+  /**
    * Everything needed to choose what to migrate and where: the whole inventory, read once.
    *
    * Only the properties used are requested: `config` as a whole is large, and read for every VM.
@@ -833,6 +844,8 @@ export default class Esxi extends EventEmitter {
       guestId: config.guestId,
       guestFullName: config.guestFullName,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+      // unlike the moref, it survives the VM being unregistered and registered again
+      instanceUuid: config.instanceUuid,
       powerState: runtime.powerState,
       snapshots,
       cdrom,
