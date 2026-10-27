@@ -152,6 +152,24 @@ describe('isShadowCovered', () => {
     expect(isShadowCovered(sameTier, on({ a: newAgent }, ['b']))).toBe(true)
   })
 
+  it("not where the agent's cap of shadowed tiers left the policy unchecked on the host", () => {
+    const unchecked: VdfHostStatusDocument = {
+      policies: [
+        {
+          name: 'cache',
+          tier: 'application',
+          vifs: 1,
+          realized: true,
+          monitorShadowed: 1,
+          shadowedBy: ['web'],
+          shadowedUnchecked: 1,
+        },
+      ],
+    }
+
+    expect(isShadowCovered(sameTier, on({ a: newAgent, b: unchecked }))).toBe(false)
+  })
+
   it('not with an older agent, another policy named, or no VM running', () => {
     expect(isShadowCovered(sameTier, on({ a: newAgent, b: oldAgent }))).toBe(false)
     expect(isShadowCovered(sameTier, on({ a: newAgent, b: undefined }))).toBe(false)

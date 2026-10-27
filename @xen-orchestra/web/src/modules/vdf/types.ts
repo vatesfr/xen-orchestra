@@ -332,6 +332,9 @@ export type VdfHostPolicyStatus = {
   monitorShadowed?: number
   shadowedBy?: string[]
   wouldDropsAlone?: number
+  // of those VIFs, the ones whose shadowed tiers past the agent's cap got
+  // no isolated pass: what the policy alone would drop isn't recorded
+  shadowedUnchecked?: number
 }
 
 // a guarded VIF non-VDF flows of table 0 decide for before VDF does
@@ -439,6 +442,8 @@ export type VdfTraceWhatIf = {
   vm?: string
   alone?: boolean
   shadowedBy?: string[]
+  // the tier of shadowedBy (one isolated pass per shadowed tier)
+  shadowedTier?: number
   policies: string[]
   verdict: 'would-drop' | 'would-allow' | 'dropped' | 'not-evaluated' | string
   policy?: string
@@ -603,6 +608,10 @@ export type VdfMonitorEntry = {
   // without it are what enforcing breaks now (agents before it: all)
   alone?: boolean
   shadowedBy?: string[]
+  // the tier of shadowedBy: the policy's own, or an earlier one (the
+  // policy reached once those no longer decide first); absent from agents
+  // before one isolated pass per shadowed tier
+  shadowedTier?: string
 }
 
 export type VdfMonitorReport = {

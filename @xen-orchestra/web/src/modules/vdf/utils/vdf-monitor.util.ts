@@ -78,8 +78,18 @@ export function seenSince(
 }
 
 // A policy's alone entries (vdf#86), by the enforced policies that decide
-// first today: what it would drop once those no longer apply to the VMs
-export type VdfAloneGroup = { policy: string; shadowedBy: string[]; entries: VdfMonitorEntry[] }
+// first today and their tier (one isolated pass per shadowed tier): what it
+// would drop once those no longer apply to the VMs
+// shadowedTier: the tier of shadowedBy (absent from agents before one pass
+// per shadowed tier); `earlier`: it's before the policy's own, the policy
+// reached once those no longer decide first
+export type VdfAloneGroup = {
+  policy: string
+  shadowedBy: string[]
+  shadowedTier?: string
+  earlier: boolean
+  entries: VdfMonitorEntry[]
+}
 
 // what the review before enforcing says of a policy's alone entries: per
 // set of enforced policies deciding first, the flows seen since a time
@@ -90,10 +100,10 @@ export function aloneSince(
   since: number,
   keep: (entry: VdfMonitorEntry) => boolean = () => true
 ) {
-  return aloneGroups(entries, policyName).flatMap(({ shadowedBy, entries: groupEntries }) => {
+  return aloneGroups(entries, policyName).flatMap(({ shadowedBy, shadowedTier, earlier, entries: groupEntries }) => {
     const count = groupEntries.filter(entry => Date.parse(entry.last) >= since && keep(entry)).length
 
-    return count === 0 ? [] : [{ shadowedBy, count }]
+    return count === 0 ? [] : [{ shadowedBy, shadowedTier, earlier, count }]
   })
 }
 
@@ -102,15 +112,24 @@ export function aloneGroups(entries: VdfMonitorEntry[], policyName?: string): Vd
 
   for (const entry of liveEntries(entries, policyName, { alone: true })) {
     const shadowedBy = [...(entry.shadowedBy ?? [])].sort()
-    const key = `${entry.policy}\0${shadowedBy.join('\0')}`
-    const group = byKey.get(key) ?? { policy: entry.policy, shadowedBy, entries: [] }
+    const key = `${entry.policy}\0${entry.shadowedTier ?? ''}\0${shadowedBy.join('\0')}`
+    const group = byKey.get(key) ?? {
+      policy: entry.policy,
+      shadowedBy,
+      shadowedTier: entry.shadowedTier,
+      earlier: entry.shadowedTier !== undefined && entry.shadowedTier !== entry.tier,
+      entries: [],
+    }
 
     group.entries.push(entry)
     byKey.set(key, group)
   }
 
   return [...byKey.values()].sort(
-    (a, b) => a.policy.localeCompare(b.policy) || a.shadowedBy.join().localeCompare(b.shadowedBy.join())
+    (a, b) =>
+      a.policy.localeCompare(b.policy) ||
+      (a.shadowedTier ?? '').localeCompare(b.shadowedTier ?? '') ||
+      a.shadowedBy.join().localeCompare(b.shadowedBy.join())
   )
 }
 
@@ -237,7 +256,8 @@ export const monitorFlowKey = (entry: VdfMonitorEntry) =>
     entry.port ?? '',
     entry.rule ?? '',
     // vdf#86: the same flow, as what the policy alone would drop
-    ...(entry.alone === true ? ['alone'] : []),
+    // (one isolated pass per shadowed tier: its own flow)
+    ...(entry.alone === true ? ['alone', ...(entry.shadowedTier === undefined ? [] : [entry.shadowedTier])] : []),
   ].join('|')
 
 // Flows marked expected (a drop that's wanted: no rule to add), by key,

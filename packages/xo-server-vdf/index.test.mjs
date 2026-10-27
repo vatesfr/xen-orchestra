@@ -470,6 +470,31 @@ describe('mergeMonitor', () => {
     assert.deepEqual([now.count, now.shadowedBy], [1, undefined])
   })
 
+  // an agent since 8767985: one isolated pass per shadowed tier
+  test('alone entries of different shadowed tiers stay apart', () => {
+    const at = fields => entry({ count: 1, first: 'a', last: '2026-10-24T09:00:00Z', alone: true, ...fields })
+    const merged = mergeMonitor([
+      {
+        host: 'h1',
+        entries: [
+          at({ shadowedTier: 'application', shadowedBy: ['web'] }),
+          at({ shadowedTier: 'securityops', shadowedBy: ['e25'] }),
+          // an agent before shadowedTier (d813d4d)
+          at({ shadowedBy: ['web'] }),
+        ],
+      },
+      { host: 'h2', entries: [at({ shadowedTier: 'application', shadowedBy: ['web'] })] },
+    ])
+    assert.deepEqual(
+      merged.map(e => [e.shadowedTier, e.count]),
+      [
+        ['application', 2],
+        ['securityops', 1],
+        [undefined, 1],
+      ]
+    )
+  })
+
   test('distinct flows stay apart, most recently seen first', () => {
     const merged = mergeMonitor([
       {

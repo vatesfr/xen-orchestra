@@ -38,6 +38,10 @@ export function tierValue(tier: VdfPolicy['tier']): number {
   return VDF_TIERS.find(({ name }) => name === tier)?.value ?? VDF_APPLICATION_TIER
 }
 
+// a tier as agents name it in their reports: its name, or its number as text
+export const reportedTierValue = (tier: string) =>
+  tierValue((/^\d+$/.test(tier) ? Number(tier) : tier) as VdfPolicy['tier'])
+
 export function tierName(value: number): VdfTierName | undefined {
   return VDF_TIERS.find(tier => tier.value === value)?.name
 }

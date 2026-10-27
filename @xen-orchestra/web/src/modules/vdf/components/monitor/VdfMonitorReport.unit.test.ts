@@ -157,6 +157,24 @@ it('keeps the alone entries out of the report and its suggestions, in their own 
   expect(wrapper.findAll('tbody tr')).toHaveLength(1)
 })
 
+// agents since 8767985: a section per shadowed tier; a later tier's policy
+// reached once an earlier tier's enforced policies no longer decide first
+it('gives each shadowed tier its section, an earlier one said', async () => {
+  data.entries = [
+    entry({ port: 6379, alone: true, shadowedBy: ['web'], shadowedTier: 'application' }),
+    entry({ port: 6380, alone: true, shadowedBy: ['e25'], shadowedTier: 'securityops' }),
+  ]
+  const wrapper = await mountReport()
+  const sections = wrapper.findAll('section.alone')
+
+  expect(sections).toHaveLength(2)
+  expect(sections[0].text()).toContain(t('firewall:monitor:alone:title', { policy: 'cache', by: 'web' }))
+  expect(sections[1].text()).toContain(
+    t('firewall:monitor:alone:title:earlier', { policy: 'cache', by: 'e25', tier: t('firewall:tier:securityops') })
+  )
+  expect(sections[1].text()).toContain('TCP 6380')
+})
+
 it('an older agent: no alone entries, no section', async () => {
   data.entries = [entry({})]
   const wrapper = await mountReport()

@@ -121,7 +121,9 @@
       <section v-for="group of aloneSections" :key="group.key" class="suggestions alone">
         <div class="suggestions-title">
           <span class="typo-body-bold">
-            {{ t('firewall:monitor:alone:title', { policy: displayName(group.policy.name), by: group.by }) }}
+            {{
+              t(group.earlier ? 'firewall:monitor:alone:title:earlier' : 'firewall:monitor:alone:title', group.params)
+            }}
           </span>
           <UiButton
             v-if="!group.isGlobal && group.pending.length > 1"
@@ -135,7 +137,7 @@
           </UiButton>
         </div>
         <span class="secondary typo-body-regular-small">
-          {{ t('firewall:monitor:alone:info', { policy: displayName(group.policy.name), by: group.by }) }}
+          {{ t(group.earlier ? 'firewall:monitor:alone:info:earlier' : 'firewall:monitor:alone:info', group.params) }}
         </span>
         <ul class="suggestion-list">
           <li v-for="suggestion of group.suggestions" :key="suggestionKey(suggestion)" class="suggestion">
@@ -215,6 +217,7 @@ import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.
 import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-expected.composable.ts'
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
+import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName, globalRuleId, isGlobalName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -229,7 +232,13 @@ import {
   type VdfSuggestion,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
-import { formatPorts, nextRuleId, ruleAction, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import {
+  formatPorts,
+  nextRuleId,
+  reportedTierValue,
+  ruleAction,
+  vmGroupNames,
+} from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import { isShadowCovered, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
@@ -473,6 +482,11 @@ function addAll(_policy: string, suggestions: VdfSuggestion[]) {
 const formatNames = (names: string[]) =>
   new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(names.map(name => displayName(name)))
 
+// a tier as the report names it (its name, or a number)
+const tierLabel = useVdfTierLabel()
+
+const monitorTierLabel = (tier: string) => tierLabel(reportedTierValue(tier))
+
 const aloneSections = computed(() => {
   const names = new Set(shownPolicies.value.map(policy => policy.name))
 
@@ -490,10 +504,17 @@ const aloneSections = computed(() => {
 
       return [
         {
-          key: `${group.policy}|${group.shadowedBy.join('|')}`,
+          key: `${group.policy}|${group.shadowedTier ?? ''}|${group.shadowedBy.join('|')}`,
           policy,
           isGlobal: isGlobalName(policy.name),
-          by: formatNames(group.shadowedBy),
+          // a later tier's policy, reached once an earlier tier's enforced
+          // policies no longer decide first: their tier said
+          earlier: group.earlier,
+          params: {
+            policy: displayName(policy.name),
+            by: formatNames(group.shadowedBy),
+            tier: group.shadowedTier === undefined ? '' : monitorTierLabel(group.shadowedTier),
+          },
           suggestions,
           pending: suggestions.filter(suggestion => !isInDraft(suggestion)),
           rows: entries.map(entry => ({ key: monitorFlowKey(entry), entry, trace: traceRoute(entry) })),

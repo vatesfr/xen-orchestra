@@ -345,9 +345,15 @@ function endName(end: VdfTraceEnd) {
 // if alone in its tier, once the enforced policies named no longer apply
 function whatIfLabel(pass: VdfTraceWhatIf) {
   if (pass.alone) {
-    return t('firewall:trace:monitor:alone', {
-      by: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format((pass.shadowedBy ?? []).map(displayName)),
-    })
+    const by = new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(
+      (pass.shadowedBy ?? []).map(displayName)
+    )
+
+    // one isolated pass per shadowed tier: which one (agents before it
+    // don't say)
+    return pass.shadowedTier === undefined
+      ? t('firewall:trace:monitor:alone', { by })
+      : t('firewall:trace:monitor:alone:tier', { by, tier: tierLabel(pass.shadowedTier) })
   }
 
   return t(pass.egress ? 'firewall:trace:monitor:egress' : 'firewall:trace:monitor:ingress')

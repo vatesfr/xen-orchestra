@@ -242,8 +242,8 @@ describe('alone entries', () => {
 
   it('are grouped by policy and the enforced policies deciding first', () => {
     expect(aloneGroups(entries)).toEqual([
-      { policy: 'db', shadowedBy: ['api', 'web'], entries: [aloneApi] },
-      { policy: 'db', shadowedBy: ['web'], entries: [alone] },
+      { policy: 'db', shadowedBy: ['api', 'web'], earlier: false, entries: [aloneApi] },
+      { policy: 'db', shadowedBy: ['web'], earlier: false, entries: [alone] },
     ])
     expect(aloneGroups([now])).toEqual([])
   })
@@ -252,11 +252,13 @@ describe('alone entries', () => {
     const since = Date.parse('2026-10-24T09:00:00Z')
 
     expect(aloneSince(entries, 'db', since)).toEqual([
-      { shadowedBy: ['api', 'web'], count: 1 },
-      { shadowedBy: ['web'], count: 1 },
+      { shadowedBy: ['api', 'web'], earlier: false, count: 1 },
+      { shadowedBy: ['web'], earlier: false, count: 1 },
     ])
     // not expected, not covered by the draft: what `keep` keeps
-    expect(aloneSince(entries, 'db', since, item => item.port !== 6380)).toEqual([{ shadowedBy: ['web'], count: 1 }])
+    expect(aloneSince(entries, 'db', since, item => item.port !== 6380)).toEqual([
+      { shadowedBy: ['web'], earlier: false, count: 1 },
+    ])
     // seen before: nothing
     expect(aloneSince(entries, 'db', Date.parse('2026-10-25T00:00:00Z'))).toEqual([])
   })
@@ -266,5 +268,31 @@ describe('alone entries', () => {
 
     expect(monitorFlowKey(same)).not.toBe(monitorFlowKey(now))
     expect(monitorFlowKey(now)).toBe('db|in|10.0.0.7||vm-db|tcp|9100|')
+  })
+})
+
+// agents since 8767985: one isolated pass per shadowed tier, the policy's
+// own or an earlier one (a later-tier policy reached once it no longer decides)
+describe('alone entries per shadowed tier', () => {
+  const own = entry({ port: 6379, alone: true, shadowedBy: ['web'], shadowedTier: 'application' })
+  const earlier = entry({ port: 6379, alone: true, shadowedBy: ['e25'], shadowedTier: 'securityops' })
+  // an agent before shadowedTier
+  const legacy = entry({ port: 6379, alone: true, shadowedBy: ['web'] })
+
+  it('are grouped per policy, shadowed tier and enforced policies', () => {
+    expect(aloneGroups([own, earlier, legacy])).toEqual([
+      { policy: 'db', shadowedBy: ['web'], earlier: false, entries: [legacy] },
+      { policy: 'db', shadowedBy: ['web'], shadowedTier: 'application', earlier: false, entries: [own] },
+      { policy: 'db', shadowedBy: ['e25'], shadowedTier: 'securityops', earlier: true, entries: [earlier] },
+    ])
+    expect(aloneSince([own, earlier], 'db', 0)).toEqual([
+      { shadowedBy: ['web'], shadowedTier: 'application', earlier: false, count: 1 },
+      { shadowedBy: ['e25'], shadowedTier: 'securityops', earlier: true, count: 1 },
+    ])
+  })
+
+  it('have a flow key per shadowed tier; one without keeps its key', () => {
+    expect(new Set([own, earlier, legacy].map(monitorFlowKey)).size).toBe(3)
+    expect(monitorFlowKey(legacy)).toBe('db|in|10.0.0.7||vm-db|tcp|6379||alone')
   })
 })

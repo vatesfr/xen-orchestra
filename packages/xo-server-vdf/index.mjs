@@ -268,11 +268,13 @@ const QUERY_MONITOR = {
 // Monitor mode (vdf#13): each host reports what its monitored policies
 // would drop for the VMs it runs. A VM that moved shows on several hosts:
 // one entry per (source, VM and its interface, egress destination, proto,
-// port, policy, rule, alone), counts added, first and last seen over all
-// hosts, most recently seen first. An "alone" entry (vdf#86) is what the
-// policy would drop once the enforced policies of its tier it names
-// (shadowedBy, the newest entry's) no longer apply to the VM: kept apart
-// from the same flow's entry of what enforcing breaks now.
+// port, policy, rule, alone and shadowed tier), counts added, first and
+// last seen over all hosts, most recently seen first. An "alone" entry
+// (vdf#86) is what the policy would drop once the enforced policies it
+// names (shadowedBy, the newest entry's), of tier shadowedTier (its own,
+// or an earlier one), no longer apply to the VM: kept apart from the same
+// flow's entry of what enforcing breaks now, and from another shadowed
+// tier's.
 export function mergeMonitor(hosts) {
   const byKey = new Map()
   for (const { host, entries = [] } of hosts) {
@@ -286,7 +288,8 @@ export function mergeMonitor(hosts) {
         entry.port ?? 0,
         entry.policy,
         entry.rule ?? 0,
-        entry.alone === true ? 'alone' : '',
+        // one isolated pass per shadowed tier: its own entries
+        entry.alone === true ? `alone:${entry.shadowedTier ?? ''}` : '',
       ].join('|')
       const merged = byKey.get(key)
       if (merged === undefined) {

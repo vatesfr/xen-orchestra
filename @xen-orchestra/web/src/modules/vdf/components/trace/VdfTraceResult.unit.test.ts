@@ -75,6 +75,25 @@ it('shows the what-if pass, and the isolated pass apart', () => {
   expect(passes[1].text()).toContain(t('firewall:trace:monitor:recorded'))
 })
 
+// agents since 8767985: one isolated pass per shadowed tier, each after
+// the pass it forks from, its tier said
+it('shows each isolated pass with its shadowed tier', () => {
+  const wrapper = mountResult([
+    whatIf({}),
+    whatIf({ alone: true, shadowedBy: ['e25'], shadowedTier: 25, verdict: 'would-drop' }),
+    whatIf({ alone: true, shadowedBy: ['web'], shadowedTier: 100, verdict: 'would-allow' }),
+  ])
+  const passes = wrapper.findAll('.monitor .what-if')
+
+  expect(passes.map(pass => pass.classes().includes('alone'))).toEqual([false, true, true])
+  expect(passes[1].text()).toContain(
+    t('firewall:trace:monitor:alone:tier', { by: 'e25', tier: t('firewall:tier:securityops') })
+  )
+  expect(passes[2].text()).toContain(
+    t('firewall:trace:monitor:alone:tier', { by: 'web', tier: t('firewall:tier:application') })
+  )
+})
+
 it('an older agent: no monitor, nothing shown', () => {
   expect(mountResult().find('.monitor').exists()).toBe(false)
 })

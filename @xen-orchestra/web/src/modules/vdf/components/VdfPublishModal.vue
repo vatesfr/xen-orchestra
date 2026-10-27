@@ -211,7 +211,7 @@ import {
   seenSince,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
-import { vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -473,13 +473,15 @@ const enforced = computed(() =>
           name,
           Date.now() - DAY,
           entry => !isExpected(entry) && (draftPolicy === undefined || !coveredBy(draftPolicy, entry, groupsOf))
-        ).map(({ shadowedBy, count }) => ({
-          key: shadowedBy.join('|'),
+        ).map(({ shadowedBy, shadowedTier, earlier, count }) => ({
+          key: `${shadowedTier ?? ''}|${shadowedBy.join('|')}`,
+          // a later tier's policy, reached once an earlier tier's no longer decide
           text: t(
-            'firewall:publish:enforcing:alone',
+            earlier ? 'firewall:publish:enforcing:alone:earlier' : 'firewall:publish:enforcing:alone',
             {
               policy,
               by: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(shadowedBy.map(displayName)),
+              tier: shadowedTier === undefined ? '' : tierLabel(reportedTierValue(shadowedTier)),
               n: n(count),
             },
             count
