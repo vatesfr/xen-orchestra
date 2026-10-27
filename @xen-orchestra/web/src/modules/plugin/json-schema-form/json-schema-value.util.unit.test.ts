@@ -1,7 +1,7 @@
 import { getJsonSchemaValueSections } from '@/modules/plugin/json-schema-form/json-schema-value.util.ts'
 import type { JsonSchema } from '@/modules/plugin/json-schema-form/json-schema.util.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { getItemLabel } from '@/test/json-schema-item-label.ts'
-import { OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 function getSections(schema: JsonSchema, value: unknown) {
   return getJsonSchemaValueSections(schema, value, { getItemLabel })
