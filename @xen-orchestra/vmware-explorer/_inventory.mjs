@@ -1,3 +1,4 @@
+import { UNSAFE_KEYS } from './parsers/utils.mjs'
 import { asArray } from './soap/normalize.mjs'
 
 // the references nested in a value are not normalized, only the value of the property itself is
@@ -71,6 +72,38 @@ const CONTROLLER_PREFIXES = {
  * The `defaultPortConfig` of a distributed port group: only the fields read here.
  *
  * @typedef {{ vlan?: { vlanId?: unknown } }} RawPortConfig
+ */
+
+/**
+ * The objects of the inventory, as {@link Esxi#search} returns them: only the properties read by
+ * `Esxi#getInventory`, any of them can be missing from the answer.
+ *
+ * @typedef {{ name?: string, datastore?: unknown, network?: unknown }} RawDatacenter
+ * @typedef {{ name?: string, parent?: unknown, host?: unknown }} RawCluster
+ * @typedef {{ name?: string, parent?: unknown }} RawHost
+ * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown }, host?: unknown }} RawDatastore
+ * @typedef {{ parent?: unknown }} RawChild
+ * @typedef {{ name?: string }} RawNetwork
+ * @typedef {{ name?: string, apiType?: string, version?: string, build?: string, instanceUuid?: string }} RawAboutInfo
+ * @typedef {{ name?: string, key?: string, 'config.defaultPortConfig'?: RawPortConfig }} RawPortgroup
+ * @typedef {{
+ *   'config.name'?: string,
+ *   'config.annotation'?: string,
+ *   'config.instanceUuid'?: string,
+ *   'config.firmware'?: string,
+ *   'config.bootOptions.efiSecureBootEnabled'?: unknown,
+ *   'config.guestId'?: string,
+ *   'config.guestFullName'?: string,
+ *   'config.template'?: unknown,
+ *   'config.hardware.numCPU'?: unknown,
+ *   'config.hardware.memoryMB'?: unknown,
+ *   'config.hardware.device'?: RawDevices,
+ *   'runtime.powerState'?: 'poweredOff' | 'poweredOn' | 'suspended',
+ *   'runtime.host'?: unknown,
+ *   datastore?: unknown,
+ *   network?: unknown,
+ *   snapshot?: { currentSnapshot?: unknown, rootSnapshotList?: RawSnapshotTree | RawSnapshotTree[] },
+ * }} RawVm
  */
 
 /**
@@ -217,5 +250,139 @@ export function findDatacenter(id, parents, datacenterIds) {
   }
 }
 
-export const refsOf = value => asArray(value?.ManagedObjectReference).map(refOf)
-export { refOf, toNumber }
+const refsOf = value => asArray(value?.ManagedObjectReference).map(refOf)
+
+/**
+ * The hosts which mount a datastore and can reach it.
+ *
+ * @param {unknown} mounts - value of the `host` property of the datastore
+ * @returns {Set<string>} managed object references of the hosts
+ */
+export function reachingHostIds(mounts) {
+  const hostIds = new Set()
+  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
+    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
+      hostIds.add(refOf(key))
+    }
+  }
+  return hostIds
+}
+
+/**
+ * The inventory, from the objects `Esxi#getInventory` reads: no request is made here.
+ * The objects reference each other through their managed object references.
+ *
+ * @param {object} raw
+ * @param {RawAboutInfo} raw.about
+ * @param {Record<string, RawDatacenter>} raw.datacenters
+ * @param {Record<string, RawCluster>} raw.clusters
+ * @param {Record<string, RawHost>} raw.hosts
+ * @param {Record<string, RawDatastore>} raw.datastores
+ * @param {Record<string, RawNetwork>} raw.networks
+ * @param {Record<string, RawPortgroup>} raw.portgroups
+ * @param {Record<string, RawVm>} raw.vms
+ * @param {Record<string, RawChild>} raw.folders
+ * @param {Record<string, RawChild>} raw.computeResources
+ * @returns {import('@vates/types').VmwareInventory}
+ */
+export function buildInventory({
+  about,
+  datacenters,
+  clusters,
+  hosts,
+  datastores,
+  networks,
+  portgroups,
+  vms,
+  folders,
+  computeResources,
+}) {
+  /** @type {Map<string, string | undefined>} */
+  const parents = new Map()
+  for (const objects of [folders, computeResources, hosts]) {
+    for (const [id, { parent }] of Object.entries(objects)) {
+      parents.set(id, refOf(parent))
+    }
+  }
+  const datacenterIds = new Set(Object.keys(datacenters))
+
+  /** @type {Record<string, string>} */
+  const portgroupsByKey = {}
+  for (const [id, { key }] of Object.entries(portgroups)) {
+    // `key` comes from the SOAP response: same prototype-pollution guard as in `search`
+    if (UNSAFE_KEYS.has(key)) {
+      continue
+    }
+    portgroupsByKey[key] = id
+  }
+
+  return {
+    product: about.name,
+    productType: about.apiType,
+    version: about.version,
+    build: about.build,
+    instanceUuid: about.instanceUuid,
+    datacenters: Object.entries(datacenters).map(([id, { name, datastore, network }]) => ({
+      id,
+      name,
+      datastores: refsOf(datastore),
+      networks: refsOf(network),
+    })),
+    clusters: Object.entries(clusters).map(([id, { name, parent, host }]) => ({
+      id,
+      name,
+      parent: refOf(parent),
+      datacenter: findDatacenter(refOf(parent), parents, datacenterIds),
+      hosts: refsOf(host),
+    })),
+    hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({
+      id,
+      name,
+      parent: refOf(parent),
+      datacenter: findDatacenter(id, parents, datacenterIds),
+    })),
+    datastores: Object.entries(datastores).map(([id, { summary, host }]) => ({
+      id,
+      name: summary?.name,
+      type: summary?.type,
+      url: summary?.url,
+      capacity: toNumber(summary?.capacity),
+      freeSpace: toNumber(summary?.freeSpace),
+      accessible: isTrue(summary?.accessible),
+      hosts: [...reachingHostIds(host)],
+    })),
+    networks: Object.entries(networks).map(([id, { name }]) => {
+      const portgroup = portgroups[id]
+      return portgroup === undefined
+        ? { id, name, distributed: false }
+        : { id, name, distributed: true, key: portgroup.key, vlan: parseVlan(portgroup['config.defaultPortConfig']) }
+    }),
+    vms: Object.entries(vms).map(([id, properties]) => {
+      const { disks, nics } = parseDevices(properties['config.hardware.device'], portgroupsByKey)
+      const snapshot = properties.snapshot
+      const firmware = properties['config.firmware']
+      const memoryMb = toNumber(properties['config.hardware.memoryMB'])
+      return {
+        id,
+        name: properties['config.name'],
+        annotation: properties['config.annotation'],
+        instanceUuid: properties['config.instanceUuid'],
+        firmware: firmware === 'efi' ? 'uefi' : firmware,
+        secureBoot: isTrue(properties['config.bootOptions.efiSecureBootEnabled']),
+        guestId: properties['config.guestId'],
+        guestFullName: properties['config.guestFullName'],
+        isTemplate: isTrue(properties['config.template']),
+        cpus: toNumber(properties['config.hardware.numCPU']),
+        memory: memoryMb === undefined ? undefined : memoryMb * 1024 * 1024,
+        powerState: properties['runtime.powerState'],
+        host: refOf(properties['runtime.host']),
+        datastores: refsOf(properties.datastore),
+        networks: refsOf(properties.network),
+        currentSnapshot: refOf(snapshot?.currentSnapshot),
+        snapshots: flattenSnapshots(snapshot?.rootSnapshotList),
+        disks,
+        nics,
+      }
+    }),
+  }
+}

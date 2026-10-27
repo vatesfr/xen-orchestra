@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
-import { findDatacenter, flattenSnapshots, parseDevices, parseVlan, refOf, refsOf, toNumber } from './_inventory.mjs'
+import { buildInventory, parseDevices, reachingHostIds } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -100,38 +100,6 @@ function isRetryableError(error) {
  */
 
 /**
- * The objects of the inventory, as {@link Esxi#search} returns them: only the properties read by
- * {@link Esxi#getInventory}, any of them can be missing from the answer.
- *
- * @typedef {{ name?: string, datastore?: unknown, network?: unknown }} RawDatacenter
- * @typedef {{ name?: string, parent?: unknown, host?: unknown }} RawCluster
- * @typedef {{ name?: string, parent?: unknown }} RawHost
- * @typedef {{ summary?: { name?: string, type?: string, url?: string, capacity?: unknown, freeSpace?: unknown, accessible?: unknown }, host?: unknown }} RawDatastore
- * @typedef {{ parent?: unknown }} RawChild
- * @typedef {{ name?: string }} RawNetwork
- * @typedef {{ name?: string, apiType?: string, version?: string, build?: string, instanceUuid?: string }} RawAboutInfo
- * @typedef {{ name?: string, key?: string, 'config.defaultPortConfig'?: import('./_inventory.mjs').RawPortConfig }} RawPortgroup
- * @typedef {{
- *   'config.name'?: string,
- *   'config.annotation'?: string,
- *   'config.instanceUuid'?: string,
- *   'config.firmware'?: string,
- *   'config.bootOptions.efiSecureBootEnabled'?: unknown,
- *   'config.guestId'?: string,
- *   'config.guestFullName'?: string,
- *   'config.template'?: unknown,
- *   'config.hardware.numCPU'?: unknown,
- *   'config.hardware.memoryMB'?: unknown,
- *   'config.hardware.device'?: import('./_inventory.mjs').RawDevices,
- *   'runtime.powerState'?: 'poweredOff' | 'poweredOn' | 'suspended',
- *   'runtime.host'?: unknown,
- *   datastore?: unknown,
- *   network?: unknown,
- *   snapshot?: { currentSnapshot?: unknown, rootSnapshotList?: import('./_inventory.mjs').RawSnapshotTree | import('./_inventory.mjs').RawSnapshotTree[] },
- * }} RawVm
- */
-
-/**
  * Every snapshot of a tree, walked down.
  *
  * The snapshots of a VM are a tree, and a `changeId` can be held by any of them.
@@ -194,23 +162,6 @@ const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
 
 // the SOAP library does not always convert the booleans of the answer
 const isTrue = value => String(value) === 'true'
-
-/**
- * The hosts which mount a datastore and can reach it.
- *
- * @param {unknown} mounts - value of the `host` property of the datastore
- * @returns {Set<string>} managed object references of the hosts
- */
-function reachingHostIds(mounts) {
-  const hostIds = new Set()
-  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
-    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
-      // the references nested in the value are not normalized, only the value itself is
-      hostIds.add(key?.$value ?? key)
-    }
-  }
-  return hostIds
-}
 
 const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
 
@@ -646,7 +597,7 @@ export default class Esxi extends EventEmitter {
    */
   async getInventory() {
     await this.#connected
-    /** @type {[Record<string, RawDatacenter>, Record<string, RawCluster>, Record<string, RawHost>, Record<string, RawDatastore>, Record<string, RawNetwork>, Record<string, RawPortgroup>, Record<string, RawVm>, Record<string, RawChild>, Record<string, RawChild>]} */
+    /** @type {[Record<string, import('./_inventory.mjs').RawDatacenter>, Record<string, import('./_inventory.mjs').RawCluster>, Record<string, import('./_inventory.mjs').RawHost>, Record<string, import('./_inventory.mjs').RawDatastore>, Record<string, import('./_inventory.mjs').RawNetwork>, Record<string, import('./_inventory.mjs').RawPortgroup>, Record<string, import('./_inventory.mjs').RawVm>, Record<string, import('./_inventory.mjs').RawChild>, Record<string, import('./_inventory.mjs').RawChild>]} */
     const [datacenters, clusters, hosts, datastores, networks, portgroups, vms, folders, computeResources] =
       await Promise.all([
         this.search('Datacenter', ['name', 'datastore', 'network']),
@@ -680,100 +631,24 @@ export default class Esxi extends EventEmitter {
         this.search('ComputeResource', ['parent']),
       ])
 
-    /** @type {Map<string, string | undefined>} */
-    const parents = new Map()
-    for (const objects of [folders, computeResources, hosts]) {
-      for (const [id, { parent }] of Object.entries(objects)) {
-        parents.set(id, refOf(parent))
-      }
-    }
-    const datacenterIds = new Set(Object.keys(datacenters))
-
-    /** @type {Record<string, string>} */
-    const portgroupsByKey = {}
-    for (const [id, { key }] of Object.entries(portgroups)) {
-      // `key` comes from the SOAP response: same prototype-pollution guard as in `search`
-      if (UNSAFE_KEYS.has(key)) {
-        continue
-      }
-      portgroupsByKey[key] = id
-    }
-
     // AboutInfo: `instanceUuid` is only set by a vCenter, `apiType` is `VirtualCenter` or `HostAgent`
-    /** @type {{ serviceContent?: { about?: RawAboutInfo } }} */
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
     const vimClient = this.#vimClient
-    /** @type {RawAboutInfo} */
+    /** @type {import('./_inventory.mjs').RawAboutInfo} */
     const about = vimClient.serviceContent?.about ?? {}
 
-    return {
-      product: about.name,
-      productType: about.apiType,
-      version: about.version,
-      build: about.build,
-      instanceUuid: about.instanceUuid,
-      datacenters: Object.entries(datacenters).map(([id, { name, datastore, network }]) => ({
-        id,
-        name,
-        datastores: refsOf(datastore),
-        networks: refsOf(network),
-      })),
-      clusters: Object.entries(clusters).map(([id, { name, parent, host }]) => ({
-        id,
-        name,
-        parent: refOf(parent),
-        datacenter: findDatacenter(refOf(parent), parents, datacenterIds),
-        hosts: refsOf(host),
-      })),
-      hosts: Object.entries(hosts).map(([id, { name, parent }]) => ({
-        id,
-        name,
-        parent: refOf(parent),
-        datacenter: findDatacenter(id, parents, datacenterIds),
-      })),
-      datastores: Object.entries(datastores).map(([id, { summary, host }]) => ({
-        id,
-        name: summary?.name,
-        type: summary?.type,
-        url: summary?.url,
-        capacity: toNumber(summary?.capacity),
-        freeSpace: toNumber(summary?.freeSpace),
-        accessible: isTrue(summary?.accessible),
-        hosts: [...reachingHostIds(host)],
-      })),
-      networks: Object.entries(networks).map(([id, { name }]) => {
-        const portgroup = portgroups[id]
-        return portgroup === undefined
-          ? { id, name, distributed: false }
-          : { id, name, distributed: true, key: portgroup.key, vlan: parseVlan(portgroup['config.defaultPortConfig']) }
-      }),
-      vms: Object.entries(vms).map(([id, properties]) => {
-        const { disks, nics } = parseDevices(properties['config.hardware.device'], portgroupsByKey)
-        const snapshot = properties.snapshot
-        const firmware = properties['config.firmware']
-        const memoryMb = toNumber(properties['config.hardware.memoryMB'])
-        return {
-          id,
-          name: properties['config.name'],
-          annotation: properties['config.annotation'],
-          instanceUuid: properties['config.instanceUuid'],
-          firmware: firmware === 'efi' ? 'uefi' : firmware,
-          secureBoot: isTrue(properties['config.bootOptions.efiSecureBootEnabled']),
-          guestId: properties['config.guestId'],
-          guestFullName: properties['config.guestFullName'],
-          isTemplate: isTrue(properties['config.template']),
-          cpus: toNumber(properties['config.hardware.numCPU']),
-          memory: memoryMb === undefined ? undefined : memoryMb * 1024 * 1024,
-          powerState: properties['runtime.powerState'],
-          host: refOf(properties['runtime.host']),
-          datastores: refsOf(properties.datastore),
-          networks: refsOf(properties.network),
-          currentSnapshot: refOf(snapshot?.currentSnapshot),
-          snapshots: flattenSnapshots(snapshot?.rootSnapshotList),
-          disks,
-          nics,
-        }
-      }),
-    }
+    return buildInventory({
+      about,
+      datacenters,
+      clusters,
+      hosts,
+      datastores,
+      networks,
+      portgroups,
+      vms,
+      folders,
+      computeResources,
+    })
   }
 
   async getAllVmMetadata() {
