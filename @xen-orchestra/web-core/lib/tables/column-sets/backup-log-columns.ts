@@ -1,19 +1,20 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useDateColumn } from '@core/tables/column-definitions/date-column.ts'
-import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
+import { useLinkOrTextColumn } from '@core/tables/column-definitions/link-or-text-column.ts'
 import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useI18n } from 'vue-i18n'
 
-export const useBackupLogsColumns = defineColumns(() => {
+export const useBackupLogColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    startDate: useDateColumn({ headerLabel: () => t('start-date') }),
-    endDate: useDateColumn({ headerLabel: () => t('end-date') }),
-    duration: useNumberColumn({ headerLabel: () => t('duration') }),
+    job: useLinkColumn({ headerLabel: () => t('job') }),
+    backupDate: useDateColumn({ headerLabel: () => t('backup-date') }),
+    vm: useLinkOrTextColumn({ headerLabel: () => t('vm') }),
+    sr: useLinkOrTextColumn({ headerLabel: () => t('sr') }),
     status: useStatusColumn(),
-    transferSize: useNumberColumn({ headerLabel: () => t('transfer-size') }),
     selectItem: useSelectItemColumn(),
   }
 })

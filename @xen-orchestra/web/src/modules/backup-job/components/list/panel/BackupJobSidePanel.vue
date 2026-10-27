@@ -16,7 +16,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
@@ -25,6 +24,7 @@ import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/ca
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { BACKUP_JOB_LAST_RUNS_COUNT } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
   useXoBackupRepositoryCollection,
   type FrontXoBackupRepository,

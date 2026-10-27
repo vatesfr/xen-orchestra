@@ -1,16 +1,17 @@
-import type { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { useI18n } from 'vue-i18n'
 
 const { getLastNBackupLogsByJobId } = vi.hoisted(() => ({
   getLastNBackupLogsByJobId: vi.fn(),
 }))
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({ getLastNBackupLogsByJobId })) as unknown as typeof useXoBackupLogCollection,
 }))
 
@@ -21,9 +22,9 @@ beforeEach(() => {
 
 function mountLastRuns(backupJob: FrontAnyXoBackupJob) {
   return mountComposable(() => {
-    const { t, d } = useI18n()
+    const { t } = useI18n()
 
-    return { lastRuns: useXoBackupJobLastRuns(backupJob), t, d }
+    return { lastRuns: useXoBackupJobLastRuns(backupJob), t }
   }).wrapper.vm
 }
 
@@ -49,11 +50,11 @@ describe('useXoBackupJobLastRuns', () => {
     expect(result.lastRuns).toEqual([
       {
         status: 'failure',
-        tooltip: `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_300_000, 'datetime_short')}, ${result.t('failure')}`,
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_300_000)}, ${result.t('failure')}`,
       },
       {
         status: 'success',
-        tooltip: `${result.t('last-run-number', { n: 2 })}: ${result.d(1_700_000_100_000, 'datetime_short')}, ${result.t('success')}`,
+        tooltip: `${result.t('last-run-number', { n: 2 })}: ${formatDateTime(1_700_000_100_000)}, ${result.t('success')}`,
       },
     ])
   })
@@ -68,7 +69,7 @@ describe('useXoBackupJobLastRuns', () => {
     expect(result.lastRuns).toEqual([
       {
         status: 'pending',
-        tooltip: `${result.t('last-run-number', { n: 1 })}: ${result.d(1_700_000_000_000, 'datetime_short')}, ${result.t('pending')}`,
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_000_000)}, ${result.t('pending')}`,
       },
     ])
   })
