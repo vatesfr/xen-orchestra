@@ -154,6 +154,11 @@ export type FinalizeRollingUpdateBody = {
 }
 
 export type ResumeRollingUpdateBody = {
+  /**
+   * Keep what an operator changed since the update: the update starts from the current state, as a new one would.
+   * Without it, such changes block the update. Defaults to false.
+   */
+  acceptOperatorChanges?: boolean
   /** Skip the backup safety check before rebooting the hosts, asked again on each resume. Defaults to false. */
   bypassBackupCheck?: boolean
 }

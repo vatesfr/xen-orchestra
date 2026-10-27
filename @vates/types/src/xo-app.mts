@@ -162,10 +162,25 @@ export type PoolRollingUpdateRecoveryVmConflict = {
   message?: string
 }
 
+/** what an operator changed, since the run, on a setting the run left changed or on an object of the run */
+export type PoolRollingUpdateRecoveryOperatorChange = {
+  /** `haHeartbeatSr`: a heartbeat SR HA must be enabled again with no longer exists */
+  type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr' | 'host' | 'vm'
+  /** pool, schedule, SR, host or VM UUID */
+  id: string
+  /** schedules enabled again only */
+  name?: string
+  /** `disabled` as the run left it, `present` for a heartbeat SR, a host or a VM */
+  expected: 'disabled' | 'present'
+  /** `missing` for a deleted schedule, heartbeat SR, host or VM */
+  observed: 'enabled' | 'missing'
+}
+
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded'
+  /** `blocked`: a resume found operator changes and waits for them to be accepted */
+  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded' | 'blocked'
   startedAt: string
   updatedAt: string
   finishedAt?: string
@@ -174,7 +189,7 @@ export type PoolRollingUpdateRecoveryRun = {
   variant?: 'xcp' | 'xs-cdn'
   /** 1 for the first attempt, incremented by each resume of the run */
   attempt?: number
-  /** whether a resume would be accepted: run failed or interrupted */
+  /** whether a resume would be accepted: run failed, interrupted or blocked by operator changes */
   resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
@@ -182,6 +197,8 @@ export type PoolRollingUpdateRecoveryRun = {
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
   vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
+  /** found by the last resume, the run stays blocked until they are accepted */
+  operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */
@@ -495,7 +512,10 @@ export type XoApp = {
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
-  resumeRollingPoolUpdate(pool: XoPool, opts?: { bypassBackupCheck?: boolean; parentTask?: VatesTask }): Promise<void>
+  resumeRollingPoolUpdate(
+    pool: XoPool,
+    opts?: { acceptOperatorChanges?: boolean; bypassBackupCheck?: boolean; parentTask?: VatesTask }
+  ): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

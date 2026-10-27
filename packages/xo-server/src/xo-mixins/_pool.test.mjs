@@ -247,6 +247,22 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     assert.deepEqual(resume.hostOrder, ['h1'])
   })
 
+  it('is blocked by a schedule an operator enabled again, resumes once the change is accepted', async function () {
+    const { app, pools, store } = createPools({ record: makeRecord({ changedByRun: { schedules: ['s1'] } }) })
+    app.getAllSchedules = async () => [{ id: 's1', name: 'nightly', enabled: true }]
+    const changes = [{ type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' }]
+
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.equal(store.values.get('pool-1').status, 'blocked')
+
+    const { resume, acceptedOperatorChanges } = await pools.resumeRpuRecoveryRun(pool, { acceptOperatorChanges: true })
+    assert.deepEqual(acceptedOperatorChanges, changes)
+    assert.deepEqual(resume.changedByRun, { schedules: [] })
+    assert.equal(store.values.get('pool-1').status, 'resuming')
+  })
+
   it('has nothing to resume when the pool has no record', async function () {
     const { pools } = createPools()
     await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>

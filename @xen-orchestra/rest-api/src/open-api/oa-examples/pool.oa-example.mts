@@ -584,4 +584,5 @@ export const poolRollingUpdateRecovery = {
       reason: 'stopped',
     },
   ],
+  operatorChanges: [],
 }

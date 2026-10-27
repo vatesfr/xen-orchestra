@@ -329,11 +329,15 @@ finalizeRollingUpdate.description =
 
 // -------------------------------------------------------------------
 
-export async function resumeRollingUpdate({ bypassBackupCheck, pool }) {
-  await this.resumeRollingPoolUpdate(pool, { bypassBackupCheck })
+export async function resumeRollingUpdate({ acceptOperatorChanges, bypassBackupCheck, pool }) {
+  await this.resumeRollingPoolUpdate(pool, { acceptOperatorChanges, bypassBackupCheck })
 }
 
 resumeRollingUpdate.params = {
+  acceptOperatorChanges: {
+    optional: true,
+    type: 'boolean',
+  },
   bypassBackupCheck: {
     optional: true,
     type: 'boolean',

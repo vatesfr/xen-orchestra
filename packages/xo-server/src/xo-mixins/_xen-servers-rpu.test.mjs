@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, describe, it, mock } from 'node:test'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
@@ -14,18 +14,23 @@ const tracesDir = mkdtempSync(join(tmpdir(), 'xo-rpu-test-'))
 after(() => rmSync(tracesDir, { recursive: true, force: true }))
 
 function createXenServers({
+  acceptedOperatorChanges = [],
   backupRunning = false,
   changedByRun = {},
   completeRecord = async () => {},
   intentRefused = false,
+  licenseRefused = false,
   loadBalancerInstalled = true,
   loadBalancerLoaded = false,
+  operatorChanges,
   recordRefused = false,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
   scheduleDisableRefused,
   updateRefused = false,
   withSchedule = false,
   schedules = withSchedule ? [{ id: 'schedule-1', jobId: 'job-1', enabled: true }] : [],
+  // traces are named after the millisecond: a test which reads its trace needs its own directory
+  traces = tracesDir,
   wlbDisableRefused = false,
   wlbEnabled = false,
   wlbRestoreRefused = false,
@@ -64,7 +69,7 @@ function createXenServers({
     hooks: { on() {} },
     config: {
       getDuration: () => 0,
-      getOptional: key => (key === 'rpu.tracesDir' ? tracesDir : undefined),
+      getOptional: key => (key === 'rpu.tracesDir' ? traces : undefined),
       getOptionalDuration: () => undefined,
       watchDuration() {},
     },
@@ -75,7 +80,11 @@ function createXenServers({
         return new Task({ properties })
       },
     },
-    async checkFeatureAuthorization() {},
+    async checkFeatureAuthorization() {
+      if (licenseRefused) {
+        throw new Error('not licensed')
+      }
+    },
     async backupGuard(poolId, opts) {
       calls.push(['backupGuard', poolId, opts])
       if (backupRunning) {
@@ -110,9 +119,13 @@ function createXenServers({
       }
       return makeRecorder()
     },
-    async resumeRpuRecoveryRun({ id }) {
-      calls.push(['resumeRpuRecoveryRun', id])
+    async resumeRpuRecoveryRun({ id }, opts) {
+      calls.push(['resumeRpuRecoveryRun', id, opts])
+      if (operatorChanges !== undefined) {
+        throw incorrectState({ actual: operatorChanges, expected: [], object: id, property: 'operatorChanges' })
+      }
       return {
+        acceptedOperatorChanges,
         recorder: makeRecorder(2),
         options: { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: true },
         resume: {
@@ -368,7 +381,7 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
       ['getAllJobs'],
-      ['resumeRpuRecoveryRun', 'pool-1'],
+      ['resumeRpuRecoveryRun', 'pool-1', { acceptOperatorChanges: false }],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
       [
         'xapi.rollingPoolUpdate resume',
@@ -385,6 +398,48 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     ])
     assert.equal(taskProperties[0].runId, 'run-1')
     assert.equal(taskProperties[0].attempt, 2)
+    assert.equal(taskProperties[0].acceptedOperatorChanges, undefined)
+  })
+
+  it('is refused without a license before the record is read', async function () {
+    const { calls, xenServers } = createXenServers({ licenseRefused: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), { message: 'not licensed' })
+    assert.deepEqual(calls, [])
+  })
+
+  it('lists in the task the operator changes it was asked to keep', async function () {
+    const changes = [{ type: 'wlb', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, taskProperties, xenServers } = createXenServers({ acceptedOperatorChanges: changes })
+    await xenServers.resumeRollingPoolUpdate(pool, { acceptOperatorChanges: true })
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', { acceptOperatorChanges: true }]
+    )
+    assert.deepEqual(taskProperties[0].acceptedOperatorChanges, changes)
+  })
+
+  it('leaves a failed task and a trace listing the operator changes which block it', async function () {
+    const changes = [{ type: 'ha', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, taskProperties, xenServers } = createXenServers({
+      operatorChanges: changes,
+      traces: mkdtempSync(join(tracesDir, 'blocked-')),
+    })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.equal(taskProperties.length, 1)
+    const { name, type, operatorChanges, traceFile } = taskProperties[0]
+    assert.deepEqual(
+      { name, type, operatorChanges },
+      { name: 'Rolling pool update', type: 'pool.rolling_update', operatorChanges: changes }
+    )
+    const events = readFileSync(traceFile, 'utf8')
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    assert.deepEqual(events[0].properties.operatorChanges, changes)
+    assert.equal(events.at(-1).status, 'failure')
+    assert.ok(!calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
   })
 
   it('is refused by the backup guard before the record is read', async function () {
