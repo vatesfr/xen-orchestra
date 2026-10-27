@@ -43,6 +43,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
