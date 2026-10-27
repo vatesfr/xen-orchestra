@@ -58,11 +58,11 @@ export async function fetchPost<T>(endpoint: string, body?: unknown): Promise<T>
   return fetchWithBody<T>('POST', endpoint, body)
 }
 
-export async function fetchPut<T = void>(endpoint: string, body?: unknown): Promise<T> {
+export async function fetchPut<T>(endpoint: string, body?: unknown): Promise<T> {
   return fetchWithBody<T>('PUT', endpoint, body)
 }
 
-export async function fetchPatch<T = void>(endpoint: string, body?: unknown): Promise<T> {
+export async function fetchPatch<T>(endpoint: string, body?: unknown): Promise<T> {
   return fetchWithBody<T>('PATCH', endpoint, body)
 }
 
