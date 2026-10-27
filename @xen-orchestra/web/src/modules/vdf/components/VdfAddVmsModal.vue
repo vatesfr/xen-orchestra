@@ -13,7 +13,7 @@
           </UiTagsList>
         </div>
         <UiAlert v-if="!isPublished" accent="info">{{ t('firewall:add-vms:not-published') }}</UiAlert>
-        <UiAlert accent="warning">{{ t('firewall:add-vms:effect') }}</UiAlert>
+        <UiAlert v-else accent="warning">{{ t('firewall:add-vms:effect') }}</UiAlert>
         <!-- vdf#86: a monitored policy of the group an enforced one decides first for -->
         <UiAlert v-if="shadowTexts.length > 0" accent="warning">
           {{ t('firewall:add-vms:monitor-blind') }}
