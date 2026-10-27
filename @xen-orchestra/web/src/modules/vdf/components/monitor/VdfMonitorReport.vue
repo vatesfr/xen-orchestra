@@ -31,6 +31,39 @@
         </UiToggle>
       </div>
 
+      <!-- per policy: what it would drop in the last day, and the way out of monitor mode -->
+      <div v-for="header of policyHeaders" :key="header.policy.name" class="policy-header">
+        <span class="typo-body-bold">{{ displayName(header.policy.name) }}</span>
+        <UiInfo :accent="header.flows > 0 ? 'warning' : 'success'">
+          {{
+            header.flows > 0
+              ? t('firewall:monitor:header:flows', { n: header.flows }, header.flows)
+              : t('firewall:monitor:header:clean')
+          }}
+        </UiInfo>
+        <UiLink
+          v-if="header.isGlobal"
+          size="small"
+          icon="fa:globe"
+          :to="vdfGlobalRoute('policies', { policy: header.policy.name })"
+        >
+          {{ t('firewall:global:edit-xo-wide') }}
+        </UiLink>
+        <UiTag v-else-if="header.enforcedInDraft" accent="success" variant="secondary">
+          {{ t('firewall:monitor:header:enforce-in-draft') }}
+        </UiTag>
+        <UiButton
+          v-else-if="header.inDraft"
+          :variant="header.flows > 0 ? 'secondary' : 'primary'"
+          accent="brand"
+          size="small"
+          left-icon="fa:shield"
+          @click="switchToEnforce(header.policy.name)"
+        >
+          {{ t('firewall:mode:switch-enforce') }}
+        </UiButton>
+      </div>
+
       <!-- vdf#86: an enforced policy decides first for some of the VMs; the agents' isolated pass covers what it alone would drop (below) -->
       <UiAlert v-if="coveredShadows.length > 0" accent="info">
         {{ t('firewall:monitor:shadow:covered:title', { n: coveredShadows.length }, coveredShadows.length) }}
@@ -232,6 +265,7 @@ import {
   liveEntries,
   MONITOR_OTHER,
   monitorFlowKey,
+  seenSince,
   suggestRules,
   type VdfSuggestion,
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
@@ -260,6 +294,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
@@ -270,9 +305,9 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h, ref, withDirectives } from 'vue'
+import { computed, h, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { type RouteLocationRaw, useRouter } from 'vue-router'
+import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 // What the pool's policies in monitor mode would drop if enforced (vdf#13):
 // suggested rules per policy, then every flow, each with "allow this". An
@@ -291,7 +326,10 @@ const poolId = computed(() => pool.id)
 const { monitor, isMonitorReady, hasMonitorError, monitorError } = useVdfMonitor({}, () => pool.id)
 
 // what's published (the report is about it) and the draft (where rules go)
-const { document, publishedDocument, saveRule } = useVdfScope(() => ({ kind: 'pool' as const, pool }))
+const { document, publishedDocument, saveRule, edit, isPublishedReady } = useVdfScope(() => ({
+  kind: 'pool' as const,
+  pool,
+}))
 
 const { vmByIp, groupsOfIp } = useVdfIpNames(publishedDocument)
 
@@ -307,7 +345,22 @@ const monitoredPolicies = computed(() => publishedDocument.value.policies.filter
 
 const ALL = '\0all'
 
-const selectedPolicy = ref(ALL)
+// ?policy=<name>: a policy's report (from its Monitor tag on Policies)
+const route = useRoute()
+
+const selectedPolicy = ref(typeof route.query.policy === 'string' ? route.query.policy : ALL)
+
+// a name no monitored policy has (any more): all of them, once the
+// published document is known
+watch(monitoredPolicies, policies => {
+  if (
+    isPublishedReady.value &&
+    selectedPolicy.value !== ALL &&
+    !policies.some(policy => policy.name === selectedPolicy.value)
+  ) {
+    selectedPolicy.value = ALL
+  }
+})
 
 const policyOptions = computed(() => [
   { name: ALL, label: t('firewall:monitor:all-policies') },
@@ -435,6 +488,40 @@ const uncheckedItems = computed(() => {
 
 function draftPolicy(name: string) {
   return document.value.policies.find(policy => policy.name === name)
+}
+
+// THE WAY OUT: per monitored policy, the flows of the last day enforcing
+// it would drop (not expected, not allowed by a published rule since), and
+// "Switch to Enforce", a draft change as from the Policies tab (the draft
+// bar then offers to review and publish). A global policy is switched in
+// the global firewall.
+const DAY = 24 * 60 * 60 * 1000
+
+const policyHeaders = computed(() =>
+  shownPolicies.value.map(policy => {
+    const draft = draftPolicy(policy.name)
+
+    return {
+      policy,
+      flows: seenSince(monitor.value?.entries ?? [], policy.name, Date.now() - DAY).filter(
+        entry => !isExpected(entry) && coveringRuleId(entry) === undefined
+      ).length,
+      isGlobal: isGlobalName(policy.name),
+      // still in the draft (not deleted there), and in monitor mode there
+      inDraft: draft !== undefined && isMonitored(draft),
+      enforcedInDraft: draft !== undefined && !isMonitored(draft),
+    }
+  })
+)
+
+function switchToEnforce(name: string) {
+  edit(target => {
+    const policy = target.policies.find(candidate => candidate.name === name)
+
+    if (policy !== undefined && !isGlobalName(name)) {
+      delete policy.mode
+    }
+  })
 }
 
 function isInDraft(suggestion: VdfSuggestion) {
@@ -922,6 +1009,13 @@ const { HeadCells, BodyCells } = useMonitorColumns({
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem 0.8rem;
+  }
+
+  .policy-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem 1.6rem;
   }
 
   .shadows {

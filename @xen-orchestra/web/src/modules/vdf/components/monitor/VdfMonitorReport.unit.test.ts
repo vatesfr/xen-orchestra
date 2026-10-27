@@ -12,6 +12,7 @@ import type { VdfDocument, VdfMonitorEntry, VdfMonitorUnchecked } from '@/module
 import type { VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -28,6 +29,9 @@ const { data } = vi.hoisted(() => ({
     unchecked: [] as VdfMonitorUnchecked[],
     hosts: [] as FrontXoHost[],
     shadows: [] as VdfMonitorShadow[],
+    // the draft (`edit` applies a change to it)
+    draft: undefined as VdfDocument | undefined,
+    edit: vi.fn(),
   },
 }))
 
@@ -36,6 +40,7 @@ const DOCUMENT: VdfDocument = {
   policies: [
     { name: 'web', appliedTo: 'web', default: 'drop', ingress: [{ id: 1, from: 'any', proto: 'tcp', ports: [80] }] },
     { name: 'cache', appliedTo: 'cache', mode: 'monitor', default: 'drop', ingress: [] },
+    { name: 'audit', appliedTo: 'web', mode: 'monitor', default: 'pass', ingress: [] },
   ],
 }
 
@@ -51,9 +56,10 @@ vi.mock(import('@/modules/vdf/remote-resources/use-vdf-monitor.ts'), () => ({
 }))
 vi.mock(import('@/modules/vdf/composables/vdf-scope.composable.ts'), () => ({
   useVdfScope: (() => ({
-    document: computed(() => DOCUMENT),
+    document: computed(() => data.draft ?? DOCUMENT),
     publishedDocument: computed(() => DOCUMENT),
     saveRule: vi.fn(),
+    edit: data.edit,
   })) as unknown as typeof useVdfScope,
 }))
 vi.mock(import('@/modules/vdf/composables/vdf-ip-names.composable.ts'), () => ({
@@ -123,10 +129,14 @@ function withHost(shadowedBy?: string[]) {
   data.hosts = [createHost({ otherConfig: { 'vdf:status': JSON.stringify({ policies }) } })]
 }
 
-async function mountReport() {
+async function mountReport(path = '/pool/pool-1/firewall/monitor') {
+  const router = createTestRouter()
+
+  await router.push(path)
+
   const wrapper = mount(VdfMonitorReport, {
     props: { pool: { id: 'pool-1' } as FrontXoPool },
-    global: createGlobalTestConfig(),
+    global: createGlobalTestConfig({ router }),
   })
 
   await flushPromises()
@@ -138,6 +148,8 @@ beforeEach(() => {
   data.entries = [entry({}), entry({ port: 6379, alone: true, shadowedBy: ['web'], count: 4 })]
   data.shadows = []
   data.unchecked = []
+  data.draft = undefined
+  data.edit.mockReset()
   withHost(['web'])
 })
 
@@ -238,4 +250,44 @@ it('says the agents cover a same-tier shadow, else warns as before', async () =>
 
   expect(blind.text()).toContain('blind:cache')
   expect(blind.text()).not.toContain('covered:cache')
+})
+
+// UX P1-1: the way out of monitor mode, from the report itself
+describe('per policy', () => {
+  const recent = () => new Date(Date.now() - 60_000).toISOString()
+
+  it('says what it would drop in the last day, and switches it to Enforce in the draft', async () => {
+    data.entries = [entry({ last: recent() }), entry({ port: 9101, last: recent() })]
+    const wrapper = await mountReport()
+    const header = wrapper.get('.policy-header')
+
+    expect(header.text()).toContain(t('firewall:monitor:header:flows', { n: 2 }, 2))
+
+    await header.get('button').trigger('click')
+
+    const change = data.edit.mock.calls[0][0] as (document: VdfDocument) => void
+    const target = structuredClone(DOCUMENT)
+
+    change(target)
+    expect(target.policies.find(policy => policy.name === 'cache')?.mode).toBeUndefined()
+  })
+
+  it('clean: says so; once enforced in the draft, no button', async () => {
+    data.entries = []
+    expect((await mountReport()).get('.policy-header').text()).toContain(t('firewall:monitor:header:clean'))
+
+    data.draft = { ...DOCUMENT, policies: DOCUMENT.policies.map(policy => ({ ...policy, mode: undefined })) }
+    const header = (await mountReport()).get('.policy-header')
+
+    expect(header.text()).toContain(t('firewall:monitor:header:enforce-in-draft'))
+    expect(header.find('button').exists()).toBe(false)
+  })
+
+  it('opens on the policy named in the address', async () => {
+    expect((await mountReport()).findAll('.policy-header')).toHaveLength(2)
+
+    const wrapper = await mountReport('/pool/pool-1/firewall/monitor?policy=cache')
+
+    expect(wrapper.findAll('.policy-header').map(header => header.find('.typo-body-bold').text())).toEqual(['cache'])
+  })
 })
