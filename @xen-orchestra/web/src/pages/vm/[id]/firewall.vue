@@ -21,24 +21,6 @@
         <UiAlert :accent="statusAccent" class="status-alert">
           <span class="status-title">
             <span class="typo-body-bold">{{ t(`firewall:vm:status:${protection}`) }}</span>
-            <UiTag
-              v-if="untrustedMembers.length > 0"
-              v-tooltip="t('firewall:untrusted:info', { vms: formatList(untrustedMembers) })"
-              accent="warning"
-              variant="secondary"
-              tabindex="0"
-            >
-              {{ t('firewall:untrusted') }}
-            </UiTag>
-            <UiTag
-              v-if="vmShadows.length > 0"
-              v-tooltip="bypassedInfo"
-              accent="danger"
-              variant="secondary"
-              tabindex="0"
-            >
-              {{ t('firewall:vm:bypassed') }}
-            </UiTag>
           </span>
           <template #description>{{ statusDetail }}</template>
         </UiAlert>
@@ -73,6 +55,37 @@
         </div>
       </div>
 
+      <!-- what most changes what "Protected" means, in words, each with its way out -->
+      <UiAlert v-if="vmShadows.length > 0" accent="danger" class="state-alert">
+        {{ t('firewall:vm:bypassed') }}
+        <template #description>
+          <span class="state-detail">
+            <span>{{ bypassedInfo }}</span>
+            <UiLink :to="trafficRulesRoute" size="small" icon="fa:arrow-right">
+              {{ t('firewall:traffic-rules:open') }}
+            </UiLink>
+          </span>
+        </template>
+      </UiAlert>
+      <UiAlert v-if="untrustedMembers.length > 0" accent="warning" class="state-alert">
+        {{ t('firewall:untrusted') }}
+        <template #description>
+          <span class="state-detail">
+            <span>{{ t('firewall:untrusted:info', { vms: formatList(untrustedMembers) }) }}</span>
+            <UiButton
+              v-if="untrustedTargets.length > 0"
+              variant="secondary"
+              accent="warning"
+              size="small"
+              left-icon="fa:lock"
+              @click="lockUntrusted()"
+            >
+              {{ t('firewall:untrusted:lock') }}
+            </UiButton>
+          </span>
+        </template>
+      </UiAlert>
+
       <UiAlert v-if="tagError" accent="danger">
         {{ t('firewall:vm:tags-failed', { vm: vm.name_label }) }}
         <template #description>{{ tagError }}</template>
@@ -102,6 +115,26 @@
         </VtsColumn>
 
         <VtsColumn>
+          <!-- vdf#40: XO's Traffic Rules decide before VDF for what they match -->
+          <UiCard v-if="isGuarded && vmTrafficRules.length > 0" id="vdf-traffic-rules">
+            <UiTitle>{{ t('firewall:traffic-rules') }}</UiTitle>
+            <p class="secondary typo-body-regular-small">{{ t('firewall:traffic-rules:info') }}</p>
+            <div v-for="(item, index) of vmTrafficRules" :key="index" class="traffic-rule typo-body-regular-small">
+              <span>{{ ruleText(item) }}</span>
+              <UiTag
+                v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}:info`)"
+                :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed)]"
+                variant="secondary"
+                tabindex="0"
+              >
+                {{ t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}`) }}
+              </UiTag>
+            </div>
+            <UiLink :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" size="small">
+              {{ t('firewall:traffic-rules:open') }}
+            </UiLink>
+          </UiCard>
+
           <UiCard>
             <UiTitle>{{ t('firewall:groups') }}</UiTitle>
             <UiTagsList v-if="vmGroups.length > 0">
@@ -176,26 +209,6 @@
         </VtsColumn>
       </VtsColumns>
 
-      <!-- vdf#40: XO's Traffic Rules decide before VDF for what they match -->
-      <UiCard v-if="isGuarded && vmTrafficRules.length > 0">
-        <UiTitle>{{ t('firewall:traffic-rules') }}</UiTitle>
-        <p class="secondary typo-body-regular-small">{{ t('firewall:traffic-rules:info') }}</p>
-        <div v-for="(item, index) of vmTrafficRules" :key="index" class="traffic-rule typo-body-regular-small">
-          <span>{{ ruleText(item) }}</span>
-          <UiTag
-            v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}:info`)"
-            :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed)]"
-            variant="secondary"
-            tabindex="0"
-          >
-            {{ t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}`) }}
-          </UiTag>
-        </div>
-        <UiLink :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" size="small">
-          {{ t('firewall:traffic-rules:open') }}
-        </UiLink>
-      </UiCard>
-
       <!-- full width: a table of eight columns -->
       <UiCard>
         <UiTitle>{{ t('firewall:vm:log') }}</UiTitle>
@@ -215,21 +228,24 @@ import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
-import { useVdfLock, useVdfUnlock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
+import { lockTarget, useVdfLock, useVdfUnlock } from '@/modules/vdf/composables/vdf-lock.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
+import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs, type VdfTrafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -392,6 +408,13 @@ const vmShadows = computed(() => [...shadowed.value.values()].filter(shadow => s
 // VDF decides for its interfaces (it protects or quarantines it)
 const isGuarded = computed(() => protection.value !== 'unprotected' && protection.value !== 'monitored')
 
+// the Traffic Rules card when the page shows it, else the pool's tab
+const trafficRulesRoute = computed(() =>
+  isGuarded.value && vmTrafficRules.value.length > 0
+    ? { hash: '#vdf-traffic-rules' }
+    : { name: '/pool/[id]/traffic-rules' as const, params: { id: pool.value!.id } }
+)
+
 const bypassedInfo = computed(() =>
   t('firewall:vm:bypassed:info', {
     allows: vmShadows.value.reduce((sum, shadow) => sum + shadow.allows, 0),
@@ -542,6 +565,42 @@ const { confirmQuarantine } = useVdfQuarantine(membership)
 
 const { confirmLock } = useVdfLock()
 
+// UNTRUSTED MEMBERS, locked at once: the unlocked interfaces of the
+// running VMs of this pool the warning names (this VM, its policies'
+// peers), in one confirmation (a VDF lock not enforced is locked already)
+const { interfacesOf } = useVdfInterfaces()
+
+const { vms } = useXoVmCollection()
+
+const { lockHostOf, vdfLockUnavailableFor } = useVdfVifLocks()
+
+const untrustedTargets = computed(() => {
+  const names = new Set(untrustedMembers.value)
+
+  return vms.value
+    .filter(
+      other => other.$pool === vm.$pool && other.power_state === VM_POWER_STATE.RUNNING && names.has(other.name_label)
+    )
+    .flatMap(other =>
+      interfacesOf(other)
+        .filter(iface => iface.lock === 'unlocked')
+        .map(iface =>
+          lockTarget(iface.vif, {
+            vmName: other.name_label,
+            network: iface.network,
+            proposal: lockProposal(reportedAddresses(iface.vif, other.addresses), iface.vif.MAC),
+            lock: iface.lock,
+            vdfUnavailable: vdfLockUnavailableFor(other),
+            hostName: lockHostOf(other)?.host.name_label,
+          })
+        )
+    )
+})
+
+function lockUntrusted() {
+  void confirmLock(untrustedTargets.value, { group: t('firewall:untrusted:members') })
+}
+
 const { confirmUnlock } = useVdfUnlock()
 </script>
 
@@ -568,6 +627,13 @@ const { confirmUnlock } = useVdfUnlock()
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem 0.8rem;
+  }
+
+  .state-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
   }
 
   .status {
