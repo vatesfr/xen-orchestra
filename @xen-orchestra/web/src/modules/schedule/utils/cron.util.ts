@@ -14,7 +14,7 @@ export const CRON_FIELD_RANGES: Record<CronFieldName, CronFieldRange> = {
   minute: { min: 0, max: 59 },
   hour: { min: 0, max: 23 },
   monthDay: { min: 1, max: 31 },
-  month: { min: 1, max: 12 },
+  month: { min: 0, max: 11 },
   weekDay: { min: 0, max: 6 },
 }
 

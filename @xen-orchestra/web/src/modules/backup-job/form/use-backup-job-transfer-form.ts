@@ -83,14 +83,12 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
     concurrency: useField('concurrency', () => ({
       label: t('vm-read-concurrency'),
       required: true,
-      info: t('value-by-default', { value: 2 }),
     })),
     keyBackup: useField('keyBackup', () => ({ label: t('key-backup'), options: keyBackupOptions.value })),
     preferNbd: useField('preferNbd', () => ({ label: t('network-block-device-nbd'), info: t('nbd-backup-info') })),
     nbdConcurrency: useField('nbdConcurrency', () => ({
       label: t('nbd-concurrency-per-disk'),
       required: true,
-      info: t('value-by-default', { value: 1 }),
     })),
     snapshotMode: useField('snapshotMode', () => ({ label: t('snapshot-mode'), options: snapshotModeOptions.value })),
     snapshotSync: useField('snapshotSync', () => ({

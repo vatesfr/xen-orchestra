@@ -1,7 +1,6 @@
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -21,7 +20,6 @@ export type BackupRepositoryStorageMode = 'block' | 'vhd'
 export type BackupRepositoryFilterableData = FrontXoBackupRepository & {
   type: BackupRepositoryType | undefined
   status: Status
-  proxyName: string
   storageMode: BackupRepositoryStorageMode
 }
 
@@ -36,8 +34,6 @@ function safeParseUrl(url: string): ParsedBackupRepositoryUrl | undefined {
 export function useBackupRepositoryFilterableData(rawBrs: MaybeRefOrGetter<FrontXoBackupRepository[]>) {
   const brs = toComputed(rawBrs)
 
-  const { getProxyById } = useXoProxyCollection()
-
   return computed<BackupRepositoryFilterableData[]>(() =>
     brs.value.map(br => {
       const parsedUrl = safeParseUrl(br.url)
@@ -46,7 +42,6 @@ export function useBackupRepositoryFilterableData(rawBrs: MaybeRefOrGetter<Front
         ...br,
         type: parsedUrl?.type,
         status: getBackupRepositoryStatus(br),
-        proxyName: br.proxy !== undefined ? (getProxyById(br.proxy)?.name ?? '') : '',
         storageMode: parsedUrl?.useVhdDirectory ? 'block' : 'vhd',
       }
     })
@@ -78,7 +73,6 @@ export function useBackupRepositoryQueryBuilder(
       disabled: t('disabled'),
       'unable-to-connect': t('unable-to-connect'),
     }),
-    proxyName: useStringSchema(t('proxy')),
     storageMode: useStringSchema(t('storage-mode'), {
       block: t('block-based'),
       vhd: t('vhd-file'),

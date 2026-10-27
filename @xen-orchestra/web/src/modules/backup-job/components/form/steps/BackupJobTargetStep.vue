@@ -5,6 +5,7 @@
       v-if="hasBackupRepositorySection"
       :bindings="form.bindings"
       :brs="availableBackupRepositories"
+      :compatible-brs="compatibleBackupRepositories"
       :matched-brs="matchedBackupRepositories"
     />
     <BackupJobTargetStorageRepositorySection
@@ -34,6 +35,7 @@ const {
   hasStorageRepositorySection,
   hasSnapshotRetentionSection,
   availableBackupRepositories,
+  compatibleBackupRepositories,
   availableStorageRepositories,
   matchedBackupRepositories,
   matchedStorageRepositories,
