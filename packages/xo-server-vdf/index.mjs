@@ -20,6 +20,7 @@ import {
   isFresh,
   isStopping,
   isVdfLocked,
+  sameAddresses,
   keepGlobalPart,
   localPart,
   memberConflicts,
@@ -1746,11 +1747,18 @@ class VdfPlugin {
     }
     try {
       // the addresses first: with the key first, the agent would enforce
-      // the previous ones meanwhile
-      await xapi.call('VIF.set_ipv4_allowed', ref, ipv4)
-      undo.push(() => xapi.call('VIF.set_ipv4_allowed', ref, previous.ipv4))
-      await xapi.call('VIF.set_ipv6_allowed', ref, ipv6)
-      undo.push(() => xapi.call('VIF.set_ipv6_allowed', ref, previous.ipv6))
+      // the previous ones meanwhile. A list XAPI already has isn't set
+      // again: each setter re-runs setup-vif-rules, which deletes and
+      // re-adds the VIF's port (a cut), and a call that changes nothing
+      // brings no event the agent's guard could explain the re-add by
+      if (!sameAddresses(previous.ipv4, ipv4)) {
+        await xapi.call('VIF.set_ipv4_allowed', ref, ipv4)
+        undo.push(() => xapi.call('VIF.set_ipv4_allowed', ref, previous.ipv4))
+      }
+      if (!sameAddresses(previous.ipv6, ipv6)) {
+        await xapi.call('VIF.set_ipv6_allowed', ref, ipv6)
+        undo.push(() => xapi.call('VIF.set_ipv6_allowed', ref, previous.ipv6))
+      }
       // set before (a relock, or another lock meanwhile): kept on a failure
       if (await this.#addLockKey(xapi, ref)) {
         undo.push(() => xapi.call('VIF.remove_from_other_config', ref, VDF_LOCKING_KEY))
@@ -1806,13 +1814,20 @@ class VdfPlugin {
     }
     await xapi.call('VIF.remove_from_other_config', ref, VDF_LOCKING_KEY)
     if (clear) {
-      await xapi.call('VIF.set_ipv4_allowed', ref, [])
-      await xapi.call('VIF.set_ipv6_allowed', ref, [])
+      // only a list that isn't empty already (setup-vif-rules, as above)
+      if ((record.ipv4_allowed ?? []).length > 0) {
+        await xapi.call('VIF.set_ipv4_allowed', ref, [])
+      }
+      if ((record.ipv6_allowed ?? []).length > 0) {
+        await xapi.call('VIF.set_ipv6_allowed', ref, [])
+      }
       const before = [...(record.ipv4_allowed ?? []), ...(record.ipv6_allowed ?? [])]
       // XAPI holds no address any more: XO's IP pools can't be wrong for long
-      await this.#xo
-        .allocIpAddresses?.(vif.id, [], before)
-        ?.catch(error => log.warn('releasing the addresses of a VDF unlock', { vif: vif.id, error }))
+      if (before.length > 0) {
+        await this.#xo
+          .allocIpAddresses?.(vif.id, [], before)
+          ?.catch(error => log.warn('releasing the addresses of a VDF unlock', { vif: vif.id, error }))
+      }
     }
     return this.#vifLocking(xapi, vif)
   }

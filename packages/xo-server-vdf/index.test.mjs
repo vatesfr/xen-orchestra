@@ -1907,12 +1907,52 @@ describe('VDF lock', () => {
       assert.equal((await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })).result.enforced, false)
       xo.calls.length = 0
       await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })
+      // the lists are what XAPI has: no setter (each re-runs
+      // setup-vif-rules, a port re-add the agent's guard can't explain)
+      assert.deepEqual(vifCalls(xo), [['VIF.add_to_other_config', ref, 'vdf:locking', 'locked']])
+      assert.deepEqual(xo.xapiVif(vifId()).other_config, { 'vdf:locking': 'locked' })
+    })
+  })
+
+  // XAPI re-runs setup-vif-rules on every setter call, changed or not: the
+  // VIF's port deleted and re-added, which a call that changes nothing
+  // leaves the agent's guard no event to explain
+  test('sets only the lists that change', async () => {
+    const xo = fakeXo({ vms: [appVm()], hosts: supportingHost })
+    await withPlugin(xo, async () => {
+      // IPv4 only, IPv6 empty already
+      await lock(xo, { body: { ipv4: ['10.0.0.5'], ipv6: [] } })
       assert.deepEqual(vifCalls(xo), [
-        ['VIF.set_ipv4_allowed', ref, ['10.0.0.6']],
-        ['VIF.set_ipv6_allowed', ref, []],
+        ['VIF.set_ipv4_allowed', ref, ['10.0.0.5']],
         ['VIF.add_to_other_config', ref, 'vdf:locking', 'locked'],
       ])
-      assert.deepEqual(xo.xapiVif(vifId()).other_config, { 'vdf:locking': 'locked' })
+
+      // the same lists, written otherwise: no setter
+      xo.calls.length = 0
+      xo.xapiVif(vifId()).ipv6_allowed = ['2001:db8::5']
+      await lock(xo, { body: { ipv4: ['10.0.0.5'], ipv6: ['2001:DB8:0::5'] } })
+      assert.deepEqual(vifCalls(xo), [['VIF.add_to_other_config', ref, 'vdf:locking', 'locked']])
+
+      // IPv6 only changes; then IPv6 fails midway: nothing to undo but it
+      xo.calls.length = 0
+      await lock(xo, { body: { ipv4: ['10.0.0.5'], ipv6: ['2001:db8::6'] } })
+      assert.deepEqual(vifCalls(xo).slice(0, 1), [['VIF.set_ipv6_allowed', ref, ['2001:db8::6']]])
+    })
+
+    const failing = fakeXo({
+      vms: [appVm()],
+      hosts: supportingHost,
+      vifs: { [vifId()]: { allowedIpv4Addresses: ['10.0.0.5'] } },
+      vifFault: method => (method === 'VIF.add_to_other_config' ? new Error('SESSION_INVALID') : undefined),
+    })
+    await withPlugin(failing, async () => {
+      await assert.rejects(lock(failing, { body: { ipv4: ['10.0.0.5'], ipv6: ['2001:db8::6'] } }), /SESSION_INVALID/)
+      // only what was written is undone: the IPv6 list, not the IPv4 one
+      assert.deepEqual(vifCalls(failing), [
+        ['VIF.set_ipv6_allowed', ref, ['2001:db8::6']],
+        ['VIF.add_to_other_config', ref, 'vdf:locking', 'locked'],
+        ['VIF.set_ipv6_allowed', ref, []],
+      ])
     })
   })
 
@@ -2151,12 +2191,17 @@ describe('VDF lock', () => {
 
       xo.calls.length = 0
       await unlock(xo, { clear: true })
-      // the key before the lists: an agent never enforces an empty list
+      // the key before the lists: an agent never enforces an empty list;
+      // the IPv6 list is empty already: not set
       assert.deepEqual(vifCalls(xo), [
         ['VIF.remove_from_other_config', ref, 'vdf:locking'],
         ['VIF.set_ipv4_allowed', ref, []],
-        ['VIF.set_ipv6_allowed', ref, []],
       ])
+
+      // both empty: no setter at all
+      xo.calls.length = 0
+      await unlock(xo, { clear: true })
+      assert.deepEqual(vifCalls(xo), [['VIF.remove_from_other_config', ref, 'vdf:locking']])
       assert.deepEqual(xo.allocations, [[vifId(), [], ['10.0.0.5']]])
 
       // a VIF XAPI locks keeps its addresses: it would be cut off
