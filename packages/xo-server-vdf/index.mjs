@@ -14,7 +14,10 @@ import {
   globalMembers,
   globalPart,
   hasGlobalPart,
+  hasVdfLock,
+  hostStatus,
   inScope,
+  isFresh,
   keepGlobalPart,
   localPart,
   memberConflicts,
@@ -25,6 +28,8 @@ import {
   reservedTierPolicies,
   runningVmRecords,
   serialize,
+  VDF_LOCKING_KEY,
+  vdfLockEnforcement,
 } from './global.mjs'
 import { appendEntry, listEntry, nextEntryId, summarize } from './history.mjs'
 import { trace } from './trace.mjs'
@@ -157,6 +162,15 @@ const BODY_TRACE = {
   state: { type: 'enum', enum: ['new', 'established', 'revoked'], optional: true },
   family: { type: 'number', optional: true },
   broadcast: { type: 'boolean', optional: true },
+}
+
+const BODY_VDF_LOCK = {
+  ipv4: { type: 'array', items: { type: 'string' }, example: ['192.168.1.10'] },
+  ipv6: { type: 'array', items: { type: 'string' }, example: ['2001:db8::10'] },
+}
+
+const BODY_VDF_UNLOCK = {
+  clear: { type: 'boolean', optional: true, description: 'also empty its allowed addresses' },
 }
 
 const BODY_GLOBAL = {
@@ -488,13 +502,33 @@ class VdfPlugin {
     }
   }
 
+  #hostOf(hostId) {
+    try {
+      return this.#xo.getObject(hostId, 'host')
+    } catch {
+      return undefined
+    }
+  }
+
+  // The VDF locks the host of a running VM enforces (vdf#41), from what
+  // its agent reports: each host's status read once per pass
+  #enforcementOf(now = Date.now()) {
+    const byHost = new Map()
+    return vm => {
+      if (!byHost.has(vm.$container)) {
+        byHost.set(vm.$container, vdfLockEnforcement(hostStatus(this.#hostOf(vm.$container)?.otherConfig), now))
+      }
+      return byHost.get(vm.$container)
+    }
+  }
+
   // running VMs of the connected pools, and the last known ones of the
   // pools XO lost (stale)
   #records() {
     const connected = new Set(this.#pools().map(pool => pool.id))
     const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } }))
     return [
-      ...runningVmRecords(vms, this.#vifsOf, this.#networkOf),
+      ...runningVmRecords(vms, this.#vifsOf, this.#networkOf, this.#enforcementOf()),
       ...Object.entries(this.#vmCache)
         .filter(([poolId]) => !connected.has(poolId))
         .flatMap(([, { at, records }]) => records.map(record => ({ ...record, stale: true, seenAt: at }))),
@@ -1503,6 +1537,132 @@ class VdfPlugin {
     }
   }
 
+  // VDF LOCK (vdf#41): where XAPI refuses to lock a VIF (OPERATION_NOT_ALLOWED
+  // while an SDN controller is registered), VDF enforces its allowed
+  // addresses itself. They stay XAPI's (ipv4_allowed, ipv6_allowed, which
+  // XAPI still lets set), and VIF.other_config['vdf:locking'] = 'locked'
+  // turns VDF's enforcement on; locking_mode is left alone. XO's VIF edit
+  // locks as soon as it sets the lists, so this is a path of its own. These
+  // are the plugin's only VIF writes.
+
+  // a VIF route: as XO's vif.set with a locking mode, operate on the VIF and
+  // on its network (XO administrators: everything)
+  #vifRoute({ callback, ...route }) {
+    return {
+      ...route,
+      scope: 'acl',
+      callback: async context => {
+        const { req, res, restApi } = context
+        // throws no such object for an unknown VIF
+        const vif = this.#xo.getObject(req.params.id, 'VIF')
+        const user = restApi.getCurrentUser({ throwUnauthenticated: false })
+        const allowed =
+          isAdmin(user) ||
+          (user !== undefined &&
+            (await this.#xo.hasPermissions(user.id, [
+              [vif.id, 'operate'],
+              [vif.$network, 'operate'],
+            ])))
+        if (!allowed) {
+          return forbidden(res, 'this needs the operate permission on the interface and its network')
+        }
+        return callback({ ...context, vif })
+      },
+    }
+  }
+
+  // Why VDF can't lock a VM's interfaces, or undefined: the agent of the
+  // host it runs on must support VDF locks and be running; a halted VM may
+  // start on any host, so every host with a running agent must, one at least.
+  #vdfLockUnavailable(vm, now = Date.now()) {
+    const running = vm?.power_state === 'Running'
+    const hosts = running
+      ? [this.#hostOf(vm.$container)].filter(host => host !== undefined)
+      : Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(host => host.$pool === vm?.$pool)
+    const statuses = hosts.map(host => ({ host, status: hostStatus(host.otherConfig) }))
+    const current = statuses.filter(({ status }) => status !== undefined && isFresh(status, now))
+    const name = ({ host }) => host.name_label ?? host.id
+    if (current.length === 0 || (running && current.length < statuses.length)) {
+      return running
+        ? `the vdf agent of ${hosts[0]?.name_label ?? 'its host'} isn't running: it can't enforce a VDF lock`
+        : 'no host of the pool has a running vdf agent to enforce a VDF lock'
+    }
+    const older = current.filter(({ status }) => status.locking?.vdfLock !== true)
+    if (older.length > 0) {
+      return `the vdf agent of ${older.map(name).join(', ')} doesn't support VDF locks (older than this XO)`
+    }
+  }
+
+  async #vdfLock(vif, { ipv4 = [], ipv6 = [] }, res) {
+    const refuse = (status, error) => {
+      res.status(status)
+      return { error }
+    }
+    if (ipv4.length + ipv6.length === 0) {
+      // locked to nothing, the interface would be cut off
+      return refuse(422, 'an interface locked to no address would be cut off: give its addresses')
+    }
+    const network = this.#networkOf(vif)
+    if (
+      vif.lockingMode === 'disabled' ||
+      (vif.lockingMode === 'network_default' && network?.defaultIsLocked === true)
+    ) {
+      return refuse(409, 'this interface is disabled: it sends nothing')
+    }
+    if (vif.lockingMode === 'locked') {
+      return refuse(409, 'this interface is locked by XAPI already: relock it with XAPI')
+    }
+    let vm
+    try {
+      vm = this.#xo.getObject(vif.$VM, 'VM')
+    } catch {}
+    const unavailable = this.#vdfLockUnavailable(vm)
+    if (unavailable !== undefined) {
+      return refuse(409, unavailable)
+    }
+
+    const xapi = this.#getXapi(vif.$pool)
+    // XO's IP pools follow the allowed addresses, as with XO's VIF edit
+    const before = [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
+    const after = [...ipv4, ...ipv6]
+    await this.#xo.allocIpAddresses?.(
+      vif.id,
+      after.filter(ip => !before.includes(ip)),
+      before.filter(ip => !after.includes(ip))
+    )
+    // the addresses first: with the key first, the agent would enforce the
+    // previous ones meanwhile
+    await xapi.call('VIF.set_ipv4_allowed', vif._xapiRef, ipv4)
+    await xapi.call('VIF.set_ipv6_allowed', vif._xapiRef, ipv6)
+    if (!hasVdfLock(vif)) {
+      if (vif.other_config?.[VDF_LOCKING_KEY] !== undefined) {
+        await xapi.call('VIF.remove_from_other_config', vif._xapiRef, VDF_LOCKING_KEY)
+      }
+      await xapi.call('VIF.add_to_other_config', vif._xapiRef, VDF_LOCKING_KEY, 'locked')
+    }
+    return { vif: vif.id, locking: 'vdf', ipv4, ipv6 }
+  }
+
+  // the key removed; the allowed addresses too with `clear` (a VIF XAPI
+  // locks keeps them: it would be cut off)
+  async #vdfUnlock(vif, { clear = false }, res) {
+    if (clear && vif.lockingMode === 'locked') {
+      res.status(409)
+      return { error: 'this interface is locked by XAPI: its allowed addresses are what it may send from' }
+    }
+    const xapi = this.#getXapi(vif.$pool)
+    if (vif.other_config?.[VDF_LOCKING_KEY] !== undefined) {
+      await xapi.call('VIF.remove_from_other_config', vif._xapiRef, VDF_LOCKING_KEY)
+    }
+    if (clear) {
+      const before = [...(vif.allowedIpv4Addresses ?? []), ...(vif.allowedIpv6Addresses ?? [])]
+      await this.#xo.allocIpAddresses?.(vif.id, [], before)
+      await xapi.call('VIF.set_ipv4_allowed', vif._xapiRef, [])
+      await xapi.call('VIF.set_ipv6_allowed', vif._xapiRef, [])
+    }
+    return { vif: vif.id, locking: vif.lockingMode === 'locked' ? 'xapi' : 'unlocked' }
+  }
+
   #routes() {
     return [
       {
@@ -1806,6 +1966,37 @@ class VdfPlugin {
             errors: hosts.filter(host => host.error !== undefined),
           }
         },
+      }),
+      this.#vifRoute({
+        endpoint: '/vifs/{id}/actions/vdf_lock',
+        method: 'post',
+        description:
+          "Lock a VIF with VDF (vdf#41), where XAPI refuses to lock it while an SDN controller is registered: sets its allowed addresses, then VIF.other_config['vdf:locking'] = 'locked', locking_mode unchanged. The agent of the VM's host then drops anything else it sends. Refused (409) where an agent can't enforce it (stopped, or older than VDF locks), on a VIF XAPI locks or disables.",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        body: BODY_VDF_LOCK,
+        middlewares: [{ name: 'json' }],
+        responses: [
+          { status: 200, description: 'Locked: the addresses it may send from' },
+          { status: 409, description: 'VDF cannot lock this interface (error)' },
+          { status: 422, description: 'No address given' },
+        ],
+        callback: ({ req, res, vif }) => this.#vdfLock(vif, req.body, res),
+      }),
+      this.#vifRoute({
+        endpoint: '/vifs/{id}/actions/vdf_unlock',
+        method: 'post',
+        description:
+          "Remove a VIF's VDF lock (vdf#41): the vdf:locking key goes, its allowed addresses stay unless `clear` is set.",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        body: BODY_VDF_UNLOCK,
+        middlewares: [{ name: 'json' }],
+        responses: [
+          { status: 200, description: 'Unlocked, or still locked by XAPI' },
+          { status: 409, description: 'clear refused on a VIF XAPI locks' },
+        ],
+        callback: ({ req, res, vif }) => this.#vdfUnlock(vif, req.body ?? {}, res),
       }),
     ]
   }

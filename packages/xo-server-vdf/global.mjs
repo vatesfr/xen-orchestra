@@ -222,6 +222,47 @@ export function poolSyncState({ inScope, published, expected }) {
 
 export const inScope = (scope, poolId) => scope?.all === true || (scope?.pools ?? []).includes(poolId)
 
+// VDF LOCK (vdf#41): where XAPI refuses VIF locking (an SDN controller is
+// registered), VDF enforces a VIF's allowed addresses itself when its
+// other_config has this key. XAPI shows such a VIF unlocked.
+export const VDF_LOCKING_KEY = 'vdf:locking'
+
+export const hasVdfLock = vif => vif?.other_config?.[VDF_LOCKING_KEY] === 'locked'
+
+// host.other_config["vdf:status"], written by each host's agent
+export const STATUS_KEY = 'vdf:status'
+
+export function hostStatus(otherConfig) {
+  try {
+    const status = JSON.parse(otherConfig?.[STATUS_KEY] ?? '')
+    return status !== null && typeof status === 'object' ? status : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// Same reading as `vdf-agent status` and XO 6: a heartbeat older than
+// twice its period means the agent is stopped or stuck.
+export function isFresh(status, now = Date.now()) {
+  const heartbeat = Date.parse(status?.heartbeat ?? '')
+  return !Number.isNaN(heartbeat) && now - heartbeat <= 2 * (status.heartbeatSec ?? 600) * 1000
+}
+
+// The VDF locks a host's agent enforces: undefined when it enforces none
+// (no status, a stopped or stuck agent, one before VDF locks), else the
+// VIFs with the key it reports it doesn't enforce (a complete list).
+export function vdfLockEnforcement(status, now = Date.now()) {
+  if (status === undefined || !isFresh(status, now) || status.locking?.vdfLock !== true) {
+    return undefined
+  }
+  return { unenforced: new Set(status.locking.vdfUnenforced ?? []) }
+}
+
+// a VIF whose addresses VDF enforces: the key, and the agent of the VM's
+// host enforcing it (XAPI's own lock is told apart by the caller)
+export const isVdfLocked = (vif, enforcement) =>
+  hasVdfLock(vif) && enforcement !== undefined && !enforcement.unenforced.has(vif.uuid ?? vif.id)
+
 const usableIp = ip => typeof ip === 'string' && !ip.includes('/') && !/^fe80:/i.test(ip)
 
 const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
@@ -234,9 +275,12 @@ const sortedIps = ips => [...new Set(ips.filter(usableIp))].sort()
 // itself, and counting them would let a fully locked VM add any address to
 // its groups, which XO would then write into every other pool (the agent's
 // own fix, vdf b6846f8). A disabled VIF (itself, or its network's default) sends nothing: what its
-// guest reports doesn't count, as for agents.
-// networkOf: a VIF's network object, if XO knows it.
-export function vmIfaces(vm, vifs, networkOf = () => undefined) {
+// guest reports doesn't count, as for agents. A VIF locked by VDF counts
+// as locked while the agent of the VM's host enforces its lock (vdf#41),
+// else as an unlocked one.
+// networkOf: a VIF's network object, if XO knows it; enforcement: the VDF
+// locks the VM's host enforces (vdfLockEnforcement).
+export function vmIfaces(vm, vifs, networkOf = () => undefined, enforcement = undefined) {
   const reported = new Map()
   for (const [key, ip] of Object.entries(vm.addresses ?? {})) {
     const device = key.split('/')[0]
@@ -245,9 +289,9 @@ export function vmIfaces(vm, vifs, networkOf = () => undefined) {
   const ifaces = vifs.map(vif => {
     const network = networkOf(vif)
     // a network's default is unlocked or disabled, never locked
-    const locked = vif.lockingMode === 'locked'
     const disabled =
       vif.lockingMode === 'disabled' || (vif.lockingMode === 'network_default' && network?.defaultIsLocked === true)
+    const locked = vif.lockingMode === 'locked' || (!disabled && isVdfLocked(vif, enforcement))
     return {
       device: String(vif.device),
       network: vif.$network,
@@ -276,12 +320,12 @@ function ifaceIps(ifaces) {
 
 // A VM's IPs as agents count them for a group without networks: all its
 // interfaces'.
-export const vmIps = (vm, vifs, networkOf) => ifaceIps(vmIfaces(vm, vifs, networkOf))
+export const vmIps = (vm, vifs, networkOf, enforcement) => ifaceIps(vmIfaces(vm, vifs, networkOf, enforcement))
 
 // what XO knows of a running VM, enough to resolve global groups and to
 // spot an address held twice; kept for a pool XO can't reach (fail static)
-export function vmRecord(vm, vifs, networkOf) {
-  const ifaces = vmIfaces(vm, vifs, networkOf)
+export function vmRecord(vm, vifs, networkOf, enforcement) {
+  const ifaces = vmIfaces(vm, vifs, networkOf, enforcement)
   return {
     vm: vm.id,
     vmName: vm.name_label,
@@ -292,8 +336,9 @@ export function vmRecord(vm, vifs, networkOf) {
   }
 }
 
-export const runningVmRecords = (vms, vifsOf, networkOf) =>
-  vms.filter(vm => vm.power_state === 'Running').map(vm => vmRecord(vm, vifsOf(vm), networkOf))
+// enforcementOf: the VDF locks a running VM's host enforces
+export const runningVmRecords = (vms, vifsOf, networkOf, enforcementOf = () => undefined) =>
+  vms.filter(vm => vm.power_state === 'Running').map(vm => vmRecord(vm, vifsOf(vm), networkOf, enforcementOf(vm)))
 
 const isMember = (record, group) => (group.tags ?? []).length > 0 && group.tags.every(tag => record.tags.includes(tag))
 

@@ -52,19 +52,61 @@ function fakeXo({
   otherConfig = {},
   pools = { [POOL]: { otherConfig } },
   vms = [],
+  vifs = {},
+  hosts = {},
   acls = [],
   agent = {},
   lag,
 } = {}) {
   const later = fn => (lag === undefined ? fn() : setTimeout(fn, typeof lag === 'function' ? lag() : lag))
   // one unlocked VIF per VM, device 0, unless it lists its own: agents
-  // count no address the guest reports for a device with no VIF
+  // count no address the guest reports for a device with no VIF; `vifs`
+  // sets fields of some (by id)
   const vifObjects = {}
   for (const vm of vms) {
     vm.VIFs ??= [`${vm.id}/vif0`]
     for (const id of vm.VIFs) {
-      vifObjects[id] ??= { id, type: 'VIF', device: '0', lockingMode: 'network_default' }
+      vifObjects[id] ??= {
+        id,
+        type: 'VIF',
+        device: '0',
+        lockingMode: 'network_default',
+        allowedIpv4Addresses: [],
+        allowedIpv6Addresses: [],
+        other_config: {},
+        $VM: vm.id,
+        $pool: vm.$pool,
+        $network: 'net-0',
+        _xapiRef: `OpaqueRef:${id}`,
+        ...vifs[id],
+      }
     }
+  }
+  // `hosts`: id → { $pool, name_label, otherConfig }
+  const hostObjects = Object.fromEntries(
+    Object.entries(hosts).map(([id, host]) => [id, { id, type: 'host', name_label: id, otherConfig: {}, ...host }])
+  )
+  // what the plugin does to VIFs, as XO's objects show it once XAPI's
+  // events come back
+  function vifCall(method, ref, ...args) {
+    const vif = Object.values(vifObjects).find(object => object._xapiRef === ref)
+    if (vif === undefined) {
+      throw Object.assign(new Error(`HANDLE_INVALID(VIF, ${ref})`), { code: 'HANDLE_INVALID' })
+    }
+    if (method === 'VIF.set_ipv4_allowed') {
+      vif.allowedIpv4Addresses = args[0]
+    } else if (method === 'VIF.set_ipv6_allowed') {
+      vif.allowedIpv6Addresses = args[0]
+    } else if (method === 'VIF.add_to_other_config') {
+      assert.equal(vif.other_config[args[0]], undefined, 'MAP_DUPLICATE_KEY')
+      vif.other_config = { ...vif.other_config, [args[0]]: args[1] }
+    } else if (method === 'VIF.remove_from_other_config') {
+      const { [args[0]]: _, ...rest } = vif.other_config
+      vif.other_config = rest
+    } else {
+      throw new Error(`unexpected ${method}`)
+    }
+    return ''
   }
   const calls = []
   const poolObjects = {}
@@ -87,6 +129,10 @@ function fakeXo({
       objects: { all: {} },
       getObjectByRef: () => undefined,
       async call(method, hostRef, plugin, fn, args) {
+        if (method.startsWith('VIF.')) {
+          calls.push({ pool: id, method, args: [hostRef, plugin, fn].filter(arg => arg !== undefined) })
+          return vifCall(method, hostRef, plugin, fn)
+        }
         calls.push({ pool: id, fn, args })
         if (fn === 'publish') {
           await agent.beforePublish?.(id)
@@ -105,6 +151,8 @@ function fakeXo({
   let routes = []
   const xo = {
     calls,
+    vifs: vifObjects,
+    hosts: hostObjects,
     xapi: xapis[Object.keys(pools)[0]],
     xapis,
     store,
@@ -133,9 +181,18 @@ function fakeXo({
         ? { ...poolObjects }
         : filter.type === 'VM'
           ? Object.fromEntries(vms.filter(vm => poolObjects[vm.$pool] !== undefined).map(vm => [vm.id, vm]))
-          : {},
+          : filter.type === 'host'
+            ? { ...hostObjects }
+            : {},
     getObject(id, type) {
-      const object = type === 'VIF' ? vifObjects[id] : poolObjects[id]
+      const object =
+        type === 'VIF'
+          ? vifObjects[id]
+          : type === 'host'
+            ? hostObjects[id]
+            : type === 'VM'
+              ? vms.find(vm => vm.id === id)
+              : poolObjects[id]
       if (object === undefined) {
         throw new Error('no such object')
       }
@@ -149,8 +206,10 @@ function fakeXo({
     },
     getXenServerIdByObject: pool => `server-${pool.id}`,
     getAllXenServers: async () => [...servers].map(id => ({ id })),
-    hasPermissions: async (userId, [[objectId, permission]]) =>
-      acls.some(acl => acl[0] === userId && acl[1] === objectId && acl[2] === permission),
+    hasPermissions: async (userId, permissions) =>
+      permissions.every(([objectId, permission]) =>
+        acls.some(acl => acl[0] === userId && acl[1] === objectId && acl[2] === permission)
+      ),
     async route(method, endpoint, { params = {}, body, query = {}, user = ADMIN } = {}) {
       const route = routes.find(route => route.method === method && route.endpoint === endpoint)
       assert.ok(route, `${method} ${endpoint}`)
@@ -1015,19 +1074,26 @@ describe('identity on import', () => {
 describe('what the plugin writes in XAPI', () => {
   const sources = ['index.mjs', 'global.mjs', 'history.mjs', 'trace.mjs']
 
-  test('in the code: host.call_plugin, and pool.update_other_config of the owner key', async () => {
+  // the VDF lock (vdf#41): a VIF's allowed addresses, and its vdf:locking key
+  const VIF_WRITES = ['VIF.set_ipv4_allowed', 'VIF.set_ipv6_allowed']
+  const VIF_KEY_WRITES = ['VIF.add_to_other_config', 'VIF.remove_from_other_config']
+
+  test('in the code: host.call_plugin, pool.update_other_config of the owner key, the VDF lock', async () => {
     const { readFile } = await import('node:fs/promises')
     for (const file of sources) {
       const code = await readFile(new URL(file, import.meta.url), 'utf8')
-      for (const [, method] of code.matchAll(/\bxapi\.call\(\s*'([^']+)'/g)) {
-        assert.equal(method, 'host.call_plugin', file)
+      for (const [, method, args] of code.matchAll(/\bxapi\.call\(\s*'([^']+)'([^)]*)\)/g)) {
+        assert.ok(['host.call_plugin', ...VIF_WRITES, ...VIF_KEY_WRITES].includes(method), `${file}: ${method}`)
+        if (VIF_KEY_WRITES.includes(method)) {
+          assert.match(args, /^, vif\._xapiRef, VDF_LOCKING_KEY\b/, file)
+        }
       }
       for (const [, key] of code.matchAll(/update_other_config\(\s*([^,\s]+)/g)) {
         assert.equal(key, 'OWNER_KEY', file)
       }
       assert.doesNotMatch(
-        code,
-        /\b(callAsync|set_other_config|add_to_other_config|remove_from_other_config|set_tags|add_tags|remove_tags|setField\w*|_setObjectProperties|setObjectProperties|editVm|editNetwork|editPool|editHost)\b/,
+        code.replaceAll(/'VIF\.(add_to|remove_from)_other_config'/g, ''),
+        /\b(callAsync|set_other_config|add_to_other_config|remove_from_other_config|set_tags|add_tags|remove_tags|setField\w*|_setObjectProperties|setObjectProperties|editVm|editVif|editNetwork|editPool|editHost|set_locking_mode)\b/,
         file
       )
       assert.doesNotMatch(code, /xapi\.(host|network|VM|VIF)\b/, file)
@@ -1064,7 +1130,7 @@ describe('what the plugin writes in XAPI', () => {
           }
           if (key === 'call') {
             return (method, ...args) => {
-              seen.push({ pool: id, call: method, plugin: args[1], fn: args[2] })
+              seen.push({ pool: id, call: method, target: args[0], plugin: args[1], fn: args[2] })
               return target.call(method, ...args)
             }
           }
@@ -1091,7 +1157,16 @@ describe('what the plugin writes in XAPI', () => {
     }
     const xo = fakeXo({
       pools: { A: { otherConfig: foreign }, B: { otherConfig: foreign }, C: { otherConfig: foreign } },
-      vms: [vm],
+      vms: [{ ...vm, $container: 'host-a' }],
+      vifs: { 'vm-a1/vif0': { other_config: { 'xo:foreign': 'kept' } } },
+      hosts: {
+        'host-a': {
+          $pool: 'A',
+          otherConfig: {
+            'vdf:status': JSON.stringify({ heartbeat: new Date().toISOString(), locking: { vdfLock: true } }),
+          },
+        },
+      },
     })
     xo.xapis.C.pool.other_config['vdf:global.owner'] = '{"id":"other","name":"xo-other"}'
     const seen = watch(xo)
@@ -1116,6 +1191,12 @@ describe('what the plugin writes in XAPI', () => {
         ['get', '/pools/{id}/rule-log', { params: pool }],
         ['get', '/pools/{id}/monitor', { params: pool }],
         ['post', '/pools/{id}/actions/take_over_global', { params: { id: 'C' }, body: { expectedOwner: 'other' } }],
+        [
+          'post',
+          '/vifs/{id}/actions/vdf_lock',
+          { params: { id: 'vm-a1/vif0' }, body: { ipv4: ['10.0.0.5'], ipv6: [] } },
+        ],
+        ['post', '/vifs/{id}/actions/vdf_unlock', { params: { id: 'vm-a1/vif0' }, body: { clear: true } }],
         // B leaves the scope: its global part and owner key go
         ['post', '/global/actions/publish', { body: { ...global, scope: { pools: ['A', 'C'] }, revision: 1 } }],
       ]
@@ -1128,10 +1209,21 @@ describe('what the plugin writes in XAPI', () => {
         []
       )
       for (const entry of seen.filter(entry => entry.call !== undefined)) {
+        if (entry.call.startsWith('VIF.')) {
+          // the VDF lock's: on the VIF locked, its vdf:locking key only
+          assert.ok([...VIF_WRITES, ...VIF_KEY_WRITES].includes(entry.call), entry.call)
+          assert.equal(entry.target, 'OpaqueRef:vm-a1/vif0')
+          if (VIF_KEY_WRITES.includes(entry.call)) {
+            assert.equal(entry.plugin, 'vdf:locking')
+          }
+          continue
+        }
         assert.equal(entry.call, 'host.call_plugin')
         assert.equal(entry.plugin, 'vdf')
         assert.ok(['check', 'publish', 'stats', 'rule_log', 'monitor', 'trace'].includes(entry.fn), entry.fn)
       }
+      assert.deepEqual(xo.vifs['vm-a1/vif0'].other_config, { 'xo:foreign': 'kept' })
+      assert.equal(xo.vifs['vm-a1/vif0'].lockingMode, 'network_default')
       const writes = seen.filter(entry => entry.write !== undefined).map(entry => entry.write)
       assert.ok(writes.length > 0)
       assert.ok(
@@ -1647,6 +1739,221 @@ describe("the global sync's writes in a pool's history (review)", () => {
         entries.map(e => (e.outside ? 'outside' : e.sync ? 'sync' : 'other')),
         ['sync', 'outside', 'sync']
       )
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+// vdf#41: where XAPI refuses to lock (an SDN controller is registered), XO
+// locks with VDF: the allowed addresses, then the vdf:locking key
+describe('VDF lock', () => {
+  const fresh = (locking, at = new Date()) => JSON.stringify({ heartbeat: at.toISOString(), heartbeatSec: 30, locking })
+  const SUPPORTING = { unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 0, vdfUnenforced: [] }
+  const OLD = { unlocked: 1, stale: 0 }
+  const appVm = (pool = POOL, host = 'host-1') => ({
+    id: `vm-${pool}`,
+    name_label: `app-${pool}`,
+    $pool: pool,
+    $container: host,
+    power_state: 'Running',
+    tags: ['vdf:role=web'],
+    addresses: { '0/ipv4/0': '10.0.0.5', '0/ipv4/1': '10.0.0.99' },
+  })
+  const vifId = (pool = POOL) => `vm-${pool}/vif0`
+  const lockBody = { ipv4: ['10.0.0.5'], ipv6: ['2001:db8::5'] }
+  const lock = (xo, options = {}) =>
+    xo.route('post', '/vifs/{id}/actions/vdf_lock', { params: { id: vifId() }, body: lockBody, ...options })
+  const unlock = (xo, body = {}, options = {}) =>
+    xo.route('post', '/vifs/{id}/actions/vdf_unlock', { params: { id: vifId() }, body, ...options })
+  const vifCalls = xo => xo.calls.filter(call => call.method !== undefined).map(call => [call.method, ...call.args])
+
+  test("sets the allowed addresses, then the key; locking_mode isn't touched", async () => {
+    const xo = fakeXo({
+      vms: [appVm()],
+      hosts: { 'host-1': { $pool: POOL, otherConfig: { 'vdf:status': fresh(SUPPORTING) } } },
+    })
+    const plugin = await loaded(xo)
+    try {
+      const { status, result } = await lock(xo)
+      assert.equal(status, 200)
+      assert.deepEqual(result, { vif: vifId(), locking: 'vdf', ...lockBody })
+      const ref = `OpaqueRef:${vifId()}`
+      // the addresses first: the agent never enforces the previous ones under the key
+      assert.deepEqual(vifCalls(xo), [
+        ['VIF.set_ipv4_allowed', ref, ['10.0.0.5']],
+        ['VIF.set_ipv6_allowed', ref, ['2001:db8::5']],
+        ['VIF.add_to_other_config', ref, 'vdf:locking', 'locked'],
+      ])
+      const vif = xo.vifs[vifId()]
+      assert.equal(vif.lockingMode, 'network_default')
+      assert.deepEqual(vif.other_config, { 'vdf:locking': 'locked' })
+
+      // a relock: the addresses only, the key is there
+      xo.calls.length = 0
+      await lock(xo, { body: { ipv4: ['10.0.0.6'], ipv6: [] } })
+      assert.deepEqual(vifCalls(xo), [
+        ['VIF.set_ipv4_allowed', ref, ['10.0.0.6']],
+        ['VIF.set_ipv6_allowed', ref, []],
+      ])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('refused where no agent can enforce it, or XAPI decides', async () => {
+    const hostWith = otherConfig => ({ 'host-1': { $pool: POOL, otherConfig } })
+    const cases = [
+      // an agent before VDF locks
+      [hostWith({ 'vdf:status': fresh(OLD) }), {}, 409, /doesn't support VDF locks/],
+      // a stopped agent: its heartbeat is old
+      [hostWith({ 'vdf:status': fresh(SUPPORTING, new Date(Date.now() - 120e3)) }), {}, 409, /isn't running/],
+      // no agent at all
+      [hostWith({}), {}, 409, /isn't running/],
+      // XAPI locks it already: relocked with XAPI
+      [hostWith({ 'vdf:status': fresh(SUPPORTING) }), { lockingMode: 'locked' }, 409, /locked by XAPI/],
+      [hostWith({ 'vdf:status': fresh(SUPPORTING) }), { lockingMode: 'disabled' }, 409, /disabled/],
+    ]
+    for (const [hosts, vif, status, error] of cases) {
+      const xo = fakeXo({ vms: [appVm()], hosts, vifs: { [vifId()]: vif } })
+      const plugin = await loaded(xo)
+      try {
+        const response = await lock(xo)
+        assert.equal(response.status, status)
+        assert.match(response.result.error, error)
+        assert.deepEqual(vifCalls(xo), [])
+      } finally {
+        plugin.unload()
+      }
+    }
+  })
+
+  test('never a lock to nothing, and only with operate on the interface and its network', async () => {
+    const user = { id: 'u1', permission: 'none' }
+    const hosts = { 'host-1': { $pool: POOL, otherConfig: { 'vdf:status': fresh(SUPPORTING) } } }
+    const xo = fakeXo({ vms: [appVm()], hosts, acls: [['u1', vifId(), 'operate']] })
+    const plugin = await loaded(xo)
+    try {
+      assert.equal((await lock(xo, { body: { ipv4: [], ipv6: [] } })).status, 422)
+      assert.equal((await lock(xo, { user })).status, 403)
+      assert.equal((await unlock(xo, {}, { user })).status, 403)
+      assert.deepEqual(vifCalls(xo), [])
+    } finally {
+      plugin.unload()
+    }
+    const operator = fakeXo({
+      vms: [appVm()],
+      hosts,
+      acls: [
+        ['u1', vifId(), 'operate'],
+        ['u1', 'net-0', 'operate'],
+      ],
+    })
+    const plugin2 = await loaded(operator)
+    try {
+      assert.equal((await lock(operator, { user })).status, 200)
+    } finally {
+      plugin2.unload()
+    }
+  })
+
+  test('a halted VM: every host with a running agent must support it', async () => {
+    const halted = { ...appVm(), power_state: 'Halted', $container: POOL }
+    const hosts = {
+      'host-1': { $pool: POOL, otherConfig: { 'vdf:status': fresh(SUPPORTING) } },
+      'host-2': { $pool: POOL, otherConfig: { 'vdf:status': fresh(OLD) } },
+      // a stopped agent's host doesn't count
+      'host-3': { $pool: POOL, otherConfig: { 'vdf:status': fresh(OLD, new Date(Date.now() - 120e3)) } },
+    }
+    const xo = fakeXo({ vms: [halted], hosts })
+    const plugin = await loaded(xo)
+    try {
+      const refused = await lock(xo)
+      assert.equal(refused.status, 409)
+      assert.match(refused.result.error, /host-2/)
+      xo.hosts['host-2'].otherConfig = { 'vdf:status': fresh(SUPPORTING) }
+      assert.equal((await lock(xo)).status, 200)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('unlock removes the key; the addresses stay unless cleared', async () => {
+    const xo = fakeXo({
+      vms: [appVm()],
+      vifs: { [vifId()]: { allowedIpv4Addresses: ['10.0.0.5'], other_config: { 'vdf:locking': 'locked', x: 'y' } } },
+    })
+    const plugin = await loaded(xo)
+    try {
+      const ref = `OpaqueRef:${vifId()}`
+      // no agent needed to unlock
+      assert.deepEqual((await unlock(xo)).result, { vif: vifId(), locking: 'unlocked' })
+      assert.deepEqual(vifCalls(xo), [['VIF.remove_from_other_config', ref, 'vdf:locking']])
+      assert.deepEqual(xo.vifs[vifId()].other_config, { x: 'y' })
+      assert.deepEqual(xo.vifs[vifId()].allowedIpv4Addresses, ['10.0.0.5'])
+
+      xo.calls.length = 0
+      await unlock(xo, { clear: true })
+      assert.deepEqual(vifCalls(xo), [
+        ['VIF.set_ipv4_allowed', ref, []],
+        ['VIF.set_ipv6_allowed', ref, []],
+      ])
+
+      // a VIF XAPI locks keeps its addresses: it would be cut off
+      xo.calls.length = 0
+      xo.vifs[vifId()].lockingMode = 'locked'
+      assert.equal((await unlock(xo, { clear: true })).status, 409)
+      assert.deepEqual(vifCalls(xo), [])
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("another pool's member is trusted while its host's agent enforces the lock", async () => {
+    const globalDocument = {
+      groups: { web: { tags: ['vdf:role=web'] } },
+      policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [{ id: 1, from: 'web', proto: 'tcp' }] }],
+    }
+    const xo = fakeXo({
+      pools: { A: {}, B: {} },
+      vms: [appVm('A')],
+      vifs: {
+        [vifId('A')]: { allowedIpv4Addresses: ['10.0.0.5'], other_config: { 'vdf:locking': 'locked' } },
+      },
+      hosts: { 'host-1': { $pool: 'A', otherConfig: { 'vdf:status': fresh(SUPPORTING) } } },
+    })
+    const plugin = await loaded(xo)
+    try {
+      await xo.route('post', '/global/actions/publish', {
+        body: { policy: text(globalDocument), scope: { all: true }, revision: 0 },
+      })
+      const ipsInB = () => JSON.parse(xo.xapis.B.pool.other_config['vdf:policy']).groups['global:web'].ips
+      const member = async () => (await xo.route('get', '/global')).result.members.web[0]
+      assert.deepEqual(ipsInB(), ['10.0.0.5'])
+      assert.equal((await member()).trusted, true)
+
+      // the agent reports it can't enforce this one: an unlocked interface
+      xo.hosts['host-1'].otherConfig = {
+        'vdf:status': fresh({ ...SUPPORTING, vdfUnenforced: [vifId('A')] }),
+      }
+      await plugin.syncNow()
+      assert.equal((await member()).trusted, false)
+      assert.deepEqual(ipsInB(), ['10.0.0.5', '10.0.0.99'])
+
+      // the agent stopped
+      xo.hosts['host-1'].otherConfig = { 'vdf:status': fresh(SUPPORTING, new Date(Date.now() - 120e3)) }
+      await plugin.syncNow()
+      assert.equal((await member()).trusted, false)
+
+      // an agent before VDF locks
+      xo.hosts['host-1'].otherConfig = { 'vdf:status': fresh(OLD) }
+      await plugin.syncNow()
+      assert.equal((await member()).trusted, false)
+
+      xo.hosts['host-1'].otherConfig = { 'vdf:status': fresh(SUPPORTING) }
+      await plugin.syncNow()
+      assert.equal((await member()).trusted, true)
+      assert.deepEqual(ipsInB(), ['10.0.0.5'])
     } finally {
       plugin.unload()
     }

@@ -12,7 +12,7 @@ Installed is not enabled: the plugin has a required setting, so xo-server leaves
 
 XO 6 shows the firewall only while `GET /rest/v0/plugins/vdf/info` answers, and the VM tab and Quarantine only in pools VDF manages: a host's agent wrote a status, or a policy is published (so a pool whose agents stopped or were removed still shows its VMs as exposed). Unloading the plugin is the off switch for XO: its routes and background sync stop, and the interface disappears within a minute. Policies already published stay enforced by the hosts' agents.
 
-In XAPI, the plugin writes `vdf:*` keys of `pool.other_config` only: `vdf:global.owner` itself, the `vdf:policy*` keys through the master agent's `publish`. It never writes host or network `other_config`, nor tags: XO 6 tags VMs and networks through XO's own REST API, as any tag edit. `index.test.mjs` ("what the plugin writes in XAPI") checks the code and every route.
+In XAPI, the plugin writes `vdf:*` keys of `pool.other_config`: `vdf:global.owner` itself, the `vdf:policy*` keys through the master agent's `publish`. The VDF lock (below) writes a VIF's allowed addresses and its `other_config["vdf:locking"]`, nothing else of the VIF. It never writes host or network `other_config`, nor tags: XO 6 tags VMs and networks through XO's own REST API, as any tag edit. `index.test.mjs` ("what the plugin writes in XAPI") checks the code and every route.
 
 To stop enforcement too, without XO (from any host's shell, with the agent's own commands):
 
@@ -71,6 +71,15 @@ Groups and policies defined once in XO and written into every pool in scope (all
 | `GET /global/history/{entry}`               | One of them (document and scope), with the one before it (`previous`)                                                                         |
 | `POST /pools/{id}/actions/take_over_global` | `{ expectedOwner }`: make this XO the pool's owner for the global configuration, refused (409) if the owner isn't the one the user saw        |
 | `POST /global/actions/take_over_replaced`   | `{ replaces }`: take over every pool the XO this one replaces owns (one `take_over_global` each), refused (409) if it replaces another XO now |
+
+**VDF lock** ([vdf#41](https://git.vates.tech/vates/vdf/issues/41)): XAPI refuses to lock a VIF (`OPERATION_NOT_ALLOWED(A vswitch controller is active)`) while an SDN controller is registered on the pool, which XO's SDN Controller plugin does for Traffic Rules and Global Private Networks. XAPI still lets XO set the allowed addresses, so VDF enforces them itself on a VIF whose `other_config["vdf:locking"]` is `locked`; `locking_mode` is left alone (`xe vif-list` shows the VIF unlocked). XO's VIF edit locks as soon as it sets the allowed addresses, hence these routes:
+
+| Route                                | What                                                                                                                                                                                                                                                        |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /vifs/{id}/actions/vdf_lock`   | `{ ipv4, ipv6 }`: set the allowed addresses, then the key (in that order). Refused (409) when the agent of the VM's host is stopped or older than VDF locks (for a halted VM: any host of its pool with a running agent), or XAPI locks or disables the VIF |
+| `POST /vifs/{id}/actions/vdf_unlock` | `{ clear? }`: remove the key; the allowed addresses stay unless `clear`                                                                                                                                                                                     |
+
+Both need what XO's VIF edit needs to change a locking mode: `operate` on the VIF and on its network. A VDF-locked VIF counts as locked (its allowed addresses, trusted) only while its host's agent enforces it: the key is set, that host's `vdf:status` is fresh (a heartbeat within twice its period), says `locking.vdfLock: true`, and doesn't list the VIF in `locking.vdfUnenforced`. Otherwise it counts as an unlocked VIF: what its guest reports, untrusted. Members across pools follow the same rule, from the status of each VM's host.
 
 ## Permissions
 

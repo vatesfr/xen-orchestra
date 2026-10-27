@@ -9,6 +9,8 @@ import {
   duplicateAddresses,
   GLOBAL_RULE_BASE,
   globalMembers,
+  hostStatus,
+  isFresh,
   keepGlobalPart,
   localPart,
   memberConflicts,
@@ -18,6 +20,7 @@ import {
   remoteIpsFor,
   reservedTierPolicies,
   runningVmRecords,
+  vdfLockEnforcement,
   vmIfaces,
   vmIps,
   withFormatVersion,
@@ -482,5 +485,104 @@ describe('withFormatVersion (vdf#36)', () => {
       false
     )
     assert.equal(withFormatVersion({ ...scoped, policies: [{ ...policies[0], mode: 'monitor' }] }).version, 7)
+  })
+})
+
+// vdf#41: a VIF locked by VDF (other_config vdf:locking) counts as locked
+// only while the agent of the VM's host enforces it
+describe('VDF locks', () => {
+  const NOW = Date.parse('2026-10-27T12:00:00Z')
+  const status = (locking, { heartbeat = '2026-10-27T11:59:30Z', heartbeatSec = 30 } = {}) => ({
+    heartbeat,
+    heartbeatSec,
+    ...(locking === undefined ? {} : { locking }),
+  })
+  const supporting = status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: [] })
+  const vm = {
+    id: 'vm-1',
+    name_label: 'app-1',
+    $pool: 'A',
+    power_state: 'Running',
+    tags: ['vdf:role=app'],
+    // the guest claims another VM's address too
+    addresses: { '0/ipv4/0': '10.0.0.5', '0/ipv4/1': '10.0.0.99' },
+  }
+  const vdfLocked = {
+    id: 'vif-1',
+    device: '0',
+    lockingMode: 'network_default',
+    allowedIpv4Addresses: ['10.0.0.5'],
+    other_config: { 'vdf:locking': 'locked' },
+  }
+  const ipsOf = (vifs, hostStatus_, now = NOW) => vmIps(vm, vifs, undefined, vdfLockEnforcement(hostStatus_, now))
+  const untrusted = { ips: ['10.0.0.5', '10.0.0.99'], trusted: false }
+
+  test('trusted, with its allowed addresses, while the agent enforces it', () => {
+    assert.deepEqual(ipsOf([vdfLocked], supporting), { ips: ['10.0.0.5'], trusted: true })
+  })
+
+  test('each failing condition makes it an unlocked interface', () => {
+    // no key, or another value than locked
+    assert.deepEqual(ipsOf([{ ...vdfLocked, other_config: {} }], supporting), untrusted)
+    assert.deepEqual(ipsOf([{ ...vdfLocked, other_config: { 'vdf:locking': 'yes' } }], supporting), untrusted)
+    // no agent status
+    assert.deepEqual(ipsOf([vdfLocked], undefined), untrusted)
+    // a stale heartbeat (twice its period): the agent is stopped or stuck
+    assert.deepEqual(ipsOf([vdfLocked], supporting, NOW + 31e3), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], supporting, NOW + 29e3).trusted, true)
+    // an agent before VDF locks
+    assert.deepEqual(ipsOf([vdfLocked], status({ unlocked: 1, stale: 0 })), untrusted)
+    assert.deepEqual(ipsOf([vdfLocked], status(undefined)), untrusted)
+    // the agent reports it doesn't enforce this one
+    assert.deepEqual(
+      ipsOf([vdfLocked], status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 0, vdfUnenforced: ['vif-1'] })),
+      untrusted
+    )
+    // another VIF unenforced: not this one's business
+    assert.deepEqual(
+      ipsOf([vdfLocked], status({ unlocked: 0, stale: 0, vdfLock: true, vdfLocked: 1, vdfUnenforced: ['vif-2'] }))
+        .trusted,
+      true
+    )
+  })
+
+  test("XAPI's lock comes first, and a disabled interface sends nothing", () => {
+    const xapiLocked = { ...vdfLocked, lockingMode: 'locked' }
+    assert.deepEqual(ipsOf([xapiLocked], undefined), { ips: ['10.0.0.5'], trusted: true })
+    assert.deepEqual(ipsOf([{ ...vdfLocked, lockingMode: 'disabled' }], supporting), { ips: [], trusted: false })
+  })
+
+  test("global members' trust follows the host each VM runs on", () => {
+    const vms = [
+      { ...vm, $container: 'host-ok' },
+      { ...vm, id: 'vm-2', $container: 'host-stale' },
+    ]
+    const statuses = {
+      'host-ok': supporting,
+      'host-stale': status(supporting.locking, { heartbeat: '2026-10-27T11:00:00Z' }),
+    }
+    const records = runningVmRecords(
+      vms,
+      () => [vdfLocked],
+      undefined,
+      ({ $container }) => vdfLockEnforcement(statuses[$container], NOW)
+    )
+    const members = globalMembers({ global: GLOBAL, records, scope: { all: true } })
+    assert.deepEqual(
+      members.app.map(member => [member.vm, member.ips, member.trusted]),
+      [
+        ['vm-1', ['10.0.0.5'], true],
+        ['vm-2', ['10.0.0.5', '10.0.0.99'], false],
+      ]
+    )
+  })
+
+  test('host status: read from other_config, fresh within twice its period', () => {
+    assert.equal(hostStatus({}), undefined)
+    assert.equal(hostStatus({ 'vdf:status': 'not json' }), undefined)
+    assert.deepEqual(hostStatus({ 'vdf:status': '{"heartbeat":"x"}' }), { heartbeat: 'x' })
+    assert.equal(isFresh({ heartbeat: '2026-10-27T11:50:00Z' }, NOW), true) // 600 s by default
+    assert.equal(isFresh({ heartbeat: '2026-10-27T11:30:00Z' }, NOW), false)
+    assert.equal(isFresh({}, NOW), false)
   })
 })
