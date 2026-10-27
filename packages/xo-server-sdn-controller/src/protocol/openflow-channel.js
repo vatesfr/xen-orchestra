@@ -89,7 +89,9 @@ export class OpenFlowChannel extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async addRule({ vif, allow, protocol, port, ipRange, direction, ofport }) {
+  // The caller passes the rule's `priority` too, for the XAPI plugin (openflow-plugin.js) to set: this
+  // channel writes its flows at the OpenFlow default, so a rule stored with a priority is installed without it.
+  async addRule({ vif, allow, protocol, port, ipRange, direction, priority, ofport }) {
     log.info('Adding OF rule', {
       allow,
       protocol,
@@ -119,8 +121,8 @@ export class OpenFlowChannel extends EventEmitter {
     try {
       await this._coalesceConnect()
     } catch (error) {
-      log.error("addRule: _coalesceConnect", {
-        error
+      log.error('addRule: _coalesceConnect', {
+        error,
       })
       return
     }
@@ -200,8 +202,8 @@ export class OpenFlowChannel extends EventEmitter {
     try {
       await this._coalesceConnect()
     } catch (error) {
-      log.error("deleteRule: _coalesceConnect", {
-        error
+      log.error('deleteRule: _coalesceConnect', {
+        error,
       })
       return
     }

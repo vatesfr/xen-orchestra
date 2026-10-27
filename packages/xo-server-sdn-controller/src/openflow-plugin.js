@@ -5,6 +5,17 @@ import { strictEqual } from 'node:assert'
 const PLUGIN_NAME = 'sdncontroller.py'
 
 const log = createLogger('xo:sdn-controller:openflowplugin')
+
+// the plugin takes strings; a falsy port (absent or 0) is passed through as it is
+function pluginPort(port) {
+  return port ? String(port) : port
+}
+
+// 0 is a valid priority, only an absent one stays undefined
+function pluginPriority(priority) {
+  return priority === undefined ? undefined : String(priority)
+}
+
 export class OpenFlowPlugin {
   #getBridge(network) {
     return network.bridge // following discussion with David, it may not be the right bridge
@@ -24,9 +35,7 @@ export class OpenFlowPlugin {
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port, priority }) {
-    if (port) {
-      port = String(port)
-    }
+    port = pluginPort(port)
     log.debug('addRule', { vif, allow, protocol, ipRange, direction, port, priority })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
@@ -35,15 +44,12 @@ export class OpenFlowPlugin {
       ipRange,
       direction,
       port,
-      // 0 is a valid priority
-      priority: priority === undefined ? undefined : String(priority),
+      priority: pluginPriority(priority),
     })
   }
 
   async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
-    if (port) {
-      port = String(port)
-    }
+    port = pluginPort(port)
     log.debug('deleteRule', { vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'del-rule', {
       mac: vif.MAC,
@@ -56,9 +62,7 @@ export class OpenFlowPlugin {
   }
 
   async addNetworkRule({ network, allow, protocol, ipRange, direction, port, priority, cookie }) {
-    if (port) {
-      port = String(port)
-    }
+    port = pluginPort(port)
     log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, priority, cookie })
     return this.#callPluginOnAllNetwork(network, 'add-rule', {
       allow: allow ? 'true' : 'false',
@@ -66,14 +70,12 @@ export class OpenFlowPlugin {
       ipRange,
       direction,
       port,
-      priority: priority === undefined ? undefined : String(priority),
+      priority: pluginPriority(priority),
       cookie,
     })
   }
   async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
-    if (port) {
-      port = String(port)
-    }
+    port = pluginPort(port)
     log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
     return this.#callPluginOnAllNetwork(network, 'del-rule', {
       allow: allow ? 'true' : 'false',

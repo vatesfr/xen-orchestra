@@ -1,6 +1,7 @@
 import { describe, it, mock } from 'node:test'
 import { EventEmitter } from 'events'
 import { strict as assert } from 'node:assert'
+import { objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import createSdnController from './index.js'
 
@@ -296,5 +297,296 @@ describe('SDN controller reliability', () => {
     assert.equal(controller.privateNetworks[networkUuid], undefined)
     assert.equal(controller._networks.size, 0)
     assert.equal(controller._starCenters.size, 0)
+  })
+})
+
+describe('traffic rule priority', () => {
+  it('does not let two adds racing on a network take the same priority', async () => {
+    const network = {
+      id: 'net',
+      type: 'network',
+      VIFs: [],
+      other_config: {},
+      $PIFs: [{ host: 'host' }],
+      $xapi: { barrier: async () => undefined },
+    }
+    // the first write waits for the test, the second add must not reach its own write meanwhile
+    let releaseWrite
+    const writeReleased = new Promise(resolve => (releaseWrite = resolve))
+    const writtenKeys = []
+    network.update_other_config = (key, value) => {
+      writtenKeys.push(key)
+      return writeReleased.then(() => {
+        network.other_config[key] = value
+      })
+    }
+
+    const controller = createSdnController({
+      xo: {
+        addApiMethods: noop,
+        registerRestRoutes: noop,
+        getAllXapis: () => [],
+        getObject: () => network,
+        getXapiObject: () => network,
+        on: noop,
+        removeListener: noop,
+      },
+      getDataDir: async () => '/tmp',
+      staticConfig: {},
+    })
+    controller._getOrCreateOfChannel = async () => undefined
+
+    const rule = { networkId: 'net', allow: true, direction: 'to', protocol: 'TCP', ipRange: '10.0.0.0/8' }
+    const adds = [
+      controller._addUserRule({ ...rule, port: 443, priority: 50000 }),
+      controller._addUserRule({ ...rule, port: 80, priority: 50000 }),
+    ]
+    releaseWrite()
+    const [first, second] = await Promise.allSettled(adds)
+
+    assert.equal(first.status, 'fulfilled')
+    assert.equal(second.status, 'rejected')
+    assert.ok(objectAlreadyExists.is(second.reason))
+    assert.deepEqual(writtenKeys, ['xo:sdn-controller:of-rules'])
+    assert.equal(JSON.parse(JSON.parse(network.other_config['xo:sdn-controller:of-rules'])[0]).priority, 50000)
+  })
+
+  it('does not let an add take the new priority of a rule between its removal and its addition', async () => {
+    const rule = { networkId: 'net', allow: true, direction: 'to', protocol: 'TCP', ipRange: '10.0.0.0/8' }
+    const network = {
+      id: 'net',
+      type: 'network',
+      VIFs: [],
+      other_config: {
+        'xo:sdn-controller:of-rules': JSON.stringify([
+          JSON.stringify({ ...rule, port: 443, priority: 100, cookie: '0x1' }),
+        ]),
+      },
+      $PIFs: [{ host: 'host' }],
+      $xapi: { barrier: async () => undefined },
+    }
+    // the removal of the old rule waits for the test, the add must not run meanwhile
+    let writeStarted
+    const firstWrite = new Promise(resolve => (writeStarted = resolve))
+    let releaseWrite
+    const writeReleased = new Promise(resolve => (releaseWrite = resolve))
+    network.update_other_config = (key, value) => {
+      writeStarted()
+      return writeReleased.then(() => {
+        network.other_config[key] = value
+      })
+    }
+
+    const controller = createSdnController({
+      xo: {
+        addApiMethods: noop,
+        registerRestRoutes: noop,
+        getAllXapis: () => [],
+        getObject: () => network,
+        getXapiObject: () => network,
+        on: noop,
+        removeListener: noop,
+      },
+      getDataDir: async () => '/tmp',
+      staticConfig: {},
+    })
+    controller._getOrCreateOfChannel = async () => undefined
+
+    const update = controller._updateUserRule({ ...rule, port: 443 }, { ...rule, port: 443, priority: 200 }, 100)
+    const add = controller._addUserRule({ ...rule, port: 80, priority: 200 })
+    await firstWrite
+    releaseWrite()
+    const [updated, added] = await Promise.allSettled([update, add])
+
+    assert.equal(updated.status, 'fulfilled')
+    assert.equal(added.status, 'rejected')
+    assert.ok(objectAlreadyExists.is(added.reason))
+    const storedRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules']).map(JSON.parse)
+    assert.deepEqual(
+      storedRules.map(stored => [stored.port, stored.priority]),
+      [[443, 200]]
+    )
+  })
+
+  it('keeps one VIF rule per match: an add with another priority replaces it, an update does not drop another', async () => {
+    const pool = { name_label: 'pool' }
+    const vif = {
+      id: 'vif',
+      $id: 'vif',
+      type: 'VIF',
+      uuid: 'vif-uuid',
+      $ref: 'OpaqueRef:vif',
+      $VM: 'vm',
+      $network: 'net',
+      $pool: pool,
+      currently_attached: true,
+      other_config: {},
+    }
+    vif.update_other_config = async (key, value) => {
+      vif.other_config[key] = value
+    }
+    vif.$xapi = { barrier: async () => vif }
+    const objects = {
+      net: { id: 'net', type: 'network', VIFs: ['vif'], other_config: {} },
+      vif,
+      vm: { id: 'vm', type: 'VM' },
+    }
+
+    const controller = createSdnController({
+      xo: {
+        addApiMethods: noop,
+        registerRestRoutes: noop,
+        getAllXapis: () => [],
+        getObject: id => objects[id],
+        getXapiObject: object => object,
+        on: noop,
+        removeListener: noop,
+      },
+      getDataDir: async () => '/tmp',
+      staticConfig: {},
+    })
+    controller._setPoolControllerIfNeeded = async () => undefined
+    controller._getOrCreateOfChannel = async () => undefined
+
+    const storedRules = () => JSON.parse(vif.other_config['xo:sdn-controller:of-rules']).map(JSON.parse)
+    const match = { vifId: 'vif', allow: true, direction: 'to', protocol: 'TCP', ipRange: '10.0.0.0/8' }
+
+    // another port, which the replacement of the match leaves alone
+    await controller._addUserRule({ ...match, port: 80, priority: 50001 })
+    await controller._addUserRule({ ...match, port: 443, priority: 50000 })
+    assert.deepEqual(
+      storedRules().map(rule => [rule.port, rule.priority]),
+      [
+        [80, 50001],
+        [443, 50000],
+      ]
+    )
+
+    // same match, another priority: replaces the stored rule instead of storing a second one
+    await controller._addUserRule({ ...match, port: 443, priority: 50002 })
+    assert.deepEqual(
+      storedRules().map(rule => [rule.port, rule.priority]),
+      [
+        [80, 50001],
+        [443, 50002],
+      ]
+    )
+
+    // the update removes the rules of the match, then adds the new one: the other port must survive
+    await controller._updateUserRule({ ...match, port: 443 }, { ...match, port: 443, priority: 50003 }, 50002)
+    assert.deepEqual(
+      storedRules().map(rule => [rule.port, rule.priority]),
+      [
+        [80, 50001],
+        [443, 50003],
+      ]
+    )
+  })
+
+  it('keeps the priority of a network rule added again without one', async () => {
+    const network = {
+      id: 'net',
+      type: 'network',
+      VIFs: [],
+      other_config: {},
+      $PIFs: [{ host: 'host' }],
+      $xapi: { barrier: async () => undefined },
+    }
+    network.update_other_config = async (key, value) => {
+      network.other_config[key] = value
+    }
+    const channelPriorities = []
+
+    const controller = createSdnController({
+      xo: {
+        addApiMethods: noop,
+        registerRestRoutes: noop,
+        getAllXapis: () => [],
+        getObject: () => network,
+        getXapiObject: () => network,
+        on: noop,
+        removeListener: noop,
+      },
+      getDataDir: async () => '/tmp',
+      staticConfig: {},
+    })
+    controller._getOrCreateOfChannel = async () => ({
+      addNetworkRule: async ({ priority }) => {
+        channelPriorities.push(priority)
+      },
+    })
+
+    const storedRules = () => JSON.parse(network.other_config['xo:sdn-controller:of-rules']).map(JSON.parse)
+    const match = { networkId: 'net', direction: 'to', protocol: 'TCP', ipRange: '10.0.0.0/8', port: 443 }
+
+    await controller._addUserRule({ ...match, allow: true, priority: 50000 })
+    // same match, no priority: replaces the rule and keeps its priority, on the network and in the channel
+    await controller._addUserRule({ ...match, allow: false })
+
+    assert.deepEqual(
+      storedRules().map(rule => [rule.allow, rule.priority]),
+      [[false, 50000]]
+    )
+    assert.deepEqual(channelPriorities, [50000, 50000])
+  })
+
+  it('keeps the priority of a VIF rule added again without one', async () => {
+    const pool = { name_label: 'pool' }
+    const vif = {
+      id: 'vif',
+      $id: 'vif',
+      type: 'VIF',
+      uuid: 'vif-uuid',
+      $ref: 'OpaqueRef:vif',
+      $VM: 'vm',
+      $network: 'net',
+      $pool: pool,
+      currently_attached: true,
+      other_config: {},
+    }
+    vif.update_other_config = async (key, value) => {
+      vif.other_config[key] = value
+    }
+    vif.$xapi = { barrier: async () => vif }
+    const objects = {
+      net: { id: 'net', type: 'network', VIFs: ['vif'], other_config: {} },
+      vif,
+      vm: { id: 'vm', type: 'VM' },
+    }
+    const channelPriorities = []
+
+    const controller = createSdnController({
+      xo: {
+        addApiMethods: noop,
+        registerRestRoutes: noop,
+        getAllXapis: () => [],
+        getObject: id => objects[id],
+        getXapiObject: object => object,
+        on: noop,
+        removeListener: noop,
+      },
+      getDataDir: async () => '/tmp',
+      staticConfig: {},
+    })
+    controller._setPoolControllerIfNeeded = async () => undefined
+    controller._getOrCreateOvsdbClient = () => ({ getOfPortForVif: async () => 1 })
+    controller._getOrCreateOfChannel = async () => ({
+      addRule: async ({ priority }) => {
+        channelPriorities.push(priority)
+      },
+    })
+
+    const storedRules = () => JSON.parse(vif.other_config['xo:sdn-controller:of-rules']).map(JSON.parse)
+    const match = { vifId: 'vif', direction: 'to', protocol: 'TCP', ipRange: '10.0.0.0/8', port: 443 }
+
+    await controller._addUserRule({ ...match, allow: true, priority: 50000 })
+    // same match, no priority: replaces the rule and keeps its priority, on the VIF and in the channel
+    await controller._addUserRule({ ...match, allow: false })
+
+    assert.deepEqual(
+      storedRules().map(rule => [rule.allow, rule.priority]),
+      [[false, 50000]]
+    )
+    assert.deepEqual(channelPriorities, [50000, 50000])
   })
 })

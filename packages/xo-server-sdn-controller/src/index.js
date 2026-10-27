@@ -292,6 +292,8 @@ class SDNController extends EventEmitter {
 
     this._networks = new Map()
     this._starCenters = new Map()
+    // last task queued on each network, see `_queueOnNetwork`
+    this._networkQueues = new Map()
 
     this._cleaners = []
     this._objectsAdded = this._objectsAdded.bind(this)
@@ -388,7 +390,7 @@ class SDNController extends EventEmitter {
 
     const addRule = params => {
       this._checkTrafficRulePriority(params, params.priority)
-      return this._addRule(params)
+      return this._addUserRule(params)
     }
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
@@ -415,7 +417,7 @@ class SDNController extends EventEmitter {
 
     const addNetworkRule = params => {
       this._checkTrafficRulePriority(params, params.priority)
-      return this._addNetworkRule(params)
+      return this._addUserRule(params)
     }
     addNetworkRule.description = 'Add an ACL rule to a network'
     addNetworkRule.params = {
@@ -742,10 +744,65 @@ class SDNController extends EventEmitter {
     }
   }
 
+  // A rule a user adds: its priority is checked, then it is written, both in the queue of its network.
+  // The check reads the rules stored so far, and two adds racing through their awaits would both pass it.
+  // Not used for the rules re-applied from storage: they are already stored, so the check would find them.
+  async _addUserRule(params) {
+    const isNetworkRule = params.networkId !== undefined
+    const networkId = isNetworkRule ? params.networkId : this._xo.getObject(params.vifId, 'VIF').$network
+    return this._queueOnNetwork(networkId, () => {
+      this._checkTrafficRulePriority({ networkId }, params.priority)
+      return isNetworkRule ? this._addNetworkRule(params) : this._addRule(params)
+    })
+  }
+
+  // A rule a user updates: removed, then added again, in a single task of the queue of its network, or an add
+  // could take the new priority in between, and the rule, already removed, would not be added again.
+  // `oldPriority` is the stored one, which the new rule may keep.
+  async _updateUserRule(oldRule, newRule, oldPriority) {
+    const isNetworkRule = newRule.networkId !== undefined
+    const networkId = isNetworkRule ? newRule.networkId : this._xo.getObject(newRule.vifId, 'VIF').$network
+    return this._queueOnNetwork(networkId, async () => {
+      this._checkTrafficRulePriority({ networkId }, newRule.priority, oldPriority)
+      if (isNetworkRule) {
+        await this._deleteNetworkOfRule(oldRule)
+        await this._addNetworkRule(newRule)
+      } else {
+        await this._deleteRule(oldRule)
+        await this._addRule(newRule)
+      }
+    })
+  }
+
+  // Runs `task` once the tasks queued before it on the same network are done, whether they failed or not
+  _queueOnNetwork(networkId, task) {
+    const previous = this._networkQueues.get(networkId) ?? Promise.resolve()
+    const run = previous.then(task)
+    const settled = run.catch(noop)
+    this._networkQueues.set(networkId, settled)
+    settled.then(() => {
+      if (this._networkQueues.get(networkId) === settled) {
+        this._networkQueues.delete(networkId)
+      }
+    })
+    return run
+  }
+
   async _addRule({ allow, direction, ipRange = '', port, priority, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
+
+      // a rule added again without a priority keeps the one it replaces, as on a network
+      const storedVifRules = vif.other_config['xo:sdn-controller:of-rules']
+      const replacedRule = (storedVifRules !== undefined ? JSON.parse(storedVifRules) : [])
+        .map(vifRule => JSON.parse(vifRule))
+        .find(rule => {
+          return (
+            rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+          )
+        })
+      priority ??= replacedRule?.priority
 
       try {
         const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
@@ -776,8 +833,16 @@ class SDNController extends EventEmitter {
         priority,
       })
       if (!newVifRules.includes(stringRule)) {
-        newVifRules.push(stringRule)
-        await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newVifRules))
+        // one rule per match, as on a network: a stored rule with the same match and another priority is
+        // replaced, or the next update of that match, which removes every rule of the match, would drop one
+        const otherMatchRules = newVifRules.filter(vifRule => {
+          const rule = JSON.parse(vifRule)
+          return (
+            rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          )
+        })
+        otherMatchRules.push(stringRule)
+        await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(otherMatchRules))
         await vif.$xapi.barrier(vif.$ref)
       }
     } catch (error) {
@@ -807,6 +872,9 @@ class SDNController extends EventEmitter {
           rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
         )
       })
+
+      // a rule added again without a priority keeps the one it replaces, as update_traffic_rule does
+      priority ??= matchRules[0]?.priority
 
       // compute a cookie
       let cookie
