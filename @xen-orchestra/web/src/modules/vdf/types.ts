@@ -444,6 +444,9 @@ export type VdfTraceWhatIf = {
   shadowedBy?: string[]
   // the tier of shadowedBy (one isolated pass per shadowed tier)
   shadowedTier?: number
+  // the what-if pass: the shadowed tiers left without an isolated pass
+  // (past the agent's cap)
+  unchecked?: number[]
   policies: string[]
   verdict: 'would-drop' | 'would-allow' | 'dropped' | 'not-evaluated' | string
   policy?: string
@@ -614,8 +617,23 @@ export type VdfMonitorEntry = {
   shadowedTier?: string
 }
 
+// a VM's shadowed tier its host's agent left without an isolated pass
+// (vdf#86, past its cap of tier visits): what the policy alone would drop
+// there isn't checked
+export type VdfMonitorUnchecked = {
+  policy: string
+  vm: string
+  vmName: string
+  vif: string
+  egress?: boolean
+  tier: string
+  shadowedBy: string[]
+}
+
 export type VdfMonitorReport = {
   entries: VdfMonitorEntry[]
+  // absent from older agents and plugins
+  unchecked?: VdfMonitorUnchecked[]
   keepDays?: number
   errors: { host: string; hostName: string; error: string }[]
 }

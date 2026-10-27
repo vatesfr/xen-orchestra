@@ -139,11 +139,19 @@ export function monitorShadows(document: VdfDocument, interfaces: VdfInterfaceGr
 // went unchecked (shadowedUnchecked: past the agent's cap of shadowed
 // tiers). statusOf: a VM's host status, `running` false for a VM that
 // isn't.
+// `unchecked`: the shadowed tiers the agents report left without an
+// isolated pass (the monitor report's): a VM of the shadow among them for
+// its policy isn't covered.
 export function isShadowCovered(
   shadow: VdfMonitorShadow,
-  statusOf: (vmId: string) => { running: boolean; status?: VdfHostStatusDocument }
+  statusOf: (vmId: string) => { running: boolean; status?: VdfHostStatusDocument },
+  unchecked: { policy: string; vm: string }[] = []
 ) {
-  if (!shadow.sameTier || shadow.byMonitored) {
+  if (
+    !shadow.sameTier ||
+    shadow.byMonitored ||
+    unchecked.some(item => item.policy === shadow.policy && shadow.vms.some(vm => vm.id === item.vm))
+  ) {
     return false
   }
 

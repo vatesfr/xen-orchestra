@@ -170,6 +170,17 @@ describe('isShadowCovered', () => {
     expect(isShadowCovered(sameTier, on({ a: newAgent, b: unchecked }))).toBe(false)
   })
 
+  // the monitor report's: the shadowed tiers an agent left without an
+  // isolated pass, past its cap of tier visits
+  it('not for a VM whose shadowed tier the agent left unchecked', () => {
+    const statuses = on({ a: newAgent, b: newAgent })
+
+    expect(isShadowCovered(sameTier, statuses, [{ policy: 'cache', vm: 'b' }])).toBe(false)
+    // another policy's, another VM's: covered all the same
+    expect(isShadowCovered(sameTier, statuses, [{ policy: 'db', vm: 'b' }])).toBe(true)
+    expect(isShadowCovered(sameTier, statuses, [{ policy: 'cache', vm: 'z' }])).toBe(true)
+  })
+
   it('not with an older agent, another policy named, or no VM running', () => {
     expect(isShadowCovered(sameTier, on({ a: newAgent, b: oldAgent }))).toBe(false)
     expect(isShadowCovered(sameTier, on({ a: newAgent, b: undefined }))).toBe(false)

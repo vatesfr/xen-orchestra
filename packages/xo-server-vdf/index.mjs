@@ -313,6 +313,23 @@ export function mergeMonitor(hosts) {
   return [...byKey.values()].sort((a, b) => (a.last > b.last ? -1 : a.last < b.last ? 1 : 0))
 }
 
+// The shadowed tiers each host's agent left without an isolated pass
+// (vdf#86, past its cap of tier visits): what their monitored policies
+// alone would drop isn't checked there. One per policy, VIF, direction and
+// tier, whatever the hosts (a VM that moved); absent from older agents.
+export function mergeUnchecked(hosts) {
+  const byKey = new Map()
+  for (const { unchecked = [] } of hosts) {
+    for (const item of Array.isArray(unchecked) ? unchecked : []) {
+      const key = [item.policy, item.vif, item.egress === true ? 'out' : 'in', item.tier].join('|')
+      if (!byKey.has(key)) {
+        byKey.set(key, item)
+      }
+    }
+  }
+  return [...byKey.values()]
+}
+
 const userLabel = user => user?.email ?? user?.name ?? user?.id
 
 const isAdmin = user => user?.permission === 'admin'
@@ -2134,6 +2151,8 @@ class VdfPlugin {
           const hosts = await this.#onEachHost(this.#getXapi(req.params.id), 'monitor', args)
           return {
             entries: mergeMonitor(hosts),
+            // vdf#86: shadowed tiers past the agents' cap, not checked
+            unchecked: mergeUnchecked(hosts),
             keepDays: hosts.find(host => host.keepDays !== undefined)?.keepDays,
             errors: hosts.filter(host => host.error !== undefined),
           }

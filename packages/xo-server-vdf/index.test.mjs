@@ -3,7 +3,7 @@ import { strict as assert } from 'node:assert'
 
 import Ajv from 'ajv'
 
-import createPlugin, { docId, importStore, mergeMonitor, publishedPolicy } from './index.mjs'
+import createPlugin, { docId, importStore, mergeMonitor, mergeUnchecked, publishedPolicy } from './index.mjs'
 
 const POOL = 'pool-1'
 
@@ -509,6 +509,43 @@ describe('mergeMonitor', () => {
       merged.map(e => e.port),
       [9100, 22]
     )
+  })
+})
+
+// vdf#86: the shadowed tiers past an agent's cap of tier visits, without
+// an isolated pass
+describe('mergeUnchecked', () => {
+  const item = fields => ({
+    policy: 'cache',
+    vm: 'vm-1',
+    vmName: 'app-1',
+    vif: 'vif-1',
+    tier: 'platform',
+    shadowedBy: ['web'],
+    ...fields,
+  })
+
+  test('concatenated across hosts, once per policy, VIF, direction and tier', () => {
+    const merged = mergeUnchecked([
+      { host: 'h1', unchecked: [item(), item({ egress: true }), item({ tier: 'baseline' })] },
+      // the VM moved: the same tiers on another host
+      { host: 'h2', unchecked: [item(), item({ vif: 'vif-2' }), item({ policy: 'db' })] },
+      // older agents, a host down
+      { host: 'h3' },
+      { host: 'h4', error: 'host is not live' },
+      { host: 'h5', unchecked: 'not a list' },
+    ])
+    assert.deepEqual(
+      merged.map(u => [u.policy, u.vif, u.egress === true, u.tier]),
+      [
+        ['cache', 'vif-1', false, 'platform'],
+        ['cache', 'vif-1', true, 'platform'],
+        ['cache', 'vif-1', false, 'baseline'],
+        ['cache', 'vif-2', false, 'platform'],
+        ['db', 'vif-1', false, 'platform'],
+      ]
+    )
+    assert.deepEqual(mergeUnchecked([{ host: 'h1' }]), [])
   })
 })
 

@@ -31,10 +31,7 @@
         </UiToggle>
       </div>
 
-      <!--
- vdf#86: an enforced policy decides first for some of the VMs; the
-           agents' isolated pass covers what it alone would drop (below) 
--->
+      <!-- vdf#86: an enforced policy decides first for some of the VMs; the agents' isolated pass covers what it alone would drop (below) -->
       <UiAlert v-if="coveredShadows.length > 0" accent="info">
         {{ t('firewall:monitor:shadow:covered:title', { n: coveredShadows.length }, coveredShadows.length) }}
         <template #description>
@@ -114,10 +111,17 @@
         </ul>
       </section>
 
-      <!--
- vdf#86: what a policy alone would drop, once the enforced
-           policies of its tier no longer apply to the VMs 
--->
+      <!-- vdf#86: shadowed tiers past the agents' cap: not checked -->
+      <UiAlert v-if="uncheckedItems.length > 0" accent="warning" class="unchecked">
+        {{ t('firewall:monitor:unchecked:title', { n: uncheckedItems.length }, uncheckedItems.length) }}
+        <template #description>
+          <ul class="shadows">
+            <li v-for="item of uncheckedItems" :key="item.key">{{ item.text }}</li>
+          </ul>
+        </template>
+      </UiAlert>
+
+      <!-- vdf#86: what a policy alone would drop, once the enforced policies of its tier no longer apply to the VMs -->
       <section v-for="group of aloneSections" :key="group.key" class="suggestions alone">
         <div class="suggestions-title">
           <span class="typo-body-bold">
@@ -241,7 +245,7 @@ import {
 } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { portsContain } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { isShadowCovered, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import { isShadowCovered, shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
@@ -397,10 +401,34 @@ function statusOfVm(vmId: string) {
 }
 
 // the agents cover these: the report has what the policy alone would drop
-const coveredShadows = computed(() => allShadows.value.filter(shadow => isShadowCovered(shadow, statusOfVm)))
+// (a VM whose shadowed tier the agent left unchecked, past its cap, isn't)
+const unchecked = computed(() => monitor.value?.unchecked ?? [])
 
-// these they don't (older agents, an earlier tier deciding first)
-const shadows = computed(() => allShadows.value.filter(shadow => !isShadowCovered(shadow, statusOfVm)))
+const isCovered = (shadow: VdfMonitorShadow) => isShadowCovered(shadow, statusOfVm, unchecked.value)
+
+const coveredShadows = computed(() => allShadows.value.filter(isCovered))
+
+// these they don't (older agents, an earlier tier deciding first, unchecked)
+const shadows = computed(() => allShadows.value.filter(shadow => !isCovered(shadow)))
+
+// a tier as the report names it (its name, or a number)
+const tierLabel = useVdfTierLabel()
+
+// the shadowed tiers of the shown policies left unchecked, in words
+const uncheckedItems = computed(() => {
+  const names = new Set(shownPolicies.value.map(policy => policy.name))
+
+  return unchecked.value
+    .filter(item => names.has(item.policy))
+    .map(item => ({
+      key: `${item.policy}|${item.vif}|${item.egress ? 'out' : 'in'}|${item.tier}`,
+      text: t(item.egress ? 'firewall:monitor:unchecked:egress' : 'firewall:monitor:unchecked:ingress', {
+        policy: displayName(item.policy),
+        tier: tierLabel(reportedTierValue(item.tier)),
+        vm: vmById.value.get(item.vm)?.name_label ?? item.vmName,
+      }),
+    }))
+})
 
 // SUGGESTED RULES, per monitored policy (the pool's own are added to the
 // draft from here; a global one is edited in the global firewall)
@@ -481,9 +509,6 @@ function addAll(_policy: string, suggestions: VdfSuggestion[]) {
 
 const formatNames = (names: string[]) =>
   new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(names.map(name => displayName(name)))
-
-// a tier as the report names it (its name, or a number)
-const tierLabel = useVdfTierLabel()
 
 const monitorTierLabel = (tier: string) => tierLabel(reportedTierValue(tier))
 

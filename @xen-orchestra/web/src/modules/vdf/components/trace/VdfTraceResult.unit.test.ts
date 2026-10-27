@@ -94,6 +94,22 @@ it('shows each isolated pass with its shadowed tier', () => {
   )
 })
 
+// the what-if pass: shadowed tiers past the agent's cap, no isolated pass
+it('says which shadowed tiers a pass left unchecked', () => {
+  const wrapper = mountResult([whatIf({ unchecked: [25, 75] })])
+
+  expect(wrapper.get('.monitor .unchecked').text()).toContain(
+    t('firewall:trace:monitor:unchecked', {
+      tiers: `${t('firewall:tier:securityops')} and ${t('firewall:tier:platform')}`,
+    })
+  )
+  expect(
+    mountResult([whatIf({})])
+      .find('.monitor .unchecked')
+      .exists()
+  ).toBe(false)
+})
+
 it('an older agent: no monitor, nothing shown', () => {
   expect(mountResult().find('.monitor').exists()).toBe(false)
 })

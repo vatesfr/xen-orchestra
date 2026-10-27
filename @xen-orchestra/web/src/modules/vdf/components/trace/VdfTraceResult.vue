@@ -71,10 +71,7 @@
           </div>
         </li>
       </ol>
-      <!--
- monitor mode's what-if passes (vdf#13); an isolated pass (vdf#86)
-           apart, after the pass it forks from 
--->
+      <!-- monitor mode's what-if passes (vdf#13); an isolated pass (vdf#86) apart, after the pass it forks from -->
       <div v-if="(hop.hop.monitor ?? []).length > 0" class="monitor">
         <span class="typo-body-bold-small">{{ t('firewall:trace:monitor') }}</span>
         <UiInfo
@@ -88,6 +85,10 @@
           <span class="typo-body-bold-small">{{ whatIfLabel(pass) }}</span>
           {{ pass.text }}
           <span v-if="pass.recorded" class="secondary">{{ t('firewall:trace:monitor:recorded') }}</span>
+          <!-- vdf#86: shadowed tiers past the agent's cap, no isolated pass -->
+          <span v-if="(pass.unchecked ?? []).length > 0" class="unchecked">
+            {{ t('firewall:trace:monitor:unchecked', { tiers: uncheckedTiers(pass) }) }}
+          </span>
         </UiInfo>
       </div>
       <VdfTechnicalDetails :label="t('firewall:trace:ovs-details')">
@@ -358,6 +359,9 @@ function whatIfLabel(pass: VdfTraceWhatIf) {
 
   return t(pass.egress ? 'firewall:trace:monitor:egress' : 'firewall:trace:monitor:ingress')
 }
+
+const uncheckedTiers = (pass: VdfTraceWhatIf) =>
+  new Intl.ListFormat(locale.value, { type: 'conjunction' }).format((pass.unchecked ?? []).map(tierLabel))
 
 const whatIfAccent = (pass: VdfTraceWhatIf) =>
   pass.verdict === 'would-drop' ? 'warning' : pass.verdict === 'would-allow' ? 'success' : 'muted'

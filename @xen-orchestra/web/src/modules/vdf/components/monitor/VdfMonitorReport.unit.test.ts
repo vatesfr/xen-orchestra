@@ -8,7 +8,7 @@ import type { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monito
 import type { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import type { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
-import type { VdfDocument, VdfMonitorEntry } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfMonitorEntry, VdfMonitorUnchecked } from '@/modules/vdf/types.ts'
 import type { VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
@@ -25,6 +25,7 @@ import { computed, ref } from 'vue'
 const { data } = vi.hoisted(() => ({
   data: {
     entries: [] as VdfMonitorEntry[],
+    unchecked: [] as VdfMonitorUnchecked[],
     hosts: [] as FrontXoHost[],
     shadows: [] as VdfMonitorShadow[],
   },
@@ -42,7 +43,7 @@ const VM = createVm({ id: 'vm-cache' as FrontXoVm['id'], $pool: 'pool-1' as Fron
 
 vi.mock(import('@/modules/vdf/remote-resources/use-vdf-monitor.ts'), () => ({
   useVdfMonitor: (() => ({
-    monitor: ref({ entries: data.entries, errors: [] }),
+    monitor: ref({ entries: data.entries, unchecked: data.unchecked, errors: [] }),
     isMonitorReady: ref(true),
     hasMonitorError: ref(false),
     monitorError: ref(undefined),
@@ -136,6 +137,7 @@ async function mountReport() {
 beforeEach(() => {
   data.entries = [entry({}), entry({ port: 6379, alone: true, shadowedBy: ['web'], count: 4 })]
   data.shadows = []
+  data.unchecked = []
   withHost(['web'])
 })
 
@@ -189,6 +191,30 @@ it('orders the sections by tier rank, not by name', async () => {
     expect.stringContaining('6380'),
     expect.stringContaining('6381'),
   ])
+})
+
+// the shadowed tiers past the agent's cap of tier visits: said, and the
+// shadow on those VMs keeps XO's warning
+it('says which shadowed tiers were not checked, and keeps the warning there', async () => {
+  data.shadows = [SHADOW]
+  data.unchecked = [
+    {
+      policy: 'cache',
+      vm: 'vm-cache',
+      vmName: 'cache',
+      vif: 'vif-1',
+      egress: true,
+      tier: 'platform',
+      shadowedBy: ['web'],
+    },
+  ]
+  const wrapper = await mountReport()
+
+  expect(wrapper.get('.unchecked').text()).toContain(
+    t('firewall:monitor:unchecked:egress', { policy: 'cache', tier: t('firewall:tier:platform'), vm: VM.name_label })
+  )
+  expect(wrapper.text()).toContain('blind:cache')
+  expect(wrapper.text()).not.toContain('covered:cache')
 })
 
 it('an older agent: no alone entries, no section', async () => {
