@@ -87,12 +87,18 @@ class Netbox {
     if (state.loaded) {
       clearInterval(this.#intervalToken)
       if (this.#syncInterval !== undefined) {
-        this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
+        this.#intervalToken = setInterval(this.#autoSynchronize, this.#syncInterval)
       }
     }
   }
 
   #onUnload = []
+
+  #autoSynchronize = () => {
+    this.#synchronize().catch(error => {
+      log.warn('Automatic synchronization failed', { error })
+    })
+  }
 
   load() {
     const synchronize = ({ pools }) => this.#synchronize(pools)
@@ -108,7 +114,7 @@ class Netbox {
     )
 
     if (this.#syncInterval !== undefined) {
-      this.#intervalToken = setInterval(this.#synchronize.bind(this), this.#syncInterval)
+      this.#intervalToken = setInterval(this.#autoSynchronize, this.#syncInterval)
       this.#onUnload.push(() => {
         clearInterval(this.#intervalToken)
       })
@@ -925,7 +931,39 @@ class Netbox {
     // Perform calls to Netbox
     await this.#request('/ipam/ip-addresses/', 'DELETE', ipsToDelete)
     ipsToDelete.forEach(({ id }) => delete nbIps[id])
-    Object.assign(nbIps, keyBy(await this.#request('/ipam/ip-addresses/', 'POST', ipsToCreate), 'id'))
+
+    // Create IPs chunk by chunk, if Netbox rejects a chunk, retry its
+    // IPs one by one so that a single conflict doesn't block the others
+    const newIps = []
+    const rejectedIps = []
+    for (let offset = 0; offset < ipsToCreate.length; offset += CHUNK_SIZE) {
+      const chunk = ipsToCreate.slice(offset, offset + CHUNK_SIZE)
+      try {
+        newIps.push(...(await this.#request('/ipam/ip-addresses/', 'POST', chunk)))
+      } catch (chunkError) {
+        if (chunkError?.response?.status !== 400) {
+          throw chunkError
+        }
+
+        for (const nbIp of chunk) {
+          try {
+            newIps.push(await this.#request('/ipam/ip-addresses/', 'POST', nbIp))
+          } catch (ipError) {
+            if (ipError?.response?.status !== 400) {
+              throw ipError
+            }
+
+            rejectedIps.push({ ip: nbIp.address, netboxError: ipError.netboxError })
+          }
+        }
+      }
+    }
+
+    if (rejectedIps.length > 0) {
+      log.warn(`Could not create ${rejectedIps.length} IP addresses`, rejectedIps[0])
+    }
+
+    Object.assign(nbIps, keyBy(newIps, 'id'))
 
     // Primary IPs -------------------------------------------------------------
 
