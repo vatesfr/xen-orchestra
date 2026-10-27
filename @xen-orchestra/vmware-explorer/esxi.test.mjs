@@ -348,6 +348,172 @@ const taskInfo = (state, extra = {}) =>
 
 const startedTask = () => ({ returnval: moRef('Task', 'task-1') })
 
+describe('shutdown', function () {
+  /**
+   * @param {object} params
+   * @param {string} [params.toolsStatus] - `guest.toolsRunningStatus`
+   * @param {Array<string | Error>} params.powerStates - successive answers for `runtime.powerState`, an
+   * error is thrown, the last one repeats
+   * @param {() => object} [params.shutdownGuest] - answer to `ShutdownGuest`, may throw
+   * @param {string} [params.powerOffState] - state of the `PowerOffVM_Task`
+   */
+  const shutdownEsxi = ({
+    toolsStatus = 'guestToolsRunning',
+    powerStates,
+    shutdownGuest = () => ({}),
+    powerOffState = 'success',
+  }) => {
+    const states = [...powerStates]
+    return connectedEsxi({
+      responses: {
+        ShutdownGuest: shutdownGuest,
+        PowerOffVM_Task: () => startedTask(),
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { pathSet, type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return powerOffState === 'success'
+              ? taskInfo('success')
+              : taskInfo(powerOffState, {
+                  error: {
+                    attributes: { 'xsi:type': 'LocalizedMethodFault' },
+                    fault: { attributes: { 'xsi:type': 'InvalidPowerState' } },
+                    localizedMessage: 'The attempted operation cannot be performed in the current state (Powered off).',
+                  },
+                })
+          }
+          if (pathSet[0] === 'guest.toolsRunningStatus') {
+            return propertyOf('VirtualMachine', 'vm-1', pathSet[0], toolsStatus)
+          }
+          const state = states.length > 1 ? states.shift() : states[0]
+          if (state instanceof Error) {
+            throw state
+          }
+          return propertyOf('VirtualMachine', 'vm-1', pathSet[0], state)
+        },
+      },
+    })
+  }
+
+  it('asks the guest to shut down and waits for it', async function () {
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOn', 'poweredOff'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'shutdown')
+    assert.deepEqual(vimClient.callsTo('ShutdownGuest')[0].args, { _this: 'vm-1' })
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+
+  it('powers the VM off when the VMware tools do not run', async function () {
+    const { esxi, vimClient } = await shutdownEsxi({ toolsStatus: 'guestToolsNotRunning', powerStates: ['poweredOn'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'powerOff')
+    assert.equal(vimClient.callsTo('ShutdownGuest').length, 0)
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('powers the VM off when the guest refuses, or does not shut down in time', async function () {
+    const refusing = await shutdownEsxi({
+      powerStates: ['poweredOn'],
+      shutdownGuest: () => {
+        throw Object.assign(new Error('ToolsUnavailable'), { code: 'ToolsUnavailable' })
+      },
+    })
+    assert.equal(await refusing.esxi.shutdown('vm-1', { pollInterval: 1 }), 'powerOff')
+
+    const stuck = await shutdownEsxi({ powerStates: ['poweredOn'] })
+    assert.equal(await stuck.esxi.shutdown('vm-1', { pollInterval: 1, timeout: 5 }), 'powerOff')
+    assert.equal(stuck.vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('polls again when reading the power state fails transiently', async function () {
+    const reset = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' })
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', reset, 'poweredOn', 'poweredOff'] })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1 }), 'shutdown')
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 0)
+  })
+
+  it('succeeds when the power off is refused because the VM is already off', async function () {
+    // the read while waiting, then the one after the refused power off
+    const { esxi, vimClient } = await shutdownEsxi({ powerStates: ['poweredOn', 'poweredOff'], powerOffState: 'error' })
+
+    assert.equal(await esxi.shutdown('vm-1', { pollInterval: 1, timeout: 0 }), 'shutdown')
+    assert.equal(vimClient.callsTo('PowerOffVM_Task').length, 1)
+  })
+
+  it('fails when the power off is refused and the VM is still running', async function () {
+    const { esxi } = await shutdownEsxi({
+      toolsStatus: 'guestToolsNotRunning',
+      powerStates: ['poweredOn'],
+      powerOffState: 'error',
+    })
+
+    await assert.rejects(esxi.shutdown('vm-1', { pollInterval: 1 }))
+  })
+})
+
+describe('removeSnapshot', function () {
+  it('removes only the snapshot, and consolidates its disks', async function () {
+    const { esxi, vimClient } = await connectedEsxi({
+      responses: {
+        RemoveSnapshot_Task: () => startedTask(),
+        RetrievePropertiesEx: () => taskInfo('success'),
+      },
+    })
+
+    await esxi.removeSnapshot('snapshot-1')
+    assert.deepEqual(vimClient.callsTo('RemoveSnapshot_Task')[0].args, {
+      _this: 'snapshot-1',
+      removeChildren: false,
+      consolidate: true,
+    })
+  })
+})
+
+describe('enableChangeTracking', function () {
+  // `undefined` answers the property as absent, like a VM which has never been tracked
+  const trackingEsxi = enabled =>
+    connectedEsxi({
+      responses: {
+        ReconfigVM_Task: () => startedTask(),
+        RetrievePropertiesEx: ({ specSet }) => {
+          const { pathSet, type } = specSet[0].propSet[0]
+          if (type === 'Task') {
+            return taskInfo('success')
+          }
+          return enabled === undefined
+            ? { returnval: { objects: [{ obj: moRef('VirtualMachine', 'vm-1'), propSet: [] }] } }
+            : propertyOf('VirtualMachine', 'vm-1', pathSet[0], enabled)
+        },
+      },
+    })
+
+  it('turns the tracking on when it is off', async function () {
+    const { esxi, vimClient } = await trackingEsxi('false')
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), true)
+    const [{ args }] = vimClient.callsTo('ReconfigVM_Task')
+    assert.equal(args._this, 'vm-1')
+    assert.deepEqual(args.spec, {
+      attributes: { 'xsi:type': 'VirtualMachineConfigSpec' },
+      changeTrackingEnabled: true,
+    })
+  })
+
+  it('turns the tracking on when the VM has never been tracked', async function () {
+    const { esxi, vimClient } = await trackingEsxi(undefined)
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), true)
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 1)
+  })
+
+  it('does not reconfigure a VM already tracked', async function () {
+    const { esxi, vimClient } = await trackingEsxi('true')
+
+    assert.equal(await esxi.enableChangeTracking('vm-1'), false)
+    assert.equal(vimClient.callsTo('ReconfigVM_Task').length, 0)
+  })
+})
+
 describe('tasks', function () {
   it('resolves with the info of the successful task', async function () {
     const { esxi, vimClient } = await connectedEsxi({
@@ -1536,6 +1702,42 @@ RW 16384 VMFSSPARSE "vm-000001-delta.vmdk"
         { code: 'NO_DATA_MAP' }
       )
       assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 1)
+    })
+
+    describe('isChangeTrackingReady', function () {
+      it('is ready when the host answers for every disk of a powered off VM', async function () {
+        const { esxi, vimClient } = await cbtEsxi()
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), true)
+        // a single answer per disk is enough, the disk is not walked
+        const queries = vimClient.callsTo('QueryChangedDiskAreas')
+        assert.equal(queries.length, 1)
+        assert.deepEqual(queries[0].args, { _this: 'vm-1', deviceKey: 2000, startOffset: 0, changeId: '*' })
+      })
+
+      it('is not ready when the host refuses to answer for a disk of a powered off VM', async function () {
+        const { esxi } = await cbtEsxi({
+          queryChangedDiskAreas: () => {
+            throw Object.assign(new Error('FileFault'), { code: 'FileFault' })
+          },
+        })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), false)
+      })
+
+      it('is ready when the current snapshot of a running VM recorded a changeId', async function () {
+        const { esxi, vimClient } = await cbtEsxi({ powerState: 'poweredOn' })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), true)
+        assert.equal(vimClient.callsTo('QueryChangedDiskAreas').length, 0)
+      })
+
+      it('is not ready when the current snapshot of a running VM predates the tracking', async function () {
+        // e.g. a previous run turned the tracking on, then failed before taking its snapshot
+        const { esxi } = await cbtEsxi({ powerState: 'poweredOn', changeId: null })
+
+        assert.equal(await esxi.isChangeTrackingReady('vm-1'), false)
+      })
     })
   })
 })
