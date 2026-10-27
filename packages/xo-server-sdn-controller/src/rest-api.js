@@ -1,5 +1,5 @@
 import { flatMap } from 'lodash'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
 const QUERY_SYNC = { sync: { type: 'boolean', optional: true } }
@@ -14,10 +14,15 @@ const RULE_FIELDS = {
   port: { type: 'number', example: 443, optional: true },
 }
 
-const PRIORITY_FIELD = { type: 'number', example: 40000, optional: true }
+// optional for the schema: required with the XAPI plugin, refused without it
+const PRIORITY_FIELD = { type: 'number', example: 100, optional: true }
 
-const PRIORITY_DESCRIPTION =
-  '`priority` is the OpenFlow priority of the rule, from 0 to 65535, 32768 when absent: of the rules of a network matching a packet, network and VIF rules alike, the one with the highest priority applies. It needs the XAPI plugin: the direct OpenFlow channel ignores it.'
+const PRIORITY_DESCRIPTION = [
+  '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, required with the XAPI plugin and refused without it (`useDirectChannel` in the configuration).',
+  'Of the rules of a network matching a packet, network and VIF rules alike, the one with the highest priority applies: a rule of priority 30 applies before a rule of priority 20.',
+  'Two rules of a network cannot have the same priority.',
+  'Leave room between priorities (100, 110, 120…, not 101, 102, 103…): a rule can then go between two others without renumbering them.',
+].join(' ')
 
 const BODY_UPDATE_RULE = {
   oldRule: { type: 'object', fields: RULE_FIELDS },
@@ -89,11 +94,9 @@ function vmVifsOf(xo, networkId) {
     .filter(vif => xo.getObject(vif.$VM).type === 'VM')
 }
 
-// The body schema only knows numbers, and the rule methods log their errors instead of throwing them
-function checkPriority(priority) {
-  if (priority != null && !(Number.isInteger(priority) && priority >= 0 && priority <= 65535)) {
-    throw invalidParameters(`priority must be an integer from 0 to 65535, not ${priority}`)
-  }
+// The rules of a network, then those of the VIFs of its VMs
+export function listNetworkRules(xo, networkId) {
+  return [xo.getObject(networkId, 'network'), ...vmVifsOf(xo, networkId)].flatMap(listedRules)
 }
 
 function rulesEqual(a, b) {
@@ -165,10 +168,7 @@ function listNetworkRulesRoute(controller) {
         ],
       },
     ],
-    callback: ({ req }) => {
-      const { id } = req.params
-      return [controller._xo.getObject(id, 'network'), ...vmVifsOf(controller._xo, id)].flatMap(listedRules)
-    },
+    callback: ({ req }) => listNetworkRules(controller._xo, req.params.id),
   }
 }
 
@@ -201,12 +201,16 @@ function addRuleRoute(controller, resource) {
     responses: [
       { status: 204, description: 'Rule added successfully' },
       { status: 404, description: `No ${resource.type} found for this ID` },
-      { status: 422, description: 'Invalid rule or priority' },
+      { status: 409, description: 'Another rule of the network has this priority' },
+      {
+        status: 422,
+        description: 'Invalid rule, priority missing with the XAPI plugin, or given without it',
+      },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
-      checkPriority(req.body.priority)
       const rule = ruleFromBody(req, resource.idKey)
+      controller._checkTrafficRulePriority(rule, req.body.priority)
       return createAction(() => resource.addRule(controller, rule), {
         sync: req.query.sync ?? false,
         statusCode: 204,
@@ -274,24 +278,28 @@ function updateRuleRoute(controller, resource) {
     responses: [
       { status: 204, description: 'Rule updated successfully' },
       { status: 404, description: `Old rule does not exist on this ${resource.type}` },
-      { status: 422, description: 'Invalid rule or priority' },
+      { status: 409, description: 'Another rule of the network has the new priority' },
+      {
+        status: 422,
+        description: 'Invalid rule, priority missing with the XAPI plugin, or given without it',
+      },
     ],
     middlewares: jsonAndAcl(resource.acl),
     callback: ({ req, createAction }) => {
       const { oldRule, newRule: partialNewRule } = req.body
       const id = req.params.id
-      checkPriority(partialNewRule.priority)
+      const object = controller._xo.getObject(id, resource.type)
+      const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
+      // patched rather than `oldRule`, so that a priority `newRule` leaves out is kept
+      const storedRule = rules.find(rule => rulesEqual(rule, oldRule))
+      if (storedRule === undefined) {
+        throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
+      }
+      const newRule = applyRulePatch(storedRule, partialNewRule)
+      controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority, storedRule.priority)
+
       return createAction(
         async () => {
-          const object = controller._xo.getObject(id, resource.type)
-          const rules = parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY])
-          // patched rather than `oldRule`, so that a priority `newRule` leaves out is kept
-          const storedRule = rules.find(rule => rulesEqual(rule, oldRule))
-          if (storedRule === undefined) {
-            throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
-          }
-          const newRule = applyRulePatch(storedRule, partialNewRule)
-
           await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
           await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
         },

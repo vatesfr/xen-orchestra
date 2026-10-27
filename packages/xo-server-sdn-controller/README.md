@@ -39,7 +39,7 @@ POST /vifs/{id}/actions/add_traffic_rule :
 | `ipRange`   | string                | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                         |
 | `port`      | string                | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`.          |
 | `protocol`  | string                | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).                    |
-| `priority`  | number                | No       | OpenFlow priority, from 0 to 65535 (32768 if omitted): the highest applies first.            |
+| `priority`  | number                | Yes      | OpenFlow priority, 0 to 65535, unique on the network, highest first. XAPI plugin only.       |
 
 Deletes a new rule
 POST /vifs/{id}/actions/delete_traffic_rule :
@@ -65,7 +65,7 @@ POST /networks/{id}/actions/add_traffic_rule :
 | `ipRange`   | string                | Yes      | IP address or range. Example: `"111.168.1.2"` or `"111.168.1.0/24"`.                         |
 | `port`      | string                | No       | Port or port range. Empty string means all ports. Example: `"80"` or `"1000-2000"`.          |
 | `protocol`  | string                | Yes      | Network protocol. Common values: `"TCP"`, `"UDP"`, `"IP"` (any protocol).                    |
-| `priority`  | number                | No       | OpenFlow priority, from 0 to 65535 (32768 if omitted): the highest applies first.            |
+| `priority`  | number                | Yes      | OpenFlow priority, 0 to 65535, unique on the network, highest first. XAPI plugin only.       |
 
 Deletes a new rule at network level
 POST /networks/{id}/actions/delete_traffic_rule :

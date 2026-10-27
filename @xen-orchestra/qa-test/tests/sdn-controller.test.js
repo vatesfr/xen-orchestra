@@ -13,12 +13,14 @@ const BASE = '/rest/v0/plugins/sdn-controller'
 // Note : this test assumes that the config has the useDirectChannel option set to false
 // the old backend is being replaced and doesn't have support for network rules deletion, and is generally unstable.
 
+// Priorities are unique on a network: the network rule tests delete theirs before the VIF ones add it
 const VALID_RULE = {
   allow: true,
   direction: 'from',
   ipRange: '10.0.0.0/8',
   protocol: 'TCP',
   port: 8080,
+  priority: 31000,
 }
 
 // the rules of a network or a VIF, stored as JSON strings inside their `other_config`
@@ -66,7 +68,14 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     log.debug('Test IDs derived from VM', { vifId, networkId })
 
     // Throwaway VIF add+delete: force the lazy SDN controller install on a pristine pool
-    const SENTINEL_RULE = { allow: true, direction: 'to', ipRange: '192.0.2.0/24', protocol: 'UDP', port: 1 }
+    const SENTINEL_RULE = {
+      allow: true,
+      direction: 'to',
+      ipRange: '192.0.2.0/24',
+      protocol: 'UDP',
+      port: 1,
+      priority: 30999,
+    }
     try {
       await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/add_traffic_rule?sync=true`, SENTINEL_RULE)
       await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/delete_traffic_rule?sync=true`, {
@@ -214,6 +223,8 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
         await dispatchClient.restApiClient.post(`${BASE}/networks/${networkId}/actions/add_traffic_rule?sync=true`, {
           ...VALID_RULE,
           allow: false,
+          // the rule still has its own
+          priority: VALID_RULE.priority + 1,
         })
         const rules = await getNetworkRules()
         const matching = rules.filter(r => ruleKey(r) === ruleKey(VALID_RULE))
@@ -352,8 +363,11 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(found.allow, true)
     })
 
-    itSdn('should not duplicate the rule when added again', async () => {
-      await dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/add_traffic_rule?sync=true`, VALID_RULE)
+    itSdn('should reject the rule added again with its priority, without duplicating it', async () => {
+      await assert.rejects(
+        dispatchClient.restApiClient.post(`${BASE}/vifs/${vifId}/actions/add_traffic_rule?sync=true`, VALID_RULE),
+        { message: /^HTTP 409:/ }
+      )
       const rules = await getVifRules()
       const matching = rules.filter(r => ruleKey(r) === ruleKey(VALID_RULE))
       assert.strictEqual(matching.length, 1, 'Rule must not be duplicated')
@@ -463,14 +477,20 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       assert.strictEqual(rule.priority, 45000)
     })
 
-    itSdn('should remove the priority when an update sets it to null', async () => {
-      await updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: null })
-      assert.deepStrictEqual(findRule(await listRules('networks', networkId), NET_RULE, networkId), {
-        ...NET_RULE,
-        allow: false,
-        type: 'network',
-        sourceId: networkId,
-      })
+    itSdn('should reject a rule without a priority, or an update removing it', async () => {
+      await rejectsWithStatus(addRule('networks', networkId, { ...NET_RULE, port: 1443 }), 422)
+      await rejectsWithStatus(updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: null }), 422)
+      assert.strictEqual(findRule(await listRules('networks', networkId), NET_RULE, networkId)?.priority, 45000)
+    })
+
+    // network and VIF rules alike
+    itSdn('should reject a priority another rule of the network has', async () => {
+      await rejectsWithStatus(addRule('networks', networkId, { ...NET_RULE, port: 2443, priority: 50000 }), 409)
+      await rejectsWithStatus(addRule('vifs', vifId, { ...VIF_RULE, port: 2222, priority: 45000 }), 409)
+      await rejectsWithStatus(
+        updateRule('networks', networkId, { ...NET_RULE, allow: false }, { priority: 50000 }),
+        409
+      )
     })
 
     // without sync, the 422 comes before the task, which an async call does not wait for
@@ -494,6 +514,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       await assert.rejects(
         dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match, priority: 65536 })
       )
+      await assert.rejects(dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match }))
       await dispatchClient.xoClient.call('sdnController.addNetworkRule', { networkId, allow, ...match, priority: 0 })
       assert.strictEqual(findRule(await listRules('networks', networkId), match, networkId)?.priority, 0)
 

@@ -8,13 +8,14 @@ import { filter, find, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
+import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { createRestRoutes } from './rest-api'
+import { createRestRoutes, listNetworkRules } from './rest-api'
 
 // =============================================================================
 
@@ -385,7 +386,10 @@ class SDNController extends EventEmitter {
 
     // ---------------- OpenFlow rules method ----------------------------------
 
-    const addRule = params => this._addRule(params)
+    const addRule = params => {
+      this._checkTrafficRulePriority(params, params.priority)
+      return this._addRule(params)
+    }
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
       allow: { type: 'boolean' },
@@ -409,7 +413,10 @@ class SDNController extends EventEmitter {
     }
     deleteRule.permission = 'admin'
 
-    const addNetworkRule = params => this._addNetworkRule(params)
+    const addNetworkRule = params => {
+      this._checkTrafficRulePriority(params, params.priority)
+      return this._addNetworkRule(params)
+    }
     addNetworkRule.description = 'Add an ACL rule to a network'
     addNetworkRule.params = {
       allow: { type: 'boolean' },
@@ -664,6 +671,29 @@ class SDNController extends EventEmitter {
   }
 
   // ===========================================================================
+
+  // Run before anything is written, as the rule methods log their errors instead of throwing
+  // them. `oldPriority` is the one of the rule an update replaces: the rule may keep it even when
+  // another rule has it too, like the copy a clone makes.
+  _checkTrafficRulePriority({ networkId, vifId }, priority, oldPriority) {
+    if (this.#staticConfig.useDirectChannel) {
+      if (priority !== undefined && priority !== oldPriority) {
+        throw invalidParameters('a traffic rule priority needs the XAPI plugin')
+      }
+      return
+    }
+
+    if (priority === undefined) {
+      throw invalidParameters('a traffic rule needs a priority with the XAPI plugin')
+    }
+    if (!Number.isInteger(priority) || priority < 0 || priority > 65535) {
+      throw invalidParameters(`traffic rule priority must be an integer from 0 to 65535, not ${priority}`)
+    }
+    networkId ??= this._xo.getObject(vifId, 'VIF').$network
+    if (priority !== oldPriority && listNetworkRules(this._xo, networkId).some(rule => rule.priority === priority)) {
+      throw objectAlreadyExists({ objectId: String(priority), objectType: 'traffic rule priority' })
+    }
+  }
 
   async _addRule({ allow, direction, ipRange = '', port, priority, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
