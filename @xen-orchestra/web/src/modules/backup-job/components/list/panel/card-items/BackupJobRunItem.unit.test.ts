@@ -9,9 +9,10 @@ import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.t
 import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
@@ -56,7 +57,7 @@ it('links the run to its log in the administration and dates it by its end', () 
   expect(wrapper.getComponent(UiLink).attributes('href')).toBe(`/admin/backup-and-replication/logs?id=${backupRun.id}`)
   expect(findCardLabelledValues(wrapper)).toMatchObject({
     [t('run')]: backupRun.id,
-    [t('date')]: d(1_700_000_014_000, { dateStyle: 'short', timeStyle: 'medium' }),
+    [t('date')]: formatDateTime(1_700_000_014_000),
     [t('status')]: t('success'),
     [t('schedule')]: 'Nightly',
   })
@@ -65,9 +66,7 @@ it('links the run to its log in the administration and dates it by its end', () 
 it('dates a run still in progress by its start', () => {
   const wrapper = mountRun(createBackupLog({ status: 'pending', start: 1_700_000_000_000, end: undefined }))
 
-  expect(findCardLabelledValues(wrapper)[t('date')]).toBe(
-    d(1_700_000_000_000, { dateStyle: 'short', timeStyle: 'medium' })
-  )
+  expect(findCardLabelledValues(wrapper)[t('date')]).toBe(formatDateTime(1_700_000_000_000))
 })
 
 describe('schedule', () => {

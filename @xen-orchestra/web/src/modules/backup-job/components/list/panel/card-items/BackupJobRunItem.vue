@@ -61,6 +61,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -68,7 +69,7 @@ const { backupRun } = defineProps<{
   backupRun: FrontXoBackupLog
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -88,9 +89,7 @@ const scheduleName = computed(() => {
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const formattedRunDate = computed(() =>
-  d(backupRun.end ?? backupRun.start, { dateStyle: 'short', timeStyle: 'medium' })
-)
+const formattedRunDate = computed(() => formatDateTime(backupRun.end ?? backupRun.start))
 
 const errorViewer = computed(() =>
   backupRun.status === 'skipped'

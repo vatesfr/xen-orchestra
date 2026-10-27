@@ -5,10 +5,11 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
@@ -43,7 +44,7 @@ it('shows the name, id, status, cron pattern and next run of a schedule', () => 
     [t('id')]: schedule.id,
     [t('status')]: t('enabled'),
     [t('cron-pattern')]: '0 1 * * *',
-    [t('next-run')]: nextRun !== undefined ? d(nextRun, { dateStyle: 'short', timeStyle: 'medium' }) : '',
+    [t('next-run')]: nextRun !== undefined ? formatDateTime(nextRun) : '',
   })
 })
 

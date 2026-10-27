@@ -60,6 +60,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -67,7 +68,7 @@ const { schedules } = defineProps<{
   schedules: FrontXoSchedule[]
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -79,7 +80,7 @@ const schedulesWithNextRun = computed(() =>
 
     return {
       schedule,
-      nextRun: nextRun !== undefined ? d(nextRun, { dateStyle: 'short', timeStyle: 'medium' }) : undefined,
+      nextRun: nextRun !== undefined ? formatDateTime(nextRun) : undefined,
     }
   })
 )
