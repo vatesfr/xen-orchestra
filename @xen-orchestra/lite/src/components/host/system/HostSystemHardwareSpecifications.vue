@@ -4,13 +4,13 @@
       {{ t('hardware-specifications') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('manufacturer-info')" :value="getHostManufacturerInfo(host)" />
+      <VtsTabularKeyValueRow :label="t('manufacturer-info')" :value="manufacturerInfo" />
       <VtsTabularKeyValueRow
         :label="t('bios-info')"
         :value="`${host.bios_strings['bios-vendor']} (${host.bios_strings['bios-version']})`"
       />
       <VtsTabularKeyValueRow :label="t('cpu-model')" :value="host.cpu_info.modelname" />
-      <VtsTabularKeyValueRow :label="t('core-socket')" :value="getHostCoreSocketInfo(host)" />
+      <VtsTabularKeyValueRow :label="t('core-socket')" :value="coreSocketInfo" />
       <VtsTabularKeyValueRow :label="t('gpus')">
         <template v-if="isReady" #value>
           <template v-if="devicesNames">
@@ -36,6 +36,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -48,6 +49,10 @@ const { pGpusByHost, isReady: isPgpuReady } = usePgpuStore().subscribe()
 const { getByOpaqueRef: getPciByOpaqueRef, isReady: isPciReady } = usePciStore().subscribe()
 
 const isReady = logicAnd(isPgpuReady, isPciReady)
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 
 const devicesNames = useArrayReduce(
   () => pGpusByHost.value.get(host.$ref) ?? [],

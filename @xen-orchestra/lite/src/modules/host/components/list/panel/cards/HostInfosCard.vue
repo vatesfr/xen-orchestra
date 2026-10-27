@@ -92,10 +92,10 @@
         <template #key>{{ t('patches') }}</template>
         <template v-if="areAllLoaded" #value>
           <UiInfo v-if="noMissingPatches" accent="success">{{ t('patches-up-to-date') }}</UiInfo>
-          <UiInfo v-else accent="warning">{{ t('n-missing', { n: nMissingPatches }) }}</UiInfo>
+          <UiInfo v-else accent="warning">{{ t('n-missing', nMissingPatches) }}</UiInfo>
         </template>
         <template v-if="areAllLoaded" #addons>
-          <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', { n: nMissingPatches })" />
+          <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', nMissingPatches)" />
         </template>
       </VtsCardRowKeyValue>
     </div>

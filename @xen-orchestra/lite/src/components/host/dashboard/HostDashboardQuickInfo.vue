@@ -30,10 +30,10 @@
       <VtsKeyValueRow :label="t('uuid')" :value="host.uuid" copy />
       <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsKeyValueRow :label="t('version')" :value="host.software_version.product_version" />
-      <VtsKeyValueRow :label="t('hardware')" :value="getHostManufacturerInfo(host)" />
+      <VtsKeyValueRow :label="t('hardware')" :value="manufacturerInfo" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="getHostCoreSocketInfo(host)" />
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="coreSocketInfo" />
       <VtsKeyValueRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
       <VtsKeyValueRow :label="t('tags')">
         <template #value>
@@ -79,6 +79,10 @@ const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().sub
 const { isMaster, isRunning, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 
 const ram = computed(() => {
   const memory = getHostMemory(host)
