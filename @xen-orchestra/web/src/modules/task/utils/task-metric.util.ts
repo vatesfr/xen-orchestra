@@ -8,8 +8,6 @@ export type TaskTree = Pick<XoTask, 'start' | 'end' | 'properties'> & { tasks?: 
 export type TaskMetric = {
   /** unit of the values, unknown if the sources don't report the same one */
   unit: string | undefined
-  /** how the history of the sources summarizes their values, see `@vates/task/metrics` */
-  aggregation: string | undefined
   value: number
   /** expected final value, unknown if one of the sources doesn't report it */
   total: number | undefined
@@ -22,7 +20,6 @@ export type TaskMetric = {
 // a metric as emitted by `TaskMetrics` from `@vates/task/metrics`
 type RawMetric = {
   unit?: string
-  aggregation?: string
   value: number
   total?: number
   recent?: MetricSample[]
@@ -50,8 +47,6 @@ function getRawMetric(task: TaskTree, name: string): RawMetric | undefined {
 
   return {
     unit: typeof metric.unit === 'string' ? metric.unit : undefined,
-    // emitted since the aggregations were introduced
-    aggregation: typeof metric.aggregation === 'string' ? metric.aggregation : 'decimation',
     value: metric.value,
     total: typeof metric.total === 'number' ? metric.total : undefined,
     recent: Array.isArray(metric.recent) ? metric.recent.filter(isSample) : [],
@@ -168,7 +163,6 @@ function consolidate(task: TaskTree, name: string, now: number, maxSamples: numb
   if (raw !== undefined) {
     return {
       unit: raw.unit,
-      aggregation: raw.aggregation,
       value: raw.value,
       total: raw.total,
       speed: isPending ? getCurrentSpeed(task, raw, now) : 0,
@@ -187,7 +181,6 @@ function consolidate(task: TaskTree, name: string, now: number, maxSamples: numb
 
   return {
     unit: getCommonValue(children.map(child => child.unit)),
-    aggregation: getCommonValue(children.map(child => child.aggregation)),
     value: children.reduce((sum, child) => sum + child.value, 0),
     total: children.every(child => child.total !== undefined)
       ? children.reduce((sum, child) => sum + child.total!, 0)
@@ -205,10 +198,7 @@ function consolidate(task: TaskTree, name: string, now: number, maxSamples: numb
  * - value and total: sum of the sources
  * - speed: while running, sum of the current speeds of the sources still running; once ended, value / duration
  * - samples: sum of the sources' series, to draw a chart
- * - unit and aggregation: the ones of the sources, if they all share them
- *
- * The sums are meant for cumulative metrics (`decimation` aggregation): a sum of medians or of p95 is not the median or
- * the p95 of the whole.
+ * - unit: the one of the sources, if they all share it
  */
 export function getTaskMetric(
   task: TaskTree,

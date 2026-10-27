@@ -103,34 +103,6 @@ describe('TaskMetrics', () => {
     }
   })
 
-  it('spreads the history over the expected duration when the total is known', () => {
-    const task = createTask()
-    const historySize = 10
-    const metrics = new TaskMetrics(task, { historySize })
-    const nbEmits = 200
-    metrics.setTotal('bytesRead', nbEmits)
-
-    let nbHistoryDecimations = 0
-    let previousLength = 0
-    for (let i = 1; i <= nbEmits; i++) {
-      metrics.add('bytesRead', 1)
-      const { length } = task.emitted.at(-1).bytesRead.history
-      if (length < previousLength) {
-        nbHistoryDecimations++
-      }
-      previousLength = length
-      mock.timers.tick(EMIT_INTERVAL)
-    }
-    metrics.flush()
-
-    const { history, total } = task.emitted.at(-1).bytesRead
-    assert.equal(total, nbEmits)
-    assert.ok(history.length <= historySize, `${history.length} samples`)
-    // the ETA spaces the samples from the start: at most the early samples, taken before the ETA is known, are merged
-    assert.ok(nbHistoryDecimations <= 1, `${nbHistoryDecimations} decimations`)
-    assert.ok(history.length >= historySize - 2, `${history.length} samples`)
-  })
-
   it('handles several metrics independently', () => {
     const task = createTask()
     const metrics = new TaskMetrics(task, { historySize: 4 })
@@ -177,115 +149,27 @@ describe('TaskMetrics', () => {
     assert.equal(task.emitted.length, 1)
   })
 
-  it('emits the unit and the aggregation', () => {
+  it('emits the total and the unit', () => {
     const task = createTask()
     const metrics = new TaskMetrics(task)
     metrics.define('bytesRead', { unit: 'bytes' })
+    metrics.setTotal('bytesRead', 10)
 
     metrics.add('bytesRead', 1)
     metrics.add('other', 1)
     metrics.flush()
 
     const { bytesRead, other } = task.emitted.at(-1)
+    assert.equal(bytesRead.total, 10)
     assert.equal(bytesRead.unit, 'bytes')
-    assert.equal(bytesRead.aggregation, 'decimation')
+    assert.equal(other.total, undefined)
     assert.equal(other.unit, undefined)
-    assert.equal(other.aggregation, 'decimation')
   })
 
-  it('rejects an unknown aggregation or a metric defined twice', () => {
+  it('rejects a metric defined twice', () => {
     const metrics = new TaskMetrics(createTask())
 
-    assert.throws(() => metrics.define('a', { aggregation: 'p42' }), /unknown aggregation/)
-    metrics.define('b')
-    assert.throws(() => metrics.define('b'), /already defined/)
-  })
-
-  it('keeps a spike between two emits with the max aggregation', () => {
-    const task = createTask()
-    const metrics = new TaskMetrics(task)
-    metrics.define('queueDepth', { aggregation: 'max' })
-
-    for (const value of [1, 2, 100, 3]) {
-      metrics.set('queueDepth', value)
-      mock.timers.tick(1e3)
-    }
-    metrics.flush()
-
-    const { history, value } = task.emitted.at(-1).queueDepth
-    assert.equal(value, 3)
-    assert.deepEqual(history, [[3e3, 100]])
-  })
-
-  it('summarizes all the values of an interval', () => {
-    // exact quantiles below the sketch size
-    for (const [aggregation, expected] of [
-      ['mean', 10.5],
-      ['median', 10],
-      ['p95', 19],
-      ['min', 1],
-      ['max', 20],
-    ]) {
-      const task = createTask()
-      const metrics = new TaskMetrics(task)
-      metrics.define('gauge', { aggregation })
-
-      for (let value = 1; value <= 20; value++) {
-        metrics.set('gauge', value)
-      }
-      metrics.flush()
-
-      assert.equal(task.emitted.at(-1).gauge.history[0][1], expected, aggregation)
-    }
-  })
-
-  it('keeps the mean exact when merging the history points', () => {
-    const task = createTask()
-    const historySize = 4
-    const metrics = new TaskMetrics(task, { historySize })
-    metrics.define('gauge', { aggregation: 'mean' })
-
-    for (let i = 0; i < 1000; i++) {
-      metrics.set('gauge', i % 2 === 0 ? 0 : 10)
-      mock.timers.tick(1e3)
-    }
-    metrics.flush()
-
-    const { history } = task.emitted.at(-1).gauge
-    assert.ok(history.length <= historySize, `${history.length} samples`)
-    for (const [, mean] of history) {
-      assert.equal(mean, 5)
-    }
-  })
-
-  it('approximates the quantiles beyond the sketch size', () => {
-    const task = createTask()
-    const metrics = new TaskMetrics(task)
-    metrics.define('gauge', { aggregation: 'p95' })
-
-    // shuffled values from 1 to 1000
-    const values = Array.from({ length: 1000 }, (_, i) => ((i * 7919) % 1000) + 1)
-    for (const value of values) {
-      metrics.set('gauge', value)
-    }
-    metrics.flush()
-
-    const [[, p95]] = task.emitted.at(-1).gauge.history
-    assert.ok(Math.abs(p95 - 950) <= 30, `p95: ${p95}`)
-  })
-
-  it('does not favor the latest values in the quantiles', () => {
-    const task = createTask()
-    const metrics = new TaskMetrics(task)
-    metrics.define('gauge', { aggregation: 'median' })
-
-    // increasing values: a biased sketch would keep the highest ones
-    for (let value = 1; value <= 1000; value++) {
-      metrics.set('gauge', value)
-    }
-    metrics.flush()
-
-    const [[, median]] = task.emitted.at(-1).gauge.history
-    assert.ok(Math.abs(median - 500) <= 30, `median: ${median}`)
+    metrics.define('a')
+    assert.throws(() => metrics.define('a'), /already defined/)
   })
 })

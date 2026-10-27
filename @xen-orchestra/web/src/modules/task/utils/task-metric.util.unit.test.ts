@@ -34,7 +34,7 @@ function createSource({
   return createTask({
     start,
     end,
-    properties: { metrics: { bytesRead: { aggregation: 'decimation', unit, value, total, recent, history } } },
+    properties: { metrics: { bytesRead: { unit, value, total, recent, history } } },
   })
 }
 
@@ -293,22 +293,16 @@ describe('getSpeedSeries', () => {
   })
 })
 
-describe('getTaskMetric unit and aggregation', () => {
-  it('keeps the unit and the aggregation shared by the sources', () => {
+describe('getTaskMetric unit', () => {
+  it('keeps the unit shared by the sources', () => {
     const root = createTask({ tasks: [createSource({ value: 1 }), createSource({ value: 2 })] })
 
-    expect(getTaskMetric(root, 'bytesRead', { now: NOW })).toMatchObject({ unit: 'bytes', aggregation: 'decimation' })
+    expect(getTaskMetric(root, 'bytesRead', { now: NOW })).toMatchObject({ unit: 'bytes' })
   })
 
   it('does not know the unit if the sources differ', () => {
     const root = createTask({ tasks: [createSource({ value: 1 }), createSource({ value: 2, unit: 'blocks' })] })
 
     expect(getTaskMetric(root, 'bytesRead', { now: NOW })?.unit).toBeUndefined()
-  })
-
-  it('defaults to the decimation for a metric emitted before the aggregations', () => {
-    const source = createTask({ properties: { metrics: { bytesRead: { value: 1, recent: [], history: [] } } } })
-
-    expect(getTaskMetric(source, 'bytesRead', { now: NOW })?.aggregation).toBe('decimation')
   })
 })
