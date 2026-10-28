@@ -26,7 +26,7 @@
       />
     </div>
 
-    <BackupJobFormRadio v-bind="bindings.backupDistribution" vertical />
+    <BackupJobFormRadio v-if="hasRetentionStrategy" v-bind="bindings.backupDistribution" vertical />
 
     <div class="block">
       <span class="typo-body-bold">{{ t('backup-retention') }}</span>
@@ -35,7 +35,7 @@
       </BackupJobFormRow>
     </div>
 
-    <div class="block">
+    <div v-if="hasRetentionStrategy" class="block">
       <span class="typo-body-bold">{{ t('long-term-retention') }}</span>
       <BackupJobLongTermRetentionRow
         :retention="bindings.ltrDailyRetention.modelValue"
@@ -67,6 +67,8 @@
       />
       <BackupJobFormCheckbox v-bind="bindings.strictGfs" />
     </div>
+
+    <BackupJobFormCheckbox v-if="hasRetentionStrategy" v-bind="bindings.mergeBackupsSynchronously" />
   </div>
 </template>
 
@@ -89,6 +91,7 @@ const { bindings } = defineProps<{
   brs: FrontXoBackupRepository[]
   compatibleBrs: FrontXoBackupRepository[]
   matchedBrs: FrontXoBackupRepository[]
+  hasRetentionStrategy: boolean
 }>()
 
 const { t } = useI18n()
