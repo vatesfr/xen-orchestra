@@ -62,6 +62,22 @@
   - `POST /rest/v0/hosts/:id/actions/probe_hba_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
   - `POST /rest/v0/hosts/:id/actions/probe_nfs_exists` (PR [#10099](https://github.com/vatesfr/xen-orchestra/pull/10099))
 
+- [Backup/Restore] Live restore: a disk can now be live mounted read/write, with a cache on an SR of the pool running XO (or the proxy). Each block is read from the BR only once and the VM can boot from it, but what it writes is lost when the mount is released. The live mounted SR and VDI are now named after the backed up VM, disk and backup date (PR [#10434](https://github.com/vatesfr/xen-orchestra/pull/10434))
+- [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
+- [Plugins] Add plugin list and detail pages in admin menu, to configure, load, unload and test the plugins (PR [#10593](https://github.com/vatesfr/xen-orchestra/pull/10593))
+- [XO6] Display dates and times as `YYYY-MM-DD HH:mm:ss` in all UI views (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
+- [XO6/VM] Warn that deleting a VM also deletes its snapshots and disks (PR [#10554](https://github.com/vatesfr/xen-orchestra/pull/10554))
+- [Backup jobs] Add backup job list in admin menu (PR [#10630](https://github.com/vatesfr/xen-orchestra/pull/10630))
+- [Backup jobs] Add backup job side panel in admin menu (PR [#10631](https://github.com/vatesfr/xen-orchestra/pull/10631))
+- [Backup jobs] The backup links of the site dashboard and the VM Backups tab now use the backup jobs of the admin menu (PR [#10636](https://github.com/vatesfr/xen-orchestra/pull/10636))
+- [Pool/Dashboard] In the CPU and RAM usage cards, show a "No data to calculate" message when there is no host or VM to rank (PR [#10386](https://github.com/vatesfr/xen-orchestra/pull/10386))
+- [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, German, Italian, Portuguese, Portuguese (Brasil), Russian, Slovak, Spanish, Swedish and Ukrainian translations (PR [#10464](https://github.com/vatesfr/xen-orchestra/pull/10464))
+- [i18n] Update Arabic, Danish, Finnish, Italian, Japanese, Korean, Norwegian, Persian, Polish, Portuguese (Brasil), Russian and Ukrainian translations (PR [#10641](https://github.com/vatesfr/xen-orchestra/pull/10641))
+- [CLI] Add new command to `xo-server-db` cli: `disable-remote <id>`, disables a remote while xo-server is stopped (PR [#10587](https://github.com/vatesfr/xen-orchestra/pull/10587/))
+- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an optional OpenFlow `priority`, unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`; a rule that has one is deleted or updated only when it is given too, in `delete_traffic_rule`, the `oldRule` of `update_traffic_rule` and the JSON-RPC methods `sdnController.deleteRule` and `sdnController.deleteNetworkRule` (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
+- [VM] Add migrate action on VMs (PR [#10615](https://github.com/vatesfr/xen-orchestra/pull/10615))
+- [Host/VM] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
+
 ### Bug fixes
 
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
@@ -96,40 +112,44 @@
 - [Swagger] Fixed a typo in the VM collection: `xentools` → `xenTools`, and added a missing type to the server collection `poolMembersAddresses` [#10514](https://github.com/vatesfr/xen-orchestra/issues/10514) (PR [#10598](https://github.com/vatesfr/xen-orchestra/pull/10598))
 - [Host] Enabling multipathing on hosts only disconnects shared SRs, local storage SRs stay connected (PR [#10592](https://github.com/vatesfr/xen-orchestra/pull/10592))
 - [Plugins/transport-icinga2] Fix authenticated Icinga2 requests failing with `Request cannot be constructed from a URL that includes credentials`, contribution by [@vmpr](https://github.com/vmpr) [#10498](https://github.com/vatesfr/xen-orchestra/issues/10498) (PR [#10594](https://github.com/vatesfr/xen-orchestra/pull/10594))
+- Fix `cannot read properties of undefined (reading code)` (PR [#10668](https://github.com/vatesfr/xen-orchestra/pull/10668))
+- [SDN Controller] A Global Private Network that fails to be set up, or whose preferred star-center host was removed, no longer blocks the other private networks (PR [#10629](https://github.com/vatesfr/xen-orchestra/pull/10629))
+- [XO6] Fix console flickering during boot (PR [#10672](https://github.com/vatesfr/xen-orchestra/pull/10672))
+- [V2V] Fix the migration of a running VM whose change tracking (CBT) is not enabled failing on ESXi 7 and 8 once the source is stopped: the change tracking is now enabled on the source VM, so that only the used blocks are read, and only the changed ones for the delta. A partial import made before can't be resumed and is transferred again (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
 
 ### Released packages
 
 - @xen-orchestra/fs 4.10.0
 - @xen-orchestra/disk-transform 1.3.4
 - vhd-lib 4.17.0
-- @vates/iscsi 0.3.0
 - xen-api 5.1.0
 - @vates/nbd-client 3.7.0
-- @vates/types 2.4.0
 - @xen-orchestra/acl 1.8.0
 - @xen-orchestra/backup-archive 1.2.0
 - @xen-orchestra/qcow2 1.4.1
 - @xen-orchestra/xapi 9.1.0
-- @xen-orchestra/backups 0.77.0
-- @xen-orchestra/backups-cli 1.1.17
-- @xen-orchestra/disk-cli 2.2.4
-- @xen-orchestra/immutable-backups 3.0.8
-- @xen-orchestra/web-core 0.64.0
-- @xen-orchestra/mixins 0.22.1
-- @xen-orchestra/proxy 0.33.2
-- @xen-orchestra/vmware-explorer 1.1.0
-- @xen-orchestra/qa-test 1.3.0
 - @xen-orchestra/vmdk 1.0.0
-- @xen-orchestra/rest-api 0.41.0
-- @xen-orchestra/web 0.64.0
 - xo-acl-resolver 0.6.0
 - xo-cli 0.32.5
-- xo-server 5.212.0
 - xo-server-load-balancer 0.14.0
 - xo-server-netbox 1.14.0
-- xo-server-sdn-controller 1.5.2
 - xo-server-transport-icinga2 0.1.3
-- xo-web 5.207.0
+- @vates/iscsi 0.4.0
+- @vates/types 2.5.0
+- @xen-orchestra/backups 0.78.0
+- @xen-orchestra/backups-cli 1.1.18
+- @xen-orchestra/disk-cli 2.2.5
+- @xen-orchestra/immutable-backups 3.0.9
+- @xen-orchestra/web-core 0.65.0
+- @xen-orchestra/mixins 0.23.0
+- @xen-orchestra/proxy 0.34.0
+- @xen-orchestra/vmware-explorer 1.2.0
+- @xen-orchestra/qa-test 1.4.0
+- @xen-orchestra/rest-api 0.41.1
+- @xen-orchestra/web 0.65.0
+- xo-server 5.213.0
+- xo-server-sdn-controller 1.6.0
+- xo-web 5.208.0
 
 ## **6.9.1** (2026-10-05)
 
