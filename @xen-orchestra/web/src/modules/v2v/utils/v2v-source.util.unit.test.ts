@@ -68,6 +68,10 @@ describe('findV2vVmHost', () => {
 
     expect(findV2vVmHost(inventory, createV2vVm({ hostId: HOST.id }))).toBeUndefined()
   })
+
+  it('finds no host without inventory', () => {
+    expect(findV2vVmHost(undefined, createV2vVm({ hostId: HOST.id }))).toBeUndefined()
+  })
 })
 
 describe('getV2vVmDatacenterName', () => {
@@ -88,6 +92,10 @@ describe('getV2vVmDatacenterName', () => {
     ['a host of an unknown datacenter', { hosts: [HOST], datacenters: [] }],
   ])('names no datacenter for %s', (_, inventory) => {
     expect(getV2vVmDatacenterName(createV2vInventory(inventory), VM)).toBeUndefined()
+  })
+
+  it('names no datacenter without inventory', () => {
+    expect(getV2vVmDatacenterName(undefined, VM)).toBeUndefined()
   })
 })
 

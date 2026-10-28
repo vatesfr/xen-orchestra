@@ -24,7 +24,7 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { t } from '@/test/i18n.ts'
-import { V2V_VDI_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
+import { V2V_VDI_OTHER_CONFIG, V2V_VM_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
 
 const DEFAULTS = createV2vDestinationDefaults()
 
@@ -81,6 +81,13 @@ export const V2V_DEBIAN_TEMPLATE = createVmTemplate({
   id: 'template-debian' as FrontXoVmTemplate['id'],
   name_label: 'Debian 12',
 })
+
+// The pool offers the defaults of the list alone: a VM mapped on them has a complete mapping
+export const V2V_DEFAULT_OFFERS: V2vPoolDestinationChoices = {
+  srs: [V2V_DEFAULT_SR],
+  networks: [V2V_DEFAULT_NETWORK],
+  templates: [V2V_DEFAULT_TEMPLATE],
+}
 
 // The pool offers the defaults of the list and one other target of each kind
 export const V2V_POOL_OFFERS: V2vPoolDestinationChoices = {
@@ -169,6 +176,12 @@ export const V2V_RESUMED_IMPORT_VM = createV2vImportVm(
     VIFs: V2V_SYNCED_VIFS.map(vif => vif.id),
   }
 )
+
+// The source VM still holds the snapshot its import last synced
+export const V2V_SYNCED_VM = createV2vVm({
+  ...V2V_MAPPED_VM,
+  currentSnapshotId: V2V_RESUMED_IMPORT_VM.other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID],
+})
 
 // The rows of the active mapping of the resumed VM: its disks then its NICs
 export const V2V_ACTIVE_MAPPING_ROWS: V2vActiveMappingRow[] = [
