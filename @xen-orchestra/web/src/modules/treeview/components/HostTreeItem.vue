@@ -1,9 +1,9 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
-    <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :has-children="branch.hasChildren" :node-id="branch.data.id">
+    <UiTreeItemLabel :route="`/host/${branch.data.id}`" icon="object:host" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
-        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+        <VtsObjectIcon v-tooltip="powerState.text" :state="hostState" size="medium" type="host" />
       </template>
       <template #addons>
         <UiLoader
@@ -18,16 +18,16 @@
           v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="brand"
-          variant="secondary"
           size="small"
+          variant="secondary"
         />
         <MenuList placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
+              :selected="isOpen"
               accent="brand"
               icon="action:more-actions"
               size="small"
-              :selected="isOpen"
               @click="open($event)"
             />
           </template>
@@ -66,10 +66,11 @@ const { t } = useI18n()
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
 
-const { isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
+const { getHostStateDisplay, isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.id))
 const hostState = computed(() => getHostState(branch.data))
+const powerState = computed(() => getHostStateDisplay(hostState.value))
 
 const runningVmsCount = computed(() => runningVmsCountByContainer.value.get(branch.data.id) ?? 0)
 </script>

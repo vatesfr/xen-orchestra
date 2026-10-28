@@ -28,12 +28,12 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
     () => vm.value.power_state,
-    {
+    () => ({
       [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
       [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
       [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
       [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
-    },
+    }),
     VM_POWER_STATE.RUNNING
   )
 
@@ -103,7 +103,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const currentOperation = useMapper<string, string>(
     () => Object.values(vm.value.current_operations)[0],
-    {
+    () => ({
       start: t('operation:start'),
       start_on: t('operation:start-on-host'),
       pause: t('operation:pause'),
@@ -122,7 +122,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       export: t('operation:export'),
       import: t('operation:import'),
       unknown: '',
-    },
+    }),
     'unknown'
   )
 
