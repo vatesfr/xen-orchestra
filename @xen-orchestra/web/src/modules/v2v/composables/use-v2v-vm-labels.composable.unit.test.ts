@@ -1,6 +1,7 @@
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vUnsupportedReason } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import { createV2vDisk, createV2vPortGroup } from '@/test/create-v2v-inventory.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
@@ -119,5 +120,74 @@ describe('getSummaryLabels', () => {
     const labels = mountLabels()
 
     expect(labels.getSummaryLabels({ total: 0, counts: NO_STATUS })).toEqual([labels.t('n-vms', { n: 0 })])
+  })
+})
+
+describe('getOriginTag', () => {
+  it.each([
+    ['default', 'global-default', 'neutral'],
+    ['overridden', 'overridden', 'warning'],
+  ] as const)('tags the %s origin', (origin, labelKey, accent) => {
+    const labels = mountLabels()
+
+    expect(labels.getOriginTag(origin)).toEqual({ label: labels.t(labelKey), accent })
+  })
+})
+
+describe('getPowerLabel', () => {
+  it('tells the power state of a VM and its host', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPowerLabel(V2V_VM_POWER_STATE.POWERED_ON, 'esx01')).toBe(
+      labels.t('power-state-on-host', { power: labels.t('vm:status:running'), host: 'esx01' })
+    )
+  })
+
+  it('only tells the power state while the host is unknown', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPowerLabel(V2V_VM_POWER_STATE.POWERED_OFF, undefined)).toBe(labels.t('vm:status:halted'))
+  })
+})
+
+describe('getSnapshotCountLabel', () => {
+  it('counts the snapshots', () => {
+    expect(mountLabels().getSnapshotCountLabel(2)).toBe('2')
+  })
+
+  it('tells there is none', () => {
+    const labels = mountLabels()
+
+    expect(labels.getSnapshotCountLabel(0)).toBe(labels.t('none'))
+  })
+})
+
+describe('getDisksParts', () => {
+  it('counts the disks then sums their sizes', () => {
+    const disks = [createV2vDisk({ capacity: 80 * 1024 ** 3 }), createV2vDisk({ capacity: 40 * 1024 ** 3 })]
+
+    expect(mountLabels().getDisksParts(disks)).toEqual(['2', '120 GiB'])
+  })
+
+  it('tells a VM without disk has none', () => {
+    const labels = mountLabels()
+
+    expect(labels.getDisksParts([])).toEqual([labels.t('none')])
+  })
+})
+
+describe('getPortGroupParts', () => {
+  it('names the port group then its VLAN', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPortGroupParts(createV2vPortGroup())).toEqual(['PG-Prod', labels.t('vlan-id', { id: 10 })])
+  })
+
+  it('only names a port group without VLAN', () => {
+    expect(mountLabels().getPortGroupParts(createV2vPortGroup({ vlan: undefined }))).toEqual(['PG-Prod'])
+  })
+
+  it('has no part without port group', () => {
+    expect(mountLabels().getPortGroupParts(undefined)).toEqual([])
   })
 })

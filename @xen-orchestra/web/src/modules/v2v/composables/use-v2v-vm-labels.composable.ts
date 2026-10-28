@@ -1,9 +1,12 @@
+import type { V2vTargetOrigin } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vUnsupportedReason, V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import { V2V_VM_STATUSES, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
-import { V2V_VM_POWER_STATE } from '@vates/types'
+import { formatSize } from '@core/utils/size.util.ts'
+import { V2V_VM_POWER_STATE, type XoV2vDisk, type XoV2vPortGroup } from '@vates/types'
+import { sumBy } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -22,6 +25,11 @@ const STATUS_ACCENTS: Record<V2vVmStatus, TagAccent> = {
   running: 'warning',
   warm: 'info',
   cold: 'success',
+}
+
+const ORIGIN_ACCENTS: Record<V2vTargetOrigin, TagAccent> = {
+  default: 'neutral',
+  overridden: 'warning',
 }
 
 export function useV2vVmLabels() {
@@ -82,6 +90,41 @@ export function useV2vVmLabels() {
     return [t('n-vms', { n: total }), ...mapCountedKeys(V2V_VM_STATUSES, counts, getStatusCountLabel)]
   }
 
+  const originLabels = computed<Record<V2vTargetOrigin, string>>(() => ({
+    default: t('global-default'),
+    overridden: t('overridden'),
+  }))
+
+  function getOriginTag(origin: V2vTargetOrigin): V2vAccentedLabel<TagAccent> {
+    return { label: originLabels.value[origin], accent: ORIGIN_ACCENTS[origin] }
+  }
+
+  function getPowerLabel(powerState: V2V_VM_POWER_STATE, hostName: string | undefined): string {
+    const power = powerLabels.value[powerState]
+
+    return hostName === undefined ? power : t('power-state-on-host', { power, host: hostName })
+  }
+
+  function getSnapshotCountLabel(count: number): string {
+    return count === 0 ? t('none') : String(count)
+  }
+
+  function getDisksParts(disks: Pick<XoV2vDisk, 'capacity'>[]): string[] {
+    if (disks.length === 0) {
+      return [t('none')]
+    }
+
+    return [String(disks.length), formatSize(sumBy(disks, 'capacity'), 1)]
+  }
+
+  function getPortGroupParts(portGroup: XoV2vPortGroup | undefined): string[] {
+    if (portGroup === undefined) {
+      return []
+    }
+
+    return portGroup.vlan === undefined ? [portGroup.name] : [portGroup.name, t('vlan-id', { id: portGroup.vlan })]
+  }
+
   return {
     statusLabels,
     powerLabels,
@@ -90,5 +133,10 @@ export function useV2vVmLabels() {
     getStatusTag,
     getStatusCountLabel,
     getSummaryLabels,
+    getOriginTag,
+    getPowerLabel,
+    getSnapshotCountLabel,
+    getDisksParts,
+    getPortGroupParts,
   }
 }

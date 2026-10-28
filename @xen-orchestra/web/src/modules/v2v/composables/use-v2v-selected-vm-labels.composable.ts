@@ -4,6 +4,7 @@ import type {
   V2vReadinessLevel,
   V2vSelectedVmCheck,
   V2vSelectedVmKind,
+  V2vVmCheck,
 } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
@@ -40,7 +41,7 @@ export function useV2vSelectedVmLabels() {
   }
 
   // A pool still loading is named by its id rather than not at all
-  function getCheckLabel(check: V2vSelectedVmCheck, poolName: string | undefined): string {
+  function getCheckLabel(check: V2vSelectedVmCheck | V2vVmCheck, poolName: string | undefined): string {
     switch (check.type) {
       case 'not-found':
         return t('v2v:not-found-in-source')
@@ -56,10 +57,16 @@ export function useV2vSelectedVmLabels() {
         return t('v2v:already-migrated-confirm-at-launch')
       case 'ready':
         return t('ready')
+      case 'no-unsupported-disk':
+        return t('v2v:check:no-unsupported-disk')
+      case 'snapshots':
+        return t('v2v:check:n-snapshots', { n: check.count })
+      case 'no-snapshot':
+        return t('v2v:check:no-snapshot')
     }
   }
 
-  function getCheckInfo(check: V2vSelectedVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
+  function getCheckInfo(check: V2vSelectedVmCheck | V2vVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 

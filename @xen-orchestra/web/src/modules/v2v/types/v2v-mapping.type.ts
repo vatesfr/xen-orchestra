@@ -22,6 +22,29 @@ export type V2vNicMapping = {
   network: V2vResolvedTarget<FrontXoNetwork['id']>
 }
 
+// What a target select offers, labelled the way the destination step labels it
+export type V2vTargetOption<TId> = {
+  id: TId
+  label: string
+}
+
+// The source facts of a disk or a NIC are named after the inventory, ready to show
+export type V2vDiskMappingRow = {
+  key: XoV2vDisk['key']
+  label: string
+  datastore: string
+  size: number
+  sr: V2vResolvedTarget<FrontXoSr['id']>
+}
+
+export type V2vNicMappingRow = {
+  key: XoV2vNic['key']
+  label: string
+  portGroupParts: string[]
+  macAddress: string
+  network: V2vResolvedTarget<FrontXoNetwork['id']>
+}
+
 // Whether a mapping is locked is the kind of its VM (resumed), not a state of the mapping
 export type V2vVmMappingState = 'complete' | 'incomplete'
 

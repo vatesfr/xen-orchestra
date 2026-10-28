@@ -1,5 +1,5 @@
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
-import type { V2vMappingSummary, V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vMappingSummary, V2vSelectedVmCheck, V2vVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
@@ -35,7 +35,9 @@ describe('getCheckInfo', () => {
       'v2v:check:mapping-incomplete',
       'danger',
     ],
-  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck, labelKey, accent) => {
+    ['a fully supported', { type: 'no-unsupported-disk', level: 'ready' }, 'v2v:check:no-unsupported-disk', 'success'],
+    ['a snapshot-free', { type: 'no-snapshot', level: 'ready' }, 'v2v:check:no-snapshot', 'success'],
+  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck | V2vVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
     expect(labels.getCheckInfo(check)).toEqual({ label: labels.t(labelKey), accent })
@@ -51,6 +53,15 @@ describe('getCheckInfo', () => {
     expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason })).toEqual({
       label: labels.t(labelKey),
       accent: 'danger',
+    })
+  })
+
+  it('counts the snapshots of a VM', () => {
+    const labels = mountLabels()
+
+    expect(labels.getCheckInfo({ type: 'snapshots', level: 'warning', count: 2 })).toEqual({
+      label: labels.t('v2v:check:n-snapshots', { n: 2 }),
+      accent: 'warning',
     })
   })
 

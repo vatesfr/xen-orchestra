@@ -144,10 +144,7 @@ export function useV2vDestinationForm({
     searchable: true,
     required: true,
     placeholder: () => t('action:select-storage'),
-    option: {
-      label: sr => getSrSelectLabel(sr),
-      value: 'id',
-    },
+    option: { label: getSrSelectLabel, value: 'id' },
   })
 
   const { id: networkSelectId } = useFormSelect('network', () => choices.value.networks, {
