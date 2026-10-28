@@ -40,6 +40,7 @@ import { partialSchedules, schedule, scheduleId, scheduleIds } from '../open-api
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { assertValidCron } from '../helpers/utils.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { CreateScheduleBody, UpdateScheduleBody } from './schedule.type.mjs'
@@ -184,6 +185,8 @@ export class ScheduleController extends XoController<XoSchedule> {
     const xoApp = this.restApi.xoApp
     const { enabled = false, jobId, ...props } = body
 
+    assertValidCron(props.cron, props.timezone)
+
     // throws if the job does not exist
     const job = await xoApp.getJob(jobId as AnyXoJob['id'])
 
@@ -193,6 +196,11 @@ export class ScheduleController extends XoController<XoSchedule> {
       jobId: job.id,
       userId: this.restApi.getCurrentUser().id,
     })
+
+    // backup executors expect an entry per schedule in the job settings
+    if ('settings' in job) {
+      await xoApp.updateJob({ id: job.id, settings: { ...job.settings, [schedule.id]: {} } })
+    }
 
     return { id: schedule.id }
   }
@@ -211,11 +219,19 @@ export class ScheduleController extends XoController<XoSchedule> {
   @Response(notFoundResp.status, notFoundResp.description)
   async updateSchedule(@Path() id: string, @Body() body: UpdateScheduleBody): Promise<void> {
     const schedule = await this.getObject(id as XoSchedule['id'])
+
+    // xo-server stops the schedule before parsing the new cron
+    if (body.cron !== undefined || body.timezone !== undefined) {
+      assertValidCron(body.cron ?? schedule.cron, body.timezone ?? schedule.timezone)
+    }
+
     await this.restApi.xoApp.updateSchedule({ ...body, id: schedule.id })
   }
 
   /**
    * Delete a schedule, and its settings from the related job.
+   *
+   * The job settings are read then rewritten: concurrent changes to the settings of the same job may be lost.
    *
    * Only usable by administrators.
    *

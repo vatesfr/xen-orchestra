@@ -175,7 +175,8 @@ describe('Metadata backup tests', () => {
 
         log.debug(`Running metadata backup job (${runIndex}/3)`, { jobId, scheduleKey })
 
-        const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+        // runs are 2 s apart: the default 5 s look-back would return the log of the previous run
+        const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey, { runStartTime: Date.now() })
 
         assertBackupSuccess(result, `Metadata backup run ${runIndex}/3`)
         assertMetadataTaskSuccess(result, 'pool')

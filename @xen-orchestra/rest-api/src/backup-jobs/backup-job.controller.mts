@@ -187,7 +187,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   /**
    * Update a backup job.
    *
-   * Root properties are replaced (`settings` must be passed entirely), a `null` value removes the property.
+   * Root properties are replaced (`settings` must be passed entirely).
    * The type of a job cannot be changed.
    *
    * Only usable by administrators.
