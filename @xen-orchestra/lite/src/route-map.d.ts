@@ -548,6 +548,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/accordion/ui-accordion': RouteRecordInfo<
+      '/story/web-core/ui/accordion/ui-accordion',
+      '/story/web-core/ui/accordion/ui-accordion',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/account-menu-button/ui-account-menu-button': RouteRecordInfo<
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
       '/story/web-core/ui/account-menu-button/ui-account-menu-button',
@@ -1559,6 +1566,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tree/vts-tree-search.story.vue': {
       routes:
         | '/story/web-core/tree/vts-tree-search'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/accordion/ui-accordion.story.vue': {
+      routes:
+        | '/story/web-core/ui/accordion/ui-accordion'
       views:
         | never
     }

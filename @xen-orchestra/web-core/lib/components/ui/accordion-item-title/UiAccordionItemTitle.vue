@@ -1,4 +1,4 @@
-<!-- v7 -->
+<!-- v5 -->
 <template>
   <component :is="controller.titleTag" class="ui-accordion-item-title" :class="className">
     <button

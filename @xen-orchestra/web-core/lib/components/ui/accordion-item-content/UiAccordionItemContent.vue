@@ -1,4 +1,4 @@
-<!-- v7 -->
+<!-- v5 -->
 <template>
   <div class="ui-accordion-item-content">
     <div class="divider-wrapper" :class="{ visible: isDividerVisible }">

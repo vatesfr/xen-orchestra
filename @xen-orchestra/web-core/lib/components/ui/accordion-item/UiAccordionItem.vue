@@ -1,4 +1,4 @@
-<!-- v7 -->
+<!-- v5 -->
 <template>
   <div class="ui-accordion-item" :class="className">
     <slot />
@@ -36,6 +36,10 @@ const id = useId()
 const isDisabled = useDisabled(() => disabled)
 
 controller.register(id, () => {
+  if (isDisabled.value) {
+    return
+  }
+
   isExpanded.value = false
 })
 

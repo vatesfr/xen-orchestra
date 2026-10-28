@@ -42,7 +42,7 @@
         </UiAccordionItemContent>
       </UiAccordionItem>
 
-      <UiAccordionItem disabled>
+      <UiAccordionItem v-model:expanded="isDisabledItemExpanded" disabled>
         <UiAccordionItemTitle>Disabled</UiAccordionItemTitle>
         <UiAccordionItemContent>Disabled content</UiAccordionItemContent>
       </UiAccordionItem>
@@ -69,6 +69,8 @@ const sections = ref([
   { label: 'Title 2', isExpanded: false },
   { label: 'Title 3', isExpanded: false },
 ])
+
+const isDisabledItemExpanded = ref(true)
 
 const expandedLabels = computed(() =>
   sections.value.filter(section => section.isExpanded).map(section => section.label)
