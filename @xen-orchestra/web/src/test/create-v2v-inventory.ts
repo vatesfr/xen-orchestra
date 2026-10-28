@@ -8,6 +8,7 @@ import {
   type XoV2vHost,
   type XoV2vInventory,
   type XoV2vNic,
+  type XoV2vPortGroup,
   type XoV2vVm,
 } from '@vates/types'
 
@@ -50,6 +51,15 @@ export function createV2vDatastore(overrides: Partial<XoV2vDatastore> = {}): XoV
     capacity: 4 * 1024 ** 4,
     free: 1024 ** 4,
     hostIds: [],
+    ...overrides,
+  }
+}
+
+export function createV2vPortGroup(overrides: Partial<XoV2vPortGroup> = {}): XoV2vPortGroup {
+  return {
+    id: 'port-group-1' as XoV2vPortGroup['id'],
+    name: 'PG-Prod',
+    vlan: 10,
     ...overrides,
   }
 }

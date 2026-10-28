@@ -1,8 +1,13 @@
 import type { V2vResolvedTarget, V2vVmMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vDestinationDefaults, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { findOfferedId, type V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
-import type { XoV2vVm } from '@vates/types'
-import { isEmpty, omit } from 'lodash-es'
+import { V2V_PLATFORM, type XoV2vVm } from '@vates/types'
+import { isEmpty, isEqual, omit } from 'lodash-es'
+
+// Defaults of the per-VM options: the migration list has no list-level option for them
+export const V2V_DEFAULT_KEEP_MAC = true
+
+export const V2V_DEFAULT_TAGS = [`migrated-from:${V2V_PLATFORM.VMWARE}`]
 
 export function resolveV2vTarget<TId>(
   override: TId | undefined,
@@ -41,7 +46,11 @@ export function getV2vVmMapping(
   return { disks, nics, template, state: targets.every(target => target.isOffered) ? 'complete' : 'incomplete' }
 }
 
-// The default value is stored as no override, so that it reads as the default. `undefined` resets the key
+// The default value is stored as no override, so that it reads as the default. `undefined` resets it
+export function getV2vOverride<TValue>(value: TValue | undefined, defaultValue: TValue): TValue | undefined {
+  return isEqual(value, defaultValue) ? undefined : value
+}
+
 export function setV2vOverride<TKey extends string, TValue>(
   overrides: Record<TKey, TValue> | undefined,
   key: TKey,
@@ -50,9 +59,9 @@ export function setV2vOverride<TKey extends string, TValue>(
 ): Record<TKey, TValue> | undefined {
   const otherOverrides = omit(overrides, key) as Record<TKey, TValue>
 
-  const isDefault = value === undefined || value === defaultValue
+  const override = getV2vOverride(value, defaultValue)
 
-  const nextOverrides = isDefault ? otherOverrides : { ...otherOverrides, [key]: value }
+  const nextOverrides = override === undefined ? otherOverrides : { ...otherOverrides, [key]: override }
 
   return isEmpty(nextOverrides) ? undefined : nextOverrides
 }

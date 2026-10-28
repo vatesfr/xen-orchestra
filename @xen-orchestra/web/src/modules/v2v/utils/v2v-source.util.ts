@@ -36,11 +36,15 @@ export function getV2vSourceId(
   return getV2vAddress(connection)
 }
 
+export function findV2vVmHost(inventory: Pick<XoV2vInventory, 'hosts'>, vm: Pick<XoV2vVm, 'hostId'>) {
+  return inventory.hosts.find(host => host.id === vm.hostId)
+}
+
 export function getV2vVmDatacenterName(
   inventory: Pick<XoV2vInventory, 'hosts' | 'datacenters'>,
   vm: Pick<XoV2vVm, 'hostId'>
 ): string | undefined {
-  const datacenterId = inventory.hosts.find(host => host.id === vm.hostId)?.datacenterId
+  const datacenterId = findV2vVmHost(inventory, vm)?.datacenterId
 
   return inventory.datacenters.find(datacenter => datacenter.id === datacenterId)?.name
 }
