@@ -26,6 +26,7 @@ export type Status =
   | 'failure'
   | 'pending'
   | 'enabled'
+  | 'at-least-one-enabled'
   | 'disabled'
   | 'allow'
   | 'drop'
@@ -57,6 +58,7 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['failure', { text: t('failure'), accent: 'danger' }],
     ['pending', { text: t('in-progress'), accent: 'info' }],
     ['enabled', { text: t('enabled'), accent: 'success' }],
+    ['at-least-one-enabled', { text: t('at-least-one-enabled'), accent: 'success' }],
     ['disabled', { text: t('disabled'), accent: 'muted' }],
     ['allow', { text: t('allow'), accent: 'success' }],
     ['drop', { text: t('drop'), accent: 'danger' }],

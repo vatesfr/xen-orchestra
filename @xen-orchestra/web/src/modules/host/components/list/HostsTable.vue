@@ -3,7 +3,7 @@
     <UiTitle>{{ t('hosts') }}</UiTitle>
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
+      <VtsTable :pagination-bindings :state sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
@@ -109,7 +109,7 @@ const { HeadCells, BodyCells } = useHostColumns({
       host: r =>
         r({
           label: host.name_label,
-          to: `/host/${host.id}/dashboard`,
+          to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
           rightIcon: rightIcon.value,
         }),
@@ -123,17 +123,15 @@ const { HeadCells, BodyCells } = useHostColumns({
 })
 </script>
 
-<style scoped lang="postcss">
-.container,
+<style lang="postcss" scoped>
 .hosts-table {
   display: flex;
   flex-direction: column;
-}
-
-.hosts-table {
   gap: 2.4rem;
 
   .container {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 }

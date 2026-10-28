@@ -1,6 +1,7 @@
 import { useBulkEditBackupRepositoriesForm } from '@/modules/backup-repository/form/bulk-edit/use-bulk-edit-backup-repositories-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -8,8 +9,6 @@ import { ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
-
-const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
