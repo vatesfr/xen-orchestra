@@ -355,7 +355,6 @@
   "descending": "Synkende",
   "description": "Beskrivelse",
   "destination-sr": "Mål-SR",
-  "destination-sr-mandatory": "Mål-SR er påkrevd.",
   "device": "Enhet",
   "device-config": "Enhetskonfigurasjon",
   "dhcp": "DHCP",

@@ -332,7 +332,6 @@
   "descending": "aflopend",
   "description": "Omschrijving",
   "destination-sr": "Bestemming SR",
-  "destination-sr-mandatory": "Bestemming SR is verplicht.",
   "device": "Apparaat",
   "device-config": "Apparaatconfiguratie",
   "dhcp": "DHCP",

@@ -355,7 +355,6 @@
   "descending": "malejąco",
   "description": "Opis",
   "destination-sr": "Docelowe SR",
-  "destination-sr-mandatory": "Docelowe SR jest obowiązkowe.",
   "device": "Urządzenie",
   "device-config": "Konfiguracja urządzenia",
   "dhcp": "DHCP",

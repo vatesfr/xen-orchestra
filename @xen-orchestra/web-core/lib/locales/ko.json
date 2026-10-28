@@ -355,7 +355,6 @@
   "descending": "내림차순",
   "description": "설명",
   "destination-sr": "대상 SR",
-  "destination-sr-mandatory": "대상 SR은 필수입니다.",
   "device": "장치",
   "device-config": "장치 설정",
   "dhcp": "DHCP",

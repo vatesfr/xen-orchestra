@@ -121,6 +121,8 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       copy: t('operation:duplicate'),
       export: t('operation:export'),
       import: t('operation:import'),
+      migrate_send: t('operation:migrate'),
+      pool_migrate: t('operation:migrate'),
       unknown: '',
     },
     'unknown'
