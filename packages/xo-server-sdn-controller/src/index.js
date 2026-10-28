@@ -719,12 +719,10 @@ class SDNController extends EventEmitter {
 
   // ===========================================================================
 
-  // Run before anything is written, as the rule methods log their errors instead of throwing
-  // them. `oldPriority` is the one of the rule an update replaces: the rule may keep it even when
-  // another rule has it too, like the copy a clone makes.
-  _checkTrafficRulePriority({ networkId, vifId }, priority, oldPriority) {
+  // Run before anything is written, as the rule methods log their errors instead of throwing them
+  _checkTrafficRulePriority({ networkId, vifId }, priority) {
     if (this.#staticConfig.useDirectChannel) {
-      if (priority !== undefined && priority !== oldPriority) {
+      if (priority !== undefined) {
         throw invalidParameters('a traffic rule priority needs the XAPI plugin')
       }
       return
@@ -737,9 +735,6 @@ class SDNController extends EventEmitter {
     }
     if (!Number.isInteger(priority) || priority < 0 || priority > 65535) {
       throw invalidParameters(`traffic rule priority must be an integer from 0 to 65535, not ${priority}`)
-    }
-    if (priority === oldPriority) {
-      return
     }
     networkId ??= this._xo.getObject(vifId, 'VIF').$network
     const ruleWithPriority = listNetworkRules(this._xo, networkId).find(rule => rule.priority === priority)

@@ -40,15 +40,6 @@ const BODY_UPDATE_RULE = {
   },
 }
 
-const LISTED_RULE = {
-  type: 'object',
-  fields: {
-    ...RULE_FIELDS,
-    type: { type: 'enum', enum: ['network', 'VIF'], example: 'VIF' },
-    sourceId: { type: 'string', example: 'f0a8a0f6-6c63-4a8e-b4d5-0f5e1d3a2c71' },
-  },
-}
-
 // network and vif traffic-rule routes only differ by these tokens
 const RESOURCES = [
   {
@@ -77,7 +68,7 @@ function parseRules(raw) {
   return raw == null ? [] : JSON.parse(raw).map(JSON.parse)
 }
 
-// The rules of a network or a VIF, as the list routes return them: a network rule's cookie is internal
+// The rules of a network or a VIF, as the 409 of a taken priority returns them: a network rule's cookie is internal
 function listedRules(object) {
   return parseRules(object.other_config[SDN_CONTROLLER_OF_RULES_KEY]).map(({ cookie, ...rule }) => ({
     ...rule,
@@ -138,56 +129,6 @@ function ruleFromBody(req, idKey) {
     rule.priority = req.body.priority
   }
   return rule
-}
-
-function listNetworkRulesRoute(controller) {
-  return {
-    endpoint: '/networks/{id}/traffic_rules',
-    description: `List the traffic rules of a network, then those of each VIF of its VMs. The VIFs of snapshots and templates, whose copies of the rules never apply, are left out.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privileges:\n - resource: network, action: read\n - resource: vif, action: read, on every VIF of its VMs`,
-    method: 'get',
-    tags: ['sdn-controller'],
-    params: PARAMS_ID,
-    responses: [
-      {
-        status: 200,
-        description: 'The rules of the network and of the VIFs of its VMs',
-        schema: { type: 'array', items: LISTED_RULE },
-      },
-      { status: 403, description: 'Forbidden' },
-      { status: 404, description: 'No network found for this ID' },
-    ],
-    middlewares: [
-      {
-        name: 'acl',
-        acls: [
-          { resource: 'network', action: 'read', objectId: 'params.id' },
-          {
-            resource: 'vif',
-            action: 'read',
-            objectIds: ({ req }) => vmVifsOf(controller._xo, req.params.id).map(vif => vif.id),
-          },
-        ],
-      },
-    ],
-    callback: ({ req }) => listNetworkRules(controller._xo, req.params.id),
-  }
-}
-
-function listVifRulesRoute(controller) {
-  return {
-    endpoint: '/vifs/{id}/traffic_rules',
-    description: `List the traffic rules of a VIF.\n\n${PRIORITY_DESCRIPTION}\n\nRequired privilege:\n - resource: vif, action: read`,
-    method: 'get',
-    tags: ['sdn-controller'],
-    params: PARAMS_ID,
-    responses: [
-      { status: 200, description: 'The rules of the VIF', schema: { type: 'array', items: LISTED_RULE } },
-      { status: 403, description: 'Forbidden' },
-      { status: 404, description: 'No VIF found for this ID' },
-    ],
-    middlewares: [{ name: 'acl', acls: { resource: 'vif', action: 'read', objectId: 'params.id' } }],
-    callback: ({ req }) => listedRules(controller._xo.getObject(req.params.id, 'VIF')),
-  }
 }
 
 function addRuleRoute(controller, resource) {
@@ -302,7 +243,10 @@ function updateRuleRoute(controller, resource) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
           const newRule = applyRulePatch(oldRule, partialNewRule)
-          controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority, oldRule.priority)
+          // a kept priority may be shared, like the copy a clone makes of a VIF's rules
+          if (newRule.priority !== oldRule.priority) {
+            controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority)
+          }
 
           await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
           await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
@@ -323,13 +267,9 @@ function updateRuleRoute(controller, resource) {
 }
 
 export function createRestRoutes(controller) {
-  return [
-    listNetworkRulesRoute(controller),
-    listVifRulesRoute(controller),
-    ...flatMap(RESOURCES, r => [
-      addRuleRoute(controller, r),
-      deleteRuleRoute(controller, r),
-      updateRuleRoute(controller, r),
-    ]),
-  ]
+  return flatMap(RESOURCES, r => [
+    addRuleRoute(controller, r),
+    deleteRuleRoute(controller, r),
+    updateRuleRoute(controller, r),
+  ])
 }

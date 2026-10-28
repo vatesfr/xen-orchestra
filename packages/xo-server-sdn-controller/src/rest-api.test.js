@@ -4,7 +4,7 @@ import { invalidParameters, noSuchObject, objectAlreadyExists } from 'xo-common/
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
 import createSdnController from './index.js'
-import { createRestRoutes } from './rest-api.js'
+import { createRestRoutes, listNetworkRules } from './rest-api.js'
 
 const noop = () => undefined
 
@@ -164,28 +164,13 @@ describe('the update of a rule', () => {
   })
 })
 
-describe('the lists of rules', () => {
-  it('give the rules of a VIF', async () => {
-    const route = findRoute(createController(), 'get', '/vifs/{id}/traffic_rules')
-    assert.deepEqual(await route.callback({ req: { params: { id: 'vif1' } } }), [
-      { ...WEB, priority: 30000, type: 'VIF', sourceId: 'vif1' },
-    ])
-  })
-
-  it('give the rules of a network, without their cookie, then those of the VIFs of its VMs', async () => {
-    const route = findRoute(createController(), 'get', '/networks/{id}/traffic_rules')
-    assert.deepEqual(await route.callback({ req: { params: { id: 'net' } } }), [
+// those the priority of a new rule is checked against
+describe('the rules of a network', () => {
+  it('are its own, without their cookie, then those of the VIFs of its VMs', () => {
+    assert.deepEqual(listNetworkRules(createController()._xo, 'net'), [
       { ...SSH, priority: 40000, type: 'network', sourceId: 'net' },
       { ...WEB, priority: 30000, type: 'VIF', sourceId: 'vif1' },
       { ...WEB, priority: 30000, type: 'VIF', sourceId: 'vif3' },
     ])
-  })
-
-  it('require the privilege to read every VIF of the VMs of the network', () => {
-    const route = findRoute(createController(), 'get', '/networks/{id}/traffic_rules')
-    const [, vifAcl] = route.middlewares.find(middleware => middleware.name === 'acl').acls
-    assert.equal(vifAcl.resource, 'vif')
-    assert.equal(vifAcl.action, 'read')
-    assert.deepEqual(vifAcl.objectIds({ req: { params: { id: 'net' } } }), ['vif1', 'vif3'])
   })
 })

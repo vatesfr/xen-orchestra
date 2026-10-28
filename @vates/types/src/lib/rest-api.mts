@@ -59,7 +59,7 @@ export interface BaseRouteDefinition<Middleware> {
   responses?: Array<{
     status: number
     description: string
-    schema?: Record<string, FieldDefinition> | FieldDefinition
+    schema?: Record<string, FieldDefinition>
   }>
   middlewares?: Middleware[]
   scope?: 'acl'
