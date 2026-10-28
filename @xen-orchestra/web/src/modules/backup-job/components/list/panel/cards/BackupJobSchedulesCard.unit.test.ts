@@ -3,7 +3,7 @@ import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo
 import { getScheduleNextRun } from '@/modules/schedule/utils/xo-schedule.util.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
-import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'

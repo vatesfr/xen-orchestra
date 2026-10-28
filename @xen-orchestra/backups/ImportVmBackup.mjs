@@ -2,6 +2,7 @@ import assert from 'node:assert'
 
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
+import { liveMountXapiLabels } from './liveMountXapiLabels.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'
 import { Task } from '@vates/task'
@@ -42,7 +43,8 @@ export class ImportVmBackup {
    * @param {object} [params.liveMount] - how to serve a disk from the backup repository instead of
    * copying it, injected by the caller since a live mount outlives the restore and cannot be run
    * from this package
-   * @param {({ diskPath, hostId }) => Promise<{ id: string, vdiUuid: string }>} params.liveMount.mountDisk
+   * @param {({ cacheSrUuid, diskPath, hostId, xapiLabels }) => Promise<{ id: string, vdiUuid: string }>} params.liveMount.mountDisk
+   * `xapiLabels` are those of {@link liveMountXapiLabels}, `cacheSrUuid` makes the mount read/write
    * @param {(id: string) => Promise<void>} params.liveMount.unmountDisk
    * @param {object} [params.settings]
    */
@@ -356,11 +358,23 @@ export class ImportVmBackup {
       }
 
       const diskPath = join(metadataDir, metadata.vhds[vdiRef])
-      const mount = await liveMount.mountDisk({ diskPath, hostId })
+      const cacheSrUuid = this._vdiRestoreTargets.get(vdi.uuid).cacheSr
+      const readWrite = cacheSrUuid !== undefined
+      const xapiLabels = liveMountXapiLabels({
+        readWrite,
+        timestamp: metadata.timestamp,
+        vdiNameLabel: vdi.name_label,
+        vmNameLabel: metadata.vm.name_label,
+      })
+      const mount = await liveMount.mountDisk({ cacheSrUuid, diskPath, hostId, xapiLabels })
       this.#liveMounts.push({ ...mount, hostId })
-      info('disk live mounted', { diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
+      info('disk live mounted', { cacheSrUuid, diskPath, hostId, mountId: mount.id, vdiUuid: vdi.uuid })
 
-      const record = { ...vdi, liveMountedVdiRef: await xapi.call('VDI.get_by_uuid', mount.vdiUuid) }
+      const record = {
+        ...vdi,
+        liveMountedVdiRef: await xapi.call('VDI.get_by_uuid', mount.vdiUuid),
+        liveMountedReadOnly: !readWrite,
+      }
       // it is attached as is: there is nothing to clone it from, nothing to transfer into it, and
       // no SR to create it on — `SR` still holds the ref it had on the backed up pool
       delete record.baseVdi

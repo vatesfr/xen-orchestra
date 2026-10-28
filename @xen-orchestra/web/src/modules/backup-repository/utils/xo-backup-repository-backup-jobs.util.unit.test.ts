@@ -1,4 +1,4 @@
-import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobsUsingBackupRepository } from '@/modules/backup-repository/utils/xo-backup-repository-backup-jobs.util.ts'
 import { createBr } from '@/test/create-br.ts'
 

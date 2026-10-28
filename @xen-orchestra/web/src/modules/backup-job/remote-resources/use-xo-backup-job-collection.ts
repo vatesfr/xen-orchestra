@@ -45,7 +45,6 @@ const mirrorBackupJobFields = [
   'proxy',
 ] as const satisfies readonly (keyof XoMirrorBackupJob)[]
 
-// Ensure fields are unique
 export const anyBackupJobFields = Array.from(
   new Set([...vmBackupJobFields, ...metadataBackupJobFields, ...mirrorBackupJobFields])
 )
@@ -53,8 +52,7 @@ export const anyBackupJobFields = Array.from(
 export const useXoBackupJobCollection = defineRemoteResource({
   url: `${BASE_URL}/backup-jobs?fields=${anyBackupJobFields.join(',')}&ndjson=true`,
   stream: true,
-  initWatchCollection: () =>
-    useWatchCollection({ collectionId: 'adminBackupJob', resource: 'backup-job', fields: anyBackupJobFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'backup-job', fields: anyBackupJobFields }),
   initialData: () => [] as FrontAnyXoBackupJob[],
   state: (backupJobs, context) =>
     useXoCollectionState(backupJobs, {

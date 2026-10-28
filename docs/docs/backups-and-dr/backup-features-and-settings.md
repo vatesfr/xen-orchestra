@@ -479,7 +479,7 @@ Typical uses:
 ### How it works
 
 - Xen Orchestra (or the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR) runs one iSCSI target per live mounted disk, protected by CHAP credentials generated for that mount.
-- An SR named `[XO backup] <VM name>` is introduced on the chosen host. It holds a single read-only VDI, attached in read-only mode to the restored VM.
+- An SR named `[XO live mount] <VM name> (<backup date>)` is introduced on the chosen host. It holds a single read-only VDI, named like the backed up disk, attached in read-only mode to the restored VM.
 - Every read done by the VM goes through Xen Orchestra to the BR. Nothing is ever written: neither to the backup, nor to the SR.
 - The restored VM is pinned (affinity) to the host the disk is mounted on: the SR is plugged on that host only.
 
@@ -492,7 +492,8 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
 :::
 
 - **Incremental backups only.** Live mount is not available for full backups, nor in [backup health checks](#backup-health-check).
-- **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk.
+- **Xen Orchestra (or the proxy) must run in a VM of a pool connected to it.** Otherwise, the restore form shows the live actions as unavailable.
+- **Read-only.** The VM sees a read-only disk. It is best suited for data disks: most operating systems need a writable system disk. For a writable disk, use a [live restore](#live-restore).
 - **One host per restore.** All the disks live mounted by one restore use the same host, and that host must be able to reach the main SR: its own host for a local SR, any host of its pool for a shared SR. The host selector only offers these hosts, and the most likely one is pre-selected.
 - **Network.** The hosts connect to Xen Orchestra (or the proxy) over iSCSI, on a TCP port picked for each mount. A firewall between the hosts and Xen Orchestra must let the hosts open TCP connections to it. For the firewall of XOA itself, see [Firewall of Xen Orchestra](#live-mount-firewall). The address given to the hosts is auto-detected; if they cannot reach it (NAT, several networks), set it in the [configuration file](../getting-started/configuration.md), for example `/etc/xo-server/config.iscsi.toml`:
 
@@ -504,7 +505,7 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
-- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO backup] <VM name>` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
+- **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO live mount] <VM name> (<backup date>)` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
 
@@ -546,21 +547,38 @@ How it works:
 - Its rules can stay in the firewall. Nothing listens on their ports anymore, so a host trying to connect gets refused.
 - They are removed the **next time Xen Orchestra starts**, or when the appliance reboots, whichever comes first. Xen Orchestra and a proxy running on the same machine only remove their own rules.
 - If you set `manageFirewall = false` before restarting, Xen Orchestra no longer removes them. List them with the command above, then delete each one with `iptables -D`, followed by the rule as listed without its leading `-A`.
-- As with any crash, the `[XO backup] <VM name>` SR also stays behind (see **Temporary** above).
+- As with any crash, the `[XO live mount] <VM name> (<backup date>)` SR also stays behind (see **Temporary** above).
 
 A normal stop or restart of Xen Orchestra releases every mount, which removes their rules.
+
+### Live restore: a writable live mounted disk {#live-restore}
+
+A live restore is a live mount with a **cache**: the disk is copied, block by block as the VM reads it, into a VDI created on an SR you choose, which also receives everything the VM writes. So:
+
+- **The disk is writable.** It can be a system disk: the VM can boot from it.
+- **Each block is read from the BR only once.** Reading it again is served from the cache, at the speed of that SR.
+- **The backup is never modified.** What the VM writes lands in the cache VDI only.
+- **What is written is lost when the mount is released.** The cache VDI is created with the mount and destroyed with it. To keep the data, copy it elsewhere first, or restore the disk the usual way.
+
+The cache VDI is attached to the VM of Xen Orchestra (or of the [proxy](./scale-and-security/proxy.md#live-mount) handling the BR), named `[XO live restore] [NOBAK] [NOSNAP] <disk name>`: do not detach or delete it while the mount is in use. So the cache SR is chosen where Xen Orchestra (or the proxy) runs, not where the VM is restored, which can be another pool:
+
+- **The cache SR must belong to the pool running Xen Orchestra (or the proxy)**, and that pool must be connected to Xen Orchestra. Otherwise, the restore fails with `the SR … is not in the pool running this appliance`.
+- **The cache SR must be plugged on the host running Xen Orchestra (or the proxy).** A shared SR always is; a local SR only if it belongs to that host. Otherwise, the restore fails with `the SR … is not plugged on the host running this appliance`.
+- **Do not migrate Xen Orchestra (or the proxy) to another host while the mount is in use, if the cache SR is local:** the cache VDI cannot follow it.
+
+The SR introduced on the host is then named `[XO live restore] <VM name> (<backup date>)`.
 
 ### Live mount a disk during a restore
 
 1. Go to **Backup → Restore**, and click the **Restore** icon of the VM.
 2. Choose an incremental backup, and a main SR for the disks that are copied.
 3. Expand **For each VDI, choose what to do (optional)**.
-4. For the disk to mount, pick **Live mount (read only)** as the action, and check the host in the **Destination** column.
+4. For the disk to mount, pick **Live mount (read only)** as the action, and check the host in the **Destination** column. For a [live restore](#live-restore), pick **Live restore (read/write)** instead, then also pick the SR holding the written data, in the pool running Xen Orchestra (or the proxy).
 5. Click **OK**.
 
-The restored VM then has the live mounted disk on the `[XO backup] <VM name>` SR:
+The restored VM then has the live mounted disk on the `[XO live mount] <VM name> (<backup date>)` SR:
 
-<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO backup] SR and is attached in read-only mode" width={760} />
+<UiDetail src="/img/xo5/live-mount-vm-disks.png" alt="The Disks tab of the restored VM: the live mounted disk sits on the [XO live mount] SR named after the VM and the backup date, and is attached in read-only mode" width={760} />
 
 ### Release a live mount {#release-live-mount}
 

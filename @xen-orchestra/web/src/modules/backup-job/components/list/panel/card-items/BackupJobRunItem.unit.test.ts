@@ -1,5 +1,5 @@
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type {
   FrontXoSchedule,
   useXoScheduleCollection,
@@ -7,7 +7,7 @@ import type {
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
-import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
