@@ -71,3 +71,11 @@ export type V2vActiveMapping = {
   disks: V2vActiveDiskMapping[]
   nics: V2vActiveNicMapping[]
 }
+
+// A source device of a resumed VM, named after the inventory, beside the target its first sync put it on, if any
+export type V2vActiveMappingRow = {
+  key: XoV2vDisk['key'] | XoV2vNic['key']
+  source: string
+  detailParts: string[]
+  destination?: string
+}

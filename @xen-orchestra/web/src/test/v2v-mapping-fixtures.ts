@@ -1,11 +1,15 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { V2vDiskMappingRow, V2vNicMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type { V2vActiveMappingRow, V2vDiskMappingRow, V2vNicMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createSr } from '@/test/create-sr.ts'
+import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import {
   createV2vDisk,
   createV2vHost,
@@ -15,9 +19,12 @@ import {
   createV2vVm,
 } from '@/test/create-v2v-inventory.ts'
 import { createV2vDestinationDefaults } from '@/test/create-v2v-migration-list.ts'
+import { createVbd } from '@/test/create-vbd.ts'
+import { createVdi } from '@/test/create-vdi.ts'
+import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { t } from '@/test/i18n.ts'
-import type { XoV2vDisk, XoV2vNic } from '@vates/types'
+import { V2V_VDI_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
 
 const DEFAULTS = createV2vDestinationDefaults()
 
@@ -126,4 +133,57 @@ export const V2V_NIC_ROWS: V2vNicMappingRow[] = [
     macAddress: V2V_VLAN_NIC.macAddress,
     network: { value: V2V_VLAN_NETWORK.id, origin: 'overridden', isOffered: true },
   },
+]
+
+// The first sync of the mapped VM put its system disk, last synced from its snapshot delta, on the SSD SR, and its NICs
+// on the devices 0 and 1, the MAC of the second one changed. Its data disk is not paired: no VDI of the import has it
+export const V2V_SYNCED_VDI = createVdi({
+  id: 'vdi-system' as FrontXoVdi['id'],
+  $SR: V2V_SSD_SR.id,
+  other_config: { [V2V_VDI_OTHER_CONFIG.DISK_PATH]: V2V_SYSTEM_DISK.chainPaths[1] },
+})
+
+export const V2V_SYNCED_VBD = createVbd({ id: 'vbd-system' as FrontXoVbd['id'], VDI: V2V_SYNCED_VDI.id })
+
+export const V2V_SYNCED_VIFS = [
+  createVif({
+    id: 'vif-lan' as FrontXoVif['id'],
+    device: '0',
+    $network: V2V_DEFAULT_NETWORK.id,
+    MAC: V2V_LAN_NIC.macAddress,
+  }),
+  createVif({
+    id: 'vif-vlan' as FrontXoVif['id'],
+    device: '1',
+    $network: V2V_VLAN_NETWORK.id,
+    MAC: '00:16:3e:00:00:02',
+  }),
+]
+
+export const V2V_RESUMED_IMPORT_VM = createV2vImportVm(
+  { sourceVmId: V2V_MAPPED_VM.id },
+  {
+    name_label: 'app-03',
+    power_state: VM_POWER_STATE.HALTED,
+    $VBDs: [V2V_SYNCED_VBD.id],
+    VIFs: V2V_SYNCED_VIFS.map(vif => vif.id),
+  }
+)
+
+// The rows of the active mapping of the resumed VM: its disks then its NICs
+export const V2V_ACTIVE_MAPPING_ROWS: V2vActiveMappingRow[] = [
+  {
+    key: V2V_SYSTEM_DISK.key,
+    source: V2V_SYSTEM_DISK.label,
+    detailParts: ['ds-prod-01', '80 GiB'],
+    destination: V2V_SSD_SR.name_label,
+  },
+  { key: V2V_DATA_DISK.key, source: V2V_DATA_DISK.label, detailParts: ['ds-prod-01', '80 GiB'] },
+  {
+    key: V2V_LAN_NIC.key,
+    source: V2V_LAN_NIC.label,
+    detailParts: [V2V_PROD_PORT_GROUP.name, t('vlan-id', { id: V2V_PROD_PORT_GROUP.vlan }), t('v2v:mac-kept')],
+    destination: V2V_DEFAULT_NETWORK.name_label,
+  },
+  { key: V2V_VLAN_NIC.key, source: V2V_VLAN_NIC.label, detailParts: [], destination: V2V_VLAN_NETWORK.name_label },
 ]

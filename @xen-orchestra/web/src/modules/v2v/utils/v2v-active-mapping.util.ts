@@ -1,7 +1,8 @@
 import type { V2vActiveMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { V2V_VDI_OTHER_CONFIG, type XoV2vVm, type XoVdi } from '@vates/types'
+import { V2V_VDI_OTHER_CONFIG, type XoV2vVm } from '@vates/types'
 
 // MAC addresses are case-insensitive
 function isSameMac(firstMac: string, secondMac: string) {
@@ -13,7 +14,7 @@ function isSameMac(firstMac: string, secondMac: string) {
 // the VIFs of a new VM in the order of its NICs, on its first free devices: `0`, `1`…
 export function getV2vActiveMapping(
   vm: Pick<XoV2vVm, 'disks' | 'nics'>,
-  vdis: Pick<XoVdi, 'id' | '$SR' | 'other_config'>[],
+  vdis: Pick<FrontXoVdi, 'id' | '$SR' | 'other_config'>[],
   importVmVbds: Pick<FrontXoVbd, 'VDI'>[],
   importVmVifs: Pick<FrontXoVif, 'device' | '$network' | 'MAC'>[]
 ): V2vActiveMapping {

@@ -1,7 +1,7 @@
 import type { V2vTargetOrigin } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vUnsupportedReason, V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
-import { V2V_VM_STATUSES, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import { V2V_VM_STATUSES, type V2vNextTransfer, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { formatSize } from '@core/utils/size.util.ts'
@@ -125,6 +125,19 @@ export function useV2vVmLabels() {
     return portGroup.vlan === undefined ? [portGroup.name] : [portGroup.name, t('vlan-id', { id: portGroup.vlan })]
   }
 
+  function getDiskDetailParts(datastoreName: string, capacity: XoV2vDisk['capacity']): string[] {
+    return [datastoreName, formatSize(capacity, 1)]
+  }
+
+  function getNicDetailParts(portGroup: XoV2vPortGroup | undefined, isMacKept: boolean): string[] {
+    return isMacKept ? [...getPortGroupParts(portGroup), t('v2v:mac-kept')] : getPortGroupParts(portGroup)
+  }
+
+  const nextTransferLabels = computed<Record<V2vNextTransfer, string>>(() => ({
+    delta: t('delta-transfer'),
+    full: t('full-transfer'),
+  }))
+
   return {
     statusLabels,
     powerLabels,
@@ -138,5 +151,8 @@ export function useV2vVmLabels() {
     getSnapshotCountLabel,
     getDisksParts,
     getPortGroupParts,
+    getDiskDetailParts,
+    getNicDetailParts,
+    nextTransferLabels,
   }
 }
