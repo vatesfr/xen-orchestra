@@ -25,7 +25,7 @@ import {
 } from 'xo'
 
 import Proxies from './proxies'
-import UploadAirgapDataPack from './upload-airgap-data-pack'
+import Airgap from './airgap'
 import Xostor from './xostor'
 
 // -----------------------------------------------------------------------------
@@ -316,7 +316,7 @@ export default class Licenses extends Component {
     const airgapDataPack = (
       <Row className='mt-3'>
         <Col>
-          <UploadAirgapDataPack canExport={isAirgap} updateLicenses={this._updateAfterAirgapDataPackUpload} />
+          <Airgap canExport={isAirgap} updateLicenses={this._updateAfterAirgapDataPackUpload} />
         </Col>
       </Row>
     )

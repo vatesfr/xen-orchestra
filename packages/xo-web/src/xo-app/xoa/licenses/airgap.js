@@ -7,7 +7,7 @@ import React from 'react'
 import xoaUpdater from 'xoa-updater'
 import { exportAirgapLicenses, uploadAirgapDataPack } from 'xo'
 
-export default class UploadAirgapDataPack extends Component {
+export default class Airgap extends Component {
   state = {
     airgapDataPack: undefined,
     rejectedFile: undefined,
