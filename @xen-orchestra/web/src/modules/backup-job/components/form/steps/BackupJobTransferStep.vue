@@ -7,13 +7,28 @@
         <BackupJobFormNumberInput v-bind="bindings.maxExportRate" :unit="t('bytes:mibs')" />
         <BackupJobFormNumberInput v-bind="bindings.concurrency" />
       </BackupJobFormRow>
+
+      <BackupJobFormRadio v-if="!isIncremental && !isMirror" v-bind="bindings.compression" />
     </div>
 
-    <div class="section">
+    <div v-if="isIncremental && !isMirror" class="section">
       <UiTitle>{{ t('incremental-specifics') }}</UiTitle>
 
-      <UiLabel accent="neutral">{{ t('key-backup') }}</UiLabel>
-      <BackupJobPendingMockup />
+      <BackupJobFormRadio v-bind="bindings.keyBackup">
+        <template #info>
+          <UiInfo accent="info" wrap>{{ t('key-backup-info') }}</UiInfo>
+        </template>
+      </BackupJobFormRadio>
+
+      <template v-if="bindings.keyBackup.modelValue === 'dynamic'">
+        <div class="key-backup-cards">
+          <BackupJobFormValueCard v-bind="bindings.keyBackupMonthDays" :columns="7" :step-unit="t('cron:unit:day')" />
+          <BackupJobFormValueCard v-bind="bindings.keyBackupWeekDays" :columns="7" with-footer />
+          <BackupJobFormValueCard v-bind="bindings.keyBackupHours" :columns="6" with-footer />
+        </div>
+
+        <UiInfo accent="info" wrap>{{ t('key-backup-dynamic-info') }}</UiInfo>
+      </template>
 
       <BackupJobFormCheckbox v-bind="bindings.preferNbd" />
 
@@ -22,34 +37,40 @@
       </BackupJobFormRow>
     </div>
 
-    <div class="section">
+    <div v-if="!isMirror" class="section">
       <UiTitle>{{ t('snapshot') }}</UiTitle>
 
-      <BackupJobFormRadio v-bind="bindings.snapshotMode" vertical />
+      <BackupJobFormCheckbox v-bind="bindings.offlineBackup" />
 
-      <BackupJobFormRadio v-bind="bindings.snapshotSync" />
+      <template v-if="!bindings.offlineBackup.modelValue">
+        <BackupJobFormRadio v-bind="bindings.snapshotMode" vertical />
 
-      <BackupJobFormRow v-if="bindings.snapshotSync.modelValue === 'smart'">
-        <BackupJobFormSelect v-bind="bindings.snapshotSyncTag" />
-      </BackupJobFormRow>
+        <BackupJobFormRadio v-bind="bindings.snapshotSync" />
+
+        <BackupJobFormRow v-if="bindings.snapshotSync.modelValue === 'smart'">
+          <BackupJobFormSelect v-bind="bindings.snapshotSyncTag" />
+        </BackupJobFormRow>
+      </template>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
-import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
+import BackupJobFormValueCard from '@/modules/backup-job/components/form/inputs/BackupJobFormValueCard.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   bindings: BackupJobTransferForm['bindings']
+  isIncremental: boolean
+  isMirror: boolean
 }>()
 
 const { t } = useI18n()
@@ -67,6 +88,16 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+  }
+
+  .key-backup-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.6rem;
+
+    @media (--small) {
+      grid-template-columns: 1fr;
+    }
   }
 }
 </style>

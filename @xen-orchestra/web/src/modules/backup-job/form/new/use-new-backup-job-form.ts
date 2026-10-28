@@ -16,7 +16,7 @@ import {
 } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const STEPS = ['source', 'transfer', 'target', 'planning', 'review'] as const
@@ -24,71 +24,109 @@ type Step = (typeof STEPS)[number]
 
 const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
 
+function createSourceFormData(): BackupJobSourceFormData {
+  return {
+    dataSource: 'vm',
+    mode: 'delta',
+    saveXoConfig: false,
+    savePoolsMetadata: true,
+    proxy: undefined,
+    sourceBackupRepository: undefined,
+    scopeType: 'all',
+    vmIds: [],
+    vmFilter: '',
+  }
+}
+
+function createTransferFormData(): BackupJobTransferFormData {
+  return {
+    maxExportRate: undefined,
+    concurrency: undefined,
+    compression: '',
+    keyBackup: 'never',
+    keyBackupMonthDays: [],
+    keyBackupWeekDays: [],
+    keyBackupHours: [],
+    preferNbd: true,
+    nbdConcurrency: undefined,
+    offlineBackup: false,
+    snapshotMode: 'default',
+    snapshotSync: 'none',
+    snapshotSyncTag: undefined,
+  }
+}
+
+function createTargetFormData(): BackupJobTargetFormData {
+  return {
+    storageTargets: [],
+    targetProxy: undefined,
+    backupRepositoryScopeType: 'all',
+    backupRepositoryIds: [],
+    backupRepositoryFilter: '',
+    backupDistribution: 'every',
+    exportRetention: undefined,
+    ltrDailyRetention: 0,
+    ltrDailyKeep: undefined,
+    ltrWeeklyRetention: 0,
+    ltrWeeklyKeep: undefined,
+    ltrMonthlyRetention: 0,
+    ltrMonthlyKeep: undefined,
+    ltrYearlyRetention: 0,
+    ltrYearlyKeep: undefined,
+    strictGfs: false,
+    mergeBackupsSynchronously: false,
+    storageRepositoryScopeType: 'all',
+    storageRepositoryIds: [],
+    storageRepositoryFilter: '',
+    replicaDistribution: 'every',
+    copyRetention: undefined,
+    snapshotRetention: 1,
+  }
+}
+
+function createPlanningFormData(): BackupJobPlanningFormData {
+  return {
+    cron: DEFAULT_CRON,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timeout: undefined,
+    nRetriesVmBackupFailures: undefined,
+  }
+}
+
 export function useNewBackupJobForm() {
   const { t } = useI18n()
 
-  const source = useBackupJobSourceForm(
-    reactive<BackupJobSourceFormData>({
-      dataSource: 'vm',
-      mode: 'delta',
-      saveXoConfig: false,
-      savePoolsMetadata: true,
-      proxy: undefined,
-      sourceBackupRepository: undefined,
-      scopeType: 'all',
-      vmIds: [],
-      vmFilter: '',
-    })
-  )
+  const source = useBackupJobSourceForm(reactive(createSourceFormData()))
 
-  const transfer = useBackupJobTransferForm(
-    reactive<BackupJobTransferFormData>({
-      maxExportRate: undefined,
-      concurrency: undefined,
-      keyBackup: 'never',
-      preferNbd: true,
-      nbdConcurrency: undefined,
-      snapshotMode: 'default',
-      snapshotSync: 'none',
-      snapshotSyncTag: undefined,
-    })
-  )
+  const isIncremental = computed(() => source.formData.mode === 'delta')
+
+  const isMirror = computed(() => source.formData.dataSource === 'mirror')
+
+  const transfer = useBackupJobTransferForm(reactive(createTransferFormData()), isIncremental, isMirror)
 
   const target = useBackupJobTargetForm(
-    reactive<BackupJobTargetFormData>({
-      storageTargets: [],
-      targetProxy: undefined,
-      backupRepositoryScopeType: 'all',
-      backupRepositoryIds: [],
-      backupRepositoryFilter: '',
-      backupDistribution: 'every',
-      exportRetention: undefined,
-      ltrDailyRetention: 0,
-      ltrDailyKeep: undefined,
-      ltrWeeklyRetention: 0,
-      ltrWeeklyKeep: undefined,
-      ltrMonthlyRetention: 0,
-      ltrMonthlyKeep: undefined,
-      ltrYearlyRetention: 0,
-      ltrYearlyKeep: undefined,
-      strictGfs: false,
-      storageRepositoryScopeType: 'all',
-      storageRepositoryIds: [],
-      storageRepositoryFilter: '',
-      replicaDistribution: 'every',
-      copyRetention: undefined,
-      snapshotRetention: 1,
-    }),
+    reactive(createTargetFormData()),
     () => source.formData.dataSource,
     () => source.formData.mode === 'full' || transfer.formData.preferNbd,
-    () => source.formData.sourceBackupRepository
+    () => source.formData.sourceBackupRepository,
+    () => transfer.formData.offlineBackup
   )
 
-  const planning = useBackupJobPlanningForm(
-    reactive<BackupJobPlanningFormData>({
-      cron: DEFAULT_CRON,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })
+  const planning = useBackupJobPlanningForm(reactive(createPlanningFormData()))
+
+  watch(
+    () => source.formData.dataSource,
+    dataSource => {
+      Object.assign(source.formData, { ...createSourceFormData(), dataSource })
+      Object.assign(transfer.formData, createTransferFormData())
+      Object.assign(target.formData, createTargetFormData())
+      Object.assign(planning.formData, createPlanningFormData())
+
+      source.reset()
+      transfer.reset()
+      target.reset()
+      planning.reset()
+    }
   )
 
   const currentStepIndex = ref(0)
@@ -147,6 +185,8 @@ export function useNewBackupJobForm() {
     transfer,
     target,
     planning,
+    isIncremental,
+    isMirror,
     currentStep,
     currentStepIndex,
     steps,

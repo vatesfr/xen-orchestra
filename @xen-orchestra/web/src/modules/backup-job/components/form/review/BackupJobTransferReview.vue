@@ -3,16 +3,31 @@
   <VtsTabularKeyValueList>
     <VtsTabularKeyValueRow :label="t('source-speed-limit')" :value="speedLimit" />
     <VtsTabularKeyValueRow :label="t('vm-read-concurrency')" :value="toText(form.bindings.concurrency.modelValue)" />
+    <VtsTabularKeyValueRow
+      v-if="!isIncremental && !isMirror"
+      :label="t('compression-type')"
+      :value="getOptionLabel(form.bindings.compression.options, form.bindings.compression.modelValue)"
+    />
   </VtsTabularKeyValueList>
 
-  <template v-if="isIncremental">
+  <template v-if="isIncremental && !isMirror">
     <BackupJobReviewSubtitle>{{ t('incremental-specifics') }}</BackupJobReviewSubtitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('key-backup')">
-        <template #value>
-          <BackupJobPendingMockup />
-        </template>
-      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow
+        :label="t('key-backup')"
+        :value="getOptionLabel(form.bindings.keyBackup.options, form.bindings.keyBackup.modelValue)"
+      />
+      <template v-if="form.bindings.keyBackup.modelValue === 'dynamic'">
+        <VtsTabularKeyValueRow
+          :label="t('days-of-the-month')"
+          :value="getSelectedLabels(form.bindings.keyBackupMonthDays)"
+        />
+        <VtsTabularKeyValueRow
+          :label="t('days-of-the-week')"
+          :value="getSelectedLabels(form.bindings.keyBackupWeekDays)"
+        />
+        <VtsTabularKeyValueRow :label="t('hours')" :value="getSelectedLabels(form.bindings.keyBackupHours)" />
+      </template>
       <VtsTabularKeyValueRow :label="t('network-block-device-nbd')">
         <template #value>
           <VtsStatus :status="form.bindings.preferNbd.modelValue" />
@@ -26,18 +41,26 @@
     </VtsTabularKeyValueList>
   </template>
 
-  <BackupJobReviewSubtitle>{{ t('snapshot') }}</BackupJobReviewSubtitle>
-  <VtsTabularKeyValueList>
-    <VtsTabularKeyValueRow
-      :label="t('snapshot-mode')"
-      :value="getOptionLabel(form.bindings.snapshotMode.options, form.bindings.snapshotMode.modelValue)"
-    />
-    <VtsTabularKeyValueRow :label="t('snapshot-synchronisation')" :value="snapshotSyncLabel" />
-  </VtsTabularKeyValueList>
+  <template v-if="!isMirror">
+    <BackupJobReviewSubtitle>{{ t('snapshot') }}</BackupJobReviewSubtitle>
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('offline-backup')">
+        <template #value>
+          <VtsStatus :status="form.bindings.offlineBackup.modelValue" />
+        </template>
+      </VtsTabularKeyValueRow>
+      <template v-if="!form.bindings.offlineBackup.modelValue">
+        <VtsTabularKeyValueRow
+          :label="t('snapshot-mode')"
+          :value="getOptionLabel(form.bindings.snapshotMode.options, form.bindings.snapshotMode.modelValue)"
+        />
+        <VtsTabularKeyValueRow :label="t('snapshot-synchronisation')" :value="snapshotSyncLabel" />
+      </template>
+    </VtsTabularKeyValueList>
+  </template>
 </template>
 
 <script lang="ts" setup>
-import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
 import BackupJobReviewSubtitle from '@/modules/backup-job/components/form/review/BackupJobReviewSubtitle.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import { getOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
@@ -50,12 +73,28 @@ import { useI18n } from 'vue-i18n'
 const { form } = defineProps<{
   form: BackupJobTransferForm
   isIncremental: boolean
+  isMirror: boolean
 }>()
 
 const { t } = useI18n()
 
 function toText(value: number | undefined): string | undefined {
   return value === undefined ? undefined : String(value)
+}
+
+function getSelectedLabels({
+  options,
+  modelValue,
+}: {
+  options: { label: string; value: number }[]
+  modelValue: number[]
+}): string | undefined {
+  return modelValue.length === 0
+    ? undefined
+    : options
+        .filter(option => modelValue.includes(option.value))
+        .map(option => option.label)
+        .join(', ')
 }
 
 const speedLimit = computed(() =>

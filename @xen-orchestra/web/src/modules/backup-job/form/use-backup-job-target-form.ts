@@ -43,6 +43,7 @@ export type BackupJobTargetFormData = {
   ltrYearlyRetention: number | undefined
   ltrYearlyKeep: number | undefined
   strictGfs: boolean
+  mergeBackupsSynchronously: boolean
   storageRepositoryScopeType: BackupJobTargetScopeType
   storageRepositoryIds: FrontXoSr['id'][]
   storageRepositoryFilter: string
@@ -61,7 +62,8 @@ export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
   rawIsEphemeralSnapshotAllowed: MaybeRefOrGetter<boolean>,
-  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
+  rawIsOfflineBackup: MaybeRefOrGetter<boolean>
 ) {
   const { t, locale } = useI18n()
 
@@ -72,6 +74,8 @@ export function useBackupJobTargetForm(
   const isEphemeralSnapshotAllowed = toComputed(rawIsEphemeralSnapshotAllowed)
 
   const sourceBackupRepositoryId = toComputed(rawSourceBackupRepositoryId)
+
+  const isOfflineBackup = toComputed(rawIsOfflineBackup)
 
   const { backupRepositories } = useXoBackupRepositoryCollection()
 
@@ -107,25 +111,31 @@ export function useBackupJobTargetForm(
     }
   })
 
+  watch(isOfflineBackup, isOffline => {
+    if (isOffline && formData.storageTargets.includes('snapshot-retention')) {
+      formData.storageTargets = formData.storageTargets.filter(target => target !== 'snapshot-retention')
+    }
+  })
+
   const hasStorageTargetChoice = computed(() => dataSource.value === 'vm')
 
   const hasBackupRepositorySection = computed(
-    () =>
-      dataSource.value === 'mirror' ||
-      (dataSource.value === 'vm' && formData.storageTargets.includes('backup-repository'))
+    () => dataSource.value !== 'vm' || formData.storageTargets.includes('backup-repository')
   )
+
+  const hasRetentionStrategy = computed(() => hasBackupRepositorySection.value && dataSource.value !== 'metadata')
 
   const hasStorageRepositorySection = computed(
     () => dataSource.value === 'vm' && formData.storageTargets.includes('storage-repository')
   )
 
   const hasSnapshotRetentionSection = computed(
-    () => dataSource.value === 'vm' && formData.storageTargets.includes('snapshot-retention')
+    () => dataSource.value === 'vm' && !isOfflineBackup.value && formData.storageTargets.includes('snapshot-retention')
   )
 
   function atLeast(min: number, isActive: () => boolean) {
     return withMessage(
-      (value: number | undefined) => !isActive() || typeof value !== 'number' || value >= min,
+      (value: unknown) => !isActive() || typeof value !== 'number' || value >= min,
       () => t('must-be-at-least-n', { n: min })
     )
   }
@@ -164,10 +174,10 @@ export function useBackupJobTargetForm(
             () => t('query-matches-no-backup-repository')
           ),
         },
-        ltrDailyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
-        ltrWeeklyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
-        ltrMonthlyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
-        ltrYearlyRetention: { minValue: atLeast(0, () => hasBackupRepositorySection.value) },
+        ltrDailyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
+        ltrWeeklyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
+        ltrMonthlyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
+        ltrYearlyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
         storageRepositoryIds: {
           atLeastOne: withMessage(
             () =>
@@ -200,8 +210,7 @@ export function useBackupJobTargetForm(
           ),
           minValue: atLeast(0, () => hasSnapshotRetentionSection.value),
           ephemeralSnapshot: withMessage(
-            (value: number | undefined) =>
-              !hasSnapshotRetentionSection.value || value !== 0 || isEphemeralSnapshotAllowed.value,
+            (value: unknown) => !hasSnapshotRetentionSection.value || value !== 0 || isEphemeralSnapshotAllowed.value,
             () => t('ephemeral-snapshot-requires-nbd')
           ),
         },
@@ -212,7 +221,7 @@ export function useBackupJobTargetForm(
   const storageTargetOptions = computed<ChoiceOption<BackupJobStorageTarget>[]>(() => [
     { label: t('backup-repository'), value: 'backup-repository' },
     { label: t('storage-repository'), value: 'storage-repository' },
-    { label: t('snapshot-retention'), value: 'snapshot-retention' },
+    ...(isOfflineBackup.value ? [] : [{ label: t('snapshot-retention'), value: 'snapshot-retention' } as const]),
   ])
 
   const backupRepositoryScopeTypeOptions = computed<ChoiceOption<BackupJobTargetScopeType>[]>(() => [
@@ -357,6 +366,10 @@ export function useBackupJobTargetForm(
       label: t('enforce-strict-gfs-hierarchy'),
       info: t('enforce-strict-gfs-hierarchy-info'),
     })),
+    mergeBackupsSynchronously: useField('mergeBackupsSynchronously', () => ({
+      label: t('merge-backups-synchronously'),
+      info: t('merge-backups-synchronously-info'),
+    })),
     storageRepositoryScopeType: useField('storageRepositoryScopeType', () => ({
       label: t('scope-type'),
       options: storageRepositoryScopeTypeOptions.value,
@@ -381,6 +394,7 @@ export function useBackupJobTargetForm(
     bindings,
     hasStorageTargetChoice,
     hasBackupRepositorySection,
+    hasRetentionStrategy,
     hasStorageRepositorySection,
     hasSnapshotRetentionSection,
     availableBackupRepositories,

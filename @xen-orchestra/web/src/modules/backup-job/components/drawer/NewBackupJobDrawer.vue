@@ -7,9 +7,18 @@
     <template #content>
       <UiStepper ref="stepper" :steps :current-step="currentStepIndex">
         <BackupJobSourceStep v-if="currentStep === 'source'" :form="source" />
-        <BackupJobTransferStep v-else-if="currentStep === 'transfer'" :bindings="transfer.bindings" />
+        <BackupJobTransferStep
+          v-else-if="currentStep === 'transfer'"
+          :bindings="transfer.bindings"
+          :is-incremental
+          :is-mirror
+        />
         <BackupJobTargetStep v-else-if="currentStep === 'target'" :form="target" />
-        <BackupJobPlanningStep v-else-if="currentStep === 'planning'" :bindings="planning.bindings" />
+        <BackupJobPlanningStep
+          v-else-if="currentStep === 'planning'"
+          :bindings="planning.bindings"
+          :is-metadata="source.formData.dataSource === 'metadata'"
+        />
         <BackupJobReviewStep
           v-else-if="currentStep === 'review'"
           :source
@@ -53,8 +62,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { source, transfer, target, planning, currentStep, currentStepIndex, steps, next, back, goToStep } =
-  useNewBackupJobForm()
+const {
+  source,
+  transfer,
+  target,
+  planning,
+  isIncremental,
+  isMirror,
+  currentStep,
+  currentStepIndex,
+  steps,
+  next,
+  back,
+  goToStep,
+} = useNewBackupJobForm()
 
 const stepper = useTemplateRef('stepper')
 

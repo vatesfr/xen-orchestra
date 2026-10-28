@@ -12,10 +12,6 @@ export const useBackupArchiveVmColumns = defineColumns(() => {
     checkbox: useCheckboxColumn(),
     vm: useLinkOrTextColumn({ headerLabel: () => t('vm') }),
     backups: useNumberColumn({ headerLabel: () => t('backups') }),
-    lastBackupDate: useDateColumn({
-      headerLabel: () => t('last-backup-date'),
-      dateStyle: 'short',
-      timeStyle: 'medium',
-    }),
+    lastBackupDate: useDateColumn({ headerLabel: () => t('last-backup-date') }),
   }
 })

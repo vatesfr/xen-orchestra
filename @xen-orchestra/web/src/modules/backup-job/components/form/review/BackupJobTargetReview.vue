@@ -12,22 +12,30 @@
         :value="getOptionLabel(bindings.backupRepositoryScopeType.options, formData.backupRepositoryScopeType)"
       />
       <VtsTabularKeyValueRow
+        v-if="form.hasRetentionStrategy.value"
         :label="t('backup-distribution-strategy')"
         :value="getOptionLabel(bindings.backupDistribution.options, formData.backupDistribution)"
       />
       <VtsTabularKeyValueRow :label="t('minimum-backups-to-retain')" :value="toText(formData.exportRetention)" />
-      <VtsTabularKeyValueRow :label="t('long-term-retention')">
-        <template #value>
-          <div class="lines">
-            <span v-for="line of longTermRetentionLines" :key="line">{{ line }}</span>
-          </div>
-        </template>
-      </VtsTabularKeyValueRow>
-      <VtsTabularKeyValueRow :label="t('enforce-strict-gfs-hierarchy')">
-        <template #value>
-          <VtsStatus :status="formData.strictGfs" />
-        </template>
-      </VtsTabularKeyValueRow>
+      <template v-if="form.hasRetentionStrategy.value">
+        <VtsTabularKeyValueRow :label="t('long-term-retention')">
+          <template #value>
+            <div class="lines">
+              <span v-for="line of longTermRetentionLines" :key="line">{{ line }}</span>
+            </div>
+          </template>
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('enforce-strict-gfs-hierarchy')">
+          <template #value>
+            <VtsStatus :status="formData.strictGfs" />
+          </template>
+        </VtsTabularKeyValueRow>
+        <VtsTabularKeyValueRow :label="t('merge-backups-synchronously')">
+          <template #value>
+            <VtsStatus :status="formData.mergeBackupsSynchronously" />
+          </template>
+        </VtsTabularKeyValueRow>
+      </template>
     </VtsTabularKeyValueList>
   </template>
 
