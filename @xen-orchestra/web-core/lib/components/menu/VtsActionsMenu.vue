@@ -13,43 +13,15 @@
       />
     </template>
     <slot>
-      <template v-for="(action, index) of actions" :key="index">
-        <MenuSeparator v-if="action.separator" />
-        <MenuItem
-          :icon="action.icon"
-          :disabled="action.disabled"
-          :busy="action.busy"
-          :accent="action.accent ?? 'neutral'"
-          :on-click="action.onClick"
-        >
-          {{ action.label }}
-          <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
-          <template v-if="action.children" #submenu>
-            <template v-for="(child, childIndex) of action.children" :key="childIndex">
-              <MenuSeparator v-if="child.separator" />
-              <MenuItem
-                :icon="child.icon"
-                :disabled="child.disabled"
-                :busy="child.busy"
-                :accent="child.accent ?? 'neutral'"
-                :on-click="child.onClick"
-              >
-                {{ child.label }}
-                <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
-              </MenuItem>
-            </template>
-          </template>
-        </MenuItem>
-      </template>
+      <VtsActionItems :actions />
     </slot>
   </MenuList>
 </template>
 
 <script setup lang="ts">
 import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import MenuSeparator from '@core/components/menu/MenuSeparator.vue'
+import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import type { ButtonIconSize } from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

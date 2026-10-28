@@ -15,10 +15,10 @@
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">
-          {{ d(task.start, 'datetime_short') }}
+          {{ formattedStartDate }}
           <template v-if="task.end">
             <VtsIcon name="fa:arrow-right" size="medium" />
-            {{ d(new Date(task.end), 'datetime_short') }}
+            {{ formattedEndDate }}
           </template>
         </div>
       </div>
@@ -34,6 +34,7 @@ import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -42,13 +43,16 @@ const props = defineProps<{
   task: Task
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const [isExpanded, toggleExpand] = useToggle()
 
 const subTasks = computed(() => props.task.subtasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
+
+const formattedStartDate = computed(() => (props.task.start ? formatDateTime(props.task.start) : undefined))
+const formattedEndDate = computed(() => (props.task.end ? formatDateTime(props.task.end) : undefined))
 </script>
 
 <style lang="postcss" scoped>

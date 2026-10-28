@@ -26,7 +26,7 @@ export const QUERY_CHANGED_DISK_AREAS = Object.freeze(['_this', 'snapshot', 'dev
 
 // only the part of the sequence this package sends: the whole type counts dozens of elements, an
 // element added here must be inserted at its place in the schema
-export const VIRTUAL_MACHINE_CONFIG_SPEC = Object.freeze(['deviceChange'])
+export const VIRTUAL_MACHINE_CONFIG_SPEC = Object.freeze(['deviceChange', 'changeTrackingEnabled'])
 
 export const VIRTUAL_DEVICE_CONFIG_SPEC = Object.freeze([
   'operation',

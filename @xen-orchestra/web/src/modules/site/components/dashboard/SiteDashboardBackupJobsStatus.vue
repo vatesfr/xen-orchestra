@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
       <template v-if="!isEmpty" #info>
-        <UiLink size="small" :to="{ name: '/(site)/backups' }">{{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/admin/backup-and-replication/jobs' }">{{ t('action:see-all') }}</UiLink>
       </template>
       <template v-if="!isEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
@@ -16,7 +16,7 @@
       <template #description>
         <I18nT keypath="configure-for-protected" scope="global" tag="div">
           <template #backup-job>
-            <UiLink size="small" :to="{ name: '/(site)/backups' }">
+            <UiLink size="small" :to="{ name: '/admin/backup-and-replication/jobs' }">
               {{ t('backup-job') }}
             </UiLink>
           </template>

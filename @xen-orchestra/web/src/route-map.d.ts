@@ -35,19 +35,11 @@ declare module 'vue-router/auto-routes' {
       '/',
       Record<never, never>,
       Record<never, never>,
-      | '/(site)/backups'
       | '/(site)/dashboard'
       | '/(site)/hosts'
       | '/(site)/pools'
       | '/(site)/tasks'
       | '/(site)/vms'
-    >,
-    '/(site)/backups': RouteRecordInfo<
-      '/(site)/backups',
-      '/backups',
-      Record<never, never>,
-      Record<never, never>,
-      | never
     >,
     '/(site)/dashboard': RouteRecordInfo<
       '/(site)/dashboard',
@@ -97,11 +89,19 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/admin/backup-and-replication/backup-repositories'
+      | '/admin/backup-and-replication/jobs'
       | '/admin/backup-and-replication/logs'
     >,
     '/admin/backup-and-replication/backup-repositories': RouteRecordInfo<
       '/admin/backup-and-replication/backup-repositories',
       '/admin/backup-and-replication/backup-repositories',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/backup-and-replication/jobs': RouteRecordInfo<
+      '/admin/backup-and-replication/jobs',
+      '/admin/backup-and-replication/jobs',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -127,6 +127,20 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/plugin/[id]': RouteRecordInfo<
+      '/admin/plugin/[id]',
+      '/admin/plugin/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/plugins': RouteRecordInfo<
+      '/admin/plugins',
+      '/admin/plugins',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/user-management': RouteRecordInfo<
       '/admin/user-management',
       '/admin/user-management',
@@ -139,44 +153,6 @@ declare module 'vue-router/auto-routes' {
       '/admin/user-management/users',
       Record<never, never>,
       Record<never, never>,
-      | never
-    >,
-    '/backup/[id]': RouteRecordInfo<
-      '/backup/[id]',
-      '/backup/:id',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | '/backup/[id]/backed-up-vms'
-      | '/backup/[id]/configuration'
-      | '/backup/[id]/runs'
-      | '/backup/[id]/targets'
-    >,
-    '/backup/[id]/backed-up-vms': RouteRecordInfo<
-      '/backup/[id]/backed-up-vms',
-      '/backup/:id/backed-up-vms',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
-    '/backup/[id]/configuration': RouteRecordInfo<
-      '/backup/[id]/configuration',
-      '/backup/:id/configuration',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
-    '/backup/[id]/runs': RouteRecordInfo<
-      '/backup/[id]/runs',
-      '/backup/:id/runs',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
-      | never
-    >,
-    '/backup/[id]/targets': RouteRecordInfo<
-      '/backup/[id]/targets',
-      '/backup/:id/targets',
-      { id: ParamValue<true> },
-      { id: ParamValue<false> },
       | never
     >,
     '/dev/': RouteRecordInfo<
@@ -567,7 +543,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(site).vue': {
       routes:
         | '/(site)'
-        | '/(site)/backups'
         | '/(site)/dashboard'
         | '/(site)/hosts'
         | '/(site)/pools'
@@ -575,12 +550,6 @@ declare module 'vue-router/auto-routes' {
         | '/(site)/vms'
       views:
         | 'default'
-    }
-    'src/pages/(site)/backups.vue': {
-      routes:
-        | '/(site)/backups'
-      views:
-        | never
     }
     'src/pages/(site)/dashboard.vue': {
       routes:
@@ -622,6 +591,7 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/admin/backup-and-replication'
         | '/admin/backup-and-replication/backup-repositories'
+        | '/admin/backup-and-replication/jobs'
         | '/admin/backup-and-replication/logs'
       views:
         | 'default'
@@ -629,6 +599,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-and-replication/backup-repositories.vue': {
       routes:
         | '/admin/backup-and-replication/backup-repositories'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-and-replication/jobs.vue': {
+      routes:
+        | '/admin/backup-and-replication/jobs'
       views:
         | never
     }
@@ -651,6 +627,18 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/plugin/[id].vue': {
+      routes:
+        | '/admin/plugin/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/plugins.vue': {
+      routes:
+        | '/admin/plugins'
+      views:
+        | never
+    }
     'src/pages/admin/user-management.vue': {
       routes:
         | '/admin/user-management'
@@ -661,40 +649,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/user-management/users.vue': {
       routes:
         | '/admin/user-management/users'
-      views:
-        | never
-    }
-    'src/pages/backup/[id].vue': {
-      routes:
-        | '/backup/[id]'
-        | '/backup/[id]/backed-up-vms'
-        | '/backup/[id]/configuration'
-        | '/backup/[id]/runs'
-        | '/backup/[id]/targets'
-      views:
-        | 'default'
-    }
-    'src/pages/backup/[id]/backed-up-vms.vue': {
-      routes:
-        | '/backup/[id]/backed-up-vms'
-      views:
-        | never
-    }
-    'src/pages/backup/[id]/configuration.vue': {
-      routes:
-        | '/backup/[id]/configuration'
-      views:
-        | never
-    }
-    'src/pages/backup/[id]/runs.vue': {
-      routes:
-        | '/backup/[id]/runs'
-      views:
-        | never
-    }
-    'src/pages/backup/[id]/targets.vue': {
-      routes:
-        | '/backup/[id]/targets'
       views:
         | never
     }
