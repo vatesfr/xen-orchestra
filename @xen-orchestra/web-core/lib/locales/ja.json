@@ -355,7 +355,6 @@
   "descending": "降順",
   "description": "説明",
   "destination-sr": "移行先 SR",
-  "destination-sr-mandatory": "移行先 SR は必須です。",
   "device": "リモートデバイス",
   "device-config": "デバイス設定",
   "dhcp": "DHCP",

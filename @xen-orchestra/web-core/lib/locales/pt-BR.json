@@ -355,7 +355,6 @@
   "descending": "descendente",
   "description": "Descrição",
   "destination-sr": "SR de destino",
-  "destination-sr-mandatory": "O SR de destino é obrigatório.",
   "device": "Dispositivo",
   "device-config": "Configuração do dispositivo",
   "dhcp": "DHCP",

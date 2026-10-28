@@ -355,7 +355,6 @@
   "descending": "laskeva",
   "description": "Kuvaus",
   "destination-sr": "Kohde-SR",
-  "destination-sr-mandatory": "Kohde-SR on pakollinen.",
   "device": "Laite",
   "device-config": "Laitteen määritykset",
   "dhcp": "DHCP",

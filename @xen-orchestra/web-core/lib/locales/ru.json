@@ -355,7 +355,6 @@
   "descending": "по убыванию",
   "description": "Описание",
   "destination-sr": "Целевой SR",
-  "destination-sr-mandatory": "Целевой SR обязателен.",
   "device": "Устройство",
   "device-config": "Конфигурация устройства",
   "dhcp": "DHCP",
