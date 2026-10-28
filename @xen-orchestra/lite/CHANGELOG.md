@@ -18,6 +18,7 @@
 - [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
 - [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 - [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
+- [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
 
 ## **0.26.0** (2026-10-01)
 

@@ -8,6 +8,8 @@
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { KeyboardLayoutId } from '@core/types/keyboard-layout.type.ts'
+import { getKeyboardLayout, getKeysymKeyStrokes, typeText } from '@core/utils/keyboard-layout.util.ts'
 import type NoVncClient from '@novnc/novnc/lib/rfb'
 import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
@@ -16,9 +18,21 @@ import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type RemoteConsoleTypeText = (text: string, layoutId?: KeyboardLayoutId) => Promise<string[]> | undefined
+
+export type RemoteConsoleExposed = {
+  isConnected: boolean
+  sendCtrlAltDel: () => void
+  typeText: RemoteConsoleTypeText
+}
+
 const { url, isConsoleAvailable } = defineProps<{
   url: URL
   isConsoleAvailable: boolean
+}>()
+
+const emit = defineEmits<{
+  clipboard: [text: string]
 }>()
 
 const { t } = useI18n()
@@ -59,12 +73,17 @@ function handleConnectionEvent() {
   isReady.value = true
 }
 
+function handleClipboardEvent(event: CustomEvent<{ text: string }>) {
+  emit('clipboard', event.detail.text)
+}
+
 function clearVncClient() {
   isReady.value = false
   if (vncClient === undefined) {
     return
   }
 
+  vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
   vncClient.disconnect()
@@ -90,6 +109,7 @@ async function createVncConnection() {
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
+  vncClient.addEventListener('clipboard', handleClipboardEvent)
   const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
   if (canvas !== null) {
     // Todo: See with Clémence to specify the desired focus behavior
@@ -137,8 +157,28 @@ onBeforeUnmount(() => {
   clearVncClient()
 })
 
+function typeTextInConsole(text: string, layoutId?: KeyboardLayoutId) {
+  const client = vncClient
+
+  if (client === undefined) {
+    return
+  }
+
+  // not exposed by noVNC and only true when the server announced the QEMU extended key event, which the host console does not
+  const isScancodeSupported = '_qemuExtKeyEventSupported' in client && client._qemuExtKeyEventSupported === true
+
+  return typeText(
+    (keysym, code, down) => client.sendKey(keysym, code, down),
+    text,
+    isScancodeSupported && layoutId !== undefined ? getKeyboardLayout(layoutId).getKeyStrokes : getKeysymKeyStrokes,
+    () => vncClient !== client
+  )
+}
+
 defineExpose({
+  isConnected: isReady,
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+  typeText: typeTextInConsole,
 })
 </script>
 
