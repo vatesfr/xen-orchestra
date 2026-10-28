@@ -42,28 +42,21 @@
 <script lang="ts" setup>
 import V2vListLockSummary from '@/modules/v2v/components/selected-vms/V2vListLockSummary.vue'
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vListLock, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vSelectedVmsPanel } from '@/modules/v2v/composables/use-v2v-selected-vms-panel.composable.ts'
+import type { V2vSelectedVmsPanelProps } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import InlineParts from '@/shared/components/InlineParts.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import type { XoV2vVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { isEmpty, isBusy } = defineProps<{
-  items: V2vSelectedVm[]
-  count: number
-  isEmpty: boolean
-  isBusy: boolean
-  readinessTags: V2vAccentedLabel<TagAccent>[]
-  lockSummary: V2vListLock
-}>()
+const { isEmpty, isBusy } = defineProps<V2vSelectedVmsPanelProps>()
 
 const emit = defineEmits<{
   remove: [id: XoV2vVm['id']]
@@ -73,6 +66,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const areItemsShown = computed(() => !isEmpty && !isBusy)
+
+useV2vSelectedVmsPanel()
 </script>
 
 <style lang="postcss" scoped>

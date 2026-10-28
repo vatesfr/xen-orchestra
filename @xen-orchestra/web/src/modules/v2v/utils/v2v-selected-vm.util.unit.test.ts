@@ -1,7 +1,11 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
-import { getV2vMappingSummary, getV2vSelectedVmState } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
+import {
+  getV2vMappingSummary,
+  getV2vSelectedVmState,
+  isV2vListIssue,
+} from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vDestinationDefaults, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
@@ -195,5 +199,24 @@ describe('getV2vMappingSummary', () => {
 
   it('summarizes nothing for a VM missing from the inventory', () => {
     expect(getV2vMappingSummary(undefined, 'new', TARGET_NAME_GETTERS)).toBeUndefined()
+  })
+})
+
+describe('isV2vListIssue', () => {
+  it.each([
+    ['running', { type: 'running', level: 'blocking' }],
+    ['partially imported on another pool', { type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }],
+    ['with an incomplete mapping', { type: 'mapping-incomplete', level: 'blocking' }],
+    ['already migrated', { type: 'already-migrated', level: 'warning' }],
+    ['not found in the source', { type: 'not-found', level: 'blocking' }],
+  ] as const)('tells the issue of a VM %s', (_, check) => {
+    expect(isV2vListIssue(check)).toBe(true)
+  })
+
+  it.each([
+    ['ready', { type: 'ready', level: 'ready' }],
+    ['unsupported, which its source checks tell', { type: 'unsupported', level: 'blocking', reason: 'rdm' }],
+  ] as const)('tells no issue of a VM %s', (_, check) => {
+    expect(isV2vListIssue(check)).toBe(false)
   })
 })
