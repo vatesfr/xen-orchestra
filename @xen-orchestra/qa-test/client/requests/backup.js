@@ -49,10 +49,6 @@ export class BackupRequest extends AbstractRequest {
   async #createJob(type, config) {
     this._ensureConnected()
 
-    if (!config || typeof config !== 'object') {
-      throw new Error('Valid backup configuration object is required')
-    }
-
     try {
       const { id } = await this.dispatchClient.restApiClient.post(`/rest/v0/${this.endpoint}`, { ...config, type })
       return id
@@ -229,18 +225,18 @@ export class BackupRequest extends AbstractRequest {
    *
    * @param {string} jobId - Backup job ID, used to find the backup log
    * @param {string} scheduleId - Schedule ID to use for this execution
+   * @param {Object} [options]
+   * @param {number} [options.runStartTime] - Only logs started after it are considered,
+   *   defaults to 5 s before now (buffer for clock differences): pass `Date.now()` when runs follow each other closely
    * @returns {Promise<Object>} Complete backup log with status and details
    * @throws {Error} If the job fails to start or times out
    */
-  async runJobAndGetLog(jobId, scheduleId) {
+  async runJobAndGetLog(jobId, scheduleId, { runStartTime = Date.now() - 5000 } = {}) {
     this._ensureConnected()
 
     log.debug('Running backup job', { jobId, scheduleId })
 
     const restApiClient = this.dispatchClient.restApiClient
-
-    // Capture timestamp BEFORE starting the job (with small buffer for clock differences)
-    const runStartTime = Date.now() - 5000
 
     let taskId
     try {
