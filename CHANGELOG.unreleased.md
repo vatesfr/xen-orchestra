@@ -16,7 +16,7 @@
 - [XO6] Display dates and times as `YYYY-MM-DD HH:mm:ss` in all UI views (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 - [XO6/VM] Warn that deleting a VM also deletes its snapshots and disks (PR [#10554](https://github.com/vatesfr/xen-orchestra/pull/10554))
 - [Backup jobs] Add backup job list in admin menu (PR [#10630](https://github.com/vatesfr/xen-orchestra/pull/10630))
-- [XO6/Host/Network] Add the ability to forget a PIF (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [XO6/Host/Network] Add the ability to forget a PIF (PR [#10675](https://github.com/vatesfr/xen-orchestra/pull/10675))
 
 ### Bug fixes
 
