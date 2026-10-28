@@ -357,3 +357,33 @@ describe('getReadinessTags', () => {
     expect(mountLabels().getReadinessTags({ ready: 0, warning: 0, blocking: 0 })).toEqual([])
   })
 })
+
+it('labels each next transfer', () => {
+  const labels = mountLabels()
+
+  expect(labels.nextTransferLabels).toEqual({ delta: labels.t('delta-transfer'), full: labels.t('full-transfer') })
+})
+
+describe('getDiskDetailParts', () => {
+  it('names the datastore of the disk then its size', () => {
+    expect(mountLabels().getDiskDetailParts('ds-prod-01', 300 * 1024 ** 3)).toEqual(['ds-prod-01', '300 GiB'])
+  })
+})
+
+describe('getNicDetailParts', () => {
+  it('names the port group of the NIC, its VLAN, then tells its MAC is kept', () => {
+    const labels = mountLabels()
+
+    expect(labels.getNicDetailParts(createV2vPortGroup(), true)).toEqual([
+      'PG-Prod',
+      labels.t('vlan-id', { id: 10 }),
+      labels.t('v2v:mac-kept'),
+    ])
+  })
+
+  it('tells nothing of a MAC that changed', () => {
+    const labels = mountLabels()
+
+    expect(labels.getNicDetailParts(createV2vPortGroup(), false)).toEqual(['PG-Prod', labels.t('vlan-id', { id: 10 })])
+  })
+})
