@@ -19,6 +19,7 @@
 - [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 - [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
 - [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
+- [Live updates] Go back to the login page when the session expires, and keep live updates working after logging out and back in
 
 ## **0.26.0** (2026-10-01)
 

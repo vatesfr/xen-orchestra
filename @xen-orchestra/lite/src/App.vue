@@ -67,9 +67,9 @@ if (import.meta.env.DEV) {
 }
 
 whenever(
-  () => pool.value?.$ref,
+  () => xenApiStore.isConnected && pool.value?.$ref,
   poolRef => {
-    xenApiStore.getXapi().startWatching(poolRef)
+    xenApiStore.startWatching(poolRef)
   }
 )
 

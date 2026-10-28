@@ -223,31 +223,40 @@ export default class XenApi {
   }
 
   async startWatching(poolRef: XenApiPool['$ref']) {
+    const sessionId = this._sessionId
     this.fromToken = await this.call('event.inject', ['pool', poolRef])
-    return this.watch()
-  }
 
-  private async watch(): Promise<void> {
-    if (this.fromToken === undefined || this._sessionId === undefined) {
-      return
+    // Stop when the session changes (logout, new login) so that two loops never run at the same time
+    while (this._sessionId !== undefined && this._sessionId === sessionId) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      if (this.listenedTypes.length === 0) {
+        continue
+      }
+
+      let result: {
+        token: string
+        events: XenApiEvent[]
+      }
+
+      try {
+        result = await this.call('event.from', [this.listenedTypes, this.fromToken, 5.001])
+      } catch (error) {
+        if (this._sessionId !== sessionId) {
+          return
+        }
+
+        throw error
+      }
+
+      if (this._sessionId !== sessionId) {
+        return
+      }
+
+      this.fromToken = result.token
+
+      this.handleEvents(result.events)
     }
-
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    if (this.listenedTypes.length === 0) {
-      return this.watch()
-    }
-
-    const result: {
-      token: string
-      events: XenApiEvent[]
-    } = await this.call('event.from', [this.listenedTypes, this.fromToken, 5.001])
-
-    this.fromToken = result.token
-
-    this.handleEvents(result.events)
-
-    return this.watch()
   }
 
   // Get field directly from xapi

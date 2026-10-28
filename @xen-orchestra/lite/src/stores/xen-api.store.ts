@@ -1,5 +1,6 @@
 import XapiStats from '@/libs/xapi-stats.ts'
 import XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
 import { useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'
@@ -95,6 +96,20 @@ export const useXenApiStore = defineStore('xen-api', () => {
     status.value = STATUS.DISCONNECTED
   }
 
+  async function startWatching(poolRef: XenApiPool['$ref']) {
+    try {
+      await xenApi.startWatching(poolRef)
+    } catch (error: any) {
+      if (error?.message === 'SESSION_INVALID') {
+        currentSessionId.value = undefined
+        status.value = STATUS.DISCONNECTED
+        return
+      }
+
+      throw error
+    }
+  }
+
   function resetPoolMasterIp() {
     masterSessionStorage.value = null
     window.location.reload()
@@ -107,6 +122,7 @@ export const useXenApiStore = defineStore('xen-api', () => {
     connect,
     reconnect,
     disconnect,
+    startWatching,
     getXapi,
     getXapiStats,
     currentSessionId,
