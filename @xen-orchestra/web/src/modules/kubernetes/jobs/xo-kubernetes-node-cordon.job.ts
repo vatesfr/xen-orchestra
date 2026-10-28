@@ -21,7 +21,7 @@ export const useXoKubernetesNodeCordonJob = defineJob('kubernetes-node.cordon', 
         throw new JobRunningError(t('job:node-cordon:in-progress'))
       }
 
-      if (node.node_id === undefined) {
+      if (node.node_name === undefined) {
         throw new JobError(t('job:node-cordon:not-registered'))
       }
 

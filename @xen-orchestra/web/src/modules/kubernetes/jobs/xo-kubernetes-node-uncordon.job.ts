@@ -21,7 +21,7 @@ export const useXoKubernetesNodeUncordonJob = defineJob('kubernetes-node.uncordo
         throw new JobRunningError(t('job:node-uncordon:in-progress'))
       }
 
-      if (node.node_id === undefined) {
+      if (node.node_name === undefined) {
         throw new JobError(t('job:node-uncordon:not-registered'))
       }
 

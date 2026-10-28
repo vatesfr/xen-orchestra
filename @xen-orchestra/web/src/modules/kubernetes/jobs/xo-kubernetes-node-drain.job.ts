@@ -21,7 +21,7 @@ export const useXoKubernetesNodeDrainJob = defineJob('kubernetes-node.drain', [x
         throw new JobRunningError(t('job:node-drain:in-progress'))
       }
 
-      if (node.node_id === undefined) {
+      if (node.node_name === undefined) {
         throw new JobError(t('job:node-drain:not-registered'))
       }
 

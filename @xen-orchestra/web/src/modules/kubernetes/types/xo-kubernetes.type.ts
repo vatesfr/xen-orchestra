@@ -1,3 +1,4 @@
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 
 export type KubernetesAvailabilityStatus = 'available' | 'not-available'
@@ -92,12 +93,12 @@ export type XoKubernetesNode = {
   is_draining?: boolean
   is_reconciliation_paused: boolean
   name: string
-  node_id?: string
-  node_name: string
+  node_name?: string
   role: 'control-plane' | 'worker'
   status: 'Ready' | 'NotReady'
   type: 'kubernetes-node'
   version: string
+  vm_id?: FrontXoVm['id']
 }
 
 /* TODO Update when the /namespaces API endpoint is implemented */

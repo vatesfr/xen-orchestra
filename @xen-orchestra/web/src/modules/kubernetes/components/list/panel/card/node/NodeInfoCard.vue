@@ -1,11 +1,11 @@
 <template>
   <UiPanelCard class="node-info-card">
-    <UiPanelCardTitle :id="node.node_id" size="medium" :label="node.name" :to="nodeRoute" icon="object:node" />
+    <UiPanelCardTitle :id="node.id" size="medium" :label="node.name" :to="nodeRoute" icon="object:node" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('node-name') }}</template>
         <template #value>{{ node.node_name }}</template>
-        <template #addons>
+        <template v-if="node.node_name" #addons>
           <VtsCopyButton :value="node.node_name" />
         </template>
       </VtsCardRowKeyValue>
@@ -43,6 +43,20 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('vm') }}</template>
+        <template #value>
+          <div v-if="vm" class="value">
+            <UiLink size="small" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" icon="object:vm">
+              {{ vm.name_label }}
+            </UiLink>
+          </div>
+          <template v-else>{{ node.vm_id }}</template>
+        </template>
+        <template v-if="vmLabel" #addons>
+          <VtsCopyButton :value="vmLabel" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('cluster') }}</template>
         <template #value>
           <div class="value">
@@ -66,6 +80,7 @@ import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-ku
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isControlPlaneNode, nodeReadyStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
 import { getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -92,6 +107,12 @@ const { roleLabels } = useXoKubernetesNodeUtils()
 const roleLabel = computed(() => roleLabels.value[node.role])
 
 const { clusterRoute, clusterLabel } = useXoKubernetesNodeCluster(() => node)
+
+const { getVmById } = useXoVmCollection()
+
+const vm = computed(() => getVmById(node.vm_id))
+
+const vmLabel = computed(() => vm.value?.name_label ?? node.vm_id)
 </script>
 
 <style scoped lang="postcss">

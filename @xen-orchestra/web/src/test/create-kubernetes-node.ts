@@ -9,7 +9,6 @@ export function createKubernetesNode(overrides: Partial<XoKubernetesNode> = {}):
     is_draining: false,
     is_reconciliation_paused: false,
     name: 'prod-cluster-cp-abcde',
-    node_id: '71df26a2-678a-49c7-8232-8ebcac4987ab',
     node_name: 'cp-10-0-0-2',
     role: 'control-plane',
     status: 'Ready',
