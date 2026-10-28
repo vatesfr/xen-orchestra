@@ -1,8 +1,9 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import type { V2vMappingSummary, V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vMappingSummary, V2vSelectedVmCheck, V2vVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
+import { createV2vDisk, createV2vPortGroup } from '@/test/create-v2v-inventory.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
@@ -154,7 +155,9 @@ describe('getCheckInfo', () => {
       'v2v:check:mapping-incomplete',
       'danger',
     ],
-  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck, labelKey, accent) => {
+    ['a fully supported', { type: 'no-unsupported-disk', level: 'ready' }, 'v2v:check:no-unsupported-disk', 'success'],
+    ['a snapshot-free', { type: 'no-snapshot', level: 'ready' }, 'v2v:check:no-snapshot', 'success'],
+  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck | V2vVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
     expect(labels.getCheckInfo(check)).toEqual({ label: labels.t(labelKey), accent })
@@ -173,6 +176,15 @@ describe('getCheckInfo', () => {
     })
   })
 
+  it('counts the snapshots of a VM', () => {
+    const labels = mountLabels()
+
+    expect(labels.getCheckInfo({ type: 'snapshots', level: 'warning', count: 2 })).toEqual({
+      label: labels.t('v2v:check:n-snapshots', { n: 2 }),
+      accent: 'warning',
+    })
+  })
+
   it('names the pool a VM is partially imported on', () => {
     const labels = mountLabels()
 
@@ -187,6 +199,75 @@ describe('getCheckInfo', () => {
     expect(labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }).label).toBe(
       labels.t('v2v:partial-import-on-pool', { pool: OTHER_POOL_ID })
     )
+  })
+})
+
+describe('getOriginTag', () => {
+  it.each([
+    ['default', 'global-default', 'neutral'],
+    ['overridden', 'overridden', 'warning'],
+  ] as const)('tags the %s origin', (origin, labelKey, accent) => {
+    const labels = mountLabels()
+
+    expect(labels.getOriginTag(origin)).toEqual({ label: labels.t(labelKey), accent })
+  })
+})
+
+describe('getPowerLabel', () => {
+  it('tells the power state of a VM and its host', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPowerLabel(V2V_VM_POWER_STATE.POWERED_ON, 'esx01')).toBe(
+      labels.t('power-state-on-host', { power: labels.t('vm:status:running'), host: 'esx01' })
+    )
+  })
+
+  it('only tells the power state while the host is unknown', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPowerLabel(V2V_VM_POWER_STATE.POWERED_OFF, undefined)).toBe(labels.t('vm:status:halted'))
+  })
+})
+
+describe('getSnapshotCountLabel', () => {
+  it('counts the snapshots', () => {
+    expect(mountLabels().getSnapshotCountLabel(2)).toBe('2')
+  })
+
+  it('tells there is none', () => {
+    const labels = mountLabels()
+
+    expect(labels.getSnapshotCountLabel(0)).toBe(labels.t('none'))
+  })
+})
+
+describe('getDisksParts', () => {
+  it('counts the disks then sums their sizes', () => {
+    const disks = [createV2vDisk({ capacity: 80 * 1024 ** 3 }), createV2vDisk({ capacity: 40 * 1024 ** 3 })]
+
+    expect(mountLabels().getDisksParts(disks)).toEqual(['2', '120 GiB'])
+  })
+
+  it('tells a VM without disk has none', () => {
+    const labels = mountLabels()
+
+    expect(labels.getDisksParts([])).toEqual([labels.t('none')])
+  })
+})
+
+describe('getPortGroupParts', () => {
+  it('names the port group then its VLAN', () => {
+    const labels = mountLabels()
+
+    expect(labels.getPortGroupParts(createV2vPortGroup())).toEqual(['PG-Prod', labels.t('vlan-id', { id: 10 })])
+  })
+
+  it('only names a port group without VLAN', () => {
+    expect(mountLabels().getPortGroupParts(createV2vPortGroup({ vlan: undefined }))).toEqual(['PG-Prod'])
+  })
+
+  it('has no part without port group', () => {
+    expect(mountLabels().getPortGroupParts(undefined)).toEqual([])
   })
 })
 

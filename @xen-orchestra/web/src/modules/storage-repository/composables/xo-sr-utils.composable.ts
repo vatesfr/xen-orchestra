@@ -113,6 +113,7 @@ export function useXoSrUtils(
     return hostName ?? t('unknown')
   }
 
+  // An SR using more than its size has no space left, not a negative one
   function getSrSelectLabel(sr: FrontXoSr): string {
     const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
 

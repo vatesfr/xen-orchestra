@@ -1,5 +1,10 @@
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { getV2vVmMapping, resolveV2vTarget, setV2vOverride } from '@/modules/v2v/utils/v2v-mapping.util.ts'
+import {
+  getV2vOverride,
+  getV2vVmMapping,
+  resolveV2vTarget,
+  setV2vOverride,
+} from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vDestinationDefaults, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
@@ -105,6 +110,23 @@ describe('getV2vVmMapping', () => {
     expect(
       getV2vVmMapping(vm, createV2vMigrationListVm(), DEFAULTS, { ...V2V_POOL_OFFERS, srs: [], networks: [] })
     ).toMatchObject({ disks: [], nics: [], state: 'complete' })
+  })
+})
+
+describe('getV2vOverride', () => {
+  it('keeps a value other than the default', () => {
+    expect(getV2vOverride(false, true)).toBe(false)
+  })
+
+  it.each([
+    ['its default', true],
+    ['reset', undefined],
+  ])('stores no override for a value %s', (_, value) => {
+    expect(getV2vOverride(value, true)).toBeUndefined()
+  })
+
+  it('stores no override for a list equal to its default', () => {
+    expect(getV2vOverride(['migrated-from:vmware'], ['migrated-from:vmware'])).toBeUndefined()
   })
 })
 

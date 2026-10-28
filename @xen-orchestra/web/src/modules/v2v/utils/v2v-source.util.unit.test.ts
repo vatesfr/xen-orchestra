@@ -1,4 +1,5 @@
 import {
+  findV2vVmHost,
   getV2vAddress,
   getV2vSourceId,
   getV2vSourceKind,
@@ -6,6 +7,7 @@ import {
   normalizeV2vHost,
 } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { createV2vDatacenter, createV2vHost, createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
+import type { XoV2vHost } from '@vates/types'
 
 describe('normalizeV2vHost', () => {
   it('trims and lowercases the host', () => {
@@ -41,6 +43,24 @@ describe('getV2vSourceId', () => {
 
   it.each([undefined, ''])('falls back to the connection address without instance UUID (%j)', instanceUuid => {
     expect(getV2vSourceId(connection, instanceUuid)).toBe(getV2vAddress(connection))
+  })
+})
+
+describe('findV2vVmHost', () => {
+  const HOST = createV2vHost()
+
+  const OTHER_HOST = createV2vHost({ id: 'host-other' as XoV2vHost['id'] })
+
+  it('finds the host of the VM among the others', () => {
+    const inventory = createV2vInventory({ hosts: [OTHER_HOST, HOST] })
+
+    expect(findV2vVmHost(inventory, createV2vVm({ hostId: HOST.id }))).toBe(HOST)
+  })
+
+  it('finds no host for an unknown host', () => {
+    const inventory = createV2vInventory({ hosts: [OTHER_HOST] })
+
+    expect(findV2vVmHost(inventory, createV2vVm({ hostId: HOST.id }))).toBeUndefined()
   })
 })
 
