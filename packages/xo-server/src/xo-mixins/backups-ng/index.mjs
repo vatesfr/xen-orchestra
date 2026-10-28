@@ -6,7 +6,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
+import { hasCachedLiveMountTarget, hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -16,6 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { getProxyCacheParams, rejectsUnknownParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
@@ -620,6 +621,10 @@ export default class BackupNg {
         )
 
         const params = {
+          // a cached live mount plugs its cache VDI onto the proxy's own VM, in the pool running it.
+          // Only sent when needed: an older proxy rejects them, rather than silently mounting the
+          // disk read only
+          ...(hasCachedLiveMountTarget(settings?.mapVdisSrs) ? await getProxyCacheParams(app, remote.proxy) : {}),
           backupId: metadataFilename,
           remote: {
             url: remote.url,
@@ -660,7 +665,14 @@ export default class BackupNg {
             onLogFct(log)
           }
         } catch (error) {
-          if (invalidParameters.is(error)) {
+          // checked first: a proxy too old for both rejects them along with `streamLogs`, and retrying
+          // without the logs would then fail all the same
+          if (params.vm !== undefined && rejectsUnknownParams(error, ['cacheXapi', 'vm'])) {
+            throw new Error(`the proxy ${remote.proxy} is too old to cache a live mounted disk, upgrade it`, {
+              cause: error,
+            })
+          }
+          if (rejectsUnknownParams(error, ['streamLogs'])) {
             // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
             // nothing to register below
             delete params.streamLogs
@@ -704,8 +716,8 @@ export default class BackupNg {
                 // lifecycle: `mountBackupArchiveDisk` already owns both, and validates the disk
                 // path against the archive
                 liveMount: {
-                  mountDisk: ({ diskPath, hostId }) =>
-                    app.mountBackupArchiveDisk({ archiveId: id, diskId: diskPath, hostId }),
+                  mountDisk: ({ cacheSrUuid, diskPath, hostId }) =>
+                    app.mountBackupArchiveDisk({ archiveId: id, cacheSrId: cacheSrUuid, diskId: diskPath, hostId }),
                   unmountDisk: mountId => app.unmountBackupArchiveDisk(mountId),
                 },
                 metadata,
@@ -716,6 +728,10 @@ export default class BackupNg {
           )
         })
       }
+
+      // without a transfer to wait for, as when every disk is live mounted, the restore ends before
+      // XO has seen the VM: a call right after, like starting it, would not find it
+      await xapi.barrier()
       return result.id
     } finally {
       this._runningRestores.delete(rootTaskId)

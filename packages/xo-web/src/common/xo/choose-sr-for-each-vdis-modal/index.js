@@ -15,16 +15,26 @@ import { createSelector, getObject } from '../../selectors'
 import { Select } from '../../form'
 import { SelectHost, SelectSr } from '../../select-objects'
 
-// what to do with one disk, mirroring the targets the backend accepts in `mapVdisSrs`
+// what to do with one disk, mirroring the targets the backend accepts in `mapVdisSrs`: a live
+// restore is a live mount with a cache SR, which makes it read/write
 const RESTORE = 'restore'
 const LIVE_MOUNT = 'live-mount'
+const LIVE_RESTORE = 'live-restore'
 const IGNORE = 'ignore'
 
-const VDI_TARGET_OPTIONS = [
+// a read-only live mount needs no VM to plug a cache onto, so it is always offered. A live restore
+// stays listed when it cannot be, so the user learns why it is not there
+const getVdiTargetOptions = liveRestoreAvailable => [
   { label: _('vdiTargetRestore'), value: RESTORE },
   { label: _('vdiTargetLiveMount'), value: LIVE_MOUNT },
+  liveRestoreAvailable
+    ? { label: _('vdiTargetLiveRestore'), value: LIVE_RESTORE }
+    : { disabled: true, label: _('vdiTargetLiveRestoreUnavailable'), value: LIVE_RESTORE },
   { label: _('vdiTargetIgnore'), value: IGNORE },
 ]
+
+// both live actions are served on a single host, picked the same way
+const isLiveTarget = type => type === LIVE_MOUNT || type === LIVE_RESTORE
 
 // the selectors hand back objects, but a default computed here is only known by its id
 const resolveObject = objectOrId =>
@@ -51,9 +61,19 @@ const isLiveMountHostAllowed = (host, predicate) => {
   return object !== undefined && predicate(object)
 }
 
+// unlike a host, a cache SR cannot be checked without a predicate: it depends on the VM serving
+// the mount, and without one there is nothing to plug the cache onto
+const isCacheSrAllowed = (cacheSr, predicate) => {
+  if (cacheSr == null || predicate === undefined) {
+    return false
+  }
+  const sr = resolveObject(cacheSr)
+  return sr !== undefined && predicate(sr)
+}
+
 // a disk target is complete once the destination its action needs is known: a host to live mount
 // on, or an SR to restore to, which is the main SR unless one is set for this disk
-const isVdiTargetComplete = (target, mainSr) => {
+const isVdiTargetComplete = (target, mainSr, cacheSrPredicate) => {
   const type = target?.type ?? RESTORE
   if (type === RESTORE) {
     return (target?.sr ?? mainSr) != null
@@ -61,13 +81,24 @@ const isVdiTargetComplete = (target, mainSr) => {
   if (type === LIVE_MOUNT) {
     return target.host != null
   }
+  if (type === LIVE_RESTORE) {
+    return target.host != null && isCacheSrAllowed(target.cacheSr, cacheSrPredicate)
+  }
   return true
 }
 
+// a restore misses its SR, as does any other action
+const INCOMPLETE_TARGET_MESSAGES = {
+  [LIVE_MOUNT]: 'vdiTargetHostRequired',
+  [LIVE_RESTORE]: 'vdiTargetLiveRestoreIncomplete',
+}
+
+const getIncompleteTargetMessage = type => _(INCOMPLETE_TARGET_MESSAGES[type] ?? 'vdiTargetSrRequired')
+
 // meant for the modal bodies embedding this component with `withVdiTargets`, to refuse a
 // confirmation which the server could not honor
-export const areVdiTargetsComplete = ({ mainSr, mapVdisSrs } = {}, vdis) =>
-  every(vdis, vdi => isVdiTargetComplete(mapVdisSrs?.[vdi.uuid], mainSr))
+export const areVdiTargetsComplete = ({ mainSr, mapVdisSrs } = {}, vdis, { cacheSrPredicate } = {}) =>
+  every(vdis, vdi => isVdiTargetComplete(mapVdisSrs?.[vdi.uuid], mainSr, cacheSrPredicate))
 
 const Collapsible = ({ collapsible, children, ...props }) =>
   collapsible ? (
@@ -87,6 +118,9 @@ Collapsible.propTypes = {
 
 export default class ChooseSrForEachVdisModal extends Component {
   static propTypes = {
+    // the SRs which can hold the cache of a live restore: the ones reachable from the VM serving the
+    // mount, which only the caller knows. Without it, live restore is not offered, live mount still is.
+    cacheSrPredicate: PropTypes.func,
     mainSrPredicate: PropTypes.func,
     onChange: PropTypes.func.isRequired,
     srPredicate: PropTypes.func,
@@ -98,9 +132,39 @@ export default class ChooseSrForEachVdisModal extends Component {
     ).isRequired,
     vdis: PropTypes.object.isRequired,
 
-    // offer a target per disk (restore to an SR, live mount on a host, or do not restore) instead
-    // of a single SR selector. `mapVdisSrs` then holds a target object per disk.
+    // offer a target per disk (restore to an SR, live mount or live restore on a host, or do not
+    // restore) instead of a single SR selector. `mapVdisSrs` then holds a target object per disk.
+    // A live restore is held as `{ type: 'live-restore', host, cacheSr }`, which `restoreBackup`
+    // sends as the cached live mount the server expects.
     withVdiTargets: PropTypes.bool,
+  }
+
+  // the SRs which can hold a cache change with the VM serving the mount, e.g. when another backup is
+  // picked: a cache SR chosen for the previous one is dropped instead of being kept, unusable
+  componentDidUpdate(prevProps) {
+    const {
+      cacheSrPredicate,
+      value: { mapVdisSrs },
+    } = this.props
+    if (cacheSrPredicate === prevProps.cacheSrPredicate || mapVdisSrs === undefined) {
+      return
+    }
+
+    let changed = false
+    const newMapVdisSrs = mapValues(mapVdisSrs, target => {
+      if (
+        target?.type !== LIVE_RESTORE ||
+        target.cacheSr == null ||
+        isCacheSrAllowed(target.cacheSr, cacheSrPredicate)
+      ) {
+        return target
+      }
+      changed = true
+      return { ...target, cacheSr: undefined }
+    })
+    if (changed) {
+      this._onChange({ mapVdisSrs: newMapVdisSrs })
+    }
   }
 
   _onChange = newValues => {
@@ -113,6 +177,8 @@ export default class ChooseSrForEachVdisModal extends Component {
   _getMainSr = createSelector(() => this.props.value.mainSr, resolveObject)
 
   _getLiveMountHostPredicate = createSelector(this._getMainSr, getLiveMountHostPredicate)
+
+  _getVdiTargetOptions = createSelector(() => this.props.cacheSrPredicate !== undefined, getVdiTargetOptions)
 
   // the destination SR drives which hosts can live mount a disk: one which cannot reach the new SR
   // is not a valid destination any more and falls back to the default for that SR
@@ -127,8 +193,8 @@ export default class ChooseSrForEachVdisModal extends Component {
     this._onChange({
       mainSr,
       mapVdisSrs: mapValues(mapVdisSrs, target =>
-        target?.type === LIVE_MOUNT && !isLiveMountHostAllowed(target.host, predicate)
-          ? { type: LIVE_MOUNT, host: getDefaultLiveMountHost(sr) }
+        isLiveTarget(target?.type) && !isLiveMountHostAllowed(target.host, predicate)
+          ? { ...target, host: getDefaultLiveMountHost(sr) }
           : target
       ),
     })
@@ -146,12 +212,13 @@ export default class ChooseSrForEachVdisModal extends Component {
       mapVdisSrs: { ...this.props.value.mapVdisSrs, [vdi.uuid]: target },
     })
 
-  // a live mount needs a host, which is pre-selected so the common case does not have to be filled
-  // in by hand
+  // a live mount or a live restore needs a host, which is pre-selected so the common case does not
+  // have to be filled in by hand. The cache SR of a live restore is not: it is a trade-off between
+  // speed and space the user has to make
   _onChangeVdiAction = (vdi, type) =>
     this._onChangeVdiTarget(
       vdi,
-      type === LIVE_MOUNT ? { type, host: getDefaultLiveMountHost(this._getMainSr()) } : { type }
+      isLiveTarget(type) ? { type, host: getDefaultLiveMountHost(this._getMainSr()) } : { type }
     )
 
   _renderVdiTarget(vdi, srPredicate) {
@@ -168,7 +235,7 @@ export default class ChooseSrForEachVdisModal extends Component {
           <Select
             labelKey='label'
             onChange={newType => this._onChangeVdiAction(vdi, newType)}
-            options={VDI_TARGET_OPTIONS}
+            options={this._getVdiTargetOptions()}
             required
             simpleValue
             value={type}
@@ -184,18 +251,25 @@ export default class ChooseSrForEachVdisModal extends Component {
               value={target?.sr}
             />
           )}
-          {type === LIVE_MOUNT && (
+          {isLiveTarget(type) && (
             <SelectHost
-              onChange={host => this._onChangeVdiTarget(vdi, { type: LIVE_MOUNT, host: host ?? undefined })}
+              onChange={host => this._onChangeVdiTarget(vdi, { ...target, host: host ?? undefined })}
               predicate={this._getLiveMountHostPredicate()}
               required
               value={target?.host}
             />
           )}
-          {!isVdiTargetComplete(target, mainSr) && (
-            <span className='text-danger'>
-              {type === LIVE_MOUNT ? _('vdiTargetHostRequired') : _('vdiTargetSrRequired')}
-            </span>
+          {type === LIVE_RESTORE && (
+            <SelectSr
+              onChange={cacheSr => this._onChangeVdiTarget(vdi, { ...target, cacheSr: cacheSr ?? undefined })}
+              placeholder={_('vdiTargetCacheSr')}
+              predicate={this.props.cacheSrPredicate}
+              required
+              value={target?.cacheSr}
+            />
+          )}
+          {!isVdiTargetComplete(target, mainSr, this.props.cacheSrPredicate) && (
+            <span className='text-danger'>{getIncompleteTargetMessage(type)}</span>
           )}
         </Col>
       </SingleLineRow>
@@ -215,7 +289,8 @@ export default class ChooseSrForEachVdisModal extends Component {
     } = props
 
     // the rows are collapsed by default, so what is missing in them has to be visible from outside
-    const incompleteTargets = withVdiTargets && !areVdiTargetsComplete(props.value, vdis)
+    const incompleteTargets =
+      withVdiTargets && !areVdiTargetsComplete(props.value, vdis, { cacheSrPredicate: props.cacheSrPredicate })
 
     return (
       <div>

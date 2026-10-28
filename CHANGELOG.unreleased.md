@@ -11,6 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backup/Restore] Live restore: a disk can now be live mounted read/write, with a cache on an SR of the pool running XO (or the proxy). Each block is read from the BR only once and the VM can boot from it, but what it writes is lost when the mount is released. The live mounted SR and VDI are now named after the backed up VM, disk and backup date (PR [#10434](https://github.com/vatesfr/xen-orchestra/pull/10434))
 - [V2V] With `stopSource`, the source VM is shut down cleanly through the VMware tools, and only powered off when its tools do not run or it does not shut down within 10 minutes (PR [#10637](https://github.com/vatesfr/xen-orchestra/pull/10637))
 - [Plugins] Add plugin list and detail pages in admin menu, to configure, load, unload and test the plugins (PR [#10593](https://github.com/vatesfr/xen-orchestra/pull/10593))
 - [XO6] Display dates and times as `YYYY-MM-DD HH:mm:ss` in all UI views (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
@@ -45,11 +46,17 @@
 
 <!--packages-start-->
 
+- @vates/iscsi minor
+- @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
 - xo-server-sdn-controller patch
+- xo-web minor
 
 <!--packages-end-->
