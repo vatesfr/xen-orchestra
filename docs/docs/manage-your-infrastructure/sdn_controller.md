@@ -212,21 +212,26 @@ Parameters:
 - _protocol_: IP, TCP, UDP, ICMP or ARP (case-insensitive).
 - _port_: required for TCP/UDP protocol. Use `json:22` so the number is passed as an integer.
 - _allow_: true or false. If set to false the packets are dropped.
+- _priority_ (optional): the OpenFlow priority of the rule, an integer from 0 to 65535, refused when `useDirectChannel` is enabled. A rule without one has the OpenFlow default, 32768. When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the **highest** priority applies: a rule of priority 30 applies before a rule of priority 20. Two rules of a network can't be given the same priority. To delete a rule that has one, give it too.
+
+:::tip
+Leave room between the priorities of your rules (for example 100, 110, 120…) rather than numbering them one after the other (101, 102, 103…): a new rule can then go between two existing ones without renumbering them.
+:::
 
 Some examples:
 
 <Terminal shell title="per-VIF rules">{`
-xo-cli sdnController.addRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242 allow=false
-xo-cli sdnController.deleteRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242
-xo-cli sdnController.addRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
-xo-cli sdnController.deleteRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp
+xo-cli sdnController.addRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242 allow=false priority=json:100
+xo-cli sdnController.deleteRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242 priority=json:100
+xo-cli sdnController.addRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp allow=false priority=json:110
+xo-cli sdnController.deleteRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp priority=json:110
 `}</Terminal>
 
 <Terminal shell title="network-wide rules">{`
-xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
-xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp
-xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp allow=false port=json:4242
-xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp port=json:4242
+xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp allow=false priority=json:200
+xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp priority=json:200
+xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp allow=false port=json:4242 priority=json:210
+xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp port=json:4242 priority=json:210
 `}</Terminal>
 
 ### Migration path

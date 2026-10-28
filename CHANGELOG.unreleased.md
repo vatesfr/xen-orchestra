@@ -23,6 +23,7 @@
 - [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, German, Italian, Portuguese, Portuguese (Brasil), Russian, Slovak, Spanish, Swedish and Ukrainian translations (PR [#10464](https://github.com/vatesfr/xen-orchestra/pull/10464))
 - [i18n] Update Arabic, Danish, Finnish, Italian, Japanese, Korean, Norwegian, Persian, Polish, Portuguese (Brasil), Russian and Ukrainian translations (PR [#10641](https://github.com/vatesfr/xen-orchestra/pull/10641))
 - [CLI] Add new command to `xo-server-db` cli: `disable-remote <id>`, disables a remote while xo-server is stopped (PR [#10587](https://github.com/vatesfr/xen-orchestra/pull/10587/))
+- [REST API/SDN Controller] With the XAPI plugin, traffic rules take an optional OpenFlow `priority`, unique on their network, the highest applying first, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`; a rule that has one is deleted or updated only when it is given too, in `delete_traffic_rule`, the `oldRule` of `update_traffic_rule` and the JSON-RPC methods `sdnController.deleteRule` and `sdnController.deleteNetworkRule` (PR [#10525](https://github.com/vatesfr/xen-orchestra/pull/10525))
 
 ### Bug fixes
 
@@ -53,12 +54,13 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
-- xo-server-sdn-controller patch
+- xo-server-sdn-controller minor
 - xo-web minor
 
 <!--packages-end-->
