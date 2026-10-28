@@ -17,11 +17,11 @@
       <div v-else class="form">
         <div class="section">
           <UiTitle>{{ t('storage-repositories') }}</UiTitle>
-          <UiAlert v-if="hasNothingToMigrate" accent="warning">
+          <UiAlert v-if="hasNoDiskToMigrate" accent="warning">
             {{ t('vm-not-running-no-disk-nothing-to-migrate') }}
           </UiAlert>
           <UiAlert v-else-if="isNothingToMigrate" accent="warning">
-            {{ t('vm-not-running-intra-pool-requires-sr-change') }}
+            {{ t('vm-not-running-intra-pool-nothing-to-migrate') }}
           </UiAlert>
           <UiAlert v-else-if="areAllSrsShared && !isOnlyStorageMigratable" accent="info">
             {{ t('all-srs-shared-storage-migration-optional') }}
@@ -137,7 +137,7 @@ const {
   missingNetworkRows,
   isOnlyStorageMigratable,
   isNothingToMigrate,
-  hasNothingToMigrate,
+  hasNoDiskToMigrate,
   setTargetSrId,
   setTargetNetworkId,
   fillEmptySrs,

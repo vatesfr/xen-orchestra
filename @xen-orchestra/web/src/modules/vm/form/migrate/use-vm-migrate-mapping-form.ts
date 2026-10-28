@@ -204,7 +204,7 @@ export function useVmMigrateMappingForm(
     return movedVdiRows.value.length === 0
   })
 
-  const hasNothingToMigrate = computed(() => isNothingToMigrate.value && vdiRows.value.length === 0)
+  const hasNoDiskToMigrate = computed(() => isNothingToMigrate.value && vdiRows.value.length === 0)
 
   const areAllSrsShared = computed(() => vdiRows.value.length > 0 && flaggedVdiRows.value.length === 0)
 
@@ -290,7 +290,7 @@ export function useVmMigrateMappingForm(
     hasMissingNetwork,
     isOnlyStorageMigratable,
     isNothingToMigrate,
-    hasNothingToMigrate,
+    hasNoDiskToMigrate,
     isValid,
     setTargetSrId,
     setTargetNetworkId,

@@ -361,7 +361,7 @@ describe('intra-pool migration', () => {
     expect(form.vdiRows.map(row => row.targetSrId)).toEqual([undefined, SR_LOCAL_A1])
   })
 
-  it('does not require a disk migration for a running VM', () => {
+  it('can migrate more than the storage of a running VM', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A1)
 
     expect(form.isOnlyStorageMigratable).toBe(false)
@@ -374,7 +374,7 @@ describe('intra-pool migration', () => {
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
     expect(form.isNothingToMigrate).toBe(true)
-    expect(form.hasNothingToMigrate).toBe(false)
+    expect(form.hasNoDiskToMigrate).toBe(false)
     expect(form.isValid).toBe(true)
     expect(form.buildPayload()).toEqual({})
   })
@@ -385,7 +385,7 @@ describe('intra-pool migration', () => {
 
     const { form } = mountMappingForm(POOL_A, HOST_A1, vm)
 
-    expect(form.hasNothingToMigrate).toBe(true)
+    expect(form.hasNoDiskToMigrate).toBe(true)
     expect(form.isValid).toBe(true)
     expect(form.buildPayload()).toEqual({})
   })
@@ -412,7 +412,7 @@ describe('intra-pool migration', () => {
 })
 
 describe('inter-pool migration', () => {
-  it('does not require a disk migration for a halted VM', () => {
+  it('can migrate more than the storage of a halted VM', () => {
     const vm = createVm({ $pool: POOL_A, $container: POOL_A, power_state: VM_POWER_STATE.HALTED })
     const { form } = mountMappingForm(POOL_B, HOST_B1, vm)
 

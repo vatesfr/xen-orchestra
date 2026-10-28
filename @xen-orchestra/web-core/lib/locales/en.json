@@ -1493,7 +1493,7 @@
   "vm-name-required": "VM name is required.",
   "vm-not-found": "@:vm @.lower:not-found",
   "vm-not-running": "VM not running",
-  "vm-not-running-intra-pool-requires-sr-change": "The VM is not running: within its pool, there is no active RAM to migrate. As long as no disk moves to another SR, there is nothing to migrate.",
+  "vm-not-running-intra-pool-nothing-to-migrate": "The VM is not running: within its pool, there is no active RAM to migrate. As long as no disk moves to another SR, there is nothing to migrate.",
   "vm-not-running-no-disk-nothing-to-migrate": "Nothing to migrate: the VM is not running and has no disk.",
   "vm-off": "This virtual machine is powered off.",
   "vm-protected-deletion": "This VM is currently protected against deletion.",

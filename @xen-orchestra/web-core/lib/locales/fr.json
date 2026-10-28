@@ -1493,7 +1493,7 @@
   "vm-name-required": "Le nom de la VM est requis.",
   "vm-not-found": "@:vm introuvable",
   "vm-not-running": "VM non démarrée",
-  "vm-not-running-intra-pool-requires-sr-change": "La VM n'est pas démarrée : dans son pool, il n'y a pas de RAM active à migrer. Tant qu'aucun disque ne change de SR, il n'y a rien à migrer.",
+  "vm-not-running-intra-pool-nothing-to-migrate": "La VM n'est pas démarrée : dans son pool, il n'y a pas de RAM active à migrer. Tant qu'aucun disque ne change de SR, il n'y a rien à migrer.",
   "vm-not-running-no-disk-nothing-to-migrate": "Rien à migrer : la VM n'est pas démarrée et n'a aucun disque.",
   "vm-off": "Cette machine virtuelle est éteinte.",
   "vm-protected-deletion": "Cette VM est actuellement protégée contre la suppression.",
