@@ -11,7 +11,7 @@ import { V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
-import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
+import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
   V2V_DB_VM,
@@ -22,7 +22,6 @@ import {
 } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
-import { toValue } from 'vue'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -40,6 +39,19 @@ vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-destination-collections.ts')
 )
+vi.mock(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-destination-collections.ts')
+)
+vi.mock(
+  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
+  () => import('@/test/mock-xo-destination-collections.ts')
+)
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-destination-collections.ts')
+)
+vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
 
@@ -73,10 +85,6 @@ function findPageRow(result: VmsStep, id: XoV2vVm['id']) {
   }
 
   return row
-}
-
-function findListedIds() {
-  return getV2vVmIds(readV2vMigrationListStorage().vms)
 }
 
 // The VMs on the datastore B: the DB one (warm), the RDM one and the listed one (not migrated)
@@ -248,7 +256,7 @@ describe('addSelected', () => {
     result.selection.toggle(V2V_DB_VM.id)
     result.addSelected()
 
-    expect(findListedIds()).toEqual([V2V_LISTED_VM.id, V2V_WEB_VM.id, V2V_DB_VM.id])
+    expect(readV2vMigrationListVmIds()).toEqual([V2V_LISTED_VM.id, V2V_WEB_VM.id, V2V_DB_VM.id])
     expect(result.selection.bindings.selectedCount).toBe(0)
   })
 
@@ -267,7 +275,7 @@ describe('addSelected', () => {
 
     result.addSelected()
 
-    expect(findListedIds()).toEqual([V2V_LISTED_VM.id])
+    expect(readV2vMigrationListVmIds()).toEqual([V2V_LISTED_VM.id])
   })
 })
 
@@ -370,17 +378,18 @@ describe('tableState', () => {
   })
 })
 
-describe('selectedVmsContext', () => {
-  it('hands its list, rows and their readiness, and pool to the selected VMs', async () => {
+describe('selectedVmsPanel', () => {
+  it('lists the VMs of the list', async () => {
+    const { result } = await mountVmsStep()
+
+    expect(getV2vVmIds(result.selectedVmsPanel.items)).toEqual(getV2vVmIds(LIST.vms))
+  })
+
+  it('is busy until the rows are ready', async () => {
     v2vVmRowsCollectionsMock.areVmsReady.value = false
     const { result } = await mountVmsStep()
 
-    const { migrationList, rows, areRowsReady, poolId } = result.selectedVmsContext
-
-    expect(migrationList.list.value?.vms).toEqual(LIST.vms)
-    expect(getV2vVmNames(toValue(rows))).toEqual(getV2vVmNames(V2V_VMS_INVENTORY.vms))
-    expect(toValue(areRowsReady)).toBe(false)
-    expect(toValue(poolId)).toBe(LIST.poolId)
+    expect(result.selectedVmsPanel.isBusy).toBe(true)
   })
 })
 

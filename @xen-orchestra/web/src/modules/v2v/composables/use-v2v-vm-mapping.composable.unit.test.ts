@@ -2,6 +2,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmMapping } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { connectV2vSource } from '@/test/connect-v2v-source.ts'
@@ -34,6 +35,7 @@ import {
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDatastore, XoV2vHost, XoV2vVm } from '@vates/types'
 
 vi.mock(
@@ -91,9 +93,19 @@ function seedPools() {
   ]
 }
 
-type MountOptions = { listVm?: V2vMigrationListVm; vm?: XoV2vVm; isSourceConnected?: boolean }
+type MountOptions = {
+  listVm?: V2vMigrationListVm
+  vm?: XoV2vVm
+  isSourceConnected?: boolean
+  listIssue?: V2vAccentedLabel<InfoAccent>
+}
 
-function mountVmMapping({ listVm = OVERRIDDEN_VM, vm = V2V_MAPPED_VM, isSourceConnected = true }: MountOptions = {}) {
+function mountVmMapping({
+  listVm = OVERRIDDEN_VM,
+  vm = V2V_MAPPED_VM,
+  isSourceConnected = true,
+  listIssue,
+}: MountOptions = {}) {
   const storedList = createListOf(listVm)
 
   seedPools()
@@ -110,6 +122,7 @@ function mountVmMapping({ listVm = OVERRIDDEN_VM, vm = V2V_MAPPED_VM, isSourceCo
       ...useV2vVmMapping(vm, {
         list: () => migrationList.list.value as V2vMigrationList,
         updateVm: migrationList.updateVm,
+        listIssue,
       }),
       getSrOptionLabel: useXoSrUtils().getSrOptionLabel,
     }
@@ -196,6 +209,12 @@ describe('checks', () => {
       { label: mapping.t('v2v:check:no-unsupported-disk'), accent: 'success' },
       { label: mapping.t('v2v:check:n-snapshots', { n: 2 }), accent: 'warning' },
     ])
+  })
+
+  it('adds the issue of the VM in the list after the checks of its source', () => {
+    const listIssue = { label: 'Import in progress', accent: 'danger' } as const
+
+    expect(mountVmMapping({ listIssue }).checks.at(-1)).toEqual(listIssue)
   })
 })
 

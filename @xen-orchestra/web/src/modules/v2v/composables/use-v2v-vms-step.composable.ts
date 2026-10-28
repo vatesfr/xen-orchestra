@@ -1,10 +1,7 @@
-import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
-import type { V2vSelectedVmsContext } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
+import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
+import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmQueryBuilder } from '@/modules/v2v/composables/use-v2v-vm-query-builder.composable.ts'
-import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
@@ -56,15 +53,11 @@ export function useV2vVmsStep() {
 
   const { presetLabels, getSummaryLabels } = useV2vVmLabels()
 
-  const pool = useV2vPoolQuery()
+  const listRows = useV2vMigrationListRows()
 
-  const { sourceHost } = useV2vSourceAndDestination(pool)
+  const { sourceHost, migrationList, rows, areRowsReady } = listRows
 
-  const migrationList = useV2vMigrationList(() => connectionStore.sourceId, pool)
-
-  const listVmIds = computed(() => new Set(migrationList.list.value?.vms.map(vm => vm.id)))
-
-  const { rows, areRowsReady } = useV2vVmRows(listVmIds)
+  const selectedVms = useV2vSelectedVms(listRows)
 
   const datastores = computed(() => connectionStore.inventory?.datastores ?? [])
 
@@ -171,8 +164,6 @@ export function useV2vVmsStep() {
     filter.value = applyV2vPreset(filter.value, id)
   }
 
-  const selectedVmsContext: V2vSelectedVmsContext = { migrationList, rows, areRowsReady, poolId: pool }
-
   return {
     sourceHost,
     filter,
@@ -192,6 +183,8 @@ export function useV2vVmsStep() {
     canGoNext: migrationList.hasVms,
     back: () => goToStep('destination'),
     next: () => goToStep('mapping'),
-    selectedVmsContext,
+    selectedVmsPanel: selectedVms.panel,
+    remove: selectedVms.remove,
+    clear: selectedVms.clear,
   }
 }

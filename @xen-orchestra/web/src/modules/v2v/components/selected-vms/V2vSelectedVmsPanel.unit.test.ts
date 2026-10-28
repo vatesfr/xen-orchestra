@@ -8,12 +8,14 @@ import { findParts } from '@/test/find-parts.ts'
 import { findButton, getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { resizeToSmallScreen } from '@/test/screen-size.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { usePanelStore } from '@core/stores/panel.store.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { ComponentProps } from 'vue-component-type-helpers'
@@ -67,6 +69,13 @@ function findStateHeroTypes(wrapper: VueWrapper) {
 }
 
 describe('with VMs', () => {
+  it('stays closed on a small screen', async () => {
+    await resizeToSmallScreen()
+    mountPanel()
+
+    expect(usePanelStore().isExpanded).toBe(false)
+  })
+
   // Its VMs are no selection to clear: it only closes to leave the full screen of a small screen
   it('is the persistent side panel of the page', () => {
     expect(mountPanel().getComponent(VtsSidePanel).props('persistent')).toBe(true)

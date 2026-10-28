@@ -6,7 +6,7 @@ import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vSelectedVmCheck, V2vSelectedVmKind } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import {
@@ -24,12 +24,14 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
-// What the VMs step owns: the panel reads the same list and rows, never instances of its own
+// What the step owns: the panel reads the same list and rows, never instances of its own. The mapping step shows one
+// VM of the list at a time, its active one
 export type V2vSelectedVmsContext = {
   migrationList: Pick<ReturnType<typeof useV2vMigrationList>, 'list' | 'removeVm' | 'clearVms'>
   rows: MaybeRefOrGetter<V2vVmRow[]>
   areRowsReady: MaybeRefOrGetter<boolean>
   poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>
+  activeVmId?: MaybeRefOrGetter<XoV2vVm['id'] | undefined>
 }
 
 export type V2vSelectedVm = {
@@ -39,6 +41,24 @@ export type V2vSelectedVm = {
   mappingParts: string[]
   check: V2vAccentedLabel<InfoAccent>
   mappingRoute: RouteLocationRaw
+  isSelected: boolean
+}
+
+export type V2vSelectedVmsPanelProps = {
+  items: V2vSelectedVm[]
+  count: number
+  isEmpty: boolean
+  isBusy: boolean
+  readinessTags: V2vAccentedLabel<TagAccent>[]
+  lockSummary: V2vListLock
+}
+
+export type V2vActiveSelectedVm = {
+  id: XoV2vVm['id']
+  name: string
+  kind: V2vSelectedVmKind
+  check: V2vSelectedVmCheck
+  checkInfo: V2vAccentedLabel<InfoAccent>
 }
 
 export type V2vListLock = {
@@ -47,7 +67,7 @@ export type V2vListLock = {
   isLocked: boolean
 }
 
-export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }: V2vSelectedVmsContext) {
+export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, activeVmId }: V2vSelectedVmsContext) {
   const { t } = useI18n()
 
   const { getKindTag, getCheckInfo, getMappingParts, getReadinessTags } = useV2vVmLabels()
@@ -62,7 +82,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
 
   const { getNetworkById } = useXoNetworkCollection()
 
-  const offers = useV2vPoolDestinationChoices(poolId)
+  const { choices: offers, areChoicesReady: areOffersReady } = useV2vPoolDestinationChoices(poolId)
 
   const { sourceHost, poolName } = useV2vSourceAndDestination(poolId)
 
@@ -78,6 +98,11 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     getNetworkName: id => getNetworkById(id)?.name_label,
   }
 
+  // Only a partial import on another pool names a pool
+  function getCheckPoolName(check: V2vSelectedVmCheck) {
+    return check.type === 'partial-on-other-pool' ? getPoolById(check.poolId)?.name_label : undefined
+  }
+
   const selectedVms = computed(() => {
     const list = migrationList.list.value
 
@@ -87,37 +112,53 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
 
     return list.vms.map(listVm => {
       const row = rowsById.value.get(listVm.id)
-      const { kind, check } = getV2vSelectedVmState(row, toValue(poolId))
       const mapping = row === undefined ? undefined : getV2vVmMapping(row.vm, listVm, list.defaults, offers.value)
+      const { kind, check } = getV2vSelectedVmState(row, toValue(poolId), mapping?.state)
 
-      return { id: listVm.id, kind, check, mapping: getV2vMappingSummary(mapping, kind, targetNameGetters) }
+      return {
+        id: listVm.id,
+        name: getName(listVm.id),
+        kind,
+        check,
+        checkInfo: getCheckInfo(check, getCheckPoolName(check)),
+        mapping: getV2vMappingSummary(mapping, kind, targetNameGetters),
+      }
     })
   })
 
-  // Only a partial import on another pool names a pool
-  function getCheckPoolName(check: V2vSelectedVmCheck) {
-    return check.type === 'partial-on-other-pool' ? getPoolById(check.poolId)?.name_label : undefined
-  }
-
   const items = computed(() =>
     selectedVms.value.map(
-      ({ id, kind, check, mapping }): V2vSelectedVm => ({
+      ({ id, name, kind, checkInfo, mapping }): V2vSelectedVm => ({
         id,
-        name: getName(id),
+        name,
         kind: getKindTag(kind),
         mappingParts: getMappingParts(mapping),
-        check: getCheckInfo(check, getCheckPoolName(check)),
+        check: checkInfo,
         mappingRoute: getStepLocation('mapping', { vm: id }),
+        isSelected: id === toValue(activeVmId),
       })
     )
   )
+
+  const activeVm = computed((): V2vActiveSelectedVm | undefined => {
+    const selectedVm = selectedVms.value.find(({ id }) => id === toValue(activeVmId))
+
+    if (selectedVm === undefined) {
+      return undefined
+    }
+
+    const { id, name, kind, check, checkInfo } = selectedVm
+
+    return { id, name, kind, check, checkInfo }
+  })
 
   const count = computed(() => selectedVms.value.length)
 
   const isEmpty = computed(() => count.value === 0)
 
-  // Until the rows are ready, the import state of a VM is unknown: a warm one would read as new and ready
-  const isBusy = computed(() => !toValue(areRowsReady))
+  // Until the rows are ready, the import state of a VM is unknown: a warm one would read as new and ready. Until the
+  // choices of the pool are, its mapping would read incomplete
+  const isBusy = computed(() => !toValue(areRowsReady) || !areOffersReady.value)
 
   const readinessTags = computed(() => {
     const levels = selectedVms.value.map(selectedVm => selectedVm.check.level)
@@ -129,6 +170,17 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     (): V2vListLock => ({ sourceHost: sourceHost.value, poolName: poolName.value, isLocked: !isEmpty.value })
   )
 
+  const panel = computed(
+    (): V2vSelectedVmsPanelProps => ({
+      items: items.value,
+      count: count.value,
+      isEmpty: isEmpty.value,
+      isBusy: isBusy.value,
+      readinessTags: readinessTags.value,
+      lockSummary: lockSummary.value,
+    })
+  )
+
   // One confirmation for removing one VM or all of them: either way, only the list changes
   async function confirmListChange(subject: string, confirmLabel: string) {
     const { event } = await openConfirmModal({
@@ -138,13 +190,13 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     return event === 'onConfirm'
   }
 
-  async function remove(id: XoV2vVm['id']) {
-    const isConfirmed = await confirmListChange(
-      t('v2v:name-from-migration-list', { name: getName(id) }),
-      t('action:remove')
-    )
+  // For a caller with something to do before the list changes, such as leaving the mapping of the VM
+  function confirmRemove(id: XoV2vVm['id']) {
+    return confirmListChange(t('v2v:name-from-migration-list', { name: getName(id) }), t('action:remove'))
+  }
 
-    if (isConfirmed) {
+  async function remove(id: XoV2vVm['id']) {
+    if (await confirmRemove(id)) {
       migrationList.removeVm(id)
     }
   }
@@ -160,5 +212,5 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     }
   }
 
-  return { items, count, isEmpty, isBusy, readinessTags, lockSummary, remove, clear }
+  return { items, activeVm, count, isEmpty, isBusy, readinessTags, lockSummary, panel, confirmRemove, remove, clear }
 }

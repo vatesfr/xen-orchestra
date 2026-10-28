@@ -1,12 +1,12 @@
 import { useV2vResumedVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { connectV2vSource } from '@/test/connect-v2v-source.ts'
-import { createPool } from '@/test/create-pool.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import {
   V2V_ACTIVE_MAPPING_ROWS,
   V2V_DEFAULT_NETWORK,
@@ -14,13 +14,11 @@ import {
   V2V_MAPPING_INVENTORY,
   V2V_RESUMED_IMPORT_VM,
   V2V_SSD_SR,
-  V2V_SYNCED_VBD,
-  V2V_SYNCED_VDI,
-  V2V_SYNCED_VIFS,
+  V2V_SYNCED_VM,
   V2V_VLAN_NETWORK,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { objectIcon } from '@core/icons'
-import { V2V_VM_OTHER_CONFIG, type XoV2vVm } from '@vates/types'
+import type { XoV2vVm } from '@vates/types'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -48,26 +46,8 @@ vi.mock(
 )
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
-const POOL = createPool({ id: V2V_RESUMED_IMPORT_VM.$pool })
-
-// The source VM still holds the snapshot its import last synced
-const SYNCED_VM = createV2vVm({
-  ...V2V_MAPPED_VM,
-  currentSnapshotId: V2V_RESUMED_IMPORT_VM.other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID],
-})
-
-// The pool, the targets and the devices the first sync of the resumed VM left in XO
-function seedCollections() {
-  destinationCollectionsMock.pools.value = [POOL]
-  destinationCollectionsMock.srs.value = [V2V_SSD_SR]
-  destinationCollectionsMock.networks.value = [V2V_DEFAULT_NETWORK, V2V_VLAN_NETWORK]
-  vmDeviceCollectionsMock.vbds.value = [V2V_SYNCED_VBD]
-  vmDeviceCollectionsMock.vdis.value = [V2V_SYNCED_VDI]
-  vmDeviceCollectionsMock.vifs.value = V2V_SYNCED_VIFS
-}
-
-function mountResumedVm(vm: XoV2vVm = SYNCED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
-  seedCollections()
+function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
+  seedV2vResumedVmCollections()
 
   return mountComposableWithI18n(() => {
     connectV2vSource({ inventory: V2V_MAPPING_INVENTORY })
@@ -97,7 +77,7 @@ describe('destinationVm', () => {
 
 describe('poolName', () => {
   it('names the pool of the import VM', () => {
-    expect(mountResumedVm().poolName).toBe(POOL.name_label)
+    expect(mountResumedVm().poolName).toBe(V2V_RESUMED_VM_POOL.name_label)
   })
 })
 

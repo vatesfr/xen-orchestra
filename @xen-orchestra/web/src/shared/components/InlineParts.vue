@@ -1,10 +1,15 @@
 <template>
-  <span class="inline-parts">
+  <span class="inline-parts" :class="{ chevron: separator === 'chevron' }">
     <slot />
   </span>
 </template>
 
 <script lang="ts" setup>
+// Bullets join facts, chevrons a location from the widest place to the narrowest
+const { separator = 'bullet' } = defineProps<{
+  separator?: 'bullet' | 'chevron'
+}>()
+
 defineSlots<{
   default(): any
 }>()
@@ -16,6 +21,10 @@ defineSlots<{
   & > :slotted(:not(:first-child))::before {
     content: '•' / '';
     margin-inline: 0.8rem;
+  }
+
+  &.chevron > :slotted(:not(:first-child))::before {
+    content: '›' / '';
   }
 }
 </style>
