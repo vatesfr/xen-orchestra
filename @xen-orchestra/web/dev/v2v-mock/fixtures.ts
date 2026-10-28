@@ -1,22 +1,37 @@
 import {
+  V2V_DISK_MODE,
   V2V_FIRMWARE,
   V2V_VM_POWER_STATE,
   type XoV2vDatacenter,
   type XoV2vDatastore,
+  type XoV2vDisk,
   type XoV2vHost,
   type XoV2vInventory,
   type XoV2vNic,
   type XoV2vPortGroup,
   type XoV2vVm,
 } from '@vates/types'
-import { createV2vDatastore, createV2vInventory, createV2vVm } from '../../src/test/create-v2v-inventory.ts'
+import {
+  createV2vDatastore,
+  createV2vDisk,
+  createV2vInventory,
+  createV2vNic,
+  createV2vVm,
+} from '../../src/test/create-v2v-inventory.ts'
 
 const VCENTER_VM_COUNT = 148
 
 const ESXI_VM_COUNT = 9
 
-// One VM carries an RDM disk, a blocking check the VM selection step must show
+// One VM per disk case the VM selection step tells apart: each unsupported disk, and disks on two datastores. The
+// last three are past the ESXi VMs, so only the vCenter shows them
 const RDM_VM_INDEX = 5
+
+const TWO_DATASTORES_VM_INDEX = 10
+
+const INDEPENDENT_DISK_VM_INDEX = 11
+
+const ENCRYPTED_DISK_VM_INDEX = 12
 
 const DATACENTER_ID = 'datacenter-1' as XoV2vDatacenter['id']
 
@@ -32,10 +47,35 @@ const DATASTORES = [
   createV2vDatastore({ ...datastore, id: id as XoV2vDatastore['id'], hostIds: [HOST_ID] })
 )
 
+function createDisks(index: number): XoV2vDisk[] {
+  const datastoreId = DATASTORES[index % DATASTORES.length].id
+
+  const disk = createV2vDisk({
+    datastoreId,
+    capacity: (40 + (index % 5) * 20) * 1024 ** 3,
+    mode: index === INDEPENDENT_DISK_VM_INDEX ? V2V_DISK_MODE.INDEPENDENT_PERSISTENT : V2V_DISK_MODE.PERSISTENT,
+    isRdm: index === RDM_VM_INDEX,
+    isEncrypted: index === ENCRYPTED_DISK_VM_INDEX,
+  })
+
+  if (index !== TWO_DATASTORES_VM_INDEX) {
+    return [disk]
+  }
+
+  return [
+    disk,
+    createV2vDisk({
+      key: 'scsi0:1' as XoV2vDisk['key'],
+      label: 'Hard disk 2',
+      datastoreId: DATASTORES[(index + 1) % DATASTORES.length].id,
+      capacity: 200 * 1024 ** 3,
+    }),
+  ]
+}
+
 // Varied on purpose: the list must show every power state, firmware and size combination
 function createVm(index: number): XoV2vVm {
-  const datastoreId = DATASTORES[index % DATASTORES.length].id
-  const [disk] = createV2vVm().disks
+  const disks = createDisks(index)
 
   return createV2vVm({
     id: `vm-${index + 100}` as XoV2vVm['id'],
@@ -46,15 +86,14 @@ function createVm(index: number): XoV2vVm {
     nCpus: 2 + (index % 4),
     memory: (4 + (index % 4) * 4) * 1024 ** 3,
     firmware: index % 2 === 0 ? V2V_FIRMWARE.UEFI : V2V_FIRMWARE.BIOS,
-    datastoreIds: [datastoreId],
-    disks: [{ ...disk, datastoreId, capacity: (40 + (index % 5) * 20) * 1024 ** 3, isRdm: index === RDM_VM_INDEX }],
+    datastoreIds: [...new Set(disks.map(disk => disk.datastoreId))],
+    disks,
     nics: [
-      {
+      createV2vNic({
         key: 'ethernet0' as XoV2vNic['key'],
-        label: 'Network adapter 1',
         portGroupId: PORT_GROUP_ID,
         macAddress: `00:50:56:9a:00:${index.toString(16).padStart(2, '0')}`,
-      },
+      }),
     ],
   })
 }

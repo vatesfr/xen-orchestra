@@ -7,30 +7,24 @@ import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { fillV2vConnectionForm } from '@/test/fill-v2v-connection-form.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
+import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { v2vStatusMock } from '@/test/mock-xo-v2v-status.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { seedV2vRememberedConnections } from '@/test/v2v-remembered-connections-storage.ts'
-import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { V2V_ERROR_CODE, V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
-const { openDeleteModal } = vi.hoisted(() => ({ openDeleteModal: vi.fn() }))
-
 vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))
 
-// The confirmation overlay cannot be answered from a unit test: the test answers it through the mock
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
-  useDeleteModal: (() => ({ open: openDeleteModal })) as unknown as typeof useDeleteModal,
-}))
+vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 beforeEach(() => {
-  localStorage.clear()
   v2vStatusMock.reset()
-  openDeleteModal.mockReset()
+  deleteModalMock.reset()
   vi.useFakeTimers({ now: NOW, toFake: ['Date'] })
 })
 
@@ -293,7 +287,7 @@ describe('editRemembered', () => {
 
   it('saves the connection as a new one when the edited connection was forgotten meanwhile', async () => {
     stubFetchResponse(200, createV2vInventory())
-    openDeleteModal.mockResolvedValue({ event: 'onConfirm' })
+    deleteModalMock.answer('onConfirm')
     const result = await mountEditing(EDITED)
 
     await result.forgetRemembered(EDITED)
@@ -336,21 +330,21 @@ describe('editRemembered', () => {
 
 describe('forgetRemembered', () => {
   it('forgets the connection once confirmed', async () => {
-    openDeleteModal.mockResolvedValue({ event: 'onConfirm' })
+    deleteModalMock.answer('onConfirm')
     const remembered = createV2vRememberedConnection()
     seedV2vRememberedConnections([remembered])
     const { result } = await mountSourceStep()
 
     await result.forgetRemembered(remembered)
 
-    expect(openDeleteModal).toHaveBeenCalledWith({
+    expect(deleteModalMock.open).toHaveBeenCalledWith({
       props: { subject: remembered.host, confirmLabel: result.t('action:forget') },
     })
     expect(result.rememberedConnections).toEqual([])
   })
 
   it('keeps the connection when cancelled', async () => {
-    openDeleteModal.mockResolvedValue({ event: 'onCancel' })
+    deleteModalMock.answer('onCancel')
     const remembered = createV2vRememberedConnection()
     seedV2vRememberedConnections([remembered])
     const { result } = await mountSourceStep()

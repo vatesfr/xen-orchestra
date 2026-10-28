@@ -2,6 +2,7 @@ import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
+import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -11,16 +12,6 @@ function mountHeader(plugin: FrontXoPlugin = createPlugin()) {
     props: { plugin },
     global: { ...createGlobalTestConfig(), stubs: { PluginActions: true } },
   })
-}
-
-function findTags(wrapper: ReturnType<typeof mountHeader>) {
-  return wrapper.findAll('.ui-head-bar .ui-tag').map(tag => ({
-    text: tag.text(),
-    accent: tag
-      .classes()
-      .find(className => className.startsWith('accent--'))
-      ?.replace('accent--', ''),
-  }))
 }
 
 it('shows the name of the plugin in the head bar', () => {
@@ -46,28 +37,28 @@ it('shows the version and the configuration status of a configured plugin', () =
     createPlugin({ version: '2.1.0', configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: true })
   )
 
-  expect(findTags(wrapper)).toEqual([
-    { text: t('version-number', { version: '2.1.0' }), accent: 'neutral' },
-    { text: t('status:configured'), accent: 'success' },
+  expect(findAccentedTags(wrapper)).toEqual([
+    { label: t('version-number', { version: '2.1.0' }), accent: 'neutral' },
+    { label: t('status:configured'), accent: 'success' },
   ])
 })
 
 it('warns about a plugin which is not configured', () => {
   const wrapper = mountHeader(createPlugin({ configurationSchema: PLUGIN_CONFIGURATION_SCHEMA, configured: false }))
 
-  expect(findTags(wrapper).at(-1)).toEqual({ text: t('status:not-configured'), accent: 'warning' })
+  expect(findAccentedTags(wrapper).at(-1)).toEqual({ label: t('status:not-configured'), accent: 'warning' })
 })
 
 it('shows no configuration status for a plugin which is not configurable', () => {
   const wrapper = mountHeader(createPlugin({ version: '2.1.0', configurationSchema: undefined }))
 
-  expect(findTags(wrapper)).toEqual([{ text: t('version-number', { version: '2.1.0' }), accent: 'neutral' }])
+  expect(findAccentedTags(wrapper)).toEqual([{ label: t('version-number', { version: '2.1.0' }), accent: 'neutral' }])
 })
 
 it('shows no version for a plugin without version', () => {
   const wrapper = mountHeader(createPlugin({ version: undefined, configurationSchema: undefined }))
 
-  expect(findTags(wrapper)).toEqual([])
+  expect(findAccentedTags(wrapper)).toEqual([])
 })
 
 it('displays the actions of the plugin', () => {
