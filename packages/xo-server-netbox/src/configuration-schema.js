@@ -45,6 +45,15 @@ const configurationSchema = {
       description:
         'Enable this if you do not want private IPs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to be imported into Netbox',
     },
+    ignoredIpVmTags: {
+      type: 'array',
+      title: 'Ignore IPs of VMs with these tags',
+      description:
+        'VMs with any of these tags are still synchronized, but their IP addresses are not (e.g. "Continuous Replication", "Disaster Recovery")',
+      items: {
+        type: 'string',
+      },
+    },
   },
   required: ['endpoint', 'token', 'pools'],
 }
