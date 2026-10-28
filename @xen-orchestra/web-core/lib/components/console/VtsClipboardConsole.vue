@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import type { RemoteConsoleTypeText } from '@core/components/console/VtsRemoteConsole.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -61,7 +62,7 @@ const {
 } = defineProps<{
   isConsoleConnected?: boolean
   isKeyboardLayoutDisabled?: boolean
-  sendToConsole?: (text: string, layoutId?: KeyboardLayoutId) => Promise<string[]> | undefined
+  sendToConsole?: RemoteConsoleTypeText
 }>()
 
 const clipboardText = defineModel<string>({ default: '' })

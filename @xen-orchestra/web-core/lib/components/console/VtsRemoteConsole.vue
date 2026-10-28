@@ -18,6 +18,14 @@ import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type RemoteConsoleTypeText = (text: string, layoutId?: KeyboardLayoutId) => Promise<string[]> | undefined
+
+export type RemoteConsoleExposed = {
+  isConnected: boolean
+  sendCtrlAltDel: () => void
+  typeText: RemoteConsoleTypeText
+}
+
 const { url, isConsoleAvailable } = defineProps<{
   url: URL
   isConsoleAvailable: boolean
