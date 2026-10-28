@@ -22,6 +22,7 @@
 - [Pool/Dashboard] In the CPU and RAM usage cards, show a "No data to calculate" message when there is no host or VM to rank (PR [#10386](https://github.com/vatesfr/xen-orchestra/pull/10386))
 - [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, German, Italian, Portuguese, Portuguese (Brasil), Russian, Slovak, Spanish, Swedish and Ukrainian translations (PR [#10464](https://github.com/vatesfr/xen-orchestra/pull/10464))
 - [i18n] Update Arabic, Danish, Finnish, Italian, Japanese, Korean, Norwegian, Persian, Polish, Portuguese (Brasil), Russian and Ukrainian translations (PR [#10641](https://github.com/vatesfr/xen-orchestra/pull/10641))
+- [CLI] Add new command to `xo-server-db` cli: `disable-remote <id>`, disables a remote while xo-server is stopped (PR [#10587](https://github.com/vatesfr/xen-orchestra/pull/10587/))
 
 ### Bug fixes
 
