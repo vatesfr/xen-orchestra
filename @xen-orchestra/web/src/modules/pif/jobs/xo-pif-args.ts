@@ -5,3 +5,8 @@ export const xoPifArg = defineJobArg({
   identify: (pif: FrontXoPif) => pif.id,
   toArray: false,
 })
+
+export const xoPifsArg = defineJobArg({
+  identify: (pif: FrontXoPif) => pif.id,
+  toArray: true,
+})

@@ -3,6 +3,9 @@
     <template v-if="pif" #actions>
       <PifSetManagementButton :pif />
     </template>
+    <template v-if="pif" #more-actions>
+      <PifForgetButton :pif />
+    </template>
     <template v-if="pif">
       <!-- PIF -->
       <UiPanelCard>
@@ -228,6 +231,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import PifForgetButton from '@/modules/pif/components/actions/forget/PifForgetButton.vue'
 import PifSetManagementButton from '@/modules/pif/components/actions/set-management/PifSetManagementButton.vue'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'

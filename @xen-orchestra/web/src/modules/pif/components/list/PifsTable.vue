@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
 import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
@@ -132,6 +133,8 @@ const { HeadCells, BodyCells } = usePifColumns({
       errorMessage: reconfigureManagementErrorMessage,
     } = usePifManagementReconfigureModal(() => pif)
 
+    const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() => [pif])
+
     return {
       network: r =>
         network.value
@@ -158,6 +161,15 @@ const { HeadCells, BodyCells } = usePifColumns({
               onClick: () => openManagementReconfigureModal(),
               disabled: !canReconfigureManagement.value,
               busy: isReconfiguringManagement.value,
+            },
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => forgetPifs(),
+              busy: isForgettingPifs.value,
+              disabled: !canForgetPifs.value,
+              hint: forgetPifsErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),
