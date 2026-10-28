@@ -1,4 +1,5 @@
 import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
+import V2vShowSelectedVmsButton from '@/modules/v2v/components/selected-vms/V2vShowSelectedVmsButton.vue'
 import V2vVmPresets from '@/modules/v2v/components/vms/V2vVmPresets.vue'
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
@@ -10,7 +11,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
-import { findButton, getButton, getUiButton } from '@/test/get-button.ts'
+import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -18,6 +19,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { V2V_DEFAULT_OFFERS } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
@@ -30,7 +32,6 @@ import {
 import { V2V_EMPTY_LIST, V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
-import { usePanelStore } from '@core/stores/panel.store.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
@@ -67,14 +68,13 @@ const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED
 
 const SOURCE_HOST = createV2vConnection().host
 
-const SHOW_PANEL_LABEL = t('selected-vms-n', { n: V2V_LIST_WITH_LISTED_VM.vms.length })
-
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep({
   list = V2V_LIST_WITH_LISTED_VM,
   filter,
 }: { list?: V2vMigrationList; filter?: string } = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL]
+  xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
     (router, provide) =>
@@ -136,10 +136,6 @@ function getAddButton(wrapper: VueWrapper) {
 
 function getNextButton(wrapper: VueWrapper) {
   return getUiButton(wrapper, t('action:next-mapping'))
-}
-
-function findShowPanelButton(wrapper: VueWrapper) {
-  return findButton(wrapper, SHOW_PANEL_LABEL)
 }
 
 beforeEach(() => {
@@ -298,31 +294,10 @@ describe('selected VMs', () => {
     expect(layout.findComponent(V2vVmsTable).exists()).toBe(true)
   })
 
-  it('has no button to show the panel while it is shown', async () => {
+  it('offers to show the panel, counting the VMs of the list', async () => {
     const { wrapper } = await mountStep()
 
-    expect(findShowPanelButton(wrapper)).toBeUndefined()
-  })
-
-  it('shows the panel again from its button once closed', async () => {
-    const { wrapper } = await mountStep()
-    const panelStore = usePanelStore()
-
-    panelStore.collapse()
-    await flushPromises()
-    await getButton(wrapper, SHOW_PANEL_LABEL).trigger('click')
-
-    expect(panelStore.isExpanded).toBe(true)
-    expect(findShowPanelButton(wrapper)).toBeUndefined()
-  })
-
-  it('has no button to show the panel of an empty list', async () => {
-    const { wrapper } = await mountStep({ list: V2V_EMPTY_LIST })
-
-    usePanelStore().collapse()
-    await flushPromises()
-
-    expect(findButton(wrapper, t('selected-vms-n', { n: 0 }))).toBeUndefined()
+    expect(wrapper.getComponent(V2vShowSelectedVmsButton).props('count')).toBe(V2V_LIST_WITH_LISTED_VM.vms.length)
   })
 })
 

@@ -1,6 +1,7 @@
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import type { LocationQueryRaw, Router } from 'vue-router'
 
@@ -29,4 +30,17 @@ export async function mountOnV2vWizard<TMounted>(
   )
 
   return { mounted, router }
+}
+
+// A composable of a wizard step, run on the route, the list and the source of the setup
+export async function mountComposableOnV2vWizard<TResult extends Record<string, unknown>>(
+  composable: () => TResult,
+  setup: V2vWizardSetup
+) {
+  const { mounted: result, router } = await mountOnV2vWizard(
+    router => mountComposableWithI18n(composable, { router }),
+    setup
+  )
+
+  return { result, router }
 }

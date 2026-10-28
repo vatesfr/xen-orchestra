@@ -5,18 +5,23 @@ import { getV2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destinatio
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
+// Until every collection is ready, a target missing from the choices may only be still loading
 export function useV2vPoolDestinationChoices(poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
-  const { srs } = useXoSrCollection()
+  const { srs, areSrsReady } = useXoSrCollection()
 
-  const { networks } = useXoNetworkCollection()
+  const { networks, areNetworksReady } = useXoNetworkCollection()
 
-  const { templates } = useXoVmTemplateCollection()
+  const { templates, areTemplatesReady } = useXoVmTemplateCollection()
 
-  return computed(() =>
+  const choices = computed(() =>
     getV2vPoolDestinationChoices(toValue(poolId), {
       srs: srs.value,
       networks: networks.value,
       templates: templates.value,
     })
   )
+
+  const areChoicesReady = computed(() => areSrsReady.value && areNetworksReady.value && areTemplatesReady.value)
+
+  return { choices, areChoicesReady }
 }
