@@ -19,6 +19,7 @@
 - [Backup jobs] Add backup job side panel in admin menu (PR [#10631](https://github.com/vatesfr/xen-orchestra/pull/10631))
 - [Backup jobs] The backup links of the site dashboard and the VM Backups tab now use the backup jobs of the admin menu (PR [#10636](https://github.com/vatesfr/xen-orchestra/pull/10636))
 - [Pool/Dashboard] In the CPU and RAM usage cards, show a "No data to calculate" message when there is no host or VM to rank (PR [#10386](https://github.com/vatesfr/xen-orchestra/pull/10386))
+- [i18n] Update Chinese (Simplified Han script), Czech, Danish, Dutch, German, Italian, Portuguese, Portuguese (Brasil), Russian, Slovak, Spanish, Swedish and Ukrainian translations (PR [#10464](https://github.com/vatesfr/xen-orchestra/pull/10464))
 
 ### Bug fixes
 

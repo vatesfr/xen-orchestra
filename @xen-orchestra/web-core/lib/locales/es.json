@@ -73,7 +73,7 @@
   "action:duplicate-n-vms": "Duplicar 1 VM | Duplicar {n} VMs",
   "action:edit": "Editar",
   "action:edit-config": "Modificar configuración",
-  "action:edit-traffic-rule": "@:action:editar @.lower:traffic-rule",
+  "action:edit-traffic-rule": "@:action:edit @.lower:traffic-rule",
   "action:enable": "Habilitar",
   "action:enable-host": "Habilitar amfitrión",
   "action:enable-light-mode": "Activar el modo claro",

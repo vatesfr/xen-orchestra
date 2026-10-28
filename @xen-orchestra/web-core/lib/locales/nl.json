@@ -1111,7 +1111,7 @@
   "switch-theme": "Thema wisselen",
   "system": "Systeem",
   "table-actions": "Tabel acties",
-  "table-selection:all-n-objects-selected!": "{watchOut}Je hebt {n} object geselecteerd. Ga verder met de nodige omzichtigheid, commandant! {watchOut}Je hebt alle {n} objecten geselecteerd. Ga verder met de nodige omzichtigheid, commandant!",
+  "table-selection:all-n-objects-selected!": "{watchOut}Je hebt {n} object geselecteerd. Ga verder met de nodige omzichtigheid, commandant! | {watchOut}Je hebt alle {n} objecten geselecteerd. Ga verder met de nodige omzichtigheid, commandant!",
   "table-selection:n-not-visible-on-page": "{n} niet zichtbaar op deze pagina",
   "table-selection:n-objects": "{n} object | {n} objecten",
   "table-selection:n-objects-on-page-selected.": "{objects} op deze pagina zijn geselecteerd. | Alle {objects} op deze pagina zijn geselecteerd.",
