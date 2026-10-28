@@ -111,9 +111,13 @@ export function useV2vMigrationList(
     updateVms(vms => vms.filter(vm => vm.id !== id))
   }
 
+  function updateVm(id: XoV2vVm['id'], getNextVm: (vm: V2vMigrationListVm) => V2vMigrationListVm) {
+    updateVms(vms => vms.map(vm => (vm.id === id ? getNextVm(vm) : vm)))
+  }
+
   function clearVms() {
     updateVms(() => [])
   }
 
-  return { list, vmCount, hasVms, saveDefaults, addVms, removeVm, clearVms }
+  return { list, vmCount, hasVms, saveDefaults, addVms, removeVm, updateVm, clearVms }
 }
