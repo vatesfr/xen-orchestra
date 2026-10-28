@@ -1,6 +1,12 @@
 <template>
-  <UiPanelCard>
-    <UiPanelCardTitle size="small" :label="item.name" :to="item.mappingRoute">
+  <UiPanelCard :selected="item.isSelected">
+    <UiPanelCardTitle size="small">
+      <!-- The router alone marks every mapping link as current: they only differ by their query -->
+      <template #label>
+        <UiLink size="small" :to="item.mappingRoute" :aria-current="item.isSelected ? 'page' : false">
+          {{ item.name }}
+        </UiLink>
+      </template>
       <template #action>
         <UiTag :accent="item.kind.accent" variant="secondary">{{ item.kind.label }}</UiTag>
       </template>
@@ -27,6 +33,7 @@ import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-v
 import InlineParts from '@/shared/components/InlineParts.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

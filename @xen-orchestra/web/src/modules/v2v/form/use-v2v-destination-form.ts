@@ -71,7 +71,7 @@ export function useV2vDestinationForm({
 
   const selectedPool = computed(() => pools.value.find(pool => pool.id === formData.pool))
 
-  const choices = useV2vPoolDestinationChoices(() => formData.pool)
+  const { choices } = useV2vPoolDestinationChoices(() => formData.pool)
 
   const poolResourceCounts = computed(() =>
     countV2vPoolResources(pools.value, { hosts: hosts.value, srs: srs.value, networks: networks.value })

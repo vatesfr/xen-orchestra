@@ -14,6 +14,7 @@ export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2v
     mappingParts: ['1 disk → sr-nvme-01', '1 NIC → VLAN 10'],
     check: { label: 'Ready', accent: 'success' },
     mappingRoute: { query: { step: 'mapping', vm: id } },
+    isSelected: false,
     ...overrides,
   }
 }

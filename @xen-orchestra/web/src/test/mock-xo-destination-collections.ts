@@ -38,6 +38,20 @@ export const destinationCollectionsMock = {
   pifs: ref<FrontXoPif[]>([]),
   templates: ref<FrontXoVmTemplate[]>([]),
   areTemplatesReady: ref(true),
+  // What the pool of a V2V list offers its VMs, as a step reads them
+  seedChoices({
+    srs,
+    networks,
+    templates,
+  }: {
+    srs: FrontXoSr[]
+    networks: FrontXoNetwork[]
+    templates: FrontXoVmTemplate[]
+  }) {
+    this.srs.value = srs
+    this.networks.value = networks
+    this.templates.value = templates
+  },
   reset() {
     this.pools.value = []
     this.arePoolsReady.value = true

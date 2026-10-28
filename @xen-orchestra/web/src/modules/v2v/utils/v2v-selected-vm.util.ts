@@ -77,6 +77,11 @@ export function getV2vSelectedVmState(
   }
 }
 
+// What the list tells of a VM beyond the checks of its source, which already tell an unsupported one
+export function isV2vListIssue(check: V2vSelectedVmCheck): boolean {
+  return check.type !== 'ready' && check.type !== 'unsupported'
+}
+
 // Distinct names, not ids: two SRs may share a name, such as the local SR of each host
 function getDistinctTargetNames<TId>(ids: TId[], getName: (id: TId) => string | undefined): string[] | undefined {
   const names = ids.map(getName)

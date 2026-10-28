@@ -36,8 +36,9 @@ export function getV2vSourceId(
   return getV2vAddress(connection)
 }
 
-export function findV2vVmHost(inventory: Pick<XoV2vInventory, 'hosts'>, vm: Pick<XoV2vVm, 'hostId'>) {
-  return inventory.hosts.find(host => host.id === vm.hostId)
+// Without inventory (no source connected), a VM has no host to find
+export function findV2vVmHost(inventory: Pick<XoV2vInventory, 'hosts'> | undefined, vm: Pick<XoV2vVm, 'hostId'>) {
+  return inventory?.hosts.find(host => host.id === vm.hostId)
 }
 
 // Without inventory (no source connected) or missing from it, a datastore is named by its id rather than not at all
@@ -56,10 +57,10 @@ export function findV2vPortGroup(
 }
 
 export function getV2vVmDatacenterName(
-  inventory: Pick<XoV2vInventory, 'hosts' | 'datacenters'>,
+  inventory: Pick<XoV2vInventory, 'hosts' | 'datacenters'> | undefined,
   vm: Pick<XoV2vVm, 'hostId'>
 ): string | undefined {
   const datacenterId = findV2vVmHost(inventory, vm)?.datacenterId
 
-  return inventory.datacenters.find(datacenter => datacenter.id === datacenterId)?.name
+  return inventory?.datacenters.find(datacenter => datacenter.id === datacenterId)?.name
 }
