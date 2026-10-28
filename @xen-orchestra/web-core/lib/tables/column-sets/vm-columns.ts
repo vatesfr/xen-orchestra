@@ -18,11 +18,7 @@ export const useVmColumns = defineColumns(() => {
     ram: useNumberColumn({ headerLabel: () => t('ram') }),
     diskSpace: useNumberColumn({ headerLabel: () => t('disk-space') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
-    lastBackupDate: useDateColumn({
-      headerLabel: () => t('last-backup-date'),
-      dateStyle: 'short',
-      timeStyle: 'medium',
-    }),
+    lastBackupDate: useDateColumn({ headerLabel: () => t('last-backup-date') }),
     actions: useActionColumn({}),
   }
 })

@@ -1,10 +1,13 @@
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { computed, reactive } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { computed, type MaybeRefOrGetter, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BackupJobKeyBackup = 'never' | 'dynamic' | 'always'
+
+export type BackupJobCompression = '' | 'native' | 'zstd'
 
 export type BackupJobSnapshotMode = 'default' | 'with-memory' | 'offline'
 
@@ -13,9 +16,14 @@ export type BackupJobSnapshotSync = 'none' | 'all' | 'smart'
 export type BackupJobTransferFormData = {
   maxExportRate: number | undefined
   concurrency: number | undefined
+  compression: BackupJobCompression
   keyBackup: BackupJobKeyBackup
+  keyBackupMonthDays: number[]
+  keyBackupWeekDays: number[]
+  keyBackupHours: number[]
   preferNbd: boolean
   nbdConcurrency: number | undefined
+  offlineBackup: boolean
   snapshotMode: BackupJobSnapshotMode
   snapshotSync: BackupJobSnapshotSync
   snapshotSyncTag: string | undefined
@@ -23,10 +31,24 @@ export type BackupJobTransferFormData = {
 
 type RadioOption<TValue extends string> = { label: string; value: TValue; description?: string }
 
+type ValueOption = { label: string; value: number }
+
 export type BackupJobTransferForm = ReturnType<typeof useBackupJobTransferForm>
 
-export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
-  const { t } = useI18n()
+export function useBackupJobTransferForm(
+  formData: BackupJobTransferFormData,
+  rawIsIncremental: MaybeRefOrGetter<boolean>,
+  rawIsMirror: MaybeRefOrGetter<boolean>
+) {
+  const { t, locale } = useI18n()
+
+  const isIncremental = toComputed(rawIsIncremental)
+
+  const isMirror = toComputed(rawIsMirror)
+
+  const isNbdAvailable = computed(() => isIncremental.value && !isMirror.value)
+
+  const isKeyBackupDynamic = computed(() => isIncremental.value && !isMirror.value && formData.keyBackup === 'dynamic')
 
   const { vms } = useXoVmCollection()
 
@@ -38,26 +60,58 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
         },
         nbdConcurrency: {
           requiredIf: withMessage(
-            requiredIf(() => formData.preferNbd),
+            requiredIf(() => isNbdAvailable.value && formData.preferNbd),
             () => t('nbd-concurrency-per-disk-mandatory')
           ),
           minValue: withMessage(
-            (value: number | undefined) => !formData.preferNbd || typeof value !== 'number' || value >= 1,
+            (value: unknown) => !isNbdAvailable.value || !formData.preferNbd || typeof value !== 'number' || value >= 1,
             () => t('must-be-at-least-n', { n: 1 })
           ),
         },
+        keyBackupMonthDays: {
+          requiredIf: withMessage(
+            requiredIf(() => isKeyBackupDynamic.value && formData.keyBackupWeekDays.length === 0),
+            () => t('select-at-least-one-day')
+          ),
+        },
+        keyBackupHours: {
+          requiredIf: withMessage(
+            requiredIf(() => isKeyBackupDynamic.value),
+            () => t('select-at-least-one-hour')
+          ),
+        },
         snapshotSyncTag: {
-          requiredIf: requiredIf(() => formData.snapshotSync === 'smart'),
+          requiredIf: requiredIf(() => !isMirror.value && !formData.offlineBackup && formData.snapshotSync === 'smart'),
         },
       }),
     },
   })
+
+  const compressionOptions = computed<RadioOption<BackupJobCompression>[]>(() => [
+    { label: t('none'), value: '' },
+    { label: t('gzip'), value: 'native' },
+    { label: t('zstd'), value: 'zstd' },
+  ])
 
   const keyBackupOptions = computed<RadioOption<BackupJobKeyBackup>[]>(() => [
     { label: t('never'), value: 'never' },
     { label: t('dynamic-selection'), value: 'dynamic' },
     { label: t('always'), value: 'always' },
   ])
+
+  const monthDayOptions = computed<ValueOption[]>(() =>
+    Array.from({ length: 31 }, (_, day) => ({ label: String(day + 1), value: day + 1 }))
+  )
+
+  const weekDayOptions = computed<ValueOption[]>(() => {
+    const format = new Intl.DateTimeFormat(locale.value, { weekday: 'short', timeZone: 'UTC' })
+
+    return [1, 2, 3, 4, 5, 6, 0].map(day => ({ label: format.format(Date.UTC(2024, 0, 7 + day)), value: day }))
+  })
+
+  const hourOptions = computed<ValueOption[]>(() =>
+    Array.from({ length: 24 }, (_, hour) => ({ label: String(hour).padStart(2, '0'), value: hour }))
+  )
 
   const snapshotModeOptions = computed<RadioOption<BackupJobSnapshotMode>[]>(() => [
     { label: t('default'), value: 'default', description: t('snapshot-mode:default-description') },
@@ -84,12 +138,23 @@ export function useBackupJobTransferForm(formData: BackupJobTransferFormData) {
       label: t('vm-read-concurrency'),
       required: true,
     })),
+    compression: useField('compression', () => ({ label: t('compression-type'), options: compressionOptions.value })),
     keyBackup: useField('keyBackup', () => ({ label: t('key-backup'), options: keyBackupOptions.value })),
+    keyBackupMonthDays: useField('keyBackupMonthDays', () => ({
+      label: t('days-of-the-month'),
+      options: monthDayOptions.value,
+    })),
+    keyBackupWeekDays: useField('keyBackupWeekDays', () => ({
+      label: t('days-of-the-week'),
+      options: weekDayOptions.value,
+    })),
+    keyBackupHours: useField('keyBackupHours', () => ({ label: t('hours'), options: hourOptions.value })),
     preferNbd: useField('preferNbd', () => ({ label: t('network-block-device-nbd'), info: t('nbd-backup-info') })),
     nbdConcurrency: useField('nbdConcurrency', () => ({
       label: t('nbd-concurrency-per-disk'),
       required: true,
     })),
+    offlineBackup: useField('offlineBackup', () => ({ label: t('offline-backup'), info: t('offline-backup-info') })),
     snapshotMode: useField('snapshotMode', () => ({ label: t('snapshot-mode'), options: snapshotModeOptions.value })),
     snapshotSync: useField('snapshotSync', () => ({
       label: t('snapshot-synchronisation'),
