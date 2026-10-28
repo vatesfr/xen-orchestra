@@ -9,6 +9,13 @@
         </div>
       </template>
     </VtsTabularKeyValueRow>
+    <template v-if="!isMetadata">
+      <VtsTabularKeyValueRow :label="t('timeout')" :value="timeout" />
+      <VtsTabularKeyValueRow
+        :label="t('number-of-retries-if-vm-backup-fails')"
+        :value="form.formData.nRetriesVmBackupFailures?.toString()"
+      />
+    </template>
   </VtsTabularKeyValueList>
 </template>
 
@@ -22,9 +29,14 @@ import { useI18n } from 'vue-i18n'
 
 const { form } = defineProps<{
   form: BackupJobPlanningForm
+  isMetadata: boolean
 }>()
 
 const { t, locale } = useI18n()
+
+const timeout = computed(() =>
+  form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('hours')}`
+)
 
 const nextRuns = computed(() => {
   const format = new Intl.DateTimeFormat(locale.value, {

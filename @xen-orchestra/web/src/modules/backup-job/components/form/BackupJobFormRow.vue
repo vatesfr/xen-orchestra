@@ -17,15 +17,17 @@ defineSlots<{
 <style lang="postcss" scoped>
 .backup-job-form-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 2.4rem;
 
   & > * {
     width: auto;
   }
 
-  &.wide {
-    grid-template-columns: 1fr;
+  @media (--medium-or-large) {
+    &:not(.wide) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 }
 </style>

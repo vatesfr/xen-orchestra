@@ -7,6 +7,7 @@
       :brs="availableBackupRepositories"
       :compatible-brs="compatibleBackupRepositories"
       :matched-brs="matchedBackupRepositories"
+      :has-retention-strategy
     />
     <BackupJobTargetStorageRepositorySection
       v-if="hasStorageRepositorySection"
@@ -32,6 +33,7 @@ const { form } = defineProps<{
 const {
   hasStorageTargetChoice,
   hasBackupRepositorySection,
+  hasRetentionStrategy,
   hasStorageRepositorySection,
   hasSnapshotRetentionSection,
   availableBackupRepositories,
