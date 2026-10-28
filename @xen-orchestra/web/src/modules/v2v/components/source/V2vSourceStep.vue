@@ -60,7 +60,7 @@ async function connectRememberedConnection(connection: V2vRememberedConnection) 
 <style lang="postcss" scoped>
 .v2v-source-step {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(38rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(38rem, 100%), 1fr));
   align-items: start;
   gap: 1.6rem;
 }
