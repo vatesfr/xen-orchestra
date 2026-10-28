@@ -162,13 +162,6 @@ describe('poolName', () => {
   it('names the pool of the list', () => {
     expect(mountVmMapping().poolName).toBe(POOL.name_label)
   })
-
-  it('names the pool by its id while the pools load', () => {
-    const mapping = mountVmMapping()
-    destinationCollectionsMock.pools.value = []
-
-    expect(mapping.poolName).toBe(POOL.id)
-  })
 })
 
 describe('hostName', () => {

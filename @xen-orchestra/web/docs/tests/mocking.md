@@ -43,6 +43,8 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-delete-modal.ts` stands for `useDeleteModal`, whose overlay a unit test cannot answer: `deleteModalMock.answer('onConfirm' | 'onCancel')` sets how the next confirmation is answered, `deleteModalMock.confirm()` runs the `onConfirm` event of the last confirmation for a caller that passes its events instead of awaiting the answer, `deleteModalMock.open` is the spy to read the props it was opened with, and `deleteModalMock.reset()` goes in `beforeEach`.
 
+`mock-xo-vm-device-collections.ts` stands for the VBD, VDI and VIF collections: `vmDeviceCollectionsMock` holds `vbds`, `vdis`, `vifs` and their `are…Ready` flags (true after a reset), and its collections answer `getVbdsByIds` and `getVifsByIds`.
+
 `mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 
 ## Network

@@ -18,7 +18,7 @@ import { V2V_VDI_OTHER_CONFIG } from '@vates/types'
 const [BASE_PATH, SNAPSHOT_PATH] = V2V_SYSTEM_DISK.chainPaths
 
 function createImportedVdi(otherConfig: Record<string, string>) {
-  return { ...createVdi({ $SR: V2V_SSD_SR.id }), other_config: otherConfig }
+  return createVdi({ $SR: V2V_SSD_SR.id, other_config: otherConfig })
 }
 
 function getDiskMapping(otherConfig: Record<string, string>) {

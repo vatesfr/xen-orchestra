@@ -7,7 +7,7 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
-import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
+import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vDiskMappingRow, V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
@@ -19,7 +19,7 @@ import {
   V2V_DEFAULT_KEEP_MAC,
   V2V_DEFAULT_TAGS,
 } from '@/modules/v2v/utils/v2v-mapping.util.ts'
-import { findV2vVmHost } from '@/modules/v2v/utils/v2v-source.util.ts'
+import { findV2vPortGroup, findV2vVmHost, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import {
   type FrontXoVmTemplate,
@@ -61,10 +61,7 @@ export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, { list: rawLis
 
   const offers = useV2vPoolDestinationChoices(poolId)
 
-  const { poolName: loadedPoolName } = useV2vSourceAndDestination(poolId)
-
-  // A pool still loading is named by its id rather than not at all
-  const poolName = computed(() => loadedPoolName.value ?? poolId.value)
+  const poolName = useV2vPoolName(poolId)
 
   // A VM gone from the list reads as on the defaults: its overrides went with it
   const listVm = computed(
@@ -79,20 +76,12 @@ export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, { list: rawLis
     inventory.value === undefined ? undefined : findV2vVmHost(inventory.value, vm.value)?.name
   )
 
-  function getDatastoreName(id: XoV2vDisk['datastoreId']) {
-    return inventory.value?.datastores.find(datastore => datastore.id === id)?.name ?? id
-  }
-
-  function getPortGroup(id: XoV2vNic['portGroupId']) {
-    return inventory.value?.portGroups.find(portGroup => portGroup.id === id)
-  }
-
   const diskRows = computed(() =>
     mapping.value.disks.map(
       ({ disk, sr }): V2vDiskMappingRow => ({
         key: disk.key,
         label: disk.label,
-        datastore: getDatastoreName(disk.datastoreId),
+        datastore: getV2vDatastoreName(inventory.value, disk.datastoreId),
         size: disk.capacity,
         sr,
       })
@@ -104,7 +93,7 @@ export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, { list: rawLis
       ({ nic, network }): V2vNicMappingRow => ({
         key: nic.key,
         label: nic.label,
-        portGroupParts: getPortGroupParts(getPortGroup(nic.portGroupId)),
+        portGroupParts: getPortGroupParts(findV2vPortGroup(inventory.value, nic.portGroupId)),
         macAddress: nic.macAddress,
         network,
       })
