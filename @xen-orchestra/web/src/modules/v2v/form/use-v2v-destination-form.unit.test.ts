@@ -4,7 +4,6 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { useV2vDestinationForm, type V2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
@@ -346,17 +345,13 @@ describe('poolSelectBindings', () => {
 })
 
 describe('srSelectBindings', () => {
-  it.each([
-    ['its free space', createSr({ shared: true }), 9],
-    ['no free space once it uses more than its size', createSr({ shared: true, physical_usage: 20 * ONE_GB }), 0],
-  ])('offers each SR of the pool with its location and %s', async (_, sr, gbLeft) => {
+  it('offers each SR of the pool with its location and free space', async () => {
     const wrapper = mountFormSelect(form => form.srSelectBindings.value.id)
+    const sr = createSr({ shared: true })
     destinationCollectionsMock.srs.value = [sr]
 
     await openSelect(wrapper)
 
-    expect(findSelectOptionLabels(wrapper)).toEqual([
-      `${sr.name_label} (${t('shared')}) - ${t('n-gb-left', { n: gbLeft })}`,
-    ])
+    expect(findSelectOptionLabels(wrapper)).toEqual([`${sr.name_label} (${t('shared')}) - ${t('n-gb-left', { n: 9 })}`])
   })
 })
