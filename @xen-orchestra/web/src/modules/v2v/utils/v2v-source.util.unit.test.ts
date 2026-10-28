@@ -1,13 +1,22 @@
 import {
+  findV2vPortGroup,
   findV2vVmHost,
   getV2vAddress,
+  getV2vDatastoreName,
   getV2vSourceId,
   getV2vSourceKind,
   getV2vVmDatacenterName,
   normalizeV2vHost,
 } from '@/modules/v2v/utils/v2v-source.util.ts'
-import { createV2vDatacenter, createV2vHost, createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
-import type { XoV2vHost } from '@vates/types'
+import {
+  createV2vDatacenter,
+  createV2vDatastore,
+  createV2vHost,
+  createV2vInventory,
+  createV2vPortGroup,
+  createV2vVm,
+} from '@/test/create-v2v-inventory.ts'
+import type { XoV2vDatastore, XoV2vHost, XoV2vPortGroup } from '@vates/types'
 
 describe('normalizeV2vHost', () => {
   it('trims and lowercases the host', () => {
@@ -82,5 +91,44 @@ describe('getV2vVmDatacenterName', () => {
     ['a host of an unknown datacenter', { hosts: [HOST], datacenters: [] }],
   ])('names no datacenter for %s', (_, inventory) => {
     expect(getV2vVmDatacenterName(createV2vInventory(inventory), VM)).toBeUndefined()
+  })
+})
+
+describe('getV2vDatastoreName', () => {
+  const DATASTORE = createV2vDatastore()
+
+  const UNKNOWN_DATASTORE_ID = 'datastore-unknown' as XoV2vDatastore['id']
+
+  it('names the datastore after the inventory', () => {
+    expect(getV2vDatastoreName(createV2vInventory({ datastores: [DATASTORE] }), DATASTORE.id)).toBe(DATASTORE.name)
+  })
+
+  it('names a datastore missing from the inventory by its id', () => {
+    expect(getV2vDatastoreName(createV2vInventory({ datastores: [DATASTORE] }), UNKNOWN_DATASTORE_ID)).toBe(
+      UNKNOWN_DATASTORE_ID
+    )
+  })
+
+  it('names the datastore by its id without inventory', () => {
+    expect(getV2vDatastoreName(undefined, DATASTORE.id)).toBe(DATASTORE.id)
+  })
+})
+
+describe('findV2vPortGroup', () => {
+  const PORT_GROUP = createV2vPortGroup()
+
+  const OTHER_PORT_GROUP = createV2vPortGroup({ id: 'port-group-other' as XoV2vPortGroup['id'] })
+
+  it('finds the port group among the others', () => {
+    expect(findV2vPortGroup(createV2vInventory({ portGroups: [OTHER_PORT_GROUP, PORT_GROUP] }), PORT_GROUP.id)).toBe(
+      PORT_GROUP
+    )
+  })
+
+  it.each([
+    ['an unknown port group', createV2vInventory({ portGroups: [OTHER_PORT_GROUP] })],
+    ['no inventory', undefined],
+  ])('finds no port group for %s', (_, inventory) => {
+    expect(findV2vPortGroup(inventory, PORT_GROUP.id)).toBeUndefined()
   })
 })
