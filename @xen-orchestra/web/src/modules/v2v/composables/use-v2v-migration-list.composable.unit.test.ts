@@ -1,6 +1,6 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { getV2vMigrationListStorageKey } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import {
   createV2vDestinationDefaults,
@@ -10,6 +10,7 @@ import {
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { V2V_DISK_OVERRIDES } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { nextTick, type Ref, ref } from 'vue'
 
@@ -53,12 +54,20 @@ function readStorageAfter(storedList: V2vMigrationList, write: ListWrite, option
   return readV2vMigrationListStorage()
 }
 
+function expectStorageUntouchedAfter(write: ListWrite, options?: MountOptions) {
+  expect(readStorageAfter(UNWRITTEN_LIST, write, options)).toEqual(UNWRITTEN_LIST)
+}
+
 // A list is only written for a known source and pool, whichever function writes it
 function itStoresNothingWithoutSourceOrPool(write: ListWrite) {
   it.each(WITHOUT_SOURCE_OR_POOL)('leaves the stored list untouched without a %s', (_, options) => {
-    expect(readStorageAfter(STORED_LIST, write, options)).toEqual(STORED_LIST)
+    expectStorageUntouchedAfter(write, options)
     expect(localStorage.length).toBe(1)
   })
+}
+
+function itLeavesTheStorageUntouched(when: string, write: ListWrite) {
+  it(`leaves the storage untouched ${when}`, () => expectStorageUntouchedAfter(write))
 }
 
 // The VMs cannot invent the destination defaults a stored list holds
@@ -206,9 +215,7 @@ describe('addVms', () => {
     expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] }))
   })
 
-  it('leaves the storage untouched when given no VM', () => {
-    expect(readStorageAfter(UNWRITTEN_LIST, result => result.addVms([]))).toEqual(UNWRITTEN_LIST)
-  })
+  itLeavesTheStorageUntouched('when given no VM', result => result.addVms([]))
 
   itStoresNoVmWithoutList(result => result.addVms([THIRD_VM.id]))
 })
@@ -220,11 +227,38 @@ describe('removeVm', () => {
     expect(storedList).toEqual(createV2vMigrationList({ vms: [SECOND_VM] }))
   })
 
-  it('leaves the storage untouched for an unknown VM', () => {
-    expect(readStorageAfter(UNWRITTEN_LIST, result => result.removeVm(THIRD_VM.id))).toEqual(UNWRITTEN_LIST)
-  })
+  itLeavesTheStorageUntouched('for an unknown VM', result => result.removeVm(THIRD_VM.id))
 
   itStoresNoVmWithoutList(result => result.removeVm(FIRST_VM.id))
+})
+
+describe('updateVm', () => {
+  const withDiskOverrides = (vm: V2vMigrationListVm) => ({ ...vm, disks: V2V_DISK_OVERRIDES })
+
+  it('persists the next VM and keeps the others', () => {
+    const storedList = readStorageAfter(STORED_LIST, result => result.updateVm(FIRST_VM.id, withDiskOverrides))
+
+    expect(storedList).toEqual(createV2vMigrationList({ vms: [withDiskOverrides(FIRST_VM), SECOND_VM] }))
+  })
+
+  itLeavesTheStorageUntouched('for an unknown VM', result => result.updateVm(THIRD_VM.id, withDiskOverrides))
+
+  itLeavesTheStorageUntouched('when the VM is unchanged', result => result.updateVm(FIRST_VM.id, vm => ({ ...vm })))
+
+  it('keeps the changes made in another tab', async () => {
+    const listFromOtherTab = createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] })
+    seedV2vMigrationList(STORED_LIST)
+    const result = mountMigrationList()
+
+    await writeLocalStorageFromAnotherTab(STORAGE_KEY, JSON.stringify(listFromOtherTab))
+    result.updateVm(FIRST_VM.id, withDiskOverrides)
+
+    expect(readV2vMigrationListStorage()).toEqual(
+      createV2vMigrationList({ vms: [withDiskOverrides(FIRST_VM), SECOND_VM, THIRD_VM] })
+    )
+  })
+
+  itStoresNoVmWithoutList(result => result.updateVm(FIRST_VM.id, withDiskOverrides))
 })
 
 describe('clearVms', () => {
