@@ -4,6 +4,7 @@ import type {
   useXoBackupRepositoryCreateJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
@@ -41,7 +42,7 @@ beforeEach(() => {
   useOverlayMock.mockReset()
   open.mockReset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useCreateJob.mockReturnValue({ run })
   useOverlayMock.mockReturnValue({ open, abort: vi.fn() })

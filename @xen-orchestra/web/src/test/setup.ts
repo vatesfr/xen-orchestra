@@ -4,10 +4,14 @@ import { enableAutoUnmount } from '@vue/test-utils'
 // as soon as they are used. In unit tests we never want to hit the network, so
 // `fetch` is stubbed with a never-settling promise: the request simply stays
 // pending for the lifetime of the test. Tests that need a real response can
-// override this stub locally with `vi.stubGlobal('fetch', …)`.
-vi.stubGlobal(
-  'fetch',
-  vi.fn(() => new Promise(() => {}))
-)
+// override this stub locally with `vi.stubGlobal('fetch', …)` (see
+// `stub-fetch-response.ts`): the stub is installed again before each test, so
+// an override never leaks into the next test.
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {}))
+  )
+})
 
 enableAutoUnmount(afterEach)

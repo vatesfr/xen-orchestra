@@ -1,6 +1,6 @@
 # Testing components
 
-Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
+Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
 
 ```typescript
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
