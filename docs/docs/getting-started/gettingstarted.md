@@ -1,6 +1,6 @@
 ---
 sidebar_label: First steps
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # XO 6 at a glance
@@ -8,7 +8,7 @@ sidebar_position: 3
 XO 6 is the new generation of the Xen Orchestra web interface. Since its first official release, it is the default interface of your Xen Orchestra: log in as usual and you land in XO 6.
 
 :::info
-XO 6 currently requires an administrator account: other users are redirected to XO 5 for now. XO 6 and XO 5 run side by side on the same Xen Orchestra and manage the same infrastructure. You can switch to XO 5 at any time with the **XO 5** link in the top-right corner, and some advanced operations open directly in XO 5 (they are clearly marked with an external-link icon). See [XO 6 and XO 5](xo6vsxo5.md) for the current split.
+XO 6 currently requires an administrator account: other users are redirected to XO 5 for now. XO 6 and XO 5 run side by side on the same Xen Orchestra and manage the same infrastructure. You can switch to XO 5 at any time with the **XO 5** link in the top-right corner, and some advanced operations open directly in XO 5 (they are clearly marked with an external-link icon). See [XO 6 and XO 5](../whats-new/xo6vsxo5.md) for the current split.
 :::
 
 ## Accessing XO 6
@@ -47,7 +47,7 @@ Next to the tree view, the **Administration** tab of the sidebar gives access to
 
 A good way to discover XO 6 in a few minutes:
 
-1. Start on the **dashboard**: it aggregates the health of everything Xen Orchestra manages, including pool, host and VM status, resource totals, missing patches, alarms and backup health. See [How XO 6 is organized](coreconcepts.md).
+1. Start on the **dashboard**: it aggregates the health of everything Xen Orchestra manages, including pool, host and VM status, resource totals, missing patches, alarms and backup health. See [How XO 6 is organized](../core-concepts/coreconcepts.md).
 2. Click a **pool** in the tree view: same idea, scoped to the pool, with its networks, storage and hosts one tab away.
 3. Click a **VM**: quick info, live console, snapshots, backup protection status, all in tabs.
 4. Open the **Tasks** tab at any level: every operation, API call and authentication is tracked there.

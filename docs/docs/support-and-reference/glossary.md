@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # Glossary
 
 ## General
@@ -47,7 +51,7 @@
 | **NFS**           | Network File System                      | File-based **SR** backed by an NFS export.                                                                                       |
 | **QCOW2**         | QEMU Copy On Write v2                    | Disk format lifting the 2 TiB **VHD** limit (up to 16 TiB per disk), generally available since XO 6.5 and recent XCP-ng releases. |
 | **SR-IOV**        | Single Root I/O Virtualization           | Passing a virtual function of a physical NIC to a **VM** for near-native I/O.                                                    |
-| **Traffic rules** |                                          | Firewall-like rules applied to networks and **VIFs** through the [SDN controller](../manage-your-infrastructure/sdn_controller.md).                        |
+| **Traffic rules** |                                          | Firewall-like rules applied to networks and **VIFs** through the [SDN controller](../manage-your-infrastructure/networking/sdn_controller.md).                        |
 | **VHD**           | Virtual Hard Disk                        | Historical disk and backup format of the platform, limited to 2 TiB per disk (see **QCOW2**).                                    |
 | **VLAN**          | Virtual LAN                              | Logical LAN segment; often tied to **PIF** tagging in XAPI.                                                                      |
 | **XVA**           | XenServer Virtual Appliance              | Archive format for a complete VM export, used by [full backups](../backups-and-dr/backup-types/full_backups.md).                                            |
@@ -57,7 +61,7 @@
 | Term    | Meaning             | Definition                                                                                                                                    |
 | ------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **HA**  | High Availability   | Pool feature to restart **VM**s elsewhere if a **host** fails (policy-driven).                                                                |
-| **RPU** | Rolling Pool Update | XO-orchestrated [update of a whole pool](../manage-your-infrastructure/manage_infrastructure.md#rolling-pool-updates-rpu): hosts are patched and rebooted one by one while VMs are live migrated, with no VM downtime. |
+| **RPU** | Rolling Pool Update | XO-orchestrated [update of a whole pool](../manage-your-infrastructure/infrastructure/manage_infrastructure.md#rolling-pool-updates-rpu): hosts are patched and rebooted one by one while VMs are live migrated, with no VM downtime. |
 
 ## Backup & replication
 
@@ -66,8 +70,8 @@
 | **BR**                     | Backup Repository              | Storage where XO writes backups (NFS, SMB, S3, local...), formerly called a "remote". See [backup repositories](../backups-and-dr/backup-features-and-settings.md#remotes).            |
 | **CBT**                    | Changed Block Tracking         | XCP-ng/XenServer feature letting XO [purge snapshot data](../backups-and-dr/backup-types/incremental_backups.md#purge-snapshot-data-cbt): the reference snapshot keeps only small metadata on the **SR**. |
 | **Coalesce**               |                                | The storage process merging a VDI chain after a snapshot is deleted. Backups create and delete snapshots, so [coalesce health](../backups-and-dr/backup_troubleshooting.md) directly affects them. |
-| **CR**                     | Incremental replication        | Regularly replays deltas of a VM to an **SR** on another pool or host, formerly "continuous replication". See [incremental replication](../backups-and-dr/backup-types/incremental_replication.md). |
-| **DR**                     | Full replication               | Regularly streams a full copy of a VM to an **SR** on another pool or host, formerly "disaster recovery". See [full replication](../backups-and-dr/backup-types/full_replication.md). |
+| **CR**                     | Incremental replication        | Regularly replays deltas of a VM to an **SR** on another pool or host, formerly "continuous replication". See [incremental replication](../replication/incremental_replication.md). |
+| **DR**                     | Full replication               | Regularly streams a full copy of a VM to an **SR** on another pool or host, formerly "disaster recovery". See [full replication](../replication/full_replication.md). |
 | **Full backup interval**   |                                | Also called [key backup interval](../backups-and-dr/backup-types/incremental_backups.md#key-backup-interval): forces a periodic new full (key) backup in an incremental backup job. |
 | **GFS**                    | Grandfather-Father-Son         | [Long-term retention strategy](../backups-and-dr/backup-features-and-settings.md#long-term-backup-retention-with-gfs-strategy) keeping daily, weekly, monthly and yearly backups.       |
 | **Health check**           |                                | Automatic [restore test](../backups-and-dr/backup-features-and-settings.md#backup-health-check) after a backup: XO boots the restored VM to verify the backup is actually usable.       |
@@ -83,11 +87,11 @@
 | Term                | Meaning                 | Definition                                                                                                                                        |
 | ------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Guest tools**     |                         | Drivers and agent [installed inside a VM](https://xcp-ng.org/docs/guests.html): they report the IP address and metrics, and enable clean shutdown and migration. |
-| **V2V**             | Virtual to Virtual      | Built-in [migration tool](../guides/v2v-migration-guide.md) importing VMs directly from VMware/ESXi to XCP-ng.                                          |
+| **V2V**             | Virtual to Virtual      | Built-in [migration tool](../migrate-from-vmware/v2v-migration-guide.md) importing VMs directly from VMware/ESXi to XCP-ng.                                          |
 | **XAPI** / **xapi** | Xen API                 | The management API and service on each **host** that **XO** talks to.                                                                             |
 | **XCP-ng**          |                         | The open source, Xen-based hypervisor [managed by XO](../getting-started/supported_hosts.md), developed by Vates alongside Xen Orchestra.                            |
 | **XO**              | Xen Orchestra           | The management UI/API stack (`xo-server`, `xo-web`, etc.).                                                                                        |
-| **XO 5** / **XO 6** |                         | The two web interfaces served by the same XO backend: XO 6 is the current default, XO 5 the previous generation. See [XO 6 vs XO 5](../discover-xen-orchestra/xo6vsxo5.md). |
+| **XO 5** / **XO 6** |                         | The two web interfaces served by the same XO backend: XO 6 is the current default, XO 5 the previous generation. See [XO 6 vs XO 5](../whats-new/xo6vsxo5.md). |
 | **XO Lite**         |                         | [Lightweight web UI](https://docs.vates.tech/products/add-ons/xo-lite) embedded in every XCP-ng host (8.3+): basic management and XOA deployment, no installation needed. |
 | **XO Proxy**        |                         | [Component deployed close to remote infrastructure](../backups-and-dr/scale-and-security/proxy.md) to run backups locally, without streaming all data through the main XOA.        |
 | **XOA**             | Xen Orchestra Appliance | Prebuilt VM image that runs **XO** as a packaged appliance.                                                                                       |

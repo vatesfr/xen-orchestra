@@ -1,6 +1,6 @@
 ---
 sidebar_label: Installation
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # Installing XOA
@@ -56,7 +56,7 @@ Once the VM is running, open its IP address in your browser. If you did not set 
 
 or check your router's DHCP leases for an `xoa` entry.
 
-- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login: create a new admin account and remove this one. If you ever lose your password, you can [reset the configuration](troubleshooting.md#reset-the-configuration) to get the default credentials back.
+- Default web UI credentials: `admin@admin.net` / `admin`. Change them right after the first login: create a new admin account and remove this one. If you ever lose your password, you can [reset the configuration](../support-and-reference/troubleshooting.md#reset-the-configuration) to get the default credentials back.
 - Console and SSH have **no default password**: you set one during deployment, or later [from the host](#first-console-connection).
 
 ## Register and start your trial {#registration}

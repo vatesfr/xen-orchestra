@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # VM templates
@@ -60,7 +60,7 @@ To check a template’s settings in Xen Orchestra:
 
 If you need more technical details than what the UI shows, the Xen Orchestra API has everything.
 
-To learn more, read the [REST API documentation](../automation/restapi.md).
+To learn more, read the [REST API documentation](../../automation/restapi.md).
 
 All collections are listed when you run `GET /rest/v0`, including the `vm-templates` collection:
 
@@ -148,7 +148,7 @@ This means that you can easily customize your VM when you create it from a compa
 
 As of release 5.101, Xen Orchestra also supports Cloudbase-init. This tool provides equivalent functionality to Cloud-init but is specifically designed for Windows virtual machines.
 
-To build such a template, follow the dedicated [Windows templates with Cloudbase-init](../guides/windows-templates.md) guide.
+To build such a template, follow the dedicated [Windows templates with Cloudbase-init](windows-templates.md) guide.
 
 ### Requirements
 
@@ -161,7 +161,7 @@ In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https:
 
 ### Example: How to create a Cloudbase-init template with Windows Server?
 
-Refer to the [Windows templates with Cloudbase-init](../guides/windows-templates.md) guide for complete instructions.
+Refer to the [Windows templates with Cloudbase-init](windows-templates.md) guide for complete instructions.
 
 ### Example: How to create a Cloud-init template with Ubuntu 22.04 LTS?
 

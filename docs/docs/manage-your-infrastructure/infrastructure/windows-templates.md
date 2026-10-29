@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Windows templates with Cloudbase-init
 
 This guide provides step-by-step instructions for creating Windows templates that support cloud-init, using [Cloudbase-init](https://cloudbase.it/cloudbase-init/).

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 2
 ---
 
 # Troubleshooting
@@ -7,7 +7,7 @@ sidebar_position: 8
 This page covers the problems you may encounter with your XOA, and how to get out of them.
 
 :::warning
-If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](../support-and-licencing/community.md) first.
+If you have issues with an XO installed [from the sources](../getting-started/install-from-sources.md), please go through the [community support checklist](community.md) first.
 :::
 
 ## First reflex: `xoa check`
@@ -61,7 +61,7 @@ Restart the VM, then log in over SSH with the `xoa` user and that password.
 
 ### Recover the web login password
 
-From the XOA CLI (see [first console connection](installation.md#first-console-connection)):
+From the XOA CLI (see [first console connection](../getting-started/installation.md#first-console-connection)):
 
 <Terminal shell title="xoa — reset a web account password">{`
 sudo xo-server-recover-account youremail@here.com
@@ -71,7 +71,7 @@ It prompts for a new password. If the email does not exist in XO yet, an admin a
 
 ### Empty page after login
 
-Your antivirus or firewall is blocking WebSockets, the protocol XO clients use to talk to `xo-server` (see [architecture](architecture.md)). Switch to **HTTPS**: WebSockets are then encapsulated in TLS, out of reach of the interception.
+Your antivirus or firewall is blocking WebSockets, the protocol XO clients use to talk to `xo-server` (see [architecture](../core-concepts/architecture.md)). Switch to **HTTPS**: WebSockets are then encapsulated in TLS, out of reach of the interception.
 
 ### User login failures
 
@@ -146,7 +146,7 @@ If ghost tasks accumulate, try in order:
 
 ## Network issues
 
-Check the current configuration with `ip addr` (the default interface is `enX0` or `eth0`), and make sure any external firewall allows the XOA IP. Reconfigure with `xoa network static` or `xoa network dhcp`, as described in [Network configuration](installation.md#network-configuration).
+Check the current configuration with `ip addr` (the default interface is `enX0` or `eth0`), and make sure any external firewall allows the XOA IP. Reconfigure with `xoa network static` or `xoa network dhcp`, as described in [Network configuration](../getting-started/installation.md#network-configuration).
 
 ## Updater issues
 

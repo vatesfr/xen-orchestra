@@ -23,7 +23,7 @@ In this scenario, you will need a QA/pre-production XCP-ng pool with Internet ac
 
 Make sure that your appliance is [properly registered](./getting-started/installation.md#registration) and [up-to-date](./getting-started/updater.md).
 
-It's also good to take a quick look at [the XOA check](./getting-started/troubleshooting.md#first-reflex-xoa-check) to detect issues early.
+It's also good to take a quick look at [the XOA check](./support-and-reference/troubleshooting.md#first-reflex-xoa-check) to detect issues early.
 
 When everything is good, you can shutdown your XOA and export it:
 

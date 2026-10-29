@@ -1,10 +1,10 @@
 ---
-sidebar_position: 9
+sidebar_position: 1
 ---
 
 # Architecture
 
-Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](../discover-xen-orchestra/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
+Xen Orchestra (XO) is built as **one server and several clients**: the two web interfaces ([XO 6](../getting-started/gettingstarted.md) and XO 5), the command line client `xo-cli`, and anything speaking the [REST API](automation/restapi.md). The server, `xo-server`, is the only piece that talks to your infrastructure.
 
 :::tip
 XO is totally agent-less: nothing to install on your hosts. `xo-server` speaks XAPI, the native toolstack of XCP-ng, directly over the network.
@@ -90,7 +90,7 @@ Note that `xo-server` only needs to reach the **master** of each pool: the maste
 
 ## XOA
 
-The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installing XOA](installation.md).
+The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installing XOA](../getting-started/installation.md).
 
 ## xo-server
 
@@ -99,7 +99,7 @@ The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, 
 - **Always on**: as a daemon, it listens to and records every event of your infrastructure, around the clock, whether a client is watching or not. That is what makes always-up-to-date views, scheduled backup jobs and task history possible.
 - **Event driven**: `xo-server` subscribes to XAPI events instead of polling. Changes on a host or VM appear in your browser the moment they happen, and the server-side cache answers clients instantly, at any infrastructure size.
 - **A single connection point**: clients connect to `xo-server`, never to your hosts. Legacy thick clients opened connections from every admin workstation to every server; here one daemon holds one connection per pool, and any number of clients share it.
-- **A proxy for your hosts**: because everything flows through it, `xo-server` can expose VM consoles to clients that have no network access to the hosts, or stream a VM export from one pool straight into another (that is [warm migration](../manage-your-infrastructure/manage_infrastructure.md#warm-migration) territory) without a file stop in between.
+- **A proxy for your hosts**: because everything flows through it, `xo-server` can expose VM consoles to clients that have no network access to the hosts, or stream a VM export from one pool straight into another (that is [warm migration](../manage-your-infrastructure/infrastructure/manage_infrastructure.md#warm-migration) territory) without a file stop in between.
 - **Pluggable**: features like LDAP authentication, load balancing, netbox synchronization or backup reports are [plugins](#plugins), not core patches.
 
 ### Events, not polling
@@ -172,12 +172,12 @@ Legacy clients ask the servers "anything new?" every few seconds: slow, and it c
 
 Two web UIs currently ship with Xen Orchestra, served by `xo-server` and talking to it over WebSockets:
 
-- **XO 6** (`@xen-orchestra/web`), the new default interface, built with Vue.js on a dedicated design system. See the [XO 6 documentation](../discover-xen-orchestra/gettingstarted.md).
-- **XO 5** (`xo-web`), the complete historical interface, built with React. See [the infrastructure management section](../manage-your-infrastructure/manage_infrastructure.md) for what you can do with it.
+- **XO 6** (`@xen-orchestra/web`), the new default interface, built with Vue.js on a dedicated design system. See the [XO 6 documentation](../getting-started/gettingstarted.md).
+- **XO 5** (`xo-web`), the complete historical interface, built with React. See [the infrastructure management section](../manage-your-infrastructure/infrastructure/manage_infrastructure.md) for what you can do with it.
 
 <UiShot light="/img/xo6/dashboard-light.png" dark="/img/xo6/dashboard-dark.png" alt="XO 6, the new default web interface" url="https://your-xo/v6/#/dashboard" />
 
-Both run against the same server and the same data at the same time: see [XO 6 and XO 5](../discover-xen-orchestra/xo6vsxo5.md).
+Both run against the same server and the same data at the same time: see [XO 6 and XO 5](../whats-new/xo6vsxo5.md).
 
 ## xo-cli
 

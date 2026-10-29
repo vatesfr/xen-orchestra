@@ -1,0 +1,9 @@
+{
+  "label": "What's new",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/whats-new",
+    "description": "What changed in XO 6 and how it relates to XO 5"
+  }
+}

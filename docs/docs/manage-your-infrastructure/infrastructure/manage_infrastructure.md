@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Management in XO 5
@@ -36,9 +36,9 @@ By default, this view groups all **running VMs** on your connected server and ev
 
 Let's take a quick tour:
 
-- the global menu is on the left, you can collapse it by clicking on the icon ![](../assets/xo5collapsemenu.png)
+- the global menu is on the left, you can collapse it by clicking on the icon ![](../../assets/xo5collapsemenu.png)
 - the home view has a header with a type selector (VMs, hosts or pools), a filter zone and a button to create new VMs
-- the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](../assets/xo5expandhome.png)
+- the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](../../assets/xo5expandhome.png)
 
 :::tip
 You can edit a VM name, description and even current host by long clicking on the field
@@ -103,7 +103,7 @@ You can use custom filters here:
 
 ### Save your search
 
-If you want to record your filter, just click on the "Save" icon ![](../assets/xo5savefilter.png)
+If you want to record your filter, just click on the "Save" icon ![](../../assets/xo5savefilter.png)
 
 After giving a name to your filter, you will be able to find it in the dropdown filter menu.
 
@@ -111,7 +111,7 @@ After giving a name to your filter, you will be able to find it in the dropdown 
 
 Just go into your user panel (bottom of main left menu):
 
-![](../assets/xo5usericon.png)
+![](../../assets/xo5usericon.png)
 
 There, you can edit or remove any filter/search you've created!
 
@@ -223,7 +223,7 @@ A new VM can be created via the "New" button in the main menu (bottom):
 
 Or in the home view:
 
-![](../assets/xo5newvmbutton.png)
+![](../../assets/xo5newvmbutton.png)
 
 ### Wizard
 
@@ -393,7 +393,7 @@ If Xen Orchestra knows the VM’s IP address (either through the guest agent or 
 
 #### How do I automate VIF locking mode?
 
-If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](../getting-started/architecture.md#xo-cli).
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](../../core-concepts/architecture.md#xo-cli).
 
 ### VM high availability (HA)
 
@@ -521,7 +521,7 @@ VM migration with storage motion allows you to migrate a VM from one host to ano
 
 ### Warm migration
 
-Warm migration moves a running VM to another SR, including on another pool, with minimal downtime. Unlike the migrations above, the data doesn't go directly from host to host: Xen Orchestra reads the VM from the source and writes it to the destination, using the same mechanism as [incremental replication](../backups-and-dr/backup-types/incremental_replication.md).
+Warm migration moves a running VM to another SR, including on another pool, with minimal downtime. Unlike the migrations above, the data doesn't go directly from host to host: Xen Orchestra reads the VM from the source and writes it to the destination, using the same mechanism as [incremental replication](../../replication/incremental_replication.md).
 
 #### How it works
 
@@ -737,7 +737,7 @@ When you click on "Install all patches", XOA will do all of the following automa
 You can see [more screenshots here](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0).
 
 :::tip
-If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](../getting-started/configuration.md#proxy-for-updates-and-patches).
+If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](../../getting-started/configuration.md#proxy-for-updates-and-patches).
 :::
 
 #### Host updates
@@ -885,7 +885,7 @@ Visualizations can help you to understand your XCP-ng/XenServer infrastructure, 
 The dashboard view gathers information on all your connected pools/hosts.
 
 :::note
-Since XO 6 became the default interface, `https://your-xo/#/dashboard` opens the [new XO 6 dashboard](../manage-your-infrastructure/management.md). The XO 5 dashboard described here now lives under `/v5/`.
+Since XO 6 became the default interface, `https://your-xo/#/dashboard` opens the [new XO 6 dashboard](../management.md). The XO 5 dashboard described here now lives under `/v5/`.
 :::
 
 <UiShot light="/img/xo5/dashboard-overview.png" alt="The Overview aggregates pools, hosts, VMs, resource usage and alarms at a glance" url="https://your-xo/v5/#/dashboard/overview" />
@@ -915,10 +915,10 @@ Declaring a default storage repository for each pool is good practice to avoid u
 ### Pools with no default SR
 
 To select a default SR, go to the Home tab and click on 'Pools'. Select the pool you are working with and click on the storage icon:
-![](../assets/storageicon.png)
+![](../../assets/storageicon.png)
 
 Hover over the storage you want to select and click on the disk icon to set it as the default SR:
-![](../assets/diskicon.png)
+![](../../assets/diskicon.png)
 
 ### Unhealthy VDIs
 
@@ -950,7 +950,7 @@ List of VMs with missing or outdated guest tools. It's best practice to [install
 
 ### Alarms
 
-This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](advanced#alerts).
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](../advanced#alerts).
 
 ### Heatmap
 

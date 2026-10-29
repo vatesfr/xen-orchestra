@@ -1,10 +1,14 @@
+---
+sidebar_position: 1
+---
+
 # Users
 
 <InterfaceNote>This page describes user management in the XO 5 interface. XO 6 currently lists users (with their groups and tokens); creating and editing them still happens here.</InterfaceNote>
 
 Xen Orchestra involves three distinct notions of "user account". Make sure you are looking at the right one:
 
-- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../getting-started//installation.md#first-login).
+- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../../getting-started/installation.md#first-login).
 - **XO application users**: the accounts inside the Xen Orchestra web application. This is what this page is about.
 - **XO 6 / REST API roles**: XO 6 introduces a new RBAC model with roles and fine-grained privileges. See the [RBAC page](./rbac.md).
 
@@ -632,7 +636,7 @@ Finally, if a user has been granted access to multiple resource sets, they can b
 
 ### Toward the Cloud
 
-Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](../manage-your-infrastructure/vm-templates.md#cloud-init) for a full experience:
+Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](../../manage-your-infrastructure/infrastructure/vm-templates.md#cloud-init) for a full experience:
 
 - create a Cloud ready template
 - create a set and put Cloud templates inside
@@ -670,4 +674,4 @@ Now, the audit plugin will record users' actions and upload the last record in t
 
 ## Debugging
 
-If you can't log in, please [check the logs of `xo-server`](../getting-started/troubleshooting.md#logs).
+If you can't log in, please [check the logs of `xo-server`](../../support-and-reference/troubleshooting.md#logs).
