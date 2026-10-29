@@ -32,6 +32,14 @@ export type V2V_VM_OTHER_CONFIG = (typeof V2V_VM_OTHER_CONFIG)[keyof typeof V2V_
 
 export type XoV2vVmOtherConfig = Partial<Record<V2V_VM_OTHER_CONFIG, string>>
 
+// The disk of the source chain an imported VDI last received, one of the `chainPaths` of its source disk: the CID
+// cannot tell a fresh snapshot delta from its parent, the path can
+export const V2V_VDI_OTHER_CONFIG = {
+  DISK_PATH: 'esxi_diskPath',
+} as const
+
+export type V2V_VDI_OTHER_CONFIG = (typeof V2V_VDI_OTHER_CONFIG)[keyof typeof V2V_VDI_OTHER_CONFIG]
+
 export const V2V_START_BLOCKED_REASON = 'Esxi migration in progress...'
 
 export const V2V_PARTIAL_IMPORT_TAG = 'xo:no-bak=V2V partial import'
@@ -120,6 +128,9 @@ export type XoV2vDisk = {
   mode: V2V_DISK_MODE
   isRdm: boolean
   isEncrypted: boolean
+  // `dir/disk.vmdk` in its datastore (no `[datastore]` prefix) of the base disk, then of each snapshot delta down to
+  // the active disk: the chain the import walks for this vmx node
+  chainPaths: string[]
 }
 
 // No port group for opaque (NSX) or missing backings

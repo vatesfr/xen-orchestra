@@ -6,6 +6,9 @@ export type V2vVmStatus = (typeof V2V_VM_STATUSES)[number]
 
 export type V2vUnsupportedReason = 'rdm' | 'independent' | 'encrypted'
 
+// A resumed import sends the delta since its last sync, or the whole disks again
+export type V2vNextTransfer = 'delta' | 'full'
+
 // Field names double as the query builder property names
 export type V2vVmRow = {
   id: XoV2vVm['id']

@@ -3,6 +3,7 @@ import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -112,6 +113,13 @@ export function useXoSrUtils(
     return hostName ?? t('unknown')
   }
 
+  // An SR using more than its size has no space left, not a negative one
+  function getSrOptionLabel(sr: FrontXoSr): string {
+    const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
+
+    return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
+  }
+
   function getSrAccessModeLabel(sr: FrontXoSr): string {
     return sr.shared ? t('shared') : t('local')
   }
@@ -127,6 +135,7 @@ export function useXoSrUtils(
     srStatusIcon,
     getSrStatusIcon,
     getSrLocation,
+    getSrOptionLabel,
     getSrAccessModeLabel,
     getSrProvisioningLabel,
   }

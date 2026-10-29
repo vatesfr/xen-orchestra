@@ -27,6 +27,7 @@ import V2vVmNameCell from '@/modules/v2v/components/vms/V2vVmNameCell.vue'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vVmsTableSelection } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import type { V2vVmDatastoreViewRow, V2vVmsTableView, V2vVmViewRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import { renderSizeCell } from '@/shared/utils/size-cell.util.ts'
 import type { PaginationBindings } from '@core/composables/pagination.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable, { type TableState } from '@core/components/table/VtsTable.vue'
@@ -37,7 +38,6 @@ import { useDateColumn } from '@core/tables/column-definitions/date-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { h, type VNode } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -76,12 +76,6 @@ type BodyRenderer<TColumnId extends keyof V2vVmColumns> = (renderer: V2vVmColumn
 
 const useV2vVmColumns = defineColumns(setupColumns)
 
-function renderSize(bytes: number, renderer: V2vVmColumns['size']['renderBody']) {
-  const size = formatSizeRaw(bytes, 1)
-
-  return renderer(size.value, size.prefix)
-}
-
 // `row` is the reactive item of its cells: read lazily, it follows the row an existing table line now shows
 function getSharedCells(row: V2vVmViewRow): {
   checkbox: BodyRenderer<'checkbox'>
@@ -116,7 +110,7 @@ const { HeadCells: AllVmsHeadCells, BodyCells: AllVmsBodyCells } = useV2vVmColum
     power: renderer => renderer(powerLabels.value[row.power]),
     datastores: () =>
       h(V2vDatastoresCell, { names: row.datastore, onFilter: (name: string) => emit('filterDatastore', name) }),
-    size: renderer => renderSize(row.size, renderer),
+    size: renderer => renderSizeCell(row.size, renderer),
     lastSync: renderer => renderer(row.lastSyncAt),
   }),
 })
@@ -127,7 +121,7 @@ const { HeadCells: DatastoreHeadCells, BodyCells: DatastoreBodyCells } = useV2vV
   body: (row: V2vVmDatastoreViewRow) => ({
     ...getSharedCells(row),
     alsoOn: renderer => renderer(row.otherDatastores),
-    sizeOnDatastore: renderer => renderSize(row.sizeOnDatastore, renderer),
+    sizeOnDatastore: renderer => renderSizeCell(row.sizeOnDatastore, renderer),
   }),
 })
 </script>

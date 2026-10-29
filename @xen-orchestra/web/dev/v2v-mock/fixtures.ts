@@ -23,6 +23,17 @@ const VCENTER_VM_COUNT = 148
 
 const ESXI_VM_COUNT = 9
 
+const SNAPSHOTS_VM_INDEX = 4
+
+// Warm/cold come from real XO VMs, the inventory cannot mock them: to see `app-008` resumed, turn an XO VM of the
+// destination pool with 2 VDIs and 2 VIFs into its partial import (`sourceId` is `<host>:<port>` for an ESXi
+// source), one VDI paired on a snapshot delta, the other on the base disk:
+//   xe vm-param-set uuid=<vm> other-config:xo:v2v:sourceId=mock-vcenter-instance-uuid other-config:sourceVmId=vm-107 \
+//     other-config:sourceSnapshotId=2 blocked-operations:start='Esxi migration in progress...'
+//   xe vdi-param-set uuid=<1st vdi> other-config:esxi_diskPath=app-008/app-008-000001.vmdk
+//   xe vdi-param-set uuid=<2nd vdi> other-config:esxi_diskPath=app-008/app-008_1.vmdk
+const WARM_VM_INDEX = 7
+
 // One VM per disk case the VM selection step tells apart: each unsupported disk, and disks on two datastores. The
 // last three are past the ESXi VMs, so only the vCenter shows them
 const RDM_VM_INDEX = 5
@@ -47,7 +58,19 @@ const DATASTORES = [
   createV2vDatastore({ ...datastore, id: id as XoV2vDatastore['id'], hostIds: [HOST_ID] })
 )
 
-function createDisks(index: number): XoV2vDisk[] {
+const SNAPSHOT_COUNTS: Record<number, number> = { [SNAPSHOTS_VM_INDEX]: 1, [WARM_VM_INDEX]: 2 }
+
+// VMware names the deltas of `dir/disk.vmdk` `dir/disk-000001.vmdk`, `dir/disk-000002.vmdk`… one per snapshot
+function createChainPaths(directory: string, fileName: string, snapshotCount: number): string[] {
+  const deltaPaths = Array.from(
+    { length: snapshotCount },
+    (_, deltaIndex) => `${directory}/${fileName}-${String(deltaIndex + 1).padStart(6, '0')}.vmdk`
+  )
+
+  return [`${directory}/${fileName}.vmdk`, ...deltaPaths]
+}
+
+function createDisks(index: number, name: string, snapshotCount: number): XoV2vDisk[] {
   const datastoreId = DATASTORES[index % DATASTORES.length].id
 
   const disk = createV2vDisk({
@@ -56,45 +79,64 @@ function createDisks(index: number): XoV2vDisk[] {
     mode: index === INDEPENDENT_DISK_VM_INDEX ? V2V_DISK_MODE.INDEPENDENT_PERSISTENT : V2V_DISK_MODE.PERSISTENT,
     isRdm: index === RDM_VM_INDEX,
     isEncrypted: index === ENCRYPTED_DISK_VM_INDEX,
+    chainPaths: createChainPaths(name, name, snapshotCount),
   })
 
-  if (index !== TWO_DATASTORES_VM_INDEX) {
+  const hasSecondDisk = index === TWO_DATASTORES_VM_INDEX || index === WARM_VM_INDEX
+
+  if (!hasSecondDisk) {
     return [disk]
   }
+
+  const secondDatastoreId =
+    index === TWO_DATASTORES_VM_INDEX ? DATASTORES[(index + 1) % DATASTORES.length].id : datastoreId
 
   return [
     disk,
     createV2vDisk({
       key: 'scsi0:1' as XoV2vDisk['key'],
       label: 'Hard disk 2',
-      datastoreId: DATASTORES[(index + 1) % DATASTORES.length].id,
+      datastoreId: secondDatastoreId,
       capacity: 200 * 1024 ** 3,
+      chainPaths: createChainPaths(name, `${name}_1`, snapshotCount),
     }),
   ]
 }
 
+function createNics(index: number): XoV2vNic[] {
+  const nicCount = index === WARM_VM_INDEX ? 2 : 1
+
+  return Array.from({ length: nicCount }, (_, nicIndex) =>
+    createV2vNic({
+      key: `ethernet${nicIndex}` as XoV2vNic['key'],
+      label: `Network adapter ${nicIndex + 1}`,
+      portGroupId: PORT_GROUP_ID,
+      macAddress: `00:50:56:9a:0${nicIndex}:${index.toString(16).padStart(2, '0')}`,
+    })
+  )
+}
+
 // Varied on purpose: the list must show every power state, firmware and size combination
 function createVm(index: number): XoV2vVm {
-  const disks = createDisks(index)
+  const name = `app-${String(index + 1).padStart(3, '0')}`
+  const snapshotCount = SNAPSHOT_COUNTS[index] ?? 0
+  const disks = createDisks(index, name, snapshotCount)
 
   return createV2vVm({
     id: `vm-${index + 100}` as XoV2vVm['id'],
     instanceUuid: `vm-instance-${index + 100}`,
-    name: `app-${String(index + 1).padStart(3, '0')}`,
+    name,
     powerState: index % 3 === 0 ? V2V_VM_POWER_STATE.POWERED_OFF : V2V_VM_POWER_STATE.POWERED_ON,
     hostId: HOST_ID,
     nCpus: 2 + (index % 4),
     memory: (4 + (index % 4) * 4) * 1024 ** 3,
     firmware: index % 2 === 0 ? V2V_FIRMWARE.UEFI : V2V_FIRMWARE.BIOS,
     datastoreIds: [...new Set(disks.map(disk => disk.datastoreId))],
+    snapshotCount,
+    // The vmsd numbers snapshots from 1, the last taken is the current one
+    currentSnapshotId: snapshotCount > 0 ? String(snapshotCount) : undefined,
     disks,
-    nics: [
-      createV2vNic({
-        key: 'ethernet0' as XoV2vNic['key'],
-        portGroupId: PORT_GROUP_ID,
-        macAddress: `00:50:56:9a:00:${index.toString(16).padStart(2, '0')}`,
-      }),
-    ],
+    nics: createNics(index),
   })
 }
 

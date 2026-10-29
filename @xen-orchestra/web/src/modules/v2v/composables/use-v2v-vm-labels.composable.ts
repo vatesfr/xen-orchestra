@@ -1,17 +1,26 @@
+import type { V2vTargetOrigin } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type {
   V2vMappingSummary,
   V2vReadinessLevel,
   V2vSelectedVmCheck,
   V2vSelectedVmKind,
+  V2vVmCheck,
 } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
-import type { V2vUnsupportedReason, V2vVmRow, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type {
+  V2vNextTransfer,
+  V2vUnsupportedReason,
+  V2vVmRow,
+  V2vVmStatus,
+} from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
-import { V2V_VM_POWER_STATE } from '@vates/types'
+import { formatSize } from '@core/utils/size.util.ts'
+import { V2V_VM_POWER_STATE, type XoV2vDisk, type XoV2vPortGroup } from '@vates/types'
+import { sumBy } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,6 +40,11 @@ const STATUS_ACCENTS: Record<V2vVmStatus, TagAccent> = {
   running: 'warning',
   warm: 'info',
   cold: 'success',
+}
+
+const ORIGIN_ACCENTS: Record<V2vTargetOrigin, TagAccent> = {
+  default: 'neutral',
+  overridden: 'warning',
 }
 
 const KIND_ACCENTS: Record<V2vSelectedVmKind, TagAccent> = {
@@ -114,7 +128,7 @@ export function useV2vVmLabels() {
   }
 
   // A pool still loading is named by its id rather than not at all
-  function getCheckLabel(check: V2vSelectedVmCheck, poolName: string | undefined): string {
+  function getCheckLabel(check: V2vSelectedVmCheck | V2vVmCheck, poolName: string | undefined): string {
     switch (check.type) {
       case 'not-found':
         return t('v2v:not-found-in-source')
@@ -124,20 +138,78 @@ export function useV2vVmLabels() {
         return t('import-in-progress')
       case 'partial-on-other-pool':
         return t('v2v:partial-import-on-pool', { pool: poolName ?? check.poolId })
+      case 'mapping-incomplete':
+        return t('v2v:check:mapping-incomplete')
       case 'already-migrated':
         return t('v2v:already-migrated-confirm-at-launch')
       case 'ready':
         return t('ready')
+      case 'no-unsupported-disk':
+        return t('v2v:check:no-unsupported-disk')
+      case 'snapshots':
+        return t('v2v:check:n-snapshots', { n: check.count })
+      case 'no-snapshot':
+        return t('v2v:check:no-snapshot')
     }
   }
 
   // `poolName` names the pool of the check, when it has one
-  function getCheckInfo(check: V2vSelectedVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
+  function getCheckInfo(check: V2vSelectedVmCheck | V2vVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 
-  function withTarget(countLabel: string, target: string | undefined): string {
-    return target === undefined ? countLabel : t('source-to-destination', { source: countLabel, destination: target })
+  const originLabels = computed<Record<V2vTargetOrigin, string>>(() => ({
+    default: t('global-default'),
+    overridden: t('overridden'),
+  }))
+
+  function getOriginTag(origin: V2vTargetOrigin): V2vAccentedLabel<TagAccent> {
+    return { label: originLabels.value[origin], accent: ORIGIN_ACCENTS[origin] }
+  }
+
+  function getPowerLabel(powerState: V2V_VM_POWER_STATE, hostName: string | undefined): string {
+    const power = powerLabels.value[powerState]
+
+    return hostName === undefined ? power : t('power-state-on-host', { power, host: hostName })
+  }
+
+  function getSnapshotCountLabel(count: number): string {
+    return count === 0 ? t('none') : String(count)
+  }
+
+  function getDisksParts(disks: Pick<XoV2vDisk, 'capacity'>[]): string[] {
+    if (disks.length === 0) {
+      return [t('none')]
+    }
+
+    return [String(disks.length), formatSize(sumBy(disks, 'capacity'), 1)]
+  }
+
+  function getPortGroupParts(portGroup: XoV2vPortGroup | undefined): string[] {
+    if (portGroup === undefined) {
+      return []
+    }
+
+    return portGroup.vlan === undefined ? [portGroup.name] : [portGroup.name, t('vlan-id', { id: portGroup.vlan })]
+  }
+
+  function getDiskDetailParts(datastoreName: string, capacity: XoV2vDisk['capacity']): string[] {
+    return [datastoreName, formatSize(capacity, 1)]
+  }
+
+  function getNicDetailParts(portGroup: XoV2vPortGroup | undefined, isMacKept: boolean): string[] {
+    return isMacKept ? [...getPortGroupParts(portGroup), t('v2v:mac-kept')] : getPortGroupParts(portGroup)
+  }
+
+  const nextTransferLabels = computed<Record<V2vNextTransfer, string>>(() => ({
+    delta: t('delta-transfer'),
+    full: t('full-transfer'),
+  }))
+
+  function withTargets(countLabel: string, targets: string[] | undefined): string {
+    return targets === undefined
+      ? countLabel
+      : t('source-to-destination', { source: countLabel, destination: targets.join(', ') })
   }
 
   function getMappingParts(summary: V2vMappingSummary | undefined): string[] {
@@ -149,11 +221,11 @@ export function useV2vVmLabels() {
       return [t('v2v:delta-from-last-sync'), t('v2v:mapping-locked')]
     }
 
-    const { diskCount, srName, nicCount, networkName } = summary
+    const { diskCount, srNames, nicCount, networkNames } = summary
 
     return [
-      ...(diskCount > 0 ? [withTarget(t('n-disks', { n: diskCount }), srName)] : []),
-      ...(nicCount > 0 ? [withTarget(t('n-nics', { n: nicCount }), networkName)] : []),
+      ...(diskCount > 0 ? [withTargets(t('n-disks', { n: diskCount }), srNames)] : []),
+      ...(nicCount > 0 ? [withTargets(t('n-nics', { n: nicCount }), networkNames)] : []),
     ]
   }
 
@@ -179,6 +251,14 @@ export function useV2vVmLabels() {
     getSummaryLabels,
     getKindTag,
     getCheckInfo,
+    getOriginTag,
+    getPowerLabel,
+    getSnapshotCountLabel,
+    getDisksParts,
+    getPortGroupParts,
+    getDiskDetailParts,
+    getNicDetailParts,
+    nextTransferLabels,
     getMappingParts,
     getReadinessTags,
   }

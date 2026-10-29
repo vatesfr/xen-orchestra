@@ -10,19 +10,15 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import type { V2vDestinationDefaults, V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   countV2vPoolResources,
   getOfferedV2vDestinationPrefill,
   getV2vDestinationPrefill,
-  getV2vPoolDestinationChoices,
   type V2vDestinationPrefill,
 } from '@/modules/v2v/utils/v2v-destination.util.ts'
-import {
-  type FrontXoVmTemplate,
-  useXoVmTemplateCollection,
-} from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { pickBy } from 'lodash-es'
@@ -71,18 +67,11 @@ export function useV2vDestinationForm({
   const { srs } = useXoSrCollection()
   const { networks } = useXoNetworkCollection()
   const { pifs } = useXoPifCollection()
-  const { templates } = useXoVmTemplateCollection()
-  const { getSrLocation } = useXoSrUtils()
+  const { getSrOptionLabel } = useXoSrUtils()
 
   const selectedPool = computed(() => pools.value.find(pool => pool.id === formData.pool))
 
-  const choices = computed(() =>
-    getV2vPoolDestinationChoices(formData.pool, {
-      srs: srs.value,
-      networks: networks.value,
-      templates: templates.value,
-    })
-  )
+  const { choices } = useV2vPoolDestinationChoices(() => formData.pool)
 
   const poolResourceCounts = computed(() =>
     countV2vPoolResources(pools.value, { hosts: hosts.value, srs: srs.value, networks: networks.value })
@@ -149,14 +138,7 @@ export function useV2vDestinationForm({
     searchable: true,
     required: true,
     placeholder: () => t('action:select-storage'),
-    option: {
-      label: sr => {
-        const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
-
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
-      value: 'id',
-    },
+    option: { label: getSrOptionLabel, value: 'id' },
   })
 
   const { id: networkSelectId } = useFormSelect('network', () => choices.value.networks, {

@@ -37,11 +37,15 @@ beforeEach(() => {
 
 `vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
 
-Collections always read together share one mock module exporting each of their composables: `mock-xo-destination-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it (`vi.mock` is hoisted, it cannot be wrapped in a helper), and `destinationCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById` and `hasPoolById` from `pools`, its SR and network collections `getSrById` and `getNetworkById`, and `arePoolsReady` (true after a reset) lets a test hold the pools as still loading.
+Collections always read together share one mock module exporting each of their composables: `mock-xo-destination-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it (`vi.mock` is hoisted, it cannot be wrapped in a helper), and `destinationCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById` and `hasPoolById` from `pools`, its SR and network collections `getSrById` and `getNetworkById`, and `arePoolsReady`, `areSrsReady`, `areNetworksReady` and `areTemplatesReady` (true after a reset) let a test hold that collection as still loading. `destinationCollectionsMock.seedChoices({ srs, networks, templates })` sets what the pool of a V2V list offers.
 
 The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading).
 
-`mock-delete-modal.ts` stands for `useDeleteModal`, whose overlay a unit test cannot answer: `deleteModalMock.answer('onConfirm' | 'onCancel')` sets how the next confirmation is answered, `deleteModalMock.open` is the spy to read the props it was opened with, and `deleteModalMock.reset()` goes in `beforeEach`.
+`mock-delete-modal.ts` stands for `useDeleteModal`, whose overlay a unit test cannot answer: `deleteModalMock.answer('onConfirm' | 'onCancel')` sets how the next confirmation is answered, `deleteModalMock.confirm()` runs the `onConfirm` event of the last confirmation for a caller that passes its events instead of awaiting the answer, `deleteModalMock.open` is the spy to read the props it was opened with, and `deleteModalMock.reset()` goes in `beforeEach`.
+
+`mock-xo-vm-device-collections.ts` stands for the VBD, VDI and VIF collections: `vmDeviceCollectionsMock` holds `vbds`, `vdis`, `vifs` and their `are…Ready` flags (true after a reset), and its collections answer `getVbdsByIds` and `getVifsByIds`.
+
+`mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 
 ## Network
 

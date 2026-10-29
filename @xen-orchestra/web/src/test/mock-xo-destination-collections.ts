@@ -32,17 +32,37 @@ export const destinationCollectionsMock = {
   arePoolsReady: ref(true),
   hosts: ref<FrontXoHost[]>([]),
   srs: ref<FrontXoSr[]>([]),
+  areSrsReady: ref(true),
   networks: ref<FrontXoNetwork[]>([]),
+  areNetworksReady: ref(true),
   pifs: ref<FrontXoPif[]>([]),
   templates: ref<FrontXoVmTemplate[]>([]),
+  areTemplatesReady: ref(true),
+  // What the pool of a V2V list offers its VMs, as a step reads them
+  seedChoices({
+    srs,
+    networks,
+    templates,
+  }: {
+    srs: FrontXoSr[]
+    networks: FrontXoNetwork[]
+    templates: FrontXoVmTemplate[]
+  }) {
+    this.srs.value = srs
+    this.networks.value = networks
+    this.templates.value = templates
+  },
   reset() {
     this.pools.value = []
     this.arePoolsReady.value = true
     this.hosts.value = []
     this.srs.value = []
+    this.areSrsReady.value = true
     this.networks.value = []
+    this.areNetworksReady.value = true
     this.pifs.value = []
     this.templates.value = []
+    this.areTemplatesReady.value = true
   },
 }
 
@@ -62,11 +82,13 @@ export const useXoHostCollection = (() => ({
 
 export const useXoSrCollection = (() => ({
   srs: destinationCollectionsMock.srs,
+  areSrsReady: destinationCollectionsMock.areSrsReady,
   getSrById: (id: FrontXoSr['id'] | undefined) => destinationCollectionsMock.srs.value.find(sr => sr.id === id),
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
   networks: destinationCollectionsMock.networks,
+  areNetworksReady: destinationCollectionsMock.areNetworksReady,
   getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
     destinationCollectionsMock.networks.value.find(network => network.id === id),
 })) as unknown as typeof realUseXoNetworkCollection
@@ -82,4 +104,5 @@ export const useXoPifCollection = (() => ({
 
 export const useXoVmTemplateCollection = (() => ({
   templates: destinationCollectionsMock.templates,
+  areTemplatesReady: destinationCollectionsMock.areTemplatesReady,
 })) as unknown as typeof realUseXoVmTemplateCollection
