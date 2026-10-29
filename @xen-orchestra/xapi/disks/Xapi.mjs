@@ -51,6 +51,10 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /** @type {boolean} */
   #onlyListChangedBlocks = false
+
+  /** @type {Promise<void> | undefined} */
+  #initPromise
+  #initialized = false
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -282,6 +286,29 @@ export class XapiDiskSource extends DiskPassthrough {
       // Try without CBT on failure.
       return this.#openNbdStream()
     }
+  }
+
+  /**
+   * Opens the source only once: each call, even concurrent, gets the same promise.
+   *
+   * This disk can be shared by several consumers (e.g. the writers of a backup job), each of them
+   * initializing it, and opening it again would start another export on the host.
+   *
+   * @returns {Promise<void>}
+   */
+  init() {
+    if (this.#initPromise === undefined) {
+      this.#initPromise = (async () => {
+        await super.init()
+        this.#initialized = true
+      })()
+    }
+    return this.#initPromise
+  }
+
+  /** @returns {boolean} */
+  isInitialized() {
+    return this.#initialized
   }
 
   /**

@@ -30,3 +30,10 @@ test('ThrottledDisk keeps the other properties of the blocks', async () => {
   }
   assert.strictEqual(nbBlocksRead, nbBlocks)
 })
+
+test('ThrottledDisk initializes its source', async () => {
+  const source = new DebugDisk({ nbBlocks: 5, blockSize: 1024, fillRate: 100 })
+  const disk = new ThrottledDisk(source, new Throttle(0))
+  await disk.init()
+  assert.strictEqual(source.initDone, true)
+})

@@ -49,16 +49,12 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     })
 
     // the disks are opened by the writers, just before their transfer
-    const openedDisks = new Map()
+    const sourceDisks = { ...deltaExport.disks }
     for (const key in deltaExport.disks) {
-      const disk = deltaExport.disks[key]
+      let disk = deltaExport.disks[key]
       disk.addProgressHandler(new TaskProgressHandler())
-      deltaExport.disks[key] = new SynchronizedDisk(new ThrottledDisk(disk, this._throttleGenerator), {
-        init: async () => {
-          await disk.init()
-          openedDisks.set(key, disk)
-        },
-      })
+      disk = new ThrottledDisk(disk, this._throttleGenerator)
+      deltaExport.disks[key] = new SynchronizedDisk(disk)
     }
 
     // @todo : reimplement throttle
@@ -80,7 +76,11 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       )
     } finally {
       let useNbd = false
-      for (const [key, disk] of openedDisks) {
+      for (const [key, disk] of Object.entries(sourceDisks)) {
+        if (!disk.isInitialized()) {
+          // not reached before the transfer failed
+          continue
+        }
         if (!isFull && !disk.isDifferencing() && key !== exportedVm.$suspend_VDI?.$ref) {
           Task.warning('Backup fell back to a full')
         }

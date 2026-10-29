@@ -30,19 +30,13 @@ test('Disk class', async t => {
   })
   console.log({ testRes })
 
-  await t.test('forks share a single init of the source', async () => {
+  await t.test('initializing a fork initializes the source', async () => {
     const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
-    let nbInits = 0
-    const disk = new SynchronizedDisk(source, {
-      init: async () => {
-        nbInits++
-        await source.init()
-      },
-    })
+    const disk = new SynchronizedDisk(source)
     const forks = [disk.fork('generator_0'), disk.fork('generator_1')]
     assert.strictEqual(source.initDone, false, 'source is not opened before a fork is initialized')
-    await Promise.all(forks.map(fork => fork.init()))
-    assert.strictEqual(nbInits, 1)
+    await forks[0].init()
+    assert.strictEqual(source.initDone, true)
     assert.strictEqual(forks[0].getBlockSize(), 1024)
     await Promise.all(forks.map(fork => consumeGenerator(fork.diskBlocks())))
     assert.strictEqual(source.getNbGeneratedBlock(), 20)

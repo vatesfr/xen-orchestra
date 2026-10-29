@@ -39,8 +39,9 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
-- @xen-orchestra/disk-transform minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/xapi minor
 - xo-server patch
 - xo-server-sdn-controller patch
 

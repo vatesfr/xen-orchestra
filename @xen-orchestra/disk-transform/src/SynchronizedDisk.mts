@@ -6,18 +6,16 @@ class ForkedDisk extends DiskPassthrough {
   #closed = false
   #generator: AsyncGenerator<DiskBlock, any, any>
   #generatedDiskBlocks = 0
-  #init: () => Promise<void>
-  constructor(source: Disk, generator: AsyncGenerator<DiskBlock, any, any>, init: () => Promise<void>) {
+  constructor(source: Disk, generator: AsyncGenerator<DiskBlock, any, any>) {
     super(source)
     this.#generator = generator
-    this.#init = init
   }
   async openSource(): Promise<Disk> {
     throw new ErrorEvent(' No need to open forked disk ')
   }
   async init(): Promise<void> {
-    // the source is shared by all the forks, it is only opened by the first one
-    await this.#init()
+    // the source is shared by all the forks: it must handle being initialized by each of them
+    await this.source.init()
   }
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
     try {
@@ -52,23 +50,9 @@ class ForkedDisk extends DiskPassthrough {
 export class SynchronizedDisk {
   #synchronized: Synchronized<DiskBlock, any, any> | undefined
   #source: Disk
-  #init: () => Promise<void>
-  #initPromise: Promise<void> | undefined
 
-  /**
-   * @param source
-   * @param options.init how to open the source, defaults to `source.init()`
-   */
-  constructor(source: Disk, { init = () => source.init() }: { init?: () => Promise<void> } = {}) {
+  constructor(source: Disk) {
     this.#source = source
-    this.#init = init
-  }
-
-  init(): Promise<void> {
-    if (this.#initPromise === undefined) {
-      this.#initPromise = this.#init()
-    }
-    return this.#initPromise
   }
 
   fork(uid: string): ForkedDisk {
@@ -76,9 +60,7 @@ export class SynchronizedDisk {
       const generator = this.#source.diskBlocks()
       this.#synchronized = new Synchronized(generator)
     }
-    return new ForkedDisk(this.#source, this.#synchronized.fork(uid) as AsyncGenerator<DiskBlock, any, any>, () =>
-      this.init()
-    )
+    return new ForkedDisk(this.#source, this.#synchronized.fork(uid) as AsyncGenerator<DiskBlock, any, any>)
   }
   close() {
     return this.#source.close()
