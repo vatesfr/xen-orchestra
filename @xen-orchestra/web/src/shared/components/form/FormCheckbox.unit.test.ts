@@ -61,6 +61,16 @@ it('shows every warning when several are given', () => {
   expect(findInputMessages(mountCheckbox({ warning }))).toEqual(warning)
 })
 
+it('shows its info when given', () => {
+  expect(findInputMessages(mountCheckbox({ info: 'For PV VMs only' }))).toEqual(['For PV VMs only'])
+})
+
+it('shows its info before its warnings', () => {
+  expect(
+    findInputMessages(mountCheckbox({ info: 'For PV VMs only', warning: 'The data cannot be recovered' }))
+  ).toEqual(['For PV VMs only', 'The data cannot be recovered'])
+})
+
 it('disables its checkbox when it is disabled', () => {
   expect(mountCheckbox({ disabled: true }).getComponent(UiCheckbox).props('disabled')).toBe(true)
   expect(mountCheckbox().getComponent(UiCheckbox).props('disabled')).toBe(false)
