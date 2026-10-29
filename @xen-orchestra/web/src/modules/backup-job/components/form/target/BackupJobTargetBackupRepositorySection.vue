@@ -65,7 +65,7 @@
         :keep-select-id="bindings.ltrYearlyKeep.id"
         @update:retention="bindings.ltrYearlyRetention['onUpdate:modelValue']($event)"
       />
-      <BackupJobFormCheckbox v-bind="bindings.strictGfs" />
+      <BackupJobFormCheckbox v-if="hasStrictGfs" v-bind="bindings.strictGfs" />
     </div>
 
     <BackupJobFormCheckbox v-if="hasRetentionStrategy" v-bind="bindings.mergeBackupsSynchronously" />
@@ -92,6 +92,7 @@ const { bindings } = defineProps<{
   compatibleBrs: FrontXoBackupRepository[]
   matchedBrs: FrontXoBackupRepository[]
   hasRetentionStrategy: boolean
+  hasStrictGfs: boolean
 }>()
 
 const { t } = useI18n()
