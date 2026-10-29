@@ -1,6 +1,6 @@
 ---
 sidebar_label: From source
-sidebar_position: 4
+sidebar_position: 2
 ---
 
 # Installing XO from source
@@ -216,7 +216,7 @@ Exceptional individual contributors are awarded a free XOA Premium subscription.
 ## FreeBSD and OpenBSD
 
 :::note Community territory
-We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../support-and-licencing/community.md): we would be happy to have more testers and maintainers for these targets.
+We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../support-and-reference/community.md): we would be happy to have more testers and maintainers for these targets.
 :::
 
 ### FreeBSD

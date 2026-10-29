@@ -1,0 +1,9 @@
+{
+  "label": "Replication",
+  "position": 8,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/replication",
+    "description": "Replicate your VMs to another storage or pool"
+  }
+}

@@ -1,5 +1,6 @@
 ---
 sidebar_label: Incremental replication (CR)
+sidebar_position: 2
 ---
 
 # Incremental replication

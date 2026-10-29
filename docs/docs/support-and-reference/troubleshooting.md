@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 2
 ---
 
 # Troubleshooting
@@ -7,7 +7,7 @@ sidebar_position: 8
 This page covers the problems you may encounter with your XOA, and how to get out of them.
 
 :::warning
-If you have issues with an XO installed [from the sources](install-from-sources.md), please go through the [community support checklist](../support-and-licencing/community.md) first.
+If you have issues with an XO installed [from the sources](../getting-started/install-from-sources.md), please go through the [community support checklist](community.md) first.
 :::
 
 ## First reflex: `xoa check`
@@ -61,7 +61,7 @@ Restart the VM, then log in over SSH with the `xoa` user and that password.
 
 ### Recover the web login password
 
-From the XOA CLI (see [first console connection](installation.md#first-console-connection)):
+From the XOA CLI (see [first console connection](../getting-started/installation.md#first-console-connection)):
 
 <Terminal shell title="xoa — reset a web account password">{`
 sudo xo-server-recover-account youremail@here.com
@@ -71,7 +71,7 @@ It prompts for a new password. If the email does not exist in XO yet, an admin a
 
 ### Empty page after login
 
-Your antivirus or firewall is blocking WebSockets, the protocol XO clients use to talk to `xo-server` (see [architecture](architecture.md)). Switch to **HTTPS**: WebSockets are then encapsulated in TLS, out of reach of the interception.
+Your antivirus or firewall is blocking WebSockets, the protocol XO clients use to talk to `xo-server` (see [architecture](../core-concepts/architecture.md)). Switch to **HTTPS**: WebSockets are then encapsulated in TLS, out of reach of the interception.
 
 ### User login failures
 
@@ -107,7 +107,7 @@ Reduce the static max memory of the XOA VM to a lower value and migrate again.
 
 ### xo-server out of memory
 
-If `xo-server` crashes with `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory` in its logs, give the XOA VM more memory (see [Sizing your XOA](installation.md#sizing)) and restart it.
+If `xo-server` crashes with `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory` in its logs, give the XOA VM more memory (see [Sizing your XOA](../getting-started/installation.md#sizing)) and restart it.
 
 Since Xen Orchestra 6.8, `xo-server` sets its Node.js memory limit to 70% of the VM's RAM (1 GiB minimum), recalculated at each start: no manual setting is needed. If you previously added `--max-old-space-size` to `/etc/systemd/system/xo-server.service` by hand, you can remove it: the automatic limit makes it unnecessary.
 
@@ -126,7 +126,7 @@ If ghost tasks accumulate, try in order:
 
 ## Network issues
 
-Check the current configuration with `ip addr` (the default interface is `enX0` or `eth0`), and make sure any external firewall allows the XOA IP. Reconfigure with `xoa network static` or `xoa network dhcp`, as described in [Network configuration](installation.md#network-configuration).
+Check the current configuration with `ip addr` (the default interface is `enX0` or `eth0`), and make sure any external firewall allows the XOA IP. Reconfigure with `xoa network static` or `xoa network dhcp`, as described in [Network configuration](../getting-started/installation.md#network-configuration).
 
 ## Updater issues
 
