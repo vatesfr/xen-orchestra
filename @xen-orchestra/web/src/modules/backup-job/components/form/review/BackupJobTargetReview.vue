@@ -25,7 +25,7 @@
             </div>
           </template>
         </VtsTabularKeyValueRow>
-        <VtsTabularKeyValueRow :label="t('enforce-strict-gfs-hierarchy')">
+        <VtsTabularKeyValueRow v-if="form.hasStrictGfs.value" :label="t('enforce-strict-gfs-hierarchy')">
           <template #value>
             <VtsStatus :status="formData.strictGfs" />
           </template>
@@ -51,13 +51,6 @@
         :value="getOptionLabel(bindings.replicaDistribution.options, formData.replicaDistribution)"
       />
       <VtsTabularKeyValueRow :label="t('minimum-replicas-to-retain')" :value="toText(formData.copyRetention)" />
-    </VtsTabularKeyValueList>
-  </template>
-
-  <template v-if="form.hasSnapshotRetentionSection.value">
-    <BackupJobReviewSubtitle>{{ t('snapshot-retention') }}</BackupJobReviewSubtitle>
-    <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('minimum-snapshots-to-retain')" :value="toText(formData.snapshotRetention)" />
     </VtsTabularKeyValueList>
   </template>
 </template>
@@ -92,10 +85,12 @@ function toText(value: number | undefined): string | undefined {
 }
 
 const storageTargetsLabel = computed(() =>
-  form.formData.storageTargets
-    .map(target => getOptionLabel(form.bindings.storageTargets.options, target))
-    .filter(label => label !== undefined)
-    .join(', ')
+  form.formData.storageTargets.length === 0
+    ? t('none')
+    : form.formData.storageTargets
+        .map(target => getOptionLabel(form.bindings.storageTargets.options, target))
+        .filter(label => label !== undefined)
+        .join(', ')
 )
 
 const longTermRetentionLines = computed(() =>

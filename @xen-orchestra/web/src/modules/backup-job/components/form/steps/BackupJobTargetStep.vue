@@ -8,6 +8,7 @@
       :compatible-brs="compatibleBackupRepositories"
       :matched-brs="matchedBackupRepositories"
       :has-retention-strategy
+      :has-strict-gfs
     />
     <BackupJobTargetStorageRepositorySection
       v-if="hasStorageRepositorySection"
@@ -15,14 +16,12 @@
       :srs="availableStorageRepositories"
       :matched-srs="matchedStorageRepositories"
     />
-    <BackupJobTargetSnapshotRetentionSection v-if="hasSnapshotRetentionSection" :bindings="form.bindings" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormCheckboxGroup from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckboxGroup.vue'
 import BackupJobTargetBackupRepositorySection from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositorySection.vue'
-import BackupJobTargetSnapshotRetentionSection from '@/modules/backup-job/components/form/target/BackupJobTargetSnapshotRetentionSection.vue'
 import BackupJobTargetStorageRepositorySection from '@/modules/backup-job/components/form/target/BackupJobTargetStorageRepositorySection.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 
@@ -34,8 +33,8 @@ const {
   hasStorageTargetChoice,
   hasBackupRepositorySection,
   hasRetentionStrategy,
+  hasStrictGfs,
   hasStorageRepositorySection,
-  hasSnapshotRetentionSection,
   availableBackupRepositories,
   compatibleBackupRepositories,
   availableStorageRepositories,

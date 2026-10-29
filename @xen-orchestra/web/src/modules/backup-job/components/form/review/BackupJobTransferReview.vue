@@ -46,15 +46,19 @@
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('offline-backup')">
         <template #value>
-          <VtsStatus :status="form.bindings.offlineBackup.modelValue" />
+          <VtsStatus :status="form.formData.offlineBackup" />
         </template>
       </VtsTabularKeyValueRow>
-      <template v-if="!form.bindings.offlineBackup.modelValue">
+      <template v-if="!form.formData.offlineBackup">
         <VtsTabularKeyValueRow
           :label="t('snapshot-mode')"
-          :value="getOptionLabel(form.bindings.snapshotMode.options, form.bindings.snapshotMode.modelValue)"
+          :value="getOptionLabel(form.bindings.snapshotMode.options, form.formData.snapshotMode)"
         />
         <VtsTabularKeyValueRow :label="t('snapshot-synchronisation')" :value="snapshotSyncLabel" />
+        <VtsTabularKeyValueRow
+          :label="t('minimum-snapshots-to-retain')"
+          :value="toText(form.formData.snapshotRetention)"
+        />
       </template>
     </VtsTabularKeyValueList>
   </template>
@@ -104,9 +108,9 @@ const speedLimit = computed(() =>
 )
 
 const snapshotSyncLabel = computed(() => {
-  const label = getOptionLabel(form.bindings.snapshotSync.options, form.bindings.snapshotSync.modelValue)
+  const label = getOptionLabel(form.bindings.snapshotSync.options, form.formData.snapshotSync)
 
-  return form.bindings.snapshotSync.modelValue === 'smart' && form.formData.snapshotSyncTag !== undefined
+  return form.formData.snapshotSync === 'smart' && form.formData.snapshotSyncTag !== undefined
     ? `${label} (${form.formData.snapshotSyncTag})`
     : label
 })

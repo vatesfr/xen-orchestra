@@ -1,7 +1,7 @@
 <template>
   <UiCheckboxGroup :accent :vertical="uiStore.isSmall">
     <template #label>
-      <UiLabel :accent="labelAccent" required>{{ label }}</UiLabel>
+      <UiLabel :accent="labelAccent">{{ label }}</UiLabel>
     </template>
     <UiCheckbox v-for="option of options" :key="option.value" v-model="model" :accent :value="option.value">
       {{ option.label }}

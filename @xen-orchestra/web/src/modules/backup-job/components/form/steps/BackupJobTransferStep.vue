@@ -50,6 +50,8 @@
         <BackupJobFormRow v-if="bindings.snapshotSync.modelValue === 'smart'">
           <BackupJobFormSelect v-bind="bindings.snapshotSyncTag" />
         </BackupJobFormRow>
+
+        <BackupJobFormSnapshotRetention v-bind="bindings.snapshotRetention" />
       </template>
     </div>
   </div>
@@ -61,6 +63,7 @@ import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/B
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
+import BackupJobFormSnapshotRetention from '@/modules/backup-job/components/form/inputs/BackupJobFormSnapshotRetention.vue'
 import BackupJobFormValueCard from '@/modules/backup-job/components/form/inputs/BackupJobFormValueCard.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
