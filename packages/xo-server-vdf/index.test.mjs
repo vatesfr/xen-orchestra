@@ -397,6 +397,21 @@ describe('publishedPolicy', () => {
     assert.equal(publishedPolicy({ ...withV6, 'vdf:policy.v5': 'v5new' }).key, 'vdf:policy.v5')
   })
 
+  test('a v8 document (a group on networks alone) with its base comes first', () => {
+    const withV8 = {
+      ...withV5,
+      'vdf:policy.v6': '{"policies":[],"version":6}',
+      'vdf:policy.v6.base': '663d3b4c292f2300',
+      'vdf:policy.v7': '{"policies":[],"version":7}',
+      'vdf:policy.v7.base': '9e6d0a9d271a0803',
+      'vdf:policy.v8': '{"policies":[],"version":8}',
+      'vdf:policy.v8.base': 'a10082694aa824f2',
+    }
+    assert.equal(publishedPolicy(withV8).key, 'vdf:policy.v8')
+    // v7 published since by an agent before groups on networks alone
+    assert.equal(publishedPolicy({ ...withV8, 'vdf:policy.v7': 'v7new' }).key, 'vdf:policy.v7')
+  })
+
   test('a v5 document (port ranges) with its base comes first', () => {
     assert.equal(publishedPolicy(withV5).key, 'vdf:policy.v5')
     // v4 published since by an agent before port ranges

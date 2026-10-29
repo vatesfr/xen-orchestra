@@ -64,6 +64,10 @@ const KEY_V6_BASE = 'vdf:policy.v6.base'
 // them keep their last document
 const KEY_V7 = 'vdf:policy.v7'
 const KEY_V7_BASE = 'vdf:policy.v7.base'
+// documents with a group on networks alone (vdf#98): only there, agents
+// before them keep their last document
+const KEY_V8 = 'vdf:policy.v8'
+const KEY_V8_BASE = 'vdf:policy.v8.base'
 
 const PLUGIN = 'vdf'
 
@@ -80,6 +84,8 @@ const v5Base = (v1, v2, v3, v4) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00
 const v6Base = (v1, v2, v3, v4, v5) => v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5)
 const v7Base = (v1, v2, v3, v4, v5, v6) =>
   v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6)
+const v8Base = (v1, v2, v3, v4, v5, v6, v7) =>
+  v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6 + '\x00' + v7)
 
 // short id of a document, as agents report it in host other_config vdf:status
 export const docId = text => (text ? sha256Hex(text, 6) : '')
@@ -92,10 +98,13 @@ export function publishedPolicy(otherConfig) {
   const v5 = otherConfig[KEY_V5] ?? ''
   const v6 = otherConfig[KEY_V6] ?? ''
   const v7 = otherConfig[KEY_V7] ?? ''
+  const v8 = otherConfig[KEY_V8] ?? ''
 
   let key
   let text
-  if (v7 !== '' && otherConfig[KEY_V7_BASE] === v7Base(v1, v2, v3, v4, v5, v6)) {
+  if (v8 !== '' && otherConfig[KEY_V8_BASE] === v8Base(v1, v2, v3, v4, v5, v6, v7)) {
+    ;[key, text] = [KEY_V8, v8]
+  } else if (v7 !== '' && otherConfig[KEY_V7_BASE] === v7Base(v1, v2, v3, v4, v5, v6)) {
     ;[key, text] = [KEY_V7, v7]
   } else if (v6 !== '' && otherConfig[KEY_V6_BASE] === v6Base(v1, v2, v3, v4, v5)) {
     ;[key, text] = [KEY_V6, v6]

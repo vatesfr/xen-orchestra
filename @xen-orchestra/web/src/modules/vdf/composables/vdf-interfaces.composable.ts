@@ -9,7 +9,9 @@ import { isEnforcedLock, type VdfUnenforcedReason, type VdfVifLock } from '@/mod
 import {
   groupNetworks,
   interfaceAddresses,
+  isNetworksOnly,
   isOnNetworks,
+  selectsByNetwork,
   VDF_UNPROTECTED_TAG,
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
@@ -91,8 +93,14 @@ export function useVdfInterfaces() {
     return [...new Set(interfacesOf(vm).flatMap(iface => iface.ips))]
   }
 
-  // the interfaces of a VM a group selects: on its networks, or all
+  // the interfaces of a VM a group selects: on its networks, or all; a
+  // group on networks alone (vdf#98), those on its networks whatever the
+  // VM's tags, vdf:unprotected ones left out
   function groupInterfaces(vm: FrontXoVm, group: VdfGroup | undefined) {
+    if (isNetworksOnly(group)) {
+      return interfacesOf(vm).filter(iface => selectsByNetwork(group, iface.netTags))
+    }
+
     if (!isVmInGroup(vm.tags, group)) {
       return []
     }
@@ -128,10 +136,14 @@ export function useVdfInterfaces() {
     return interfacesOf(vm).find(iface => iface.ips.includes(ip))?.netTags
   }
 
+  // each interface's network tags, for isVmInGroup and effectiveTiers
+  const netTagsOfInterfaces = (vm: FrontXoVm) => interfacesOf(vm).map(iface => iface.netTags)
+
   return {
     networks,
     networkById,
     interfacesOf,
+    netTagsOfInterfaces,
     vmAddresses,
     groupInterfaces,
     areInterfacesReady,

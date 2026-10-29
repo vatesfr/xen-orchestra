@@ -20,6 +20,7 @@ import {
   ruleNumber,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
+import { isNetworksOnly, selectsByNetwork } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import {
   allRules,
@@ -169,16 +170,23 @@ export function serializeDocument(document: VdfDocument) {
 }
 
 // A VM is in a group when it carries all the group's tags; IPs are static
-// members (external hosts). A group without tags has no VM members.
-export function isVmInGroup(vmTags: string[], group: VdfGroup | undefined) {
+// members (external hosts). A group without tags has no VM members, but a
+// group on networks alone (vdf#98) selects the VMs with an interface on its
+// networks: `ifaceNetTags`, the network tags of each of the VM's
+// interfaces (unknown: none of those groups).
+export function isVmInGroup(vmTags: string[], group: VdfGroup | undefined, ifaceNetTags?: string[][]) {
+  if (isNetworksOnly(group)) {
+    return (ifaceNetTags ?? []).some(netTags => selectsByNetwork(group, netTags))
+  }
+
   const tags = group?.tags ?? []
 
   return tags.length > 0 && tags.every(tag => vmTags.includes(tag))
 }
 
-export function vmGroupNames(vmTags: string[], document: VdfDocument) {
+export function vmGroupNames(vmTags: string[], document: VdfDocument, ifaceNetTags?: string[][]) {
   return Object.entries(document.groups)
-    .filter(([, group]) => isVmInGroup(vmTags, group))
+    .filter(([, group]) => isVmInGroup(vmTags, group, ifaceNetTags))
     .map(([name]) => name)
 }
 
@@ -203,8 +211,8 @@ export type VdfEffectiveTier = {
 
 // What applies to a VM carrying these tags, in order; a tier's default is
 // what its enforced policies decide (monitored ones decide nothing)
-export function effectiveTiers(vmTags: string[], document: VdfDocument): VdfEffectiveTier[] {
-  const vmGroups = new Set(vmGroupNames(vmTags, document))
+export function effectiveTiers(vmTags: string[], document: VdfDocument, ifaceNetTags?: string[][]): VdfEffectiveTier[] {
+  const vmGroups = new Set(vmGroupNames(vmTags, document, ifaceNetTags))
 
   return policiesByTier(document)
     .map(tier => {

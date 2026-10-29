@@ -117,12 +117,30 @@
             <UiInfo v-if="sharedWith.length > 0" accent="warning" wrap>
               {{ t('firewall:group-form:network-tag:shared', { groups: sharedWith.map(displayName).join(', ') }) }}
             </UiInfo>
+            <!-- vdf#98: without tags, every interface on the networks -->
+            <template v-if="isNetworksOnly">
+              <UiInfo accent="info" wrap>
+                {{ t('firewall:group-form:networks-only', { networks: networkTagLabel(form.networkTag) }) }}
+              </UiInfo>
+              <UiInfo v-if="unprotectedPicked.length > 0" accent="warning" wrap>
+                {{
+                  t(
+                    'firewall:group-form:networks-only:unprotected',
+                    { networks: unprotectedPicked.join(', '), n: unprotectedPicked.length },
+                    unprotectedPicked.length
+                  )
+                }}
+              </UiInfo>
+              <UiInfo v-if="peerOf.length > 0" accent="danger" wrap>
+                {{ t('firewall:group-form:networks-only:peer', { policies: peerOf.map(displayName).join(', ') }) }}
+              </UiInfo>
+            </template>
           </template>
         </section>
 
         <section class="section">
           <UiLabel accent="neutral">{{ previewTitle }}</UiLabel>
-          <UiInfo v-if="form.tags.length === 0" accent="muted" wrap>
+          <UiInfo v-if="form.tags.length === 0 && !isNetworksOnly" accent="muted" wrap>
             {{ t('firewall:group-form:preview:no-tags') }}
           </UiInfo>
           <!-- "only interfaces on some networks", none picked: why nothing matches -->
@@ -172,7 +190,13 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { VDF_GLOBAL_PREFIX, VDF_QUARANTINE_TAG, VDF_TAG_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { isNetworkTag, networkTagFor, VDF_NET_TAG_PREFIX } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import {
+  isNetworkTag,
+  networkTagFor,
+  networkTagLabel,
+  VDF_NET_TAG_PREFIX,
+  VDF_UNPROTECTED_TAG,
+} from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -301,10 +325,21 @@ const formGroup = computed<VdfGroup>(() => ({
   networks: isScoped.value && form.networkTag !== '' ? [form.networkTag] : undefined,
 }))
 
+// no tags, on networks (vdf#98): every interface on them, whatever the VM's
+// tags, current and future
+const isNetworksOnly = computed(() => isScoped.value && form.tags.length === 0)
+
+// picked networks also tagged vdf:unprotected: their interfaces stay out
+const unprotectedPicked = computed(() =>
+  scopeNetworks.value
+    .filter(network => form.networkIds.includes(network.id) && network.tags.includes(VDF_UNPROTECTED_TAG))
+    .map(network => network.name_label)
+)
+
 // the interfaces the form selects: on the picked networks, before they're tagged
 const matchingVms = computed(() =>
   vms.value
-    .filter(vm => poolIds.includes(vm.$pool) && isVmInGroup(vm.tags, { tags: form.tags }))
+    .filter(vm => poolIds.includes(vm.$pool) && (isNetworksOnly.value || isVmInGroup(vm.tags, { tags: form.tags })))
     .map(vm => ({
       id: vm.id,
       name: vm.name_label,
@@ -413,6 +448,12 @@ async function submit() {
 
   if (isScoped.value && (form.networkIds.length === 0 || form.networkTag === '')) {
     networkError.value = t('firewall:group-form:networks:required')
+    return
+  }
+
+  // a group on networks alone can't be a rule's peer yet (vdf#98)
+  if (isNetworksOnly.value && peerOf.length > 0) {
+    networkError.value = t('firewall:group-form:networks-only:peer', { policies: peerOf.map(displayName).join(', ') })
     return
   }
 

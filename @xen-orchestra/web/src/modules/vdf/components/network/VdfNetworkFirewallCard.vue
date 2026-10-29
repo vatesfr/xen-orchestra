@@ -8,6 +8,14 @@
         <span class="secondary">{{ t('firewall:network:groups') }}</span>
         <VdfGroupChip v-for="name of groupNames" :key="name" :scope-id="pool.id" :group="name" />
       </div>
+      <!-- vdf#98: tagging this network protects every VM on it; vdf:unprotected wins -->
+      <UiInfo v-if="networkPolicies.length > 0" :accent="isUnprotected ? 'warning' : 'info'" wrap>
+        {{
+          t(isUnprotected ? 'firewall:network:network-policy:unprotected' : 'firewall:network:network-policy', {
+            policies: networkPolicies.join(', '),
+          })
+        }}
+      </UiInfo>
       <UiToggle
         :model-value="isUnprotected"
         :disabled="isRunning"
@@ -27,9 +35,14 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
+import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { enforcedPolicies } from '@/modules/vdf/utils/vdf-monitor.util.ts'
-import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
-import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import {
+  groupNetworks,
+  isNetworksOnly,
+  isOnNetworks,
+  VDF_UNPROTECTED_TAG,
+} from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -70,6 +83,20 @@ provideVdfGroups(groups)
 
 const isUnprotected = computed(() => network.tags.includes(VDF_UNPROTECTED_TAG))
 
+// network policies (vdf#98): applied to a group on networks alone this
+// network is part of, every interface on it, current and future
+const networkPolicies = computed(() => {
+  const document = publishedPolicy.value?.document
+
+  return (document?.policies ?? [])
+    .filter(policy => {
+      const group = groups.value[policy.appliedTo]
+
+      return isNetworksOnly(group) && isOnNetworks(network.tags, groupNetworks(group))
+    })
+    .map(policy => displayName(policy.name))
+})
+
 // the groups scoped to networks this one is part of
 const groupNames = computed(() =>
   Object.entries(groups.value)
@@ -96,7 +123,7 @@ const protectedCount = computed(
         policies.value.some(policy => {
           const group = groups.value[policy.appliedTo]
 
-          return isVmInGroup(vm.tags, group) && groupInterfaces(vm, group).some(iface => iface.vif.id === vif.id)
+          return groupInterfaces(vm, group).some(iface => iface.vif.id === vif.id)
         })
       )
     }).length

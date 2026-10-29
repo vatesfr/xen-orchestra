@@ -101,10 +101,12 @@ import { useI18n } from 'vue-i18n'
 // What decides a new connection to a VM, in evaluation order: each tier
 // with the policies that apply to the VM, their rules read as on the
 // policies board, and what the tier does when none matches
-const { poolId, document, vmTags } = defineProps<{
+const { poolId, document, vmTags, ifaceNetTags } = defineProps<{
   poolId: string
   document: VdfDocument
   vmTags: string[]
+  // its interfaces' network tags: groups on networks alone (vdf#98)
+  ifaceNetTags?: string[][]
   quarantined: boolean
   // per monitored policy: why its report can't see this VM (vdf#86)
   shadowNotes?: Record<string, string[]>
@@ -115,7 +117,7 @@ const { t } = useI18n()
 const tierLabel = useVdfTierLabel()
 
 const tiers = computed(() =>
-  effectiveTiers(vmTags, document).map(tier => ({
+  effectiveTiers(vmTags, document, ifaceNetTags).map(tier => ({
     ...tier,
     label: tierLabel(tier.value),
     // the tier's default is its enforced policies': say so next to a

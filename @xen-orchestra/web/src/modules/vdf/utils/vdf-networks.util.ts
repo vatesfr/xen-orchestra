@@ -16,6 +16,17 @@ export const groupNetworks = (group: VdfGroup | undefined) => group?.networks ??
 export const isOnNetworks = (netTags: readonly string[], networks: readonly string[]) =>
   networks.every(tag => netTags.includes(tag))
 
+// A GROUP ON NETWORKS ALONE (vdf#98): networks and no tags. As a policy's
+// appliedTo, every interface, current and future, on networks carrying
+// all its network tags, whatever its VM's tags (vdf:unprotected networks
+// left out); never a rule's peer (yet).
+export const isNetworksOnly = (group: VdfGroup | undefined) =>
+  (group?.tags ?? []).length === 0 && groupNetworks(group).length > 0
+
+// the interfaces (their network tags) such a group selects
+export const selectsByNetwork = (group: VdfGroup | undefined, netTags: readonly string[]) =>
+  isNetworksOnly(group) && !netTags.includes(VDF_UNPROTECTED_TAG) && isOnNetworks(netTags, groupNetworks(group))
+
 // how a network tag reads: "dmz" for vdf:net=dmz
 export const networkTagLabel = (tag: string) =>
   tag.startsWith(VDF_NET_TAG_PREFIX) ? tag.slice(VDF_NET_TAG_PREFIX.length) : tag

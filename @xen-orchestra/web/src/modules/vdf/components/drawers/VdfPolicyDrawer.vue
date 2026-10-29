@@ -114,6 +114,7 @@ import {
   type VdfPolicyMode,
 } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, isReservedTier } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { networkTagLabel } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { tierName, tierValue, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper, { type InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -278,7 +279,14 @@ const { id: appliedToSelectId } = useFormSelect('appliedTo', appliedToOptions, {
             name: isGlobalName(option.name)
               ? t('firewall:global-name', { name: displayName(option.name) })
               : option.name,
-            members: t('firewall:group:members', { n: option.members }),
+            // a group on networks alone (vdf#98): its interfaces there
+            members:
+              option.networksOnly === undefined
+                ? t('firewall:group:members', { n: option.members })
+                : t('firewall:group:networks-only:short', {
+                    networks: option.networksOnly.map(networkTagLabel).join(', '),
+                    n: option.interfaces ?? 0,
+                  }),
           }),
   },
 })
@@ -297,8 +305,25 @@ const appliedTo = useSelect(appliedToSelectId)
 
 const members = computed(() => groups.find(group => group.name === form.appliedTo)?.members)
 
+// a group on networks alone (vdf#98): what it means, with a live count
+const networksOnly = computed(() => groups.find(group => group.name === form.appliedTo && group.networksOnly))
+
 const appliedToMessages = computed(() => {
-  const messages: InputWrapperMessage = [t('firewall:policy-form:applied-to:info')]
+  const messages: InputWrapperMessage = [
+    networksOnly.value === undefined
+      ? t('firewall:policy-form:applied-to:info')
+      : {
+          content: t(
+            'firewall:policy-form:applied-to:networks-only',
+            {
+              networks: networksOnly.value.networksOnly!.map(networkTagLabel).join(', '),
+              n: networksOnly.value.interfaces ?? 0,
+            },
+            networksOnly.value.interfaces ?? 0
+          ),
+          accent: 'info' as const,
+        },
+  ]
 
   if (appliedTo.value.error !== undefined) {
     messages.push(appliedTo.value.error as { content: string; accent: 'danger' })

@@ -1,3 +1,4 @@
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import {
   VDF_APPLICATION_TIER,
@@ -10,6 +11,7 @@ import {
   type VdfRule,
 } from '@/modules/vdf/types.ts'
 import { byOwnThenGlobal, reservesTiers } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { groupNetworks, isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { groupUsage, nextRuleId, toTierRef } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -21,6 +23,10 @@ export type VdfGroupOption = {
   // member VMs, static IPs
   members: number
   ips: number
+  // a group on networks alone (vdf#98): its network tags, and the
+  // interfaces on them now
+  networksOnly?: string[]
+  interfaces?: number
 }
 
 // What a link can ask a new rule to start with (the trace's "allow this
@@ -51,19 +57,39 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
   const poolIds = computed(() => (scope.isGlobal ? scope.scopePoolIds.value : [scope.pool.value.id]))
 
   // the pool's own groups first, then the global ones, by name in each
-  const groupOptions = computed<VdfGroupOption[]>(() =>
+  const { groupInterfaces } = useVdfInterfaces()
+
+  const allGroupOptions = computed<VdfGroupOption[]>(() =>
     Object.keys(document.value.groups)
       .sort(byOwnThenGlobal)
-      .map(name => ({
-        name,
-        members: membersOf(name).length,
-        ips: document.value.groups[name].ips?.length ?? 0,
-      }))
+      .map(name => {
+        const group = document.value.groups[name]
+
+        return {
+          name,
+          members: membersOf(name).length,
+          ips: group.ips?.length ?? 0,
+          ...(isNetworksOnly(group)
+            ? {
+                networksOnly: groupNetworks(group),
+                interfaces: membersOf(name).reduce((count, vm) => count + groupInterfaces(vm, group).length, 0),
+              }
+            : {}),
+        }
+      })
   )
 
-  // a policy applies to VMs, so to a group with tags
+  // a rule's source or destination: a group on networks alone can't be
+  // one yet (vdf#98: every interface's address there, unlocked guests
+  // included)
+  const groupOptions = computed(() => allGroupOptions.value.filter(option => option.networksOnly === undefined))
+
+  // a policy applies to VMs' interfaces: a group with tags, or on
+  // networks alone (vdf#98)
   const taggedGroupOptions = computed(() =>
-    groupOptions.value.filter(({ name }) => (document.value.groups[name].tags ?? []).length > 0)
+    allGroupOptions.value.filter(
+      ({ name, networksOnly }) => networksOnly !== undefined || (document.value.groups[name].tags ?? []).length > 0
+    )
   )
 
   const hasTaggedGroups = computed(() => taggedGroupOptions.value.length > 0)

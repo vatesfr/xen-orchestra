@@ -14,6 +14,8 @@ export type VdfAgentWarning =
   | { type: 'ports-overlap'; policy: string; rule: number; first: string; second: string }
   | { type: 'duplicate-rule-id'; policy: string; rule: number; other: string }
   | { type: 'networks-old-agents' }
+  // vdf#98: a group on networks alone, format 8
+  | { type: 'networks-only-old-agents' }
   | { type: 'port-ranges-old-agents'; max: number }
   | { type: 'egress-old-agents' }
   // vdf#2: a host whose agent reads the document without its monitored
@@ -92,6 +94,7 @@ const SHAPES: [RegExp, (match: RegExpMatchArray) => VdfAgentWarning][] = [
     }),
   ],
   [/^groups scoped to networks: agents before per-network groups /, () => ({ type: 'networks-old-agents' })],
+  [/^groups on networks alone: agents before them /, () => ({ type: 'networks-only-old-agents' })],
   [/^egress rules: agents before egress keep enforcing their last policy/, () => ({ type: 'egress-old-agents' })],
   [
     new RegExp(

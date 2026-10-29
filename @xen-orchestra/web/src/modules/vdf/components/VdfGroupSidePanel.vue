@@ -87,13 +87,19 @@
             {{ t('firewall:lock:all') }}
           </UiButton>
         </div>
-        <UiInfo v-if="!group.tags?.length" accent="muted" wrap>{{ t('firewall:group-form:preview:no-tags') }}</UiInfo>
+        <!-- vdf#98: no tags, every interface on its networks -->
+        <UiInfo v-if="networksOnly" accent="info" wrap>
+          {{ t('firewall:group:networks-only', { networks: groupNetworks(group).map(networkTagLabel).join(', ') }) }}
+        </UiInfo>
+        <UiInfo v-if="!group.tags?.length && !networksOnly" accent="muted" wrap>
+          {{ t('firewall:group-form:preview:no-tags') }}
+        </UiInfo>
         <UiInfo v-else-if="members.length === 0" accent="muted" wrap>{{ t('firewall:group:no-member') }}</UiInfo>
         <ul v-else class="members">
           <li v-for="member of visibleMembers" :key="member.vm.id" class="member">
             <UiChip
               accent="info"
-              :disabled="isUpdatingTags"
+              :disabled="isUpdatingTags || networksOnly"
               :title="t('firewall:remove-vm:label', { vm: member.vm.name_label })"
               @remove="emit('removeVm', member.vm)"
             >
@@ -151,6 +157,7 @@ import {
   vdfPageRoute,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
+import { groupNetworks, isNetworksOnly, networkTagLabel } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -207,6 +214,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const { groupInterfaces } = useVdfInterfaces()
+
+// a group on networks alone (vdf#98): its members are by network, not tags
+const networksOnly = computed(() => isNetworksOnly(group))
 
 const COLLAPSED_MEMBERS = 5
 

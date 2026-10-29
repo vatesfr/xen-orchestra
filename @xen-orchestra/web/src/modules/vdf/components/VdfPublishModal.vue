@@ -746,6 +746,7 @@ const CAPABILITY_KEYS: Record<string, string> = {
   'port ranges': 'port-ranges',
   egress: 'egress',
   'per-network groups': 'networks',
+  'groups on networks alone': 'networks-only',
 }
 
 function capabilityLabel(name: string) {

@@ -104,10 +104,13 @@
                 </UiLink>
               </template>
             </UiTitle>
+            <!-- vdf#98: protected because an interface is on a network, no VM tag needed -->
+            <UiInfo v-for="item of networkPolicies" :key="item.name" accent="info" wrap>{{ item.text }}</UiInfo>
             <VdfEffectivePolicy
               :pool-id="pool.id"
               :document="publishedDocument"
               :vm-tags="vm.tags"
+              :iface-net-tags="ifaceNetTags"
               :quarantined="protection === 'quarantined'"
               :shadow-notes
             />
@@ -238,10 +241,18 @@ import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
+import type { VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
-import { groupNetworks, isOnNetworks, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import {
+  groupNetworks,
+  isNetworksOnly,
+  isOnNetworks,
+  networkTagLabel,
+  selectsByNetwork,
+  VDF_UNPROTECTED_TAG,
+} from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs, type VdfTrafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
@@ -260,6 +271,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
@@ -298,7 +310,31 @@ const isQuarantined = computed(() => isVmQuarantined(vm))
 
 const isRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const appliedPolicies = computed(() => effectiveTiers(vm.tags, publishedDocument.value).flatMap(tier => tier.policies))
+const { interfacesOf, netTagsOfInterfaces } = useVdfInterfaces()
+
+// its interfaces' network tags: a group on networks alone selects it by
+// them (vdf#98)
+const ifaceNetTags = computed(() => netTagsOfInterfaces(vm))
+
+const appliedPolicies = computed(() =>
+  effectiveTiers(vm.tags, publishedDocument.value, ifaceNetTags.value).flatMap(tier => tier.policies)
+)
+
+// "protected by network policy X" (vdf#98): what applies to it because
+// an interface is on a network, without any VM tag
+const networkPolicies = computed(() =>
+  appliedPolicies.value
+    .filter(policy => isNetworksOnly(publishedDocument.value.groups[policy.appliedTo]))
+    .map(policy => ({
+      name: policy.name,
+      text: t(isMonitored(policy) ? 'firewall:vm:network-policy:monitor' : 'firewall:vm:network-policy', {
+        policy: displayName(policy.name),
+        networks: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(
+          groupNetworks(publishedDocument.value.groups[policy.appliedTo]).map(networkTagLabel)
+        ),
+      }),
+    }))
+)
 
 // enforced: what protects it; monitored: what records what it would drop
 const policyNames = computed(() =>
@@ -538,13 +574,11 @@ function leaveGroup(name: string) {
 // whose group has no networks, or one its network carries (vdf#36)
 function interfacePolicies(vif: FrontXoVif, monitored = false) {
   const netTags = getNetworkById(vif.$network)?.tags ?? []
+  const selects = (group: VdfGroup | undefined) =>
+    isNetworksOnly(group) ? selectsByNetwork(group, netTags) : isOnNetworks(netTags, groupNetworks(group))
 
   return appliedPolicies.value
-    .filter(
-      policy =>
-        isMonitored(policy) === monitored &&
-        isOnNetworks(netTags, groupNetworks(publishedDocument.value.groups[policy.appliedTo]))
-    )
+    .filter(policy => isMonitored(policy) === monitored && selects(publishedDocument.value.groups[policy.appliedTo]))
     .map(policy => displayName(policy.name))
 }
 
@@ -569,7 +603,6 @@ const { confirmLock } = useVdfLock()
 // UNTRUSTED MEMBERS, locked at once: the unlocked interfaces of the
 // running VMs of this pool the warning names (this VM, its policies'
 // peers), in one confirmation (a VDF lock not enforced is locked already)
-const { interfacesOf } = useVdfInterfaces()
 
 const { vms } = useXoVmCollection()
 

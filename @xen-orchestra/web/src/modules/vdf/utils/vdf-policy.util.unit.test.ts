@@ -4,6 +4,7 @@ import {
   effectiveTiers,
   filterRuleBase,
   formatPorts,
+  isVmInGroup,
   movePolicy,
   moveRule,
   nextRuleId,
@@ -14,6 +15,7 @@ import {
   tierDefault,
   tierValue,
   toTierRef,
+  vmGroupNames,
 } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -100,6 +102,33 @@ describe('effectiveTiers', () => {
     ])
     expect(effectiveTiers(['vdf:role=app', 'vdf:env=prod'], document).map(tier => tier.value)).toEqual([0, 100, 110])
     expect(effectiveTiers(['vdf:role=web'], document)).toEqual([])
+  })
+})
+
+// vdf#98: a group on networks alone, by its VMs' interfaces
+describe('groups on networks alone', () => {
+  const cust = { networks: ['vdf:net=customer'] }
+  const doc: VdfDocument = {
+    version: 7,
+    groups: { cust, web: { tags: ['vdf:role=web'] } },
+    policies: [{ name: 'customer', appliedTo: 'cust', default: 'drop', mode: 'monitor', ingress: [] }],
+  }
+
+  it('selects a VM by an interface on its networks, whatever its tags', () => {
+    expect(isVmInGroup([], cust, [['vdf:net=customer'], ['vdf:net=backend']])).toBe(true)
+    expect(isVmInGroup(['vdf:role=web'], cust, [['vdf:net=backend']])).toBe(false)
+    // its interfaces unknown: none
+    expect(isVmInGroup([], cust)).toBe(false)
+    // vdf:unprotected on the network wins
+    expect(isVmInGroup([], cust, [['vdf:net=customer', 'vdf:unprotected']])).toBe(false)
+    expect(vmGroupNames(['vdf:role=web'], doc, [['vdf:net=customer']])).toEqual(['cust', 'web'])
+  })
+
+  it('applies its policy to such a VM', () => {
+    expect(effectiveTiers([], doc, [['vdf:net=customer']]).flatMap(tier => tier.policies.map(p => p.name))).toEqual([
+      'customer',
+    ])
+    expect(effectiveTiers([], doc, [['vdf:net=backend']])).toEqual([])
   })
 })
 

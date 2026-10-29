@@ -2,7 +2,7 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
 import { enforcedPolicies, isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
-import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { groupNetworks, isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { isVmInGroup } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -34,9 +34,12 @@ export function useVdfMembers(
     for (const [name, group] of Object.entries(toValue(rawDocument).groups)) {
       members.set(
         name,
-        poolVms.value.filter(
-          vm =>
-            isVmInGroup(vm.tags, group) && (groupNetworks(group).length === 0 || groupInterfaces(vm, group).length > 0)
+        // a group on networks alone (vdf#98): the VMs with an interface on them
+        poolVms.value.filter(vm =>
+          isNetworksOnly(group)
+            ? groupInterfaces(vm, group).length > 0
+            : isVmInGroup(vm.tags, group) &&
+              (groupNetworks(group).length === 0 || groupInterfaces(vm, group).length > 0)
         )
       )
     }

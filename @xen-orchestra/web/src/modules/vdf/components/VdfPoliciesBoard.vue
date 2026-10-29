@@ -189,7 +189,7 @@ import {
   isReservedTier,
   ruleNumber,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { groupNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { groupNetworks, isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   filterRuleBase,
   movePolicy,
@@ -310,9 +310,12 @@ function groupExists(group: string) {
   return document.value.groups[group] !== undefined
 }
 
-// a group without tags has no VM members: show its IPs only
+// a group without tags has no VM members: show its IPs only; one on
+// networks alone (vdf#98) has the VMs with an interface there
 function memberCount(group: string) {
-  return document.value.groups[group]?.tags?.length ? membersOf(group).length : undefined
+  const value = document.value.groups[group]
+
+  return value?.tags?.length || isNetworksOnly(value) ? membersOf(group).length : undefined
 }
 
 function ipsOf(group: string) {
