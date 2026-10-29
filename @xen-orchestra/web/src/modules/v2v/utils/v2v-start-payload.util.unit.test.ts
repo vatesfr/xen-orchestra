@@ -1,7 +1,11 @@
-import { buildV2vStartPayload, getV2vStartProblems } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
+import {
+  buildV2vStartPayload,
+  getV2vStartProblems,
+  type V2vStartPayloadInput,
+} from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { createApiError } from '@/test/create-api-error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vLaunchSettings, createV2vStartVm } from '@/test/create-v2v-launch.ts'
+import { createV2vLaunchSettings, createV2vStartPayloadInput, createV2vStartVm } from '@/test/create-v2v-launch.ts'
 import { createV2vDestinationDefaults } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import type { XoNetwork, XoSr, XoV2vVm, XoVmTemplate } from '@vates/types'
@@ -12,14 +16,8 @@ const OVERRIDES = {
   template: 'template-456' as XoVmTemplate['id'],
 }
 
-function buildPayload(input: Partial<Parameters<typeof buildV2vStartPayload>[0]> = {}) {
-  return buildV2vStartPayload({
-    connection: createV2vConnection(),
-    defaults: createV2vDestinationDefaults(),
-    settings: createV2vLaunchSettings(),
-    vms: [createV2vStartVm()],
-    ...input,
-  })
+function buildPayload(overrides?: Partial<V2vStartPayloadInput>) {
+  return buildV2vStartPayload(createV2vStartPayloadInput(overrides))
 }
 
 // The body of the 422 the REST API answers a refused launch with
