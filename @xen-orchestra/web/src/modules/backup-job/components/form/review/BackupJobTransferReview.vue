@@ -67,7 +67,7 @@
 <script lang="ts" setup>
 import BackupJobReviewSubtitle from '@/modules/backup-job/components/form/review/BackupJobReviewSubtitle.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import { getOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { getOptionLabel, getSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -84,21 +84,6 @@ const { t } = useI18n()
 
 function toText(value: number | undefined): string | undefined {
   return value === undefined ? undefined : String(value)
-}
-
-function getSelectedLabels({
-  options,
-  modelValue,
-}: {
-  options: { label: string; value: number }[]
-  modelValue: number[]
-}): string | undefined {
-  return modelValue.length === 0
-    ? undefined
-    : options
-        .filter(option => modelValue.includes(option.value))
-        .map(option => option.label)
-        .join(', ')
 }
 
 const speedLimit = computed(() =>
