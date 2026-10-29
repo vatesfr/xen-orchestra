@@ -11,6 +11,7 @@ import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 import { asyncEach } from '@vates/async-each'
+import { resolve } from 'node:path'
 
 /**
  * Deletes a delta VM backup's metadata json. Unused VHDs are detected and removed
@@ -150,13 +151,18 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     }
 
     const changedFiles: string[] = []
-    let mergedSize = 0
+    const updates: Record<string, number> = {}
     if (mergedSizes !== undefined) {
-      for (const diskPath of this.diskPaths) {
-        mergedSize += mergedSizes.get(diskPath) ?? 0
+      for (const [vdiRef, relPath] of Object.entries(this.metadata.vhds ?? {})) {
+        const vhdPath = normalize(resolve('/', this.rootPath, relPath))
+        const mergedSize = mergedSizes.get(vhdPath)
+        if (mergedSize != undefined) {
+          updates[vdiRef] = mergedSize
+        }
       }
-      if (mergedSize > 0) {
-        await this.updateMetadata(mergedSize)
+
+      if (Object.keys(updates).length > 0) {
+        await this.updateMetadata(updates)
         changedFiles.push(this.metadataPath)
       }
     }
@@ -165,11 +171,11 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   /**
-   * Updates metadata.size after a merge and writes the updated metadata file to disk.
+   * Updates metadata.vhdsSizeOnDisk after a merge and writes the updated metadata file to disk.
    * Also resets isVhdDifferencing so all VDIs are marked as full (non-differencing).
    */
-  async updateMetadata(mergedSize: number): Promise<void> {
-    this.metadata.size = mergedSize
+  async updateMetadata(updates: Record<string, number>): Promise<void> {
+    this.metadata.vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk, ...updates }
     if (this.metadata.vdis !== undefined) {
       this.metadata.isVhdDifferencing = {}
       for (const id of Object.keys(this.metadata.vdis)) {

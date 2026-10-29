@@ -79,7 +79,8 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
       })
       sizeOnDisk = await adapter.handler.getSizeOnDisk(dataFilename)
       try {
-        sizeOnDisk += await adapter.handler.getSizeOnDisk(`${dataFilename}.checksum`)
+        const size = await adapter.handler.getSizeOnDisk(`${dataFilename}.checksum`)
+        sizeOnDisk += size
       } catch (error) {
         if (error.code !== 'ENOENT') {
           throw error

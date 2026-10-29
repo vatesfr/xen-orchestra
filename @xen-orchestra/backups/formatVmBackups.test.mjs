@@ -54,7 +54,7 @@ describe('formatVmBackupAt()', () => {
 
     for (const filename of [FILENAME, FILENAME.slice(1)]) {
       assert.deepEqual(formatVmBackupAt(metadata, filename, REPOSITORY).disks, [
-        { id: `/xo-vm-backups/${VM}/vdi.vhd`, name: 'a disk', uuid: 'a-vdi-uuid' },
+        { id: `/xo-vm-backups/${VM}/vdi.vhd`, name: 'a disk', uuid: 'a-vdi-uuid', sizeOnDisk: undefined },
       ])
     }
   })
@@ -96,6 +96,65 @@ describe('formatVmBackups()', () => {
     assert.deepEqual(formatVmBackups({ [VM]: [metadata] }, REPOSITORY), {
       [VM]: [formatVmBackupAt(metadata, FILENAME, REPOSITORY)],
     })
+  })
+})
+
+describe('size on disk', () => {
+  const sizeOnDiskOf = metadata => {
+    const { disks, sizeOnDisk } = formatVmBackupAt(metadata, FILENAME, REPOSITORY)
+    return {
+      // keyed by uuid: the order of the disks follows the one of `vhds`
+      disks: Object.fromEntries(disks.map(disk => [disk.uuid, disk.sizeOnDisk])),
+      sizeOnDisk,
+    }
+  }
+
+  it('is the sum of the disks of a delta backup', () => {
+    const { disks, sizeOnDisk } = sizeOnDiskOf({
+      ...metadata,
+      vhdsSizeOnDisk: { 'OpaqueRef:2f7a': 10, 'OpaqueRef:9c1b': 20 },
+    })
+
+    assert.deepEqual(disks, { 'snapshot-vdi-uuid-1': 10, 'snapshot-vdi-uuid-2': 20 })
+    assert.equal(sizeOnDisk, 30)
+  })
+
+  // a partial sum would look exact while missing disks
+  it('is unknown for a delta backup if the size of one of its disks is unknown', () => {
+    const { disks, sizeOnDisk } = sizeOnDiskOf({ ...metadata, vhdsSizeOnDisk: { 'OpaqueRef:2f7a': 10 } })
+
+    assert.deepEqual(disks, { 'snapshot-vdi-uuid-1': 10, 'snapshot-vdi-uuid-2': undefined })
+    assert.equal(sizeOnDisk, undefined)
+  })
+
+  it('is unknown for a delta backup written before it was recorded', () => {
+    const { disks, sizeOnDisk } = sizeOnDiskOf(metadata)
+
+    assert.deepEqual(disks, { 'snapshot-vdi-uuid-1': undefined, 'snapshot-vdi-uuid-2': undefined })
+    assert.equal(sizeOnDisk, undefined)
+  })
+
+  // a broken backup: its size is not known, and certainly not 0
+  it('is unknown for a delta backup without disks', () => {
+    assert.equal(sizeOnDiskOf({ ...metadata, vhds: undefined, vhdsSizeOnDisk: {} }).sizeOnDisk, undefined)
+  })
+
+  it('is the size of the XVA of a full backup', () => {
+    const { disks, sizeOnDisk } = sizeOnDiskOf(metadataOf({ sizeOnDisk: 42 }))
+
+    assert.deepEqual(disks, {})
+    assert.equal(sizeOnDisk, 42)
+  })
+
+  it('is unknown for a full backup written before it was recorded', () => {
+    assert.equal(sizeOnDiskOf(metadataOf()).sizeOnDisk, undefined)
+  })
+
+  it('is not the transferred size', () => {
+    const formatted = formatVmBackupAt(metadataOf({ size: 100, sizeOnDisk: 42 }), FILENAME, REPOSITORY)
+
+    assert.equal(formatted.size, 100)
+    assert.equal(formatted.sizeOnDisk, 42)
   })
 })
 

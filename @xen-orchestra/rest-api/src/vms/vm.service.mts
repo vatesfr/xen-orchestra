@@ -429,7 +429,13 @@ export class VmService {
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
-      .map(ba => ({ id: ba.id, timestamp: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))
+      .map(ba => ({
+        id: ba.id,
+        timestamp: ba.timestamp,
+        backupRepository: ba.backupRepository,
+        size: ba.size,
+        sizeOnDisk: ba.sizeOnDisk,
+      }))
   }
 
   async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}): Promise<VmDashboard> {

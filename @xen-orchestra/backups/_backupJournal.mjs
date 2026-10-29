@@ -38,7 +38,7 @@ const BACKUP_JOURNAL_EVENTS = /** @type {const} */ (['add', 'change', 'del'])
  * - `retention`: it was rotated out by a retention setting
  * - `user`: a user explicitly deleted it
  * - `clean-vm`: `cleanVm()` removed it, e.g. the metadata of an incomplete backup
- * - `merge`: `cleanVm()` rewrote its size after merging its disks
+ * - `merge`: `cleanVm()` rewrote it after merging its disks, to record their new size on disk
  *
  * @typedef {'backup'|'retention'|'user'|'clean-vm'|'merge'} BackupJournalReason
  */
