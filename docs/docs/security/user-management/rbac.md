@@ -1,14 +1,14 @@
 ---
-sidebar_label: RBAC
-sidebar_position: 2
+sidebar_label: RBAC (XO 6 only)
+sidebar_position: 3
 ---
 
 # RBAC: Role-Based Access Control
 
-RBAC is the access control system for the Xen Orchestra [REST API](automation/restapi.md) and the XO 6 interface. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
+RBAC is the access control system for the Xen Orchestra [REST API](../../automation/restapi.md) and the XO 6 interface. It lets you define exactly what each user or group can see and do, down to individual objects, without granting them full administrator access.
 
 :::note Where RBAC applies, and why it was once called "ACL v2"
-RBAC covers the **[REST API](automation/restapi.md)** and **XO 6**. The JSON-RPC API behind the XO 5 interface keeps the original [ACL system](./users.md#acls), and those ACLs are not available on the REST API.
+RBAC covers the **[REST API](../../automation/restapi.md)** and **XO 6**. The JSON-RPC API behind the XO 5 interface keeps the original [ACL system](./users.md#acls), and those ACLs are not available on the REST API.
 
 You may still come across this feature under the name **ACL v2**. That was only a working name while it was being built. It is a full rewrite of the original ACLs into a much broader model, so it is now called by what it actually is: RBAC. Same feature, current name.
 :::
@@ -136,7 +136,7 @@ Some endpoints are always accessible to a logged-in user **without any ACL privi
 
 `me` is a convenience alias: it is automatically redirected to `/rest/v0/users/{your-id}`.
 
-This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](automation/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
+This is how delegation works end to end: any user, whatever their privileges, can create their own [authentication token](../../automation/restapi.md#authentication) and use it to call the REST API within the limits of their roles.
 
 :::tip
 The Swagger UI available at `/rest/v0/swagger` documents every endpoint with its required privileges. Endpoints with no declared privilege are admin-only.
