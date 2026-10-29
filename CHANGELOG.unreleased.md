@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [VM] Display the AlmaLinux guest OS icon in the VM list and General tab (XO 5).
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -32,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web patch
+- xo-web minor
 
 <!--packages-end-->

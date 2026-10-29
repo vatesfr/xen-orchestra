@@ -1152,6 +1152,12 @@
     }
   }
   //  OS Icons
+  &-almalinux {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background: url('./assets/almalinux.svg') center / contain no-repeat;
+  }
   &-centos {
     @extend .fa;
     @extend .icon-centos;
