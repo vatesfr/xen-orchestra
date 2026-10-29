@@ -20,6 +20,9 @@ export type V2vVmLaunchOverrides = Partial<Pick<XoV2vStartOptions, 'stopSource'>
 export type V2vStartVm = Pick<V2vMigrationListVm, 'id' | 'disks' | 'nics' | 'template'> &
   Pick<V2vSelectedVmState, 'kind'> & { overrides?: V2vVmLaunchOverrides }
 
+// A row of the per-VM launch options table: an absent override follows the launch settings
+export type V2vVmLaunchOptionsRow = Pick<XoV2vVm, 'id' | 'name'> & Pick<V2vStartVm, 'overrides'>
+
 // A problem the back end refused the launch for, of one VM or of the whole launch
 export type V2vStartProblem = {
   vmId?: XoV2vVm['id']

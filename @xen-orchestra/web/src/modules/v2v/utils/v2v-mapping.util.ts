@@ -1,4 +1,4 @@
-import type { V2vResolvedTarget, V2vResolvedValue, V2vVmMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type { V2vResolvedTarget, V2vVmMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vDestinationDefaults, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { findOfferedId, type V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
 import { V2V_PLATFORM, type XoV2vVm } from '@vates/types'
@@ -9,18 +9,18 @@ export const V2V_DEFAULT_KEEP_MAC = true
 
 export const V2V_DEFAULT_TAGS = [`migrated-from:${V2V_PLATFORM.VMWARE}`]
 
-export function resolveV2vValue<TValue>(override: TValue | undefined, defaultValue: TValue): V2vResolvedValue<TValue> {
-  return override === undefined ? { value: defaultValue, origin: 'default' } : { value: override, origin: 'overridden' }
-}
-
 export function resolveV2vTarget<TId>(
   override: TId | undefined,
   defaultValue: TId,
   offered: { id: TId }[]
 ): V2vResolvedTarget<TId> {
-  const resolved = resolveV2vValue(override, defaultValue)
+  const value = override ?? defaultValue
 
-  return { ...resolved, isOffered: findOfferedId(offered, resolved.value) !== undefined }
+  return {
+    value,
+    origin: override === undefined ? 'default' : 'overridden',
+    isOffered: findOfferedId(offered, value) !== undefined,
+  }
 }
 
 export function getV2vVmMapping(

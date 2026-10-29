@@ -387,3 +387,25 @@ describe('getNicDetailParts', () => {
     expect(labels.getNicDetailParts(createV2vPortGroup(), false)).toEqual(['PG-Prod', labels.t('vlan-id', { id: 10 })])
   })
 })
+
+describe('getLaunchOptionLabel', () => {
+  it.each([
+    [true, 'option-on'],
+    [false, 'option-off'],
+  ] as const)('tells a launch option set to %s', (value, labelKey) => {
+    const labels = mountLabels()
+
+    expect(labels.getLaunchOptionLabel(value, !value)).toBe(labels.t(labelKey))
+  })
+
+  it.each([
+    [true, 'option-on'],
+    [false, 'option-off'],
+  ] as const)('reads a launch option left to its default of %s as that default', (defaultValue, labelKey) => {
+    const labels = mountLabels()
+
+    expect(labels.getLaunchOptionLabel(undefined, defaultValue)).toBe(
+      labels.t('default-value', { value: labels.t(labelKey) })
+    )
+  })
+})
