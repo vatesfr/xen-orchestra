@@ -57,3 +57,8 @@ export function createV2vPartialImportSnapshot(overrides: Partial<FrontXoVmSnaps
     ...overrides,
   })
 }
+
+// The snapshot the cutover leaves on the VM of `createV2vImportVm`
+export function createV2vCompleteImportSnapshot(overrides: Partial<FrontXoVmSnapshot> = {}): FrontXoVmSnapshot {
+  return createV2vPartialImportSnapshot({ name_label: V2V_SNAPSHOT_NAME.COMPLETE_IMPORT, ...overrides })
+}
