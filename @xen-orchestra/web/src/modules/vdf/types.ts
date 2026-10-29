@@ -423,7 +423,9 @@ export type VdfAgentRestarts = {
 export type VdfHostServices = {
   undeclared?: VdfServiceKind[]
   monitored?: VdfServiceKind[]
-  seen?: { kind: VdfServiceKind; src: string; count: number; last: string }[]
+  // `mac`: the source's MAC (lowercase, colons), from agents since they
+  // report it
+  seen?: { kind: VdfServiceKind; src: string; mac?: string; count: number; last: string }[]
   notes?: string[]
   unenforced?: string[]
 }

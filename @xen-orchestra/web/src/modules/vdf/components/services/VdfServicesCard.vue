@@ -77,6 +77,7 @@ import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfServiceKind } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { documentServiceErrors, isServiceMonitored, serviceDeclaring } from '@/modules/vdf/utils/vdf-services.util.ts'
+import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -134,10 +135,22 @@ function openInfo() {
   })
 }
 
-// a source the hosts saw: declared with its kind, and its address to
-// start its group from
-function declare(kind: VdfServiceKind, src: string) {
-  void editService(undefined, { kind, name: `${kind}-${src.replace(/[^0-9a-z]+/gi, '-')}`, address: src })
+// a source the hosts saw: declared with its kind, its address to start its
+// group from, and its MAC when the hosts report it, unless it's a pool VM's
+// interface (a VM is declared by a group selecting it by tags)
+const { vifs } = useXoVifCollection()
+
+const poolMacs = computed(
+  () => new Set(vifs.value.filter(vif => vif.$pool === pool.id).map(vif => vif.MAC.toLowerCase()))
+)
+
+function declare(kind: VdfServiceKind, src: string, mac?: string) {
+  void editService(undefined, {
+    kind,
+    name: `${kind}-${src.replace(/[^0-9a-z]+/gi, '-')}`,
+    address: src,
+    ...(mac === undefined || poolMacs.value.has(mac.toLowerCase()) ? {} : { macs: [mac] }),
+  })
 }
 </script>
 

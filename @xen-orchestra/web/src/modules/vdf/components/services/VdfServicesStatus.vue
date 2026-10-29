@@ -38,7 +38,7 @@
           {{
             t('firewall:services:seen:entry', {
               kind: t(`firewall:service:kind:${item.kind}`),
-              src: item.src,
+              src: item.macs.length === 0 ? item.src : `${item.src} (${item.macs.join(', ')})`,
               n: item.count,
               hosts: list(item.hosts),
             })
@@ -54,7 +54,7 @@
           accent="brand"
           size="small"
           left-icon="fa:plus"
-          @click="emit('declare', item.kind, item.src)"
+          @click="emit('declare', item.kind, item.src, item.macs.length === 1 ? item.macs[0] : undefined)"
         >
           {{ t('firewall:services:declare') }}
         </UiButton>
@@ -100,7 +100,8 @@ const {
 }>()
 
 const emit = defineEmits<{
-  declare: [kind: VdfServiceKind, src: string]
+  // mac: the one the hosts saw it from, when they agree on one
+  declare: [kind: VdfServiceKind, src: string, mac?: string]
 }>()
 
 const { t, locale } = useI18n()

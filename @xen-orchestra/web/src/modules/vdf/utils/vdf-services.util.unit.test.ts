@@ -96,7 +96,7 @@ describe('servicesReport', () => {
         name: 'h2',
         services: {
           undeclared: ['router', 'dhcp4'],
-          seen: [{ kind: 'dhcp4', src: '10.0.0.9', count: 2, last: '2026-10-29T10:00:00Z' }],
+          seen: [{ kind: 'dhcp4', src: '10.0.0.9', mac: '00:16:3e:00:00:09', count: 2, last: '2026-10-29T10:00:00Z' }],
           unenforced: ['xenbr1'],
         },
       },
@@ -105,6 +105,7 @@ describe('servicesReport', () => {
         services: {
           undeclared: ['dhcp4'],
           seen: [
+            // an agent before MACs: none
             { kind: 'dhcp4', src: '10.0.0.9', count: 3, last: '2026-10-29T11:00:00Z' },
             { kind: 'router', src: 'fe80::1', count: 1, last: '2026-10-29T09:00:00Z' },
           ],
@@ -118,8 +119,15 @@ describe('servicesReport', () => {
       { kind: 'router', hosts: ['h2'] },
     ])
     expect(report.seen).toEqual([
-      { kind: 'dhcp4', src: '10.0.0.9', count: 5, last: '2026-10-29T11:00:00Z', hosts: ['h1', 'h2'] },
-      { kind: 'router', src: 'fe80::1', count: 1, last: '2026-10-29T09:00:00Z', hosts: ['h1'] },
+      {
+        kind: 'dhcp4',
+        src: '10.0.0.9',
+        macs: ['00:16:3e:00:00:09'],
+        count: 5,
+        last: '2026-10-29T11:00:00Z',
+        hosts: ['h1', 'h2'],
+      },
+      { kind: 'router', src: 'fe80::1', macs: [], count: 1, last: '2026-10-29T09:00:00Z', hosts: ['h1'] },
     ])
     expect(report.notes.map(note => note.host)).toEqual(['h1'])
     expect(report.unenforced).toEqual([{ host: 'h2', bridge: 'xenbr1' }])

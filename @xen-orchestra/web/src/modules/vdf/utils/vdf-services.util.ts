@@ -113,7 +113,8 @@ export const declaredKinds = (document: VdfDocument) =>
 // and the bridges where forged MACs aren't dropped, each with its host
 export type VdfServicesReport = {
   undeclared: { kind: VdfServiceKind; hosts: string[] }[]
-  seen: { kind: VdfServiceKind; src: string; count: number; last: string; hosts: string[] }[]
+  // macs: the MACs the hosts saw it from (agents before them say none)
+  seen: { kind: VdfServiceKind; src: string; macs: string[]; count: number; last: string; hosts: string[] }[]
   notes: { host: string; text: string }[]
   unenforced: { host: string; bridge: string }[]
 }
@@ -137,12 +138,16 @@ export function servicesReport(hosts: { name: string; services: VdfHostServices 
       const key = `${sample.kind} ${sample.src}`
       const entry = seen.get(key)
 
+      const { mac, ...fields } = sample
       if (entry === undefined) {
-        seen.set(key, { ...sample, hosts: [name] })
+        seen.set(key, { ...fields, macs: mac === undefined ? [] : [mac], hosts: [name] })
       } else {
         entry.count += sample.count
         entry.last = sample.last > entry.last ? sample.last : entry.last
         entry.hosts.push(name)
+        if (mac !== undefined && !entry.macs.includes(mac)) {
+          entry.macs.push(mac)
+        }
       }
     }
 
