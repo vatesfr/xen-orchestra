@@ -2163,6 +2163,19 @@ class VdfPlugin {
         },
       }),
       this.#poolRoute({
+        endpoint: '/pools/{id}/sdn_controller',
+        method: 'get',
+        description:
+          "Whether an SDN controller is registered on the pool (vdf#41): XAPI then refuses to lock VIFs, so XO 6 offers a VDF lock at once instead of trying XAPI's first. XAPI's SDN_controller records, which XO's objects don't hold.",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        responses: [{ status: 200, description: '{ registered }' }],
+        callback: async ({ req }) => {
+          const xapi = this.#getXapi(req.params.id)
+          return { registered: (await xapi.call('SDN_controller.get_all')).length > 0 }
+        },
+      }),
+      this.#poolRoute({
         endpoint: '/pools/{id}/stats',
         method: 'get',
         description:

@@ -179,6 +179,10 @@ function fakeXo({
       objects: { all: {} },
       getObjectByRef: () => undefined,
       async call(method, hostRef, plugin, fn, args) {
+        // vdf#41: `agent.sdn`: the pools with an SDN controller registered
+        if (method === 'SDN_controller.get_all') {
+          return agent.sdn?.includes(id) ? ['OpaqueRef:sdn'] : []
+        }
         if (method.startsWith('VIF.')) {
           calls.push({ pool: id, method, args: [hostRef, plugin, fn].filter(arg => arg !== undefined) })
           return vifCall(method, hostRef, plugin, fn)
@@ -1359,8 +1363,9 @@ describe('what the plugin writes in XAPI', () => {
   // the VDF lock (vdf#41): a VIF's allowed addresses, and its vdf:locking key
   const VIF_WRITES = ['VIF.set_ipv4_allowed', 'VIF.set_ipv6_allowed']
   const VIF_KEY_WRITES = ['VIF.add_to_other_config', 'VIF.remove_from_other_config']
-  // and reads the VIF back from XAPI, not from XO's lagging object
-  const VIF_READS = ['VIF.get_record']
+  // and reads the VIF back from XAPI, not from XO's lagging object, and
+  // whether an SDN controller is registered (XO's objects don't hold it)
+  const VIF_READS = ['VIF.get_record', 'SDN_controller.get_all']
 
   test('in the code: host.call_plugin, pool.update_other_config of the owner key, the VDF lock', async () => {
     const { readFile } = await import('node:fs/promises')
@@ -1479,6 +1484,7 @@ describe('what the plugin writes in XAPI', () => {
         ['get', '/pools/{id}/history', { params: pool }],
         ['get', '/pools/{id}/history/{entry}', { params: { id: 'A', entry: '1' } }],
         ['get', '/pools/{id}/stats', { params: pool }],
+        ['get', '/pools/{id}/sdn_controller', { params: pool }],
         ['get', '/pools/{id}/rule-log', { params: pool }],
         ['get', '/pools/{id}/monitor', { params: pool }],
         ['post', '/pools/{id}/actions/take_over_global', { params: { id: 'C' }, body: { expectedOwner: 'other' } }],
@@ -1507,6 +1513,10 @@ describe('what the plugin writes in XAPI', () => {
           if (VIF_KEY_WRITES.includes(entry.call)) {
             assert.equal(entry.plugin, 'vdf:locking')
           }
+          continue
+        }
+        // a read: whether an SDN controller is registered (vdf#41)
+        if (entry.call === 'SDN_controller.get_all') {
           continue
         }
         assert.equal(entry.call, 'host.call_plugin')
@@ -2072,6 +2082,16 @@ describe('VDF lock', () => {
       plugin.unload()
     }
   }
+
+  test('says whether an SDN controller is registered on the pool, so XO 6 offers a VDF lock at once', async () => {
+    for (const sdn of [[POOL], []]) {
+      const xo = fakeXo({ vms: [appVm()], hosts: supportingHost, agent: { sdn } })
+      await withPlugin(xo, async () => {
+        const { result } = await xo.route('get', '/pools/{id}/sdn_controller', { params: { id: POOL } })
+        assert.deepEqual(result, { registered: sdn.length > 0 })
+      })
+    }
+  })
 
   test("sets the allowed addresses, then the key; locking_mode isn't touched", async () => {
     const xo = fakeXo({ vms: [appVm()], hosts: supportingHost })

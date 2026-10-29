@@ -3,6 +3,7 @@ import { useVdfLockJob, type VdfLockRequest } from '@/modules/vdf/jobs/vdf-lock.
 import { useVdfUnlockJob, type VdfUnlockRequest } from '@/modules/vdf/jobs/vdf-unlock.job.ts'
 import type { VdfLockProposal, VdfVifLock } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { fetchGet } from '@/shared/utils/fetch.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactive, ref } from 'vue'
@@ -26,6 +27,8 @@ export type VdfLockTarget = {
   vdfUnavailable?: 'agent' | 'old-agent'
   // the host whose agent would enforce a VDF lock
   hostName?: string
+  // its pool, asked whether an SDN controller is registered (vdf#41)
+  poolId?: string
 }
 
 // what the confirmation shows of the lock in progress: the VIFs locked,
@@ -35,6 +38,9 @@ export type VdfLockState = {
   locked: string[]
   errors: Record<string, string>
   sdnRefused: string[]
+  // the VIFs of a pool known to have an SDN controller before trying
+  // (vdf#41): offered a VDF lock at once, XAPI's never tried
+  sdnController?: string[]
   error?: string
 }
 
@@ -69,7 +75,36 @@ export function lockTarget(
     lock,
     vdfUnavailable,
     hostName,
+    poolId: vif.$pool,
   }
+}
+
+// The VIFs XAPI is known to refuse to lock (vdf#41): those of a pool with an
+// SDN controller registered, but a XAPI relock (it keeps its mode, setting
+// only the addresses, which XAPI allows)
+export const sdnControlledVifs = (targets: VdfLockTarget[], sdnPools: string[]) =>
+  targets
+    .filter(target => target.poolId !== undefined && sdnPools.includes(target.poolId) && target.lock !== 'xapi')
+    .map(target => target.vifId)
+
+// the pools among these with an SDN controller registered; a pool whose
+// answer is late or fails is left out: XAPI's refusal then tells, as before
+const SDN_CHECK_MS = 3000
+
+async function sdnPools(poolIds: string[]) {
+  const answers = await Promise.all(
+    poolIds.map(poolId =>
+      Promise.race([
+        fetchGet<{ registered?: boolean }>(`plugins/vdf/pools/${poolId}/sdn_controller`).then(
+          answer => answer?.registered === true,
+          () => false
+        ),
+        new Promise<boolean>(resolve => setTimeout(() => resolve(false), SDN_CHECK_MS)),
+      ])
+    )
+  )
+
+  return poolIds.filter((_, index) => answers[index])
 }
 
 // Locking an interface (vdf#15), alone or a group's at once: one
@@ -78,7 +113,9 @@ export function lockTarget(
 // others are locked anyway, and confirming again retries the failed ones.
 // One XAPI refuses to lock because an SDN controller is registered is
 // offered a VDF lock instead (vdf#41), where its host's agent supports it:
-// confirming again locks it with VDF.
+// confirming again locks it with VDF. Where the plugin says beforehand that
+// the pool has a controller, that offer comes at once, without the XAPI
+// lock that fails after setting the addresses (and replugs the VIF).
 export function useVdfLock() {
   const requests = ref<VdfLockRequest[]>([])
 
@@ -91,7 +128,13 @@ export function useVdfLock() {
 
   // resolves to the VIFs locked (some may be, even when it was cancelled)
   async function confirmLock(targets: VdfLockTarget[], { group }: { group?: string } = {}) {
-    const state = reactive<VdfLockState>({ locked: [], errors: {}, sdnRefused: [] })
+    const poolIds = [...new Set(targets.flatMap(target => (target.poolId === undefined ? [] : [target.poolId])))]
+    const state = reactive<VdfLockState>({
+      locked: [],
+      errors: {},
+      sdnRefused: [],
+      sdnController: sdnControlledVifs(targets, await sdnPools(poolIds)),
+    })
 
     await open({
       props: { targets, group, state },

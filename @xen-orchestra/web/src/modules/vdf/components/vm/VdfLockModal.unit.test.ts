@@ -61,6 +61,29 @@ it('locks with XAPI, then offers VDF once XAPI refused for the SDN controller', 
   wrapper.unmount()
 })
 
+it('offers VDF at once where the pool is known to have an SDN controller: no XAPI lock tried', async () => {
+  const state = reactive<VdfLockState>({ locked: [], errors: {}, sdnRefused: [], sdnController: ['vif-1'] })
+  const wrapper = mountModal([target()], state)
+
+  expect(document.body.textContent).toContain(t('firewall:lock:vdf-upfront'))
+  expect(document.body.textContent).not.toContain(t('firewall:lock:vdf-offer'))
+  expect(document.body.textContent).toContain(t('firewall:lock:confirm:vdf'))
+  expect(await confirm(wrapper)).toEqual([
+    { vifId: 'vif-1', ipv4: ['10.0.0.5'], ipv6: [], withVdf: true, xapiLocked: false },
+  ])
+  wrapper.unmount()
+})
+
+it('says the controller is there when VDF cannot lock it either', async () => {
+  const state = reactive<VdfLockState>({ locked: [], errors: {}, sdnRefused: [], sdnController: ['vif-1'] })
+  const wrapper = mountModal([target({ vdfUnavailable: 'agent' })], state)
+
+  expect(document.body.textContent).toContain(t('firewall:lock:sdn-known'))
+  expect(document.body.textContent).toContain(t('firewall:lock:vdf-unavailable:agent'))
+  expect((await confirm(wrapper))?.[0]).toMatchObject({ withVdf: false })
+  wrapper.unmount()
+})
+
 it("says why VDF can't lock it either, and retries with XAPI", async () => {
   const state = reactive<VdfLockState>({ locked: [], errors: { 'vif-1': 'refused' }, sdnRefused: ['vif-1'] })
   const wrapper = mountModal([target({ vdfUnavailable: 'old-agent' })], state)

@@ -76,12 +76,15 @@
             <UiInfo v-if="state.errors[row.target.vifId] && !isLocked(row)" accent="danger" wrap>
               {{ t('firewall:lock:failed', { error: state.errors[row.target.vifId] }) }}
             </UiInfo>
-            <!-- vdf#41: XAPI refused because an SDN controller is registered -->
+            <!-- vdf#41: XAPI refused, or would refuse, because an SDN controller is registered -->
             <template v-if="isSdnRefused(row) && !isLocked(row)">
               <UiInfo v-if="row.target.vdfUnavailable === undefined" accent="info" wrap>
-                {{ t('firewall:lock:vdf-offer', { host: row.target.hostName ?? '?' }) }}
+                {{ t(isSdnKnown(row) ? 'firewall:lock:vdf-upfront' : 'firewall:lock:vdf-offer') }}
               </UiInfo>
-              <UiInfo v-else accent="warning" wrap>
+              <UiInfo v-if="row.target.vdfUnavailable !== undefined && isSdnKnown(row)" accent="info" wrap>
+                {{ t('firewall:lock:sdn-known') }}
+              </UiInfo>
+              <UiInfo v-if="row.target.vdfUnavailable !== undefined" accent="warning" wrap>
                 {{
                   t(`firewall:lock:vdf-unavailable:${row.target.vdfUnavailable}`, { host: row.target.hostName ?? '?' })
                 }}
@@ -179,8 +182,14 @@ const rows = reactive<Row[]>(
 
 const isLocked = (row: Row) => state.locked.includes(row.target.vifId)
 
-// vdf#41: XAPI refused to lock it, an SDN controller being registered
-const isSdnRefused = (row: Row) => state.sdnRefused.includes(row.target.vifId)
+// vdf#41: XAPI refused to lock it, an SDN controller being registered, or
+// would: the plugin says the pool has one
+const isSdnRefused = (row: Row) =>
+  state.sdnRefused.includes(row.target.vifId) || (state.sdnController ?? []).includes(row.target.vifId)
+
+// known before trying: no XAPI refusal to show
+const isSdnKnown = (row: Row) =>
+  !state.sdnRefused.includes(row.target.vifId) && (state.sdnController ?? []).includes(row.target.vifId)
 
 // locked with VDF: a relock of a VDF lock, or one XAPI refused that VDF
 // can lock (confirming again is the user's choice)
