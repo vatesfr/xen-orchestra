@@ -7,10 +7,12 @@ import openflow from './index.js'
 // 6 without version bitmap, captured from xenbr1.mgmt
 const HELLO_OVS_V6 = Buffer.from('06000008000010c5', 'hex')
 
-// OVS on a bridge whose protocols are OpenFlow10, OpenFlow11 and OpenFlow14
-// (XAPI, VDF and XO's SDN controller): a HELLO of version 5 with a version
-// bitmap (bits 1, 2 and 5)
-const HELLO_OVS_V5 = Buffer.from('050000100000002a' + '0001000800000026', 'hex')
+// OVS 2.17 on a bridge whose protocols are OpenFlow10, OpenFlow11 and
+// OpenFlow14 (XAPI, VDF and XO's SDN controller): a HELLO of version 5 with a
+// version bitmap (bits 1, 2 and 5), captured from xenbr1.mgmt; that OVS
+// answered XO's version 2 HELLO and FEATURES_REQUEST with a version 2
+// FEATURES_REPLY
+const HELLO_OVS_V5 = Buffer.from('050000100000235300010008' + '00000026', 'hex')
 
 // the same bridge without OpenFlow11
 const HELLO_OVS_V5_NO_11 = Buffer.from('050000100000002b' + '0001000800000022', 'hex')
@@ -21,7 +23,7 @@ describe('HELLO and version negotiation', () => {
       header: { version: 6, type: 0, length: 8, xid: 0x10c5 },
     })
     assert.deepEqual(openflow.unpack(HELLO_OVS_V5), {
-      header: { version: 5, type: 0, length: 16, xid: 0x2a },
+      header: { version: 5, type: 0, length: 16, xid: 0x2353 },
       versions: [1, 2, 5],
     })
   })
