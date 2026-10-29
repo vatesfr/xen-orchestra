@@ -27,6 +27,7 @@ export type BackupJobTransferFormData = {
   snapshotMode: BackupJobSnapshotMode
   snapshotSync: BackupJobSnapshotSync
   snapshotSyncTag: string | undefined
+  snapshotRetention: number | undefined
 }
 
 type RadioOption<TValue extends string> = { label: string; value: TValue; description?: string }
@@ -49,6 +50,10 @@ export function useBackupJobTransferForm(
   const isNbdAvailable = computed(() => isIncremental.value && !isMirror.value)
 
   const isKeyBackupDynamic = computed(() => isIncremental.value && !isMirror.value && formData.keyBackup === 'dynamic')
+
+  const hasSnapshotRetention = computed(() => !isMirror.value && !formData.offlineBackup)
+
+  const isEphemeralSnapshotAllowed = computed(() => !isIncremental.value || formData.preferNbd)
 
   const { vms } = useXoVmCollection()
 
@@ -82,6 +87,20 @@ export function useBackupJobTransferForm(
         },
         snapshotSyncTag: {
           requiredIf: requiredIf(() => !isMirror.value && !formData.offlineBackup && formData.snapshotSync === 'smart'),
+        },
+        snapshotRetention: {
+          requiredIf: withMessage(
+            requiredIf(() => hasSnapshotRetention.value),
+            () => t('minimum-snapshots-to-retain-mandatory')
+          ),
+          minValue: withMessage(
+            (value: unknown) => !hasSnapshotRetention.value || typeof value !== 'number' || value >= 0,
+            () => t('must-be-at-least-n', { n: 0 })
+          ),
+          ephemeralSnapshot: withMessage(
+            (value: unknown) => !hasSnapshotRetention.value || value !== 0 || isEphemeralSnapshotAllowed.value,
+            () => t('ephemeral-snapshot-requires-nbd')
+          ),
         },
       }),
     },
@@ -137,6 +156,7 @@ export function useBackupJobTransferForm(
     concurrency: useField('concurrency', () => ({
       label: t('vm-read-concurrency'),
       required: true,
+      info: t('value-by-default', { value: 2 }),
     })),
     compression: useField('compression', () => ({ label: t('compression-type'), options: compressionOptions.value })),
     keyBackup: useField('keyBackup', () => ({ label: t('key-backup'), options: keyBackupOptions.value })),
@@ -153,6 +173,7 @@ export function useBackupJobTransferForm(
     nbdConcurrency: useField('nbdConcurrency', () => ({
       label: t('nbd-concurrency-per-disk'),
       required: true,
+      info: t('value-by-default', { value: 1 }),
     })),
     offlineBackup: useField('offlineBackup', () => ({ label: t('offline-backup'), info: t('offline-backup-info') })),
     snapshotMode: useField('snapshotMode', () => ({ label: t('snapshot-mode'), options: snapshotModeOptions.value })),
@@ -161,6 +182,7 @@ export function useBackupJobTransferForm(
       options: snapshotSyncOptions.value,
     })),
     snapshotSyncTag: useSelect(snapshotSyncTagSelectId, () => ({ label: t('tag') })),
+    snapshotRetention: useField('snapshotRetention', () => ({ label: t('minimum-snapshots-to-retain') })),
   })
 
   return {
