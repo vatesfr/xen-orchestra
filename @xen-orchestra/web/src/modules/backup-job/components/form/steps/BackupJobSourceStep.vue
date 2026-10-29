@@ -1,5 +1,8 @@
 <template>
   <div class="backup-job-source-step">
+    <BackupJobFormRow>
+      <BackupJobFormTextInput v-bind="bindings.name" />
+    </BackupJobFormRow>
     <BackupJobFormRadio v-bind="bindings.dataSource" />
     <div v-if="!isMetadata" class="mode">
       <BackupJobFormRadio v-bind="bindings.mode" />
@@ -61,18 +64,44 @@
           />
         </template>
       </template>
-      <BackupJobPendingMockup v-else-if="bindings.scopeType.modelValue !== 'all'" />
+      <template v-else-if="hasPoolSelection">
+        <BackupJobSourcePoolTable
+          v-if="bindings.scopeType.modelValue === 'manual'"
+          v-model:selected-ids="selectedPoolIds"
+          :pools
+          :schema="poolSchema"
+          :error="bindings.poolIds.error"
+        />
+        <template v-else-if="bindings.scopeType.modelValue === 'smart'">
+          <BackupJobFormQueryInput
+            v-model="poolFilter"
+            :label="t('dynamic-selection-query')"
+            :schema="poolSchema"
+            :error="bindings.poolFilter.error"
+            required
+          />
+          <VtsQueryBuilderPreview
+            v-if="poolFilter !== ''"
+            :filter="poolFilter"
+            :schema="poolSchema"
+            :items="matchedPoolItems"
+            :count-label="t('n-pools', { n: matchedPoolItems.length })"
+          />
+        </template>
+      </template>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import BackupJobPendingMockup from '@/modules/backup-job/components/form/BackupJobPendingMockup.vue'
+import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
+import BackupJobFormTextInput from '@/modules/backup-job/components/form/inputs/BackupJobFormTextInput.vue'
 import BackupJobSourceBackupVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceBackupVmTable.vue'
+import BackupJobSourcePoolTable from '@/modules/backup-job/components/form/source/BackupJobSourcePoolTable.vue'
 import BackupJobSourceVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceVmTable.vue'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -100,6 +129,10 @@ const {
   hasVmSelection,
   vmSelectionSchema,
   matchedSelectionItems,
+  pools,
+  hasPoolSelection,
+  poolSchema,
+  matchedPoolItems,
 } = form
 
 const selectedVmIds = computed({
@@ -110,6 +143,16 @@ const selectedVmIds = computed({
 const vmFilter = computed({
   get: () => bindings.vmFilter.modelValue,
   set: value => bindings.vmFilter['onUpdate:modelValue'](value),
+})
+
+const selectedPoolIds = computed({
+  get: () => bindings.poolIds.modelValue,
+  set: ids => bindings.poolIds['onUpdate:modelValue'](ids),
+})
+
+const poolFilter = computed({
+  get: () => bindings.poolFilter.modelValue,
+  set: value => bindings.poolFilter['onUpdate:modelValue'](value),
 })
 
 const isMetadata = computed(() => bindings.dataSource.modelValue === 'metadata')

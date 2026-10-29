@@ -1,3 +1,4 @@
+import { useBackupJobCalendarOptions } from '@/modules/backup-job/composables/use-backup-job-calendar-options.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -32,8 +33,6 @@ export type BackupJobTransferFormData = {
 
 type RadioOption<TValue extends string> = { label: string; value: TValue; description?: string }
 
-type ValueOption = { label: string; value: number }
-
 export type BackupJobTransferForm = ReturnType<typeof useBackupJobTransferForm>
 
 export function useBackupJobTransferForm(
@@ -41,7 +40,7 @@ export function useBackupJobTransferForm(
   rawIsIncremental: MaybeRefOrGetter<boolean>,
   rawIsMirror: MaybeRefOrGetter<boolean>
 ) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
 
   const isIncremental = toComputed(rawIsIncremental)
 
@@ -118,19 +117,7 @@ export function useBackupJobTransferForm(
     { label: t('always'), value: 'always' },
   ])
 
-  const monthDayOptions = computed<ValueOption[]>(() =>
-    Array.from({ length: 31 }, (_, day) => ({ label: String(day + 1), value: day + 1 }))
-  )
-
-  const weekDayOptions = computed<ValueOption[]>(() => {
-    const format = new Intl.DateTimeFormat(locale.value, { weekday: 'short', timeZone: 'UTC' })
-
-    return [1, 2, 3, 4, 5, 6, 0].map(day => ({ label: format.format(Date.UTC(2024, 0, 7 + day)), value: day }))
-  })
-
-  const hourOptions = computed<ValueOption[]>(() =>
-    Array.from({ length: 24 }, (_, hour) => ({ label: String(hour).padStart(2, '0'), value: hour }))
-  )
+  const { monthDayOptions, weekDayOptions, hourOptions } = useBackupJobCalendarOptions()
 
   const snapshotModeOptions = computed<RadioOption<BackupJobSnapshotMode>[]>(() => [
     { label: t('default'), value: 'default', description: t('snapshot-mode:default-description') },

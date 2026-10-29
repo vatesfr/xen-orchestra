@@ -22,9 +22,17 @@
 
       <template v-if="bindings.keyBackup.modelValue === 'dynamic'">
         <div class="key-backup-cards">
-          <BackupJobFormValueCard v-bind="bindings.keyBackupMonthDays" :columns="7" :step-unit="t('cron:unit:day')" />
-          <BackupJobFormValueCard v-bind="bindings.keyBackupWeekDays" :columns="7" with-footer />
-          <BackupJobFormValueCard v-bind="bindings.keyBackupHours" :columns="6" with-footer />
+          <BackupJobFormValueCard v-bind="bindings.keyBackupMonthDays" :columns="7" />
+          <div class="key-backup-side">
+            <BackupJobFormValueCard v-bind="bindings.keyBackupWeekDays" :columns="7" />
+            <BackupJobFormStepCard
+              :model-value="bindings.keyBackupMonthDays.modelValue"
+              :options="bindings.keyBackupMonthDays.options"
+              :unit="t('cron:unit:day')"
+              @update:model-value="bindings.keyBackupMonthDays['onUpdate:modelValue']($event)"
+            />
+          </div>
+          <BackupJobFormValueCard v-bind="bindings.keyBackupHours" :columns="6" />
         </div>
 
         <UiInfo accent="info" wrap>{{ t('key-backup-dynamic-info') }}</UiInfo>
@@ -64,6 +72,7 @@ import BackupJobFormNumberInput from '@/modules/backup-job/components/form/input
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobFormSnapshotRetention from '@/modules/backup-job/components/form/inputs/BackupJobFormSnapshotRetention.vue'
+import BackupJobFormStepCard from '@/modules/backup-job/components/form/inputs/BackupJobFormStepCard.vue'
 import BackupJobFormValueCard from '@/modules/backup-job/components/form/inputs/BackupJobFormValueCard.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -100,6 +109,16 @@ const { t } = useI18n()
 
     @media (--small) {
       grid-template-columns: 1fr;
+    }
+  }
+
+  .key-backup-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+
+    & > :last-child {
+      flex: 1;
     }
   }
 }

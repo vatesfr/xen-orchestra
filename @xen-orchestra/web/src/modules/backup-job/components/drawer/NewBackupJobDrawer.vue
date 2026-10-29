@@ -1,5 +1,5 @@
 <template>
-  <UiDrawer @confirm="next()" @dismiss="emit('cancel')">
+  <UiDrawer @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:create-new-backup-job') }}
     </template>
@@ -49,6 +49,7 @@ import BackupJobSourceStep from '@/modules/backup-job/components/form/steps/Back
 import BackupJobTargetStep from '@/modules/backup-job/components/form/steps/BackupJobTargetStep.vue'
 import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
+import type { BackupJobPayload } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
@@ -57,6 +58,7 @@ import { useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
+  confirm: [payload: BackupJobPayload]
   cancel: []
 }>()
 
@@ -75,9 +77,23 @@ const {
   next,
   back,
   goToStep,
+  validateAndBuildPayload,
 } = useNewBackupJobForm()
 
 const stepper = useTemplateRef('stepper')
 
 watch(currentStepIndex, () => stepper.value?.$el.scrollIntoView({ block: 'start' }))
+
+async function handleConfirm() {
+  if (currentStep.value !== 'review') {
+    await next()
+    return
+  }
+
+  const payload = await validateAndBuildPayload()
+
+  if (payload !== undefined) {
+    emit('confirm', payload)
+  }
+}
 </script>
