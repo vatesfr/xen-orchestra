@@ -1,5 +1,11 @@
 import type { VdfDocument, VdfHostStatusDocument, VdfPolicy } from '@/modules/vdf/types.ts'
-import { isShadowCovered, monitorShadows, shadowKey } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import {
+  isShadowCovered,
+  monitorShadows,
+  shadowKey,
+  type VdfMonitorShadow,
+  willShadowBeCovered,
+} from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { describe, expect, it } from 'vitest'
 
 const policy = (fields: Partial<VdfPolicy>): VdfPolicy => ({
@@ -195,5 +201,37 @@ describe('isShadowCovered', () => {
     expect(earlier.sameTier).toBe(false)
     expect(isShadowCovered(earlier, on({ a: newAgent }))).toBe(false)
     expect(isShadowCovered({ ...sameTier, byMonitored: true }, on({ a: newAgent, b: newAgent }))).toBe(false)
+  })
+})
+
+describe('willShadowBeCovered (vdf#86, before publishing)', () => {
+  const shadow = (fields: Partial<VdfMonitorShadow> = {}): VdfMonitorShadow =>
+    ({
+      policy: 'cache',
+      by: 'app',
+      tier: 100,
+      sameTier: true,
+      byMonitored: false,
+      kind: 'default',
+      byDefault: 'drop',
+      vms: [
+        { id: 'a', name: 'vdf-api' },
+        { id: 'h', name: 'halted' },
+      ],
+      ...fields,
+    }) satisfies VdfMonitorShadow
+  const statusOf = (maxFormat?: number) => (id: string) =>
+    id === 'h' ? { running: false } : { running: true, status: maxFormat === undefined ? {} : { maxFormat } }
+
+  it('when the agents running its VMs read format 8 or later: they run the isolated pass', () => {
+    expect(willShadowBeCovered(shadow(), statusOf(9))).toBe(true)
+    expect(willShadowBeCovered(shadow(), statusOf(7))).toBe(false)
+    expect(willShadowBeCovered(shadow(), statusOf())).toBe(false)
+  })
+
+  it('never for an earlier tier or a monitored policy deciding first, nor without a running VM', () => {
+    expect(willShadowBeCovered(shadow({ sameTier: false }), statusOf(9))).toBe(false)
+    expect(willShadowBeCovered(shadow({ byMonitored: true }), statusOf(9))).toBe(false)
+    expect(willShadowBeCovered(shadow({ vms: [{ id: 'h', name: 'halted' }] }), statusOf(9))).toBe(false)
   })
 })

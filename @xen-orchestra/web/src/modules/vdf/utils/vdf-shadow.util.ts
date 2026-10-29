@@ -170,6 +170,27 @@ export function isShadowCovered(
   )
 }
 
+// Agents reading format 8 or later (vdf 1b346d6) came after the isolated
+// pass (386e3bd): they run it as soon as a document shadows a monitored
+// policy. Before publishing, no host can report the policy shadowed yet:
+// whether the report will have what it alone drops depends on the agents
+// alone. A shadow isShadowCovered can't cover (an earlier tier, a
+// monitored policy deciding first) isn't.
+export const ALONE_PASS_FORMAT = 8
+
+export function willShadowBeCovered(
+  shadow: VdfMonitorShadow,
+  statusOf: (vmId: string) => { running: boolean; status?: VdfHostStatusDocument }
+) {
+  if (!shadow.sameTier || shadow.byMonitored) {
+    return false
+  }
+
+  const running = shadow.vms.map(vm => statusOf(vm.id)).filter(vm => vm.running)
+
+  return running.length > 0 && running.every(({ status }) => (status?.maxFormat ?? 0) >= ALONE_PASS_FORMAT)
+}
+
 // a shadow, the same from one document to the next (to tell the new ones)
 export const shadowKey = (shadow: VdfMonitorShadow) =>
   `${shadow.policy}|${shadow.by}|${shadow.sameTier ? 'same' : 'earlier'}|${shadow.kind}`

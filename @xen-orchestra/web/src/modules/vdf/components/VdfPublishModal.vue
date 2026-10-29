@@ -216,9 +216,10 @@ import {
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { dhcpVersion, servicesReport, undeclaredLines } from '@/modules/vdf/utils/vdf-services.util.ts'
-import { shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
+import { shadowKey, type VdfMonitorShadow, willShadowBeCovered } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -230,6 +231,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { isEqual } from 'lodash-es'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -281,6 +283,8 @@ const memberCount = (group: string) => shown.value.memberCounts?.[group]
 const tierLabel = useVdfTierLabel()
 
 const { vms } = useXoVmCollection()
+
+const { hosts: allHosts } = useXoHostCollection()
 
 // a default as the policies board shows it: pass goes to the next tier
 const defaultLabel = (action: VdfDefaultAction) =>
@@ -553,7 +557,17 @@ const overriddenPerPool = computed<Record<string, Note[]>>(() =>
 // first there, so their report stays empty for them. Those the published
 // document already has are kept, muted, after the new ones.
 
-const { shadowsIn, shadowText } = useVdfMonitorShadows()
+const { shadowsIn, shadowText, coveredSoonShadowText } = useVdfMonitorShadows()
+
+// a VM's host status, for the agents' isolated pass (vdf#86)
+function statusOfVm(vmId: string) {
+  const vm = vms.value.find(candidate => candidate.id === vmId)
+  const running = vm?.power_state === 'Running'
+  const hostId = running ? extractVmHostId(vm) : undefined
+  const host = hostId === undefined ? undefined : allHosts.value.find(candidate => candidate.id === hostId)
+
+  return { running, status: parseHostStatus(host?.otherConfig) }
+}
 
 const sameShadow = (shadow: VdfMonitorShadow) =>
   `${shadowKey(shadow)}|${shadow.vms
@@ -565,12 +579,19 @@ function shadowsOf(document: VdfDocument, base: VdfDocument, poolId: string, poo
   const poolVms = vms.value.filter(vm => vm.$pool === poolId).map(vm => ({ vm }))
   const before = new Set(shadowsIn(base, poolVms).map(sameShadow))
 
-  return shadowsIn(document, poolVms).map(shadow => ({
-    key: `${poolId}|${sameShadow(shadow)}`,
-    pool,
-    text: shadowText(shadow),
-    isNew: !before.has(sameShadow(shadow)),
-  }))
+  return shadowsIn(document, poolVms).map(shadow => {
+    // the hosts' agents will list what the policy alone drops (vdf#86):
+    // information, not a risk
+    const covered = willShadowBeCovered(shadow, statusOfVm)
+
+    return {
+      key: `${poolId}|${sameShadow(shadow)}`,
+      pool,
+      text: covered ? coveredSoonShadowText(shadow) : shadowText(shadow),
+      covered,
+      isNew: !before.has(sameShadow(shadow)),
+    }
+  })
 }
 
 const shadowNotes = computed(() => {
@@ -595,8 +616,6 @@ const newShadowNotes = computed(() => shadowNotes.value.filter(note => note.isNe
 
 // HOSTS a publish doesn't reach (vdf#38): no agent, or one stopped or stuck,
 // for the pool, or each pool the global configuration is checked on
-
-const { hosts: allHosts } = useXoHostCollection()
 
 const hostNotes = computed(() => {
   const poolIds = isGlobalScope(shown.value.scopeId)
@@ -634,7 +653,7 @@ const hostNotes = computed(() => {
 type Warning = {
   key: string
   text: string
-  accent: 'danger' | 'warning'
+  accent: 'danger' | 'warning' | 'info'
   pool?: string
   tooltip?: string
   globalPolicy?: string
@@ -643,18 +662,22 @@ type Warning = {
 const inPool = computed(() => !isGlobalScope(shown.value.scopeId))
 
 // INFRASTRUCTURE SERVICES (vdf#103): the kinds the pool's hosts say no
-// service declares, unless the draft declares one now
-const serviceWarnings = computed<Warning[]>(() => {
+// service declares, unless the draft declares one now. Already said before
+// this change when the draft leaves the services as they are: folded with
+// the other unchanged warnings.
+const serviceNotes = computed(() => {
   if (!inPool.value) {
     return []
   }
 
-  const drafted = (shown.value.document.services ?? []).map(service => service.kind)
+  const { document, baseDocument, scopeId } = shown.value
+  const drafted = (document.services ?? []).map(service => service.kind)
+  const isNew = !isEqual(document.services ?? [], baseDocument.services ?? [])
   const list = (items: string[], type: Intl.ListFormatType = 'conjunction') =>
     new Intl.ListFormat(locale.value, { type }).format(items)
   const report = servicesReport(
     allHosts.value
-      .filter(host => host.$pool === shown.value.scopeId)
+      .filter(host => host.$pool === scopeId)
       .map(host => ({ name: host.name_label, services: parseHostStatus(host.otherConfig)?.services }))
   )
 
@@ -666,9 +689,13 @@ const serviceWarnings = computed<Warning[]>(() => {
           kind: list(line.kinds.map(dhcpVersion), 'disjunction'),
           hosts: list(line.hosts),
         }),
-    accent: 'warning' as const,
+    isNew,
   }))
 })
+
+const serviceWarnings = computed<Warning[]>(() =>
+  serviceNotes.value.filter(note => note.isNew).map(({ key, text }) => ({ key, text, accent: 'warning' as const }))
+)
 
 const globalOf = (policy: string | undefined) =>
   inPool.value && policy !== undefined && isGlobalName(policy) ? policy : undefined
@@ -712,7 +739,7 @@ const allWarnings = computed<Warning[]>(() => {
       key: note.key,
       text: note.text,
       pool: note.pool,
-      accent: 'warning' as const,
+      accent: note.covered ? ('info' as const) : ('warning' as const),
     })),
     ...warnings.value.map(({ policy, ...warning }) => ({
       ...warning,
@@ -730,14 +757,14 @@ const allWarnings = computed<Warning[]>(() => {
     ),
   ]
 
-  return [...all.filter(warning => warning.accent === 'danger'), ...all.filter(warning => warning.accent !== 'danger')]
+  return (['danger', 'warning', 'info'] as const).flatMap(accent => all.filter(warning => warning.accent === accent))
 })
 
 const isRisky = computed(
   () =>
     warnings.value.length > 0 ||
     enforced.value.some(item => item.flows > 0) ||
-    newShadowNotes.value.length > 0 ||
+    newShadowNotes.value.some(note => !note.covered) ||
     Object.values(hostNotes.value).some(notes => notes.length > 0) ||
     Object.values(overriddenPerPool.value).some(notes => notes.length > 0) ||
     details.value.groups.some(change => change.type === 'removed') ||
@@ -927,6 +954,7 @@ const unchanged = computed<Note[]>(() => {
     ...shadowNotes.value
       .filter(note => !note.isNew)
       .map(note => ({ key: note.key, text: note.pool === undefined ? note.text : poolName(note.pool, note.text) })),
+    ...serviceNotes.value.filter(note => !note.isNew).map(({ key, text }) => ({ key, text })),
   ]
 })
 

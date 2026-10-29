@@ -83,5 +83,14 @@ export function useVdfMonitorShadows() {
     )
   }
 
-  return { interfaceGroups, shadowsIn, shadowText, coveredShadowText }
+  // the same, before publishing: the hosts' agents will run that pass
+  function coveredSoonShadowText(shadow: VdfMonitorShadow) {
+    return t(
+      'firewall:monitor:shadow:covered-soon',
+      { policy: displayName(shadow.policy), by: displayName(shadow.by), vms: vmList(shadow), n: shadow.vms.length },
+      shadow.vms.length
+    )
+  }
+
+  return { interfaceGroups, shadowsIn, shadowText, coveredShadowText, coveredSoonShadowText }
 }

@@ -144,7 +144,11 @@
       <!-- vdf#86: later, if other policies stop applying to these VMs: what the agents' isolated passes record, and what this report can't see -->
       <VdfTechnicalDetails
         v-if="laterCount > 0"
-        :label="t('firewall:monitor:later', { n: laterCount }, laterCount)"
+        :label="
+          laterFlows > 0
+            ? t('firewall:monitor:later:flows', { n: laterFlows }, laterFlows)
+            : t('firewall:monitor:later')
+        "
         class="later"
       >
         <!-- vdf#86: what a policy alone would drop, once the enforced policies of its tier no longer apply to the VMs -->
@@ -239,6 +243,7 @@ import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
+import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
@@ -542,7 +547,9 @@ const suggestionGroups = computed(() =>
     .map((policy: VdfPolicy) => {
       // what a published rule now allows needs none
       const suggestions = suggestRules(
-        (monitor.value?.entries ?? []).filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined),
+        (monitor.value?.entries ?? []).filter(
+          entry => !isExpected(entry) && coveringRuleId(entry) === undefined && draftRuleId(entry) === undefined
+        ),
         policy,
         address => sourceOf(address, policy.name)
       )
@@ -606,7 +613,9 @@ const aloneSections = computed(() => {
     .filter(group => names.has(group.policy))
     .flatMap(group => {
       const policy = publishedDocument.value.policies.find(candidate => candidate.name === group.policy)
-      const entries = group.entries.filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined)
+      const entries = group.entries.filter(
+        entry => !isExpected(entry) && coveringRuleId(entry) === undefined && draftRuleId(entry) === undefined
+      )
 
       if (policy === undefined || entries.length === 0) {
         return []
@@ -635,6 +644,9 @@ const aloneSections = computed(() => {
 
 const laterCount = computed(() => aloneSections.value.length + laterNotes.value.length)
 
+// the flows those sections list (the notes are no flows)
+const laterFlows = computed(() => aloneSections.value.reduce((sum, section) => sum + section.rows.length, 0))
+
 // a flow's two ends, as the table shows them
 const flowSource = (entry: VdfMonitorEntry) =>
   entry.egress ? vmEndpoint(entry) : addressEndpoint(entry.src, 'sources')
@@ -652,6 +664,8 @@ type Row = {
   expected: boolean
   // the published rule that now allows it (the entry stays for 7 days)
   coveredBy: number | undefined
+  // the draft's rule that will
+  draftAllowedBy: number | undefined
 }
 
 // the groups an address belongs to: those listing it, and its VM's tagged
@@ -677,6 +691,41 @@ function coveringRuleId(entry: VdfMonitorEntry) {
   const policy = publishedDocument.value.policies.find(candidate => candidate.name === entry.policy)
 
   return policy === undefined ? undefined : coveringRule(policy, entry, groupsOf)?.id
+}
+
+// the rule of the draft that allows it, not published yet (#86
+// walkthrough: the flows a rule added from here answers, told at once, and
+// left out of the suggestions)
+function draftRuleId(entry: VdfMonitorEntry) {
+  const policy = draftPolicy(entry.policy)
+
+  return policy === undefined || coveringRuleId(entry) !== undefined
+    ? undefined
+    : coveringRule(policy, entry, groupsOf)?.id
+}
+
+// "allow this": the rule drawer, prefilled, over the report for the pool's
+// own policies (the next flows stay in view, #86 walkthrough), on the
+// global firewall's policies page for a global one
+const { editRule } = useVdfEditors(() => ({ kind: 'pool' as const, pool }))
+
+function allow(row: Row) {
+  const { entry } = row
+  const peer = entry.egress ? entry.dst : entry.src
+
+  if (isGlobalName(entry.policy) || peer === undefined) {
+    void router.push(row.allow!)
+    return
+  }
+
+  const protocol = (['tcp', 'udp', 'icmp'] as const).find(candidate => candidate === entry.proto)
+
+  void editRule(entry.policy, undefined, {
+    [entry.egress ? 'to' : 'from']: sourceOf(peer, entry.policy),
+    proto: protocol,
+    ports: entry.port && protocol !== 'icmp' ? [entry.port] : undefined,
+    before: entry.rule,
+  })
 }
 
 // "allow this": the rule drawer, prefilled, in the policy's place (before
@@ -780,6 +829,7 @@ const filteredRows = computed<Row[]>(() => {
       trace: traceRoute(entry),
       expected: isExpected(entry),
       coveredBy: coveringRuleId(entry),
+      draftAllowedBy: draftRuleId(entry),
     }))
 })
 
@@ -883,10 +933,10 @@ function rowButtons(row: Row) {
 // a table at a laptop's width has room for their labels
 function answerButtons(row: Row) {
   return h('span', { class: 'row-actions' }, [
-    row.allow === undefined || row.expected || row.coveredBy !== undefined
+    row.allow === undefined || row.expected || row.coveredBy !== undefined || row.draftAllowedBy !== undefined
       ? null
       : rowTextButton('fa:plus', t('firewall:monitor:action:allow'), t('firewall:monitor:allow-this'), () =>
-          router.push(row.allow!)
+          allow(row)
         ),
     row.coveredBy !== undefined
       ? null
@@ -931,6 +981,11 @@ const { HeadCells, BodyCells } = useMonitorColumns({
           row.expected
             ? h(UiTag, { accent: 'neutral', variant: 'secondary' }, () => t('firewall:monitor:expected'))
             : null,
+          row.draftAllowedBy === undefined
+            ? null
+            : h(UiTag, { accent: 'success', variant: 'secondary' }, () =>
+                t('firewall:monitor:draft-allowed', { id: ruleNumber(row.draftAllowedBy!) })
+              ),
           row.coveredBy === undefined
             ? null
             : withDirectives(

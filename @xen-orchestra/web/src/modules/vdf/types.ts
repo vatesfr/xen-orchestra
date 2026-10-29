@@ -348,6 +348,8 @@ export type VdfHistoryVersion = VdfHistoryEntry & {
 // host.other_config["vdf:status"], written by each host's agent
 export type VdfHostStatusDocument = {
   agent?: string
+  // the newest policy format the agent reads; absent from agents before it
+  maxFormat?: number
   started?: string
   heartbeat?: string
   heartbeatSec?: number
