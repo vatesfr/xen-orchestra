@@ -222,6 +222,18 @@ export type VdfGlobalStatus = {
 // the global configuration as edited: the document and where it applies
 export type VdfGlobalDocument = VdfDocument & { scope: VdfGlobalScope }
 
+// A host whose agent can't enforce a document as written (vdf#2), as the
+// agent's check and publish report it: the newest format it reads
+// (inferred from an agent before it reported one) and the capabilities of
+// the document it lacks
+export type VdfLackingHost = {
+  host: string
+  agent: string
+  maxFormat: number
+  inferred?: boolean
+  missing: string[]
+}
+
 export type VdfCheckResult = {
   ok: boolean
   error?: string
@@ -230,6 +242,15 @@ export type VdfCheckResult = {
   keys?: string[]
   document?: string
   published?: boolean
+  // what the document uses beyond the first format, and the hosts whose
+  // agent lacks some of it: publish refuses (refused, the agent's words)
+  // unless forced (vdf#2)
+  needs?: string[]
+  lacking?: VdfLackingHost[]
+  refused?: string
+  forced?: boolean
+  // a pool of a global check: forced on it (forcePools)
+  force?: boolean
   // global configuration: one result per pool
   pools?: (VdfCheckResult & {
     id: string

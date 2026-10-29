@@ -43,7 +43,9 @@ const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
 // pools of one host each, whose agent writes what it's asked to publish;
 // `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
 // `agent.beforePublish(poolId)` runs before a publish lands (to interleave
-// another write), `agent.refuse` lists pools whose agent refuses publishes.
+// another write), `agent.refuse` lists pools whose agent refuses publishes,
+// `agent.lacking` gives per pool the hosts whose agent lacks what any
+// document needs (vdf#2): refused unless forced.
 // `lag` (ms, or a function giving each write's): XO's cached pool record
 // changes that long after a write returns, as XAPI's events bring it
 // (vdf#32); none by default.
@@ -182,15 +184,35 @@ function fakeXo({
           return vifCall(method, hostRef, plugin, fn)
         }
         calls.push({ pool: id, fn, args })
+        // hosts whose agent lacks what the document needs (vdf#2)
+        const lacking = agent.lacking?.[id] ?? []
+        const refused = lacking.length > 0 ? `refused: ${lacking.map(host => host.host).join(', ')}` : undefined
         if (fn === 'publish') {
           await agent.beforePublish?.(id)
           if (agent.refuse?.includes(id)) {
             return JSON.stringify({ ok: false, published: false, error: 'refused by the agent', warnings: [] })
           }
+          if (refused !== undefined && args.force !== 'true') {
+            return JSON.stringify({
+              ok: true,
+              published: false,
+              refused,
+              lacking,
+              document: docId(args.policy),
+              warnings: [],
+            })
+          }
           later(() => (xapi.pool.other_config = { ...xapi.pool.other_config, 'vdf:policy': args.policy }))
-          return JSON.stringify({ ok: true, published: true, document: docId(args.policy), warnings: [] })
+          return JSON.stringify({
+            ok: true,
+            published: true,
+            document: docId(args.policy),
+            warnings: [],
+            lacking,
+            ...(refused === undefined ? {} : { forced: true }),
+          })
         }
-        return JSON.stringify({ ok: true, warnings: [] })
+        return JSON.stringify({ ok: true, warnings: [], lacking, ...(refused === undefined ? {} : { refused }) })
       },
     }
     xapis[id] = xapi
@@ -633,6 +655,86 @@ describe('pool publish', () => {
         body: { policy: text(document(80)), expectedDocId: result.document },
       })
       assert.equal((await xo.route('get', '/pools/{id}/history', { params: { id: POOL } })).result.entries.length, 2)
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+describe('hosts whose agent lacks what the document needs (vdf#2)', () => {
+  const old = [{ host: 'xcp-b', agent: 'spike-1', maxFormat: 5, inferred: true, missing: ['egress'] }]
+
+  test('a pool publish is refused, naming them, unless forced; forced is in the history', async () => {
+    const xo = fakeXo({ agent: { lacking: { [POOL]: old } } })
+    const plugin = await loaded(xo)
+    try {
+      const check = (
+        await xo.route('post', '/pools/{id}/actions/check_policy', {
+          params: { id: POOL },
+          body: { policy: text(document()) },
+        })
+      ).result
+      assert.deepEqual([check.ok, check.lacking, check.refused], [true, old, 'refused: xcp-b'])
+
+      const refused = (
+        await xo.route('post', '/pools/{id}/actions/publish_policy', {
+          params: { id: POOL },
+          body: { policy: text(document()), expectedDocId: '' },
+        })
+      ).result
+      assert.deepEqual(
+        [refused.ok, refused.published, refused.error, refused.lacking],
+        [false, false, 'refused: xcp-b', old]
+      )
+      assert.equal(xo.xapi.pool.other_config['vdf:policy'], undefined)
+      assert.equal(xo.calls.findLast(call => call.fn === 'publish').args.force, undefined)
+
+      const forced = (
+        await xo.route('post', '/pools/{id}/actions/publish_policy', {
+          params: { id: POOL },
+          body: { policy: text(document()), expectedDocId: '', force: true },
+        })
+      ).result
+      assert.deepEqual([forced.ok, forced.published, forced.forced], [true, true, true])
+      assert.equal(xo.calls.findLast(call => call.fn === 'publish').args.force, 'true')
+      const { entries } = (await xo.route('get', '/pools/{id}/history', { params: { id: POOL } })).result
+      assert.deepEqual(entries.at(-1).forced, old)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a global publish is refused for such a pool unless forced on it, and its syncs stay forced', async () => {
+    const xo = fakeXo({ pools: { A: {}, B: {} }, agent: { lacking: { B: old } } })
+    const plugin = await loaded(xo)
+    const body = { policy: text(document()), scope: { all: true } }
+    try {
+      const check = (await xo.route('post', '/global/actions/check', { body })).result
+      const b = check.pools.find(pool => pool.id === 'B')
+      assert.equal(check.ok, false)
+      assert.deepEqual([b.ok, b.error, b.lacking], [false, 'refused: xcp-b', old])
+      assert.equal(check.pools.find(pool => pool.id === 'A').ok, true)
+
+      const refused = (await xo.route('post', '/global/actions/publish', { body: { ...body, revision: 0 } })).result
+      assert.deepEqual([refused.published, refused.ok], [false, false])
+      assert.equal(xo.xapis.A.pool.other_config['vdf:policy'], undefined)
+
+      const forced = (
+        await xo.route('post', '/global/actions/publish', { body: { ...body, revision: 0, forcePools: ['B'] } })
+      ).result
+      assert.deepEqual([forced.published, forced.ok], [true, true])
+      assert.equal(forced.pools.find(pool => pool.id === 'B').forced, true)
+      assert.notEqual(xo.xapis.B.pool.other_config['vdf:policy'], undefined)
+      const publishes = pool => xo.calls.filter(call => call.pool === pool && call.fn === 'publish')
+      assert.equal(publishes('A').at(-1).args.force, undefined)
+      assert.equal(publishes('B').at(-1).args.force, 'true')
+      const { entries } = (await xo.route('get', '/global/history')).result
+      assert.deepEqual(entries.at(-1).forcePools, ['B'])
+
+      // a sync of the same revision (B lost its document): forced again
+      delete xo.xapis.B.pool.other_config['vdf:policy']
+      await plugin.syncNow()
+      assert.equal(publishes('B').at(-1).args.force, 'true')
     } finally {
       plugin.unload()
     }

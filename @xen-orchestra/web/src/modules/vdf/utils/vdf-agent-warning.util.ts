@@ -15,6 +15,7 @@ export type VdfAgentWarning =
   | { type: 'duplicate-rule-id'; policy: string; rule: number; other: string }
   | { type: 'networks-old-agents' }
   | { type: 'port-ranges-old-agents'; max: number }
+  | { type: 'egress-old-agents' }
 
 // a name as Go's %q writes it
 const QUOTED = String.raw`"((?:[^"\\]|\\.)*)"`
@@ -88,6 +89,7 @@ const SHAPES: [RegExp, (match: RegExpMatchArray) => VdfAgentWarning][] = [
     }),
   ],
   [/^groups scoped to networks: agents before per-network groups /, () => ({ type: 'networks-old-agents' })],
+  [/^egress rules: agents before egress keep enforcing their last policy/, () => ({ type: 'egress-old-agents' })],
   [
     /^port ranges cover more than (\d+) ports in all, too many to list port by port: /,
     ([, max]) => ({ type: 'port-ranges-old-agents', max: Number(max) }),

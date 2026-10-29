@@ -92,14 +92,32 @@
               >
                 {{ pool.inScope ? t('firewall:publish:valid') : t('firewall:global:check:removed') }}
               </UiInfo>
+              <!-- vdf#2: hosts whose agent can't enforce the pool's document as written -->
+              <template v-else-if="(pool.lacking?.length ?? 0) > 0">
+                <UiInfo v-tooltip="pool.error ?? false" accent="danger" wrap>
+                  {{ t('firewall:publish:lacking') }}
+                </UiInfo>
+                <UiInfo v-for="host of pool.lacking" :key="host.host" accent="danger" wrap>
+                  {{ lackingText(host) }}
+                </UiInfo>
+              </template>
               <UiInfo v-else accent="danger" wrap>
                 {{ t('firewall:publish:validation-failed', { error: pool.error }) }}
               </UiInfo>
             </div>
           </template>
           <template v-else-if="checkResult !== undefined">
+            <!-- vdf#2: hosts whose agent can't enforce this document as written -->
+            <template v-if="checkResult.ok && lackingPools.length > 0">
+              <UiInfo v-tooltip="checkResult.refused ?? false" accent="danger" wrap>
+                {{ t('firewall:publish:lacking') }}
+              </UiInfo>
+              <UiInfo v-for="host of checkResult.lacking" :key="host.host" accent="danger" wrap>
+                {{ lackingText(host) }}
+              </UiInfo>
+            </template>
             <UiInfo
-              v-if="checkResult.ok"
+              v-else-if="checkResult.ok"
               v-tooltip="
                 t('firewall:publish:valid:details', {
                   version: checkResult.version,
@@ -140,6 +158,10 @@
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')" />
+      <!-- vdf#2: past hosts lacking what the document needs, once confirmed -->
+      <UiButton v-if="canPublishAnyway" variant="secondary" accent="danger" size="medium" @click="publishAnyway()">
+        {{ t('firewall:publish:anyway') }}
+      </UiButton>
       <VtsOverlayConfirmButton :disabled="!canPublish">{{ t('firewall:publish') }}</VtsOverlayConfirmButton>
     </template>
   </VdfContentModal>
@@ -163,6 +185,7 @@ import type {
   VdfDefaultAction,
   VdfDocument,
   VdfGlobalDocument,
+  VdfLackingHost,
   VdfMonitorEntry,
   VdfScopeId,
 } from '@/modules/vdf/types.ts'
@@ -205,6 +228,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlayTrigger } from '@core/packages/overlay/use-overlay-trigger.ts'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -222,7 +246,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirm: []
+  // forcePools: "Publish anyway", the pools to publish to past hosts
+  // whose agent lacks what the document needs (vdf#2)
+  confirm: [forcePools?: string[]]
   cancel: []
   rebase: []
 }>()
@@ -690,12 +716,123 @@ const isRisky = computed(
     )
 )
 
-const accent = computed<ModalAccent>(() => (shown.value.isOutdated || isRisky.value ? 'warning' : 'info'))
+// HOSTS WHOSE AGENT CAN'T ENFORCE THE DOCUMENT AS WRITTEN (vdf#2): the
+// agent's check names them and what they lack (its version logic, not
+// XO's). Publishing is refused, pool by pool, unless forced: "Publish
+// anyway", confirmed.
+const lackingPools = computed(() => {
+  const result = checkResult.value
 
-const isRejected = computed(() => checkError.value !== undefined || checkResult.value?.ok === false)
+  if (result === undefined) {
+    return []
+  }
+
+  if (result.pools !== undefined) {
+    return result.pools
+      .filter(pool => !pool.ok && (pool.lacking?.length ?? 0) > 0)
+      .map(pool => ({ id: pool.id, lacking: pool.lacking! }))
+  }
+
+  return result.ok && (result.lacking?.length ?? 0) > 0
+    ? [{ id: shown.value.scopeId as string, lacking: result.lacking! }]
+    : []
+})
+
+// the capabilities as the agent names them, in the admin's words
+const CAPABILITY_KEYS: Record<string, string> = {
+  tiers: 'tiers',
+  'tier names': 'tier-names',
+  'monitor mode': 'monitor',
+  'port ranges': 'port-ranges',
+  egress: 'egress',
+  'per-network groups': 'networks',
+}
+
+function capabilityLabel(name: string) {
+  const format = /^format (\d+)$/.exec(name)
+
+  if (format !== null) {
+    return t('firewall:capability:format', { version: format[1] })
+  }
+
+  return CAPABILITY_KEYS[name] === undefined ? name : t(`firewall:capability:${CAPABILITY_KEYS[name]}`)
+}
+
+function lackingText(host: VdfLackingHost) {
+  return t(host.inferred ? 'firewall:publish:lacking:host:inferred' : 'firewall:publish:lacking:host', {
+    host: host.host,
+    agent: host.agent === '' ? '?' : host.agent,
+    version: host.maxFormat,
+    missing: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(host.missing.map(capabilityLabel)),
+  })
+}
+
+// refused only for such hosts: every other pool fine
+const isRefusedForHostsOnly = computed(() => {
+  const result = checkResult.value
+
+  if (result === undefined || lackingPools.value.length === 0) {
+    return false
+  }
+
+  return result.pools === undefined
+    ? result.ok
+    : result.error === undefined &&
+        result.pools.every(pool => pool.ok || pool.unreachable || pool.otherXo || (pool.lacking?.length ?? 0) > 0)
+})
+
+const canPublishAnyway = computed(
+  () => !shown.value.isOutdated && shown.value.changeCount > 0 && isRefusedForHostsOnly.value
+)
+
+const { open: openConfirm } = useOverlay({
+  component: () => import('@/modules/vdf/components/VdfConfirmModal.vue'),
+  events: { onConfirm: true, onCancel: true },
+})
+
+async function publishAnyway() {
+  if (!canPublishAnyway.value) {
+    return
+  }
+
+  const pools = lackingPools.value
+  const hosts = pools.flatMap(pool => pool.lacking.map(host => host.host))
+  const response = await openConfirm({
+    props: {
+      accent: 'danger',
+      icon: 'fa:shield',
+      title: t('firewall:publish:anyway:title'),
+      message: t(
+        'firewall:publish:anyway:message',
+        { hosts: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(hosts), n: hosts.length },
+        hosts.length
+      ),
+      confirmLabel: t('firewall:publish:anyway'),
+    },
+  })
+
+  if (response.event === 'onConfirm' && canPublishAnyway.value) {
+    emit(
+      'confirm',
+      pools.map(pool => pool.id)
+    )
+  }
+}
+
+const accent = computed<ModalAccent>(() =>
+  lackingPools.value.length > 0 ? 'danger' : shown.value.isOutdated || isRisky.value ? 'warning' : 'info'
+)
+
+const isRejected = computed(
+  () => checkError.value !== undefined || (checkResult.value?.ok === false && !isRefusedForHostsOnly.value)
+)
 
 const canPublish = computed(
-  () => !shown.value.isOutdated && shown.value.changeCount > 0 && checkResult.value?.ok === true
+  () =>
+    !shown.value.isOutdated &&
+    shown.value.changeCount > 0 &&
+    checkResult.value?.ok === true &&
+    lackingPools.value.length === 0
 )
 
 function confirm() {

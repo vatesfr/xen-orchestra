@@ -13,6 +13,10 @@ export const vdfDocumentArg = defineJobArg<VdfDocument>({ identify: false, toArr
 // id of the published document an edit started from ('' for none)
 export const vdfExpectedDocIdArg = defineJobArg<string>({ identify: false, toArray: false })
 
+// pools to publish to even though some hosts' agent lacks what the
+// document needs (vdf#2): "Publish anyway"
+export const vdfForcePoolsArg = defineJobArg<string[]>({ identify: false, toArray: false })
+
 export const vdfVmsArg = defineJobArg({
   identify: (vm: FrontXoVm) => vm.id,
   toArray: true,

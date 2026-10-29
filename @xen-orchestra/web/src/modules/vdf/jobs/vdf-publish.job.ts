@@ -1,4 +1,10 @@
-import { vdfDocumentArg, vdfExpectedDocIdArg, vdfPoolIdArg, vdfRevisionArg } from '@/modules/vdf/jobs/vdf-args.ts'
+import {
+  vdfDocumentArg,
+  vdfExpectedDocIdArg,
+  vdfForcePoolsArg,
+  vdfPoolIdArg,
+  vdfRevisionArg,
+} from '@/modules/vdf/jobs/vdf-args.ts'
 import type {
   VdfCheckResult,
   VdfDocument,
@@ -17,61 +23,75 @@ import { useI18n } from 'vue-i18n'
 // validates the document and writes the pool keys exactly as `vdf-agent
 // publish` does: XO never re-implements the format rules. XO refuses it,
 // writing nothing, if the pool's document is no longer the one the draft
-// started from (compare-and-swap).
-export const useVdfPublishJob = defineJob('vdf.publish', [vdfPoolIdArg, vdfDocumentArg, vdfExpectedDocIdArg], () => {
-  const { t } = useI18n()
-
-  return {
-    async run(poolId, document, expectedDocId) {
-      const result = await fetchPost<VdfCheckResult>(`plugins/vdf/pools/${poolId}/actions/publish_policy`, {
-        policy: serializeDocument(document),
-        expectedDocId,
-      })
-
-      if (result.conflict) {
-        throw new JobError(t('firewall:publish:conflict'))
-      }
-
-      if (!result.ok || !result.published) {
-        throw new JobError(result.error ?? t('firewall:publish:rejected'))
-      }
-
-      return result
-    },
-
-    validate(isRunning, poolId, document, expectedDocId) {
-      if (isRunning) {
-        throw new JobRunningError(t('firewall:publish:in-progress'))
-      }
-
-      if (poolId === undefined || document === undefined || expectedDocId === undefined) {
-        throw new JobError(t('job:arg:missing-payload'))
-      }
-    },
-  }
-})
-
-// the global document travels without its scope, which goes next to it
-function globalBody(document: VdfDocument, revision?: number) {
-  const { scope, ...rest } = document as VdfGlobalDocument
-
-  return { policy: serializeDocument(rest), scope: scope ?? { all: true }, revision }
-}
-
-// XO checks the global configuration on every pool in scope, and publishes
-// it only if every reachable pool accepts its resulting document, and if
-// no other publish came after the revision the draft started from.
-export const useVdfGlobalPublishJob = defineJob(
-  'vdf.publish-global',
-  [vdfPoolIdArg, vdfDocumentArg, vdfRevisionArg],
+// started from (compare-and-swap). The agent refuses a document some
+// host's agent can't enforce as written (vdf#2), unless forced: the pool is
+// in forcePools ("Publish anyway").
+export const useVdfPublishJob = defineJob(
+  'vdf.publish',
+  [vdfPoolIdArg, vdfDocumentArg, vdfExpectedDocIdArg, vdfForcePoolsArg],
   () => {
     const { t } = useI18n()
 
     return {
-      async run(_scopeId, document, revision) {
+      async run(poolId, document, expectedDocId, forcePools) {
+        const result = await fetchPost<VdfCheckResult>(`plugins/vdf/pools/${poolId}/actions/publish_policy`, {
+          policy: serializeDocument(document),
+          expectedDocId,
+          ...(forcePools?.includes(poolId) ? { force: true } : {}),
+        })
+
+        if (result.conflict) {
+          throw new JobError(t('firewall:publish:conflict'))
+        }
+
+        if (!result.ok || !result.published) {
+          throw new JobError(result.error ?? t('firewall:publish:rejected'))
+        }
+
+        return result
+      },
+
+      validate(isRunning, poolId, document, expectedDocId) {
+        if (isRunning) {
+          throw new JobRunningError(t('firewall:publish:in-progress'))
+        }
+
+        if (poolId === undefined || document === undefined || expectedDocId === undefined) {
+          throw new JobError(t('job:arg:missing-payload'))
+        }
+      },
+    }
+  }
+)
+
+// the global document travels without its scope, which goes next to it
+function globalBody(document: VdfDocument, revision?: number, forcePools?: string[]) {
+  const { scope, ...rest } = document as VdfGlobalDocument
+
+  return {
+    policy: serializeDocument(rest),
+    scope: scope ?? { all: true },
+    revision,
+    ...(forcePools !== undefined && forcePools.length > 0 ? { forcePools } : {}),
+  }
+}
+
+// XO checks the global configuration on every pool in scope, and publishes
+// it only if every reachable pool accepts its resulting document, and if
+// no other publish came after the revision the draft started from. A pool
+// with hosts whose agent can't enforce its document as written (vdf#2)
+// refuses, and so does the publish, unless forced on it (forcePools).
+export const useVdfGlobalPublishJob = defineJob(
+  'vdf.publish-global',
+  [vdfPoolIdArg, vdfDocumentArg, vdfRevisionArg, vdfForcePoolsArg],
+  () => {
+    const { t } = useI18n()
+
+    return {
+      async run(_scopeId, document, revision, forcePools) {
         const result = await fetchPost<VdfCheckResult>(
           `plugins/vdf/global/actions/publish`,
-          globalBody(document, revision)
+          globalBody(document, revision, forcePools)
         )
 
         // published from an older revision: nothing written, the draft rebases

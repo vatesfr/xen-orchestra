@@ -130,6 +130,12 @@ const BODY_POLICY = { policy: { type: 'string', description: 'the policy documen
 
 const BODY_PUBLISH = {
   ...BODY_POLICY,
+  force: {
+    type: 'boolean',
+    optional: true,
+    description:
+      "publish even if some hosts' agent lacks what the document needs (the check's lacking: they enforce what they can of it, or keep their last policy); the agent records it in the pool (vdf:policy.forced)",
+  },
   expectedDocId: {
     type: 'string',
     optional: true,
@@ -240,6 +246,13 @@ const BODY_GLOBAL = {
     optional: true,
     description:
       'revision the edit started from, 0 for the first publish: a publish from an older one is refused with conflict: true (required to publish, ignored by check)',
+  },
+  forcePools: {
+    type: 'array',
+    items: { type: 'string' },
+    optional: true,
+    description:
+      "pools to publish to even if some hosts' agent lacks what their document needs (lacking): without it such a pool refuses, and so does the publish",
   },
 }
 
@@ -749,14 +762,19 @@ class VdfPlugin {
   // the owner of the pool's global part when it wrote the first one (or
   // forgets it when it removed it): a refused publish claims nothing.
   // Another XO's ownership is only changed by a take over. Callers hold the
-  // pool's lock (#serialized).
-  async #publishOnPool(xapi, text) {
+  // pool's lock (#serialized). The agent refuses a document some host's
+  // agent can't enforce as written (vdf#2: lacking, refused) unless forced:
+  // not ok then, its refusal as the error.
+  async #publishOnPool(xapi, text, { force = false } = {}) {
     let document = null
     try {
       document = JSON.parse(text)
     } catch {}
     const writesGlobal = hasGlobalPart(document)
-    const result = await this.#onMaster(xapi, 'publish', { policy: text })
+    const result = await this.#onMaster(xapi, 'publish', force ? { policy: text, force: 'true' } : { policy: text })
+    if (typeof result.refused === 'string' && result.refused !== '' && !result.published) {
+      return { ...result, ok: false, error: result.refused }
+    }
     if (result.published) {
       // what XAPI's events will bring (vdf#32)
       await this.#expectOwn(xapi, {
@@ -806,7 +824,10 @@ class VdfPlugin {
         }
         return { ok: true, state, unchanged: true }
       }
-      const result = await this.#publishOnPool(xapi, serialize(expected))
+      // a pool the global publish was forced on (vdf#2) stays forced for
+      // this revision: its new members are written the same way
+      const force = this.#global?.forcePools?.includes(poolId) === true
+      const result = await this.#publishOnPool(xapi, serialize(expected), { force })
       if (result.published) {
         await this.#recordSyncWrite(poolId, published, { docId: result.document, document: expected }).catch(error =>
           log.warn('recording the sync', { pool: poolId, error })
@@ -934,7 +955,7 @@ class VdfPlugin {
   // unless every reachable one accepts it. Unreachable pools, and pools
   // another XO owns, are reported; the former catch up once XO reaches them
   // again, the latter once taken over.
-  async #checkGlobal(text, scope) {
+  async #checkGlobal(text, scope, forcePools = []) {
     let document
     try {
       document = JSON.parse(text)
@@ -1009,7 +1030,14 @@ class VdfPlugin {
         }
         try {
           const text = serialize(next)
-          const result = await this.#onMaster(xapi, 'check', { policy: text })
+          let result = await this.#onMaster(xapi, 'check', { policy: text })
+          // hosts whose agent can't enforce the pool's document as written
+          // (vdf#2): the pool refuses unless the publish is forced on it
+          if (result.ok && Array.isArray(result.lacking) && result.lacking.length > 0) {
+            result = forcePools.includes(pool.id)
+              ? { ...result, force: true }
+              : { ...result, ok: false, error: result.refused ?? 'some hosts lack what the document needs' }
+          }
           if (reservedTiers.length > 0) {
             result.reservedTiers = reservedTiers
             result.warnings = [
@@ -1272,6 +1300,7 @@ class VdfPlugin {
       summary: summarize(previous === undefined ? null : versioned(previous), versioned(global)),
       document: global.document,
       scope: global.scope,
+      ...(global.forcePools === undefined ? {} : { forcePools: global.forcePools }),
     }
   }
 
@@ -1304,6 +1333,7 @@ class VdfPlugin {
       publishedBy: userLabel(user) ?? null,
       summary: summarize(before.document == null ? null : localPart(before.document), localPart(after.document)),
       document: after.document,
+      ...(after.forced === undefined ? {} : { forced: after.forced }),
     })
   }
 
@@ -1375,7 +1405,7 @@ class VdfPlugin {
 
   // refused, nothing written, if the pool's document isn't the one the edit
   // started from
-  #publishPool(poolId, { policy, expectedDocId }, user) {
+  #publishPool(poolId, { policy, expectedDocId, force = false }, user) {
     return this.#serialized(poolId, async () => {
       const xapi = this.#getXapi(poolId)
       const before = publishedPolicy(xapi.pool.other_config ?? {})
@@ -1393,15 +1423,20 @@ class VdfPlugin {
       if (error !== undefined) {
         return { ok: false, published: false, error, warnings: [] }
       }
-      const result = await this.#publishOnPool(xapi, text)
+      const result = await this.#publishOnPool(xapi, text, { force })
       if (result.published) {
         let document = null
         try {
           document = JSON.parse(text)
         } catch {}
-        await this.#recordPoolPublish(poolId, before, { docId: result.document ?? docId(text), document }, user).catch(
-          error => log.warn('recording the publish', { pool: poolId, error })
-        )
+        // forced past hosts lacking what it needs (vdf#2): who, and what
+        const forced = result.forced === true && Array.isArray(result.lacking) ? result.lacking : undefined
+        await this.#recordPoolPublish(
+          poolId,
+          before,
+          { docId: result.document ?? docId(text), document, forced },
+          user
+        ).catch(error => log.warn('recording the publish', { pool: poolId, error }))
       }
       return result
     })
@@ -1411,7 +1446,7 @@ class VdfPlugin {
     return this.#serialized(GLOBAL_SCOPE, () => this.#publishGlobalNow(body, user))
   }
 
-  async #publishGlobalNow({ policy, scope, revision }, user) {
+  async #publishGlobalNow({ policy, scope, revision, forcePools = [] }, user) {
     const current = this.#global?.revision ?? 0
     if (revision !== current) {
       return {
@@ -1426,17 +1461,21 @@ class VdfPlugin {
         pools: [],
       }
     }
-    const { texts, ...check } = await this.#checkGlobal(policy, scope)
+    const { texts, ...check } = await this.#checkGlobal(policy, scope, forcePools)
     if (!check.ok) {
       return { ...check, published: false }
     }
     const previous = this.#global
+    // the pools forced past hosts lacking what the document needs, for this
+    // revision (vdf#2): only those that lacked something
+    const forced = check.pools.filter(pool => pool.force === true).map(pool => pool.id)
     this.#global = {
       document: JSON.parse(policy),
       revision: current + 1,
       scope,
       publishedAt: new Date().toISOString(),
       publishedBy: userLabel(user),
+      ...(forced.length > 0 ? { forcePools: forced } : {}),
     }
     await this.#store.put('global', this.#global)
     await this.#appendHistory(
@@ -1885,7 +1924,7 @@ class VdfPlugin {
         middlewares: [{ name: 'json', options: { limit: '8mb' } }],
         responses: [{ status: 200, description: 'Per-pool validation results' }],
         callback: async ({ req }) => {
-          const { texts, ...result } = await this.#checkGlobal(req.body.policy, req.body.scope)
+          const { texts, ...result } = await this.#checkGlobal(req.body.policy, req.body.scope, req.body.forcePools)
           return result
         },
       },

@@ -16,12 +16,16 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
 
   const publishError = ref<string>()
 
-  const poolJob = useVdfPublishJob(scopeId, document, expectedDocId)
+  // "Publish anyway" (vdf#2): the pools to publish to past hosts whose
+  // agent lacks what the document needs, for the publish under way only
+  const forcePools = ref<string[]>([])
+
+  const poolJob = useVdfPublishJob(scopeId, document, expectedDocId, forcePools)
 
   // the global configuration's document ids are `r<revision>`
   const baseRevision = computed(() => Number(expectedDocId.value.replace(/^r/, '')) || 0)
 
-  const globalJob = useVdfGlobalPublishJob(scopeId, document, baseRevision)
+  const globalJob = useVdfGlobalPublishJob(scopeId, document, baseRevision, forcePools)
 
   const isPublishing = computed(() => (scope.isGlobal ? globalJob.isRunning.value : poolJob.isRunning.value))
 
@@ -63,7 +67,8 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
   const { open: openPublishModal } = useOverlay({
     component: () => import('@/modules/vdf/components/VdfPublishModal.vue'),
     events: {
-      onConfirm: async () => {
+      // forced: the pools confirmed with "Publish anyway"
+      onConfirm: async (forced?: string[]) => {
         // published since the draft started: rebase first, or their
         // changes would be undone
         if (scope.isDraftOutdated.value) {
@@ -71,6 +76,7 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
         }
 
         publishError.value = undefined
+        forcePools.value = forced ?? []
 
         try {
           await publish()
@@ -80,6 +86,8 @@ export function useVdfPublish(rawScope: MaybeRefOrGetter<VdfScope>) {
           reloadPublished()
 
           return KEEP_OVERLAY_OPEN
+        } finally {
+          forcePools.value = []
         }
       },
       onCancel: true,

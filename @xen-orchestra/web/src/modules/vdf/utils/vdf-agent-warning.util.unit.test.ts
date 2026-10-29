@@ -66,6 +66,11 @@ describe('parseAgentWarning', () => {
     ).toEqual({ type: 'networks-old-agents' })
     expect(
       parseAgentWarning(
+        'egress rules: agents before egress keep enforcing their last policy, or enforce nothing if they never had one (a publish forced past hosts lacking egress gives them its ingress only)'
+      )
+    ).toEqual({ type: 'egress-old-agents' })
+    expect(
+      parseAgentWarning(
         'port ranges cover more than 4096 ports in all, too many to list port by port: agents before port ranges keep enforcing their last policy'
       )
     ).toEqual({ type: 'port-ranges-old-agents', max: 4096 })
