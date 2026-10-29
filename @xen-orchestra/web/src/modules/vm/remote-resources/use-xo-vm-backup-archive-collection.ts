@@ -10,6 +10,7 @@ export type FrontXoVmBackupArchive = Pick<XoVmBackupArchive, (typeof vmBackupArc
 const vmBackupArchiveFields = [
   'id',
   'size',
+  'sizeOnDisk',
   'vm',
   'type',
   'backupRepository', // `backupRepository` is needed by the predicate

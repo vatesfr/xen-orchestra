@@ -29,6 +29,16 @@ import { normalize } from '@xen-orchestra/fs/path'
  */
 
 /**
+ * The fields of the metadata of a backup which tell the space it uses on the repository
+ *
+ * @typedef {object} BackupSizeMetadata
+ * @property {'full' | 'delta'} mode
+ * @property {number} [sizeOnDisk] full backup: size of the XVA, `.checksum` included
+ * @property {Record<string, string>} [vhds] delta backup: path of each disk, by VDI ref
+ * @property {Record<string, number>} [vhdsSizeOnDisk] delta backup: size of each disk, by VDI ref
+ */
+
+/**
  * @returns {import('@vates/types').XoVmBackupArchive & { tags: string[] }}
  */
 export function formatVmBackup(backup) {
@@ -59,6 +69,7 @@ export function formatVmBackup(backup) {
               id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
               name: vdi.name_label,
               uuid: vdi.uuid,
+              sizeOnDisk: backup.vhdsSizeOnDisk?.[vdiId],
             }
           }),
 
@@ -68,6 +79,7 @@ export function formatVmBackup(backup) {
     mode: backup.mode,
     scheduleId: backup.scheduleId,
     size: backup.size,
+    sizeOnDisk: getVmBackupSizeOnDisk(backup),
     timestamp: backup.timestamp,
     vm: {
       uuid: backup.vm.uuid,
@@ -130,4 +142,25 @@ export function formatJournalEvents(events, backupRepositoryId) {
     const { event, vmUuid, filename, metadata } = resolved
     return { event, vmUuid, filename, backup: formatVmBackupAt(metadata, filename, backupRepositoryId) }
   })
+}
+
+/**
+ * Returns the space used on the repository or undefined if unknown or if a single disk is unknown
+ *
+ * @param {BackupSizeMetadata} metadata
+ * @returns {number | undefined}
+ */
+export function getVmBackupSizeOnDisk(metadata) {
+  if (metadata.mode === 'full') {
+    return metadata.sizeOnDisk
+  } else if (metadata.mode === 'delta' && metadata.vhds !== undefined) {
+    const vhdSizes = Object.keys(metadata.vhds).map(vdiRef => metadata.vhdsSizeOnDisk?.[vdiRef])
+    if (vhdSizes.some(vhdSize => vhdSize === undefined)) {
+      return undefined
+    }
+
+    return vhdSizes.reduce((total, vhdSize) => (total ?? 0) + (vhdSize ?? 0), 0)
+  }
+
+  return undefined
 }

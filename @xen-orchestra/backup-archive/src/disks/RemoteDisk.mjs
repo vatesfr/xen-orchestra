@@ -294,4 +294,31 @@ export class RemoteDisk extends RandomAccessDisk {
     }
     return parent
   }
+
+  /**
+   * Write the disk size to its size.json metadata file
+   *
+   * @returns  {Promise<void>}
+   */
+  async writeSize() {
+    throw new Error(`writeSize must be implemented`)
+  }
+
+  /**
+   * Computes the real size of the disk
+   *
+   * @returns  {Promise<number>}
+   */
+  async computeSizeOnDisk() {
+    throw new Error(`computeSizeOnDisk must be implemented`)
+  }
+
+  /**
+   * Returns the size on disk
+   *
+   * @returns  {number | undefined}
+   */
+  getStoredSize() {
+    throw new Error(`getStoredSize must be implemented`)
+  }
 }

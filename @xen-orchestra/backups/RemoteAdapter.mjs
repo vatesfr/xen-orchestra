@@ -37,6 +37,7 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
+import { getVmBackupSizeOnDisk } from './formatVmBackups.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -674,6 +675,9 @@ export class RemoteAdapter {
     return path
   }
 
+  /**
+   * @returns {Promise<{size: number, sizeOnDisk: number}>}
+   */
   async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
@@ -700,7 +704,8 @@ export class RemoteAdapter {
         checksum: false,
       })
       await validator(path)
-      return size
+      const sizeOnDisk = await this._handler.getSizeOnDisk(path)
+      return { size, sizeOnDisk }
     }
   }
 
@@ -870,9 +875,11 @@ export class RemoteAdapter {
     return reduce(
       backups,
       (prev, backup) => {
-        const _backup = Array.isArray(backup) ? this.#computeTotalBackupSizeRecursively(backup) : backup
+        const size = Array.isArray(backup)
+          ? this.#computeTotalBackupSizeRecursively(backup).onDisk
+          : (getVmBackupSizeOnDisk(backup) ?? backup.size)
         return {
-          onDisk: prev.onDisk + (_backup.onDisk ?? _backup.size),
+          onDisk: prev.onDisk + size,
         }
       },
       { onDisk: 0 }

@@ -10,6 +10,7 @@ const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
 const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
+const { asyncEach } = require('@vates/async-each')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -88,12 +89,19 @@ function getCompressor(compressorType) {
   return compressor
 }
 
+const CHUNK_FILTERS = 'chunk-filters.json'
+
+const SIZE_FILE = 'size.json'
+
 // ===================================================================
 // Directory format
 // <path>
 // ├─ chunk-filters.json
 // │    Ordered array of filters that have been applied before writing chunks.
 // │    These filters needs to be applied in reverse order to read them.
+// ├─ size.json
+// │    stored size of the other files of this directory,
+// │    to know the space used without listing the blocks
 // │
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
@@ -108,9 +116,24 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   #header
   footer
   #compressor
+  #chunkSizes = new Map()
+  #blocksSizeOnDisk = 0 // A disk not read through readHeaderAndFooter() is being written from scratch
+  #sizeFileSize = 0
 
   get compressionType() {
     return this.#compressor.id
+  }
+
+  get sizeOnDisk() {
+    if (this.#blocksSizeOnDisk === undefined) {
+      return undefined
+    }
+
+    return (
+      this.#sizeFileSize +
+      this.#blocksSizeOnDisk +
+      [...this.#chunkSizes.values()].reduce((total, chunkSize) => total + chunkSize, 0)
+    )
   }
 
   set header(header) {
@@ -203,10 +226,16 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return this.#outputChunk(partName, compressed)
   }
 
-  #outputChunk(partName, buffer) {
+  async #outputChunk(partName, buffer) {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
-    return this._handler.outputFile(this.#getChunkPath(partName), buffer, { flags })
+    const size = await this._handler.outputFile(this.#getChunkPath(partName), buffer, { flags })
+
+    if (!partName.startsWith('blocks/')) {
+      this.#chunkSizes.set(partName, size)
+    }
+
+    return size
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -222,6 +251,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
   async readHeaderAndFooter() {
     await this.#readChunkFilters()
+    await this.#readSize()
 
     let bufHeader, bufFooter
     try {
@@ -308,7 +338,6 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
     const childBlockPath = child.getFullBlockPath?.(blockId)
-    let initialSize = 0
     if (
       childBlockPath === undefined ||
       this._handler !== child._handler ||
@@ -319,16 +348,13 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
     try {
       const blockExists = this.containsBlock(blockId)
-      if (blockExists) {
-        initialSize = await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))
-      }
-
-      await this._handler.rename(childBlockPath, this.getFullBlockPath(blockId))
+      const delta = await this.moveBlockFrom(blockId, childBlockPath)
 
       if (!blockExists) {
-        setBitmap(this.#blockTable, blockId)
         await this.writeBlockAllocationTable()
       }
+
+      return delta
     } catch (error) {
       if (error.code === 'ENOENT' && isResumingMerge === true) {
         // when resuming, the blocks moved since the last merge state write are
@@ -337,16 +363,17 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
         // it will throw an error if block is missing in parent
         // won't detect if the block was already in parent and is broken/missing in child
 
-        // since we can't know the initial size, this will create a discrepancy
-        // on the size
+        // the size of the block it replaced is unknown: return 0,
+        // the caller recomputes the size of a resumed merge
         const { data } = await this.readBlock(blockId)
         assert.strictEqual(data.length, this.header.blockSize)
+        setBitmap(this.#blockTable, blockId)
+
+        return 0
       } else {
         throw error
       }
     }
-    setBitmap(this.#blockTable, blockId)
-    return (await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))) - initialSize
   }
 
   async writeEntireBlock(block) {
@@ -355,15 +382,17 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       this.fullBlockSize,
       `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
     )
-    await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
-    setBitmap(this.#blockTable, block.id)
+
+    await this.#writeBlock(block.id, () => this._writeChunk(this.#getBlockPath(block.id), block.buffer))
   }
 
   // bitmap and data are not concatenated: the handler can write them with a single writev
   async writeBlockData(blockId, data) {
     assert.strictEqual(data.length, this.header.blockSize, `block ${blockId} must be ${this.header.blockSize} bytes`)
-    await this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
-    setBitmap(this.#blockTable, blockId)
+
+    await this.#writeBlock(blockId, () =>
+      this._writeChunk(this.#getBlockPath(blockId), [Buffer.alloc(this.bitmapSize, 255), data])
+    )
   }
 
   /**
@@ -372,8 +401,23 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
    */
   async writeCompressedBlock(blockId, buffer) {
     assert.notStrictEqual(this._opts?.flags, 'r', `Can't write block ${blockId} in ${this._path} with read permission`)
-    await this.#outputChunk(this.#getBlockPath(blockId), buffer)
+
+    await this.#writeBlock(blockId, () => this.#outputChunk(this.#getBlockPath(blockId), buffer))
+  }
+
+  async #writeBlock(blockId, write) {
+    const oldBlockSize = this.containsBlock(blockId)
+      ? await this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))
+      : 0
+
+    const newBlockSize = await write()
     setBitmap(this.#blockTable, blockId)
+
+    if (this.#blocksSizeOnDisk !== undefined) {
+      this.#blocksSizeOnDisk += newBlockSize - oldBlockSize
+    }
+
+    return newBlockSize - oldBlockSize
   }
 
   async _readParentLocatorData(id) {
@@ -387,22 +431,104 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
   async #writeChunkFilters() {
     const compressionType = this.compressionType
-    const path = this._path + '/chunk-filters.json'
+    const path = this.#getChunkPath(CHUNK_FILTERS)
     if (compressionType === undefined) {
       await this._handler.unlink(path)
+      this.#chunkSizes.delete(CHUNK_FILTERS)
     } else {
-      await this._handler.writeFile(path, JSON.stringify([compressionType]), { flags: 'w' })
+      const size = await this._handler.writeFile(path, JSON.stringify([compressionType]), { flags: 'w' })
+      this.#chunkSizes.set(CHUNK_FILTERS, size)
     }
   }
 
   async #readChunkFilters() {
-    const chunkFilters = await this._handler.readFile(this._path + '/chunk-filters.json').then(JSON.parse, error => {
+    const chunkFilters = await this._handler.readFile(this.#getChunkPath(CHUNK_FILTERS)).then(JSON.parse, error => {
       if (error.code === 'ENOENT') {
         return []
       }
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
+  }
+
+  async writeSize() {
+    assert.notStrictEqual(this.#blocksSizeOnDisk, undefined, `Disk size currently unknown`)
+
+    this.#sizeFileSize = await this._handler.writeFile(
+      this.#getChunkPath(SIZE_FILE),
+      JSON.stringify({
+        version: 1,
+        chunks: Object.fromEntries(this.#chunkSizes),
+        blocks: this.#blocksSizeOnDisk,
+      }),
+      { flags: 'w' }
+    )
+  }
+
+  async #readSize() {
+    this.#chunkSizes = new Map()
+    this.#blocksSizeOnDisk = undefined
+    this.#sizeFileSize = 0
+
+    const sizeFile = await this._handler.readFile(this.#getChunkPath(SIZE_FILE)).then(JSON.parse, error => {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    })
+
+    if (sizeFile !== undefined) {
+      this.#chunkSizes = new Map(Object.entries(sizeFile.chunks))
+      this.#blocksSizeOnDisk = sizeFile.blocks
+      this.#sizeFileSize = await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
+    }
+  }
+
+  async computeSizeOnDisk() {
+    const blockPaths = []
+    const groups = await this._handler.list(this.#getChunkPath('blocks'), { prependDir: true, ignoreMissing: true })
+    for (const group of groups) {
+      const files = await this._handler.list(group, { prependDir: true })
+      blockPaths.push(...files)
+    }
+
+    let sizeOnDisk = 0
+    await asyncEach(
+      blockPaths,
+      async path => {
+        const size = await this._handler.getSizeOnDisk(path)
+        sizeOnDisk += size
+      },
+      { concurrency: 16 }
+    )
+
+    const metadataFilesSizes = new Map()
+    const metadataFiles = await this._handler.list(this._path)
+    for (const metadataFile of metadataFiles) {
+      if (metadataFile !== 'blocks' && metadataFile !== SIZE_FILE) {
+        metadataFilesSizes.set(metadataFile, await this._handler.getSizeOnDisk(this.#getChunkPath(metadataFile)))
+      }
+    }
+
+    this.#chunkSizes = metadataFilesSizes
+    this.#blocksSizeOnDisk = sizeOnDisk
+    this.#sizeFileSize = metadataFiles.includes(SIZE_FILE)
+      ? await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
+      : 0
+
+    return this.sizeOnDisk
+  }
+
+  /**
+   * moves a block file of another VhdDirectory in this one as is:
+   * the caller must ensure it uses the same compression
+   */
+  async moveBlockFrom(blockId, sourcePath) {
+    assert.notStrictEqual(this._opts?.flags, 'r', `Can't move block ${blockId} from ${sourcePath} with read permission`)
+
+    return this.#writeBlock(blockId, async () => {
+      await this._handler.rename(sourcePath, this.getFullBlockPath(blockId))
+      return this._handler.getSizeOnDisk(this.getFullBlockPath(blockId))
+    })
   }
 
   setAllocatedBlocks(blockIds) {

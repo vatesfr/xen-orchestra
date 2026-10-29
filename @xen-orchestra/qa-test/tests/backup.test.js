@@ -14,7 +14,7 @@ import {
   assertHealthCheckSuccess,
   getRequiredEnv,
 } from '../utils/index.js'
-import { assertBackupSuccess } from '../utils/backupUtils.js'
+import { assertBackupSuccess, assertArchivesSizeOnDisk } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:backup:base')
@@ -134,6 +134,7 @@ describe('Backup basic tests', () => {
         assertHealthCheckSuccess(result)
         const healthCheckData = extractHealthCheckData(result)
         log.debug('Health check validated', { status: healthCheckData.status, duration: healthCheckData.duration })
+        await assertArchivesSizeOnDisk(dispatchClient, backupRepository, vm.uuid)
       }
     })
     it('should run the backup job in full mode with health checks', async () => {
@@ -151,6 +152,7 @@ describe('Backup basic tests', () => {
       assertHealthCheckSuccess(result)
       const healthCheckData = extractHealthCheckData(result)
       log.debug('Health check validated', { status: healthCheckData.status, duration: healthCheckData.duration })
+      await assertArchivesSizeOnDisk(dispatchClient, backupRepository, vm.uuid)
     })
     it('should run backup without health check when SR not configured', async () => {
       const name = generateBackupJobName()

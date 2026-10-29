@@ -77,7 +77,10 @@ const { HeadCells, BodyCells } = useBackupArchiveColumns({
           href: xo5BackupRepositories.value,
           icon: br.value?.enabled ? 'object:br:connected' : 'object:br:disconnected',
         }),
-      sizeOnDisk: r => r(formatSizeRaw(archive.size, 1).value, formatSizeRaw(archive.size, 1).prefix),
+      sizeOnDisk: r =>
+        archive.sizeOnDisk !== undefined
+          ? r(formatSizeRaw(archive.sizeOnDisk, 1).value, formatSizeRaw(archive.sizeOnDisk, 1).prefix)
+          : r('-'),
     }
   },
 })

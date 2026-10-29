@@ -184,12 +184,20 @@ export type XoVmBackupArchive = {
   id: Branded<'vm-backup-archive'>
   type: 'xo-vm-backup'
   backupRepository: XoBackupRepository['id']
-  disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
+  disks: {
+    id: string
+    name: string
+    uuid: XoVdiSnapshot['uuid']
+    sizeOnDisk?: number
+  }[]
   isImmutable?: boolean
   jobId: XoVmBackupJob['id']
   mode: XoVmBackupJob['mode']
   scheduleId: XoSchedule['id']
+  // Transferred size
   size: number
+  // Space used on the backup repository, if known
+  sizeOnDisk?: number
   timestamp: number
   vm: {
     uuid: XoVm['uuid']

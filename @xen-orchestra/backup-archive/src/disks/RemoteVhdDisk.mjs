@@ -16,7 +16,7 @@ import { RemoteDisk } from './RemoteDisk.mjs'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
-import { dirname, join } from 'node:path'
+import { dirname, join, basename } from 'node:path'
 import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 import { normalize } from '@xen-orchestra/fs/path'
 
@@ -322,9 +322,7 @@ export class RemoteVhdDisk extends RemoteDisk {
       (await childDisk.isDirectory())
     ) {
       try {
-        await this.#handler.rename(childDisk.getBlockPath(index), this.getBlockPath(index))
-
-        this.setAllocatedBlocks([index])
+        await /** @type {VhdDirectory} */ (this.#vhd).moveBlockFrom(index, childDisk.getBlockPath(index))
       } catch (error) {
         // @ts-ignore
         if (error.code === 'ENOENT' && isResumingMerge === true) {
@@ -393,6 +391,55 @@ export class RemoteVhdDisk extends RemoteDisk {
 
     // Checks that the BAT is at least as big as the provided block count, if not, increases it and shift the blocks position
     await this.#vhd.ensureBatSize(blockCount)
+  }
+
+  /**
+   * Write the disk size to its size.json metadata file
+   *
+   * @returns  {Promise<void>}
+   */
+  async writeSize() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call writeSize of a RemoteVhdDisk before init`)
+    }
+
+    if (this.#vhd instanceof VhdDirectory) {
+      await this.#vhd.writeSize()
+    }
+  }
+
+  /**
+   * Computes the real size of the disk
+   *
+   * @returns  {Promise<number>}
+   */
+  async computeSizeOnDisk() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call computeSizeOnDisk of a RemoteVhdDisk before init`)
+    }
+
+    if (this.#vhd instanceof VhdDirectory) {
+      return this.#vhd.computeSizeOnDisk()
+    } else {
+      return this.#handler.getSizeOnDisk(await resolveVhdAlias(this.#handler, this.#path))
+    }
+  }
+
+  /**
+   * Returns the size on disk
+   *
+   * @returns  {number | undefined}
+   */
+  getStoredSize() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call getStoredSize of a RemoteVhdDisk before init`)
+    }
+
+    if (this.#vhd instanceof VhdDirectory) {
+      return this.#vhd.sizeOnDisk
+    }
+
+    return undefined
   }
 
   /**
@@ -487,15 +534,29 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * Rename alias/disk
+   *
+   * A plain VHD file renamed to an alias is moved to the `data` directory next to the alias, which then points to it.
    * @param {string} newPath
    */
   async rename(newPath) {
     if (isVhdAlias(newPath)) {
-      const dataPath = await resolveVhdAlias(this.#handler, this.#path)
+      if (isVhdAlias(this.#path)) {
+        const dataPath = await resolveVhdAlias(this.#handler, this.#path)
 
-      await this.#handler.unlink(newPath)
-      await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
-      await this.#handler.unlink(this.#path)
+        await this.#handler.unlink(newPath)
+        await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
+        await this.#handler.unlink(this.#path)
+      } else {
+        // the file is the data itself: keep it, under `data` to be claimed by the alias
+        //
+        // if interrupted before the alias is created, the data stays in `data` without any alias, like when
+        // interrupted after `newPath` has been removed in the other case
+        const dataPath = join(dirname(newPath), 'data', basename(this.#path))
+        await this.#handler.rename(this.#path, dataPath)
+
+        await this.#handler.unlink(newPath)
+        await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
+      }
 
       this.#path = newPath
     } else {

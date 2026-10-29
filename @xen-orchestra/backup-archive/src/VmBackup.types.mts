@@ -6,7 +6,12 @@ export interface PartialBackupMetadata {
   vhds?: Record<string, string>
   vdis?: Record<string, unknown>
   isVhdDifferencing?: Record<string, boolean>
+  // Transferred size, never modified by merge
   size?: number
+  // Space used by each disk, keyed by vdiRef, updated by merges
+  vhdsSizeOnDisk?: Record<string, number>
+  // Space used by the XVA of a full backup, .checksum included
+  sizeOnDisk?: number
   jobId: string
   scheduleId: string
   timestamp: number
@@ -55,7 +60,7 @@ export interface CheckResult {
 
 export type CleanResult = {
   removedFiles: string[]
-  // Files rewritten in place (e.g. metadata whose size was updated after a merge)
+  // Files rewritten in place (e.g. metadata recording the size on disk of the disks a merge rewrote)
   changedFiles?: string[]
   merge?: boolean
   size?: number

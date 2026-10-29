@@ -190,6 +190,33 @@ handlers.forEach(url => {
         await handler.sync()
         await handler.outputFile(`xo-fs-tests-${Date.now()}/test`, '')
       }, 40)
+
+      it('returns the correct file size', async () => {
+        const dataSize = await handler.outputFile('file', TEST_DATA)
+        assert.equal(dataSize, await handler.getSizeOnDisk('file'))
+      })
+
+      it('returns the correct file size with multi-byte character', async () => {
+        const dataSize = await handler.outputFile('file', 'é')
+        assert.equal(dataSize, await handler.getSizeOnDisk('file'))
+      })
+
+      it('returns the correct file size with buffer array', async () => {
+        const dataSize = await handler.outputFile('file', [TEST_DATA, TEST_DATA])
+        assert.equal(dataSize, await handler.getSizeOnDisk('file'))
+      })
+    })
+
+    describe('#writeFile()', () => {
+      it('returns the correct file size', async () => {
+        const dataSize = await handler.writeFile('file', TEST_DATA)
+        assert.equal(dataSize, await handler.getSizeOnDisk('file'))
+      })
+
+      it('returns the correct file size with multi-byte character', async () => {
+        const dataSize = await handler.writeFile('file', 'é')
+        assert.equal(dataSize, await handler.getSizeOnDisk('file'))
+      })
     })
 
     describe('#read()', () => {
