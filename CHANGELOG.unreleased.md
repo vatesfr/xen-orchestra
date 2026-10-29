@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web-core minor
+
 <!--packages-end-->
