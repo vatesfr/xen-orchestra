@@ -15,7 +15,7 @@ Everything goes through XO, and everything that talks to your infrastructure tal
 <Schema label="Xen Orchestra at the center of your infrastructure" legend={[["#6aabf0", "XO"], ["#8e83fe", "XCP-ng"], ["#56c288", "VMs"], ["#e0a94a", "backup"], ["#5ac8c8", "V2V"]]} maxWidth="760px">
 <svg viewBox="0 0 680 380" role="img" aria-label="Users and automation tools drive Xen Orchestra, which manages any number of XCP-ng pools, streams backups to a repository, keeps disaster recovery copies and imports VMware VMs with V2V">
 {/* Who talks to XO: humans and automation. */}
-<a href="/getting-started/gettingstarted" aria-label="The XO 6 web interface">
+<a href="/core-concepts/coreconcepts" aria-label="The XO 6 web interface">
 <rect x="20" y="12" width="170" height="62" rx="8" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.28)"/>
 <text x="105" y="37" fontSize="13.5" fill="#c6d2e1" textAnchor="middle">Your team</text>
 <text x="105" y="56" fontSize="11.5" fill="#7a8699" textAnchor="middle">Web UI · any browser</text>
@@ -160,7 +160,7 @@ the parked standby. */}
 
 <CardGrid>
 <LinkCard title="Deploy Xen Orchestra" href="/getting-started/installation">Get the turnkey appliance (XOA) running in minutes, or install from the sources.</LinkCard>
-<LinkCard title="Discover XO 6" href="/getting-started/gettingstarted">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
+<LinkCard title="Discover XO 6" href="/core-concepts/coreconcepts">Tour the new interface: tree view, dashboards, consoles.</LinkCard>
 <LinkCard title="Set up backups" href="/backups-and-dr/backup">Rolling snapshots, incremental backups, replication and more.</LinkCard>
 <LinkCard title="Migrate from VMware" href="/migrate-from-vmware/v2v-migration-guide">Import your ESXi VMs directly into your pools with V2V.</LinkCard>
 <LinkCard title="Automate everything" href="/automation/restapi">REST API, CLI, Terraform, Ansible, Pulumi and more.</LinkCard>
@@ -169,7 +169,7 @@ the parked standby. */}
 
 ## What XO does for you
 
-- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](/getting-started/gettingstarted.md) or from XO 5.
+- **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](/core-concepts/coreconcepts/coreconcepts.md) or from XO 5.
 - **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](/backups-and-dr/backups-in-xo6.md).
 - **Migration from VMware**: [V2V](/migrate-from-vmware/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
 - **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
