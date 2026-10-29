@@ -1,4 +1,4 @@
-import { tagsToLeaveGroup } from '@/modules/vdf/composables/vdf-membership.composable.ts'
+import { allowsInbound, tagsToLeaveGroup } from '@/modules/vdf/composables/vdf-membership.composable.ts'
 import { describe, expect, it } from 'vitest'
 
 const groups = {
@@ -39,5 +39,19 @@ describe('tagsToLeaveGroup', () => {
 
   it('removes nothing when the VM is not a member', () => {
     expect(tagsToLeaveGroup(['vdf:role=web'], 'db', groups)).toEqual({ tags: [], alsoLeaves: [] })
+  })
+})
+
+describe('allowsInbound', () => {
+  it('an allow rule or an allow default; not an outbound-only policy passing inbound on', () => {
+    const base = { name: 'p', appliedTo: 'app', default: 'pass' as const, ingress: [] }
+    expect(allowsInbound({ ...base, ingress: [{ id: 1, from: 'web', proto: 'tcp' as const, ports: [8080] }] })).toBe(
+      true
+    )
+    expect(allowsInbound({ ...base, default: 'allow' })).toBe(true)
+    expect(allowsInbound({ ...base, egress: [{ id: 2, to: 'db', proto: 'tcp' as const, ports: [5432] }] })).toBe(false)
+    expect(
+      allowsInbound({ ...base, ingress: [{ id: 3, action: 'drop' as const, from: 'any', proto: 'tcp' as const }] })
+    ).toBe(false)
   })
 })

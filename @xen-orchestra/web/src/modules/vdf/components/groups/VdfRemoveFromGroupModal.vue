@@ -30,7 +30,7 @@
           </li>
           <li v-if="sourceIn.length > 0">{{ t('firewall:remove-vm:source-in', { policies: list(sourceIn) }) }}</li>
           <li v-if="alsoLeaves.length > 0">
-            {{ t('firewall:remove-vm:also-leaves', { groups: list(alsoLeaves) }) }}
+            {{ t('firewall:remove-vm:also-leaves', { groups: list(alsoLeaves.map(groupLabel)) }, alsoLeaves.length) }}
           </li>
         </ul>
         <UiAlert v-for="item of takesOver" :key="item.policy" accent="warning">
@@ -52,6 +52,7 @@
 </template>
 
 <script lang="ts" setup>
+import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -66,7 +67,8 @@ const { takesOver = [] } = defineProps<{
   groupName?: string
   // the tags removed: only those no other group of the VM needs
   tags: string[]
-  // groups the VM leaves too, sharing the only tags it could lose
+  // groups the VM leaves too, sharing the only tags it could lose (as the
+  // document names them)
   alsoLeaves: string[]
   protectedBy: string[]
   sourceIn: string[]
@@ -83,6 +85,10 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
+
+// a global group says so ("app · global")
+const groupLabel = (name: string) =>
+  isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name
 
 function list(items: string[]) {
   return new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)

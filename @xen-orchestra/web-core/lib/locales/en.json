@@ -1244,7 +1244,7 @@
   "firewall:recent-drops:why": "Why is {from} to {to} dropped?",
   "firewall:recorded-on": "Recorded on {realized} of {total} host | Recorded on {realized} of {total} hosts",
   "firewall:remove-from-group": "Remove from group",
-  "firewall:remove-vm:also-leaves": "It also leaves {groups}, which use the same tag.",
+  "firewall:remove-vm:also-leaves": "It also leaves {groups}, which uses the same tag. | It also leaves {groups}, which use the same tag.",
   "firewall:remove-vm:effect": "Takes effect now: hosts follow the tag change within a second.",
   "firewall:remove-vm:label": "Remove {vm} from the group",
   "firewall:remove-vm:protected-by": "These policies stop protecting it: {policies}.",

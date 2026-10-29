@@ -1244,7 +1244,7 @@
   "firewall:recent-drops:why": "Pourquoi {from} vers {to} est-il bloqué ?",
   "firewall:recorded-on": "Enregistrée sur {realized}/{total} hôte | Enregistrée sur {realized}/{total} hôtes",
   "firewall:remove-from-group": "Retirer du groupe",
-  "firewall:remove-vm:also-leaves": "Elle quitte aussi {groups}, qui utilisent le même tag.",
+  "firewall:remove-vm:also-leaves": "Elle quitte aussi {groups}, qui utilise le même tag. | Elle quitte aussi {groups}, qui utilisent le même tag.",
   "firewall:remove-vm:effect": "Prend effet maintenant : les hôtes suivent le changement de tag en moins d'une seconde.",
   "firewall:remove-vm:label": "Retirer {vm} du groupe",
   "firewall:remove-vm:protected-by": "Ces politiques cessent de la protéger : {policies}.",

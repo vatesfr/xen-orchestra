@@ -1,8 +1,9 @@
 import { useVdfVmTagJob } from '@/modules/vdf/jobs/vdf-vm-tag.job.ts'
-import { VDF_QUARANTINE_TAG, type VdfDocument, type VdfGroup } from '@/modules/vdf/types.ts'
+import { VDF_QUARANTINE_TAG, type VdfDocument, type VdfGroup, type VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupUsage, isVmInGroup, tierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { rulesOf } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
@@ -33,6 +34,11 @@ export function tagsToLeaveGroup(vmTags: string[], groupName: string, groups: Re
 
 // Membership is tags: these edits are live (no draft), agents follow XAPI's
 // events and re-apply within tens of milliseconds.
+// a policy that lets some inbound traffic in: an allow rule, or an allow
+// default
+export const allowsInbound = (policy: VdfPolicy) =>
+  policy.default === 'allow' || rulesOf(policy, 'ingress').some(rule => (rule.action ?? 'allow') === 'allow')
+
 export function useVdfMembership() {
   const vms = ref<FrontXoVm[]>([])
 
@@ -152,8 +158,10 @@ export function useVdfMembership() {
       .map(policy => ({
         policy: displayName(policy.name),
         monitored: isMonitored(policy),
+        // only those that allowed some inbound traffic (an outbound-only
+        // policy passes it on: nothing to take over, #86 walkthrough)
         instead: lost
-          .filter(other => tierValue(other.tier) === tierValue(policy.tier))
+          .filter(other => tierValue(other.tier) === tierValue(policy.tier) && allowsInbound(other))
           .map(other => displayName(other.name)),
       }))
       .filter(item => item.instead.length > 0)
@@ -164,7 +172,8 @@ export function useVdfMembership() {
         vmName: vm.name_label,
         groupName: context === undefined ? undefined : displayName(name),
         tags,
-        alsoLeaves: alsoLeaves.map(displayName),
+        // the modal says which are global
+        alsoLeaves,
         protectedBy: (usage?.appliedTo ?? []).map(displayName),
         sourceIn: (usage?.sourceOf ?? []).map(displayName),
         losesProtection:
