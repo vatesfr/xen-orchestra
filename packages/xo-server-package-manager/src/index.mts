@@ -1,141 +1,89 @@
+import type { PluginRestRouteDefinition, XoApp } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
-import { AptPackageManager } from './apt.mjs'
-import type { PackageManagerConfiguration } from './types.mjs'
-import type { XoApp } from '@vates/types'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import {
+  checkAptAvailable,
+  isRebootRequired,
+  isValidPackageName,
+  listUpgradablePackages,
+  refreshPackageIndexes,
+  upgradePackages,
+} from './apt.mjs'
 
 const log = createLogger('xo:xo-server-package-manager')
 
-// --- Configuration schema (empty for now, prepared for future options) ---
-export const configurationSchema = {
-  type: 'object' as const,
-  properties: {},
-  additionalProperties: false,
+async function getUpdates() {
+  const [packages, rebootRequired] = await Promise.all([listUpgradablePackages(), isRebootRequired()])
+  return { packages, isRebootRequired: rebootRequired }
 }
 
-type CreateAction = <CbType>(
-  cb: (task: unknown) => CbType | Promise<CbType>,
-  options: {
-    sync?: boolean
-    taskProperties: { name: string; [key: string]: unknown }
-  }
-) => Promise<CbType | undefined>
+// routes without `acl` middleware are restricted to administrators
+const REST_ROUTES: PluginRestRouteDefinition[] = [
+  {
+    method: 'get',
+    endpoint: 'plugins/package-manager/updates',
+    description: 'List the upgradable packages of the XO appliance, from the local package indexes',
+    tags: ['package-manager'],
+    callback: getUpdates,
+  },
+  {
+    method: 'post',
+    endpoint: 'plugins/package-manager/updates/actions/refresh',
+    description: 'Refresh the package indexes (`apt-get update`)',
+    tags: ['package-manager'],
+    callback: async () => {
+      await refreshPackageIndexes()
+    },
+  },
+  {
+    method: 'post',
+    endpoint: 'plugins/package-manager/updates/actions/upgrade',
+    description: 'Upgrade all packages. Returns 202 with a task ID',
+    tags: ['package-manager'],
+    callback: ({ createAction }) =>
+      createAction(task => upgradePackages({ onProgress: percentage => task.set('progress', percentage) }), {
+        taskProperties: { name: 'upgrade packages' },
+      }),
+  },
+  {
+    method: 'post',
+    endpoint: 'plugins/package-manager/updates/{name}/actions/upgrade',
+    description: 'Upgrade one package. Returns 202 with a task ID',
+    tags: ['package-manager'],
+    params: { name: { type: 'string', example: 'curl' } },
+    callback: ({ req, createAction }) => {
+      const packageName = req.params.name
+      if (typeof packageName !== 'string' || !isValidPackageName(packageName)) {
+        throw invalidParameters(`invalid package name: ${packageName}`)
+      }
+      return createAction(
+        task => upgradePackages({ packageName, onProgress: percentage => task.set('progress', percentage) }),
+        { taskProperties: { name: `upgrade package ${packageName}` } }
+      )
+    },
+  },
+]
 
-type RouteCtx = {
-  req: {
-    params: Readonly<Record<string, string | undefined>>
-    body: unknown
-  }
-  createAction: CreateAction
-}
-
-// --- Plugin class ---
 class PackageManagerPlugin {
   readonly #xo: XoApp
-  readonly #getDataDir: () => Promise<string>
-  #configuration: PackageManagerConfiguration | undefined
   #unregisterRestRoutes: (() => void) | undefined
 
-  constructor({ xo, getDataDir }: { xo: XoApp; getDataDir: () => Promise<string> }) {
+  constructor(xo: XoApp) {
     this.#xo = xo
-    this.#getDataDir = getDataDir
   }
 
-  configure(configuration: PackageManagerConfiguration) {
-    this.#configuration = configuration
+  async load(): Promise<void> {
+    await checkAptAvailable()
+    this.#unregisterRestRoutes = this.#xo.registerRestRoutes(REST_ROUTES)
+    log.info('plugin loaded')
   }
 
-  async load() {
-    const dataDir = await this.#getDataDir()
-    const systemPackageManager = new AptPackageManager(dataDir)
-    systemPackageManager.checkAvailable()
-
-    this.#unregisterRestRoutes = this.#xo.registerRestRoutes(
-      [
-        {
-          method: 'get',
-          endpoint: '/updates',
-          description: 'List upgradable system packages from local cache',
-          tags: ['xoa'],
-          callback: async (_ctx: RouteCtx) => ({
-            packages: await systemPackageManager.listUpgradable(),
-            isRebootRequired: systemPackageManager.isRebootRequired(),
-          }),
-        },
-        {
-          method: 'post',
-          endpoint: '/updates/refresh',
-          description: 'Run apt-get update and return the updated list of upgradable packages',
-          tags: ['xoa'],
-          callback: async (_ctx: RouteCtx) => {
-            await systemPackageManager.updatePackageList()
-            return {
-              packages: await systemPackageManager.listUpgradable(),
-              isRebootRequired: systemPackageManager.isRebootRequired(),
-            }
-          },
-        },
-        {
-          method: 'post',
-          endpoint: '/updates/upgrade',
-          description:
-            'Start upgrading all packages (or a subset via JSON body). Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
-          tags: ['xoa'],
-          middlewares: [{ name: 'json' }],
-          callback: async ({ req, createAction }: RouteCtx) => {
-            const body = req.body as Record<string, unknown> | null | undefined
-            const packages =
-              body !== null && body !== undefined && Array.isArray(body['packages'])
-                ? (body['packages'] as string[])
-                : undefined
-            await createAction(async () => systemPackageManager.runUpgrade(packages), {
-              taskProperties: { name: 'upgrade packages' },
-            })
-          },
-        },
-        {
-          method: 'post',
-          endpoint: '/updates/packages/{name}/upgrade',
-          description:
-            'Start upgrading a specific package. Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
-          tags: ['xoa'],
-          params: { name: { type: 'string' } },
-          callback: async ({ req, createAction }: RouteCtx) => {
-            const name = req.params['name']
-            if (name === undefined) {
-              throw new Error('Package name is required')
-            }
-            await createAction(async () => systemPackageManager.runUpgrade([name]), {
-              taskProperties: { name: `upgrade ${name}` },
-            })
-          },
-        },
-        {
-          method: 'post',
-          endpoint: '/updates/dist-upgrade',
-          description:
-            'Start a full distribution upgrade. Returns 202 with taskId; watch /rest/v0/tasks/:taskId for progress.',
-          tags: ['xoa'],
-          callback: async ({ createAction }: RouteCtx) => {
-            await createAction(async () => systemPackageManager.runSystemUpgrade(), {
-              taskProperties: { name: 'dist-upgrade' },
-            })
-          },
-        },
-      ],
-      '/xoa'
-    )
-
-    log.info('Plugin loaded')
-  }
-
-  async unload() {
+  unload(): void {
     this.#unregisterRestRoutes?.()
     this.#unregisterRestRoutes = undefined
-    log.info('Plugin unloaded')
   }
 }
 
-// --- Factory (default export) ---
-export default function packageManagerPluginFactory(opts: { xo: XoApp; getDataDir: () => Promise<string> }) {
-  return new PackageManagerPlugin(opts)
+export default function pluginFactory({ xo }: { xo: XoApp }): PackageManagerPlugin {
+  return new PackageManagerPlugin(xo)
 }

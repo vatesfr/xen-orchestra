@@ -497,9 +497,6 @@ export type XoApp = EventEmitter & {
     mounts: { id: BackupArchiveDiskMount['id']; hostId: XoHost['id'] }[]
     proxyId: XoProxy['id']
   }): void
-  addApiMethods(methods: Record<string, unknown>): () => void
-  defineProperty(name: string, value: unknown, thisArg?: object): () => void
-  defineProperties(props: Record<string, unknown>): () => void
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(
     body: Pick<XoServer, 'host' | 'httpProxy' | 'label' | 'username'> & {
@@ -603,5 +600,4 @@ export type XoApp = EventEmitter & {
     licenseId: string
     data?: Record<string, string>
   }): Promise<License>
-  registerRestRoutes(routes: readonly unknown[], base?: string): () => void
 }

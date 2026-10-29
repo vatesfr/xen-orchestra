@@ -818,12 +818,11 @@ export const COMMON_TAG = {
   NOBAK: 'xo:no-bak',
 } as const
 
+/** a Debian package of the XO appliance with a newer version available */
 export interface UpgradablePackage {
   name: string
   version: string
   installedVersion: string
   release: string
   description: string
-  size: number
-  sourceRepository: string
 }

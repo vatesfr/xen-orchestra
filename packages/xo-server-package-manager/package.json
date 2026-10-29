@@ -23,15 +23,14 @@
     "name": "Vates SAS",
     "url": "https://vates.fr"
   },
-  "bin": {
-    "xo-package-manager": "dist/cli.mjs"
-  },
   "main": "dist/index.mjs",
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.7.1"
+    "@vates/types": "^2.5.0",
+    "@xen-orchestra/log": "^0.7.1",
+    "xo-common": "^0.11.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -42,10 +41,10 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "dev": "yarn run clean && tsc --watch",
-    "postbuild": "chmod +x dist/cli.mjs",
     "prebuild": "yarn run clean",
     "prepublishOnly": "yarn run build",
-    "test": "cd dist && node --test"
+    "test": "cd dist && node --test",
+    "test-integration": "cd dist && node --test apt.integ.mjs"
   },
   "private": true
 }
