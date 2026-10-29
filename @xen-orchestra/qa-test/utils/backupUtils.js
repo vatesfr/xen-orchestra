@@ -213,3 +213,41 @@ export const assertSynchronizedSnapshot = (result, vmCount) => {
   const latestSnapshotEnd = Math.max(...snapshots.map(t => t.end))
   assert(latestSnapshotEnd <= earliestStart, `Synchronized backup snapshots should be complete before transfer starts`)
 }
+
+/**
+ * Asserts that every backup of the VM on the repository records the space it uses, consistently between the archive and its disks
+ *
+ * @param {import('../client/dispatchClient.js').DispatchClient} dispatchClient
+ * @param {{ id: string, name: string }} backupRepository
+ * @param {string} vmUuid
+ * @returns {Promise<void>}
+ */
+export const assertArchivesSizeOnDisk = async (dispatchClient, backupRepository, vmUuid) => {
+  const backups = await dispatchClient.backup.listVmBackups([backupRepository.id])
+  const archives = backups[backupRepository.id]?.[vmUuid] ?? []
+
+  assert.ok(archives.length > 0, `no backup of VM ${vmUuid} on repository ${backupRepository.name}`)
+
+  for (const archive of archives) {
+    assert.strictEqual(typeof archive.sizeOnDisk, 'number', `${archive.id}: sizeOnDisk must be a number`)
+    assert.ok(archive.sizeOnDisk > 0, `${archive.id}: sizeOnDisk must be higher than 0`)
+
+    if (archive.mode === 'delta') {
+      let totalDiskSizeOnDisk = 0
+      for (const disk of archive.disks) {
+        assert.strictEqual(typeof disk.sizeOnDisk, 'number', `${archive.id} ${disk.id}: sizeOnDisk must be a number`)
+        assert.ok(disk.sizeOnDisk > 0, `${archive.id} ${disk.id}: sizeOnDisk must be higher than 0`)
+
+        totalDiskSizeOnDisk += disk.sizeOnDisk
+      }
+
+      assert.strictEqual(
+        archive.sizeOnDisk,
+        totalDiskSizeOnDisk,
+        `${archive.id}: disks sizeOnDisk sum should match archive sizeOnDisk`
+      )
+    } else {
+      assert.deepStrictEqual(archive.disks, [], `${archive.id}: disks should be empty`)
+    }
+  }
+}
