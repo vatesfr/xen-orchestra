@@ -129,7 +129,7 @@
   "action:revert-vm-here": "Reverter VM para cá",
   "action:save": "Guardar",
   "action:search": "Pesquisa",
-  "action:search-treeview": "Pesquisar na árvore de navegação",
+  "action:search-treeview": "@:action:pesquisar na árvore de navegação ({shortcut})",
   "action:see-all": "Exibir tudo",
   "action:see-less": "Ver menos",
   "action:see-n-more": "Exibir {n} mais",
