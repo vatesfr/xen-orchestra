@@ -1,14 +1,9 @@
-import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
 import { createV2vLaunchSettings } from '@/test/create-v2v-launch.ts'
 import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
-import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-
-function mountLaunchForm() {
-  return mountComposableWithI18n(() => useV2vLaunchForm())
-}
+import { mountV2vLaunchForm } from '@/test/mount-v2v-launch-form.ts'
 
 async function validateConcurrency(concurrency: number) {
-  const form = mountLaunchForm()
+  const form = mountV2vLaunchForm()
   form.formData.concurrency = concurrency
 
   return { form, isValid: await form.validate() }
@@ -19,7 +14,37 @@ const EMPTY_INPUT = '' as unknown as number
 
 describe('formData', () => {
   it('starts stopping the source VMs and on the first error, two VMs at a time', () => {
-    expect(mountLaunchForm().formData).toEqual(createV2vLaunchSettings())
+    expect(mountV2vLaunchForm().formData).toEqual(createV2vLaunchSettings())
+  })
+})
+
+describe('stopSourceCheckboxBindings', () => {
+  it('labels the stop of the source VM and tells when it happens', () => {
+    const form = mountV2vLaunchForm()
+
+    expect(form.stopSourceCheckboxBindings).toMatchObject({
+      label: form.t('v2v:stop-source-vm'),
+      info: form.t('v2v:stop-source-vm-info'),
+    })
+  })
+})
+
+describe('stopOnErrorCheckboxBindings', () => {
+  it('labels the stop on error and tells it applies to the whole launch', () => {
+    const form = mountV2vLaunchForm()
+
+    expect(form.stopOnErrorCheckboxBindings).toMatchObject({
+      label: form.t('stop-on-error'),
+      info: form.t('v2v:stop-on-error-info'),
+    })
+  })
+})
+
+describe('concurrencyInputBindings', () => {
+  it('labels the concurrency, required', () => {
+    const form = mountV2vLaunchForm()
+
+    expect(form.concurrencyInputBindings).toMatchObject({ label: form.t('concurrency'), required: true })
   })
 })
 

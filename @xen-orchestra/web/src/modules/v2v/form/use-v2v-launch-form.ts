@@ -9,10 +9,17 @@ const MIN_CONCURRENCY = 1
 
 const MAX_CONCURRENCY = 8
 
+// The number input of the concurrency can be cleared
+export type V2vLaunchFormData = Omit<V2vLaunchSettings, 'concurrency'> & {
+  concurrency: V2vLaunchSettings['concurrency'] | undefined
+}
+
+export type V2vLaunchForm = ReturnType<typeof useV2vLaunchForm>
+
 export function useV2vLaunchForm() {
   const { t } = useI18n()
 
-  const formData = reactive<V2vLaunchSettings>({ stopSource: true, stopOnError: true, concurrency: 2 })
+  const formData = reactive<V2vLaunchFormData>({ stopSource: true, stopOnError: true, concurrency: 2 })
 
   const { useField, validate } = useValidatedForm(formData, {
     errors: {
@@ -28,8 +35,14 @@ export function useV2vLaunchForm() {
   return {
     formData,
     validate,
-    stopSourceToggleBindings: useField('stopSource', () => ({ label: t('v2v:stop-source-vm') })),
-    stopOnErrorToggleBindings: useField('stopOnError', () => ({ label: t('stop-on-error') })),
+    stopSourceCheckboxBindings: useField('stopSource', () => ({
+      label: t('v2v:stop-source-vm'),
+      info: t('v2v:stop-source-vm-info'),
+    })),
+    stopOnErrorCheckboxBindings: useField('stopOnError', () => ({
+      label: t('stop-on-error'),
+      info: t('v2v:stop-on-error-info'),
+    })),
     concurrencyInputBindings: useField('concurrency', () => ({ label: t('concurrency'), required: true })),
   }
 }

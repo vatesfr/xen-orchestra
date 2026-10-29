@@ -78,6 +78,15 @@ export function useV2vVmLabels() {
     return [t('n-vms', { n: total }), ...mapCountedKeys(V2V_VM_STATUSES, counts, getStatusCountLabel)]
   }
 
+  function getOnOffLabel(value: boolean): string {
+    return value ? t('option-on') : t('option-off')
+  }
+
+  // A launch option left to its default reads as that default
+  function getLaunchOptionLabel(value: boolean | undefined, defaultValue: boolean): string {
+    return value === undefined ? t('default-value', { value: getOnOffLabel(defaultValue) }) : getOnOffLabel(value)
+  }
+
   return {
     statusLabels,
     powerLabels,
@@ -86,5 +95,6 @@ export function useV2vVmLabels() {
     getStatusTag,
     getStatusCountLabel,
     getSummaryLabels,
+    getLaunchOptionLabel,
   }
 }
