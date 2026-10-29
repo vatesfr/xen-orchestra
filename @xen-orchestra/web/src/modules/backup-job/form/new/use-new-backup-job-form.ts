@@ -41,18 +41,19 @@ function createSourceFormData(): BackupJobSourceFormData {
 function createTransferFormData(): BackupJobTransferFormData {
   return {
     maxExportRate: undefined,
-    concurrency: undefined,
+    concurrency: 2,
     compression: '',
     keyBackup: 'never',
     keyBackupMonthDays: [],
     keyBackupWeekDays: [],
     keyBackupHours: [],
     preferNbd: true,
-    nbdConcurrency: undefined,
+    nbdConcurrency: 1,
     offlineBackup: false,
     snapshotMode: 'default',
     snapshotSync: 'none',
     snapshotSyncTag: undefined,
+    snapshotRetention: 1,
   }
 }
 
@@ -80,7 +81,6 @@ function createTargetFormData(): BackupJobTargetFormData {
     storageRepositoryFilter: '',
     replicaDistribution: 'every',
     copyRetention: undefined,
-    snapshotRetention: 1,
   }
 }
 
@@ -107,9 +107,8 @@ export function useNewBackupJobForm() {
   const target = useBackupJobTargetForm(
     reactive(createTargetFormData()),
     () => source.formData.dataSource,
-    () => source.formData.mode === 'full' || transfer.formData.preferNbd,
-    () => source.formData.sourceBackupRepository,
-    () => transfer.formData.offlineBackup
+    () => !transfer.formData.offlineBackup && (transfer.formData.snapshotRetention ?? 0) > 0,
+    () => source.formData.sourceBackupRepository
   )
 
   const planning = useBackupJobPlanningForm(reactive(createPlanningFormData()))

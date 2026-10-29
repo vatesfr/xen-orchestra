@@ -1,16 +1,14 @@
 <template>
-  <div class="backup-job-target-snapshot-retention-section">
-    <UiTitle>{{ t('snapshot-retention') }}</UiTitle>
-
+  <div class="backup-job-form-snapshot-retention">
     <BackupJobFormRow>
       <div class="field">
-        <UiLabel :accent="hasError ? 'danger' : 'neutral'" required>{{ bindings.snapshotRetention.label }}</UiLabel>
+        <UiLabel :accent="hasError ? 'danger' : 'neutral'" required>{{ label }}</UiLabel>
         <UiInput
-          :model-value="bindings.snapshotRetention.modelValue"
+          :model-value="model"
           :accent="hasError ? 'danger' : 'brand'"
           type="number"
           required
-          @update:model-value="bindings.snapshotRetention['onUpdate:modelValue'](toNumber($event))"
+          @update:model-value="model = toNumber($event)"
         />
       </div>
     </BackupJobFormRow>
@@ -31,23 +29,25 @@
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
-import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { bindings } = defineProps<{
-  bindings: BackupJobTargetForm['bindings']
+const { error } = defineProps<{
+  label: string
+  error?: InputWrapperMessage
 }>()
+
+const model = defineModel<number | undefined>({ required: true })
 
 const { t } = useI18n()
 
 const errorMessages = computed(() =>
-  toArray(bindings.snapshotRetention.error).map(message => (typeof message === 'object' ? message.content : message))
+  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
 )
 
 const hasError = computed(() => errorMessages.value.length > 0)
@@ -62,10 +62,11 @@ function toNumber(value: string | number | undefined): number | undefined {
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-target-snapshot-retention-section {
+.backup-job-form-snapshot-retention {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+  margin-block-start: 0.8rem;
 
   .field {
     display: flex;
