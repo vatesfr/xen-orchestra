@@ -3,13 +3,14 @@
     <UiTitle>
       {{ t('firewall:services') }}
       <template #action>
+        <UiButton variant="tertiary" accent="brand" size="medium" left-icon="status:info-circle" @click="openInfo()">
+          {{ t('firewall:services:about') }}
+        </UiButton>
         <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:plus" @click="editService()">
           {{ t('firewall:services:new') }}
         </UiButton>
       </template>
     </UiTitle>
-    <UiInfo accent="info" wrap>{{ t('firewall:services:info') }}</UiInfo>
-
     <VtsStateHero v-if="rows.length === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('firewall:services:empty') }}
     </VtsStateHero>
@@ -58,7 +59,7 @@
       </UiInfo>
     </div>
 
-    <VdfServicesStatus :pool-id declarable @declare="declare" />
+    <VdfServicesStatus :pool-id :drafted declarable @declare="declare" />
   </UiCard>
 </template>
 
@@ -78,6 +79,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { isEqual } from 'lodash-es'
 import { computed } from 'vue'
@@ -114,6 +116,18 @@ const rows = computed(() => {
   })
 })
 
+// the kinds the draft declares: the hosts' warnings about them are about
+// to go
+const drafted = computed(() => [...new Set((document.value.services ?? []).map(service => service.kind))])
+
+const { open: openInfoModal } = useInfoModal()
+
+function openInfo() {
+  openInfoModal({
+    props: { title: t('firewall:services:about'), content: t('firewall:services:info'), icon: 'fa:server' },
+  })
+}
+
 // a source the hosts saw: declared with its kind, and its address to
 // start its group from
 function declare(kind: VdfServiceKind, src: string) {
@@ -123,6 +137,12 @@ function declare(kind: VdfServiceKind, src: string) {
 
 <style lang="postcss" scoped>
 .vdf-services-card {
+  /* beside the side panel, on a laptop: the actions go under the title */
+  :deep(.ui-title) {
+    flex-wrap: wrap;
+    row-gap: 0.8rem;
+  }
+
   .service {
     display: flex;
     flex-direction: column;

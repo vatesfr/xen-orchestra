@@ -1,8 +1,9 @@
-import type { VdfDefaultAction, VdfDocument, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfDefaultAction, VdfDocument, VdfGroup, VdfPolicy, VdfRule, VdfService } from '@/modules/vdf/types.ts'
 import { isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules, rulesOf, VDF_DIRECTIONS } from '@/modules/vdf/utils/vdf-rules.util.ts'
+import { isServiceMonitored } from '@/modules/vdf/utils/vdf-services.util.ts'
 import type { VdfAgentGaps } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { isEqual, omit } from 'lodash-es'
 
@@ -27,9 +28,13 @@ export type VdfPolicyChange = {
 
 export type VdfGroupChange = { type: VdfChangeType; name: string; group: VdfGroup; previous?: VdfGroup }
 
+export type VdfServiceChange = { type: VdfChangeType; name: string; service: VdfService; previous?: VdfService }
+
 export type VdfChangeDetails = {
   policies: VdfPolicyChange[]
   groups: VdfGroupChange[]
+  // declared infrastructure services (vdf#103), by name
+  services: VdfServiceChange[]
   policiesReordered: boolean
   // limits, the global scope...
   settings: string[]
@@ -61,19 +66,23 @@ function ruleChanges(before: VdfRule[], after: VdfRule[]): VdfRuleChange[] {
 
 const commonOrder = (keys: (string | number)[], other: (string | number)[]) => keys.filter(key => other.includes(key))
 
-// What hosts enforce in a document: its enforced policies, in order, the
+// What hosts enforce in a document: its enforced policies, in order, its
+// enforced services (a monitored one keeps today's trust, vdf#103), the
 // groups they name, and its other settings (limits...); not the format
 // version, which follows monitor mode. `allGroups`: every group counts (the
 // global configuration's: pools' own policies may name them in rules)
 function enforcement(document: VdfDocument, allGroups: boolean) {
   const policies = document.policies.filter(policy => !isMonitored(policy))
-  const used = new Set(
-    policies.flatMap(policy => [policy.appliedTo, ...allRules(policy).map(rule => rule.to ?? rule.from)])
-  )
+  const services = (document.services ?? []).filter(service => !isServiceMonitored(service))
+  const used = new Set([
+    ...policies.flatMap(policy => [policy.appliedTo, ...allRules(policy).map(rule => rule.to ?? rule.from)]),
+    ...services.map(service => service.group),
+  ])
 
   return {
-    ...omit(document, ['version', 'policies', 'groups']),
+    ...omit(document, ['version', 'policies', 'groups', 'services']),
     policies,
+    services,
     groups: allGroups
       ? document.groups
       : Object.fromEntries(Object.entries(document.groups).filter(([name]) => used.has(name))),
@@ -165,16 +174,37 @@ export function changeDetails(before: VdfDocument, after: VdfDocument): VdfChang
     }
   }
 
+  const services: VdfServiceChange[] = []
+  const beforeServices = new Map((before.services ?? []).map(service => [service.name, service]))
+  const afterServices = new Set((after.services ?? []).map(service => service.name))
+
+  for (const service of after.services ?? []) {
+    const previous = beforeServices.get(service.name)
+
+    if (previous === undefined) {
+      services.push({ type: 'added', name: service.name, service })
+    } else if (!isEqual(previous, service)) {
+      services.push({ type: 'modified', name: service.name, service, previous })
+    }
+  }
+
+  for (const service of before.services ?? []) {
+    if (!afterServices.has(service.name)) {
+      services.push({ type: 'removed', name: service.name, service })
+    }
+  }
+
   const beforeNames = before.policies.map(policy => policy.name)
   const afterOrder = after.policies.map(policy => policy.name)
   // the format version follows what the document holds (monitor mode,
   // networks): no change of its own
-  const beforeSettings = omit(before, ['groups', 'policies', 'version']) as Record<string, unknown>
-  const afterSettings = omit(after, ['groups', 'policies', 'version']) as Record<string, unknown>
+  const beforeSettings = omit(before, ['groups', 'policies', 'services', 'version']) as Record<string, unknown>
+  const afterSettings = omit(after, ['groups', 'policies', 'services', 'version']) as Record<string, unknown>
 
   return {
     policies,
     groups,
+    services,
     policiesReordered: !isEqual(commonOrder(beforeNames, afterOrder), commonOrder(afterOrder, beforeNames)),
     settings: [...new Set([...Object.keys(beforeSettings), ...Object.keys(afterSettings)])].filter(
       key => !isEqual(beforeSettings[key], afterSettings[key])
@@ -186,6 +216,7 @@ export function isEmptyChange(details: VdfChangeDetails) {
   return (
     details.policies.length === 0 &&
     details.groups.length === 0 &&
+    details.services.length === 0 &&
     !details.policiesReordered &&
     details.settings.length === 0
   )

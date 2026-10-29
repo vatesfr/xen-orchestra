@@ -78,10 +78,10 @@
 <script lang="ts" setup>
 import type { VdfGroup, VdfService, VdfServiceKind } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   canonMac,
   serviceErrors,
+  serviceGroupChoices,
   VDF_SERVICE_KINDS,
   type VdfServiceError,
 } from '@/modules/vdf/utils/vdf-services.util.ts'
@@ -121,7 +121,7 @@ const emit = defineEmits<{
   createGroup: [select: (name: string) => void, prefill?: VdfGroup]
 }>()
 
-const { t } = useI18n()
+const { t, n } = useI18n()
 
 const MODES = ['monitor', 'enforce'] as const
 
@@ -133,17 +133,16 @@ const form = reactive({
   mode: (service.mode === 'monitor' ? 'monitor' : 'enforce') as 'monitor' | 'enforce',
 })
 
-// a group on networks alone can't hold servers: not offered
+// a group on networks alone can't hold servers: not offered; the pool's
+// own first, each with its first tags and addresses
 const groupOptions = computed(() =>
-  Object.entries(groups)
-    .filter(([, group]) => !isNetworksOnly(group))
-    .map(([name, group]) => ({
-      name,
-      label: t('firewall:service-form:group-option', {
-        name: isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name,
-        what: [...(group.tags ?? []), ...(group.ips ?? [])].join(', ') || '—',
-      }),
-    }))
+  serviceGroupChoices(groups).map(({ name, what, more }) => ({
+    name,
+    label: t('firewall:service-form:group-option', {
+      name: isGlobalName(name) ? t('firewall:global-name', { name: displayName(name) }) : name,
+      what: what.length === 0 ? '—' : `${what.join(', ')}${more > 0 ? ` +${n(more)}` : ''}`,
+    }),
+  }))
 )
 
 const { id: groupSelectId } = useFormSelect(groupOptions, {

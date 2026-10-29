@@ -7,11 +7,20 @@
       </template>
     </UiTitle>
     <!-- no service of a kind declared: today's trust in what comes from outside -->
-    <UiInfo v-for="item of report.undeclared" :key="item.kind" accent="warning" wrap>
+    <UiInfo v-for="line of undeclared.lines" :key="line.kinds.join()" accent="warning" wrap>
       {{
-        t(`firewall:services:undeclared:${item.kind === 'router' ? 'router' : 'dhcp'}`, {
-          kind: t(`firewall:service:kind:${item.kind}`),
-          hosts: list(item.hosts),
+        line.kinds.includes('router')
+          ? t('firewall:services:undeclared:router', { hosts: list(line.hosts) })
+          : t('firewall:services:undeclared:dhcp', {
+              kind: list(line.kinds.map(dhcpVersion), 'disjunction'),
+              hosts: list(line.hosts),
+            })
+      }}
+    </UiInfo>
+    <UiInfo v-if="undeclared.pending.length > 0" accent="info" wrap>
+      {{
+        t('firewall:services:undeclared:pending', {
+          kinds: list(undeclared.pending.map(kind => t(`firewall:service:kind:${kind}`))),
         })
       }}
     </UiInfo>
@@ -54,7 +63,7 @@
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { VdfServiceKind } from '@/modules/vdf/types.ts'
-import { isEmptyReport, servicesReport } from '@/modules/vdf/utils/vdf-services.util.ts'
+import { dhcpVersion, isEmptyReport, servicesReport, undeclaredLines } from '@/modules/vdf/utils/vdf-services.util.ts'
 import { parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -69,8 +78,14 @@ import type { RouteLocationRaw } from 'vue-router'
 // What the pool's agents say of the infrastructure services (vdf#103):
 // kinds no service declares, bridges where forged MACs aren't dropped,
 // notes, and the undeclared sources they sampled (candidates to declare)
-const { poolId, declarable = false } = defineProps<{
+const {
+  poolId,
+  declarable = false,
+  drafted = [],
+} = defineProps<{
   poolId: string
+  // the kinds the draft declares: no longer undeclared once published
+  drafted?: VdfServiceKind[]
   // offers "Declare" on each sampled source
   declarable?: boolean
   // a card of its own, linking to where services are declared (overview)
@@ -93,7 +108,10 @@ const report = computed(() =>
   )
 )
 
-const list = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
+const undeclared = computed(() => undeclaredLines(report.value.undeclared, drafted))
+
+const list = (items: string[], type: Intl.ListFormatType = 'conjunction') =>
+  new Intl.ListFormat(locale.value, { type }).format(items)
 </script>
 
 <style lang="postcss" scoped>

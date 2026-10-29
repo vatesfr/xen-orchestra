@@ -1,4 +1,4 @@
-import type { VdfDocument, VdfPolicy } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfPolicy, VdfService } from '@/modules/vdf/types.ts'
 import {
   changeDetails,
   hostWarnings,
@@ -190,5 +190,32 @@ describe('changeDetails and the format version', () => {
   it("doesn't count the version as a settings change: it follows the document", () => {
     const before: VdfDocument = { version: 4, groups: {}, policies: [] }
     expect(changeDetails(before, { groups: {}, policies: [] }).settings).toEqual([])
+  })
+})
+
+describe('services (vdf#103)', () => {
+  const dhcp: VdfService = { name: 'dhcp', kind: 'dhcp4', group: 'web' }
+  const base: VdfDocument = { groups: { web: { tags: ['web'] }, gw: { tags: ['gw'] } }, policies: [] }
+
+  it('lists each service added, modified or removed, not as a setting', () => {
+    const before = { ...base, services: [dhcp, { name: 'ra', kind: 'router' as const, group: 'gw' }] }
+    const after = { ...base, version: 9, services: [{ ...dhcp, group: 'gw' }] }
+    const details = changeDetails(before, after)
+    expect(details.services).toEqual([
+      { type: 'modified', name: 'dhcp', service: { ...dhcp, group: 'gw' }, previous: dhcp },
+      { type: 'removed', name: 'ra', service: { name: 'ra', kind: 'router', group: 'gw' } },
+    ])
+    expect(details.settings).toEqual([])
+    expect(isEmptyChange(details)).toBe(false)
+  })
+
+  it("a monitored service keeps today's trust: monitor only; enforced, or its group changed, not", () => {
+    const monitored = { ...base, services: [{ ...dhcp, mode: 'monitor' as const }] }
+    expect(isMonitorOnlyChange(base, monitored)).toBe(true)
+    expect(isMonitorOnlyChange(monitored, { ...base, services: [dhcp] })).toBe(false)
+    const enforced = { ...base, services: [dhcp] }
+    expect(
+      isMonitorOnlyChange(enforced, { ...enforced, groups: { ...base.groups, web: { tags: ['web', 'x'] } } })
+    ).toBe(false)
   })
 })

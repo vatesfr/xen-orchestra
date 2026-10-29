@@ -29,12 +29,13 @@
 import VdfRuleSentence from '@/modules/vdf/components/history/VdfRuleSentence.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
-import type { VdfDefaultAction, VdfGroup, VdfPolicy, VdfRule } from '@/modules/vdf/types.ts'
+import type { VdfDefaultAction, VdfGroup, VdfPolicy, VdfRule, VdfService } from '@/modules/vdf/types.ts'
 import type { VdfChangeDetails, VdfChangeType } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
+import { isServiceMonitored } from '@/modules/vdf/utils/vdf-services.util.ts'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { isEqual, omit } from 'lodash-es'
 import { computed } from 'vue'
@@ -89,6 +90,19 @@ function groupMeta(group: VdfGroup) {
   }
 
   return meta
+}
+
+// its kind, its servers, its mode (vdf#103)
+function serviceMeta(service: VdfService) {
+  const group = displayName(service.group)
+
+  return [
+    t(`firewall:service:kind:${service.kind}`),
+    service.macs?.length
+      ? t('firewall:services:members:macs', { group, macs: service.macs.join(', ') })
+      : t('firewall:services:members', { group }),
+    ...(isServiceMonitored(service) ? [t('firewall:review:monitor')] : []),
+  ]
 }
 
 function policyMeta(policy: VdfPolicy) {
@@ -214,6 +228,17 @@ const items = computed<Item[]>(() => {
     })
   }
 
+  for (const change of details.services) {
+    list.push({
+      key: `service:${change.name}`,
+      accent: accents[change.type],
+      typeLabel: t(`firewall:change:${change.type}`),
+      title: t('firewall:change:service', { name: change.name }),
+      meta: serviceMeta(change.service),
+      rules: [],
+    })
+  }
+
   for (const key of details.settings) {
     list.push({
       key: `setting:${key}`,
@@ -222,11 +247,9 @@ const items = computed<Item[]>(() => {
       title:
         key === 'limits'
           ? t('firewall:limits')
-          : key === 'services'
-            ? t('firewall:services')
-            : isGlobal && key === 'scope'
-              ? t('firewall:global:change:settings')
-              : t('firewall:change:settings'),
+          : isGlobal && key === 'scope'
+            ? t('firewall:global:change:settings')
+            : t('firewall:change:settings'),
       meta: [],
       rules: [],
     })

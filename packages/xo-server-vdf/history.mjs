@@ -17,11 +17,15 @@ const rulesOf = document =>
 const policiesOf = document =>
   new Map((document?.policies ?? []).map(({ ingress, egress, ...settings }) => [settings.name, settings]))
 
-// what a document holds besides its groups and policies; its format
-// version follows what it holds (monitor mode, networks): no change of its own
-const settingsOf = ({ groups, policies, version, ...settings } = {}) => settings
+// what a document holds besides its groups, policies and services; its
+// format version follows what it holds (monitor mode, networks): no change
+// of its own
+const settingsOf = ({ groups, policies, services, version, ...settings } = {}) => settings
 
 const groupsOf = document => new Map(Object.entries(document?.groups ?? {}))
+
+// declared infrastructure services (vdf#103), by name
+const servicesOf = document => new Map((document?.services ?? []).map(service => [service.name, service]))
 
 function countChanges(previous, next) {
   let added = 0
@@ -42,7 +46,7 @@ function countChanges(previous, next) {
   return { added, removed, modified }
 }
 
-// What a publish changed, in groups, policies and rules (a policy's
+// What a publish changed, in groups, policies, rules and services (a policy's
 // settings without its rules: a rule edit counts as a rule change), plus
 // the size of the published document. `previous` is null for a first
 // publish.
@@ -59,7 +63,8 @@ export function summarize(previous, next) {
   const changes = total(
     countChanges(groupsOf(previous), groupsOf(next)),
     countChanges(policiesOf(previous), policiesOf(next)),
-    countChanges(rulesOf(previous), rulesOf(next))
+    countChanges(rulesOf(previous), rulesOf(next)),
+    countChanges(servicesOf(previous), servicesOf(next))
   )
   if (previous != null && !isDeepStrictEqual(settingsOf(previous), settingsOf(next ?? undefined))) {
     // limits, the global scope...
@@ -85,8 +90,9 @@ const rulesByPolicy = document => new Map((document?.policies ?? []).map(policy 
 
 // What a publish changed, object by object, for the history list (UX
 // P2-10): each policy added, removed, or modified (its rules added,
-// removed, modified, and whether its settings changed), each group added,
-// removed or modified, policies first; at most `max`, the rest counted.
+// removed, modified, and whether its settings changed), each group and
+// service added, removed or modified, policies first; at most `max`, the
+// rest counted.
 export function describeChanges(previous, next, max = 4) {
   const items = []
   const before = rulesByPolicy(previous)
@@ -121,6 +127,20 @@ export function describeChanges(previous, next, max = 4) {
   for (const name of groupsBefore.keys()) {
     if (!groupsOf(next).has(name)) {
       items.push({ kind: 'group', name, change: 'removed' })
+    }
+  }
+  const servicesBefore = servicesOf(previous)
+  const servicesAfter = servicesOf(next)
+  for (const [name, service] of servicesAfter) {
+    if (!servicesBefore.has(name)) {
+      items.push({ kind: 'service', name, change: 'added' })
+    } else if (!isDeepStrictEqual(servicesBefore.get(name), service)) {
+      items.push({ kind: 'service', name, change: 'modified' })
+    }
+  }
+  for (const name of servicesBefore.keys()) {
+    if (!servicesAfter.has(name)) {
+      items.push({ kind: 'service', name, change: 'removed' })
     }
   }
   if (previous != null && !isDeepStrictEqual(settingsOf(previous), settingsOf(next ?? undefined))) {

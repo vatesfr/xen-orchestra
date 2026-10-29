@@ -119,6 +119,35 @@ describe('describeChanges', () => {
     assert.deepEqual(describeChanges(BEFORE, BEFORE), { items: [], more: 0 })
   })
 
+  test('services (vdf#103) by name, not as a setting', () => {
+    const dhcp = { name: 'dhcp', kind: 'dhcp4', group: 'db' }
+    const ra = { name: 'ra', kind: 'router', group: 'web', mode: 'monitor' }
+    const before = { ...BEFORE, services: [dhcp, ra] }
+    const after = {
+      ...BEFORE,
+      services: [
+        { ...dhcp, mode: 'monitor' },
+        { name: 'dhcp6', kind: 'dhcp6', group: 'db' },
+      ],
+    }
+    assert.deepEqual(describeChanges(before, after, 10), {
+      items: [
+        { kind: 'service', name: 'dhcp', change: 'modified' },
+        { kind: 'service', name: 'dhcp6', change: 'added' },
+        { kind: 'service', name: 'ra', change: 'removed' },
+      ],
+      more: 0,
+    })
+    assert.deepEqual(summarize(before, after), {
+      added: 1,
+      removed: 1,
+      modified: 1,
+      groups: 2,
+      policies: 1,
+      rules: 2,
+    })
+  })
+
   test('the list: each entry against the one before it, without documents', () => {
     const entries = listEntries([
       { id: 1, document: BEFORE },

@@ -91,6 +91,10 @@ function itemText(item: VdfHistoryChangeItem) {
     return t(`firewall:history:item:group:${item.change}`, { name: displayName(item.name) })
   }
 
+  if (item.kind === 'service') {
+    return t(`firewall:history:item:service:${item.change}`, { name: item.name })
+  }
+
   if (item.change !== 'modified') {
     return t(`firewall:history:item:policy:${item.change}`, { name: displayName(item.name) })
   }

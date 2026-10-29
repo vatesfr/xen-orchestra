@@ -335,6 +335,8 @@ export type VdfHistoryChangeItem =
       settings: boolean
     }
   | { kind: 'group'; name: string; change: 'added' | 'removed' | 'modified' }
+  // vdf#103
+  | { kind: 'service'; name: string; change: 'added' | 'removed' | 'modified' }
   | { kind: 'settings'; change: 'modified' }
 
 export type VdfHistoryVersion = VdfHistoryEntry & {

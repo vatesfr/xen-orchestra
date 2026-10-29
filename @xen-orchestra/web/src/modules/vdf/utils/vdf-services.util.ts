@@ -1,11 +1,16 @@
-import type { VdfDocument, VdfHostServices, VdfService, VdfServiceKind } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfGroup, VdfHostServices, VdfService, VdfServiceKind } from '@/modules/vdf/types.ts'
+import { isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { isEqual } from 'lodash-es'
 
 // DECLARED INFRASTRUCTURE SERVICES (vdf#103): the DHCP servers and routers
 // of the networks VDF guards. The agent's check (agent/policy.go
 // checkServices) decides; XO says the same before asking it.
 
 export const VDF_SERVICE_KINDS: VdfServiceKind[] = ['dhcp4', 'dhcp6', 'router']
+
+// as the admin names them, in any language
+export const dhcpVersion = (kind: VdfServiceKind) => (kind === 'dhcp6' ? 'DHCPv6' : 'DHCPv4')
 
 export const isServiceMonitored = (service: Pick<VdfService, 'mode'>) => service.mode === 'monitor'
 
@@ -154,3 +159,46 @@ export function servicesReport(hosts: { name: string; services: VdfHostServices 
 
 export const isEmptyReport = (report: VdfServicesReport) =>
   report.undeclared.length + report.seen.length + report.notes.length + report.unenforced.length === 0
+
+// The undeclared kinds as the admin reads them: DHCPv4 and DHCPv6 in one
+// line when the same hosts say so (the same risk), the router apart. The
+// kinds the draft declares (`drafted`, monitored or enforced: the agent no
+// longer reports either as undeclared) are set aside as `pending`: the
+// hosts stop reporting them once it's published.
+export function undeclaredLines(undeclared: VdfServicesReport['undeclared'], drafted: VdfServiceKind[] = []) {
+  const lines: { kinds: VdfServiceKind[]; hosts: string[] }[] = []
+  const pending: VdfServiceKind[] = []
+
+  for (const { kind, hosts } of undeclared) {
+    if (drafted.includes(kind)) {
+      pending.push(kind)
+      continue
+    }
+
+    const same =
+      kind === 'router' ? undefined : lines.find(line => !line.kinds.includes('router') && isEqual(line.hosts, hosts))
+
+    if (same === undefined) {
+      lines.push({ kinds: [kind], hosts })
+    } else {
+      same.kinds.push(kind)
+    }
+  }
+
+  return { lines, pending }
+}
+
+// The groups a service can take its servers from, the pool's own first: a
+// group on networks alone can't hold servers. `what`: its first tags and
+// addresses, the others counted (a group of many addresses would make the
+// option wider than the drawer)
+export function serviceGroupChoices(groups: Record<string, VdfGroup>, shown = 2) {
+  return Object.entries(groups)
+    .filter(([, group]) => !isNetworksOnly(group))
+    .sort(([a], [b]) => Number(isGlobalName(a)) - Number(isGlobalName(b)))
+    .map(([name, group]) => {
+      const items = [...(group.tags ?? []), ...(group.ips ?? [])]
+
+      return { name, what: items.slice(0, shown), more: Math.max(0, items.length - shown) }
+    })
+}

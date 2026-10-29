@@ -5,8 +5,10 @@ import {
   isEmptyReport,
   isMac,
   serviceErrors,
+  serviceGroupChoices,
   servicesOfGroup,
   servicesReport,
+  undeclaredLines,
 } from '@/modules/vdf/utils/vdf-services.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -121,5 +123,62 @@ describe('servicesReport', () => {
     expect(report.notes.map(note => note.host)).toEqual(['h1'])
     expect(report.unenforced).toEqual([{ host: 'h2', bridge: 'xenbr1' }])
     expect(isEmptyReport(servicesReport([{ name: 'h', services: undefined }]))).toBe(true)
+  })
+})
+
+describe('undeclaredLines', () => {
+  it('DHCPv4 and DHCPv6 in one line for the same hosts, the router apart', () => {
+    expect(
+      undeclaredLines([
+        { kind: 'dhcp4', hosts: ['h1', 'h2'] },
+        { kind: 'dhcp6', hosts: ['h1', 'h2'] },
+        { kind: 'router', hosts: ['h1', 'h2'] },
+      ])
+    ).toEqual({
+      lines: [
+        { kinds: ['dhcp4', 'dhcp6'], hosts: ['h1', 'h2'] },
+        { kinds: ['router'], hosts: ['h1', 'h2'] },
+      ],
+      pending: [],
+    })
+    expect(
+      undeclaredLines([
+        { kind: 'dhcp4', hosts: ['h1'] },
+        { kind: 'dhcp6', hosts: ['h1', 'h2'] },
+      ]).lines
+    ).toEqual([
+      { kinds: ['dhcp4'], hosts: ['h1'] },
+      { kinds: ['dhcp6'], hosts: ['h1', 'h2'] },
+    ])
+  })
+
+  it('sets aside the kinds the draft declares', () => {
+    expect(
+      undeclaredLines(
+        [
+          { kind: 'dhcp4', hosts: ['h1'] },
+          { kind: 'dhcp6', hosts: ['h1'] },
+          { kind: 'router', hosts: ['h1'] },
+        ],
+        ['dhcp4', 'router']
+      )
+    ).toEqual({ lines: [{ kinds: ['dhcp6'], hosts: ['h1'] }], pending: ['dhcp4', 'router'] })
+  })
+})
+
+describe('serviceGroupChoices', () => {
+  it("the pool's own groups first, no group on networks alone, the first items with the others counted", () => {
+    expect(
+      serviceGroupChoices({
+        'global:admins': { ips: ['192.0.2.1'] },
+        customer: { networks: ['vdf:net=customer'] },
+        dhcp: { tags: ['vdf:service=dhcp'], ips: ['192.0.2.2', '192.0.2.3', '2001:db8::1'] },
+        empty: {},
+      })
+    ).toEqual([
+      { name: 'dhcp', what: ['vdf:service=dhcp', '192.0.2.2'], more: 2 },
+      { name: 'empty', what: [], more: 0 },
+      { name: 'global:admins', what: ['192.0.2.1'], more: 0 },
+    ])
   })
 })
