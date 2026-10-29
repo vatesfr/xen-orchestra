@@ -10,6 +10,11 @@ export async function openSelect(wrapper: QueryableWrapper) {
   await flushPromises()
 }
 
+// A select shows its selection as the text of its readonly input
+export function findSelectedLabels(wrapper: QueryableWrapper) {
+  return wrapper.findAll('.vts-select .ui-input').map(input => input.text())
+}
+
 export function findSelectOptionLabels(wrapper: QueryableWrapper) {
   return wrapper.findAll('.ui-dropdown').map(option => option.text())
 }

@@ -242,6 +242,15 @@ export function useV2vVmLabels() {
     }))
   }
 
+  function getOnOffLabel(value: boolean): string {
+    return value ? t('option-on') : t('option-off')
+  }
+
+  // A launch option left to its default reads as that default
+  function getLaunchOptionLabel(value: boolean | undefined, defaultValue: boolean): string {
+    return value === undefined ? t('default-value', { value: getOnOffLabel(defaultValue) }) : getOnOffLabel(value)
+  }
+
   return {
     statusLabels,
     powerLabels,
@@ -261,5 +270,6 @@ export function useV2vVmLabels() {
     nextTransferLabels,
     getMappingParts,
     getReadinessTags,
+    getLaunchOptionLabel,
   }
 }

@@ -16,7 +16,7 @@ import { t } from '@/test/i18n.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect } from '@/test/select.ts'
+import { findSelectedLabels, findSelectOptionLabels, openSelect } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { flushPromises } from '@vue/test-utils'
@@ -118,11 +118,6 @@ function mountSelectsOnRoutePool(storedList: V2vMigrationList | undefined) {
         h(VtsSelect, { id: form.templateSelectBindings.value.id, accent: 'brand' }),
       ])
   })
-}
-
-// A select shows its selection as the text of its readonly input
-function findShownSelections(wrapper: ReturnType<typeof mountWithSelect>) {
-  return wrapper.findAll('.vts-select .ui-input').map(input => input.text())
 }
 
 const LATE_COLLECTIONS = {
@@ -228,7 +223,7 @@ describe('formData', () => {
 
       await loadCollectionsOneByOne(order)
 
-      const [srLabel, networkLabel, templateLabel] = findShownSelections(wrapper)
+      const [srLabel, networkLabel, templateLabel] = findSelectedLabels(wrapper)
 
       expect(srLabel).toContain(createSr().name_label)
       expect(networkLabel).toBe(createNetwork().name_label)
@@ -246,7 +241,7 @@ describe('formData', () => {
 
       await loadCollectionsOneByOne(order)
 
-      expect(findShownSelections(wrapper).slice(0, 2)).toEqual([
+      expect(findSelectedLabels(wrapper).slice(0, 2)).toEqual([
         expect.stringContaining(createSr().name_label),
         createNetwork({ id: MANAGEMENT_NETWORK_ID }).name_label,
       ])
