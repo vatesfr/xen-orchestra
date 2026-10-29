@@ -11,6 +11,10 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
   const { t } = useI18n()
 
   function hasIds(pattern: unknown) {
+    if (typeof pattern === 'string') {
+      return true
+    }
+
     return extractIdsFromSimplePattern(pattern).length > 0
   }
 
