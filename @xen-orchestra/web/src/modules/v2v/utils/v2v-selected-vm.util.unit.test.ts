@@ -18,6 +18,7 @@ import {
   V2V_POOL_OFFERS,
   V2V_SSD_SR,
 } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import type { XoV2vVm } from '@vates/types'
 
 const LIST_POOL_ID = 'pool-list' as FrontXoPool['id']
@@ -204,19 +205,19 @@ describe('getV2vMappingSummary', () => {
 
 describe('isV2vListIssue', () => {
   it.each([
-    ['running', { type: 'running', level: 'blocking' }],
-    ['partially imported on another pool', { type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }],
-    ['with an incomplete mapping', { type: 'mapping-incomplete', level: 'blocking' }],
-    ['already migrated', { type: 'already-migrated', level: 'warning' }],
-    ['not found in the source', { type: 'not-found', level: 'blocking' }],
-  ] as const)('tells the issue of a VM %s', (_, check) => {
+    ['running', V2V_SELECTED_VM_CHECK.running],
+    ['partially imported on another pool', V2V_SELECTED_VM_CHECK.partialOnOtherPool],
+    ['with an incomplete mapping', V2V_SELECTED_VM_CHECK.mappingIncomplete],
+    ['already migrated', V2V_SELECTED_VM_CHECK.alreadyMigrated],
+    ['not found in the source', V2V_SELECTED_VM_CHECK.notFound],
+  ])('tells the issue of a VM %s', (_, check) => {
     expect(isV2vListIssue(check)).toBe(true)
   })
 
   it.each([
-    ['ready', { type: 'ready', level: 'ready' }],
-    ['unsupported, which its source checks tell', { type: 'unsupported', level: 'blocking', reason: 'rdm' }],
-  ] as const)('tells no issue of a VM %s', (_, check) => {
+    ['ready', V2V_SELECTED_VM_CHECK.ready],
+    ['unsupported, which its source checks tell', V2V_SELECTED_VM_CHECK.unsupported],
+  ])('tells no issue of a VM %s', (_, check) => {
     expect(isV2vListIssue(check)).toBe(false)
   })
 })

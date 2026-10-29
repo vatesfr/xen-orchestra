@@ -1,16 +1,10 @@
 import { ApiError } from '@/shared/error/api.error.ts'
-import { HttpCodes } from '@core/types/http-codes.type.ts'
+import { getUnprocessableEntityData } from '@/shared/utils/api-error.util.ts'
 import { hasObjectProperty } from '@core/utils/object.util.ts'
 import { V2V_ERROR_CODE } from '@vates/types'
 
 export function isV2vInvalidCredentialsError(error: unknown): boolean {
-  const isUnprocessableApiError = error instanceof ApiError && error.status === HttpCodes.UnprocessableEntity
-
-  if (!isUnprocessableApiError) {
-    return false
-  }
-
-  const errorData = hasObjectProperty(error.cause, 'data') ? error.cause.data : undefined
+  const errorData = getUnprocessableEntityData(error)
 
   return hasObjectProperty(errorData, 'code') && errorData.code === V2V_ERROR_CODE.INVALID_CREDENTIALS
 }

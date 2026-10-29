@@ -5,10 +5,13 @@ import type { XoV2vDisk, XoV2vNic } from '@vates/types'
 
 export type V2vTargetOrigin = 'default' | 'overridden'
 
-// A stored target may have left the pool offers since (SR deleted, turned read-only…)
-export type V2vResolvedTarget<TId> = {
-  value: TId
+export type V2vResolvedValue<TValue> = {
+  value: TValue
   origin: V2vTargetOrigin
+}
+
+// A stored target may have left the pool offers since (SR deleted, turned read-only…)
+export type V2vResolvedTarget<TId> = V2vResolvedValue<TId> & {
   isOffered: boolean
 }
 
