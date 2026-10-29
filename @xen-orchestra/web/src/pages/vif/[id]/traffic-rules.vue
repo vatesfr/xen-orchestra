@@ -2,7 +2,14 @@
   <VtsContentSidePanel class="traffic-rules">
     <UiCard class="container">
       <VtsStateHero v-if="!areVmsReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules" :pool>
+      <!-- vdf#40: what the pool's firewall does with each rule -->
+      <VdfTrafficRuleStatuses
+        v-if="pool !== undefined && isVdfEnabled && hasVdfAgent(pool.id)"
+        v-model="firewallLabels"
+        :pool
+        :rules="trafficRules"
+      />
+      <TrafficRulesTable v-if="areVmsReady" :rules="trafficRules" :pool :firewall-labels>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { vifid: vif.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -19,6 +26,9 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
+import VdfTrafficRuleStatuses from '@/modules/vdf/components/traffic-rules/VdfTrafficRuleStatuses.vue'
+import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
+import type { VdfTrafficRuleLabel } from '@/modules/vdf/types.ts'
 import { type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -27,11 +37,16 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import type { TrafficRule } from '@vates/types'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{ vif: FrontXoVif }>()
 
 const { t } = useI18n()
+
+const { isVdfEnabled, hasVdfAgent } = useVdfAvailability()
+
+const firewallLabels = ref<Record<string, VdfTrafficRuleLabel>>({})
 
 const { useGetPoolById } = useXoPoolCollection()
 const pool = useGetPoolById(() => vif.$pool)

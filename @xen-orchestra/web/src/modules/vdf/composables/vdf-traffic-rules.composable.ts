@@ -64,8 +64,12 @@ export function useVdfTrafficRules() {
     })
   }
 
-  const statusOf = ({ rule, vif }: VdfVmTrafficRule, shadowed: Map<string, VdfShadowedVif>) =>
-    trafficRuleStatus(rule, shadowed.get(vif.id))
+  // aboveTrafficRules: the agent of the VM's host puts VDF first (vdf#40)
+  const statusOf = (
+    { rule, vif }: VdfVmTrafficRule,
+    shadowed: Map<string, VdfShadowedVif>,
+    aboveTrafficRules = false
+  ) => trafficRuleStatus(rule, shadowed.get(vif.id), aboveTrafficRules)
 
   return { rulesOfVm, ruleText, statusOf }
 }

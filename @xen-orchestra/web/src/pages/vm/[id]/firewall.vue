@@ -147,16 +147,18 @@
           <!-- vdf#40: XO's Traffic Rules decide before VDF for what they match -->
           <UiCard v-if="isGuarded && vmTrafficRules.length > 0" id="vdf-traffic-rules">
             <UiTitle>{{ t('firewall:traffic-rules') }}</UiTitle>
-            <p class="secondary typo-body-regular-small">{{ t('firewall:traffic-rules:info') }}</p>
+            <p class="secondary typo-body-regular-small">
+              {{ t(isAboveTrafficRules ? 'firewall:traffic-rules:info:above' : 'firewall:traffic-rules:info') }}
+            </p>
             <div v-for="(item, index) of vmTrafficRules" :key="index" class="traffic-rule typo-body-regular-small">
               <span>{{ ruleText(item) }}</span>
               <UiTag
-                v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}:info`)"
-                :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed)]"
+                v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed, isAboveTrafficRules)}:info`)"
+                :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed, isAboveTrafficRules)]"
                 variant="secondary"
                 tabindex="0"
               >
-                {{ t(`firewall:traffic-rule:status:${statusOf(item, shadowed)}`) }}
+                {{ t(`firewall:traffic-rule:status:${statusOf(item, shadowed, isAboveTrafficRules)}`) }}
               </UiTag>
             </div>
             <UiLink :to="{ name: '/pool/[id]/traffic-rules', params: { id: pool.id } }" size="small">
@@ -282,7 +284,7 @@ import {
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
-import { shadowedVifs, type VdfTrafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
+import { shadowedVifs, TRAFFIC_RULE_ACCENTS } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -501,11 +503,8 @@ const bypassedInfo = computed(() =>
   })
 )
 
-const TRAFFIC_RULE_ACCENTS: Record<VdfTrafficRuleStatus, 'danger' | 'warning' | 'muted'> = {
-  bypasses: 'danger',
-  'decides-first': 'warning',
-  'not-applied': 'muted',
-}
+// the agent of the VM's host puts VDF's flows above Traffic Rules (vdf#40)
+const isAboveTrafficRules = computed(() => host.value?.status?.aboveTrafficRules === true)
 
 // GROUPS: membership is tags, written at once (no draft), after a
 // confirmation that says what changes

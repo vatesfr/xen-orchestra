@@ -373,6 +373,12 @@ export type VdfHostStatusDocument = {
   // decide for first, Traffic Rules usually (vdf#40); absent from agents
   // before it
   shadowed?: VdfShadowedVif[]
+  // guarded VIFs whose Traffic Rules' allows VDF decides before: they can't
+  // let anything past it (vdf#40); Traffic Rules' drops apply after VDF's
+  // decision, on every path (vdf#102). Absent from agents before them.
+  overridden?: VdfShadowedVif[]
+  // this agent puts VDF's flows for guarded VIFs above Traffic Rules
+  aboveTrafficRules?: boolean
   // declared infrastructure services (vdf#103); absent when there's
   // nothing to say, and from agents before them
   services?: VdfHostServices
@@ -439,6 +445,13 @@ export type VdfHostPolicyStatus = {
   // of those VIFs, the ones whose shadowed tiers past the agent's cap got
   // no isolated pass: what the policy alone would drop isn't recorded
   shadowedUnchecked?: number
+}
+
+// what VDF does with a Traffic Rule, for XO 6's Traffic rules pages (vdf#40)
+export type VdfTrafficRuleLabel = {
+  label: string
+  tooltip: string
+  accent: 'danger' | 'warning' | 'info' | 'muted'
 }
 
 // a guarded VIF non-VDF flows of table 0 decide for before VDF does

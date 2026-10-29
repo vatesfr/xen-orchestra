@@ -1,5 +1,5 @@
 import type { VdfShadowedVif } from '@/modules/vdf/types.ts'
-import { shadowedVifs, trafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
+import { mostSevere, shadowedVifs, trafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { describe, expect, it } from 'vitest'
 
 const shadow = (fields: Partial<VdfShadowedVif> = {}): VdfShadowedVif => ({
@@ -18,6 +18,21 @@ describe('trafficRuleStatus', () => {
     expect(trafficRuleStatus({ allow: false }, shadow({ drops: 1 }))).toBe('decides-first')
     expect(trafficRuleStatus({ allow: false }, shadow({ allows: 2 }))).toBe('not-applied')
     expect(trafficRuleStatus({ allow: true }, undefined)).toBe('not-applied')
+  })
+
+  it('agents putting VDF first (vdf#40, vdf#102): an allow lets nothing past VDF, a drop applies after it', () => {
+    expect(trafficRuleStatus({ allow: true }, undefined, true)).toBe('vdf-first')
+    expect(trafficRuleStatus({ allow: false }, undefined, true)).toBe('applies-after')
+    // flows still found deciding first (another controller's) say so
+    expect(trafficRuleStatus({ allow: true }, shadow({ allows: 1 }), true)).toBe('bypasses')
+  })
+})
+
+describe('mostSevere', () => {
+  it("a network's rule takes the most telling status of its guarded VMs", () => {
+    expect(mostSevere(['vdf-first', 'not-applied', 'applies-after'])).toBe('not-applied')
+    expect(mostSevere(['vdf-first', 'bypasses'])).toBe('bypasses')
+    expect(mostSevere([])).toBeUndefined()
   })
 })
 
