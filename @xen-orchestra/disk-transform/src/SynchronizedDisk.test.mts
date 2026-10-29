@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
+import { setTimeout } from 'node:timers/promises'
 import { DebugDisk } from './utils/DebugDisk.mjs'
 import { SynchronizedDisk } from './SynchronizedDisk.mjs'
 
@@ -29,4 +30,46 @@ test('Disk class', async t => {
     assert.strictEqual(source.getNbGeneratedBlock(), nbBlocks)
   })
   console.log({ testRes })
+
+  await t.test('initializing a fork initializes the source', async () => {
+    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    const disk = new SynchronizedDisk(source)
+    const forks = [disk.fork('generator_0'), disk.fork('generator_1')]
+    assert.strictEqual(source.initDone, false, 'source is not opened before a fork is initialized')
+    await forks[0].init()
+    assert.strictEqual(source.initDone, true)
+    assert.strictEqual(forks[0].getBlockSize(), 1024)
+    await Promise.all(forks.map(fork => consumeGenerator(fork.diskBlocks())))
+    assert.strictEqual(source.getNbGeneratedBlock(), 20)
+  })
+
+  await t.test('closing a fork that has never been consumed does not block the other ones', async () => {
+    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    const disk = new SynchronizedDisk(source)
+    const forks = [disk.fork('generator_0'), disk.fork('generator_1')]
+    await forks[0].init()
+    await forks[1].close()
+    assert.strictEqual(await consumeGenerator(forks[0].diskBlocks()), 'finished')
+    assert.strictEqual(source.getNbGeneratedBlock(), 20)
+  })
+
+  await t.test('a fork closed while its source was being opened cannot be read', async () => {
+    class SlowToOpenDisk extends DebugDisk {
+      async init(): Promise<void> {
+        await setTimeout(10)
+        await super.init()
+      }
+    }
+    const source = new SlowToOpenDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    const disk = new SynchronizedDisk(source)
+    const [fork] = [disk.fork('generator_0')]
+    const opening = fork.init()
+    await fork.close()
+    assert.strictEqual(source.initDone, false, 'the source is still being opened when the fork is closed')
+    await opening
+    await assert.rejects(consumeGenerator(fork.diskBlocks()), /closed forked disk/)
+    assert.strictEqual(source.getNbGeneratedBlock(), 0)
+    // closing a source opened after its close is the responsibility of the source (see XapiDiskSource)
+    assert.strictEqual(source.closeDone, true, 'the close is forwarded to the source')
+  })
 })
