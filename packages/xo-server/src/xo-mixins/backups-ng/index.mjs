@@ -18,7 +18,7 @@ import { Task } from '@vates/task'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { getProxyCacheParams, rejectsUnknownParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
-import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
+import { serializeError, unboxIdsFromPattern, isSrWritable } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
@@ -192,18 +192,14 @@ export default class BackupNg {
 
         let vmIds
 
-        const settingsTimezone = job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone
-        const timezone = settingsTimezone ?? schedule.timezone
+        const timezone = job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+        const runContext = buildRunContext(new Date(), timezone)
 
-        job = { ...job }
-        if (settingsTimezone === undefined && timezone !== undefined) {
-          job.settings = { ...job.settings, '': { ...job.settings[''], timezone } }
-        }
+        job = { ...job, runContext }
 
         if (job.type === 'backup') {
           const srsExpression = isExpression(job.srs) ? job.srs : undefined
           const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
-          const runContext = buildRunContext(new Date(), timezone)
 
           if (isExpression(job.srs)) {
             const predicate = compileExpression(job.srs)
@@ -212,7 +208,7 @@ export default class BackupNg {
 
             const srUuids = []
             srs.forEach(sr => {
-              if (predicate(buildSrContext(sr, runContext))) {
+              if (isSrWritable(sr) && predicate(buildSrContext(sr, runContext))) {
                 srUuids.push(sr.uuid)
               }
             })
@@ -226,11 +222,27 @@ export default class BackupNg {
             const remotes = await app.getAllRemotes()
 
             const remoteIds = []
+            const skippedRemoteIds = []
             remotes.forEach(remote => {
               if (predicate(buildBackupRepositoryContext(remote, runContext))) {
-                remoteIds.push(remote.id)
+                if (remote.proxy === job.proxy) {
+                  remoteIds.push(remote.id)
+                } else {
+                  skippedRemoteIds.push(remote.id)
+                }
               }
             })
+
+            if (skippedRemoteIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { remotes: skippedRemoteIds, proxy: job.proxy },
+                }
+              )
+            }
 
             job.remotes = { id: { __or: remoteIds } }
           }
@@ -314,7 +326,6 @@ export default class BackupNg {
 
           job = {
             ...job,
-
             vms: { id: { __or: vmIds } },
             settings: merge(job.settings, data?.settings),
           }

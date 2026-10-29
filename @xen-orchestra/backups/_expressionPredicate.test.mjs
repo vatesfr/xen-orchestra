@@ -84,4 +84,12 @@ describe('isExpression', () => {
   it('empty string', () => {
     assert(!isExpression(''))
   })
+
+  it('number', () => {
+    assert(!isExpression('3'))
+  })
+
+  it('number with spaces', () => {
+    assert(!isExpression(' 5 '))
+  })
 })

@@ -280,7 +280,8 @@ export class CleanupClient {
       if (config.deleteBackupFiles) {
         try {
           const jobDetails = await this.dispatchClient.backup.details(job.id)
-          const jobRemotes = extractIdsFromSimplePattern(jobDetails.remotes)
+          const jobRemotes =
+            typeof jobDetails.remotes === 'string' ? [] : extractIdsFromSimplePattern(jobDetails.remotes)
 
           if (jobRemotes.length > 0) {
             const backupsByRemote = await this.dispatchClient.backup.listVmBackups(jobRemotes)

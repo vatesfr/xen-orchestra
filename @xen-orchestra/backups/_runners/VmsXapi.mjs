@@ -69,7 +69,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
     const settings = this._settings
-    const runContext = buildRunContext(new Date(), settings.timezone)
+    const runContext = job.runContext ?? buildRunContext(new Date(), settings.timezone)
 
     const throttleGenerator = new Throttle(settings.maxExportRate)
     const throttleStream = createStreamThrottle(settings.maxExportRate)

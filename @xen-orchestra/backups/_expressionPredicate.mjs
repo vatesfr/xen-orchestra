@@ -20,5 +20,5 @@ export function compileExpression(expression) {
  * @returns {boolean}
  */
 export function isExpression(value) {
-  return typeof value === 'string' && value.length > 0
+  return typeof value === 'string' && value.length > 0 && !Number.isFinite(Number(value))
 }

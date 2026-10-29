@@ -62,7 +62,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           return
         }
 
-        const runContext = buildRunContext(new Date(), settings.timezone)
+        const runContext = job.runContext ?? buildRunContext(new Date(), settings.timezone)
         const predicate = isExpression(settings.vmFilter) ? compileExpression(settings.vmFilter) : null
 
         const vmsUuids = await sourceRemoteAdapter.listAllVms()
@@ -70,7 +70,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const queue = new Set(vmsUuids)
 
         Task.info('vms', { vms: vmsUuids })
-        const nbVms = vmsUuids.length
+        let nbVms = vmsUuids.length
         let nbVmsDone = 0
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
@@ -89,6 +89,19 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
           const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
+
+          const vmBackups = await sourceRemoteAdapter.listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
+
+          // avoiding to create tasks for empty directories
+          if (vmBackups.length === 0) {
+            nbVms--
+            return
+          }
+
+          if (predicate !== null && !predicate(buildVmContext(vmBackups.at(-1).vm, runContext))) {
+            nbVms--
+            return
+          }
 
           const opts = {
             baseSettings,
@@ -112,12 +125,6 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           } else {
             throw new Error(`Job mode ${job.mode} not implemented for mirror backup`)
           }
-
-          const vmBackups = await sourceRemoteAdapter.listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
-
-          // avoiding to create tasks for empty directories
-          if (vmBackups.length === 0) return
-          if (predicate !== null && !predicate(buildVmContext(vmBackups.at(-1).vm, runContext))) return
 
           if (taskByVmId[vmUuid] === undefined) {
             taskByVmId[vmUuid] = new Task(taskStart)

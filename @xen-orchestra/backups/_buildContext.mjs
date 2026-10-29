@@ -19,16 +19,16 @@ const { warn } = createLogger('xo:backups:buildContext')
  * @property {number} year
  *
  * @typedef {object} VmContext
- * @property {object} vm
+ * @property {Record<string, unknown>} vm
  * @property {RunContext} run
  * @property {number} [chainLength]
  *
  * @typedef {object} SrContext
- * @property {object} sr
+ * @property {{name_label: string, type: string, description: string, tags: string[]}} sr
  * @property {RunContext} run
  *
  * @typedef {object} BackupRepositoryContext
- * @property {object} backupRepository
+ * @property {{name: string, type: string | undefined, tags: string[]}} backupRepository
  * @property {RunContext} run
  */
 
