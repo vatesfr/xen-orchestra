@@ -12,15 +12,20 @@ const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
 
-const getUpdater = deduped(async function () {
+const createUpdater = async function () {
   const updater = new JsonRpcWebSocketClient('ws://localhost:9001')
   await updater.open()
   return new Disposable(() => updater.close(), updater)
-})
+}
 
+const getUpdater = deduped(createUpdater)
+
+// `update` reports its progress as notifications on the connection, therefore it
+// gets its own instead of the shared one: concurrent calls would otherwise each
+// receive the others' notifications, and their listeners would pile up on it
 const callUpdate = params =>
   Disposable.use(
-    getUpdater(),
+    createUpdater(),
     updater =>
       new Promise((resolve, reject) => {
         updater
