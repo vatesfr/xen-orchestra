@@ -121,7 +121,7 @@
   "action:revert-vm-here": "VM hier terugzetten",
   "action:save": "Opslaan",
   "action:search": "Zoeken",
-  "action:search-treeview": "Zoeken in boomstructuur",
+  "action:search-treeview": "@:action:zoeken in boomstructuur ({shortcut})",
   "action:see-all": "Alles bekijken",
   "action:see-less": "Minder weergeven",
   "action:see-n-more": "Zie {n} meer",
