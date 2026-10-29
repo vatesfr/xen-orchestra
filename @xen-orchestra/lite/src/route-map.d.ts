@@ -471,6 +471,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/number-input/vts-number-input': RouteRecordInfo<
+      '/story/web-core/number-input/vts-number-input',
+      '/story/web-core/number-input/vts-number-input',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
@@ -1598,6 +1605,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/menu/vts-responsive-menu.story.vue': {
       routes:
         | '/story/web-core/menu/vts-responsive-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/number-input/vts-number-input.story.vue': {
+      routes:
+        | '/story/web-core/number-input/vts-number-input'
       views:
         | never
     }
