@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [SDN Controller] Fix the direct OpenFlow channel failing against a bridge that also allows newer OpenFlow versions (`Unsupported OpenFlow version: 5`): the version is negotiated down to OpenFlow 1.1 as the OpenFlow specification requires
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/openflow minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->
