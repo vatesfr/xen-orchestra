@@ -103,7 +103,7 @@ export async function listCommand(handlerUrl: string, dirPath: string, extraArgs
                 ok: true as const,
                 filename,
                 uid: disk.getUuid(),
-                sizeOnDisk: showSize ? formatBytes(disk.getSizeOnDisk()) : undefined,
+                sizeOnDisk: showSize ? formatBytes(disk.getStreamSize()) : undefined,
                 virtualSize: formatBytes(disk.getVirtualSize()),
                 differencing,
                 parentUid: differencing ? disk.getParentUuid() : null,

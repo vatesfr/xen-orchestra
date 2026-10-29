@@ -12,7 +12,7 @@ const zlib = require('zlib')
 const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
 const { asyncEach } = require('@vates/async-each')
 
-const { debug } = createLogger('vhd-lib:VhdDirectory')
+const { debug, warn } = createLogger('vhd-lib:VhdDirectory')
 
 const NULL_COMPRESSOR = {
   compress: buffer => buffer,
@@ -100,8 +100,9 @@ const SIZE_FILE = 'size.json'
 // │    Ordered array of filters that have been applied before writing chunks.
 // │    These filters needs to be applied in reverse order to read them.
 // ├─ size.json
-// │    stored size of the other files of this directory,
-// │    to know the space used without listing the blocks
+// │    Stored size of the other files of this directory,
+// │    to know the space used without listing the blocks.
+// │    Only valid for the footer UUID it records
 // │
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
@@ -119,21 +120,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   #chunkSizes = new Map()
   #blocksSizeOnDisk = 0 // A disk not read through readHeaderAndFooter() is being written from scratch
   #sizeFileSize = 0
+  #hasSize = true
 
   get compressionType() {
     return this.#compressor.id
-  }
-
-  get sizeOnDisk() {
-    if (this.#blocksSizeOnDisk === undefined) {
-      return undefined
-    }
-
-    return (
-      this.#sizeFileSize +
-      this.#blocksSizeOnDisk +
-      [...this.#chunkSizes.values()].reduce((total, chunkSize) => total + chunkSize, 0)
-    )
   }
 
   set header(header) {
@@ -235,6 +225,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       this.#chunkSizes.set(partName, size)
     }
 
+    this.#invalidateSizeIfNotLoaded()
+
     return size
   }
 
@@ -251,7 +243,6 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
   async readHeaderAndFooter() {
     await this.#readChunkFilters()
-    await this.#readSize()
 
     let bufHeader, bufFooter
     try {
@@ -270,6 +261,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
     this.footer = footer
     this.header = header
+    this.#blocksSizeOnDisk = undefined
+    this.#hasSize = false
   }
 
   async readBlock(blockId, onlyBitmap = false) {
@@ -413,6 +406,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     const newBlockSize = await write()
     setBitmap(this.#blockTable, blockId)
 
+    this.#invalidateSizeIfNotLoaded()
+
     if (this.#blocksSizeOnDisk !== undefined) {
       this.#blocksSizeOnDisk += newBlockSize - oldBlockSize
     }
@@ -439,6 +434,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       const size = await this._handler.writeFile(path, JSON.stringify([compressionType]), { flags: 'w' })
       this.#chunkSizes.set(CHUNK_FILTERS, size)
     }
+
+    this.#invalidateSizeIfNotLoaded()
   }
 
   async #readChunkFilters() {
@@ -451,8 +448,19 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#compressor = getCompressor(chunkFilters[0])
   }
 
-  async writeSize() {
-    assert.notStrictEqual(this.#blocksSizeOnDisk, undefined, `Disk size currently unknown`)
+  async saveSize({ recompute = false } = {}) {
+    if (recompute || (await this.readSizeOnDisk()) === undefined) {
+      await this.#computeSizeOnDisk()
+    }
+
+    await this.#writeSize()
+
+    return this.#totalSizeOnDisk()
+  }
+
+  async #writeSize() {
+    assert.ok(this.#hasSize, `size not loaded before modifying the disk`)
+    assert.notStrictEqual(this.#blocksSizeOnDisk, undefined, `disk size currently unknown`)
 
     this.#sizeFileSize = await this._handler.writeFile(
       this.#getChunkPath(SIZE_FILE),
@@ -460,6 +468,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
         version: 1,
         chunks: Object.fromEntries(this.#chunkSizes),
         blocks: this.#blocksSizeOnDisk,
+        // Used to check that the file is not stale
+        footerUUID: this.footer.uuid.toString('hex'),
       }),
       { flags: 'w' }
     )
@@ -470,20 +480,50 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#blocksSizeOnDisk = undefined
     this.#sizeFileSize = 0
 
-    const sizeFile = await this._handler.readFile(this.#getChunkPath(SIZE_FILE)).then(JSON.parse, error => {
+    let sizeFile
+    try {
+      sizeFile = JSON.parse(await this._handler.readFile(this.#getChunkPath(SIZE_FILE)))
+    } catch (error) {
       if (error.code !== 'ENOENT') {
-        throw error
+        warn('unable to open size.json file', { error, path: this._path })
       }
-    })
+    }
 
     if (sizeFile !== undefined) {
-      this.#chunkSizes = new Map(Object.entries(sizeFile.chunks))
-      this.#blocksSizeOnDisk = sizeFile.blocks
-      this.#sizeFileSize = await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
+      if (
+        sizeFile === null ||
+        typeof sizeFile !== 'object' ||
+        sizeFile.version !== 1 ||
+        typeof sizeFile.chunks !== 'object' ||
+        sizeFile.chunks === null ||
+        typeof sizeFile.blocks !== 'number'
+      ) {
+        warn('size.json file malformed', { sizeFile, path: this._path })
+      } else if (sizeFile.footerUUID !== this.footer.uuid.toString('hex')) {
+        debug('size.json footerUUID stale', { sizeFile, path: this._path })
+      } else {
+        this.#chunkSizes = new Map(Object.entries(sizeFile.chunks))
+        this.#blocksSizeOnDisk = sizeFile.blocks
+        this.#sizeFileSize = await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
+      }
     }
+
+    this.#hasSize = true
   }
 
-  async computeSizeOnDisk() {
+  async readSizeOnDisk() {
+    if (!this.#hasSize) {
+      await this.#readSize()
+    }
+
+    if (this.#blocksSizeOnDisk === undefined) {
+      return undefined
+    }
+
+    return this.#totalSizeOnDisk()
+  }
+
+  async #computeSizeOnDisk() {
     const blockPaths = []
     const groups = await this._handler.list(this.#getChunkPath('blocks'), { prependDir: true, ignoreMissing: true })
     for (const group of groups) {
@@ -514,8 +554,25 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#sizeFileSize = metadataFiles.includes(SIZE_FILE)
       ? await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
       : 0
+    this.#hasSize = true
 
-    return this.sizeOnDisk
+    return this.#totalSizeOnDisk()
+  }
+
+  #totalSizeOnDisk() {
+    return (
+      this.#sizeFileSize +
+      this.#blocksSizeOnDisk +
+      [...this.#chunkSizes.values()].reduce((total, chunkSize) => total + chunkSize, 0)
+    )
+  }
+
+  #invalidateSizeIfNotLoaded() {
+    // A write before the size is loaded makes it unknown
+    if (!this.#hasSize) {
+      this.#hasSize = true
+      this.#blocksSizeOnDisk = undefined
+    }
   }
 
   /**

@@ -8,10 +8,9 @@ import {
   DEFAULT_REMOVE_CONCURRENCY,
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 import { asyncEach } from '@vates/async-each'
-import { resolve } from 'node:path'
 
 /**
  * Deletes a delta VM backup's metadata json. Unused VHDs are detected and removed
@@ -154,7 +153,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     const updates: Record<string, number> = {}
     if (mergedSizes !== undefined) {
       for (const [vdiRef, relPath] of Object.entries(this.metadata.vhds ?? {})) {
-        const vhdPath = normalize(resolve('/', this.rootPath, relPath))
+        const vhdPath = normalize(resolveFromFile(this.metadataPath, relPath))
         const mergedSize = mergedSizes.get(vhdPath)
         if (mergedSize != undefined) {
           updates[vdiRef] = mergedSize

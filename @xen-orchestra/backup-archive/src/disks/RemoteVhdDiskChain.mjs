@@ -93,7 +93,7 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   /**
    * @returns {number} size
    */
-  getSizeOnDisk() {
+  getStreamSize() {
     const batEntrySize = 4
     const sectorSize = 512
     const batSize = Math.ceil((this.getMaxBlockCount() * batEntrySize) / sectorSize) * sectorSize
@@ -254,30 +254,23 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * Write the disk size to its size.json metadata file
+   * Recompute the disk size if needed and write it to its size.json metadata file.
    *
+   * @param {Object} [opts]
+   * @param {boolean} [opts.recompute]
    * @returns  {Promise<void>}
    */
-  async writeSize() {
-    throw new Error(`Can't flush write size on a disk chain`)
+  async saveSizeOnDisk(opts) {
+    throw new Error(`Can't save size on disk on a disk chain`)
   }
 
   /**
-   * Computes the real size of the disk
+   * Returns the space used by the data and undefined if unknown
    *
-   * @returns  {Promise<number>}
+   * @returns  {Promise<number|undefined>}
    */
-  async computeSizeOnDisk() {
-    throw new Error(`Can't compute size on disk on a disk chain`)
-  }
-
-  /**
-   * Returns the size on disk
-   *
-   * @returns  {number}
-   */
-  getStoredSize() {
-    throw new Error(`Can't get stored size on a disk chain`)
+  async readSizeOnDisk() {
+    throw new Error(`Can't get size on disk on a disk chain`)
   }
 
   /**

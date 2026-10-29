@@ -11,7 +11,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
 import { relativeFromFile, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
-import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
+import { isVhdAlias } from 'vhd-lib/aliases.js'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
@@ -221,14 +221,16 @@ export class MergeRemoteDisk {
       await this.#writeState()
     }
 
+    // Loads the stored size before the blocks are modified
+    if (!this.#isResuming) {
+      await parentDisk.readSizeOnDisk()
+    }
+
     await this.#mergeBlocks(parentDisk, childDisk)
     await parentDisk.flushMetadata(childDisk)
     await parentDisk.mergeMetadata(childDisk)
 
-    if (this.#isResuming || parentDisk.getStoredSize() === undefined) {
-      await parentDisk.computeSizeOnDisk()
-    }
-    await parentDisk.writeSize()
+    await parentDisk.saveSizeOnDisk({ recompute: this.#isResuming })
   }
 
   /**
@@ -316,17 +318,15 @@ export class MergeRemoteDisk {
    * @returns {Promise<number>}
    */
   async #getFinalSizeOnDisk(parentDisk, mergeTargetPath) {
-    const storedSize = parentDisk.getStoredSize()
-    if (typeof storedSize === 'number') {
-      return storedSize + (await this.#handler.getSizeOnDisk(mergeTargetPath))
-    }
+    let sizeOnDisk = await parentDisk.readSizeOnDisk()
 
-    let finalSizeOnDisk = await this.#handler.getSizeOnDisk(await resolveVhdAlias(this.#handler, mergeTargetPath))
+    assert.ok(sizeOnDisk !== undefined, 'size on disk unknown after the merge saved it')
+
     if (isVhdAlias(mergeTargetPath)) {
-      finalSizeOnDisk += await this.#handler.getSizeOnDisk(mergeTargetPath)
+      sizeOnDisk += await this.#handler.getSizeOnDisk(mergeTargetPath)
     }
 
-    return finalSizeOnDisk
+    return sizeOnDisk
   }
 
   /**

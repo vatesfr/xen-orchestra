@@ -424,8 +424,6 @@ test('it merges delta of non destroyed chain', async () => {
   )
 })
 
-test('it only updates the size on disk of the merged disks', async () => {})
-
 // a backup of two disks: `a` has an orphan parent to merge, `b` has nothing to merge
 async function writeBackupWithOneDiskToMerge(metadata) {
   const orphan = await generateVhd(`${basePath}/orphan.vhd`)

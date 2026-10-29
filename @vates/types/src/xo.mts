@@ -203,9 +203,9 @@ export type XoVmBackupArchive = {
   jobId: XoVmBackupJob['id']
   mode: XoVmBackupJob['mode']
   scheduleId: XoSchedule['id']
-  // Transferred size
+  /** Transferred size */
   size: number
-  // Space used on the backup repository, if known
+  /** Space used on the backup repository, if known */
   sizeOnDisk?: number
   timestamp: number
   vm: {

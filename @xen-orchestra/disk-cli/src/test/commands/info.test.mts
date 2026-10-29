@@ -27,7 +27,7 @@ const baseDisk = {
   isDifferencing: () => false,
   getVirtualSize: () => 1024 * 1024 * 1024,
   getBlockSize: () => 2 * 1024 * 1024,
-  getSizeOnDisk: () => 128 * 1024 * 1024,
+  getStreamSize: () => 128 * 1024 * 1024,
   getUuid: () => 'aaaa-bbbb',
   getParentUuid: () => 'pppp-qqqq',
 }

@@ -108,13 +108,13 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
         { concurrency }
       )
       await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
-      await vhd.writeSize()
+      const sizeOnDisk = await vhd.saveSize()
       // a VHD directory can only be opened through its alias.
       const aliasSize = await VhdAbstract.createAlias(handler, path, dataPath)
       await validator(path)
       // this will return VHD metadata size + block size, even for disk bigger than bigger than 2TB
       // As well as the size of the disk on the remote, alias included
-      return { size: vhd.streamSize(), sizeOnDisk: vhd.sizeOnDisk + aliasSize }
+      return { size: vhd.streamSize(), sizeOnDisk: sizeOnDisk + aliasSize }
     } catch (err) {
       await this.source.close().catch(() => {}) // close this disk in error
       await handler.unlink(path).catch(() => {}) // alias
