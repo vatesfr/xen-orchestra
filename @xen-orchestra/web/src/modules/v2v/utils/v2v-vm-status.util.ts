@@ -45,13 +45,21 @@ export function getV2vVmStatus(importVm: V2vImportVm | undefined, isRunning: boo
   return getV2vImportState(importVm) ?? 'none'
 }
 
-export function getV2vLastSyncAt(importVmSnapshots: V2vImportSnapshot[]): number | undefined {
-  const syncTimes = importVmSnapshots
-    .filter(snapshot => snapshot.name_label === V2V_SNAPSHOT_NAME.AFTER_PARTIAL_IMPORT)
+function getLatestSnapshotAt(importVmSnapshots: V2vImportSnapshot[], name: V2V_SNAPSHOT_NAME): number | undefined {
+  const snapshotTimes = importVmSnapshots
+    .filter(snapshot => snapshot.name_label === name)
     .map(snapshot => snapshot.snapshot_time)
 
   // `snapshot_time` is in seconds, the front dates in milliseconds
-  return syncTimes.length === 0 ? undefined : Math.max(...syncTimes) * 1000
+  return snapshotTimes.length === 0 ? undefined : Math.max(...snapshotTimes) * 1000
+}
+
+export function getV2vLastSyncAt(importVmSnapshots: V2vImportSnapshot[]): number | undefined {
+  return getLatestSnapshotAt(importVmSnapshots, V2V_SNAPSHOT_NAME.AFTER_PARTIAL_IMPORT)
+}
+
+export function getV2vCutoverAt(importVmSnapshots: V2vImportSnapshot[]): number | undefined {
+  return getLatestSnapshotAt(importVmSnapshots, V2V_SNAPSHOT_NAME.COMPLETE_IMPORT)
 }
 
 // Same rule as the import (`#findBaseVM`): a delta only applies on top of the source snapshot the import last synced,
