@@ -486,6 +486,31 @@ describe('withFormatVersion (vdf#36)', () => {
     )
     assert.equal(withFormatVersion({ ...scoped, policies: [{ ...policies[0], mode: 'monitor' }] }).version, 7)
   })
+
+  test('version 9 with declared services (vdf#103), down again without', () => {
+    const groups = { dhcp: { tags: ['vdf:service=dhcp'] } }
+    const services = [{ name: 'dhcp-lan', kind: 'dhcp4', group: 'dhcp' }]
+    assert.equal(withFormatVersion({ groups, policies: [], services }).version, 9)
+    assert.equal('version' in withFormatVersion({ version: 9, groups, policies: [], services: [] }), false)
+  })
+
+  test("a pool's own services go into its composed document, which then needs version 9", () => {
+    const own = {
+      groups: { dhcp: { tags: ['vdf:service=dhcp'] } },
+      policies: [],
+      services: [{ name: 's', kind: 'router', group: 'dhcp' }],
+    }
+    const composed = compose(own, { groups: {}, policies: [] })
+    assert.deepEqual(composed.services, own.services)
+    assert.equal(composed.version, 9)
+  })
+
+  test('the global configuration declares no services', () => {
+    assert.deepEqual(
+      checkGlobalDocument({ groups: {}, policies: [], services: [{ name: 's', kind: 'dhcp4', group: 'g' }] }),
+      ['infrastructure services are declared in each pool, not in the global configuration']
+    )
+  })
 })
 
 // vdf#41: a VIF locked by VDF (other_config vdf:locking) counts as locked

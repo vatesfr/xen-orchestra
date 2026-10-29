@@ -9,6 +9,7 @@ import {
   type VdfPort,
   type VdfProtocol,
   type VdfRule,
+  type VdfService,
 } from '@/modules/vdf/types.ts'
 import { byOwnThenGlobal, reservesTiers } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { groupNetworks, isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
@@ -51,7 +52,7 @@ const ADDRESS = /^[0-9a-f.:]+(\/\d{1,3})?$/i
 export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
   const scope = useVdfScope(rawScope)
 
-  const { document, publishedDocument, savePolicy, saveRule, saveGroup, saveLimits, membersOf } = scope
+  const { document, publishedDocument, savePolicy, saveRule, saveGroup, saveLimits, saveService, membersOf } = scope
 
   // where group members are looked for
   const poolIds = computed(() => (scope.isGlobal ? scope.scopePoolIds.value : [scope.pool.value.id]))
@@ -304,5 +305,47 @@ export function useVdfEditors(rawScope: MaybeRefOrGetter<VdfScope>) {
     }
   }
 
-  return { editRule, editPolicy, editGroup, editLimits, groupOptions, hasTaggedGroups, reservedTiers }
+  // INFRASTRUCTURE SERVICES (vdf#103)
+
+  const { open: openService } = useOverlay({
+    component: () => import('@/modules/vdf/components/drawers/VdfServiceDrawer.vue'),
+    events: { onConfirm: (service: VdfService) => service, onCancel: true },
+  })
+
+  // `prefill`: a new service's fields (a source the hosts saw: its kind,
+  // and its address for "New group" to start from)
+  async function editService(name?: string, prefill: Partial<VdfService> & { address?: string } = {}) {
+    const isNew = name === undefined
+    const { address, ...fields } = prefill
+    const current: VdfService = (isNew ? undefined : document.value.services?.find(other => other.name === name)) ?? {
+      name: '',
+      kind: 'dhcp4',
+      group: '',
+      // a new service starts by sampling what it would refuse (as policies)
+      mode: 'monitor',
+      ...fields,
+    }
+
+    const props = reactiveComputed(() => ({
+      service: current,
+      isNew,
+      groups: document.value.groups,
+      otherServiceNames: (document.value.services ?? []).map(other => other.name).filter(other => other !== name),
+      address,
+    }))
+
+    const response = await openService({
+      props,
+      events: {
+        onCreateGroup: (select: (name: string) => void, prefillGroup?: VdfGroup) =>
+          createGroupFor(select, prefillGroup),
+      },
+    })
+
+    if (response.event === 'onConfirm') {
+      saveService(name, response.payload)
+    }
+  }
+
+  return { editRule, editPolicy, editGroup, editLimits, editService, groupOptions, hasTaggedGroups, reservedTiers }
 }

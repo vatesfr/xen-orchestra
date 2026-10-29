@@ -61,6 +61,9 @@
             @select="name => (selectedGroup = name)"
           />
         </UiCard>
+
+        <!-- vdf#103: the pool's DHCP servers and routers, declared by groups -->
+        <VdfServicesCard v-if="scope.kind === 'pool'" :pool="scope.pool" />
       </template>
     </div>
     <VdfGroupSidePanel
@@ -86,6 +89,7 @@
 <script lang="ts" setup>
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfGroupsTable, { type VdfGroupRow } from '@/modules/vdf/components/groups/VdfGroupsTable.vue'
+import VdfServicesCard from '@/modules/vdf/components/services/VdfServicesCard.vue'
 import VdfGroupSidePanel from '@/modules/vdf/components/VdfGroupSidePanel.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
@@ -176,7 +180,7 @@ type GroupEntry = VdfGroupRow & {
   group: VdfGroup
   locked: boolean
   isPublished: boolean
-  usage: { appliedTo: string[]; sourceOf: string[] }
+  usage: { appliedTo: string[]; sourceOf: string[]; services: string[] }
 }
 
 const entries = computed<GroupEntry[]>(() =>
@@ -196,7 +200,8 @@ const entries = computed<GroupEntry[]>(() =>
         ips: group.ips ?? [],
         members,
         pools: [...new Set(members.map(poolNameOf))].sort(),
-        usedBy: [...new Set([...usage.appliedTo, ...usage.sourceOf])].map(displayName),
+        // a service holding its members too (vdf#103)
+        usedBy: [...new Set([...usage.appliedTo, ...usage.sourceOf, ...usage.services])].map(displayName),
         draftState: locked ? undefined : draftState,
         actions: [],
         group,

@@ -39,6 +39,8 @@ Under `/rest/v0/plugins/vdf/pools/{id}`:
 
 **Concurrent edits:** with `expectedDocId` (the id of the document the edit started from, `''` for none), a publish is refused with `conflict: true` and nothing is written if the pool's document changed meanwhile. Publishes through XO are serialized per pool, so two of them cannot both pass the check; a write made in between by the global configuration or outside XO (`vdf-agent publish`) makes the check fail, which is the point.
 
+**Infrastructure services (vdf#103):** a pool's document may declare its DHCP servers and routers (`services`, version 9, which XO sets as it does 4 and 7); the global configuration declares none (its check refuses them: a global group's members in other pools would come as addresses without MACs). `GET policy` reads `vdf:policy.v9` first.
+
 **Hosts whose agent is too old (vdf#2):** the agent's check and publish compare what the document uses (`needs`: egress, monitor mode, port ranges, tiers…) with each host's agent (`maxFormat` in its status), and list the hosts that would enforce less of it, or keep their last policy (`lacking`: `{ host, agent, maxFormat, inferred, missing }`). Publish then refuses (`ok: false`, `published: false`, the agent's `refused` as `error`), unless `force: true`: the agent publishes as before (agents before egress get the document without its egress rules) and records it in the pool (`vdf:policy.forced`); XO's history entry gets `forced` (the hosts). XO doesn't know the format rules: it shows what the agent says.
 
 ## Global configuration

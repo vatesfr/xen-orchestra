@@ -222,9 +222,11 @@ const items = computed<Item[]>(() => {
       title:
         key === 'limits'
           ? t('firewall:limits')
-          : isGlobal && key === 'scope'
-            ? t('firewall:global:change:settings')
-            : t('firewall:change:settings'),
+          : key === 'services'
+            ? t('firewall:services')
+            : isGlobal && key === 'scope'
+              ? t('firewall:global:change:settings')
+              : t('firewall:change:settings'),
       meta: [],
       rules: [],
     })

@@ -53,6 +53,11 @@ const allRules = policy => [...(policy.ingress ?? []), ...(policy.egress ?? [])]
 // collide once the global configuration is written into a pool.
 export function checkGlobalDocument(document) {
   const errors = []
+  // a pool's servers and routers are its own (vdf#103): a global group's
+  // members in the other pools would come as addresses without MACs
+  if ((document.services ?? []).length > 0) {
+    errors.push('infrastructure services are declared in each pool, not in the global configuration')
+  }
   for (const name of Object.keys(document.groups ?? {})) {
     if (isGlobalName(name)) {
       errors.push(`group "${name}": global names are written without the "${GLOBAL_PREFIX}" prefix`)
@@ -170,12 +175,15 @@ export function compose(local, global, remoteIps = {}) {
 // version 4 nothing needs any more
 // version 7 when a group is scoped to networks (vdf#36): agents before
 // them must reject the document rather than widen the groups
+// version 9 when it declares infrastructure services (vdf#103)
 export function withFormatVersion(document) {
   const required = Math.max(
     document.policies.some(policy => policy.mode === 'monitor') ? 4 : 0,
-    Object.values(document.groups ?? {}).some(group => (group.networks ?? []).length > 0) ? 7 : 0
+    Object.values(document.groups ?? {}).some(group => (group.networks ?? []).length > 0) ? 7 : 0,
+    (document.services ?? []).length > 0 ? 9 : 0
   )
-  const managed = document.version === undefined || document.version === 4 || document.version === 7
+  const managed =
+    document.version === undefined || document.version === 4 || document.version === 7 || document.version === 9
   if (required > 0) {
     return { ...document, version: managed ? required : Math.max(document.version, required) }
   }

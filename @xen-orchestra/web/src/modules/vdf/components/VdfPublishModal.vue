@@ -215,6 +215,7 @@ import {
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { servicesReport } from '@/modules/vdf/utils/vdf-services.util.ts'
 import { shadowKey, type VdfMonitorShadow } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -641,6 +642,31 @@ type Warning = {
 
 const inPool = computed(() => !isGlobalScope(shown.value.scopeId))
 
+// INFRASTRUCTURE SERVICES (vdf#103): the kinds the pool's hosts say no
+// service declares, unless the draft declares one now
+const serviceWarnings = computed<Warning[]>(() => {
+  if (!inPool.value) {
+    return []
+  }
+
+  const kinds = new Set((shown.value.document.services ?? []).map(service => service.kind))
+
+  return servicesReport(
+    allHosts.value
+      .filter(host => host.$pool === shown.value.scopeId)
+      .map(host => ({ name: host.name_label, services: parseHostStatus(host.otherConfig)?.services }))
+  )
+    .undeclared.filter(item => !kinds.has(item.kind))
+    .map(item => ({
+      key: `services:${item.kind}`,
+      text: t(`firewall:services:undeclared:${item.kind === 'router' ? 'router' : 'dhcp'}`, {
+        kind: t(`firewall:service:kind:${item.kind}`),
+        hosts: new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(item.hosts),
+      }),
+      accent: 'warning' as const,
+    }))
+})
+
 const globalOf = (policy: string | undefined) =>
   inPool.value && policy !== undefined && isGlobalName(policy) ? policy : undefined
 
@@ -678,6 +704,7 @@ const allWarnings = computed<Warning[]>(() => {
   )
   const all: Warning[] = [
     ...hosts,
+    ...serviceWarnings.value,
     ...newShadowNotes.value.map(note => ({
       key: note.key,
       text: note.text,
@@ -747,6 +774,7 @@ const CAPABILITY_KEYS: Record<string, string> = {
   egress: 'egress',
   'per-network groups': 'networks',
   'groups on networks alone': 'networks-only',
+  'declared services': 'services',
 }
 
 function capabilityLabel(name: string) {

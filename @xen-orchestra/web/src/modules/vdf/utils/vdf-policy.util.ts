@@ -193,6 +193,8 @@ export function vmGroupNames(vmTags: string[], document: VdfDocument, ifaceNetTa
 export function groupUsage(document: VdfDocument, groupName: string) {
   return {
     appliedTo: document.policies.filter(policy => policy.appliedTo === groupName).map(policy => policy.name),
+    // the infrastructure services it holds the members of (vdf#103)
+    services: (document.services ?? []).filter(service => service.group === groupName).map(service => service.name),
     // a rule's source, or an egress rule's destination
     sourceOf: document.policies
       .filter(policy => allRules(policy).some(rule => rulePeer(rule) === groupName))

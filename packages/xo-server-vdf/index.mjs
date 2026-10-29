@@ -68,6 +68,10 @@ const KEY_V7_BASE = 'vdf:policy.v7.base'
 // before them keep their last document
 const KEY_V8 = 'vdf:policy.v8'
 const KEY_V8_BASE = 'vdf:policy.v8.base'
+// documents with declared infrastructure services (vdf#103): only there,
+// agents before them keep their last document (unless a publish is forced)
+const KEY_V9 = 'vdf:policy.v9'
+const KEY_V9_BASE = 'vdf:policy.v9.base'
 
 const PLUGIN = 'vdf'
 
@@ -86,6 +90,8 @@ const v7Base = (v1, v2, v3, v4, v5, v6) =>
   v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6)
 const v8Base = (v1, v2, v3, v4, v5, v6, v7) =>
   v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6 + '\x00' + v7)
+const v9Base = (v1, v2, v3, v4, v5, v6, v7, v8) =>
+  v2Base(v1 + '\x00' + v2 + '\x00' + v3 + '\x00' + v4 + '\x00' + v5 + '\x00' + v6 + '\x00' + v7 + '\x00' + v8)
 
 // short id of a document, as agents report it in host other_config vdf:status
 export const docId = text => (text ? sha256Hex(text, 6) : '')
@@ -99,10 +105,13 @@ export function publishedPolicy(otherConfig) {
   const v6 = otherConfig[KEY_V6] ?? ''
   const v7 = otherConfig[KEY_V7] ?? ''
   const v8 = otherConfig[KEY_V8] ?? ''
+  const v9 = otherConfig[KEY_V9] ?? ''
 
   let key
   let text
-  if (v8 !== '' && otherConfig[KEY_V8_BASE] === v8Base(v1, v2, v3, v4, v5, v6, v7)) {
+  if (v9 !== '' && otherConfig[KEY_V9_BASE] === v9Base(v1, v2, v3, v4, v5, v6, v7, v8)) {
+    ;[key, text] = [KEY_V9, v9]
+  } else if (v8 !== '' && otherConfig[KEY_V8_BASE] === v8Base(v1, v2, v3, v4, v5, v6, v7)) {
     ;[key, text] = [KEY_V8, v8]
   } else if (v7 !== '' && otherConfig[KEY_V7_BASE] === v7Base(v1, v2, v3, v4, v5, v6)) {
     ;[key, text] = [KEY_V7, v7]

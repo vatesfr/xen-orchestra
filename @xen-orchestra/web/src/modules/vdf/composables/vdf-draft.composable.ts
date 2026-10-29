@@ -1,4 +1,12 @@
-import type { VdfDocument, VdfGroup, VdfLimits, VdfPolicy, VdfRule, VdfScopeId } from '@/modules/vdf/types.ts'
+import type {
+  VdfDocument,
+  VdfGroup,
+  VdfLimits,
+  VdfPolicy,
+  VdfRule,
+  VdfScopeId,
+  VdfService,
+} from '@/modules/vdf/types.ts'
 import { isGlobalName, withGlobalOf } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { mergeDocuments, type VdfResolution } from '@/modules/vdf/utils/vdf-merge.util.ts'
 import { insertRule } from '@/modules/vdf/utils/vdf-monitor.util.ts'
@@ -494,6 +502,12 @@ export function useVdfDraft(
             }
           }
         }
+
+        for (const service of document.services ?? []) {
+          if (service.group === originalName) {
+            service.group = name
+          }
+        }
       }
 
       document.groups[name] = group
@@ -501,14 +515,43 @@ export function useVdfDraft(
   }
 
   function deleteGroup(name: string) {
-    const { appliedTo, sourceOf } = groupUsage(document.value, name)
+    const { appliedTo, sourceOf, services } = groupUsage(document.value, name)
 
-    if (isLocked(name) || appliedTo.length > 0 || sourceOf.length > 0) {
+    if (isLocked(name) || appliedTo.length > 0 || sourceOf.length > 0 || services.length > 0) {
       return
     }
 
     edit(document => {
       delete document.groups[name]
+    })
+  }
+
+  // INFRASTRUCTURE SERVICES (vdf#103): a pool's, in its document; the
+  // last one removed takes the field with it
+  function saveService(originalName: string | undefined, service: VdfService) {
+    edit(document => {
+      const services = document.services ?? []
+      const index = originalName === undefined ? -1 : services.findIndex(other => other.name === originalName)
+
+      if (index === -1) {
+        services.push(service)
+      } else {
+        services[index] = service
+      }
+
+      document.services = services
+    })
+  }
+
+  function deleteService(name: string) {
+    edit(document => {
+      const services = (document.services ?? []).filter(service => service.name !== name)
+
+      if (services.length === 0) {
+        delete document.services
+      } else {
+        document.services = services
+      }
     })
   }
 
@@ -553,6 +596,8 @@ export function useVdfDraft(
     moveRule,
     saveGroup,
     deleteGroup,
+    saveService,
+    deleteService,
     saveLimits,
   }
 }

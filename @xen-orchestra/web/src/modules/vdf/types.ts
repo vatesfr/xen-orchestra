@@ -98,6 +98,21 @@ export type VdfLimits = {
   maxConnPerVIF?: number
 }
 
+// A declared infrastructure service (vdf#103): the DHCP servers and
+// routers of the guarded networks. Once a kind is declared, its replies or
+// announcements reach a protected VM ahead of its policy only from its
+// members (a group's VMs, or `macs` for servers outside the pool) and dom0.
+export type VdfServiceKind = 'dhcp4' | 'dhcp6' | 'router'
+
+export type VdfService = {
+  name: string
+  kind: VdfServiceKind
+  group: string
+  macs?: string[]
+  // monitor: today's trust kept for its kind, undeclared sources sampled
+  mode?: 'enforce' | 'monitor'
+}
+
 export type VdfDocument = {
   // 4 when a policy is in monitor mode (agents before it must reject the
   // document): set by serializeDocument
@@ -105,6 +120,8 @@ export type VdfDocument = {
   groups: Record<string, VdfGroup>
   policies: VdfPolicy[]
   limits?: VdfLimits
+  // declared infrastructure services (vdf#103, version 9)
+  services?: VdfService[]
   [unknownField: string]: unknown
 }
 
@@ -352,6 +369,24 @@ export type VdfHostStatusDocument = {
   // decide for first, Traffic Rules usually (vdf#40); absent from agents
   // before it
   shadowed?: VdfShadowedVif[]
+  // declared infrastructure services (vdf#103); absent when there's
+  // nothing to say, and from agents before them
+  services?: VdfHostServices
+}
+
+// What a host's agent says of the infrastructure services (vdf#103).
+// undeclared: kinds no service declares, on a host with protected VMs
+// (DHCP replies and router advertisements from outside reach them ahead of
+// their policy); monitored: kinds with monitored services only; seen: the
+// undeclared sources of a declared or monitored kind sampled there; notes:
+// declared MACs that are a pool VM's; unenforced: bridges where forged
+// MACs aren't dropped (no OpenFlow 1.0 and 1.4: XO's SDN controller's)
+export type VdfHostServices = {
+  undeclared?: VdfServiceKind[]
+  monitored?: VdfServiceKind[]
+  seen?: { kind: VdfServiceKind; src: string; count: number; last: string }[]
+  notes?: string[]
+  unenforced?: string[]
 }
 
 // a policy as a host's agent realizes it

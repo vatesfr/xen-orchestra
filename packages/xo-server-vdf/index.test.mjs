@@ -412,6 +412,23 @@ describe('publishedPolicy', () => {
     assert.equal(publishedPolicy({ ...withV8, 'vdf:policy.v7': 'v7new' }).key, 'vdf:policy.v7')
   })
 
+  test('a v9 document (declared services) with its base comes first', () => {
+    const withV9 = {
+      ...withV5,
+      'vdf:policy.v6': '{"policies":[],"version":6}',
+      'vdf:policy.v6.base': '663d3b4c292f2300',
+      'vdf:policy.v7': '{"policies":[],"version":7}',
+      'vdf:policy.v7.base': '9e6d0a9d271a0803',
+      'vdf:policy.v8': '{"policies":[],"version":8}',
+      'vdf:policy.v8.base': 'a10082694aa824f2',
+      'vdf:policy.v9': '{"policies":[],"version":9}',
+      'vdf:policy.v9.base': '283a3a825ee8293f',
+    }
+    assert.equal(publishedPolicy(withV9).key, 'vdf:policy.v9')
+    // v8 published since by an agent before declared services
+    assert.equal(publishedPolicy({ ...withV9, 'vdf:policy.v8': 'v8new' }).key, 'vdf:policy.v8')
+  })
+
   test('a v5 document (port ranges) with its base comes first', () => {
     assert.equal(publishedPolicy(withV5).key, 'vdf:policy.v5')
     // v4 published since by an agent before port ranges

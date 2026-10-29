@@ -71,6 +71,11 @@ describe('parseAgentWarning', () => {
     ).toEqual({ type: 'networks-only-old-agents' })
     expect(
       parseAgentWarning(
+        'declared services: agents before them keep enforcing their last policy, or enforce nothing if they never had one (a publish forced past hosts lacking them gives them the document without its services: they keep trusting DHCP and router advertisements from outside their host)'
+      )
+    ).toEqual({ type: 'services-old-agents' })
+    expect(
+      parseAgentWarning(
         'egress rules: agents before egress keep enforcing their last policy, or enforce nothing if they never had one (a publish forced past hosts lacking egress gives them its ingress only)'
       )
     ).toEqual({ type: 'egress-old-agents' })

@@ -234,6 +234,9 @@
 
     <VdfRecentDropsCard v-else :pool-id="pool.id" :document="publishedDocument" />
 
+    <!-- vdf#103: what the agents say of the DHCP servers and routers -->
+    <VdfServicesStatus :pool-id="pool.id" :link="vdfPageRoute(pool.id, 'groups')" />
+
     <UiCard v-if="publishedDocument.policies.length > 0">
       <UiTitle>
         {{ t('firewall:policies') }}
@@ -364,6 +367,7 @@ import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfOverviewOnboarding from '@/modules/vdf/components/overview/VdfOverviewOnboarding.vue'
 import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDropsCard.vue'
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
+import VdfServicesStatus from '@/modules/vdf/components/services/VdfServicesStatus.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
 import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'

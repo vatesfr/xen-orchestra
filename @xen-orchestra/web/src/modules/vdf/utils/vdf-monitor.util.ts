@@ -21,16 +21,21 @@ export const isMonitored = (policy: Pick<VdfPolicy, 'mode'>) => policy.mode === 
 // must reject the document rather than widen the groups
 export const VDF_NETWORKS_VERSION = 7
 
+// declared infrastructure services (vdf#103) need version 9
+export const VDF_SERVICES_VERSION = 9
+
 export function withFormatVersion(document: VdfDocument): VdfDocument {
   const required = Math.max(
     document.policies.some(isMonitored) ? VDF_MONITOR_VERSION : 0,
-    Object.values(document.groups).some(group => (group.networks ?? []).length > 0) ? VDF_NETWORKS_VERSION : 0
+    Object.values(document.groups).some(group => (group.networks ?? []).length > 0) ? VDF_NETWORKS_VERSION : 0,
+    (document.services ?? []).length > 0 ? VDF_SERVICES_VERSION : 0
   )
   // the versions this sets, which follow the document; others are kept
   const isManaged =
     document.version === undefined ||
     document.version === VDF_MONITOR_VERSION ||
-    document.version === VDF_NETWORKS_VERSION
+    document.version === VDF_NETWORKS_VERSION ||
+    document.version === VDF_SERVICES_VERSION
 
   if (required > 0) {
     return { ...document, version: isManaged ? required : Math.max(document.version ?? 0, required) }
