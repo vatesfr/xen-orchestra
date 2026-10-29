@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
+import { setTimeout } from 'node:timers/promises'
 import { DebugDisk } from './utils/DebugDisk.mjs'
 import { SynchronizedDisk } from './SynchronizedDisk.mjs'
 
@@ -53,14 +54,22 @@ test('Disk class', async t => {
   })
 
   await t.test('a fork closed while its source was being opened cannot be read', async () => {
-    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    class SlowToOpenDisk extends DebugDisk {
+      async init(): Promise<void> {
+        await setTimeout(10)
+        await super.init()
+      }
+    }
+    const source = new SlowToOpenDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
     const disk = new SynchronizedDisk(source)
     const [fork] = [disk.fork('generator_0')]
     const opening = fork.init()
     await fork.close()
+    assert.strictEqual(source.initDone, false, 'the source is still being opened when the fork is closed')
     await opening
     await assert.rejects(consumeGenerator(fork.diskBlocks()), /closed forked disk/)
     assert.strictEqual(source.getNbGeneratedBlock(), 0)
-    assert.strictEqual(source.closeDone, true, 'the source opened after the close is closed')
+    // closing a source opened after its close is the responsibility of the source (see XapiDiskSource)
+    assert.strictEqual(source.closeDone, true, 'the close is forwarded to the source')
   })
 })
