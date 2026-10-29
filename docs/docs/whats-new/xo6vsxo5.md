@@ -9,6 +9,19 @@ XO 6 and XO 5 are two interfaces to the same Xen Orchestra. They run side by sid
 - **XO 6** is the default interface and the future of Xen Orchestra.
 - **XO 5** remains fully available for everything XO 6 does not cover yet: use the **XO 5** link in the top-right corner, or the marked links that XO 6 shows contextually (they open the right XO 5 page for the object you are on).
 
+## XO 6 highlights
+
+Compared to XO 5, XO 6 brings:
+
+- **A tree view of your whole infrastructure**: every pool, host and VM in one always-visible, searchable tree. No more jumping between list pages to find an object.
+- **Dashboards at every level**: Xen Orchestra, pool, host and VM each open on a dashboard that summarizes status, alarms, patches, resources and backup health at that scale.
+- **Consistent pages**: every object follows the same tab pattern, every table has the same query builder and details side panel. Learn one page, know them all.
+- **First-class consoles**: VM and host consoles in the browser, with fullscreen, a chrome-less dedicated tab mode and Ctrl+Alt+Del.
+- **Make it yours**: light and dark color modes, five interface themes, and 21 languages.
+- **Task visibility**: a Tasks tab at every level records operations, API calls and authentications with their outcomes.
+- **Backup awareness everywhere**: protection status is visible from the global dashboard down to each VM, including the VMs that no job protects.
+- **Side-by-side with XO 5**: both interfaces run on the same Xen Orchestra and the same data. Anything not yet in XO 6 is one clearly marked click away.
+
 ## What lives where today
 
 XO 6 is under active development, so this table evolves with every release. As a rule of thumb: observing and operating your infrastructure day to day happens in XO 6; deep configuration still happens in XO 5.
@@ -36,4 +49,4 @@ One more current limitation to know: XO 6 requires an administrator account. Non
 
 Start every session in XO 6: navigation, monitoring, consoles, task forensics and backup oversight are simply better there. When you hit an operation XO 6 does not do yet, it will either show you the action marked with an external-link icon, or you switch to XO 5 manually and come right back.
 
-If you prefer to keep XO 5 as your default interface for now, the welcome message of XO 6 links to the procedure to do so.
+If you prefer to keep XO 5 as your default interface for now, the welcome message of XO 6 links to [the procedure to do so](../getting-started/installation/xoa.md#change-the-default-interface).

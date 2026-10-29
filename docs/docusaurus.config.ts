@@ -303,7 +303,7 @@ export default {
             from: '/support-and-licencing/useful-links',
           },
           {
-            to: '/category/whats-new',
+            to: '/whats-new/whatsnew',
             from: '/category/discover-xen-orchestra',
           },
           {
