@@ -11,9 +11,13 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API/V2V] `POST /rest/v0/v2v/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` imports a list of VMs into the pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 
 ### Packages to release
 
@@ -31,6 +35,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->

@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
+import { buildInventory, parseDevices, reachingHostIds } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -161,23 +162,6 @@ const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
 
 // the SOAP library does not always convert the booleans of the answer
 const isTrue = value => String(value) === 'true'
-
-/**
- * The hosts which mount a datastore and can reach it.
- *
- * @param {unknown} mounts - value of the `host` property of the datastore
- * @returns {Set<string>} managed object references of the hosts
- */
-function reachingHostIds(mounts) {
-  const hostIds = new Set()
-  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
-    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
-      // the references nested in the value are not normalized, only the value itself is
-      hostIds.add(key?.$value ?? key)
-    }
-  }
-  return hostIds
-}
 
 const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
 
@@ -600,6 +584,81 @@ export default class Esxi extends EventEmitter {
     }
   }
 
+  /**
+   * The instance UUID of the vCenter, a standalone ESXi has none.
+   *
+   * @returns {string | undefined}
+   */
+  get instanceUuid() {
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    return vimClient.serviceContent?.about?.instanceUuid
+  }
+
+  /**
+   * Everything needed to choose what to migrate and where: the whole inventory, read once.
+   *
+   * Only the properties used are requested: `config` as a whole is large, and read for every VM.
+   * The objects reference each other through their managed object references.
+   *
+   * The device list of every VM is built: the wizard shows the disks and the network cards of all of
+   * them, and a start reads the inventory again so that it is planned against the current state.
+   *
+   * @returns {Promise<import('@vates/types').VmwareInventory>}
+   */
+  async getInventory() {
+    await this.#connected
+    /** @type {[Record<string, import('./_inventory.mjs').RawDatacenter>, Record<string, import('./_inventory.mjs').RawCluster>, Record<string, import('./_inventory.mjs').RawHost>, Record<string, import('./_inventory.mjs').RawDatastore>, Record<string, import('./_inventory.mjs').RawNetwork>, Record<string, import('./_inventory.mjs').RawPortgroup>, Record<string, import('./_inventory.mjs').RawVm>, Record<string, import('./_inventory.mjs').RawChild>, Record<string, import('./_inventory.mjs').RawChild>]} */
+    const [datacenters, clusters, hosts, datastores, networks, portgroups, vms, folders, computeResources] =
+      await Promise.all([
+        this.search('Datacenter', ['name']),
+        this.search('ClusterComputeResource', ['name', 'parent']),
+        this.search('HostSystem', ['name', 'parent']),
+        this.search('Datastore', ['summary', 'host']),
+        // the distributed port groups are networks too, with more properties of their own below
+        this.search('Network', ['name']),
+        this.search('DistributedVirtualPortgroup', ['name', 'key', 'config.defaultPortConfig']),
+        this.search('VirtualMachine', [
+          'config.name',
+          'config.annotation',
+          'config.instanceUuid',
+          'config.firmware',
+          'config.bootOptions.efiSecureBootEnabled',
+          'config.template',
+          'config.hardware.numCPU',
+          'config.hardware.memoryMB',
+          'config.hardware.device',
+          'runtime.powerState',
+          'runtime.host',
+          'datastore',
+          'snapshot',
+        ]),
+        // only to walk up from a host or a cluster to its datacenter. A compute resource is the parent
+        // of a standalone host, and the clusters are compute resources too
+        this.search('Folder', ['parent']),
+        this.search('ComputeResource', ['parent']),
+      ])
+
+    // AboutInfo: `instanceUuid` is only set by a vCenter, `apiType` is `VirtualCenter` or `HostAgent`
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    /** @type {import('./_inventory.mjs').RawAboutInfo} */
+    const about = vimClient.serviceContent?.about ?? {}
+
+    return buildInventory({
+      about,
+      datacenters,
+      clusters,
+      hosts,
+      datastores,
+      networks,
+      portgroups,
+      vms,
+      folders,
+      computeResources,
+    })
+  }
+
   async getAllVmMetadata() {
     const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
@@ -688,45 +747,46 @@ export default class Esxi extends EventEmitter {
     })
 
     const diskReferences = []
-    const networks = []
     let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const channelMatches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
+      const channelMatches = key.match(/^(scsi|ide|sata)[0-9]+$/)
       if (channelMatches === null) {
         continue
       }
       const channelType = channelMatches[1]
-      if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
-        const diskChannel = vmx[key]
-        // the indexes of the channel are its own: iterating the compacted values used to label a
-        // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
-        // build the chains and to order the VBDs
-        for (const [diskIndex, disk] of Object.entries(diskChannel)) {
-          if (typeof disk !== 'object' || disk === null) {
-            continue
-          }
-          if (disk.deviceType?.match(/cdrom/i)) {
-            cdrom = true
-            continue
-          }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
-            continue
-          }
-
-          diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
+      const diskChannel = vmx[key]
+      // the indexes of the channel are its own: iterating the compacted values used to label a
+      // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
+      // build the chains and to order the VBDs
+      for (const [diskIndex, disk] of Object.entries(diskChannel)) {
+        if (typeof disk !== 'object' || disk === null) {
+          continue
         }
-      } else if (channelType === 'ethernet') {
-        const ethernet = vmx[key]
+        if (disk.deviceType?.match(/cdrom/i)) {
+          cdrom = true
+          continue
+        }
+        // can be something other than a disk, like a controller card
+        if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          continue
+        }
 
-        networks.push({
-          label: ethernet.networkName,
-          macAddress: ethernet.generatedAddress,
-          isGenerated: ethernet.addressType === 'generated',
-        })
+        diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
       }
     }
+
+    // the cards are read from the devices and not from the vmx: they carry the key the inventory names
+    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present
+    const networks = parseDevices(config.hardware?.device).nics.map(
+      ({ key, label, macAddress, addressType, network }) => ({
+        key,
+        label,
+        macAddress,
+        isGenerated: addressType === 'generated',
+        network,
+      })
+    )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
 
     // one descriptor to download per disk: read serially, a long chain added a full round trip per
@@ -781,6 +841,8 @@ export default class Esxi extends EventEmitter {
       guestId: config.guestId,
       guestFullName: config.guestFullName,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+      // unlike the moref, it survives the VM being unregistered and registered again
+      instanceUuid: config.instanceUuid,
       powerState: runtime.powerState,
       snapshots,
       cdrom,

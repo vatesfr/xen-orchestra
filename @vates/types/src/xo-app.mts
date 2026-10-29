@@ -9,6 +9,7 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoNetwork,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -21,9 +22,12 @@ import type {
   XoVif,
   XoVm,
   XoVmBackupArchive,
+  XoVmTemplate,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
+import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -202,6 +206,15 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
+// `@xen-orchestra/vmware-explorer` is not typed
+export type EsxiConnectionParams = {
+  /** `host` or `host:port` */
+  host: string
+  user: string
+  password: string
+  sslVerify: boolean
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -282,6 +295,8 @@ export type XoApp = EventEmitter & {
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* whether this machine can run the tools of an import from VMware */
+  checkEsxiDependencies(): Promise<XoV2vStatus>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -441,6 +456,7 @@ export type XoApp = EventEmitter & {
   }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
+  getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -466,6 +482,21 @@ export type XoApp = EventEmitter & {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /** imports one VM from VMware, resuming a previous partial import when possible, returns the UUID of the XCP-ng VM */
+  migrationfromEsxi(
+    params: EsxiConnectionParams & {
+      sr: XoSr['id']
+      network: XoNetwork['id']
+      /** overrides `sr`, by disk node (e.g. `scsi0:0`) */
+      disks?: Record<string, XoSr['id']>
+      /** overrides `network`, by NIC device key (e.g. `4000`) */
+      nics?: Record<string, XoNetwork['id']>
+      template: XoVmTemplate['id']
+      stopSource: boolean
+      /** VMware moref of the VM */
+      vm: string
+    }
+  ): Promise<XoVm['uuid']>
   /**
    * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
    * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
