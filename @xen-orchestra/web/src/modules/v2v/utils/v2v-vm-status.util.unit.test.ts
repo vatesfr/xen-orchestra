@@ -1,11 +1,16 @@
 import {
   getRunningV2vSourceVmIds,
+  getV2vCutoverAt,
   getV2vLastSyncAt,
   getV2vNextTransfer,
   getV2vVmStatus,
 } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { createTask, createV2vImportTask } from '@/test/create-task.ts'
-import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
+import {
+  createV2vCompleteImportSnapshot,
+  createV2vImportVm,
+  createV2vPartialImportSnapshot,
+} from '@/test/create-v2v-import-vm.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { V2V_SNAPSHOT_NAME, V2V_VM_OTHER_CONFIG } from '@vates/types'
 
@@ -88,6 +93,25 @@ describe('getV2vLastSyncAt', () => {
     ['without snapshots', []],
   ])('is undefined %s', (_, snapshots) => {
     expect(getV2vLastSyncAt(snapshots)).toBeUndefined()
+  })
+})
+
+describe('getV2vCutoverAt', () => {
+  it('is the time of the complete import snapshot, in milliseconds', () => {
+    const snapshots = [
+      createV2vPartialImportSnapshot({ snapshot_time: 300 }),
+      createV2vCompleteImportSnapshot({ snapshot_time: 200 }),
+      createV2vPartialImportSnapshot({ snapshot_time: 100, name_label: V2V_SNAPSHOT_NAME.AFTER_COMPLETE_IMPORT }),
+    ]
+
+    expect(getV2vCutoverAt(snapshots)).toBe(200_000)
+  })
+
+  it.each([
+    ['without complete import snapshot', [createV2vPartialImportSnapshot()]],
+    ['without snapshots', []],
+  ])('is undefined %s', (_, snapshots) => {
+    expect(getV2vCutoverAt(snapshots)).toBeUndefined()
   })
 })
 
