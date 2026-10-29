@@ -55,6 +55,7 @@ export class XapiDiskSource extends DiskPassthrough {
   /** @type {Promise<void> | undefined} */
   #initPromise
   #initialized = false
+  #closed = false
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -298,12 +299,33 @@ export class XapiDiskSource extends DiskPassthrough {
    */
   init() {
     if (this.#initPromise === undefined) {
+      if (this.#closed) {
+        // it would open an export on the host that nobody would close
+        return Promise.reject(new Error(`Can't open the closed disk ${this.#vdiRef}`))
+      }
       this.#initPromise = (async () => {
         await super.init()
         this.#initialized = true
       })()
     }
     return this.#initPromise
+  }
+
+  /**
+   * Waits for a pending opening: the source does not exist before, and the export opened on the host would be left
+   * open.
+   *
+   * @returns {Promise<void>}
+   */
+  async close() {
+    this.#closed = true
+    try {
+      await this.#initPromise
+    } catch (error) {
+      // the opening has failed, there is nothing to close
+      debug('close: opening failed', { vdiRef: this.#vdiRef, error })
+    }
+    await super.close()
   }
 
   /** @returns {boolean} */

@@ -5,6 +5,7 @@ import { setTimeout } from 'node:timers/promises'
 import { XapiDiskSource } from './Xapi.mjs'
 
 class CountingXapiDiskSource extends XapiDiskSource {
+  nbClosings = 0
   nbOpenings = 0
   async openSource() {
     this.nbOpenings++
@@ -13,7 +14,11 @@ class CountingXapiDiskSource extends XapiDiskSource {
     if (this.error !== undefined) {
       throw this.error
     }
-    return { close: async () => {} }
+    return {
+      close: async () => {
+        this.nbClosings++
+      },
+    }
   }
 }
 
@@ -42,4 +47,35 @@ test('XapiDiskSource gives the same error to each concurrent initialization', as
   )
   assert.equal(disk.nbOpenings, 1)
   assert.equal(disk.isInitialized(), false)
+})
+
+test('XapiDiskSource closed while being opened closes the opened source', async () => {
+  const disk = new CountingXapiDiskSource({ xapi: {}, vdiRef: 'OpaqueRef:vdi' })
+
+  const opening = disk.init()
+  await disk.close()
+  await opening
+
+  assert.equal(disk.nbOpenings, 1)
+  assert.equal(disk.nbClosings, 1)
+})
+
+test('XapiDiskSource closed while its opening fails can be closed', async () => {
+  const disk = new CountingXapiDiskSource({ xapi: {}, vdiRef: 'OpaqueRef:vdi' })
+  disk.error = new Error('export failed')
+
+  const opening = disk.init()
+  await disk.close()
+  await assert.rejects(opening, disk.error)
+
+  assert.equal(disk.nbClosings, 0)
+})
+
+test('XapiDiskSource is not opened once closed', async () => {
+  const disk = new CountingXapiDiskSource({ xapi: {}, vdiRef: 'OpaqueRef:vdi' })
+
+  await disk.close()
+  await assert.rejects(disk.init(), /closed disk/)
+
+  assert.equal(disk.nbOpenings, 0)
 })
