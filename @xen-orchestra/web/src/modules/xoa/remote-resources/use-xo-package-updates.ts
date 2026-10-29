@@ -14,6 +14,10 @@ export const useXoPackageUpdates = defineRemoteResource({
   initialData: (): XoPackageUpdates => ({ packages: [], isRebootRequired: false }),
   // listing calls apt on the appliance: only reload after a refresh or an upgrade
   pollingIntervalMs: false,
+  // the default merge would mutate `packages` in place (same reference, not reactive) and never shrink it
+  onDataReceived: async (updates, receivedUpdates: XoPackageUpdates) => {
+    updates.value = receivedUpdates
+  },
   state: (updates, context) => ({
     upgradablePackages: computed(() => updates.value.packages),
     isRebootRequired: computed(() => updates.value.isRebootRequired),

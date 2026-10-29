@@ -64,8 +64,20 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
   },
 ]
 
+// same cadence as Debian's apt-daily timer
+const REFRESH_INTERVAL = 12 * 60 * 60e3
+
+async function refreshInBackground(): Promise<void> {
+  try {
+    await refreshPackageIndexes()
+  } catch (error) {
+    log.warn('failed to refresh the package indexes', { error })
+  }
+}
+
 class PackageManagerPlugin {
   readonly #xo: XoApp
+  #refreshInterval: NodeJS.Timeout | undefined
   #unregisterRestRoutes: (() => void) | undefined
 
   constructor(xo: XoApp) {
@@ -75,10 +87,18 @@ class PackageManagerPlugin {
   async load(): Promise<void> {
     await checkAptAvailable()
     this.#unregisterRestRoutes = this.#xo.registerRestRoutes(REST_ROUTES)
+
+    // without it, the upgradable packages are listed from stale indexes
+    void refreshInBackground()
+    this.#refreshInterval = setInterval(refreshInBackground, REFRESH_INTERVAL)
+    this.#refreshInterval.unref()
+
     log.info('plugin loaded')
   }
 
   unload(): void {
+    clearInterval(this.#refreshInterval)
+    this.#refreshInterval = undefined
     this.#unregisterRestRoutes?.()
     this.#unregisterRestRoutes = undefined
   }
