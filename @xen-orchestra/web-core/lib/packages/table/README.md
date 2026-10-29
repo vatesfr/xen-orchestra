@@ -87,7 +87,7 @@ Pass an optional `sort` object to make columns sortable:
 - **Keys** are column ids. Columns without a key aren't sortable.
 - **Values** are compare functions receiving two row items (same type as the `body` item), following the `Array.prototype.sort` contract.
 
-A sortable column's header opens a menu to sort ascending or descending. Selecting the current direction again removes the sort. Only one column is sorted at a time, and hiding the sorted column removes the sort.
+A sortable column's header opens a menu to sort ascending or descending. Only one column is sorted at a time, and hiding the sorted column removes the sort.
 
 The sort menu is rendered by `VtsHeaderCell` (what `renderHeadCell` from `@core/tables/helpers/render-head-cell.ts` renders). A head that doesn't render it, such as a plain `<th>` or a `head` override that ignores the renderer, won't be sortable.
 

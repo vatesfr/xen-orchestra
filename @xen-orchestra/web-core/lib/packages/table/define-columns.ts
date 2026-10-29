@@ -65,8 +65,8 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       }
     }
 
-    function setSort(columnId: $TAvailableColumnId, direction: ColumnSortDirection | undefined) {
-      sortState.value = direction === undefined ? undefined : { id: columnId, direction }
+    function setSort(columnId: $TAvailableColumnId, direction: ColumnSortDirection) {
+      sortState.value = { id: columnId, direction }
     }
 
     function sortItems(items: TBodyItem[]) {

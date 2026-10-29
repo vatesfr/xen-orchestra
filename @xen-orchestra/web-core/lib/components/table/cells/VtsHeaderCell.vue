@@ -66,9 +66,8 @@ const sortIcon = computed(() => {
   return sortDirection.value === 'asc' ? 'fa:arrow-down' : 'fa:arrow-up'
 })
 
-// Selecting the current direction again clears the sort
 function selectDirection(direction: ColumnSortDirection) {
-  columnSort?.setDirection(direction === sortDirection.value ? undefined : direction)
+  columnSort?.setDirection(direction)
 }
 </script>
 

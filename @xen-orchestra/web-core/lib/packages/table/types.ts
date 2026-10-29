@@ -11,7 +11,7 @@ export type ColumnSortDirection = 'asc' | 'desc'
 
 export type ColumnSortContext = {
   direction: ComputedRef<ColumnSortDirection | undefined>
-  setDirection: (direction: ColumnSortDirection | undefined) => void
+  setDirection: (direction: ColumnSortDirection) => void
 }
 
 export type AreAllPropertiesOptional<T> = Record<string, never> extends T ? true : false
