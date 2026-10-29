@@ -19,7 +19,7 @@ Xen Orchestra is an Open Source project with more than 15 years of history. Orig
 - **2022**: work starts on [XO Lite](https://docs.vates.tech/products/add-ons/xo-lite), the lightweight web UI embedded in every XCP-ng host.
 - **January 2023**: first preview of [V2V](../migrate-from-vmware/v2v-migration-guide.md), the built-in tool to migrate VMs directly from VMware to XCP-ng.
 - **November 2025**: XO 5.113, the last feature release of the 5.x series.
-- **December 2025**: XO 6.0, the first official release of the new [XO 6](../getting-started/gettingstarted.md) interface, becomes the default UI.
+- **December 2025**: XO 6.0, the first official release of the new [XO 6](../core-concepts/coreconcepts/coreconcepts.md) interface, becomes the default UI.
 - **February 2026**: XO 6.2 introduces [distributed backups](../backups-and-dr/scale-and-security/distributed_backups.md), spreading backup data across multiple backup repositories (BR).
 - **March 2026**: XO 6.3 brings symmetrical replication and a rewritten immutable backup engine.
 - **May 2026**: XO 6.5 delivers QCOW2 general availability (disks beyond the 2 TiB VHD limit), bidirectional replication and traffic rules on networks and VIFs.
