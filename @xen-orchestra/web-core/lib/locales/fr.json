@@ -806,6 +806,7 @@
   "logs": "Logs",
   "mac-address": "Adresse MAC",
   "mac-addresses": "Adresses MAC",
+  "mac-address-change-cut-connection": "Modifier l'adresse MAC coupera temporairement la connexion",
   "manage-citrix-pv-drivers-via-windows-update": "Gérer les pilotes Citrix PV via Windows Update",
   "manage-vm-lifecycle-in-xo-5": "Gérer le cycle de vie de la VM dans XO-5",
   "management": "Gestion",

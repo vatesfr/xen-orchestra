@@ -5,3 +5,8 @@ export const vifsArg = defineJobArg({
   identify: (vif: XenApiVif) => vif.$ref,
   toArray: true,
 })
+
+export const vifArg = defineJobArg({
+  identify: (vif: XenApiVif) => vif?.$ref,
+  toArray: false,
+})

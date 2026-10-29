@@ -52,6 +52,15 @@
               <VtsCopyButton :value="String(vif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
+          <!-- RATE LIMIT -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('rate-limit') }}
+            </template>
+            <template #value>
+              {{ rateLimit !== undefined ? `${rateLimit} ${t('bytes:kbs')}` : '' }}
+            </template>
+          </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -61,7 +70,15 @@
               {{ vif.locking_mode }}
             </template>
           </VtsCardRowKeyValue>
-          <!-- TODO Need to add TX Checksumming -->
+          <!-- TX CHECK SUMMING -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('check-summing') }}
+            </template>
+            <template #value>
+              {{ isTxChecksummingEnabled(vif) }}
+            </template>
+          </VtsCardRowKeyValue>
         </div>
       </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
@@ -111,6 +128,7 @@
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
 import VifEditButton from '@/modules/vif/components/actions/edit/VifEditButton.vue'
+import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -157,6 +175,14 @@ const ipAddresses = computed(() => {
 const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
 
 const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconnected'))
+
+const rateLimit = computed(() => {
+  if (vif?.qos_algorithm_type !== 'ratelimit') {
+    return undefined
+  }
+
+  return vif.qos_algorithm_params.kbps
+})
 </script>
 
 <style scoped lang="postcss">

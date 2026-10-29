@@ -87,6 +87,9 @@ export function createVifOperations(xenApi: XenApi) {
 
     unplug: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.unplug', [vifRef]))),
 
+    unplugForce: (vifRefs: VifRefs) =>
+      Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.unplug_force', [vifRef]))),
+
     move: (vifRefs: VifRefs, networkRef: NetworkRef) =>
       Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.move', [vifRef, networkRef]))),
 
@@ -103,7 +106,11 @@ export function createVifOperations(xenApi: XenApi) {
       Promise.all(
         toArray(vifRefs).map(async vifRef => {
           await xenApi.call('VIF.set_qos_algorithm_type', [vifRef, kbps === null ? '' : 'ratelimit'])
-          await xenApi.call('VIF.set_qos_algorithm_params', [vifRef, kbps === null ? {} : { kbps: String(kbps) }])
+          await xenApi.call('VIF.remove_from_qos_algorithm_params', [vifRef, 'kbps'])
+
+          if (kbps !== null) {
+            await xenApi.call('VIF.add_to_qos_algorithm_params', [vifRef, 'kbps', String(kbps)])
+          }
         })
       ),
 

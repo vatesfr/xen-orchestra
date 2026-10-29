@@ -67,7 +67,9 @@ const formPayload = ref<EditVifPayload>()
 
 const error = ref<Error | undefined>()
 
-const { canRun, run: edit, isRunning } = useVifEditJob(() => (vif.value === undefined ? [] : [vif.value]), formPayload)
+const editedVif = ref<XenApiVif>()
+
+const { canRun, run: edit, isRunning } = useVifEditJob(editedVif, formPayload)
 
 const canDisplayForm = computed(() => !isRunning.value && error.value === undefined)
 
@@ -80,6 +82,7 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
 })
 
 async function editVif(payload: EditVifPayload) {
+  editedVif.value = vif.value
   formPayload.value = payload
 
   if (!canRun.value) {
@@ -89,11 +92,7 @@ async function editVif(payload: EditVifPayload) {
   const redirectRoute = cancelRoute.value
 
   try {
-    const [promiseResult] = await edit()
-
-    if (promiseResult.status === 'rejected') {
-      throw promiseResult.reason
-    }
+    await edit()
 
     await router.push(redirectRoute)
   } catch (_error) {
