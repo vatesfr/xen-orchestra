@@ -183,6 +183,7 @@ export const noop = () => {}
 
 export const osFamily = invoke(
   {
+    almalinux: ['almalinux'],
     centos: ['centos'],
     debian: ['debian'],
     docker: ['coreos'],
@@ -207,7 +208,17 @@ export const osFamily = invoke(
       })
     })
 
-    return osName => osName && osToFamily[osName.toLowerCase()]
+    return osName => {
+      if (!osName) {
+        return osName
+      }
+
+      const normalizedName = osName.toLowerCase()
+      if (/^almalinux(?:\s|$)/.test(normalizedName)) {
+        return 'almalinux'
+      }
+      return osToFamily[normalizedName]
+    }
   }
 )
 
