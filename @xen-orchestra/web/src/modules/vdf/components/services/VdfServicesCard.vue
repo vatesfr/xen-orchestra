@@ -59,7 +59,13 @@
       </UiInfo>
     </div>
 
-    <VdfServicesStatus :pool-id :drafted declarable @declare="declare" />
+    <VdfServicesStatus
+      :pool-id
+      :drafted
+      :declared-by="(kind, src) => serviceDeclaring(document, kind, src)"
+      declarable
+      @declare="declare"
+    />
   </UiCard>
 </template>
 
@@ -70,7 +76,7 @@ import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfServiceKind } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { documentServiceErrors, isServiceMonitored } from '@/modules/vdf/utils/vdf-services.util.ts'
+import { documentServiceErrors, isServiceMonitored, serviceDeclaring } from '@/modules/vdf/utils/vdf-services.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

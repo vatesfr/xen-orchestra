@@ -172,6 +172,23 @@ describe('diffDocuments', () => {
     expect(diffDocuments(document, structuredClone(document))).toEqual([])
   })
 
+  it('counts each service added, changed or removed (vdf#103), not one setting', () => {
+    const dhcp = { name: 'dhcp', kind: 'dhcp4' as const, group: 'web' }
+    const before = { ...document, services: [dhcp, { name: 'ra', kind: 'router' as const, group: 'web' }] }
+    const after = {
+      ...document,
+      services: [
+        { ...dhcp, mode: 'monitor' as const },
+        { name: 'dhcp6', kind: 'dhcp6' as const, group: 'web' },
+      ],
+    }
+    expect(diffDocuments(before, after)).toEqual([
+      { kind: 'service', type: 'modified', label: 'dhcp' },
+      { kind: 'service', type: 'added', label: 'dhcp6' },
+      { kind: 'service', type: 'removed', label: 'ra' },
+    ])
+  })
+
   it('reports groups, policies and rules added, modified, removed and moved', () => {
     const draft = structuredClone(document)
 

@@ -202,3 +202,16 @@ export function serviceGroupChoices(groups: Record<string, VdfGroup>, shown = 2)
       return { name, what: items.slice(0, shown), more: Math.max(0, items.length - shown) }
     })
 }
+
+// The service of the document declaring a sampled source by its address (a
+// group listing it, for that kind): the hosts keep listing a source sampled
+// before it was declared (#86 walkthrough), not a candidate any more
+export function serviceDeclaring(document: VdfDocument, kind: VdfServiceKind, src: string) {
+  const address = src.toLowerCase()
+
+  return (document.services ?? []).find(
+    service =>
+      service.kind === kind &&
+      (document.groups[service.group]?.ips ?? []).some(ip => ip.toLowerCase().replace(/\/(32|128)$/, '') === address)
+  )?.name
+}

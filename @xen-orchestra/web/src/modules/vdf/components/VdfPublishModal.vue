@@ -215,7 +215,12 @@ import {
 } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isOnNetworks } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { dhcpVersion, servicesReport, undeclaredLines } from '@/modules/vdf/utils/vdf-services.util.ts'
+import {
+  dhcpVersion,
+  servicesReport,
+  undeclaredLines,
+  VDF_SERVICE_KINDS,
+} from '@/modules/vdf/utils/vdf-services.util.ts'
 import { shadowKey, type VdfMonitorShadow, willShadowBeCovered } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -675,13 +680,27 @@ const serviceNotes = computed(() => {
   const isNew = !isEqual(document.services ?? [], baseDocument.services ?? [])
   const list = (items: string[], type: Intl.ListFormatType = 'conjunction') =>
     new Intl.ListFormat(locale.value, { type }).format(items)
+  const poolHosts = allHosts.value.filter(host => host.$pool === scopeId)
   const report = servicesReport(
-    allHosts.value
-      .filter(host => host.$pool === scopeId)
-      .map(host => ({ name: host.name_label, services: parseHostStatus(host.otherConfig)?.services }))
+    poolHosts.map(host => ({ name: host.name_label, services: parseHostStatus(host.otherConfig)?.services }))
+  )
+  // kinds the draft no longer declares: undeclared again once published, on
+  // the hosts reporting (the agents only list the kinds undeclared now)
+  const reporting = poolHosts
+    .filter(host => host.power_state === 'Running' && parseHostStatus(host.otherConfig) !== undefined)
+    .map(host => host.name_label)
+    .sort((a, b) => a.localeCompare(b))
+  const removed = VDF_SERVICE_KINDS.filter(
+    kind =>
+      !drafted.includes(kind) &&
+      (baseDocument.services ?? []).some(service => service.kind === kind) &&
+      !report.undeclared.some(item => item.kind === kind)
+  ).map(kind => ({ kind, hosts: reporting }))
+  const undeclared = [...report.undeclared, ...removed].sort(
+    (a, b) => VDF_SERVICE_KINDS.indexOf(a.kind) - VDF_SERVICE_KINDS.indexOf(b.kind)
   )
 
-  return undeclaredLines(report.undeclared, drafted).lines.map(line => ({
+  return undeclaredLines(undeclared, drafted).lines.map(line => ({
     key: `services:${line.kinds.join()}`,
     text: line.kinds.includes('router')
       ? t('firewall:services:undeclared:router', { hosts: list(line.hosts) })
@@ -927,7 +946,10 @@ const isKnownWarning = (raw: string, poolId?: string) =>
   knownAgentWarnings.value.has(poolId === undefined ? raw : `${poolId}|${raw}`)
 
 function newAgentWarnings(raws: string[] | undefined, poolId?: string) {
-  return agentWarnings((raws ?? []).filter(raw => !isKnownWarning(raw, poolId)))
+  return agentWarnings(
+    (raws ?? []).filter(raw => !isKnownWarning(raw, poolId)),
+    poolId
+  )
 }
 
 const unchanged = computed<Note[]>(() => {
@@ -935,7 +957,10 @@ const unchanged = computed<Note[]>(() => {
   const agent =
     checkResult.value?.pools !== undefined
       ? checkResult.value.pools.flatMap(pool =>
-          agentWarnings((pool.warnings ?? []).filter(raw => isKnownWarning(raw, pool.id))).map(warning => ({
+          agentWarnings(
+            (pool.warnings ?? []).filter(raw => isKnownWarning(raw, pool.id)),
+            pool.id
+          ).map(warning => ({
             key: `agent:${pool.id}:${warning.raw}`,
             text: poolName(pool.name, warning.text),
           }))
@@ -960,9 +985,25 @@ const unchanged = computed<Note[]>(() => {
 
 // the agent's warnings in an admin's words, its own text in the tooltip;
 // a text it is not known to write is shown as is
-function agentWarnings(raws: string[] | undefined) {
-  return (raws ?? []).map(raw => {
+// every host of the pool reads what the document needs (the agent's check
+// names those that don't): its "X need current agents" notes are moot
+// there (#86 walkthrough: "Egress rules need current agents" on a pool of
+// current agents, as soon as a publish changed the format)
+function everyAgentCurrent(poolId?: string) {
+  const result = poolId === undefined ? checkResult.value : checkResult.value?.pools?.find(pool => pool.id === poolId)
+
+  return result?.needs !== undefined && (result.lacking ?? []).length === 0
+}
+
+function agentWarnings(raws: string[] | undefined, poolId?: string) {
+  const current = everyAgentCurrent(poolId)
+
+  return (raws ?? []).flatMap(raw => {
     const warning = parseAgentWarning(raw)
+
+    if (current && warning?.type.endsWith('-old-agents')) {
+      return []
+    }
 
     if (warning === undefined) {
       return { raw, text: raw, tooltip: undefined, policy: undefined }

@@ -234,7 +234,7 @@ export function effectiveTiers(vmTags: string[], document: VdfDocument, ifaceNet
 }
 
 export type VdfChange = {
-  kind: 'group' | 'policy' | 'rule'
+  kind: 'group' | 'policy' | 'rule' | 'service'
   type: 'added' | 'removed' | 'modified' | 'moved'
   label: string
   context?: string
@@ -326,7 +326,27 @@ export function diffDocuments(published: VdfDocument, draft: VdfDocument): VdfCh
     changes.push({ kind: 'policy', type: 'moved', label: '' })
   }
 
-  if (!isEqual(omit(published, ['groups', 'policies']), omit(draft, ['groups', 'policies']))) {
+  // declared infrastructure services (vdf#103), one change each
+  const publishedServices = new Map((published.services ?? []).map(service => [service.name, service]))
+  const draftServices = new Map((draft.services ?? []).map(service => [service.name, service]))
+
+  for (const [name, service] of draftServices) {
+    const publishedService = publishedServices.get(name)
+
+    if (publishedService === undefined) {
+      changes.push({ kind: 'service', type: 'added', label: name })
+    } else if (!isEqual(publishedService, service)) {
+      changes.push({ kind: 'service', type: 'modified', label: name })
+    }
+  }
+
+  for (const name of publishedServices.keys()) {
+    if (!draftServices.has(name)) {
+      changes.push({ kind: 'service', type: 'removed', label: name })
+    }
+  }
+
+  if (!isEqual(omit(published, ['groups', 'policies', 'services']), omit(draft, ['groups', 'policies', 'services']))) {
     changes.push({ kind: 'policy', type: 'modified', label: '' })
   }
 

@@ -1343,6 +1343,7 @@
   "firewall:services": "Network services",
   "firewall:services:about": "How services work",
   "firewall:services:declare": "Declare",
+  "firewall:services:declared-by": "Declared in {service}",
   "firewall:services:delete": "Remove the service",
   "firewall:services:empty": "No network service declared",
   "firewall:services:info": "Declare the pool's DHCP servers and routers. Once a kind is declared, its replies and announcements reach a protected VM ahead of its policy only from a declared server (or the host itself), wherever the VMs run; others meet the VM's policy (DHCP) or are dropped (router advertisements).",

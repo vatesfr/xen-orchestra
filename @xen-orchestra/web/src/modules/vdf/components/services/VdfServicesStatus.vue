@@ -32,7 +32,7 @@
     </UiInfo>
     <!-- the sources the hosts sampled: candidates to declare -->
     <template v-if="report.seen.length > 0">
-      <span class="typo-body-bold-small">{{ t('firewall:services:seen') }}</span>
+      <span class="seen-title typo-body-bold-small">{{ t('firewall:services:seen') }}</span>
       <div v-for="item of report.seen" :key="`${item.kind}|${item.src}`" class="seen typo-body-regular-small">
         <span>
           {{
@@ -45,8 +45,11 @@
           }}
           <VtsRelativeTime :date="item.last" />
         </span>
+        <UiTag v-if="declaredBy?.(item.kind, item.src)" accent="success" variant="secondary">
+          {{ t('firewall:services:declared-by', { service: declaredBy(item.kind, item.src) }) }}
+        </UiTag>
         <UiButton
-          v-if="declarable"
+          v-else-if="declarable"
           variant="tertiary"
           accent="brand"
           size="small"
@@ -70,6 +73,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -82,12 +86,15 @@ const {
   poolId,
   declarable = false,
   drafted = [],
+  declaredBy,
 } = defineProps<{
   poolId: string
   // the kinds the draft declares: no longer undeclared once published
   drafted?: VdfServiceKind[]
   // offers "Declare" on each sampled source
   declarable?: boolean
+  // the service declaring a sampled source now (its address), if any
+  declaredBy?: (kind: VdfServiceKind, src: string) => string | undefined
   // a card of its own, linking to where services are declared (overview)
   link?: RouteLocationRaw
 }>()
@@ -120,11 +127,21 @@ const list = (items: string[], type: Intl.ListFormatType = 'conjunction') =>
   flex-direction: column;
   gap: 0.8rem;
 
+  /* the source, its button at the end of the line */
   .seen {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 0.4rem 0.8rem;
+
+    > span:first-child {
+      flex: 1 1 24rem;
+    }
+  }
+
+  .seen-title {
+    margin-block-start: 0.8rem;
   }
 }
 </style>

@@ -1343,6 +1343,7 @@
   "firewall:services": "Services réseau",
   "firewall:services:about": "Fonctionnement des services",
   "firewall:services:declare": "Déclarer",
+  "firewall:services:declared-by": "Déclaré dans {service}",
   "firewall:services:delete": "Retirer le service",
   "firewall:services:empty": "Aucun service réseau déclaré",
   "firewall:services:info": "Déclarez les serveurs DHCP et les routeurs du pool. Une fois un type déclaré, ses réponses et annonces ne passent avant la politique d'une VM protégée que depuis un serveur déclaré (ou l'hôte lui-même), où que tournent les VMs ; les autres passent par la politique de la VM (DHCP) ou sont rejetées (annonces de routeur).",

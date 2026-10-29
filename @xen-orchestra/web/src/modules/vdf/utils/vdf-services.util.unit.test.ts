@@ -5,6 +5,7 @@ import {
   isEmptyReport,
   isMac,
   serviceErrors,
+  serviceDeclaring,
   serviceGroupChoices,
   servicesOfGroup,
   servicesReport,
@@ -180,5 +181,18 @@ describe('serviceGroupChoices', () => {
       { name: 'empty', what: [], more: 0 },
       { name: 'global:admins', what: ['192.0.2.1'], more: 0 },
     ])
+  })
+})
+
+describe('serviceDeclaring', () => {
+  it('names the service of that kind whose group lists the address', () => {
+    const declared: VdfDocument = {
+      ...document,
+      groups: { ...document.groups, gw: { ips: ['192.0.2.1/32', 'FE80::1'] } },
+      services: [{ name: 'lan-dhcp', kind: 'dhcp4', group: 'gw', macs: ['00:16:3e:00:00:01'] }],
+    }
+    expect(serviceDeclaring(declared, 'dhcp4', '192.0.2.1')).toBe('lan-dhcp')
+    expect(serviceDeclaring(declared, 'router', 'fe80::1')).toBeUndefined()
+    expect(serviceDeclaring(declared, 'dhcp4', '192.0.2.9')).toBeUndefined()
   })
 })
