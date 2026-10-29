@@ -1,6 +1,6 @@
 <template>
   <div class="breadcrumb-container">
-    <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.VM && vm && vdi" :size>
+    <UiBreadcrumb v-if="isFromVm && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
         {{ vm.name_label }}
@@ -13,7 +13,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SR && pool && sr && vdi" :size>
+    <UiBreadcrumb v-else-if="isFromSr && pool && sr && vdi" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: sr.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
         {{ pool.name_label }}
@@ -26,7 +26,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm && vdi" :size>
+    <UiBreadcrumb v-else-if="isFromSnapshot && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
         <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
         {{ vm.name_label }}
@@ -39,7 +39,7 @@
       </span>
     </UiBreadcrumb>
 
-    <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT && pool && vdiSnapshot" :size>
+    <UiBreadcrumb v-else-if="isFromVdiSnapshot && pool && vdiSnapshot" :size>
       <UiLink :size :to="{ name: '/pool/[id]/dashboard', params: { id: vdiSnapshot.$pool } }">
         <VtsIcon name="object:pool" size="medium" />
         {{ pool.name_label }}
@@ -92,6 +92,14 @@ const { t } = useI18n()
 const { useGetPoolById } = useXoPoolCollection()
 
 const pool = useGetPoolById(() => sr?.$pool ?? vdiSnapshot?.$pool)
+
+const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
+
+const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
+
+const isFromSnapshot = computed(() => fromContext === VDI_PAGE_CONTEXT.SNAPSHOT)
+
+const isFromVdiSnapshot = computed(() => fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT)
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 

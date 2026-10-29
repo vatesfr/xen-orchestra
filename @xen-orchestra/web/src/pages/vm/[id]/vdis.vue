@@ -1,7 +1,13 @@
 <template>
   <VtsContentSidePanel class="vdis">
     <UiCard class="container">
-      <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
+      <VdisTable
+        :vdis="filteredVdisByNotCdVbd"
+        :vm
+        :from-context="VDI_PAGE_CONTEXT.VM"
+        :busy="!areVmVdisReady"
+        :error="hasVmVdiFetchError"
+      >
         <template #title-actions>
           <MenuList placement="bottom-end">
             <template #trigger="{ open }">
@@ -31,7 +37,7 @@
         </template>
       </VdisTable>
     </UiCard>
-    <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    <VdiSidePanel :vdi="selectedVdi" :vm :from-context="VDI_PAGE_CONTEXT.VM" @close="selectedVdi = undefined" />
   </VtsContentSidePanel>
 </template>
 
@@ -42,6 +48,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
+import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'

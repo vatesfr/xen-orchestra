@@ -11,6 +11,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createSr`                        | `FrontXoSr`                                |
 | `createVbd`                       | `FrontXoVbd`                               |
 | `createVdi`                       | `FrontXoVdi`                               |
+| `createVdiSnapshot`               | `FrontXoVdiSnapshot`                       |
 | `createNetwork`                   | `FrontXoNetwork`                           |
 | `createPif`                       | `FrontXoPif`                               |
 | `createVif`                       | `FrontXoVif`                               |

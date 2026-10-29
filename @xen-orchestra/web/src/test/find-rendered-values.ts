@@ -119,3 +119,11 @@ export function findTags(wrapper: QueryableWrapper): string[] {
 
   return tags.map(tag => tag.text())
 }
+
+/**
+ * Reads every `UiTabItem` of a mounted header, in order — each one rendered by a
+ * `RouterLink`, so its `href` and `active` class are addressable.
+ */
+export function findTabs(wrapper: QueryableWrapper) {
+  return wrapper.findAll('.ui-tab-item')
+}

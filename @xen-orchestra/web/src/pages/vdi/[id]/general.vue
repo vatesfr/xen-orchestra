@@ -5,7 +5,7 @@
       <VdiDetailSpace :vdi :vdi-snapshot />
     </VtsColumn>
     <VtsColumn>
-      <VdiDetailConfiguration :vdi :vdi-snapshot />
+      <VdiDetailConfiguration :vdi :vbd :vdi-snapshot :from-context />
     </VtsColumn>
   </VtsColumns>
 </template>
@@ -17,6 +17,7 @@ import VdiDetailGeneralInfo from '@/modules/vdi/components/detail/VdiDetailGener
 import VdiDetailSpace from '@/modules/vdi/components/detail/VdiDetailSpace.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
@@ -24,5 +25,6 @@ defineProps<{
   vdi?: FrontXoVdi
   vbd?: FrontXoVbd
   vdiSnapshot?: FrontXoVdiSnapshot
+  fromContext?: VdiPageContext
 }>()
 </script>
