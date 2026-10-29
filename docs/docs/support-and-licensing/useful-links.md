@@ -1,4 +1,4 @@
-# Bundles and licences
+# Bundles and licenses
 
 The following resources are available in the Vates VMS documentation:
 
