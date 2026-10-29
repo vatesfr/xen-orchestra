@@ -4,6 +4,7 @@ import type {
 } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { VM_POWER_STATE, XoSr } from '@vates/types'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 
 export const BACKUP_JOB_LAST_RUNS_COUNT = 3
 
@@ -52,6 +53,14 @@ export function hasBackupJobSnapshotRetention(backupJob: FrontXoVmBackupJob): bo
   return Object.values(backupJob.settings).some(
     settings => typeof settings?.snapshotRetention === 'number' && settings.snapshotRetention > 0
   )
+}
+
+export function getTargetIds<TId extends string>(pattern: string | { id: TId | { __or: TId[] } } | undefined): TId[] {
+  // Expression targets are only resolved when the job runs, so there are no fixed IDs to show
+  if (typeof pattern === 'string') {
+    return []
+  }
+  return extractIdsFromSimplePattern<TId>(pattern)
 }
 
 export function isBackupJobVmsSmartMode(

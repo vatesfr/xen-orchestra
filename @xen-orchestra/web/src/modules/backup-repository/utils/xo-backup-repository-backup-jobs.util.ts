@@ -6,9 +6,15 @@ export function getBackupJobsUsingBackupRepository(
   brId: FrontXoBackupRepository['id'],
   backupJobs: FrontAnyXoBackupJob[]
 ): FrontAnyXoBackupJob[] {
-  return backupJobs.filter(
-    backupJob =>
-      extractIdsFromSimplePattern(backupJob.remotes).includes(brId) ||
-      ('sourceRemote' in backupJob && backupJob.sourceRemote === brId)
-  )
+  return backupJobs.filter(backupJob => {
+    if ('sourceRemote' in backupJob && backupJob.sourceRemote === brId) {
+      return true
+    }
+
+    if (typeof backupJob.remotes === 'string') {
+      return true
+    }
+
+    return extractIdsFromSimplePattern(backupJob.remotes).includes(brId)
+  })
 }

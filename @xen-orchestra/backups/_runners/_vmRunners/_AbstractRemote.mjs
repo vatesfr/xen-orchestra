@@ -20,6 +20,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     job,
     healthCheckSr,
     remoteAdapters,
+    runContext,
     schedule,
     settings,
     sourceRemoteAdapter,
@@ -40,10 +41,13 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._throttleGenerator = throttleGenerator
     this._throttleStream = throttleStream
     this._vmUuid = vmUuid
+    this._runContext = runContext
 
     const allSettings = job.settings
     const writers = new Set()
     this._writers = writers
+
+    this._compileHealthCheckPredicate()
 
     const [BackupWriter, AggregratedBackupWriter] = this._getRemoteWriters()
     if (settings.distributeBackups) {

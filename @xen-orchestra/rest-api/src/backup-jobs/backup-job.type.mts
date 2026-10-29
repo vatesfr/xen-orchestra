@@ -13,9 +13,9 @@ import { Unbrand } from '../open-api/common/response.common.mjs'
 import type * as CMType from '@vates/types/lib/complex-matcher'
 
 type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms' | 'srs'> & {
-  remotes?: CMType.IdOr<string>
+  remotes?: CMType.IdOr<string> | string
   vms: CMType.IdOr<string> | Record<string, unknown>
-  srs?: CMType.IdOr<string>
+  srs?: CMType.IdOr<string> | string
   settings: {
     '': XoVmBackupJobGeneralSettings
     [scheduleId: string]: Unbrand<XoVmBackupJobScheduleSettings> | undefined
