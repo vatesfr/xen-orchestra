@@ -15,7 +15,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
+import { listRpuPlanChange, noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { useUpdateSystem } from '../utils.mjs'
@@ -860,7 +860,20 @@ const methods = {
         subtask.set('progress', Math.round((done * 100) / hosts.length))
       })
     })
-    recorder.setPatchInventory(hasMissingPatchesByHost)
+
+    // patches released since the first attempt may concern a host it did not
+    // plan to update, or one a previous attempt finished: such a host is
+    // updated, and installs only the patches it is missing now
+    const addedHostIds = listRpuPlanChange({
+      patchInventory: resume.patchInventory,
+      hasMissingPatchesByHost,
+      doneHostIds: resume.doneHostIds,
+    })
+    recorder.setPatchInventory(hasMissingPatchesByHost, addedHostIds)
+    if (addedHostIds.length > 0) {
+      log.info(`the plan of the rolling pool update of pool ${this.pool.uuid} changed`, { addedHostIds })
+      parentTask.set('planChange', { addedHostIds })
+    }
 
     // a current master over outdated members is a pool left half updated, by
     // an interrupted run or by hand: the operator must accept that state as
@@ -892,6 +905,11 @@ const methods = {
     // happens if the run patched the host and it did not reboot since. Like on
     // a first attempt, a host patched outside of the run is not rebooted
     const doneHostIds = new Set(resume.doneHostIds)
+    for (const hostId of addedHostIds) {
+      if (doneHostIds.delete(hostId)) {
+        recorder.reopenHost(hostId)
+      }
+    }
     const rebootOnlyHostIds = new Set()
     for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
       if (hasMissingPatchesByHost[hostId]) {

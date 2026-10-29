@@ -533,7 +533,7 @@ export const poolRollingUpdateRecovery = {
   interruptedAt: '2026-08-31T14:18:47.000Z',
   taskId: '0mf2gtitq',
   variant: 'xcp',
-  attempt: 1,
+  attempt: 2,
   resumable: true,
   hostOrder: ['b61a5c92-700e-4966-a13b-00633f03eea8', '46522969-d891-4c48-a839-316b767b7b7b'],
   hosts: {
@@ -584,4 +584,8 @@ export const poolRollingUpdateRecovery = {
       reason: 'stopped',
     },
   ],
+  planChange: {
+    attempt: 2,
+    addedHostIds: ['b61a5c92-700e-4966-a13b-00633f03eea8'],
+  },
 }

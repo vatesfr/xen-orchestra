@@ -152,8 +152,17 @@ class FakeXapi {
 // the mixin reaches its own methods through `this`
 Object.setPrototypeOf(FakeXapi.prototype, patchingMethods)
 
+// the properties the update sets on its task end in `xapi.taskProperties`
 const rollingPoolUpdate = async (xapi, options) => {
-  const parentTask = new Task({ properties: { name: 'rolling pool update', progress: 0 } })
+  xapi.taskProperties = {}
+  const parentTask = new Task({
+    properties: { name: 'rolling pool update', progress: 0 },
+    onProgress: event => {
+      if (event.type === 'property' && event.id === parentTask.id) {
+        xapi.taskProperties[event.name] = event.value
+      }
+    },
+  })
 
   let error
   await parentTask.run(async () => {
@@ -452,6 +461,86 @@ describe('rollingPoolUpdate', function () {
 
       assert.match(error?.message, /host-B took too long to restart/)
       assert.deepEqual(xapi.steps, [])
+    })
+
+    describe('with patches released since the first attempt', function () {
+      const resumeWithInventory = (patchInventory, { doneHostIds = [], unfinishedHosts = {} } = {}) => ({
+        ...resumeOf(true, unfinishedHosts),
+        doneHostIds: new Set(doneHostIds),
+        patchInventory,
+      })
+      const replan = (xapi, resume) => {
+        const calls = []
+        const recorder = {
+          ...noopRpuRecorder,
+          setPatchInventory: (...args) => calls.push(['setPatchInventory', ...args]),
+          reopenHost: hostId => calls.push(['reopenHost', hostId]),
+        }
+        return rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, recorder, resume }).then(error => ({
+          error,
+          calls,
+        }))
+      }
+
+      it('updates again a host a previous attempt finished, without the patches already applied', async function () {
+        const xapi = new FakeXapi([1, 2])
+
+        const { error, calls } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [
+          ['setPatchInventory', { 'host-A': true, 'host-B': true }, ['host-A']],
+          ['reopenHost', 'host-A'],
+        ])
+        assert.deepEqual([...xapi.resume.doneHostIds], [])
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        // installPatches only installs what the host is missing now
+        assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
+
+      it('updates a master which was already current when the run started', async function () {
+        const xapi = new FakeXapi([1, 2])
+
+        const { error, calls } = await replan(xapi, resumeWithInventory({ 'host-A': false, 'host-B': true }))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [['setPatchInventory', { 'host-A': true, 'host-B': true }, ['host-A']]])
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
+
+      it('reports no change when the remaining work is the one planned', async function () {
+        const xapi = new FakeXapi([0, 2])
+
+        const { error, calls } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [['setPatchInventory', { 'host-A': false, 'host-B': true }, []]])
+        assert.deepEqual([...xapi.resume.doneHostIds], ['host-A'])
+        assert.deepEqual(xapi.steps, [['host-B']])
+        assert.equal(xapi.taskProperties.planChange, undefined)
+      })
+
+      it('applies on XenServer 8.4+ too', async function () {
+        const xapi = new FakeXapi([1, 2], { softwareVersion: XS_CDN })
+
+        const { error } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
     })
 
     it('checks only the mandatory pending guidances of the hosts the run patched, before and after the reboots', async function () {
