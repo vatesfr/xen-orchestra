@@ -513,7 +513,7 @@
   "job:arg:ip-range-required": "O intervalo de IP é obrigatório",
   "job:arg:missing-payload": "Payload está faltando",
   "job:arg:name-required": "O rótulo do nome esta em falta",
-  "job:arg:password-required": "É necessário utilizar uma palavra-passe.",
+  "job:arg:password-required": "É necessário utilizar uma palavra-passe",
   "job:arg:pif-id-required": "O ID do PIF é obrigatório",
   "job:arg:pif-ids-required": "É necessário pelo menos um ID de PIF",
   "job:arg:pool-id-required": "Pool ID é obrigatório",
