@@ -71,6 +71,11 @@ describe('parseAgentWarning', () => {
     ).toEqual({ type: 'egress-old-agents' })
     expect(
       parseAgentWarning(
+        'host "xcp \\"b\\"" (agent spike-1, formats up to 3 as far as its status tells) doesn\'t record monitor mode: its monitored policies are left out there, the rules it enforces are the same'
+      )
+    ).toEqual({ type: 'monitor-old-agent', host: 'xcp "b"', agent: 'spike-1', version: 3 })
+    expect(
+      parseAgentWarning(
         'port ranges cover more than 4096 ports in all, too many to list port by port: agents before port ranges keep enforcing their last policy'
       )
     ).toEqual({ type: 'port-ranges-old-agents', max: 4096 })

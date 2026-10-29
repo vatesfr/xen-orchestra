@@ -16,6 +16,9 @@ export type VdfAgentWarning =
   | { type: 'networks-old-agents' }
   | { type: 'port-ranges-old-agents'; max: number }
   | { type: 'egress-old-agents' }
+  // vdf#2: a host whose agent reads the document without its monitored
+  // policies, the same rules enforced (a warning, not a refusal)
+  | { type: 'monitor-old-agent'; host: string; agent: string; version: number }
 
 // a name as Go's %q writes it
 const QUOTED = String.raw`"((?:[^"\\]|\\.)*)"`
@@ -90,6 +93,17 @@ const SHAPES: [RegExp, (match: RegExpMatchArray) => VdfAgentWarning][] = [
   ],
   [/^groups scoped to networks: agents before per-network groups /, () => ({ type: 'networks-old-agents' })],
   [/^egress rules: agents before egress keep enforcing their last policy/, () => ({ type: 'egress-old-agents' })],
+  [
+    new RegExp(
+      String.raw`^host ${QUOTED} \(agent (.*), formats up to (\d+)(?: as far as its status tells)?\) doesn't record monitor mode: `
+    ),
+    ([, host, agent, version]) => ({
+      type: 'monitor-old-agent',
+      host: unquote(host),
+      agent,
+      version: Number(version),
+    }),
+  ],
   [
     /^port ranges cover more than (\d+) ports in all, too many to list port by port: /,
     ([, max]) => ({ type: 'port-ranges-old-agents', max: Number(max) }),
