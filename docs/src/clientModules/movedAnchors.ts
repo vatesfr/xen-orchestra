@@ -38,6 +38,19 @@ const MOVED_FROM_XOA: Record<string, string> = {
 }
 
 /**
+ * Sections that moved to another page, keyed by the page they left.
+ * Redirects from older URLs of these pages keep the hash, so this also
+ * covers them.
+ */
+const MOVED_SECTIONS: Record<string, Record<string, string>> = {
+  '/core-concepts/coreconcepts': {
+    'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
+    'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
+    'tasks-everything-is-tracked': '/core-concepts/coreconcepts/tasks',
+  },
+}
+
+/**
  * The old /xo6/purchase and /xo5/license_management pages moved to the
  * central Vates docs; their redirect lands on /support, and these
  * anchors complete the trip to the right page over there.
@@ -67,5 +80,9 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   }
   if (path === '/support-and-reference/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
+  }
+  const movedSection = MOVED_SECTIONS[path]?.[anchor]
+  if (movedSection !== undefined) {
+    window.location.replace(movedSection)
   }
 }

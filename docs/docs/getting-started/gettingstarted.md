@@ -47,7 +47,7 @@ Next to the tree view, the **Administration** tab of the sidebar gives access to
 
 A good way to discover XO 6 in a few minutes:
 
-1. Start on the **dashboard**: it aggregates the health of everything Xen Orchestra manages, including pool, host and VM status, resource totals, missing patches, alarms and backup health. See [How XO 6 is organized](../core-concepts/coreconcepts.md).
+1. Start on the **dashboard**: it aggregates the health of everything Xen Orchestra manages, including pool, host and VM status, resource totals, missing patches, alarms and backup health. See [How XO is organized](../core-concepts/coreconcepts/coreconcepts.md).
 2. Click a **pool** in the tree view: same idea, scoped to the pool, with its networks, storage and hosts one tab away.
 3. Click a **VM**: quick info, live console, snapshots, backup protection status, all in tabs.
 4. Open the **Tasks** tab at any level: every operation, API call and authentication is tracked there.
