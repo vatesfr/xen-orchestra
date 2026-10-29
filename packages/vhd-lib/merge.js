@@ -184,13 +184,6 @@ class Merger {
       }
       await self.#mergeBlocks(parentVhd, childVhd)
       await self.#updateHeaders(parentVhd, childVhd)
-      if (parentVhd instanceof VhdDirectory) {
-        if (self.#isResuming || parentVhd.sizeOnDisk === undefined) {
-          await parentVhd.computeSizeOnDisk()
-        }
-
-        await parentVhd.writeSize()
-      }
     })
   }
 
@@ -212,8 +205,7 @@ class Merger {
       toMerge,
       async blockId => {
         merging.add(blockId)
-        const delta = await parentVhd.mergeBlock(childVhd, blockId, this.#isResuming)
-        this.#state.mergedDataSize += delta
+        this.#state.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, this.#isResuming)
 
         this.#state.currentBlock = Math.min(...merging)
         merging.delete(blockId)

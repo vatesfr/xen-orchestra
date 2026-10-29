@@ -155,11 +155,17 @@ export function getVmBackupSizeOnDisk(metadata) {
     return metadata.sizeOnDisk
   } else if (metadata.mode === 'delta' && metadata.vhds !== undefined) {
     const vhdSizes = Object.keys(metadata.vhds).map(vdiRef => metadata.vhdsSizeOnDisk?.[vdiRef])
-    if (vhdSizes.some(vhdSize => vhdSize === undefined)) {
-      return undefined
+
+    let sizeOnDisk = 0
+    for (const vhdSize of vhdSizes) {
+      if (vhdSize === undefined) {
+        return undefined
+      }
+
+      sizeOnDisk += vhdSize
     }
 
-    return vhdSizes.reduce((total, vhdSize) => (total ?? 0) + (vhdSize ?? 0), 0)
+    return sizeOnDisk
   }
 
   return undefined

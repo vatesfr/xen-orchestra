@@ -21,7 +21,7 @@ const diskDispose = mock.fn(() => Promise.resolve())
 
 const baseDisk = {
   isDifferencing: () => false,
-  getSizeOnDisk: () => 1024 * 1024 * 1024,
+  getStreamSize: () => 1024 * 1024 * 1024,
   getVirtualSize: () => 8 * 1024 * 1024 * 1024,
   getUuid: () => 'disk-uuid',
   getParentUuid: () => null as unknown as string,

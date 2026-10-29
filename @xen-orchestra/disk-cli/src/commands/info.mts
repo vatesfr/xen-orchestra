@@ -21,7 +21,7 @@ function readDiskInfo(disk: RemoteDisk, path: string, showSize: boolean): DiskIn
     parentUid: isDifferencing ? disk.getParentUuid() : null,
     virtualSize: disk.getVirtualSize(),
     blockSize: disk.getBlockSize(),
-    sizeOnDisk: showSize ? disk.getSizeOnDisk() : undefined,
+    sizeOnDisk: showSize ? disk.getStreamSize() : undefined,
   }
 }
 

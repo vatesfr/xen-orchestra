@@ -138,9 +138,9 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @returns {number} size
    */
-  getSizeOnDisk() {
+  getStreamSize() {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call getVirtualSize of a RemoteVhdDisk before init`)
+      throw new Error(`can't call getStreamSize of a RemoteVhdDisk before init`)
     }
 
     return this.#vhd.streamSize()
@@ -331,9 +331,6 @@ export class RemoteVhdDisk extends RemoteDisk {
 
           // it will throw an error if block is missing in parent
           // won't detect if the block was already in parent and is broken/missing in child
-
-          // since we can't know the initial size, this will create a discrepancy
-          // on the size
           const { data } = await this.readBlock(index)
           if (data.length !== this.getBlockSize()) {
             throw error
@@ -394,52 +391,38 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Write the disk size to its size.json metadata file
+   * Recompute the disk size if needed and write it to its size.json metadata file.
+   * Does nothing to a VHD file
    *
+   * @param {Object} [opts]
+   * @param {boolean} [opts.recompute]
    * @returns  {Promise<void>}
    */
-  async writeSize() {
+  async saveSizeOnDisk(opts = {}) {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call writeSize of a RemoteVhdDisk before init`)
+      throw new Error(`can't call saveSizeOnDisk of a RemoteVhdDisk before init`)
     }
 
     if (this.#vhd instanceof VhdDirectory) {
-      await this.#vhd.writeSize()
+      await this.#vhd.saveSize(opts)
     }
   }
 
   /**
-   * Computes the real size of the disk
+   * Returns the space used by the data and undefined if unknown
    *
-   * @returns  {Promise<number>}
+   * @returns  {Promise<number|undefined>}
    */
-  async computeSizeOnDisk() {
+  async readSizeOnDisk() {
     if (this.#vhd === undefined) {
-      throw new Error(`can't call computeSizeOnDisk of a RemoteVhdDisk before init`)
+      throw new Error(`can't call readSizeOnDisk of a RemoteVhdDisk before init`)
     }
 
     if (this.#vhd instanceof VhdDirectory) {
-      return this.#vhd.computeSizeOnDisk()
+      return this.#vhd.readSizeOnDisk()
     } else {
       return this.#handler.getSizeOnDisk(await resolveVhdAlias(this.#handler, this.#path))
     }
-  }
-
-  /**
-   * Returns the size on disk
-   *
-   * @returns  {number | undefined}
-   */
-  getStoredSize() {
-    if (this.#vhd === undefined) {
-      throw new Error(`can't call getStoredSize of a RemoteVhdDisk before init`)
-    }
-
-    if (this.#vhd instanceof VhdDirectory) {
-      return this.#vhd.sizeOnDisk
-    }
-
-    return undefined
   }
 
   /**
