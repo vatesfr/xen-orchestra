@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Immutability
 
 This page covers the immutability feature: what it is, why it matters, and how to set up the native on-prem service.

@@ -1,5 +1,6 @@
 ---
 sidebar_label: Mirror backups
+sidebar_position: 6
 ---
 
 # Mirror backups

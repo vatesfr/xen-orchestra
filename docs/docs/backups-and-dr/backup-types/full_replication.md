@@ -1,5 +1,6 @@
 ---
 sidebar_label: Full replication (DR)
+sidebar_position: 2
 ---
 
 # Full replication
