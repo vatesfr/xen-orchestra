@@ -19,9 +19,9 @@ In this scenario, you will need a QA/pre-production XCP-ng pool with Internet ac
 
 ### Deployment
 
-[Follow the standard procedure](./getting-started/installation.md) to deploy the XOA on your pool with Internet access.
+[Follow the standard procedure](./getting-started/installation/xoa.md) to deploy the XOA on your pool with Internet access.
 
-Make sure that your appliance is [properly registered](./getting-started/installation.md#registration) and [up-to-date](./getting-started/updater.md).
+Make sure that your appliance is [properly registered](./getting-started/installation/xoa.md#registration) and [up-to-date](./getting-started/updater.md).
 
 It's also good to take a quick look at [the XOA check](./support-and-reference/troubleshooting.md#first-reflex-xoa-check) to detect issues early.
 

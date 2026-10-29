@@ -91,7 +91,7 @@ Note that `xo-server` only needs to reach the **master** of each pool: the maste
 
 ## XOA
 
-The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installing XOA](../getting-started/installation.md).
+The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, configured and QA validated. It is the way we recommend and support running XO: see [Installing XOA](../getting-started/installation/xoa.md).
 
 ## xo-server
 

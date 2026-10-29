@@ -12,34 +12,7 @@ The configuration file is located at `/etc/xo-server/config.toml`.
 
 If you need to do any configuration on the system itself (firewall, NTP, service restart…), see [the XOA appliance settings](#xoa-appliance) at the end of this page.
 
-## Using XO 5 as the Default Interface
-
-Starting with **Xen Orchestra 6**, the XO 6 UI becomes the default interface. That said, you can still switch back to XO 5, temporarily or by default.
-
-### Temporary Switch to XO 5
-
-To quickly access the old UI without changing any configuration, `/v5` to your URL (e.g., `https://xo.example.com/v5`).
-
-### Making XO 5 the default UI
-
-To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`). This configuration file can be placed either in `~/.config/xo-server/` of the process running xo-server or if you are using a xoa in `/etc/xo-server/`. This file will contain :
-
-```toml
-[http.mounts]
-'/' = '/usr/local/lib/node_modules/xo-web/dist/'
-'/v5' = '/usr/local/lib/node_modules/xo-web/dist/'
-'/v6' = '/usr/local/lib/node_modules/@xen-orchestra/web/dist/'
-```
-
-If you are not using a xoa, replace the path `/usr/local/lib/node_modules/` with the real path of the modules.
-
-This configuration ensures:
-
-- Accessing `/` loads **XO 5**.
-- Accessing `/v5` loads **XO 5**.
-- Accessing `/v6` loads **XO 6**.
-
-### Where to Place the Configuration File
+## Where to place the configuration file
 
 :::tip
 If changing a user-specific configuration, make sure the file belongs to the user that runs the XO server process.
@@ -76,16 +49,6 @@ a basic cli can be used to explore the configuration by installing the package `
 The update feature of XOA can reset any `local` config. Use `/etc/xo-server/config.*` as the preferred config place for XOA.
 :::
 
-### Apply the changes
-
-After updating the configuration, restart the XO server process:
-
-<Terminal shell title="xoa — apply the configuration">{`
-sudo systemctl restart xo-server
-`}</Terminal>
-
-XO 5 will now be served as the default UI.
-
 ## User to run XO-server as
 
 By default, XO-server runs as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
@@ -95,7 +58,7 @@ user = 'nobody'
 group = 'nogroup'
 ```
 
-**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](install-from-sources.md).
+**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](installation/install-from-sources.md).
 
 ## HTTP listen address and port
 

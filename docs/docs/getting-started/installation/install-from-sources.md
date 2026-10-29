@@ -1,4 +1,5 @@
 ---
+slug: /getting-started/install-from-sources
 sidebar_label: From source
 sidebar_position: 2
 ---
@@ -8,7 +9,7 @@ sidebar_position: 2
 Xen Orchestra is fully open source: you can build and run it yourself, for free, from its Git repository. This is the method of choice for home labs and evaluation on your own terms.
 
 :::warning
-There is no professional support for this installation method, and no QA beyond what the community reports. For production, use [XOA](installation.md). Use the sources at your own risk!
+There is no professional support for this installation method, and no QA beyond what the community reports. For production, use [XOA](xoa.md). Use the sources at your own risk!
 :::
 
 What you are about to build: a single `xen-orchestra` checkout containing the server (`xo-server`) and the web interfaces, running as one Node.js process, with Redis as its database. Total time on a fresh VM: about fifteen minutes.
@@ -205,7 +206,7 @@ username ALL=(root)NOPASSWD: /bin/mount, /bin/umount, /bin/findmnt
 
 ## About the banner
 
-Running from the sources shows a banner reminding you that this version comes without support or QA. As a home user, simply ignore it: it is aimed at companies, for which the supported [XOA](installation.md) is the right vehicle, and whose subscriptions are what funds the development of XO and [XCP-ng](https://xcp-ng.org) (every euro earned goes directly back into these open source projects). Removing the banner in redistributed scripts hurts that loop, and keeping it is one simple way to support the project.
+Running from the sources shows a banner reminding you that this version comes without support or QA. As a home user, simply ignore it: it is aimed at companies, for which the supported [XOA](xoa.md) is the right vehicle, and whose subscriptions are what funds the development of XO and [XCP-ng](https://xcp-ng.org) (every euro earned goes directly back into these open source projects). Removing the banner in redistributed scripts hurts that loop, and keeping it is one simple way to support the project.
 
 You can also support XO by spreading the word, reporting bugs, and contributing code.
 
@@ -216,7 +217,7 @@ Exceptional individual contributors are awarded a free XOA Premium subscription.
 ## FreeBSD and OpenBSD
 
 :::note Community territory
-We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../support-and-reference/community.md): we would be happy to have more testers and maintainers for these targets.
+We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../../support-and-reference/community.md): we would be happy to have more testers and maintainers for these targets.
 :::
 
 ### FreeBSD

@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Xen Orchestra involves three distinct notions of "user account". Make sure you are looking at the right one:
 
-- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../../getting-started/installation.md#first-login).
+- **XOA system accounts**: the Linux accounts (`xoa`, `root`) of the appliance itself, used for SSH and console access. See [First login](../../getting-started/installation/xoa.md#first-login).
 - **XO application users**: the accounts inside the Xen Orchestra web application. This is what this page is about.
 - **XO 6 / REST API roles**: XO 6 introduces a new RBAC model with roles and fine-grained privileges. See the [RBAC page](./rbac.md).
 
