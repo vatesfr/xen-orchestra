@@ -12,7 +12,7 @@
         </template>
       </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-bind="protocolSelectBindings" />
-      <TrafficRuleFormNumberInput v-if="hasPort" v-bind="portInputBindings" />
+      <VtsNumberInput v-if="hasPort" v-bind="portInputBindings" />
     </div>
 
     <div class="row">
@@ -50,11 +50,11 @@
 </template>
 
 <script setup lang="ts">
-import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import { useEditTrafficRuleForm } from '@/modules/traffic-rules/form/edit/use-edit-traffic-rule-form.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import type { TrafficRule } from '@vates/types'
