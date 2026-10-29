@@ -671,7 +671,7 @@
   "job:plugin-configure:not-configurable": "@:plugin:not-configurable",
   "job:plugin-delete-configuration:loaded": "Aby bylo možné smazat jeho nastavení, je třeba zrušit načtení zásuvného modulu",
   "job:plugin-delete-configuration:missing-plugin": "@:plugin-missing",
-  "job:plugin-delete-configuration:no-configuration": "Tento zásuvný modul není možné nijak nastavovat",
+  "job:plugin-delete-configuration:no-configuration": "Tento zásuvný modul nemá žádná nastavení",
   "job:plugin-test:in-progress": "Probíhá zkoušení zásuvného modulu…",
   "job:plugin-test:missing-plugin": "@:plugin-missing",
   "job:plugin-test:not-loaded": "Aby ho bylo možné zkoušet, je třeba, aby byl zásuvný modul načtený",
