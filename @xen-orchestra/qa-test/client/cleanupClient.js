@@ -302,30 +302,14 @@ export class CleanupClient {
         }
       }
 
-      // Mirror backup jobs require mirrorBackup.deleteJob, standard jobs use backupNg.deleteJob.
-      // The REST API may not expose the type field for mirror jobs, so fall back when backupNg
-      // returns "no such job" (error.data.type === 'job').
-      if (job.type === 'mirrorBackup') {
-        await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
-      } else {
-        try {
-          await this.dispatchClient.backup.deleteBackupJob(job.id)
-        } catch (error) {
-          if (error?.data?.type !== 'job') {
-            throw error
-          }
-          // backupNg doesn't know this job — may be a mirror backup job; try the mirror method
-          try {
-            await this.dispatchClient.backup.deleteMirrorBackupJob(job.id)
-          } catch (mirrorError) {
-            if (mirrorError?.data?.type === 'job') {
-              // Job is unreachable through both RPCs (orphaned from a previous run) — skip silently
-              log.debug('Backup job not found via any delete method, skipping', { jobId: job.id })
-              return
-            }
-            throw mirrorError
-          }
+      // the REST API deletes any type of backup job, along with its schedules
+      try {
+        await this.dispatchClient.backup.deleteBackupJob(job.id)
+      } catch (error) {
+        if (error.status !== 404) {
+          throw error
         }
+        log.debug('Backup job already deleted, skipping', { jobId: job.id })
       }
     }
 
@@ -354,9 +338,8 @@ export class CleanupClient {
     }
 
     const findSchedules = async () => {
-      const allSchedules = await this.dispatchClient.xoClient.call('schedule.getAll')
-      const schedulesArray = Array.isArray(allSchedules) ? allSchedules : Object.values(allSchedules)
-      return schedulesArray.filter(
+      const allSchedules = await this.dispatchClient.backup.listSchedules()
+      return allSchedules.filter(
         schedule =>
           config.includeIds.includes(schedule.id) ||
           config.namePatterns.some(pattern => schedule.name?.includes(pattern))
@@ -364,7 +347,7 @@ export class CleanupClient {
     }
 
     const deleteSchedule = async schedule => {
-      await this.dispatchClient.xoClient.call('schedule.delete', { id: schedule.id })
+      await this.dispatchClient.backup.deleteSchedule(schedule.id)
     }
 
     return await this._deleteResourcesBatch('schedule', findSchedules, deleteSchedule, {
