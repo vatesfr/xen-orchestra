@@ -2,10 +2,25 @@ import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernet
 import {
   nodeCurrentOperation,
   nodeIconState,
+  nodeReadyStatus,
   nodeSchedulingStatus,
 } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 import { createKubernetesNode } from '@/test/create-kubernetes-node.ts'
+
+describe('nodeReadyStatus', () => {
+  it('returns ready when the node is Ready', () => {
+    expect(nodeReadyStatus(createKubernetesNode({ status: 'Ready' }))).toBe('ready')
+  })
+
+  it('returns not-ready when the node is NotReady', () => {
+    expect(nodeReadyStatus(createKubernetesNode({ status: 'NotReady' }))).toBe('not-ready')
+  })
+
+  it('returns unknown when the node status is Unknown', () => {
+    expect(nodeReadyStatus(createKubernetesNode({ status: 'Unknown' }))).toBe('unknown')
+  })
+})
 
 describe('nodeSchedulingStatus', () => {
   it('returns schedulable when the node is neither cordoned nor draining', () => {

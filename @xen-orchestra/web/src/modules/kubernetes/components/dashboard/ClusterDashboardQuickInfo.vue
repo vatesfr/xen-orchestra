@@ -15,7 +15,7 @@
       <VtsKeyValueRow :label="t('created-by')" :value="creatorLabel" />
     </VtsKeyValueList>
     <VtsKeyValueList>
-      <VtsKeyValueRow :label="t('uuid')" />
+      <VtsKeyValueRow :label="t('uuid')" :value="cluster.id" />
       <VtsKeyValueRow :label="t('description')" :value="cluster.description" />
     </VtsKeyValueList>
     <VtsKeyValueList>

@@ -1,9 +1,8 @@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { Status } from '@core/components/status/VtsStatus.vue'
 
 export type KubernetesAvailabilityStatus = 'available' | 'not-available'
 
-export type KubernetesReadyStatus = Extract<Status, 'ready' | 'not-ready'>
+export type KubernetesReadyStatus = 'ready' | 'not-ready' | 'unknown'
 
 export type KubernetesSchedulingStatus = 'schedulable' | 'cordoned' | 'draining'
 
@@ -27,6 +26,7 @@ export type KubernetesNodeOperation =
 export type KubernetesStatus =
   | KubernetesAvailabilityStatus
   | KubernetesClusterPhase
+  | KubernetesReadyStatus
   | KubernetesSchedulingStatus
   | 'yes'
   | 'no'
@@ -70,11 +70,14 @@ export type XoKubernetesCluster = {
   description?: string
   id: string
   is_available: boolean
-  is_control_plane_initialized: boolean
+  is_control_plane_initialized?: boolean
+  is_cordon?: boolean
   is_deleting?: boolean
+  is_draining?: boolean
   is_infrastructure_provisioned: boolean
   is_reconciliation_paused: boolean
-  is_upgrading: boolean
+  is_scaling?: boolean
+  is_upgrading?: boolean
   name: string
   phase: KubernetesClusterPhase
   pod_cidr_blocks: string[] | null
@@ -88,14 +91,15 @@ export type XoKubernetesCluster = {
 export type XoKubernetesNode = {
   $cluster: string
   id: string
-  ips: string[] | null
+  ips?: string[] | null
   is_cordon?: boolean
+  is_deleting?: boolean
   is_draining?: boolean
   is_reconciliation_paused: boolean
   name: string
   node_name?: string
   role: 'control-plane' | 'worker'
-  status: 'Ready' | 'NotReady'
+  status: 'Ready' | 'NotReady' | 'Unknown'
   type: 'kubernetes-node'
   version: string
   vm_id?: FrontXoVm['id']

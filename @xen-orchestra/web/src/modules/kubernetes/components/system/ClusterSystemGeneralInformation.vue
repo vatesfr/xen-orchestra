@@ -5,6 +5,7 @@
     </UiTitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="cluster.name" />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="cluster.id" />
       <VtsTabularKeyValueRow :label="t('description')" :value="cluster.description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="displayTags.length > 0" #value>
