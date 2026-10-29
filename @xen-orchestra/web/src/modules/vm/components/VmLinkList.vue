@@ -1,10 +1,10 @@
 <template>
   <UiLinkList variant="vertical">
     <UiLink
-      v-for="vm in vms"
+      v-for="{ vm, icon } in vmLinks"
       :key="vm.id"
       size="small"
-      :icon="objectIcon('vm', toLower(vm.power_state))"
+      :icon
       :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
     >
       {{ vm.name_label }}
@@ -18,8 +18,11 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLinkList from '@core/components/ui/link-list/UiLinkList.vue'
 import { objectIcon } from '@core/icons'
 import { toLower } from 'lodash-es'
+import { computed } from 'vue'
 
-defineProps<{
+const { vms } = defineProps<{
   vms: FrontXoVm[]
 }>()
+
+const vmLinks = computed(() => vms.map(vm => ({ vm, icon: objectIcon('vm', toLower(vm.power_state)) })))
 </script>
