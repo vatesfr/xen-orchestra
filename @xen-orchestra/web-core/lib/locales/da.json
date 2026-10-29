@@ -129,7 +129,7 @@
   "action:revert-vm-here": "Gendan VM her",
   "action:save": "Gem",
   "action:search": "Søg",
-  "action:search-treeview": "Søg i træ struktur",
+  "action:search-treeview": "@:action:søg i træ struktur ({shortcut})",
   "action:see-all": "Se alt",
   "action:see-less": "Se mindre",
   "action:see-n-more": "Se {n} mere",
