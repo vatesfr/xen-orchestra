@@ -6,7 +6,8 @@
       :disabled
       @update:model-value="value => emit('update:modelValue', value === true)"
     >
-      {{ label }}
+      <template #default>{{ label }}</template>
+      <template v-if="info" #info>{{ info }}</template>
     </UiCheckbox>
     <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
       {{ message }}
@@ -26,6 +27,7 @@ defineOptions({ inheritAttrs: false })
 const { warning } = defineProps<{
   label: string
   modelValue: boolean | undefined
+  info?: string
   warning?: InputWrapperMessage
   disabled?: boolean
 }>()
