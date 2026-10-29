@@ -291,6 +291,11 @@ export default {
             from: '/contributing',
           },
           {
+            // Its links (blog, changelog, roadmap) now live on the What's new page.
+            to: '/whats-new/whatsnew',
+            from: '/project/project-resources',
+          },
+          {
             to: '/project/licenses',
             from: '/licenses',
           },
