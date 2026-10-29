@@ -121,7 +121,6 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
           writer.transfer({
             deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
             includeNonNbdQcow2Fix: metadata.includeNonNbdQcow2Fix,
-            isVhdDifferencing,
             timestamp: metadata.timestamp,
             vm: metadata.vm,
             vmSnapshot: metadata.vmSnapshot,

@@ -4,6 +4,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 import { Task } from '@vates/task'
 
 import { cancelableMap } from './_cancelableMap.mjs'
@@ -34,6 +35,8 @@ export async function exportIncrementalVm(
 ) {
   // refs of VM's VDIs → base's VDIs.
 
+  // the disks are not opened here: each disk opens an export on the host, they are opened just before their
+  // transfer to limit the number of exports running at the same time (see `diskPerVmConcurrency`)
   const disks = {}
   const vdis = {}
   const vbds = {}
@@ -74,7 +77,6 @@ export async function exportIncrementalVm(
       nbdConcurrency,
       preferNbd,
     })
-    await disks[vdiRef].init()
   })
 
   const suspendVdi = vm.$suspend_VDI
@@ -90,7 +92,6 @@ export async function exportIncrementalVm(
       nbdConcurrency,
       preferNbd,
     })
-    await disks[vdiRef].init()
   }
 
   const vifs = {}
@@ -137,6 +138,10 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   sr,
   {
     cancelToken = CancelToken.none,
+    // 0 means no limit
+    diskConcurrency = 0,
+    // the disks of an export from XAPI are opened just before their transfer
+    initDisks = false,
     newMacAddresses = false,
     targetRef = undefined,
     vmNamePrefix = '[Importing…] ',
@@ -339,30 +344,41 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   })
 
   const { disks } = incrementalVm
+  const importDiskContent = limitConcurrency(diskConcurrency)(async (cancelToken, id) => {
+    // another disk may have failed while this one was waiting for its turn
+    cancelToken.throwIfRequested()
+
+    const vdi = newVdis[id]
+    for (const disk of ensureArray(disks[id])) {
+      if (disk === null) {
+        // we restore a backup and reuse completely a local snapshot
+        continue
+      }
+      await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
+
+      if (initDisks) {
+        await disk.init()
+      }
+
+      let stream, format
+      if (vdi.virtual_size > VHD_MAX_SIZE) {
+        stream = await toQcow2Stream(disk)
+        format = 'qcow2'
+      } else {
+        stream = await toVhdStream(disk)
+        format = 'vhd'
+      }
+
+      await vdi.$importContent(stream, { cancelToken, format })
+
+      await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
+    }
+  })
   await Promise.all([
     // Import VDI contents.
-    cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
-      for (const disk of ensureArray(disks[id])) {
-        if (disk === null) {
-          // we restore a backup and reuse completely a local snapshot
-          continue
-        }
-        await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
-
-        let stream, format
-        if (vdi.virtual_size > VHD_MAX_SIZE) {
-          stream = await toQcow2Stream(disk)
-          format = 'qcow2'
-        } else {
-          stream = await toVhdStream(disk)
-          format = 'vhd'
-        }
-
-        await vdi.$importContent(stream, { cancelToken, format })
-
-        await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
-      }
-    }),
+    //
+    // in the same order as the other writers sharing the same disks: they all wait for each other at each block
+    cancelableMap(cancelToken, Object.keys(vdiRecords), importDiskContent),
 
     // Create VIFs.
     asyncMap(Object.values(incrementalVm.vifs), vif => {

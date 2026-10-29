@@ -48,40 +48,48 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
       preferNbd: this._settings.preferNbd,
     })
 
-    const isVhdDifferencing = {}
-    let useNbd = false
+    // the disks are opened by the writers, just before their transfer
+    const openedDisks = new Map()
     for (const key in deltaExport.disks) {
-      let disk = deltaExport.disks[key]
+      const disk = deltaExport.disks[key]
       disk.addProgressHandler(new TaskProgressHandler())
-      isVhdDifferencing[key] = disk.isDifferencing()
-      if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
-        Task.warning('Backup fell back to a full')
-      }
-      useNbd = useNbd || disk.useNbd()
-      disk = new ThrottledDisk(disk, this._throttleGenerator)
-      deltaExport.disks[key] = new SynchronizedDisk(disk)
-    }
-    if (useNbd) {
-      Task.info('Transfer data using NBD')
+      deltaExport.disks[key] = new SynchronizedDisk(new ThrottledDisk(disk, this._throttleGenerator), {
+        init: async () => {
+          await disk.init()
+          openedDisks.set(key, disk)
+        },
+      })
     }
 
     // @todo : reimplement throttle
 
-    await this._callWriters(
-      writer =>
-        writer.transfer({
-          deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
-          // freshly exported from XAPI by code that has the fix and the force-full gate
-          // (writer.checkBaseVdis ran before this transfer), so the chain is verified/forced
-          // clean; the tip's flag lets the next run skip re-probing
-          includeNonNbdQcow2Fix: true,
-          isVhdDifferencing,
-          timestamp: this.timestamp,
-          vm,
-          vmSnapshot: exportedVm,
-        }),
-      'writer.transfer()'
-    )
+    try {
+      await this._callWriters(
+        writer =>
+          writer.transfer({
+            deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
+            // freshly exported from XAPI by code that has the fix and the force-full gate
+            // (writer.checkBaseVdis ran before this transfer), so the chain is verified/forced
+            // clean; the tip's flag lets the next run skip re-probing
+            includeNonNbdQcow2Fix: true,
+            timestamp: this.timestamp,
+            vm,
+            vmSnapshot: exportedVm,
+          }),
+        'writer.transfer()'
+      )
+    } finally {
+      let useNbd = false
+      for (const [key, disk] of openedDisks) {
+        if (!isFull && !disk.isDifferencing() && key !== exportedVm.$suspend_VDI?.$ref) {
+          Task.warning('Backup fell back to a full')
+        }
+        useNbd = useNbd || disk.useNbd()
+      }
+      if (useNbd) {
+        Task.info('Transfer data using NBD')
+      }
+    }
 
     if (isFull) {
       await setVmDeltaChainLength(this._xapi, exportedVm.$ref, 0)

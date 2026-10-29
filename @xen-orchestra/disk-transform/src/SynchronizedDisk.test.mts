@@ -29,4 +29,44 @@ test('Disk class', async t => {
     assert.strictEqual(source.getNbGeneratedBlock(), nbBlocks)
   })
   console.log({ testRes })
+
+  await t.test('forks share a single init of the source', async () => {
+    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    let nbInits = 0
+    const disk = new SynchronizedDisk(source, {
+      init: async () => {
+        nbInits++
+        await source.init()
+      },
+    })
+    const forks = [disk.fork('generator_0'), disk.fork('generator_1')]
+    assert.strictEqual(source.initDone, false, 'source is not opened before a fork is initialized')
+    await Promise.all(forks.map(fork => fork.init()))
+    assert.strictEqual(nbInits, 1)
+    assert.strictEqual(forks[0].getBlockSize(), 1024)
+    await Promise.all(forks.map(fork => consumeGenerator(fork.diskBlocks())))
+    assert.strictEqual(source.getNbGeneratedBlock(), 20)
+  })
+
+  await t.test('closing a fork that has never been consumed does not block the other ones', async () => {
+    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    const disk = new SynchronizedDisk(source)
+    const forks = [disk.fork('generator_0'), disk.fork('generator_1')]
+    await forks[0].init()
+    await forks[1].close()
+    assert.strictEqual(await consumeGenerator(forks[0].diskBlocks()), 'finished')
+    assert.strictEqual(source.getNbGeneratedBlock(), 20)
+  })
+
+  await t.test('a fork closed while its source was being opened cannot be read', async () => {
+    const source = new DebugDisk({ nbBlocks: 20, blockSize: 1024, fillRate: 100 })
+    const disk = new SynchronizedDisk(source)
+    const [fork] = [disk.fork('generator_0')]
+    const opening = fork.init()
+    await fork.close()
+    await opening
+    await assert.rejects(consumeGenerator(fork.diskBlocks()), /closed forked disk/)
+    assert.strictEqual(source.getNbGeneratedBlock(), 0)
+    assert.strictEqual(source.closeDone, true, 'the source opened after the close is closed')
+  })
 })

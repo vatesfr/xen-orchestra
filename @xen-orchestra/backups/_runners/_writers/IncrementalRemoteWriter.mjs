@@ -215,7 +215,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
   }
 
-  async _transfer($defer, { includeNonNbdQcow2Fix, isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { includeNonNbdQcow2Fix, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._schedule.id
@@ -243,6 +243,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       return { size: 0 }
     }
 
+    // filled as the disks are opened, before the metadata are written
+    const isVhdDifferencing = {}
     metadataContent = {
       // marks whether the disk data is known-good w.r.t. the non-NBD qcow2 corruption bug.
       // A fresh XAPI export by fixed code passes `true`; the mirror runner propagates the
@@ -270,6 +272,10 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
         async ([diskRef, disk]) => {
           const path = `${this._vmBackupDir}/${vhds[diskRef]}`
           const vdi = deltaExport.vdis[diskRef]
+
+          // opened just before its transfer to limit the number of exports running at the same time on the host
+          await disk.init()
+          isVhdDifferencing[diskRef] = disk.isDifferencing()
 
           let parentUuid, parentPath
           if (isVhdDifferencing[diskRef]) {

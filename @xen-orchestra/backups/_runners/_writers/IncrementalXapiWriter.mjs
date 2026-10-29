@@ -503,6 +503,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     let targetVmRef
     await Task.run({ properties: { name: 'transfer' } }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
+        diskConcurrency: this._settings.diskPerVmConcurrency,
+        initDisks: true,
         targetRef: this._targetVmRef,
       })
       // this also ensure the data are up to date on the snapshot
