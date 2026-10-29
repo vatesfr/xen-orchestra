@@ -6,13 +6,17 @@ import {
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryType } from '@/modules/backup-repository/utils/xo-backup-repository-type.util.ts'
 import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-preview-items.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { requiredIf, withMessage } from '@core/packages/form-validation'
+import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
+import { required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -23,6 +27,7 @@ export type BackupJobMode = 'delta' | 'full'
 export type BackupJobScopeType = 'all' | 'manual' | 'smart'
 
 export type BackupJobSourceFormData = {
+  name: string
   dataSource: BackupJobDataSource
   mode: BackupJobMode
   saveXoConfig: boolean
@@ -32,6 +37,8 @@ export type BackupJobSourceFormData = {
   scopeType: BackupJobScopeType
   vmIds: FrontXoVm['id'][]
   vmFilter: string
+  poolIds: FrontXoPool['id'][]
+  poolFilter: string
 }
 
 type RadioOption<TValue extends string> = { label: string; value: TValue }
@@ -51,7 +58,11 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const { filterableVms } = useVmEnhancedData(vms)
 
+  const { pools } = useXoPoolCollection()
+
   const isMirror = computed(() => formData.dataSource === 'mirror')
+
+  const hasPoolSelection = computed(() => formData.dataSource === 'metadata' && formData.savePoolsMetadata)
 
   const hasVmSelection = computed(() => formData.dataSource === 'vm' || isMirror.value)
 
@@ -89,9 +100,34 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
       : selectedVmItems.value
   )
 
+  const poolSchema = useQueryBuilderSchema<FrontXoPool>({
+    '': useStringSchema(t('any-property')),
+    name_label: useStringSchema(t('name')),
+    name_description: useStringSchema(t('description')),
+    tags: useStringSchema(t('tags')),
+  })
+
+  function toPoolPreviewItems(selectedPools: FrontXoPool[]): QueryBuilderPreviewItem[] {
+    return selectedPools.map(pool => ({
+      id: pool.id,
+      label: pool.name_label,
+      icon: 'object:pool',
+      route: `/pool/${pool.id}/dashboard`,
+    }))
+  }
+
+  const matchedPoolItems = computed(() => toPoolPreviewItems(filterByQuery(pools.value, formData.poolFilter)))
+
+  const selectedPoolItems = computed(() =>
+    toPoolPreviewItems(pools.value.filter(pool => formData.poolIds.includes(pool.id)))
+  )
+
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
+        name: {
+          required: withMessage(required, () => t('name-required')),
+        },
         sourceBackupRepository: {
           requiredIf: requiredIf(() => formData.dataSource === 'mirror'),
         },
@@ -104,6 +140,18 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
         vmFilter: {
           requiredIf: withMessage(
             requiredIf(() => hasVmSelection.value && formData.scopeType === 'smart'),
+            () => t('query-required')
+          ),
+        },
+        poolIds: {
+          atLeastOne: withMessage(
+            () => !hasPoolSelection.value || formData.scopeType !== 'manual' || formData.poolIds.length > 0,
+            () => t('select-at-least-one-object')
+          ),
+        },
+        poolFilter: {
+          requiredIf: withMessage(
+            requiredIf(() => hasPoolSelection.value && formData.scopeType === 'smart'),
             () => t('query-required')
           ),
         },
@@ -165,6 +213,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
   ])
 
   const bindings = reactive({
+    name: useField('name', () => ({ label: t('name'), required: true })),
     dataSource: useField('dataSource', () => ({ label: t('data-source'), options: dataSourceOptions.value })),
     mode: useField('mode', () => ({ label: t('backup-mode'), options: modeOptions.value })),
     saveXoConfig: useField('saveXoConfig', () => ({ label: t('save-xo-config') })),
@@ -181,6 +230,8 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     })),
     vmIds: useField('vmIds'),
     vmFilter: useField('vmFilter'),
+    poolIds: useField('poolIds'),
+    poolFilter: useField('poolFilter'),
     scopeType: useField('scopeType', () => ({ label: t('scope-type'), options: scopeTypeOptions.value })),
   })
 
@@ -197,6 +248,11 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     vmSelectionSchema,
     matchedSelectionItems,
     selectedSelectionItems,
+    pools,
+    hasPoolSelection,
+    poolSchema,
+    matchedPoolItems,
+    selectedPoolItems,
     validate,
     reset,
   }

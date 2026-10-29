@@ -1,5 +1,6 @@
 <template>
   <VtsTabularKeyValueList>
+    <VtsTabularKeyValueRow :label="t('name')" :value="form.formData.name" />
     <VtsTabularKeyValueRow
       :label="t('data-source')"
       :value="getOptionLabel(bindings.dataSource.options, bindings.dataSource.modelValue)"
@@ -42,7 +43,26 @@
         </div>
       </template>
     </VtsTabularKeyValueRow>
+    <VtsTabularKeyValueRow v-if="isManualPoolSelection" :label="t('scope-preview')">
+      <template #value>
+        <div class="scope-preview">
+          <span class="count typo-body-regular-small">{{ t('n-pools', { n: selectedPoolItems.length }) }}</span>
+          <UiCollapsibleList tag="div" :total-items="selectedPoolItems.length">
+            <UiObjectLink v-for="item of selectedPoolItems" :key="item.id" :route="item.route" :icon="item.icon">
+              {{ item.label }}
+            </UiObjectLink>
+          </UiCollapsibleList>
+        </div>
+      </template>
+    </VtsTabularKeyValueRow>
   </VtsTabularKeyValueList>
+  <VtsQueryBuilderPreview
+    v-if="isDynamicPoolSelection"
+    :filter="form.formData.poolFilter"
+    :schema="poolSchema"
+    :items="matchedPoolItems"
+    :count-label="t('n-pools', { n: matchedPoolItems.length })"
+  />
   <VtsQueryBuilderPreview
     v-if="isDynamicVmSelection"
     :filter="form.formData.vmFilter"
@@ -88,7 +108,20 @@ const isDynamicVmSelection = computed(
   () => form.hasVmSelection.value && form.formData.scopeType === 'smart' && form.formData.vmFilter !== ''
 )
 
-const { vmSelectionSchema, matchedSelectionItems, selectedSelectionItems: selectedVmItems } = form
+const isManualPoolSelection = computed(() => form.hasPoolSelection.value && form.formData.scopeType === 'manual')
+
+const isDynamicPoolSelection = computed(
+  () => form.hasPoolSelection.value && form.formData.scopeType === 'smart' && form.formData.poolFilter !== ''
+)
+
+const {
+  vmSelectionSchema,
+  matchedSelectionItems,
+  selectedSelectionItems: selectedVmItems,
+  poolSchema,
+  matchedPoolItems,
+  selectedPoolItems,
+} = form
 </script>
 
 <style lang="postcss" scoped>

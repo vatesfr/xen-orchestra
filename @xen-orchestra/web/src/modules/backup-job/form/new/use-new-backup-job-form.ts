@@ -14,6 +14,7 @@ import {
   type BackupJobTransferFormData,
   useBackupJobTransferForm,
 } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
+import { type BackupJobPayload, toBackupJobPayload } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
 import { computed, reactive, ref, watch } from 'vue'
@@ -26,6 +27,7 @@ const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
 
 function createSourceFormData(): BackupJobSourceFormData {
   return {
+    name: '',
     dataSource: 'vm',
     mode: 'delta',
     saveXoConfig: false,
@@ -35,6 +37,8 @@ function createSourceFormData(): BackupJobSourceFormData {
     scopeType: 'all',
     vmIds: [],
     vmFilter: '',
+    poolIds: [],
+    poolFilter: '',
   }
 }
 
@@ -81,15 +85,27 @@ function createTargetFormData(): BackupJobTargetFormData {
     storageRepositoryFilter: '',
     replicaDistribution: 'every',
     copyRetention: undefined,
+    healthCheckEnabled: false,
+    healthCheckSr: undefined,
+    healthCheckVmTags: [],
+    healthCheckTimeout: 10,
+    healthCheckSchedule: 'always',
+    healthCheckMonthDays: [],
+    healthCheckWeekDays: [],
+    healthCheckHours: [],
   }
 }
 
 function createPlanningFormData(): BackupJobPlanningFormData {
   return {
+    enabled: true,
     cron: DEFAULT_CRON,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     timeout: undefined,
     nRetriesVmBackupFailures: undefined,
+    reportWhen: 'failure',
+    reportRecipients: [],
+    hideSuccessfulItems: false,
   }
 }
 
@@ -107,7 +123,6 @@ export function useNewBackupJobForm() {
   const target = useBackupJobTargetForm(
     reactive(createTargetFormData()),
     () => source.formData.dataSource,
-    () => !transfer.formData.offlineBackup && (transfer.formData.snapshotRetention ?? 0) > 0,
     () => source.formData.sourceBackupRepository
   )
 
@@ -116,7 +131,7 @@ export function useNewBackupJobForm() {
   watch(
     () => source.formData.dataSource,
     dataSource => {
-      Object.assign(source.formData, { ...createSourceFormData(), dataSource })
+      Object.assign(source.formData, { ...createSourceFormData(), name: source.formData.name, dataSource })
       Object.assign(transfer.formData, createTransferFormData())
       Object.assign(target.formData, createTargetFormData())
       Object.assign(planning.formData, createPlanningFormData())
@@ -173,6 +188,24 @@ export function useNewBackupJobForm() {
     return isValid
   }
 
+  async function validateAndBuildPayload(): Promise<BackupJobPayload | undefined> {
+    const forms =
+      source.formData.dataSource === 'metadata' ? [source, target, planning] : [source, transfer, target, planning]
+
+    const results = await Promise.all(forms.map(form => form.validate()))
+
+    if (results.some(isValid => !isValid)) {
+      return undefined
+    }
+
+    return toBackupJobPayload({
+      source: source.formData,
+      transfer: transfer.formData,
+      target: target.formData,
+      planning: planning.formData,
+    })
+  }
+
   function back(): void {
     if (currentStepIndex.value > 0) {
       currentStepIndex.value--
@@ -192,5 +225,6 @@ export function useNewBackupJobForm() {
     goToStep,
     next,
     back,
+    validateAndBuildPayload,
   }
 }
