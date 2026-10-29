@@ -117,7 +117,7 @@
   "action:revert-vm-here": "Återställ VM här",
   "action:save": "Spara",
   "action:search": "Sök",
-  "action:search-treeview": "Sök i trädvyn",
+  "action:search-treeview": "@:action:sök i trädvyn ({shortcut})",
   "action:see-all": "Se alla",
   "action:see-less": "Se mindre",
   "action:see-n-more": "Se {n} mer",
