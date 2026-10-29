@@ -155,8 +155,9 @@ export default {
             from: ['/metadata_backup', '/xo5/metadata_backup'],
           },
           {
-            to: '/getting-started/migrate_to_new_xoa',
-            from: '/migrate_to_new_xoa',
+            // The procedure now lives in the Vates knowledge base.
+            to: 'https://docs.vates.tech/kb/vkb-1031/',
+            from: ['/migrate_to_new_xoa', '/getting-started/migrate_to_new_xoa'],
           },
           {
             to: '/backups-and-dr/backup-types/mirror_backup',
