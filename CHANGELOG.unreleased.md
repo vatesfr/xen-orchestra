@@ -9,6 +9,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backups] Add `sizeOnDisk` information which indicates the space actually used on the backup-repository by each backup disk as well as the total, for more accurate backup usage (PR [#10685](https://github.com/vatesfr/xen-orchestra/pull/10685))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -28,5 +30,15 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types minor
+- @xen-orchestra/backup-archive major
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-cli minor
+- @xen-orchestra/fs minor
+- @xen-orchestra/qa-test minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- vhd-lib minor
 
 <!--packages-end-->
