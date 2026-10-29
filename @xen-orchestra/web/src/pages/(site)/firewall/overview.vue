@@ -280,9 +280,9 @@
                 {{ t('firewall:global:last-sync:none') }}
               </span>
             </UiTableCell>
-            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent -->
+            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent, or with a restarting one -->
             <UiTableCell class="typo-body-regular-small">
-              <span v-if="row.exposed + row.hostsWithoutAgent > 0" class="attention-tags">
+              <span v-if="row.exposed + row.hostsWithoutAgent + row.hostsRestarting > 0" class="attention-tags">
                 <RouterLink
                   v-if="row.exposed > 0"
                   :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
@@ -299,6 +299,15 @@
                 >
                   <UiTag accent="warning" variant="secondary">
                     {{ t('firewall:global:attention:hosts', { n: row.hostsWithoutAgent }, row.hostsWithoutAgent) }}
+                  </UiTag>
+                </RouterLink>
+                <RouterLink
+                  v-if="row.hostsRestarting > 0"
+                  :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                  class="tag-link"
+                >
+                  <UiTag accent="warning" variant="secondary">
+                    {{ t('firewall:global:attention:restarting', { n: row.hostsRestarting }, row.hostsRestarting) }}
                   </UiTag>
                 </RouterLink>
               </span>
@@ -606,6 +615,9 @@ const poolRows = computed(() =>
           vm => vm.$pool === pool.id && protectedVms.value.includes(vm) && !hostEnforces(hostOf(vm)?.state)
         ).length,
         hostsWithoutAgent: poolHosts.filter(({ state }) => !hostEnforces(state)).length,
+        // an agent that keeps restarting (vdf#38): a crash loop
+        hostsRestarting: poolHosts.filter(({ state, status }) => hostEnforces(state) && status?.restarts !== undefined)
+          .length,
       }
     })
 )

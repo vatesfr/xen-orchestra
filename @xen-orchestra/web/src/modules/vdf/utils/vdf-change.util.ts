@@ -237,8 +237,10 @@ export type VdfPublishWarning =
 export type VdfHostWarning =
   | { type: 'hosts-without-agent'; hosts: string[] }
   | { type: 'hosts-stale-agent'; hosts: string[] }
+  // one that keeps restarting (a crash loop)
+  | { type: 'hosts-restarting-agent'; hosts: string[] }
 
-export function hostWarnings({ missing, stale }: VdfAgentGaps): VdfHostWarning[] {
+export function hostWarnings({ missing, stale, restarting }: VdfAgentGaps): VdfHostWarning[] {
   const warnings: VdfHostWarning[] = []
 
   if (missing.length > 0) {
@@ -247,6 +249,10 @@ export function hostWarnings({ missing, stale }: VdfAgentGaps): VdfHostWarning[]
 
   if (stale.length > 0) {
     warnings.push({ type: 'hosts-stale-agent', hosts: stale })
+  }
+
+  if (restarting.length > 0) {
+    warnings.push({ type: 'hosts-restarting-agent', hosts: restarting })
   }
 
   return warnings

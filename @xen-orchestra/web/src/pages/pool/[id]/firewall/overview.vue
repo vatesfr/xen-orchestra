@@ -176,6 +176,30 @@
           </span>
           <span class="secondary typo-body-regular-small">{{ t('firewall:overview:unlocked:hint') }}</span>
         </div>
+        <!-- vdf#47: VMs a tag change or a publish put under a default drop -->
+        <div v-if="joined.entries.length > 0" class="status-item severity-warning">
+          <UiInfo accent="warning" wrap>
+            {{ t('firewall:overview:joined', { n: joinedCount }, joinedCount) }}
+          </UiInfo>
+          <ul class="joined">
+            <li v-for="entry of joined.entries" :key="`${entry.vm}|${entry.policy}`" class="typo-body-regular-small">
+              <UiLink :to="{ name: '/vm/[id]/firewall', params: { id: entry.vm } }" size="small">
+                {{ joinedText(entry) }}
+              </UiLink>
+              <VtsRelativeTime :date="entry.since" class="secondary" />
+              <UiLink
+                :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: entry.vm } }"
+                size="small"
+                icon="fa:route"
+              >
+                {{ t('firewall:joined:trace') }}
+              </UiLink>
+            </li>
+          </ul>
+          <span v-if="joined.more > 0" class="secondary typo-body-regular-small">
+            {{ t('firewall:more', { n: joined.more }) }}
+          </span>
+        </div>
         <div v-if="vdfUnenforced.length > 0" class="status-item severity-warning">
           <UiInfo accent="warning" wrap>
             {{ t('firewall:overview:vdf-unenforced', { n: vdfUnenforced.length }) }}
@@ -318,6 +342,15 @@
           </I18nT>
         </span>
         <UiInfo v-if="row.status?.rejected" accent="danger" wrap>{{ row.status.rejected }}</UiInfo>
+        <!-- vdf#38: systemd restarts a crashing agent forever -->
+        <UiInfo v-if="row.status?.restarts && row.state !== 'stale'" accent="warning" wrap>
+          {{
+            t('firewall:overview:host-restarts', {
+              count: row.status.restarts.count,
+              minutes: Math.round(row.status.restarts.windowSec / 60),
+            })
+          }}
+        </UiInfo>
         <UiInfo v-if="ignoresEgress(row.status, publishedDocument)" accent="warning" wrap>
           {{ t('firewall:overview:ignores-egress') }}
         </UiInfo>
@@ -377,15 +410,15 @@ import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
-import type { VdfPoolSyncState, VdfShadowedVif } from '@/modules/vdf/types.ts'
+import type { VdfJoinedVm, VdfPoolSyncState, VdfShadowedVif } from '@/modules/vdf/types.ts'
 import { hostWarnings } from '@/modules/vdf/utils/vdf-change.util.ts'
 import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
-import { policiesByTier } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { policiesByTier, reportedTierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { agentGaps, hostEnforces, ignoresEgress } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { agentGaps, hostEnforces, ignoresEgress, joinedVms } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -559,6 +592,25 @@ const gapNotes = computed(() => {
   }))
 })
 
+// VMs that newly fell under an enforcing default-drop policy (vdf#47): a
+// tag added for something else (backups, billing, a script) can put a VM
+// under a policy's default drop without any publish
+const joined = computed(() =>
+  joinedVms(
+    hosts.value.map(({ host, status }) => ({ name: host.name_label, status })),
+    now.value.getTime()
+  )
+)
+
+const joinedCount = computed(() => joined.value.entries.length + joined.value.more)
+
+const joinedText = (entry: VdfJoinedVm) =>
+  t(`firewall:joined:by:${entry.by === 'policy' ? 'policy' : 'tags'}`, {
+    vm: entry.vmName || entry.vm,
+    policy: displayName(entry.policy),
+    tier: entry.tier === '' ? '?' : tierLabel(reportedTierValue(entry.tier)),
+  })
+
 const hostRows = computed(() =>
   [...hosts.value].sort((rowA, rowB) => rowA.host.name_label.localeCompare(rowB.host.name_label))
 )
@@ -724,7 +776,8 @@ const hasStatus = computed(
     unlockedCount.value > 0 ||
     staleCount.value > 0 ||
     vdfUnenforced.value.length > 0 ||
-    prefixed.value.length > 0
+    prefixed.value.length > 0 ||
+    joined.value.entries.length > 0
 )
 </script>
 
@@ -809,6 +862,21 @@ const hasStatus = computed(
     flex-wrap: wrap;
     align-items: center;
     gap: 0.4rem 1.6rem;
+  }
+
+  /* a line each, under the sentence */
+  .joined {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 1.6rem;
+    }
   }
 
   .vm-links {

@@ -374,6 +374,35 @@ export type VdfHostStatusDocument = {
   // declared infrastructure services (vdf#103); absent when there's
   // nothing to say, and from agents before them
   services?: VdfHostServices
+  // VMs running here that newly fell under an enforcing default-drop
+  // policy in the last 24 h, by a tag change or a publish (vdf#47), newest
+  // first, at most 20, joinedMore the others; kept in the agent's memory
+  // only (a restart forgets them). Absent from agents before it.
+  joined?: VdfJoinedVm[]
+  joinedMore?: number
+  // the agent started 5 times or more in the last 10 minutes: systemd
+  // restarts it forever, a crash loop shows here (vdf#38); absent
+  // otherwise, and from agents before it
+  restarts?: VdfAgentRestarts
+}
+
+export type VdfJoinedVm = {
+  vm: string
+  vmName: string
+  policy: string
+  tier: string
+  // when the agent saw it
+  since: string
+  // tags: its tags or its networks' tags put it in the policy's group;
+  // policy: the policy is new, or newly enforces a default drop
+  by: 'tags' | 'policy'
+}
+
+export type VdfAgentRestarts = {
+  count: number
+  windowSec: number
+  // the first start in the window
+  first: string
 }
 
 // What a host's agent says of the infrastructure services (vdf#103).

@@ -5,6 +5,7 @@ import {
   enforcedVersion,
   hostState,
   ignoresEgress,
+  joinedVms,
   policyRealization,
   vmProtection,
 } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -151,7 +152,7 @@ describe('agentGaps', () => {
         ],
         now
       )
-    ).toEqual({ missing: ['xcp2', 'xcp3'], stale: ['xcp4', 'xcp5'] })
+    ).toEqual({ missing: ['xcp2', 'xcp3'], stale: ['xcp4', 'xcp5'], restarting: [] })
   })
 
   it("doesn't count an agent behind or rejecting as missing, nor a halted host", () => {
@@ -164,6 +165,56 @@ describe('agentGaps', () => {
         ],
         now
       )
-    ).toEqual({ missing: [], stale: [] })
+    ).toEqual({ missing: [], stale: [], restarting: [] })
+  })
+
+  it('names the reporting agents that keep restarting (vdf#38), not a stale one', () => {
+    const restarts = { count: 5, windowSec: 600, first: '2026-10-22T09:52:00Z' }
+    expect(
+      agentGaps(
+        [
+          { name: 'loop', status: status({ restarts }), running: true },
+          { name: 'gone', status: status({ restarts, heartbeat: '2026-10-22T09:00:00Z' }), running: true },
+          { name: 'fine', status: status(), running: true },
+        ],
+        now
+      )
+    ).toEqual({ missing: [], stale: ['gone'], restarting: ['loop'] })
+  })
+})
+
+describe('joinedVms (vdf#47)', () => {
+  const joined = (vm: string, policy: string, since: string, by: 'tags' | 'policy' = 'tags') => ({
+    vm,
+    vmName: vm.toUpperCase(),
+    policy,
+    tier: 'application',
+    since,
+    by,
+  })
+
+  it('merges the hosts, newest first, the most recent report of a VM and policy, the last 24 h', () => {
+    const result = joinedVms(
+      [
+        {
+          name: 'xcp1',
+          status: status({
+            joined: [joined('a', 'db', '2026-10-22T09:00:00Z'), joined('old', 'db', '2026-10-21T08:00:00Z')],
+            joinedMore: 3,
+          }),
+        },
+        // a migrated VM, still on its former host's last write
+        { name: 'xcp2', status: status({ joined: [joined('a', 'db', '2026-10-22T09:30:00Z', 'policy')] }) },
+        { name: 'xcp3', status: status({ joined: [joined('b', 'web', '2026-10-22T08:00:00Z')] }) },
+        { name: 'xcp4', status: undefined },
+      ],
+      now
+    )
+    expect(result.entries.map(entry => [entry.vm, entry.host, entry.by])).toEqual([
+      ['a', 'xcp2', 'policy'],
+      ['b', 'xcp3', 'tags'],
+    ])
+    expect(result.more).toBe(3)
+    expect(joinedVms([{ name: 'xcp1', status: status() }], now)).toEqual({ entries: [], more: 0 })
   })
 })

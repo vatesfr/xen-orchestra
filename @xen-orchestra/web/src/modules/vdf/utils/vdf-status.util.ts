@@ -1,4 +1,4 @@
-import type { VdfDocument, VdfHostState, VdfHostStatusDocument } from '@/modules/vdf/types.ts'
+import type { VdfDocument, VdfHostState, VdfHostStatusDocument, VdfJoinedVm } from '@/modules/vdf/types.ts'
 import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
 
 export const VDF_STATUS_KEY = 'vdf:status'
@@ -63,14 +63,15 @@ export function hostState(
 // Hosts whose agent won't apply what a publish writes (vdf#38): none (it
 // never wrote its status) or one stopped or stuck (stale). Their VMs keep
 // the policy that agent last applied, or have none. A halted host runs no
-// VM: left out.
-export type VdfAgentGaps = { missing: string[]; stale: string[] }
+// VM: left out. Restarting: a reporting agent that keeps restarting (a
+// crash loop): between two starts, VMs that start or arrive there wait.
+export type VdfAgentGaps = { missing: string[]; stale: string[]; restarting: string[] }
 
 export function agentGaps(
   hosts: { name: string; status: VdfHostStatusDocument | undefined; running: boolean }[],
   now = Date.now()
 ): VdfAgentGaps {
-  const gaps: VdfAgentGaps = { missing: [], stale: [] }
+  const gaps: VdfAgentGaps = { missing: [], stale: [], restarting: [] }
 
   for (const { name, status, running } of hosts) {
     const state = hostState(status, '', { live: running, now })
@@ -79,13 +80,53 @@ export function agentGaps(
       gaps.missing.push(name)
     } else if (state === 'stale') {
       gaps.stale.push(name)
+    } else if (running && status?.restarts !== undefined) {
+      gaps.restarting.push(name)
     }
   }
 
   gaps.missing.sort((a, b) => a.localeCompare(b))
   gaps.stale.sort((a, b) => a.localeCompare(b))
+  gaps.restarting.sort((a, b) => a.localeCompare(b))
 
   return gaps
+}
+
+// how long an agent keeps a join (agent/joined.go joinedKeep)
+export const JOINED_KEEP_MS = 24 * 3600 * 1000
+
+// VMs that newly fell under an enforcing default-drop policy (vdf#47), as
+// the pool's hosts report them: each by the host running it (a migrated
+// VM may still show on its former host until that one's next write: the
+// most recent wins), newest first, the last 24 h; `more`: the ones the
+// agents didn't list
+export function joinedVms(hosts: { name: string; status: VdfHostStatusDocument | undefined }[], now = Date.now()) {
+  const byKey = new Map<string, VdfJoinedVm & { host: string }>()
+  let more = 0
+
+  for (const { name, status } of hosts) {
+    more += status?.joinedMore ?? 0
+
+    for (const entry of status?.joined ?? []) {
+      const since = Date.parse(entry.since)
+
+      if (Number.isNaN(since) || now - since > JOINED_KEEP_MS) {
+        continue
+      }
+
+      const key = `${entry.vm} ${entry.policy}`
+      const known = byKey.get(key)
+
+      if (known === undefined || Date.parse(known.since) < since) {
+        byKey.set(key, { ...entry, host: name })
+      }
+    }
+  }
+
+  return {
+    entries: [...byKey.values()].sort((a, b) => Date.parse(b.since) - Date.parse(a.since)),
+    more,
+  }
 }
 
 // The policy format a host's agent enforces, from the pool key it reads

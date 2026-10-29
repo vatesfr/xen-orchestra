@@ -67,6 +67,32 @@
           </span>
         </template>
       </UiAlert>
+      <!-- vdf#47: a tag change or a publish put it under a default drop -->
+      <UiAlert v-if="vmJoined.length > 0" accent="warning" class="state-alert">
+        {{ t('firewall:vm:joined') }}
+        <template #description>
+          <span class="state-detail">
+            <I18nT
+              v-for="entry of vmJoined"
+              :key="entry.policy"
+              :keypath="`firewall:vm:joined:${entry.by === 'policy' ? 'policy' : 'tags'}`"
+              tag="span"
+              scope="global"
+            >
+              <template #policy>{{ displayName(entry.policy) }}</template>
+              <template #tier>{{ tierText(entry.tier) }}</template>
+              <template #time><VtsRelativeTime :date="entry.since" /></template>
+            </I18nT>
+            <UiLink
+              :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: vm.id } }"
+              size="small"
+              icon="fa:route"
+            >
+              {{ t('firewall:vm:test:to') }}
+            </UiLink>
+          </span>
+        </template>
+      </UiAlert>
       <UiAlert v-if="untrustedMembers.length > 0" accent="warning" class="state-alert">
         {{ t('firewall:untrusted') }}
         <template #description>
@@ -238,6 +264,7 @@ import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.compo
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
@@ -253,8 +280,8 @@ import {
   selectsByNetwork,
   VDF_UNPROTECTED_TAG,
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
-import { effectiveTiers, groupUsage, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs, type VdfTrafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -264,6 +291,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -281,7 +309,7 @@ import { useFormSelect } from '@core/packages/form-select'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { I18nT, useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
@@ -297,6 +325,19 @@ const pool = useGetPoolById(() => vm.$pool)
 // draft (the page only renders once the pool is known)
 const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hosts, hostOf, areHostsReady } =
   useVdfPolicy(() => pool.value!)
+
+const tierLabel = useVdfTierLabel()
+
+// as the agent names it (a tier name or a number)
+const tierText = (tier: string) => (tier === '' ? '?' : tierLabel(reportedTierValue(tier)))
+
+// the policies that newly put it under a default drop (vdf#47), as the
+// hosts report them (the one running it)
+const vmJoined = computed(() =>
+  joinedVms(hosts.value.map(({ host, status }) => ({ name: host.name_label, status }))).entries.filter(
+    entry => entry.vm === vm.id
+  )
+)
 
 const membership = useVdfMembership()
 

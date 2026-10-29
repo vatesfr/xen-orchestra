@@ -81,15 +81,16 @@ describe('publishWarnings', () => {
 })
 
 describe('hostWarnings', () => {
-  it('warns about hosts without an agent, then those with a stopped one', () => {
-    expect(hostWarnings({ missing: ['xcp2'], stale: ['xcp3', 'xcp4'] })).toEqual([
+  it('warns about hosts without an agent, then those with a stopped one, then a restarting one', () => {
+    expect(hostWarnings({ missing: ['xcp2'], stale: ['xcp3', 'xcp4'], restarting: ['xcp5'] })).toEqual([
       { type: 'hosts-without-agent', hosts: ['xcp2'] },
       { type: 'hosts-stale-agent', hosts: ['xcp3', 'xcp4'] },
+      { type: 'hosts-restarting-agent', hosts: ['xcp5'] },
     ])
   })
 
   it('says nothing when every host has a working agent', () => {
-    expect(hostWarnings({ missing: [], stale: [] })).toEqual([])
+    expect(hostWarnings({ missing: [], stale: [], restarting: [] })).toEqual([])
   })
 })
 
