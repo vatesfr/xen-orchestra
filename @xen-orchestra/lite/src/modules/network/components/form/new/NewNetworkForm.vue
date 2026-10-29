@@ -7,18 +7,17 @@
     <div class="row">
       <div class="column">
         <NetworkFormTextInput v-bind="nameInputBindings" />
-        <NetworkFormNumberInput v-bind="mtuInputBindings" />
+        <VtsNumberInput v-bind="mtuInputBindings" />
       </div>
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
-    <NetworkFormNumberInput v-bind="vlanInputBindings" class="vlan" />
+    <VtsNumberInput v-bind="vlanInputBindings" class="vlan" />
     <NewNetworkNbdRadio class="nbd" v-bind="nbdRadioBindings" />
     <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-network')" />
   </VtsForm>
 </template>
 
 <script lang="ts" setup>
-import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs/NetworkFormNumberInput.vue'
 import NetworkFormSelect from '@/modules/network/components/form/new/inputs/NetworkFormSelect.vue'
 import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
@@ -27,6 +26,7 @@ import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewN
 import { useNewNetworkForm } from '@/modules/network/form/new/use-new-network-form.ts'
 import type { NewNetworkPayload } from '@/modules/network/jobs/network-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
