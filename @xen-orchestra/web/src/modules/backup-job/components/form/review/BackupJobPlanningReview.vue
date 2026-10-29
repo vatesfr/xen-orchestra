@@ -1,5 +1,10 @@
 <template>
   <VtsTabularKeyValueList>
+    <VtsTabularKeyValueRow :label="t('enabled')">
+      <template #value>
+        <VtsStatus :status="form.formData.enabled" />
+      </template>
+    </VtsTabularKeyValueRow>
     <VtsTabularKeyValueRow :label="t('resulting-expression')" :value="form.formData.cron" />
     <VtsTabularKeyValueRow :label="t('time-zone')" :value="form.formData.timezone" />
     <VtsTabularKeyValueRow :label="t('next-runs')">
@@ -16,12 +21,30 @@
         :value="form.formData.nRetriesVmBackupFailures?.toString()"
       />
     </template>
+    <VtsTabularKeyValueRow
+      :label="t('report-when')"
+      :value="getOptionLabel(form.bindings.reportWhen.options, form.formData.reportWhen)"
+    />
+    <VtsTabularKeyValueRow :label="t('report-recipients')">
+      <template #value>
+        <div class="lines">
+          <span v-for="recipient of form.formData.reportRecipients" :key="recipient">{{ recipient }}</span>
+        </div>
+      </template>
+    </VtsTabularKeyValueRow>
+    <VtsTabularKeyValueRow :label="t('hide-successful-items')">
+      <template #value>
+        <VtsStatus :status="form.formData.hideSuccessfulItems" />
+      </template>
+    </VtsTabularKeyValueRow>
   </VtsTabularKeyValueList>
 </template>
 
 <script lang="ts" setup>
 import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
+import { getOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { getNextRunDates } from '@/modules/schedule/utils/cron.util.ts'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import { computed } from 'vue'

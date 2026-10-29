@@ -1,3 +1,4 @@
+import { useBackupJobCalendarOptions } from '@/modules/backup-job/composables/use-backup-job-calendar-options.composable.ts'
 import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import { useBackupRepositoryFilterableData } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
@@ -12,6 +13,7 @@ import {
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -25,6 +27,8 @@ export type BackupJobTargetScopeType = 'all' | 'manual' | 'smart'
 export type BackupJobBackupDistribution = 'every' | 'distribute'
 
 export type BackupJobReplicaDistribution = 'every' | 'distribute'
+
+export type BackupJobHealthCheckSchedule = 'always' | 'dynamic'
 
 export type BackupJobTargetFormData = {
   storageTargets: BackupJobStorageTarget[]
@@ -49,6 +53,14 @@ export type BackupJobTargetFormData = {
   storageRepositoryFilter: string
   replicaDistribution: BackupJobReplicaDistribution
   copyRetention: number | undefined
+  healthCheckEnabled: boolean
+  healthCheckSr: FrontXoSr['id'] | undefined
+  healthCheckVmTags: string[]
+  healthCheckTimeout: number | undefined
+  healthCheckSchedule: BackupJobHealthCheckSchedule
+  healthCheckMonthDays: number[]
+  healthCheckWeekDays: number[]
+  healthCheckHours: number[]
 }
 
 type ChoiceOption<TValue extends string> = { label: string; value: TValue }
@@ -60,7 +72,6 @@ export type BackupJobTargetForm = ReturnType<typeof useBackupJobTargetForm>
 export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
-  rawIsSnapshotKept: MaybeRefOrGetter<boolean>,
   rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
 ) {
   const { t, locale } = useI18n()
@@ -68,8 +79,6 @@ export function useBackupJobTargetForm(
   const { proxies } = useXoProxyCollection()
 
   const dataSource = toComputed(rawDataSource)
-
-  const isSnapshotKept = toComputed(rawIsSnapshotKept)
 
   const sourceBackupRepositoryId = toComputed(rawSourceBackupRepositoryId)
 
@@ -117,6 +126,12 @@ export function useBackupJobTargetForm(
 
   const hasStrictGfs = computed(() => hasRetentionStrategy.value && dataSource.value !== 'mirror')
 
+  const hasHealthCheckSection = computed(() => dataSource.value !== 'metadata')
+
+  const isHealthCheckEnabled = computed(() => hasHealthCheckSection.value && formData.healthCheckEnabled)
+
+  const isHealthCheckDynamic = computed(() => isHealthCheckEnabled.value && formData.healthCheckSchedule === 'dynamic')
+
   const hasStorageRepositorySection = computed(
     () => dataSource.value === 'vm' && formData.storageTargets.includes('storage-repository')
   )
@@ -133,8 +148,8 @@ export function useBackupJobTargetForm(
       onSubmit: () => ({
         storageTargets: {
           requiredIf: withMessage(
-            requiredIf(() => hasStorageTargetChoice.value && !isSnapshotKept.value),
-            () => t('select-storage-target-or-retain-snapshot')
+            requiredIf(() => hasStorageTargetChoice.value),
+            () => t('select-at-least-one-storage-target')
           ),
         },
         exportRetention: {
@@ -191,6 +206,31 @@ export function useBackupJobTargetForm(
           ),
           minValue: atLeast(1, () => hasStorageRepositorySection.value),
         },
+        healthCheckSr: {
+          requiredIf: withMessage(
+            requiredIf(() => isHealthCheckEnabled.value),
+            () => t('health-check-sr-mandatory')
+          ),
+        },
+        healthCheckTimeout: {
+          requiredIf: withMessage(
+            requiredIf(() => isHealthCheckEnabled.value),
+            () => t('health-check-timeout-mandatory')
+          ),
+          minValue: atLeast(1, () => isHealthCheckEnabled.value),
+        },
+        healthCheckMonthDays: {
+          requiredIf: withMessage(
+            requiredIf(() => isHealthCheckDynamic.value && formData.healthCheckWeekDays.length === 0),
+            () => t('select-at-least-one-day')
+          ),
+        },
+        healthCheckHours: {
+          requiredIf: withMessage(
+            requiredIf(() => isHealthCheckDynamic.value),
+            () => t('select-at-least-one-hour')
+          ),
+        },
       }),
     },
   })
@@ -221,6 +261,28 @@ export function useBackupJobTargetForm(
     { label: t('store-replicas-on-every-storage-repository'), value: 'every' },
     { label: t('distribute-replicas-across-storage-repositories'), value: 'distribute' },
   ])
+
+  const healthCheckScheduleOptions = computed<ChoiceOption<BackupJobHealthCheckSchedule>[]>(() => [
+    { label: t('always'), value: 'always' },
+    { label: t('dynamic-selection'), value: 'dynamic' },
+  ])
+
+  const { vms } = useXoVmCollection()
+
+  const vmTags = computed(() => [...new Set(vms.value.flatMap(vm => vm.tags))].sort())
+
+  const calendarOptions = useBackupJobCalendarOptions()
+
+  const { id: healthCheckSrSelectId } = useFormSelect('healthCheckSr', availableStorageRepositories, {
+    searchable: true,
+    required: true,
+    option: { label: 'name_label', value: 'id' },
+  })
+
+  const { id: healthCheckVmTagsSelectId } = useFormSelect('healthCheckVmTags', vmTags, {
+    searchable: true,
+    multiple: true,
+  })
 
   const { id: targetProxySelectId } = useFormSelect('targetProxy', proxies, {
     searchable: true,
@@ -360,6 +422,36 @@ export function useBackupJobTargetForm(
       label: t('minimum-replicas-to-retain'),
       required: true,
     })),
+    healthCheckEnabled: useField('healthCheckEnabled', () => ({
+      label: t('enable-health-check'),
+      info: t('health-check-info'),
+    })),
+    healthCheckSr: useSelect(healthCheckSrSelectId, () => ({ label: t('health-check-sr') })),
+    healthCheckVmTags: useSelect(healthCheckVmTagsSelectId, () => ({
+      label: t('health-check-vm-tags'),
+      info: t('health-check-vm-tags-info'),
+    })),
+    healthCheckTimeout: useField('healthCheckTimeout', () => ({
+      label: t('timeout'),
+      required: true,
+      unit: t('minutes'),
+    })),
+    healthCheckSchedule: useField('healthCheckSchedule', () => ({
+      label: t('health-check-frequency'),
+      options: healthCheckScheduleOptions.value,
+    })),
+    healthCheckMonthDays: useField('healthCheckMonthDays', () => ({
+      label: t('days-of-the-month'),
+      options: calendarOptions.monthDayOptions.value,
+    })),
+    healthCheckWeekDays: useField('healthCheckWeekDays', () => ({
+      label: t('days-of-the-week'),
+      options: calendarOptions.weekDayOptions.value,
+    })),
+    healthCheckHours: useField('healthCheckHours', () => ({
+      label: t('hours'),
+      options: calendarOptions.hourOptions.value,
+    })),
   })
 
   return {
@@ -369,6 +461,7 @@ export function useBackupJobTargetForm(
     hasBackupRepositorySection,
     hasRetentionStrategy,
     hasStrictGfs,
+    hasHealthCheckSection,
     hasStorageRepositorySection,
     availableBackupRepositories,
     compatibleBackupRepositories,
