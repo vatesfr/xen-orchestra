@@ -35,6 +35,8 @@
     "@vueuse/integrations": "^14.0.0",
     "@vueuse/math": "^14.0.0",
     "@vueuse/shared": "^14.0.0",
+    "@xen-orchestra/backups": "^0.78.0",
+    "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/web-core": "^0.65.0",
     "complex-matcher": "^1.1.1",
     "d3-time-format": "^4.1.0",
@@ -81,9 +83,5 @@
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "@xen-orchestra/backups": "^0.78.0",
-    "@xen-orchestra/cron": "^1.0.7"
   }
 }
