@@ -1,16 +1,20 @@
+import isEqual from 'lodash/isEqual.js'
+import xorWith from 'lodash/xorWith.js'
 import { createLogger } from '@xen-orchestra/log'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
 import type { Response } from 'express'
 
 import type { Listener } from '../abstract-classes/listener.mjs'
+import type { UserPrivileges } from '../abstract-classes/listener.type.mjs'
 import { PingListener, Subscriber, SubscriberManager, XoListener } from './event.class.mjs'
 import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
-import { XAPI_TYPES, XoUser, type XapiXoRecord } from '@vates/types'
+import { XAPI_TYPES, type XapiXoRecord, type XoUser } from '@vates/types'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
-import type { AnyPrivilege, SupportedResource } from '@xen-orchestra/acl'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type AnyPrivilege, type SupportedResource } from '@xen-orchestra/acl'
 import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
@@ -21,6 +25,9 @@ export class EventService {
   #restApi: RestApi
   #listeners: Map<string, Listener | Listener<XoListenerType>> = new Map()
   #subscriberManager = new SubscriberManager()
+  #privilegesBySubscriber = new WeakMap<Subscriber, UserPrivileges>()
+  #rbacChanges = 0
+  #isResyncing = false
 
   constructor(restApi: RestApi) {
     process.on('SIGTERM', () => {
@@ -34,73 +41,82 @@ export class EventService {
     this.#alarmService = restApi.ioc.get(AlarmService)
     this.#backupJobService = restApi.ioc.get(BackupJobService)
 
-    const fn = this.#clearSseOnPrivilegechange.bind(this)
-    const privilegeListener = this.#getListener('acl-privilege')
-    privilegeListener.watchedEvent.map(event => privilegeListener.eventEmitter.on(event, fn))
-  }
-
-  async #clearSseOnPrivilegechange(privilege?: AnyPrivilege, previousPrivilege?: AnyPrivilege) {
-    const roleIds = [privilege?.roleId, previousPrivilege?.roleId].filter(id => id !== undefined)
-    const impactedResources = new Set(
-      [privilege?.resource, previousPrivilege?.resource].filter(resource => resource !== undefined)
-    )
-
-    const roles = await Promise.all(roleIds.map(roleId => this.#restApi.xoApp.getAclV2Role(roleId))).catch(err => {
-      log.error('TBD', { error: err })
-      return []
-    })
-    const userIds = new Set<XoUser['id']>()
-    roles.forEach(role => {
-      if ('userIds' in role) {
-        role.userIds.forEach(id => userIds.add(id))
-      }
-    })
-
-    for (const resource of impactedResources) {
-      const impactedListener = this.#listeners.get(XAPI_TYPE_BY_ACL_RESOURCE[resource] ?? resource)
-
-      if (impactedListener === undefined) {
-        continue
-      }
-
-      for (const [_, conf] of impactedListener.subscribers) {
-        if (!userIds.has(conf.subscriber.userId)) {
-          continue
-        }
-
-        try {
-          await this.#resync(impactedListener, conf.subscriber, resource, privilege, previousPrivilege)
-        } catch (error) {
-          log.error('cannot resync the SSE connection after a privilege change', { error })
-          conf.subscriber.clear()
-        }
+    // what a user can see depends on its permission, its groups and their roles and privileges (attaching a role to a
+    // group touches the role, and joining or leaving a group updates the user)
+    for (const type of ['acl-privilege', 'acl-role', 'user']) {
+      for (const event of ['add', 'update', 'remove']) {
+        restApi.xoApp.getXoEventEmitterByType(type).on(event, () => this.#resyncAll())
       }
     }
   }
 
-  // sends `add`/`remove` for the objects the user can now see / can no longer see
-  async #resync(
-    listener: Listener | Listener<XoListenerType>,
-    subscriber: Subscriber,
-    resource: SupportedResource,
-    privilege?: AnyPrivilege,
-    previousPrivilege?: AnyPrivilege
-  ) {
+  // TODO: remove once the PR that block RBAC on admin user is merged
+  // Just here to test the feature
+  async #getUserPrivileges(userId: XoUser['id']): Promise<UserPrivileges> {
     const { xoApp } = this.#restApi
-    // alarms are messages
-    const type = resource === 'alarm' ? 'message' : XAPI_TYPE_BY_ACL_RESOURCE[resource]
-    const objects =
-      type !== undefined
-        ? Object.values(this.#restApi.getObjectsByType(type))
-        : await xoApp.getXoObjectsByType(resource === 'backup-job' ? 'job' : resource)
+    const user = await xoApp.getUser(userId)
+    const userPrivileges = user.permission === 'admin' ? [] : await xoApp.getAclV2UserPrivileges(userId)
+    return { user, userPrivileges: userPrivileges as AnyPrivilege[] }
+  }
 
-    const user = await xoApp.getUser(subscriber.userId)
-    const userPrivileges = (await xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+  async #resyncAll() {
+    this.#rbacChanges++
+    if (this.#isResyncing) {
+      return
+    }
+    this.#isResyncing = true
+    let handledChanges: number
+    do {
+      handledChanges = this.#rbacChanges
+      await Promise.all(
+        [...this.#subscriberManager.subscribers.values()].map(subscriber =>
+          this.#resync(subscriber).catch(error => {
+            // a role deleted during the read: the round its removal triggers re-diffs from this snapshot
+            if (noSuchObject.is(error, { type: 'role' })) {
+              return
+            }
 
-    const changedId = (privilege ?? previousPrivilege)!.id
-    const previousUserPrivileges = userPrivileges.filter(({ id }) => id !== changedId).concat(previousPrivilege ?? [])
+            log.error('cannot resync the SSE connection after an RBAC change', { error })
+            subscriber.clear()
+          })
+        )
+      )
+    } while (handledChanges !== this.#rbacChanges)
+    this.#isResyncing = false
+  }
 
-    await listener.resync(subscriber, objects, { user, userPrivileges, previousUserPrivileges })
+  async #resync(subscriber: Subscriber) {
+    const previous = this.#privilegesBySubscriber.get(subscriber)
+    if (previous === undefined) {
+      throw new Error('calling the #resync without initializing SSE')
+    }
+
+    const current = await this.#getUserPrivileges(subscriber.userId)
+    const resources =
+      current.user.permission !== previous.user.permission
+        ? // if the user permission change (e.g from admin to -> non admin)
+          // we need to considere all resource to be changed
+          (Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE) as SupportedResource[])
+        : xorWith(current.userPrivileges, previous.userPrivileges, isEqual).map(({ resource }) => resource)
+    const privilegesChange = {
+      ...current,
+      previousUser: previous.user,
+      previousUserPrivileges: previous.userPrivileges,
+    }
+
+    for (const resource of new Set(resources)) {
+      const listener = this.#listeners.get(XAPI_TYPE_BY_ACL_RESOURCE[resource] ?? resource)
+      if (listener?.subscribers.has(subscriber.id)) {
+        // alarms are messages
+        const type = resource === 'alarm' ? 'message' : XAPI_TYPE_BY_ACL_RESOURCE[resource]
+        const objects =
+          type !== undefined
+            ? Object.values(this.#restApi.getObjectsByType(type))
+            : await this.#restApi.xoApp.getXoObjectsByType(resource === 'backup-job' ? 'job' : resource)
+        await listener.resync(subscriber, objects, privilegesChange)
+      }
+    }
+    this.#privilegesBySubscriber.set(subscriber, current)
   }
 
   #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
@@ -143,7 +159,11 @@ export class EventService {
     return listener
   }
 
-  createSseSubscriber(res: Response): SubscriberId {
+  async createSseSubscriber(res: Response): Promise<SubscriberId> {
+    const user = this.#restApi.getCurrentUser()
+    const rbacChanges = this.#rbacChanges
+    const privileges = await this.#getUserPrivileges(user.id)
+
     const headers = new Headers({
       'Content-Type': 'text/event-stream',
       Connection: 'keep-alive',
@@ -161,8 +181,12 @@ export class EventService {
       }
     })
 
-    const user = this.#restApi.getCurrentUser()
     const subscriber = new Subscriber(connection, this.#subscriberManager, user.id)
+    this.#privilegesBySubscriber.set(subscriber, privileges)
+    if (rbacChanges !== this.#rbacChanges) {
+      // a sync started during the read may have missed this connection
+      this.#resyncAll()
+    }
     subscriber.broadcast('init', { id: subscriber.id })
 
     this.addListenerFor(subscriber.id, { type: 'ping' })

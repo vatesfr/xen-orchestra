@@ -40,10 +40,6 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     return this.#type
   }
 
-  get watchedEvent() {
-    return this.#watchedEvent
-  }
-
   addSubscriber(subscriber: Subscriber, fields: '*' | string[] = '*') {
     const unregisterOnClear = subscriber.onClear(() => this.removeSubscriber(subscriber.id))
 
@@ -129,6 +125,10 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     for (const object of objects) {
+      // the connection may be closed meanwhile, e.g. when too much data is queued
+      if (!subscriber.isAlive) {
+        return
+      }
       const data = await this.handleData({ ...conf, event: 'update' }, object, object, privilegesChange)
       if (data?.event === 'add' || data?.event === 'remove') {
         const { event, ...dataToBroadcast } = data
@@ -160,7 +160,9 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
 
     const restApi = iocContainer.get(RestApi)
     const user = privilegesChange?.user ?? (await restApi.xoApp.getUser(userId))
-    if (user.permission === 'admin') {
+    // `previousObject` is seen as the user was before
+    const previousUser = privilegesChange?.previousUser ?? user
+    if (user.permission === 'admin' && previousUser.permission === 'admin') {
       return event
     }
 
@@ -204,7 +206,7 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
         const canSeePreviousObject =
           previousObject !== undefined &&
           hasPrivilegeOn({
-            user,
+            user: previousUser,
             userPrivileges: previousUserPrivileges,
             action: 'read',
             objects: previousObject,

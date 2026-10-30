@@ -95,7 +95,7 @@ describe('EventService', () => {
     const eventService = new EventService(createRestApi(vmBackupArchives))
     const { frames, res } = createResponse()
 
-    const subscriberId = eventService.createSseSubscriber(res)
+    const subscriberId = await eventService.createSseSubscriber(res)
     eventService.addListenerFor(subscriberId, { type: 'backup-archive' })
 
     vmBackupArchives.emit('add', archive, undefined)
@@ -114,51 +114,113 @@ describe('EventService', () => {
     assert.equal(vmBackupArchives.listenerCount('add'), 0)
   })
 
-  // a XAPI collection, and a XO one read like its GET endpoint does
-  for (const [resource, collection] of [
-    ['vm', 'VM'],
-    ['user', 'user'],
-  ] as const) {
-    it(`sends the ${collection} objects whose visibility changed when a privilege on them changes`, async t => {
-      t.mock.timers.enable({ apis: ['setInterval'] })
+  describe('sends the objects whose visibility changed when the RBAC changes', () => {
+    const privilege = (resource: string, selector: string, id = 'privilege-1') => ({
+      id,
+      roleId: 'role-1',
+      resource,
+      action: 'read',
+      effect: 'allow',
+      selector,
+    })
 
-      const operator = { id: 'user-2', permission: 'none' } as XoUser
-      const previous = {
-        id: 'privilege-1',
-        roleId: 'role-1',
-        resource,
-        action: 'read',
-        effect: 'allow',
-        selector: 'id:o1',
-      }
-      const privilege = { ...previous, selector: 'id:o2' }
+    /**
+     * A connection of a user subscribed to a collection of two objects, `o1` and `o2`. Changing `state` then calling
+     * `change()` emits an RBAC trigger (its payload is ignored) and returns the frames it produced.
+     */
+    async function connect(collection: 'VM' | 'user', privileges: object[], permission = 'none') {
+      const state = { error: undefined as Error | undefined, permission, privileges }
       const restApi = createRestApi(new EventEmitter())
       Object.assign(restApi, {
-        getCurrentUser: () => operator,
+        getCurrentUser: () => ({ id: 'user-2', permission: state.permission }),
         getObjectsByType: () => ({ o1: { id: 'o1' }, o2: { id: 'o2' } }),
       })
       Object.assign(restApi.xoApp, {
-        getAclV2Role: async () => ({ id: 'role-1', userIds: [operator.id], groupIds: [] }),
-        // after the change
-        getAclV2UserPrivileges: async () => [privilege],
+        getAclV2UserPrivileges: async () => {
+          if (state.error !== undefined) {
+            throw state.error
+          }
+          return state.privileges
+        },
         getXoObjectsByType: async () => [{ id: 'o1' }, { id: 'o2' }],
-        getUser: async () => operator,
+        getUser: async () => ({ id: 'user-2', permission: state.permission }),
         objects: { allIndexes: { type: { getEventEmitterByType: () => new EventEmitter() } } },
       })
 
       const eventService = new EventService(restApi)
       const { frames, res } = createResponse()
-      eventService.addListenerFor(eventService.createSseSubscriber(res), { type: collection, fields: ['id'] })
+      eventService.addListenerFor(await eventService.createSseSubscriber(res), { type: collection, fields: ['id'] })
 
-      // the privilege moves from `o1` to `o2`
-      restApi.xoApp.getXoEventEmitterByType('acl-privilege').emit('update', privilege, previous)
-      await flush()
+      return {
+        res,
+        state,
+        async change(type = 'acl-privilege', times = 1) {
+          frames.length = 0
+          for (let i = 0; i < times; i++) {
+            restApi.xoApp.getXoEventEmitterByType(type).emit('update', {}, {})
+          }
+          await flush()
+          return frames.map(({ event, data }) => `${event} ${data.id}`)
+        },
+      }
+    }
 
-      assert.deepEqual(frames.slice(1), [
-        { event: 'remove', data: { $subscription: collection, id: 'o1' } },
-        { event: 'add', data: { $subscription: collection, id: 'o2' } },
-      ])
-      assert.equal(res.destroyed, false)
+    // a XAPI collection, and a XO one read like its GET endpoint does
+    for (const [resource, collection] of [
+      ['vm', 'VM'],
+      ['user', 'user'],
+    ] as const) {
+      it(`for the ${collection} collection when a privilege changes`, async t => {
+        t.mock.timers.enable({ apis: ['setInterval'] })
+
+        const connection = await connect(collection, [privilege(resource, 'id:o1')])
+        connection.state.privileges = [privilege(resource, 'id:o2')]
+
+        assert.deepEqual(await connection.change(), ['remove o1', 'add o2'])
+        assert.equal(connection.res.destroyed, false)
+      })
+    }
+
+    it('once for a burst of changes', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      // two privileges granting `o1` are added at once
+      const connection = await connect('VM', [])
+      connection.state.privileges = [privilege('vm', 'id:o1'), privilege('vm', 'id:o1', 'privilege-2')]
+
+      assert.deepEqual(await connection.change('acl-privilege', 2), ['add o1'])
     })
-  }
+
+    it('when a role is attached to or detached from the user, directly or through a group', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      // the user joins a group which has the role
+      connection.state.privileges = [privilege('vm', 'id:o1')]
+      assert.deepEqual(await connection.change('user'), ['add o1'])
+
+      // the role is detached
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change('acl-role'), ['remove o1'])
+    })
+
+    it('when the user is no longer an admin', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [privilege('vm', 'id:o1')], 'admin')
+      connection.state.permission = 'none'
+
+      assert.deepEqual(await connection.change('user'), ['remove o2'])
+    })
+
+    it('or closes the connection when the privileges cannot be read', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      connection.state.error = new Error('cannot check the licence')
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, true)
+    })
+  })
 })
