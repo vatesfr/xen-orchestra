@@ -1031,6 +1031,20 @@ declare module 'vue-router/auto-routes' {
       { uuid: ParamValue<false> },
       | never
     >,
+    '/vif/[uuid]': RouteRecordInfo<
+      '/vif/[uuid]',
+      '/vif/:uuid',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | '/vif/[uuid]/general'
+    >,
+    '/vif/[uuid]/general': RouteRecordInfo<
+      '/vif/[uuid]/general',
+      '/vif/:uuid/general',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
     '/vif/new': RouteRecordInfo<
       '/vif/new',
       '/vif/new',
@@ -1988,6 +2002,19 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/user-logo/user-logo.story.vue': {
       routes:
         | '/story/web-core/ui/user-logo/user-logo'
+      views:
+        | never
+    }
+    'src/pages/vif/[uuid].vue': {
+      routes:
+        | '/vif/[uuid]'
+        | '/vif/[uuid]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/vif/[uuid]/general.vue': {
+      routes:
+        | '/vif/[uuid]/general'
       views:
         | never
     }
