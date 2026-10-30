@@ -5,20 +5,16 @@ import 'dotenv/config'
 import sinon from 'sinon'
 import {
   DeleteObjectCommand,
-  GetObjectCommand,
   GetObjectLockConfigurationCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
-import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
-import { Readable } from 'node:stream'
 import { getHandler } from '.'
-import S3Handler from './s3.js'
-import { REFRESH_INTERVAL, REFRESH_TIMEOUT } from './_conditionalLock.js'
+import S3Handler, { LOCK_TIMEOUT, REFRESH_INTERVAL, STALE_AFTER } from './s3.js'
 
-// needs a real bucket, without Object Lock, from a provider which honours conditional writes: anywhere
-// else the lock is the no-op one, the second `lock()` succeeds, and this test fails — which is how it
-// tells that a provider is not supported
+// needs a real bucket without Object Lock: on an Object Lock bucket the lock is the no-op one, the second
+// `lock()` succeeds, and this test fails
 //
 //   xo_fs_s3='s3://<key>:<secret>@<host>/<bucket>/<dir>' yarn workspace @xen-orchestra/fs test
 const url = process.env.xo_fs_s3
@@ -52,10 +48,12 @@ const createHandler = () => new S3Handler({ url: 's3://key:secret@localhost/buck
 
 const s3Error = (name, httpStatusCode) => Object.assign(new Error(name), { name, $metadata: { httpStatusCode } })
 
-// the lock object of another holder
-const OTHER = '{"id":"other","seq":0}'
+// lets the async callback of a timer which just fired run to its end
+const flush = () => new Promise(resolve => setImmediate(resolve))
 
-// the lock store of `S3Handler#_lock()` against a stubbed `S3Client#send()`, which honours the conditions as S3 does
+const KEY = 'dir/vm.lock'
+
+// `S3Handler#_lock()` against a stubbed `S3Client#send()`, which honours `IfMatch` as S3 does
 describe('S3Handler#_lock() with a stubbed S3Client', () => {
   // by key
   let objects
@@ -63,67 +61,47 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
   let faults
   let send
 
+  const seqOf = key => JSON.parse(objects.get(key).body).seq
+
   beforeEach(() => {
-    mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+    mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'] })
     objects = new Map()
     faults = {}
 
     let n = 0
     send = sinon.stub(S3Client.prototype, 'send').callsFake(async command => {
-      const { Body, IfMatch, IfNoneMatch, Key } = command.input
-      const current = objects.get(Key)
+      const { Body, IfMatch, Key } = command.input
+      let current = objects.get(Key)
 
       if (command instanceof PutObjectCommand) {
         if (faults.hangPut) {
           return new Promise(() => {})
         }
+        // another contender takes the lock over between the read and this write
+        if (faults.takeOverBeforePut) {
+          faults.takeOverBeforePut = false
+          current = { etag: '"contender"', body: '{"id":"contender","seq":0}', lastModified: new Date() }
+          objects.set(Key, current)
+        }
         if (faults.putStatus !== undefined) {
-          throw s3Error('ExpiredToken', faults.putStatus)
+          throw s3Error('InternalError', faults.putStatus)
         }
-        // another conditional create on the key is in progress
-        if (faults.conflictOnCreate && IfNoneMatch === '*') {
-          throw s3Error('ConditionalRequestConflict', 409)
-        }
-        // the object vanished between the refresh's read and its replace
-        if (faults.vanishOnReplace && IfMatch !== undefined) {
-          faults.vanishOnReplace = false
-          objects.delete(Key)
+        if (IfMatch !== undefined && current === undefined) {
           throw s3Error('NoSuchKey', 404)
         }
-        if (
-          (IfNoneMatch === '*' && current !== undefined && !faults.ignoreIfNoneMatch) ||
-          (IfMatch !== undefined && IfMatch !== current?.etag)
-        ) {
+        if (IfMatch !== undefined && IfMatch !== current.etag) {
           throw s3Error('PreconditionFailed', 412)
         }
         const etag = `"${++n}"`
         objects.set(Key, { etag, body: Body, lastModified: new Date() })
-        return { ETag: faults.omitPutETag ? undefined : etag }
+        return { ETag: etag }
       }
 
-      if (command instanceof GetObjectCommand) {
-        // released just before the read
-        if (faults.vanishBeforeRead) {
-          faults.vanishBeforeRead = false
-          objects.delete(Key)
-          throw s3Error('NoSuchKey', 404)
-        }
+      if (command instanceof HeadObjectCommand) {
         if (current === undefined) {
-          throw s3Error('NoSuchKey', 404)
+          throw s3Error('NotFound', 404)
         }
-        // `read()` takes the `Date` header from a middleware of the command, which this stub bypasses: run it on a
-        // response of its own
-        if (!faults.omitGetDate) {
-          await command.middlewareStack.resolve(
-            async () => ({ response: { headers: { date: new Date().toUTCString() } } }),
-            {}
-          )({ input: command.input })
-        }
-        return {
-          ETag: faults.omitGetETag ? undefined : current.etag,
-          Body: { transformToString: async () => current.body },
-          LastModified: current.lastModified,
-        }
+        return { ETag: current.etag, LastModified: current.lastModified }
       }
 
       if (command instanceof DeleteObjectCommand) {
@@ -151,7 +129,7 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     ['on an Object Lock bucket', true],
     ['when the S3 user cannot read the Object Lock configuration', false],
   ]) {
-    it(`takes no lock, without probing, ${what}`, async () => {
+    it(`takes no lock ${what}`, async () => {
       faults.objectLock = objectLock
       const handler = createHandler()
       await handler._sync()
@@ -166,215 +144,100 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
 
   it('takes <path>.lock in the directory of the remote, rewrites it every REFRESH_INTERVAL, and deletes it', async () => {
     const release = await createHandler()._lock('vm')
-    const { body } = objects.get('dir/vm.lock')
-    assert.equal(JSON.parse(body).seq, 0)
+    const { id, seq } = JSON.parse(objects.get(KEY).body)
+    assert.match(id, /^[0-9a-f-]{36}$/)
+    assert.equal(seq, 0)
 
     mock.timers.tick(REFRESH_INTERVAL)
-    await new Promise(resolve => setImmediate(resolve))
-    assert.equal(JSON.parse(objects.get('dir/vm.lock').body).seq, 1)
+    await flush()
+    assert.deepEqual(JSON.parse(objects.get(KEY).body), { id, seq: 1 })
 
     await release()
-    assert.equal(objects.has('dir/vm.lock'), false)
+    assert.equal(objects.has(KEY), false)
   })
 
-  it('refuses a held lock', async () => {
+  it('refuses a held lock, and leaves it untouched', async () => {
     const handler = createHandler()
     const release = await handler._lock('vm')
     try {
+      const { body } = objects.get(KEY)
       await assert.rejects(handler._lock('vm'), { code: 'ELOCKED' })
+      assert.equal(objects.get(KEY).body, body)
     } finally {
       await release()
     }
   })
 
-  it('takes the lock when the held lock is released between the refused create and its read', async () => {
-    const handler = createHandler()
-    // the first lock probes the provider, whose own GetObject must not take the fault
-    const releaseProbe = await handler._lock('vm')
-    await releaseProbe()
+  it('takes over a stale lock, not a fresh one', async () => {
+    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
 
-    objects.set('dir/vm.lock', { etag: '"seeded"', body: OTHER, lastModified: new Date() })
-    faults.vanishBeforeRead = true
+    mock.timers.tick(STALE_AFTER)
+    await assert.rejects(createHandler()._lock('vm'), { code: 'ELOCKED' })
 
-    const release = await handler._lock('vm')
-    const lock = JSON.parse(objects.get('dir/vm.lock').body)
-    assert.equal(lock.seq, 0)
-    assert.match(lock.id, /^[0-9a-f]{32}$/)
+    mock.timers.tick(1)
+    const release = await createHandler()._lock('vm')
+    assert.notEqual(JSON.parse(objects.get(KEY).body).id, 'other')
     await release()
   })
 
-  it('refuses a lock whose create is refused with 409 by a conflicting write, and leaves the holder untouched', async () => {
-    const handler = createHandler()
-    // the first lock probes the provider, whose own PutObject must not take the fault
-    const releaseProbe = await handler._lock('vm')
-    await releaseProbe()
+  it('refuses a stale lock someone else took over first', async () => {
+    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
+    mock.timers.tick(STALE_AFTER + 1)
 
-    objects.set('dir/vm.lock', { etag: '"seeded"', body: OTHER, lastModified: new Date() })
-    faults.conflictOnCreate = true
-
-    await assert.rejects(handler._lock('vm'), { code: 'ELOCKED' })
-    assert.equal(objects.get('dir/vm.lock').body, OTHER)
-  })
-
-  it('reacquires a lock whose object vanished under a refresh (404 on replace)', async () => {
-    const handler = createHandler()
-    // the fault is set once the first lock, which probes the provider, is taken
-    const release = await handler._lock('vm')
-    assert.equal(JSON.parse(objects.get('dir/vm.lock').body).seq, 0)
-
-    faults.vanishOnReplace = true
-    mock.timers.tick(REFRESH_INTERVAL)
-    await new Promise(resolve => setImmediate(resolve))
-
-    // the refresh found the object gone, and took the lock again: the write after the one which vanished
-    assert.equal(JSON.parse(objects.get('dir/vm.lock').body).seq, 2)
-    await release()
-  })
-
-  for (const [what, fault] of [
-    ['refuses conditional writes (501)', { putStatus: 501 }],
-    ['answers PutObject without ETag', { omitPutETag: true }],
-    ['ignores If-None-Match', { ignoreIfNoneMatch: true }],
-    ['answers GetObject without ETag', { omitGetETag: true }],
-    ['answers GetObject without Date', { omitGetDate: true }],
-  ]) {
-    it(`takes no lock, and does not probe again, when the provider ${what}`, async () => {
-      Object.assign(faults, fault)
-      const handler = createHandler()
-
-      const release1 = await handler._lock('vm')
-      await release1()
-      assert.equal(objects.size, 0)
-
-      const requestsBefore = send.callCount
-      const release2 = await handler._lock('vm')
-      await release2()
-      assert.equal(send.callCount, requestsBefore)
-    })
-  }
-
-  it('takes no lock when the probe hangs, and probes again on the next lock', async () => {
-    faults.hangPut = true
-    const handler = createHandler()
-
-    const lock1 = handler._lock('vm')
-    // lets the probe reach its timeout, which is armed once its first request is sent
-    await new Promise(resolve => setImmediate(resolve))
-    mock.timers.tick(REFRESH_TIMEOUT)
-    const release1 = await lock1
-    await release1()
-    assert.equal(objects.size, 0)
-
-    faults.hangPut = false
-    const release2 = await handler._lock('vm')
-    try {
-      const lock = JSON.parse(objects.get('dir/vm.lock').body)
-      assert.match(lock.id, /^[0-9a-f]{32}$/)
-    } finally {
-      await release2()
-    }
-  })
-
-  // a 400 may be about the request rather than the condition: an expired token...
-  it('takes no lock when the probe fails, and probes again on the next lock', async () => {
-    faults.putStatus = 400
-    const handler = createHandler()
-
-    const release1 = await handler._lock('vm')
-    await release1()
-    assert.equal(objects.size, 0)
-
-    faults.putStatus = undefined
-    const release2 = await handler._lock('vm')
-    try {
-      const lock = JSON.parse(objects.get('dir/vm.lock').body)
-      assert.match(lock.id, /^[0-9a-f]{32}$/)
-    } finally {
-      await release2()
-    }
-  })
-})
-
-describe('S3Handler#_lock() judges a lock by the Date of the response, not by the local clock', () => {
-  // whole seconds: the `Date` and `Last-Modified` headers have no finer resolution
-  const LAST_MODIFIED = Date.UTC(2026, 0, 1, 12)
-  const TEN_SECONDS = 10e3
-  const TEN_MINUTES = 600e3
-  const LOCK_PATH = '/bucket/dir/vm.lock'
-
-  let handle
-  let objects
-  let serverNow
-
-  // the requests go through the whole middleware stack of the SDK, and stop at its HTTP handler: this is
-  // where the `Date` header of the response comes from
-  const response = (statusCode, headers = {}, body = '') => ({
-    response: {
-      statusCode,
-      headers: { date: new Date(serverNow).toUTCString(), ...headers },
-      body: Readable.from([Buffer.from(body)]),
-    },
-  })
-
-  beforeEach(() => {
-    objects = new Map([[LOCK_PATH, { body: OTHER, etag: '"seeded"', lastModified: LAST_MODIFIED }]])
-
-    let n = 0
-    handle = sinon.stub(NodeHttpHandler.prototype, 'handle').callsFake(async ({ method, path, headers, body }) => {
-      const current = objects.get(path)
-
-      if (method === 'GET') {
-        return response(
-          200,
-          { etag: current.etag, 'last-modified': new Date(current.lastModified).toUTCString() },
-          current.body
-        )
-      }
-
-      if (method === 'PUT') {
-        const ifMatch = headers['if-match']
-        if (
-          (headers['if-none-match'] === '*' && current !== undefined) ||
-          (ifMatch !== undefined && ifMatch !== current?.etag)
-        ) {
-          return response(412, {}, '<Error><Code>PreconditionFailed</Code></Error>')
-        }
-        const etag = `"${++n}"`
-        objects.set(path, { body, etag, lastModified: serverNow })
-        return response(200, { etag })
-      }
-
-      if (method === 'DELETE') {
-        objects.delete(path)
-        return response(204)
-      }
-
-      throw new Error(`unexpected ${method} ${path}`)
-    })
-  })
-
-  afterEach(() => {
-    handle.restore()
-    mock.timers.reset()
-  })
-
-  it('does not take over a lock the server finds fresh, even when the local clock finds it stale', async () => {
-    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: LAST_MODIFIED + TEN_MINUTES })
-    serverNow = LAST_MODIFIED + TEN_SECONDS
+    faults.takeOverBeforePut = true
 
     await assert.rejects(createHandler()._lock('vm'), { code: 'ELOCKED' })
+    assert.equal(JSON.parse(objects.get(KEY).body).id, 'contender')
   })
 
-  it('takes over a lock the server finds stale, even when the local clock finds it fresh', async () => {
-    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: LAST_MODIFIED + TEN_SECONDS })
-    serverNow = LAST_MODIFIED + TEN_MINUTES
-
+  it('gives up a lock someone else took, stops refreshing it, and does not delete it', async () => {
     const release = await createHandler()._lock('vm')
-    const lock = JSON.parse(objects.get(LOCK_PATH).body)
-    assert.equal(lock.seq, 0)
-    assert.match(lock.id, /^[0-9a-f]{32}$/)
+    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
+
+    mock.timers.tick(REFRESH_INTERVAL)
+    await flush()
+    const requests = send.callCount
+    mock.timers.tick(REFRESH_INTERVAL)
+    await flush()
+    assert.equal(send.callCount, requests)
 
     await release()
-    assert.equal(objects.has(LOCK_PATH), false)
+    assert.equal(JSON.parse(objects.get(KEY).body).id, 'other')
+  })
+
+  it('keeps the lock when a refresh fails, and refreshes again', async () => {
+    const release = await createHandler()._lock('vm')
+
+    faults.putStatus = 500
+    mock.timers.tick(REFRESH_INTERVAL)
+    await flush()
+    assert.equal(seqOf(KEY), 0)
+
+    faults.putStatus = undefined
+    mock.timers.tick(REFRESH_INTERVAL)
+    await flush()
+    // the failed refresh used seq 1
+    assert.equal(seqOf(KEY), 2)
+
+    await release()
+    assert.equal(objects.has(KEY), false)
+  })
+
+  it('gives up a refresh which hangs, and refreshes again', async () => {
+    const release = await createHandler()._lock('vm')
+
+    faults.hangPut = true
+    mock.timers.tick(REFRESH_INTERVAL)
+    await flush()
+    mock.timers.tick(LOCK_TIMEOUT)
+    await flush()
+
+    faults.hangPut = false
+    mock.timers.tick(REFRESH_INTERVAL - LOCK_TIMEOUT)
+    await flush()
+    assert.equal(seqOf(KEY), 2)
+
+    await release()
+    assert.equal(objects.has(KEY), false)
   })
 })
