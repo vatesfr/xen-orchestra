@@ -704,10 +704,14 @@ export default class {
 
   /**
    * @param {XoUser['id']} userId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    * @returns {Promise<Privilege[]>}
    */
-  async getAclV2UserPrivileges(userId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2UserPrivileges(userId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
 
     if ((await this._app.getUser(userId)).permission === 'admin') {
       return []
