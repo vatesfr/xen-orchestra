@@ -2,7 +2,7 @@
   <VtsContentSidePanel class="traffic-rules">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules" :pool :show-xapi-plugin-required-error>
+      <TrafficRulesTable v-else :rules="trafficRules" :pool :show-xapi-plugin-required-error show-priority>
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -10,7 +10,7 @@
         </template>
       </TrafficRulesTable>
     </UiCard>
-    <TrafficRulesSidePanel :rule="selectedRule" @close="selectedRule = undefined" />
+    <TrafficRulesSidePanel :rule="selectedRule" :rules="trafficRules" show-priority @close="selectedRule = undefined" />
   </VtsContentSidePanel>
 </template>
 
@@ -20,6 +20,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
+import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -28,7 +29,6 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import type { TrafficRule } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -55,7 +55,7 @@ const poolNetworks = computed(() => networks.value.filter(network => network.$po
 
 const { trafficRules } = useTrafficRules(poolVifs, poolNetworks)
 
-const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
+const selectedRule = useRouteQuery<RankedTrafficRule | undefined>('id', {
   toData: id => trafficRules.value.find(rule => rule.id === id),
   toQuery: rule => rule?.id ?? '',
 })

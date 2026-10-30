@@ -772,6 +772,7 @@ export type RawTrafficRule = {
   ipRange: string
   direction: TrafficRuleDirection
   port?: string
+  priority?: number
 }
 
 type BaseTrafficRule = RawTrafficRule & {

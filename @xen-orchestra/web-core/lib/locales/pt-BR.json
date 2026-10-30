@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "a documentação do controlador SDN",
   "traffic-rules:format-warning": "Erro de configuração: as regras de tráfego não estão no formato esperado. Por favor, {check-doc} sobre como migrá-las.",
   "traffic-rules:format-warning:check-doc": "consulte a documentação mais recente",
-  "traffic-rules:info-message": "A ordem das regras de tráfego está sendo implementada. O comportamento pode ser imprevisível.",
   "traffic-rules:no-traffic-rules-detected": "Nenhuma regra de tráfego detectada",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Requer o modo de plugin XAPI",

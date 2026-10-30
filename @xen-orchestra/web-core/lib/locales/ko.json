@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "SDN 컨트롤러 문서",
   "traffic-rules:format-warning": "구성 오류: 트래픽 규칙이 예상된 형식이 아닙니다. 마이그레이션 방법은 {check-doc}.",
   "traffic-rules:format-warning:check-doc": "최신 문서를 확인하세요",
-  "traffic-rules:info-message": "트래픽 규칙 순서 기능을 구현 중입니다. 동작이 불안정할 수 있습니다.",
   "traffic-rules:no-traffic-rules-detected": "감지된 트래픽 규칙 없음",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "XAPI 플러그인 모드 필요",

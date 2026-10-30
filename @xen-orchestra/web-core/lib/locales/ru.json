@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "документацию SDN-контроллера",
   "traffic-rules:format-warning": "Ошибка конфигурации: правила для трафика имеют неожиданный формат. Пожалуйста, {check-doc} о том, как их мигрировать.",
   "traffic-rules:format-warning:check-doc": "ознакомьтесь с последней документацией",
-  "traffic-rules:info-message": "Порядок правил для трафика находится в разработке. Поведение может быть непредсказуемым.",
   "traffic-rules:no-traffic-rules-detected": "Правила для трафика не обнаружены",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Требуется режим плагина XAPI",

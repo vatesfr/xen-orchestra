@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "dokumentację kontrolera SDN",
   "traffic-rules:format-warning": "Błąd konfiguracji: reguły ruchu nie są w oczekiwanym formacie. {check-doc}, jak je zmigrować.",
   "traffic-rules:format-warning:check-doc": "Sprawdź w najnowszej dokumentacji",
-  "traffic-rules:info-message": "Kolejność reguł ruchu jest w trakcie implementacji. Działanie może być nieprzewidywalne.",
   "traffic-rules:no-traffic-rules-detected": "Nie wykryto reguł ruchu",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "Wymaga trybu wtyczki XAPI",

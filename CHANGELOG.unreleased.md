@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Pool/Traffic rules] Display traffic rules by priority within their network (PR [#10688](https://github.com/vatesfr/xen-orchestra/pull/10688))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -31,6 +33,8 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->

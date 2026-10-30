@@ -1171,7 +1171,6 @@
   "traffic-rules:error-plugin:check-doc": "dokumentácia k radiču SDN siete",
   "traffic-rules:format-warning": "Chyba nastavenia: Pravidlá pre prevádzku nie sú v očakávanom formáte. {check-doc} ohľadom toho, ako ich previesť.",
   "traffic-rules:format-warning:check-doc": "Pozrite sa do najaktuálnejšej dokumentácie",
-  "traffic-rules:info-message": "Implementácia poradia pravidiel pre prevádzku ešte prebieha. Chovanie môže byť nebezpečné.",
   "traffic-rules:no-traffic-rules-detected": "Nezjištěná žiadna pravidla pre prevádzku",
   "traffic-rules:xapi-plugin-required": "Vyžaduje režim XAPI zásuvného modulu",
   "translation-tool": "Prekladový nástroj",
