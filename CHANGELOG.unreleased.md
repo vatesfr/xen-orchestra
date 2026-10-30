@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [SDN Controller] Taking control of a bridge no longer restricts it to OpenFlow 1.1, which broke the VIF locking flows XAPI installs with OpenFlow 1.0 (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,5 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
