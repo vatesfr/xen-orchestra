@@ -208,6 +208,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   return {
     vmStates,
     getRow,
+    getName,
     items,
     vms,
     count,

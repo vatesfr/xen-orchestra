@@ -9,7 +9,7 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
+import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListStorage, readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -49,7 +49,8 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep(vm?: string) {
-  const { mounted: wrapper, router } = await mountV2vMappingStep(
+  const { mounted: wrapper, router } = await mountV2vListStep(
+    'mapping',
     setup =>
       mountOnV2vWizard(
         (router, provide) =>
