@@ -298,3 +298,47 @@ describe('SDN controller reliability', () => {
     assert.equal(controller._starCenters.size, 0)
   })
 })
+
+describe('VIF traffic rules', () => {
+  // a VIF on a host where the XAPI plugin fails to apply (or remove) the rule
+  function controllerWithFailingPlugin() {
+    const writes = []
+    const vif = {
+      uuid: 'vif-uuid-1',
+      MAC: '00:16:3e:00:00:01',
+      $pool: {},
+      $VM: { $resident_on: { uuid: 'host-uuid-1' } },
+      other_config: {},
+      update_other_config: async (key, value) => writes.push([key, value]),
+    }
+    const controller = createFakeController()
+    controller._xo.getObject = () => ({ id: 'vif-1' })
+    controller._xo.getXapiObject = () => vif
+    controller._setPoolControllerIfNeeded = async () => undefined
+    controller._getOrCreateOvsdbClient = () => ({ getOfPortForVif: async () => 7 })
+    controller._getOrCreateOfChannel = async () => ({
+      addRule: async () => {
+        throw new Error('XENAPI_PLUGIN_FAILURE(add-rule)')
+      },
+      deleteRule: async () => {
+        throw new Error('XENAPI_PLUGIN_FAILURE(del-rule)')
+      },
+    })
+    return { controller, writes }
+  }
+  const rule = { allow: true, direction: 'from/to', ipRange: '192.0.2.0/24', port: 22, protocol: 'TCP', vifId: 'vif-1' }
+
+  it("through the API, a rule the host can't install fails the call and isn't recorded", async () => {
+    const { controller, writes } = controllerWithFailingPlugin()
+
+    await assert.rejects(controller._addRule(rule, { strict: true }), /XENAPI_PLUGIN_FAILURE/)
+    assert.deepEqual(writes, [])
+  })
+
+  it("through the API, a rule the host can't remove fails the call and stays recorded", async () => {
+    const { controller, writes } = controllerWithFailingPlugin()
+
+    await assert.rejects(controller._deleteRule(rule, true, { strict: true }), /XENAPI_PLUGIN_FAILURE/)
+    assert.deepEqual(writes, [])
+  })
+})
