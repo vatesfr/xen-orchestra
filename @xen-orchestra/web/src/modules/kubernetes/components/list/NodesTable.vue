@@ -67,6 +67,7 @@ const schema = useQueryBuilderSchema<XoKubernetesNode>({
   status: useStringSchema(t('status'), {
     Ready: t('ready'),
     NotReady: t('not-ready'),
+    Unknown: t('unknown'),
   }),
 })
 
@@ -91,7 +92,7 @@ const { HeadCells, BodyCells } = useKubernetesNodeColumns({
             ? { icon: icon('status:primary-circle'), tooltip: t('control-plane') }
             : undefined,
         }),
-      status: r => r({ status: nodeReadyStatus(node) }),
+      status: r => r(nodeReadyStatus(node)),
       role: r => r(roleLabels.value[node.role]),
       version: r => r(node.version),
       ipAddresses: r => r(node.ips ?? []),

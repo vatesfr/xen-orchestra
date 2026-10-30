@@ -12,7 +12,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="readyStatus" />
+          <KubernetesStatus :status="readyStatus" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
+import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import { useXoKubernetesNodeCluster } from '@/modules/kubernetes/composables/xo-kubernetes-node-cluster.composable.ts'
 import { useXoKubernetesNodeUtils } from '@/modules/kubernetes/composables/xo-kubernetes-node-utils.composable.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
@@ -84,7 +85,6 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'

@@ -6,7 +6,7 @@
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('kubelet')">
         <template #value>
-          <VtsStatus :status="readyStatus" />
+          <KubernetesStatus :status="readyStatus" />
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('scheduling')">
@@ -28,7 +28,6 @@ import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPa
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { nodeReadyStatus, nodeSchedulingStatus } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

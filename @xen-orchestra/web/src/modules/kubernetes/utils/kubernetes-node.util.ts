@@ -13,7 +13,14 @@ export function isControlPlaneNode(node: XoKubernetesNode): boolean {
 }
 
 export function nodeReadyStatus(node: XoKubernetesNode): KubernetesReadyStatus {
-  return node.status === 'Ready' ? 'ready' : 'not-ready'
+  switch (node.status) {
+    case 'Ready':
+      return 'ready'
+    case 'NotReady':
+      return 'not-ready'
+    default:
+      return 'unknown'
+  }
 }
 
 export function nodeSchedulingStatus(node: XoKubernetesNode): KubernetesSchedulingStatus {
