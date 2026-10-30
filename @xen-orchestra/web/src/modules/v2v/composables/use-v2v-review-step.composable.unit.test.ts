@@ -12,7 +12,7 @@ import { destinationCollectionsMock } from '@/test/mock-xo-destination-collectio
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vReviewStep } from '@/test/mount-v2v-review-step.ts'
+import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { V2V_DEFAULT_SR, V2V_DEFAULT_TEMPLATE, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
@@ -65,6 +65,10 @@ vi.mock(
   import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
+vi.mock(
+  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const START_ENDPOINT = `pools/${V2V_LIST_POOL.id}/actions/import_vms_from_vmware`
@@ -73,8 +77,9 @@ const NEW_VM = createV2vStartVm({ id: V2V_WEB_VM.id })
 
 const RESUMED_VM = createV2vStartVm({ id: V2V_DB_VM.id, kind: 'resume' })
 
-function mountReviewStep(options?: Parameters<typeof mountV2vReviewStep>[1]) {
-  return mountV2vReviewStep(
+function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
+  return mountV2vListStep(
+    'review',
     setup => mountComposableOnV2vWizard(() => ({ ...useV2vReviewStep(), labels: useV2vVmLabels() }), setup),
     options
   )
@@ -285,7 +290,7 @@ describe('canLaunch', () => {
   })
 
   it('cannot launch without a connected source, nor any VM to show', async () => {
-    const { result } = await mountV2vReviewStep(setup =>
+    const { result } = await mountV2vListStep('review', setup =>
       mountComposableOnV2vWizard(() => useV2vReviewStep(), { ...setup, source: undefined })
     )
 

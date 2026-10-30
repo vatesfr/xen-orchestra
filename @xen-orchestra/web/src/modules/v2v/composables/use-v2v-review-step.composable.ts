@@ -1,7 +1,9 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
+import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
+import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
@@ -16,13 +18,10 @@ import type {
   V2vVmLaunchOverrides,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { getV2vActiveMapping } from '@/modules/v2v/utils/v2v-active-mapping.util.ts'
 import { getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
 import { getV2vTargetName, setV2vOverride } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { buildV2vStartPayload, getV2vStartProblems } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { getV2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useApiErrorMessage } from '@/shared/composables/api-error-message.composable.ts'
 import type { XoV2vStartPayload, XoV2vVm } from '@vates/types'
@@ -76,17 +75,15 @@ export function useV2vReviewStep() {
 
   const listRows = useV2vMigrationListRows()
 
-  const { poolId, migrationList, rows } = listRows
+  const { poolId, migrationList } = listRows
 
-  const { vmStates, isBusy } = useV2vSelectedVms(listRows)
+  const { vmStates, getRow, getName, isBusy } = useV2vSelectedVms(listRows)
 
   const { getPoolById } = useXoPoolCollection()
 
   const { getSrById } = useXoSrCollection()
 
-  const { getVbdsByIds } = useXoVbdCollection()
-
-  const { vdis } = useXoVdiCollection()
+  const { getImportPoolName, getImportActiveMapping } = useV2vImportVm()
 
   const form = useV2vLaunchForm()
 
@@ -96,16 +93,13 @@ export function useV2vReviewStep() {
 
   const plan = computed(() => getV2vLaunchPlan(vmStates.value, confirmedIds))
 
-  const rowsById = computed(() => new Map(rows.value.map(row => [row.id, row])))
-
   const destinationPool = computed(() => getPoolById(poolId.value))
 
-  const destinationPoolName = computed(() => getV2vTargetName(poolId.value, getPoolById))
+  const destinationPoolName = useV2vPoolName(poolId)
 
   // Where the disks of an import are, read from the import itself: one SR may hold several of them
   function getImportSrNames(row: V2vVmRow, importVm: FrontXoVm): string[] {
-    // NICs do not tell an SR: the VIFs of the import are not read
-    const { disks } = getV2vActiveMapping(row.vm, vdis.value, getVbdsByIds(importVm.$VBDs), [])
+    const { disks } = getImportActiveMapping(row.vm, importVm)
 
     return uniq(compact(disks.map(({ srId }) => getV2vTargetName(srId, getSrById))))
   }
@@ -113,7 +107,7 @@ export function useV2vReviewStep() {
   // Each group VM with the import its row holds and where it is: only a VM with an import is migrated or resumed
   function withImports<TItem extends { id: XoV2vVm['id'] }>(items: TItem[]) {
     return items.flatMap(item => {
-      const row = rowsById.value.get(item.id)
+      const row = getRow(item.id)
       const importVm = row?.importVm
 
       if (row === undefined || importVm === undefined) {
@@ -125,7 +119,7 @@ export function useV2vReviewStep() {
           item,
           row,
           importVm,
-          poolName: getV2vTargetName(importVm.$pool, getPoolById),
+          poolName: getImportPoolName(importVm),
           srNames: getImportSrNames(row, importVm),
         },
       ]
@@ -250,11 +244,9 @@ export function useV2vReviewStep() {
     }
   }
 
-  // A problem names its VM as the list does: a VM gone from the source by its id
+  // A problem names its VM as the list does
   function getProblemLabel({ vmId, message }: V2vStartProblem) {
-    const vmName = vmId === undefined ? undefined : (rowsById.value.get(vmId)?.name ?? vmId)
-
-    return labels.getStartProblemLabel(message, vmName)
+    return labels.getStartProblemLabel(message, vmId === undefined ? undefined : getName(vmId))
   }
 
   function getLaunchError(error: unknown): V2vLaunchError {
