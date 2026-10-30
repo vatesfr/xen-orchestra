@@ -88,9 +88,13 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, a
 
   const rowsById = computed(() => new Map(toValue(rows).map(row => [row.id, row])))
 
+  function getRow(id: XoV2vVm['id']) {
+    return rowsById.value.get(id)
+  }
+
   // The list may outlive a VM of the inventory: its id is all that is left to name it
   function getName(id: XoV2vVm['id']) {
-    return rowsById.value.get(id)?.name ?? id
+    return getRow(id)?.name ?? id
   }
 
   const targetNameGetters: V2vMappingTargetNameGetters = {
@@ -111,7 +115,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, a
     }
 
     return list.vms.map(listVm => {
-      const row = rowsById.value.get(listVm.id)
+      const row = getRow(listVm.id)
       const mapping = row === undefined ? undefined : getV2vVmMapping(row.vm, listVm, list.defaults, offers.value)
       const { kind, check } = getV2vSelectedVmState(row, toValue(poolId), mapping?.state)
 
@@ -214,6 +218,8 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, a
 
   return {
     vmStates: selectedVms,
+    getRow,
+    getName,
     items,
     activeVm,
     count,

@@ -7,7 +7,7 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
+import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import {
   V2V_DB_IMPORT_VM,
   V2V_DB_SYNC_SNAPSHOT,
@@ -53,8 +53,9 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 const SOURCE_HOST = createV2vConnection().host
 
-function mountMappingStep(options?: Parameters<typeof mountV2vMappingStep>[1]) {
-  return mountV2vMappingStep(
+function mountMappingStep(options?: Parameters<typeof mountV2vListStep>[2]) {
+  return mountV2vListStep(
+    'mapping',
     setup => mountComposableOnV2vWizard(() => ({ ...useV2vMappingStep(), labels: useV2vVmLabels() }), setup),
     options
   )
