@@ -19,7 +19,7 @@ const props = defineProps<{
   id?: I
 }>()
 
-const route = useRoute<'/pool/[uuid]' | '/host/[uuid]' | '/vm/[uuid]'>()
+const route = useRoute<'/pool/[uuid]' | '/host/[uuid]' | '/vm/[uuid]' | '/vif/[uuid]'>()
 
 const id = computed(() => props.id ?? (route.params.uuid as I))
 
