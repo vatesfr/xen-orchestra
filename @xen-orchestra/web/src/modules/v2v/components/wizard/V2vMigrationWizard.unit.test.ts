@@ -1,5 +1,6 @@
 import V2vDestinationStep from '@/modules/v2v/components/destination/V2vDestinationStep.vue'
 import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
+import V2vReviewStep from '@/modules/v2v/components/review/V2vReviewStep.vue'
 import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
 import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
@@ -9,7 +10,6 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { mount } from '@vue/test-utils'
 
 vi.mock(
@@ -27,7 +27,13 @@ async function mountWizard(setup: V2vWizardSetup = {}) {
         global: createGlobalTestConfig({
           router,
           provide,
-          stubs: { V2vSourceStep: true, V2vDestinationStep: true, V2vVmsStep: true, V2vMappingStep: true },
+          stubs: {
+            V2vSourceStep: true,
+            V2vDestinationStep: true,
+            V2vVmsStep: true,
+            V2vMappingStep: true,
+            V2vReviewStep: true,
+          },
         }),
       }),
     setup
@@ -57,10 +63,11 @@ it.each([
   ['destination', { step: 'destination', source: V2V_WIZARD_SOURCE }, V2vDestinationStep],
   ['VMs', { step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST }, V2vVmsStep],
   ['mapping', { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }, V2vMappingStep],
+  ['review', { step: 'review', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }, V2vReviewStep],
 ])('shows the %s step alone', async (_, setup: V2vWizardSetup, stepComponent) => {
   const wrapper = await mountWizard(setup)
 
-  const shownSteps = [V2vSourceStep, V2vDestinationStep, V2vVmsStep, V2vMappingStep].filter(step =>
+  const shownSteps = [V2vSourceStep, V2vDestinationStep, V2vVmsStep, V2vMappingStep, V2vReviewStep].filter(step =>
     wrapper.findComponent(step).exists()
   )
 
@@ -73,10 +80,4 @@ it.each([
   ['mapping', { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }],
 ])('lays the %s step out without the padding of the other steps', async (_, setup: V2vWizardSetup) => {
   expect((await mountWizard(setup)).find('.content').exists()).toBe(false)
-})
-
-it('tells the review step is coming soon', async () => {
-  const wrapper = await mountWizard({ step: 'review', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS })
-
-  expect(wrapper.getComponent(VtsStateHero).text()).toContain(t('coming-soon!'))
 })

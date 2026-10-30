@@ -65,6 +65,19 @@ const WEB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }] })
 // The web VM is new, the DB one resumed
 const WEB_AND_DB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }] })
 
+const READY_CHECK = { type: 'ready', level: 'ready' }
+
+// The mapping summaries of the VMs of `WEB_AND_DB_LIST`: a new one on the list defaults, a resumed one
+const WEB_MAPPING = {
+  type: 'mapped',
+  diskCount: 1,
+  srNames: [V2V_DEFAULT_SR.name_label],
+  nicCount: 0,
+  networkNames: [],
+}
+
+const DB_MAPPING = { type: 'locked' }
+
 // The DB VM is warm synced on the pool of the list, the listed one migrated
 const IMPORT_VMS = [
   createV2vImportVm({ isWarm: true, sourceVmId: V2V_DB_VM.id }, { id: 'xo-vm-db' as FrontXoVm['id'], $pool: POOL.id }),
@@ -318,12 +331,12 @@ describe('isBusy', () => {
 })
 
 describe('vms', () => {
-  it('tells the kind and the check of each VM of the list, with its item, in the list order', async () => {
+  it('tells the kind, the check and the mapping summary of each VM of the list, with its item, in the list order', async () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 
     expect(result.vms).toEqual([
-      { kind: 'new', check: { type: 'ready', level: 'ready' }, item: result.items[0] },
-      { kind: 'resume', check: { type: 'ready', level: 'ready' }, item: result.items[1] },
+      { kind: 'new', check: READY_CHECK, mapping: WEB_MAPPING, item: result.items[0] },
+      { kind: 'resume', check: READY_CHECK, mapping: DB_MAPPING, item: result.items[1] },
     ])
   })
 
@@ -331,6 +344,31 @@ describe('vms', () => {
     const { result } = await mountSelectedVms({ list: EMPTY_LIST })
 
     expect(result.vms).toEqual([])
+  })
+})
+
+describe('vmStates', () => {
+  it('tells what the launch plan reads of each VM of the list, in the list order', async () => {
+    const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
+
+    expect(result.vmStates).toEqual([
+      {
+        id: V2V_WEB_VM.id,
+        name: V2V_WEB_VM.name,
+        kind: 'new',
+        check: READY_CHECK,
+        checkInfo: result.items[0].check,
+        mapping: WEB_MAPPING,
+      },
+      {
+        id: V2V_DB_VM.id,
+        name: V2V_DB_VM.name,
+        kind: 'resume',
+        check: READY_CHECK,
+        checkInfo: result.items[1].check,
+        mapping: DB_MAPPING,
+      },
+    ])
   })
 })
 
