@@ -15,7 +15,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [SDN Controller] With the XAPI plugin, a traffic rule a host fails to apply or remove reports which host failed and why (e.g. `XENAPI_MISSING_PLUGIN(sdncontroller.py) on host-2`) instead of an empty error
+- [SDN Controller] With the XAPI plugin, a traffic rule a host fails to apply or remove reports which host failed and why (e.g. `XENAPI_MISSING_PLUGIN(sdncontroller.py) on host-2`) instead of an empty error (PR [#10693](https://github.com/vatesfr/xen-orchestra/pull/10693))
 
 ### Packages to release
 
