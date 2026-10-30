@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-job-form-step-card">
+  <div class="backup-job-form-calendar-interval-card">
     <ScheduleStepInput :step :max-step :unit @update:step="model = getStepValues($event)" />
   </div>
 </template>
@@ -36,7 +36,7 @@ const step = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-form-step-card {
+.backup-job-form-calendar-interval-card {
   display: flex;
   align-items: center;
   padding: 1.6rem;

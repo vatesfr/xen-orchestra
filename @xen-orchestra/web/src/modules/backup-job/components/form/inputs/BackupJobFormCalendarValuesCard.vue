@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-job-form-value-card">
+  <div class="backup-job-form-calendar-values-card">
     <div :class="{ error: errorMessages.length > 0 }" class="card">
       <span class="header typo-body-bold">{{ label }}</span>
       <div class="values" :style="{ gridTemplateColumns: `repeat(${columns}, 1fr)` }">
@@ -46,7 +46,7 @@ function toggle(value: number) {
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-form-value-card {
+.backup-job-form-calendar-values-card {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;

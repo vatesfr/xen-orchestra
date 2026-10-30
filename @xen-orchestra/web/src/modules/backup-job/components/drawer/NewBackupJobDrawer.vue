@@ -50,6 +50,7 @@ import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelBut
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
+import { unrefElement } from '@vueuse/core'
 import { useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -79,7 +80,7 @@ const {
 
 const stepper = useTemplateRef('stepper')
 
-watch(currentStepIndex, () => stepper.value?.$el.scrollIntoView({ block: 'start' }))
+watch(currentStepIndex, () => unrefElement(stepper)?.scrollIntoView())
 
 async function handleConfirm() {
   if (currentStep.value !== 'review') {
