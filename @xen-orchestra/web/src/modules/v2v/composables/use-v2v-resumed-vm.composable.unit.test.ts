@@ -6,6 +6,7 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import {
   V2V_ACTIVE_MAPPING_ROWS,
@@ -57,9 +58,7 @@ function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_R
 }
 
 beforeEach(() => {
-  destinationCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('destinationVm', () => {
