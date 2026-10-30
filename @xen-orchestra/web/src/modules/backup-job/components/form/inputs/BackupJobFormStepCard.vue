@@ -1,26 +1,20 @@
 <template>
-  <div class="backup-job-form-step-card typo-body-regular">
-    <span>{{ t('every') }}</span>
-    <span class="step">
-      <UiInput :model-value="step ?? ''" accent="brand" type="number" @update:model-value="updateStep($event)" />
-    </span>
-    <span>{{ unit }}</span>
+  <div class="backup-job-form-step-card">
+    <ScheduleStepInput :step :max-step :unit @update:step="model = getStepValues($event)" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiInput from '@core/components/ui/input/UiInput.vue'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import ScheduleStepInput from '@/modules/schedule/components/ScheduleStepInput.vue'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { options } = defineProps<{
-  options: { label: string; value: number }[]
+  options: BackupJobFormOption<number>[]
   unit: string
 }>()
 
 const model = defineModel<number[]>({ required: true })
-
-const { t } = useI18n()
 
 const maxStep = computed(() => Math.floor(options.length / 2))
 
@@ -39,30 +33,15 @@ const step = computed(() => {
 
   return undefined
 })
-
-function updateStep(rawStep: string | number | undefined) {
-  const newStep = Number(rawStep)
-
-  if (!Number.isInteger(newStep) || newStep < 1) {
-    return
-  }
-
-  model.value = getStepValues(Math.min(newStep, maxStep.value))
-}
 </script>
 
 <style lang="postcss" scoped>
 .backup-job-form-step-card {
   display: flex;
   align-items: center;
-  gap: 1.6rem;
   padding: 1.6rem;
   border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.8rem;
   background-color: var(--color-neutral-background-primary);
-
-  .step {
-    width: 10rem;
-  }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <VtsTabularKeyValueList>
+  <VtsTabularKeyValueList class="backup-job-planning-review">
     <VtsTabularKeyValueRow :label="t('enabled')">
       <template #value>
         <VtsStatus :status="form.formData.enabled" />
@@ -10,7 +10,7 @@
     <VtsTabularKeyValueRow :label="t('next-runs')">
       <template #value>
         <div class="lines">
-          <span v-for="run of nextRuns" :key="run">{{ run }}</span>
+          <span v-for="run of nextRuns" :key="run.date.getTime()">{{ run.label }}</span>
         </div>
       </template>
     </VtsTabularKeyValueRow>
@@ -21,10 +21,7 @@
         :value="form.formData.nRetriesVmBackupFailures?.toString()"
       />
     </template>
-    <VtsTabularKeyValueRow
-      :label="t('report-when')"
-      :value="getOptionLabel(form.bindings.reportWhen.options, form.formData.reportWhen)"
-    />
+    <VtsTabularKeyValueRow :label="t('report-when')" :value="reportWhenLabel" />
     <VtsTabularKeyValueRow :label="t('report-recipients')">
       <template #value>
         <div class="lines">
@@ -42,8 +39,8 @@
 
 <script lang="ts" setup>
 import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
-import { getOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
-import { getNextRunDates } from '@/modules/schedule/utils/cron.util.ts'
+import { formatOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { useScheduleNextRuns } from '@/modules/schedule/composables/use-schedule-next-runs.composable.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -55,30 +52,26 @@ const { form } = defineProps<{
   isMetadata: boolean
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const timeout = computed(() =>
   form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('hours')}`
 )
 
-const nextRuns = computed(() => {
-  const format = new Intl.DateTimeFormat(locale.value, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: form.formData.timezone,
-  })
+const reportWhenLabel = computed(() => formatOptionLabel(form.bindings.reportWhen.options, form.formData.reportWhen))
 
-  return getNextRunDates(form.formData.cron, form.formData.timezone, 5).map(date => format.format(date))
-})
+const nextRuns = useScheduleNextRuns(
+  () => form.formData.cron,
+  () => form.formData.timezone
+)
 </script>
 
 <style lang="postcss" scoped>
-.lines {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.backup-job-planning-review {
+  .lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 }
 </style>

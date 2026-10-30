@@ -16,18 +16,14 @@
       </ScheduleCronValueButton>
     </div>
 
-    <div class="footer typo-body-regular">
-      <span>{{ t('every') }}</span>
-      <span class="step">
-        <UiInput :model-value="step ?? ''" accent="brand" type="number" @update:model-value="updateStep($event)" />
-      </span>
-      <span>{{ unit }}</span>
-    </div>
+    <ScheduleStepInput class="footer" :step :max-step :unit @update:step="updateStep($event)" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import ScheduleCronValueButton from '@/modules/schedule/components/ScheduleCronValueButton.vue'
+import ScheduleStepInput from '@/modules/schedule/components/ScheduleStepInput.vue'
+import type { ScheduleCalendarOption } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
 import {
   type CronFieldRange,
   formatCronField,
@@ -38,16 +34,12 @@ import {
   setCronFieldStep,
   toggleCronFieldValue,
 } from '@/modules/schedule/utils/cron.util.ts'
-import UiInput from '@core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-export type ScheduleCronCardOption = { label: string; value: number }
 
 const { range } = defineProps<{
   title: string
   unit: string
-  options: ScheduleCronCardOption[]
+  options: ScheduleCalendarOption[]
   columns: number
   range: CronFieldRange
 }>()
@@ -58,26 +50,20 @@ defineSlots<{
   'header-actions'?(): any
 }>()
 
-const { t } = useI18n()
-
 const parsedField = computed(() => parseCronField(field.value, range))
 
 const selectedValues = computed(() => new Set(getSelectedValues(parsedField.value, range)))
 
 const step = computed(() => getCronFieldStep(parsedField.value))
 
+const maxStep = computed(() => getMaxStep(range))
+
 function toggle(value: number) {
   field.value = formatCronField(toggleCronFieldValue(parsedField.value, range, value))
 }
 
-function updateStep(rawStep: string | number | undefined) {
-  const newStep = Number(rawStep)
-
-  if (!Number.isInteger(newStep) || newStep < 1) {
-    return
-  }
-
-  field.value = formatCronField(setCronFieldStep(Math.min(newStep, getMaxStep(range))))
+function updateStep(newStep: number) {
+  field.value = formatCronField(setCronFieldStep(newStep))
 }
 </script>
 
@@ -107,14 +93,7 @@ function updateStep(rawStep: string | number | undefined) {
   }
 
   .footer {
-    display: flex;
-    align-items: center;
-    gap: 1.6rem;
     padding: 1.6rem;
-  }
-
-  .step {
-    width: 10rem;
   }
 }
 </style>

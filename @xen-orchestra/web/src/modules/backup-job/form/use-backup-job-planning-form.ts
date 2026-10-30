@@ -1,3 +1,5 @@
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { BACKUP_JOB_REPORT_WHEN_LABEL_KEYS } from '@/modules/backup-job/utils/backup-job-report-when.util.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,12 +24,12 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
 
   const { useField, validate, reset } = useValidatedForm(formData, {})
 
-  const reportWhenOptions = computed<{ label: string; value: BackupJobReportWhen }[]>(() => [
-    { label: t('report-when:always'), value: 'always' },
-    { label: t('report-when:skipped-and-failure'), value: 'failure' },
-    { label: t('report-when:error'), value: 'error' },
-    { label: t('report-when:never'), value: 'never' },
-  ])
+  const reportWhenOptions = computed<BackupJobFormOption<BackupJobReportWhen>[]>(() =>
+    Object.entries(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS).map(([value, labelKey]) => ({
+      label: t(labelKey),
+      value: value as BackupJobReportWhen,
+    }))
+  )
 
   const bindings = reactive({
     enabled: useField('enabled'),

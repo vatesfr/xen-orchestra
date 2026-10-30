@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="messages">
+  <VtsInputWrapper class="backup-job-form-number-input" :label :message="messages">
     <UiInput v-model.number="model" accent="brand" type="number" :required @blur="emit('blur')">
       <template v-if="unit" #right-icon>
         <span class="unit typo-body-regular">{{ unit }}</span>
@@ -32,8 +32,10 @@ const messages = computed<InputWrapperMessage>(
 </script>
 
 <style lang="postcss" scoped>
-.unit {
-  color: var(--color-neutral-txt-secondary);
-  pointer-events: none;
+.backup-job-form-number-input {
+  .unit {
+    color: var(--color-neutral-txt-secondary);
+    pointer-events: none;
+  }
 }
 </style>

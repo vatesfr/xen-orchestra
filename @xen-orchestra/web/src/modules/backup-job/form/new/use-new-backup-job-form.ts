@@ -114,9 +114,7 @@ export function useNewBackupJobForm() {
 
   const source = useBackupJobSourceForm(reactive(createSourceFormData()))
 
-  const isIncremental = computed(() => source.formData.mode === 'delta')
-
-  const isMirror = computed(() => source.formData.dataSource === 'mirror')
+  const { isIncremental, isMirror, isMetadata } = source
 
   const transfer = useBackupJobTransferForm(reactive(createTransferFormData()), isIncremental, isMirror)
 
@@ -145,7 +143,7 @@ export function useNewBackupJobForm() {
 
   const currentStepIndex = ref(0)
 
-  const stepKeys = computed<readonly Step[]>(() => (source.formData.dataSource === 'metadata' ? METADATA_STEPS : STEPS))
+  const stepKeys = computed<readonly Step[]>(() => (isMetadata.value ? METADATA_STEPS : STEPS))
 
   const currentStep = computed(() => stepKeys.value[currentStepIndex.value])
 
@@ -189,8 +187,7 @@ export function useNewBackupJobForm() {
   }
 
   async function validateAndBuildPayload(): Promise<BackupJobPayload | undefined> {
-    const forms =
-      source.formData.dataSource === 'metadata' ? [source, target, planning] : [source, transfer, target, planning]
+    const forms = isMetadata.value ? [source, target, planning] : [source, transfer, target, planning]
 
     const results = await Promise.all(forms.map(form => form.validate()))
 
@@ -219,6 +216,7 @@ export function useNewBackupJobForm() {
     planning,
     isIncremental,
     isMirror,
+    isMetadata,
     currentStep,
     currentStepIndex,
     steps,

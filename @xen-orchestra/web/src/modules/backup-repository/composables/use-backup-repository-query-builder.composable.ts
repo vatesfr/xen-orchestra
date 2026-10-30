@@ -1,5 +1,6 @@
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { parseBackupRepositoryUrlSafely } from '@/modules/backup-repository/utils/xo-backup-repository-parsed-url.util.ts'
 import { getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -8,12 +9,7 @@ import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  BACKUP_REPOSITORY_TYPE,
-  type BackupRepositoryType,
-  parse as parseBackupRepositoryUrl,
-  type ParsedBackupRepositoryUrl,
-} from 'xo-remote-parser'
+import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType } from 'xo-remote-parser'
 
 export type BackupRepositoryStorageMode = 'block' | 'vhd'
 
@@ -23,20 +19,12 @@ export type BackupRepositoryFilterableData = FrontXoBackupRepository & {
   storageMode: BackupRepositoryStorageMode
 }
 
-function safeParseUrl(url: string): ParsedBackupRepositoryUrl | undefined {
-  try {
-    return parseBackupRepositoryUrl(url)
-  } catch {
-    return undefined
-  }
-}
-
 export function useBackupRepositoryFilterableData(rawBrs: MaybeRefOrGetter<FrontXoBackupRepository[]>) {
   const brs = toComputed(rawBrs)
 
   return computed<BackupRepositoryFilterableData[]>(() =>
     brs.value.map(br => {
-      const parsedUrl = safeParseUrl(br.url)
+      const parsedUrl = parseBackupRepositoryUrlSafely(br.url)
 
       return {
         ...br,
@@ -79,5 +67,5 @@ export function useBackupRepositoryQueryBuilder(
     }),
   })
 
-  return { items, filter, schema, filterableBrs }
+  return { items, filter, schema }
 }

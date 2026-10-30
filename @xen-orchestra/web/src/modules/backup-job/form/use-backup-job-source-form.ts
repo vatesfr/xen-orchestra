@@ -1,4 +1,8 @@
-import { useBackupJobMirrorVms } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
+import {
+  type BackupJobMirrorVm,
+  useBackupJobMirrorVms,
+} from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import {
   type FrontXoBackupRepository,
@@ -12,6 +16,7 @@ import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-preview-items.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -41,8 +46,6 @@ export type BackupJobSourceFormData = {
   poolFilter: string
 }
 
-type RadioOption<TValue extends string> = { label: string; value: TValue }
-
 export type BackupJobSourceForm = ReturnType<typeof useBackupJobSourceForm>
 
 export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
@@ -62,11 +65,15 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const isMirror = computed(() => formData.dataSource === 'mirror')
 
-  const hasPoolSelection = computed(() => formData.dataSource === 'metadata' && formData.savePoolsMetadata)
+  const isMetadata = computed(() => formData.dataSource === 'metadata')
+
+  const isIncremental = computed(() => formData.mode === 'delta')
+
+  const hasPoolSelection = computed(() => isMetadata.value && formData.savePoolsMetadata)
 
   const hasVmSelection = computed(() => formData.dataSource === 'vm' || isMirror.value)
 
-  const { mirrorVms, mirrorVmSchema, areMirrorVmsReady, toPreviewItems } = useBackupJobMirrorVms(
+  const { mirrorVms, mirrorVmSchema, areMirrorVmsReady } = useBackupJobMirrorVms(
     () => formData.sourceBackupRepository,
     () => formData.mode,
     isMirror
@@ -90,13 +97,17 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const selectedVmItems = useVmQueryPreviewItems(selectedVms)
 
+  function toMirrorVmPreviewItems(mirrorVms: BackupJobMirrorVm[]): QueryBuilderPreviewItem[] {
+    return mirrorVms.map(mirrorVm => toVmQueryPreviewItem(mirrorVm.id, mirrorVm.name_label, mirrorVm.powerState))
+  }
+
   const matchedSelectionItems = computed(() =>
-    isMirror.value ? toPreviewItems(filterByQuery(mirrorVms.value, formData.vmFilter)) : matchedVmItems.value
+    isMirror.value ? toMirrorVmPreviewItems(filterByQuery(mirrorVms.value, formData.vmFilter)) : matchedVmItems.value
   )
 
   const selectedSelectionItems = computed(() =>
     isMirror.value
-      ? toPreviewItems(mirrorVms.value.filter(mirrorVm => formData.vmIds.includes(mirrorVm.id)))
+      ? toMirrorVmPreviewItems(mirrorVms.value.filter(mirrorVm => formData.vmIds.includes(mirrorVm.id)))
       : selectedVmItems.value
   )
 
@@ -129,7 +140,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
           required: withMessage(required, () => t('name-required')),
         },
         sourceBackupRepository: {
-          requiredIf: requiredIf(() => formData.dataSource === 'mirror'),
+          requiredIf: requiredIf(() => isMirror.value),
         },
         vmIds: {
           atLeastOne: withMessage(
@@ -157,7 +168,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
         },
         savePoolsMetadata: {
           atLeastOneOption: withMessage(
-            () => formData.dataSource !== 'metadata' || formData.saveXoConfig || formData.savePoolsMetadata,
+            () => !isMetadata.value || formData.saveXoConfig || formData.savePoolsMetadata,
             () => t('select-at-least-one-option')
           ),
         },
@@ -165,13 +176,13 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     },
   })
 
-  const dataSourceOptions = computed<RadioOption<BackupJobDataSource>[]>(() => [
+  const dataSourceOptions = computed<BackupJobFormOption<BackupJobDataSource>[]>(() => [
     { label: t('vms-on-sr'), value: 'vm' },
     { label: t('vms-on-br'), value: 'mirror' },
     { label: t('pool-metadata-and-xo-config'), value: 'metadata' },
   ])
 
-  const modeOptions = computed<RadioOption<BackupJobMode>[]>(() => [
+  const modeOptions = computed<BackupJobFormOption<BackupJobMode>[]>(() => [
     { label: t('incremental'), value: 'delta' },
     { label: t('full'), value: 'full' },
   ])
@@ -206,8 +217,8 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     }
   )
 
-  const scopeTypeOptions = computed<RadioOption<BackupJobScopeType>[]>(() => [
-    { label: formData.dataSource === 'metadata' ? t('all-objects-pools') : t('all-objects-vms'), value: 'all' },
+  const scopeTypeOptions = computed<BackupJobFormOption<BackupJobScopeType>[]>(() => [
+    { label: isMetadata.value ? t('all-objects-pools') : t('all-objects-vms'), value: 'all' },
     { label: t('manual-selection'), value: 'manual' },
     { label: t('dynamic-selection'), value: 'smart' },
   ])
@@ -242,8 +253,9 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     mirrorVms,
     mirrorVmSchema,
     areMirrorVmsReady,
-    toPreviewItems,
     isMirror,
+    isMetadata,
+    isIncremental,
     hasVmSelection,
     vmSelectionSchema,
     matchedSelectionItems,

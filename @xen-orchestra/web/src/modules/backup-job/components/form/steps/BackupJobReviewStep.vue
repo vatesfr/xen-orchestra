@@ -7,8 +7,8 @@
     <BackupJobReviewSection v-if="transfer" :title="t('transfer')" @edit="emit('edit', 'transfer')">
       <BackupJobTransferReview
         :form="transfer"
-        :is-incremental="source.formData.mode === 'delta'"
-        :is-mirror="source.formData.dataSource === 'mirror'"
+        :is-incremental="source.isIncremental.value"
+        :is-mirror="source.isMirror.value"
       />
     </BackupJobReviewSection>
 
@@ -17,7 +17,7 @@
     </BackupJobReviewSection>
 
     <BackupJobReviewSection :title="t('planning')" @edit="emit('edit', 'planning')">
-      <BackupJobPlanningReview :form="planning" :is-metadata="source.formData.dataSource === 'metadata'" />
+      <BackupJobPlanningReview :form="planning" :is-metadata="source.isMetadata.value" />
     </BackupJobReviewSection>
   </div>
 </template>

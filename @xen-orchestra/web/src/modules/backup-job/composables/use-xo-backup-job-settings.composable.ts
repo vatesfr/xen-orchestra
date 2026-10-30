@@ -1,4 +1,5 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { BACKUP_JOB_REPORT_WHEN_LABEL_KEYS } from '@/modules/backup-job/utils/backup-job-report-when.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
@@ -38,18 +39,9 @@ export function useXoBackupJobSettings(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
 
   const proxy = useGetProxyById(() => backupJob.value.proxy)
 
-  const reportWhenValueTranslation = computed(() => {
-    switch (settings.reportWhen) {
-      case 'failure':
-        return t('report-when:skipped-and-failure')
-      case 'error':
-        return t('report-when:error')
-      case 'never':
-        return t('report-when:never')
-      default:
-        return t('report-when:always')
-    }
-  })
+  const reportWhenValueTranslation = computed(() =>
+    t(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS[settings.reportWhen ?? 'always'])
+  )
 
   const snapshotModeTranslation = computed(() => {
     if (settings.checkpointSnapshot === true && settings.offlineSnapshot === false) {
