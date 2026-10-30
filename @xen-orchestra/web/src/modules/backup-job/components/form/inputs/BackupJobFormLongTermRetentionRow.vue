@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-job-long-term-retention-row">
+  <div class="backup-job-form-long-term-retention-row">
     <div class="row typo-body-regular">
       <I18nT keypath="long-term-retention:row" scope="global">
         <template #count>
@@ -24,12 +24,12 @@
 </template>
 
 <script lang="ts" setup>
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { I18nT } from 'vue-i18n'
 
@@ -39,15 +39,13 @@ const { error } = defineProps<{
   error?: InputWrapperMessage
 }>()
 
-const retention = defineModel<number | undefined>('retention', { required: true })
+const retention = defineModel<number | undefined>({ required: true })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-long-term-retention-row {
+.backup-job-form-long-term-retention-row {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;

@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-target-backup-repository-table">
-    <VtsQueryBuilder v-if="isManual" :model-value="query" :schema @search="search($event)" />
+    <VtsQueryBuilder v-if="isManual" :model-value="searchFilter" :schema @search="searchFilter = $event" />
     <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
 
     <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import { useBackupRepositoryQueryBuilder } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
@@ -39,7 +40,6 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,21 +65,13 @@ const {
   schema,
 } = useBackupRepositoryQueryBuilder('backup-job-target-brs', () => brs, { ignoreRoute: true })
 
-const query = computed(() => (isManual.value ? searchFilter.value : filter.value))
-
 const displayedBrs = computed(() => (isManual.value ? searchedBrs.value : (matchedBrs ?? [])))
-
-function search(value: string) {
-  if (isManual.value) {
-    searchFilter.value = value
-  } else {
-    filter.value = value
-  }
-}
 
 const compatibleBrIds = computed(() => new Set(compatibleBrs.map(br => br.id)))
 
-const isCompatible = (br: FrontXoBackupRepository) => compatibleBrIds.value.has(br.id)
+function isCompatible(br: FrontXoBackupRepository) {
+  return compatibleBrIds.value.has(br.id)
+}
 
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('backup-job-target-brs', displayedBrs, {
   ignoreRoute: true,
@@ -101,9 +93,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
   exclude: ['proxy', 'actions'],

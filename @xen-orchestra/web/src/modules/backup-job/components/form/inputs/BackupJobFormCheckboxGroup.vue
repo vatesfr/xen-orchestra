@@ -15,18 +15,19 @@
 </template>
 
 <script setup lang="ts" generic="TValue extends string">
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
 const { error } = defineProps<{
   label: string
-  options: { label: string; value: TValue }[]
+  options: BackupJobFormOption<TValue>[]
   error?: InputWrapperMessage
 }>()
 
@@ -34,9 +35,7 @@ const model = defineModel<TValue[]>({ required: true })
 
 const uiStore = useUiStore()
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const accent = computed(() => (errorMessages.value.length > 0 ? 'danger' : 'brand'))
 

@@ -21,12 +21,12 @@
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import {
-  type BackupJobMirrorVm,
-  useBackupJobMirrorVms,
-} from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
+import type { BackupJobMirrorVm } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -35,19 +35,17 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupArchiveVmColumns } from '@core/tables/column-sets/backup-archive-vm-columns.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vms, busy, schema, toPreviewItems, error } = defineProps<{
+const { vms, busy, error } = defineProps<{
   vms: BackupJobMirrorVm[]
   busy: boolean
-  schema: ReturnType<typeof useBackupJobMirrorVms>['mirrorVmSchema']
-  toPreviewItems: ReturnType<typeof useBackupJobMirrorVms>['toPreviewItems']
+  schema: QueryBuilderSchema
   error?: InputWrapperMessage
 }>()
 
-const selectedIds = defineModel<FrontXoVm['id'][]>('selectedIds', { required: true })
+const selectedIds = defineModel<FrontXoVm['id'][]>({ required: true })
 
 const { t } = useI18n()
 
@@ -76,16 +74,14 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const { HeadCells, BodyCells } = useBackupArchiveVmColumns({
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
   body: (vm: BackupJobMirrorVm) => {
-    const [previewItem] = toPreviewItems([vm])
+    const previewItem = toVmQueryPreviewItem(vm.id, vm.name_label, vm.powerState)
 
     return {
       checkbox: r => r({ selected: isSelected(vm.id), onToggle: () => toggleSelection(vm.id) }),

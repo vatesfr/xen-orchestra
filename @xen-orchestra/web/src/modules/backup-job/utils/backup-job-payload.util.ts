@@ -94,6 +94,13 @@ function getFailureSettings(planning: BackupJobPlanningFormData): BackupJobSetti
   }
 }
 
+function getTransferSettings(transfer: BackupJobTransferFormData): BackupJobSettings {
+  return {
+    concurrency: transfer.concurrency,
+    maxExportRate: transfer.maxExportRate === undefined ? undefined : transfer.maxExportRate * 1024 ** 2,
+  }
+}
+
 function getRetentionSettings(target: BackupJobTargetFormData): BackupJobSettings {
   const longTermRetention = Object.fromEntries(
     (
@@ -167,6 +174,34 @@ function getSchedules(planning: BackupJobPlanningFormData): Record<string, Backu
   }
 }
 
+function getKeyBackupPending(source: BackupJobSourceFormData, transfer: BackupJobTransferFormData) {
+  if (source.mode !== 'delta') {
+    return undefined
+  }
+
+  if (transfer.keyBackup !== 'dynamic') {
+    return transfer.keyBackup
+  }
+
+  return {
+    monthDays: transfer.keyBackupMonthDays,
+    weekDays: transfer.keyBackupWeekDays,
+    hours: transfer.keyBackupHours,
+  }
+}
+
+function getMirrorFilter(source: BackupJobSourceFormData): BackupJobPattern | undefined {
+  if (source.scopeType === 'all') {
+    return undefined
+  }
+
+  if (source.scopeType === 'manual') {
+    return { vm: { uuid: { __or: source.vmIds } } }
+  }
+
+  return source.vmFilter
+}
+
 function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobFormDataSet): VmBackupJobPayload {
   const isIncremental = source.mode === 'delta'
   const hasBackupRepository = target.storageTargets.includes('backup-repository')
@@ -188,8 +223,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
     schedules: getSchedules(planning),
     settings: {
       '': withoutUndefined({
-        concurrency: transfer.concurrency,
-        maxExportRate: transfer.maxExportRate === undefined ? undefined : transfer.maxExportRate * 1024 ** 2,
+        ...getTransferSettings(transfer),
         preferNbd: isIncremental ? transfer.preferNbd : undefined,
         nbdConcurrency: isIncremental && transfer.preferNbd ? transfer.nbdConcurrency : undefined,
         cbtDestroySnapshotData: isIncremental && transfer.preferNbd && snapshotRetention === 0 ? true : undefined,
@@ -209,16 +243,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
       }),
     },
     pending: withoutUndefined({
-      keyBackup:
-        isIncremental && transfer.keyBackup === 'dynamic'
-          ? {
-              monthDays: transfer.keyBackupMonthDays,
-              weekDays: transfer.keyBackupWeekDays,
-              hours: transfer.keyBackupHours,
-            }
-          : isIncremental
-            ? transfer.keyBackup
-            : undefined,
+      keyBackup: getKeyBackupPending(source, transfer),
       snapshotSync:
         transfer.offlineBackup || transfer.snapshotSync === 'none'
           ? undefined
@@ -247,18 +272,12 @@ function toMirrorBackupJobPayload({
     mode: source.mode,
     proxy: source.proxy,
     sourceRemote: source.sourceBackupRepository,
-    filter:
-      source.scopeType === 'all'
-        ? undefined
-        : source.scopeType === 'manual'
-          ? { vm: { uuid: { __or: source.vmIds } } }
-          : source.vmFilter,
+    filter: getMirrorFilter(source),
     remotes: getBackupRepositoryPattern(target),
     schedules: getSchedules(planning),
     settings: {
       '': withoutUndefined({
-        concurrency: transfer.concurrency,
-        maxExportRate: transfer.maxExportRate === undefined ? undefined : transfer.maxExportRate * 1024 ** 2,
+        ...getTransferSettings(transfer),
         ...getRetentionSettings(target),
         ...getFailureSettings(planning),
         ...getReportSettings(planning),

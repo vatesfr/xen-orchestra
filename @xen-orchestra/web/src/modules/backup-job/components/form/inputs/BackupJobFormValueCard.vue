@@ -20,24 +20,23 @@
 </template>
 
 <script lang="ts" setup>
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import ScheduleCronValueButton from '@/modules/schedule/components/ScheduleCronValueButton.vue'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
 const { error } = defineProps<{
   label: string
-  options: { label: string; value: number }[]
+  options: BackupJobFormOption<number>[]
   columns: number
   error?: InputWrapperMessage
 }>()
 
 const model = defineModel<number[]>({ required: true })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 function toggle(value: number) {
   model.value = model.value.includes(value)

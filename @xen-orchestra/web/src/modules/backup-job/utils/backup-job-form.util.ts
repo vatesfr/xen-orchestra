@@ -1,18 +1,14 @@
-export function getOptionLabel<TValue>(options: { label: string; value: TValue }[], value: TValue): string | undefined {
+export type BackupJobFormOption<TValue> = { label: string; value: TValue; description?: string; disabled?: boolean }
+
+export function formatOptionLabel<TValue>(options: BackupJobFormOption<TValue>[], value: TValue): string | undefined {
   return options.find(option => option.value === value)?.label
 }
 
-export function getSelectedLabels({
-  options,
-  modelValue,
-}: {
-  options: { label: string; value: number }[]
-  modelValue: number[]
-}): string | undefined {
-  return modelValue.length === 0
+export function formatSelectedLabels(options: BackupJobFormOption<number>[], values: number[]): string | undefined {
+  return values.length === 0
     ? undefined
     : options
-        .filter(option => modelValue.includes(option.value))
+        .filter(option => values.includes(option.value))
         .map(option => option.label)
         .join(', ')
 }

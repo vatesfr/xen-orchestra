@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getNextRunDates } from '@/modules/schedule/utils/cron.util.ts'
+import { useScheduleNextRuns } from '@/modules/schedule/composables/use-schedule-next-runs.composable.ts'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { formatTimeAgoIntl, useNow } from '@vueuse/core'
 import { computed } from 'vue'
@@ -32,28 +32,22 @@ const { t, locale } = useI18n()
 
 const now = useNow({ interval: 60_000 })
 
-const nextDates = computed(() => getNextRunDates(cron, timezone, count))
+const nextRuns = useScheduleNextRuns(
+  () => cron,
+  () => timezone,
+  () => count
+)
 
-const runs = computed(() => {
-  const format = new Intl.DateTimeFormat(locale.value, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: timezone,
-  })
-
-  return nextDates.value.map(date => ({
-    date,
-    label: format.format(date),
+const runs = computed(() =>
+  nextRuns.value.map(run => ({
+    ...run,
     relative: formatTimeAgoIntl(
-      date,
+      run.date,
       { locale: locale.value, relativeTimeFormatOptions: { style: 'narrow' }, insertSpace: false },
       now.value
     ),
   }))
-})
+)
 </script>
 
 <style lang="postcss" scoped>

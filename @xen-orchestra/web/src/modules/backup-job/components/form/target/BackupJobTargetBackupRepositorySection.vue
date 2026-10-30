@@ -12,8 +12,8 @@
       <BackupJobTargetBackupRepositoryTable
         v-if="bindings.backupRepositoryScopeType.modelValue !== 'all'"
         :key="bindings.backupRepositoryScopeType.modelValue"
-        v-model:selected-ids="selectedIds"
-        v-model:filter="filter"
+        :selected-ids="bindings.backupRepositoryIds.modelValue"
+        :filter="bindings.backupRepositoryFilter.modelValue"
         :mode="bindings.backupRepositoryScopeType.modelValue"
         :brs
         :compatible-brs="compatibleBrs"
@@ -23,6 +23,8 @@
             ? bindings.backupRepositoryIds.error
             : bindings.backupRepositoryFilter.error
         "
+        @update:selected-ids="bindings.backupRepositoryIds['onUpdate:modelValue']($event)"
+        @update:filter="bindings.backupRepositoryFilter['onUpdate:modelValue']($event)"
       />
     </div>
 
@@ -37,33 +39,12 @@
 
     <div v-if="hasRetentionStrategy" class="block">
       <span class="typo-body-bold">{{ t('long-term-retention') }}</span>
-      <BackupJobLongTermRetentionRow
-        :retention="bindings.ltrDailyRetention.modelValue"
-        :error="bindings.ltrDailyRetention.error"
-        :period="t('long-term-retention:daily')"
-        :keep-select-id="bindings.ltrDailyKeep.id"
-        @update:retention="bindings.ltrDailyRetention['onUpdate:modelValue']($event)"
-      />
-      <BackupJobLongTermRetentionRow
-        :retention="bindings.ltrWeeklyRetention.modelValue"
-        :error="bindings.ltrWeeklyRetention.error"
-        :period="t('long-term-retention:weekly')"
-        :keep-select-id="bindings.ltrWeeklyKeep.id"
-        @update:retention="bindings.ltrWeeklyRetention['onUpdate:modelValue']($event)"
-      />
-      <BackupJobLongTermRetentionRow
-        :retention="bindings.ltrMonthlyRetention.modelValue"
-        :error="bindings.ltrMonthlyRetention.error"
-        :period="t('long-term-retention:monthly')"
-        :keep-select-id="bindings.ltrMonthlyKeep.id"
-        @update:retention="bindings.ltrMonthlyRetention['onUpdate:modelValue']($event)"
-      />
-      <BackupJobLongTermRetentionRow
-        :retention="bindings.ltrYearlyRetention.modelValue"
-        :error="bindings.ltrYearlyRetention.error"
-        :period="t('long-term-retention:yearly')"
-        :keep-select-id="bindings.ltrYearlyKeep.id"
-        @update:retention="bindings.ltrYearlyRetention['onUpdate:modelValue']($event)"
+      <BackupJobFormLongTermRetentionRow
+        v-for="row of longTermRetentionRows"
+        :key="row.period"
+        v-bind="row.retention"
+        :period="t(`long-term-retention:${row.period}`)"
+        :keep-select-id="row.keep.id"
       />
       <BackupJobFormCheckbox v-if="hasStrictGfs" v-bind="bindings.strictGfs" />
     </div>
@@ -75,10 +56,10 @@
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
+import BackupJobFormLongTermRetentionRow from '@/modules/backup-job/components/form/inputs/BackupJobFormLongTermRetentionRow.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
-import BackupJobLongTermRetentionRow from '@/modules/backup-job/components/form/inputs/BackupJobLongTermRetentionRow.vue'
 import BackupJobTargetBackupRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositoryTable.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -97,15 +78,15 @@ const { bindings } = defineProps<{
 
 const { t } = useI18n()
 
-const selectedIds = computed({
-  get: () => bindings.backupRepositoryIds.modelValue,
-  set: ids => bindings.backupRepositoryIds['onUpdate:modelValue'](ids),
-})
-
-const filter = computed({
-  get: () => bindings.backupRepositoryFilter.modelValue,
-  set: value => bindings.backupRepositoryFilter['onUpdate:modelValue'](value),
-})
+const longTermRetentionRows = computed(
+  () =>
+    [
+      { period: 'daily', retention: bindings.ltrDailyRetention, keep: bindings.ltrDailyKeep },
+      { period: 'weekly', retention: bindings.ltrWeeklyRetention, keep: bindings.ltrWeeklyKeep },
+      { period: 'monthly', retention: bindings.ltrMonthlyRetention, keep: bindings.ltrMonthlyKeep },
+      { period: 'yearly', retention: bindings.ltrYearlyRetention, keep: bindings.ltrYearlyKeep },
+    ] as const
+)
 </script>
 
 <style lang="postcss" scoped>

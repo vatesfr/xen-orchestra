@@ -21,19 +21,11 @@
       </BackupJobFormRadio>
 
       <template v-if="bindings.keyBackup.modelValue === 'dynamic'">
-        <div class="key-backup-cards">
-          <BackupJobFormValueCard v-bind="bindings.keyBackupMonthDays" :columns="7" />
-          <div class="key-backup-side">
-            <BackupJobFormValueCard v-bind="bindings.keyBackupWeekDays" :columns="7" />
-            <BackupJobFormStepCard
-              :model-value="bindings.keyBackupMonthDays.modelValue"
-              :options="bindings.keyBackupMonthDays.options"
-              :unit="t('cron:unit:day')"
-              @update:model-value="bindings.keyBackupMonthDays['onUpdate:modelValue']($event)"
-            />
-          </div>
-          <BackupJobFormValueCard v-bind="bindings.keyBackupHours" :columns="6" />
-        </div>
+        <BackupJobFormCalendarCards
+          :month-days="bindings.keyBackupMonthDays"
+          :week-days="bindings.keyBackupWeekDays"
+          :hours="bindings.keyBackupHours"
+        />
 
         <UiInfo accent="info" wrap>{{ t('key-backup-dynamic-info') }}</UiInfo>
       </template>
@@ -67,13 +59,12 @@
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
+import BackupJobFormCalendarCards from '@/modules/backup-job/components/form/inputs/BackupJobFormCalendarCards.vue'
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobFormSnapshotRetention from '@/modules/backup-job/components/form/inputs/BackupJobFormSnapshotRetention.vue'
-import BackupJobFormStepCard from '@/modules/backup-job/components/form/inputs/BackupJobFormStepCard.vue'
-import BackupJobFormValueCard from '@/modules/backup-job/components/form/inputs/BackupJobFormValueCard.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -100,26 +91,6 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-  }
-
-  .key-backup-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.6rem;
-
-    @media (--small) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .key-backup-side {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-
-    & > :last-child {
-      flex: 1;
-    }
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-target-storage-repository-table">
-    <VtsQueryBuilder v-if="isManual" :model-value="query" :schema @search="search($event)" />
+    <VtsQueryBuilder v-if="isManual" :model-value="searchFilter" :schema @search="searchFilter = $event" />
     <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
 
     <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import { useSrFormQueryBuilder } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -36,7 +37,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
 import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -61,17 +61,7 @@ const {
   schema,
 } = useSrFormQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
 
-const query = computed(() => (isManual.value ? searchFilter.value : filter.value))
-
 const displayedSrs = computed(() => (isManual.value ? searchedSrs.value : (matchedSrs ?? [])))
-
-function search(value: string) {
-  if (isManual.value) {
-    searchFilter.value = value
-  } else {
-    filter.value = value
-  }
-}
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('backup-job-target-srs', displayedSrs, {
   ignoreRoute: true,
@@ -93,9 +83,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const { HeadCells, BodyCells, toggle } = useSrColumns({
   exclude: ['description', 'accessMode', 'actions'],

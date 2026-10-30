@@ -1,4 +1,6 @@
-import { useBackupJobCalendarOptions } from '@/modules/backup-job/composables/use-backup-job-calendar-options.composable.ts'
+import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
@@ -31,8 +33,6 @@ export type BackupJobTransferFormData = {
   snapshotRetention: number | undefined
 }
 
-type RadioOption<TValue extends string> = { label: string; value: TValue; description?: string }
-
 export type BackupJobTransferForm = ReturnType<typeof useBackupJobTransferForm>
 
 export function useBackupJobTransferForm(
@@ -56,6 +56,13 @@ export function useBackupJobTransferForm(
 
   const { vms } = useXoVmCollection()
 
+  const { atLeast, calendarRules } = useBackupJobFormRules()
+
+  const keyBackupRules = calendarRules(
+    () => isKeyBackupDynamic.value,
+    () => formData.keyBackupWeekDays
+  )
+
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
@@ -67,23 +74,10 @@ export function useBackupJobTransferForm(
             requiredIf(() => isNbdAvailable.value && formData.preferNbd),
             () => t('nbd-concurrency-per-disk-mandatory')
           ),
-          minValue: withMessage(
-            (value: unknown) => !isNbdAvailable.value || !formData.preferNbd || typeof value !== 'number' || value >= 1,
-            () => t('must-be-at-least-n', { n: 1 })
-          ),
+          minValue: atLeast(1, () => isNbdAvailable.value && formData.preferNbd),
         },
-        keyBackupMonthDays: {
-          requiredIf: withMessage(
-            requiredIf(() => isKeyBackupDynamic.value && formData.keyBackupWeekDays.length === 0),
-            () => t('select-at-least-one-day')
-          ),
-        },
-        keyBackupHours: {
-          requiredIf: withMessage(
-            requiredIf(() => isKeyBackupDynamic.value),
-            () => t('select-at-least-one-hour')
-          ),
-        },
+        keyBackupMonthDays: keyBackupRules.monthDays,
+        keyBackupHours: keyBackupRules.hours,
         snapshotSyncTag: {
           requiredIf: requiredIf(() => !isMirror.value && !formData.offlineBackup && formData.snapshotSync === 'smart'),
         },
@@ -92,10 +86,7 @@ export function useBackupJobTransferForm(
             requiredIf(() => hasSnapshotRetention.value),
             () => t('minimum-snapshots-to-retain-mandatory')
           ),
-          minValue: withMessage(
-            (value: unknown) => !hasSnapshotRetention.value || typeof value !== 'number' || value >= 0,
-            () => t('must-be-at-least-n', { n: 0 })
-          ),
+          minValue: atLeast(0, () => hasSnapshotRetention.value),
           ephemeralSnapshot: withMessage(
             (value: unknown) => !hasSnapshotRetention.value || value !== 0 || isEphemeralSnapshotAllowed.value,
             () => t('ephemeral-snapshot-requires-nbd')
@@ -105,27 +96,27 @@ export function useBackupJobTransferForm(
     },
   })
 
-  const compressionOptions = computed<RadioOption<BackupJobCompression>[]>(() => [
+  const compressionOptions = computed<BackupJobFormOption<BackupJobCompression>[]>(() => [
     { label: t('none'), value: '' },
     { label: t('gzip'), value: 'native' },
     { label: t('zstd'), value: 'zstd' },
   ])
 
-  const keyBackupOptions = computed<RadioOption<BackupJobKeyBackup>[]>(() => [
+  const keyBackupOptions = computed<BackupJobFormOption<BackupJobKeyBackup>[]>(() => [
     { label: t('never'), value: 'never' },
     { label: t('dynamic-selection'), value: 'dynamic' },
     { label: t('always'), value: 'always' },
   ])
 
-  const { monthDayOptions, weekDayOptions, hourOptions } = useBackupJobCalendarOptions()
+  const { monthDayOptions, weekDayOptions, hourOptions } = useScheduleCalendarOptions()
 
-  const snapshotModeOptions = computed<RadioOption<BackupJobSnapshotMode>[]>(() => [
+  const snapshotModeOptions = computed<BackupJobFormOption<BackupJobSnapshotMode>[]>(() => [
     { label: t('default'), value: 'default', description: t('snapshot-mode:default-description') },
     { label: t('with-memory'), value: 'with-memory', description: t('snapshot-mode:with-memory-description') },
     { label: t('offline'), value: 'offline', description: t('snapshot-mode:offline-description') },
   ])
 
-  const snapshotSyncOptions = computed<RadioOption<BackupJobSnapshotSync>[]>(() => [
+  const snapshotSyncOptions = computed<BackupJobFormOption<BackupJobSnapshotSync>[]>(() => [
     { label: t('none'), value: 'none' },
     { label: t('all-objects-vms'), value: 'all' },
     { label: t('dynamic-selection'), value: 'smart' },

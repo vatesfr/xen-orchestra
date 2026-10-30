@@ -1,19 +1,19 @@
 <template>
   <div class="vts-query-builder-preview-group">
-    <template v-for="(child, index) of group.children" :key="child.id">
+    <template v-for="(child, index) of children" :key="child.id">
       <VtsQueryBuilderPreviewGroup
         v-if="child.isGroup"
-        :group="child"
-        :prefix="getChildPrefix(index, true)"
+        :group="child.group"
+        :prefix="child.prefix"
         :class="{ nested: index > 0 }"
       />
       <div v-else class="line typo-body-regular">
-        <span class="prefix">{{ getChildPrefix(index, false) }}</span>
-        <UiTag accent="neutral" variant="primary">{{ getPropertyLabel(child) }}</UiTag>
-        <span>{{ getOperatorLabel(child) }}</span>
-        <template v-if="getValue(child) !== undefined">
-          <UiTag v-if="getValue(child)?.isEnum" accent="neutral" variant="primary">{{ getValue(child)?.label }}</UiTag>
-          <span v-else>{{ getValue(child)?.label }}</span>
+        <span class="prefix">{{ child.prefix }}</span>
+        <UiTag accent="neutral" variant="primary">{{ child.propertyLabel }}</UiTag>
+        <span>{{ child.operatorLabel }}</span>
+        <template v-if="child.value !== undefined">
+          <UiTag v-if="child.value.isEnum" accent="neutral" variant="primary">{{ child.value.label }}</UiTag>
+          <span v-else>{{ child.value.label }}</span>
         </template>
       </div>
     </template>
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { QueryBuilderFilter, QueryBuilderGroup } from '@core/packages/query-builder/types.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { group, prefix } = defineProps<{
@@ -78,6 +79,21 @@ function getValue(filter: QueryBuilderFilter): { label: string; isEnum: boolean 
 
   return { label: Number.isNaN(Number(rawValue)) ? `"${rawValue}"` : rawValue, isEnum: false }
 }
+
+const children = computed(() =>
+  group.children.map((child, index) =>
+    child.isGroup
+      ? { id: child.id, isGroup: true as const, group: child, prefix: getChildPrefix(index, true) }
+      : {
+          id: child.id,
+          isGroup: false as const,
+          prefix: getChildPrefix(index, false),
+          propertyLabel: getPropertyLabel(child),
+          operatorLabel: getOperatorLabel(child),
+          value: getValue(child),
+        }
+  )
+)
 </script>
 
 <style lang="postcss" scoped>

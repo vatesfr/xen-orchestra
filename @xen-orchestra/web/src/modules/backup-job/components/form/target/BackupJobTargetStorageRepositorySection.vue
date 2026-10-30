@@ -8,8 +8,8 @@
       <BackupJobTargetStorageRepositoryTable
         v-if="bindings.storageRepositoryScopeType.modelValue !== 'all'"
         :key="bindings.storageRepositoryScopeType.modelValue"
-        v-model:selected-ids="selectedIds"
-        v-model:filter="filter"
+        :selected-ids="bindings.storageRepositoryIds.modelValue"
+        :filter="bindings.storageRepositoryFilter.modelValue"
         :mode="bindings.storageRepositoryScopeType.modelValue"
         :srs
         :matched-srs="matchedSrs"
@@ -18,6 +18,8 @@
             ? bindings.storageRepositoryIds.error
             : bindings.storageRepositoryFilter.error
         "
+        @update:selected-ids="bindings.storageRepositoryIds['onUpdate:modelValue']($event)"
+        @update:filter="bindings.storageRepositoryFilter['onUpdate:modelValue']($event)"
       />
     </div>
 
@@ -40,26 +42,15 @@ import BackupJobTargetStorageRepositoryTable from '@/modules/backup-job/componen
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { bindings } = defineProps<{
+defineProps<{
   bindings: BackupJobTargetForm['bindings']
   srs: FrontXoSr[]
   matchedSrs: FrontXoSr[]
 }>()
 
 const { t } = useI18n()
-
-const selectedIds = computed({
-  get: () => bindings.storageRepositoryIds.modelValue,
-  set: ids => bindings.storageRepositoryIds['onUpdate:modelValue'](ids),
-})
-
-const filter = computed({
-  get: () => bindings.storageRepositoryFilter.modelValue,
-  set: value => bindings.storageRepositoryFilter['onUpdate:modelValue'](value),
-})
 </script>
 
 <style lang="postcss" scoped>

@@ -21,6 +21,7 @@
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import type { VmFilterableData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmLastBackupDates } from '@/modules/vm/composables/use-vm-last-backup-dates.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
@@ -34,7 +35,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -43,7 +43,7 @@ const { vms, error } = defineProps<{
   error?: InputWrapperMessage
 }>()
 
-const selectedIds = defineModel<FrontXoVm['id'][]>('selectedIds', { required: true })
+const selectedIds = defineModel<FrontXoVm['id'][]>({ required: true })
 
 const { t } = useI18n()
 
@@ -72,9 +72,7 @@ const state = useTableState({
     vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const { HeadCells, BodyCells } = useVmColumns({
   exclude: ['ipAddresses', 'vcpus', 'ram', 'diskSpace', 'actions'],
