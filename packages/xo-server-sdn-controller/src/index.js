@@ -1450,8 +1450,11 @@ class SDNController extends EventEmitter {
     await this._manageXapi(pool.$xapi)
   }
 
+  // the host's OVSDB client is created if needed: on a pool's first rule,
+  // none exists yet, and the bridges must have the controller before the
+  // OpenFlow channel connects to it
   _setBridgeControllerForHost(host) {
-    const client = this.ovsdbClients[host.$ref]
+    const client = this._getOrCreateOvsdbClient(host)
     if (client !== undefined) {
       return client.setBridgeController()
     }
