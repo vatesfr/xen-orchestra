@@ -142,7 +142,7 @@ To solve this issue, we recommend that you:
 - wait until the other backup job or the merge process is done
 - make sure your backup repository is not being overworked
 
-On S3 repositories, the lock is an object named `xo-vm-backups/<VM UUID>.lock`, which its holder rewrites every 30 seconds. If XO stops while holding it, the next job can take it over once it has gone 3 minutes without being rewritten. S3 repositories are locked only if the provider supports conditional writes (XO logs a warning when it does not), if the bucket does not have Object Lock enabled, and if the S3 user can read the bucket's Object Lock configuration (`s3:GetBucketObjectLockConfiguration`, XO logs a warning when it cannot).
+On S3 repositories, the lock is an object named `xo-vm-backups/<VM UUID>.lock`, which its holder rewrites every 30 seconds. If XO stops while holding it, the next job can take it over once it has gone 3 minutes without being rewritten. S3 repositories are locked only if the bucket does not have Object Lock enabled, and if the S3 user can read the bucket's Object Lock configuration (`s3:GetBucketObjectLockConfiguration`, XO logs a warning when it cannot).
 
 On Azure repositories, the lock is a blob named `xo-vm-backups/<VM UUID>.lock`, which its holder leases for 60 seconds and renews every 15 seconds. If XO stops while holding it, the lease expires, and the next job can take the lock within 60 seconds.
 

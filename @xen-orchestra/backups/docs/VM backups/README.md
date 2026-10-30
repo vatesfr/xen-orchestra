@@ -43,7 +43,7 @@ A VM directory holds **both** the full and the incremental backups of that VM: t
 
 Transient entries, not listed in the trees below:
 
-- `xo-vm-backups/<VM UUID>.lock`, held while a job writes to that VM's folder and while `cleanVm` cleans or merges it (after a job, after a deletion, or in the merge worker on local remotes). It is effective on S3 (conditional writes) and Azure (blob lease) too. When listing VMs, entries starting with `.` and entries ending with `.lock` are ignored.
+- `xo-vm-backups/<VM UUID>.lock`, held while a job writes to that VM's folder and while `cleanVm` cleans or merges it (after a job, after a deletion, or in the merge worker on local remotes). It is effective on S3 (an object rewritten with `If-Match`) and Azure (blob lease) too. When listing VMs, entries starting with `.` and entries ending with `.lock` are ignored.
 - `xo-vm-backups/.queue/clean-vm/<YYYYMMDD>T<HHmmss>-<random>`, the merge worker queue
 - `.<VHD file name>.merge.json`, in a VDI directory, interrupted merge states.
 

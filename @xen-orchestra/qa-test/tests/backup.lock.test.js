@@ -71,17 +71,16 @@ describe(
           handler = value
           disposeHandler = dispose
 
-          // A second lock of the same folder must be refused. On S3, nothing is locked when the provider does not
-          // honour conditional writes, or when the bucket has Object Lock: XO does not lock either, and there is
-          // nothing to test.
+          // A second lock of the same folder must be refused. On S3, nothing is locked when the bucket has Object
+          // Lock: XO does not lock either, and there is nothing to test.
           const dir = getVmBackupDir(vm.uuid)
           const lock = await handler.lock(dir)
           try {
             const secondLock = await handler.lock(dir)
             await secondLock.dispose()
             skipReason =
-              'the repository is not locked: its S3 provider does not honour conditional writes, or its bucket has ' +
-              'Object Lock (see the xo:fs:s3 warnings in the debug log)'
+              'the repository is not locked: its S3 bucket has Object Lock, or its Object Lock configuration ' +
+              'cannot be read (see the xo:fs:s3 warnings in the debug log)'
             log.warn('VM folder lock pre-check failed', { backend: label, skipReason })
           } catch (error) {
             if (error.code !== 'ELOCKED') {

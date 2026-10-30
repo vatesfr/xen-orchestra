@@ -18,9 +18,9 @@ import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
 import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-checksum'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
-import { randomBytes } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
-import { acquireConditionalLock, probeConditionalWrites, REFRESH_TIMEOUT } from './_conditionalLock.js'
+import { lockedError } from './_holdLock.js'
 import { PassThrough, Transform, pipeline } from 'stream'
 import { pTimeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
@@ -39,83 +39,16 @@ const MAX_PART_NUMBER = 10000
 const MIN_PART_SIZE = 5 * 1024 * 1024
 const { debug, info, warn } = createLogger('xo:fs:s3')
 
-// the `ConditionalLockStore` of `_conditionalLock.js` for the object `params` designates
-//
-// It sends its requests with the S3 client directly, not through the handler's methods: those go through
-// the handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale.
-function createLockStore(s3, params) {
-  // the condition failed: 412 Precondition Failed; 409 ConditionalRequestConflict, AWS's answer while
-  // another conditional write on the same key is in progress, i.e. someone else is writing the lock;
-  // and for `IfMatch` only, 404: the object does not exist (for `create()`, a 404 means a missing
-  // bucket, which is an error, not a held lock)
-  //
-  // A response without ETag counts as a failed condition too: the first request of the probe finds out.
-  const put = async (body, conditions, failedStatuses) => {
-    try {
-      const { ETag } = await s3.send(new PutObjectCommand({ ...params, ...conditions, Body: body }))
-      return ETag
-    } catch (error) {
-      const statusCode = error.$metadata?.httpStatusCode
-      if (failedStatuses.includes(statusCode)) {
-        return undefined
-      }
+// how often a holder rewrites its lock object
+export const REFRESH_INTERVAL = 30e3
 
-      // 501 Not Implemented: the provider refuses the condition headers instead of honouring them
-      if (statusCode === 501) {
-        throw Object.assign(new Error('conditional writes are refused', { cause: error }), { code: 'ENOTSUP' })
-      }
+// how long a lock object may go without being rewritten before a contender takes it over: a holder survives a few
+// failed refreshes, and one which crashed blocks the path for 3 minutes at most
+export const STALE_AFTER = 180e3
 
-      throw error
-    }
-  }
-
-  return {
-    create: body => put(body, { IfNoneMatch: '*' }, [409, 412]),
-    replace: (body, etag) => put(body, { IfMatch: etag }, [404, 409, 412]),
-    read: async () => {
-      const command = new GetObjectCommand(params)
-
-      // the age of the object is measured on the server's clock, `LastModified` against the `Date` of this
-      // response: the clocks of XO, its proxies and the provider need not agree
-      let date
-      command.middlewareStack.add(
-        next => async args => {
-          const result = await next(args)
-          date = result.response.headers.date
-          return result
-        },
-        { step: 'build' }
-      )
-
-      try {
-        const { Body, ETag, LastModified } = await s3.send(command)
-        const now = Date.parse(date)
-
-        // some providers omit these: without an ETag, `replace()` would send `IfMatch: undefined`, an
-        // unconditional write, and without a `Date` (`now` is then NaN), the age could only be measured on the
-        // local clock, which can find a fresh lock stale; `probeConditionalWrites()` reads the object too, and
-        // reports this as unsupported
-        if (Body === undefined || ETag === undefined || LastModified === undefined || Number.isNaN(now)) {
-          // read the response to its end so its socket goes back to the keep-alive pool
-          await Body?.transformToString()
-          throw Object.assign(new Error('GetObject returned no Body, ETag, Last-Modified or Date'), {
-            code: 'ENOTSUP',
-          })
-        }
-
-        return { etag: ETag, body: await Body.transformToString(), age: now - LastModified.getTime() }
-      } catch (error) {
-        if (error.name === 'NoSuchKey') {
-          return undefined
-        }
-        throw error
-      }
-    },
-    remove: async () => {
-      await s3.send(new DeleteObjectCommand(params))
-    },
-  }
-}
+// how long a lock request may take: the S3 client's only bound is its 10 minutes socket timeout, and a hung refresh
+// must not let the lock go stale; shorter than REFRESH_INTERVAL, so that two refreshes do not overlap
+export const LOCK_TIMEOUT = 20e3
 
 export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
@@ -129,9 +62,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #maxPartSize
   #maxPartNumber
   #minPartSize
-  // caches the in-flight probe of the provider's conditional writes, a Promise<boolean>, not the flag itself:
-  // reset to undefined when the probe request fails, so the next lock probes again
-  #conditionalWritesProbe
 
   getConfig(key) {
     if (key === 'useVhdDirectory') {
@@ -220,31 +150,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   #createParams(file) {
     return { Bucket: this.#bucket, Key: this.#makeKey(file) }
-  }
-
-  // whether the provider honours conditional writes, probed on the first lock of the handler
-  #supportsConditionalWrites() {
-    if (this.#conditionalWritesProbe === undefined) {
-      const store = createLockStore(this.#s3, this.#createParams(`/.xo-lock-probe-${randomBytes(8).toString('hex')}`))
-      // bounded, as the lock's refreshes are: a hung request would otherwise hold every lock of this handler
-      // until the socket timeout
-      this.#conditionalWritesProbe = pTimeout.call(probeConditionalWrites(store), REFRESH_TIMEOUT).then(
-        reason => {
-          if (reason !== undefined) {
-            warn('the S3 provider does not honour conditional writes, nothing is locked on this remote', { reason })
-          }
-          return reason === undefined
-        },
-        error => {
-          // a failed request (the network, a permission, a 400 about the request itself) says nothing about the
-          // provider, and must not fail the backup: the lock is skipped this once, and the next one probes again
-          this.#conditionalWritesProbe = undefined
-          warn('could not probe the S3 provider for conditional writes, nothing is locked on this remote', { error })
-          return false
-        }
-      )
-    }
-    return this.#conditionalWritesProbe
   }
 
   async #multipartCopy(oldPath, newPath) {
@@ -624,15 +529,88 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // a version retained for the whole retention period. So do the buckets whose Object Lock configuration the S3
   // user cannot read (see `_sync()`).
   //
-  // Versioned buckets without Object Lock are locked: the versions the writes leave are removable, by a lifecycle
-  // rule expiring noncurrent versions, and skipping the lock would leave the common versioned-backup setup
-  // unprotected.
+  // A free lock is taken with a plain write: two contenders which find it free at the same time both write it, and
+  // the one whose write landed first finds out at its first refresh, whose `IfMatch` fails. A stale lock is taken
+  // over, and a held one refreshed, only over the ETag just read, so that a contender which got there first wins.
   async _lock(path) {
-    if (this.isImmutable() || this.#objectLockUnknown || !(await this.#supportsConditionalWrites())) {
+    if (this.isImmutable() || this.#objectLockUnknown) {
       return super._lock(path)
     }
 
     // `<path>.lock`, the name of the local lock directory: the listings skip it already
-    return acquireConditionalLock(createLockStore(this.#s3, this.#createParams(`${path}.lock`)), path)
+    const params = this.#createParams(`${path}.lock`)
+    const id = randomUUID()
+    let seq = 0
+
+    // the requests are sent with the S3 client directly, not through the handler's methods: those go through the
+    // handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale
+    //
+    // every write has its own body, hence its own ETag (S3 uses the MD5 of the content); resolves to undefined when
+    // `IfMatch` failed: 412, 409 while another conditional write on the key is in progress, 404 when it is gone
+    const put = async IfMatch => {
+      try {
+        const Body = JSON.stringify({ id, seq: seq++ })
+        const { ETag } = await pTimeout.call(
+          this.#s3.send(new PutObjectCommand({ ...params, IfMatch, Body })),
+          LOCK_TIMEOUT
+        )
+        return ETag
+      } catch (error) {
+        const statusCode = error.$metadata?.httpStatusCode
+        if (statusCode === 404 || statusCode === 409 || statusCode === 412) {
+          return undefined
+        }
+        throw error
+      }
+    }
+
+    let current
+    try {
+      current = await this.#s3.send(new HeadObjectCommand(params))
+    } catch (error) {
+      if (error.name !== 'NotFound') {
+        throw error
+      }
+    }
+    // a provider which omits `Last-Modified` never lets a lock be taken over: it stays held until released
+    const lastModified = current?.LastModified
+    if (current !== undefined && (lastModified === undefined || Date.now() - lastModified.getTime() <= STALE_AFTER)) {
+      throw lockedError(path)
+    }
+
+    let etag = await put(current?.ETag)
+    if (etag === undefined) {
+      throw lockedError(path)
+    }
+
+    let lost = false
+    const interval = setInterval(async () => {
+      try {
+        // eslint-disable-next-line require-atomic-updates -- a refresh ends before the next one, see LOCK_TIMEOUT
+        etag = await put(etag)
+        if (etag === undefined) {
+          lost = true
+          clearInterval(interval)
+          warn('lock compromised', { path })
+        }
+      } catch (error) {
+        // a failed request is not a lost lock: the next refresh tries again
+        debug('lock could not be refreshed', { error, path })
+      }
+    }, REFRESH_INTERVAL)
+    interval.unref()
+
+    return async () => {
+      clearInterval(interval)
+      // after a lost lock, the object is someone else's
+      if (lost) {
+        return
+      }
+      try {
+        await this.#s3.send(new DeleteObjectCommand(params))
+      } catch (error) {
+        warn('lock could not be released', { error, path })
+      }
+    }
   }
 }
