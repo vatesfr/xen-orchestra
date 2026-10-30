@@ -20,6 +20,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [SDN Controller] Taking control of a bridge no longer restricts it to OpenFlow 1.1, which broke the VIF locking flows XAPI installs with OpenFlow 1.0 (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
 
 ### Packages to release
 
@@ -45,6 +46,7 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer patch
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->

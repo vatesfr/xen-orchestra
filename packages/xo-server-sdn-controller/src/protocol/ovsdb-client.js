@@ -21,6 +21,14 @@ function setFromSelect(object) {
   return object[0] === 'set' ? object[1] : [object]
 }
 
+// The mutation of a bridge's `protocols` that lets XO use OpenFlow 1.1: none if
+// OVS already accepts it. An empty set means OVS's defaults, which include 1.1:
+// inserting OpenFlow11 there would restrict the bridge to it, turning off
+// OpenFlow 1.0, which XAPI's setup-vif-rules uses for the VIFs' locking flows.
+export function protocolsMutations(current) {
+  return current.length === 0 || current.includes(PROTOCOLS) ? [] : [['protocols', 'insert', PROTOCOLS]]
+}
+
 // =============================================================================
 
 export class OvsdbClient {
@@ -294,7 +302,7 @@ export class OvsdbClient {
         where: [['_uuid', '==', ['uuid', bridge.uuid]]],
         mutations: [
           ['controller', 'insert', ['named-uuid', 'new_controller']],
-          ['protocols', 'insert', PROTOCOLS],
+          ...protocolsMutations(await this._bridgeProtocols(bridge, socket)),
         ],
       })
     }
@@ -351,7 +359,7 @@ export class OvsdbClient {
       where: [['_uuid', '==', ['uuid', bridge.uuid]]],
       mutations: [
         ['controller', 'insert', ['uuid', this._controllerUuid]],
-        ['protocols', 'insert', PROTOCOLS],
+        ...protocolsMutations(await this._bridgeProtocols(bridge, socket)),
       ],
     }
 
@@ -484,6 +492,12 @@ export class OvsdbClient {
   }
 
   // ---------------------------------------------------------------------------
+
+  async _bridgeProtocols(bridge, socket) {
+    const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
+    const result = await this._select('Bridge', ['protocols'], where, socket)
+    return result === undefined ? [] : setFromSelect(result.protocols)
+  }
 
   async _bridgeAlreadyControlled(bridge, socket) {
     const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
