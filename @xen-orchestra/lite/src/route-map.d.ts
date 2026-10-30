@@ -506,6 +506,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/success-state-hero/vts-success-state-hero': RouteRecordInfo<
+      '/story/web-core/success-state-hero/vts-success-state-hero',
+      '/story/web-core/success-state-hero/vts-success-state-hero',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tab/router-tab': RouteRecordInfo<
       '/story/web-core/tab/router-tab',
       '/story/web-core/tab/router-tab',
@@ -1558,6 +1565,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/status/vts-status.story.vue': {
       routes:
         | '/story/web-core/status/vts-status'
+      views:
+        | never
+    }
+    'src/stories/web-core/success-state-hero/vts-success-state-hero.story.vue': {
+      routes:
+        | '/story/web-core/success-state-hero/vts-success-state-hero'
       views:
         | never
     }
