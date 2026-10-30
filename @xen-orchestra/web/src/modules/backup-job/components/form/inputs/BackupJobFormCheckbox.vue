@@ -13,10 +13,10 @@
 </template>
 
 <script lang="ts" setup>
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
 const { error } = defineProps<{
@@ -28,9 +28,7 @@ const { error } = defineProps<{
 
 const model = defineModel<boolean>({ required: true })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 </script>
 
 <style lang="postcss" scoped>

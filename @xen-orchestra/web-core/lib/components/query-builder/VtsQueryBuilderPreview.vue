@@ -50,7 +50,7 @@ import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import type { IconName } from '@core/icons'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -70,10 +70,12 @@ const { filter, schema, items } = defineProps<{
 
 const { t } = useI18n()
 
-const filterModel = computed({
-  get: () => filter,
-  set: () => {},
-})
+const filterModel = ref(filter)
+
+watch(
+  () => filter,
+  value => (filterModel.value = value)
+)
 
 const { rootGroup, isUsable } = useQueryBuilder(filterModel, () => schema)
 

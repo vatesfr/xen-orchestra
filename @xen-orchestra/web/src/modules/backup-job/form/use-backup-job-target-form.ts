@@ -1,5 +1,6 @@
-import { useBackupJobCalendarOptions } from '@/modules/backup-job/composables/use-backup-job-calendar-options.composable.ts'
+import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
 import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import { useBackupRepositoryFilterableData } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
 import {
@@ -7,6 +8,7 @@ import {
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
 import { useSrFormFilterableData } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
 import {
   type FrontXoSr,
@@ -63,10 +65,6 @@ export type BackupJobTargetFormData = {
   healthCheckHours: number[]
 }
 
-type ChoiceOption<TValue extends string> = { label: string; value: TValue }
-
-type KeepOption = { label: string; value: number }
-
 export type BackupJobTargetForm = ReturnType<typeof useBackupJobTargetForm>
 
 export function useBackupJobTargetForm(
@@ -74,7 +72,7 @@ export function useBackupJobTargetForm(
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
   rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
 ) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
 
@@ -136,12 +134,12 @@ export function useBackupJobTargetForm(
     () => dataSource.value === 'vm' && formData.storageTargets.includes('storage-repository')
   )
 
-  function atLeast(min: number, isActive: () => boolean) {
-    return withMessage(
-      (value: unknown) => !isActive() || typeof value !== 'number' || value >= min,
-      () => t('must-be-at-least-n', { n: min })
-    )
-  }
+  const { atLeast, calendarRules } = useBackupJobFormRules()
+
+  const healthCheckCalendarRules = calendarRules(
+    () => isHealthCheckDynamic.value,
+    () => formData.healthCheckWeekDays
+  )
 
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
@@ -219,50 +217,40 @@ export function useBackupJobTargetForm(
           ),
           minValue: atLeast(1, () => isHealthCheckEnabled.value),
         },
-        healthCheckMonthDays: {
-          requiredIf: withMessage(
-            requiredIf(() => isHealthCheckDynamic.value && formData.healthCheckWeekDays.length === 0),
-            () => t('select-at-least-one-day')
-          ),
-        },
-        healthCheckHours: {
-          requiredIf: withMessage(
-            requiredIf(() => isHealthCheckDynamic.value),
-            () => t('select-at-least-one-hour')
-          ),
-        },
+        healthCheckMonthDays: healthCheckCalendarRules.monthDays,
+        healthCheckHours: healthCheckCalendarRules.hours,
       }),
     },
   })
 
-  const storageTargetOptions = computed<ChoiceOption<BackupJobStorageTarget>[]>(() => [
+  const storageTargetOptions = computed<BackupJobFormOption<BackupJobStorageTarget>[]>(() => [
     { label: t('backup-repository'), value: 'backup-repository' },
     { label: t('storage-repository'), value: 'storage-repository' },
   ])
 
-  const backupRepositoryScopeTypeOptions = computed<ChoiceOption<BackupJobTargetScopeType>[]>(() => [
+  const backupRepositoryScopeTypeOptions = computed<BackupJobFormOption<BackupJobTargetScopeType>[]>(() => [
     { label: t('all-objects-brs'), value: 'all' },
     { label: t('manual-selection'), value: 'manual' },
     { label: t('dynamic-selection'), value: 'smart' },
   ])
 
-  const backupDistributionOptions = computed<ChoiceOption<BackupJobBackupDistribution>[]>(() => [
+  const backupDistributionOptions = computed<BackupJobFormOption<BackupJobBackupDistribution>[]>(() => [
     { label: t('store-backups-on-every-backup-repository'), value: 'every' },
     { label: t('distribute-backups-across-backup-repositories'), value: 'distribute' },
   ])
 
-  const storageRepositoryScopeTypeOptions = computed<ChoiceOption<BackupJobTargetScopeType>[]>(() => [
+  const storageRepositoryScopeTypeOptions = computed<BackupJobFormOption<BackupJobTargetScopeType>[]>(() => [
     { label: t('all-objects-srs'), value: 'all' },
     { label: t('manual-selection'), value: 'manual' },
     { label: t('dynamic-selection'), value: 'smart' },
   ])
 
-  const replicaDistributionOptions = computed<ChoiceOption<BackupJobReplicaDistribution>[]>(() => [
+  const replicaDistributionOptions = computed<BackupJobFormOption<BackupJobReplicaDistribution>[]>(() => [
     { label: t('store-replicas-on-every-storage-repository'), value: 'every' },
     { label: t('distribute-replicas-across-storage-repositories'), value: 'distribute' },
   ])
 
-  const healthCheckScheduleOptions = computed<ChoiceOption<BackupJobHealthCheckSchedule>[]>(() => [
+  const healthCheckScheduleOptions = computed<BackupJobFormOption<BackupJobHealthCheckSchedule>[]>(() => [
     { label: t('always'), value: 'always' },
     { label: t('dynamic-selection'), value: 'dynamic' },
   ])
@@ -271,7 +259,7 @@ export function useBackupJobTargetForm(
 
   const vmTags = computed(() => [...new Set(vms.value.flatMap(vm => vm.tags))].sort())
 
-  const calendarOptions = useBackupJobCalendarOptions()
+  const calendarOptions = useScheduleCalendarOptions()
 
   const { id: healthCheckSrSelectId } = useFormSelect('healthCheckSr', availableStorageRepositories, {
     searchable: true,
@@ -290,45 +278,14 @@ export function useBackupJobTargetForm(
     option: { label: 'name', value: 'id' },
   })
 
-  const hourOptions = computed<KeepOption[]>(() =>
-    Array.from({ length: 24 }, (_, hour) => ({ label: `${String(hour).padStart(2, '0')}:00`, value: hour }))
-  )
-
-  const weekDayOptions = computed<KeepOption[]>(() => {
-    const format = new Intl.DateTimeFormat(locale.value, { weekday: 'long', timeZone: 'UTC' })
-
-    return Array.from({ length: 7 }, (_, day) => ({
-      label: format.format(Date.UTC(2024, 0, 1 + day)),
-      value: day,
-    }))
+  const { hourOptions, weekDayOptions, monthDayOptions, monthOptions } = useScheduleCalendarOptions({
+    weekDayFormat: 'long',
+    withMinutes: true,
   })
-
-  const monthDayOptions = computed<KeepOption[]>(() =>
-    Array.from({ length: 31 }, (_, day) => ({ label: String(day + 1), value: day + 1 }))
-  )
-
-  const monthOptions = computed<KeepOption[]>(() => {
-    const format = new Intl.DateTimeFormat(locale.value, { month: 'long', timeZone: 'UTC' })
-
-    return Array.from({ length: 12 }, (_, month) => ({ label: format.format(Date.UTC(2024, month, 1)), value: month }))
-  })
-
-  function useKeepSelect(
-    key: 'ltrDailyKeep' | 'ltrWeeklyKeep' | 'ltrMonthlyKeep' | 'ltrYearlyKeep',
-    options: () => KeepOption[],
-    firstLabel: () => string
-  ) {
-    const { id } = useFormSelect(key, options, {
-      emptyOption: () => ({ label: firstLabel(), value: undefined }),
-      option: { id: 'value', label: 'label', value: 'value' },
-    })
-
-    return useSelect(id)
-  }
 
   type LongTermRetentionPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
-  const keepOptionsByPeriod = computed<Record<LongTermRetentionPeriod, KeepOption[]>>(() => ({
+  const keepOptionsByPeriod = computed<Record<LongTermRetentionPeriod, BackupJobFormOption<number>[]>>(() => ({
     daily: hourOptions.value,
     weekly: weekDayOptions.value,
     monthly: monthDayOptions.value,
@@ -341,6 +298,18 @@ export function useBackupJobTargetForm(
     monthly: t('first-of-month'),
     yearly: t('first-of-year'),
   }))
+
+  function useKeepSelect(
+    key: 'ltrDailyKeep' | 'ltrWeeklyKeep' | 'ltrMonthlyKeep' | 'ltrYearlyKeep',
+    period: LongTermRetentionPeriod
+  ) {
+    const { id } = useFormSelect(key, () => keepOptionsByPeriod.value[period], {
+      emptyOption: () => ({ label: firstKeepLabels.value[period], value: undefined }),
+      option: { id: 'value', label: 'label', value: 'value' },
+    })
+
+    return useSelect(id)
+  }
 
   function getKeepLabel(period: LongTermRetentionPeriod, value: number | undefined): string {
     if (value === undefined) {
@@ -377,29 +346,13 @@ export function useBackupJobTargetForm(
       required: true,
     })),
     ltrDailyRetention: useField('ltrDailyRetention'),
-    ltrDailyKeep: useKeepSelect(
-      'ltrDailyKeep',
-      () => hourOptions.value,
-      () => t('first-of-day')
-    ),
+    ltrDailyKeep: useKeepSelect('ltrDailyKeep', 'daily'),
     ltrWeeklyRetention: useField('ltrWeeklyRetention'),
-    ltrWeeklyKeep: useKeepSelect(
-      'ltrWeeklyKeep',
-      () => weekDayOptions.value,
-      () => t('first-of-week')
-    ),
+    ltrWeeklyKeep: useKeepSelect('ltrWeeklyKeep', 'weekly'),
     ltrMonthlyRetention: useField('ltrMonthlyRetention'),
-    ltrMonthlyKeep: useKeepSelect(
-      'ltrMonthlyKeep',
-      () => monthDayOptions.value,
-      () => t('first-of-month')
-    ),
+    ltrMonthlyKeep: useKeepSelect('ltrMonthlyKeep', 'monthly'),
     ltrYearlyRetention: useField('ltrYearlyRetention'),
-    ltrYearlyKeep: useKeepSelect(
-      'ltrYearlyKeep',
-      () => monthOptions.value,
-      () => t('first-of-year')
-    ),
+    ltrYearlyKeep: useKeepSelect('ltrYearlyKeep', 'yearly'),
     strictGfs: useField('strictGfs', () => ({
       label: t('enforce-strict-gfs-hierarchy'),
       info: t('enforce-strict-gfs-hierarchy-info'),

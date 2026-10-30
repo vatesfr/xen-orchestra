@@ -21,6 +21,7 @@
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
+import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
@@ -32,7 +33,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { usePoolColumns } from '@core/tables/column-sets/pool-columns.ts'
-import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,7 +42,7 @@ const { pools, error } = defineProps<{
   error?: InputWrapperMessage
 }>()
 
-const selectedIds = defineModel<FrontXoPool['id'][]>('selectedIds', { required: true })
+const selectedIds = defineModel<FrontXoPool['id'][]>({ required: true })
 
 const { t } = useI18n()
 
@@ -66,9 +66,7 @@ const state = useTableState({
     pools.length === 0 ? t('no-pools-detected') : filteredPools.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const errorMessages = computed(() =>
-  toArray(error).map(message => (typeof message === 'object' ? message.content : message))
-)
+const errorMessages = computed(() => toErrorMessages(error))
 
 const { HeadCells, BodyCells } = usePoolColumns({
   head: () => ({
