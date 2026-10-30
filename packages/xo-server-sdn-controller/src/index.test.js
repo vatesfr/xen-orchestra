@@ -3,6 +3,7 @@ import { EventEmitter } from 'events'
 import { strict as assert } from 'node:assert'
 
 import createSdnController from './index.js'
+import { OvsdbClient } from './protocol/ovsdb-client.js'
 
 const noop = () => undefined
 
@@ -340,5 +341,22 @@ describe('VIF traffic rules', () => {
 
     await assert.rejects(controller._deleteRule(rule, true, { strict: true }), /XENAPI_PLUGIN_FAILURE/)
     assert.deepEqual(writes, [])
+  })
+})
+
+describe("a pool's first rule", () => {
+  it('gives the bridges the controller even before any OVSDB client exists', async () => {
+    const controller = createFakeController()
+    const calls = []
+    const original = OvsdbClient.prototype.setBridgeController
+    OvsdbClient.prototype.setBridgeController = async function () {
+      calls.push(this.host.name_label)
+    }
+    try {
+      await controller._setBridgeControllerForHost({ $ref: 'host-ref-1', name_label: 'host-1', enabled: true })
+    } finally {
+      OvsdbClient.prototype.setBridgeController = original
+    }
+    assert.deepEqual(calls, ['host-1'])
   })
 })
