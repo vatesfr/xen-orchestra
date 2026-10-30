@@ -423,6 +423,7 @@ import {
   hostEnforces,
   ignoresEgress,
   joinedDirection,
+  joinedVmCount,
   joinedVms,
 } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
@@ -608,7 +609,7 @@ const joined = computed(() =>
   )
 )
 
-const joinedCount = computed(() => joined.value.entries.length + joined.value.more)
+const joinedCount = computed(() => joinedVmCount(joined.value))
 
 const joinedText = (entry: VdfJoinedVm) =>
   t(`firewall:joined:by:${entry.by === 'policy' ? 'policy' : 'tags'}`, {

@@ -99,6 +99,12 @@ export type VdfJoinedDirection = 'in' | 'out' | 'both' | 'unknown'
 export const joinedDirection = (entry: Pick<VdfJoinedVm, 'direction'>): VdfJoinedDirection =>
   entry.direction === 'in' || entry.direction === 'out' || entry.direction === 'both' ? entry.direction : 'unknown'
 
+// how many VMs the joined entries are about: a VM newly under two policies
+// (app and app-out) is one VM; the entries the agents didn't list are
+// counted as they come (one each)
+export const joinedVmCount = ({ entries, more }: { entries: Pick<VdfJoinedVm, 'vm'>[]; more: number }) =>
+  new Set(entries.map(entry => entry.vm)).size + more
+
 // how long an agent keeps a join (agent/joined.go joinedKeep)
 export const JOINED_KEEP_MS = 24 * 3600 * 1000
 

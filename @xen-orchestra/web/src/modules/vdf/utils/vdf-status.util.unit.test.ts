@@ -6,6 +6,7 @@ import {
   hostState,
   ignoresEgress,
   joinedDirection,
+  joinedVmCount,
   joinedVms,
   policyRealization,
   vmProtection,
@@ -246,5 +247,13 @@ describe('joinedDirection (vdf#47)', () => {
       now
     )
     expect(entries.map(entry => joinedDirection(entry))).toEqual(['out'])
+  })
+})
+
+describe('joinedVmCount (vdf#47)', () => {
+  it('counts a VM newly under two policies once, and the unlisted entries', () => {
+    expect(joinedVmCount({ entries: [{ vm: 'a' }, { vm: 'a' }, { vm: 'b' }], more: 0 })).toBe(2)
+    expect(joinedVmCount({ entries: [{ vm: 'a' }], more: 3 })).toBe(4)
+    expect(joinedVmCount({ entries: [], more: 0 })).toBe(0)
   })
 })
