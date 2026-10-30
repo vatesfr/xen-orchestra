@@ -14,15 +14,11 @@
           :is-mirror
         />
         <BackupJobTargetStep v-else-if="currentStep === 'target'" :form="target" />
-        <BackupJobPlanningStep
-          v-else-if="currentStep === 'planning'"
-          :bindings="planning.bindings"
-          :is-metadata="source.formData.dataSource === 'metadata'"
-        />
+        <BackupJobPlanningStep v-else-if="currentStep === 'planning'" :bindings="planning.bindings" :is-metadata />
         <BackupJobReviewStep
           v-else-if="currentStep === 'review'"
           :source
-          :transfer="source.formData.dataSource === 'metadata' ? undefined : transfer"
+          :transfer="isMetadata ? undefined : transfer"
           :target
           :planning
           @edit="step => goToStep(step)"
@@ -71,6 +67,7 @@ const {
   planning,
   isIncremental,
   isMirror,
+  isMetadata,
   currentStep,
   currentStepIndex,
   steps,

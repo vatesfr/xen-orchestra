@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts" generic="TValue extends string">
+import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -31,7 +32,7 @@ import { computed } from 'vue'
 
 const { options } = defineProps<{
   label: string
-  options: { label: string; value: TValue; disabled?: boolean; description?: string }[]
+  options: BackupJobFormOption<TValue>[]
   vertical?: boolean
 }>()
 

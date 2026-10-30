@@ -2,12 +2,9 @@ import type { BackupJobMode } from '@/modules/backup-job/form/use-backup-job-sou
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
-import { objectIcon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -15,6 +12,7 @@ export type BackupJobMirrorVm = {
   id: FrontXoVm['id']
   name_label: string
   tags: string[]
+  powerState: FrontXoVm['power_state'] | undefined
   backupCount: number
   lastBackupDate: number
 }
@@ -53,6 +51,7 @@ export function useBackupJobMirrorVms(
           id,
           name_label: archive.vm.name_label,
           tags: archive.vm.tags,
+          powerState: getVmById(id)?.power_state,
           backupCount: 1,
           lastBackupDate: archive.timestamp,
         })
@@ -71,23 +70,9 @@ export function useBackupJobMirrorVms(
     tags: useStringSchema(t('tags')),
   })
 
-  function toPreviewItems(vms: BackupJobMirrorVm[]): QueryBuilderPreviewItem[] {
-    return vms.map(mirrorVm => {
-      const vm = getVmById(mirrorVm.id)
-
-      return {
-        id: mirrorVm.id,
-        label: mirrorVm.name_label,
-        icon: vm !== undefined ? objectIcon('vm', toLower(vm.power_state)) : 'object:vm:unknown',
-        route: `/vm/${mirrorVm.id}/dashboard`,
-      }
-    })
-  }
-
   return {
     mirrorVms,
     mirrorVmSchema,
     areMirrorVmsReady: computed(() => backupRepositoryId.value === undefined || areBackupArchivesReady.value),
-    toPreviewItems,
   }
 }

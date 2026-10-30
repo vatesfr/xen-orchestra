@@ -68,8 +68,9 @@
 </template>
 
 <script lang="ts" setup>
-import ScheduleCronCard, { type ScheduleCronCardOption } from '@/modules/schedule/components/ScheduleCronCard.vue'
+import ScheduleCronCard from '@/modules/schedule/components/ScheduleCronCard.vue'
 import ScheduleNextRuns from '@/modules/schedule/components/ScheduleNextRuns.vue'
+import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
 import { CRON_FIELD_RANGES, type CronFieldName, joinCron, splitCron } from '@/modules/schedule/utils/cron.util.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -84,7 +85,7 @@ const cron = defineModel<string>({ required: true })
 
 const timezone = defineModel<string | undefined>('timezone', { required: true })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const timezones = Intl.supportedValuesOf('timeZone')
 
@@ -115,36 +116,7 @@ watch(isWeekDayMode, () => {
   cron.value = joinCron({ ...splitCron(cron.value), monthDay: '*', weekDay: '*' })
 })
 
-function padNumber(value: number): string {
-  return String(value).padStart(2, '0')
-}
-
-const minuteOptions = computed<ScheduleCronCardOption[]>(() =>
-  Array.from({ length: 60 }, (_, minute) => ({ label: padNumber(minute), value: minute }))
-)
-
-const hourOptions = computed<ScheduleCronCardOption[]>(() =>
-  Array.from({ length: 24 }, (_, hour) => ({ label: padNumber(hour), value: hour }))
-)
-
-const monthDayOptions = computed<ScheduleCronCardOption[]>(() =>
-  Array.from({ length: 31 }, (_, day) => ({ label: String(day + 1), value: day + 1 }))
-)
-
-const monthOptions = computed<ScheduleCronCardOption[]>(() => {
-  const format = new Intl.DateTimeFormat(locale.value, { month: 'long', timeZone: 'UTC' })
-
-  return Array.from({ length: 12 }, (_, month) => ({
-    label: format.format(Date.UTC(2024, month, 1)),
-    value: month,
-  }))
-})
-
-const weekDayOptions = computed<ScheduleCronCardOption[]>(() => {
-  const format = new Intl.DateTimeFormat(locale.value, { weekday: 'short', timeZone: 'UTC' })
-
-  return [1, 2, 3, 4, 5, 6, 0].map(day => ({ label: format.format(Date.UTC(2024, 0, 7 + day)), value: day }))
-})
+const { minuteOptions, hourOptions, monthDayOptions, monthOptions, weekDayOptions } = useScheduleCalendarOptions()
 </script>
 
 <style lang="postcss" scoped>
