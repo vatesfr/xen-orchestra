@@ -388,7 +388,7 @@ class SDNController extends EventEmitter {
 
     const addRule = params => {
       this._checkTrafficRulePriority(params, params.priority)
-      return this._addRule(params)
+      return this._addRule(params, { strict: true })
     }
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
@@ -402,7 +402,7 @@ class SDNController extends EventEmitter {
     }
     addRule.permission = 'admin'
 
-    const deleteRule = params => this._deleteRule(params)
+    const deleteRule = params => this._deleteRule(params, true, { strict: true })
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
       direction: { type: 'string' },
@@ -743,7 +743,10 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _addRule({ allow, direction, ipRange = '', port, priority, protocol, vifId }) {
+  // strict: an error (e.g. the XAPI plugin fails to apply the rule) is thrown,
+  // and the rule isn't recorded; otherwise, as when the rules are applied again
+  // on events, it's logged
+  async _addRule({ allow, direction, ipRange = '', port, priority, protocol, vifId }, { strict = false } = {}) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -792,6 +795,9 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
@@ -889,7 +895,12 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _deleteRule({ direction, ipRange = '', port, priority, protocol, vifId }, updateOtherConfig = true) {
+  // strict: as _addRule's; the rule then stays recorded
+  async _deleteRule(
+    { direction, ipRange = '', port, priority, protocol, vifId },
+    updateOtherConfig = true,
+    { strict = false } = {}
+  ) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -952,6 +963,9 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
