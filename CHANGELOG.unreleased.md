@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [SDN Controller] Fix the direct OpenFlow channel failing against a bridge that also allows newer OpenFlow versions (`Unsupported OpenFlow version: 5`): the version is negotiated down to OpenFlow 1.1 as the OpenFlow specification requires
+- [SDN Controller] Taking control of a bridge no longer restricts it to OpenFlow 1.1, which broke the VIF locking flows XAPI installs with OpenFlow 1.0 (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
 
 ### Packages to release
 
@@ -35,5 +36,6 @@
 
 - @xen-orchestra/openflow minor
 - @xen-orchestra/web-core minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
