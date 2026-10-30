@@ -55,6 +55,7 @@ const methods = {
       beforeEvacuateVms,
       beforeRebootHost,
       ignoreHost,
+      rebootFirst,
       shutdownPinnedVms = false,
       recorder = noopRpuRecorder,
       resume = noRpuResume,
@@ -247,6 +248,10 @@ const methods = {
       throw new Error('Could not find pool master')
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+    // the hosts to reboot first go before it, in the same order (stable sort)
+    if (rebootFirst !== undefined) {
+      hosts.sort((a, b) => Number(rebootFirst(b)) - Number(rebootFirst(a)))
+    }
 
     // last write before the first host is handled: the host order and the VM
     // placement are the biggest part of the record, written once

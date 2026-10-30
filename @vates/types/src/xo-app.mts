@@ -162,6 +162,14 @@ export type PoolRollingUpdateRecoveryVmConflict = {
   message?: string
 }
 
+/** hosts resumes added to the plan of the run: patches released since it started, or hosts new to the pool */
+export type PoolRollingUpdateRecoveryPlanChange = {
+  /** the last resume which added hosts */
+  attempt: number
+  /** UUIDs of hosts the run did not plan to update, or had finished, added by any resume */
+  addedHostIds: string[]
+}
+
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
@@ -182,6 +190,8 @@ export type PoolRollingUpdateRecoveryRun = {
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
   vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
+  /** absent when no resume changed the plan */
+  planChange?: PoolRollingUpdateRecoveryPlanChange
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */

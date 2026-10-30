@@ -151,6 +151,9 @@ export function buildRpuRecoveryView(record) {
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
     vmConflicts: record.vmConflicts ?? [],
+    ...(record.recomputedPlan?.addedHostIds?.length > 0 && {
+      planChange: { attempt: record.recomputedPlan.attempt, addedHostIds: record.recomputedPlan.addedHostIds },
+    }),
   }
 }
 
@@ -304,6 +307,7 @@ export const noopRpuRecorder = Object.freeze({
   setTaskId: noop,
   setVariant: noop,
   setPatchInventory: noop,
+  reopenHost: noop,
   setPlan: noop,
   hostStarting: noop,
   hostSkipped: noop,
@@ -406,6 +410,8 @@ export function createRpuRecoveryRecorder({ store, record }) {
   }
   const settingsLeftChanged = () => Object.keys(record.changedByRun ?? {})
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
+  // finished hosts to handle again, see reopenHost
+  const reopenedHostIds = new Set()
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
     const steps = hostEntry(hostId).steps
@@ -439,10 +445,30 @@ export function createRpuRecoveryRecorder({ store, record }) {
       write()
     },
     // on resume, the updated hosts have no missing patches anymore: the
-    // inventory of the first attempt stays the reference
-    setPatchInventory(hasMissingPatchesByHost) {
-      record.hasMissingPatchesByHost ??= hasMissingPatchesByHost
+    // inventory of the first attempt stays the reference, the one of the
+    // resume is kept next to it with the hosts added to the plan, see
+    // listRpuPlanChange. Hosts an earlier resume added stay listed: a resume
+    // which finds nothing new does not hide why they are updated
+    setPatchInventory(hasMissingPatchesByHost, addedHostIds = []) {
+      if (record.hasMissingPatchesByHost === undefined) {
+        record.hasMissingPatchesByHost = hasMissingPatchesByHost
+      } else {
+        const previous = record.recomputedPlan
+        record.recomputedPlan = {
+          attempt: addedHostIds.length > 0 || previous === undefined ? (record.attempt ?? 1) : previous.attempt,
+          hasMissingPatchesByHost,
+          addedHostIds: [...new Set([...(previous?.addedHostIds ?? []), ...addedHostIds])],
+        }
+      }
       write()
+    },
+    // a host a previous attempt finished, which patches released since bring
+    // back into the plan, is handled as if the run had not touched it yet.
+    // Its entry is reset only once this attempt starts it: an attempt which
+    // fails before must leave it done, with the VMs still to bring back to it.
+    // Whether the operator had it enabled before the run stays
+    reopenHost(hostId) {
+      reopenedHostIds.add(hostId)
     },
     // one write for the biggest part of the record, right before the first
     // host is handled
@@ -455,6 +481,9 @@ export function createRpuRecoveryRecorder({ store, record }) {
     // already disabled is not a change of the run. A resumed host keeps the
     // values of the first attempt, the interrupted one may have disabled it
     hostStarting(hostId, agentStartTime, enabled) {
+      if (reopenedHostIds.delete(hostId)) {
+        record.hosts[hostId] = { steps: {}, enabledBeforeUpdate: record.hosts[hostId]?.enabledBeforeUpdate }
+      }
       const entry = hostEntry(hostId)
       entry.agentStartedAtBeforeUpdate ??= agentStartTime
       entry.enabledBeforeUpdate ??= enabled
@@ -658,10 +687,12 @@ const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
  *
  * @param {object} record - Readable record
  * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
- *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object, changedByRun: object }} `unfinishedHosts` maps
+ *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object, changedByRun: object,
+ *   patchInventory: object | undefined }} `unfinishedHosts` maps
  *   the id of each unfinished host to its `agentStartedAtBeforeUpdate`, its `enabledBeforeUpdate` and whether the
  *   previous attempt was rebooting it (`rebooting`), `patchedHostIds` are the hosts whose update started,
- *   `hostsStarted` when a host was handled by a previous attempt, the other fields come from the record
+ *   `hostsStarted` when a host was handled by a previous attempt, `patchInventory` is the patch inventory of the
+ *   first attempt, the other fields come from the record
  */
 export function planRpuResume(record) {
   const doneHostIds = new Set()
@@ -692,6 +723,7 @@ export function planRpuResume(record) {
     vmHomeById: record.vmHomeById ?? {},
     haltedPinnedVms: record.haltedPinnedVms ?? {},
     changedByRun: record.changedByRun ?? {},
+    patchInventory: record.hasMissingPatchesByHost,
   }
 }
 
@@ -708,7 +740,34 @@ export const noRpuResume = Object.freeze({
   vmHomeById: {},
   haltedPinnedVms: {},
   changedByRun: {},
+  patchInventory: undefined,
 })
+
+/**
+ * Lists the hosts a resume adds to the plan of its run: hosts with missing
+ * patches which the first attempt did not plan to update (current at the time,
+ * or not in the pool yet), or which a previous attempt finished. Patches
+ * released since the run started are the usual reason, a host which joined
+ * the pool since is the other one.
+ *
+ * A host the first attempt planned to update and did not finish is not a
+ * change: it is updated with whatever it is missing now.
+ *
+ * @param {object} params
+ * @param {Record<string, boolean> | undefined} params.patchInventory - Inventory of the first attempt, none when it
+ *   stopped before listing the missing patches
+ * @param {Record<string, boolean>} params.hasMissingPatchesByHost - Inventory of the resume
+ * @param {Set<string>} params.doneHostIds - Hosts a previous attempt finished
+ * @returns {string[]}
+ */
+export function listRpuPlanChange({ patchInventory, hasMissingPatchesByHost, doneHostIds }) {
+  if (patchInventory === undefined) {
+    return []
+  }
+  return Object.keys(hasMissingPatchesByHost).filter(
+    hostId => hasMissingPatchesByHost[hostId] && (patchInventory[hostId] !== true || doneHostIds.has(hostId))
+  )
+}
 
 /**
  * Continues the failed or interrupted run of a pool: same `runId`, next

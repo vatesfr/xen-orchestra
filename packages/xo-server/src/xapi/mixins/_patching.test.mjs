@@ -128,8 +128,9 @@ class FakeXapi {
     this.steps.push('linstor')
   }
 
-  async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost, resume }) {
+  async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost, rebootFirst, resume }) {
     this.resume = resume
+    this.rebootFirstHostIds = this.hosts.filter(host => rebootFirst?.(host) ?? false).map(host => host.uuid)
     const handledHosts = this.hosts.filter(host => !resume.doneHostIds.has(host.uuid) && !ignoreHost(host))
     this.steps.push(handledHosts.map(host => host.uuid))
     await beforeEvacuateVms()
@@ -152,8 +153,17 @@ class FakeXapi {
 // the mixin reaches its own methods through `this`
 Object.setPrototypeOf(FakeXapi.prototype, patchingMethods)
 
+// the properties the update sets on its task end in `xapi.taskProperties`
 const rollingPoolUpdate = async (xapi, options) => {
-  const parentTask = new Task({ properties: { name: 'rolling pool update', progress: 0 } })
+  xapi.taskProperties = {}
+  const parentTask = new Task({
+    properties: { name: 'rolling pool update', progress: 0 },
+    onProgress: event => {
+      if (event.type === 'property' && event.id === parentTask.id) {
+        xapi.taskProperties[event.name] = event.value
+      }
+    },
+  })
 
   let error
   await parentTask.run(async () => {
@@ -452,6 +462,129 @@ describe('rollingPoolUpdate', function () {
 
       assert.match(error?.message, /host-B took too long to restart/)
       assert.deepEqual(xapi.steps, [])
+    })
+
+    describe('with patches released since the first attempt', function () {
+      const resumeWithInventory = (patchInventory, { doneHostIds = [], unfinishedHosts = {} } = {}) => ({
+        ...resumeOf(true, unfinishedHosts),
+        doneHostIds: new Set(doneHostIds),
+        patchInventory,
+      })
+      const replan = (xapi, resume) => {
+        const calls = []
+        const recorder = {
+          ...noopRpuRecorder,
+          setPatchInventory: (...args) => calls.push(['setPatchInventory', ...args]),
+          reopenHost: hostId => calls.push(['reopenHost', hostId]),
+        }
+        return rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, recorder, resume }).then(error => ({
+          error,
+          calls,
+        }))
+      }
+
+      it('updates again a host a previous attempt finished, without the patches already applied', async function () {
+        const xapi = new FakeXapi([1, 2])
+
+        const { error, calls } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [
+          ['setPatchInventory', { 'host-A': true, 'host-B': true }, ['host-A']],
+          ['reopenHost', 'host-A'],
+        ])
+        assert.deepEqual([...xapi.resume.doneHostIds], [])
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        // installPatches only installs what the host is missing now
+        assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
+
+      it('updates a master which was already current when the run started', async function () {
+        const xapi = new FakeXapi([1, 2])
+
+        const { error, calls } = await replan(xapi, resumeWithInventory({ 'host-A': false, 'host-B': true }))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [['setPatchInventory', { 'host-A': true, 'host-B': true }, ['host-A']]])
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
+
+      it('reports no change when the remaining work is the one planned', async function () {
+        const xapi = new FakeXapi([0, 2])
+
+        const { error, calls } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [['setPatchInventory', { 'host-A': false, 'host-B': true }, []]])
+        assert.deepEqual([...xapi.resume.doneHostIds], ['host-A'])
+        assert.deepEqual(xapi.steps, [['host-B']])
+        assert.equal(xapi.taskProperties.planChange, undefined)
+      })
+
+      // host-A finished and reopened, host-B disabled before its update, host-C
+      // patched and disabled, its reboot still to do
+      const leftDisabled = (xapi, enabledBeforeUpdate) => {
+        xapi.hosts[1].enabled = xapi.hosts[2].enabled = false
+        const unfinished = { agentStartedAtBeforeUpdate: '2000', enabledBeforeUpdate }
+        return resumeWithInventory(
+          { 'host-A': true, 'host-B': true, 'host-C': true },
+          { doneHostIds: ['host-A'], unfinishedHosts: { 'host-B': unfinished, 'host-C': unfinished } }
+        )
+      }
+
+      it('enables again the hosts the previous attempt left disabled, before the reboots', async function () {
+        const xapi = new FakeXapi([1, 1, 0])
+        const { rollingPoolReboot } = xapi
+        let enabledAtReboot
+        xapi.rollingPoolReboot = function (...args) {
+          enabledAtReboot = this.hosts.map(host => host.enabled)
+          return rollingPoolReboot.apply(this, args)
+        }
+
+        const { error } = await replan(xapi, leftDisabled(xapi, true))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(xapi.enabledHosts, ['host-B', 'host-C'])
+        // the reopened master can evacuate its VMs to them
+        assert.deepEqual(enabledAtReboot, [true, true, true])
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B', 'host-C']])
+        assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+        // host-C runs its former hypervisor until it reboots: the master's VMs
+        // cannot go to it before. host-B, with patches to install, waits for
+        // the master
+        assert.deepEqual(xapi.rebootFirstHostIds, ['host-C'])
+      })
+
+      it('leaves disabled the hosts the operator had disabled, even for a reopened master', async function () {
+        const xapi = new FakeXapi([1, 1, 0])
+
+        const { error } = await replan(xapi, leftDisabled(xapi, false))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(xapi.enabledHosts, [])
+      })
+
+      it('applies on XenServer 8.4+ too', async function () {
+        const xapi = new FakeXapi([1, 2], { softwareVersion: XS_CDN })
+
+        const { error } = await replan(
+          xapi,
+          resumeWithInventory({ 'host-A': true, 'host-B': true }, { doneHostIds: ['host-A'] })
+        )
+
+        assert.equal(error, undefined)
+        assert.deepEqual(xapi.steps, [['host-A', 'host-B']])
+        assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+        assert.deepEqual(xapi.taskProperties.planChange, { addedHostIds: ['host-A'] })
+      })
     })
 
     it('checks only the mandatory pending guidances of the hosts the run patched, before and after the reboots', async function () {
