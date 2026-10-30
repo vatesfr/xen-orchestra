@@ -15,6 +15,7 @@ type MountV2vListStepOptions = {
   vm?: string
   list?: V2vMigrationList
   inventory?: XoV2vInventory
+  isSourceConnected?: boolean
 }
 
 const V2V_LIST_STEP_FIXTURES = {
@@ -23,15 +24,23 @@ const V2V_LIST_STEP_FIXTURES = {
 } satisfies Record<V2vListStep, { seed: () => void; list: V2vMigrationList }>
 
 // A step on the VMs of the list runs on the collections of its fixtures, the route of the list (and of one of its VMs
-// when given) and a connected source; `mountOnWizard` mounts the step component or one of its composables on that setup
+// when given) and a connected source, unless told otherwise; `mountOnWizard` mounts the step component or one of its
+// composables on that setup
 export async function mountV2vListStep<TMounted>(
   step: V2vListStep,
   mountOnWizard: (setup: V2vWizardSetup) => Promise<TMounted>,
-  { vm, list = V2V_LIST_STEP_FIXTURES[step].list, inventory = V2V_MAPPING_STEP_INVENTORY }: MountV2vListStepOptions = {}
+  {
+    vm,
+    list = V2V_LIST_STEP_FIXTURES[step].list,
+    inventory = V2V_MAPPING_STEP_INVENTORY,
+    isSourceConnected = true,
+  }: MountV2vListStepOptions = {}
 ) {
   V2V_LIST_STEP_FIXTURES[step].seed()
 
-  const mounted = await mountOnWizard({ step, list, query: { pool: list.poolId, vm }, source: { inventory } })
+  const source = isSourceConnected ? { inventory } : undefined
+
+  const mounted = await mountOnWizard({ step, list, query: { pool: list.poolId, vm }, source })
 
   await flushPromises()
 

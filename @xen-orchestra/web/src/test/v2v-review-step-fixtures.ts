@@ -1,5 +1,6 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
@@ -23,11 +24,21 @@ import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 
+// A list of the review step pool and defaults, on these VMs
+export function createV2vReviewStepList(vms: V2vMigrationList['vms']) {
+  return createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms })
+}
+
 // The web VM is new, the DB one resumed, the listed one already migrated, the last one gone from the source
-export const V2V_REVIEW_STEP_LIST = createV2vMigrationList({
-  poolId: V2V_LIST_POOL.id,
-  vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }, { id: V2V_LISTED_VM.id }, { id: V2V_GONE_VM_ID }],
-})
+export const V2V_REVIEW_STEP_LIST = createV2vReviewStepList([
+  { id: V2V_WEB_VM.id },
+  { id: V2V_DB_VM.id },
+  { id: V2V_LISTED_VM.id },
+  { id: V2V_GONE_VM_ID },
+])
+
+// Its one VM is gone from the source: nothing to launch
+export const V2V_REVIEW_STEP_EXCLUDED_LIST = createV2vReviewStepList([{ id: V2V_GONE_VM_ID }])
 
 export const V2V_MIGRATED_VM_POOL = createPool({ id: 'pool-forcair' as FrontXoPool['id'], name_label: 'forcair' })
 

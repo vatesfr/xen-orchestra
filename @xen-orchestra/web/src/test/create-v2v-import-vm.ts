@@ -3,7 +3,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
+import { V2V_TEST_SOURCE, V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
@@ -34,7 +34,7 @@ export function createV2vImportVm(
     isWarm = true,
     isImporting = false,
     sourceId = V2V_TEST_SOURCE.instanceUuid,
-    sourceVmId = 'vm-1',
+    sourceVmId = V2V_VM_ID,
     importedVmUuid,
   }: V2vImportVmMarkers = {},
   overrides: Partial<FrontXoVm> = {}

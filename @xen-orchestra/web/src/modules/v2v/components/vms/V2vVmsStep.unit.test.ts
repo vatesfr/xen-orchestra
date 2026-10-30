@@ -15,10 +15,10 @@ import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
@@ -138,9 +138,7 @@ function getNextButton(wrapper: VueWrapper) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('VMs', () => {

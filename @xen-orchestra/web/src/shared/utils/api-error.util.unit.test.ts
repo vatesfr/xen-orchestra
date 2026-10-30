@@ -30,6 +30,13 @@ describe('getApiErrorMessage', () => {
     expect(getApiErrorMessage(new Error('network down'))).toBe('network down')
   })
 
+  it.each(['', 42, { message: 'host unreachable' }])(
+    'falls back to the error message when the server error is %o',
+    error => {
+      expect(getApiErrorMessage(createApiError(500, { error }))).toBe('Request failed')
+    }
+  )
+
   it.each([new ApiError('', { status: 500 }), new Error(''), 'string', undefined])(
     'has no message to show without any (%s)',
     error => {

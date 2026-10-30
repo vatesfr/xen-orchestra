@@ -1,5 +1,5 @@
 import { ONE_GB } from '@/shared/constants.ts'
-import { createV2vDatastore, createV2vInventory, createV2vVmWithDisks } from '@/test/create-v2v-inventory.ts'
+import { createV2vDatastore, createV2vInventory, createV2vVmWithDisks, V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationListVmsOf, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { V2V_VM_POWER_STATE, type XoV2vDatastore, type XoV2vVm } from '@vates/types'
 
@@ -13,7 +13,7 @@ export const V2V_DATASTORE_B_FILTER = `datastore:/^${V2V_DATASTORE_B.name}$/`
 
 // One VM per case the VMs step tells apart, spread over the two datastores
 export const V2V_WEB_VM = createV2vVmWithDisks([{ datastoreId: V2V_DATASTORE_A.id, capacity: 80 * ONE_GB }], {
-  id: 'vm-1' as XoV2vVm['id'],
+  id: V2V_VM_ID,
   name: 'web-01',
   datastoreIds: [V2V_DATASTORE_A.id],
 })

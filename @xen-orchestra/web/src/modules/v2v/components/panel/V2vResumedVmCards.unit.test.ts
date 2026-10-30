@@ -4,9 +4,9 @@ import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vResumedVmCards from '@/modules/v2v/components/panel/V2vResumedVmCards.vue'
 import { createV2vResumedMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
 import { V2V_MAPPING_SOURCE } from '@/test/v2v-connection-provide.ts'
 import { V2V_ACTIVE_DISK_ROWS, V2V_ACTIVE_NIC_ROWS, V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
@@ -61,8 +61,7 @@ async function mountCards() {
 }
 
 beforeEach(() => {
-  xoCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
+  resetV2vCollectionMocks()
 })
 
 it('shows the import VM on the pool it was synced to', async () => {

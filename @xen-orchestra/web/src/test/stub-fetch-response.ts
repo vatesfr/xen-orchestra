@@ -8,3 +8,10 @@ export function stubFetchResponse(status: number, body: unknown) {
 
   return fetchMock
 }
+
+export const SERVER_ERROR_MESSAGE = 'unreachable'
+
+// A failure the server explains with a message
+export function stubFetchServerError() {
+  return stubFetchResponse(500, { error: SERVER_ERROR_MESSAGE })
+}

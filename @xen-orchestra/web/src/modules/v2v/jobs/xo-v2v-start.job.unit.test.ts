@@ -3,10 +3,14 @@ import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
 import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { createV2vStartPayloadInput } from '@/test/create-v2v-launch.ts'
+import {
+  createV2vStartPayloadInput,
+  stubV2vStartAccepted,
+  stubV2vStartProblems,
+  V2V_START_TASK_ID,
+} from '@/test/create-v2v-launch.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import type { XoV2vStartPayload } from '@vates/types'
 
 const POOL = createPool()
@@ -19,15 +23,15 @@ function mountStartJob(pool?: FrontXoPool, payload?: XoV2vStartPayload) {
 
 describe('run', () => {
   it('posts the payload to the import route of the pool and resolves the task id', async () => {
-    const fetchMock = stubFetchResponse(202, { taskId: 'task-1' })
+    const fetchMock = stubV2vStartAccepted()
 
-    await expect(mountStartJob(POOL, PAYLOAD).run()).resolves.toBe('task-1')
+    await expect(mountStartJob(POOL, PAYLOAD).run()).resolves.toBe(V2V_START_TASK_ID)
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(hasRequested('POST', `pools/${POOL.id}/actions/import_vms_from_vmware`, PAYLOAD)).toBe(true)
   })
 
   it('rejects with the API error the server answered', async () => {
-    stubFetchResponse(422, { error: 'the migration cannot be started', data: { errors: [] } })
+    stubV2vStartProblems([])
 
     await expect(mountStartJob(POOL, PAYLOAD).run()).rejects.toBeInstanceOf(ApiError)
   })

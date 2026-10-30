@@ -4,6 +4,7 @@ import type {
   useXoServerCollection,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { createServer } from '@/test/create-server.ts'
+import { findTitle } from '@/test/find-titles.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -32,7 +33,7 @@ beforeEach(() => {
 })
 
 it('tells the IP address the pool is connected to', () => {
-  expect(mountSuccess().get('.title').text()).toBe(t('connected-to-ip', { ip: '10.0.0.1' }))
+  expect(findTitle(mountSuccess())).toBe(t('connected-to-ip', { ip: '10.0.0.1' }))
 })
 
 it('tells the connection succeeded', () => {
@@ -62,6 +63,12 @@ it('has neither title nor link while the server is unknown', () => {
 
   const wrapper = mountSuccess()
 
-  expect(wrapper.find('.title').exists()).toBe(false)
+  expect(findTitle(wrapper)).toBeUndefined()
   expect(wrapper.findComponent(UiLink).exists()).toBe(false)
+})
+
+it('has no link while the pool of the server is unknown', () => {
+  servers.value = [{ ...SERVER, poolId: undefined }]
+
+  expect(mountSuccess().findComponent(UiLink).exists()).toBe(false)
 })
