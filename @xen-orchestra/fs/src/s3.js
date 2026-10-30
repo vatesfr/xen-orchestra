@@ -18,11 +18,9 @@ import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
 import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-checksum'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
-import { randomUUID } from 'node:crypto'
 import { createLogger } from '@xen-orchestra/log'
 import { lockedError } from './_holdLock.js'
 import { PassThrough, Transform, pipeline } from 'stream'
-import { pTimeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
@@ -45,10 +43,6 @@ export const REFRESH_INTERVAL = 30e3
 // how long a lock object may go without being rewritten before a contender takes it over: a holder survives a few
 // failed refreshes, and one which crashed blocks the path for 3 minutes at most
 export const STALE_AFTER = 180e3
-
-// how long a lock request may take: the S3 client's only bound is its 10 minutes socket timeout, and a hung refresh
-// must not let the lock go stale; shorter than REFRESH_INTERVAL, so that two refreshes do not overlap
-export const LOCK_TIMEOUT = 20e3
 
 export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
@@ -529,9 +523,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // a version retained for the whole retention period. So do the buckets whose Object Lock configuration the S3
   // user cannot read (see `_sync()`).
   //
-  // A free lock is taken with a plain write: two contenders which find it free at the same time both write it, and
-  // the one whose write landed first finds out at its first refresh, whose `IfMatch` fails. A stale lock is taken
-  // over, and a held one refreshed, only over the ETag just read, so that a contender which got there first wins.
+  // The lock is an object rewritten with plain writes, which every S3 provider supports: it is held while it is
+  // fresher than STALE_AFTER. It is not atomic: two contenders which find it free at the same time both take it, and
+  // a holder whose refreshes failed for STALE_AFTER keeps writing in a folder someone else took over.
   async _lock(path) {
     if (this.isImmutable() || this.#objectLockUnknown) {
       return super._lock(path)
@@ -539,30 +533,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     // `<path>.lock`, the name of the local lock directory: the listings skip it already
     const params = this.#createParams(`${path}.lock`)
-    const id = randomUUID()
-    let seq = 0
 
     // the requests are sent with the S3 client directly, not through the handler's methods: those go through the
     // handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale
-    //
-    // every write has its own body, hence its own ETag (S3 uses the MD5 of the content); resolves to undefined when
-    // `IfMatch` failed: 412, 409 while another conditional write on the key is in progress, 404 when it is gone
-    const put = async IfMatch => {
-      try {
-        const Body = JSON.stringify({ id, seq: seq++ })
-        const { ETag } = await pTimeout.call(
-          this.#s3.send(new PutObjectCommand({ ...params, IfMatch, Body })),
-          LOCK_TIMEOUT
-        )
-        return ETag
-      } catch (error) {
-        const statusCode = error.$metadata?.httpStatusCode
-        if (statusCode === 404 || statusCode === 409 || statusCode === 412) {
-          return undefined
-        }
-        throw error
-      }
-    }
+    const write = () => this.#s3.send(new PutObjectCommand({ ...params, Body: '' }))
 
     let current
     try {
@@ -578,35 +552,23 @@ export default class S3Handler extends RemoteHandlerAbstract {
       throw lockedError(path)
     }
 
-    let etag = await put(current?.ETag)
-    if (etag === undefined) {
-      throw lockedError(path)
-    }
+    await write()
 
-    let lost = false
-    const interval = setInterval(async () => {
-      try {
-        // eslint-disable-next-line require-atomic-updates -- a refresh ends before the next one, see LOCK_TIMEOUT
-        etag = await put(etag)
-        if (etag === undefined) {
-          lost = true
-          clearInterval(interval)
-          warn('lock compromised', { path })
-        }
-      } catch (error) {
-        // a failed request is not a lost lock: the next refresh tries again
-        debug('lock could not be refreshed', { error, path })
-      }
+    let refreshing = Promise.resolve()
+    const interval = setInterval(() => {
+      refreshing = write().then(
+        () => {},
+        // a failed refresh is not a lost lock: the next one tries again
+        error => debug('lock could not be refreshed', { error, path })
+      )
     }, REFRESH_INTERVAL)
     interval.unref()
 
     return async () => {
       clearInterval(interval)
-      // after a lost lock, the object is someone else's
-      if (lost) {
-        return
-      }
       try {
+        // a refresh landing after the delete would write the lock again
+        await refreshing
         await this.#s3.send(new DeleteObjectCommand(params))
       } catch (error) {
         warn('lock could not be released', { error, path })
