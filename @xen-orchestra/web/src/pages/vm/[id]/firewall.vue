@@ -81,6 +81,7 @@
             >
               <template #policy>{{ displayName(entry.policy) }}</template>
               <template #tier>{{ tierText(entry.tier) }}</template>
+              <template #drops>{{ t(`firewall:joined:drops:${joinedDirection(entry)}`) }}</template>
               <template #time><VtsRelativeTime :date="entry.since" /></template>
             </I18nT>
             <UiLink
@@ -283,7 +284,7 @@ import {
   VDF_UNPROTECTED_TAG,
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { joinedDirection, joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs, TRAFFIC_RULE_ACCENTS } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

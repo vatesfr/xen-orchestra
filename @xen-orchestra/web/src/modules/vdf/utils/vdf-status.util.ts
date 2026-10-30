@@ -92,6 +92,13 @@ export function agentGaps(
   return gaps
 }
 
+// what a joined entry's policy drops by default (vdf#47), as the agent says
+// it: in, out, both; unknown from agents before it (or a value they'd add)
+export type VdfJoinedDirection = 'in' | 'out' | 'both' | 'unknown'
+
+export const joinedDirection = (entry: Pick<VdfJoinedVm, 'direction'>): VdfJoinedDirection =>
+  entry.direction === 'in' || entry.direction === 'out' || entry.direction === 'both' ? entry.direction : 'unknown'
+
 // how long an agent keeps a join (agent/joined.go joinedKeep)
 export const JOINED_KEEP_MS = 24 * 3600 * 1000
 

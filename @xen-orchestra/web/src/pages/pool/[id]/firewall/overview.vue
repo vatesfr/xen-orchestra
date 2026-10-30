@@ -418,7 +418,13 @@ import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
 import { policiesByTier, reportedTierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
-import { agentGaps, hostEnforces, ignoresEgress, joinedVms } from '@/modules/vdf/utils/vdf-status.util.ts'
+import {
+  agentGaps,
+  hostEnforces,
+  ignoresEgress,
+  joinedDirection,
+  joinedVms,
+} from '@/modules/vdf/utils/vdf-status.util.ts'
 import { shadowedVifs } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -607,6 +613,7 @@ const joinedCount = computed(() => joined.value.entries.length + joined.value.mo
 const joinedText = (entry: VdfJoinedVm) =>
   t(`firewall:joined:by:${entry.by === 'policy' ? 'policy' : 'tags'}`, {
     vm: entry.vmName || entry.vm,
+    drops: t(`firewall:joined:drops:${joinedDirection(entry)}`),
     policy: displayName(entry.policy),
     tier: entry.tier === '' ? '?' : tierLabel(reportedTierValue(entry.tier)),
   })

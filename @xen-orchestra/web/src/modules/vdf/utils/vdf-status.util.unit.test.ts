@@ -5,6 +5,7 @@ import {
   enforcedVersion,
   hostState,
   ignoresEgress,
+  joinedDirection,
   joinedVms,
   policyRealization,
   vmProtection,
@@ -216,5 +217,34 @@ describe('joinedVms (vdf#47)', () => {
     ])
     expect(result.more).toBe(3)
     expect(joinedVms([{ name: 'xcp1', status: status() }], now)).toEqual({ entries: [], more: 0 })
+  })
+})
+
+describe('joinedDirection (vdf#47)', () => {
+  it('says what the policy drops by default: inbound, outbound, both, unknown from an older agent', () => {
+    expect(joinedDirection({ direction: 'in' })).toBe('in')
+    expect(joinedDirection({ direction: 'out' })).toBe('out')
+    expect(joinedDirection({ direction: 'both' })).toBe('both')
+    expect(joinedDirection({})).toBe('unknown')
+    expect(joinedDirection({ direction: '' })).toBe('unknown')
+    expect(joinedDirection({ direction: 'sideways' })).toBe('unknown')
+  })
+
+  it('keeps the direction through the merge of the hosts', () => {
+    const at = '2026-10-22T09:30:00Z'
+    const { entries } = joinedVms(
+      [
+        {
+          name: 'xcp1',
+          status: status({
+            joined: [
+              { vm: 'a', vmName: 'A', policy: 'app-out', tier: 'application', since: at, by: 'tags', direction: 'out' },
+            ],
+          }),
+        },
+      ],
+      now
+    )
+    expect(entries.map(entry => joinedDirection(entry))).toEqual(['out'])
   })
 })

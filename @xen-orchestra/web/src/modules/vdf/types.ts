@@ -404,6 +404,9 @@ export type VdfJoinedVm = {
   // tags: its tags or its networks' tags put it in the policy's group;
   // policy: the policy is new, or newly enforces a default drop
   by: 'tags' | 'policy'
+  // what the policy drops by default (vdf#47): in (its ingress default),
+  // out (its egress default), both; missing or empty from agents before it
+  direction?: string
 }
 
 export type VdfAgentRestarts = {
