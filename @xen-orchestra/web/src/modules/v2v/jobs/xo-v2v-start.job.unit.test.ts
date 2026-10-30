@@ -4,6 +4,7 @@ import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util
 import { ApiError } from '@/shared/error/api.error.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createV2vStartPayloadInput } from '@/test/create-v2v-launch.ts'
+import { hasRequested } from '@/test/fetch-requests.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import type { XoV2vStartPayload } from '@vates/types'
@@ -22,10 +23,7 @@ describe('run', () => {
 
     await expect(mountStartJob(POOL, PAYLOAD).run()).resolves.toBe('task-1')
     expect(fetchMock).toHaveBeenCalledOnce()
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/rest/v0/pools/${POOL.id}/actions/import_vms_from_vmware`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify(PAYLOAD) })
-    )
+    expect(hasRequested('POST', `pools/${POOL.id}/actions/import_vms_from_vmware`, PAYLOAD)).toBe(true)
   })
 
   it('rejects with the API error the server answered', async () => {

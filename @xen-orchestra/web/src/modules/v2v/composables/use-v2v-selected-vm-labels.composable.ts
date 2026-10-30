@@ -30,7 +30,7 @@ const READINESS_ACCENTS: Record<V2vReadinessLevel, TagAccent & InfoAccent> = {
 export function useV2vSelectedVmLabels() {
   const { t } = useI18n()
 
-  const { unsupportedReasonLabels } = useV2vVmLabels()
+  const { unsupportedReasonLabels, getResumedParts, withTargets } = useV2vVmLabels()
 
   const kindLabels = computed<Record<V2vSelectedVmKind, string>>(() => ({
     new: t('new'),
@@ -71,19 +71,13 @@ export function useV2vSelectedVmLabels() {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 
-  function withTargets(countLabel: string, targets: string[] | undefined): string {
-    return targets === undefined
-      ? countLabel
-      : t('source-to-destination', { source: countLabel, destination: targets.join(', ') })
-  }
-
   function getMappingParts(summary: V2vMappingSummary | undefined): string[] {
     if (summary === undefined) {
       return []
     }
 
     if (summary.type === 'locked') {
-      return [t('v2v:delta-from-last-sync'), t('v2v:mapping-locked')]
+      return getResumedParts('delta')
     }
 
     const { diskCount, srNames, nicCount, networkNames } = summary

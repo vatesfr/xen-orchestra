@@ -21,14 +21,6 @@ import type { XoV2vVm } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-// A device the import has not paired has no target to name
-function getTargetName<TId extends string>(
-  id: TId | undefined,
-  getName: (id: TId) => string | undefined
-): string | undefined {
-  return id === undefined ? undefined : getV2vTargetName(id, getName)
-}
-
 // A resumed VM keeps the mapping of its first sync, read back from the devices of its import VM
 export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: MaybeRefOrGetter<FrontXoVm>) {
   const { inventory } = useV2vConnection()
@@ -76,7 +68,7 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
           disk.label,
           ...getDiskDetailParts(getV2vDatastoreName(inventory.value, disk.datastoreId), disk.capacity),
         ],
-        destination: getTargetName(srId, getSrName),
+        destination: getV2vTargetName(srId, getSrName),
       })
     )
   )
@@ -86,7 +78,7 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
       ({ nic, networkId, isMacKept }): V2vActiveMappingRow => ({
         key: nic.key,
         sourceParts: [nic.label, ...getNicDetailParts(findV2vPortGroup(inventory.value, nic.portGroupId), isMacKept)],
-        destination: getTargetName(networkId, getNetworkName),
+        destination: getV2vTargetName(networkId, getNetworkName),
       })
     )
   )

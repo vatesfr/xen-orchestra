@@ -54,6 +54,7 @@ export type V2vSelectedVm = {
 export type V2vListedVm = {
   kind: V2vSelectedVmKind
   check: V2vSelectedVmCheck
+  mapping: V2vMappingSummary | undefined
   item: V2vSelectedVm
 }
 

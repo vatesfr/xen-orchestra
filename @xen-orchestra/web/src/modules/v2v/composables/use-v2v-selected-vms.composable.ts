@@ -74,16 +74,18 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
       const row = getRow(id)
       const mapping = row === undefined ? undefined : getV2vVmMapping(row.vm, listVm, list.defaults, offers.value)
       const { kind, check } = getV2vSelectedVmState(row, toValue(poolId), mapping?.state)
+      const mappingSummary = getV2vMappingSummary(mapping, kind, targetNameGetters)
 
       return {
         kind,
         check,
+        mapping: mappingSummary,
         item: {
           id,
           name: getName(id),
           // A VM gone from the source is neither new nor resumed: its check alone tells it
           kind: check.type === 'not-found' ? undefined : getKindTag(kind),
-          mappingParts: getMappingParts(getV2vMappingSummary(mapping, kind, targetNameGetters)),
+          mappingParts: getMappingParts(mappingSummary),
           check: getCheckInfo(check, getCheckPoolName(check)),
           mappingRoute: getStepLocation('mapping', { vm: id }),
           isSelected: id === toValue(selectedVmId),
@@ -93,6 +95,18 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   })
 
   const items = computed(() => vms.value.map(vm => vm.item))
+
+  // What the launch plan reads of each VM, rather than what the panel shows of it
+  const vmStates = computed(() =>
+    vms.value.map(({ kind, check, mapping, item }) => ({
+      id: item.id,
+      name: item.name,
+      kind,
+      check,
+      checkInfo: item.check,
+      mapping,
+    }))
+  )
 
   const count = computed(() => vms.value.length)
 
@@ -140,6 +154,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   }
 
   return {
+    vmStates,
     getRow,
     items,
     vms,

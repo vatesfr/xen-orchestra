@@ -8,16 +8,14 @@ import type {
   V2vRememberedConnection,
   V2vRememberedConnectionKey,
 } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
-import {
-  getV2vConnectionErrorMessage,
-  isV2vInvalidCredentialsError,
-} from '@/modules/v2v/utils/v2v-connection-error.util.ts'
+import { isV2vInvalidCredentialsError } from '@/modules/v2v/utils/v2v-connection-error.util.ts'
 import {
   createRememberedConnection,
   findRememberedConnection,
   getRememberedConnectionKey,
 } from '@/modules/v2v/utils/v2v-remembered-connection.util.ts'
 import { getV2vSourceId } from '@/modules/v2v/utils/v2v-source.util.ts'
+import { useApiErrorMessage } from '@/shared/composables/api-error-message.composable.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import type { XoV2vConnection } from '@vates/types'
 import { reactive, ref } from 'vue'
@@ -25,6 +23,8 @@ import { useI18n } from 'vue-i18n'
 
 export function useV2vSourceStep() {
   const { t } = useI18n()
+
+  const { getErrorMessage } = useApiErrorMessage()
 
   const { goToStep } = useV2vWizardNavigation()
 
@@ -92,7 +92,7 @@ export function useV2vSourceStep() {
         return
       }
 
-      connectionError.value = getV2vConnectionErrorMessage(error) ?? t('error')
+      connectionError.value = getErrorMessage(error)
     }
   }
 

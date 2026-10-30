@@ -1,3 +1,4 @@
+import type { V2vMigratedVm } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
 import type {
   V2vLaunchPlanItem,
   V2vLaunchSettings,
@@ -5,6 +6,7 @@ import type {
   V2vVmLaunchOptionsRow,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
 import type { V2vStartPayloadInput } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vDestinationDefaults } from '@/test/create-v2v-migration-list.ts'
 import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
@@ -37,6 +39,20 @@ export function createV2vStartPayloadInput(overrides: Partial<V2vStartPayloadInp
     defaults: createV2vDestinationDefaults(),
     settings: createV2vLaunchSettings(),
     vms: [createV2vStartVm()],
+    ...overrides,
+  }
+}
+
+// A VM cut over to another pool, its second copy not confirmed
+export function createV2vMigratedVm(overrides: Partial<V2vMigratedVm> = {}): V2vMigratedVm {
+  return {
+    id: 'vm-1' as XoV2vVm['id'],
+    name: 'web-01',
+    importVm: { id: 'xo-vm-1' as FrontXoVm['id'], name: 'web-01 (imported)' },
+    poolName: 'forcair',
+    srs: 'sr-ssd-03',
+    cutover: 'Cutover done on 10/2/2026.',
+    isConfirmed: false,
     ...overrides,
   }
 }
