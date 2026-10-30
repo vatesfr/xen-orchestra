@@ -11,7 +11,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3'
 import { getHandler } from '.'
-import S3Handler, { LOCK_TIMEOUT, REFRESH_INTERVAL, STALE_AFTER } from './s3.js'
+import S3Handler, { REFRESH_INTERVAL, STALE_AFTER } from './s3.js'
 
 // needs a real bucket without Object Lock: on an Object Lock bucket the lock is the no-op one, the second
 // `lock()` succeeds, and this test fails
@@ -53,7 +53,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve))
 
 const KEY = 'dir/vm.lock'
 
-// `S3Handler#_lock()` against a stubbed `S3Client#send()`, which honours `IfMatch` as S3 does
+// `S3Handler#_lock()` against a stubbed `S3Client#send()`
 describe('S3Handler#_lock() with a stubbed S3Client', () => {
   // by key
   let objects
@@ -61,47 +61,32 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
   let faults
   let send
 
-  const seqOf = key => JSON.parse(objects.get(key).body).seq
-
   beforeEach(() => {
-    mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'] })
+    mock.timers.enable({ apis: ['setInterval', 'Date'] })
     objects = new Map()
     faults = {}
 
-    let n = 0
     send = sinon.stub(S3Client.prototype, 'send').callsFake(async command => {
-      const { Body, IfMatch, Key } = command.input
-      let current = objects.get(Key)
+      const { Key } = command.input
+      const current = objects.get(Key)
 
       if (command instanceof PutObjectCommand) {
-        if (faults.hangPut) {
-          return new Promise(() => {})
-        }
-        // another contender takes the lock over between the read and this write
-        if (faults.takeOverBeforePut) {
-          faults.takeOverBeforePut = false
-          current = { etag: '"contender"', body: '{"id":"contender","seq":0}', lastModified: new Date() }
-          objects.set(Key, current)
-        }
         if (faults.putStatus !== undefined) {
           throw s3Error('InternalError', faults.putStatus)
         }
-        if (IfMatch !== undefined && current === undefined) {
-          throw s3Error('NoSuchKey', 404)
+        // resolved by the test
+        if (faults.pendingPut !== undefined) {
+          await faults.pendingPut
         }
-        if (IfMatch !== undefined && IfMatch !== current.etag) {
-          throw s3Error('PreconditionFailed', 412)
-        }
-        const etag = `"${++n}"`
-        objects.set(Key, { etag, body: Body, lastModified: new Date() })
-        return { ETag: etag }
+        objects.set(Key, { lastModified: new Date() })
+        return {}
       }
 
       if (command instanceof HeadObjectCommand) {
         if (current === undefined) {
           throw s3Error('NotFound', 404)
         }
-        return { ETag: current.etag, LastModified: current.lastModified }
+        return { LastModified: current.lastModified }
       }
 
       if (command instanceof DeleteObjectCommand) {
@@ -125,6 +110,8 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     mock.timers.reset()
   })
 
+  const writes = () => send.getCalls().filter(call => call.args[0] instanceof PutObjectCommand).length
+
   for (const [what, objectLock] of [
     ['on an Object Lock bucket', true],
     ['when the S3 user cannot read the Object Lock configuration', false],
@@ -144,13 +131,12 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
 
   it('takes <path>.lock in the directory of the remote, rewrites it every REFRESH_INTERVAL, and deletes it', async () => {
     const release = await createHandler()._lock('vm')
-    const { id, seq } = JSON.parse(objects.get(KEY).body)
-    assert.match(id, /^[0-9a-f-]{36}$/)
-    assert.equal(seq, 0)
+    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now())
 
     mock.timers.tick(REFRESH_INTERVAL)
     await flush()
-    assert.deepEqual(JSON.parse(objects.get(KEY).body), { id, seq: 1 })
+    assert.equal(writes(), 2)
+    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now())
 
     await release()
     assert.equal(objects.has(KEY), false)
@@ -160,49 +146,23 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     const handler = createHandler()
     const release = await handler._lock('vm')
     try {
-      const { body } = objects.get(KEY)
       await assert.rejects(handler._lock('vm'), { code: 'ELOCKED' })
-      assert.equal(objects.get(KEY).body, body)
+      assert.equal(writes(), 1)
     } finally {
       await release()
     }
   })
 
   it('takes over a stale lock, not a fresh one', async () => {
-    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
+    objects.set(KEY, { lastModified: new Date() })
 
     mock.timers.tick(STALE_AFTER)
     await assert.rejects(createHandler()._lock('vm'), { code: 'ELOCKED' })
 
     mock.timers.tick(1)
     const release = await createHandler()._lock('vm')
-    assert.notEqual(JSON.parse(objects.get(KEY).body).id, 'other')
+    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now())
     await release()
-  })
-
-  it('refuses a stale lock someone else took over first', async () => {
-    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
-    mock.timers.tick(STALE_AFTER + 1)
-
-    faults.takeOverBeforePut = true
-
-    await assert.rejects(createHandler()._lock('vm'), { code: 'ELOCKED' })
-    assert.equal(JSON.parse(objects.get(KEY).body).id, 'contender')
-  })
-
-  it('gives up a lock someone else took, stops refreshing it, and does not delete it', async () => {
-    const release = await createHandler()._lock('vm')
-    objects.set(KEY, { etag: '"other"', body: '{"id":"other","seq":0}', lastModified: new Date() })
-
-    mock.timers.tick(REFRESH_INTERVAL)
-    await flush()
-    const requests = send.callCount
-    mock.timers.tick(REFRESH_INTERVAL)
-    await flush()
-    assert.equal(send.callCount, requests)
-
-    await release()
-    assert.equal(JSON.parse(objects.get(KEY).body).id, 'other')
   })
 
   it('keeps the lock when a refresh fails, and refreshes again', async () => {
@@ -211,33 +171,32 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     faults.putStatus = 500
     mock.timers.tick(REFRESH_INTERVAL)
     await flush()
-    assert.equal(seqOf(KEY), 0)
+    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now() - REFRESH_INTERVAL)
 
     faults.putStatus = undefined
     mock.timers.tick(REFRESH_INTERVAL)
     await flush()
-    // the failed refresh used seq 1
-    assert.equal(seqOf(KEY), 2)
+    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now())
 
     await release()
     assert.equal(objects.has(KEY), false)
   })
 
-  it('gives up a refresh which hangs, and refreshes again', async () => {
+  it('waits for a refresh in flight before deleting the lock', async () => {
     const release = await createHandler()._lock('vm')
 
-    faults.hangPut = true
+    let resolvePut
+    faults.pendingPut = new Promise(resolve => {
+      resolvePut = resolve
+    })
     mock.timers.tick(REFRESH_INTERVAL)
-    await flush()
-    mock.timers.tick(LOCK_TIMEOUT)
-    await flush()
 
-    faults.hangPut = false
-    mock.timers.tick(REFRESH_INTERVAL - LOCK_TIMEOUT)
+    const released = release()
     await flush()
-    assert.equal(seqOf(KEY), 2)
+    assert.equal(objects.has(KEY), true)
 
-    await release()
+    resolvePut()
+    await released
     assert.equal(objects.has(KEY), false)
   })
 })
