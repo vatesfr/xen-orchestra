@@ -212,5 +212,18 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, a
     }
   }
 
-  return { items, activeVm, count, isEmpty, isBusy, readinessTags, lockSummary, panel, confirmRemove, remove, clear }
+  return {
+    vmStates: selectedVms,
+    items,
+    activeVm,
+    count,
+    isEmpty,
+    isBusy,
+    readinessTags,
+    lockSummary,
+    panel,
+    confirmRemove,
+    remove,
+    clear,
+  }
 }

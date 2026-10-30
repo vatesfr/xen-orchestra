@@ -1,4 +1,5 @@
-import { getUnprocessableEntityData } from '@/shared/utils/api-error.util.ts'
+import { ApiError } from '@/shared/error/api.error.ts'
+import { getApiErrorMessage, getUnprocessableEntityData } from '@/shared/utils/api-error.util.ts'
 import { createApiError } from '@/test/create-api-error.ts'
 
 describe('getUnprocessableEntityData', () => {
@@ -17,4 +18,22 @@ describe('getUnprocessableEntityData', () => {
   ])('reads no data from %s', (_, error) => {
     expect(getUnprocessableEntityData(error)).toBeUndefined()
   })
+})
+
+describe('getApiErrorMessage', () => {
+  it('reads the error the server answered', () => {
+    expect(getApiErrorMessage(createApiError(500, { error: 'host unreachable' }))).toBe('host unreachable')
+  })
+
+  it('falls back to the error message', () => {
+    expect(getApiErrorMessage(createApiError(502))).toBe('Request failed')
+    expect(getApiErrorMessage(new Error('network down'))).toBe('network down')
+  })
+
+  it.each([new ApiError('', { status: 500 }), new Error(''), 'string', undefined])(
+    'has no message to show without any (%s)',
+    error => {
+      expect(getApiErrorMessage(error)).toBeUndefined()
+    }
+  )
 })

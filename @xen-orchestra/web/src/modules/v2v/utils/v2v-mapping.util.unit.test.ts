@@ -1,6 +1,8 @@
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   getV2vOverride,
+  getV2vTargetName,
   getV2vVmMapping,
   resolveV2vTarget,
   setV2vOverride,
@@ -110,6 +112,22 @@ describe('getV2vVmMapping', () => {
     expect(
       getV2vVmMapping(vm, createV2vMigrationListVm(), DEFAULTS, { ...V2V_POOL_OFFERS, srs: [], networks: [] })
     ).toMatchObject({ disks: [], nics: [], state: 'complete' })
+  })
+})
+
+describe('getV2vTargetName', () => {
+  const getSrById = (id: FrontXoSr['id']) => srs.find(sr => sr.id === id)
+
+  it('names a target by its name', () => {
+    expect(getV2vTargetName(V2V_SSD_SR.id, getSrById)).toBe(V2V_SSD_SR.name_label)
+  })
+
+  it('names a target missing from its collection by its id', () => {
+    expect(getV2vTargetName('sr-gone' as FrontXoSr['id'], getSrById)).toBe('sr-gone')
+  })
+
+  it('has no name without target', () => {
+    expect(getV2vTargetName(undefined, getSrById)).toBeUndefined()
   })
 })
 

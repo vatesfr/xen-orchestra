@@ -5,6 +5,7 @@ import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.comp
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { getV2vActiveMapping } from '@/modules/v2v/utils/v2v-active-mapping.util.ts'
+import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { findV2vPortGroup, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { getV2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
@@ -24,14 +25,6 @@ export type V2vDestinationVm = {
   name: string
   icon: IconName
   powerLabel: string
-}
-
-// A target gone from its collection, or still loading, is named by its id rather than not at all
-function getTargetName<TId extends string>(
-  id: TId | undefined,
-  getById: (id: TId) => { name_label: string } | undefined
-): string | undefined {
-  return id === undefined ? undefined : (getById(id)?.name_label ?? id)
 }
 
 // A resumed VM keeps the mapping of its first sync, read back from the devices of its import VM
@@ -78,13 +71,13 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
       key: disk.key,
       source: disk.label,
       detailParts: getDiskDetailParts(getV2vDatastoreName(inventory.value, disk.datastoreId), disk.capacity),
-      destination: getTargetName(srId, getSrById),
+      destination: getV2vTargetName(srId, getSrById),
     })),
     ...activeMapping.value.nics.map(({ nic, networkId, isMacKept }) => ({
       key: nic.key,
       source: nic.label,
       detailParts: getNicDetailParts(findV2vPortGroup(inventory.value, nic.portGroupId), isMacKept),
-      destination: getTargetName(networkId, getNetworkById),
+      destination: getV2vTargetName(networkId, getNetworkById),
     })),
   ])
 

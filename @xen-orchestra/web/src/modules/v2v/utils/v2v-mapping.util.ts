@@ -46,13 +46,28 @@ export function getV2vVmMapping(
   return { disks, nics, template, state: targets.every(target => target.isOffered) ? 'complete' : 'incomplete' }
 }
 
+type V2vTargetGetter<TId extends string> = (id: TId) => { name_label: string } | undefined
+
+// A target gone from its collection, or still loading, is named by its id rather than not at all
+export function getV2vTargetName<TId extends string>(id: TId, getById: V2vTargetGetter<TId>): string
+export function getV2vTargetName<TId extends string>(
+  id: TId | undefined,
+  getById: V2vTargetGetter<TId>
+): string | undefined
+export function getV2vTargetName<TId extends string>(
+  id: TId | undefined,
+  getById: V2vTargetGetter<TId>
+): string | undefined {
+  return id === undefined ? undefined : (getById(id)?.name_label ?? id)
+}
+
 // The default value is stored as no override, so that it reads as the default. `undefined` resets it
 export function getV2vOverride<TValue>(value: TValue | undefined, defaultValue: TValue): TValue | undefined {
   return isEqual(value, defaultValue) ? undefined : value
 }
 
 export function setV2vOverride<TKey extends string, TValue>(
-  overrides: Record<TKey, TValue> | undefined,
+  overrides: Partial<Record<TKey, TValue>> | undefined,
   key: TKey,
   value: TValue | undefined,
   defaultValue: TValue
