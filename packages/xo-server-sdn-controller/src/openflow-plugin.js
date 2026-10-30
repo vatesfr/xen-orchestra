@@ -13,14 +13,32 @@ export class OpenFlowPlugin {
 
   async #callPluginOnAllNetwork(network, method, parameters) {
     const bridge = this.#getBridge(network)
-    return asyncEach(
-      network.$PIFs,
-      async PIF => {
-        const host = PIF.$host
-        return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
-      },
-      { stopOnError: false }
-    )
+    try {
+      return await asyncEach(
+        network.$PIFs,
+        async PIF => {
+          const host = PIF.$host
+          try {
+            return await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
+          } catch (error) {
+            const hostError = new Error(`${error.message} on ${host.name_label}`)
+            // assigned, not passed as an option, to be enumerable: the XAPI
+            // error's details (code, params) are then serialized with it, as
+            // in the JSON-RPC error's data
+            hostError.cause = error
+            throw hostError
+          }
+        },
+        { stopOnError: false }
+      )
+    } catch (error) {
+      // asyncEach's AggregateError has no message: say which hosts failed and
+      // why, the original errors stay in `errors[].cause`
+      if (Array.isArray(error.errors)) {
+        error.message = error.errors.map(_ => _.message).join(', ')
+      }
+      throw error
+    }
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port, priority }) {
