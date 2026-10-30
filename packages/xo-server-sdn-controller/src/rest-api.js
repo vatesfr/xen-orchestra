@@ -55,8 +55,10 @@ const RESOURCES = [
     acl: 'vif',
     type: 'VIF',
     idKey: 'vifId',
-    addRule: (controller, rule) => controller._addRule(rule),
-    deleteRule: (controller, rule) => controller._deleteRule(rule),
+    // a rule the host can't install (or remove) fails the call, and the VIF's
+    // other_config is left as it was
+    addRule: (controller, rule) => controller._addRule(rule, { strict: true }),
+    deleteRule: (controller, rule) => controller._deleteRule(rule, true, { strict: true }),
   },
 ]
 
