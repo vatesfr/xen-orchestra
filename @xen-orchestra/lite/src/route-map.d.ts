@@ -1024,13 +1024,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/vif/[uuid]/edit': RouteRecordInfo<
-      '/vif/[uuid]/edit',
-      '/vif/:uuid/edit',
-      { uuid: ParamValue<true> },
-      { uuid: ParamValue<false> },
-      | never
-    >,
     '/vif/[uuid]': RouteRecordInfo<
       '/vif/[uuid]',
       '/vif/:uuid',
@@ -1041,6 +1034,13 @@ declare module 'vue-router/auto-routes' {
     '/vif/[uuid]/general': RouteRecordInfo<
       '/vif/[uuid]/general',
       '/vif/:uuid/general',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
+    '/vif/[uuid].edit': RouteRecordInfo<
+      '/vif/[uuid].edit',
+      '/vif/:uuid/edit',
       { uuid: ParamValue<true> },
       { uuid: ParamValue<false> },
       | never
@@ -2018,9 +2018,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/vif/[uuid]/edit.vue': {
+    'src/pages/vif/[uuid].edit.vue': {
       routes:
-        | '/vif/[uuid]/edit'
+        | '/vif/[uuid].edit'
       views:
         | never
     }
