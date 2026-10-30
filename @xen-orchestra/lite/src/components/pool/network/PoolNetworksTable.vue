@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="container">
-      <UiQuerySearchBar @search="value => (searchQuery = value)" />
+      <VtsQueryBuilder v-model="filter" :schema />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -30,17 +30,19 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
-import { useNetworkUtils } from '@/modules/network/composables/network-utils.composable.ts'
-import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import {
+  type NetworkFilterableData,
+  useNetworkQueryBuilder,
+} from '@/modules/network/composables/use-network-query-builder.composable.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks, busy, error } = defineProps<{
@@ -53,36 +55,21 @@ defineSlots<{
   'title-actions'(): any
 }>()
 
-const { records: pifs } = usePifStore().subscribe()
-const { getNetworkStatus } = useNetworkUtils()
-
 const { t } = useI18n()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const getNetworkVlan = (network: XenApiNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
-
-  if (networkPIFs.length > 0) {
-    return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
+const getVlanLabel = (vlan: number | undefined) => {
+  if (vlan === undefined) {
+    return undefined
   }
+
+  return vlan !== -1 ? vlan.toString() : t('none')
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
-const searchQuery = ref('')
-
-const filteredNetworks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return networks
-  }
-
-  return networks.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const { items: filteredNetworks, filter, schema } = useNetworkQueryBuilder('nw', () => networks)
 
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
@@ -99,15 +86,14 @@ const state = useTableState({
 
 const { HeadCells, BodyCells } = useNetworkColumns({
   exclude: ['actions'],
-  body: (network: XenApiNetwork) => {
-    const status = computed(() => getNetworkStatus(network))
-    const vlan = computed(() => getNetworkVlan(network))
+  body: (network: NetworkFilterableData) => {
+    const vlan = computed(() => getVlanLabel(network.vlan))
     const defaultLockingMode = computed(() => getLockingMode(network.default_locking_mode))
 
     return {
       network: r => r({ label: network.name_label }),
       description: r => r(network.name_description),
-      status: r => r(status.value),
+      status: r => r(network.status),
       vlan: r => r(vlan.value),
       mtu: r => r(network.MTU),
       defaultLockingMode: r => r(defaultLockingMode.value),
