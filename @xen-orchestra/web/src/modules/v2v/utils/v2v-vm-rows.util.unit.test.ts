@@ -20,7 +20,7 @@ import { createV2vVmRow, createV2vVmRowsInput } from '@/test/create-v2v-vm-row.t
 import { V2V_DATASTORE_A, V2V_DATASTORE_B } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_VM_POWER_STATE, type XoV2vDatastore, type XoV2vVm } from '@vates/types'
 
-const VM_1 = createV2vVm({ id: 'vm-1' as XoV2vVm['id'] })
+const VM_1 = createV2vVm()
 
 const VM_2 = createV2vVm({ id: 'vm-2' as XoV2vVm['id'] })
 

@@ -8,6 +8,7 @@ import { destinationCollectionsMock } from '@/test/mock-xo-destination-collectio
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import {
   V2V_DB_IMPORT_VM,
   V2V_DB_SYNC_SNAPSHOT,
@@ -75,9 +76,7 @@ async function removeOnceConfirmed({ result }: MappingStep, id: XoV2vVm['id']) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  destinationCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('activeVm', () => {

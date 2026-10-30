@@ -20,6 +20,7 @@ import { destinationCollectionsMock } from '@/test/mock-xo-destination-collectio
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_DEFAULT_OFFERS } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DATASTORE_B, V2V_LISTED_VM, V2V_VMS_INVENTORY, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -135,9 +136,7 @@ function getNextButton(wrapper: VueWrapper) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  destinationCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('VMs', () => {

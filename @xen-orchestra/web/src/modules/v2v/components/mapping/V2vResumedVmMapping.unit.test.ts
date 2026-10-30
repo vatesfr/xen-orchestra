@@ -6,9 +6,9 @@ import V2vResumedVmMapping from '@/modules/v2v/components/mapping/V2vResumedVmMa
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import {
   V2V_ACTIVE_MAPPING_ROWS,
@@ -68,9 +68,7 @@ async function mountResumedVmMapping() {
 }
 
 beforeEach(() => {
-  destinationCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 it('heads the VM, its import VM deletable', async () => {

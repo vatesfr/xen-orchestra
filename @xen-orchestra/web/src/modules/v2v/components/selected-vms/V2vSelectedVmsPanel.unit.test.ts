@@ -20,10 +20,7 @@ import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { ComponentProps } from 'vue-component-type-helpers'
 
-const ITEMS = [
-  createV2vSelectedVm({ id: 'vm-1' as XoV2vVm['id'], name: 'web-01' }),
-  createV2vSelectedVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' }),
-]
+const ITEMS = [createV2vSelectedVm(), createV2vSelectedVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' })]
 
 const READINESS_TAGS: V2vAccentedLabel<TagAccent>[] = [
   { label: '1 ready', accent: 'success' },

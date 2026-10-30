@@ -13,6 +13,7 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_DEFAULT_OFFERS, V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -107,9 +108,7 @@ function findItemIds(result: SelectedVms) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  destinationCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('items', () => {
