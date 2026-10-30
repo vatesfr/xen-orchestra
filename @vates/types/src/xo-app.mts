@@ -363,7 +363,7 @@ export type XoApp = EventEmitter & {
     opts?: { bypassAuthorization?: boolean }
   ): Promise<Exclude<XoAclRole, { isTemplate: true }>[]>
   getAclV2Roles(): Promise<XoAclRole[]>
-  getAclV2UserPrivileges(userId: XoUser['id']): Promise<XoAclBasePrivilege[]>
+  getAclV2UserPrivileges(userId: XoUser['id'], opts?: { bypassAuthorization?: boolean }): Promise<XoAclBasePrivilege[]>
   getAclV2UserRoles(
     userId: XoUser['id'],
     opts?: { bypassAuthorization?: boolean; fromGroup?: boolean; fromUser?: boolean }

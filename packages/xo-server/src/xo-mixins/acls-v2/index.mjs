@@ -3,7 +3,7 @@
 import keyBy from 'lodash/keyBy.js'
 import isEqual from 'lodash/isEqual.js'
 import { asyncEach } from '@vates/async-each'
-import { forbiddenOperation, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { forbiddenOperation, incorrectState, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import {
   ADMINISTRATOR,
@@ -528,6 +528,11 @@ export default class {
   async addAclV2UserRole(userId, roleId) {
     await this._app.checkFeatureAuthorization('RBAC')
 
+    const user = await this._app.getUser(userId)
+    if (user.permission === 'admin') {
+      throw incorrectState({ actual: user.permission, expected: 'none', object: userId, property: 'permission' })
+    }
+
     /**
      * @type {UserRole[]}
      */
@@ -699,10 +704,18 @@ export default class {
 
   /**
    * @param {XoUser['id']} userId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
    * @returns {Promise<Privilege[]>}
    */
-  async getAclV2UserPrivileges(userId) {
-    await this._app.checkFeatureAuthorization('RBAC')
+  async getAclV2UserPrivileges(userId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+
+    if ((await this._app.getUser(userId)).permission === 'admin') {
+      return []
+    }
 
     const roles = await this.getAclV2UserRoles(userId)
     return (await Promise.all(roles.map(role => this.getAclV2RolePrivileges(role.id)))).flat()
