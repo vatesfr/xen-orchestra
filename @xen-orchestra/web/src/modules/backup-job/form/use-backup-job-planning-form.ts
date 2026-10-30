@@ -37,7 +37,7 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
     timezone: useField('timezone'),
     timeout: useField('timeout', () => ({ label: t('timeout'), info: t('timeout-info'), unit: t('hours') })),
     nRetriesVmBackupFailures: useField('nRetriesVmBackupFailures', () => ({
-      label: t('number-of-retries-if-vm-backup-fails'),
+      label: t('vm-backup-failure-number-of-retries'),
     })),
     reportWhen: useField('reportWhen', () => ({ label: t('report-when'), options: reportWhenOptions.value })),
     reportRecipients: useField('reportRecipients', () => ({ label: t('report-recipients') })),
