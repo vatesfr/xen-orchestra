@@ -900,10 +900,11 @@ const methods = {
       await this._updateLinstorPackages()
     }
 
-    // what is left on the hosts a previous attempt did not finish: with no
-    // missing patches, the update is not installed again, and the reboot only
-    // happens if the run patched the host and it did not reboot since. Like on
-    // a first attempt, a host patched outside of the run is not rebooted
+    // what is left on the hosts a previous attempt did not finish: the ones it
+    // left disabled are enabled again, with no missing patches, the update is
+    // not installed again, and the reboot only happens if the run patched the
+    // host and it did not reboot since. Like on a first attempt, a host patched
+    // outside of the run is not rebooted
     const doneHostIds = new Set(resume.doneHostIds)
     for (const hostId of addedHostIds) {
       if (doneHostIds.delete(hostId)) {
@@ -912,16 +913,11 @@ const methods = {
     }
     const rebootOnlyHostIds = new Set()
     for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
-      if (hasMissingPatchesByHost[hostId]) {
-        continue
-      }
       const host = this.getObject(hostId)
-      // boot_time, unlike agent_start_time, is not changed by a toolstack restart
-      if (resume.patchedHostIds.has(hostId) && +host.other_config.boot_time <= +agentStartedAtBeforeUpdate) {
-        rebootOnlyHostIds.add(hostId)
-        continue
-      }
-      // left disabled by the previous attempt, nothing is left to do on it
+      // left disabled by the previous attempt, whatever is left to do on it: a
+      // host handled before it, such as a master with patches released since,
+      // must be able to evacuate its VMs to it. Its evacuation disables it
+      // again when it is handled
       if (!host.enabled && enabledBeforeUpdate !== false) {
         await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
           // XAPI refuses until the end of the host startup, which comes after
@@ -933,6 +929,14 @@ const methods = {
             when: { code: 'HOST_STILL_BOOTING' },
           })
         )
+      }
+      if (hasMissingPatchesByHost[hostId]) {
+        continue
+      }
+      // boot_time, unlike agent_start_time, is not changed by a toolstack restart
+      if (resume.patchedHostIds.has(hostId) && +host.other_config.boot_time <= +agentStartedAtBeforeUpdate) {
+        rebootOnlyHostIds.add(hostId)
+        continue
       }
       for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
         recorder.stepObserved(hostId, name)
@@ -973,6 +977,12 @@ const methods = {
         ignoreHost: host => {
           return !hasMissingPatchesByHost[host.uuid] && !rebootOnlyHostIds.has(host.uuid)
         },
+        // until it reboots, a host the run patched runs its former hypervisor,
+        // which XAPI refuses as the destination of the VMs of an up-to-date
+        // master: its reboot, the end of the work of the previous attempt,
+        // comes before the master. Only a host with nothing left to install:
+        // installing on it before the master would make it newer
+        rebootFirst: host => rebootOnlyHostIds.has(host.uuid),
       })
     })
 
