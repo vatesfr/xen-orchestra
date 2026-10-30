@@ -3,7 +3,7 @@ import type {
   V2vMigrationList,
   V2vMigrationListVm,
 } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
+import { V2V_TEST_SOURCE, V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
 import type { XoV2vVm } from '@vates/types'
 
 export function createV2vDestinationDefaults(overrides: Partial<V2vDestinationDefaults> = {}): V2vDestinationDefaults {
@@ -33,7 +33,7 @@ export function createNewerV2vMigrationList(list = createV2vMigrationList()) {
 
 export function createV2vMigrationListVm(overrides: Partial<V2vMigrationListVm> = {}): V2vMigrationListVm {
   return {
-    id: 'vm-1' as XoV2vVm['id'],
+    id: V2V_VM_ID,
     ...overrides,
   }
 }

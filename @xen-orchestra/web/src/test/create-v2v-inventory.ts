@@ -18,6 +18,8 @@ export const V2V_TEST_SOURCE = {
   instanceUuid: 'vcenter-uuid-1',
 } as const
 
+export const V2V_VM_ID = 'vm-1' as XoV2vVm['id']
+
 const DATASTORE_ID = 'datastore-1' as XoV2vDatastore['id']
 
 const VM_NAME = 'app-03'
@@ -89,7 +91,7 @@ export function createV2vNic(overrides: Partial<XoV2vNic> = {}): XoV2vNic {
 
 export function createV2vVm(overrides: Partial<XoV2vVm> = {}): XoV2vVm {
   return {
-    id: 'vm-1' as XoV2vVm['id'],
+    id: V2V_VM_ID,
     instanceUuid: 'vm-instance-uuid-1',
     name: VM_NAME,
     description: '',

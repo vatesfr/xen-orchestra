@@ -5,27 +5,27 @@ import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptio
 import V2vMigratedVmItem from '@/modules/v2v/components/review/V2vMigratedVmItem.vue'
 import V2vReviewStep from '@/modules/v2v/components/review/V2vReviewStep.vue'
 import V2vVmLaunchOptionsTable from '@/modules/v2v/components/review/V2vVmLaunchOptionsTable.vue'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { stubV2vStartAccepted, stubV2vStartProblems, V2V_START_TASK_ID } from '@/test/create-v2v-launch.ts'
 import { findCardTitleLabel } from '@/test/find-card-title.ts'
 import { findParts } from '@/test/find-parts.ts'
+import { findTitle } from '@/test/find-titles.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { SERVER_ERROR_MESSAGE, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
+import { V2V_REVIEW_STEP_EXCLUDED_LIST } from '@/test/v2v-review-step-fixtures.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoTask } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
@@ -110,15 +110,23 @@ async function launch(wrapper: VueWrapper) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
+  resetV2vCollectionMocks()
 })
 
 it('shows the step busy while the VMs load', async () => {
   const { wrapper } = await mountStep()
 
   v2vVmRowsCollectionsMock.areVmsReady.value = false
+  await flushPromises()
+
+  expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+  expect(wrapper.findComponent(V2vLaunchOptionsCard).exists()).toBe(false)
+})
+
+it('shows the step busy without a destination pool', async () => {
+  const { wrapper, router } = await mountStep()
+
+  await router.replace({ query: { ...router.currentRoute.value.query, pool: undefined } })
   await flushPromises()
 
   expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
@@ -155,8 +163,7 @@ it('overrides stopping the source of a VM from its row', async () => {
 })
 
 it('shows no per-VM options without launchable VM', async () => {
-  const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [{ id: V2V_GONE_VM_ID }] })
-  const { wrapper } = await mountStep({ list })
+  const { wrapper } = await mountStep({ list: V2V_REVIEW_STEP_EXCLUDED_LIST })
 
   expect(wrapper.findComponent(V2vVmLaunchOptionsTable).exists()).toBe(false)
 })
@@ -210,8 +217,7 @@ it('no longer launches an already migrated VM once its second copy is unconfirme
 })
 
 it('cannot launch without launchable VM', async () => {
-  const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [{ id: V2V_GONE_VM_ID }] })
-  const { wrapper } = await mountStep({ list })
+  const { wrapper } = await mountStep({ list: V2V_REVIEW_STEP_EXCLUDED_LIST })
 
   expect(getUiButton(wrapper, t('action:launch-n-vms', { n: 0 })).props('disabled')).toBe(true)
 })
@@ -227,7 +233,7 @@ it('is busy while the launch runs', async () => {
 
 it('tells the problems the back end refused the launch for', async () => {
   silenceConsoleError()
-  stubFetchResponse(422, { error: 'the migration cannot be started', data: { errors: [{ message: 'tags' }] } })
+  stubV2vStartProblems([{ message: 'tags' }])
   const { wrapper } = await mountStep()
 
   await launch(wrapper)
@@ -240,17 +246,17 @@ it('tells the problems the back end refused the launch for', async () => {
 
 it('tells any other failure as an error', async () => {
   silenceConsoleError()
-  stubFetchResponse(500, { error: 'unreachable' })
+  stubFetchServerError()
   const { wrapper } = await mountStep()
 
   await launch(wrapper)
 
-  expect(wrapper.getComponent(UiAlert).text()).toBe(`${t('error')} unreachable`)
+  expect(wrapper.getComponent(UiAlert).text()).toBe(`${t('error')} ${SERVER_ERROR_MESSAGE}`)
 })
 
 describe('once launched', () => {
   async function mountLaunched() {
-    stubFetchResponse(202, { taskId: 'task-1' })
+    stubV2vStartAccepted()
     const step = await mountStep()
 
     await launch(step.wrapper)
@@ -263,7 +269,7 @@ describe('once launched', () => {
     const hero = wrapper.getComponent(VtsStateHero)
 
     expect(hero.props('type')).toBe('all-good')
-    expect(hero.get('.title').text()).toBe(t('v2v:n-vms-launched', { n: 2 }))
+    expect(findTitle(hero)).toBe(t('v2v:n-vms-launched', { n: 2 }))
     expect(hero.getComponent(UiAlert).text()).toBe(t('v2v:launch-success'))
   })
 
@@ -271,7 +277,7 @@ describe('once launched', () => {
     const link = (await mountLaunched()).wrapper.getComponent(UiLink)
 
     expect(link.text()).toBe(t('action:see-task'))
-    expect(link.props('to')).toEqual(getTaskRoute('task-1' as XoTask['id']))
+    expect(link.props('to')).toEqual(getTaskRoute(V2V_START_TASK_ID))
   })
 
   it('goes back to the VMs step', async () => {
