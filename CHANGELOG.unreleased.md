@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] `PUT /rest/v0/acl-roles/:id/users/:userId` refuses to attach a role to an admin, and `GET /rest/v0/users/:id/acl-privileges` returns no privileges for an admin
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -31,6 +33,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
+- xo-server minor
 
 <!--packages-end-->
