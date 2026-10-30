@@ -8,3 +8,15 @@ export function getUnprocessableEntityData(error: unknown): unknown {
 
   return isUnprocessableApiError && hasObjectProperty(error.cause, 'data') ? error.cause.data : undefined
 }
+
+// The server explains a failure better than the request message does. `undefined` lets each caller pick its fallback
+export function getApiErrorMessage(error: unknown): string | undefined {
+  const serverError =
+    error instanceof ApiError && hasObjectProperty(error.cause, 'error') ? error.cause.error : undefined
+
+  if (typeof serverError === 'string' && serverError !== '') {
+    return serverError
+  }
+
+  return error instanceof Error && error.message !== '' ? error.message : undefined
+}
