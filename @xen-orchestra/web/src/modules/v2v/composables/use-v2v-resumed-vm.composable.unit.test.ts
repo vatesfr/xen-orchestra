@@ -4,6 +4,7 @@ import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
@@ -54,8 +55,7 @@ function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_R
 }
 
 beforeEach(() => {
-  xoCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('destinationVm', () => {

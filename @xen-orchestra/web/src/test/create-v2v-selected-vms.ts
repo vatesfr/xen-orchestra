@@ -1,11 +1,11 @@
 import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import type { XoV2vVm } from '@vates/types'
+import { V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
 
 // The labels are the component input: a panel test reads them back as given
 export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2vSelectedVm {
-  const id = overrides.id ?? ('vm-1' as XoV2vVm['id'])
+  const id = overrides.id ?? V2V_VM_ID
 
   return {
     id,

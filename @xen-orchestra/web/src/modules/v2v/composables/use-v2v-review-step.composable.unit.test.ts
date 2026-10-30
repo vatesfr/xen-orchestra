@@ -5,28 +5,35 @@ import type { V2vStartVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vLaunchSettings, createV2vStartVm } from '@/test/create-v2v-launch.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import {
+  createV2vLaunchSettings,
+  createV2vStartVm,
+  stubV2vStartAccepted,
+  stubV2vStartProblems,
+  V2V_START_TASK_ID,
+} from '@/test/create-v2v-launch.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { SERVER_ERROR_MESSAGE, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { V2V_DEFAULT_SR, V2V_DEFAULT_TEMPLATE, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
-import { V2V_DB_SYNC_SNAPSHOT, V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
+import { V2V_DB_SYNC_SNAPSHOT, V2V_GONE_VM_ID, V2V_MAPPING_STEP_INVENTORY } from '@/test/v2v-mapping-step-fixtures.ts'
 import {
+  createV2vReviewStepList,
   V2V_CUTOVER_SNAPSHOT,
   V2V_MIGRATED_IMPORT_VM,
   V2V_MIGRATED_VM_POOL,
   V2V_MIGRATED_VM_SR,
+  V2V_REVIEW_STEP_EXCLUDED_LIST,
   V2V_REVIEW_STEP_LIST,
 } from '@/test/v2v-review-step-fixtures.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
-import type { XoTask } from '@vates/types'
+import type { XoV2vDisk } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 
 vi.mock(
@@ -77,6 +84,21 @@ const NEW_VM = createV2vStartVm({ id: V2V_WEB_VM.id })
 
 const RESUMED_VM = createV2vStartVm({ id: V2V_DB_VM.id, kind: 'resume' })
 
+// The disks of the factory all share one key and chain: the DB VM gets two distinct ones, only the first held by its
+// import
+const DB_VM_DISTINCT_DISKS_INVENTORY = (() => {
+  const [systemDisk, dataDisk] = V2V_DB_VM.disks
+  const dbVm = {
+    ...V2V_DB_VM,
+    disks: [systemDisk, { ...dataDisk, key: 'scsi0:1' as XoV2vDisk['key'], chainPaths: ['db-01/db-01_1.vmdk'] }],
+  }
+
+  return {
+    ...V2V_MAPPING_STEP_INVENTORY,
+    vms: V2V_MAPPING_STEP_INVENTORY.vms.map(vm => (vm.id === dbVm.id ? dbVm : vm)),
+  }
+})()
+
 function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
   return mountV2vListStep(
     'review',
@@ -103,9 +125,7 @@ async function launch(result: ReviewStep) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('isBusy', () => {
@@ -229,11 +249,49 @@ it('resumes a warm VM on the pool and the SRs of its import, with its next trans
   ])
 })
 
+it('leaves out of the SRs of a resumed VM a disk its import does not hold yet', async () => {
+  const { result } = await mountReviewStep({ inventory: DB_VM_DISTINCT_DISKS_INVENTORY })
+
+  expect(result.resumedVms[0].parts).toEqual(
+    result.labels.getResumedVmParts('full', DISKOR_POOL_NAME, [V2V_SSD_SR.name_label])
+  )
+})
+
 it('counts the new VMs and names them with the SRs of their mapping', async () => {
   const { result } = await mountReviewStep()
 
   expect(result.newVmsCount).toBe(1)
   expect(result.newVmsSummary).toBe(result.labels.getNewVmsSummary([V2V_WEB_VM.name], [V2V_DEFAULT_SR.name_label]))
+})
+
+it('names once an SR several new VMs are mapped to', async () => {
+  const { result } = await mountReviewStep({
+    list: createV2vReviewStepList([{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }]),
+    inventory: DB_VM_DISTINCT_DISKS_INVENTORY,
+  })
+
+  // Without its import, the DB VM is new too
+  v2vVmRowsCollectionsMock.vms.value = []
+
+  expect(result.newVmsCount).toBe(2)
+  expect(result.newVmsSummary).toBe(
+    result.labels.getNewVmsSummary([V2V_WEB_VM.name, V2V_DB_VM.name], [V2V_DEFAULT_SR.name_label])
+  )
+})
+
+it('has nothing to review nor to launch on an empty list', async () => {
+  const { result } = await mountReviewStep({ list: createV2vReviewStepList([]) })
+
+  expect(result).toMatchObject({
+    summaryParts: result.labels.getReviewSummaryParts(DISKOR_POOL_NAME, 0, { excluded: 0, unconfirmed: 0 }),
+    excludedVms: [],
+    migratedVms: [],
+    resumedVms: [],
+    newVmsCount: 0,
+    vmLaunchOptionsRows: [],
+    launchCount: 0,
+    canLaunch: false,
+  })
 })
 
 describe('vmLaunchOptionsRows', () => {
@@ -282,17 +340,14 @@ describe('canLaunch', () => {
   })
 
   it('cannot launch without launchable VM', async () => {
-    const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [{ id: V2V_GONE_VM_ID }] })
-    const { result } = await mountReviewStep({ list })
+    const { result } = await mountReviewStep({ list: V2V_REVIEW_STEP_EXCLUDED_LIST })
 
     expect(result.launchCount).toBe(0)
     expect(result.canLaunch).toBe(false)
   })
 
   it('cannot launch without a connected source, nor any VM to show', async () => {
-    const { result } = await mountV2vListStep('review', setup =>
-      mountComposableOnV2vWizard(() => useV2vReviewStep(), { ...setup, source: undefined })
-    )
+    const { result } = await mountReviewStep({ isSourceConnected: false })
 
     expect(result.canLaunch).toBe(false)
     expect(result.vmLaunchOptionsRows).toEqual([])
@@ -301,21 +356,21 @@ describe('canLaunch', () => {
 
 describe('launch', () => {
   it('starts the launchable VMs on the destination pool, then tells their task', async () => {
-    stubFetchResponse(202, { taskId: 'task-1' })
+    stubV2vStartAccepted()
     const { result } = await mountReviewStep()
 
     await launch(result)
 
     expect(hasRequested('POST', START_ENDPOINT, buildPayload())).toBe(true)
-    expect(result.launched).toEqual({ count: 2, taskRoute: getTaskRoute('task-1' as XoTask['id']) })
+    expect(result.launched).toEqual({ count: 2, taskRoute: getTaskRoute(V2V_START_TASK_ID) })
   })
 
   it('sends the mapping a new VM overrides on the list, and the overrides of the launch', async () => {
-    stubFetchResponse(202, { taskId: 'task-1' })
-    const list = createV2vMigrationList({
-      ...V2V_REVIEW_STEP_LIST,
-      vms: [{ id: V2V_WEB_VM.id, template: V2V_DEFAULT_TEMPLATE.id }, { id: V2V_DB_VM.id }],
-    })
+    stubV2vStartAccepted()
+    const list = createV2vReviewStepList([
+      { id: V2V_WEB_VM.id, template: V2V_DEFAULT_TEMPLATE.id },
+      { id: V2V_DB_VM.id },
+    ])
     const { result } = await mountReviewStep({ list })
 
     result.changeStopSource(V2V_DB_VM.id, false)
@@ -330,7 +385,7 @@ describe('launch', () => {
   })
 
   it('sends a confirmed already migrated VM as a new one', async () => {
-    stubFetchResponse(202, { taskId: 'task-1' })
+    stubV2vStartAccepted()
     const { result } = await mountReviewStep()
 
     result.confirmSecondCopy(V2V_LISTED_VM.id, true)
@@ -341,8 +396,40 @@ describe('launch', () => {
     expect(hasRequested('POST', START_ENDPOINT, payload)).toBe(true)
   })
 
+  it('sends neither the tags nor the MAC choice of the list, which the back end does not support', async () => {
+    stubV2vStartAccepted()
+    const list = createV2vReviewStepList([
+      { id: V2V_WEB_VM.id, tags: ['migrated-from:vmware'], keepMac: false },
+      { id: V2V_DB_VM.id },
+    ])
+    const { result } = await mountReviewStep({ list })
+
+    await launch(result)
+
+    const payload = {
+      ...buildPayload(),
+      vms: [
+        { id: V2V_WEB_VM.id, tags: [], keepMac: true },
+        { id: V2V_DB_VM.id, tags: [], keepMac: true },
+      ],
+    }
+
+    expect(hasRequested('POST', START_ENDPOINT, payload)).toBe(true)
+  })
+
+  it('does not launch while the destination pool loads', async () => {
+    const fetchMock = stubV2vStartAccepted()
+    const { result } = await mountReviewStep()
+
+    xoCollectionsMock.pools.value = []
+    await launch(result)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(result.launchError).toEqual({ title: result.t('error'), messages: [result.t('job:arg:pool-id-required')] })
+  })
+
   it('does not launch while the launch options are invalid', async () => {
-    const fetchMock = stubFetchResponse(202, { taskId: 'task-1' })
+    const fetchMock = stubV2vStartAccepted()
     const { result } = await mountReviewStep()
 
     result.form.formData.concurrency = 0
@@ -364,16 +451,11 @@ describe('launch', () => {
 
   it('tells each problem the back end refused the launch for, by VM name', async () => {
     silenceConsoleError()
-    stubFetchResponse(422, {
-      error: 'the migration cannot be started',
-      data: {
-        errors: [
-          { vm: V2V_WEB_VM.id, message: 'RDM disk' },
-          { vm: 'vm-unknown', message: 'unknown VM' },
-          { message: 'tags are not supported' },
-        ],
-      },
-    })
+    stubV2vStartProblems([
+      { vm: V2V_WEB_VM.id, message: 'RDM disk' },
+      { vm: 'vm-unknown', message: 'unknown VM' },
+      { message: 'tags are not supported' },
+    ])
     const { result } = await mountReviewStep()
 
     await launch(result)
@@ -391,21 +473,21 @@ describe('launch', () => {
 
   it('tells any other failure as an error', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result } = await mountReviewStep()
 
     await launch(result)
 
-    expect(result.launchError).toEqual({ title: result.t('error'), messages: ['unreachable'] })
+    expect(result.launchError).toEqual({ title: result.t('error'), messages: [SERVER_ERROR_MESSAGE] })
   })
 
   it('forgets the error of the previous launch', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result } = await mountReviewStep()
 
     await launch(result)
-    stubFetchResponse(202, { taskId: 'task-1' })
+    stubV2vStartAccepted()
     await launch(result)
 
     expect(result.launchError).toBeUndefined()

@@ -10,6 +10,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListStorage, readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -81,9 +82,7 @@ function getVmPanel(wrapper: VueWrapper) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
   deleteModalMock.answer('onConfirm')
 })
 
