@@ -11,11 +11,13 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Pool/Traffic rules] Display traffic rules by priority within their network (PR [#10688](https://github.com/vatesfr/xen-orchestra/pull/10688))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 
 ### Packages to release
 
@@ -37,7 +39,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
