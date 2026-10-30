@@ -17,7 +17,7 @@
     <template v-if="!isMetadata">
       <VtsTabularKeyValueRow :label="t('timeout')" :value="timeout" />
       <VtsTabularKeyValueRow
-        :label="t('number-of-retries-if-vm-backup-fails')"
+        :label="t('vm-backup-failure-number-of-retries')"
         :value="form.formData.nRetriesVmBackupFailures?.toString()"
       />
     </template>

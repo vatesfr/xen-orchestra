@@ -23,7 +23,7 @@
         :range="CRON_FIELD_RANGES.weekDay"
       >
         <template #header-actions>
-          <UiToggle v-model="isWeekDayMode">{{ t('weekdays') }}</UiToggle>
+          <UiToggle v-model="isWeekDayMode">{{ t('days-of-the-week') }}</UiToggle>
         </template>
       </ScheduleCronCard>
       <ScheduleCronCard
@@ -36,7 +36,7 @@
         :range="CRON_FIELD_RANGES.monthDay"
       >
         <template #header-actions>
-          <UiToggle v-model="isWeekDayMode">{{ t('weekdays') }}</UiToggle>
+          <UiToggle v-model="isWeekDayMode">{{ t('days-of-the-week') }}</UiToggle>
         </template>
       </ScheduleCronCard>
       <ScheduleCronCard
