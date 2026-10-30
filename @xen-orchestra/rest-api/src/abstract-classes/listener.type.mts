@@ -1,4 +1,6 @@
-import type { XoUser } from "@vates/types";
-import type { AnyPrivilege } from "@xen-orchestra/acl";
+import type { XoUser } from '@vates/types'
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 
-export type PrivilegesChange = { user: XoUser; userPrivileges: AnyPrivilege[]; previousUserPrivileges: AnyPrivilege[] }
+export type UserPrivileges = { user: XoUser; userPrivileges: AnyPrivilege[] }
+
+export type PrivilegesChange = UserPrivileges & { previousUser: XoUser; previousUserPrivileges: AnyPrivilege[] }
