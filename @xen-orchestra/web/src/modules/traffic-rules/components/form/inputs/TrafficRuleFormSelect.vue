@@ -15,6 +15,7 @@ import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 export type TrafficRuleFormSelectOption = FormOption<{
@@ -34,7 +35,5 @@ const slots = defineSlots<{
   option?(props: { option: TrafficRuleFormSelectOption }): any
 }>()
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed(() => mergeInputWrapperMessages(info, warning, error))
 </script>

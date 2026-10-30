@@ -11,6 +11,7 @@
 <script lang="ts" setup>
 import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import type { InputWrapperMessage } from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsInputWrapper from '@xen-orchestra/web-core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@xen-orchestra/web-core/components/select/VtsSelect.vue'
@@ -29,5 +30,5 @@ const slots = defineSlots<{
   option?(props: { option: VdiFormSelectOption }): any
 }>()
 
-const messages = computed(() => [error, warning].filter(message => message !== undefined).flat())
+const messages = computed(() => mergeInputWrapperMessages(error, warning))
 </script>
