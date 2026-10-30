@@ -5,7 +5,11 @@ import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-so
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import type { V2vSelectedVmCheck, V2vSelectedVmKind } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type {
+  V2vMappingSummary,
+  V2vSelectedVmCheck,
+  V2vSelectedVmKind,
+} from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import {
@@ -55,6 +59,7 @@ export type V2vSelectedVmsPanelProps = {
 export type V2vListedVm = {
   kind: V2vSelectedVmKind
   check: V2vSelectedVmCheck
+  mapping: V2vMappingSummary | undefined
   item: V2vSelectedVm
 }
 
@@ -108,16 +113,18 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
       const row = getRow(id)
       const mapping = row === undefined ? undefined : getV2vVmMapping(row.vm, listVm, list.defaults, offers.value)
       const { kind, check } = getV2vSelectedVmState(row, toValue(poolId), mapping?.state)
+      const mappingSummary = getV2vMappingSummary(mapping, kind, targetNameGetters)
 
       return {
         kind,
         check,
+        mapping: mappingSummary,
         item: {
           id,
           name: getName(id),
           // A VM gone from the source is neither new nor resumed: its check alone tells it
           kind: check.type === 'not-found' ? undefined : getKindTag(kind),
-          mappingParts: getMappingParts(getV2vMappingSummary(mapping, kind, targetNameGetters)),
+          mappingParts: getMappingParts(mappingSummary),
           check: getCheckInfo(check, getCheckPoolName(check)),
           mappingRoute: getStepLocation('mapping', { vm: id }),
           isSelected: id === toValue(selectedVmId),
@@ -127,6 +134,18 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   })
 
   const items = computed(() => vms.value.map(vm => vm.item))
+
+  // What the launch plan reads of each VM, rather than what the panel shows of it
+  const vmStates = computed(() =>
+    vms.value.map(({ kind, check, mapping, item }) => ({
+      id: item.id,
+      name: item.name,
+      kind,
+      check,
+      checkInfo: item.check,
+      mapping,
+    }))
+  )
 
   const count = computed(() => vms.value.length)
 
@@ -187,6 +206,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   }
 
   return {
+    vmStates,
     getRow,
     items,
     vms,

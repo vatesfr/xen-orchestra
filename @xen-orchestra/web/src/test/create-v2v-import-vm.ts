@@ -1,9 +1,20 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
+import { createVbd } from '@/test/create-vbd.ts'
+import { createVdi } from '@/test/create-vdi.ts'
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { V2V_SNAPSHOT_NAME, V2V_START_BLOCKED_REASON, V2V_VM_OTHER_CONFIG, VM_OPERATIONS } from '@vates/types'
+import {
+  V2V_SNAPSHOT_NAME,
+  V2V_START_BLOCKED_REASON,
+  V2V_VDI_OTHER_CONFIG,
+  V2V_VM_OTHER_CONFIG,
+  VM_OPERATIONS,
+} from '@vates/types'
 
 const IMPORT_VM_ID = 'xo-vm-1' as FrontXoVm['id']
 
@@ -69,4 +80,16 @@ export function createV2vPartialImportSnapshot(overrides: Partial<FrontXoVmSnaps
 // The snapshot the cutover leaves on the VM of `createV2vImportVm`
 export function createV2vCompleteImportSnapshot(overrides: Partial<FrontXoVmSnapshot> = {}): FrontXoVmSnapshot {
   return createV2vPartialImportSnapshot({ name_label: V2V_SNAPSHOT_NAME.COMPLETE_IMPORT, ...overrides })
+}
+
+// The VDI an import made on an SR from the last disk of a source chain, named `vdi-<name>`, and the VBD `vbd-<name>`
+// plugging it into the import VM
+export function createV2vImportedDisk(name: string, srId: FrontXoSr['id'], diskPath: string) {
+  const vdi = createVdi({
+    id: `vdi-${name}` as FrontXoVdi['id'],
+    $SR: srId,
+    other_config: { [V2V_VDI_OTHER_CONFIG.DISK_PATH]: diskPath },
+  })
+
+  return { vdi, vbd: createVbd({ id: `vbd-${name}` as FrontXoVbd['id'], VDI: vdi.id }) }
 }

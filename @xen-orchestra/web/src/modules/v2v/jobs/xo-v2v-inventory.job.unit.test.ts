@@ -2,6 +2,7 @@ import { useXoV2vInventoryJob } from '@/modules/v2v/jobs/xo-v2v-inventory.job.ts
 import { ApiError } from '@/shared/error/api.error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
+import { hasRequested } from '@/test/fetch-requests.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
@@ -14,17 +15,11 @@ function mountInventoryJob(connection?: XoV2vConnection) {
 describe('run', () => {
   it('posts the connection to the inventory route and resolves the inventory', async () => {
     const inventory = createV2vInventory()
-    const fetchMock = stubFetchResponse(200, inventory)
+    stubFetchResponse(200, inventory)
     const connection = createV2vConnection()
 
     await expect(mountInventoryJob(connection).run()).resolves.toEqual(inventory)
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/rest/v0/v2v/inventory',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ platform: V2V_PLATFORM.VMWARE, connection }),
-      })
-    )
+    expect(hasRequested('POST', 'v2v/inventory', { platform: V2V_PLATFORM.VMWARE, connection })).toBe(true)
   })
 
   it('rejects with the API error the server answered', async () => {

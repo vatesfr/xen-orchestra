@@ -10,7 +10,11 @@ import {
 } from '@/modules/v2v/utils/v2v-vm-rows.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB } from '@/shared/constants.ts'
-import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
+import {
+  createV2vCompleteImportSnapshot,
+  createV2vImportVm,
+  createV2vPartialImportSnapshot,
+} from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory, createV2vVm, createV2vVmWithDisks } from '@/test/create-v2v-inventory.ts'
 import { createV2vVmRow, createV2vVmRowsInput } from '@/test/create-v2v-vm-row.ts'
 import { V2V_DATASTORE_A, V2V_DATASTORE_B } from '@/test/v2v-vms-fixtures.ts'
@@ -101,6 +105,17 @@ describe('buildV2vVmRows', () => {
     })
 
     expect(rows[0]).toMatchObject({ migration: 'cold', lastSyncAt: undefined, importVm })
+  })
+
+  it('gives a cold import the cutover date of its own complete import snapshot', () => {
+    const importVm = createV2vImportVm({ isWarm: false, sourceVmId: VM_2.id })
+
+    const rows = buildRows(TWO_VMS, {
+      importVmsBySourceVmId: new Map([[VM_2.id, importVm]]),
+      snapshots: [createV2vCompleteImportSnapshot({ snapshot_time: 300 }), OTHER_VM_SNAPSHOT],
+    })
+
+    expect(rows.map(row => row.cutoverAt)).toEqual([undefined, 300_000])
   })
 
   it('marks a VM running while a task imports it', () => {

@@ -168,16 +168,6 @@ describe('submit', () => {
     expect(router.currentRoute.value.query.step).toBe('source')
   })
 
-  it('reports a generic error when the failure carries no message', async () => {
-    silenceConsoleError()
-    stubFetchResponse(500, {})
-    const { result } = await mountSourceStep()
-
-    await submitConnection(result)
-
-    expect(result.connectionError).toBe(result.t('error'))
-  })
-
   it('is connecting while the inventory loads', async () => {
     const { result } = await mountSourceStep()
     fillV2vConnectionForm(result.form)

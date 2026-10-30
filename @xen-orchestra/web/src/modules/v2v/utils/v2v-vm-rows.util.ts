@@ -1,6 +1,7 @@
 import type { V2vVmRow, V2vVmStatus, V2vVmsTableView } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vUnsupportedReason } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import {
+  getV2vCutoverAt,
   getV2vLastSyncAt,
   getV2vVmStatus,
   V2V_VM_STATUSES,
@@ -53,6 +54,7 @@ export function buildV2vVmRows({
       supported: unsupportedReason === undefined,
       unsupportedReason,
       lastSyncAt: getV2vLastSyncAt(importSnapshots),
+      cutoverAt: getV2vCutoverAt(importSnapshots),
       isInList: listVmIds.has(vm.id),
       importVm,
       vm,
