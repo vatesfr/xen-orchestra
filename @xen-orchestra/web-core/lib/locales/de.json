@@ -85,7 +85,7 @@
   "action:resume": "Fortsetzen",
   "action:save": "Speichern",
   "action:search": "Suchen",
-  "action:search-treeview": "In Baumstruktur suchen",
+  "action:search-treeview": "@:action:in Baumstruktur suchen ({shortcut})",
   "action:see-all": "Alles ansehen",
   "action:see-less": "Weniger anzeigen",
   "action:see-n-more": "{n} mehr anzeigen",
