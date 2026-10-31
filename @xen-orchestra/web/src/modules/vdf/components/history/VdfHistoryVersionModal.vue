@@ -49,6 +49,7 @@ import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelBut
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -64,7 +65,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const { t, d, n } = useI18n()
+const { t, n } = useI18n()
 
 const version = ref<VdfHistoryVersion>()
 
@@ -83,7 +84,7 @@ const title = computed(() => {
     return t('firewall:history:before-history')
   }
 
-  const date = d(entry.publishedAt, { dateStyle: 'medium', timeStyle: 'short' })
+  const date = formatDateTime(entry.publishedAt)
 
   return entry.outside === undefined
     ? t('firewall:history:version:title', { date })

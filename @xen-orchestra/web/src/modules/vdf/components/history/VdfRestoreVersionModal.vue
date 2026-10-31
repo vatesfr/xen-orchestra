@@ -25,6 +25,7 @@
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -40,12 +41,12 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const publishedLabel = computed(() =>
   publishedAt === null
     ? t('firewall:history:before-history')
-    : d(publishedAt, { dateStyle: 'medium', timeStyle: 'short' })
+    : formatDateTime(publishedAt)
 )
 </script>
 

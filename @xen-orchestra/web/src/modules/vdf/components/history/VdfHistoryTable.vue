@@ -41,6 +41,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -57,7 +58,7 @@ const emit = defineEmits<{
   restore: [entry: VdfHistoryEntry]
 }>()
 
-const { t, n, d } = useI18n()
+const { t, n } = useI18n()
 
 const outsideText = useVdfOutsideText()
 
@@ -173,7 +174,7 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
             ? h('span', { class: 'secondary' }, t('firewall:history:before-history'))
             : h('span', { class: 'date' }, [
                 // the date and time, and how long ago
-                h('span', d(new Date(entry.publishedAt), 'datetime_short')),
+                h('span', formatDateTime(entry.publishedAt)),
                 h(VtsRelativeTime, { date: entry.publishedAt, class: 'secondary typo-body-regular-small' }),
               ]),
           entry.id === currentId
