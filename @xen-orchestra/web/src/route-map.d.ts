@@ -555,6 +555,7 @@ declare module 'vue-router/auto-routes' {
       | '/vm/[id]/backups'
       | '/vm/[id]/console'
       | '/vm/[id]/dashboard'
+      | '/vm/[id]/firewall'
       | '/vm/[id]/networks'
       | '/vm/[id]/snapshots'
       | '/vm/[id]/system'
@@ -578,6 +579,13 @@ declare module 'vue-router/auto-routes' {
     '/vm/[id]/dashboard': RouteRecordInfo<
       '/vm/[id]/dashboard',
       '/vm/:id/dashboard',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/vm/[id]/firewall': RouteRecordInfo<
+      '/vm/[id]/firewall',
+      '/vm/:id/firewall',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -1110,6 +1118,7 @@ declare module 'vue-router/auto-routes' {
         | '/vm/[id]/backups'
         | '/vm/[id]/console'
         | '/vm/[id]/dashboard'
+        | '/vm/[id]/firewall'
         | '/vm/[id]/networks'
         | '/vm/[id]/snapshots'
         | '/vm/[id]/system'
@@ -1133,6 +1142,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/dashboard.vue': {
       routes:
         | '/vm/[id]/dashboard'
+      views:
+        | never
+    }
+    'src/pages/vm/[id]/firewall.vue': {
+      routes:
+        | '/vm/[id]/firewall'
       views:
         | never
     }
