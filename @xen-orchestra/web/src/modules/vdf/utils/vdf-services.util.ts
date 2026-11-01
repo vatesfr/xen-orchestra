@@ -1,0 +1,222 @@
+import type { VdfDocument, VdfGroup, VdfHostServices, VdfService, VdfServiceKind } from '@/modules/vdf/types.ts'
+import { isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { isEqual } from 'lodash-es'
+
+// DECLARED INFRASTRUCTURE SERVICES (vdf#103): the DHCP servers and routers
+// of the networks VDF guards. The agent's check (agent/policy.go
+// checkServices) decides; XO says the same before asking it.
+
+export const VDF_SERVICE_KINDS: VdfServiceKind[] = ['dhcp4', 'dhcp6', 'router']
+
+// as the admin names them, in any language
+export const dhcpVersion = (kind: VdfServiceKind) => (kind === 'dhcp6' ? 'DHCPv6' : 'DHCPv4')
+
+export const isServiceMonitored = (service: Pick<VdfService, 'mode'>) => service.mode === 'monitor'
+
+// a unicast, non-zero MAC, as the agent parses it (Go's net.ParseMAC: six
+// bytes, colons or dashes)
+const MAC = /^[0-9a-f]{2}([:-])[0-9a-f]{2}(\1[0-9a-f]{2}){4}$/i
+
+export const isMac = (text: string) => MAC.test(text)
+
+// what the agent compares: lower case, colons
+export const canonMac = (text: string) => text.toLowerCase().replace(/-/g, ':')
+
+export type VdfServiceError =
+  | { type: 'name-required' }
+  | { type: 'name-taken' }
+  | { type: 'kind' }
+  | { type: 'unknown-group'; group: string }
+  // a group on networks alone (vdf#98) would trust every interface there
+  | { type: 'networks-only'; group: string }
+  | { type: 'selects-nothing'; group: string }
+  // addresses alone: any guest whose traffic arrives through the uplink
+  // can forge one
+  | { type: 'mac-required'; group: string }
+  | { type: 'invalid-mac'; mac: string }
+  | { type: 'multicast-mac'; mac: string }
+
+// The errors of one service in a document (the other services: names
+// taken), as the agent's check would report them, first first
+export function serviceErrors(document: VdfDocument, service: VdfService, otherNames: string[] = []) {
+  const errors: VdfServiceError[] = []
+  const name = service.name ?? ''
+
+  if (name === '' || name.trim() !== name) {
+    errors.push({ type: 'name-required' })
+  } else if (otherNames.includes(name)) {
+    errors.push({ type: 'name-taken' })
+  }
+
+  if (!VDF_SERVICE_KINDS.includes(service.kind)) {
+    errors.push({ type: 'kind' })
+  }
+
+  const group = document.groups[service.group]
+  const macs = service.macs ?? []
+
+  if (group === undefined) {
+    errors.push({ type: 'unknown-group', group: service.group })
+  } else if (isNetworksOnly(group)) {
+    errors.push({ type: 'networks-only', group: service.group })
+  } else {
+    const selects = (group.tags ?? []).length > 0 || (group.networks ?? []).length > 0
+    const ips = group.ips ?? []
+
+    if (!selects && ips.length === 0 && macs.length === 0) {
+      errors.push({ type: 'selects-nothing', group: service.group })
+    } else if (ips.length > 0 && macs.length === 0) {
+      errors.push({ type: 'mac-required', group: service.group })
+    }
+  }
+
+  for (const mac of macs) {
+    if (!isMac(mac)) {
+      errors.push({ type: 'invalid-mac', mac })
+    } else if ((parseInt(mac.slice(0, 2), 16) & 1) !== 0 || /^(00[:-]){5}00$/.test(mac)) {
+      errors.push({ type: 'multicast-mac', mac })
+    }
+  }
+
+  return errors
+}
+
+// every service's errors, by service name
+export function documentServiceErrors(document: VdfDocument) {
+  const services = document.services ?? []
+
+  return services.map((service, index) => ({
+    service: service.name,
+    errors: serviceErrors(
+      document,
+      service,
+      services.filter((_, other) => other < index).map(other => other.name)
+    ),
+  }))
+}
+
+// the services that name a group
+export const servicesOfGroup = (document: VdfDocument, groupName: string) =>
+  (document.services ?? []).filter(service => service.group === groupName).map(service => service.name)
+
+// the kinds an enforced service declares (a monitored one keeps today's
+// trust)
+export const declaredKinds = (document: VdfDocument) =>
+  VDF_SERVICE_KINDS.filter(kind =>
+    (document.services ?? []).some(service => service.kind === kind && !isServiceMonitored(service))
+  )
+
+// THE HOSTS' REPORT (vdf:status `services`), for a pool: per undeclared
+// kind the hosts saying so (they have protected VMs), the sampled
+// undeclared sources merged across hosts (by kind and address), the notes
+// and the bridges where forged MACs aren't dropped, each with its host
+export type VdfServicesReport = {
+  undeclared: { kind: VdfServiceKind; hosts: string[] }[]
+  // macs: the MACs the hosts saw it from (agents before them say none)
+  seen: { kind: VdfServiceKind; src: string; macs: string[]; count: number; last: string; hosts: string[] }[]
+  notes: { host: string; text: string }[]
+  unenforced: { host: string; bridge: string }[]
+}
+
+export function servicesReport(hosts: { name: string; services: VdfHostServices | undefined }[]): VdfServicesReport {
+  const report: VdfServicesReport = { undeclared: [], seen: [], notes: [], unenforced: [] }
+  const seen = new Map<string, VdfServicesReport['seen'][number]>()
+
+  for (const { name, services } of [...hosts].sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const kind of services?.undeclared ?? []) {
+      const entry = report.undeclared.find(other => other.kind === kind)
+
+      if (entry === undefined) {
+        report.undeclared.push({ kind, hosts: [name] })
+      } else {
+        entry.hosts.push(name)
+      }
+    }
+
+    for (const sample of services?.seen ?? []) {
+      const key = `${sample.kind} ${sample.src}`
+      const entry = seen.get(key)
+
+      const { mac, ...fields } = sample
+      if (entry === undefined) {
+        seen.set(key, { ...fields, macs: mac === undefined ? [] : [mac], hosts: [name] })
+      } else {
+        entry.count += sample.count
+        entry.last = sample.last > entry.last ? sample.last : entry.last
+        entry.hosts.push(name)
+        if (mac !== undefined && !entry.macs.includes(mac)) {
+          entry.macs.push(mac)
+        }
+      }
+    }
+
+    report.notes.push(...(services?.notes ?? []).map(text => ({ host: name, text })))
+    report.unenforced.push(...(services?.unenforced ?? []).map(bridge => ({ host: name, bridge })))
+  }
+
+  report.undeclared.sort((a, b) => VDF_SERVICE_KINDS.indexOf(a.kind) - VDF_SERVICE_KINDS.indexOf(b.kind))
+  // the most recent first
+  report.seen = [...seen.values()].sort((a, b) => b.last.localeCompare(a.last) || a.src.localeCompare(b.src))
+
+  return report
+}
+
+export const isEmptyReport = (report: VdfServicesReport) =>
+  report.undeclared.length + report.seen.length + report.notes.length + report.unenforced.length === 0
+
+// The undeclared kinds as the admin reads them: DHCPv4 and DHCPv6 in one
+// line when the same hosts say so (the same risk), the router apart. The
+// kinds the draft declares (`drafted`, monitored or enforced: the agent no
+// longer reports either as undeclared) are set aside as `pending`: the
+// hosts stop reporting them once it's published.
+export function undeclaredLines(undeclared: VdfServicesReport['undeclared'], drafted: VdfServiceKind[] = []) {
+  const lines: { kinds: VdfServiceKind[]; hosts: string[] }[] = []
+  const pending: VdfServiceKind[] = []
+
+  for (const { kind, hosts } of undeclared) {
+    if (drafted.includes(kind)) {
+      pending.push(kind)
+      continue
+    }
+
+    const same =
+      kind === 'router' ? undefined : lines.find(line => !line.kinds.includes('router') && isEqual(line.hosts, hosts))
+
+    if (same === undefined) {
+      lines.push({ kinds: [kind], hosts })
+    } else {
+      same.kinds.push(kind)
+    }
+  }
+
+  return { lines, pending }
+}
+
+// The groups a service can take its servers from, the pool's own first: a
+// group on networks alone can't hold servers. `what`: its first tags and
+// addresses, the others counted (a group of many addresses would make the
+// option wider than the drawer)
+export function serviceGroupChoices(groups: Record<string, VdfGroup>, shown = 2) {
+  return Object.entries(groups)
+    .filter(([, group]) => !isNetworksOnly(group))
+    .sort(([a], [b]) => Number(isGlobalName(a)) - Number(isGlobalName(b)))
+    .map(([name, group]) => {
+      const items = [...(group.tags ?? []), ...(group.ips ?? [])]
+
+      return { name, what: items.slice(0, shown), more: Math.max(0, items.length - shown) }
+    })
+}
+
+// The service of the document declaring a sampled source by its address (a
+// group listing it, for that kind): the hosts keep listing a source sampled
+// before it was declared (#86 walkthrough), not a candidate any more
+export function serviceDeclaring(document: VdfDocument, kind: VdfServiceKind, src: string) {
+  const address = src.toLowerCase()
+
+  return (document.services ?? []).find(
+    service =>
+      service.kind === kind &&
+      (document.groups[service.group]?.ips ?? []).some(ip => ip.toLowerCase().replace(/\/(32|128)$/, '') === address)
+  )?.name
+}

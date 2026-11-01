@@ -10,6 +10,8 @@ export function createVif(overrides: Partial<FrontXoVif> = {}): FrontXoVif {
     $VM: 'vm-123' as FrontXoVif['$VM'],
     $network: 'network-123' as FrontXoVif['$network'],
     $pool: 'pool-789' as FrontXoVif['$pool'],
+    allowedIpv4Addresses: [],
+    allowedIpv6Addresses: [],
     attached: true,
     device: '0',
     txChecksumming: true,
