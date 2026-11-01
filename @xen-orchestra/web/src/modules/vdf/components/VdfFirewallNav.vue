@@ -45,6 +45,7 @@ const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
     { to: { name: '/pool/[id]/firewall/monitor', params }, label: t('firewall:monitor') },
     { to: { name: '/pool/[id]/firewall/groups', params }, label: t('firewall:groups') },
     { to: { name: '/pool/[id]/firewall/trace', params }, label: t('firewall:trace') },
+    { to: { name: '/pool/[id]/firewall/live', params }, label: t('firewall:live') },
     { to: { name: '/pool/[id]/firewall/logs', params }, label: t('firewall:logs') },
     { to: { name: '/pool/[id]/firewall/history', params }, label: t('firewall:history') },
   ]
