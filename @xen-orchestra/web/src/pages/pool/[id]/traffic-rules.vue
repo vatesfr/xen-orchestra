@@ -2,7 +2,21 @@
   <VtsContentSidePanel class="traffic-rules">
     <UiCard class="container">
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
-      <TrafficRulesTable v-else :rules="trafficRules" :pool :show-xapi-plugin-required-error show-priority>
+      <!-- vdf#40: what the pool's firewall does with each rule -->
+      <VdfTrafficRuleStatuses
+        v-if="isVdfEnabled && hasVdfAgent(pool.id)"
+        v-model="firewallLabels"
+        :pool
+        :rules="trafficRules"
+      />
+      <TrafficRulesTable
+        v-if="isReady"
+        :rules="trafficRules"
+        :pool
+        :show-xapi-plugin-required-error
+        :firewall-labels
+        show-priority
+      >
         <template #title-action>
           <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -22,6 +36,9 @@ import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTa
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
+import VdfTrafficRuleStatuses from '@/modules/vdf/components/traffic-rules/VdfTrafficRuleStatuses.vue'
+import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
+import type { VdfTrafficRuleLabel } from '@/modules/vdf/types.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -30,7 +47,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { logicAnd } from '@vueuse/math'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
@@ -38,6 +55,10 @@ const { pool } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { isVdfEnabled, hasVdfAgent } = useVdfAvailability()
+
+const firewallLabels = ref<Record<string, VdfTrafficRuleLabel>>({})
 
 const { vifs, areVifsReady } = useXoVifCollection()
 

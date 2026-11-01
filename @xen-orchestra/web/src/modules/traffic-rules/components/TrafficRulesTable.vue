@@ -53,6 +53,7 @@ import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traf
 import type { EnrichedTrafficRule, RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getNetworkRules, getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { XO_LINKS } from '@/shared/constants.ts'
+import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -65,12 +66,13 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { SDN_CONTROLLER_OF_FORMAT_KEY, SDN_CONTROLLER_OF_METHOD_KEY } from '@vates/types'
 
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -80,6 +82,7 @@ const {
   error,
   showXapiPluginRequiredError,
   showPriority,
+  firewallLabels = {},
 } = defineProps<{
   rules: RankedTrafficRule[]
   pool?: FrontXoPool
@@ -87,6 +90,9 @@ const {
   error?: boolean
   showXapiPluginRequiredError?: boolean
   showPriority?: boolean
+  // what the pool's firewall (VDF) does with each rule, by rule id: a column
+  // shown only when some rule has one
+  firewallLabels?: Record<string, { label: string; tooltip?: string; accent: InfoAccent }>
 }>()
 
 defineSlots<{
@@ -157,7 +163,7 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useTrafficRulesColumns({
+const { HeadCells, BodyCells, toggle } = useTrafficRulesColumns({
   exclude: showPriority ? [] : ['priority'],
   body: (rule: EnrichedTrafficRule) => {
     const network = useGetNetworkById(() => rule.networkId)
@@ -185,6 +191,10 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       target: r => r(rule.ipRange),
       directionB: r => r(rule.directionB),
       object: r => r(getTarget(rule)),
+      firewall: r =>
+        firewallLabels[rule.id] === undefined
+          ? renderBodyCell()
+          : r(firewallLabels[rule.id].label, firewallLabels[rule.id].accent),
       actions: r =>
         r({
           onClick: () => (selectedRuleId.value = rule.id),
@@ -210,6 +220,12 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
     }
   },
 })
+
+watch(
+  () => Object.keys(firewallLabels).length > 0,
+  hasLabels => toggle('firewall', hasLabels),
+  { immediate: true }
+)
 </script>
 
 <style lang="postcss" scoped>
