@@ -8,6 +8,7 @@ import {
   type VdfPublishedPolicy,
   type VdfScopeId,
 } from '@/modules/vdf/types.ts'
+import type { RouteLocationRaw } from 'vue-router'
 
 export function isGlobalName(name: string | undefined) {
   return name?.startsWith(VDF_GLOBAL_PREFIX) ?? false
@@ -120,4 +121,74 @@ export function policyReach(
       .map(pool => ({ id: pool.id, name: pool.name, vms: vmCount(policy.appliedTo, pool.id) }))
       .filter(pool => pool.vms > 0),
   }))
+}
+
+type VdfPage = 'groups' | 'policies'
+
+// A scope's page for a group or a policy. In a pool, global objects are
+// shown there too (read-only, under their full `global:` name); the
+// XO-wide pages name them without the prefix, and number their rules as
+// the global configuration does.
+export function vdfPageRoute(
+  scopeId: VdfScopeId,
+  page: VdfPage,
+  query: { group?: string; policy?: string; rule?: number } = {}
+): RouteLocationRaw {
+  const toGlobal = isGlobalScope(scopeId)
+  const name = (value: string) => (toGlobal ? displayName(value) : value)
+  const routeQuery: Record<string, string> = {}
+
+  if (query.group !== undefined) {
+    routeQuery.group = name(query.group)
+  }
+
+  if (query.policy !== undefined) {
+    routeQuery.policy = name(query.policy)
+  }
+
+  if (query.rule !== undefined) {
+    routeQuery.rule = String(toGlobal ? globalRuleId(query.rule) : query.rule)
+  }
+
+  if (toGlobal) {
+    return { name: `/(site)/firewall/${page}`, query: routeQuery } as RouteLocationRaw
+  }
+
+  return { name: `/pool/[id]/firewall/${page}`, params: { id: scopeId }, query: routeQuery } as RouteLocationRaw
+}
+
+// where a global object is edited
+// "Allow this flow…": the policies page's rule drawer, prefilled, in the
+// policy that dropped it (a global one in the global firewall): from the
+// source (egress: to the destination), an address the drawer offers to
+// make a group of, or a group
+export function allowFlowRoute(
+  poolId: string,
+  {
+    policy,
+    egress = false,
+    peer,
+    proto,
+    port,
+  }: { policy: string; egress?: boolean; peer: string; proto: string; port?: string }
+): RouteLocationRaw {
+  const isGlobal = isGlobalName(policy)
+  const route = vdfPageRoute(isGlobal ? VDF_GLOBAL_SCOPE : poolId, 'policies', { policy }) as {
+    query: Record<string, string>
+  }
+
+  return {
+    ...route,
+    query: {
+      ...route.query,
+      newRule: '1',
+      [egress ? 'to' : 'from']: isGlobal && isGlobalName(peer) ? displayName(peer) : peer,
+      proto,
+      port: port === undefined || port === '' ? undefined : port,
+    },
+  } as RouteLocationRaw
+}
+
+export function vdfGlobalRoute(page: VdfPage, query: { group?: string; policy?: string; rule?: number } = {}) {
+  return vdfPageRoute(VDF_GLOBAL_SCOPE, page, query)
 }

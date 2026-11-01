@@ -1,5 +1,6 @@
 import { VDF_GLOBAL_RULE_BASE, type VdfDocument } from '@/modules/vdf/types.ts'
 import {
+  allowFlowRoute,
   byOwnThenGlobal,
   composeWithGlobal,
   displayName,
@@ -8,6 +9,8 @@ import {
   policyReach,
   reservesTiers,
   ruleNumber,
+  vdfGlobalRoute,
+  vdfPageRoute,
   withGlobalOf,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { describe, expect, it } from 'vitest'
@@ -40,6 +43,27 @@ describe('names and routes', () => {
     expect(displayName('global:admins')).toBe('admins')
     expect(displayName('admins')).toBe('admins')
     expect(globalRuleId(VDF_GLOBAL_RULE_BASE + 2)).toBe(2)
+  })
+
+  it('names global objects without prefix on the XO-wide pages, in full in a pool', () => {
+    expect(vdfGlobalRoute('policies', { policy: 'global:ssh', rule: VDF_GLOBAL_RULE_BASE + 2 })).toEqual({
+      name: '/(site)/firewall/policies',
+      query: { policy: 'ssh', rule: '2' },
+    })
+    expect(vdfPageRoute('pool-1', 'policies', { policy: 'global:ssh', rule: VDF_GLOBAL_RULE_BASE + 2 })).toEqual({
+      name: '/pool/[id]/firewall/policies',
+      params: { id: 'pool-1' },
+      query: { policy: 'global:ssh', rule: String(VDF_GLOBAL_RULE_BASE + 2) },
+    })
+    expect(vdfPageRoute('pool-1', 'groups', { group: 'web' })).toEqual({
+      name: '/pool/[id]/firewall/groups',
+      params: { id: 'pool-1' },
+      query: { group: 'web' },
+    })
+    expect(vdfPageRoute('global', 'groups', { group: 'admins' })).toEqual({
+      name: '/(site)/firewall/groups',
+      query: { group: 'admins' },
+    })
   })
 })
 
@@ -137,5 +161,25 @@ describe('byOwnThenGlobal', () => {
       'global:db',
       'global:prod',
     ])
+  })
+})
+
+// UX P2-8: "Allow this flow…" from a row of the rule log or the drops
+describe('allowFlowRoute', () => {
+  it("opens the rule drawer in the pool's policy, from the source", () => {
+    expect(allowFlowRoute('pool-1', { policy: 'db', peer: '10.0.0.7', proto: 'tcp', port: '5432' })).toEqual({
+      name: '/pool/[id]/firewall/policies',
+      params: { id: 'pool-1' },
+      query: { policy: 'db', newRule: '1', from: '10.0.0.7', proto: 'tcp', port: '5432' },
+    })
+  })
+
+  it('in the global firewall for a global policy; to the destination for outbound', () => {
+    expect(
+      allowFlowRoute('pool-1', { policy: 'global:web', egress: true, peer: 'global:dns', proto: 'udp', port: '' })
+    ).toEqual({
+      name: '/(site)/firewall/policies',
+      query: { policy: 'web', newRule: '1', to: 'dns', proto: 'udp', port: undefined },
+    })
   })
 })

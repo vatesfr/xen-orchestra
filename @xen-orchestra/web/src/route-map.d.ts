@@ -36,6 +36,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       Record<never, never>,
       | '/(site)/dashboard'
+      | '/(site)/firewall'
+      | '/(site)/firewall/groups'
+      | '/(site)/firewall/policies'
       | '/(site)/hosts'
       | '/(site)/pools'
       | '/(site)/tasks'
@@ -44,6 +47,28 @@ declare module 'vue-router/auto-routes' {
     '/(site)/dashboard': RouteRecordInfo<
       '/(site)/dashboard',
       '/dashboard',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/firewall': RouteRecordInfo<
+      '/(site)/firewall',
+      '/firewall',
+      Record<never, never>,
+      Record<never, never>,
+      | '/(site)/firewall/groups'
+      | '/(site)/firewall/policies'
+    >,
+    '/(site)/firewall/groups': RouteRecordInfo<
+      '/(site)/firewall/groups',
+      '/firewall/groups',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/firewall/policies': RouteRecordInfo<
+      '/(site)/firewall/policies',
+      '/firewall/policies',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -331,6 +356,9 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | '/pool/[id]/dashboard'
+      | '/pool/[id]/firewall'
+      | '/pool/[id]/firewall/groups'
+      | '/pool/[id]/firewall/policies'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
       | '/pool/[id]/storage'
@@ -342,6 +370,28 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/dashboard': RouteRecordInfo<
       '/pool/[id]/dashboard',
       '/pool/:id/dashboard',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/firewall': RouteRecordInfo<
+      '/pool/[id]/firewall',
+      '/pool/:id/firewall',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/pool/[id]/firewall/groups'
+      | '/pool/[id]/firewall/policies'
+    >,
+    '/pool/[id]/firewall/groups': RouteRecordInfo<
+      '/pool/[id]/firewall/groups',
+      '/pool/:id/firewall/groups',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/firewall/policies': RouteRecordInfo<
+      '/pool/[id]/firewall/policies',
+      '/pool/:id/firewall/policies',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -596,6 +646,9 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/(site)'
         | '/(site)/dashboard'
+        | '/(site)/firewall'
+        | '/(site)/firewall/groups'
+        | '/(site)/firewall/policies'
         | '/(site)/hosts'
         | '/(site)/pools'
         | '/(site)/tasks'
@@ -606,6 +659,26 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(site)/dashboard.vue': {
       routes:
         | '/(site)/dashboard'
+      views:
+        | never
+    }
+    'src/pages/(site)/firewall.vue': {
+      routes:
+        | '/(site)/firewall'
+        | '/(site)/firewall/groups'
+        | '/(site)/firewall/policies'
+      views:
+        | 'default'
+    }
+    'src/pages/(site)/firewall/groups.vue': {
+      routes:
+        | '/(site)/firewall/groups'
+      views:
+        | never
+    }
+    'src/pages/(site)/firewall/policies.vue': {
+      routes:
+        | '/(site)/firewall/policies'
       views:
         | never
     }
@@ -858,6 +931,9 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/pool/[id]'
         | '/pool/[id]/dashboard'
+        | '/pool/[id]/firewall'
+        | '/pool/[id]/firewall/groups'
+        | '/pool/[id]/firewall/policies'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
         | '/pool/[id]/storage'
@@ -871,6 +947,26 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/dashboard.vue': {
       routes:
         | '/pool/[id]/dashboard'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/firewall.vue': {
+      routes:
+        | '/pool/[id]/firewall'
+        | '/pool/[id]/firewall/groups'
+        | '/pool/[id]/firewall/policies'
+      views:
+        | 'default'
+    }
+    'src/pages/pool/[id]/firewall/groups.vue': {
+      routes:
+        | '/pool/[id]/firewall/groups'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/firewall/policies.vue': {
+      routes:
+        | '/pool/[id]/firewall/policies'
       views:
         | never
     }
