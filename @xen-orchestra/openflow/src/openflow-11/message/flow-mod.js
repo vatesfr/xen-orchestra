@@ -91,7 +91,7 @@ export default {
       if (cookie_mask !== undefined) {
         cookie_mask.copy(buffer, offset + OFFSETS.cookieMask)
       } else {
-        buffer.fill(0x00, offset + OFFSETS.cookie_mask, offset + OFFSETS.cookieMask + COOKIE_LENGTH)
+        buffer.fill(0x00, offset + OFFSETS.cookieMask, offset + OFFSETS.cookieMask + COOKIE_LENGTH)
       }
       cookie.copy(buffer, offset + OFFSETS.cookie)
     } else {
