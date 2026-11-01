@@ -49,6 +49,7 @@ export class BackupLogController extends XoController<XoBackupLog> {
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(backupLogIds)
   @Example(partialBackupLogs)
@@ -61,7 +62,8 @@ export class BackupLogController extends XoController<XoBackupLog> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
     const backupLogs = await this.getObjects({ filter })
     return this.sendObjects(Object.values(backupLogs), req, {

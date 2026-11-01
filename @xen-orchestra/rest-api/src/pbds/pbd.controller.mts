@@ -55,6 +55,7 @@ export class PbdController extends XapiXoController<XoPbd> {
    * @example fields "attached,id,device_config"
    * @example filter "attached?"
    * @example limit 42
+   * @example sort "attached"
    */
   @Example(pbdIds)
   @Example(partialPbds)
@@ -67,7 +68,8 @@ export class PbdController extends XapiXoController<XoPbd> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoPbd>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,

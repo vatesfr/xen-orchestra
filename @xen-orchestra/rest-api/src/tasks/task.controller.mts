@@ -75,6 +75,7 @@ export class TaskController extends XoController<XoTask> {
    * @example fields "status,id,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -89,7 +90,8 @@ export class TaskController extends XoController<XoTask> {
     @Query() markdown?: boolean,
     @Query() watch?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     if (watch) {
       if (!ndjson) {

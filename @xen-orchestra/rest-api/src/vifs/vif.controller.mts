@@ -99,6 +99,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example fields "attached,id,device"
    * @example filter "attached?"
    * @example limit 42
+   * @example sort "device"
    */
   @Example(vifIds)
   @Example(partialVifs)
@@ -111,7 +112,8 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandedXoVif>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -201,6 +203,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -215,7 +218,8 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vif = this.getObject(id as XoVif['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -237,6 +241,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -252,7 +257,8 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVif['id'], { filter })
 
@@ -271,6 +277,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -286,7 +293,8 @@ export class VifController extends XapiXoController<XoVif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoVif['id'], { filter })
 

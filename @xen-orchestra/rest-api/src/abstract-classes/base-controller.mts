@@ -15,7 +15,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
 import { invalidParameters } from 'xo-common/api-errors.js'
-import { BASE_URL, NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, NDJSON_CONTENT_TYPE, safeParseComplexMatcher, sortObjects } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 
@@ -47,6 +47,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       limit?: number
     }
   ): SendObjects<Objects> {
+    // sorted before the limit, so that the limit keeps the first objects in sort order
+    objects = sortObjects(objects, req.query.sort)
+
     const mapper = makeObjectMapper(req, opts?.path)
     const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
 

@@ -73,6 +73,7 @@ export class MessageController extends XapiXoController<XoMessage> {
    * @example fields "name,body,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -85,7 +86,8 @@ export class MessageController extends XapiXoController<XoMessage> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandedXoMessage>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,

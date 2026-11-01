@@ -55,6 +55,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
    * @example fields "body,id,object"
    * @example filter "body:name:physical_utilisation"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(alarmIds)
   @Example(partialAlarms)
@@ -67,7 +68,8 @@ export class AlarmController extends XapiXoController<XoAlarm> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandedXoAlarm>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,

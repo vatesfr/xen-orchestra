@@ -44,6 +44,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example fields "attached,device,deviceName,id"
    * @example filter "attached?"
    * @example limit 42
+   * @example sort "device"
    */
   @Example(pifIds)
   @Example(partialPifs)
@@ -56,7 +57,8 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandedXoPif>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -88,6 +90,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -102,7 +105,8 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const pif = this.getObject(id as XoPif['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -124,6 +128,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -139,7 +144,8 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoPif['id'], { filter })
 
@@ -158,6 +164,7 @@ export class PifController extends XapiXoController<XoPif> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -173,7 +180,8 @@ export class PifController extends XapiXoController<XoPif> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoPif['id'], { filter })
 

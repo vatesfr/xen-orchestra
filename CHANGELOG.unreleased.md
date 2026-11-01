@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Collections now support a `sort` parameter (e.g. `?sort=-start&limit=10`), applied before `limit`: a single property, prefixed with `-` for descending order, objects without the property are listed last (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->

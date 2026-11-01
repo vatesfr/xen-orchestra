@@ -69,6 +69,7 @@ export class ServerController extends XoController<XoServer> {
    * @example fields "status,id"
    * @example filter "status:/^connected$/"
    * @example limit 42
+   * @example sort "label"
    */
   @Example(serverIds)
   @Example(partialServers)
@@ -81,7 +82,8 @@ export class ServerController extends XoController<XoServer> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): Promise<SendObjects<Partial<Unbrand<XoServer>>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
@@ -239,6 +241,7 @@ export class ServerController extends XoController<XoServer> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -254,7 +257,8 @@ export class ServerController extends XoController<XoServer> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoServer['id'], { filter })
 

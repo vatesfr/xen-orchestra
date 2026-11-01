@@ -71,6 +71,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example fields "name,id,users"
    * @example filter "users:length:>0"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(groupIds)
   @Example(partialGroups)
@@ -83,7 +84,8 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoGroup>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
@@ -266,6 +268,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example fields "permission,name,id"
    * @example filter "permission:none"
    * @example limit 42
+   * @example sort "email"
    */
   @Example(userIds)
   @Example(partialUsers)
@@ -281,7 +284,8 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoUser>>> {
     const group = await this.getObject(id as XoGroup['id'])
     const users = await Promise.all(group.users.map(id => this.restApi.xoApp.getUser(id, { obfuscatePassword: true })))
@@ -300,6 +304,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -315,7 +320,8 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoGroup['id'], { filter })
 
@@ -334,6 +340,7 @@ export class GroupController extends XoController<XoGroup> {
    * @example fields "id,name,isTemplate"
    * @example filter "name:read only"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(aclRoleIds)
   @Example(partialAclRoles)
@@ -349,7 +356,8 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<Exclude<XoAclRole, { isTemplate: true }>>>> {
     const group = await this.getObject(id as XoGroup['id'])
     const roles = await Promise.all(group.aclRoleIds.map(roleId => this.restApi.xoApp.getAclV2Role(roleId)))

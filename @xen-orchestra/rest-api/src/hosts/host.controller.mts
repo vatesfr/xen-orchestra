@@ -106,6 +106,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example fields "id,name_label,productBrand"
    * @example filter "productBrand:XCP-ng"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(hostIds)
   @Example(partialHosts)
@@ -118,7 +119,8 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoHost>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -232,6 +234,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -246,7 +249,8 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const host = this.getObject(id as XoHost['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -312,6 +316,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example fields "name,id,$object"
    * @example filter "name:PBD_PLUG_FAILED_ON_SERVER_START"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -327,7 +332,8 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoHost['id'], { filter })
 
@@ -346,6 +352,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -361,7 +368,8 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoHost['id'], { filter })
 

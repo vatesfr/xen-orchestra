@@ -129,6 +129,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example fields "auto_poweron,name_label,id"
    * @example filter "auto_poweron?"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(poolIds)
   @Example(partialPools)
@@ -141,7 +142,8 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoPool>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -671,6 +673,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -685,7 +688,8 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const pool = this.getObject(id as XoPool['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -800,6 +804,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example fields "name,id,$object"
    * @example filter "name:IP_CONFIGURED_PIF_CAN_UNPLUG"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -815,7 +820,8 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoPool['id'], { filter })
 
@@ -869,6 +875,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -884,7 +891,8 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoPool['id'], { filter })
 

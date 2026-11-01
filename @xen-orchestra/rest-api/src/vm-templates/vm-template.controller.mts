@@ -75,6 +75,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * @example fields "id,isDefaultTemplate,name_label"
    * @example filter "isDefaultTemplate?"
    * @example limit 42
+   * @example sort "name_label"
    * */
   @Example(vmTemplateIds)
   @Example(partialVmTemplates)
@@ -87,7 +88,8 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoVmTemplate>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -170,6 +172,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -184,7 +187,8 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vmTemplate = this.getObject(id as XoVmTemplate['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -206,6 +210,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * @example fields "VDI_type,id,name_label"
    * @example filter "VDI_type:user"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(vmTemplateVdis)
   @Extension('x-mcp-exposure', 'allow')
@@ -220,7 +225,8 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
     return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
@@ -238,6 +244,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -253,7 +260,8 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVmTemplate['id'], { filter })
 
@@ -272,6 +280,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -287,7 +296,8 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter })
 

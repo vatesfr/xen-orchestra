@@ -35,6 +35,7 @@ export class PgpuController extends XapiXoController<XoPgpu> {
    * @example fields "id,dom0Access,gpuGroup"
    * @example filter "dom0Access:enabled"
    * @example limit 42
+   * @example sort "host"
    */
   @Example(pgpuIds)
   @Example(partialPgpus)
@@ -47,7 +48,8 @@ export class PgpuController extends XapiXoController<XoPgpu> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoPgpu>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
