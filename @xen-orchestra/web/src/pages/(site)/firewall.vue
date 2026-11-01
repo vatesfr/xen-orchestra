@@ -23,7 +23,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-// /firewall opens Policies. Not with useDefaultTab(), as the object
+// /firewall opens the Overview. Not with useDefaultTab(), as the object
 // pages do: it remembers a single page/tab pair in localStorage, so using
 // it here, nested under /(site), would overwrite the site's own remembered
 // tab.
@@ -31,7 +31,7 @@ watch(
   () => route.name,
   name => {
     if (name === '/(site)/firewall') {
-      void router.replace({ name: '/(site)/firewall/policies', query: route.query })
+      void router.replace({ name: '/(site)/firewall/overview', query: route.query })
     }
   },
   { immediate: true }

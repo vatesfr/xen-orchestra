@@ -32,6 +32,7 @@ const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
   // enforced there
   if (scope.kind === 'global') {
     return [
+      { to: { name: '/(site)/firewall/overview' }, label: t('firewall:overview') },
       { to: { name: '/(site)/firewall/policies' }, label: t('firewall:policies') },
       { to: { name: '/(site)/firewall/groups' }, label: t('firewall:groups') },
       { to: { name: '/(site)/firewall/history' }, label: t('firewall:history') },
@@ -41,6 +42,7 @@ const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
   const params = { id: scope.pool.id }
 
   return [
+    { to: { name: '/pool/[id]/firewall/overview', params }, label: t('firewall:overview') },
     { to: { name: '/pool/[id]/firewall/policies', params }, label: t('firewall:policies') },
     { to: { name: '/pool/[id]/firewall/monitor', params }, label: t('firewall:monitor') },
     { to: { name: '/pool/[id]/firewall/groups', params }, label: t('firewall:groups') },
