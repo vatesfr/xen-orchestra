@@ -20,7 +20,8 @@
     "postversion": "npm publish --access public",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "test": "cd dist && node --test"
   },
   "devDependencies": {
     "@babel/cli": "^7.29.0",

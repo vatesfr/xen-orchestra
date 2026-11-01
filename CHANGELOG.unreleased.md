@@ -42,6 +42,7 @@
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [SDN Controller] Fix the direct OpenFlow channel failing against a bridge that also allows newer OpenFlow versions (`Unsupported OpenFlow version: 5`): the version is negotiated down to OpenFlow 1.1 as the OpenFlow specification requires
 - [SDN Controller] Taking control of a bridge no longer restricts it to OpenFlow 1.1, which broke the VIF locking flows XAPI installs with OpenFlow 1.0 (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
 - [SDN Controller] Adding or deleting a VIF traffic rule now fails, and the VIF's rules are left as they were, when the host can't apply it (e.g. the XAPI plugin fails), instead of reporting success (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
 - [SDN Controller] With the XAPI plugin, a traffic rule a host fails to apply or remove reports which host failed and why (e.g. `XENAPI_MISSING_PLUGIN(sdncontroller.py) on host-2`) instead of an empty error (PR [#10693](https://github.com/vatesfr/xen-orchestra/pull/10693))
@@ -66,6 +67,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/openflow minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
