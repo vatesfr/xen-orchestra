@@ -51,3 +51,10 @@ it('adds an inbound or an outbound rule from "Add rule"', async () => {
   expect(wrapper.findComponent(VdfPolicyRow).emitted('addEgressRule')).toHaveLength(1)
   wrapper.unmount()
 })
+
+// UX P1-1: a pool's monitored policy opens its report
+it("links a pool's Monitor tag to the policy's report", () => {
+  const link = mountRow({ mode: 'monitor' }).get('a.monitor-link')
+
+  expect(link.attributes('href')).toBe('/pool/pool-1/firewall/monitor?policy=web')
+})

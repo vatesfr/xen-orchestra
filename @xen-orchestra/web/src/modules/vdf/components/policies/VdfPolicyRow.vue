@@ -13,7 +13,19 @@
             <VtsIcon name="fa:globe" size="small" />
             {{ t('firewall:global') }}
           </UiTag>
-          <UiTag v-if="monitored" v-tooltip="t('firewall:mode:monitor:tooltip')" accent="info" variant="primary">
+          <!-- a pool's monitored policy: its report, on the Monitor tab -->
+          <RouterLink
+            v-if="monitored && monitorRoute !== undefined"
+            v-tooltip="t('firewall:mode:monitor:open-report')"
+            :to="monitorRoute"
+            class="monitor-link"
+          >
+            <UiTag accent="info" variant="primary">
+              <VtsIcon name="fa:eye" size="small" />
+              {{ t('firewall:mode:monitor') }}
+            </UiTag>
+          </RouterLink>
+          <UiTag v-else-if="monitored" v-tooltip="t('firewall:mode:monitor:tooltip')" accent="info" variant="primary">
             <VtsIcon name="fa:eye" size="small" />
             {{ t('firewall:mode:monitor') }}
           </UiTag>
@@ -115,7 +127,7 @@
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import type { VdfPolicyMode, VdfScopeId } from '@/modules/vdf/types.ts'
-import { displayName, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import type { VdfMove, VdfRuleBasePolicy } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { VdfPolicyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -159,6 +171,13 @@ const emit = defineEmits<{
 }>()
 
 const monitored = computed(() => isMonitored(entry.policy))
+
+// the Monitor tab is a pool's: the global firewall has none
+const monitorRoute = computed(() =>
+  isGlobalScope(scopeId)
+    ? undefined
+    : { name: '/pool/[id]/firewall/monitor' as const, params: { id: scopeId }, query: { policy: entry.policy.name } }
+)
 
 const { t } = useI18n()
 
@@ -262,6 +281,12 @@ const actions = computed<ActionItem[]>(() => [
     flex-wrap: wrap;
     width: 0;
     min-width: 100%;
+  }
+
+  /* the Monitor tag, a link to the policy's report */
+  .monitor-link {
+    display: inline-flex;
+    text-decoration: none;
   }
 
   .title {
