@@ -47,6 +47,16 @@
         {{ t('network') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink
+      v-if="isVdfEnabled && hasVdfAgent(vm.$pool)"
+      v-slot="{ isActive, href }"
+      :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }"
+      custom
+    >
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('firewall') }}
+      </UiTabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('vdis') }}
@@ -66,6 +76,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
 import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -84,6 +95,9 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
+
+// tech preview: only while the vdf plugin is loaded, in pools with agents
+const { isVdfEnabled, hasVdfAgent } = useVdfAvailability()
 
 const { buildXo5Route } = useXoRoutes()
 

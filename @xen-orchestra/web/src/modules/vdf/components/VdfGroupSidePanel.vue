@@ -106,7 +106,7 @@
               <UiLink
                 size="small"
                 :icon="member.icon"
-                :to="{ name: '/vm/[id]/dashboard', params: { id: member.vm.id } }"
+                :to="{ name: '/vm/[id]/firewall', params: { id: member.vm.id } }"
               >
                 {{ member.vm.name_label }}
               </UiLink>

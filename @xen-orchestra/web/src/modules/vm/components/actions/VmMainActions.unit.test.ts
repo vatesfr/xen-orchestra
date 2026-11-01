@@ -29,6 +29,15 @@ vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () 
   useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 
+// the firewall (vdf plugin) is a tech preview: off in these tests
+vi.mock(import('@/modules/vdf/composables/vdf-availability.composable.ts'), () => ({
+  useVdfAvailability: () => ({
+    isVdfEnabled: computed(() => false),
+    isVdfAvailabilityReady: computed(() => true),
+    hasVdfAgent: () => false,
+  }),
+}))
+
 beforeEach(() => {
   buildXo5Route.mockReset()
   buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)

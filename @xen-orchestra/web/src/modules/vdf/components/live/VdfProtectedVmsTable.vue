@@ -85,7 +85,7 @@ const { HeadCells, BodyCells, toggle } = useVmColumns({
         r({
           label: xoVm?.name_label ?? vm.name,
           icon: xoVm === undefined ? 'object:vm' : objectIcon('vm', toLower(xoVm.power_state)),
-          to: { name: '/vm/[id]/dashboard', params: { id: vm.uuid } },
+          to: { name: '/vm/[id]/firewall', params: { id: vm.uuid } },
         }),
       connections: r => r(n(vm.conns)),
       allowed: r => r(formatRate(vm.allowedPerSec)),

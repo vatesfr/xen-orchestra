@@ -1,7 +1,7 @@
 <template>
   <span class="vdf-endpoint">
     <span v-if="vm || name || groups?.length" class="names">
-      <UiLink v-if="vm" size="small" :icon="vmIcon" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+      <UiLink v-if="vm" size="small" :icon="vmIcon" :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }">
         {{ vm.name_label }}
       </UiLink>
       <span v-else-if="name" class="typo-body-bold-small">{{ name }}</span>
