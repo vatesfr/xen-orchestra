@@ -1,6 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useDoubleLinkColumn } from '@core/tables/column-definitions/double-link-column.ts'
+import { useInfoColumn } from '@core/tables/column-definitions/info-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
@@ -22,6 +23,8 @@ export const useTrafficRulesColumns = defineColumns(() => {
       headerLabel: () => t('direction'),
     }),
     object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
+    // what the pool's firewall does with the rule, where it runs one
+    firewall: useInfoColumn({ headerLabel: () => t('firewall') }),
     actions: useActionColumn({}),
   }
 })
