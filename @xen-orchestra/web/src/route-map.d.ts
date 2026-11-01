@@ -368,7 +368,9 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/firewall'
       | '/pool/[id]/firewall/groups'
       | '/pool/[id]/firewall/history'
+      | '/pool/[id]/firewall/logs'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/trace'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
       | '/pool/[id]/storage'
@@ -391,7 +393,9 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | '/pool/[id]/firewall/groups'
       | '/pool/[id]/firewall/history'
+      | '/pool/[id]/firewall/logs'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/trace'
     >,
     '/pool/[id]/firewall/groups': RouteRecordInfo<
       '/pool/[id]/firewall/groups',
@@ -407,9 +411,23 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/pool/[id]/firewall/logs': RouteRecordInfo<
+      '/pool/[id]/firewall/logs',
+      '/pool/:id/firewall/logs',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/pool/[id]/firewall/policies': RouteRecordInfo<
       '/pool/[id]/firewall/policies',
       '/pool/:id/firewall/policies',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/firewall/trace': RouteRecordInfo<
+      '/pool/[id]/firewall/trace',
+      '/pool/:id/firewall/trace',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -960,7 +978,9 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall'
         | '/pool/[id]/firewall/groups'
         | '/pool/[id]/firewall/history'
+        | '/pool/[id]/firewall/logs'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/trace'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
         | '/pool/[id]/storage'
@@ -982,7 +1002,9 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall'
         | '/pool/[id]/firewall/groups'
         | '/pool/[id]/firewall/history'
+        | '/pool/[id]/firewall/logs'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/trace'
       views:
         | 'default'
     }
@@ -998,9 +1020,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/pool/[id]/firewall/logs.vue': {
+      routes:
+        | '/pool/[id]/firewall/logs'
+      views:
+        | never
+    }
     'src/pages/pool/[id]/firewall/policies.vue': {
       routes:
         | '/pool/[id]/firewall/policies'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/firewall/trace.vue': {
+      routes:
+        | '/pool/[id]/firewall/trace'
       views:
         | never
     }
