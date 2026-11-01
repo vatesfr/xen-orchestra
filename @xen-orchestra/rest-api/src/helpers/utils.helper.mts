@@ -142,14 +142,67 @@ export function safeParseComplexMatcher(string: string) {
   }
 }
 
+const SORT_REGEX = /^(-?)([\w$]+)$/
+
+/**
+ * Sorts on a single top-level property, `-` prefix for descending order.
+ *
+ * - stable: objects with equal values keep their original order
+ * - objects without the property (`undefined` or `null`) are always last
+ * - strings are compared by code unit (case sensitive, no locale)
+ */
+export function sortObjects<T>(array: T[], sort: unknown): T[] {
+  if (sort === undefined) {
+    return array
+  }
+
+  const match = typeof sort === 'string' ? SORT_REGEX.exec(sort) : null
+  if (match === null) {
+    throw new ApiError('sort must be a property name, optionally prefixed by "-" for descending order', 400, {
+      data: { sort },
+    })
+  }
+  const [, sign, property] = match
+  const direction = sign === '-' ? -1 : 1
+
+  return array.toSorted((a, b) => {
+    const aValue = (a as Record<string, unknown>)[property]
+    const bValue = (b as Record<string, unknown>)[property]
+
+    const aIsMissing = aValue === undefined || aValue === null
+    const bIsMissing = bValue === undefined || bValue === null
+    // missing values are always last, whatever the direction
+    if (aIsMissing && bIsMissing) {
+      return 0
+    }
+    if (aIsMissing) {
+      return 1
+    }
+    if (bIsMissing) {
+      return -1
+    }
+
+    // values of different types are considered equal, the stable sort keeps their order
+    if ((aValue as string) < (bValue as string)) {
+      return -direction
+    }
+    if ((aValue as string) > (bValue as string)) {
+      return direction
+    }
+    return 0
+  })
+}
+
 export function limitAndFilterArray<T>(
   array: T[],
-  { filter, limit = Infinity }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
+  { filter, sort, limit = Infinity }: { filter?: string | ((obj: T) => boolean); sort?: string; limit?: number } = {}
 ): T[] {
   if (filter !== undefined) {
     const predicate = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     array = array.filter(predicate)
   }
+
+  array = sortObjects(array, sort)
 
   if (limit < array.length) {
     array = array.slice(0, limit)
