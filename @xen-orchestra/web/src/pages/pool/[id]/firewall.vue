@@ -26,7 +26,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-// /pool/<id>/firewall opens Policies. Not with useDefaultTab(), as the
+// /pool/<id>/firewall opens the Overview. Not with useDefaultTab(), as the
 // object pages do: it remembers a single page/tab pair in localStorage, so
 // using it here, nested under /pool/[id], would overwrite the pool's own
 // remembered tab.
@@ -34,7 +34,7 @@ watch(
   () => route.name,
   name => {
     if (name === '/pool/[id]/firewall') {
-      void router.replace({ name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: route.query })
+      void router.replace({ name: '/pool/[id]/firewall/overview', params: { id: pool.id }, query: route.query })
     }
   },
   { immediate: true }
