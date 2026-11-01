@@ -78,6 +78,7 @@ export class PluginController extends XoController<XoPlugin> {
    * @example fields "id,name,loaded,autoload"
    * @example filter "loaded?"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(pluginIds)
   @Example(partialPlugins)
@@ -90,7 +91,8 @@ export class PluginController extends XoController<XoPlugin> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoPlugin>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,

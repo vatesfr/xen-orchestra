@@ -63,6 +63,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    * @example fields "enabled,jobId,cron,id"
    * @example filter "enabled?"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(scheduleIds)
   @Example(partialSchedules)
@@ -75,7 +76,8 @@ export class ScheduleController extends XoController<XoSchedule> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoSchedule>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,

@@ -42,6 +42,7 @@ export class ProxyController extends XoController<XoProxy> {
    * @example fields "vmUuid,id,name"
    * @example filter "vmUuid?"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(proxyIds)
   @Example(partialProxies)
@@ -54,7 +55,8 @@ export class ProxyController extends XoController<XoProxy> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoProxy>>> {
     const proxies = Object.values(await this.getObjects({ filter }))
     return this.sendObjects(proxies, req, {

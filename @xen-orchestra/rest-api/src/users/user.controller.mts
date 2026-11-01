@@ -90,6 +90,7 @@ export class UserController extends XoController<XoUser> {
    * @example fields "permission,name,id"
    * @example filter "permission:none"
    * @example limit 42
+   * @example sort "email"
    */
   @Example(userIds)
   @Example(partialUsers)
@@ -102,7 +103,8 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoUser>>> {
     const users = Object.values(await this.getObjects({ filter }))
     return this.sendObjects(users, req, {
@@ -266,6 +268,7 @@ export class UserController extends XoController<XoUser> {
    * @example fields "name,id,users"
    * @example filter "users:length:>0"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(groupIds)
   @Example(partialGroups)
@@ -281,7 +284,8 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoGroup>>> {
     const user = await this.getObject(id as XoUser['id'])
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
@@ -299,6 +303,7 @@ export class UserController extends XoController<XoUser> {
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example filter "expiration:>1757371582496"
    * @example limit 42
+   * @example sort "expiration"
    */
   @Example(authenticationTokens)
   @Extension('x-mcp-exposure', 'allow')
@@ -310,7 +315,8 @@ export class UserController extends XoController<XoUser> {
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): Promise<Unbrand<XoAuthenticationToken>[]> {
     const user = await this.getObject(id as XoUser['id'])
 
@@ -321,7 +327,7 @@ export class UserController extends XoController<XoUser> {
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-    return limitAndFilterArray(tokens, { filter, limit })
+    return limitAndFilterArray(tokens, { filter, sort, limit })
   }
 
   /**
@@ -332,6 +338,7 @@ export class UserController extends XoController<XoUser> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -347,7 +354,8 @@ export class UserController extends XoController<XoUser> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoUser['id'], { filter })
 
@@ -439,6 +447,7 @@ export class UserController extends XoController<XoUser> {
    * @example fields "id,action,resource"
    * @example filter "action:create"
    * @example limit 42
+   * @example sort "action"
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
@@ -453,7 +462,8 @@ export class UserController extends XoController<XoUser> {
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const user = await this.getObject(id as XoUser['id'])
     const currentUser = this.restApi.getCurrentUser()

@@ -29,6 +29,7 @@ export class SmController extends XapiXoController<XoSm> {
    * @example fields "uuid,name_label,SM_type"
    * @example filter "SM_type:ext"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(smIds)
   @Example(partialSms)
@@ -41,7 +42,8 @@ export class SmController extends XapiXoController<XoSm> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoSm>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,

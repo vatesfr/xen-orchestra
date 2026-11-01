@@ -93,6 +93,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
    * @example fields "name,mode,type,id"
    * @example filter "type:backup"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
@@ -105,7 +106,8 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandAnyXoBackupJob>> {
     const backupJobs = await this.getObjects({ filter })
     return this.sendObjects(Object.values(backupJobs), req, {
@@ -201,6 +203,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
@@ -215,7 +218,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandXoVmBackupJob>> {
     const vmBackupJobs = await this.restApi.xoApp.getAllJobs('backup')
     return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }), req, {
@@ -255,6 +259,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    * @example fields "name,xoMetadata,id"
    * @example filter "xoMetadata?"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(metadataBackupJobIds)
   @Example(partialMetadataBackupJobs)
@@ -269,7 +274,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandXoMetadataBackupJob>> {
     const metadataBackupJobs = await this.restApi.xoApp.getAllJobs('metadataBackup')
     return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter }), req, {
@@ -299,6 +305,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(mirrorBackupJobIds)
   @Example(partialMirrorBackupJobs)
@@ -313,7 +320,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<UnbrandXoMirrorBackupJob>> {
     const mirrorBackupJobs = await this.restApi.xoApp.getAllJobs('mirrorBackup')
     return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter }), req, {
@@ -343,6 +351,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(backupLogIds)
   @Example(partialBackupLogs)
@@ -357,7 +366,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
     const userFilter = filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate()
 

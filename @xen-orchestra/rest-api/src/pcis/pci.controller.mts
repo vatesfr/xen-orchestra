@@ -35,6 +35,7 @@ export class PciController extends XapiXoController<XoPci> {
    * @example fields "class_name,device_name,id"
    * @example filter "class_name:Non-Volatile memory controller"
    * @example limit 42
+   * @example sort "device_name"
    */
   @Example(pciIds)
   @Example(partialPcis)
@@ -47,7 +48,8 @@ export class PciController extends XapiXoController<XoPci> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoPci>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,

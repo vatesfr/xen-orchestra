@@ -64,6 +64,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
@@ -76,7 +77,8 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): Promise<SendObjects<Partial<Unbrand<XoRestoreLog>>>> {
     const restoreLogs = await this.getObjects({ filter })
     return this.sendObjects(Object.values(restoreLogs), req, {
@@ -146,6 +148,7 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(restoreLogIds)
   @Example(partialRestoreLogs)
@@ -158,7 +161,8 @@ export class DeprecatedRestoreController extends XoController<XoRestoreLog> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoRestoreLog>>> {
     const restoreLogs = await this.getObjects({ filter })
     return this.sendObjects(Object.values(restoreLogs), req, {

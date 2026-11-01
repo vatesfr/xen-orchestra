@@ -74,6 +74,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example fields "uuid,name_label,allocationStrategy"
    * @example filter "allocationStrategy:thin"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(srIds)
   @Example(partialSrs)
@@ -86,7 +87,8 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoSr>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -150,6 +152,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -164,7 +167,8 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const sr = this.getObject(id as XoSr['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -231,6 +235,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -246,7 +251,8 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoSr['id'], { filter })
 
@@ -265,6 +271,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -280,7 +287,8 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoSr['id'], { filter })
     return this.sendObjects(Object.values(tasks), req, {

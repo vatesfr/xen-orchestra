@@ -66,6 +66,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example fields "device,bootable,uuid"
    * @example filter "!bootable?"
    * @example limit 42
+   * @example sort "position"
    */
   @Example(vbdIds)
   @Example(partialVbds)
@@ -78,7 +79,8 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoVbd>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -175,6 +177,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -189,7 +192,8 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vbd = this.getObject(id as XoVbd['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -211,6 +215,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -226,7 +231,8 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVbd['id'], { filter })
 
@@ -245,6 +251,7 @@ export class VbdController extends XapiXoController<XoVbd> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -260,7 +267,8 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter })
     return this.sendObjects(Object.values(tasks), req, {

@@ -76,6 +76,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example fields "id,name,isTemplate"
    * @example filter "name:read only"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(aclRoleIds)
   @Example(partialAclRoles)
@@ -87,7 +88,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAclRole>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
@@ -300,6 +302,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example fields "id,action,resource"
    * @example filter "action:create"
    * @example limit 42
+   * @example sort "action"
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
@@ -313,7 +316,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
     return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
@@ -457,6 +461,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example fields "permission,name,id"
    * @example filter "permission:none"
    * @example limit 42
+   * @example sort "email"
    */
   @Example(userIds)
   @Example(partialUsers)
@@ -472,7 +477,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoUser>>> {
     const role = await this.getObject(id as XoAclRole['id'])
     const users =
@@ -503,6 +509,7 @@ export class AclRoleController extends XoController<XoAclRole> {
    * @example fields "name,id,users"
    * @example filter "users:length:>0"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(groupIds)
   @Example(partialGroups)
@@ -518,7 +525,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoGroup>>> {
     const role = await this.getObject(id as XoAclRole['id'])
     const groups =

@@ -102,6 +102,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example fields "*"
    * @example filter "snapshots:length:>2"
    * @example limit 42
+   * @example sort "name_label"
    */
   @Example(vdiIds)
   @Example(partialVdis)
@@ -114,7 +115,8 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
       limit,
@@ -261,6 +263,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(genericAlarmsExample)
   @Extension('x-mcp-exposure', 'allow')
@@ -275,7 +278,8 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vdi = this.getObject(id as XoVdi['id'])
     const alarms = this.#alarmService.getAlarms({
@@ -359,6 +363,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
+   * @example sort "-time"
    */
   @Example(messageIds)
   @Example(partialMessages)
@@ -374,7 +379,8 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
     const messages = this.getMessagesForObject(id as XoVdi['id'], { filter })
 
@@ -393,6 +399,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
+   * @example sort "-start"
    */
   @Example(taskIds)
   @Example(partialTasks)
@@ -408,7 +415,8 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoTask>>> {
     const tasks = await this.getTasksForObject(id as XoVdi['id'], { filter })
     return this.sendObjects(Object.values(tasks), req, {

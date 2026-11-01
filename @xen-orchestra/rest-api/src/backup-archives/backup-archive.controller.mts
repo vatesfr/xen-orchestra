@@ -101,6 +101,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    * @example fields "id,backupRepository,disks"
    * @example filter "disks:length:>0"
    * @example limit 42
+   * @example sort "-timestamp"
    */
   @Example(backupArchiveIds)
   @Example(partialBackupArchives)
@@ -115,7 +116,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoVmBackupArchive>>> {
     const backupArchives = await this.getObjects({ backupRepositories, filter })
     return this.sendObjects(Object.values(backupArchives), req, {

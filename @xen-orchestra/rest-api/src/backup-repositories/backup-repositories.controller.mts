@@ -86,6 +86,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
    * @example fields "id,name,enabled"
    * @example filter "enabled?"
    * @example limit 42
+   * @example sort "name"
    */
   @Example(backupRepositoryIds)
   @Example(partialBackupRepositories)
@@ -98,7 +99,8 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<XoBackupRepository>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,

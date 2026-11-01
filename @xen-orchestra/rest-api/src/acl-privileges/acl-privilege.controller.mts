@@ -68,6 +68,7 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
    * @example fields "id,action,resource"
    * @example filter "action:create"
    * @example limit 42
+   * @example sort "action"
    */
   @Example(aclPrivilegeIds)
   @Example(partialAclPrivileges)
@@ -79,7 +80,8 @@ export class AclPrivilegeController extends XoController<AnyPrivilege> {
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() filter?: string,
-    @Query() limit?: number
+    @Query() limit?: number,
+    @Query() sort?: string
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter })), req, {
       limit,
