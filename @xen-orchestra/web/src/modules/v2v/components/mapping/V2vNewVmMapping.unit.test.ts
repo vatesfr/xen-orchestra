@@ -9,9 +9,8 @@ import { createPool } from '@/test/create-pool.ts'
 import { createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
   V2V_DEFAULT_TEMPLATE,
@@ -28,7 +27,7 @@ import {
   V2V_VLAN_NETWORK,
   V2V_LAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -73,20 +72,17 @@ async function mountNewVmMapping() {
 
   const updateVm = vi.fn()
 
-  const { mounted: wrapper } = await mountOnV2vWizard(
-    router =>
-      mount(V2vNewVmMapping, {
-        props: { heading: HEADING, vm: V2V_MAPPED_VM, list: LIST, listIssue: LIST_ISSUE, updateVm },
-        global: createGlobalTestConfig({
-          router,
-          stubs: {
-            V2vVmSourceCard: true,
-            V2vVmChecksCard: true,
-            V2vDestinationMappingCard: true,
-            V2vVmOptionsCard: true,
-          },
-        }),
-      }),
+  const { wrapper } = await mountComponentOnV2vWizard(
+    V2vNewVmMapping,
+    {
+      props: { heading: HEADING, vm: V2V_MAPPED_VM, list: LIST, listIssue: LIST_ISSUE, updateVm },
+      stubs: {
+        V2vVmSourceCard: true,
+        V2vVmChecksCard: true,
+        V2vDestinationMappingCard: true,
+        V2vVmOptionsCard: true,
+      },
+    },
     { step: 'mapping', source: { inventory: V2V_MAPPING_INVENTORY } }
   )
 

@@ -4,10 +4,9 @@ import V2vMappingVmHeader from '@/modules/v2v/components/mapping/V2vMappingVmHea
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vResumedVmMapping from '@/modules/v2v/components/mapping/V2vResumedVmMapping.vue'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import {
@@ -16,7 +15,7 @@ import {
   V2V_RESUMED_IMPORT_VM,
   V2V_SYNCED_VM,
 } from '@/test/v2v-mapping-fixtures.ts'
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -52,15 +51,12 @@ const LAST_SYNC_AT = Date.UTC(2026, 9, 2, 14, 40)
 async function mountResumedVmMapping() {
   seedV2vResumedVmCollections()
 
-  const { mounted: wrapper } = await mountOnV2vWizard(
-    router =>
-      mount(V2vResumedVmMapping, {
-        props: { heading: HEADING, vm: V2V_SYNCED_VM, importVm: V2V_RESUMED_IMPORT_VM, lastSyncAt: LAST_SYNC_AT },
-        global: createGlobalTestConfig({
-          router,
-          stubs: { V2vDestinationVmCard: true, V2vNextRunCard: true, V2vActiveMappingCard: true },
-        }),
-      }),
+  const { wrapper } = await mountComponentOnV2vWizard(
+    V2vResumedVmMapping,
+    {
+      props: { heading: HEADING, vm: V2V_SYNCED_VM, importVm: V2V_RESUMED_IMPORT_VM, lastSyncAt: LAST_SYNC_AT },
+      stubs: { V2vDestinationVmCard: true, V2vNextRunCard: true, V2vActiveMappingCard: true },
+    },
     { step: 'mapping', source: { inventory: V2V_MAPPING_INVENTORY } }
   )
 

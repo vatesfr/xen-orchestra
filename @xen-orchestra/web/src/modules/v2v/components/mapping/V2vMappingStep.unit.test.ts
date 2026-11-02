@@ -5,12 +5,11 @@ import V2vResumedVmMapping from '@/modules/v2v/components/mapping/V2vResumedVmMa
 import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
 import V2vShowSelectedVmsButton from '@/modules/v2v/components/selected-vms/V2vShowSelectedVmsButton.vue'
 import { getButton, getUiButton } from '@/test/get-button.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_DB_IMPORT_VM, V2V_GONE_VM_ID, V2V_MAPPING_STEP_LIST } from '@/test/v2v-mapping-step-fixtures.ts'
@@ -18,7 +17,7 @@ import { readV2vMigrationListStorage, readV2vMigrationListVmIds } from '@/test/v
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import type { Router } from 'vue-router'
 
 vi.mock(
@@ -53,28 +52,23 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep(vm: string) {
-  const { mounted: wrapper, router } = await mountV2vListStep(
+  return mountV2vListStep(
     'mapping',
     setup =>
-      mountOnV2vWizard(
-        router =>
-          mount(V2vMappingStep, {
-            global: createGlobalTestConfig({
-              router,
-              stubs: {
-                V2vMappingVmHeader: true,
-                V2vNewVmMapping: true,
-                V2vResumedVmMapping: true,
-                V2vSelectedVmsPanel: true,
-              },
-            }),
-          }),
+      mountComponentOnV2vWizard(
+        V2vMappingStep,
+        {
+          stubs: {
+            V2vMappingVmHeader: true,
+            V2vNewVmMapping: true,
+            V2vResumedVmMapping: true,
+            V2vSelectedVmsPanel: true,
+          },
+        },
         setup
       ),
     { vm }
   )
-
-  return { wrapper, router }
 }
 
 const MAPPINGS = [V2vNewVmMapping, V2vResumedVmMapping, VtsStateHero]
