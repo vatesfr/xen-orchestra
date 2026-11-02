@@ -7,14 +7,18 @@
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
-        <UiPanelCardTitle :id="vif.uuid" size="medium" :label="t('vif')" />
+        <UiPanelCardTitle :id="vif.uuid" size="medium" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
               {{ t('network') }}
             </template>
-            <template #value>{{ network?.name_label }}</template>
+            <template #value>
+              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
+                {{ network.name_label }}
+              </UiLink>
+            </template>
             <template v-if="network?.name_label" #addons>
               <VtsCopyButton :value="network.name_label" />
             </template>
@@ -67,7 +71,7 @@
               {{ t('locking-mode') }}
             </template>
             <template #value>
-              {{ vif.locking_mode }}
+              {{ lockingModeLabel }}
             </template>
           </VtsCardRowKeyValue>
           <!-- TX CHECK SUMMING -->
@@ -126,10 +130,13 @@
 
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/network.util.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
 import VifEditButton from '@/modules/vif/components/actions/edit/VifEditButton.vue'
 import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
+import { getVifRateLimit, getVifRoute } from '@/modules/vif/utils/vif.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -137,9 +144,11 @@ import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMe
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
+import { useVifLockingModeLabel } from '@core/utils/vif.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -158,6 +167,10 @@ const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
 const vm = computed(() => (vif !== undefined ? getVmByOpaqueRef(vif.VM) : undefined))
 
+const vifTo = computed(() => (vif !== undefined ? getVifRoute(vif.uuid) : undefined))
+
+const lockingModeLabel = useVifLockingModeLabel(() => vif?.locking_mode)
+
 const ipAddresses = computed(() => {
   if (vif === undefined) {
     return []
@@ -174,15 +187,15 @@ const ipAddresses = computed(() => {
 
 const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
 
+const { pool } = usePoolStore().subscribe()
+
+const networkTo = computed(() =>
+  pool.value && network.value ? getPoolNetworkRoute(pool.value.uuid, network.value.uuid) : undefined
+)
+
 const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconnected'))
 
-const rateLimit = computed(() => {
-  if (vif?.qos_algorithm_type !== 'ratelimit') {
-    return undefined
-  }
-
-  return vif.qos_algorithm_params.kbps
-})
+const rateLimit = computed(() => (vif !== undefined ? getVifRateLimit(vif) : undefined))
 </script>
 
 <style scoped lang="postcss">
