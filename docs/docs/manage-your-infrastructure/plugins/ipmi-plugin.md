@@ -1,5 +1,6 @@
 ---
-sidebar_position: 5
+slug: /manage-your-infrastructure/ipmi-plugin
+sidebar_position: 1
 ---
 
 # IPMI

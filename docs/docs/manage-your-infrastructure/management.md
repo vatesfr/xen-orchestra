@@ -94,8 +94,12 @@ Everything is also available through the [REST API](../automation/restapi.md), w
 
 ## Users and administration
 
-The **Administration** tab of the sidebar covers who can access your Xen Orchestra. **Users** are listed in XO 6 with their details, groups and authentication tokens (creating and editing users still happens in XO 5); **Groups**, **Roles** and **LDAP or other authentication providers** open their XO 5 configuration pages.
+The **Administration** tab of the sidebar covers who can access your Xen Orchestra. **Users** are listed in XO 6 with their details, groups and authentication tokens (creating and editing users still happens in XO 5); **Groups** and **Roles** open their XO 5 configuration pages, and **LDAP/Auth providers** opens the authentication plugins.
 
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The administration panel" url="https://your-xo/v6/#/admin/user-management/users" />
 
 For the permission model itself (roles, scopes and delegation), see [RBAC](../security/user-management/rbac.md).
+
+### Authentication providers
+
+Users can log in with a built-in account, or through an external authentication provider such as LDAP, OpenID Connect, SAML, GitHub or Google. These providers are plugins, configured from **Administration → User management → LDAP/Auth providers**: see [Security → User management → Authentication providers](../security/user-management/authentication-providers.md).
