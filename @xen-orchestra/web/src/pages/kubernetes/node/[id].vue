@@ -17,7 +17,7 @@ import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-useDefaultTab('/kubernetes/node/[id]', 'system')
+useDefaultTab('/kubernetes/node/[id]', 'dashboard')
 
 const route = useRoute<'/kubernetes/node/[id]'>()
 

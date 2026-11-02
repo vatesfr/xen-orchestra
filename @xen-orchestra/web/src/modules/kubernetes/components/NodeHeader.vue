@@ -25,6 +25,15 @@
   <TabList>
     <RouterLink
       v-slot="{ isActive, href }"
+      :to="{ name: '/kubernetes/node/[id]/dashboard', params: { id: node.id } }"
+      custom
+    >
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('dashboard') }}
+      </UiTabItem>
+    </RouterLink>
+    <RouterLink
+      v-slot="{ isActive, href }"
       :to="{ name: '/kubernetes/node/[id]/system', params: { id: node.id } }"
       custom
     >

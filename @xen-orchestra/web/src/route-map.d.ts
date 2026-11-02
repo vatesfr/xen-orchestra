@@ -231,6 +231,7 @@ declare module 'vue-router/auto-routes' {
       | '/kubernetes/clusters'
       | '/kubernetes/namespace/[id]'
       | '/kubernetes/node/[id]'
+      | '/kubernetes/node/[id]/dashboard'
       | '/kubernetes/node/[id]/system'
       | '/kubernetes/nodes'
       | '/kubernetes/pod/[id]'
@@ -284,7 +285,15 @@ declare module 'vue-router/auto-routes' {
       '/kubernetes/node/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
+      | '/kubernetes/node/[id]/dashboard'
       | '/kubernetes/node/[id]/system'
+    >,
+    '/kubernetes/node/[id]/dashboard': RouteRecordInfo<
+      '/kubernetes/node/[id]/dashboard',
+      '/kubernetes/node/:id/dashboard',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
     >,
     '/kubernetes/node/[id]/system': RouteRecordInfo<
       '/kubernetes/node/[id]/system',
@@ -774,6 +783,7 @@ declare module 'vue-router/auto-routes' {
         | '/kubernetes/clusters'
         | '/kubernetes/namespace/[id]'
         | '/kubernetes/node/[id]'
+        | '/kubernetes/node/[id]/dashboard'
         | '/kubernetes/node/[id]/system'
         | '/kubernetes/nodes'
         | '/kubernetes/pod/[id]'
@@ -822,9 +832,16 @@ declare module 'vue-router/auto-routes' {
     'src/pages/kubernetes/node/[id].vue': {
       routes:
         | '/kubernetes/node/[id]'
+        | '/kubernetes/node/[id]/dashboard'
         | '/kubernetes/node/[id]/system'
       views:
         | 'default'
+    }
+    'src/pages/kubernetes/node/[id]/dashboard.vue': {
+      routes:
+        | '/kubernetes/node/[id]/dashboard'
+      views:
+        | never
     }
     'src/pages/kubernetes/node/[id]/system.vue': {
       routes:

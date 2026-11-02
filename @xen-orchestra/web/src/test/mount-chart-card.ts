@@ -19,8 +19,10 @@ export type ChartCardProps<TStats> = {
  *
  * Wrap it per card to bind the component and its stats type:
  * `const mountChart = (props: ChartCardProps<XapiHostStats>) => mountChartCard(HostDashboardRamUsageChart, props)`
+ *
+ * Props specific to a card are passed along with the common ones.
  */
-export function mountChartCard<TStats>(component: Component, props: ChartCardProps<TStats>) {
+export function mountChartCard<TStats>(component: Component, props: ChartCardProps<TStats> & Record<string, unknown>) {
   return mount(component, {
     props: { loading: false, ...props },
     global: { ...createGlobalTestConfig(), stubs: { VtsLinearChart: VtsLinearChartStub } },
