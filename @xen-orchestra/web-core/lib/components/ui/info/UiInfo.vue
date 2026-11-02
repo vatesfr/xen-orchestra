@@ -1,6 +1,6 @@
 <!-- v6 -->
 <template>
-  <div class="ui-info">
+  <div class="ui-info" :class="toVariants({ accent })">
     <VtsIcon class="icon" :name="icon" :size />
     <p v-tooltip="!wrap" class="label" :class="[textSize, { 'text-ellipsis': !wrap }]">
       <slot />
@@ -13,8 +13,9 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 
-export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type InfoAccent = 'info' | 'brand' | 'success' | 'warning' | 'danger' | 'muted'
 type Size = 'small' | 'medium'
 
 const { accent, size = 'medium' } = defineProps<{
@@ -31,6 +32,7 @@ const icon = useMapper<InfoAccent, IconName>(
   () => accent,
   {
     info: 'status:info-circle',
+    brand: 'status:info-circle-brand',
     success: 'status:success-circle',
     warning: 'status:warning-circle',
     danger: 'status:danger-circle',
@@ -61,6 +63,10 @@ const textSize = useMapper<Size, any>(
 
   .label:empty {
     display: none;
+  }
+
+  &.accent--brand .label {
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
