@@ -54,6 +54,9 @@ const MOVED_SECTIONS: Record<string, Record<string, string>> = {
     'making-xo-5-the-default-ui': '/getting-started/installation#making-xo-5-the-default-ui',
     'apply-the-changes': '/getting-started/installation#apply-the-changes',
   },
+  '/whats-new/whatsnew': {
+    highlights: '/whats-new/xo6vsxo5#xo-6-highlights',
+  },
   '/core-concepts/coreconcepts': {
     'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
     'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
