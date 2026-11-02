@@ -15,13 +15,13 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
@@ -66,7 +66,7 @@ const state = useTableState({
     pools.length === 0 ? t('no-pools-detected') : filteredPools.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
 const { HeadCells, BodyCells } = usePoolColumns({
   head: () => ({
