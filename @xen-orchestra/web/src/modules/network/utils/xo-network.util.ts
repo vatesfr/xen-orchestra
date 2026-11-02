@@ -24,6 +24,13 @@ export function getPoolNetworkRoute(
   }
 }
 
+export function getNetworkRoute(networkId: FrontXoNetwork['id']): RouteLocationAsRelative {
+  return {
+    name: '/network/[id]',
+    params: { id: networkId },
+  }
+}
+
 export function getNetworkStatus(pifs: FrontXoPif[]) {
   return getConnectionStatus(pifs.map(pif => pif.attached && pif.carrier))
 }
