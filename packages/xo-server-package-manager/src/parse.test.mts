@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
+import { parseDescriptions, parseOsRelease, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
 
 // =============================================================================
 // parseUpgradableList
@@ -145,5 +145,36 @@ describe('parseStatusFdLine', () => {
   it('returns undefined for malformed pmstatus lines', () => {
     assert.equal(parseStatusFdLine('pmstatus:curl'), undefined)
     assert.equal(parseStatusFdLine('pmstatus:curl:notanumber:msg'), undefined)
+  })
+})
+
+// =============================================================================
+// parseOsRelease
+// =============================================================================
+
+describe('parseOsRelease', () => {
+  it('parses a Debian os-release', () => {
+    const input = `PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+`
+    assert.deepStrictEqual(parseOsRelease(input), { id: 'debian', versionId: '12', versionCodename: 'bookworm' })
+  })
+
+  it('accepts single quotes', () => {
+    assert.equal(parseOsRelease("VERSION_ID='13'").versionId, '13')
+  })
+
+  it('returns undefined for missing fields', () => {
+    // Debian testing has no VERSION_ID
+    assert.deepStrictEqual(parseOsRelease('ID=debian\nVERSION_CODENAME=forky\n'), {
+      id: 'debian',
+      versionId: undefined,
+      versionCodename: 'forky',
+    })
   })
 })

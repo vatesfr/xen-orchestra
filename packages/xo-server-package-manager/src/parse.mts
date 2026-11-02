@@ -72,3 +72,35 @@ export function parseStatusFdLine(line: string): number | undefined {
   const parsedPercentage = parseFloat(percentage)
   return isNaN(parsedPercentage) ? undefined : Math.round(parsedPercentage * 100) / 100
 }
+
+export type OsRelease = {
+  id: string | undefined
+  versionId: string | undefined
+  versionCodename: string | undefined
+}
+
+/**
+ * Parse `/etc/os-release`
+ *
+ * Each line is `KEY=value`, the value may be quoted.
+ *
+ * Example:
+ *   ID=debian
+ *   VERSION_ID="12"
+ *   VERSION_CODENAME=bookworm
+ */
+export function parseOsRelease(content: string): OsRelease {
+  const fields = new Map<string, string>()
+  for (const line of content.split('\n')) {
+    const match = line.match(/^([A-Z_]+)=(["']?)(.*)\2\s*$/)
+    if (match !== null) {
+      const [, key, , value] = match as [string, string, string, string]
+      fields.set(key, value)
+    }
+  }
+  return {
+    id: fields.get('ID'),
+    versionId: fields.get('VERSION_ID'),
+    versionCodename: fields.get('VERSION_CODENAME'),
+  }
+}
