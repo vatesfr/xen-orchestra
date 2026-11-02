@@ -46,10 +46,9 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import TrafficRuleTableActions from '@/modules/traffic-rules/components/actions/TrafficRuleTableActions.vue'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
-import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
-import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traffic-rule-edit.composable.ts'
 import type { EnrichedTrafficRule, RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getNetworkRules, getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { XO_LINKS } from '@/shared/constants.ts'
@@ -159,13 +158,8 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  exclude: showPriority ? [] : ['priority'],
+  exclude: showPriority ? ['rank', 'move'] : ['priority', 'rank', 'move'],
   body: (rule: EnrichedTrafficRule) => {
-    const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
-      useTrafficRuleDelete(() => [rule])
-
-    const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule } = useTrafficRuleEdit(() => rule)
-
     return {
       network: r =>
         r({
@@ -183,24 +177,8 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       actions: r =>
         r({
           onClick: () => (selectedRuleId.value = rule.id),
-          actions: [
-            {
-              label: t('action:edit'),
-              icon: 'action:edit',
-              onClick: () => editTrafficRule(),
-              busy: isEditingTrafficRule.value,
-              disabled: !canEditTrafficRule.value,
-            },
-            {
-              label: t('action:delete'),
-              icon: 'action:delete',
-              onClick: () => deleteTrafficRules(),
-              disabled: !canDeleteTrafficRules.value,
-              busy: isDeletingTrafficRules.value,
-              hint: deleteTrafficRulesErrorMessage.value,
-              accent: 'danger',
-            },
-          ],
+          component: TrafficRuleTableActions,
+          props: { rule, rules: rawRules, showEditOrder: showPriority },
         }),
     }
   },
