@@ -17,13 +17,7 @@ const LISTING_DEBOUNCE = 60e3
 const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
 const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
-// the durations of `config.toml` the mixin reads
-const LOG_RETENTION = 30 * 24 * 60 * 60e3
-const DURATIONS = {
-  'backups.listingDebounce': LISTING_DEBOUNCE,
-  'backups.logRetention': LOG_RETENTION,
-}
-const getDuration = key => DURATIONS[key]
+const getDuration = key => (key === 'backups.logRetention' ? 30 * 24 * 60 * 60e3 : LISTING_DEBOUNCE)
 
 // `mock.timers.tick()` is synchronous: yield to the event loop so that the promise continuations
 // it scheduled have run before the assertions
