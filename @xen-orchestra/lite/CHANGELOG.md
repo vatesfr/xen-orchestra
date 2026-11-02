@@ -1,5 +1,10 @@
 # ChangeLog
 
+## **next**
+
+- [VM/Network] Add a link to the pool network in the VIF side panel and table (PR [#10686](https://github.com/vatesfr/xen-orchestra/pull/10686))
+- [VIF] Add a VIF page with general and network information, linked from the VM network table and the VIF side panel (PR [#10686](https://github.com/vatesfr/xen-orchestra/pull/10686))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))

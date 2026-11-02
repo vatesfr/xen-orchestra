@@ -52,7 +52,7 @@ import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 const { t } = useI18n()
 
 const router = useRouter()
-const route = useRoute<'/vif/[uuid]/edit'>()
+const route = useRoute<'/vif/[uuid].edit'>()
 
 const { isReady: areVifsReady, getByUuid: getVifByUuid } = useVifStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
