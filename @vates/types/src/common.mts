@@ -826,3 +826,33 @@ export interface UpgradablePackage {
   release: string
   description: string
 }
+
+/** a Debian release, e.g. `{ versionId: 13, codename: 'trixie' }` */
+export interface DebianRelease {
+  versionId: number
+  codename: string
+}
+
+/** the next Debian release of the XO appliance, offered when it is not newer than the release validated by Vates */
+export interface DistributionUpgrade {
+  from: DebianRelease
+  to: DebianRelease
+}
+
+/** `interrupted`: still `running` in the state file but its systemd unit is gone, e.g. after a reboot */
+export type DistributionUpgradeStatus = 'running' | 'success' | 'failure' | 'interrupted'
+
+/** the last Debian release upgrade of the XO appliance, the full output is in the journal of its systemd unit */
+export interface DistributionUpgradeRun {
+  status: DistributionUpgradeStatus
+  step: string
+  from: DebianRelease
+  to: DebianRelease
+  /** percentage of the apt command of the current step, undefined while downloading or without apt command */
+  progress?: number
+  startedAt: number
+  endedAt?: number
+  exitCode?: number
+  /** when the system has been checked after xo-server was restarted by the upgrade */
+  checkedAt?: number
+}

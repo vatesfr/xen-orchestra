@@ -9,14 +9,42 @@
 Lists and upgrades the Debian packages of the XO appliance (apt only). Once loaded, the following REST routes are
 available to administrators:
 
-| Route                                                                 | Description                                                  |
-| --------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `GET /rest/v0/plugins/package-manager/updates`                        | Upgradable packages (from the local indexes) and reboot flag |
-| `POST /rest/v0/plugins/package-manager/updates/actions/refresh`       | `apt-get update`                                             |
-| `POST /rest/v0/plugins/package-manager/updates/actions/upgrade`       | Upgrade all packages, returns a task                         |
-| `POST /rest/v0/plugins/package-manager/updates/:name/actions/upgrade` | Upgrade one package, returns a task                          |
+| Route                                                                        | Description                                                                                             |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `GET /rest/v0/plugins/package-manager/updates`                               | Upgradable packages (from the local indexes), reboot flag, next Debian release and last release upgrade |
+| `POST /rest/v0/plugins/package-manager/updates/actions/upgrade-distribution` | Upgrade to the next Debian release, returns 202                                                         |
+| `POST /rest/v0/plugins/package-manager/updates/actions/refresh`              | `apt-get update`                                                                                        |
+| `POST /rest/v0/plugins/package-manager/updates/actions/upgrade`              | Upgrade all packages, returns a task                                                                    |
+| `POST /rest/v0/plugins/package-manager/updates/:name/actions/upgrade`        | Upgrade one package, returns a task                                                                     |
 
 The full apt output is in `/var/log/apt/term.log`.
+
+### Debian release upgrade
+
+The next Debian release is offered only up to the release validated for this version of XO, set in the configuration
+of xo-server:
+
+```toml
+[xoa]
+# Debian VERSION_ID, see /etc/os-release
+targetDistribution = 13
+```
+
+Without this entry, no release upgrade is offered. Only the next release (installed + 1) is offered, never an older
+one.
+
+The upgrade runs `dist-upgrade.sh` in the transient systemd unit `xo-dist-upgrade`. xo-server keeps running to report
+the progress and is restarted once packages of the next release have been installed, even on failure. If a source has no next release, the apt sources are restored and
+nothing is installed. It is followed by an XO task (type
+`xo:package-manager:distribution-upgrade`, with its `step` and `progress`), ended before xo-server is restarted. After
+the restart, a second task (type `xo:package-manager:distribution-upgrade-check`) reports the state of the system:
+installed release, kernel, Node.js version, reboot flag. The state is also reported by `lastDistributionUpgrade` and the
+full output is in `journalctl -u xo-dist-upgrade`. A backup of the apt sources is kept in `/var/backups/xo-dist-upgrade-*`.
+
+The VM is not snapshotted by this route: it is up to the client to do it before, as for the XOA updates.
+
+It is meant to be shipped with the XO build (e.g. a `config.*.toml` in the xo-server directory), not in
+`/etc/xo-server`: dpkg keeps the local version of modified files in `/etc`, so a new target would not be applied.
 
 ## Contributions
 

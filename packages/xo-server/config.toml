@@ -325,3 +325,9 @@ xvaImportFromUrlTimeout = '6s'
 # When a snapshot is taken before an upgrade, the oldest ones are rotated out so
 # that at most this many remain. Must be >= 1.
 numberOfUpgradeSnapshots = 4
+
+# Debian release (VERSION_ID) validated for this version of XO, set by the XOA build.
+#
+# The package-manager plugin offers to upgrade the appliance to the next Debian
+# release while the installed one is older. Unset: no release upgrade is offered.
+#targetDistribution = 13
