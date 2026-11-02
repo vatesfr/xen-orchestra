@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser'
 import { configure } from '@xen-orchestra/log/configure'
 import { invalidCredentials, unauthorized } from 'xo-common/api-errors.js'
 import RestApi from './rest-api.mjs'
+import Authentication from './authentication.mjs'
 
 configure({ level: 'FATAL', transport: () => {} })
 
@@ -53,6 +54,43 @@ const createMockXoApp = ({
       return extraUser?.privileges ?? privileges ?? []
     },
   }
+}
+
+const createRealAuthenticationXoApp = (xoApp = createMockXoApp()) => {
+  const token = { id: 'valid-token', expiration: Date.now() + 60_000, user_id: 'test-user' }
+  const firstCalls = []
+  const updates = []
+
+  Object.assign(xoApp, {
+    config: {
+      watch: (_key, callback) =>
+        callback({ defaultTokenValidity: '1h', maxTokenValidity: '2h', throttlingDelay: '1s' }),
+    },
+    emit() {},
+    getUser: async userId => ({ id: userId, permission: 'admin' }),
+    hooks: { on() {} },
+  })
+
+  const authentication = new Authentication(xoApp)
+  authentication._tokens = {
+    first: async predicate => {
+      firstCalls.push(predicate)
+      if (typeof predicate === 'string') {
+        return predicate === token.id ? token : undefined
+      }
+      if (Object.keys(predicate).length === 0) {
+        return token
+      }
+    },
+    remove: async () => {},
+    update: async value => {
+      updates.push(value)
+    },
+  }
+  xoApp.authenticateUser = authentication.authenticateUser.bind(authentication)
+  xoApp.getAuthenticationToken = authentication.getAuthenticationToken.bind(authentication)
+
+  return { firstCalls, updates, xoApp }
 }
 
 // Boots a real Express app with RestApi mounted
@@ -1555,6 +1593,58 @@ describe('RestApi', () => {
         assert.deepEqual(responseSchema?.properties?.sensors?.items?.properties?.dataType?.enum, ['cpuTemp', 'unknown'])
         assert.deepEqual(responseSchema?.properties?.sensors?.example, [{ name: 'CPU1 Temp', dataType: 'cpuTemp' }])
       })
+    })
+  })
+
+  describe('token authentication with real provider', () => {
+    // RestApi cannot be instantiated twice per process (inversify), so patch the shared mainXoApp
+    // and restore it afterwards to keep the real provider from leaking into later suites
+    const PATCHED_KEYS = ['config', 'emit', 'getUser', 'hooks', 'authenticateUser', 'getAuthenticationToken']
+    let firstCalls, updates, originals
+
+    before(() => {
+      originals = PATCHED_KEYS.map(key => [key, Object.getOwnPropertyDescriptor(mainXoApp, key)])
+      const authentication = createRealAuthenticationXoApp(mainXoApp)
+      ;({ firstCalls, updates } = authentication)
+      restApi.registerRestApi({ _get: async () => ({}) }, '/auth-real-legacy')
+      restApi.registerRestRoutes([{ endpoint: '/', method: 'get', callback: () => ({}) }], '/auth-real-external')
+    })
+
+    after(() => {
+      for (const [key, descriptor] of originals) {
+        if (descriptor === undefined) {
+          delete mainXoApp[key]
+        } else {
+          Object.defineProperty(mainXoApp, key, descriptor)
+        }
+      }
+    })
+
+    it('rejects object and array cookies without reading or updating tokens', async () => {
+      for (const path of ['/auth-real-legacy', '/auth-real-external']) {
+        for (const cookieName of ['authenticationToken', 'token']) {
+          for (const value of ['j:%7B%7D', 'j:%5B%5D']) {
+            const firstCallCount = firstCalls.length
+            const updateCount = updates.length
+            const response = await fetch(`http://127.0.0.1:${port}/rest/v0${path}`, {
+              headers: { Cookie: `${cookieName}=${value}` },
+            })
+
+            assert.equal(response.status, 401)
+            assert.equal(firstCalls.length, firstCallCount)
+            assert.equal(updates.length, updateCount)
+          }
+        }
+      }
+    })
+
+    it('accepts a valid string token on legacy and external routes', async () => {
+      const updateCount = updates.length
+      for (const path of ['/auth-real-legacy', '/auth-real-external']) {
+        const response = await get(port, path)
+        assert.equal(response.status, 200)
+      }
+      assert.equal(updates.length - updateCount, 2)
     })
   })
 })
