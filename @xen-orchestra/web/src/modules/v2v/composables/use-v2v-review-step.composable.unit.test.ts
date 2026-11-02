@@ -31,6 +31,7 @@ import {
   V2V_REVIEW_STEP_EXCLUDED_LIST,
   V2V_REVIEW_STEP_LIST,
 } from '@/test/v2v-review-step-fixtures.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vDisk } from '@vates/types'
@@ -184,7 +185,7 @@ describe('excludedVms', () => {
         id: V2V_GONE_VM_ID,
         name: V2V_GONE_VM_ID,
         route: { query: { pool: V2V_LIST_POOL.id, step: 'mapping', vm: V2V_GONE_VM_ID } },
-        reason: result.labels.getCheckInfo({ type: 'not-found', level: 'blocking' }).label,
+        reason: result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.notFound).label,
       },
     ])
   })

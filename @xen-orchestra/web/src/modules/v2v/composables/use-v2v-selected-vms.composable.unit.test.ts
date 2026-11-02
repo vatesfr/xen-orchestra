@@ -20,6 +20,7 @@ import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -66,8 +67,6 @@ const WEB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_
 
 // The web VM is new, the DB one resumed
 const WEB_AND_DB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id]) })
-
-const READY_CHECK = { type: 'ready', level: 'ready' }
 
 // The mapping summaries of the VMs of `WEB_AND_DB_LIST`: a new one on the list defaults, a resumed one
 const WEB_MAPPING = {
@@ -196,10 +195,10 @@ describe('items', () => {
     })
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
-      result.labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason: 'rdm' }),
-      result.labels.getCheckInfo({ type: 'already-migrated', level: 'warning' }),
-      result.labels.getCheckInfo({ type: 'not-found', level: 'blocking' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.unsupported),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.alreadyMigrated),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.notFound),
     ])
   })
 
@@ -209,8 +208,8 @@ describe('items', () => {
     xoCollectionsMock.srs.value = []
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
     ])
   })
 
@@ -339,8 +338,8 @@ describe('vms', () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 
     expect(result.vms).toEqual([
-      { kind: 'new', check: READY_CHECK, mapping: WEB_MAPPING, item: result.items[0] },
-      { kind: 'resume', check: READY_CHECK, mapping: DB_MAPPING, item: result.items[1] },
+      { kind: 'new', check: V2V_SELECTED_VM_CHECK.ready, mapping: WEB_MAPPING, item: result.items[0] },
+      { kind: 'resume', check: V2V_SELECTED_VM_CHECK.ready, mapping: DB_MAPPING, item: result.items[1] },
     ])
   })
 
@@ -360,7 +359,7 @@ describe('vmStates', () => {
         id: V2V_WEB_VM.id,
         name: V2V_WEB_VM.name,
         kind: 'new',
-        check: READY_CHECK,
+        check: V2V_SELECTED_VM_CHECK.ready,
         checkInfo: result.items[0].check,
         mapping: WEB_MAPPING,
       },
@@ -368,7 +367,7 @@ describe('vmStates', () => {
         id: V2V_DB_VM.id,
         name: V2V_DB_VM.name,
         kind: 'resume',
-        check: READY_CHECK,
+        check: V2V_SELECTED_VM_CHECK.ready,
         checkInfo: result.items[1].check,
         mapping: DB_MAPPING,
       },

@@ -19,6 +19,7 @@ import {
   V2V_MAPPING_STEP_LIST,
 } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
@@ -117,7 +118,7 @@ describe('selectedVm', () => {
 
     expect(result.selectedVm).toMatchObject({
       kind: 'new',
-      listIssue: result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
+      listIssue: result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
     })
   })
 
