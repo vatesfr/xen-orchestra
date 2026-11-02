@@ -17,6 +17,14 @@ const LISTING_DEBOUNCE = 60e3
 const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
 const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
+// the durations of `config.toml` the mixin reads
+const LOG_RETENTION = 30 * 24 * 60 * 60e3
+const DURATIONS = {
+  'backups.listingDebounce': LISTING_DEBOUNCE,
+  'backups.logRetention': LOG_RETENTION,
+}
+const getDuration = key => DURATIONS[key]
+
 // `mock.timers.tick()` is synchronous: yield to the event loop so that the promise continuations
 // it scheduled have run before the assertions
 const tick = async ms => {
@@ -26,7 +34,7 @@ const tick = async ms => {
 
 const createBackupNg = () =>
   new BackupNg({
-    config: { getDuration: () => LISTING_DEBOUNCE },
+    config: { getDuration },
     hooks: { on() {} },
   })
 
@@ -354,6 +362,9 @@ class Repository {
 
   nListings = 0
 
+  // the `before` of each journal purge, in order
+  purges = []
+
   // set to make every read fail, as an unreachable repository does
   failWith
 
@@ -394,6 +405,9 @@ class Repository {
         this.nListings++
         return { [VM]: [...this.metadataByFilename.values()] }
       },
+      purgeBackupJournal: async before => {
+        this.purges.push(before)
+      },
       readBackupJournalEvents: async cursor => {
         this.#mayFail()
         const entries = cursor === undefined ? this.journal.slice() : this.journal.filter(_ => _._filename > cursor)
@@ -416,7 +430,7 @@ class Repository {
 // instantiates the mixin with the minimum an `Xo` app provides to it
 const createBackupNgWithRepository = repository => {
   const app = {
-    config: { getDuration: () => LISTING_DEBOUNCE },
+    config: { getDuration },
     getBackupsRemoteAdapter: () => new Disposable(() => {}, repository.adapter),
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
@@ -436,7 +450,7 @@ const PROXY_ID = 'a-proxy-id'
 const createBackupNgWithProxiedRepository = (repository, { journal = true, failsToList = false, backupLogs } = {}) => {
   const adapter = repository.adapter
   const app = {
-    config: { get: () => ({}), getDuration: () => LISTING_DEBOUNCE },
+    config: { get: () => ({}), getDuration },
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup', proxy: PROXY_ID }
@@ -459,6 +473,10 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
 
       if (method === 'backup.deleteVmBackups') {
         return adapter.deleteVmBackups(params.filenames)
+      }
+
+      if (method === 'backup.purgeVmBackupsJournal') {
+        return adapter.purgeBackupJournal(params.before)
       }
 
       if (method === 'backup.run') {
@@ -505,6 +523,34 @@ describe('deleteVmBackupsNg', () => {
     // the deletion is replayed from the journal, well before the end of the refresh window
     assert.deepEqual(idsOf(await backupNg.listVmBackupsNg([REMOTE_ID])), [idOf('20260811T090000')])
     assert.equal(repository.nListings, 1)
+  })
+})
+
+describe('the journal purge', () => {
+  beforeEach(() => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-08-11T10:00:00Z') })
+  })
+
+  afterEach(() => {
+    mock.timers.reset()
+  })
+
+  it('purges a listed repository of the days older than backups.logRetention', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
+  })
+
+  it('purges a repository attached to a proxy through the proxy', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithProxiedRepository(repository)
+
+    await backupNg.listVmBackupsNg([REMOTE_ID])
+
+    assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
   })
 })
 

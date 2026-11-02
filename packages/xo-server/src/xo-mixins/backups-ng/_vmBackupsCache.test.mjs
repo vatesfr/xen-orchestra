@@ -29,6 +29,12 @@ class Repository {
   // set to make the source report that it cannot replay this repository
   cannotReplay = false
 
+  // the `before` of each journal purge, in order
+  purges = []
+
+  // set to make the journal purges fail
+  purgeFailure
+
   constructor(metadata = []) {
     metadata.forEach(_ => this.metadataByFilename.set(_._filename, _))
   }
@@ -124,6 +130,13 @@ class Repository {
               : { event, vmUuid, filename: key, backup: this.#format(metadata) }
           })
         return { events, cursor }
+      },
+      purgeJournal: async (repository, before) => {
+        assert.equal(repository.id, REPOSITORY.id)
+        this.purges.push(before)
+        if (this.purgeFailure !== undefined) {
+          throw this.purgeFailure
+        }
       },
     }
   }
@@ -624,6 +637,85 @@ describe('VmBackupsCache', () => {
 
     repository.journalDirMissing = true
     await assert.rejects(cache.get(REPOSITORY), /ENOENT/)
+  })
+
+  describe('journal purge', () => {
+    const DAY = 24 * 60 * 60e3
+    const LOG_RETENTION = 30 * DAY
+
+    it('purges the days older than logRetention once the repository has been listed', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+
+      await cache.get(REPOSITORY)
+
+      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
+    })
+
+    it('purges at most once a day, however often the repository is listed', async t => {
+      const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+
+      await cache.get(REPOSITORY)
+      cache.delete(REPOSITORY.id)
+      await cache.get(REPOSITORY)
+      // the default rebuild interval
+      tick(60 * 60e3)
+      await cache.get(REPOSITORY)
+      assert.equal(repository.nListings, 3)
+      assert.equal(repository.purges.length, 1)
+
+      tick(DAY)
+      await cache.get(REPOSITORY)
+      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T11:00:00Z')])
+    })
+
+    it('keeps what a replay can still read, whatever logRetention says', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { logRetention: DAY, minRefreshDelay: 60e3 })
+
+      // replayed for 3 days after it is listed, from a cursor 5 minutes before the listing
+      await cache.get({ ...REPOSITORY, url: REPOSITORY.url + '?fullListingInterval=4320' })
+
+      assert.deepEqual(repository.purges, [Date.parse('2026-08-08T09:55:00Z')])
+    })
+
+    it('does not fail the listing when the purge fails', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      repository.purgeFailure = Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
+      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+
+      const backups = await cache.get(REPOSITORY)
+
+      assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
+      assert.equal(repository.purges.length, 1)
+    })
+
+    it('purges again a repository which is removed then listed again', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+
+      await cache.get(REPOSITORY)
+      cache.remove(REPOSITORY.id)
+      await cache.get(REPOSITORY)
+
+      assert.equal(repository.purges.length, 2)
+    })
+
+    it('does not purge without logRetention', async t => {
+      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+      const repository = new Repository([metadataOf(VM, '20260811T090000')])
+      const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
+
+      await cache.get(REPOSITORY)
+
+      assert.deepEqual(repository.purges, [])
+    })
   })
 
   describe('getOneVm()', () => {
