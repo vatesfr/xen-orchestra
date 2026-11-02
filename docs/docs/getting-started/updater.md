@@ -10,7 +10,7 @@ All updates are pushed through the updater, which is the central piece that keep
 It also allows you to change your current version into another (Free, Starter, Enterprise or Premium) **without downloading a new XOA**.
 
 :::tip
-By design, the updater is only available in XOA. If you are using XO from the sources, [update with `git` and rebuild](install-from-sources.md#updating).
+By design, the updater is only available in XOA. If you are using XO from the sources, [update with `git` and rebuild](installation/install-from-sources.md#updating).
 :::
 
 :::info Updating from XO 6
