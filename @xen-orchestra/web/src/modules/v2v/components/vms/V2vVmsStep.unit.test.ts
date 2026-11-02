@@ -13,12 +13,11 @@ import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_DEFAULT_OFFERS } from '@/test/v2v-mapping-fixtures.ts'
@@ -32,7 +31,7 @@ import {
 } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -80,25 +79,19 @@ async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; fil
   xoCollectionsMock.pools.value = [POOL]
   xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
 
-  const { mounted: wrapper, router } = await mountOnV2vWizard(
-    (router, provide) =>
-      mount(V2vVmsStep, {
-        global: createGlobalTestConfig({
-          router,
-          provide,
-          stubs: {
-            V2vVmsFilterHeader: true,
-            VtsQueryBuilder: true,
-            V2vVmPresets: true,
-            V2vVmsTable: true,
-            V2vSelectedVmsPanel: true,
-          },
-        }),
-      }),
+  return mountComponentOnV2vWizard(
+    V2vVmsStep,
+    {
+      stubs: {
+        V2vVmsFilterHeader: true,
+        VtsQueryBuilder: true,
+        V2vVmPresets: true,
+        V2vVmsTable: true,
+        V2vSelectedVmsPanel: true,
+      },
+    },
     { step: 'vms', query: getV2vVmsQuery(LIST.poolId, filter), list, source: { inventory: V2V_VMS_INVENTORY } }
   )
-
-  return { wrapper, router }
 }
 
 function getFilterHeader(wrapper: VueWrapper) {

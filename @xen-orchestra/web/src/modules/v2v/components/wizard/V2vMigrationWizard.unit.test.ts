@@ -5,12 +5,10 @@ import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
 import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
-import { mount } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -21,21 +19,17 @@ vi.mock(
 async function mountWizard(setup: V2vWizardSetup = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL]
 
-  const { mounted: wrapper } = await mountOnV2vWizard(
-    (router, provide) =>
-      mount(V2vMigrationWizard, {
-        global: createGlobalTestConfig({
-          router,
-          provide,
-          stubs: {
-            V2vSourceStep: true,
-            V2vDestinationStep: true,
-            V2vVmsStep: true,
-            V2vMappingStep: true,
-            V2vReviewStep: true,
-          },
-        }),
-      }),
+  const { wrapper } = await mountComponentOnV2vWizard(
+    V2vMigrationWizard,
+    {
+      stubs: {
+        V2vSourceStep: true,
+        V2vDestinationStep: true,
+        V2vVmsStep: true,
+        V2vMappingStep: true,
+        V2vReviewStep: true,
+      },
+    },
     setup
   )
 
