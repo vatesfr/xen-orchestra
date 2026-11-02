@@ -89,7 +89,7 @@ sidebar_position: 5
 | **Guest tools**     |                         | Drivers and agent [installed inside a VM](https://xcp-ng.org/docs/guests.html): they report the IP address and metrics, and enable clean shutdown and migration. |
 | **V2V**             | Virtual to Virtual      | Built-in [migration tool](../migrate-from-vmware/v2v-migration-guide.md) importing VMs directly from VMware/ESXi to XCP-ng.                                          |
 | **XAPI** / **xapi** | Xen API                 | The management API and service on each **host** that **XO** talks to.                                                                             |
-| **XCP-ng**          |                         | The open source, Xen-based hypervisor [managed by XO](../getting-started/supported_hosts.md), developed by Vates alongside Xen Orchestra.                            |
+| **XCP-ng**          |                         | The open source, Xen-based hypervisor [managed by XO](../getting-started/requirements.md#host-compatibility-list), developed by Vates alongside Xen Orchestra.                            |
 | **XO**              | Xen Orchestra           | The management UI/API stack (`xo-server`, `xo-web`, etc.).                                                                                        |
 | **XO 5** / **XO 6** |                         | The two web interfaces served by the same XO backend: XO 6 is the current default, XO 5 the previous generation. See [XO 6 vs XO 5](../whats-new/xo6vsxo5.md). |
 | **XO Lite**         |                         | [Lightweight web UI](https://docs.vates.tech/products/add-ons/xo-lite) embedded in every XCP-ng host (8.3+): basic management and XOA deployment, no installation needed. |

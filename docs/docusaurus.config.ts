@@ -240,8 +240,8 @@ export default {
             from: ['/sdn_controller', '/xo5/sdn_controller', '/manage-your-infrastructure/sdn_controller'],
           },
           {
-            to: '/getting-started/supported_hosts',
-            from: '/supported_hosts',
+            to: '/getting-started/requirements#host-compatibility-list',
+            from: ['/supported_hosts', '/getting-started/supported_hosts'],
           },
           {
             to: '/support-and-reference/troubleshooting',
@@ -435,7 +435,7 @@ export default {
             },
             {
               label: 'Installation',
-              href: '/getting-started/installation',
+              href: '/getting-started/installation-methods',
             },
           ],
         },

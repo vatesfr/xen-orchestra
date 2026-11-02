@@ -43,6 +43,11 @@ const MOVED_FROM_XOA: Record<string, string> = {
  * covers them.
  */
 const MOVED_SECTIONS: Record<string, Record<string, string>> = {
+  '/getting-started/installation': {
+    'xoa-vm-specifications': '/getting-started/requirements#xoa-vm-specifications',
+    sizing: '/getting-started/requirements#sizing',
+    'from-the-sources': '/getting-started/install-from-sources',
+  },
   '/core-concepts/coreconcepts': {
     'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
     'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
