@@ -51,8 +51,7 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
-- xo-server-sdn-controller patch
 - xo-server minor
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
