@@ -328,7 +328,7 @@ export default {
             from: ['/glossary', '/project/glossary'],
           },
           {
-            to: '/category/whats-new',
+            to: '/whats-new/whatsnew',
             from: '/category/discover-xen-orchestra',
           },
           {

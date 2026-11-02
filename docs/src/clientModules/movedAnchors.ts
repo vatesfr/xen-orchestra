@@ -48,6 +48,9 @@ const MOVED_SECTIONS: Record<string, Record<string, string>> = {
     sizing: '/getting-started/requirements#sizing',
     'from-the-sources': '/getting-started/install-from-sources',
   },
+  '/whats-new/whatsnew': {
+    highlights: '/whats-new/xo6vsxo5#xo-6-highlights',
+  },
   '/core-concepts/coreconcepts': {
     'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
     'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
