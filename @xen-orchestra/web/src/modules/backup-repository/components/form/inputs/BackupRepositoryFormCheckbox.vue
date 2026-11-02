@@ -8,8 +8,8 @@
     >
       {{ label }}
     </UiCheckbox>
-    <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
-      {{ message }}
+    <UiInfo v-if="warningMessage !== undefined" accent="warning" wrap>
+      {{ warningMessage }}
     </UiInfo>
   </div>
 </template>
@@ -32,9 +32,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
-const warningMessages = computed(() =>
-  toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
-)
+const warningMessage = computed(() => {
+  const [message] = toArray(warning)
+
+  return typeof message === 'object' ? message.content : message
+})
 </script>
 
 <style lang="postcss" scoped>

@@ -15,14 +15,14 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import type { BackupJobMirrorVm } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -74,7 +74,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
 const { HeadCells, BodyCells } = useBackupArchiveVmColumns({
   head: () => ({
