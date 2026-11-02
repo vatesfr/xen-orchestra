@@ -6,6 +6,9 @@
     </UiLabel>
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea typo-body-regular" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
+    <p v-if="slots.hint" class="hint typo-body-regular">
+      <slot name="hint" />
+    </p>
     <UiInfo v-if="slots.info" accent="info">
       <slot name="info" />
     </UiInfo>
@@ -48,6 +51,7 @@ const model = defineModel<string>({ required: true })
 
 const slots = defineSlots<{
   default?(): any
+  hint?(): any
   info?(): any
   message?(): any
 }>()
@@ -85,6 +89,10 @@ const labelAccent = computed(() => {
     outline: none;
     padding: 0.8rem 1.6rem;
     width: 100%;
+  }
+
+  .hint {
+    color: var(--color-neutral-txt-secondary);
   }
 
   &.accent--brand {

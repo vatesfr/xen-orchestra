@@ -436,6 +436,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/vif/[id].edit': RouteRecordInfo<
+      '/vif/[id].edit',
+      '/vif/:id/edit',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/vif/new': RouteRecordInfo<
       '/vif/new',
       '/vif/new',
@@ -897,6 +904,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vif/[id]/traffic-rules.vue': {
       routes:
         | '/vif/[id]/traffic-rules'
+      views:
+        | never
+    }
+    'src/pages/vif/[id].edit.vue': {
+      routes:
+        | '/vif/[id].edit'
       views:
         | never
     }
