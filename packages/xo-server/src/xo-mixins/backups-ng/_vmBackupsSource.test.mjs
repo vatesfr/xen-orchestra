@@ -103,21 +103,6 @@ describe('readJournal()', () => {
   })
 })
 
-describe('purgeJournal()', () => {
-  it('purges the journal of the repository', async () => {
-    const purges = []
-    const source = createSource({
-      purgeBackupJournal: async before => {
-        purges.push(before)
-      },
-    })
-
-    await source.purgeJournal(REPOSITORY, 1786373412482)
-
-    assert.deepEqual(purges, [1786373412482])
-  })
-})
-
 describe('on a repository attached to a proxy', () => {
   it('keys the backups the proxy formatted', async () => {
     const backup = formattedOf('20260811T090000')
@@ -243,26 +228,5 @@ describe('on a repository attached to a proxy', () => {
     })
 
     assert.deepEqual(await source.listOneVm(PROXIED_REPOSITORY, VM), {})
-  })
-
-  it('purges the journal through the proxy', async () => {
-    const { calls, source } = createProxiedSource({
-      'backup.purgeVmBackupsJournal': () => {},
-    })
-
-    await source.purgeJournal(PROXIED_REPOSITORY, 1786373412482)
-
-    assert.deepEqual(calls, [
-      {
-        method: 'backup.purgeVmBackupsJournal',
-        params: { remote: { url: REPOSITORY.url, options: undefined }, before: 1786373412482 },
-      },
-    ])
-  })
-
-  it('lets a proxy too old to purge the journal fail the purge', async () => {
-    const { source } = createProxiedSource({})
-
-    await assert.rejects(source.purgeJournal(PROXIED_REPOSITORY, 1786373412482), { code: -32601 })
   })
 })

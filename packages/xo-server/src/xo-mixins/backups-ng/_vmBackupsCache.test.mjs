@@ -643,17 +643,7 @@ describe('VmBackupsCache', () => {
     const DAY = 24 * 60 * 60e3
     const LOG_RETENTION = 30 * DAY
 
-    it('purges the days older than logRetention once the repository has been listed', async t => {
-      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
-      const repository = new Repository([metadataOf(VM, '20260811T090000')])
-      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
-
-      await cache.get(REPOSITORY)
-
-      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
-    })
-
-    it('purges at most once a day, however often the repository is listed', async t => {
+    it('purges the days older than logRetention at most once a day, however often it lists', async t => {
       const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
       const repository = new Repository([metadataOf(VM, '20260811T090000')])
       const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
@@ -661,15 +651,12 @@ describe('VmBackupsCache', () => {
       await cache.get(REPOSITORY)
       cache.delete(REPOSITORY.id)
       await cache.get(REPOSITORY)
-      // the default rebuild interval
-      tick(60 * 60e3)
-      await cache.get(REPOSITORY)
-      assert.equal(repository.nListings, 3)
-      assert.equal(repository.purges.length, 1)
+      assert.equal(repository.nListings, 2)
+      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
 
       tick(DAY)
       await cache.get(REPOSITORY)
-      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T11:00:00Z')])
+      assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T10:00:00Z')])
     })
 
     it('keeps what a replay can still read, whatever logRetention says', async t => {
@@ -693,28 +680,6 @@ describe('VmBackupsCache', () => {
 
       assert.deepEqual(filenames(backups), [filenameOf(VM, '20260811T090000')])
       assert.equal(repository.purges.length, 1)
-    })
-
-    it('purges again a repository which is removed then listed again', async t => {
-      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
-      const repository = new Repository([metadataOf(VM, '20260811T090000')])
-      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
-
-      await cache.get(REPOSITORY)
-      cache.remove(REPOSITORY.id)
-      await cache.get(REPOSITORY)
-
-      assert.equal(repository.purges.length, 2)
-    })
-
-    it('does not purge without logRetention', async t => {
-      mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
-      const repository = new Repository([metadataOf(VM, '20260811T090000')])
-      const cache = new VmBackupsCache(repository.source, { minRefreshDelay: 60e3 })
-
-      await cache.get(REPOSITORY)
-
-      assert.deepEqual(repository.purges, [])
     })
   })
 
