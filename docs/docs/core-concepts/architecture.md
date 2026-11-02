@@ -224,10 +224,4 @@ Internally, the web UIs and `xo-cli` talk to `xo-server` over a JSON-RPC-over-We
 
 ## Plugins
 
-Plugins extend Xen Orchestra without touching its core. They live in "Settings, then Plugins":
-
-<UiDetail src="/img/xoa/plugins-menu.png" alt="The Plugins page in Settings" width={520} />
-
-Each plugin can be activated or deactivated, loaded at startup, and configured entirely from the web interface:
-
-<UiDetail src="/img/xoa/plugins-page.png" alt="Configuring a plugin from the web interface" width={520} />
+Plugins are modules of `xo-server` that extend Xen Orchestra without touching its core: authentication providers, backup reports, load balancing, SDN controller and more. To activate and configure them, see [Management → Plugins](../manage-your-infrastructure/plugins/plugins.md).

@@ -99,3 +99,7 @@ The **Administration** tab of the sidebar covers who can access your Xen Orchest
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The administration panel" url="https://your-xo/v6/#/admin/user-management/users" />
 
 For the permission model itself (roles, scopes and delegation), see [RBAC](../security/user-management/rbac.md).
+
+### Authentication providers
+
+Users can log in with a built-in account, or through an external authentication provider such as LDAP, OpenID Connect, SAML, GitHub or Google. These providers are set up from the XO 5 interface: see [Security → User management → Authentication providers](../security/user-management/authentication-providers.md).

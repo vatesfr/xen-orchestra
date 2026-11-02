@@ -104,7 +104,7 @@ In the network creation view:
 
 ### Configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../../core-concepts/architecture.md#plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../plugins/plugins.md).
 
 The plugin's configuration contains:
 

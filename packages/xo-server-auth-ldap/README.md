@@ -12,7 +12,7 @@ The first time a user signs in, XO will create a new XO user with the
 same identifier.
 
 Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/architecture#plugins).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/manage-your-infrastructure/plugins).
 
 ## User email uniqueness
 

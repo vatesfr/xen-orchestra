@@ -63,7 +63,7 @@ export default {
             from: ['/xo5/architecture', '/architecture', '/getting-started/architecture'],
           },
           {
-            to: '/core-concepts/architecture#plugins',
+            to: '/manage-your-infrastructure/plugins',
             from: '/plugins',
           },
           {
