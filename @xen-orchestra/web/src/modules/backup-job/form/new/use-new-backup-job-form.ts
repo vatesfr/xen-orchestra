@@ -6,6 +6,9 @@ import {
   type BackupJobSourceFormData,
   useBackupJobSourceForm,
 } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
+import type { BackupJobTargetBackupRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
+import type { BackupJobTargetHealthCheckFormData } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
+import type { BackupJobTargetStorageRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
 import {
   type BackupJobTargetFormData,
   useBackupJobTargetForm,
@@ -61,9 +64,8 @@ function createTransferFormData(): BackupJobTransferFormData {
   }
 }
 
-function createTargetFormData(): BackupJobTargetFormData {
+function createTargetBackupRepositoryFormData(): BackupJobTargetBackupRepositoryFormData {
   return {
-    storageTargets: [],
     targetProxy: undefined,
     backupRepositoryScopeType: 'all',
     backupRepositoryIds: [],
@@ -80,11 +82,21 @@ function createTargetFormData(): BackupJobTargetFormData {
     ltrYearlyKeep: undefined,
     strictGfs: false,
     mergeBackupsSynchronously: false,
+  }
+}
+
+function createTargetStorageRepositoryFormData(): BackupJobTargetStorageRepositoryFormData {
+  return {
     storageRepositoryScopeType: 'all',
     storageRepositoryIds: [],
     storageRepositoryFilter: '',
     replicaDistribution: 'every',
     copyRetention: undefined,
+  }
+}
+
+function createTargetHealthCheckFormData(): BackupJobTargetHealthCheckFormData {
+  return {
     healthCheckEnabled: false,
     healthCheckSr: undefined,
     healthCheckVmTags: [],
@@ -93,6 +105,15 @@ function createTargetFormData(): BackupJobTargetFormData {
     healthCheckMonthDays: [],
     healthCheckWeekDays: [],
     healthCheckHours: [],
+  }
+}
+
+function createTargetFormData(): BackupJobTargetFormData {
+  return {
+    storageTargets: [],
+    backupRepository: createTargetBackupRepositoryFormData(),
+    storageRepository: createTargetStorageRepositoryFormData(),
+    healthCheck: createTargetHealthCheckFormData(),
   }
 }
 
@@ -131,7 +152,10 @@ export function useNewBackupJobForm() {
     dataSource => {
       Object.assign(source.formData, { ...createSourceFormData(), name: source.formData.name, dataSource })
       Object.assign(transfer.formData, createTransferFormData())
-      Object.assign(target.formData, createTargetFormData())
+      target.formData.storageTargets = []
+      Object.assign(target.backupRepository.formData, createTargetBackupRepositoryFormData())
+      Object.assign(target.storageRepository.formData, createTargetStorageRepositoryFormData())
+      Object.assign(target.healthCheck.formData, createTargetHealthCheckFormData())
       Object.assign(planning.formData, createPlanningFormData())
 
       source.reset()

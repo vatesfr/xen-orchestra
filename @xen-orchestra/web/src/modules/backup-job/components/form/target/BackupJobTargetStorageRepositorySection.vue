@@ -39,13 +39,13 @@ import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobForm
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobTargetStorageRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetStorageRepositoryTable.vue'
-import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { BackupJobTargetStorageRepositoryForm } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  bindings: BackupJobTargetForm['bindings']
+  bindings: BackupJobTargetStorageRepositoryForm['bindings']
   srs: FrontXoSr[]
   matchedSrs: FrontXoSr[]
 }>()

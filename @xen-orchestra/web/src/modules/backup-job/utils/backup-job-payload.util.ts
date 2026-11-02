@@ -3,6 +3,8 @@ import type {
   BackupJobScopeType,
   BackupJobSourceFormData,
 } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
+import type { BackupJobTargetBackupRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
+import type { BackupJobTargetHealthCheckFormData } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
 import type {
   BackupJobTargetFormData,
   BackupJobTargetScopeType,
@@ -101,14 +103,14 @@ function getTransferSettings(transfer: BackupJobTransferFormData): BackupJobSett
   }
 }
 
-function getRetentionSettings(target: BackupJobTargetFormData): BackupJobSettings {
+function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobSettings {
   const longTermRetention = Object.fromEntries(
     (
       [
-        ['daily', target.ltrDailyRetention],
-        ['weekly', target.ltrWeeklyRetention],
-        ['monthly', target.ltrMonthlyRetention],
-        ['yearly', target.ltrYearlyRetention],
+        ['daily', backupRepository.ltrDailyRetention],
+        ['weekly', backupRepository.ltrWeeklyRetention],
+        ['monthly', backupRepository.ltrMonthlyRetention],
+        ['yearly', backupRepository.ltrYearlyRetention],
       ] as const
     )
       .filter(([, retention]) => retention !== undefined && retention > 0)
@@ -117,51 +119,59 @@ function getRetentionSettings(target: BackupJobTargetFormData): BackupJobSetting
 
   return {
     longTermRetention: Object.keys(longTermRetention).length > 0 ? longTermRetention : undefined,
-    mergeBackupsSynchronously: target.mergeBackupsSynchronously || undefined,
+    mergeBackupsSynchronously: backupRepository.mergeBackupsSynchronously || undefined,
   }
 }
 
-function getRetentionPending(target: BackupJobTargetFormData, withStrictGfs: boolean): Record<string, unknown> {
+function getRetentionPending(
+  backupRepository: BackupJobTargetBackupRepositoryFormData,
+  withStrictGfs: boolean
+): Record<string, unknown> {
   return {
-    backupDistribution: target.backupDistribution,
+    backupDistribution: backupRepository.backupDistribution,
     longTermRetentionKeep: {
-      daily: target.ltrDailyKeep,
-      weekly: target.ltrWeeklyKeep,
-      monthly: target.ltrMonthlyKeep,
-      yearly: target.ltrYearlyKeep,
+      daily: backupRepository.ltrDailyKeep,
+      weekly: backupRepository.ltrWeeklyKeep,
+      monthly: backupRepository.ltrMonthlyKeep,
+      yearly: backupRepository.ltrYearlyKeep,
     },
-    strictGfs: withStrictGfs ? target.strictGfs : undefined,
+    strictGfs: withStrictGfs ? backupRepository.strictGfs : undefined,
   }
 }
 
-function getHealthCheck(target: BackupJobTargetFormData) {
-  if (!target.healthCheckEnabled) {
+function getHealthCheck(healthCheck: BackupJobTargetHealthCheckFormData) {
+  if (!healthCheck.healthCheckEnabled) {
     return { global: {}, schedule: {}, pending: {} }
   }
 
   return {
     global: {
-      healthCheckVmsWithTags: target.healthCheckVmTags,
-      healthCheckTimeout: target.healthCheckTimeout === undefined ? undefined : `${target.healthCheckTimeout}m`,
+      healthCheckVmsWithTags: healthCheck.healthCheckVmTags,
+      healthCheckTimeout:
+        healthCheck.healthCheckTimeout === undefined ? undefined : `${healthCheck.healthCheckTimeout}m`,
     },
     schedule: {
-      healthCheckSr: target.healthCheckSr,
+      healthCheckSr: healthCheck.healthCheckSr,
     },
     pending: {
       healthCheckSchedule:
-        target.healthCheckSchedule === 'dynamic'
+        healthCheck.healthCheckSchedule === 'dynamic'
           ? {
-              monthDays: target.healthCheckMonthDays,
-              weekDays: target.healthCheckWeekDays,
-              hours: target.healthCheckHours,
+              monthDays: healthCheck.healthCheckMonthDays,
+              weekDays: healthCheck.healthCheckWeekDays,
+              hours: healthCheck.healthCheckHours,
             }
           : 'always',
     },
   }
 }
 
-function getBackupRepositoryPattern(target: BackupJobTargetFormData): BackupJobPattern {
-  return toPattern(target.backupRepositoryScopeType, target.backupRepositoryIds, target.backupRepositoryFilter)
+function getBackupRepositoryPattern(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobPattern {
+  return toPattern(
+    backupRepository.backupRepositoryScopeType,
+    backupRepository.backupRepositoryIds,
+    backupRepository.backupRepositoryFilter
+  )
 }
 
 function getSchedules(planning: BackupJobPlanningFormData): Record<string, BackupJobSchedule> {
@@ -207,18 +217,22 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
   const hasBackupRepository = target.storageTargets.includes('backup-repository')
   const hasStorageRepository = target.storageTargets.includes('storage-repository')
   const snapshotRetention = transfer.offlineBackup ? 0 : transfer.snapshotRetention
-  const healthCheck = getHealthCheck(target)
+  const healthCheck = getHealthCheck(target.healthCheck)
 
   return {
     type: 'backup',
     name: source.name,
     mode: source.mode,
     compression: isIncremental ? undefined : transfer.compression,
-    proxy: hasBackupRepository ? target.targetProxy : undefined,
+    proxy: hasBackupRepository ? target.backupRepository.targetProxy : undefined,
     vms: toPattern(source.scopeType, source.vmIds, source.vmFilter),
-    remotes: hasBackupRepository ? getBackupRepositoryPattern(target) : undefined,
+    remotes: hasBackupRepository ? getBackupRepositoryPattern(target.backupRepository) : undefined,
     srs: hasStorageRepository
-      ? toPattern(target.storageRepositoryScopeType, target.storageRepositoryIds, target.storageRepositoryFilter)
+      ? toPattern(
+          target.storageRepository.storageRepositoryScopeType,
+          target.storageRepository.storageRepositoryIds,
+          target.storageRepository.storageRepositoryFilter
+        )
       : undefined,
     schedules: getSchedules(planning),
     settings: {
@@ -230,14 +244,14 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
         offlineBackup: transfer.offlineBackup || undefined,
         checkpointSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'with-memory' ? true : undefined,
         offlineSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'offline' ? true : undefined,
-        ...(hasBackupRepository ? getRetentionSettings(target) : {}),
+        ...(hasBackupRepository ? getRetentionSettings(target.backupRepository) : {}),
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
       }),
       [SCHEDULE_KEY]: withoutUndefined({
-        exportRetention: hasBackupRepository ? target.exportRetention : undefined,
-        copyRetention: hasStorageRepository ? target.copyRetention : undefined,
+        exportRetention: hasBackupRepository ? target.backupRepository.exportRetention : undefined,
+        copyRetention: hasStorageRepository ? target.storageRepository.copyRetention : undefined,
         snapshotRetention,
         ...healthCheck.schedule,
       }),
@@ -251,8 +265,8 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
               mode: transfer.snapshotSync,
               tag: transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : undefined,
             },
-      replicaDistribution: hasStorageRepository ? target.replicaDistribution : undefined,
-      ...(hasBackupRepository ? getRetentionPending(target, true) : {}),
+      replicaDistribution: hasStorageRepository ? target.storageRepository.replicaDistribution : undefined,
+      ...(hasBackupRepository ? getRetentionPending(target.backupRepository, true) : {}),
       ...healthCheck.pending,
     }),
   }
@@ -264,7 +278,7 @@ function toMirrorBackupJobPayload({
   target,
   planning,
 }: BackupJobFormDataSet): MirrorBackupJobPayload {
-  const healthCheck = getHealthCheck(target)
+  const healthCheck = getHealthCheck(target.healthCheck)
 
   return {
     type: 'mirrorBackup',
@@ -273,24 +287,24 @@ function toMirrorBackupJobPayload({
     proxy: source.proxy,
     sourceRemote: source.sourceBackupRepository,
     filter: getMirrorFilter(source),
-    remotes: getBackupRepositoryPattern(target),
+    remotes: getBackupRepositoryPattern(target.backupRepository),
     schedules: getSchedules(planning),
     settings: {
       '': withoutUndefined({
         ...getTransferSettings(transfer),
-        ...getRetentionSettings(target),
+        ...getRetentionSettings(target.backupRepository),
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
       }),
       [SCHEDULE_KEY]: withoutUndefined({
-        exportRetention: target.exportRetention,
+        exportRetention: target.backupRepository.exportRetention,
         ...healthCheck.schedule,
       }),
     },
     pending: withoutUndefined({
-      targetProxy: target.targetProxy,
-      ...getRetentionPending(target, false),
+      targetProxy: target.backupRepository.targetProxy,
+      ...getRetentionPending(target.backupRepository, false),
       ...healthCheck.pending,
     }),
   }
@@ -300,16 +314,16 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
   return {
     type: 'metadataBackup',
     name: source.name,
-    proxy: target.targetProxy,
+    proxy: target.backupRepository.targetProxy,
     xoMetadata: source.saveXoConfig,
     pools: source.savePoolsMetadata ? toPattern(source.scopeType, source.poolIds, source.poolFilter) : undefined,
-    remotes: getBackupRepositoryPattern(target),
+    remotes: getBackupRepositoryPattern(target.backupRepository),
     schedules: getSchedules(planning),
     settings: {
       '': withoutUndefined(getReportSettings(planning)),
       [SCHEDULE_KEY]: withoutUndefined({
-        retentionXoMetadata: source.saveXoConfig ? target.exportRetention : undefined,
-        retentionPoolMetadata: source.savePoolsMetadata ? target.exportRetention : undefined,
+        retentionXoMetadata: source.saveXoConfig ? target.backupRepository.exportRetention : undefined,
+        retentionPoolMetadata: source.savePoolsMetadata ? target.backupRepository.exportRetention : undefined,
       }),
     },
     pending: {},

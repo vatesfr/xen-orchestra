@@ -61,14 +61,14 @@ import BackupJobFormNumberInput from '@/modules/backup-job/components/form/input
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobTargetBackupRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositoryTable.vue'
-import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { BackupJobTargetBackupRepositoryForm } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { bindings } = defineProps<{
-  bindings: BackupJobTargetForm['bindings']
+  bindings: BackupJobTargetBackupRepositoryForm['bindings']
   brs: FrontXoBackupRepository[]
   compatibleBrs: FrontXoBackupRepository[]
   matchedBrs: FrontXoBackupRepository[]

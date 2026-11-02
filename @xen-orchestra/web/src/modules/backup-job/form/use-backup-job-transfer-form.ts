@@ -96,30 +96,82 @@ export function useBackupJobTransferForm(
     },
   })
 
+  const compressionLabels = computed<Record<BackupJobCompression, string>>(() => ({
+    '': t('none'),
+    native: t('gzip'),
+    zstd: t('zstd'),
+  }))
+
+  function getCompressionLabel(compression: BackupJobCompression): string {
+    return compressionLabels.value[compression]
+  }
+
   const compressionOptions = computed<BackupJobFormOption<BackupJobCompression>[]>(() => [
-    { label: t('none'), value: '' },
-    { label: t('gzip'), value: 'native' },
-    { label: t('zstd'), value: 'zstd' },
+    { label: compressionLabels.value[''], value: '' },
+    { label: compressionLabels.value.native, value: 'native' },
+    { label: compressionLabels.value.zstd, value: 'zstd' },
   ])
 
+  const keyBackupLabels = computed<Record<BackupJobKeyBackup, string>>(() => ({
+    never: t('never'),
+    dynamic: t('dynamic-selection'),
+    always: t('always'),
+  }))
+
+  function getKeyBackupLabel(keyBackup: BackupJobKeyBackup): string {
+    return keyBackupLabels.value[keyBackup]
+  }
+
   const keyBackupOptions = computed<BackupJobFormOption<BackupJobKeyBackup>[]>(() => [
-    { label: t('never'), value: 'never' },
-    { label: t('dynamic-selection'), value: 'dynamic' },
-    { label: t('always'), value: 'always' },
+    { label: keyBackupLabels.value.never, value: 'never' },
+    { label: keyBackupLabels.value.dynamic, value: 'dynamic' },
+    { label: keyBackupLabels.value.always, value: 'always' },
   ])
 
   const { monthDayOptions, weekDayOptions, hourOptions } = useScheduleCalendarOptions()
 
+  const snapshotModeLabels = computed<Record<BackupJobSnapshotMode, string>>(() => ({
+    default: t('default'),
+    'with-memory': t('with-memory'),
+    offline: t('offline'),
+  }))
+
+  function getSnapshotModeLabel(snapshotMode: BackupJobSnapshotMode): string {
+    return snapshotModeLabels.value[snapshotMode]
+  }
+
   const snapshotModeOptions = computed<BackupJobFormOption<BackupJobSnapshotMode>[]>(() => [
-    { label: t('default'), value: 'default', description: t('snapshot-mode:default-description') },
-    { label: t('with-memory'), value: 'with-memory', description: t('snapshot-mode:with-memory-description') },
-    { label: t('offline'), value: 'offline', description: t('snapshot-mode:offline-description') },
+    {
+      label: snapshotModeLabels.value.default,
+      value: 'default',
+      description: t('snapshot-mode:default-description'),
+    },
+    {
+      label: snapshotModeLabels.value['with-memory'],
+      value: 'with-memory',
+      description: t('snapshot-mode:with-memory-description'),
+    },
+    {
+      label: snapshotModeLabels.value.offline,
+      value: 'offline',
+      description: t('snapshot-mode:offline-description'),
+    },
   ])
 
+  const snapshotSyncLabels = computed<Record<BackupJobSnapshotSync, string>>(() => ({
+    none: t('none'),
+    all: t('all-objects-vms'),
+    smart: t('dynamic-selection'),
+  }))
+
+  function getSnapshotSyncLabel(snapshotSync: BackupJobSnapshotSync): string {
+    return snapshotSyncLabels.value[snapshotSync]
+  }
+
   const snapshotSyncOptions = computed<BackupJobFormOption<BackupJobSnapshotSync>[]>(() => [
-    { label: t('none'), value: 'none' },
-    { label: t('all-objects-vms'), value: 'all' },
-    { label: t('dynamic-selection'), value: 'smart' },
+    { label: snapshotSyncLabels.value.none, value: 'none' },
+    { label: snapshotSyncLabels.value.all, value: 'all' },
+    { label: snapshotSyncLabels.value.smart, value: 'smart' },
   ])
 
   const vmTags = computed(() => [...new Set(vms.value.flatMap(vm => vm.tags))].sort())
@@ -168,5 +220,9 @@ export function useBackupJobTransferForm(
     bindings,
     validate,
     reset,
+    getCompressionLabel,
+    getKeyBackupLabel,
+    getSnapshotModeLabel,
+    getSnapshotSyncLabel,
   }
 }

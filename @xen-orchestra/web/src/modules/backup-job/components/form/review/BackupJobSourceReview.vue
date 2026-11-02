@@ -11,17 +11,17 @@
       <template v-if="form.isMetadata.value">
         <VtsTabularKeyValueRow :label="t('save-xo-config')">
           <template #value>
-            <VtsStatus :status="bindings.saveXoConfig.modelValue" />
+            <VtsStatus :status="form.formData.saveXoConfig" />
           </template>
         </VtsTabularKeyValueRow>
         <VtsTabularKeyValueRow :label="t('save-pools-metadata')">
           <template #value>
-            <VtsStatus :status="bindings.savePoolsMetadata.modelValue" />
+            <VtsStatus :status="form.formData.savePoolsMetadata" />
           </template>
         </VtsTabularKeyValueRow>
       </template>
       <VtsTabularKeyValueRow
-        v-if="!form.isMetadata.value || bindings.savePoolsMetadata.modelValue"
+        v-if="!form.isMetadata.value || form.formData.savePoolsMetadata"
         :label="t('scope-type')"
         :value="scopeTypeLabel"
       />
@@ -62,7 +62,6 @@
 <script lang="ts" setup>
 import BackupJobReviewScopePreview from '@/modules/backup-job/components/form/review/BackupJobReviewScopePreview.vue'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
-import { formatOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import VtsQueryBuilderPreview from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
@@ -78,21 +77,15 @@ const { form } = defineProps<{
 
 const { t } = useI18n()
 
-const bindings = computed(() => form.bindings)
-
 const { useGetProxyById } = useXoProxyCollection()
 
 const { useGetBackupRepositoryById } = useXoBackupRepositoryCollection()
 
-const dataSourceLabel = computed(() =>
-  formatOptionLabel(bindings.value.dataSource.options, bindings.value.dataSource.modelValue)
-)
+const dataSourceLabel = computed(() => form.getDataSourceLabel(form.formData.dataSource))
 
-const modeLabel = computed(() => formatOptionLabel(bindings.value.mode.options, bindings.value.mode.modelValue))
+const modeLabel = computed(() => form.getModeLabel(form.formData.mode))
 
-const scopeTypeLabel = computed(() =>
-  formatOptionLabel(bindings.value.scopeType.options, bindings.value.scopeType.modelValue)
-)
+const scopeTypeLabel = computed(() => form.getScopeTypeLabel(form.formData.scopeType))
 
 const sourceProxy = useGetProxyById(() => form.formData.proxy)
 

@@ -1,5 +1,5 @@
 <template>
-  <BackupJobReviewSubtitle>{{ t('general-information') }}</BackupJobReviewSubtitle>
+  <UiSubtitle>{{ t('general-information') }}</UiSubtitle>
   <VtsTabularKeyValueList>
     <VtsTabularKeyValueRow :label="t('source-speed-limit')" :value="speedLimit" />
     <VtsTabularKeyValueRow :label="t('vm-read-concurrency')" :value="form.formData.concurrency?.toString()" />
@@ -11,7 +11,7 @@
   </VtsTabularKeyValueList>
 
   <template v-if="isIncremental && !isMirror">
-    <BackupJobReviewSubtitle>{{ t('incremental-specifics') }}</BackupJobReviewSubtitle>
+    <UiSubtitle>{{ t('incremental-specifics') }}</UiSubtitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('key-backup')" :value="keyBackupLabel" />
       <template v-if="form.bindings.keyBackup.modelValue === 'dynamic'">
@@ -33,7 +33,7 @@
   </template>
 
   <template v-if="!isMirror">
-    <BackupJobReviewSubtitle>{{ t('snapshot') }}</BackupJobReviewSubtitle>
+    <UiSubtitle>{{ t('snapshot') }}</UiSubtitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('offline-backup')">
         <template #value>
@@ -53,12 +53,12 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobReviewSubtitle from '@/modules/backup-job/components/form/review/BackupJobReviewSubtitle.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import { formatOptionLabel, formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import UiSubtitle from '@core/components/ui/subtitle/UiSubtitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -76,9 +76,9 @@ const speedLimit = computed(() =>
     : `${form.bindings.maxExportRate.modelValue} ${t('bytes:mibs')}`
 )
 
-const compressionLabel = computed(() => formatOptionLabel(form.bindings.compression.options, form.formData.compression))
+const compressionLabel = computed(() => form.getCompressionLabel(form.formData.compression))
 
-const keyBackupLabel = computed(() => formatOptionLabel(form.bindings.keyBackup.options, form.formData.keyBackup))
+const keyBackupLabel = computed(() => form.getKeyBackupLabel(form.formData.keyBackup))
 
 const keyBackupMonthDaysLabel = computed(() =>
   formatSelectedLabels(form.bindings.keyBackupMonthDays.options, form.formData.keyBackupMonthDays)
@@ -92,12 +92,10 @@ const keyBackupHoursLabel = computed(() =>
   formatSelectedLabels(form.bindings.keyBackupHours.options, form.formData.keyBackupHours)
 )
 
-const snapshotModeLabel = computed(() =>
-  formatOptionLabel(form.bindings.snapshotMode.options, form.formData.snapshotMode)
-)
+const snapshotModeLabel = computed(() => form.getSnapshotModeLabel(form.formData.snapshotMode))
 
 const snapshotSyncLabel = computed(() => {
-  const label = formatOptionLabel(form.bindings.snapshotSync.options, form.formData.snapshotSync)
+  const label = form.getSnapshotSyncLabel(form.formData.snapshotSync)
 
   return form.formData.snapshotSync === 'smart' && form.formData.snapshotSyncTag !== undefined
     ? `${label} (${form.formData.snapshotSyncTag})`
