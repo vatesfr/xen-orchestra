@@ -87,9 +87,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -108,21 +108,7 @@ const { t } = useI18n()
 
 const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
-const { getPifsByNetworkId } = useXoPifCollection()
-
-const pifs = computed(() => getPifsByNetworkId(network.id))
-
-const networkVlan = computed(() => {
-  if (pifs.value.length === 0) {
-    return
-  }
-
-  return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
-})
-
-const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
-
-const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
+const { networkVlan, networkNbd, networkDefaultLockingMode } = useXoNetworkUtils(() => network)
 </script>
 
 <style scoped lang="postcss">
