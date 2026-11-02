@@ -3,13 +3,7 @@
     <BackupJobFormRow>
       <div class="field">
         <UiLabel :accent="hasError ? 'danger' : 'neutral'" required>{{ label }}</UiLabel>
-        <UiInput
-          :model-value="model"
-          :accent="hasError ? 'danger' : 'brand'"
-          type="number"
-          required
-          @update:model-value="model = toNumber($event)"
-        />
+        <UiInput v-model.number="model" :accent="hasError ? 'danger' : 'brand'" type="number" required />
       </div>
     </BackupJobFormRow>
 
@@ -49,21 +43,13 @@ const { t } = useI18n()
 const errorMessage = computed(() => toErrorMessage(error))
 
 const hasError = computed(() => errorMessage.value !== undefined)
-
-function toNumber(value: string | number | undefined): number | undefined {
-  if (value === undefined || value === '') {
-    return undefined
-  }
-
-  return Number(value)
-}
 </script>
 
 <style lang="postcss" scoped>
 .backup-job-form-snapshot-retention {
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
+  gap: 0.4rem;
   margin-block-start: 0.8rem;
 
   .field {
@@ -76,7 +62,6 @@ function toNumber(value: string | number | undefined): number | undefined {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    margin-block-start: -1.2rem;
   }
 
   .ephemeral {

@@ -5,7 +5,7 @@
     </VtsTabularKeyValueList>
 
     <template v-if="form.hasBackupRepositorySection.value">
-      <BackupJobReviewSubtitle>{{ t('backup-repositories') }}</BackupJobReviewSubtitle>
+      <UiSubtitle>{{ t('backup-repositories') }}</UiSubtitle>
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('target-proxy')" :value="targetProxy?.name" />
         <VtsTabularKeyValueRow :label="t('scope-type')" :value="backupRepositoryScopeTypeLabel" />
@@ -14,7 +14,10 @@
           :label="t('backup-distribution-strategy')"
           :value="backupDistributionLabel"
         />
-        <VtsTabularKeyValueRow :label="t('minimum-backups-to-retain')" :value="formData.exportRetention?.toString()" />
+        <VtsTabularKeyValueRow
+          :label="t('minimum-backups-to-retain')"
+          :value="backupRepository.formData.exportRetention?.toString()"
+        />
         <template v-if="form.hasRetentionStrategy.value">
           <VtsTabularKeyValueRow :label="t('long-term-retention')">
             <template #value>
@@ -25,12 +28,12 @@
           </VtsTabularKeyValueRow>
           <VtsTabularKeyValueRow v-if="form.hasStrictGfs.value" :label="t('enforce-strict-gfs-hierarchy')">
             <template #value>
-              <VtsStatus :status="formData.strictGfs" />
+              <VtsStatus :status="backupRepository.formData.strictGfs" />
             </template>
           </VtsTabularKeyValueRow>
           <VtsTabularKeyValueRow :label="t('merge-backups-synchronously')">
             <template #value>
-              <VtsStatus :status="formData.mergeBackupsSynchronously" />
+              <VtsStatus :status="backupRepository.formData.mergeBackupsSynchronously" />
             </template>
           </VtsTabularKeyValueRow>
         </template>
@@ -38,28 +41,31 @@
     </template>
 
     <template v-if="form.hasStorageRepositorySection.value">
-      <BackupJobReviewSubtitle>{{ t('storage-repositories') }}</BackupJobReviewSubtitle>
+      <UiSubtitle>{{ t('storage-repositories') }}</UiSubtitle>
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('scope-type')" :value="storageRepositoryScopeTypeLabel" />
         <VtsTabularKeyValueRow :label="t('replica-distribution-strategy')" :value="replicaDistributionLabel" />
-        <VtsTabularKeyValueRow :label="t('minimum-replicas-to-retain')" :value="formData.copyRetention?.toString()" />
+        <VtsTabularKeyValueRow
+          :label="t('minimum-replicas-to-retain')"
+          :value="storageRepository.formData.copyRetention?.toString()"
+        />
       </VtsTabularKeyValueList>
     </template>
 
     <template v-if="form.hasHealthCheckSection.value">
-      <BackupJobReviewSubtitle>{{ t('health-check') }}</BackupJobReviewSubtitle>
+      <UiSubtitle>{{ t('health-check') }}</UiSubtitle>
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('enable-health-check')">
           <template #value>
-            <VtsStatus :status="formData.healthCheckEnabled" />
+            <VtsStatus :status="healthCheck.formData.healthCheckEnabled" />
           </template>
         </VtsTabularKeyValueRow>
-        <template v-if="formData.healthCheckEnabled">
+        <template v-if="healthCheck.formData.healthCheckEnabled">
           <VtsTabularKeyValueRow :label="t('health-check-sr')" :value="healthCheckSrName" />
           <VtsTabularKeyValueRow :label="t('timeout')" :value="healthCheckTimeout" />
           <VtsTabularKeyValueRow :label="t('health-check-vm-tags')" :value="healthCheckVmTagsLabel" />
           <VtsTabularKeyValueRow :label="t('health-check-frequency')" :value="healthCheckScheduleLabel" />
-          <template v-if="formData.healthCheckSchedule === 'dynamic'">
+          <template v-if="healthCheck.formData.healthCheckSchedule === 'dynamic'">
             <VtsTabularKeyValueRow :label="t('days-of-the-month')" :value="healthCheckMonthDaysLabel" />
             <VtsTabularKeyValueRow :label="t('days-of-the-week')" :value="healthCheckWeekDaysLabel" />
             <VtsTabularKeyValueRow :label="t('hours')" :value="healthCheckHoursLabel" />
@@ -71,14 +77,14 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobReviewSubtitle from '@/modules/backup-job/components/form/review/BackupJobReviewSubtitle.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import { formatOptionLabel, formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import UiSubtitle from '@core/components/ui/subtitle/UiSubtitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -88,74 +94,73 @@ const { form } = defineProps<{
 
 const { t } = useI18n()
 
-const formData = computed(() => form.formData)
+const { backupRepository, storageRepository, healthCheck } = form
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const targetProxy = useGetProxyById(() => form.formData.targetProxy)
+const targetProxy = useGetProxyById(() => backupRepository.formData.targetProxy)
 
 const { getSrById } = useXoSrCollection()
 
 const healthCheckSrName = computed(() =>
-  form.formData.healthCheckSr === undefined ? undefined : getSrById(form.formData.healthCheckSr)?.name_label
+  healthCheck.formData.healthCheckSr === undefined
+    ? undefined
+    : getSrById(healthCheck.formData.healthCheckSr)?.name_label
 )
 
 const healthCheckTimeout = computed(() =>
-  form.formData.healthCheckTimeout === undefined ? undefined : `${form.formData.healthCheckTimeout} ${t('minutes')}`
+  healthCheck.formData.healthCheckTimeout === undefined
+    ? undefined
+    : `${healthCheck.formData.healthCheckTimeout} ${t('minutes')}`
 )
 
 const healthCheckVmTagsLabel = computed(() =>
-  form.formData.healthCheckVmTags.length === 0 ? t('all-vms') : form.formData.healthCheckVmTags.join(', ')
+  healthCheck.formData.healthCheckVmTags.length === 0 ? t('all-vms') : healthCheck.formData.healthCheckVmTags.join(', ')
 )
 
 const backupRepositoryScopeTypeLabel = computed(() =>
-  formatOptionLabel(form.bindings.backupRepositoryScopeType.options, form.formData.backupRepositoryScopeType)
+  backupRepository.getScopeTypeLabel(backupRepository.formData.backupRepositoryScopeType)
 )
 
 const backupDistributionLabel = computed(() =>
-  formatOptionLabel(form.bindings.backupDistribution.options, form.formData.backupDistribution)
+  backupRepository.getDistributionLabel(backupRepository.formData.backupDistribution)
 )
 
 const storageRepositoryScopeTypeLabel = computed(() =>
-  formatOptionLabel(form.bindings.storageRepositoryScopeType.options, form.formData.storageRepositoryScopeType)
+  storageRepository.getScopeTypeLabel(storageRepository.formData.storageRepositoryScopeType)
 )
 
 const replicaDistributionLabel = computed(() =>
-  formatOptionLabel(form.bindings.replicaDistribution.options, form.formData.replicaDistribution)
+  storageRepository.getDistributionLabel(storageRepository.formData.replicaDistribution)
 )
 
-const healthCheckScheduleLabel = computed(() =>
-  formatOptionLabel(form.bindings.healthCheckSchedule.options, form.formData.healthCheckSchedule)
-)
+const healthCheckScheduleLabel = computed(() => healthCheck.getScheduleLabel(healthCheck.formData.healthCheckSchedule))
 
 const healthCheckMonthDaysLabel = computed(() =>
-  formatSelectedLabels(form.bindings.healthCheckMonthDays.options, form.formData.healthCheckMonthDays)
+  formatSelectedLabels(healthCheck.bindings.healthCheckMonthDays.options, healthCheck.formData.healthCheckMonthDays)
 )
 
 const healthCheckWeekDaysLabel = computed(() =>
-  formatSelectedLabels(form.bindings.healthCheckWeekDays.options, form.formData.healthCheckWeekDays)
+  formatSelectedLabels(healthCheck.bindings.healthCheckWeekDays.options, healthCheck.formData.healthCheckWeekDays)
 )
 
 const healthCheckHoursLabel = computed(() =>
-  formatSelectedLabels(form.bindings.healthCheckHours.options, form.formData.healthCheckHours)
+  formatSelectedLabels(healthCheck.bindings.healthCheckHours.options, healthCheck.formData.healthCheckHours)
 )
 
 const storageTargetsLabel = computed(() =>
   form.formData.storageTargets.length === 0
     ? t('none')
-    : form.formData.storageTargets
-        .map(target => formatOptionLabel(form.bindings.storageTargets.options, target))
-        .filter(label => label !== undefined)
-        .join(', ')
+    : form.formData.storageTargets.map(target => form.getStorageTargetLabel(target)).join(', ')
 )
 
 const longTermRetentionLines = computed(() =>
   (
     [
-      ['daily', form.formData.ltrDailyRetention, form.formData.ltrDailyKeep],
-      ['weekly', form.formData.ltrWeeklyRetention, form.formData.ltrWeeklyKeep],
-      ['monthly', form.formData.ltrMonthlyRetention, form.formData.ltrMonthlyKeep],
-      ['yearly', form.formData.ltrYearlyRetention, form.formData.ltrYearlyKeep],
+      ['daily', backupRepository.formData.ltrDailyRetention, backupRepository.formData.ltrDailyKeep],
+      ['weekly', backupRepository.formData.ltrWeeklyRetention, backupRepository.formData.ltrWeeklyKeep],
+      ['monthly', backupRepository.formData.ltrMonthlyRetention, backupRepository.formData.ltrMonthlyKeep],
+      ['yearly', backupRepository.formData.ltrYearlyRetention, backupRepository.formData.ltrYearlyKeep],
     ] as const
   )
     .filter(([, retention]) => retention !== undefined && retention > 0)
@@ -163,7 +168,7 @@ const longTermRetentionLines = computed(() =>
       t('long-term-retention:row', {
         count: retention,
         period: t(`long-term-retention:${period}`),
-        keep: form.getKeepLabel(period, keep),
+        keep: backupRepository.getKeepLabel(period, keep),
       })
     )
 )
