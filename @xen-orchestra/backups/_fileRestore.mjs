@@ -461,11 +461,14 @@ export const fileRestoreMethods = {
         }
       }
 
+      // direct listing failed, try with lvm listing
       if (partitions.length === 0) {
+        debug('direct listing of the volume partition failed, try to read through LVM')
         try {
           // handle potential raw LVM physical volume
           return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
         } catch (error) {
+          warn('LVM liting of this volume failed ', error)
           return []
         }
       }
