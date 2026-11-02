@@ -3,15 +3,13 @@ import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinatio
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vResumedVmCards from '@/modules/v2v/components/panel/V2vResumedVmCards.vue'
 import { createV2vResumedMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
 import { V2V_MAPPING_SOURCE } from '@/test/v2v-connection-provide.ts'
 import { V2V_ACTIVE_DISK_ROWS, V2V_ACTIVE_NIC_ROWS, V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
-import { mount } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -44,16 +42,12 @@ const VM = createV2vResumedMappingStepVm()
 async function mountCards() {
   seedV2vResumedVmCollections()
 
-  const { mounted: wrapper } = await mountOnV2vWizard(
-    (router, provide) =>
-      mount(V2vResumedVmCards, {
-        props: { vm: VM },
-        global: createGlobalTestConfig({
-          router,
-          provide,
-          stubs: { V2vDestinationVmCard: true, V2vNextRunCard: true, V2vActiveMappingCard: true },
-        }),
-      }),
+  const { wrapper } = await mountComponentOnV2vWizard(
+    V2vResumedVmCards,
+    {
+      props: { vm: VM },
+      stubs: { V2vDestinationVmCard: true, V2vNextRunCard: true, V2vActiveMappingCard: true },
+    },
     { step: 'mapping', source: V2V_MAPPING_SOURCE }
   )
 
