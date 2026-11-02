@@ -1,10 +1,10 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vMappingSummary, V2vSelectedVmCheck, V2vVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
+import { DISKOR_POOL_NAME, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vDisk, createV2vPortGroup } from '@/test/create-v2v-inventory.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { createV2vUnsupportedCheck, V2V_SELECTED_VM_CHECK, V2V_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
@@ -138,26 +138,14 @@ describe('getKindTag', () => {
 })
 
 describe('getCheckInfo', () => {
-  const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
-
   it.each([
-    ['a ready', { type: 'ready', level: 'ready' }, 'ready', 'success'],
-    ['a missing', { type: 'not-found', level: 'blocking' }, 'v2v:not-found-in-source', 'danger'],
-    ['a running', { type: 'running', level: 'blocking' }, 'import-in-progress', 'danger'],
-    [
-      'an already migrated',
-      { type: 'already-migrated', level: 'warning' },
-      'v2v:already-migrated-confirm-at-launch',
-      'warning',
-    ],
-    [
-      'an incompletely mapped',
-      { type: 'mapping-incomplete', level: 'blocking' },
-      'v2v:check:mapping-incomplete',
-      'danger',
-    ],
-    ['a fully supported', { type: 'no-unsupported-disk', level: 'ready' }, 'v2v:check:no-unsupported-disk', 'success'],
-    ['a snapshot-free', { type: 'no-snapshot', level: 'ready' }, 'v2v:check:no-snapshot', 'success'],
+    ['a ready', V2V_SELECTED_VM_CHECK.ready, 'ready', 'success'],
+    ['a missing', V2V_SELECTED_VM_CHECK.notFound, 'v2v:not-found-in-source', 'danger'],
+    ['a running', V2V_SELECTED_VM_CHECK.running, 'import-in-progress', 'danger'],
+    ['an already migrated', V2V_SELECTED_VM_CHECK.alreadyMigrated, 'v2v:already-migrated-confirm-at-launch', 'warning'],
+    ['an incompletely mapped', V2V_SELECTED_VM_CHECK.mappingIncomplete, 'v2v:check:mapping-incomplete', 'danger'],
+    ['a fully supported', V2V_VM_CHECK.noUnsupportedDisk, 'v2v:check:no-unsupported-disk', 'success'],
+    ['a snapshot-free', V2V_VM_CHECK.noSnapshot, 'v2v:check:no-snapshot', 'success'],
   ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck | V2vVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
@@ -171,7 +159,7 @@ describe('getCheckInfo', () => {
   ] as const)('tells a VM unsupported for its %s disk', (reason, labelKey) => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason })).toEqual({
+    expect(labels.getCheckInfo(createV2vUnsupportedCheck(reason))).toEqual({
       label: labels.t(labelKey),
       accent: 'danger',
     })
@@ -189,16 +177,17 @@ describe('getCheckInfo', () => {
   it('names the pool a VM is partially imported on', () => {
     const labels = mountLabels()
 
-    expect(
-      labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }, DISKOR_POOL_NAME)
-    ).toEqual({ label: labels.t('v2v:partial-import-on-pool', { pool: DISKOR_POOL_NAME }), accent: 'danger' })
+    expect(labels.getCheckInfo(V2V_SELECTED_VM_CHECK.partialOnOtherPool, DISKOR_POOL_NAME)).toEqual({
+      label: labels.t('v2v:partial-import-on-pool', { pool: DISKOR_POOL_NAME }),
+      accent: 'danger',
+    })
   })
 
   it('names the pool by its id while its name is unknown', () => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }).label).toBe(
-      labels.t('v2v:partial-import-on-pool', { pool: OTHER_POOL_ID })
+    expect(labels.getCheckInfo(V2V_SELECTED_VM_CHECK.partialOnOtherPool).label).toBe(
+      labels.t('v2v:partial-import-on-pool', { pool: UNKNOWN_POOL_ID })
     )
   })
 })

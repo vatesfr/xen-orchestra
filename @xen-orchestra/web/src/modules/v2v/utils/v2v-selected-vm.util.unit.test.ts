@@ -18,7 +18,7 @@ import {
   V2V_POOL_OFFERS,
   V2V_SSD_SR,
 } from '@/test/v2v-mapping-fixtures.ts'
-import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
+import { createV2vUnsupportedCheck, V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import type { XoV2vVm } from '@vates/types'
 
 const LIST_POOL_ID = 'pool-list' as FrontXoPool['id']
@@ -53,63 +53,65 @@ function createMapping(vm: XoV2vVm) {
 }
 
 describe('getV2vSelectedVmState', () => {
-  const READY = { type: 'ready', level: 'ready' }
-
   it('resumes a VM warm synced on the pool of the list, ready', () => {
-    expect(getV2vSelectedVmState(createWarmRow(LIST_POOL_ID), LIST_POOL_ID)).toEqual({ kind: 'resume', check: READY })
+    expect(getV2vSelectedVmState(createWarmRow(LIST_POOL_ID), LIST_POOL_ID)).toEqual({
+      kind: 'resume',
+      check: V2V_SELECTED_VM_CHECK.ready,
+    })
   })
 
   it('imports a supported VM not migrated as new, ready', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID)).toEqual({ kind: 'new', check: READY })
+    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID)).toEqual({
+      kind: 'new',
+      check: V2V_SELECTED_VM_CHECK.ready,
+    })
   })
 
   it('imports a VM warm without its import VM as new, ready', () => {
     expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'warm' }), LIST_POOL_ID)).toEqual({
       kind: 'new',
-      check: READY,
+      check: V2V_SELECTED_VM_CHECK.ready,
     })
   })
 
   it('imports a VM warm synced on another pool as new, blocked by that pool', () => {
     expect(getV2vSelectedVmState(createWarmRow(OTHER_POOL_ID), LIST_POOL_ID)).toEqual({
       kind: 'new',
-      check: { type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID },
+      check: { ...V2V_SELECTED_VM_CHECK.partialOnOtherPool, poolId: OTHER_POOL_ID },
     })
   })
 
   it('imports a VM warm synced as new, ready, while there is no pool to compare it with', () => {
-    expect(getV2vSelectedVmState(createWarmRow(OTHER_POOL_ID), undefined)).toEqual({ kind: 'new', check: READY })
+    expect(getV2vSelectedVmState(createWarmRow(OTHER_POOL_ID), undefined)).toEqual({
+      kind: 'new',
+      check: V2V_SELECTED_VM_CHECK.ready,
+    })
   })
 
   it('imports a migrated VM as new, with a warning', () => {
     expect(getV2vSelectedVmState(createMigratedRow(), LIST_POOL_ID)).toEqual({
       kind: 'new',
-      check: { type: 'already-migrated', level: 'warning' },
+      check: V2V_SELECTED_VM_CHECK.alreadyMigrated,
     })
   })
 
   it('blocks a VM missing from the inventory, imported as new', () => {
     expect(getV2vSelectedVmState(undefined, LIST_POOL_ID)).toEqual({
       kind: 'new',
-      check: { type: 'not-found', level: 'blocking' },
+      check: V2V_SELECTED_VM_CHECK.notFound,
     })
   })
 
   it('blocks an unsupported VM, with its reason', () => {
     const row = createV2vVmRow({ supported: false, unsupportedReason: 'encrypted' })
 
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID).check).toEqual({
-      type: 'unsupported',
-      level: 'blocking',
-      reason: 'encrypted',
-    })
+    expect(getV2vSelectedVmState(row, LIST_POOL_ID).check).toEqual(createV2vUnsupportedCheck('encrypted'))
   })
 
   it('blocks a VM being imported', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'running' }), LIST_POOL_ID).check).toEqual({
-      type: 'running',
-      level: 'blocking',
-    })
+    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'running' }), LIST_POOL_ID).check).toEqual(
+      V2V_SELECTED_VM_CHECK.running
+    )
   })
 
   it('tells an unsupported VM unsupported whatever its migration, still resumed on the pool of the list', () => {
@@ -117,7 +119,7 @@ describe('getV2vSelectedVmState', () => {
 
     expect(getV2vSelectedVmState(row, LIST_POOL_ID)).toEqual({
       kind: 'resume',
-      check: { type: 'unsupported', level: 'blocking', reason: 'rdm' },
+      check: V2V_SELECTED_VM_CHECK.unsupported,
     })
   })
 
@@ -130,18 +132,21 @@ describe('getV2vSelectedVmState', () => {
   it('blocks a new VM whose mapping is incomplete', () => {
     expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID, 'incomplete')).toEqual({
       kind: 'new',
-      check: { type: 'mapping-incomplete', level: 'blocking' },
+      check: V2V_SELECTED_VM_CHECK.mappingIncomplete,
     })
   })
 
   it('tells a new VM whose mapping is complete ready', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID, 'complete')).toEqual({ kind: 'new', check: READY })
+    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID, 'complete')).toEqual({
+      kind: 'new',
+      check: V2V_SELECTED_VM_CHECK.ready,
+    })
   })
 
   it('ignores the mapping state of a resumed VM, locked since its first sync', () => {
     expect(getV2vSelectedVmState(createWarmRow(LIST_POOL_ID), LIST_POOL_ID, 'incomplete')).toEqual({
       kind: 'resume',
-      check: READY,
+      check: V2V_SELECTED_VM_CHECK.ready,
     })
   })
 
