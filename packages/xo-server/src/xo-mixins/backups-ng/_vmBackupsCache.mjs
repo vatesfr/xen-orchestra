@@ -54,6 +54,8 @@ import { parse } from 'xo-remote-parser'
  * @property {(repository: Repository, cursor: string | undefined, opts?: { mustExist?: boolean }) => Promise<JournalRead | undefined>} readJournal
  * `undefined` when this repository cannot be replayed at all, e.g. it is attached to a proxy which
  * does not expose its journal
+ * @property {(repository: Repository, before: number) => Promise<void>} purgeJournal removes the
+ * journal days before the one of `before`, a timestamp in ms
  */
 
 /**
@@ -91,6 +93,10 @@ const CLOCK_SKEW_TOLERANCE = 5 * 60 * 1e3
 // how long an entry is kept up to date from its journal before it is listed in full again, which
 // bounds the drift described in `VmBackupsCache` at the price of one full listing per period
 const DEFAULT_REBUILD_INTERVAL = 60 * 60 * 1e3
+
+// the journal is purged by whole UTC days, therefore purging it more than once a day would remove
+// nothing more
+const PURGE_INTERVAL = 24 * 60 * 60 * 1e3
 
 // how many reads one `#refresh()` call makes at most while `refresh()` keeps being called during them:
 // past it, the next `get()` reads the entry again, so a source written to faster than it is read
@@ -268,6 +274,9 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  *
  * What it holds is also served as a collection, `archives`, for the app to register with its other
  * collections.
+ *
+ * Once a day, after it has been listed, the journal of a repository is purged of the days older than
+ * `logRetention`, see `#purgeJournal()`.
  */
 export class VmBackupsCache {
   // repository id → the backups last announced for it, which is the object the entry holds while it
@@ -302,12 +311,23 @@ export class VmBackupsCache {
   /** @type {Map<string, Entry>} */
   #entries = new Map()
 
+  /** @type {number | undefined} */
+  #logRetention
+
   /** @type {number} */
   #minRefreshDelay
 
   // repository id → promise of the ongoing build or replay, to coalesce concurrent listings
   /** @type {Map<string, Promise<BackupsByVm>>} */
   #pending = new Map()
+
+  // repository id → when its journal was last purged
+  //
+  // it outlives the entry, so that a repository which is listed again soon after, e.g. one whose proxy
+  // does not expose its journal and which is listed in full on each read, is not purged each time;
+  // only `remove()` releases it
+  /** @type {Map<Repository['id'], number>} */
+  #purgedAt = new Map()
 
   /** @type {Source} */
   #source
@@ -335,11 +355,14 @@ export class VmBackupsCache {
   /**
    * @param {Source} source
    * @param {object} [options]
+   * @param {number} [options.logRetention] how long the journal of a repository is kept, in
+   * milliseconds; it is not purged when this is not set
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
    */
-  constructor(source, { minRefreshDelay = 0 } = {}) {
+  constructor(source, { logRetention, minRefreshDelay = 0 } = {}) {
     this.#source = source
+    this.#logRetention = logRetention
     this.#minRefreshDelay = minRefreshDelay
   }
 
@@ -426,6 +449,7 @@ export class VmBackupsCache {
   remove(repositoryId) {
     const announced = this.#announced.get(repositoryId)
     this.delete(repositoryId)
+    this.#purgedAt.delete(repositoryId)
 
     if (announced === undefined) {
       return
@@ -725,9 +749,10 @@ export class VmBackupsCache {
       entry.backupsByVm = backupsByVm
 
       // the entry may have been dropped while it was being built: it is not resurrected, and what it
-      // read is not announced either
+      // read is not announced either, nor is its journal purged
       if (this.#entries.get(id) === entry) {
         this.#announce(id, backupsByVm)
+        this.#purgeJournal(repository, entry)
       }
 
       return backupsByVm
@@ -738,6 +763,36 @@ export class VmBackupsCache {
       }
       throw error
     }
+  }
+
+  /**
+   * Purges the journal of a repository which has just been listed, at most once per
+   * `PURGE_INTERVAL`, in the background: a listing must not wait for it, nor fail with it.
+   *
+   * The journal keeps every entry a replay of this entry can still ask for, whatever `logRetention`
+   * says: a replay happens up to `rebuildInterval` after the listing, from a cursor bootstrapped
+   * `CLOCK_SKEW_TOLERANCE` before it.
+   *
+   * @param {Repository} repository
+   * @param {Entry} entry
+   * @returns {void}
+   */
+  #purgeJournal(repository, entry) {
+    const { id } = repository
+    const { builtAt, rebuildInterval } = entry
+    const purgedAt = this.#purgedAt.get(id)
+    if (this.#logRetention === undefined || (purgedAt !== undefined && builtAt - purgedAt < PURGE_INTERVAL)) {
+      return
+    }
+
+    // recorded before the purge: a listing which happens during it does not purge a second time, and
+    // a failed purge is only tried again after the interval, rather than on each listing
+    this.#purgedAt.set(id, builtAt)
+
+    const retention = Math.max(this.#logRetention, rebuildInterval + CLOCK_SKEW_TOLERANCE)
+    this.#source.purgeJournal(repository, builtAt - retention).catch(error => {
+      warn('failed to purge the journal', { repositoryId: id, error })
+    })
   }
 
   /**
