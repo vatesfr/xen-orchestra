@@ -4,6 +4,7 @@ import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composab
 import type { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 
@@ -128,9 +129,6 @@ describe('validate', () => {
     post.mockReturnValue(new Promise(() => {}))
     const job = mountChangeStateJob(plugin, loaded)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(t(key))
+    expectJobRunning(job, t(key))
   })
 })

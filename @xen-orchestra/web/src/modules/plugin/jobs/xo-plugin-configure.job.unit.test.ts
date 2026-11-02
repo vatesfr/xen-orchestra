@@ -3,6 +3,7 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import type { fetchPut } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 
 const { put } = vi.hoisted(() => ({
@@ -72,9 +73,6 @@ describe('validate', () => {
     put.mockReturnValue(new Promise(() => {}))
     const job = mountConfigureJob(configurablePlugin)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(t('job:edit:in-progress'))
+    expectJobRunning(job, t('job:edit:in-progress'))
   })
 })
