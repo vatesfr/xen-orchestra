@@ -3,20 +3,20 @@
     <BackupJobFormCheckboxGroup v-if="hasStorageTargetChoice" v-bind="form.bindings.storageTargets" />
     <BackupJobTargetBackupRepositorySection
       v-if="hasBackupRepositorySection"
-      :bindings="form.bindings"
-      :brs="availableBackupRepositories"
-      :compatible-brs="compatibleBackupRepositories"
-      :matched-brs="matchedBackupRepositories"
+      :bindings="backupRepository.bindings"
+      :brs="backupRepository.availableBackupRepositories.value"
+      :compatible-brs="backupRepository.compatibleBackupRepositories.value"
+      :matched-brs="backupRepository.matchedBackupRepositories.value"
       :has-retention-strategy
       :has-strict-gfs
     />
     <BackupJobTargetStorageRepositorySection
       v-if="hasStorageRepositorySection"
-      :bindings="form.bindings"
-      :srs="availableStorageRepositories"
-      :matched-srs="matchedStorageRepositories"
+      :bindings="storageRepository.bindings"
+      :srs="storageRepository.availableStorageRepositories.value"
+      :matched-srs="storageRepository.matchedStorageRepositories.value"
     />
-    <BackupJobTargetHealthCheckSection v-if="hasHealthCheckSection" :bindings="form.bindings" />
+    <BackupJobTargetHealthCheckSection v-if="hasHealthCheckSection" :bindings="healthCheck.bindings" />
   </div>
 </template>
 
@@ -32,17 +32,15 @@ const { form } = defineProps<{
 }>()
 
 const {
+  backupRepository,
+  storageRepository,
+  healthCheck,
   hasStorageTargetChoice,
   hasBackupRepositorySection,
   hasRetentionStrategy,
   hasStrictGfs,
   hasHealthCheckSection,
   hasStorageRepositorySection,
-  availableBackupRepositories,
-  compatibleBackupRepositories,
-  availableStorageRepositories,
-  matchedBackupRepositories,
-  matchedStorageRepositories,
 } = form
 </script>
 

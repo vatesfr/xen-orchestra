@@ -176,15 +176,34 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     },
   })
 
+  const dataSourceLabels = computed<Record<BackupJobDataSource, string>>(() => ({
+    vm: t('vms-on-sr'),
+    mirror: t('vms-on-br'),
+    metadata: t('pool-metadata-and-xo-config'),
+  }))
+
+  function getDataSourceLabel(dataSource: BackupJobDataSource): string {
+    return dataSourceLabels.value[dataSource]
+  }
+
   const dataSourceOptions = computed<BackupJobFormOption<BackupJobDataSource>[]>(() => [
-    { label: t('vms-on-sr'), value: 'vm' },
-    { label: t('vms-on-br'), value: 'mirror' },
-    { label: t('pool-metadata-and-xo-config'), value: 'metadata' },
+    { label: dataSourceLabels.value.vm, value: 'vm' },
+    { label: dataSourceLabels.value.mirror, value: 'mirror' },
+    { label: dataSourceLabels.value.metadata, value: 'metadata' },
   ])
 
+  const modeLabels = computed<Record<BackupJobMode, string>>(() => ({
+    delta: t('incremental'),
+    full: t('full'),
+  }))
+
+  function getModeLabel(mode: BackupJobMode): string {
+    return modeLabels.value[mode]
+  }
+
   const modeOptions = computed<BackupJobFormOption<BackupJobMode>[]>(() => [
-    { label: t('incremental'), value: 'delta' },
-    { label: t('full'), value: 'full' },
+    { label: modeLabels.value.delta, value: 'delta' },
+    { label: modeLabels.value.full, value: 'full' },
   ])
 
   const { id: proxySelectId } = useFormSelect('proxy', proxies, {
@@ -217,10 +236,20 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     }
   )
 
+  const scopeTypeLabels = computed<Record<BackupJobScopeType, string>>(() => ({
+    all: isMetadata.value ? t('all-objects-pools') : t('all-objects-vms'),
+    manual: t('manual-selection'),
+    smart: t('dynamic-selection'),
+  }))
+
+  function getScopeTypeLabel(scopeType: BackupJobScopeType): string {
+    return scopeTypeLabels.value[scopeType]
+  }
+
   const scopeTypeOptions = computed<BackupJobFormOption<BackupJobScopeType>[]>(() => [
-    { label: isMetadata.value ? t('all-objects-pools') : t('all-objects-vms'), value: 'all' },
-    { label: t('manual-selection'), value: 'manual' },
-    { label: t('dynamic-selection'), value: 'smart' },
+    { label: scopeTypeLabels.value.all, value: 'all' },
+    { label: scopeTypeLabels.value.manual, value: 'manual' },
+    { label: scopeTypeLabels.value.smart, value: 'smart' },
   ])
 
   const bindings = reactive({
@@ -267,5 +296,8 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     selectedPoolItems,
     validate,
     reset,
+    getDataSourceLabel,
+    getModeLabel,
+    getScopeTypeLabel,
   }
 }

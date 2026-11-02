@@ -24,6 +24,10 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
 
   const { useField, validate, reset } = useValidatedForm(formData, {})
 
+  function getReportWhenLabel(reportWhen: BackupJobReportWhen): string {
+    return t(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS[reportWhen])
+  }
+
   const reportWhenOptions = computed<BackupJobFormOption<BackupJobReportWhen>[]>(() =>
     Object.entries(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS).map(([value, labelKey]) => ({
       label: t(labelKey),
@@ -52,5 +56,6 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
     bindings,
     validate,
     reset,
+    getReportWhenLabel,
   }
 }

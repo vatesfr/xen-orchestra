@@ -39,7 +39,6 @@
 
 <script lang="ts" setup>
 import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
-import { formatOptionLabel } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import { useScheduleNextRuns } from '@/modules/schedule/composables/use-schedule-next-runs.composable.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
@@ -58,7 +57,7 @@ const timeout = computed(() =>
   form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('hours')}`
 )
 
-const reportWhenLabel = computed(() => formatOptionLabel(form.bindings.reportWhen.options, form.formData.reportWhen))
+const reportWhenLabel = computed(() => form.getReportWhenLabel(form.formData.reportWhen))
 
 const nextRuns = useScheduleNextRuns(
   () => form.formData.cron,

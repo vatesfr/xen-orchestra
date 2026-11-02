@@ -35,12 +35,12 @@ import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/B
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
-import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { BackupJobTargetHealthCheckForm } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  bindings: BackupJobTargetForm['bindings']
+  bindings: BackupJobTargetHealthCheckForm['bindings']
 }>()
 
 const { t } = useI18n()
