@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Pool/Network] Add network dedicated page, with General and PIFs tabs (PR [#10704](https://github.com/vatesfr/xen-orchestra/pull/10704))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->
