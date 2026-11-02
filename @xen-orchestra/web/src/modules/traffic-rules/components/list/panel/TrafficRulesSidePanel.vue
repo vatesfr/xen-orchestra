@@ -4,6 +4,10 @@
       <TrafficRuleActions :rule />
     </template>
 
+    <template v-if="rule && showPriority" #more-actions>
+      <TrafficRuleEditOrderButton :rule :rules />
+    </template>
+
     <template v-if="rule" #default>
       <VtsStateHero v-if="!isReady" format="panel" size="medium" type="busy" />
       <template v-else>
@@ -28,6 +32,7 @@
 <script lang="ts" setup>
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import TrafficRuleActions from '@/modules/traffic-rules/components/actions/TrafficRuleActions.vue'
+import TrafficRuleEditOrderButton from '@/modules/traffic-rules/components/actions/TrafficRuleEditOrderButton.vue'
 import TrafficRuleNetworkInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkInfosCard.vue'
 import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkPifsCard.vue'
 import TrafficRulePriorityCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRulePriorityCard.vue'
