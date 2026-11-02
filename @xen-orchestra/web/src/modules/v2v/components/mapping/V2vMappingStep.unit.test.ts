@@ -3,12 +3,11 @@ import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vu
 import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
@@ -17,7 +16,7 @@ import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -51,27 +50,21 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep(vm?: string) {
-  const { mounted: wrapper, router } = await mountV2vListStep(
+  return mountV2vListStep(
     'mapping',
     setup =>
-      mountOnV2vWizard(
-        (router, provide) =>
-          mount(V2vMappingStep, {
-            global: createGlobalTestConfig({
-              router,
-              provide,
-              stubs: {
-                V2vMappingTable: true,
-                V2vVmSidePanel: true,
-              },
-            }),
-          }),
+      mountComponentOnV2vWizard(
+        V2vMappingStep,
+        {
+          stubs: {
+            V2vMappingTable: true,
+            V2vVmSidePanel: true,
+          },
+        },
         setup
       ),
     { vm }
   )
-
-  return { wrapper, router }
 }
 
 function getTable(wrapper: VueWrapper) {

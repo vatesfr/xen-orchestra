@@ -10,10 +10,9 @@ import { findCardTitleLabel } from '@/test/find-card-title.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { findTitle } from '@/test/find-titles.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
@@ -26,7 +25,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -72,23 +71,16 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 // What each group and line says belongs to useV2vReviewStep and the labels: here only the wiring matters
 async function mountStep(options?: Parameters<typeof mountV2vListStep>[2]) {
-  const { mounted: wrapper, router } = await mountV2vListStep(
+  return mountV2vListStep(
     'review',
     setup =>
-      mountOnV2vWizard(
-        router =>
-          mount(V2vReviewStep, {
-            global: createGlobalTestConfig({
-              router,
-              stubs: { V2vLaunchOptionsCard: true, V2vVmLaunchOptionsTable: true },
-            }),
-          }),
+      mountComponentOnV2vWizard(
+        V2vReviewStep,
+        { stubs: { V2vLaunchOptionsCard: true, V2vVmLaunchOptionsTable: true } },
         setup
       ),
     options
   )
-
-  return { wrapper, router }
 }
 
 // A group by its heading
