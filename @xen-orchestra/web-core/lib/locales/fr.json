@@ -870,6 +870,7 @@
   "n-internal-networks": "1 réseau interne | {n} réseaux internes",
   "n-missing": "{n} manquant | {n} manquants",
   "n-networks": "0 réseau | 1 réseau | {n} réseaux",
+  "n-nodes-excluded": "1 nœud exclu | {n} nœuds exclus",
   "n-percent": "{n} %",
   "n-snapshots": "0 instantané | 1 instantané | {n} instantanés",
   "n-srs": "0 SR | 1 SR | {n} SRs",
