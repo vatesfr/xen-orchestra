@@ -16,14 +16,14 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of isManual ? errorMessages : []" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-if="isManual && errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import { useBackupRepositoryQueryBuilder } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
@@ -93,7 +93,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
 const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
   exclude: ['proxy', 'actions'],

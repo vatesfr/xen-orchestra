@@ -6,14 +6,14 @@
     <UiInfo v-if="info" accent="info" wrap>
       {{ info }}
     </UiInfo>
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>
-      {{ message }}
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>
+      {{ errorMessage }}
     </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -28,7 +28,7 @@ const { error } = defineProps<{
 
 const model = defineModel<boolean>({ required: true })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 </script>
 
 <style lang="postcss" scoped>

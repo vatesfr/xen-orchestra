@@ -16,14 +16,14 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-for="message of isManual ? errorMessages : []" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+    <UiInfo v-if="isManual && errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import { useSrFormQueryBuilder } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -83,7 +83,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
 const { HeadCells, BodyCells, toggle } = useSrColumns({
   exclude: ['description', 'accessMode', 'actions'],

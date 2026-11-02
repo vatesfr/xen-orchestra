@@ -4,7 +4,7 @@
       <I18nT keypath="long-term-retention:row" scope="global">
         <template #count>
           <span class="count">
-            <UiInput v-model.number="retention" :accent="errorMessages.length > 0 ? 'danger' : 'brand'" type="number" />
+            <UiInput v-model.number="retention" :accent="errorMessage !== undefined ? 'danger' : 'brand'" type="number" />
           </span>
         </template>
         <template #period>
@@ -17,14 +17,14 @@
         </template>
       </I18nT>
     </div>
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>
-      {{ message }}
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>
+      {{ errorMessage }}
     </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -41,7 +41,7 @@ const { error } = defineProps<{
 
 const retention = defineModel<number | undefined>({ required: true })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 </script>
 
 <style lang="postcss" scoped>

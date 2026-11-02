@@ -22,14 +22,14 @@
           <li>{{ t('ephemeral-snapshot-mode:full') }}</li>
         </ul>
       </div>
-      <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>{{ message }}</UiInfo>
+      <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
@@ -46,9 +46,9 @@ const model = defineModel<number | undefined>({ required: true })
 
 const { t } = useI18n()
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
-const hasError = computed(() => errorMessages.value.length > 0)
+const hasError = computed(() => errorMessage.value !== undefined)
 
 function toNumber(value: string | number | undefined): number | undefined {
   if (value === undefined || value === '') {

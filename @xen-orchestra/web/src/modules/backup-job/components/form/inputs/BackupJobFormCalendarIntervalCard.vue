@@ -1,12 +1,13 @@
 <template>
-  <div class="backup-job-form-calendar-interval-card">
+  <UiCard class="backup-job-form-calendar-interval-card">
     <ScheduleStepInput :step :max-step :unit @update:step="model = getStepValues($event)" />
-  </div>
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import ScheduleStepInput from '@/modules/schedule/components/ScheduleStepInput.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import { computed } from 'vue'
 
 const { options } = defineProps<{
@@ -37,11 +38,7 @@ const step = computed(() => {
 
 <style lang="postcss" scoped>
 .backup-job-form-calendar-interval-card {
-  display: flex;
-  align-items: center;
+  justify-content: center;
   padding: 1.6rem;
-  border: 0.1rem solid var(--color-neutral-border);
-  border-radius: 0.8rem;
-  background-color: var(--color-neutral-background-primary);
 }
 </style>

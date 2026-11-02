@@ -11,8 +11,8 @@
         <slot name="info">{{ info }}</slot>
       </template>
     </UiCheckbox>
-    <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
-      {{ message }}
+    <UiInfo v-if="warningMessage !== undefined" accent="warning" wrap>
+      {{ warningMessage }}
     </UiInfo>
   </div>
 </template>
@@ -38,14 +38,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
-const slots = defineSlots<{
-  default?(): any
-  info?(): any
-}>()
+const warningMessage = computed(() => {
+  const [message] = toArray(warning)
 
-const warningMessages = computed(() =>
-  toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
-)
+  return typeof message === 'object' ? message.content : message
+})
 </script>
 
 <style lang="postcss" scoped>

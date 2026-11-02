@@ -1,28 +1,24 @@
 <template>
   <div class="backup-job-form-calendar-values-card">
-    <div :class="{ error: errorMessages.length > 0 }" class="card">
-      <span class="header typo-body-bold">{{ label }}</span>
-      <div class="values" :style="{ gridTemplateColumns: `repeat(${columns}, 1fr)` }">
-        <ScheduleCronValueButton
-          v-for="option of options"
-          :key="option.value"
-          :selected="model.includes(option.value)"
-          @toggle="toggle(option.value)"
-        >
-          {{ option.label }}
-        </ScheduleCronValueButton>
-      </div>
-    </div>
-    <UiInfo v-for="message of errorMessages" :key="message" accent="danger" wrap>
-      {{ message }}
+    <ScheduleValuesCard
+      class="card"
+      :title="label"
+      :options
+      :columns
+      :selected-values="model"
+      :error="errorMessage !== undefined"
+      @toggle="toggle($event)"
+    />
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>
+      {{ errorMessage }}
     </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessages } from '@/modules/backup-job/utils/backup-job-error-messages.util.ts'
+import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
-import ScheduleCronValueButton from '@/modules/schedule/components/ScheduleCronValueButton.vue'
+import ScheduleValuesCard from '@/modules/schedule/components/ScheduleValuesCard.vue'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { computed } from 'vue'
@@ -36,7 +32,7 @@ const { error } = defineProps<{
 
 const model = defineModel<number[]>({ required: true })
 
-const errorMessages = computed(() => toErrorMessages(error))
+const errorMessage = computed(() => toErrorMessage(error))
 
 function toggle(value: number) {
   model.value = model.value.includes(value)
@@ -52,30 +48,7 @@ function toggle(value: number) {
   gap: 0.4rem;
 
   .card {
-    display: flex;
-    flex-direction: column;
     flex: 1;
-    border: 0.1rem solid var(--color-neutral-border);
-    overflow: hidden;
-    border-radius: 0.8rem;
-    background-color: var(--color-neutral-background-primary);
-
-    &.error {
-      border-color: var(--color-danger-item-base);
-    }
-  }
-
-  .header {
-    padding: 1.6rem;
-  }
-
-  .values {
-    display: grid;
-    align-content: center;
-    gap: 0.4rem;
-    flex: 1;
-    padding: 1.6rem;
-    background-color: var(--color-neutral-background-secondary);
   }
 }
 </style>
