@@ -43,4 +43,13 @@ describe('getBackupJobsUsingBackupRepository', () => {
 
     expect(getBackupJobsUsingBackupRepository(br.id, [otherTarget, otherSource])).toEqual([])
   })
+
+  it('treats a job using an expression as using every repository', () => {
+    const job = createBackupJob({
+      id: 'expression',
+      remotes: 'backupRepository:type:nfs',
+    })
+
+    expect(getBackupJobsUsingBackupRepository(br.id, [job])).toEqual([job])
+  })
 })
