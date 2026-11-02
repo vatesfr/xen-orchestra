@@ -79,6 +79,9 @@ export class BlockAllocationTable {
   }
 
   isEmpty(index: number): boolean {
+    if (index >= this.#maxBlockCount) {
+      return true
+    }
     const offset = index * HASH_SIZE
     return this.#bat.compare(ZERO_ENTRY, 0, HASH_SIZE, offset, offset + HASH_SIZE) === 0
   }
