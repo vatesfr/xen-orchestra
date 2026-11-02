@@ -89,6 +89,22 @@ describe('vlanInputBindings', () => {
 
     expect(result.vlanInputBindings.warning).toBeUndefined()
   })
+
+  it('reports a non-integer VLAN on blur', async () => {
+    const result = mountNewNetworkForm()
+
+    await blurVlan(result, 10.5)
+
+    expect(result.vlanInputBindings.error).toMatchObject({ accent: 'danger' })
+  })
+
+  it('does not report an integer VLAN on blur', async () => {
+    const result = mountNewNetworkForm()
+
+    await blurVlan(result, 10)
+
+    expect(result.vlanInputBindings.error).toBeUndefined()
+  })
 })
 
 describe('interfaceSelectBindings', () => {

@@ -3,7 +3,7 @@ import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-sele
 import type { NewNetworkPayload } from '@/modules/network/jobs/xo-network-create.job.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { type FormValidationConfig, outOfRange, required, withMessage } from '@core/packages/form-validation'
+import { type FormValidationConfig, integer, outOfRange, required, withMessage } from '@core/packages/form-validation'
 import { type MaybeRefOrGetter, reactive, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -32,6 +32,9 @@ export function useNewNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | 
       onSubmit: () => ({
         pif: { required: withMessage(required, () => t('interface-required')) },
         vlan: { required: withMessage(required, () => t('vlan-required')) },
+      }),
+      onBlur: () => ({
+        vlan: { integer },
       }),
     },
     warnings: {

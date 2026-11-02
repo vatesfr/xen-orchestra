@@ -66,6 +66,12 @@ describe('validate', () => {
 
     await expect(result.validate()).resolves.toBe(true)
   })
+
+  it('blocks on a non-integer MTU', async () => {
+    const result = mountNetworkFormBase(POOL_ID, { name: 'Network', mtu: 1500.5 })
+
+    await expect(result.validate()).resolves.toBe(false)
+  })
 })
 
 describe('mtuInputBindings', () => {
@@ -96,6 +102,24 @@ describe('mtuInputBindings', () => {
     await flushPromises()
 
     expect(result.mtuInputBindings.warning).toBeUndefined()
+  })
+
+  it('reports a non-integer MTU on blur', async () => {
+    const result = mountNetworkFormBase(POOL_ID, { mtu: 1500.5 })
+
+    result.mtuInputBindings.onBlur()
+    await flushPromises()
+
+    expect(result.mtuInputBindings.error).toMatchObject({ accent: 'danger' })
+  })
+
+  it('does not report an integer MTU on blur', async () => {
+    const result = mountNetworkFormBase(POOL_ID, { mtu: 1500 })
+
+    result.mtuInputBindings.onBlur()
+    await flushPromises()
+
+    expect(result.mtuInputBindings.error).toBeUndefined()
   })
 })
 

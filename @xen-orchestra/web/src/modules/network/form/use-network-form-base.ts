@@ -1,6 +1,7 @@
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import {
   type FormValidationConfig,
+  integer,
   mergeValidationConfigs,
   outOfRange,
   required,
@@ -48,6 +49,9 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
       onSubmit: () => ({
         pool: { required: withMessage(required, () => t('pool-required')) },
         name: { required: withMessage(required, () => t('name-required')) },
+      }),
+      onBlur: () => ({
+        mtu: { integer },
       }),
     },
     warnings: {
