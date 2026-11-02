@@ -16,6 +16,7 @@ import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { V2V_DEFAULT_OFFERS, V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 
@@ -174,10 +175,10 @@ describe('items', () => {
     })
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
-      result.labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason: 'rdm' }),
-      result.labels.getCheckInfo({ type: 'already-migrated', level: 'warning' }),
-      result.labels.getCheckInfo({ type: 'not-found', level: 'blocking' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.unsupported),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.alreadyMigrated),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.notFound),
     ])
   })
 
@@ -187,8 +188,8 @@ describe('items', () => {
     destinationCollectionsMock.srs.value = []
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
     ])
   })
 
@@ -318,8 +319,8 @@ describe('activeVm', () => {
       id: V2V_DB_VM.id,
       name: V2V_DB_VM.name,
       kind: 'resume',
-      check: { type: 'ready', level: 'ready' },
-      checkInfo: result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
+      check: V2V_SELECTED_VM_CHECK.ready,
+      checkInfo: result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
     })
   })
 
