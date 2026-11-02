@@ -24,6 +24,7 @@
 - [XO6/V2V] _Migrate VMs_ wizard: choose the destination pool and its default SR, network and template (PR [#10626](https://github.com/vatesfr/xen-orchestra/pull/10626))
 - [XO6/V2V] _Migrate VMs_ wizard: select the VMs to migrate, filtered by datastore, status or name, and review the migration list (PR [#10638](https://github.com/vatesfr/xen-orchestra/pull/10638))
 - [XO6/V2V] _Migrate VMs_ wizard: map each VM of the migration list, with an SR per disk, a network per network card, its template, MAC addresses and tags, or see the mapping a partially imported VM keeps since its first sync (PR [#10681](https://github.com/vatesfr/xen-orchestra/pull/10681))
+- [XO6/V2V] _Migrate VMs_ wizard: review the VMs to launch, grouped as excluded, already migrated, resumed or new, set the launch options for all of them or per VM, and start the migration (PR [#10701](https://github.com/vatesfr/xen-orchestra/pull/10701))
 
 ### Bug fixes
 
