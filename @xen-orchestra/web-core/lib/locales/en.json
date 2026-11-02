@@ -656,7 +656,7 @@
   "job:node-resume-reconciliation:in-progress": "Reconciliation resume in progress…",
   "job:node-resume-reconciliation:missing-node": "@:node-missing",
   "job:node-resume-reconciliation:not-paused": "Node reconciliation is not paused",
-  "job:node-uncordon:draining": "Node is draining",
+  "job:node-uncordon:draining": "Cannot uncordon a node that is currently draining",
   "job:node-uncordon:in-progress": "Uncordon in progress…",
   "job:node-uncordon:missing-node": "@:node-missing",
   "job:node-uncordon:not-cordoned": "Node is not cordoned",
