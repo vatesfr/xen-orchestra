@@ -18,12 +18,13 @@ import { Task } from '@vates/task'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { getProxyCacheParams, rejectsUnknownParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
-import { serializeError, unboxIdsFromPattern, isSrWritable } from '../../utils.mjs'
+import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
-import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
-import { buildRunContext, buildSrContext, buildBackupRepositoryContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -202,44 +203,36 @@ export default class BackupNg {
           const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
 
           if (isExpression(job.srs)) {
-            const predicate = compileExpression(job.srs)
-
-            const srs = Object.values(app.getObjectsByType('SR'))
-
-            const srUuids = []
-            srs.forEach(sr => {
-              if (isSrWritable(sr) && predicate(buildSrContext(sr, runContext))) {
-                srUuids.push(sr.uuid)
-              }
-            })
+            const srUuids = resolveBackupSrs(job, Object.values(app.getObjectsByType('SR')), runContext)
 
             job.srs = { id: { __or: srUuids } }
           }
 
           if (isExpression(job.remotes)) {
-            const predicate = compileExpression(job.remotes)
+            const {
+              backupRepositoryIds: remoteIds,
+              proxySkippedIds,
+              invalidUrlIds,
+            } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
 
-            const remotes = await app.getAllRemotes()
-
-            const remoteIds = []
-            const skippedRemoteIds = []
-            remotes.forEach(remote => {
-              if (predicate(buildBackupRepositoryContext(remote, runContext))) {
-                if (remote.proxy === job.proxy) {
-                  remoteIds.push(remote.id)
-                } else {
-                  skippedRemoteIds.push(remote.id)
-                }
-              }
-            })
-
-            if (skippedRemoteIds.length > 0) {
+            if (proxySkippedIds.length > 0) {
               jobsLogger.warning(
                 'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
                 {
                   event: 'task.warning',
                   taskId: runJobId,
-                  data: { remotes: skippedRemoteIds, proxy: job.proxy },
+                  data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+                }
+              )
+            }
+
+            if (invalidUrlIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but have an invalid URL, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { backupRepositories: invalidUrlIds },
                 }
               )
             }

@@ -17,7 +17,7 @@ export function compileExpression(expression) {
  * Returns true if value is a non-empty string — i.e. a complex-matcher expression.
  *
  * @param {unknown} value
- * @returns {boolean}
+ * @returns {value is string}
  */
 export function isExpression(value) {
   return typeof value === 'string' && value.length > 0 && !Number.isFinite(Number(value))

@@ -4,7 +4,7 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 export function assertValidSettingsExpression(settings, keys) {
   for (const [scheduleId, scheduleSettings] of Object.entries(settings ?? {})) {
     for (const key of keys) {
-      assertValidExpression(`settings/${scheduleId}/${key}`, scheduleSettings?.[key])
+      assertValidExpression(`settings/${scheduleId === '' ? 'general' : scheduleId}/${key}`, scheduleSettings?.[key])
     }
   }
 }
@@ -18,5 +18,9 @@ export function assertValidExpression(name, value) {
         { instancePath: `/${name}`, message: error.message },
       ])
     }
+  } else if (typeof value === 'string' && value.trim() === '') {
+    throw invalidParameters(`Invalid ${name} expression: must be a non-empty expression`, [
+      { instancePath: `/${name}`, message: 'must be a non-empty expression' },
+    ])
   }
 }

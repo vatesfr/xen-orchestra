@@ -185,6 +185,8 @@ getJob.params = {
 }
 
 export async function runJob({ id, schedule, settings, vm, vms = vm !== undefined ? [vm] : undefined }) {
+  assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
+
   return this.runJobSequence([id], await this.getSchedule(schedule), {
     settings,
     vms,

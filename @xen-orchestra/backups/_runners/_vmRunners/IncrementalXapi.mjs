@@ -240,14 +240,15 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     // we do tafter checkbasevdis because we want the writer to know the target VM
     // especially on replication when we always update the same VM
     const fullInterval = this._settings.fullInterval
+    const chainLength = (deltaChainLength ?? 0) + 1
     if (isExpression(fullInterval)) {
-      const context = buildVmContext(this._vm, this._runContext, deltaChainLength + 1)
+      const context = buildVmContext(this._vm, this._runContext, chainLength)
       if (this._fullIntervalPredicate(context)) {
         debug('forcing full backup: fullInterval expression matched', { fullInterval })
         return
       }
-    } else if (fullInterval !== 0 && fullInterval <= deltaChainLength + 1) {
-      debug('not using base VM because fullInterval reached', { fullInterval, deltaChainLength })
+    } else if (fullInterval !== 0 && fullInterval <= chainLength) {
+      debug('not using base VM because fullInterval reached', { fullInterval, chainLength })
       return
     }
 

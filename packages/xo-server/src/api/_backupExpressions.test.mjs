@@ -21,8 +21,14 @@ describe('assertValidExpression', function () {
   })
 
   it('ignores values which are not expressions', function () {
-    for (const value of [undefined, '', { id: 'sr-1' }, { id: { __or: ['sr-1', 'sr-2'] } }]) {
+    for (const value of [undefined, '3', { id: 'sr-1' }, { id: { __or: ['sr-1', 'sr-2'] } }]) {
       assert.doesNotThrow(() => assertValidExpression('srs', value))
+    }
+  })
+
+  it('rejects blank strings', function () {
+    for (const value of ['', '  ']) {
+      assert.throws(() => assertValidExpression('srs', value), isInvalidAt('/srs'))
     }
   })
 })
@@ -47,10 +53,10 @@ describe('assertValidSettingsExpression', function () {
   })
 
   it('rejects an invalid expression in the general settings', function () {
-    // the general settings are keyed by '', hence the empty segment in the path
+    // the general settings are keyed by '', named "general" in the path.
     assert.throws(
       () => assertValidSettingsExpression({ '': { healthCheckVmsWithTags: INVALID } }, KEYS),
-      isInvalidAt('/settings//healthCheckVmsWithTags')
+      isInvalidAt('/settings/general/healthCheckVmsWithTags')
     )
   })
 
