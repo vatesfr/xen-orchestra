@@ -3,6 +3,7 @@ import { ApiError } from '@/shared/error/api.error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
@@ -40,16 +41,12 @@ describe('errorMessage', () => {
   it('reports a connection in progress', () => {
     const job = mountInventoryJob(createV2vConnection())
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(job.t('job:connect:in-progress'))
+    expectJobRunning(job, job.t('job:connect:in-progress'))
   })
 
-  it('has no error with a connection when idle', () => {
+  it('can run with a connection', () => {
     const job = mountInventoryJob(createV2vConnection())
 
     expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
   })
 })

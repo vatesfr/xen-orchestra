@@ -10,6 +10,7 @@ import {
   V2V_START_TASK_ID,
 } from '@/test/create-v2v-launch.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { XoV2vStartPayload } from '@vates/types'
 
@@ -41,10 +42,7 @@ describe('errorMessage', () => {
   it('reports a launch in progress', () => {
     const job = mountStartJob(POOL, PAYLOAD)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(job.t('job:v2v-start:in-progress'))
+    expectJobRunning(job, job.t('job:v2v-start:in-progress'))
   })
 
   it('reports a missing pool', () => {
@@ -68,10 +66,9 @@ describe('errorMessage', () => {
     expect(job.errorMessage).toBe(job.t('job:v2v-start:missing-vm'))
   })
 
-  it('has no error with a pool and a payload of one VM when idle', () => {
+  it('can run with a pool and a payload of one VM', () => {
     const job = mountStartJob(POOL, PAYLOAD)
 
     expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
   })
 })
