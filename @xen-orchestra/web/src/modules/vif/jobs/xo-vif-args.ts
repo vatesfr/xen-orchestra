@@ -5,3 +5,8 @@ export const xoVifsArg = defineJobArg({
   identify: (vif: FrontXoVif) => vif.id,
   toArray: true,
 })
+
+export const xoVifArg = defineJobArg({
+  identify: (vif: FrontXoVif) => vif.id,
+  toArray: false,
+})

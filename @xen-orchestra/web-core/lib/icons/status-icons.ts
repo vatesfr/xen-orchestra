@@ -107,6 +107,17 @@ export const statusIcons = defineIconPack({
       size: [10, 8],
     },
   ],
+  'info-circle-brand': [
+    {
+      icon: faCircle,
+      color: 'var(--color-brand-item-base)',
+    },
+    {
+      icon: faInfo,
+      color: 'var(--color-brand-txt-item)',
+      size: [10, 8],
+    },
+  ],
   'info-picto': constructIcon(faUserAstronaut),
   success: constructIcon(faCheck),
   'success-circle': [
