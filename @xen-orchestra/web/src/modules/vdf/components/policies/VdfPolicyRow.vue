@@ -8,6 +8,16 @@
     <th :colspan="columns" scope="rowgroup" class="cell">
       <div class="content">
         <div class="title">
+          <!-- a global policy in a pool: one line until opened (vdf: lean board) -->
+          <UiButtonIcon
+            v-if="collapsed !== undefined"
+            :icon="collapsed ? 'fa:angle-right' : 'fa:angle-down'"
+            :aria-label="collapsed ? t('firewall:policy:expand') : t('firewall:policy:collapse')"
+            :aria-expanded="!collapsed"
+            accent="brand"
+            size="small"
+            @click="emit('toggle')"
+          />
           <span class="name typo-h6">{{ displayName(entry.policy.name) }}</span>
           <UiTag v-if="entry.locked" v-tooltip="t('firewall:global:tooltip')" accent="muted" variant="primary">
             <VtsIcon name="fa:globe" size="small" />
@@ -47,6 +57,9 @@
             <VdfActionTag :action="entry.policy.default" is-default />
           </span>
           <UiInfo v-if="enforcement" :accent="enforcement.accent">{{ enforcement.label }}</UiInfo>
+          <span v-if="collapsed" class="secondary typo-body-regular-small">
+            {{ t('firewall:policy:rule-count', { n: ruleCount }, ruleCount) }}
+          </span>
         </div>
 
         <div class="actions">
@@ -161,6 +174,9 @@ const { entry, realization, spread, scopeId, publishedMonitored = false } = defi
   spread?: { vms: number; networks: string[] }
   // published in monitor mode: its hosts report what it would drop
   publishedMonitored?: boolean
+  // folded to its header line (a global policy in a pool), or open;
+  // undefined: always open
+  collapsed?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -172,9 +188,12 @@ const emit = defineEmits<{
   addEgressRule: []
   setMode: [mode: VdfPolicyMode]
   limitNetworks: []
+  toggle: []
 }>()
 
 const monitored = computed(() => isMonitored(entry.policy))
+
+const ruleCount = computed(() => entry.rules.length + entry.egressRules.length)
 
 // the monitor report is a pool's: the global firewall has none
 const { openMonitorReport } = useVdfMonitorDrawer()

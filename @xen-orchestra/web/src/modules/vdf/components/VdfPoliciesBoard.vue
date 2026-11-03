@@ -70,7 +70,6 @@
           <col />
           <col />
           <col v-if="showHits" class="hits" />
-          <col class="log" />
           <col class="actions" />
         </colgroup>
         <thead>
@@ -81,13 +80,22 @@
             <VtsHeaderCell>{{ t('firewall:service') }}</VtsHeaderCell>
             <VtsHeaderCell>{{ t('firewall:destination') }}</VtsHeaderCell>
             <VtsHeaderCell v-if="showHits">{{ t('firewall:hits') }}</VtsHeaderCell>
-            <VtsHeaderCell>{{ t('firewall:log') }}</VtsHeaderCell>
             <VtsHeaderCell>
               <span class="visually-hidden">{{ t('firewall:actions') }}</span>
             </VtsHeaderCell>
           </tr>
         </thead>
-        <tbody v-for="tier of tiers" :key="tier.value">
+        <!-- tiers without a policy in a row: one quiet line -->
+        <tbody v-for="block of emptyTierBlocks" :key="block.key">
+          <VdfEmptyTiersRow
+            v-if="block.empty"
+            :tiers="block.tiers"
+            :columns
+            :can-add="search === ''"
+            :is-reserved="tier => reservedTiers && isReservedTier(tier)"
+            @add-policy="tier => addPolicy(tier)"
+          />
+          <template v-for="tier of block.empty ? [] : block.tiers" :key="tier.value">
           <VdfTierRow
             :tier
             :columns
@@ -107,6 +115,8 @@
               :highlighted="isPolicyHighlighted(entry)"
               :anchor-id="policyAnchor(entry.policy.name)"
               :published-monitored="publishedMonitored.has(entry.policy.name)"
+              :collapsed="isCollapsible(entry) ? !isExpanded(entry) : undefined"
+              @toggle="toggleExpanded(entry.policy.name)"
               @edit="editPolicy(entry.policy)"
               @delete="confirmDeletePolicy(entry.policy.name)"
               @restore="restorePolicy(entry.policy.name)"
@@ -116,6 +126,7 @@
               @limit-networks="editGroup(entry.policy.appliedTo, undefined, { scoped: true })"
               @set-mode="mode => setMode(entry.policy.name, mode)"
             />
+            <template v-if="!isCollapsible(entry) || isExpanded(entry)">
             <VdfRuleRow
               v-for="ruleEntry of entry.rules"
               :key="`${ruleEntry.rule.id}:${ruleEntry.state}`"
@@ -135,7 +146,6 @@
               @restore="restoreRule(entry.policy.name, ruleEntry.rule.id)"
               @move="to => edit(target => moveRule(target, entry.policy.name, ruleEntry.rule.id, to))"
             />
-            <VdfNoMatchRow :policy="entry.policy" :columns :removed="entry.state === 'removed'" />
             <VdfRuleRow
               v-for="ruleEntry of entry.egressRules"
               :key="`${ruleEntry.rule.id}:${ruleEntry.state}`"
@@ -162,6 +172,8 @@
               :removed="entry.state === 'removed'"
               egress
             />
+            </template>
+          </template>
           </template>
         </tbody>
       </VtsTable>
@@ -172,6 +184,7 @@
 </template>
 
 <script lang="ts" setup>
+import VdfEmptyTiersRow from '@/modules/vdf/components/policies/VdfEmptyTiersRow.vue'
 import VdfNoMatchRow from '@/modules/vdf/components/policies/VdfNoMatchRow.vue'
 import VdfPolicyRow from '@/modules/vdf/components/policies/VdfPolicyRow.vue'
 import VdfRuleRow from '@/modules/vdf/components/policies/VdfRuleRow.vue'
@@ -200,6 +213,7 @@ import {
   reservedTierPolicies,
   ruleBase,
   type VdfRuleBasePolicy,
+  type VdfRuleBaseTier,
   type VdfRuleBaseRule,
 } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hasEgress } from '@/modules/vdf/utils/vdf-rules.util.ts'
@@ -313,7 +327,7 @@ const tiers = computed(() =>
 
 const showHits = ref(false)
 
-const columns = computed(() => (showHits.value ? 8 : 7))
+const columns = computed(() => (showHits.value ? 7 : 6))
 
 const { hitsByRule } = useVdfRuleHits(
   () => (scope.kind === 'pool' ? scope.pool.id : ''),
@@ -350,6 +364,44 @@ const highlightedRuleQuery = useRouteQuery('rule')
 const highlightedRule = computed(() =>
   highlightedRuleQuery.value === '' ? undefined : Number(highlightedRuleQuery.value)
 )
+
+// TIERS: a run of tiers without a policy folded in one line, where it
+// comes in the evaluation order
+const emptyTierBlocks = computed(() => {
+  const blocks: { key: string; empty: boolean; tiers: VdfRuleBaseTier[] }[] = []
+
+  for (const tier of tiers.value) {
+    const empty = tier.policies.length === 0
+    const last = blocks.at(-1)
+
+    if (empty && last?.empty) {
+      last.tiers.push(tier)
+    } else {
+      blocks.push({ key: String(tier.value), empty, tiers: [tier] })
+    }
+  }
+
+  return blocks
+})
+
+// GLOBAL POLICIES in a pool: edited XO-wide, one line each until opened
+// (all open while searching)
+const expanded = ref(new Set<string>())
+
+const isCollapsible = (entry: VdfRuleBasePolicy) => entry.locked && !isGlobal
+
+const isExpanded = (entry: VdfRuleBasePolicy) =>
+  search.value !== '' || expanded.value.has(entry.policy.name) || isPolicyHighlighted(entry)
+
+function toggleExpanded(name: string) {
+  const next = new Set(expanded.value)
+
+  if (!next.delete(name)) {
+    next.add(name)
+  }
+
+  expanded.value = next
+}
 
 function isPolicyHighlighted({ policy }: VdfRuleBasePolicy) {
   return highlightedRule.value === undefined && highlightedPolicy.value === policy.name
