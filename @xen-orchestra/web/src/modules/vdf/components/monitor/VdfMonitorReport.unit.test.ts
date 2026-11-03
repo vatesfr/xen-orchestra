@@ -32,7 +32,15 @@ const { data } = vi.hoisted(() => ({
     // the draft (`edit` applies a change to it)
     draft: undefined as VdfDocument | undefined,
     edit: vi.fn(),
+    // the overlays opened (the Enforce confirmation), each confirmed
+    open: vi.fn<(options: { props: Record<string, unknown> }) => Promise<{ event: string }>>(async () => ({
+      event: 'onConfirm',
+    })),
   },
+}))
+
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+  useOverlay: (() => ({ open: data.open })) as never,
 }))
 
 const DOCUMENT: VdfDocument = {
@@ -288,6 +296,10 @@ describe('per policy', () => {
     expect(header.text()).toContain(t('firewall:monitor:header:flows', { n: 2 }, 2))
 
     await header.get('button').trigger('click')
+    await flushPromises()
+
+    // confirmed after saying what it would have dropped
+    expect(data.open.mock.calls[0][0].props).toMatchObject({ policy: 'cache', total: 2 })
 
     const change = data.edit.mock.calls[0][0] as (document: VdfDocument) => void
     const target = structuredClone(DOCUMENT)

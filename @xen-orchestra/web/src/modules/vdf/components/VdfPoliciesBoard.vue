@@ -106,6 +106,7 @@
               :realization="realizationOf(entry.policy.name)"
               :highlighted="isPolicyHighlighted(entry)"
               :anchor-id="policyAnchor(entry.policy.name)"
+              :published-monitored="publishedMonitored.has(entry.policy.name)"
               @edit="editPolicy(entry.policy)"
               @delete="confirmDeletePolicy(entry.policy.name)"
               @restore="restorePolicy(entry.policy.name)"
@@ -256,6 +257,11 @@ const hasError = computed(() =>
 )
 
 const { editPolicy, editRule, editGroup, hasTaggedGroups, reservedTiers } = useVdfEditors(() => scope)
+
+// the published policies in monitor mode: their report decides enforcing
+const publishedMonitored = computed(
+  () => new Set(baseDocument.value.policies.filter(isMonitored).map(policy => policy.name))
+)
 
 // the monitor mode report, a pool's, while a published policy is in that
 // mode (connection limits moved to Settings)
