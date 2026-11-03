@@ -5,6 +5,8 @@
         {{ tab.label }}
       </UiTabItem>
     </RouterLink>
+    <!-- a page's own controls in the bar's free space (Traffic's live updates) -->
+    <div :id="VDF_NAV_ACTIONS_ID" class="actions" />
     <!-- tech preview (vdf#42) -->
     <VdfPreviewBadge class="preview" />
   </TabList>
@@ -13,6 +15,7 @@
 <script lang="ts" setup>
 import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
+import { VDF_NAV_ACTIONS_ID } from '@/modules/vdf/utils/vdf-global.util.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { computed } from 'vue'
@@ -61,8 +64,24 @@ const tabs = computed<{ to: RouteLocationRaw; label: string; also?: string[] }[]
 </script>
 
 <style lang="postcss" scoped>
+.vdf-firewall-nav .actions {
+  display: flex;
+  align-self: center;
+  align-items: center;
+  margin-inline-start: auto;
+  white-space: nowrap;
+
+  /* narrow: the live dot and its button, without the words */
+  @media (--small) {
+    :deep(.vdf-live-indicator .label) {
+      display: none;
+    }
+  }
+}
+
 .vdf-firewall-nav .preview {
   align-self: center;
-  margin-inline: auto 1.6rem;
+  margin-inline: 0.8rem 1.6rem;
+  white-space: nowrap;
 }
 </style>

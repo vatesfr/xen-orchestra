@@ -12,7 +12,11 @@
       {{ t('firewall:live:sampling') }}
     </VtsStateHero>
     <template v-else>
-      <div class="toolbar">
+      <!-- one control for the page's live updates, rule log included, in the tab bar -->
+      <Teleport defer :to="`#${VDF_NAV_ACTIONS_ID}`">
+        <VdfLiveIndicator v-model:paused="isPaused" :label="t('firewall:live:refreshing')" />
+      </Teleport>
+      <div v-if="hasDraft || vmFilter !== ''" class="toolbar">
         <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
         <UiChip
           v-if="vmFilter !== ''"
@@ -22,7 +26,6 @@
         >
           {{ t('firewall:live:vm-filter', { vm: filteredVm?.name_label ?? vmFilter }) }}
         </UiChip>
-        <VdfLiveIndicator v-model:paused="isPaused" class="indicator" :label="t('firewall:live:refreshing')" />
       </div>
 
       <UiAlert v-if="hasStatsError" accent="warning">
@@ -92,7 +95,7 @@
             </UiButton>
           </template>
         </UiTitle>
-        <VdfRuleLogTable :pool-id="pool.id" />
+        <VdfRuleLogTable :pool-id="pool.id" :paused="isPaused" />
       </UiCard>
 
       <UiCard>
@@ -125,6 +128,7 @@ import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfStats } from '@/modules/vdf/remote-resources/use-vdf-stats.ts'
 import type { VdfConnection } from '@/modules/vdf/types.ts'
+import { VDF_NAV_ACTIONS_ID } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { hostRatePoints, sampleOf, sumRateSeries, type VdfRatePoint } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -339,10 +343,6 @@ const chartCaption = computed(() =>
     flex-wrap: wrap;
     align-items: center;
     gap: 1.6rem;
-
-    .indicator {
-      margin-inline-start: auto;
-    }
   }
 
   .stats {

@@ -1,7 +1,7 @@
 <template>
   <span class="vdf-live-indicator typo-body-regular-small" role="status">
     <span class="dot" :class="{ paused }" aria-hidden="true" />
-    {{ paused ? t('firewall:live:paused') : label }}
+    <span class="label">{{ paused ? t('firewall:live:paused') : label }}</span>
     <UiButton
       size="small"
       variant="tertiary"
