@@ -2,7 +2,7 @@ import V2vDestinationMappingCard from '@/modules/v2v/components/mapping/V2vDesti
 import V2vMappingVmHeader from '@/modules/v2v/components/mapping/V2vMappingVmHeader.vue'
 import V2vNewVmMapping from '@/modules/v2v/components/mapping/V2vNewVmMapping.vue'
 import V2vVmChecksCard from '@/modules/v2v/components/mapping/V2vVmChecksCard.vue'
-import V2vVmOptionsCard from '@/modules/v2v/components/mapping/V2vVmOptionsCard.vue'
+import V2vVmOptionsFields from '@/modules/v2v/components/mapping/V2vVmOptionsFields.vue'
 import V2vVmSourceCard from '@/modules/v2v/components/mapping/V2vVmSourceCard.vue'
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createPool } from '@/test/create-pool.ts'
@@ -83,7 +83,7 @@ async function mountNewVmMapping() {
             V2vVmSourceCard: true,
             V2vVmChecksCard: true,
             V2vDestinationMappingCard: true,
-            V2vVmOptionsCard: true,
+            V2vVmOptionsFields: true,
           },
         }),
       }),
@@ -103,7 +103,7 @@ function findUpdatedVm(updateVm: ReturnType<typeof vi.fn>): V2vMigrationListVm {
 }
 
 function getOptionsCard(wrapper: VueWrapper) {
-  return wrapper.getComponent(V2vVmOptionsCard)
+  return wrapper.getComponent(V2vVmOptionsFields)
 }
 
 function getDestinationCard(wrapper: VueWrapper) {

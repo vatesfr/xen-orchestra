@@ -89,6 +89,7 @@
   "action:edit-config": "Modifier config",
   "action:edit-n-brs": "@:action:edit {n} BRs",
   "action:edit-traffic-rule": "@:action:edit la @.lower:traffic-rule",
+  "action:edit-vm-settings": "@:action:edit les @.lower:settings de {name}",
   "action:emergency-shutdown": "Arrêt d'urgence",
   "action:emergency-shutdown-host": "@:action:emergency-shutdown de l'hôte",
   "action:enable": "Activer",

@@ -1,7 +1,6 @@
 import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
-import V2vVmOptionsCard from '@/modules/v2v/components/mapping/V2vVmOptionsCard.vue'
+import V2vVmOptionsFields from '@/modules/v2v/components/mapping/V2vVmOptionsFields.vue'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
 import { getButton } from '@/test/get-button.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -17,10 +16,10 @@ const TEMPLATE = { value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffere
 
 const TAGS = ['migrated-from:vmware', 'web']
 
-function mountCard() {
-  return mount(V2vVmOptionsCard, {
+function mountFields(keepMac = true) {
+  return mount(V2vVmOptionsFields, {
     props: {
-      keepMac: true,
+      keepMac,
       template: TEMPLATE,
       templateOptions: V2V_TARGET_OPTIONS.templates,
       tags: TAGS,
@@ -30,27 +29,23 @@ function mountCard() {
   })
 }
 
-it('shows its title', () => {
-  expect(findCardTitle(mountCard())).toBe(t('options'))
-})
-
 describe('keep MAC addresses', () => {
   it('shows whether the MAC addresses are kept', () => {
-    expect(mountCard().getComponent(UiCheckbox).props('modelValue')).toBe(true)
+    expect(mountFields().getComponent(UiCheckbox).props('modelValue')).toBe(true)
   })
 
-  it('emits the choice', async () => {
-    const wrapper = mountCard()
+  it.each([true, false])('emits the choice of %s', async keepMac => {
+    const wrapper = mountFields(!keepMac)
 
-    await getCheckbox(wrapper, t('keep-mac-addresses')).setValue(false)
+    await getCheckbox(wrapper, t('keep-mac-addresses')).setValue(keepMac)
 
-    expect(wrapper.emitted('changeKeepMac')).toEqual([[false]])
+    expect(wrapper.emitted('changeKeepMac')).toEqual([[keepMac]])
   })
 })
 
 describe('template', () => {
   it('shows the template among the offered ones, and where it comes from', () => {
-    const wrapper = mountCard()
+    const wrapper = mountFields()
 
     expect(getV2vTargetSelect(wrapper).props()).toEqual({
       modelValue: TEMPLATE.value,
@@ -61,7 +56,7 @@ describe('template', () => {
   })
 
   it('emits the template chosen', () => {
-    const wrapper = mountCard()
+    const wrapper = mountFields()
 
     getV2vTargetSelect(wrapper).vm.$emit('update:modelValue', V2V_TARGET_OPTIONS.templates[0].id)
 
@@ -69,7 +64,7 @@ describe('template', () => {
   })
 
   it('emits the reset of the template', async () => {
-    const wrapper = mountCard()
+    const wrapper = mountFields()
 
     await getButton(wrapper, t('action:reset-to-default')).trigger('click')
 
@@ -79,11 +74,11 @@ describe('template', () => {
 
 describe('tags', () => {
   it('edits the tags of the destination VM', () => {
-    expect(mountCard().getComponent(VtsTagsInput).props('modelValue')).toEqual(TAGS)
+    expect(mountFields().getComponent(VtsTagsInput).props('modelValue')).toEqual(TAGS)
   })
 
   it('emits the tags edited', () => {
-    const wrapper = mountCard()
+    const wrapper = mountFields()
 
     wrapper.getComponent(VtsTagsInput).vm.$emit('update:modelValue', ['web'])
 
@@ -91,7 +86,7 @@ describe('tags', () => {
   })
 
   it('tells how the tags and the backups go together until the cutover', () => {
-    expect(findAccentedInfos(mountCard())).toEqual([
+    expect(findAccentedInfos(mountFields())).toEqual([
       { label: t('v2v:tags-backup-info', { tag: V2V_PARTIAL_IMPORT_TAG }), accent: 'info' },
     ])
   })
