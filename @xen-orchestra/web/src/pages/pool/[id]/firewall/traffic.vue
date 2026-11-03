@@ -76,10 +76,6 @@
 
       <!-- the pool's traffic between its groups, live -->
       <UiCard>
-        <UiCardTitle>
-          {{ t('firewall:flow-map') }}
-          <template #description>{{ t('firewall:flow-map:description') }}</template>
-        </UiCardTitle>
         <VdfFlowMap :pool-id="pool.id" :document="publishedDocument" :connections :paused="isPaused" />
       </UiCard>
 

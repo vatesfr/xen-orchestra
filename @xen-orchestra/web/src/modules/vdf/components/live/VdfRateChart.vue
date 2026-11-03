@@ -1,6 +1,6 @@
 <template>
   <div class="vdf-rate-chart">
-    <VtsLinearChart :data :max-value :value-formatter :time-formatter :time-min-interval="60_000" class="chart" />
+    <VtsBarChart :data :max-value :value-formatter :time-formatter :time-min-interval="60_000" stacked class="chart" />
   </div>
 </template>
 
@@ -10,16 +10,17 @@ import type { LinearChartData } from '@core/types/chart.ts'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// Allowed and dropped connections over time (vdf#59), in XO's own chart:
-// allowed first (the theme's brand color), dropped second (its warning
-// color), a y-axis sized to the data, local times
+// Allowed and dropped connections over time (vdf#59), as stacked bars: an
+// interval's bar is its new connections, allowed (the theme's brand color)
+// under dropped (its warning color); an interval without a sample has no
+// bar, where a line broke. A y-axis sized to the data, local times
 const { series, unit } = defineProps<{
   series: VdfRateSeries
   // per second (Live's rates) or per minute (counts from the rule log)
   unit: 'second' | 'minute'
 }>()
 
-const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
+const VtsBarChart = defineAsyncComponent(() => import('@core/components/bar-chart/VtsBarChart.vue'))
 
 const { t, n, locale } = useI18n()
 
@@ -28,7 +29,7 @@ const data = computed<LinearChartData>(() => [
   { label: t('firewall:chart:dropped'), data: series.dropped },
 ])
 
-const maxValue = computed(() => niceMax(series))
+const maxValue = computed(() => niceMax(series, { stacked: true }))
 
 const valueFormatter = (value: number | null) =>
   value === null ? '' : t(`firewall:chart:per-${unit}`, { n: n(value, { maximumFractionDigits: value < 10 ? 1 : 0 }) })

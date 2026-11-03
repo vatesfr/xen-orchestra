@@ -136,8 +136,12 @@ export function logRateSeries(
 
 // a y-axis top for small rates: a round number above the highest value
 // (1, 2, 5, 10, 20, 50…), so a quiet chart isn't drawn against 200
-export function niceMax(series: VdfRateSeries) {
-  const highest = Math.max(0, ...[...series.allowed, ...series.dropped].map(point => point.value ?? 0))
+// stacked: the series one on the other (bars), the highest of their sums
+export function niceMax(series: VdfRateSeries, { stacked = false }: { stacked?: boolean } = {}) {
+  const values = stacked
+    ? series.allowed.map((point, index) => (point.value ?? 0) + (series.dropped[index]?.value ?? 0))
+    : [...series.allowed, ...series.dropped].map(point => point.value ?? 0)
+  const highest = Math.max(0, ...values)
 
   for (let scale = 1; ; scale *= 10) {
     for (const step of [1, 2, 5]) {

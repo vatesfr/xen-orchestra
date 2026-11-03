@@ -1,5 +1,20 @@
 <template>
   <div class="vdf-flow-map">
+    <!-- the legend on the title's line: the map gets the height -->
+    <UiCardTitle>
+      {{ t('firewall:flow-map') }}
+      <template v-if="nodes.length > 0" #info>
+        <span class="legend typo-body-regular-small">
+          <span class="item">
+            <span class="swatch swatch--allow" />{{ t('firewall:flow-map:allowed', { n: allowedCount }) }}
+          </span>
+          <span class="item">
+            <span class="swatch swatch--drop" />{{ t('firewall:flow-map:dropped', { n: droppedCount }) }}
+          </span>
+        </span>
+      </template>
+      <template #description>{{ t('firewall:flow-map:description') }}</template>
+    </UiCardTitle>
     <VtsStateHero v-if="nodes.length === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('firewall:flow-map:empty') }}
     </VtsStateHero>
@@ -48,11 +63,6 @@
           <text :x="node.x" :y="node.y + RADIUS + 17" class="label">{{ node.label }}</text>
         </g>
       </svg>
-      <div class="legend typo-body-regular-small">
-        <span class="item"><span class="swatch swatch--allow" />{{ t('firewall:flow-map:allowed', { n: allowedCount }) }}</span>
-        <span class="item"><span class="swatch swatch--drop" />{{ t('firewall:flow-map:dropped', { n: droppedCount }) }}</span>
-        <span class="secondary">{{ t('firewall:flow-map:hint') }}</span>
-      </div>
     </template>
   </div>
 </template>
@@ -69,6 +79,7 @@ import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.t
 import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useNow } from '@vueuse/core'
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -453,6 +464,7 @@ function towards(center: { x: number; y: number }, point: { x: number; y: number
     flex-wrap: wrap;
     align-items: center;
     gap: 0.8rem 2.4rem;
+    color: var(--color-neutral-txt-primary);
 
     .item {
       display: inline-flex;
@@ -472,10 +484,6 @@ function towards(center: { x: number; y: number }, point: { x: number; y: number
       &.swatch--drop {
         background: repeating-linear-gradient(90deg, var(--drop-color) 0 0.3rem, transparent 0.3rem 0.8rem);
       }
-    }
-
-    .secondary {
-      color: var(--color-neutral-txt-secondary);
     }
   }
 

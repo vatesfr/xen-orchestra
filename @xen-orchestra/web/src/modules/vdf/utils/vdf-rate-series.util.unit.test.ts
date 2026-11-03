@@ -113,4 +113,20 @@ describe('niceMax', () => {
     expect(niceMax(series(37))).toBe(50)
     expect(niceMax(series(120))).toBe(200)
   })
+
+  it('stacked: fits the highest sum of an interval', () => {
+    const series = {
+      allowed: [
+        { timestamp: 0, value: 30 },
+        { timestamp: 1, value: 4 },
+      ],
+      dropped: [
+        { timestamp: 0, value: 25 },
+        { timestamp: 1, value: null },
+      ],
+    }
+
+    expect(niceMax(series)).toBe(50)
+    expect(niceMax(series, { stacked: true })).toBe(100)
+  })
 })
