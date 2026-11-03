@@ -123,6 +123,10 @@ export function policyReach(
   }))
 }
 
+// where a Firewall page puts its own controls: the tab bar's right end
+// (VdfFirewallNav), Traffic's live updates
+export const VDF_NAV_ACTIONS_ID = 'vdf-firewall-nav-actions'
+
 type VdfPage = 'groups' | 'policies'
 
 // A scope's page for a group or a policy. In a pool, global objects are

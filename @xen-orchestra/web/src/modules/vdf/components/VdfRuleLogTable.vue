@@ -7,7 +7,7 @@
         </UiRadioButton>
       </UiRadioButtonGroup>
       <UiQuerySearchBar class="search" @search="value => (search = value)" />
-      <VdfLiveIndicator v-model:paused="isPaused" :label="t('firewall:log:refreshing')" />
+      <VdfLiveIndicator v-if="paused === undefined" v-model:paused="isPaused" :label="t('firewall:log:refreshing')" />
     </div>
     <UiAlert v-if="hasRuleLogError && isRuleLogReady" accent="warning">
       {{ t('firewall:log:stale', { error: ruleLogError?.message ?? '' }) }}
@@ -72,10 +72,13 @@ import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'v
 import { useI18n } from 'vue-i18n'
 import { type RouteLocationRaw, useRouter } from 'vue-router'
 
-const { poolId, vmName } = defineProps<{
+const { poolId, vmName, paused } = defineProps<{
   poolId: string
   // only the entries of this VM's VIFs (as destination or source)
   vmName?: string
+  // the page's live updates, paused or not: one control for the page
+  // (Traffic); without it, the table's own
+  paused?: boolean
 }>()
 
 const { t, d } = useI18n()
@@ -87,7 +90,7 @@ const { quarantineAction } = useVdfQuarantine()
 const isPaused = ref(false)
 
 const { ruleLog, isRuleLogReady, hasRuleLogError, ruleLogError } = useVdfRuleLog(
-  { isEnabled: computed(() => !isPaused.value) },
+  { isEnabled: computed(() => !(paused ?? isPaused.value)) },
   () => poolId
 )
 
