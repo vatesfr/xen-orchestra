@@ -1008,6 +1008,7 @@
   "firewall:monitor:direction:in": "entrant",
   "firewall:monitor:direction:out": "sortant",
   "firewall:monitor:draft-allowed": "Autorisé par la règle {id} dans le brouillon",
+  "firewall:monitor:drawer:title": "Rapport du mode observation : {policy}",
   "firewall:monitor:empty": "Rien d'enregistré pour l'instant : les politiques en observation ne bloqueraient rien de ce qu'elles ont vu.",
   "firewall:monitor:empty:shadowed": "Rien d'enregistré pour l'instant. D'autres politiques décident d'abord pour certaines de ces VMs : voir « Plus tard » ci-dessous.",
   "firewall:monitor:error": "Le rapport n'a pas pu être chargé",

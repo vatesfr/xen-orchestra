@@ -13,18 +13,19 @@
             <VtsIcon name="fa:globe" size="small" />
             {{ t('firewall:global') }}
           </UiTag>
-          <!-- a pool's monitored policy: its report, on the Monitor tab -->
-          <RouterLink
-            v-if="monitored && monitorRoute !== undefined"
+          <!-- a pool's monitored policy: its report, in a drawer -->
+          <button
+            v-if="monitored && !isGlobalScope(scopeId)"
             v-tooltip="t('firewall:mode:monitor:open-report')"
-            :to="monitorRoute"
+            type="button"
             class="monitor-link"
+            @click="openMonitorReport(scopeId, entry.policy.name)"
           >
             <UiTag accent="info" variant="primary">
               <VtsIcon name="fa:eye" size="small" />
               {{ t('firewall:mode:monitor') }}
             </UiTag>
-          </RouterLink>
+          </button>
           <UiTag v-else-if="monitored" v-tooltip="t('firewall:mode:monitor:tooltip')" accent="info" variant="primary">
             <VtsIcon name="fa:eye" size="small" />
             {{ t('firewall:mode:monitor') }}
@@ -126,6 +127,7 @@
 <script lang="ts" setup>
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
+import { useVdfMonitorDrawer } from '@/modules/vdf/composables/vdf-monitor-drawer.composable.ts'
 import type { VdfPolicyMode, VdfScopeId } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalScope, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
@@ -172,12 +174,8 @@ const emit = defineEmits<{
 
 const monitored = computed(() => isMonitored(entry.policy))
 
-// the Monitor tab is a pool's: the global firewall has none
-const monitorRoute = computed(() =>
-  isGlobalScope(scopeId)
-    ? undefined
-    : { name: '/pool/[id]/firewall/monitor' as const, params: { id: scopeId }, query: { policy: entry.policy.name } }
-)
+// the monitor report is a pool's: the global firewall has none
+const { openMonitorReport } = useVdfMonitorDrawer()
 
 const { t } = useI18n()
 
@@ -284,10 +282,13 @@ const actions = computed<ActionItem[]>(() => [
     min-width: 100%;
   }
 
-  /* the Monitor tag, a link to the policy's report */
+  /* the Monitor tag, a button: the policy's report */
   .monitor-link {
     display: inline-flex;
-    text-decoration: none;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
   }
 
   .title {

@@ -1008,6 +1008,7 @@
   "firewall:monitor:direction:in": "inbound",
   "firewall:monitor:direction:out": "outbound",
   "firewall:monitor:draft-allowed": "Allowed by rule {id} in the draft",
+  "firewall:monitor:drawer:title": "Monitor mode report: {policy}",
   "firewall:monitor:empty": "Nothing recorded yet: the policies in monitor mode would drop nothing they've seen so far.",
   "firewall:monitor:empty:shadowed": "Nothing recorded yet. Other policies decide first for some of these VMs: see \"Later\" below.",
   "firewall:monitor:error": "The report couldn't be loaded",
