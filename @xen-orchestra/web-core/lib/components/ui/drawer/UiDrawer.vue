@@ -103,4 +103,10 @@ const titleId = useId()
     }
   }
 }
+
+/* dark themes: the body in the cards' color, as the forms of a page are,
+   not the black of the page behind the cards */
+:global(:root.dark .ui-drawer .drawer) {
+  background-color: var(--color-neutral-background-primary);
+}
 </style>
