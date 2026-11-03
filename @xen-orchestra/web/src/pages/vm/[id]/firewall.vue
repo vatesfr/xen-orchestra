@@ -67,6 +67,15 @@
           </span>
         </template>
       </UiAlert>
+      <!-- its host enforces the document, but reports errors where the VM is connected: a port failed closed, an alarm on its bridge, a policy not realized there -->
+      <UiAlert v-if="hostProblems.length > 0" accent="warning" class="state-alert">
+        {{ t('firewall:vm:host-errors', { host: host?.host.name_label ?? vm.$container }) }}
+        <template #description>
+          <ul class="host-problems">
+            <li v-for="problem of hostProblems" :key="problem">{{ problem }}</li>
+          </ul>
+        </template>
+      </UiAlert>
       <!-- vdf#47: a tag change or a publish put it under a default drop -->
       <UiAlert v-if="vmJoined.length > 0" accent="warning" class="state-alert">
         {{ t('firewall:vm:joined') }}
@@ -285,7 +294,7 @@ import {
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { joinedDirection, joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
-import { shadowedVifs, TRAFFIC_RULE_ACCENTS } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
+import { shadowedVifs, TRAFFIC_RULE_ACCENTS, TRAFFIC_RULE_DECIDES_FIRST } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -348,7 +357,7 @@ const { setTags, removeVmFromGroup, isUpdatingTags, tagError } = membership
 
 const { vifs } = useXoVifCollection()
 
-const { getNetworkById } = useXoNetworkCollection()
+const { networks, getNetworkById } = useXoNetworkCollection()
 
 const isQuarantined = computed(() => isVmQuarantined(vm))
 
@@ -425,7 +434,6 @@ const STATUS_ACCENTS: Record<VdfVmProtection, 'success' | 'info' | 'warning' | '
   'quarantine-not-enforced': 'danger',
 }
 
-const statusAccent = computed(() => STATUS_ACCENTS[protection.value])
 
 const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
 
@@ -573,8 +581,10 @@ async function joinGroup(name: string) {
       groupName: displayName(name),
       tags: group.tags ?? [],
       protectedBy: groupUsage(publishedDocument.value, name).appliedTo.map(displayName),
-      // vdf#40: they keep deciding first once the VM is protected
-      trafficRules: vmTrafficRules.value.length,
+      // vdf#40: those that keep deciding first once the VM is protected
+      trafficRules: vmTrafficRules.value.filter(item =>
+        TRAFFIC_RULE_DECIDES_FIRST.includes(statusOf(item, shadowed.value, isAboveTrafficRules.value, isAnyPriority.value))
+      ).length,
       monitorBlind: shadowsIn(publishedDocument.value, [
         { vm, tags: [...new Set([...vm.tags, ...(group.tags ?? [])])] },
       ])
@@ -631,6 +641,39 @@ provideVdfGroups(() => publishedDocument.value.groups)
 const vmVifs = computed(() =>
   vifs.value.filter(vif => vif.$VM === vm.id).sort((vifA, vifB) => Number(vifA.device) - Number(vifB.device))
 )
+
+// HOST ERRORS: a host in error still enforces the document, on its other
+// bridges at least. What concerns the VM: the errors of its networks'
+// bridges, those of no bridge (the host's), and its policies the host
+// doesn't realize, with why
+
+const vmBridges = computed(
+  () => new Set(vmVifs.value.map(vif => getNetworkById(vif.$network)?.bridge).filter(bridge => bridge !== undefined))
+)
+
+const poolBridges = computed(
+  () => new Set(networks.value.filter(network => network.$pool === vm.$pool).map(network => network.bridge))
+)
+
+const hostProblems = computed(() => {
+  if (host.value?.state !== 'error' || protection.value !== 'protected') {
+    return []
+  }
+
+  const status = host.value.status
+  const errors = (status?.errors ?? []).filter(error => {
+    const bridge = error.split(': ', 1)[0]
+
+    return vmBridges.value.has(bridge) || !poolBridges.value.has(bridge)
+  })
+  const unrealized = (status?.policies ?? [])
+    .filter(policy => !policy.realized && policyNames.value.includes(displayName(policy.name)))
+    .map(policy => t('firewall:vm:host-errors:unrealized', { policy: displayName(policy.name), reason: policy.reason ?? '' }))
+
+  return [...new Set([...unrealized, ...errors])]
+})
+
+const statusAccent = computed(() => (hostProblems.value.length > 0 ? 'warning' : STATUS_ACCENTS[protection.value]))
 
 // QUARANTINE: the same confirmation as the VM's header menu and the Live
 // tables; a failure shows through tagError
@@ -711,6 +754,14 @@ const { confirmUnlock } = useVdfUnlock()
     flex-direction: column;
     align-items: flex-start;
     gap: 0.8rem;
+  }
+
+  .host-problems {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-inline-start: 1.6rem;
+    overflow-wrap: anywhere;
   }
 
   .status {
