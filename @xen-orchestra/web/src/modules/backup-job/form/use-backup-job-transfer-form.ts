@@ -77,7 +77,10 @@ export function useBackupJobTransferForm(
         keyBackupMonthDays: keyBackupRules.monthDays,
         keyBackupHours: keyBackupRules.hours,
         snapshotSyncTag: {
-          requiredIf: requiredIf(() => !isMirror.value && !formData.offlineBackup && formData.snapshotSync === 'smart'),
+          requiredIf: withMessage(
+            requiredIf(() => !isMirror.value && !formData.offlineBackup && formData.snapshotSync === 'smart'),
+            () => t('tag-mandatory')
+          ),
         },
         snapshotRetention: {
           requiredIf: withMessage(
