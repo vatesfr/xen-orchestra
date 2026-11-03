@@ -1,0 +1,76 @@
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import { connectV2vSource } from '@/test/connect-v2v-source.ts'
+import { createNetwork } from '@/test/create-network.ts'
+import { createPool } from '@/test/create-pool.ts'
+import { createSr } from '@/test/create-sr.ts'
+import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
+import { createVmTemplate } from '@/test/create-vm-template.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import {
+  V2V_DISK_OVERRIDES,
+  V2V_MAPPED_VM,
+  V2V_MAPPING_INVENTORY,
+  V2V_NIC_OVERRIDES,
+  V2V_POOL_OFFERS,
+} from '@/test/v2v-mapping-fixtures.ts'
+import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+
+/** The pool of the stored list, offering the mapping fixtures. */
+export const V2V_VM_MAPPING_POOL = createPool()
+
+const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
+
+/** The mapped VM in the list, with an override on its data disk and on its VLAN NIC. */
+export const V2V_OVERRIDDEN_LIST_VM = createV2vMigrationListVm({
+  id: V2V_MAPPED_VM.id,
+  disks: V2V_DISK_OVERRIDES,
+  nics: V2V_NIC_OVERRIDES,
+})
+
+function seedPools() {
+  xoCollectionsMock.pools.value = [V2V_VM_MAPPING_POOL]
+  xoCollectionsMock.seedChoices({
+    srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
+    networks: [...V2V_POOL_OFFERS.networks, createNetwork({ $pool: OTHER_POOL_ID })],
+    templates: [...V2V_POOL_OFFERS.templates, createVmTemplate({ $pool: OTHER_POOL_ID })],
+  })
+}
+
+export type MountV2vVmMappingOptions = {
+  listVm?: V2vMigrationListVm
+  isSourceConnected?: boolean
+}
+
+/**
+ * Stores a list holding `listVm` on a pool offering the mapping fixtures (another pool offers one target of each
+ * kind), then mounts `useMapping` with the migration list of that pool and the mapping inventory as connected source.
+ * Needs the destination collections mocked with `mock-xo-collections.ts`.
+ */
+export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
+  useMapping: (migrationList: ReturnType<typeof useV2vMigrationList>, list: () => V2vMigrationList) => TResult,
+  { listVm = V2V_OVERRIDDEN_LIST_VM, isSourceConnected = true }: MountV2vVmMappingOptions = {}
+) {
+  const storedList = createV2vMigrationList({ poolId: V2V_VM_MAPPING_POOL.id, vms: [listVm] })
+
+  seedPools()
+  seedV2vMigrationList(storedList)
+
+  return mountComposableWithI18n(() => {
+    if (isSourceConnected) {
+      connectV2vSource({ inventory: V2V_MAPPING_INVENTORY })
+    }
+
+    const migrationList = useV2vMigrationList(storedList.sourceId, storedList.poolId)
+
+    return useMapping(migrationList, () => migrationList.list.value as V2vMigrationList)
+  })
+}
+
+/** The one VM of the stored list, as last written. */
+export function readV2vStoredListVm(): V2vMigrationListVm {
+  return readV2vMigrationListStorage().vms[0]
+}

@@ -77,6 +77,9 @@ export const V2V_NIC_OVERRIDES = { [V2V_VLAN_NIC.key]: V2V_VLAN_NETWORK.id } as 
 
 export const V2V_DEFAULT_TEMPLATE = createVmTemplate({ id: DEFAULTS.template })
 
+// The tags of a migrated VM without override
+export const V2V_MIGRATED_VM_TAGS = ['migrated-from:vmware']
+
 export const V2V_DEBIAN_TEMPLATE = createVmTemplate({
   id: 'template-debian' as FrontXoVmTemplate['id'],
   name_label: 'Debian 12',

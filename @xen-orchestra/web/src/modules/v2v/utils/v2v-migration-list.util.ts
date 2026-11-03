@@ -4,6 +4,7 @@ import type {
   V2vMigrationListKey,
   V2vMigrationListVm,
 } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { XoV2vVm } from '@vates/types'
 import { isBoolean, isPlainObject, isString } from 'lodash-es'
 
 const DEFAULTS_FIELDS = ['sr', 'network', 'template'] as const
@@ -52,6 +53,11 @@ export function buildV2vMigrationList(
   vms: V2vMigrationListVm[] = []
 ): V2vMigrationList {
   return { version: 1, sourceId, poolId, defaults, vms }
+}
+
+// A VM gone from the list reads as on the defaults: its overrides went with it
+export function findV2vMigrationListVm(list: V2vMigrationList, vmId: XoV2vVm['id']): V2vMigrationListVm {
+  return list.vms.find(({ id }) => id === vmId) ?? { id: vmId }
 }
 
 // The list lives in a storage any script or older XO version may have written: anything unexpected is no list

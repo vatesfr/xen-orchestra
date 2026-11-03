@@ -1,19 +1,15 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmMapping } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
-import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
-import { createNetwork } from '@/test/create-network.ts'
-import { createPool } from '@/test/create-pool.ts'
-import { createSr } from '@/test/create-sr.ts'
 import { createV2vDisk, createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
-import { createVmTemplate } from '@/test/create-vm-template.ts'
+import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import {
+  mountV2vVmMapping,
+  type MountV2vVmMappingOptions,
+  readV2vStoredListVm,
+  V2V_VM_MAPPING_POOL,
+} from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEBIAN_TEMPLATE,
@@ -24,7 +20,7 @@ import {
   V2V_DISK_ROWS,
   V2V_LAN_NIC,
   V2V_MAPPED_VM,
-  V2V_MAPPING_INVENTORY,
+  V2V_MIGRATED_VM_TAGS,
   V2V_NIC_OVERRIDES,
   V2V_NIC_ROWS,
   V2V_POOL_OFFERS,
@@ -34,7 +30,6 @@ import {
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
-import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDatastore, XoV2vHost, XoV2vVm } from '@vates/types'
 
@@ -63,74 +58,19 @@ vi.mock(
   () => import('@/test/mock-xo-collections.ts')
 )
 
-const POOL = createPool()
-
-const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
-
-const OVERRIDDEN_VM = createV2vMigrationListVm({
-  id: V2V_MAPPED_VM.id,
-  disks: V2V_DISK_OVERRIDES,
-  nics: V2V_NIC_OVERRIDES,
-})
-
-const DEFAULT_TAGS = ['migrated-from:vmware']
-
-function createListOf(listVm: V2vMigrationListVm) {
-  return createV2vMigrationList({ poolId: POOL.id, vms: [listVm] })
-}
-
-// The pool of the list offers the mapping fixtures, another pool one target of each kind
-function seedPools() {
-  xoCollectionsMock.pools.value = [POOL]
-  xoCollectionsMock.srs.value = [
-    ...V2V_POOL_OFFERS.srs,
-    createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID }),
-  ]
-  xoCollectionsMock.networks.value = [...V2V_POOL_OFFERS.networks, createNetwork({ $pool: OTHER_POOL_ID })]
-  xoCollectionsMock.templates.value = [
-    ...V2V_POOL_OFFERS.templates,
-    createVmTemplate({ $pool: OTHER_POOL_ID }),
-  ]
-}
-
-type MountOptions = {
-  listVm?: V2vMigrationListVm
+type MountOptions = MountV2vVmMappingOptions & {
   vm?: XoV2vVm
-  isSourceConnected?: boolean
   listIssue?: V2vAccentedLabel<InfoAccent>
 }
 
-function mountVmMapping({
-  listVm = OVERRIDDEN_VM,
-  vm = V2V_MAPPED_VM,
-  isSourceConnected = true,
-  listIssue,
-}: MountOptions = {}) {
-  const storedList = createListOf(listVm)
-
-  seedPools()
-  seedV2vMigrationList(storedList)
-
-  return mountComposableWithI18n(() => {
-    if (isSourceConnected) {
-      connectV2vSource({ inventory: V2V_MAPPING_INVENTORY })
-    }
-
-    const migrationList = useV2vMigrationList(storedList.sourceId, storedList.poolId)
-
-    return {
-      ...useV2vVmMapping(vm, {
-        list: () => migrationList.list.value as V2vMigrationList,
-        updateVm: migrationList.updateVm,
-        listIssue,
-      }),
+function mountVmMapping({ vm = V2V_MAPPED_VM, listIssue, ...options }: MountOptions = {}) {
+  return mountV2vVmMapping(
+    (migrationList, list) => ({
+      ...useV2vVmMapping(vm, { list, updateVm: migrationList.updateVm, listIssue }),
       getSrSelectLabel: useXoSrUtils().getSrSelectLabel,
-    }
-  })
-}
-
-function readStoredVm(): V2vMigrationListVm {
-  return readV2vMigrationListStorage().vms[0]
+    }),
+    options
+  )
 }
 
 beforeEach(() => {
@@ -173,7 +113,7 @@ describe('areOffersReady', () => {
 
 describe('poolName', () => {
   it('names the pool of the list', () => {
-    expect(mountVmMapping().poolName).toBe(POOL.name_label)
+    expect(mountVmMapping().poolName).toBe(V2V_VM_MAPPING_POOL.name_label)
   })
 })
 
@@ -264,7 +204,10 @@ describe('setDiskSr', () => {
       { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
       { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
     ])
-    expect(readStoredVm().disks).toEqual({ [V2V_SYSTEM_DISK.key]: V2V_SSD_SR.id, [V2V_DATA_DISK.key]: V2V_SSD_SR.id })
+    expect(readV2vStoredListVm().disks).toEqual({
+      [V2V_SYSTEM_DISK.key]: V2V_SSD_SR.id,
+      [V2V_DATA_DISK.key]: V2V_SSD_SR.id,
+    })
   })
 
   it.each(CLEARING_TARGETS)('clears the override of a disk set to %s', (_, clearing) => {
@@ -273,7 +216,7 @@ describe('setDiskSr', () => {
     mapping.setDiskSr(V2V_DATA_DISK.key, clearing === 'default' ? V2V_DEFAULT_SR.id : undefined)
 
     expect(mapping.diskRows[1].sr).toEqual({ value: V2V_DEFAULT_SR.id, origin: 'default', isOffered: true })
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id, nics: V2V_NIC_OVERRIDES })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, nics: V2V_NIC_OVERRIDES })
   })
 })
 
@@ -284,7 +227,7 @@ describe('setNicNetwork', () => {
     mapping.setNicNetwork(V2V_LAN_NIC.key, V2V_VLAN_NETWORK.id)
 
     expect(mapping.nicRows[0].network).toEqual({ value: V2V_VLAN_NETWORK.id, origin: 'overridden', isOffered: true })
-    expect(readStoredVm().nics).toEqual({
+    expect(readV2vStoredListVm().nics).toEqual({
       [V2V_LAN_NIC.key]: V2V_VLAN_NETWORK.id,
       [V2V_VLAN_NIC.key]: V2V_VLAN_NETWORK.id,
     })
@@ -296,7 +239,7 @@ describe('setNicNetwork', () => {
     mapping.setNicNetwork(V2V_VLAN_NIC.key, clearing === 'default' ? V2V_DEFAULT_NETWORK.id : undefined)
 
     expect(mapping.nicRows[1].network).toEqual({ value: V2V_DEFAULT_NETWORK.id, origin: 'default', isOffered: true })
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id, disks: V2V_DISK_OVERRIDES })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, disks: V2V_DISK_OVERRIDES })
   })
 })
 
@@ -307,7 +250,7 @@ describe('setTemplate', () => {
     mapping.setTemplate(V2V_DEBIAN_TEMPLATE.id)
 
     expect(mapping.template).toEqual({ value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true })
-    expect(readStoredVm().template).toBe(V2V_DEBIAN_TEMPLATE.id)
+    expect(readV2vStoredListVm().template).toBe(V2V_DEBIAN_TEMPLATE.id)
   })
 
   it.each(CLEARING_TARGETS)('clears the template override set to %s', (_, clearing) => {
@@ -318,7 +261,7 @@ describe('setTemplate', () => {
     mapping.setTemplate(clearing === 'default' ? V2V_DEFAULT_TEMPLATE.id : undefined)
 
     expect(mapping.template.origin).toBe('default')
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id })
   })
 })
 
@@ -341,7 +284,7 @@ describe('setKeepMac', () => {
     mapping.setKeepMac(false)
 
     expect(mapping.keepMac).toBe(false)
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id, keepMac: false })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, keepMac: false })
   })
 
   it('stores nothing once the MAC addresses are kept again', () => {
@@ -349,13 +292,13 @@ describe('setKeepMac', () => {
 
     mapping.setKeepMac(true)
 
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id })
   })
 })
 
 describe('tags', () => {
   it('tags the VM as migrated from VMware by default', () => {
-    expect(mountVmMapping().tags).toEqual(DEFAULT_TAGS)
+    expect(mountVmMapping().tags).toEqual(V2V_MIGRATED_VM_TAGS)
   })
 
   it('reads the stored tags', () => {
@@ -369,17 +312,17 @@ describe('setTags', () => {
   it('stores the tags', () => {
     const mapping = mountVmMapping({ listVm: createV2vMigrationListVm({ id: V2V_MAPPED_VM.id }) })
 
-    mapping.setTags([...DEFAULT_TAGS, 'web'])
+    mapping.setTags([...V2V_MIGRATED_VM_TAGS, 'web'])
 
-    expect(mapping.tags).toEqual([...DEFAULT_TAGS, 'web'])
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id, tags: [...DEFAULT_TAGS, 'web'] })
+    expect(mapping.tags).toEqual([...V2V_MIGRATED_VM_TAGS, 'web'])
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, tags: [...V2V_MIGRATED_VM_TAGS, 'web'] })
   })
 
   it('stores nothing once the tags are the default ones again', () => {
     const mapping = mountVmMapping({ listVm: createV2vMigrationListVm({ id: V2V_MAPPED_VM.id, tags: ['web'] }) })
 
-    mapping.setTags([...DEFAULT_TAGS])
+    mapping.setTags([...V2V_MIGRATED_VM_TAGS])
 
-    expect(readStoredVm()).toEqual({ id: V2V_MAPPED_VM.id })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id })
   })
 })
