@@ -206,13 +206,15 @@
                 {{ joinedText(entry) }}
               </UiLink>
               <VtsRelativeTime :date="entry.since" class="secondary" />
-              <UiLink
-                :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: entry.vm } }"
+              <UiButton
+                variant="tertiary"
+                accent="brand"
                 size="small"
-                icon="fa:route"
+                left-icon="fa:route"
+                @click="openTrace(pool.id, { to: entry.vm })"
               >
                 {{ t('firewall:joined:trace') }}
-              </UiLink>
+              </UiButton>
             </li>
           </ul>
           <span v-if="joined.more > 0" class="secondary typo-body-regular-small">
@@ -441,6 +443,7 @@ import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfGlobal } from '@/modules/vdf/remote-resources/use-vdf-global.ts'
 import type { VdfJoinedVm, VdfPoolSyncState, VdfShadowedVif } from '@/modules/vdf/types.ts'
@@ -495,6 +498,9 @@ const { pool } = defineProps<{
 }>()
 
 const { t, n, locale } = useI18n()
+
+// a trace, in the drawer: the page stays
+const { openTrace } = useVdfTraceDrawer()
 
 const tierLabel = useVdfTierLabel()
 

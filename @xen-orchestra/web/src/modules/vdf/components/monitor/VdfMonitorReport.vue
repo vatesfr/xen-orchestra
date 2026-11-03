@@ -219,9 +219,16 @@
               <span class="secondary">{{ decidedBy(row.entry) }}</span>
               <span class="secondary">{{ t('firewall:monitor:seen', { n: row.entry.count }) }}</span>
               <VtsRelativeTime :date="row.entry.last" class="secondary" />
-              <UiLink v-if="row.trace" :to="row.trace" size="small" icon="fa:route">
+              <UiButton
+                v-if="row.trace"
+                variant="tertiary"
+                accent="brand"
+                size="small"
+                left-icon="fa:route"
+                @click="openTrace(pool.id, row.trace)"
+              >
                 {{ t('firewall:monitor:trace') }}
-              </UiLink>
+              </UiButton>
             </li>
           </ul>
         </section>
@@ -242,6 +249,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
+import type { VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
@@ -252,6 +260,7 @@ import { useVdfMonitorExpected } from '@/modules/vdf/composables/vdf-monitor-exp
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfMonitor } from '@/modules/vdf/remote-resources/use-vdf-monitor.ts'
 import type { VdfMonitorEntry, VdfPolicy } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, ruleNumber, vdfGlobalRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -316,6 +325,8 @@ const { pool } = defineProps<{
 const { t, locale } = useI18n()
 
 const router = useRouter()
+
+const { openTrace } = useVdfTraceDrawer()
 
 const poolId = computed(() => pool.id)
 
@@ -660,7 +671,7 @@ type Row = {
   key: string
   entry: VdfMonitorEntry
   allow: RouteLocationRaw | undefined
-  trace: RouteLocationRaw | undefined
+  trace: VdfTraceQuery | undefined
   expected: boolean
   // the published rule that now allows it (the entry stays for 7 days)
   coveredBy: number | undefined
@@ -759,10 +770,10 @@ function allowRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
     : { name: '/pool/[id]/firewall/policies', params: { id: pool.id }, query: { policy: entry.policy, ...query } }
 }
 
-// the same flow, traced (as from the rule log): the source and destination
+// the same flow, traced in the trace drawer (as from the rule log): the source and destination
 // VMs of this pool (the interface of one with several, vdf#36), else the
 // address; a monitored drop is what the trace calls allowed
-function traceRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
+function traceRoute(entry: VdfMonitorEntry): VdfTraceQuery | undefined {
   const peer = entry.egress ? entry.dst : entry.src
 
   if (peer === undefined || peer === MONITOR_OTHER || !['tcp', 'udp', 'icmp'].includes(entry.proto)) {
@@ -782,19 +793,15 @@ function traceRoute(entry: VdfMonitorEntry): RouteLocationRaw | undefined {
   const [from, to] = entry.egress ? [own, other] : [other, own]
 
   return {
-    name: '/pool/[id]/firewall/trace',
-    params: { id: pool.id },
-    query: {
-      from: from.id,
-      fromip: from.ip,
-      fromiface: from.iface,
-      to: to.id,
-      toip: to.ip,
-      toiface: to.iface,
-      proto: entry.proto,
-      port: entry.proto !== 'icmp' && entry.port ? String(entry.port) : undefined,
-      run: '1',
-    },
+    from: from.id,
+    fromip: from.ip,
+    fromiface: from.iface,
+    to: to.id,
+    toip: to.ip,
+    toiface: to.iface,
+    proto: entry.proto,
+    port: entry.proto !== 'icmp' && entry.port ? String(entry.port) : undefined,
+    run: '1',
   }
 }
 
@@ -926,7 +933,7 @@ function rowTextButton(icon: IconName, label: string, tooltip: string, onClick: 
 function rowButtons(row: Row) {
   return row.trace === undefined
     ? null
-    : rowButton('fa:route', t('firewall:monitor:trace'), () => router.push(row.trace!))
+    : rowButton('fa:route', t('firewall:monitor:trace'), () => openTrace(pool.id, row.trace!))
 }
 
 // allow it, or mark it expected (and back): under what would drop it, where

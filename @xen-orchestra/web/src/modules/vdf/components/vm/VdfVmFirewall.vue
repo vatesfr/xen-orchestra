@@ -96,13 +96,15 @@
             <template #drops>{{ t(`firewall:joined:drops:${joinedDirection(entry)}`) }}</template>
             <template #time><VtsRelativeTime :date="entry.since" /></template>
           </I18nT>
-          <UiLink
-            :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: vm.id } }"
+          <UiButton
+            variant="tertiary"
+            accent="brand"
             size="small"
-            icon="fa:route"
+            left-icon="fa:route"
+            @click="openTrace(pool.id, { to: vm.id })"
           >
             {{ t('firewall:vm:test:to') }}
-          </UiLink>
+          </UiButton>
         </span>
       </template>
     </UiAlert>
@@ -227,20 +229,24 @@
         <UiCard>
           <UiTitle>{{ t('firewall:vm:test') }}</UiTitle>
           <div v-if="isRunning" class="links">
-            <UiLink
-              :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { to: vm.id } }"
+            <UiButton
+              variant="tertiary"
+              accent="brand"
               size="medium"
-              icon="fa:route"
+              left-icon="fa:route"
+              @click="openTrace(pool.id, { to: vm.id })"
             >
               {{ t('firewall:vm:test:to') }}
-            </UiLink>
-            <UiLink
-              :to="{ name: '/pool/[id]/firewall/trace', params: { id: pool.id }, query: { from: vm.id } }"
+            </UiButton>
+            <UiButton
+              variant="tertiary"
+              accent="brand"
               size="medium"
-              icon="fa:route"
+              left-icon="fa:route"
+              @click="openTrace(pool.id, { from: vm.id })"
             >
               {{ t('firewall:vm:test:from') }}
-            </UiLink>
+            </UiButton>
             <UiLink
               :to="{ name: '/pool/[id]/firewall/traffic', params: { id: pool.id }, query: { vm: vm.id } }"
               size="medium"
@@ -278,6 +284,7 @@ import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shad
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
@@ -352,6 +359,9 @@ const vmJoined = computed(() =>
 )
 
 const membership = useVdfMembership()
+
+// a trace, in the drawer: the page stays
+const { openTrace } = useVdfTraceDrawer()
 
 const { setTags, removeVmFromGroup, isUpdatingTags, tagError } = membership
 
