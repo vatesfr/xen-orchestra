@@ -16,6 +16,12 @@ import { useI18n } from 'vue-i18n'
 // The caller confirms the removal, and knows what to show once the VM left the list
 export type V2vVmRemove = (id: XoV2vVm['id']) => unknown
 
+// The settings edit, if any, comes first, the other actions apart: the panel as a button, a row menu above a separator
+export type V2vVmActionList = {
+  mainAction?: LeafActionItem
+  moreActions: LeafActionItem[]
+}
+
 // Every kind with a mapping shows its settings edit, a resumed VM's one disabled
 function useEditSettingsAction(getState: () => Pick<LeafActionItem, 'onClick' | 'disabled' | 'hint'>) {
   const { t } = useI18n()

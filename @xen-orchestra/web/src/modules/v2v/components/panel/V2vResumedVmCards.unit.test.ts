@@ -8,7 +8,12 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
-import { V2V_ACTIVE_MAPPING_ROWS, V2V_MAPPING_INVENTORY, V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
+import {
+  V2V_ACTIVE_DISK_ROWS,
+  V2V_ACTIVE_NIC_ROWS,
+  V2V_MAPPING_INVENTORY,
+  V2V_RESUMED_IMPORT_VM,
+} from '@/test/v2v-mapping-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
 vi.mock(
@@ -82,7 +87,8 @@ it('shows the mapping of the first sync, locked on the pool', async () => {
 
   expect(card.props()).toEqual({
     poolName: V2V_RESUMED_VM_POOL.name_label,
-    rows: V2V_ACTIVE_MAPPING_ROWS,
+    diskRows: V2V_ACTIVE_DISK_ROWS,
+    nicRows: V2V_ACTIVE_NIC_ROWS,
     loading: false,
   })
 })

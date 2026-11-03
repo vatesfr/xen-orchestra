@@ -79,28 +79,27 @@ beforeEach(() => {
   deleteModalMock.reset()
 })
 
-describe('activeVm', () => {
-  it('shows the VM of the route', async () => {
-    const step = await mountMappingStep({ vm: V2V_DB_VM.id })
+describe('selectedVm', () => {
+  it('is the VM of the route', async () => {
+    const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 
-    expect(step.result.activeVm?.id).toBe(V2V_DB_VM.id)
-    expect(findRouteVmId(step)).toBe(V2V_DB_VM.id)
+    expect(result.selectedVm?.id).toBe(V2V_DB_VM.id)
   })
 
   it.each([
     ['without a VM in the route', undefined],
     ['for a VM out of the list', 'vm-unknown'],
-  ])('shows the first VM of the list %s, in the route too', async (_, vm) => {
+  ])('is undefined %s, the route left as is', async (_, vm) => {
     const step = await mountMappingStep({ vm })
 
-    expect(step.result.activeVm?.id).toBe(V2V_WEB_VM.id)
-    expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
+    expect(step.result.selectedVm).toBeUndefined()
+    expect(findRouteVmId(step)).toBe(vm)
   })
 
   it('maps a new VM on the list, ready', async () => {
     const { result } = await mountMappingStep({ vm: V2V_WEB_VM.id })
 
-    expect(result.activeVm).toEqual({
+    expect(result.selectedVm).toEqual({
       kind: 'new',
       id: V2V_WEB_VM.id,
       heading: {
@@ -119,7 +118,7 @@ describe('activeVm', () => {
 
     xoCollectionsMock.srs.value = []
 
-    expect(result.activeVm).toMatchObject({
+    expect(result.selectedVm).toMatchObject({
       kind: 'new',
       listIssue: result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
     })
@@ -128,7 +127,7 @@ describe('activeVm', () => {
   it('resumes a VM warm synced on the pool of the list, since its last sync', async () => {
     const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 
-    expect(result.activeVm).toEqual({
+    expect(result.selectedVm).toEqual({
       kind: 'resume',
       id: V2V_DB_VM.id,
       heading: {
@@ -145,7 +144,7 @@ describe('activeVm', () => {
   it('tells a VM gone from the source not found, named by its id', async () => {
     const { result } = await mountMappingStep({ vm: V2V_GONE_VM_ID })
 
-    expect(result.activeVm).toEqual({
+    expect(result.selectedVm).toEqual({
       kind: 'not-found',
       id: V2V_GONE_VM_ID,
       heading: { locationParts: [SOURCE_HOST], name: V2V_GONE_VM_ID },
@@ -166,32 +165,74 @@ describe('activeVm', () => {
   ])('leaves out of the location %s', async (_, inventory, locationParts) => {
     const { result } = await mountMappingStep({ vm: V2V_WEB_VM.id, inventory })
 
-    expect(result.activeVm?.heading.locationParts).toEqual(locationParts)
+    expect(result.selectedVm?.heading.locationParts).toEqual(locationParts)
   })
 
   it.each([
     ['the XO VMs', () => (v2vVmRowsCollectionsMock.areVmsReady.value = false)],
     ['the SRs of the pool', () => (xoCollectionsMock.areSrsReady.value = false)],
-  ])('is undefined, busy, while %s load', async (_, holdLoading) => {
+  ])('is undefined, busy, without rows, while %s load', async (_, holdLoading) => {
     const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 
     holdLoading()
 
-    expect(result.activeVm).toBeUndefined()
+    expect(result.selectedVm).toBeUndefined()
+    expect(result.rows).toEqual([])
     expect(result.isBusy).toBe(true)
   })
 })
 
-describe('items', () => {
-  it('selects the active VM in the panel', async () => {
+describe('rows', () => {
+  it('has a row per VM of the list, in the list order, each with its item of the selected VMs and its VM', async () => {
+    const { result } = await mountMappingStep()
+
+    expect(result.rows.map(row => row.item.id)).toEqual([V2V_WEB_VM.id, V2V_DB_VM.id, V2V_GONE_VM_ID])
+    expect(result.rows.map(row => [row.vm.id, row.vm.kind])).toEqual([
+      [V2V_WEB_VM.id, 'new'],
+      [V2V_DB_VM.id, 'resume'],
+      [V2V_GONE_VM_ID, 'not-found'],
+    ])
+  })
+
+  it('maps the VM of each row like the selected one', async () => {
     const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 
-    expect(result.selectedVmsPanel.items.map(item => item.isSelected)).toEqual([false, true, false])
+    expect(result.rows[1].vm).toEqual(result.selectedVm)
+  })
+
+  it('marks the row of the selected VM alone', async () => {
+    const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
+
+    expect(result.rows.map(row => row.item.isSelected)).toEqual([false, true, false])
+  })
+})
+
+describe('select', () => {
+  it('selects a VM through the route', async () => {
+    const step = await mountMappingStep()
+
+    step.result.select(V2V_DB_VM.id)
+    await flushPromises()
+
+    expect(findRouteVmId(step)).toBe(V2V_DB_VM.id)
+    expect(step.result.selectedVm?.id).toBe(V2V_DB_VM.id)
+  })
+})
+
+describe('close', () => {
+  it('selects no VM any more, out of the route', async () => {
+    const step = await mountMappingStep({ vm: V2V_DB_VM.id })
+
+    step.result.close()
+    await flushPromises()
+
+    expect(findRouteVmId(step)).toBeUndefined()
+    expect(step.result.selectedVm).toBeUndefined()
   })
 })
 
 describe('remove', () => {
-  it('keeps the VM and its mapping when cancelled', async () => {
+  it('keeps the VM and its selection when cancelled', async () => {
     deleteModalMock.answer('onCancel')
     const step = await mountMappingStep({ vm: V2V_WEB_VM.id })
 
@@ -202,26 +243,28 @@ describe('remove', () => {
     expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
   })
 
-  it('removes the active VM, then shows the next one', async () => {
+  it('removes the selected VM, then selects no VM', async () => {
     const step = await mountMappingStep({ vm: V2V_DB_VM.id })
 
     await removeOnceConfirmed(step, V2V_DB_VM.id)
 
     expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-    expect(findRouteVmId(step)).toBe(V2V_GONE_VM_ID)
+    expect(findRouteVmId(step)).toBeUndefined()
+    expect(step.result.selectedVm).toBeUndefined()
   })
 
-  it('shows the previous VM once the last one is removed', async () => {
-    const step = await mountMappingStep({ vm: V2V_GONE_VM_ID })
+  it('removes another VM, keeping the selected one', async () => {
+    const step = await mountMappingStep({ vm: V2V_WEB_VM.id })
 
-    await removeOnceConfirmed(step, V2V_GONE_VM_ID)
+    await removeOnceConfirmed(step, V2V_DB_VM.id)
 
-    expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_DB_VM.id])
-    expect(findRouteVmId(step)).toBe(V2V_DB_VM.id)
+    expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
+    expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
   })
 
   it('goes back to the VMs step once the list is empty', async () => {
     const step = await mountMappingStep({
+      vm: V2V_WEB_VM.id,
       list: createV2vMigrationList({ ...V2V_MAPPING_STEP_LIST, vms: [{ id: V2V_WEB_VM.id }] }),
     })
 
@@ -229,15 +272,6 @@ describe('remove', () => {
 
     expect(readV2vMigrationListVmIds()).toEqual([])
     expect(step.router.currentRoute.value.query.step).toBe('vms')
-  })
-
-  it('removes another VM, keeping the active one', async () => {
-    const step = await mountMappingStep({ vm: V2V_WEB_VM.id })
-
-    await removeOnceConfirmed(step, V2V_DB_VM.id)
-
-    expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-    expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
   })
 })
 

@@ -3,12 +3,12 @@ import { findTableColumn, findTableHeaders } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_DISK_ROWS, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
-import { describeV2vTargetCells, type V2vTargetTableOverrides } from '@/test/v2v-target-cells.ts'
+import { describeV2vTargetCells } from '@/test/v2v-target-cells.ts'
 import { mount } from '@vue/test-utils'
 
-function mountTable({ readonly, withoutOptions }: V2vTargetTableOverrides = {}) {
+function mountTable() {
   return mount(V2vDiskMappingTable, {
-    props: { rows: V2V_DISK_ROWS, srOptions: withoutOptions ? [] : V2V_TARGET_OPTIONS.srs, loading: true, readonly },
+    props: { rows: V2V_DISK_ROWS, srOptions: V2V_TARGET_OPTIONS.srs, loading: true },
     global: createGlobalTestConfig(),
   })
 }

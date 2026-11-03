@@ -73,15 +73,15 @@ const IMPORT_VMS = [
 async function mountSelectedVms({
   list = LIST,
   poolId = V2V_LIST_POOL.id,
-  activeVmId,
-}: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null; activeVmId?: XoV2vVm['id'] } = {}) {
+  selectedVmId,
+}: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null; selectedVmId?: XoV2vVm['id'] } = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_OTHER_POOL]
   xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
   return mountV2vVmsStep(
     () => ({
-      ...useV2vSelectedVms({ ...useV2vMigrationListRows(), activeVmId }),
+      ...useV2vSelectedVms({ ...useV2vMigrationListRows(), selectedVmId }),
       labels: useV2vVmLabels(),
     }),
     { list, query: { pool: poolId ?? undefined } }
@@ -198,13 +198,13 @@ describe('items', () => {
     ])
   })
 
-  it('selects the active VM alone', async () => {
-    const { result } = await mountSelectedVms({ activeVmId: V2V_DB_VM.id })
+  it('selects the selected VM alone', async () => {
+    const { result } = await mountSelectedVms({ selectedVmId: V2V_DB_VM.id })
 
     expect(result.items.map(item => item.isSelected)).toEqual([false, true, false])
   })
 
-  it('selects no VM without an active one', async () => {
+  it('selects no VM without a selected one', async () => {
     const { result } = await mountSelectedVms()
 
     expect(result.items.some(item => item.isSelected)).toBe(false)
@@ -318,38 +318,20 @@ describe('isBusy', () => {
   })
 })
 
-describe('activeVm', () => {
-  it('tells the name, the kind and the check of the active VM', async () => {
-    const { result } = await mountSelectedVms({ activeVmId: V2V_DB_VM.id })
+describe('vms', () => {
+  it('tells the kind and the check of each VM of the list, with its item, in the list order', async () => {
+    const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 
-    expect(result.activeVm).toEqual({
-      id: V2V_DB_VM.id,
-      name: V2V_DB_VM.name,
-      kind: 'resume',
-      check: { type: 'ready', level: 'ready' },
-      checkInfo: result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
-    })
+    expect(result.vms).toEqual([
+      { kind: 'new', check: { type: 'ready', level: 'ready' }, item: result.items[0] },
+      { kind: 'resume', check: { type: 'ready', level: 'ready' }, item: result.items[1] },
+    ])
   })
 
-  it('labels the check of the active VM like its item', async () => {
-    const { result } = await mountSelectedVms({ list: WEB_LIST, activeVmId: V2V_WEB_VM.id })
+  it('is empty for an empty list', async () => {
+    const { result } = await mountSelectedVms({ list: V2V_EMPTY_LIST })
 
-    v2vVmRowsCollectionsMock.vms.value = [
-      createV2vImportVm({ isWarm: true, sourceVmId: V2V_WEB_VM.id }, { $pool: V2V_OTHER_POOL.id }),
-    ]
-
-    expect(result.activeVm?.checkInfo.label).toBe(
-      result.t('v2v:partial-import-on-pool', { pool: V2V_OTHER_POOL.name_label })
-    )
-  })
-
-  it.each([
-    ['without an active VM', undefined],
-    ['for a VM out of the list', V2V_LISTED_VM.id],
-  ])('is undefined %s', async (_, activeVmId) => {
-    const { result } = await mountSelectedVms({ activeVmId })
-
-    expect(result.activeVm).toBeUndefined()
+    expect(result.vms).toEqual([])
   })
 })
 

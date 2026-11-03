@@ -21,10 +21,12 @@ import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 // The issue of the VM in the list, if any, is told with the checks of its source.
-// `listVm` is where the overrides are read from, the VM of the list by default: `updateVm` must write to it
+// `listVm` is where the overrides are read from, the VM of the list by default: the `updateVm` of the setters must
+// write to it
 export type V2vVmMappingContext = {
   list: MaybeRefOrGetter<V2vMigrationList>
   updateVm: ReturnType<typeof useV2vMigrationList>['updateVm']
@@ -38,10 +40,10 @@ function toTargetOption<TId>({ id, name_label }: { id: TId; name_label: string }
   return { id, label: name_label }
 }
 
-// A new VM is mapped on the pool of its list: each change goes through `updateVm`, as an override of the list defaults
+// A new VM is mapped on the pool of its list, its overrides on top of the list defaults
 export function useV2vVmMapping(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, updateVm, listIssue, listVm: rawListVm }: V2vVmMappingContext
+  { list: rawList, listIssue, listVm: rawListVm }: Omit<V2vVmMappingContext, 'updateVm'>
 ) {
   const connectionStore = useV2vConnectionStore()
 
@@ -49,9 +51,9 @@ export function useV2vVmMapping(
 
   const { getSrSelectLabel } = useXoSrUtils()
 
-  const vm = computed(() => toValue(rawVm))
+  const vm = toComputed(rawVm)
 
-  const list = computed(() => toValue(rawList))
+  const list = toComputed(rawList)
 
   const poolId = computed(() => list.value.poolId)
 
@@ -112,6 +114,31 @@ export function useV2vVmMapping(
 
   const tags = computed(() => listVm.value.tags ?? V2V_DEFAULT_TAGS)
 
+  return {
+    poolName,
+    hostName,
+    checks,
+    diskRows,
+    nicRows,
+    template,
+    srOptions,
+    networkOptions,
+    templateOptions,
+    areOffersReady,
+    keepMac,
+    tags,
+  }
+}
+
+// Each change goes through `updateVm`, as an override of the list defaults
+export function useV2vVmMappingSetters(
+  rawVm: MaybeRefOrGetter<XoV2vVm>,
+  { list: rawList, updateVm }: Pick<V2vVmMappingContext, 'list' | 'updateVm'>
+) {
+  const vm = toComputed(rawVm)
+
+  const list = toComputed(rawList)
+
   // A cleared override is `undefined`: the stored list leaves it out
   function updateOverrides(getOverrides: (listVm: V2vMigrationListVm) => Partial<V2vVmOverrides>) {
     updateVm(vm.value.id, currentVm => ({ ...currentVm, ...getOverrides(currentVm) }))
@@ -139,18 +166,6 @@ export function useV2vVmMapping(
   }
 
   return {
-    poolName,
-    hostName,
-    checks,
-    diskRows,
-    nicRows,
-    template,
-    srOptions,
-    networkOptions,
-    templateOptions,
-    areOffersReady,
-    keepMac,
-    tags,
     setDiskSr,
     setNicNetwork,
     setTemplate,

@@ -1,13 +1,13 @@
 <template>
-  <VtsSidePanel :has-selection="vm !== undefined" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vm" @close="emit('close')">
     <template v-if="vm" #actions>
-      <V2vNewVmActions v-if="vm.kind === 'new'" :vm :update-vm @remove="id => emit('remove', id)" />
-      <V2vResumedVmActions v-else-if="vm.kind === 'resume'" :vm />
-      <V2vNotFoundVmActions v-else :vm @remove="id => emit('remove', id)" />
+      <V2vVmKindActions v-slot="actions" :vm :update-vm @remove="id => emit('remove', id)">
+        <V2vVmActions v-bind="actions" />
+      </V2vVmKindActions>
     </template>
     <template v-if="vm" #default>
       <V2vVmHeadingCard :id="vm.id" :heading="vm.heading" />
-      <V2vNewVmCards v-if="vm.kind === 'new'" :vm :update-vm />
+      <V2vNewVmCards v-if="vm.kind === 'new'" :vm />
       <V2vResumedVmCards v-else-if="vm.kind === 'resume'" :vm />
       <VtsStateHero v-else format="panel" type="not-found" size="medium">
         {{ t('v2v:not-found-in-source') }}
@@ -17,12 +17,11 @@
 </template>
 
 <script lang="ts" setup>
-import V2vNewVmActions from '@/modules/v2v/components/panel/V2vNewVmActions.vue'
 import V2vNewVmCards from '@/modules/v2v/components/panel/V2vNewVmCards.vue'
-import V2vNotFoundVmActions from '@/modules/v2v/components/panel/V2vNotFoundVmActions.vue'
-import V2vResumedVmActions from '@/modules/v2v/components/panel/V2vResumedVmActions.vue'
 import V2vResumedVmCards from '@/modules/v2v/components/panel/V2vResumedVmCards.vue'
+import V2vVmActions from '@/modules/v2v/components/panel/V2vVmActions.vue'
 import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vue'
+import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
