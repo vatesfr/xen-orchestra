@@ -962,6 +962,8 @@
   "firewall:log": "Log",
   "firewall:log:about": "About the rule log",
   "firewall:log:chart": "Logged per minute since {time}, as filtered below",
+  "firewall:log:chart:all": "Logged per minute since {time}, by the rules and policies that log",
+  "firewall:log:chart:title": "Rule log per minute",
   "firewall:log:decided-by": "Decided by",
   "firewall:log:default": "Default action",
   "firewall:log:egress": "outbound",

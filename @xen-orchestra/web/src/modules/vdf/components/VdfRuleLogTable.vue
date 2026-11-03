@@ -15,7 +15,7 @@
     <UiAlert v-for="host of ruleLog?.errors ?? []" :key="host.hostName" accent="warning">
       {{ t('firewall:log:host-error', { host: host.hostName, error: host.error }) }}
     </UiAlert>
-    <div v-if="logSeries !== undefined" class="chart">
+    <div v-if="chart && logSeries !== undefined" class="chart">
       <span class="typo-body-regular-small secondary">{{ logCaption }}</span>
       <VdfRateChart :series="logSeries" unit="minute" />
     </div>
@@ -47,13 +47,13 @@ import { useVdfDecision, type VdfDecision } from '@/modules/vdf/composables/vdf-
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfRuleLogSeries } from '@/modules/vdf/composables/vdf-rule-log-series.composable.ts'
 import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
 import { allowFlowRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
-import { logRateSeries } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -74,13 +74,15 @@ import { computed, h, ref, useTemplateRef, watch, watchEffect, withDirectives } 
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { poolId, vmName, paused } = defineProps<{
+const { poolId, vmName, paused, chart = true } = defineProps<{
   poolId: string
   // only the entries of this VM's VIFs (as destination or source)
   vmName?: string
   // the page's live updates, paused or not: one control for the page
   // (Traffic); without it, the table's own
   paused?: boolean
+  // its per-minute chart (Traffic draws the log's beside its rates)
+  chart?: boolean
 }>()
 
 const { t, d } = useI18n()
@@ -220,46 +222,11 @@ const rows = computed<Row[]>(() => {
 const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-rule-log', rows)
 
 // CHART (vdf#59): what the table shows (its filters: verdict, search, a
-// policy's name), per minute, over the last hour or as far back as the
-// log's last lines go
-const LOG_WINDOW_MS = 60 * 60_000
-
-const LOG_BUCKET_MS = 60_000
-
-const logSince = computed(() => {
-  const times = (ruleLog.value?.entries ?? []).map(entry => Date.parse(entry.time)).filter(time => !Number.isNaN(time))
-
-  if (times.length === 0) {
-    return undefined
-  }
-
-  return Math.max(Math.min(...times), Date.now() - LOG_WINDOW_MS)
-})
-
-const logSeries = computed(() => {
-  // a single minute isn't a trend: the table says it all; nothing logged
-  // (UX P3-6): no empty chart, the table's empty state says it
-  if (logSince.value === undefined || Date.now() - logSince.value < 2 * LOG_BUCKET_MS || rows.value.length === 0) {
-    return undefined
-  }
-
-  // complete minutes only: the one in progress would always dip at the end
-  return logRateSeries(
-    rows.value.map(row => row.entry),
-    {
-      since: logSince.value,
-      until: Math.floor(Date.now() / LOG_BUCKET_MS) * LOG_BUCKET_MS - 1,
-      bucketMs: LOG_BUCKET_MS,
-    }
-  )
-})
-
-const logCaption = computed(() =>
-  logSince.value === undefined
-    ? ''
-    : t('firewall:log:chart', {
-        time: d(new Date(logSince.value), { hour: '2-digit', minute: '2-digit' }),
-      })
+// policy's name), per minute; on Traffic, the page draws the whole log's
+// beside its rates (chart: false)
+const { logSeries, logCaption } = useVdfRuleLogSeries(
+  () => ruleLog.value?.entries ?? [],
+  () => rows.value.map(row => row.entry)
 )
 
 const state = useTableState({
