@@ -242,7 +242,7 @@
               {{ t('firewall:vm:test:from') }}
             </UiLink>
             <UiLink
-              :to="{ name: '/pool/[id]/firewall/live', params: { id: pool.id }, query: { vm: vm.id } }"
+              :to="{ name: '/pool/[id]/firewall/traffic', params: { id: pool.id }, query: { vm: vm.id } }"
               size="medium"
               icon="fa:network-wired"
             >

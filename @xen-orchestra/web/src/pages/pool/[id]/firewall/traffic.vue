@@ -82,11 +82,17 @@
         </VtsStateHero>
       </UiCard>
 
+      <!-- what rules and policies that log recorded: each drop and allow, with its rule (vdf#139: in place of the dropped table) -->
       <UiCard>
-        <UiTitle>{{ t('firewall:live:blocked-attempts') }}</UiTitle>
-        <!-- the same counters as "Dropped / s" above, but a source stays listed a while after its last drop -->
-        <UiInfo accent="muted" wrap>{{ t('firewall:live:blocked-attempts:info') }}</UiInfo>
-        <VdfDroppedTable :scope-id="pool.id" :rows="droppedRows" :rate-label="t('firewall:live:dropped-rate:last')" />
+        <UiTitle>
+          {{ t('firewall:logs') }}
+          <template #action>
+            <UiButton variant="tertiary" accent="brand" size="medium" left-icon="status:info-circle" @click="openLogInfo()">
+              {{ t('firewall:log:about') }}
+            </UiButton>
+          </template>
+        </UiTitle>
+        <VdfRuleLogTable :pool-id="pool.id" />
       </UiCard>
 
       <UiCard>
@@ -106,25 +112,20 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useVdfRate } from '@/modules/vdf/components/live/vdf-rate.ts'
 import VdfConnectionsTable, { type VdfConnectionItem } from '@/modules/vdf/components/live/VdfConnectionsTable.vue'
-import VdfDroppedTable, { type VdfDroppedRow } from '@/modules/vdf/components/live/VdfDroppedTable.vue'
 import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue'
 import VdfProtectedVmsTable from '@/modules/vdf/components/live/VdfProtectedVmsTable.vue'
 import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
+import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import { useVdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import { useVdfStats } from '@/modules/vdf/remote-resources/use-vdf-stats.ts'
 import type { VdfConnection } from '@/modules/vdf/types.ts'
-import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
-import { tierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hostRatePoints, sampleOf, sumRateSeries, type VdfRatePoint } from '@/modules/vdf/utils/vdf-rate-series.util.ts'
-import { recentDrops } from '@/modules/vdf/utils/vdf-recent-drops.util.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -135,11 +136,11 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useNow } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
 const { pool } = defineProps<{
   pool: FrontXoPool
@@ -154,18 +155,19 @@ const { poolVms } = useVdfMembers(() => pool.id, publishedDocument)
 
 const isPaused = ref(false)
 
+const { open: openInfoModal } = useInfoModal()
+
+function openLogInfo() {
+  openInfoModal({ props: { title: t('firewall:log:about'), content: t('firewall:log:info'), icon: 'fa:list' } })
+}
+
 const isPolling = computed(() => !isPaused.value)
 
 const { stats, hasStatsError, statsError, reloadStats } = useVdfStats({ isEnabled: isPolling }, () => pool.id)
 
-// drops rules with logging recorded (any source, with the port)
-const { ruleLog } = useVdfRuleLog({ isEnabled: isPolling }, () => pool.id)
-
 const { vmByIp, vmByName, groupsOfIp } = useVdfIpNames(publishedDocument)
 
-const { decision, ruleDecision } = useVdfDecision(() => pool.id, publishedDocument)
-
-const formatRate = useVdfRate()
+const { ruleDecision } = useVdfDecision(() => pool.id, publishedDocument)
 
 const hostStats = computed(() => (stats.value?.hosts ?? []).filter(host => host.error === undefined))
 
@@ -266,36 +268,6 @@ const totals = computed(() =>
       }
 )
 
-// to a VM by name, or (egress, vdf#53) to any address
-function traceRoute(source: { vm?: string; ip: string }, to: string | { ip: string }, proto?: string, port?: string) {
-  const destination =
-    typeof to === 'string'
-      ? poolVms.value.find(vm => vm.name_label === to)
-      : poolVms.value.find(vm => Object.values(vm.addresses ?? {}).includes(to.ip))
-
-  if (destination === undefined && typeof to === 'string') {
-    return undefined
-  }
-
-  const sourceVm = poolVms.value.find(vm =>
-    source.vm ? vm.name_label === source.vm : Object.values(vm.addresses ?? {}).includes(source.ip)
-  )
-
-  return {
-    name: '/pool/[id]/firewall/trace',
-    params: { id: pool.id },
-    query: {
-      from: sourceVm?.id ?? 'external',
-      fromip: sourceVm === undefined ? source.ip : undefined,
-      to: destination?.id ?? 'external',
-      toip: destination === undefined && typeof to !== 'string' ? to.ip : undefined,
-      proto,
-      port,
-      run: proto === undefined ? undefined : '1',
-    },
-  } satisfies RouteLocationRaw
-}
-
 const now = useNow({ interval: 5000 })
 
 // RATE CHART (vdf#59): the last minutes of new connections, allowed and
@@ -345,86 +317,6 @@ const chartCaption = computed(() =>
     ? t('firewall:live:chart:caption')
     : t('firewall:live:chart:caption:vm', { vm: filteredVm.value?.name_label ?? vmFilter.value })
 )
-
-// What the agents attribute (drops from VMs of the pool, sampled now) and
-// what rules with logging recorded in the last minute (any source, with
-// the port), both as a rate per second
-const droppedRows = computed<VdfDroppedRow[]>(() => {
-  const sampled = hostStats.value
-    .flatMap(host => host.blocked ?? [])
-    .sort((attemptA, attemptB) => attemptB.perSec - attemptA.perSec)
-    .map((attempt): VdfDroppedRow => {
-      // the source's egress (vdf#53): its default, or its revocations, to
-      // destinations the agent doesn't sample
-      if (attempt.egress) {
-        return {
-          key: `agent:${attempt.srcVm}>${attempt.revoked ? 'revoked' : 'egress'}`,
-          src: endpoint(attempt.srcIp, attempt.srcVm),
-          dst: {
-            ip: '',
-            name: attempt.revoked ? t('firewall:live:egress-revoked') : t('firewall:live:egress-destinations'),
-          },
-          revoked: attempt.revoked,
-          egress: true,
-          decisionText: attempt.revoked ? t('firewall:live:revoked-by-egress') : t('firewall:live:egress-default-drop'),
-          rate: formatRate(attempt.perSec),
-          rateDetail: t('firewall:live:rate:sampled'),
-          traceLabel: '',
-        }
-      }
-
-      return {
-        key: `agent:${attempt.srcIp}>${attempt.dstVm}`,
-        src: endpoint(attempt.srcIp, attempt.srcVm),
-        dst: endpoint('', attempt.dstVm),
-        revoked: attempt.revoked,
-        decisionText: attempt.revoked ? t('firewall:live:revoked') : t('firewall:live:default-drop'),
-        rate: formatRate(attempt.perSec),
-        rateDetail: t('firewall:live:rate:sampled'),
-        trace: traceRoute({ vm: attempt.srcVm || undefined, ip: attempt.srcIp }, attempt.dstVm),
-        traceLabel: t('firewall:live:trace', { from: attempt.srcVm || attempt.srcIp, to: attempt.dstVm }),
-      }
-    })
-
-  const policies = new Map(publishedDocument.value.policies.map(policy => [policy.name, policy]))
-
-  const logged = recentDrops(ruleLog.value?.entries ?? [], { since: now.value.getTime() - 60_000 }).map(
-    (drop): VdfDroppedRow => {
-      const policy = policies.get(drop.policy)
-
-      // egress (vdf#53): the logged VM is the source
-      const to = drop.egress ? (vmByIp.value.get(drop.dst)?.name_label ?? drop.dst) : drop.vm
-
-      return {
-        key: `log:${drop.key}`,
-        src: drop.egress ? endpoint(drop.src, drop.vm) : endpoint(drop.src),
-        dst: drop.egress ? endpoint(drop.dst) : endpoint('', drop.vm),
-        revoked: false,
-        egress: drop.egress,
-        proto: drop.proto,
-        port: drop.port,
-        decision:
-          policy === undefined
-            ? undefined
-            : decision({ tier: tierValue(policy.tier), policy: drop.policy, rule: drop.rule }),
-        decisionText: displayName(drop.policy),
-        rate: formatRate(drop.count / 60),
-        rateDetail: t('firewall:live:last-minute', { n: drop.count }),
-        trace: drop.egress
-          ? traceRoute({ vm: drop.vm, ip: drop.src }, { ip: drop.dst }, drop.proto, drop.port)
-          : traceRoute({ ip: drop.src }, drop.vm, drop.proto, drop.port),
-        traceLabel: t('firewall:live:trace', { from: drop.egress ? drop.vm : drop.src, to }),
-      }
-    }
-  )
-
-  // a logged egress default names the destinations: the agent's sampled
-  // row for the same source says less
-  const loggedEgressSources = new Set(logged.filter(row => row.egress).map(row => row.src.vm?.id))
-  const shown = sampled.filter(row => !row.egress || row.revoked || !loggedEgressSources.has(row.src.vm?.id))
-
-  return [...shown, ...logged].filter(row => involvesVm(row.src, row.dst))
-})
 </script>
 
 <style lang="postcss" scoped>

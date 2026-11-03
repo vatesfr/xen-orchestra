@@ -1489,6 +1489,7 @@
   "firewall:trace:vm-end": "{vm} ({ip})",
   "firewall:trace:vm-halted": "{vm} (halted)",
   "firewall:trace:vm-not-running": "{vm} isn't running: nothing reaches it or leaves it. Start it to trace its connections.",
+  "firewall:traffic": "Traffic",
   "firewall:traffic-rule": "{action} {protocol}{port} {direction} · {where}",
   "firewall:traffic-rule:anywhere": "anywhere",
   "firewall:traffic-rule:both": "from and to {range}",
