@@ -17,7 +17,7 @@ import once from 'lodash/once.js'
 import proxyAddr from 'proxy-addr'
 import proxyConsole from './proxy-console.mjs'
 import { getProxyTargetUrl } from './_getProxyTargetUrl.mjs'
-import { authenticateUpdater, isUpdaterProxyPath } from './_updaterProxy.mjs'
+import { createProxyUpgradeHandler } from './_updaterProxy.mjs'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
@@ -745,33 +745,7 @@ const setUpProxies = (express, opts, xo, useForwardedHeaders) => {
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
-  express.on('upgrade', async (req, socket, head) => {
-    const { url } = req
-
-    for (const prefix in opts) {
-      if (url.startsWith(prefix)) {
-        if (isUpdaterProxyPath(url)) {
-          try {
-            await authenticateUpdater(req, xo, useForwardedHeaders)
-          } catch (_) {
-            try {
-              socket.end()
-            } catch (_) {}
-            return
-          }
-        }
-
-        const { targetUrl, isLocal } = getProxyTargetUrl(opts[prefix], 'ws:', userHttpConfig)
-
-        proxy.ws(req, socket, head, {
-          agent: isLocal ? undefined : xo.httpAgent,
-          target: targetUrl.href + url.slice(prefix.length),
-        })
-
-        return
-      }
-    }
-  })
+  express.on('upgrade', createProxyUpgradeHandler({ log, opts, proxy, useForwardedHeaders, userHttpConfig, xo }))
 }
 
 // ===================================================================
