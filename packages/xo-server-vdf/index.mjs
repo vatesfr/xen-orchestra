@@ -757,8 +757,11 @@ class VdfPlugin {
   }
 
   // Makes this XO the owner of the pool's global part, if its owner is
-  // still the one the user saw (expectedOwner, '' for none)
-  #takeOver(poolId, expectedOwner) {
+  // still the one the user saw (expectedOwner, '' for none). Refused, unless
+  // dropGlobal, when this XO would write the pool without the global part
+  // it holds: no global configuration here (a fresh XO in place of a lost
+  // one, vdf#81), or the pool out of its scope
+  #takeOver(poolId, expectedOwner, { dropGlobal = false } = {}) {
     const xapi = this.#getXapi(poolId)
     return this.#serialized(poolId, async () => {
       const previous = poolOwner(xapi.pool.other_config)
@@ -767,6 +770,19 @@ class VdfPlugin {
           conflict: true,
           owner: previous ?? null,
           error: `the pool's owner changed meanwhile (${previous?.name ?? 'none'} now): look again before taking it over`,
+        }
+      }
+      const held = publishedPolicy(xapi.pool.other_config ?? {}).document
+      if (!dropGlobal && held != null && hasGlobalPart(held) && !this.#isInScope(poolId)) {
+        const from = previous?.name ?? 'another XO'
+        return {
+          conflict: true,
+          dropsGlobal: true,
+          owner: previous ?? null,
+          error:
+            this.#global === undefined
+              ? `this XO has no global configuration: taking the pool over would remove the global rules it holds from ${from}. Recover that configuration first`
+              : `the pool isn't in this XO's global scope: taking it over would remove the global rules it holds from ${from}. Add it to the scope first`,
         }
       }
       await this.#claim(xapi)
@@ -1990,7 +2006,7 @@ class VdfPlugin {
         endpoint: '/pools/{id}/actions/take_over_global',
         method: 'post',
         description:
-          "Make this XO the one whose global configuration the pool holds, in place of another XO's (which then leaves the pool alone). Refused (conflict: true) if the pool's owner isn't expectedOwner any more. The pool syncs within seconds.",
+          "Make this XO the one whose global configuration the pool holds, in place of another XO's (which then leaves the pool alone). Refused (conflict: true) if the pool's owner isn't expectedOwner any more, or (dropsGlobal: true) if this XO would write the pool without the global part it holds, unless dropGlobal. The pool syncs within seconds.",
         tags: ['vdf'],
         params: PARAMS_ID,
         body: {
@@ -1998,14 +2014,25 @@ class VdfPlugin {
             type: 'string',
             description: "id of the owner the user saw ('' for none), as GET /global reports it (ownerId)",
           },
+          dropGlobal: {
+            type: 'boolean',
+            description:
+              "take it over even if this XO would then write the pool without the global part it holds (no global configuration here, or the pool out of its scope): that part's rules removed from the pool",
+          },
         },
         middlewares: [{ name: 'json' }],
         responses: [
           { status: 200, description: 'The previous owner, if any' },
-          { status: 409, description: 'The owner changed since the user looked' },
+          {
+            status: 409,
+            description:
+              'The owner changed since the user looked, or (dropsGlobal: true) taking it over would remove the global part the pool holds',
+          },
         ],
         callback: async ({ req, res }) => {
-          const result = await this.#takeOver(req.params.id, req.body.expectedOwner)
+          const result = await this.#takeOver(req.params.id, req.body.expectedOwner, {
+            dropGlobal: req.body.dropGlobal === true,
+          })
           if (result.conflict) {
             res.status(409)
           }

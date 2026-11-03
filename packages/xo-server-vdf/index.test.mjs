@@ -997,6 +997,38 @@ describe('across pools', () => {
       plugin.unload()
     }
   })
+
+  // vdf#81: a fresh XO in place of a lost one, without its global
+  // configuration, would write the pool without the global rules it holds
+  test('taking over a pool is refused when it would remove the global part the pool holds', async () => {
+    const otherGlobal = text({ groups: { 'global:theirs': { ips: ['192.0.2.1'] } }, policies: [] })
+    const xo = fakeXo({
+      pools: {
+        B: { otherConfig: { 'vdf:policy': otherGlobal, 'vdf:global.owner': '{"id":"other","name":"xo-other"}' } },
+      },
+    })
+    const plugin = await loaded(xo)
+    try {
+      const refused = await xo.route('post', '/pools/{id}/actions/take_over_global', {
+        params: { id: 'B' },
+        body: { expectedOwner: 'other' },
+      })
+      assert.deepEqual([refused.status, refused.result.conflict, refused.result.dropsGlobal], [409, true, true])
+      assert.match(refused.result.error, /no global configuration/)
+      assert.equal(JSON.parse(xo.xapis.B.pool.other_config['vdf:global.owner']).id, 'other')
+      assert.equal(xo.xapis.B.pool.other_config['vdf:policy'], otherGlobal)
+
+      const { previous } = (
+        await xo.route('post', '/pools/{id}/actions/take_over_global', {
+          params: { id: 'B' },
+          body: { expectedOwner: 'other', dropGlobal: true },
+        })
+      ).result
+      assert.equal(previous.name, 'xo-other')
+    } finally {
+      plugin.unload()
+    }
+  })
 })
 
 describe('global write path', () => {
