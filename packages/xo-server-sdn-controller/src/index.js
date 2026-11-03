@@ -1048,6 +1048,17 @@ class SDNController extends EventEmitter {
     mtu = 0,
     preferredCenterId,
   }) {
+    // Checked before the PrivateNetwork is constructed: its constructor registers it, and with no pool it would stay
+    // registered without any network
+    if (poolIds.length === 0) {
+      throw invalidParameters('at least one pool is required')
+    }
+    // A pool given twice would get two networks with the same private network uuid and VNI, and PrivateNetwork keeps
+    // only the last one it is given per pool: the first would get no tunnel and be invisible to the centre logic
+    if (new Set(poolIds).size !== poolIds.length) {
+      throw invalidParameters('each pool can only be given once')
+    }
+
     const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
     const pifs = pifIds.map(id => this._xo.getXapiObject(this._xo.getObject(id, 'PIF')))
     const poolPifs = pools.map(pool => {
