@@ -951,6 +951,8 @@
   "firewall:log": "Journal",
   "firewall:log:about": "À propos du journal des règles",
   "firewall:log:chart": "Journalisées par minute depuis {time}, selon les filtres ci-dessous",
+  "firewall:log:chart:all": "Journalisé par minute depuis {time}, par les règles et politiques qui journalisent",
+  "firewall:log:chart:title": "Journal des règles par minute",
   "firewall:log:decided-by": "Décidé par",
   "firewall:log:default": "Action par défaut",
   "firewall:log:egress": "sortant",

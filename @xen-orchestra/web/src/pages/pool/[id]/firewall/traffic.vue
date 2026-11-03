@@ -79,16 +79,29 @@
         <VdfFlowMap :pool-id="pool.id" :document="publishedDocument" :connections :paused="isPaused" />
       </UiCard>
 
-      <UiCard>
-        <UiCardTitle>
-          {{ t('firewall:live:chart') }}
-          <template #description>{{ chartCaption }}</template>
-        </UiCardTitle>
-        <VdfRateChart v-if="hasRateData" :series="rateSeries" unit="second" />
-        <VtsStateHero v-else format="card" type="no-data" size="extra-small" horizontal>
-          {{ t('firewall:live:chart:collecting') }}
-        </VtsStateHero>
-      </UiCard>
+      <!-- the rates and the rule log's minutes, side by side: neither needs the page's width -->
+      <div class="charts">
+        <UiCard>
+          <UiCardTitle>
+            {{ t('firewall:live:chart') }}
+            <template #description>{{ chartCaption }}</template>
+          </UiCardTitle>
+          <VdfRateChart v-if="hasRateData" :series="rateSeries" unit="second" />
+          <VtsStateHero v-else format="card" type="no-data" size="extra-small" horizontal>
+            {{ t('firewall:live:chart:collecting') }}
+          </VtsStateHero>
+        </UiCard>
+        <UiCard>
+          <UiCardTitle>
+            {{ t('firewall:log:chart:title') }}
+            <template #description>{{ logCaption }}</template>
+          </UiCardTitle>
+          <VdfRateChart v-if="logSeries !== undefined" :series="logSeries" unit="minute" />
+          <VtsStateHero v-else format="card" type="no-data" size="extra-small" horizontal>
+            {{ t('firewall:live:chart:collecting') }}
+          </VtsStateHero>
+        </UiCard>
+      </div>
 
       <!-- what rules and policies that log recorded: each drop and allow, with its rule (vdf#139: in place of the dropped table) -->
       <UiCard>
@@ -100,7 +113,7 @@
             </UiButton>
           </template>
         </UiTitle>
-        <VdfRuleLogTable :pool-id="pool.id" :paused="isPaused" />
+        <VdfRuleLogTable :pool-id="pool.id" :paused="isPaused" :chart="false" />
       </UiCard>
 
       <UiCard>
@@ -132,6 +145,8 @@ import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.compo
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
+import { useVdfRuleLogSeries } from '@/modules/vdf/composables/vdf-rule-log-series.composable.ts'
+import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import { useVdfStats } from '@/modules/vdf/remote-resources/use-vdf-stats.ts'
 import type { VdfConnection } from '@/modules/vdf/types.ts'
 import { VDF_NAV_ACTIONS_ID } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -164,6 +179,12 @@ const { publishedDocument, hasDraft } = useVdfPolicy(() => pool)
 const { poolVms } = useVdfMembers(() => pool.id, publishedDocument)
 
 const isPaused = ref(false)
+
+// the whole log per minute, beside the rates (the table below keeps its
+// filters to itself)
+const { ruleLog } = useVdfRuleLog({ isEnabled: computed(() => !isPaused.value) }, () => pool.id)
+
+const { logSeries, logCaption } = useVdfRuleLogSeries(() => ruleLog.value?.entries ?? [])
 
 const { open: openInfoModal } = useInfoModal()
 
@@ -349,6 +370,12 @@ const chartCaption = computed(() =>
     flex-wrap: wrap;
     align-items: center;
     gap: 1.6rem;
+  }
+
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 52rem), 1fr));
+    gap: 0.8rem;
   }
 
   .stats {
