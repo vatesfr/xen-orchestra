@@ -18,6 +18,7 @@ import {
   installPatches,
   isSrShared,
   isSrWritable,
+  renderRpuOperatorChanges,
   resumeRollingPoolUpdate,
   rollingPoolUpdate,
   subscribeCurrentUser,
@@ -145,6 +146,7 @@ const INDIVIDUAL_ACTIONS_XCP = [
 // a record only warrants a warning in these statuses: live statuses mean a
 // run is in progress, absence of record means nothing to do
 const RPU_RECOVERY_MESSAGES = {
+  'awaiting-acceptance': 'rpuRecoveryOperatorChanges',
   blocked: 'rpuRecoveryBlocked',
   failed: 'rpuRecoveryFailed',
   interrupted: 'rpuRecoveryInterrupted',
@@ -173,6 +175,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
     hosts = {},
     haltedPinnedVms = {},
     lastError,
+    operatorChanges = [],
     vmConflicts = [],
   } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
@@ -221,6 +224,12 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
                   <li key={vmId}>{renderXoItemFromId(vmId)}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {operatorChanges.length > 0 && (
+            <div>
+              <strong>{_('rpuRecoveryOperatorChangesList')}</strong>
+              {renderRpuOperatorChanges(operatorChanges)}
             </div>
           )}
           {vmConflicts.length > 0 && (

@@ -53,15 +53,17 @@ for (const [method, orchestrator] of [
 }
 
 describe('PoolController.resumeRollingUpdate', () => {
-  it('forwards bypassBackupCheck from the body to the orchestrator', async () => {
+  it('forwards bypassBackupCheck and acceptOperatorChanges from the body to the orchestrator', async () => {
     const { calls, controller } = createController()
 
     await controller.resumeRollingUpdate('pool-1', undefined, true)
     await controller.resumeRollingUpdate('pool-1', { bypassBackupCheck: true }, true)
+    await controller.resumeRollingUpdate('pool-1', { acceptOperatorChanges: true }, true)
 
     assert.deepEqual(calls, [
       { orchestrator: 'resumeRollingPoolUpdate', parentTask: 'task-1' },
       { orchestrator: 'resumeRollingPoolUpdate', parentTask: 'task-1', bypassBackupCheck: true },
+      { orchestrator: 'resumeRollingPoolUpdate', parentTask: 'task-1', acceptOperatorChanges: true },
     ])
   })
 })
