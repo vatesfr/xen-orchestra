@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('firewall:recent-drops') }}
       <template #action>
-        <UiLink :to="{ name: '/pool/[id]/firewall/logs', params: { id: poolId } }" size="medium">
+        <UiLink :to="{ name: '/pool/[id]/firewall/traffic', params: { id: poolId } }" size="medium">
           {{ t('firewall:recent-drops:open-log') }}
         </UiLink>
       </template>
