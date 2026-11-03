@@ -1,7 +1,7 @@
 <template>
   <TabList class="vdf-firewall-nav">
     <RouterLink v-for="tab of tabs" :key="tab.label" v-slot="{ isActive, href }" :to="tab.to" custom>
-      <UiTabItem :active="isActive" :href tag="a">
+      <UiTabItem :active="isActive || tab.also?.includes(route.name)" :href tag="a">
         {{ tab.label }}
       </UiTabItem>
     </RouterLink>
@@ -17,7 +17,7 @@ import TabList from '@core/components/tab-list/TabList.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw, useRoute } from 'vue-router'
 
 const { scope } = defineProps<{
   scope: VdfScope
@@ -25,9 +25,12 @@ const { scope } = defineProps<{
 
 const { t } = useI18n()
 
+const route = useRoute()
+
 // The same tab bar as the object headers (PoolHeader): labels only. The
 // count of unpublished changes is in the draft bar, under it.
-const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
+// also: the pages under a tab (the monitor mode report, under Policies)
+const tabs = computed<{ to: RouteLocationRaw; label: string; also?: string[] }[]>(() => {
   // traces, live view and logs are a pool's: the global configuration is
   // enforced there
   if (scope.kind === 'global') {
@@ -43,13 +46,17 @@ const tabs = computed<{ to: RouteLocationRaw; label: string }[]>(() => {
 
   return [
     { to: { name: '/pool/[id]/firewall/overview', params }, label: t('firewall:overview') },
-    { to: { name: '/pool/[id]/firewall/policies', params }, label: t('firewall:policies') },
-    { to: { name: '/pool/[id]/firewall/monitor', params }, label: t('firewall:monitor') },
+    {
+      to: { name: '/pool/[id]/firewall/policies', params },
+      label: t('firewall:policies'),
+      also: ['/pool/[id]/firewall/monitor'],
+    },
     { to: { name: '/pool/[id]/firewall/groups', params }, label: t('firewall:groups') },
     { to: { name: '/pool/[id]/firewall/trace', params }, label: t('firewall:trace') },
     { to: { name: '/pool/[id]/firewall/live', params }, label: t('firewall:live') },
     { to: { name: '/pool/[id]/firewall/logs', params }, label: t('firewall:logs') },
     { to: { name: '/pool/[id]/firewall/history', params }, label: t('firewall:history') },
+    { to: { name: '/pool/[id]/firewall/settings', params }, label: t('firewall:settings') },
   ]
 })
 </script>

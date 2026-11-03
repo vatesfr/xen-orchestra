@@ -61,10 +61,7 @@
             @select="name => (selectedGroup = name)"
           />
         </UiCard>
-
-        <!-- vdf#103: the pool's DHCP servers and routers, declared by groups -->
-        <VdfServicesCard v-if="scope.kind === 'pool'" :pool="scope.pool" />
-      </template>
+</template>
     </div>
     <VdfGroupSidePanel
       :scope-id
@@ -89,7 +86,6 @@
 <script lang="ts" setup>
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfGroupsTable, { type VdfGroupRow } from '@/modules/vdf/components/groups/VdfGroupsTable.vue'
-import VdfServicesCard from '@/modules/vdf/components/services/VdfServicesCard.vue'
 import VdfGroupSidePanel from '@/modules/vdf/components/VdfGroupSidePanel.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'

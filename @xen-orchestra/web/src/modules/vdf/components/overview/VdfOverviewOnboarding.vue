@@ -4,32 +4,22 @@
       {{ t('firewall:onboarding:title') }}
     </VtsStateHero>
     <ol class="steps">
-      <li class="step">
-        <span class="number typo-body-bold" aria-hidden="true">{{ n(1) }}</span>
+      <li v-for="(step, index) of steps" :key="step.key" class="step">
+        <span class="number typo-body-bold" aria-hidden="true">{{ n(index + 1) }}</span>
         <div class="text">
-          <span class="typo-body-bold">{{ t('firewall:onboarding:group') }}</span>
-          <span class="secondary typo-body-regular-small">{{ t('firewall:onboarding:group:info') }}</span>
+          <span class="typo-body-bold">{{ t(`firewall:onboarding:${step.key}`) }}</span>
+          <span class="secondary typo-body-regular-small">{{ t(`firewall:onboarding:${step.key}:info`) }}</span>
         </div>
-        <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="goTo('groups')">
-          {{ t('firewall:onboarding:group:action') }}
+        <UiButton
+          v-if="step.page !== undefined"
+          variant="secondary"
+          accent="brand"
+          size="medium"
+          left-icon="fa:plus"
+          @click="goTo(step.page)"
+        >
+          {{ t(`firewall:onboarding:${step.key}:action`) }}
         </UiButton>
-      </li>
-      <li class="step">
-        <span class="number typo-body-bold" aria-hidden="true">{{ n(2) }}</span>
-        <div class="text">
-          <span class="typo-body-bold">{{ t('firewall:onboarding:policy') }}</span>
-          <span class="secondary typo-body-regular-small">{{ t('firewall:onboarding:policy:info') }}</span>
-        </div>
-        <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="goTo('policies')">
-          {{ t('firewall:onboarding:policy:action') }}
-        </UiButton>
-      </li>
-      <li class="step">
-        <span class="number typo-body-bold" aria-hidden="true">{{ n(3) }}</span>
-        <div class="text">
-          <span class="typo-body-bold">{{ t('firewall:onboarding:publish') }}</span>
-          <span class="secondary typo-body-regular-small">{{ t('firewall:onboarding:publish:info') }}</span>
-        </div>
       </li>
     </ol>
   </UiCard>
@@ -42,7 +32,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-// a pool with nothing published yet: what to do, in order
+// a pool with nothing published yet: what to do, in order (the preview
+// guide's steps)
 const { poolId } = defineProps<{
   poolId: string
 }>()
@@ -51,12 +42,18 @@ const { t, n } = useI18n()
 
 const router = useRouter()
 
-function goTo(page: 'groups' | 'policies') {
-  return router.push(
-    page === 'groups'
-      ? { name: '/pool/[id]/firewall/groups', params: { id: poolId } }
-      : { name: '/pool/[id]/firewall/policies', params: { id: poolId } }
-  )
+type Page = 'groups' | 'policies' | 'settings'
+
+const steps: { key: string; page?: Page }[] = [
+  { key: 'group', page: 'groups' },
+  { key: 'lock' },
+  { key: 'services', page: 'settings' },
+  { key: 'policy', page: 'policies' },
+  { key: 'publish' },
+]
+
+function goTo(page: Page) {
+  return router.push({ name: `/pool/[id]/firewall/${page}`, params: { id: poolId } })
 }
 </script>
 
