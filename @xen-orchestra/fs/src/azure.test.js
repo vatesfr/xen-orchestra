@@ -191,6 +191,42 @@ describe('AzureHandler#_lock with stubbed blob client', () => {
       assert.equal(leaseClient.acquireLease.callCount, 2)
       await release()
     })
+
+    it('stops renewing once released', async () => {
+      const release = await handler._lock('vm')
+      await renewOnce()
+      await release()
+
+      await renewOnce()
+      assert.equal(leaseClient.renewLease.callCount, 1)
+    })
+
+    it('gives up the lock when another holder has the lease', async () => {
+      const release = await handler._lock('vm')
+      leaseClient.renewLease.rejects(httpError(409))
+      leaseClient.acquireLease.rejects(httpError(409))
+
+      await renewOnce()
+      await renewOnce()
+      assert.equal(leaseClient.renewLease.callCount, 1)
+      assert.equal(leaseClient.acquireLease.callCount, 2)
+      await release()
+    })
+
+    it('waits for a renewal in flight before releasing', async () => {
+      const release = await handler._lock('vm')
+      let renewed
+      leaseClient.renewLease.returns(new Promise(resolve => (renewed = resolve)))
+
+      await renewOnce()
+      const releasing = release()
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(blob.delete.callCount, 0)
+
+      renewed()
+      await releasing
+      assert.equal(blob.delete.callCount, 1)
+    })
   })
 
   describe('remove', () => {
