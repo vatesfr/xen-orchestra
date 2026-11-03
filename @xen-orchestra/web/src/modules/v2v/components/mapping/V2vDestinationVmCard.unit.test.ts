@@ -2,7 +2,7 @@ import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinatio
 import type { V2vDestinationVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -27,7 +27,7 @@ function mountCard() {
 }
 
 it('shows its title', () => {
-  expect(findCardTitle(mountCard())).toBe(t('destination-vm'))
+  expect(findPanelCardTitle(mountCard())).toBe(t('destination-vm'))
 })
 
 it('links the VM to its page, with the icon of its power state', () => {

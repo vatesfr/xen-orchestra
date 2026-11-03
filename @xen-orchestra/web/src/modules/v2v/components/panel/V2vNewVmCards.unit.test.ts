@@ -53,7 +53,7 @@ function mountCards() {
     return {
       vm,
       wrapper: mount(V2vNewVmCards, {
-        props: { vm, updateVm: vi.fn() },
+        props: { vm },
         global: createGlobalTestConfig({
           router,
           stubs: {
@@ -95,7 +95,6 @@ it('shows the mapping of the disks and the NICs on the pool of the list, read on
     nicRows: V2V_NIC_ROWS,
     networkOptions: V2V_TARGET_OPTIONS.networks,
     loading: false,
-    readonly: true,
   })
   expect(card.props('srOptions').map(option => option.id)).toEqual(V2V_POOL_OFFERS.srs.map(sr => sr.id))
 })

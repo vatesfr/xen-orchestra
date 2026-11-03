@@ -1,43 +1,46 @@
 <template>
-  <UiCard>
-    <UiCardTitle>
-      {{ t('destination') }}
-      <template #description>{{ t('v2v:pool-set-by-list', { pool: poolName }) }}</template>
-    </UiCardTitle>
-    <template v-if="diskRows.length > 0">
-      <UiCardSubtitle>{{ t('disks') }}</UiCardSubtitle>
-      <V2vDiskMappingTable
-        :rows="diskRows"
-        :sr-options
-        :loading
-        :readonly
-        @change-sr="(key, srId) => emit('changeDiskSr', key, srId)"
-      />
+  <UiPanelCard class="v2v-destination-mapping-card">
+    <UiPanelCardTitle size="medium" :label="t('destination')" />
+    <VtsCardRowKeyValue>
+      <template #key>{{ t('pool') }}</template>
+      <template #value>{{ poolName }}</template>
+    </VtsCardRowKeyValue>
+    <template v-if="loading">
+      <VtsDivider type="stretch" />
+      <VtsStateHero format="card" type="busy" size="extra-small" horizontal />
     </template>
-    <template v-if="nicRows.length > 0">
-      <UiCardSubtitle>{{ t('network-adapters') }}</UiCardSubtitle>
-      <V2vNicMappingTable
-        :rows="nicRows"
-        :network-options
-        :loading
-        :readonly
-        @change-network="(key, networkId) => emit('changeNicNetwork', key, networkId)"
-      />
+    <template v-else>
+      <V2vMappingCardSection :label="t('disks')" :rows="diskRows">
+        <template #key="{ row }">{{ row.label }}</template>
+        <template #value="{ row }">
+          <V2vTargetValue :target="row.sr" :options="srOptions" />
+        </template>
+      </V2vMappingCardSection>
+      <V2vMappingCardSection :label="t('network-adapters')" :rows="nicRows">
+        <template #key="{ row }">{{ row.label }}</template>
+        <template #value="{ row }">
+          <V2vTargetValue :target="row.network" :options="networkOptions" />
+        </template>
+      </V2vMappingCardSection>
     </template>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import V2vDiskMappingTable from '@/modules/v2v/components/mapping/V2vDiskMappingTable.vue'
-import V2vNicMappingTable from '@/modules/v2v/components/mapping/V2vNicMappingTable.vue'
+import V2vMappingCardSection from '@/modules/v2v/components/mapping/V2vMappingCardSection.vue'
+import V2vTargetValue from '@/modules/v2v/components/mapping/V2vTargetValue.vue'
 import type { V2vDiskMappingRow, V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
+// The mapping of a VM as the side panel shows it: the settings drawer edits it. Until the pool offers load, a target
+// could only be named by its id
 defineProps<{
   poolName: string
   diskRows: V2vDiskMappingRow[]
@@ -45,12 +48,6 @@ defineProps<{
   srOptions: V2vTargetOption<FrontXoSr['id']>[]
   networkOptions: V2vTargetOption<FrontXoNetwork['id']>[]
   loading: boolean
-  readonly?: boolean
-}>()
-
-const emit = defineEmits<{
-  changeDiskSr: [key: V2vDiskMappingRow['key'], srId: FrontXoSr['id'] | undefined]
-  changeNicNetwork: [key: V2vNicMappingRow['key'], networkId: FrontXoNetwork['id'] | undefined]
 }>()
 
 const { t } = useI18n()

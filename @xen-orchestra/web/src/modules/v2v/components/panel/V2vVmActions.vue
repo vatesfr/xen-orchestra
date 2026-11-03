@@ -16,13 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-import VtsActionsMenu, { type LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import type { V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 
 // A VM gone from the source has no main action, only the ones of the menu
-defineProps<{
-  mainAction?: LeafActionItem
-  moreActions: LeafActionItem[]
-}>()
+defineProps<V2vVmActionList>()
 </script>

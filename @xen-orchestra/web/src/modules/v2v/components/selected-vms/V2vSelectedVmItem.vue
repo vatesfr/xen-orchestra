@@ -1,9 +1,9 @@
 <template>
-  <UiPanelCard class="v2v-selected-vm-item" :selected="item.isSelected">
+  <UiPanelCard class="v2v-selected-vm-item">
     <UiPanelCardTitle size="small">
       <!-- The router alone marks every mapping link as current: they only differ by their query -->
       <template #label>
-        <UiLink size="small" :to="item.mappingRoute" :aria-current="item.isSelected ? 'page' : false">
+        <UiLink size="small" :to="item.mappingRoute" :aria-current="false">
           {{ item.name }}
         </UiLink>
       </template>

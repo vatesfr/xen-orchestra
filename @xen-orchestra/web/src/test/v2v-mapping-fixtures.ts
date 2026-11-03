@@ -186,20 +186,26 @@ export const V2V_SYNCED_VM = createV2vVm({
   currentSnapshotId: V2V_RESUMED_IMPORT_VM.other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID],
 })
 
-// The rows of the active mapping of the resumed VM: its disks then its NICs
-export const V2V_ACTIVE_MAPPING_ROWS: V2vActiveMappingRow[] = [
+// The rows of the active mapping of the resumed VM, its disks and its NICs
+export const V2V_ACTIVE_DISK_ROWS: V2vActiveMappingRow[] = [
   {
     key: V2V_SYSTEM_DISK.key,
-    source: V2V_SYSTEM_DISK.label,
-    detailParts: ['ds-prod-01', '80 GiB'],
+    sourceParts: [V2V_SYSTEM_DISK.label, 'ds-prod-01', '80 GiB'],
     destination: V2V_SSD_SR.name_label,
   },
-  { key: V2V_DATA_DISK.key, source: V2V_DATA_DISK.label, detailParts: ['ds-prod-01', '80 GiB'] },
+  { key: V2V_DATA_DISK.key, sourceParts: [V2V_DATA_DISK.label, 'ds-prod-01', '80 GiB'] },
+]
+
+export const V2V_ACTIVE_NIC_ROWS: V2vActiveMappingRow[] = [
   {
     key: V2V_LAN_NIC.key,
-    source: V2V_LAN_NIC.label,
-    detailParts: [V2V_PROD_PORT_GROUP.name, t('vlan-id', { id: V2V_PROD_PORT_GROUP.vlan }), t('v2v:mac-kept')],
+    sourceParts: [
+      V2V_LAN_NIC.label,
+      V2V_PROD_PORT_GROUP.name,
+      t('vlan-id', { id: V2V_PROD_PORT_GROUP.vlan }),
+      t('v2v:mac-kept'),
+    ],
     destination: V2V_DEFAULT_NETWORK.name_label,
   },
-  { key: V2V_VLAN_NIC.key, source: V2V_VLAN_NIC.label, detailParts: [], destination: V2V_VLAN_NETWORK.name_label },
+  { key: V2V_VLAN_NIC.key, sourceParts: [V2V_VLAN_NIC.label], destination: V2V_VLAN_NETWORK.name_label },
 ]

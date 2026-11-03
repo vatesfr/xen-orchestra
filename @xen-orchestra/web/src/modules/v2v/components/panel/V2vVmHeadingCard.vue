@@ -11,9 +11,9 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('location') }}</template>
         <template #value>
-          <InlineParts separator="chevron">
+          <VtsInlineParts separator="chevron">
             <span v-for="part of heading.locationParts" :key="part">{{ part }}</span>
-          </InlineParts>
+          </VtsInlineParts>
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -22,8 +22,8 @@
 
 <script lang="ts" setup>
 import type { V2vMappingVmHeading } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import InlineParts from '@/shared/components/InlineParts.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

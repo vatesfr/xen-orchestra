@@ -25,11 +25,10 @@ import { useNumberColumn } from '@core/tables/column-definitions/number-column.t
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
-const { srOptions, loading, readonly } = defineProps<{
+const { srOptions, loading } = defineProps<{
   rows: V2vDiskMappingRow[]
   srOptions: V2vTargetOption<FrontXoSr['id']>[]
   loading: boolean
-  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -57,7 +56,6 @@ const { HeadCells, BodyCells } = useDiskMappingColumns({
       target: row.sr,
       options: srOptions,
       loading,
-      readonly,
       onChange: srId => emit('changeSr', row.key, srId),
     })),
   }),

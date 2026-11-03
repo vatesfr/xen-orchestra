@@ -109,13 +109,12 @@ it('maps the disks and the NICs of the VM on the targets of the pool of the list
   const wrapper = await mountDrawer()
   const diskTable = wrapper.getComponent(V2vDiskMappingTable)
 
-  expect(diskTable.props()).toMatchObject({ rows: V2V_DISK_ROWS, loading: false, readonly: false })
+  expect(diskTable.props()).toMatchObject({ rows: V2V_DISK_ROWS, loading: false })
   expect(diskTable.props('srOptions').map(option => option.id)).toEqual(V2V_POOL_OFFERS.srs.map(sr => sr.id))
   expect(wrapper.getComponent(V2vNicMappingTable).props()).toEqual({
     rows: V2V_NIC_ROWS,
     networkOptions: V2V_TARGET_OPTIONS.networks,
     loading: false,
-    readonly: false,
   })
 })
 

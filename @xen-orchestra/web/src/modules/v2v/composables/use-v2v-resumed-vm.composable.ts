@@ -1,6 +1,7 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
+import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
@@ -11,7 +12,6 @@ import { getV2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { type IconName, objectIcon } from '@core/icons'
@@ -30,9 +30,9 @@ export type V2vDestinationVm = {
 // A device the import has not paired has no target to name
 function getTargetName<TId extends string>(
   id: TId | undefined,
-  getById: (id: TId) => { name_label: string } | undefined
+  getName: (id: TId) => string | undefined
 ): string | undefined {
-  return id === undefined ? undefined : getV2vTargetName(id, targetId => getById(targetId)?.name_label)
+  return id === undefined ? undefined : getV2vTargetName(id, getName)
 }
 
 // A resumed VM keeps the mapping of its first sync, read back from the devices of its import VM
@@ -47,9 +47,11 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
 
   const { getVifsByIds, areVifsReady } = useXoVifCollection()
 
-  const { getSrById, areSrsReady } = useXoSrCollection()
+  const { areSrsReady } = useXoSrCollection()
 
-  const { getNetworkById, areNetworksReady } = useXoNetworkCollection()
+  const { areNetworksReady } = useXoNetworkCollection()
+
+  const { getSrName, getNetworkName } = useV2vTargetNameGetters()
 
   const vm = toComputed(rawVm)
 
@@ -74,20 +76,28 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
     getV2vActiveMapping(vm.value, vdis.value, getVbdsByIds(importVm.value.$VBDs), getVifsByIds(importVm.value.VIFs))
   )
 
-  const activeMappingRows = computed((): V2vActiveMappingRow[] => [
-    ...activeMapping.value.disks.map(({ disk, srId }) => ({
-      key: disk.key,
-      source: disk.label,
-      detailParts: getDiskDetailParts(getV2vDatastoreName(inventory.value, disk.datastoreId), disk.capacity),
-      destination: getTargetName(srId, getSrById),
-    })),
-    ...activeMapping.value.nics.map(({ nic, networkId, isMacKept }) => ({
-      key: nic.key,
-      source: nic.label,
-      detailParts: getNicDetailParts(findV2vPortGroup(inventory.value, nic.portGroupId), isMacKept),
-      destination: getTargetName(networkId, getNetworkById),
-    })),
-  ])
+  const activeDiskRows = computed(() =>
+    activeMapping.value.disks.map(
+      ({ disk, srId }): V2vActiveMappingRow => ({
+        key: disk.key,
+        sourceParts: [
+          disk.label,
+          ...getDiskDetailParts(getV2vDatastoreName(inventory.value, disk.datastoreId), disk.capacity),
+        ],
+        destination: getTargetName(srId, getSrName),
+      })
+    )
+  )
+
+  const activeNicRows = computed(() =>
+    activeMapping.value.nics.map(
+      ({ nic, networkId, isMacKept }): V2vActiveMappingRow => ({
+        key: nic.key,
+        sourceParts: [nic.label, ...getNicDetailParts(findV2vPortGroup(inventory.value, nic.portGroupId), isMacKept)],
+        destination: getTargetName(networkId, getNetworkName),
+      })
+    )
+  )
 
   const isActiveMappingReady = computed(
     () => areVbdsReady.value && areVdisReady.value && areVifsReady.value && areSrsReady.value && areNetworksReady.value
@@ -95,7 +105,5 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
 
   const nextTransfer = computed(() => getV2vNextTransfer(vm.value, importVm.value))
 
-  const { deleteVm, isDeletingVm } = useVmDelete(importVm)
-
-  return { poolName, destinationVm, activeMappingRows, isActiveMappingReady, nextTransfer, deleteVm, isDeletingVm }
+  return { poolName, destinationVm, activeDiskRows, activeNicRows, isActiveMappingReady, nextTransfer }
 }

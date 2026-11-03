@@ -1,5 +1,6 @@
 import {
   useV2vVmMapping,
+  useV2vVmMappingSetters,
   type V2vVmMappingContext,
   type V2vVmOverrides,
 } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
@@ -23,7 +24,8 @@ export function useV2vVmMappingDraft(rawVm: MaybeRefOrGetter<XoV2vVm>, { list }:
   }
 
   return {
-    ...useV2vVmMapping(rawVm, { list, listVm: draft, updateVm: updateDraft }),
+    ...useV2vVmMapping(rawVm, { list, listVm: draft }),
+    ...useV2vVmMappingSetters(rawVm, { list, updateVm: updateDraft }),
     toOverrides,
   }
 }
