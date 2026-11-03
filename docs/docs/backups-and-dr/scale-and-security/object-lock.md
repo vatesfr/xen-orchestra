@@ -120,7 +120,7 @@ Never apply a lifecycle rule to the **current** versions of a BR's objects. XO i
 | `ExpiredObjectDeleteMarker`                                      | **Safe**        | Cleans up delete markers left with no version underneath. Pure housekeeping.                                                                                                                                   |
 | `AbortIncompleteMultipartUpload`                                 | **Recommended** | XO cleans up its own failed uploads, but a killed backup worker or a rebooted host can leave orphaned upload parts. They are billable and invisible to both object listings and XO. A 7-day rule removes them. |
 
-The same two **Safe** rules also reclaim the backup journal (`xo-backup-log/`): XO deletes its entries once they are older than `backups.logRetention` (30 days by default), but on a locked bucket a deletion only adds a delete marker.
+The same two **Safe** rules also reclaim the backup journal (`xo-backup-log/`): XO deletes its entries once they are older than `backups.journalRetention` (30 days by default), but on a locked bucket a deletion only adds a delete marker.
 
 ## Retention and lock duration {#retention-and-lock-duration}
 

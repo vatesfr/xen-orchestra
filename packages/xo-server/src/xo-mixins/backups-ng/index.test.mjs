@@ -17,7 +17,7 @@ const LISTING_DEBOUNCE = 60e3
 const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
 const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 
-const getDuration = key => (key === 'backups.logRetention' ? 30 * 24 * 60 * 60e3 : LISTING_DEBOUNCE)
+const getDuration = key => (key === 'backups.journalRetention' ? 30 * 24 * 60 * 60e3 : LISTING_DEBOUNCE)
 
 // `mock.timers.tick()` is synchronous: yield to the event loop so that the promise continuations
 // it scheduled have run before the assertions
@@ -529,7 +529,7 @@ describe('the journal purge', () => {
     mock.timers.reset()
   })
 
-  it('purges a listed repository of the days older than backups.logRetention', async () => {
+  it('purges a listed repository of the days older than backups.journalRetention', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
 

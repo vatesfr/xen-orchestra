@@ -128,7 +128,7 @@ export default class BackupNg {
     this._app = app
     this._runningRestores = new Set()
     this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
-      logRetention: app.config.getDuration('backups.logRetention'),
+      journalRetention: app.config.getDuration('backups.journalRetention'),
       minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
     })
 

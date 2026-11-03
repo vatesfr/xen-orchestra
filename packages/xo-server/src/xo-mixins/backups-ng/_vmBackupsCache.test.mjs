@@ -641,12 +641,15 @@ describe('VmBackupsCache', () => {
 
   describe('journal purge', () => {
     const DAY = 24 * 60 * 60e3
-    const LOG_RETENTION = 30 * DAY
+    const JOURNAL_RETENTION = 30 * DAY
 
-    it('purges the days older than logRetention at most once a day, however often it lists', async t => {
+    it('purges the days older than journalRetention at most once a day, however often it lists', async t => {
       const { tick } = mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
       const repository = new Repository([metadataOf(VM, '20260811T090000')])
-      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+      const cache = new VmBackupsCache(repository.source, {
+        journalRetention: JOURNAL_RETENTION,
+        minRefreshDelay: 60e3,
+      })
 
       await cache.get(REPOSITORY)
       cache.delete(REPOSITORY.id)
@@ -659,10 +662,10 @@ describe('VmBackupsCache', () => {
       assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T10:00:00Z')])
     })
 
-    it('keeps what a replay can still read, whatever logRetention says', async t => {
+    it('keeps what a replay can still read, whatever journalRetention says', async t => {
       mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
       const repository = new Repository([metadataOf(VM, '20260811T090000')])
-      const cache = new VmBackupsCache(repository.source, { logRetention: DAY, minRefreshDelay: 60e3 })
+      const cache = new VmBackupsCache(repository.source, { journalRetention: DAY, minRefreshDelay: 60e3 })
 
       // replayed for 3 days after it is listed, from a cursor 5 minutes before the listing
       await cache.get({ ...REPOSITORY, url: REPOSITORY.url + '?fullListingInterval=4320' })
@@ -674,7 +677,10 @@ describe('VmBackupsCache', () => {
       mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
       const repository = new Repository([metadataOf(VM, '20260811T090000')])
       repository.purgeFailure = Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
-      const cache = new VmBackupsCache(repository.source, { logRetention: LOG_RETENTION, minRefreshDelay: 60e3 })
+      const cache = new VmBackupsCache(repository.source, {
+        journalRetention: JOURNAL_RETENTION,
+        minRefreshDelay: 60e3,
+      })
 
       const backups = await cache.get(REPOSITORY)
 

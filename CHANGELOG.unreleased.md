@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [Backups] The backup journal of a remote (`xo-backup-log/`) no longer grows forever: its entries are deleted after 30 days, configurable with `backups.logRetention` (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Backups] The backup journal of a remote (`xo-backup-log/`) no longer grows forever: its entries are deleted after 30 days, configurable with `backups.journalRetention` (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 

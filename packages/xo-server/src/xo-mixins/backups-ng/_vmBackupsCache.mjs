@@ -276,7 +276,7 @@ export function serveVmBackups(backupsByVm, remoteId, vmId) {
  * collections.
  *
  * Once a day, after it has been listed, the journal of a repository is purged of the days older than
- * `logRetention`, see `#purgeJournal()`.
+ * `journalRetention`, see `#purgeJournal()`.
  */
 export class VmBackupsCache {
   // repository id → the backups last announced for it, which is the object the entry holds while it
@@ -312,7 +312,7 @@ export class VmBackupsCache {
   #entries = new Map()
 
   /** @type {number | undefined} */
-  #logRetention
+  #journalRetention
 
   /** @type {number} */
   #minRefreshDelay
@@ -355,14 +355,14 @@ export class VmBackupsCache {
   /**
    * @param {Source} source
    * @param {object} [options]
-   * @param {number} [options.logRetention] how long the journal of a repository is kept, in
+   * @param {number} [options.journalRetention] how long the journal of a repository is kept, in
    * milliseconds; it is not purged when this is not set
    * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
    * repository, in milliseconds
    */
-  constructor(source, { logRetention, minRefreshDelay = 0 } = {}) {
+  constructor(source, { journalRetention, minRefreshDelay = 0 } = {}) {
     this.#source = source
-    this.#logRetention = logRetention
+    this.#journalRetention = journalRetention
     this.#minRefreshDelay = minRefreshDelay
   }
 
@@ -769,7 +769,7 @@ export class VmBackupsCache {
    * Purges the journal of a repository which has just been listed, at most once per
    * `PURGE_INTERVAL`, in the background: a listing must not wait for it, nor fail with it.
    *
-   * The journal keeps every entry a replay of this entry can still ask for, whatever `logRetention`
+   * The journal keeps every entry a replay of this entry can still ask for, whatever `journalRetention`
    * says: a replay happens up to `rebuildInterval` after the listing, from a cursor bootstrapped
    * `CLOCK_SKEW_TOLERANCE` before it.
    *
@@ -781,7 +781,7 @@ export class VmBackupsCache {
     const { id } = repository
     const { builtAt, rebuildInterval } = entry
     const purgedAt = this.#purgedAt.get(id)
-    if (this.#logRetention === undefined || (purgedAt !== undefined && builtAt - purgedAt < PURGE_INTERVAL)) {
+    if (this.#journalRetention === undefined || (purgedAt !== undefined && builtAt - purgedAt < PURGE_INTERVAL)) {
       return
     }
 
@@ -789,7 +789,7 @@ export class VmBackupsCache {
     // a failed purge is only tried again after the interval, rather than on each listing
     this.#purgedAt.set(id, builtAt)
 
-    const retention = Math.max(this.#logRetention, rebuildInterval + CLOCK_SKEW_TOLERANCE)
+    const retention = Math.max(this.#journalRetention, rebuildInterval + CLOCK_SKEW_TOLERANCE)
     this.#source.purgeJournal(repository, builtAt - retention).catch(error => {
       warn('failed to purge the journal', { repositoryId: id, error })
     })
