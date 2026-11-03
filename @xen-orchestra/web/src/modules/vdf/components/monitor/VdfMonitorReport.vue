@@ -308,6 +308,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { computed, h, ref, watch, withDirectives } from 'vue'
@@ -533,7 +534,43 @@ const policyHeaders = computed(() =>
   })
 )
 
-function switchToEnforce(name: string) {
+// enforcing: after saying what it would have dropped, as its header counts
+const { open: openEnforce } = useOverlay({
+  component: () => import('@/modules/vdf/components/monitor/VdfEnforceModal.vue'),
+  events: { onConfirm: true, onCancel: true },
+})
+
+const ENFORCE_SHOWN = 3
+
+function flowText(entry: VdfMonitorEntry) {
+  // past a rule's quota, the agent counts the rest as "other"
+  const nameOf = (ip: string, others: 'sources' | 'destinations') =>
+    ip === MONITOR_OTHER ? t(`firewall:monitor:other-${others}`) : (vmByIp.value.get(ip)?.name_label ?? ip)
+  const service = entry.port ? `${entry.proto.toUpperCase()} ${entry.port}` : entry.proto.toUpperCase()
+
+  return entry.egress
+    ? `${entry.vmName} → ${nameOf(entry.dst ?? '', 'destinations')} · ${service}`
+    : `${nameOf(entry.src, 'sources')} → ${entry.vmName} · ${service}`
+}
+
+async function switchToEnforce(name: string) {
+  const flows = seenSince(monitor.value?.entries ?? [], name, Date.now() - DAY)
+    .filter(entry => !isExpected(entry) && coveringRuleId(entry) === undefined)
+    .sort((entryA, entryB) => entryB.count - entryA.count)
+  const response = await openEnforce({
+    props: {
+      policy: displayName(name),
+      total: flows.length,
+      flows: flows
+        .slice(0, ENFORCE_SHOWN)
+        .map(entry => ({ key: monitorFlowKey(entry), text: flowText(entry), count: entry.count })),
+    },
+  })
+
+  if (response.event !== 'onConfirm') {
+    return
+  }
+
   edit(target => {
     const policy = target.policies.find(candidate => candidate.name === name)
 

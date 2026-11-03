@@ -148,7 +148,7 @@ import { useI18n } from 'vue-i18n'
 
 // A policy's section header in the rule base: what it protects, its
 // default, and where it isn't enforced (quiet when it is everywhere)
-const { entry, realization, spread, scopeId } = defineProps<{
+const { entry, realization, spread, scopeId, publishedMonitored = false } = defineProps<{
   scopeId: VdfScopeId
   entry: VdfRuleBasePolicy
   columns: number
@@ -159,6 +159,8 @@ const { entry, realization, spread, scopeId } = defineProps<{
   anchorId: string
   // its VMs with interfaces on several networks, all getting it (vdf#36)
   spread?: { vms: number; networks: string[] }
+  // published in monitor mode: its hosts report what it would drop
+  publishedMonitored?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -209,7 +211,16 @@ const enforcement = computed<{ accent: InfoAccent; label: string } | undefined>(
 
 const actions = computed<ActionItem[]>(() => [
   monitored.value
-    ? { label: t('firewall:mode:switch-enforce'), icon: 'fa:shield', onClick: () => emit('setMode', 'enforce') }
+    ? {
+        label: t('firewall:mode:switch-enforce'),
+        icon: 'fa:shield',
+        // published in monitor mode in a pool: decided from its report, which
+        // says what it would drop (its Switch to Enforce confirms with it)
+        onClick: () =>
+          publishedMonitored && !isGlobalScope(scopeId)
+            ? openMonitorReport(scopeId, entry.policy.name)
+            : emit('setMode', 'enforce'),
+      }
     : { label: t('firewall:mode:switch-monitor'), icon: 'fa:eye', onClick: () => emit('setMode', 'monitor') },
   {
     label: t('firewall:move-top-of-tier'),
