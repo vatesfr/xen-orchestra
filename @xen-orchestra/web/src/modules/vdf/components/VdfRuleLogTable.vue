@@ -42,10 +42,12 @@ import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue'
 import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
+import type { VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
 import { useVdfDecision, type VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { useVdfRuleLog } from '@/modules/vdf/remote-resources/use-vdf-rule-log.ts'
 import type { VdfRuleLogEntry } from '@/modules/vdf/types.ts'
@@ -70,7 +72,7 @@ import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
 import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { type RouteLocationRaw, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const { poolId, vmName, paused } = defineProps<{
   poolId: string
@@ -84,6 +86,8 @@ const { poolId, vmName, paused } = defineProps<{
 const { t, d } = useI18n()
 
 const router = useRouter()
+
+const { openTrace } = useVdfTraceDrawer()
 
 const { quarantineAction } = useVdfQuarantine()
 
@@ -101,6 +105,9 @@ const publishedDocument = computed(() => publishedPolicy.value?.document ?? empt
 
 const { vmByIp, vmByName, groupsOfIp } = useVdfIpNames(publishedDocument)
 
+// a VM of this pool, which its trace knows (another pool's is an address)
+const ofPool = <T extends { $pool: string }>(vm: T | undefined) => (vm?.$pool === poolId ? vm : undefined)
+
 const { decision } = useVdfDecision(() => poolId, publishedDocument)
 
 const verdicts = ['all', 'drop', 'allow'] as const
@@ -115,7 +122,7 @@ type Row = {
   source: { ip: string; vm: FrontXoVm | undefined }
   destination: FrontXoVm | undefined
   decision: VdfDecision
-  why: RouteLocationRaw | undefined
+  why: VdfTraceQuery | undefined
 }
 
 const vmEntries = computed(() =>
@@ -150,7 +157,8 @@ const rows = computed<Row[]>(() => {
         source: { ip: entry.src, vm: sourceVm },
         destination,
         decision: decision(entry),
-        why: whyRoute(entry, sourceVm?.id, destination?.id),
+        // a VM of another pool is an address to this pool's trace
+        why: whyQuery(entry, ofPool(sourceVm)?.id, ofPool(destination)?.id),
       }
     })
     .filter(
@@ -233,8 +241,9 @@ const state = useTableState({
   },
 })
 
-// the same packet, traced: the log says what decided, the trace says why
-function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: string): RouteLocationRaw | undefined {
+// the same packet, traced (in the trace drawer): the log says what decided,
+// the trace says why
+function whyQuery(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: string): VdfTraceQuery | undefined {
   const proto = entry.proto.split(' ')[0].toLowerCase()
 
   // egress (vdf#53): from the logged VM to any address
@@ -245,17 +254,13 @@ function whyRoute(entry: VdfRuleLogEntry, sourceId?: string, destinationId?: str
   }
 
   return {
-    name: '/pool/[id]/firewall/trace',
-    params: { id: poolId },
-    query: {
-      from: sourceId ?? 'external',
-      fromip: sourceId === undefined ? entry.src : undefined,
-      to: destinationId ?? 'external',
-      toip: destinationId === undefined ? entry.dst : undefined,
-      proto,
-      port: entry.dport || undefined,
-      run: '1',
-    },
+    from: sourceId ?? 'external',
+    fromip: sourceId === undefined ? entry.src : undefined,
+    to: destinationId ?? 'external',
+    toip: destinationId === undefined ? entry.dst : undefined,
+    proto,
+    port: entry.dport || undefined,
+    run: '1',
   }
 }
 
@@ -281,7 +286,7 @@ function rowActions(row: Row): ActionItem[] {
       : [{ label: t('firewall:trace:allow-flow'), icon: 'fa:plus' as const, onClick: () => router.push(allow) }]),
     ...(row.why === undefined
       ? []
-      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => router.push(row.why!) }]),
+      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => openTrace(poolId, row.why!) }]),
     ...(row.source.vm?.$pool === poolId ? [quarantineAction(row.source.vm, { named: true })] : []),
   ]
 }
@@ -296,7 +301,7 @@ function traceButton(row: Row) {
       size: 'small',
       accent: 'brand',
       'aria-label': label,
-      onClick: () => router.push(row.why!),
+      onClick: () => openTrace(poolId, row.why!),
     }),
     [[vTooltip, label]]
   )
