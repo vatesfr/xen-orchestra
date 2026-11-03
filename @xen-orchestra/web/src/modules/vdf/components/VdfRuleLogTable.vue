@@ -26,7 +26,7 @@
         </tr>
       </thead>
       <tbody>
-        <VtsRow v-for="row of pageRows" :key="row.key">
+        <VtsRow v-for="row of pageRows" :key="row.key" :class="{ fresh: isFreshDrop(row) }">
           <BodyCells :item="row" />
         </VtsRow>
       </tbody>
@@ -70,7 +70,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
 import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
-import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'vue'
+import { computed, h, ref, useTemplateRef, watch, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -131,6 +131,46 @@ const vmEntries = computed(() =>
     .filter(entry => vmName === undefined || entry.vm === vmName || vmByIp.value.get(entry.src)?.name_label === vmName)
 )
 
+// FRESH DROPS: a drop logged since the table last refreshed slides in with
+// a red highlight that fades, after the first load and whatever the
+// filters (a filter shows known entries again, never as new)
+const entryId = (entry: VdfRuleLogEntry) =>
+  [entry.host, entry.time, entry.rule, entry.src, entry.sport, entry.dst, entry.dport].join('|')
+
+const seenIds = new Set<string>()
+
+// marked for as long as their highlight lasts (the list is computed again
+// meanwhile)
+const FRESH_MS = 3000
+
+const freshIds = ref(new Set<string>())
+
+watch(vmEntries, entries => {
+  const isFirst = seenIds.size === 0
+  const fresh: string[] = []
+
+  for (const entry of entries) {
+    const id = entryId(entry)
+
+    if (!seenIds.has(id)) {
+      seenIds.add(id)
+
+      if (!isFirst && entry.verdict === 'DROP') {
+        fresh.push(id)
+      }
+    }
+  }
+
+  if (fresh.length > 0) {
+    freshIds.value = new Set([...freshIds.value, ...fresh])
+    setTimeout(() => {
+      freshIds.value = new Set([...freshIds.value].filter(id => !fresh.includes(id)))
+    }, FRESH_MS)
+  }
+})
+
+const isFreshDrop = (row: Row) => freshIds.value.has(entryId(row.entry))
+
 const rows = computed<Row[]>(() => {
   const term = search.value.trim().toLocaleLowerCase()
 
@@ -146,7 +186,7 @@ const rows = computed<Row[]>(() => {
       const named = entry.vm ? vmByName.value.get(entry.vm) : undefined
       const sourceVm = entry.egress ? (named ?? vmByIp.value.get(entry.src)) : vmByIp.value.get(entry.src)
       const destination = entry.egress ? vmByIp.value.get(entry.dst) : named
-      const id = [entry.host, entry.time, entry.rule, entry.src, entry.sport, entry.dst, entry.dport].join('|')
+      const id = entryId(entry)
       const repeat = seen.get(id) ?? 0
 
       seen.set(id, repeat + 1)
@@ -396,6 +436,38 @@ watchEffect(() =>
 
 <style lang="postcss" scoped>
 .vdf-rule-log-table {
+  /* a drop just logged: in, then its highlight fades (on the cells, which
+     paint their own background) */
+  .fresh {
+    animation: fresh-in 0.4s ease-out both;
+
+    :deep(td) {
+      animation: fresh-drop 2.5s ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+
+      :deep(td) {
+        animation: none;
+      }
+    }
+  }
+
+  @keyframes fresh-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.8rem);
+    }
+  }
+
+  @keyframes fresh-drop {
+    0%,
+    30% {
+      background-color: color-mix(in srgb, var(--color-danger-item-base) 22%, var(--color-neutral-background-primary));
+    }
+  }
+
   /* its endpoints narrow on a laptop */
   container: vdf-table / inline-size;
   display: flex;
