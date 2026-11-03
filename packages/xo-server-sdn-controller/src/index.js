@@ -1073,14 +1073,13 @@ class SDNController extends EventEmitter {
     if (preferredCenterId !== undefined) {
       preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
 
-      // Put pool of preferred center first
+      // Put pool of preferred center first: its network is created first, the others join it
       const preferredCenterPoolUuid = preferredCenter.$pool.uuid
       const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
       if (i === -1) {
         throw invalidParameters(`preferred center ${preferredCenterId} is not a host of the pools`)
       }
-      poolIds[i] = poolIds[0]
-      poolIds[0] = preferredCenterPoolUuid
+      ;[poolPifs[0], poolPifs[i]] = [poolPifs[i], poolPifs[0]]
     }
 
     const vni = ++this._prevVni

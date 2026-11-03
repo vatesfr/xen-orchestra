@@ -202,7 +202,13 @@ describe('the creation of a private network', () => {
       xapiObjects[`pool${n}`] = pool
       xapiObjects[`pif${n}`] = { $pool: pool, network: `transport${n}` }
     }
-    xapiObjects.host2 = { $pool: xapiObjects.pool2 }
+    // Read by electNewCenter when it is given as the preferred center
+    xapiObjects.host2 = {
+      $ref: 'host2-ref',
+      $pool: xapiObjects.pool2,
+      $PIFs: [],
+      $xapi: { barrier: async () => xapiObjects.host2 },
+    }
     controller._xo.getObject = id => ({ id })
     controller._xo.getXapiObject = idOrObject => xapiObjects[idOrObject.id ?? idOrObject]
     controller._setPoolControllerIfNeeded = noop
@@ -219,6 +225,14 @@ describe('the creation of a private network', () => {
   it('answers the ids of its networks, one per pool', async () => {
     const { controller } = createPoolsController()
     assert.deepEqual(await createPrivateNetwork(controller, BODY), { ids: ['net1', 'net2'] })
+  })
+
+  it('creates the network of the pool of the preferred center first, without reordering poolIds', async () => {
+    const { controller, created } = createPoolsController()
+    const body = { ...BODY, poolIds: ['pool1', 'pool2'], preferredCenterId: 'host2' }
+    await createPrivateNetwork(controller, body)
+    assert.deepEqual(created, ['net2', 'net1'])
+    assert.deepEqual(body.poolIds, ['pool1', 'pool2'])
   })
 
   it('creates no network when a pool has no PIF or the preferred center is outside the pools', async () => {
