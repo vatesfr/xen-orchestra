@@ -73,6 +73,43 @@ const valueFormatter = computed<ValueFormatter>(() => {
 
 use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, LegendComponent])
 
+// a #rrggbb color with an alpha (the color as is otherwise)
+function withAlpha<T extends string | undefined>(color: T, alpha: number): T {
+  const match = color?.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+
+  return (
+    match === null || match === undefined
+      ? color
+      : `rgba(${match
+          .slice(1)
+          .map(hex => parseInt(hex, 16))
+          .join(', ')}, ${alpha})`
+  ) as T
+}
+
+// a bar in its color at the top, lighter toward the axis, its top corners
+// rounded: a stack reads as segments
+function barStyle(color: string | undefined) {
+  return {
+    borderRadius: [4, 4, 0, 0],
+    ...(color === undefined
+      ? {}
+      : {
+          color: {
+            type: 'linear' as const,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color },
+              { offset: 1, color: withAlpha(color, 0.45) },
+            ],
+          },
+        }),
+  }
+}
+
 const option = computed<EChartsOption>(() => ({
   legend: {
     data: data.map(series => series.label),
@@ -100,10 +137,12 @@ const option = computed<EChartsOption>(() => ({
     max: maxValue,
   },
   ...(resolvedColors.value === undefined ? {} : { color: resolvedColors.value }),
-  series: data.map(series => ({
+  series: data.map((series, index) => ({
     type: 'bar',
     name: series.label,
     stack: stacked ? 'total' : undefined,
+    itemStyle: barStyle(resolvedColors.value?.[index]),
+    emphasis: { itemStyle: { shadowBlur: 10, shadowColor: withAlpha(resolvedColors.value?.[index], 0.5) } },
     // few intervals: wide bars, still apart
     barMaxWidth: 48,
     data: series.data.map(item => [item.timestamp, isNaN(item.value ?? NaN) ? null : item.value]),
