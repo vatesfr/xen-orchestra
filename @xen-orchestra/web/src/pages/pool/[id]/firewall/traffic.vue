@@ -74,6 +74,15 @@
         </UiCard>
       </div>
 
+      <!-- the pool's traffic between its groups, live -->
+      <UiCard>
+        <UiCardTitle>
+          {{ t('firewall:flow-map') }}
+          <template #description>{{ t('firewall:flow-map:description') }}</template>
+        </UiCardTitle>
+        <VdfFlowMap :pool-id="pool.id" :document="publishedDocument" :connections :paused="isPaused" />
+      </UiCard>
+
       <UiCard>
         <UiCardTitle>
           {{ t('firewall:live:chart') }}
@@ -116,6 +125,7 @@
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfConnectionsTable, { type VdfConnectionItem } from '@/modules/vdf/components/live/VdfConnectionsTable.vue'
+import VdfFlowMap from '@/modules/vdf/components/live/VdfFlowMap.vue'
 import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue'
 import VdfProtectedVmsTable from '@/modules/vdf/components/live/VdfProtectedVmsTable.vue'
 import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
