@@ -10,6 +10,8 @@
 - [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 - [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
+- XOA updater access now requires administrator credentials ([PR#3](https://git.vates.tech/vates/xen-orchestra-vsa-test/pulls/3))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
