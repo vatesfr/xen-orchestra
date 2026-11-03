@@ -1,7 +1,13 @@
 <template>
   <div class="v2v-value-origin">
     <UiTag :accent="tag.accent" variant="secondary">{{ tag.label }}</UiTag>
-    <UiButton v-if="origin === 'overridden'" accent="brand" variant="tertiary" size="small" @click="emit('reset')">
+    <UiButton
+      v-if="origin === 'overridden' && !readonly"
+      accent="brand"
+      variant="tertiary"
+      size="small"
+      @click="emit('reset')"
+    >
       {{ t('action:reset-to-default') }}
     </UiButton>
   </div>
@@ -17,6 +23,7 @@ import { useI18n } from 'vue-i18n'
 
 const { origin } = defineProps<{
   origin: V2vTargetOrigin
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{

@@ -43,6 +43,12 @@ export type V2vMappingStepVm =
       lastSyncAt?: number
     }
 
+export type V2vNewMappingStepVm = Extract<V2vMappingStepVm, { kind: 'new' }>
+
+export type V2vResumedMappingStepVm = Extract<V2vMappingStepVm, { kind: 'resume' }>
+
+export type V2vNotFoundMappingStepVm = Extract<V2vMappingStepVm, { kind: 'not-found' }>
+
 // The mapping step shows one VM of the list at a time, the one of the route, beside the VMs of the list
 export function useV2vMappingStep() {
   const connectionStore = useV2vConnectionStore()

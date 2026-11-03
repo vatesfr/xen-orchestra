@@ -17,7 +17,7 @@ import {
 } from '@/test/v2v-mapping-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
-function mountCard({ diskRows = V2V_DISK_ROWS, nicRows = V2V_NIC_ROWS } = {}) {
+function mountCard({ diskRows = V2V_DISK_ROWS, nicRows = V2V_NIC_ROWS, readonly = false } = {}) {
   return mount(V2vDestinationMappingCard, {
     props: {
       poolName: DISKOR_POOL_NAME,
@@ -26,6 +26,7 @@ function mountCard({ diskRows = V2V_DISK_ROWS, nicRows = V2V_NIC_ROWS } = {}) {
       srOptions: V2V_TARGET_OPTIONS.srs,
       networkOptions: V2V_TARGET_OPTIONS.networks,
       loading: true,
+      readonly,
     },
     global: createGlobalTestConfig(),
   })
@@ -49,12 +50,23 @@ it('maps the disks then the network adapters', () => {
     rows: V2V_DISK_ROWS,
     srOptions: V2V_TARGET_OPTIONS.srs,
     loading: true,
+    readonly: false,
   })
   expect(wrapper.getComponent(V2vNicMappingTable).props()).toEqual({
     rows: V2V_NIC_ROWS,
     networkOptions: V2V_TARGET_OPTIONS.networks,
     loading: true,
+    readonly: false,
   })
+})
+
+it('shows the disks and the network adapters read only', () => {
+  const wrapper = mountCard({ readonly: true })
+
+  expect([
+    wrapper.getComponent(V2vDiskMappingTable).props('readonly'),
+    wrapper.getComponent(V2vNicMappingTable).props('readonly'),
+  ]).toEqual([true, true])
 })
 
 it.each([

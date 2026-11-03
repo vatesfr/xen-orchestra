@@ -4,12 +4,17 @@ import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_NIC_ROWS, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
-import { describeV2vTargetCells } from '@/test/v2v-target-cells.ts'
+import { describeV2vTargetCells, type V2vTargetTableOverrides } from '@/test/v2v-target-cells.ts'
 import { mount } from '@vue/test-utils'
 
-function mountTable() {
+function mountTable({ readonly, withoutOptions }: V2vTargetTableOverrides = {}) {
   return mount(V2vNicMappingTable, {
-    props: { rows: V2V_NIC_ROWS, networkOptions: V2V_TARGET_OPTIONS.networks, loading: true },
+    props: {
+      rows: V2V_NIC_ROWS,
+      networkOptions: withoutOptions ? [] : V2V_TARGET_OPTIONS.networks,
+      loading: true,
+      readonly,
+    },
     global: createGlobalTestConfig(),
   })
 }
