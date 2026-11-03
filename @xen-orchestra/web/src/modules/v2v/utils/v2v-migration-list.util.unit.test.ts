@@ -1,5 +1,6 @@
 import {
   buildV2vMigrationList,
+  findV2vMigrationListVm,
   getV2vMigrationListStorageKey,
   isV2vMigrationListOfNewerVersion,
   parseV2vMigrationList,
@@ -18,6 +19,7 @@ import {
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
+import type { XoV2vVm } from '@vates/types'
 
 const STORED_LIST = createV2vMigrationList({ vms: createV2vMigrationListVms(2) })
 
@@ -44,6 +46,22 @@ describe('getV2vMigrationListStorageKey', () => {
 describe('buildV2vMigrationList', () => {
   it('creates a list with the defaults and the VMs', () => {
     expect(buildV2vMigrationList(KEY, STORED_LIST.defaults, STORED_LIST.vms)).toEqual(STORED_LIST)
+  })
+})
+
+describe('findV2vMigrationListVm', () => {
+  it('finds the VM of the list with its overrides', () => {
+    const list = createV2vMigrationList({
+      vms: [createV2vMigrationListVm({ id: 'vm-2' as XoV2vVm['id'] }), OVERRIDDEN_VM],
+    })
+
+    expect(findV2vMigrationListVm(list, OVERRIDDEN_VM.id)).toBe(OVERRIDDEN_VM)
+  })
+
+  it('reads a VM missing from the list as without override', () => {
+    const vmId = 'vm-gone' as XoV2vVm['id']
+
+    expect(findV2vMigrationListVm(STORED_LIST, vmId)).toEqual({ id: vmId })
   })
 })
 

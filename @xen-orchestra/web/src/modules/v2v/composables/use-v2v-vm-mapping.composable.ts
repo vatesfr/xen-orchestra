@@ -15,6 +15,7 @@ import {
   V2V_DEFAULT_KEEP_MAC,
   V2V_DEFAULT_TAGS,
 } from '@/modules/v2v/utils/v2v-mapping.util.ts'
+import { findV2vMigrationListVm } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { findV2vPortGroup, findV2vVmHost, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
@@ -22,23 +23,25 @@ import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-// The issue of the VM in the list, if any, is told with the checks of its source
+// The issue of the VM in the list, if any, is told with the checks of its source.
+// `listVm` is where the overrides are read from, the VM of the list by default: `updateVm` must write to it
 export type V2vVmMappingContext = {
   list: MaybeRefOrGetter<V2vMigrationList>
   updateVm: ReturnType<typeof useV2vMigrationList>['updateVm']
   listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
+  listVm?: MaybeRefOrGetter<V2vMigrationListVm>
 }
 
-type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
+export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
 
 function toTargetOption<TId>({ id, name_label }: { id: TId; name_label: string }): V2vTargetOption<TId> {
   return { id, label: name_label }
 }
 
-// A new VM is mapped on the pool of its list: each change is stored at once, as an override of the list defaults
+// A new VM is mapped on the pool of its list: each change goes through `updateVm`, as an override of the list defaults
 export function useV2vVmMapping(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, updateVm, listIssue }: V2vVmMappingContext
+  { list: rawList, updateVm, listIssue, listVm: rawListVm }: V2vVmMappingContext
 ) {
   const connectionStore = useV2vConnectionStore()
 
@@ -56,10 +59,7 @@ export function useV2vVmMapping(
 
   const poolName = useV2vPoolName(poolId)
 
-  // A VM gone from the list reads as on the defaults: its overrides went with it
-  const listVm = computed(
-    (): V2vMigrationListVm => list.value.vms.find(({ id }) => id === vm.value.id) ?? { id: vm.value.id }
-  )
+  const listVm = computed(() => toValue(rawListVm) ?? findV2vMigrationListVm(list.value, vm.value.id))
 
   const mapping = computed(() => getV2vVmMapping(vm.value, listVm.value, list.value.defaults, offers.value))
 
