@@ -8,7 +8,7 @@
     <th :colspan="columns" scope="rowgroup" class="cell">
       <div class="content">
         <div class="title">
-          <span class="name typo-body-bold">{{ displayName(entry.policy.name) }}</span>
+          <span class="name typo-h6">{{ displayName(entry.policy.name) }}</span>
           <UiTag v-if="entry.locked" v-tooltip="t('firewall:global:tooltip')" accent="muted" variant="primary">
             <VtsIcon name="fa:globe" size="small" />
             {{ t('firewall:global') }}
@@ -240,8 +240,9 @@ const actions = computed<ActionItem[]>(() => [
 .vdf-policy-row {
   scroll-margin-block: 8rem;
 
+  /* a policy starts a block: room above its name, apart from the policy before */
   .cell {
-    padding: 0.6rem 1.2rem;
+    padding: 2rem 1.2rem 1rem;
     border-block-start: 0.1rem solid var(--color-neutral-border);
     text-align: start;
     font-weight: inherit;
@@ -291,7 +292,8 @@ const actions = computed<ActionItem[]>(() => [
 
   .title {
     flex-wrap: wrap;
-    column-gap: 1.6rem;
+    column-gap: 2.4rem;
+    row-gap: 0.8rem;
   }
 
   /* to the end, also when wrapped under the title */

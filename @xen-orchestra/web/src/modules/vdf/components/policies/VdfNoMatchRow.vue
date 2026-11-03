@@ -43,7 +43,7 @@ const { t } = useI18n()
 <style lang="postcss" scoped>
 .vdf-no-match-row {
   .cell {
-    padding-block: 0.3rem;
+    padding-block: 0.6rem 1.6rem;
   }
 
   &.removed .content {

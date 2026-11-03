@@ -84,9 +84,10 @@ const isEmpty = computed(() => tier.policies.length === 0)
 
 <style lang="postcss" scoped>
 .vdf-tier-row {
+  /* a tier opens a band: room above, a heavier line */
   .cell {
-    padding: 0.8rem 1.2rem;
-    border-block-start: 0.1rem solid var(--color-neutral-border);
+    padding: 1.2rem 1.2rem;
+    border-block-start: 0.2rem solid var(--color-neutral-border);
     text-align: start;
     font-weight: inherit;
     color: var(--color-neutral-txt-primary);
@@ -95,7 +96,8 @@ const isEmpty = computed(() => tier.policies.length === 0)
   }
 
   &.empty .cell {
-    padding-block: 0.2rem;
+    padding-block: 0.6rem;
+    border-block-start-width: 0.1rem;
     color: var(--color-neutral-txt-secondary);
     background-color: var(--color-neutral-background-primary);
   }

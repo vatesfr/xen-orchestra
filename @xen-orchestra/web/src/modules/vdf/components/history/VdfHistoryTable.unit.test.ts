@@ -1,8 +1,8 @@
 import VdfHistoryTable from '@/modules/vdf/components/history/VdfHistoryTable.vue'
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import type { VdfHistoryEntry } from '@/modules/vdf/types.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { mount } from '@vue/test-utils'
 
 // UX P2-10: when, and what changed, at a glance; versions without changes
@@ -73,7 +73,7 @@ it('hides the versions without changes until asked', async () => {
   expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   expect(wrapper.text()).toContain(t('firewall:history:show-unchanged', { n: 1 }, 1))
 
-  await wrapper.getComponent(UiToggle).setValue(true)
+  await wrapper.getComponent(VdfSwitch).setValue(true)
 
   expect(wrapper.findAll('tbody tr')).toHaveLength(3)
 })

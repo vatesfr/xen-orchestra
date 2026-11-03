@@ -16,13 +16,13 @@
           })
         }}
       </UiInfo>
-      <UiToggle
+      <VdfSwitch
         :model-value="isUnprotected"
         :disabled="isRunning"
         @update:model-value="setUnprotected($event === true)"
       >
         {{ t('firewall:network:leave-out') }}
-      </UiToggle>
+      </VdfSwitch>
       <UiInfo v-if="error" accent="danger" wrap>{{ error }}</UiInfo>
     </div>
   </UiPanelCard>
@@ -32,6 +32,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
@@ -48,7 +49,6 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

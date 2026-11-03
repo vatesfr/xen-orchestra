@@ -221,9 +221,9 @@ const actions = computed<ActionItem[]>(() => [
 .vdf-rule-row {
   scroll-margin-block: 8rem;
 
-  /* a dense row: a rule base is scanned, not read */
+  /* room enough to read a rule, still a table to scan */
   .cell {
-    padding-block: 0.5rem;
+    padding-block: 0.9rem;
     white-space: nowrap;
   }
 

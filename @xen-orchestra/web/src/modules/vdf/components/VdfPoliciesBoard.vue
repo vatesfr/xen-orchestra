@@ -9,7 +9,7 @@
         {{ t('firewall:policies') }}
         <template #action>
           <div class="title-actions">
-            <UiToggle v-if="hasHits" v-model="showHits">{{ t('firewall:show-hits') }}</UiToggle>
+            <VdfSwitch v-if="hasHits" v-model="showHits">{{ t('firewall:show-hits') }}</VdfSwitch>
             <!-- the report of the policies in monitor mode: a pool's (vdf#13) -->
             <UiLink
               v-if="monitorRoute !== undefined"
@@ -175,6 +175,7 @@ import VdfNoMatchRow from '@/modules/vdf/components/policies/VdfNoMatchRow.vue'
 import VdfPolicyRow from '@/modules/vdf/components/policies/VdfPolicyRow.vue'
 import VdfRuleRow from '@/modules/vdf/components/policies/VdfRuleRow.vue'
 import VdfTierRow from '@/modules/vdf/components/policies/VdfTierRow.vue'
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
@@ -211,7 +212,6 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'

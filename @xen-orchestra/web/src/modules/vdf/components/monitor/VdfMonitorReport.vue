@@ -22,13 +22,13 @@
           <VtsSelect :id="policySelectId" accent="brand" />
         </VtsInputWrapper>
         <UiQuerySearchBar class="search" @search="value => (search = value)" />
-        <UiToggle v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</UiToggle>
-        <UiToggle v-if="expectedCount > 0" v-model="showExpected">
+        <VdfSwitch v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</VdfSwitch>
+        <VdfSwitch v-if="expectedCount > 0" v-model="showExpected">
           {{ t('firewall:monitor:show-expected', { n: expectedCount }, expectedCount) }}
-        </UiToggle>
-        <UiToggle v-if="coveredCount > 0" v-model="showCovered">
+        </VdfSwitch>
+        <VdfSwitch v-if="coveredCount > 0" v-model="showCovered">
           {{ t('firewall:monitor:show-covered', { n: coveredCount }, coveredCount) }}
-        </UiToggle>
+        </VdfSwitch>
       </div>
 
       <!-- per policy: what it would drop in the last day, and the way out of monitor mode -->
@@ -243,6 +243,7 @@ import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
@@ -294,7 +295,6 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
