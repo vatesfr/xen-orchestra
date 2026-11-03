@@ -1,9 +1,9 @@
 <template>
   <div ref="root" class="vdf-history-table">
     <!-- versions that changed nothing in this document (global syncs that only rewrote members…) -->
-    <UiToggle v-if="unchangedCount > 0" v-model="showUnchanged" class="show-unchanged">
+    <VdfSwitch v-if="unchangedCount > 0" v-model="showUnchanged" class="show-unchanged">
       {{ t('firewall:history:show-unchanged', { n: unchangedCount }, unchangedCount) }}
-    </UiToggle>
+    </VdfSwitch>
     <!-- remeasured when a column drops: its sticky column's scroll shadow -->
     <VtsTable
       :key="String(isNarrow)"
@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
 import type { VdfHistoryChangeItem, VdfHistoryEntry } from '@/modules/vdf/types.ts'
@@ -34,7 +35,6 @@ import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

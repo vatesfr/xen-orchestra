@@ -1,7 +1,7 @@
 <template>
   <div class="vdf-connections-table">
     <div class="toolbar">
-      <UiToggle v-model="isGrouped">{{ t('firewall:live:group-connections') }}</UiToggle>
+      <VdfSwitch v-model="isGrouped">{{ t('firewall:live:group-connections') }}</VdfSwitch>
       <UiQuerySearchBar class="search" @search="value => (search = value)" />
     </div>
     <VtsTable :state :pagination-bindings horizontal>
@@ -24,6 +24,7 @@ import { useVdfActionsColumn } from '@/modules/vdf/components/live/vdf-actions-c
 import VdfDecisionCell from '@/modules/vdf/components/live/VdfDecisionCell.vue'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
+import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import type { VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
@@ -32,7 +33,6 @@ import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
