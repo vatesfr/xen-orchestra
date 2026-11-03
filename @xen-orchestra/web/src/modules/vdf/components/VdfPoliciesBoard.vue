@@ -10,16 +10,15 @@
         <template #action>
           <div class="title-actions">
             <UiToggle v-if="hasHits" v-model="showHits">{{ t('firewall:show-hits') }}</UiToggle>
-            <UiButton
-              v-if="hasLimits"
-              variant="tertiary"
-              accent="brand"
+            <!-- the report of the policies in monitor mode: a pool's (vdf#13) -->
+            <UiLink
+              v-if="monitorRoute !== undefined"
+              :to="monitorRoute"
               size="medium"
-              left-icon="fa:sliders"
-              @click="editLimits()"
+              icon="fa:eye"
             >
-              {{ t('firewall:limits') }}
-            </UiButton>
+              {{ t('firewall:monitor:report') }}
+            </UiLink>
             <UiButton variant="primary" accent="brand" size="medium" left-icon="fa:plus" @click="addPolicy()">
               {{ t('firewall:new-policy') }}
             </UiButton>
@@ -189,6 +188,7 @@ import {
   isReservedTier,
   ruleNumber,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { groupNetworks, isNetworksOnly } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import {
   filterRuleBase,
@@ -208,6 +208,7 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
@@ -235,7 +236,6 @@ const {
   scopeId,
   isGlobal,
   hasHits,
-  hasLimits,
   document,
   baseDocument,
   isPublishedReady,
@@ -255,7 +255,15 @@ const hasError = computed(() =>
   vdfScope.isGlobal ? vdfScope.hasGlobalError.value : vdfScope.hasPublishedPolicyError.value
 )
 
-const { editPolicy, editRule, editGroup, editLimits, hasTaggedGroups, reservedTiers } = useVdfEditors(() => scope)
+const { editPolicy, editRule, editGroup, hasTaggedGroups, reservedTiers } = useVdfEditors(() => scope)
+
+// the monitor mode report, a pool's, while a published policy is in that
+// mode (connection limits moved to Settings)
+const monitorRoute = computed(() =>
+  scope.kind === 'pool' && baseDocument.value.policies.some(isMonitored)
+    ? { name: '/pool/[id]/firewall/monitor' as const, params: { id: scope.pool.id } }
+    : undefined
+)
 
 // in a pool in scope, its own policies that came before the global ones
 // (written before it joined, or outside XO): flagged until moved (vdf#21)

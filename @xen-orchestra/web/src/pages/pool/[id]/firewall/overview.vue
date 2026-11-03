@@ -86,22 +86,19 @@
         </VtsColumn>
       </VtsColumns>
 
+      <!-- what needs attention, most serious first, then what to know -->
       <UiCard v-if="hasStatus" class="status-strip">
-        <div v-if="globalInfo?.inScope" class="status-item severity-info">
-          <UiInfo accent="info" wrap>{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
-          <UiTag v-if="globalSyncState" v-tooltip="globalSyncTooltip" :accent="globalSyncAccent" variant="secondary">
-            {{ globalSyncLabel }}
-          </UiTag>
-          <UiLink :to="{ name: '/(site)/firewall/overview' }" size="small" icon="fa:globe">
-            {{ t('firewall:global:open') }}
-          </UiLink>
-        </div>
-        <div v-if="monitoredPolicyCount > 0" class="status-item severity-info">
-          <UiInfo accent="info" wrap>
-            {{ t('firewall:overview:monitored-policies', { n: monitoredPolicyCount }) }}
-          </UiInfo>
-          <UiLink :to="{ name: '/pool/[id]/firewall/monitor', params: { id: pool.id } }" size="small" icon="fa:eye">
-            {{ t('firewall:monitor:open') }}
+        <UiTitle v-if="needsAttention">{{ t('firewall:overview:attention') }}</UiTitle>
+        <div v-if="problemHosts.length > 0" class="status-item severity-danger">
+          <UiInfo accent="danger" wrap>{{ t('firewall:overview:host-problems', { n: problemHosts.length }, problemHosts.length) }}</UiInfo>
+          <UiLink
+            v-for="row of problemHosts"
+            :key="row.host.id"
+            v-tooltip="row.status?.rejected || (row.status?.errors ?? []).join('\n') || false"
+            :to="{ hash: '#vdf-enforcement' }"
+            size="small"
+          >
+            {{ t('firewall:overview:host-problem', { host: row.host.name_label, n: row.problems }, row.problems) }}
           </UiLink>
         </div>
         <div v-if="exposedVms.length > 0" class="status-item severity-danger">
@@ -224,6 +221,23 @@
             {{ issueLabel(issue) }}
           </UiLink>
         </div>
+        <div v-if="globalInfo?.inScope" class="status-item severity-info">
+          <UiInfo accent="info" wrap>{{ t('firewall:global:pool-in-scope', { n: globalPolicyCount }) }}</UiInfo>
+          <UiTag v-if="globalSyncState" v-tooltip="globalSyncTooltip" :accent="globalSyncAccent" variant="secondary">
+            {{ globalSyncLabel }}
+          </UiTag>
+          <UiLink :to="{ name: '/(site)/firewall/overview' }" size="small" icon="fa:globe">
+            {{ t('firewall:global:open') }}
+          </UiLink>
+        </div>
+        <div v-if="monitoredPolicyCount > 0" class="status-item severity-info">
+          <UiInfo accent="info" wrap>
+            {{ t('firewall:overview:monitored-policies', { n: monitoredPolicyCount }) }}
+          </UiInfo>
+          <UiLink :to="{ name: '/pool/[id]/firewall/monitor', params: { id: pool.id } }" size="small" icon="fa:eye">
+            {{ t('firewall:monitor:open') }}
+          </UiLink>
+        </div>
       </UiCard>
     </template>
 
@@ -256,10 +270,8 @@
 
     <VdfOverviewOnboarding v-if="publishedDocument.policies.length === 0" :pool-id="pool.id" />
 
-    <VdfRecentDropsCard v-else :pool-id="pool.id" :document="publishedDocument" />
-
     <!-- vdf#103: what the agents say of the DHCP servers and routers -->
-    <VdfServicesStatus :pool-id="pool.id" :link="vdfPageRoute(pool.id, 'groups')" />
+    <VdfServicesStatus :pool-id="pool.id" :link="{ name: '/pool/[id]/firewall/settings', params: { id: pool.id } }" />
 
     <UiCard v-if="publishedDocument.policies.length > 0">
       <UiTitle>
@@ -326,7 +338,7 @@
       </VtsTable>
     </UiCard>
 
-    <UiCard>
+    <UiCard id="vdf-enforcement">
       <UiTitle>{{ t('firewall:enforcement') }}</UiTitle>
       <VtsStateHero v-if="hostRows.length === 0" format="card" type="no-data" size="extra-small" horizontal>
         {{ t('firewall:overview:no-host') }}
@@ -398,7 +410,6 @@ import HostLink from '@/modules/host/components/HostLink.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfOverviewOnboarding from '@/modules/vdf/components/overview/VdfOverviewOnboarding.vue'
-import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDropsCard.vue'
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
 import VdfServicesStatus from '@/modules/vdf/components/services/VdfServicesStatus.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
@@ -774,8 +785,34 @@ const shadowedVms = computed(() => {
   return [...byVm.values()].sort((a, b) => a.vmName.localeCompare(b.vmName))
 })
 
+// hosts whose agent refuses the document, reports errors, or keeps
+// restarting: what each says is under Enforcement
+const problemHosts = computed(() =>
+  hostRows.value
+    .filter(({ state, status }) => state === 'error' || state === 'rejected' || status?.restarts !== undefined)
+    .map(row => ({
+      ...row,
+      problems: (row.status?.errors?.length ?? 0) + (row.status?.rejected ? 1 : 0) + (row.status?.restarts ? 1 : 0),
+    }))
+)
+
+// anything but information: titled "Needs attention"
+const needsAttention = computed(
+  () =>
+    problemHosts.value.length > 0 ||
+    shadowedVms.value.length > 0 ||
+    exposedVms.value.length > 0 ||
+    enforcedQuarantines.value.length > 0 ||
+    unlockedCount.value > 0 ||
+    staleCount.value > 0 ||
+    vdfUnenforced.value.length > 0 ||
+    prefixed.value.length > 0 ||
+    joined.value.entries.length > 0
+)
+
 const hasStatus = computed(
   () =>
+    needsAttention.value ||
     globalInfo.value?.inScope === true ||
     shadowedVms.value.length > 0 ||
     monitoredPolicyCount.value > 0 ||

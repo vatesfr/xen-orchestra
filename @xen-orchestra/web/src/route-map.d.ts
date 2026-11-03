@@ -382,6 +382,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/firewall/monitor'
       | '/pool/[id]/firewall/overview'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/settings'
       | '/pool/[id]/firewall/trace'
       | '/pool/[id]/hosts'
       | '/pool/[id]/networks'
@@ -410,6 +411,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/firewall/monitor'
       | '/pool/[id]/firewall/overview'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/settings'
       | '/pool/[id]/firewall/trace'
     >,
     '/pool/[id]/firewall/groups': RouteRecordInfo<
@@ -457,6 +459,13 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/firewall/policies': RouteRecordInfo<
       '/pool/[id]/firewall/policies',
       '/pool/:id/firewall/policies',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/firewall/settings': RouteRecordInfo<
+      '/pool/[id]/firewall/settings',
+      '/pool/:id/firewall/settings',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -1035,6 +1044,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall/monitor'
         | '/pool/[id]/firewall/overview'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/settings'
         | '/pool/[id]/firewall/trace'
         | '/pool/[id]/hosts'
         | '/pool/[id]/networks'
@@ -1062,6 +1072,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall/monitor'
         | '/pool/[id]/firewall/overview'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/settings'
         | '/pool/[id]/firewall/trace'
       views:
         | 'default'
@@ -1105,6 +1116,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/firewall/policies.vue': {
       routes:
         | '/pool/[id]/firewall/policies'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/firewall/settings.vue': {
+      routes:
+        | '/pool/[id]/firewall/settings'
       views:
         | never
     }
