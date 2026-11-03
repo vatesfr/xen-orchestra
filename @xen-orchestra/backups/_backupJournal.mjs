@@ -330,7 +330,7 @@ export async function purgeBackupJournal(handler, before) {
     filter: name => isDayName(name) && name < minDay,
     ignoreMissing: true,
   })
-
+  const errors = []
   // one day at a time: this runs in the background, it must not compete with the backups for the
   // remote
   for (const day of days) {
@@ -339,7 +339,10 @@ export async function purgeBackupJournal(handler, before) {
       await handler.rmtree(path)
       debug('journal day purged', { path })
     } catch (error) {
-      warn(`can't purge journal day`, { error, path })
+      errors.push({ error, path })
     }
+  }
+  if (errors.length > 0) {
+    warn('failed to purge some journal days', { errors })
   }
 }
