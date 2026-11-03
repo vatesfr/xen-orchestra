@@ -110,6 +110,40 @@ function barStyle(color: string | undefined) {
   }
 }
 
+// the interval between two bars (the smallest step between timestamps): the
+// axis reaches half of it past the first and the last, which a time axis
+// would cut in half
+const extent = computed(() => {
+  const timestamps = [...new Set(data.flatMap(series => series.data.map(item => item.timestamp)))].sort(
+    (timestampA, timestampB) => timestampA - timestampB
+  )
+  const steps = timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index])
+
+  return {
+    first: timestamps[0],
+    last: timestamps.at(-1),
+    step: steps.length === 0 ? undefined : Math.min(...steps),
+  }
+})
+
+const valueOf = (value: number | null | undefined) => (value === null || value === undefined || isNaN(value) ? null : value)
+
+// stacked: only a stack's top segment has rounded corners (a thin one
+// rounded under another reads as a narrower bar)
+const topSeries = computed(() => {
+  const top = new Map<number, number>()
+
+  data.forEach((series, index) =>
+    series.data.forEach(item => {
+      if ((valueOf(item.value) ?? 0) > 0) {
+        top.set(item.timestamp, index)
+      }
+    })
+  )
+
+  return top
+})
+
 const option = computed<EChartsOption>(() => ({
   legend: {
     data: data.map(series => series.label),
@@ -123,6 +157,9 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: 'time',
     minInterval: timeMinInterval,
+    ...(extent.value.step === undefined
+      ? {}
+      : { min: extent.value.first! - extent.value.step / 2, max: extent.value.last! + extent.value.step / 2 }),
     axisLabel: {
       formatter: (timestamp: number) => timeFormatter?.(timestamp) ?? xAxisLabelFormatter(new Date(timestamp)),
       showMaxLabel: false,
@@ -145,7 +182,11 @@ const option = computed<EChartsOption>(() => ({
     emphasis: { itemStyle: { shadowBlur: 10, shadowColor: withAlpha(resolvedColors.value?.[index], 0.5) } },
     // few intervals: wide bars, still apart
     barMaxWidth: 48,
-    data: series.data.map(item => [item.timestamp, isNaN(item.value ?? NaN) ? null : item.value]),
+    data: series.data.map(item =>
+      stacked && topSeries.value.get(item.timestamp) !== index
+        ? { value: [item.timestamp, valueOf(item.value)], itemStyle: { borderRadius: 0 } }
+        : [item.timestamp, valueOf(item.value)]
+    ),
   })),
 }))
 </script>
