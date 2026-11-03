@@ -89,6 +89,21 @@
       <!-- what needs attention, most serious first, then what to know -->
       <UiCard v-if="hasStatus" class="status-strip">
         <UiTitle v-if="needsAttention">{{ t('firewall:overview:attention') }}</UiTitle>
+        <!-- a bridge tampered with: VDF's policy may have been bypassed there -->
+        <div v-if="tamperAlarms.length > 0" class="status-item severity-danger">
+          <UiInfo accent="danger" wrap>
+            {{ t('firewall:overview:tampered', { n: tamperAlarms.length }, tamperAlarms.length) }}
+          </UiInfo>
+          <UiLink
+            v-for="alarm of tamperAlarms"
+            :key="alarm.key"
+            v-tooltip="alarm.text"
+            :to="{ hash: '#vdf-enforcement' }"
+            size="small"
+          >
+            {{ t('firewall:overview:alarm-where', { host: alarm.host, bridge: alarm.bridge }) }}
+          </UiLink>
+        </div>
         <div v-if="problemHosts.length > 0" class="status-item severity-danger">
           <UiInfo accent="danger" wrap>{{ t('firewall:overview:host-problems', { n: problemHosts.length }, problemHosts.length) }}</UiInfo>
           <UiLink
@@ -156,6 +171,13 @@
           </UiLink>
           <span v-if="staleCount > stale.length" class="secondary typo-body-regular-small">
             {{ t('firewall:more', { n: staleCount - stale.length }) }}
+          </span>
+        </div>
+        <!-- a bond VDF can't read: multicast may reach guarded VMs twice (vdf#136) -->
+        <div v-if="bondAlarms.length > 0" class="status-item severity-warning">
+          <UiInfo accent="warning" wrap>{{ t('firewall:overview:bond-alarms') }}</UiInfo>
+          <span v-for="alarm of bondAlarms" :key="alarm.key" class="typo-body-regular-small">
+            {{ t('firewall:in-host', { host: alarm.host, text: `${alarm.bridge}: ${alarm.text}` }) }}
           </span>
         </div>
         <div v-if="unlockedCount > 0" class="status-item severity-warning">
@@ -787,18 +809,41 @@ const shadowedVms = computed(() => {
 
 // hosts whose agent refuses the document, reports errors, or keeps
 // restarting: what each says is under Enforcement
+// (its errors that aren't alarms: those are listed on their own)
 const problemHosts = computed(() =>
   hostRows.value
-    .filter(({ state, status }) => state === 'error' || state === 'rejected' || status?.restarts !== undefined)
-    .map(row => ({
-      ...row,
-      problems: (row.status?.errors?.length ?? 0) + (row.status?.rejected ? 1 : 0) + (row.status?.restarts ? 1 : 0),
-    }))
+    .map(row => {
+      const alarms = row.status?.alarms ?? []
+      const errors = (row.status?.errors ?? []).filter(error => !alarms.some(alarm => error.includes(alarm.text)))
+
+      return {
+        ...row,
+        problems: errors.length + (row.status?.rejected ? 1 : 0) + (row.status?.restarts ? 1 : 0),
+      }
+    })
+    .filter(({ state, problems }) => hostEnforces(state) && problems > 0)
 )
+
+// the agents' alarms (absent from agents before them), of hosts whose
+// status still holds
+const alarmsOf = (kind: string) =>
+  hostRows.value
+    .filter(({ state }) => hostEnforces(state))
+    .flatMap(({ host, status }) =>
+      (status?.alarms ?? [])
+        .filter(alarm => alarm.kind === kind)
+        .map(alarm => ({ ...alarm, host: host.name_label, key: `${host.id}|${alarm.bridge}|${alarm.text}` }))
+    )
+
+const tamperAlarms = computed(() => alarmsOf('tamper'))
+
+const bondAlarms = computed(() => alarmsOf('bond'))
 
 // anything but information: titled "Needs attention"
 const needsAttention = computed(
   () =>
+    tamperAlarms.value.length > 0 ||
+    bondAlarms.value.length > 0 ||
     problemHosts.value.length > 0 ||
     shadowedVms.value.length > 0 ||
     exposedVms.value.length > 0 ||

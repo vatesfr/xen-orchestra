@@ -280,12 +280,21 @@
                 {{ t('firewall:global:last-sync:none') }}
               </span>
             </UiTableCell>
-            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent, with a restarting one, or reporting errors -->
+            <!-- what the pool's own overview has to say first: its bridges tampered with, its exposed VMs, its hosts without a working agent, with a restarting one, or reporting errors -->
             <UiTableCell class="typo-body-regular-small">
               <span
-                v-if="row.exposed + row.hostsWithoutAgent + row.hostsRestarting + row.hostsInError > 0"
+                v-if="row.tampered + row.exposed + row.hostsWithoutAgent + row.hostsRestarting + row.hostsInError > 0"
                 class="attention-tags"
               >
+                <RouterLink
+                  v-if="row.tampered > 0"
+                  :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                  class="tag-link"
+                >
+                  <UiTag accent="danger" variant="primary">
+                    {{ t('firewall:global:attention:tampered', { n: row.tampered }, row.tampered) }}
+                  </UiTag>
+                </RouterLink>
                 <RouterLink
                   v-if="row.exposed > 0"
                   :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
@@ -633,6 +642,10 @@ const poolRows = computed(() =>
         // an agent reporting errors, or refusing the published document:
         // what it says is on the pool's overview
         hostsInError: poolHosts.filter(({ state }) => state === 'error' || state === 'rejected').length,
+        // bridges tampered with: VDF's policy may have been bypassed there
+        tampered: poolHosts
+          .filter(({ state }) => hostEnforces(state))
+          .flatMap(({ status }) => (status?.alarms ?? []).filter(alarm => alarm.kind === 'tamper')).length,
       }
     })
 )

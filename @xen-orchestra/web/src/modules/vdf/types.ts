@@ -346,6 +346,12 @@ export type VdfHistoryVersion = VdfHistoryEntry & {
 }
 
 // host.other_config["vdf:status"], written by each host's agent
+export type VdfHostAlarm = {
+  bridge: string
+  kind: 'tamper' | 'bond' | string
+  text: string
+}
+
 export type VdfHostStatusDocument = {
   agent?: string
   // the newest policy format the agent reads; absent from agents before it
@@ -361,6 +367,10 @@ export type VdfHostStatusDocument = {
   gen?: Record<string, string>
   appliedAt?: string
   errors?: string[]
+  // of the errors, those that are alarms: a bridge tampered with (VDF's
+  // policy may have been bypassed there), a bond VDF can't read; absent
+  // from agents before them
+  alarms?: VdfHostAlarm[]
   saturated?: string[]
   policies?: VdfHostPolicyStatus[]
   // VIF locking of the host's protected or grouped VIFs (vdf#15); absent
