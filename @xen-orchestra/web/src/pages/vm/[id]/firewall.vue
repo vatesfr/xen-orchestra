@@ -68,8 +68,12 @@
         </template>
       </UiAlert>
       <!-- its host enforces the document, but reports errors where the VM is connected: a port failed closed, an alarm on its bridge, a policy not realized there -->
-      <UiAlert v-if="hostProblems.length > 0" accent="warning" class="state-alert">
-        {{ t('firewall:vm:host-errors', { host: host?.host.name_label ?? vm.$container }) }}
+      <UiAlert v-if="hostProblems.length > 0" :accent="isTampered ? 'danger' : 'warning'" class="state-alert">
+        {{
+          t(isTampered ? 'firewall:vm:host-tampered' : 'firewall:vm:host-errors', {
+            host: host?.host.name_label ?? vm.$container,
+          })
+        }}
         <template #description>
           <ul class="host-problems">
             <li v-for="problem of hostProblems" :key="problem">{{ problem }}</li>
@@ -673,7 +677,16 @@ const hostProblems = computed(() => {
   return [...new Set([...unrealized, ...errors])]
 })
 
-const statusAccent = computed(() => (hostProblems.value.length > 0 ? 'warning' : STATUS_ACCENTS[protection.value]))
+// a bridge of the VM's tampered with: its policy may have been bypassed
+const isTampered = computed(
+  () =>
+    hostProblems.value.length > 0 &&
+    (host.value?.status?.alarms ?? []).some(alarm => alarm.kind === 'tamper' && vmBridges.value.has(alarm.bridge))
+)
+
+const statusAccent = computed(() =>
+  isTampered.value ? 'danger' : hostProblems.value.length > 0 ? 'warning' : STATUS_ACCENTS[protection.value]
+)
 
 // QUARANTINE: the same confirmation as the VM's header menu and the Live
 // tables; a failure shows through tagError
