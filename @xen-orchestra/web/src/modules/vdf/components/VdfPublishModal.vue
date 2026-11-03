@@ -223,6 +223,7 @@ import {
 } from '@/modules/vdf/utils/vdf-services.util.ts'
 import { shadowKey, type VdfMonitorShadow, willShadowBeCovered } from '@/modules/vdf/utils/vdf-shadow.util.ts'
 import { agentGaps, parseHostStatus } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { TRAFFIC_RULE_DECIDES_FIRST, trafficRuleStatus } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
@@ -366,9 +367,29 @@ const reachPools = computed(() =>
 const { reachText } = useVdfGlobalReach(() => shown.value.document, reachPools)
 
 // VMs the draft brings under an enforced policy that have XO's Traffic
-// Rules (vdf#40): those keep deciding first for what they match
+// Rules deciding before it (vdf#40): under an agent that puts VDF first,
+// only those it found shadowing it; a halted VM, unless every host of its
+// pool puts VDF first
 
 const { rulesOfVm } = useVdfTrafficRules()
+
+function decidesFirstCount(vm: FrontXoVm) {
+  const { running, status } = statusOfVm(vm.id)
+  const poolStatuses = allHosts.value
+    .filter(host => host.$pool === vm.$pool)
+    .map(host => parseHostStatus(host.otherConfig))
+  const above = running
+    ? status?.aboveTrafficRules === true
+    : poolStatuses.length > 0 && poolStatuses.every(hostStatus => hostStatus?.aboveTrafficRules === true)
+  const anyPriority = running
+    ? status?.trafficRulesAnyPriority === true
+    : poolStatuses.every(hostStatus => hostStatus?.trafficRulesAnyPriority === true)
+  const shadows = new Map((status?.shadowed ?? []).map(shadow => [shadow.vif, shadow]))
+
+  return rulesOfVm(vm).filter(({ rule, vif }) =>
+    TRAFFIC_RULE_DECIDES_FIRST.includes(trafficRuleStatus(rule, shadows.get(vif.id), above, anyPriority))
+  ).length
+}
 
 const trafficRuleWarnings = computed(() => {
   const { scopeId, document, baseDocument } = shown.value
@@ -393,7 +414,7 @@ const trafficRuleWarnings = computed(() => {
   return vms.value
     .filter(vm => poolIds.has(vm.$pool) && now(vm) && !before(vm))
     .flatMap(vm => {
-      const count = rulesOfVm(vm).length
+      const count = decidesFirstCount(vm)
 
       return count === 0
         ? []

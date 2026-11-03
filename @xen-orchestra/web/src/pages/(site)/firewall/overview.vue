@@ -280,9 +280,12 @@
                 {{ t('firewall:global:last-sync:none') }}
               </span>
             </UiTableCell>
-            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent, or with a restarting one -->
+            <!-- what the pool's own overview has to say first: its exposed VMs, its hosts without a working agent, with a restarting one, or reporting errors -->
             <UiTableCell class="typo-body-regular-small">
-              <span v-if="row.exposed + row.hostsWithoutAgent + row.hostsRestarting > 0" class="attention-tags">
+              <span
+                v-if="row.exposed + row.hostsWithoutAgent + row.hostsRestarting + row.hostsInError > 0"
+                class="attention-tags"
+              >
                 <RouterLink
                   v-if="row.exposed > 0"
                   :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
@@ -308,6 +311,15 @@
                 >
                   <UiTag accent="warning" variant="secondary">
                     {{ t('firewall:global:attention:restarting', { n: row.hostsRestarting }, row.hostsRestarting) }}
+                  </UiTag>
+                </RouterLink>
+                <RouterLink
+                  v-if="row.hostsInError > 0"
+                  :to="{ name: '/pool/[id]/firewall/overview', params: { id: row.pool.id } }"
+                  class="tag-link"
+                >
+                  <UiTag accent="danger" variant="secondary">
+                    {{ t('firewall:global:attention:errors', { n: row.hostsInError }, row.hostsInError) }}
                   </UiTag>
                 </RouterLink>
               </span>
@@ -618,6 +630,9 @@ const poolRows = computed(() =>
         // an agent that keeps restarting (vdf#38): a crash loop
         hostsRestarting: poolHosts.filter(({ state, status }) => hostEnforces(state) && status?.restarts !== undefined)
           .length,
+        // an agent reporting errors, or refusing the published document:
+        // what it says is on the pool's overview
+        hostsInError: poolHosts.filter(({ state }) => state === 'error' || state === 'rejected').length,
       }
     })
 )
@@ -660,8 +675,11 @@ async function takeOver(pool: VdfGlobalPool) {
     takeOverError.value = undefined
     await fetchPost(`plugins/vdf/pools/${pool.id}/actions/take_over_global`, { expectedOwner: pool.ownerId ?? '' })
   } catch (error) {
-    // refused if the owner changed since the page showed it
-    takeOverError.value = t('firewall:global:take-over:failed', { pool: pool.name, error: (error as Error).message })
+    // refused if the owner changed since the page showed it, or if this XO
+    // would write the pool without the global part it holds (vdf#81): the
+    // plugin says why
+    const reason = ((error as Error).cause as { error?: string } | undefined)?.error ?? (error as Error).message
+    takeOverError.value = t('firewall:global:take-over:failed', { pool: pool.name, error: reason })
   } finally {
     reloadGlobal()
     takingOver.value = undefined

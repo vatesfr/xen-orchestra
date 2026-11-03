@@ -22,6 +22,7 @@ const networkFields = [
   'other_config',
   'type',
   'isBonded',
+  'bridge',
 ] as const satisfies readonly (keyof XoNetwork)[]
 
 export const useXoNetworkCollection = defineRemoteResource({

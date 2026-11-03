@@ -26,6 +26,10 @@ export type VdfTrafficRuleStatus =
   | 'applies-after'
   | 'vdf-first'
 
+// the statuses of a Traffic Rule that decides before VDF's policies: what
+// to warn about when they start protecting its VM
+export const TRAFFIC_RULE_DECIDES_FIRST: VdfTrafficRuleStatus[] = ['bypasses', 'decides-first', 'not-applied']
+
 // where agents before vdf#114 end the Traffic Rules' pass: a rule at or
 // below it is never reached; a rule without a priority has OVS's default
 const OLD_TRAFFIC_RULES_PASS_END = 9900
