@@ -1,8 +1,8 @@
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import type { V2vNextTransfer } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
-import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
@@ -20,19 +20,22 @@ function mountCard(props: { transfer?: V2vNextTransfer; lastSyncAt?: number } = 
   })
 }
 
+it('shows its title', () => {
+  expect(findPanelCardTitle(mountCard())).toBe(t('next-run'))
+})
+
 it.each([
   ['delta', t('delta-transfer')],
   ['full', t('full-transfer')],
-] as const)('titles the %s transfer of the next run', (transfer, label) => {
-  expect(findCardTitle(mountCard({ transfer }))).toBe(`${t('next-run')} ${label}`)
-})
-
-it('tells when the VM was last synced', () => {
-  expect(findLabelledValues(mountCard())).toEqual({ [t('last-sync')]: formatDateTime(LAST_SYNC_AT) })
+] as const)('tells the %s transfer of the next run, and when the VM was last synced', (transfer, label) => {
+  expect(findCardLabelledValues(mountCard({ transfer }))).toEqual({
+    [t('type')]: label,
+    [t('last-sync')]: formatDateTime(LAST_SYNC_AT),
+  })
 })
 
 it('leaves the last sync empty for a VM without one', () => {
-  expect(findLabelledValues(mountCard({ lastSyncAt: undefined }))).toEqual({ [t('last-sync')]: '' })
+  expect(findCardLabelledValues(mountCard({ lastSyncAt: undefined }))[t('last-sync')]).toBe('')
 })
 
 it('reminds to sync shortly before the cutover', () => {

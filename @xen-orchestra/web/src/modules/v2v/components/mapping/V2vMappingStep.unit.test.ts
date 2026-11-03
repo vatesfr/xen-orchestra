@@ -1,9 +1,6 @@
 import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
-import V2vMappingVmHeader from '@/modules/v2v/components/mapping/V2vMappingVmHeader.vue'
-import V2vNewVmMapping from '@/modules/v2v/components/mapping/V2vNewVmMapping.vue'
-import V2vResumedVmMapping from '@/modules/v2v/components/mapping/V2vResumedVmMapping.vue'
-import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
-import V2vShowSelectedVmsButton from '@/modules/v2v/components/selected-vms/V2vShowSelectedVmsButton.vue'
+import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
+import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -12,7 +9,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
-import { V2V_DB_IMPORT_VM, V2V_GONE_VM_ID, V2V_MAPPING_STEP_LIST } from '@/test/v2v-mapping-step-fixtures.ts'
+import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListStorage, readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -51,7 +48,7 @@ vi.mock(
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
-async function mountStep(vm: string) {
+async function mountStep(vm?: string) {
   const { mounted: wrapper, router } = await mountV2vMappingStep(
     setup =>
       mountOnV2vWizard(
@@ -60,10 +57,8 @@ async function mountStep(vm: string) {
             global: createGlobalTestConfig({
               router,
               stubs: {
-                V2vMappingVmHeader: true,
-                V2vNewVmMapping: true,
-                V2vResumedVmMapping: true,
-                V2vSelectedVmsPanel: true,
+                V2vMappingTable: true,
+                V2vVmSidePanel: true,
               },
             }),
           }),
@@ -75,14 +70,12 @@ async function mountStep(vm: string) {
   return { wrapper, router }
 }
 
-const MAPPINGS = [V2vNewVmMapping, V2vResumedVmMapping, VtsStateHero]
-
-function findShownMappings(wrapper: VueWrapper) {
-  return MAPPINGS.filter(mapping => wrapper.findComponent(mapping).exists())
+function getTable(wrapper: VueWrapper) {
+  return wrapper.getComponent(V2vMappingTable)
 }
 
-function getPanel(wrapper: VueWrapper) {
-  return wrapper.getComponent(V2vSelectedVmsPanel)
+function getVmPanel(wrapper: VueWrapper) {
+  return wrapper.getComponent(V2vVmSidePanel)
 }
 
 function findRouteQuery(router: Router) {
@@ -96,109 +89,94 @@ beforeEach(() => {
   deleteModalMock.answer('onConfirm')
 })
 
-describe('mapping', () => {
-  it('maps a new VM on the list', async () => {
-    const { wrapper } = await mountStep(V2V_WEB_VM.id)
-    const mapping = wrapper.getComponent(V2vNewVmMapping)
+describe('table', () => {
+  it('lists the VMs of the list', async () => {
+    const { wrapper } = await mountStep()
 
-    expect(findShownMappings(wrapper)).toEqual([V2vNewVmMapping])
-    expect(mapping.props()).toMatchObject({ vm: V2V_WEB_VM, list: V2V_MAPPING_STEP_LIST })
-    expect(mapping.props('heading').name).toBe(V2V_WEB_VM.name)
+    expect(
+      getTable(wrapper)
+        .props('rows')
+        .map(row => row.vm.id)
+    ).toEqual([V2V_WEB_VM.id, V2V_DB_VM.id, V2V_GONE_VM_ID])
   })
 
-  it('stores the changes of the mapping of a new VM in the list', async () => {
-    const { wrapper } = await mountStep(V2V_WEB_VM.id)
+  it('selects a VM of the table', async () => {
+    const { wrapper, router } = await mountStep()
 
-    wrapper.getComponent(V2vNewVmMapping).props('updateVm')(V2V_WEB_VM.id, vm => ({ ...vm, keepMac: false }))
-
-    expect(readV2vMigrationListStorage().vms[0]).toEqual({ id: V2V_WEB_VM.id, keepMac: false })
-  })
-
-  it('removes a new VM from the list, then shows the next one', async () => {
-    const { wrapper, router } = await mountStep(V2V_WEB_VM.id)
-
-    wrapper.getComponent(V2vNewVmMapping).vm.$emit('remove')
+    getTable(wrapper).vm.$emit('select', V2V_DB_VM.id)
     await flushPromises()
 
-    expect(readV2vMigrationListVmIds()).toEqual([V2V_DB_VM.id, V2V_GONE_VM_ID])
     expect(findRouteQuery(router).vm).toBe(V2V_DB_VM.id)
   })
 
-  it('resumes a VM warm synced on the pool of the list', async () => {
-    const { wrapper } = await mountStep(V2V_DB_VM.id)
-
-    expect(findShownMappings(wrapper)).toEqual([V2vResumedVmMapping])
-    expect(wrapper.getComponent(V2vResumedVmMapping).props()).toMatchObject({
-      vm: V2V_DB_VM,
-      importVm: V2V_DB_IMPORT_VM,
-    })
-  })
-
-  it('tells a VM gone from the source not found, removable from the list', async () => {
-    const { wrapper } = await mountStep(V2V_GONE_VM_ID)
-    const header = wrapper.getComponent(V2vMappingVmHeader)
-
-    expect(findShownMappings(wrapper)).toEqual([VtsStateHero])
-    expect(wrapper.getComponent(VtsStateHero).text()).toBe(t('v2v:not-found-in-source'))
-    expect(header.props()).toMatchObject({ heading: { name: V2V_GONE_VM_ID }, action: 'remove' })
-
-    header.vm.$emit('remove')
-    await flushPromises()
-
-    expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_DB_VM.id])
-  })
-
-  it('shows the step busy while the VMs load', async () => {
+  it('shows the step busy, without table, while the VMs load', async () => {
     v2vVmRowsCollectionsMock.areVmsReady.value = false
 
     const { wrapper } = await mountStep(V2V_WEB_VM.id)
 
-    expect(findShownMappings(wrapper)).toEqual([VtsStateHero])
     expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+    expect(wrapper.findComponent(V2vMappingTable).exists()).toBe(false)
   })
 })
 
-describe('selected VMs', () => {
-  it('shows the VMs of the list, the active one selected', async () => {
+describe('VM panel', () => {
+  it('shows the selected VM in its panel', async () => {
     const { wrapper } = await mountStep(V2V_DB_VM.id)
 
-    expect(
-      getPanel(wrapper)
-        .props('items')
-        .map(item => item.isSelected)
-    ).toEqual([false, true, false])
-    expect(getPanel(wrapper).props()).toMatchObject({ count: 3, isEmpty: false, isBusy: false })
+    expect(getVmPanel(wrapper).props('vm')?.id).toBe(V2V_DB_VM.id)
   })
 
-  it('removes a VM of the list from the panel', async () => {
-    const { wrapper } = await mountStep(V2V_WEB_VM.id)
+  it.each([
+    ['without a VM in the route', undefined],
+    ['for a VM out of the list', 'vm-unknown'],
+  ])('shows the panel without VM %s', async (_, vm) => {
+    const { wrapper } = await mountStep(vm)
 
-    getPanel(wrapper).vm.$emit('remove', V2V_DB_VM.id)
+    expect(getVmPanel(wrapper).props('vm')).toBeUndefined()
+  })
+
+  it('closes, selecting no VM', async () => {
+    const { wrapper, router } = await mountStep(V2V_DB_VM.id)
+
+    getVmPanel(wrapper).vm.$emit('close')
+    await flushPromises()
+
+    expect(findRouteQuery(router).vm).toBeUndefined()
+    expect(getVmPanel(wrapper).props('vm')).toBeUndefined()
+  })
+
+  it('lays the panel out as the side panel of the step, beside the table', async () => {
+    const layout = (await mountStep()).wrapper.getComponent(VtsContentSidePanel)
+
+    expect(layout.findComponent(V2vVmSidePanel).exists()).toBe(true)
+    expect(layout.findComponent(V2vMappingTable).exists()).toBe(true)
+  })
+})
+
+// The table and the VM panel edit the settings of a VM and remove a VM of the list, the selected one then closed
+describe('list changes', () => {
+  it.each([
+    ['the table', (wrapper: VueWrapper) => getTable(wrapper).props('updateVm')],
+    ['the VM panel', (wrapper: VueWrapper) => getVmPanel(wrapper).props('updateVm')],
+  ])('stores the settings of a VM in the list from %s', async (_, getUpdateVm) => {
+    const { wrapper } = await mountStep(V2V_DB_VM.id)
+
+    getUpdateVm(wrapper)(V2V_WEB_VM.id, vm => ({ ...vm, keepMac: false }))
+
+    expect(readV2vMigrationListStorage().vms[0]).toEqual({ id: V2V_WEB_VM.id, keepMac: false })
+  })
+
+  it.each([
+    ['the table', getTable],
+    ['the VM panel', getVmPanel],
+  ])('removes the selected VM of the list from %s, selecting no VM', async (_, getRemover) => {
+    const { wrapper, router } = await mountStep(V2V_DB_VM.id)
+
+    getRemover(wrapper).vm.$emit('remove', V2V_DB_VM.id)
     await flushPromises()
 
     expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-  })
-
-  it('clears the list from the panel', async () => {
-    const { wrapper } = await mountStep(V2V_WEB_VM.id)
-
-    getPanel(wrapper).vm.$emit('clear')
-    await flushPromises()
-
-    expect(readV2vMigrationListVmIds()).toEqual([])
-  })
-
-  it('lays the panel out as the side panel of the step, beside the mapping', async () => {
-    const layout = (await mountStep(V2V_WEB_VM.id)).wrapper.getComponent(VtsContentSidePanel)
-
-    expect(layout.findComponent(V2vSelectedVmsPanel).exists()).toBe(true)
-    expect(layout.findComponent(V2vNewVmMapping).exists()).toBe(true)
-  })
-
-  it('offers to show the panel, counting the VMs of the list', async () => {
-    const { wrapper } = await mountStep(V2V_WEB_VM.id)
-
-    expect(wrapper.getComponent(V2vShowSelectedVmsButton).props('count')).toBe(V2V_MAPPING_STEP_LIST.vms.length)
+    expect(findRouteQuery(router).vm).toBeUndefined()
   })
 })
 

@@ -1,7 +1,7 @@
-import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
 import V2vVmOptionsCard from '@/modules/v2v/components/panel/V2vVmOptionsCard.vue'
-import { findCardTitle } from '@/test/find-card-title.ts'
-import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { getGenericComponent } from '@/test/find-generic-components.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_DEBIAN_TEMPLATE, V2V_MIGRATED_VM_TAGS, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
@@ -25,27 +25,21 @@ function mountCard(props: Partial<ComponentProps<typeof V2vVmOptionsCard>> = {})
 }
 
 it('shows its title', () => {
-  expect(findCardTitle(mountCard())).toBe(t('options'))
+  expect(findPanelCardTitle(mountCard())).toBe(t('options'))
 })
 
 it.each([
   [true, 'enabled'],
   [false, 'disabled'],
 ] as const)('tells whether the MAC addresses are kept (%s)', (keepMac, statusKey) => {
-  expect(findLabelledValues(mountCard({ keepMac }))[t('keep-mac-addresses')]).toBe(t(statusKey))
+  expect(findCardLabelledValues(mountCard({ keepMac }))[t('keep-mac-addresses')]).toBe(t(statusKey))
 })
 
-it('names the template, and where it comes from, without a reset', () => {
-  const wrapper = mountCard()
-
-  expect(findLabelledValues(wrapper)[t('template')]).toBe(`${V2V_DEBIAN_TEMPLATE.name_label} ${t('overridden')}`)
-  expect(wrapper.getComponent(V2vValueOrigin).props()).toEqual({ origin: 'overridden', readonly: true })
-})
-
-it('names a template the pool does not offer, or not yet, by its id', () => {
-  expect(findLabelledValues(mountCard({ templateOptions: [] }))[t('template')]).toBe(
-    `${V2V_DEBIAN_TEMPLATE.id} ${t('overridden')}`
-  )
+it('names the template among the offered ones, and where it comes from', () => {
+  expect(getGenericComponent(mountCard(), 'V2vTargetValue').props()).toEqual({
+    target: TEMPLATE,
+    options: V2V_TARGET_OPTIONS.templates,
+  })
 })
 
 it('lists the tags of the VM', () => {

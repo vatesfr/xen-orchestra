@@ -1,62 +1,85 @@
 import V2vActiveMappingCard from '@/modules/v2v/components/mapping/V2vActiveMappingCard.vue'
+import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findCardTitleLabel } from '@/test/find-card-title.ts'
+import { findAccentedInfos } from '@/test/find-accented-labels.ts'
+import { findPanelCardTitles } from '@/test/find-card-title.ts'
 import { findParts } from '@/test/find-parts.ts'
-import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { V2V_ACTIVE_MAPPING_ROWS } from '@/test/v2v-mapping-fixtures.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
-import { mount } from '@vue/test-utils'
+import { V2V_ACTIVE_DISK_ROWS, V2V_ACTIVE_NIC_ROWS } from '@/test/v2v-mapping-fixtures.ts'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
-function mountCard(loading = false) {
+function mountCard({ diskRows = V2V_ACTIVE_DISK_ROWS, nicRows = V2V_ACTIVE_NIC_ROWS, loading = false } = {}) {
   return mount(V2vActiveMappingCard, {
-    props: { poolName: DISKOR_POOL_NAME, rows: V2V_ACTIVE_MAPPING_ROWS, loading },
+    props: { poolName: DISKOR_POOL_NAME, diskRows, nicRows, loading },
     global: createGlobalTestConfig(),
   })
 }
 
+function countDividers(wrapper: VueWrapper) {
+  return wrapper.findAllComponents(VtsDivider).length
+}
+
+// Each device: its source parts as its key, its destination as its value
+function findDevices(wrapper: VueWrapper) {
+  return wrapper.findAll('.v2v-mapping-card-section .vts-card-row-key-value').map(row => ({
+    sourceParts: findParts(row, '.key .inline-parts'),
+    destination: row.get('.value').text(),
+  }))
+}
+
 it('shows its title, locked', () => {
+  const title = mountCard().getComponent(UiPanelCardTitle)
+
+  expect([title.props('label'), title.props('icon')]).toEqual([t('active-mapping'), 'fa:lock'])
+})
+
+it('tells the mapping is locked since the first sync', () => {
+  expect(findAccentedInfos(mountCard())).toEqual([{ label: t('v2v:locked-since-first-sync'), accent: 'info' }])
+})
+
+it('names the pool the VM was synced to', () => {
+  expect(findCardLabelledValues(mountCard())[t('pool')]).toBe(DISKOR_POOL_NAME)
+})
+
+it('titles the disks and the network adapters, each set apart', () => {
   const wrapper = mountCard()
 
-  expect([findCardTitleLabel(wrapper), wrapper.getComponent(VtsIcon).props('name')]).toEqual([
-    t('active-mapping'),
-    'fa:lock',
+  expect([findPanelCardTitles(wrapper), countDividers(wrapper)]).toEqual([
+    [t('active-mapping'), t('disks'), t('network-adapters')],
+    2,
   ])
 })
 
-it('tells the mapping is locked on its pool since the first sync', () => {
-  expect(findParts(mountCard(), '.ui-card-title .inline-parts')).toEqual([
-    t('v2v:locked-since-first-sync'),
-    t('pool-named', { name: DISKOR_POOL_NAME }),
-  ])
-})
-
-it('shows the source, its detail and its destination, in this order', () => {
-  expect(findTableHeaders(mountCard())).toEqual([t('source'), t('details'), t('destination')])
-})
-
-it('names each source device and its destination, empty for an unpaired one', () => {
-  const wrapper = mountCard()
-
-  expect([findTableColumn(wrapper, t('source')), findTableColumn(wrapper, t('destination'))]).toEqual([
-    ['Hard disk 1', 'Hard disk 2', 'Network adapter 1', 'Network adapter 2'],
-    ['sr-ssd-01', '', 'VLAN 10', 'VLAN 20'],
-  ])
-})
-
-it('lays out the detail of each source device', () => {
-  const cells = findTableColumnCells(mountCard(), t('details'))
-
-  expect(cells.map(cell => findParts(cell, '.inline-parts'))).toEqual(
-    V2V_ACTIVE_MAPPING_ROWS.map(row => row.detailParts)
+it('shows each source device with its details, then its destination, empty for an unpaired one', () => {
+  expect(findDevices(mountCard())).toEqual(
+    [...V2V_ACTIVE_DISK_ROWS, ...V2V_ACTIVE_NIC_ROWS].map(row => ({
+      sourceParts: row.sourceParts,
+      destination: row.destination ?? '',
+    }))
   )
 })
 
 it.each([
-  [true, 'busy'],
-  [false, undefined],
-])('shows the table busy while loading is %s', (loading, stateType) => {
-  expect(mountCard(loading).getComponent(VtsTable).props('state')?.type).toBe(stateType)
+  ['disks', { diskRows: [] as V2vActiveMappingRow[] }, [t('active-mapping'), t('network-adapters')]],
+  ['network adapters', { nicRows: [] as V2vActiveMappingRow[] }, [t('active-mapping'), t('disks')]],
+])('leaves out the %s of a VM without any, and their divider', (_, rows, titles) => {
+  const wrapper = mountCard(rows)
+
+  expect([findPanelCardTitles(wrapper), countDividers(wrapper)]).toEqual([titles, 1])
+})
+
+it('shows the devices busy, the pool alone, while loading', () => {
+  const wrapper = mountCard({ loading: true })
+
+  expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+  expect([findPanelCardTitles(wrapper), findCardLabelledValues(wrapper), countDividers(wrapper)]).toEqual([
+    [t('active-mapping')],
+    { [t('pool')]: DISKOR_POOL_NAME },
+    1,
+  ])
 })

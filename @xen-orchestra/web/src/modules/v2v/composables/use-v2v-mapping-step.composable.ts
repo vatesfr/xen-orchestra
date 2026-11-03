@@ -1,5 +1,10 @@
+import { useV2vIdQuery } from '@/modules/v2v/composables/use-v2v-id-query.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
-import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import {
+  useV2vSelectedVms,
+  type V2vListedVm,
+  type V2vSelectedVm,
+} from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
@@ -10,11 +15,9 @@ import { getV2vVmDatacenterName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import type { XoV2vVm } from '@vates/types'
 import { compact } from 'lodash-es'
-import { computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 
 // Where the VM is on the source (host, datacenter, datastores), its name and its migration status
 export type V2vMappingVmHeading = {
@@ -49,39 +52,27 @@ export type V2vResumedMappingStepVm = Extract<V2vMappingStepVm, { kind: 'resume'
 
 export type V2vNotFoundMappingStepVm = Extract<V2vMappingStepVm, { kind: 'not-found' }>
 
-// The mapping step shows one VM of the list at a time, the one of the route, beside the VMs of the list
+// A row of the mapping table: the VM of the list, its item of the selected VMs beside it
+export type V2vMappingStepRow = {
+  item: V2vSelectedVm
+  vm: V2vMappingStepVm
+}
+
+// The mapping step lists the VMs of the list, the one of the route selected, if any
 export function useV2vMappingStep() {
   const connectionStore = useV2vConnectionStore()
 
-  const router = useRouter()
-
-  const { goToStep, getStepLocation } = useV2vWizardNavigation()
+  const { goToStep } = useV2vWizardNavigation()
 
   const { getStatusTag } = useV2vVmLabels()
 
   const listRows = useV2vMigrationListRows()
 
-  const { sourceHost, migrationList, listVmIds, rows } = listRows
+  const { sourceHost, migrationList, listVmIds } = listRows
 
-  const requestedVmId = useRouteQuery<XoV2vVm['id']>('vm')
+  const selectedVmId = useV2vIdQuery<XoV2vVm['id']>('vm')
 
-  const activeVmId = computed((): XoV2vVm['id'] | undefined =>
-    listVmIds.value.includes(requestedVmId.value) ? requestedVmId.value : listVmIds.value[0]
-  )
-
-  // A missing or unknown VM in the route reads as the first VM of the list: the route says so, for the panel to select
-  // it and for a reload to keep it
-  watch(
-    [activeVmId, requestedVmId],
-    ([id, requestedId]) => {
-      if (id !== undefined && id !== requestedId) {
-        requestedVmId.value = id
-      }
-    },
-    { immediate: true }
-  )
-
-  const selectedVms = useV2vSelectedVms({ ...listRows, activeVmId })
+  const selectedVms = useV2vSelectedVms({ ...listRows, selectedVmId })
 
   // A VM gone from the source is only known to have been on it. A part the inventory cannot tell is left out
   function getLocationParts(row: V2vVmRow | undefined): string[] {
@@ -91,18 +82,9 @@ export function useV2vMappingStep() {
     return compact([sourceHost.value, ...vmParts])
   }
 
-  const activeVm = computed((): V2vMappingStepVm | undefined => {
-    const selectedVm = selectedVms.activeVm.value
-    const list = migrationList.list.value
-
-    const isUnknown = selectedVms.isBusy.value || selectedVm === undefined || list === undefined
-
-    if (isUnknown) {
-      return undefined
-    }
-
-    const { id, name, kind, check, checkInfo } = selectedVm
-    const row = rows.value.find(vmRow => vmRow.id === id)
+  function getStepVm({ kind, check, item }: V2vListedVm, list: V2vMigrationList): V2vMappingStepVm {
+    const { id, name } = item
+    const row = selectedVms.getRow(id)
 
     if (row === undefined) {
       return { kind: 'not-found', id, heading: { locationParts: getLocationParts(undefined), name } }
@@ -117,48 +99,55 @@ export function useV2vMappingStep() {
       return { kind, id, heading, vm: row.vm, importVm, lastSyncAt: row.lastSyncAt }
     }
 
-    return { kind: 'new', id, heading, vm: row.vm, list, listIssue: isV2vListIssue(check) ? checkInfo : undefined }
-  })
-
-  // The next VM of the list, or the previous one when it was the last
-  function findNeighbourVmId(id: XoV2vVm['id']): XoV2vVm['id'] | undefined {
-    const index = listVmIds.value.indexOf(id)
-
-    return listVmIds.value[index + 1] ?? listVmIds.value[index - 1]
+    return { kind: 'new', id, heading, vm: row.vm, list, listIssue: isV2vListIssue(check) ? item.check : undefined }
   }
 
-  // The mapping moves to a neighbour before the active VM leaves the list: removed first, it would read as an unknown
-  // VM of the route, and the mapping would jump to the first VM
+  // Until the rows and the pool offers are ready, a VM would read as new and its mapping as incomplete
+  const rows = computed((): V2vMappingStepRow[] => {
+    const list = migrationList.list.value
+
+    if (selectedVms.isBusy.value || list === undefined) {
+      return []
+    }
+
+    return selectedVms.vms.value.map(listedVm => ({ item: listedVm.item, vm: getStepVm(listedVm, list) }))
+  })
+
+  const selectedVm = computed(() => rows.value.find(row => row.vm.id === selectedVmId.value)?.vm)
+
+  function select(id: XoV2vVm['id']) {
+    selectedVmId.value = id
+  }
+
+  function close() {
+    selectedVmId.value = undefined
+  }
+
+  // An empty list has nothing left to map
   async function remove(id: XoV2vVm['id']) {
     if (!(await selectedVms.confirmRemove(id))) {
       return
     }
 
-    if (id !== activeVmId.value) {
-      migrationList.removeVm(id)
+    migrationList.removeVm(id)
 
-      return
-    }
-
-    const neighbourVmId = findNeighbourVmId(id)
-
-    if (neighbourVmId === undefined) {
-      migrationList.removeVm(id)
-
+    if (listVmIds.value.length === 0) {
       return goToStep('vms')
     }
 
-    await router.replace(getStepLocation('mapping', { vm: neighbourVmId }))
-    migrationList.removeVm(id)
+    if (id === selectedVmId.value) {
+      close()
+    }
   }
 
   return {
     isBusy: selectedVms.isBusy,
-    activeVm,
+    rows,
+    selectedVm,
     updateVm: migrationList.updateVm,
-    selectedVmsPanel: selectedVms.panel,
+    select,
+    close,
     remove,
-    clear: selectedVms.clear,
     back: () => goToStep('vms'),
     next: () => goToStep('review'),
   }

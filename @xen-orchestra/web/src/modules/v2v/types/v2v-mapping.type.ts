@@ -72,10 +72,10 @@ export type V2vActiveMapping = {
   nics: V2vActiveNicMapping[]
 }
 
-// A source device of a resumed VM, named after the inventory, beside the target its first sync put it on, if any
+// A source device of a resumed VM, named then detailed after the inventory, beside the target its first sync put it
+// on, if any
 export type V2vActiveMappingRow = {
   key: XoV2vDisk['key'] | XoV2vNic['key']
-  source: string
-  detailParts: string[]
+  sourceParts: string[]
   destination?: string
 }

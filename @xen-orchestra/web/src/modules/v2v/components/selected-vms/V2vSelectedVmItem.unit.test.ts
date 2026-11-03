@@ -8,13 +8,12 @@ import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { mount } from '@vue/test-utils'
 
 const ITEM = createV2vSelectedVm()
 
 async function mountItem(item: V2vSelectedVm = ITEM) {
-  const router = await createV2vWizardRouter('mapping', { vm: 'another-vm' })
+  const router = await createV2vWizardRouter('vms')
 
   return mount(V2vSelectedVmItem, { props: { item }, global: createGlobalTestConfig({ router }) })
 }
@@ -50,23 +49,9 @@ it('tells its check with its accent', async () => {
   expect(findAccentedInfos(await mountItem(createV2vSelectedVm({ check })))).toEqual([check])
 })
 
-it.each([
-  ['selected while its mapping is shown', true],
-  ['not selected otherwise', false],
-])('is %s', async (_, isSelected) => {
-  const wrapper = await mountItem(createV2vSelectedVm({ isSelected }))
-
-  expect(wrapper.getComponent(UiPanelCard).props('selected')).toBe(isSelected)
-})
-
 // The router alone marks every mapping link as current: they only differ by their query
-it.each([
-  ['marks its link as the current page while its mapping is shown', true, 'page'],
-  ['does not mark its link as the current page otherwise', false, 'false'],
-])('%s', async (_, isSelected, ariaCurrent) => {
-  const wrapper = await mountItem(createV2vSelectedVm({ isSelected }))
-
-  expect(wrapper.get('a').attributes('aria-current')).toBe(ariaCurrent)
+it('does not mark its link as the current page', async () => {
+  expect((await mountItem()).get('a').attributes('aria-current')).toBe('false')
 })
 
 it('removes the VM from the list', async () => {

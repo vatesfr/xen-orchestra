@@ -2,13 +2,13 @@ import { useV2vResumedVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
 import {
-  V2V_ACTIVE_MAPPING_ROWS,
+  V2V_ACTIVE_DISK_ROWS,
+  V2V_ACTIVE_NIC_ROWS,
   V2V_DEFAULT_NETWORK,
   V2V_MAPPED_VM,
   V2V_MAPPING_INVENTORY,
@@ -44,7 +44,6 @@ vi.mock(
   import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
   seedV2vResumedVmCollections()
@@ -59,7 +58,6 @@ function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_R
 beforeEach(() => {
   xoCollectionsMock.reset()
   vmDeviceCollectionsMock.reset()
-  deleteModalMock.reset()
 })
 
 describe('destinationVm', () => {
@@ -81,9 +79,11 @@ describe('poolName', () => {
   })
 })
 
-describe('activeMappingRows', () => {
-  it('maps the disks then the NICs of the source VM to the targets of their first sync', () => {
-    expect(mountResumedVm().activeMappingRows).toEqual(V2V_ACTIVE_MAPPING_ROWS)
+describe('activeDiskRows / activeNicRows', () => {
+  it('maps the disks and the NICs of the source VM, with their details, to the targets of their first sync', () => {
+    const { activeDiskRows, activeNicRows } = mountResumedVm()
+
+    expect([activeDiskRows, activeNicRows]).toEqual([V2V_ACTIVE_DISK_ROWS, V2V_ACTIVE_NIC_ROWS])
   })
 
   it('names a target missing from its collection by its id', () => {
@@ -91,7 +91,7 @@ describe('activeMappingRows', () => {
     xoCollectionsMock.srs.value = []
     xoCollectionsMock.networks.value = []
 
-    expect(resumedVm.activeMappingRows.map(row => row.destination)).toEqual([
+    expect([...resumedVm.activeDiskRows, ...resumedVm.activeNicRows].map(row => row.destination)).toEqual([
       V2V_SSD_SR.id,
       undefined,
       V2V_DEFAULT_NETWORK.id,
@@ -128,13 +128,5 @@ describe('nextTransfer', () => {
 
   it('sends the whole disks again once the source snapshot changed', () => {
     expect(mountResumedVm(createV2vVm({ ...V2V_MAPPED_VM, currentSnapshotId: 'snapshot-2' })).nextTransfer).toBe('full')
-  })
-})
-
-describe('deleteVm', () => {
-  it('asks to confirm the deletion of the import VM, by its name', () => {
-    mountResumedVm().deleteVm()
-
-    expect(deleteModalMock.open.mock.lastCall?.[0].props.subject).toBe(V2V_RESUMED_IMPORT_VM.name_label)
   })
 })

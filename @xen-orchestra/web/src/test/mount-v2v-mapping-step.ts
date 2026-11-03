@@ -14,7 +14,7 @@ type MountV2vMappingStepOptions = {
   inventory?: XoV2vInventory
 }
 
-// The mapping step runs on the collections of its fixtures, the route of a VM of the list and a connected source;
+// The mapping step runs on the collections of its fixtures, a route selecting `vm`, if given, and a connected source;
 // `mountOnWizard` mounts the step component or one of its composables on that setup
 export async function mountV2vMappingStep<TMounted>(
   mountOnWizard: (setup: V2vWizardSetup) => Promise<TMounted>,

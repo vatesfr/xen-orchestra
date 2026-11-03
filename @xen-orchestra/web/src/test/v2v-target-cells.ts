@@ -1,30 +1,24 @@
 import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
 import type { V2vResolvedTarget, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import { findTableColumn, findTableColumnCells } from '@/test/find-table-cells.ts'
-import { findButton, getButton } from '@/test/get-button.ts'
+import { getGenericComponent } from '@/test/find-generic-components.ts'
+import { findTableColumnCells } from '@/test/find-table-cells.ts'
+import { getButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 type V2vTargetRow = { key: string; target: V2vResolvedTarget<string> }
 
-// Without options, the table is mounted as if the pool offered none of the targets, or not yet
-export type V2vTargetTableOverrides = {
-  readonly?: boolean
-  withoutOptions?: boolean
-}
-
 type V2vTargetCellsCase = {
   // Mounted with its selects loading, so that the test sees the flag pass through
-  mountTable: (overrides?: V2vTargetTableOverrides) => VueWrapper
+  mountTable: () => VueWrapper
   targetHeader: string
   changeEvent: string
   rows: V2vTargetRow[]
   options: V2vTargetOption<string>[]
 }
 
-// Found by its definition, a generic component is typed as a plain element: its name keeps its props and its emits
 export function getV2vTargetSelect(wrapper: Pick<VueWrapper, 'getComponent'>) {
-  return wrapper.getComponent({ name: 'V2vTargetSelect' })
+  return getGenericComponent(wrapper, 'V2vTargetSelect')
 }
 
 function findV2vTargetSelects(wrapper: Pick<VueWrapper, 'findAll'>, targetHeader: string) {
@@ -67,30 +61,6 @@ export function describeV2vTargetCells({ mountTable, targetHeader, changeEvent, 
       ).trigger('click')
 
       expect(wrapper.emitted(changeEvent)).toEqual([[rows[overriddenIndex].key, undefined]])
-    })
-  })
-
-  describe('read-only target cells', () => {
-    it('names the target of each row, without a select', () => {
-      const wrapper = mountTable({ readonly: true })
-
-      expect(findTableColumn(wrapper, targetHeader)).toEqual(
-        rows.map(({ target }) => options.find(option => option.id === target.value)?.label)
-      )
-      expect(wrapper.findComponent({ name: 'V2vTargetSelect' }).exists()).toBe(false)
-    })
-
-    it('names a target the pool does not offer, or not yet, by its id', () => {
-      expect(findTableColumn(mountTable({ readonly: true, withoutOptions: true }), targetHeader)).toEqual(
-        rows.map(({ target }) => target.value)
-      )
-    })
-
-    it('tells where the target of each row comes from, without a reset', () => {
-      const wrapper = mountTable({ readonly: true })
-
-      expect(findV2vValueOrigins(wrapper)).toEqual(rows.map(({ target }) => target.origin))
-      expect(findButton(wrapper, t('action:reset-to-default'))).toBeUndefined()
     })
   })
 }

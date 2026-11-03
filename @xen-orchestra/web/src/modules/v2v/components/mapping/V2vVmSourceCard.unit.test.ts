@@ -1,8 +1,8 @@
 import V2vVmSourceCard from '@/modules/v2v/components/mapping/V2vVmSourceCard.vue'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findParts } from '@/test/find-parts.ts'
-import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_MAPPED_VM } from '@/test/v2v-mapping-fixtures.ts'
@@ -20,11 +20,11 @@ function mountCard() {
 }
 
 it('shows its title', () => {
-  expect(findCardTitle(mountCard())).toBe(t('source'))
+  expect(findPanelCardTitle(mountCard())).toBe(t('source'))
 })
 
 it('shows the facts of the source VM', () => {
-  expect(findLabelledValues(mountCard())).toMatchObject({
+  expect(findCardLabelledValues(mountCard())).toMatchObject({
     [t('power-state')]: t('power-state-on-host', { power: t('vm:status:running'), host: 'esx01' }),
     [t('cpu')]: t('n-vcpus', 4),
     [t('memory')]: '12.5 GiB',
