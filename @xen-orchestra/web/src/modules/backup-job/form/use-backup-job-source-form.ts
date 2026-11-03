@@ -2,7 +2,8 @@ import {
   type BackupJobMirrorVm,
   useBackupJobMirrorVms,
 } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { useBackupJobScopeTypeOptions } from '@/modules/backup-job/composables/use-backup-job-scope-type-options.composable.ts'
+import type { BackupJobFormOption, BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import {
   type FrontXoBackupRepository,
@@ -10,7 +11,9 @@ import {
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryType } from '@/modules/backup-repository/utils/xo-backup-repository-type.util.ts'
 import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import { usePoolQueryBuilder } from '@/modules/pool/composables/use-pool-query-builder.composable.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { toPoolQueryPreviewItem } from '@/modules/pool/utils/xo-pool-query-preview-item.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
@@ -18,18 +21,14 @@ import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-pr
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
-import { required, requiredIf, withMessage } from '@core/packages/form-validation'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { queryFilter, required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BackupJobDataSource = 'vm' | 'mirror' | 'metadata'
 
 export type BackupJobMode = 'delta' | 'full'
-
-export type BackupJobScopeType = 'all' | 'manual' | 'smart'
 
 export type BackupJobSourceFormData = {
   name: string
@@ -55,13 +54,15 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const { backupRepositories } = useXoBackupRepositoryCollection()
 
-  const { vms } = useXoVmCollection()
+  const { vms, areVmsReady } = useXoVmCollection()
 
   const { schema: vmSchema } = useVmQueryBuilder('backup-job-source-vms-schema', vms, { ignoreRoute: true })
 
   const { filterableVms } = useVmEnhancedData(vms)
 
-  const { pools } = useXoPoolCollection()
+  const { pools, arePoolsReady } = useXoPoolCollection()
+
+  const { schema: poolSchema } = usePoolQueryBuilder('backup-job-source-pools-schema', pools, { ignoreRoute: true })
 
   const isMirror = computed(() => formData.dataSource === 'mirror')
 
@@ -111,20 +112,8 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
       : selectedVmItems.value
   )
 
-  const poolSchema = useQueryBuilderSchema<FrontXoPool>({
-    '': useStringSchema(t('any-property')),
-    name_label: useStringSchema(t('name')),
-    name_description: useStringSchema(t('description')),
-    tags: useStringSchema(t('tags')),
-  })
-
   function toPoolPreviewItems(selectedPools: FrontXoPool[]): QueryBuilderPreviewItem[] {
-    return selectedPools.map(pool => ({
-      id: pool.id,
-      label: pool.name_label,
-      icon: 'object:pool',
-      route: `/pool/${pool.id}/dashboard`,
-    }))
+    return selectedPools.map(pool => toPoolQueryPreviewItem(pool.id, pool.name_label))
   }
 
   const matchedPoolItems = computed(() => toPoolPreviewItems(filterByQuery(pools.value, formData.poolFilter)))
@@ -153,6 +142,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
             requiredIf(() => hasVmSelection.value && formData.scopeType === 'smart'),
             () => t('query-required')
           ),
+          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
         },
         poolIds: {
           atLeastOne: withMessage(
@@ -165,6 +155,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
             requiredIf(() => hasPoolSelection.value && formData.scopeType === 'smart'),
             () => t('query-required')
           ),
+          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
         },
         savePoolsMetadata: {
           atLeastOneOption: withMessage(
@@ -236,21 +227,9 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     }
   )
 
-  const scopeTypeLabels = computed<Record<BackupJobScopeType, string>>(() => ({
-    all: isMetadata.value ? t('all-objects-pools') : t('all-objects-vms'),
-    manual: t('manual-selection'),
-    smart: t('dynamic-selection'),
-  }))
-
-  function getScopeTypeLabel(scopeType: BackupJobScopeType): string {
-    return scopeTypeLabels.value[scopeType]
-  }
-
-  const scopeTypeOptions = computed<BackupJobFormOption<BackupJobScopeType>[]>(() => [
-    { label: scopeTypeLabels.value.all, value: 'all' },
-    { label: scopeTypeLabels.value.manual, value: 'manual' },
-    { label: scopeTypeLabels.value.smart, value: 'smart' },
-  ])
+  const { getScopeTypeLabel, scopeTypeOptions } = useBackupJobScopeTypeOptions(() =>
+    isMetadata.value ? t('all-objects-pools') : t('all-objects-vms')
+  )
 
   const bindings = reactive({
     name: useField('name', () => ({ label: t('name'), required: true })),
@@ -279,6 +258,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     formData,
     bindings,
     vms,
+    areVmsReady,
     mirrorVms,
     mirrorVmSchema,
     areMirrorVmsReady,
@@ -290,6 +270,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     matchedSelectionItems,
     selectedSelectionItems,
     pools,
+    arePoolsReady,
     hasPoolSelection,
     poolSchema,
     matchedPoolItems,

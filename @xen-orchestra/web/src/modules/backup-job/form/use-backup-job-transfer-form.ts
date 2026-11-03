@@ -1,7 +1,7 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useVmTags } from '@/modules/vm/composables/use-vm-tags.composable.ts'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -53,8 +53,6 @@ export function useBackupJobTransferForm(
   const hasSnapshotRetention = computed(() => !isMirror.value && !formData.offlineBackup)
 
   const isEphemeralSnapshotAllowed = computed(() => !isIncremental.value || formData.preferNbd)
-
-  const { vms } = useXoVmCollection()
 
   const { atLeast, calendarRules } = useBackupJobFormRules()
 
@@ -174,7 +172,7 @@ export function useBackupJobTransferForm(
     { label: snapshotSyncLabels.value.smart, value: 'smart' },
   ])
 
-  const vmTags = computed(() => [...new Set(vms.value.flatMap(vm => vm.tags))].sort())
+  const vmTags = useVmTags()
 
   const { id: snapshotSyncTagSelectId } = useFormSelect('snapshotSyncTag', vmTags, {
     searchable: true,

@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-form-checkbox">
-    <UiCheckbox v-model="model" accent="brand" :disabled>
+    <UiCheckbox v-model="model" accent="brand">
       {{ label }}
     </UiCheckbox>
     <UiInfo v-if="info" accent="info" wrap>
@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -23,12 +23,11 @@ const { error } = defineProps<{
   label: string
   info?: string
   error?: InputWrapperMessage
-  disabled?: boolean
 }>()
 
 const model = defineModel<boolean>({ required: true })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 </script>
 
 <style lang="postcss" scoped>

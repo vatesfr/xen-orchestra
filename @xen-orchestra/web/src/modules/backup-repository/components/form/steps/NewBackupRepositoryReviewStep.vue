@@ -51,11 +51,11 @@
       </UiTitle>
 
       <VtsTabularKeyValueList>
-        <BackupRepositoryLocalReview v-if="type === 'file'" :form="details.file" />
-        <BackupRepositoryNfsReview v-else-if="type === 'nfs'" :form="details.nfs" />
-        <BackupRepositorySmbReview v-else-if="type === 'smb'" :form="details.smb" />
-        <BackupRepositoryS3Review v-else-if="type === 's3'" :form="details.s3" />
-        <BackupRepositoryAzureReview
+        <BackupRepositoryReviewLocal v-if="type === 'file'" :form="details.file" />
+        <BackupRepositoryReviewNfs v-else-if="type === 'nfs'" :form="details.nfs" />
+        <BackupRepositoryReviewSmb v-else-if="type === 'smb'" :form="details.smb" />
+        <BackupRepositoryReviewS3 v-else-if="type === 's3'" :form="details.s3" />
+        <BackupRepositoryReviewAzure
           v-else-if="type === 'azure' || type === 'azurite'"
           :form="details.azure"
           :is-azurite="type === 'azurite'"
@@ -66,11 +66,11 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepositoryAzureReview from '@/modules/backup-repository/components/form/review/BackupRepositoryAzureReview.vue'
-import BackupRepositoryLocalReview from '@/modules/backup-repository/components/form/review/BackupRepositoryLocalReview.vue'
-import BackupRepositoryNfsReview from '@/modules/backup-repository/components/form/review/BackupRepositoryNfsReview.vue'
-import BackupRepositoryS3Review from '@/modules/backup-repository/components/form/review/BackupRepositoryS3Review.vue'
-import BackupRepositorySmbReview from '@/modules/backup-repository/components/form/review/BackupRepositorySmbReview.vue'
+import BackupRepositoryReviewAzure from '@/modules/backup-repository/components/form/review/BackupRepositoryReviewAzure.vue'
+import BackupRepositoryReviewLocal from '@/modules/backup-repository/components/form/review/BackupRepositoryReviewLocal.vue'
+import BackupRepositoryReviewNfs from '@/modules/backup-repository/components/form/review/BackupRepositoryReviewNfs.vue'
+import BackupRepositoryReviewS3 from '@/modules/backup-repository/components/form/review/BackupRepositoryReviewS3.vue'
+import BackupRepositoryReviewSmb from '@/modules/backup-repository/components/form/review/BackupRepositoryReviewSmb.vue'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { BackupRepositoryDetailsForms } from '@/modules/backup-repository/form/use-backup-repository-form-base.ts'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'

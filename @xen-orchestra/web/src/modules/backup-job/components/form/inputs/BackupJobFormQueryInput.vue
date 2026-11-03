@@ -1,6 +1,6 @@
 <template>
-  <VtsInputWrapper :label :message="error">
-    <div class="backup-job-form-query-input">
+  <VtsInputWrapper class="backup-job-form-query-input" :label :message="error">
+    <div class="field">
       <UiInput
         v-model="draft"
         class="input"
@@ -11,12 +11,22 @@
         @clear="model = ''"
         @keydown.enter="handleEnterKey($event)"
       />
-      <UiButton size="medium" accent="brand" variant="secondary" @click="model = draft">
-        {{ t('action:check') }}
-      </UiButton>
-      <VtsDivider type="stretch" />
+      <UiButtonIcon
+        v-if="uiStore.isSmallOrMedium"
+        icon="fa:check"
+        size="medium"
+        accent="brand"
+        @click="model = draft"
+      />
+      <template v-else>
+        <UiButton size="medium" accent="brand" variant="secondary" @click="model = draft">
+          {{ t('action:check') }}
+        </UiButton>
+        <VtsDivider type="stretch" />
+      </template>
       <VtsQueryBuilderButton
         v-model="rootGroup"
+        :small="uiStore.isSmallOrMedium"
         :disabled="!isUsable"
         @confirm="confirmQueryBuilder()"
         @cancel="resetFilter()"
@@ -32,8 +42,10 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsQueryBuilderButton from '@core/components/query-builder/VtsQueryBuilderButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -48,6 +60,8 @@ const model = defineModel<string>({ required: true })
 
 const { t } = useI18n()
 
+const uiStore = useUiStore()
+
 const draft = ref('')
 
 watch(model, value => (draft.value = value), { immediate: true })
@@ -60,6 +74,7 @@ function confirmQueryBuilder() {
 }
 
 function handleEnterKey(event: KeyboardEvent) {
+  // Ignore Enter when it confirms an IME composition
   if (event.isComposing || event.keyCode === 229) {
     return
   }
@@ -71,9 +86,11 @@ function handleEnterKey(event: KeyboardEvent) {
 
 <style lang="postcss" scoped>
 .backup-job-form-query-input {
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+  }
 
   .input {
     flex: 1;

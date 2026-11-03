@@ -7,6 +7,7 @@
       :brs="backupRepository.availableBackupRepositories.value"
       :compatible-brs="backupRepository.compatibleBackupRepositories.value"
       :matched-brs="backupRepository.matchedBackupRepositories.value"
+      :busy="!backupRepository.areBackupRepositoriesReady.value"
       :has-retention-strategy
       :has-strict-gfs
     />
@@ -15,6 +16,7 @@
       :bindings="storageRepository.bindings"
       :srs="storageRepository.availableStorageRepositories.value"
       :matched-srs="storageRepository.matchedStorageRepositories.value"
+      :busy="!storageRepository.areSrsReady.value"
     />
     <BackupJobTargetHealthCheckSection v-if="hasHealthCheckSection" :bindings="healthCheck.bindings" />
   </div>

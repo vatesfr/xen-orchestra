@@ -17,7 +17,7 @@
 <script lang="ts" setup>
 import BackupJobFormCalendarIntervalCard from '@/modules/backup-job/components/form/inputs/BackupJobFormCalendarIntervalCard.vue'
 import BackupJobFormCalendarValuesCard from '@/modules/backup-job/components/form/inputs/BackupJobFormCalendarValuesCard.vue'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { useI18n } from 'vue-i18n'
 

@@ -16,7 +16,7 @@
         <BackupJobTargetStep v-else-if="currentStep === 'target'" :form="target" />
         <BackupJobPlanningStep v-else-if="currentStep === 'planning'" :bindings="planning.bindings" :is-metadata />
         <BackupJobReviewStep
-          v-else-if="currentStep === 'review'"
+          v-else
           :source
           :transfer="isMetadata ? undefined : transfer"
           :target

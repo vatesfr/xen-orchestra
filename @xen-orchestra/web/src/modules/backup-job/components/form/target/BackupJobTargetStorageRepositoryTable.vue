@@ -23,8 +23,8 @@
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
-import { useSrFormQueryBuilder } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { useSrWithPoolQueryBuilder } from '@/modules/storage-repository/composables/use-sr-with-pool-query-builder.composable.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
@@ -40,10 +40,11 @@ import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { mode, srs, matchedSrs, error } = defineProps<{
+const { mode, srs, matchedSrs, busy, error } = defineProps<{
   mode: 'manual' | 'smart'
   srs: FrontXoSr[]
-  matchedSrs?: FrontXoSr[]
+  matchedSrs: FrontXoSr[]
+  busy: boolean
   error?: InputWrapperMessage
 }>()
 
@@ -59,9 +60,9 @@ const {
   items: searchedSrs,
   filter: searchFilter,
   schema,
-} = useSrFormQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
+} = useSrWithPoolQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
 
-const displayedSrs = computed(() => (isManual.value ? searchedSrs.value : (matchedSrs ?? [])))
+const displayedSrs = computed(() => (isManual.value ? searchedSrs.value : matchedSrs))
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('backup-job-target-srs', displayedSrs, {
   ignoreRoute: true,
@@ -75,6 +76,7 @@ const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = u
 )
 
 const state = useTableState({
+  busy: () => busy,
   empty: () =>
     srs.length === 0
       ? t('no-storage-repository-detected')
@@ -83,7 +85,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 const { HeadCells, BodyCells, toggle } = useSrColumns({
   exclude: ['description', 'accessMode', 'actions'],

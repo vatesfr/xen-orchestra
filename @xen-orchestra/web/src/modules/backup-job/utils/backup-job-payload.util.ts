@@ -1,15 +1,11 @@
 import type { BackupJobPlanningFormData } from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
-import type {
-  BackupJobScopeType,
-  BackupJobSourceFormData,
-} from '@/modules/backup-job/form/use-backup-job-source-form.ts'
+import type { BackupJobSourceFormData } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobTargetBackupRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
 import type { BackupJobTargetHealthCheckFormData } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
-import type {
-  BackupJobTargetFormData,
-  BackupJobTargetScopeType,
-} from '@/modules/backup-job/form/use-backup-job-target-form.ts'
+import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
+import type { BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import { LONG_TERM_RETENTION_FIELDS } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 
 const SCHEDULE_KEY = 'schedule'
 
@@ -62,11 +58,7 @@ export type BackupJobFormDataSet = {
   planning: BackupJobPlanningFormData
 }
 
-function toPattern(
-  scopeType: BackupJobScopeType | BackupJobTargetScopeType,
-  ids: string[],
-  filter: string
-): BackupJobPattern {
+function toPattern(scopeType: BackupJobScopeType, ids: string[], filter: string): BackupJobPattern {
   switch (scopeType) {
     case 'manual':
       return { id: { __or: ids } }
@@ -75,10 +67,6 @@ function toPattern(
     default:
       return {}
   }
-}
-
-function withoutUndefined(settings: BackupJobSettings): BackupJobSettings {
-  return Object.fromEntries(Object.entries(settings).filter(([, value]) => value !== undefined))
 }
 
 function getReportSettings(planning: BackupJobPlanningFormData): BackupJobSettings {
@@ -105,14 +93,7 @@ function getTransferSettings(transfer: BackupJobTransferFormData): BackupJobSett
 
 function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobSettings {
   const longTermRetention = Object.fromEntries(
-    (
-      [
-        ['daily', backupRepository.ltrDailyRetention],
-        ['weekly', backupRepository.ltrWeeklyRetention],
-        ['monthly', backupRepository.ltrMonthlyRetention],
-        ['yearly', backupRepository.ltrYearlyRetention],
-      ] as const
-    )
+    LONG_TERM_RETENTION_FIELDS.map(({ period, retention }) => [period, backupRepository[retention]] as const)
       .filter(([, retention]) => retention !== undefined && retention > 0)
       .map(([period, retention]) => [period, { retention, settings: {} }])
   )
@@ -236,7 +217,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
       : undefined,
     schedules: getSchedules(planning),
     settings: {
-      '': withoutUndefined({
+      '': {
         ...getTransferSettings(transfer),
         preferNbd: isIncremental ? transfer.preferNbd : undefined,
         nbdConcurrency: isIncremental && transfer.preferNbd ? transfer.nbdConcurrency : undefined,
@@ -248,15 +229,15 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
-      }),
-      [SCHEDULE_KEY]: withoutUndefined({
+      },
+      [SCHEDULE_KEY]: {
         exportRetention: hasBackupRepository ? target.backupRepository.exportRetention : undefined,
         copyRetention: hasStorageRepository ? target.storageRepository.copyRetention : undefined,
         snapshotRetention,
         ...healthCheck.schedule,
-      }),
+      },
     },
-    pending: withoutUndefined({
+    pending: {
       keyBackup: getKeyBackupPending(source, transfer),
       snapshotSync:
         transfer.offlineBackup || transfer.snapshotSync === 'none'
@@ -268,7 +249,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
       replicaDistribution: hasStorageRepository ? target.storageRepository.replicaDistribution : undefined,
       ...(hasBackupRepository ? getRetentionPending(target.backupRepository, true) : {}),
       ...healthCheck.pending,
-    }),
+    },
   }
 }
 
@@ -290,23 +271,23 @@ function toMirrorBackupJobPayload({
     remotes: getBackupRepositoryPattern(target.backupRepository),
     schedules: getSchedules(planning),
     settings: {
-      '': withoutUndefined({
+      '': {
         ...getTransferSettings(transfer),
         ...getRetentionSettings(target.backupRepository),
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
-      }),
-      [SCHEDULE_KEY]: withoutUndefined({
+      },
+      [SCHEDULE_KEY]: {
         exportRetention: target.backupRepository.exportRetention,
         ...healthCheck.schedule,
-      }),
+      },
     },
-    pending: withoutUndefined({
+    pending: {
       targetProxy: target.backupRepository.targetProxy,
       ...getRetentionPending(target.backupRepository, false),
       ...healthCheck.pending,
-    }),
+    },
   }
 }
 
@@ -320,11 +301,11 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
     remotes: getBackupRepositoryPattern(target.backupRepository),
     schedules: getSchedules(planning),
     settings: {
-      '': withoutUndefined(getReportSettings(planning)),
-      [SCHEDULE_KEY]: withoutUndefined({
+      '': getReportSettings(planning),
+      [SCHEDULE_KEY]: {
         retentionXoMetadata: source.saveXoConfig ? target.backupRepository.exportRetention : undefined,
         retentionPoolMetadata: source.savePoolsMetadata ? target.backupRepository.exportRetention : undefined,
-      }),
+      },
     },
     pending: {},
   }

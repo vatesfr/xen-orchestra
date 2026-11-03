@@ -200,14 +200,12 @@ export function useNewBackupJobForm() {
     currentStepIndex.value = stepKeys.value.indexOf(step)
   }
 
-  async function next(): Promise<boolean> {
+  async function next(): Promise<void> {
     const isValid = await validateCurrentStep()
 
     if (isValid && currentStepIndex.value < stepKeys.value.length - 1) {
       currentStepIndex.value++
     }
-
-    return isValid
   }
 
   async function validateAndBuildPayload(): Promise<BackupJobPayload | undefined> {

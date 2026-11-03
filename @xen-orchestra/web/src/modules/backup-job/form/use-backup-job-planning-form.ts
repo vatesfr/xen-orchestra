@@ -1,10 +1,9 @@
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import type { XoBackupJobReportWhen } from '@/modules/backup-job/types/xo-backup-job.type.ts'
 import { BACKUP_JOB_REPORT_WHEN_LABEL_KEYS } from '@/modules/backup-job/utils/backup-job-report-when.util.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export type BackupJobReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 export type BackupJobPlanningFormData = {
   enabled: boolean
@@ -12,7 +11,7 @@ export type BackupJobPlanningFormData = {
   timezone: string | undefined
   timeout: number | undefined
   nRetriesVmBackupFailures: number | undefined
-  reportWhen: BackupJobReportWhen
+  reportWhen: XoBackupJobReportWhen
   reportRecipients: string[]
   hideSuccessfulItems: boolean
 }
@@ -24,14 +23,14 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
 
   const { useField, validate, reset } = useValidatedForm(formData, {})
 
-  function getReportWhenLabel(reportWhen: BackupJobReportWhen): string {
+  function getReportWhenLabel(reportWhen: XoBackupJobReportWhen): string {
     return t(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS[reportWhen])
   }
 
-  const reportWhenOptions = computed<BackupJobFormOption<BackupJobReportWhen>[]>(() =>
+  const reportWhenOptions = computed<BackupJobFormOption<XoBackupJobReportWhen>[]>(() =>
     Object.entries(BACKUP_JOB_REPORT_WHEN_LABEL_KEYS).map(([value, labelKey]) => ({
       label: t(labelKey),
-      value: value as BackupJobReportWhen,
+      value: value as XoBackupJobReportWhen,
     }))
   )
 
@@ -39,7 +38,7 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
     enabled: useField('enabled'),
     cron: useField('cron'),
     timezone: useField('timezone'),
-    timeout: useField('timeout', () => ({ label: t('timeout'), info: t('timeout-info'), unit: t('hours') })),
+    timeout: useField('timeout', () => ({ label: t('timeout'), info: t('timeout-info'), unit: t('cron:unit:hour') })),
     nRetriesVmBackupFailures: useField('nRetriesVmBackupFailures', () => ({
       label: t('vm-backup-failure-number-of-retries'),
     })),
