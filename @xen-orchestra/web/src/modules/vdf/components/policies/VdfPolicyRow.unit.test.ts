@@ -4,6 +4,13 @@ import type { VdfRuleBasePolicy } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount } from '@vue/test-utils'
+import { vi } from 'vitest'
+
+const openMonitorReport = vi.fn()
+
+vi.mock('@/modules/vdf/composables/vdf-monitor-drawer.composable.ts', () => ({
+  useVdfMonitorDrawer: () => ({ openMonitorReport }),
+}))
 
 const entry = (policy: Partial<VdfPolicy> = {}): VdfRuleBasePolicy => ({
   policy: { name: 'web', appliedTo: 'web', default: 'drop', ingress: [], ...policy },
@@ -52,9 +59,12 @@ it('adds an inbound or an outbound rule from "Add rule"', async () => {
   wrapper.unmount()
 })
 
-// UX P1-1: a pool's monitored policy opens its report
-it("links a pool's Monitor tag to the policy's report", () => {
-  const link = mountRow({ mode: 'monitor' }).get('a.monitor-link')
+// UX P1-1: a pool's monitored policy opens its report, in a drawer
+it("opens a pool's monitored policy's report from its Monitor tag", async () => {
+  const wrapper = mountRow({ mode: 'monitor' })
 
-  expect(link.attributes('href')).toBe('/pool/pool-1/firewall/monitor?policy=web')
+  await wrapper.get('button.monitor-link').trigger('click')
+
+  expect(openMonitorReport).toHaveBeenCalledWith('pool-1', 'web')
+  wrapper.unmount()
 })

@@ -18,11 +18,11 @@
 
     <template v-else>
       <div class="toolbar">
-        <VtsInputWrapper :label="t('firewall:policy')" class="policy-filter">
+        <VtsInputWrapper v-if="policy === undefined" :label="t('firewall:policy')" class="policy-filter">
           <VtsSelect :id="policySelectId" accent="brand" />
         </VtsInputWrapper>
         <UiQuerySearchBar class="search" @search="value => (search = value)" />
-        <VdfSwitch v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</VdfSwitch>
+        <VdfSwitch v-if="policy === undefined" v-model="showExpired">{{ t('firewall:monitor:show-expired') }}</VdfSwitch>
         <VdfSwitch v-if="expectedCount > 0" v-model="showExpected">
           {{ t('firewall:monitor:show-expected', { n: expectedCount }, expectedCount) }}
         </VdfSwitch>
@@ -318,8 +318,10 @@ import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 // suggested rules per policy, then every flow, each with "allow this". An
 // egress would-be drop (vdf#53) is what the VM starts: from it to a
 // destination, allowed by an outbound rule.
-const { pool } = defineProps<{
+// policy: one policy's report (the monitor drawer), without the picker
+const { pool, policy } = defineProps<{
   pool: FrontXoPool
+  policy?: string
 }>()
 
 const { t, locale } = useI18n()
@@ -355,15 +357,16 @@ const ALL = '\0all'
 // ?policy=<name>: a policy's report (from its Monitor tag on Policies)
 const route = useRoute()
 
-const selectedPolicy = ref(typeof route.query.policy === 'string' ? route.query.policy : ALL)
+const selectedPolicy = ref(policy ?? (typeof route.query.policy === 'string' ? route.query.policy : ALL))
 
 // a name no monitored policy has (any more): all of them, once the
-// published document is known
+// published document is known (not in one policy's report)
 watch(monitoredPolicies, policies => {
   if (
+    policy === undefined &&
     isPublishedReady.value &&
     selectedPolicy.value !== ALL &&
-    !policies.some(policy => policy.name === selectedPolicy.value)
+    !policies.some(candidate => candidate.name === selectedPolicy.value)
   ) {
     selectedPolicy.value = ALL
   }
