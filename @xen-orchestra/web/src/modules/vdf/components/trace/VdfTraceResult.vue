@@ -35,6 +35,9 @@
       </div>
     </div>
 
+    <!-- the trace as a path the packet travels, to the step that decides -->
+    <VdfTracePath :nodes="pathNodes" :stop="pathStop" :verdict="result.allowed ? 'allowed' : 'dropped'" />
+
     <UiAlert v-if="otherwise" accent="info">
       {{ t('firewall:trace:otherwise') }}
       <template #description>{{ otherwise }}</template>
@@ -126,6 +129,7 @@
 
 <script lang="ts" setup>
 import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalDetails.vue'
+import VdfTracePath, { type VdfTracePathNode } from '@/modules/vdf/components/trace/VdfTracePath.vue'
 import { ipMatches } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import {
@@ -442,6 +446,93 @@ const hops = computed(() =>
 )
 
 const otherwise = computed(() => result.hops.map(hop => hop.otherwise).find(Boolean))
+
+// PATH: the source, each tier the packet goes through (the source's
+// outbound ones first, vdf#53), a step that decides outside the tiers
+// (anti-spoofing, an established connection, quarantine…), the destination.
+// A tier seen on several stages (a rule passed, then its default) keeps the
+// one that says the most
+
+const PATH_OUTCOMES = { allow: 'allow', drop: 'drop', pass: 'pass', step: 'pass' } as const
+
+const PATH_ICONS: Record<VdfTracePathNode['outcome'], IconName> = {
+  end: 'object:vm',
+  pass: 'fa:arrow-right',
+  allow: 'fa:check',
+  drop: 'fa:ban',
+}
+
+function pathNote(stage: VdfTraceStage) {
+  if (stage.kind === 'rule' && stage.policy !== undefined && stage.rule !== undefined) {
+    return t('firewall:trace:path:rule', { policy: displayName(stage.policy), rule: ruleNumber(stage.rule) })
+  }
+
+  if (stage.kind === 'tier-default') {
+    return stage.policy === undefined
+      ? t('firewall:trace:path:tier-default')
+      : t('firewall:trace:path:policy-default', { policy: displayName(stage.policy) })
+  }
+
+  return stage.decides ? undefined : t('firewall:trace:path:no-match')
+}
+
+const pathNodes = computed<VdfTracePathNode[]>(() => {
+  const endNode = (key: string, end: VdfTraceEnd): VdfTracePathNode => ({
+    key,
+    label: endName(end),
+    note: end.external ? t('firewall:trace:path:outside') : undefined,
+    outcome: 'end',
+    icon: end.external ? 'fa:globe' : PATH_ICONS.end,
+  })
+  const steps = new Map<string, VdfTracePathNode>()
+
+  for (const stage of result.hops.flatMap(hop => hop.stages)) {
+    if (stage.tier === undefined && !stage.decides) {
+      continue
+    }
+
+    const outcome = PATH_OUTCOMES[stageOutcome(stage)]
+    const key = stage.tier === undefined ? `step:${steps.size}` : `${stage.egress ? 'out' : 'in'}:${stage.tier}`
+    const known = steps.get(key)
+
+    if (known !== undefined && !stage.decides && outcome === 'pass') {
+      continue
+    }
+
+    const tier = stage.tier === undefined ? undefined : tierLabel(stage.tier)
+
+    steps.set(key, {
+      key,
+      label:
+        tier === undefined
+          ? t('firewall:trace:path:check')
+          : stage.egress
+            ? t('firewall:trace:path:out', { tier })
+            : tier,
+      // a tier passed through: no rule of it matched, whatever stage says so
+      note: outcome === 'pass' ? t('firewall:trace:path:no-match') : pathNote(stage),
+      detail: stageLabel(stage),
+      outcome,
+      icon: PATH_ICONS[outcome],
+    })
+  }
+
+  return [endNode('from', result.from), ...steps.values(), endNode('to', result.to)]
+})
+
+// where the packet stops: the destination when delivered, else the step
+// that dropped it (the last one before the destination, failing that)
+const pathStop = computed(() => {
+  const nodes = pathNodes.value
+
+  if (result.allowed && !result.not_delivered) {
+    return nodes.length - 1
+  }
+
+  const dropped = nodes.findIndex(node => node.outcome === 'drop')
+
+  return dropped === -1 ? Math.max(nodes.length - 2, 0) : dropped
+})
 
 // LINKS
 
