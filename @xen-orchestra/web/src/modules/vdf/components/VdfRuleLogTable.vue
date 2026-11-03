@@ -293,7 +293,9 @@ function rowActions(row: Row): ActionItem[] {
 
 // a row's trace button
 function traceButton(row: Row) {
-  const label = t('firewall:live:trace', { from: row.source.vm?.name_label ?? row.entry.src, to: row.entry.vm })
+  // egress (vdf#53): the logged VM is the source, the destination an address
+  const to = row.entry.egress ? (row.destination?.name_label ?? row.entry.dst) : row.entry.vm
+  const label = t('firewall:live:trace', { from: row.source.vm?.name_label ?? row.entry.src, to })
 
   return withDirectives(
     h(UiButtonIcon, {
