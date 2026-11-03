@@ -1036,18 +1036,7 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  // The parameters are all checked before the first network is created: the networks of the pools before a failure
-  // would stay
-  async _createPrivateNetwork({
-    poolIds,
-    pifIds,
-    name,
-    description,
-    encapsulation,
-    encrypted = false,
-    mtu = 0,
-    preferredCenterId,
-  }) {
+  _resolvePrivateNetworkPools({ poolIds, pifIds, preferredCenterId }) {
     // Checked before the PrivateNetwork is constructed: its constructor registers it, and with no pool it would stay
     // registered without any network
     if (poolIds.length === 0) {
@@ -1081,6 +1070,23 @@ class SDNController extends EventEmitter {
       }
       ;[poolPifs[0], poolPifs[i]] = [poolPifs[i], poolPifs[0]]
     }
+
+    return { poolPifs, preferredCenter }
+  }
+
+  // The parameters are all checked before the first network is created: the networks of the pools before a failure
+  // would stay
+  async _createPrivateNetwork({
+    poolIds,
+    pifIds,
+    name,
+    description,
+    encapsulation,
+    encrypted = false,
+    mtu = 0,
+    preferredCenterId,
+  }) {
+    const { poolPifs, preferredCenter } = this._resolvePrivateNetworkPools({ poolIds, pifIds, preferredCenterId })
 
     const vni = ++this._prevVni
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
