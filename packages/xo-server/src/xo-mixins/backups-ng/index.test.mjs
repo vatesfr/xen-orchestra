@@ -425,6 +425,7 @@ class Repository {
 const createBackupNgWithRepository = repository => {
   const app = {
     config: { getDuration },
+    getAllRemotes: async () => [{ id: REMOTE_ID, enabled: true }],
     getBackupsRemoteAdapter: () => new Disposable(() => {}, repository.adapter),
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
@@ -445,6 +446,7 @@ const createBackupNgWithProxiedRepository = (repository, { journal = true, fails
   const adapter = repository.adapter
   const app = {
     config: { get: () => ({}), getDuration },
+    getAllRemotes: async () => [{ id: REMOTE_ID, enabled: true }],
     getRemoteWithCredentials: async id => {
       assert.equal(id, REMOTE_ID)
       return { id: REMOTE_ID, url: 'file:///media/backup', proxy: PROXY_ID }
@@ -522,27 +524,36 @@ describe('deleteVmBackupsNg', () => {
 
 describe('the journal purge', () => {
   beforeEach(() => {
-    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-08-11T10:00:00Z') })
+    mock.timers.enable({ apis: ['setInterval', 'setTimeout', 'Date'], now: Date.parse('2026-08-11T10:00:00Z') })
   })
 
   afterEach(() => {
     mock.timers.reset()
   })
 
-  it('purges a listed repository of the days older than backups.journalRetention', async () => {
+  it('purges the days older than backups.journalRetention once started, then every day', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithRepository(repository)
+    const { hooks } = backupNg._app
 
-    await backupNg.listVmBackupsNg([REMOTE_ID])
-
+    hooks.emit('started')
+    await tick(0)
     assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
+
+    await tick(24 * 60 * 60e3)
+    assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T10:00:00Z')])
+
+    hooks.emit('stop')
   })
 
   it('purges a repository attached to a proxy through the proxy', async () => {
     const repository = new Repository([metadataOf(VM, '20260811T090000')])
     const backupNg = createBackupNgWithProxiedRepository(repository)
+    const { hooks } = backupNg._app
 
-    await backupNg.listVmBackupsNg([REMOTE_ID])
+    hooks.emit('started')
+    await tick(0)
+    hooks.emit('stop')
 
     assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z')])
   })
@@ -894,7 +905,8 @@ describe('the backup-archive collection', () => {
     app.hooks.emit('started')
     await tick(0)
 
-    assert.deepEqual(listed, [REMOTE_ID])
+    // once by the listing, once by the journal purge
+    assert.deepEqual(listed, [REMOTE_ID, REMOTE_ID])
     assert.deepEqual(events, [{ event: 'add', id: idOf('20260811T090000') }])
     assert.equal(repository.nListings, 1)
 
