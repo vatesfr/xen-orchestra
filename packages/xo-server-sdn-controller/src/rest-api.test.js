@@ -174,3 +174,69 @@ describe('the rules of a network', () => {
     ])
   })
 })
+
+describe('the creation of a private network', () => {
+  const BODY = {
+    poolIds: ['pool1', 'pool2'],
+    pifIds: ['pif1', 'pif2'],
+    name: 'private',
+    description: '',
+    encapsulation: 'gre',
+  }
+
+  // Two pools without hosts, a PIF each, and a host of the second one. Returns the networks the pools create.
+  function createPoolsController() {
+    const controller = createController()
+    const created = []
+    const xapiObjects = {}
+    for (const n of [1, 2]) {
+      const pool = { $ref: `pool${n}-ref`, uuid: `pool${n}`, name_label: `pool ${n}` }
+      pool.$xapi = {
+        objects: { indexes: { type: {} } },
+        call: async () => {
+          created.push(`net${n}`)
+          return `net${n}-ref`
+        },
+        _getOrWaitObject: async $ref => ({ $id: `net${n}`, $ref, $pool: pool, name_label: 'private' }),
+      }
+      xapiObjects[`pool${n}`] = pool
+      xapiObjects[`pif${n}`] = { $pool: pool, network: `transport${n}` }
+    }
+    xapiObjects.host2 = { $pool: xapiObjects.pool2 }
+    controller._xo.getObject = id => ({ id })
+    controller._xo.getXapiObject = idOrObject => xapiObjects[idOrObject.id ?? idOrObject]
+    controller._setPoolControllerIfNeeded = noop
+    return { controller, created }
+  }
+
+  function createPrivateNetwork(controller, body) {
+    return findRoute(controller, 'post', '/private_networks').callback({
+      req: { query: { sync: true }, body },
+      createAction: task => task(),
+    })
+  }
+
+  it('answers the ids of its networks, one per pool', async () => {
+    const { controller } = createPoolsController()
+    assert.deepEqual(await createPrivateNetwork(controller, BODY), { ids: ['net1', 'net2'] })
+  })
+
+  it('creates no network when a pool has no PIF or the preferred center is outside the pools', async () => {
+    for (const body of [
+      { ...BODY, pifIds: ['pif1'] },
+      { ...BODY, poolIds: ['pool1'], pifIds: ['pif1'], preferredCenterId: 'host2' },
+    ]) {
+      const { controller, created } = createPoolsController()
+      await assert.rejects(createPrivateNetwork(controller, body), error => invalidParameters.is(error))
+      assert.deepEqual(created, [])
+    }
+  })
+
+  it('refuses an MTU that is not a non-negative integer before creating any network', async () => {
+    for (const mtu of [1450.5, -1]) {
+      const { controller, created } = createPoolsController()
+      await assert.rejects(createPrivateNetwork(controller, { ...BODY, mtu }), error => invalidParameters.is(error))
+      assert.deepEqual(created, [])
+    }
+  })
+})
