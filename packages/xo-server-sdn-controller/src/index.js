@@ -353,15 +353,10 @@ class SDNController extends EventEmitter {
   async load() {
     // ---------------- Private Network method ---------------------------------
 
-    const createPrivateNetwork = params =>
-      this._createPrivateNetwork({
-        encrypted: false,
-        mtu: 0,
-        ...params,
-        vni: ++this._prevVni,
-      })
+    const createPrivateNetwork = params => this._createPrivateNetwork(params)
 
-    createPrivateNetwork.description = 'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.description =
+      'Creates a pool-wide private network on a selected pool. Returns the ids of the created networks, one per pool'
     createPrivateNetwork.params = {
       poolIds: {
         type: 'array',
@@ -1041,18 +1036,27 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
+  // The parameters are all checked before the first network is created: the networks of the pools before a failure
+  // would stay
   async _createPrivateNetwork({
     poolIds,
     pifIds,
     name,
     description,
     encapsulation,
-    vni,
-    encrypted,
-    mtu,
+    encrypted = false,
+    mtu = 0,
     preferredCenterId,
   }) {
     const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
+    const pifs = pifIds.map(id => this._xo.getXapiObject(this._xo.getObject(id, 'PIF')))
+    const poolPifs = pools.map(pool => {
+      const pif = pifs.find(({ $pool }) => $pool.$ref === pool.$ref)
+      if (pif === undefined) {
+        throw invalidParameters(`no PIF of pool ${pool.uuid} in pifIds`)
+      }
+      return [pool, pif]
+    })
 
     let preferredCenter
     if (preferredCenterId !== undefined) {
@@ -1061,19 +1065,17 @@ class SDNController extends EventEmitter {
       // Put pool of preferred center first
       const preferredCenterPoolUuid = preferredCenter.$pool.uuid
       const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
-      assert.notStrictEqual(i, -1)
+      if (i === -1) {
+        throw invalidParameters(`preferred center ${preferredCenterId} is not a host of the pools`)
+      }
       poolIds[i] = poolIds[0]
       poolIds[0] = preferredCenterPoolUuid
     }
 
+    const vni = ++this._prevVni
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
-    for (const pool of pools) {
-      const pifId = pifIds.find(id => {
-        const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
-        return pif.$pool.$ref === pool.$ref
-      })
-      const pif = this._xo.getXapiObject(this._xo.getObject(pifId, 'PIF'))
-
+    const networkIds = []
+    for (const [pool, pif] of poolPifs) {
       // Create the private network
       const createdNetworkRef = await pool.$xapi.call('network.create', {
         name_label: name,
@@ -1114,7 +1116,9 @@ class SDNController extends EventEmitter {
       if (privateNetwork.center !== undefined) {
         this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
       }
+      networkIds.push(createdNetwork.$id)
     }
+    return networkIds
   }
 
   // ---------------------------------------------------------------------------
