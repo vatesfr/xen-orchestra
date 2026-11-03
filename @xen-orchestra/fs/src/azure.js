@@ -5,7 +5,7 @@ import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import copyStreamToBuffer from './_copyStreamToBuffer'
-import { holdLock, lockedError } from './_holdLock.js'
+import lockedError from './_lockedError.js'
 import { randomUUID } from 'node:crypto'
 import { PassThrough, Transform, pipeline } from 'stream'
 
@@ -14,7 +14,7 @@ const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
 const MIN_BLOCK_SIZE = 1024 * 1024 * 4 // 4 MiB, default max block size
 const MAX_BLOCK_COUNT = 50000
 const AZURE_BATCH_MAX_REQUEST = 256 // BATCH_MAX_REQUEST constant from Azure
-const { warn, info } = createLogger('xo:fs:azure')
+const { debug, warn, info } = createLogger('xo:fs:azure')
 
 // how long the lease of a lock lasts without being renewed, in seconds: the longest finite lease Azure allows, as an
 // infinite one would outlive a holder which crashed, and block the path until someone breaks it by hand
@@ -386,6 +386,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   //
   // The requests are sent with the blob client directly, not through the handler's methods: those go through the
   // handler's concurrency limit, and a renewal queued behind long uploads would let the lease expire.
+  //
+  // As with `LocalHandler#_lock()`, losing the lock while holding it is only logged, and the release function never
+  // rejects. A renewal which finds the lease gone takes the lock back, and the lock is given up only when another
+  // holder has it: any other error is a failed request, and the next renewal tries again.
   async _lock(path) {
     // `<path>.lock`, the name of the local lock directory: the listings skip it already
     const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(`${path}.lock`))
@@ -397,31 +401,66 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
     await takeLease(blobClient, leaseClient, path)
 
-    return holdLock(path, RENEW_INTERVAL, {
-      async refresh() {
-        try {
-          await pTimeout.call(leaseClient.renewLease(), RENEW_TIMEOUT)
-          return true
-        } catch (error) {
-          // 404: the blob is gone; 409: it is leased to someone else
-          if (error.statusCode === 404 || error.statusCode === 409) {
-            return false
-          }
-          throw error
+    let lastRenewal = Date.now()
+    let lost = false
+    let released = false
+    let renewing = Promise.resolve()
+    let timeout
+
+    async function renew() {
+      try {
+        await pTimeout.call(leaseClient.renewLease(), RENEW_TIMEOUT)
+        lastRenewal = Date.now()
+        return
+      } catch (error) {
+        // 404: the blob is gone; 409: it is leased to someone else
+        if (error.statusCode !== 404 && error.statusCode !== 409) {
+          // a failed request is not a lost lock: it is lost only if the lease expires and someone takes it, which the
+          // next successful request finds out; it repeats every interval while Azure fails, hence debug
+          debug('lock could not be renewed', { error, path, sinceLastRenewal: Date.now() - lastRenewal })
+          return
         }
-      },
-      reacquire: () => pTimeout.call(takeLease(blobClient, leaseClient, path), RENEW_TIMEOUT),
-      // only deletes the blob while the lease is ours: after a lost lock, it is someone else's
-      async release() {
-        try {
-          await blobClient.delete({ conditions: { leaseId } })
-        } catch (error) {
-          // 404: the blob is gone; 412: it is not leased to `leaseId`
-          if (error.statusCode !== 404 && error.statusCode !== 412) {
-            throw error
+      }
+
+      warn('lock compromised', { path })
+      try {
+        await pTimeout.call(takeLease(blobClient, leaseClient, path), RENEW_TIMEOUT)
+        lastRenewal = Date.now()
+        info('compromised lock was reacquired', { path })
+      } catch (error) {
+        lost = error.code === 'ELOCKED'
+        warn('compromised lock could not be reacquired', { error, path })
+      }
+    }
+
+    function schedule() {
+      timeout = setTimeout(() => {
+        renewing = renew().then(() => {
+          if (!released && !lost) {
+            schedule()
           }
+        })
+      }, RENEW_INTERVAL)
+      timeout.unref()
+    }
+
+    schedule()
+
+    return async () => {
+      released = true
+      clearTimeout(timeout)
+
+      try {
+        // a renewal in flight which found the blob deleted would take the lock again
+        await renewing
+        // only deletes the blob while the lease is ours: after a lost lock, it is someone else's
+        await blobClient.delete({ conditions: { leaseId } })
+      } catch (error) {
+        // 404: the blob is gone; 412: it is not leased to `leaseId`
+        if (error.statusCode !== 404 && error.statusCode !== 412) {
+          warn('lock could not be released', { error, path })
         }
-      },
-    })
+      }
+    }
   }
 }

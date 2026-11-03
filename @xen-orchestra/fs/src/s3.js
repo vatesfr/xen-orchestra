@@ -19,7 +19,7 @@ import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-ch
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 import { createLogger } from '@xen-orchestra/log'
-import { lockedError } from './_holdLock.js'
+import lockedError from './_lockedError.js'
 import { PassThrough, Transform, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
