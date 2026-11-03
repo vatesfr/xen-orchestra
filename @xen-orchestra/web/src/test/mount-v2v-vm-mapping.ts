@@ -10,6 +10,7 @@ import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import {
   V2V_DISK_OVERRIDES,
   V2V_MAPPED_VM,
@@ -18,6 +19,7 @@ import {
   V2V_POOL_OFFERS,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import type { Router } from 'vue-router'
 
 /** The pool of the stored list, offering the mapping fixtures. */
 export const V2V_VM_MAPPING_POOL = createPool()
@@ -31,13 +33,20 @@ export const V2V_OVERRIDDEN_LIST_VM = createV2vMigrationListVm({
   nics: V2V_NIC_OVERRIDES,
 })
 
-function seedPools() {
+// Stores the list holding `listVm`, on a pool offering the mapping fixtures (another pool offers one target of each kind)
+function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
   xoCollectionsMock.pools.value = [V2V_VM_MAPPING_POOL]
   xoCollectionsMock.seedChoices({
     srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
     networks: [...V2V_POOL_OFFERS.networks, createNetwork({ $pool: OTHER_POOL_ID })],
     templates: [...V2V_POOL_OFFERS.templates, createVmTemplate({ $pool: OTHER_POOL_ID })],
   })
+
+  const list = createV2vMigrationList({ poolId: V2V_VM_MAPPING_POOL.id, vms: [listVm] })
+
+  seedV2vMigrationList(list)
+
+  return list
 }
 
 export type MountV2vVmMappingOptions = {
@@ -54,10 +63,7 @@ export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
   useMapping: (migrationList: ReturnType<typeof useV2vMigrationList>, list: () => V2vMigrationList) => TResult,
   { listVm = V2V_OVERRIDDEN_LIST_VM, isSourceConnected = true }: MountV2vVmMappingOptions = {}
 ) {
-  const storedList = createV2vMigrationList({ poolId: V2V_VM_MAPPING_POOL.id, vms: [listVm] })
-
-  seedPools()
-  seedV2vMigrationList(storedList)
+  const storedList = seedV2vVmMappingList(listVm)
 
   return mountComposableWithI18n(() => {
     if (isSourceConnected) {
@@ -68,6 +74,24 @@ export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
 
     return useMapping(migrationList, () => migrationList.list.value as V2vMigrationList)
   })
+}
+
+/**
+ * The component variant of `mountV2vVmMapping`: on the same pools, mounts with `mountComponent` a mapping component
+ * handed the list holding `listVm` (stored too), then connects the mapping inventory as source.
+ * Needs the destination collections mocked with `mock-xo-collections.ts`.
+ */
+export async function mountV2vVmMappingComponent<TMounted>(
+  mountComponent: (list: V2vMigrationList, router: Router) => TMounted,
+  { listVm = V2V_OVERRIDDEN_LIST_VM }: Pick<MountV2vVmMappingOptions, 'listVm'> = {}
+) {
+  const list = seedV2vVmMappingList(listVm)
+
+  const { mounted } = await mountOnV2vWizard(router => mountComponent(list, router), {
+    source: { inventory: V2V_MAPPING_INVENTORY },
+  })
+
+  return mounted
 }
 
 /** The one VM of the stored list, as last written. */

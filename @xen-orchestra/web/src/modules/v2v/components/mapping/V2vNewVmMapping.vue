@@ -16,16 +16,19 @@
         @change-disk-sr="(key, srId) => setDiskSr(key, srId)"
         @change-nic-network="(key, networkId) => setNicNetwork(key, networkId)"
       />
-      <V2vVmOptionsCard
-        :keep-mac
-        :template
-        :template-options
-        :tags
-        :loading="!areOffersReady"
-        @change-keep-mac="value => setKeepMac(value)"
-        @change-template="templateId => setTemplate(templateId)"
-        @change-tags="value => setTags(value)"
-      />
+      <UiCard>
+        <UiCardTitle>{{ t('options') }}</UiCardTitle>
+        <V2vVmOptionsFields
+          :keep-mac
+          :template
+          :template-options
+          :tags
+          :loading="!areOffersReady"
+          @change-keep-mac="value => setKeepMac(value)"
+          @change-template="templateId => setTemplate(templateId)"
+          @change-tags="value => setTags(value)"
+        />
+      </UiCard>
     </div>
   </div>
 </template>
@@ -34,14 +37,17 @@
 import V2vDestinationMappingCard from '@/modules/v2v/components/mapping/V2vDestinationMappingCard.vue'
 import V2vMappingVmHeader from '@/modules/v2v/components/mapping/V2vMappingVmHeader.vue'
 import V2vVmChecksCard from '@/modules/v2v/components/mapping/V2vVmChecksCard.vue'
-import V2vVmOptionsCard from '@/modules/v2v/components/mapping/V2vVmOptionsCard.vue'
+import V2vVmOptionsFields from '@/modules/v2v/components/mapping/V2vVmOptionsFields.vue'
 import V2vVmSourceCard from '@/modules/v2v/components/mapping/V2vVmSourceCard.vue'
 import type { V2vMappingVmHeading } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmMapping, type V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import type { XoV2vVm } from '@vates/types'
+import { useI18n } from 'vue-i18n'
 
 const { vm, list, listIssue, updateVm } = defineProps<{
   heading: V2vMappingVmHeading
@@ -54,6 +60,8 @@ const { vm, list, listIssue, updateVm } = defineProps<{
 const emit = defineEmits<{
   remove: []
 }>()
+
+const { t } = useI18n()
 
 const {
   poolName,

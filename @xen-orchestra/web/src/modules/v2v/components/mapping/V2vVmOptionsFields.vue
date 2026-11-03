@@ -1,6 +1,5 @@
 <template>
-  <UiCard>
-    <UiCardTitle>{{ t('options') }}</UiCardTitle>
+  <div class="v2v-vm-options-fields">
     <UiCheckbox
       :model-value="keepMac"
       accent="brand"
@@ -26,7 +25,7 @@
     >
       <VtsTagsInput :model-value="tags" accent="brand" @update:model-value="value => emit('changeTags', value)" />
     </VtsInputWrapper>
-  </UiCard>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -36,8 +35,6 @@ import type { V2vResolvedTarget, V2vTargetOption } from '@/modules/v2v/types/v2v
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsTagsInput from '@core/components/tags-input/VtsTagsInput.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { V2V_PARTIAL_IMPORT_TAG } from '@vates/types'
 import { useI18n } from 'vue-i18n'
@@ -60,10 +57,16 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.template {
+.v2v-vm-options-fields {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.8rem;
+  flex-direction: column;
+  gap: 2.4rem;
+
+  .template {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+  }
 }
 </style>
