@@ -31,9 +31,24 @@
         />
       </span>
     </UiTableCell>
-    <UiTableCell class="cell"><VdfActionTag :action /></UiTableCell>
     <UiTableCell class="cell">
-      <VdfGroupChip v-if="isEgress" :scope-id :group="appliedTo" :exists="groupExists(appliedTo)" />
+      <span class="action">
+        <VdfActionTag :action />
+        <!-- logged: an icon, its label in the tooltip (the column was mostly "–") -->
+        <VtsIcon
+          v-if="rule.log"
+          v-tooltip="t('firewall:log:logged-as', { label: logLabel })"
+          name="fa:list"
+          size="small"
+          class="logged"
+          role="img"
+          :aria-label="t('firewall:log:logged-as', { label: logLabel })"
+        />
+      </span>
+    </UiTableCell>
+    <UiTableCell class="cell">
+      <!-- the policy's own group: said once, in its header; light here -->
+      <span v-if="isEgress" class="own typo-body-regular-small">{{ ownGroup }}</span>
       <VdfGroupChip
         v-else
         :scope-id
@@ -53,21 +68,11 @@
         :ips="isAny ? undefined : ipsOf(peer)"
         :exists="isAny || groupExists(peer)"
       />
-      <VdfGroupChip v-else :scope-id :group="appliedTo" :exists="groupExists(appliedTo)" />
+      <span v-else class="own typo-body-regular-small">{{ ownGroup }}</span>
     </UiTableCell>
     <UiTableCell v-if="hits !== undefined" class="cell" align="end">
       <span class="hits typo-body-regular-small" :class="{ idle: hitsLabel === undefined }">
         {{ hitsLabel ?? t('firewall:hits:none') }}
-      </span>
-    </UiTableCell>
-    <UiTableCell class="cell">
-      <!-- in full when it fits, else truncated with a tooltip -->
-      <span v-if="rule.log" v-tooltip="isLogTruncated && logLabel" class="log typo-body-regular-small">
-        <VtsIcon name="fa:list" size="small" />
-        <span ref="logText" class="log-label">{{ logLabel }}</span>
-      </span>
-      <span v-else v-tooltip="t('firewall:log:off')" class="secondary" :aria-label="t('firewall:log:off')">
-        {{ t('firewall:log:none') }}
       </span>
     </UiTableCell>
     <UiTableCell class="cell" align="end">
@@ -104,7 +109,7 @@ import VdfRuleService from '@/modules/vdf/components/policies/VdfRuleService.vue
 import VdfActionTag from '@/modules/vdf/components/VdfActionTag.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
-import { isGlobalScope, ruleNumber } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { displayName, isGlobalScope, ruleNumber } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { ruleAction, type VdfMove, type VdfRuleBaseRule } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { isEgressRule, rulePeer } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import type { IconName } from '@core/icons'
@@ -115,16 +120,14 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
-import { useResizeObserver } from '@vueuse/core'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // One rule of the rule base, read as a sentence:
 // #31  Allow  from [app]  TCP 5432  to [db]
 // An egress rule (vdf#53) goes from the policy's group to its destination:
 // #32 →  Allow  from [app]  UDP 53  to [any]
-const { entry, hits, scopeId } = defineProps<{
+const { entry, hits, scopeId, appliedTo } = defineProps<{
   scopeId: VdfScopeId
   entry: VdfRuleBaseRule
   // the policy's group: where the rule's connections go (egress: where
@@ -180,11 +183,8 @@ const editLabel = computed(() => t('firewall:rule-form:edit', { id: number.value
 
 const logLabel = computed(() => rule.value.logLabel ?? t('firewall:log:on'))
 
-const isLogTruncated = ref(false)
-
-useResizeObserver(useTemplateRef('logText'), ([entry]) => {
-  isLogTruncated.value = hasEllipsis(entry.target)
-})
+// the policy's group, as its header names it
+const ownGroup = computed(() => displayName(appliedTo))
 
 // "12/s · 3 open", on one line
 const hitsLabel = computed(() => {
@@ -239,7 +239,7 @@ const actions = computed<ActionItem[]>(() => [
   }
 
   .id,
-  .log,
+  .action,
   .actions {
     display: inline-flex;
     align-items: center;
@@ -276,14 +276,31 @@ const actions = computed<ActionItem[]>(() => [
     }
   }
 
-  /* up to a quarter of the board (its container) */
-  .log {
-    max-width: max(16rem, 25cqi);
+  .logged {
+    color: var(--color-neutral-txt-secondary);
   }
 
-  .log-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* the policy's own group, said in its header: light */
+  .own {
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  /* a row's buttons when it's pointed at or focused: the board stays calm */
+  .actions {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover .actions,
+  &:focus-within .actions,
+  &.removed .actions {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .actions {
+      opacity: 1;
+    }
   }
 
   .secondary {

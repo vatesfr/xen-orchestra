@@ -1,6 +1,15 @@
 <template>
   <div class="vdf-rate-chart">
-    <VtsBarChart :data :max-value :value-formatter :time-formatter :time-min-interval="60_000" stacked class="chart" />
+    <VtsBarChart
+      :data
+      :max-value
+      :value-formatter
+      :time-formatter
+      :time-min-interval="60_000"
+      :colors="COLORS"
+      stacked
+      class="chart"
+    />
   </div>
 </template>
 
@@ -10,16 +19,18 @@ import type { LinearChartData } from '@core/types/chart.ts'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// Allowed and dropped connections over time (vdf#59), as stacked bars: an
-// interval's bar is its new connections, allowed (the theme's brand color)
-// under dropped (its warning color); an interval without a sample has no
-// bar, where a line broke. A y-axis sized to the data, local times
 const { series, unit } = defineProps<{
   series: VdfRateSeries
   // per second (Live's rates) or per minute (counts from the rule log)
   unit: 'second' | 'minute'
 }>()
-
+// Allowed and dropped connections over time (vdf#59), as stacked bars: an
+// interval's bar is its new connections, allowed under dropped; an interval
+// without a sample has no bar, where a line broke. A y-axis sized to the
+// data, local times. Dropped in red, as everywhere VDF shows a drop (the
+// tags, the rule log, the flow map); allowed, the usual, in the brand color,
+// which red-green colorblind eyes still tell from red
+const COLORS = ['--color-brand-item-base', '--color-danger-item-base']
 const VtsBarChart = defineAsyncComponent(() => import('@core/components/bar-chart/VtsBarChart.vue'))
 
 const { t, n, locale } = useI18n()
