@@ -167,7 +167,7 @@ Append-only log of what happened to the VM backup metadata.
 - entries are never modified nor overwritten, so it works on an immutable remote
 - written unencrypted, so it stays readable without the encryption key
 - one directory per day: a reader lists only the days it misses, a purge drops whole directories
-- xo-server removes the days older than `backups.logRetention`, once a day per remote, after listing it; it always keeps the `fullListingInterval` of the remote, during which it reads the journal back; a day which cannot be removed is skipped, and the next purge tries it again
+- xo-server removes the days older than `backups.journalRetention`, once a day per remote, after listing it; it always keeps the `fullListingInterval` of the remote, during which it reads the journal back; a day which cannot be removed is skipped, and the next purge tries it again
 - the time part has a fixed width, so sorting the names by name sorts them by date
 - `event` is `add`, `change` or `del`, and the file content also has a `reason` field
 - the name of the file is only there to be read by a human: XO reads every field from the file content

@@ -27,7 +27,7 @@ describe('registerCollection', () => {
       config: {
         datadir: '/tmp/xo-test-datadir',
         resourceCacheDelay: '1s',
-        backups: { listingDebounce: '1m', logRetention: '30 days' },
+        backups: { listingDebounce: '1m', journalRetention: '30 days' },
       },
       appVersion: 'test',
     })
