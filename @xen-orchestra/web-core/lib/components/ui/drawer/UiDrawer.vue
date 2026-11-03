@@ -3,6 +3,7 @@
     <aside
       :aria-labelledby="slots.title || title !== undefined ? titleId : undefined"
       aria-modal="true"
+      :class="{ wide: size === 'wide' }"
       class="drawer"
       role="dialog"
     >
@@ -37,8 +38,11 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
 import { useId } from 'vue'
 
-defineProps<{
+// size: wide for content that needs the page's width (a table, a trace's
+// steps), half the page otherwise
+const { size = 'default' } = defineProps<{
   title?: string
+  size?: 'default' | 'wide'
   onDismiss?: () => any
 }>()
 
@@ -100,6 +104,11 @@ const titleId = useId()
       min-width: 50%;
       max-width: 50%;
       border-inline-start: 0.1rem solid var(--color-neutral-border);
+
+      &.wide {
+        min-width: min(120rem, 90%);
+        max-width: min(120rem, 90%);
+      }
     }
   }
 }
