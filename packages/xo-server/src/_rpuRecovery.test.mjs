@@ -213,7 +213,7 @@ describe('buildRpuRecoveryView()', () => {
     // live run
     assert.equal(buildRpuRecoveryView(record).resumable, false)
 
-    for (const status of ['failed', 'interrupted', 'blocked']) {
+    for (const status of ['failed', 'interrupted', 'awaiting-acceptance']) {
       record.status = status
       assert.equal(buildRpuRecoveryView(record).resumable, true)
     }
@@ -965,8 +965,11 @@ describe('resumeRpuRecoveryRun()', () => {
 
   it('refuses a blocked record', async () => {
     const { store } = await storeWith({ schemaVersion: 42 })
-    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
-      incorrectState.is(error, { actual: 'blocked', property: 'status' })
+    await assert.rejects(
+      resumeRpuRecoveryRun({ store, poolId: 'pool1' }),
+      // `blocked` is an unreadable record, never a resumable status
+      error =>
+        incorrectState.is(error, { actual: 'blocked', property: 'status' }) && !error.data.expected.includes('blocked')
     )
 
     store.get = async () => {
@@ -1040,21 +1043,21 @@ describe('resumeRpuRecoveryRun()', () => {
       { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
     ]
 
-    it('blocks the record and lists the changes', async () => {
+    it('holds the record awaiting acceptance and lists the changes', async () => {
       const { store } = await storeWith({ changedByRun })
 
       await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live }), error =>
         incorrectState.is(error, { actual: CHANGES, object: 'pool1', property: 'operatorChanges' })
       )
       const stored = store.data.get('pool1')
-      assert.equal(stored.status, 'blocked')
+      assert.equal(stored.status, 'awaiting-acceptance')
       assert.deepEqual(stored.operatorChanges, CHANGES)
       // nothing started: same attempt, the failed steps are kept
       assert.equal(stored.attempt, undefined)
       assert.deepEqual(stored.changedByRun, changedByRun)
     })
 
-    it('still refuses when the blocked status cannot be written', async () => {
+    it('still refuses when the awaiting-acceptance status cannot be written', async () => {
       const { store } = await storeWith({ changedByRun })
       store.put = async () => {
         throw new Error('disk full')
@@ -1066,7 +1069,7 @@ describe('resumeRpuRecoveryRun()', () => {
     })
 
     it('adopts the changes once acknowledged', async () => {
-      const { store } = await storeWith({ changedByRun, status: 'blocked', operatorChanges: CHANGES })
+      const { store } = await storeWith({ changedByRun, status: 'awaiting-acceptance', operatorChanges: CHANGES })
 
       const { plan, acceptedOperatorChanges } = await resumeRpuRecoveryRun({
         store,
@@ -1131,10 +1134,10 @@ describe('resumeRpuRecoveryRun()', () => {
       assert.deepEqual(plan.changedByRun, {})
     })
 
-    it('resumes a blocked record once the operator reverted the changes', async () => {
+    it('resumes a record awaiting acceptance once the operator reverted the changes', async () => {
       const { store } = await storeWith({
         changedByRun: { autoPowerOn: true },
-        status: 'blocked',
+        status: 'awaiting-acceptance',
         operatorChanges: CHANGES,
       })
 

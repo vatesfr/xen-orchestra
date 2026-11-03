@@ -211,7 +211,7 @@ export async function readClosableRpuRecoveryRecord(store, poolId) {
   if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
     throw incorrectState({
       actual: record.status,
-      expected: ['interrupted', 'failed', 'succeeded'],
+      expected: ['interrupted', 'failed', 'awaiting-acceptance', 'succeeded'],
       object: poolId,
       property: 'status',
     })
@@ -740,7 +740,7 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
 }
 
 /** @type {PoolRollingUpdateRecoveryRun['status'][]} */
-const RESUMABLE_STATUSES = ['failed', 'interrupted', 'blocked']
+const RESUMABLE_STATUSES = ['failed', 'interrupted', 'awaiting-acceptance']
 
 const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
 
@@ -823,12 +823,14 @@ export const noRpuResume = Object.freeze({
  * The steps that failed or were running in the previous attempt are set back
  * to `pending`: `failed` is sticky within an attempt, not across attempts.
  *
- * What an operator changed since the run (see listOperatorChanges) blocks the
+ * What an operator changed since the run (see listOperatorChanges) holds the
  * record until acknowledged with `acceptOperatorChanges`: the current state is
  * then the baseline, as for a new run. A setting enabled now is disabled while
  * the run goes on and enabled again at its end, a setting still disabled stays
- * so, and the hosts and VMs which no longer exist are forgotten. The `blocked`
- * status is written best-effort, the resume is refused either way.
+ * so, and the hosts and VMs which no longer exist are forgotten. The
+ * `awaiting-acceptance` status is written best-effort, the resume is refused
+ * either way. Not to be confused with `blocked`, a record which cannot be read
+ * and which no resume accepts.
  *
  * Strict write of the `resuming` status: a failure rejects and must abort the
  * resume before any side effect. The caller holds the RPU guard of the pool.
@@ -840,7 +842,7 @@ export const noRpuResume = Object.freeze({
  * @param {boolean} [params.acceptOperatorChanges]
  * @returns {Promise<{ recorder: object, record: object, plan: object, acceptedOperatorChanges: object[] }>} see planRpuResume for `plan`
  * @throws {Error} `noSuchObject` when the pool has no record
- * @throws {Error} `incorrectState` (property `status`) when the record is not failed, interrupted nor blocked
+ * @throws {Error} `incorrectState` (property `status`) when the record is not failed, interrupted nor awaiting acceptance
  * @throws {Error} `incorrectState` (property `operatorChanges`) when an operator changed a setting, or removed a host, VM or schedule of the run, and it was not acknowledged
  */
 export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperatorChanges = false }) {
@@ -862,13 +864,13 @@ export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperator
 
   const operatorChanges = live === undefined ? [] : listOperatorChanges(record, live)
   if (operatorChanges.length > 0 && !acceptOperatorChanges) {
-    record.status = 'blocked'
+    record.status = 'awaiting-acceptance'
     record.operatorChanges = operatorChanges
     record.updatedAt = new Date().toISOString()
     try {
       await store.put(poolId, record)
     } catch (error) {
-      log.warn('could not write the blocked RPU recovery record', { error, poolId })
+      log.warn('could not write the awaiting-acceptance RPU recovery record', { error, poolId })
     }
     throw incorrectState({ actual: operatorChanges, expected: [], object: poolId, property: 'operatorChanges' })
   }

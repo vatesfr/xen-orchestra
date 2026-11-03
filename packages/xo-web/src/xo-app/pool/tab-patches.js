@@ -146,6 +146,7 @@ const INDIVIDUAL_ACTIONS_XCP = [
 // a record only warrants a warning in these statuses: live statuses mean a
 // run is in progress, absence of record means nothing to do
 const RPU_RECOVERY_MESSAGES = {
+  'awaiting-acceptance': 'rpuRecoveryOperatorChanges',
   blocked: 'rpuRecoveryBlocked',
   failed: 'rpuRecoveryFailed',
   interrupted: 'rpuRecoveryInterrupted',
@@ -192,15 +193,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
           <h4>
             <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
           </h4>
-          <p>
-            {_(
-              operatorChanges.length > 0
-                ? 'rpuRecoveryOperatorChanges'
-                : recovery.status === 'failed' && onlyVmsLeft
-                  ? 'rpuRecoveryVmsNotBack'
-                  : message
-            )}
-          </p>
+          <p>{_(recovery.status === 'failed' && onlyVmsLeft ? 'rpuRecoveryVmsNotBack' : message)}</p>
           {attempt > 1 && <p>{_('rpuRecoveryAttempt', { attempt })}</p>}
           {blockedReason !== undefined && <p>{blockedReason}</p>}
           {hostOrder.length > 0 && (

@@ -806,11 +806,12 @@ export class PoolController extends XapiXoController<XoPool> {
    * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
    *
    * 404 when the pool has no record. Refused with an `incorrect state` error when the update is neither failed,
-   * interrupted nor blocked.
+   * interrupted nor awaiting acceptance.
    *
    * When an operator changed a setting the update left changed (HA, auto power on, WLB or a backup schedule enabled
-   * again, a heartbeat SR of HA deleted) or removed a host, a VM or a backup schedule of the update, the update is
-   * blocked and the resume refused with an `incorrect state` error on `operatorChanges` listing them. Set
+   * again, a heartbeat SR of HA deleted) or removed a host, a VM or a backup schedule of the update, the update goes
+   * to `awaiting-acceptance` and the resume is refused with an `incorrect state` error on `operatorChanges` listing
+   * them. Set
    * `acceptOperatorChanges` to keep them: the update starts from the current state, as a new one would. A setting
    * enabled again is disabled while the update runs and enabled again at its end, HA whose heartbeat SR was deleted
    * stays disabled, and the removed hosts and VMs are left out.

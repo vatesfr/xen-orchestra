@@ -164,7 +164,7 @@ export type PoolRollingUpdateRecoveryVmConflict = {
 
 /** what an operator changed, since the run, on a setting the run left changed or on an object of the run */
 export type PoolRollingUpdateRecoveryOperatorChange = {
-  /** `haHeartbeatSr`: a heartbeat SR HA must be enabled again with no longer exists */
+  /** `haHeartbeatSr`: a heartbeat SR needed to enable HA again no longer exists */
   type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr' | 'host' | 'vm'
   /** pool, schedule, SR, host or VM UUID */
   id: string
@@ -179,8 +179,16 @@ export type PoolRollingUpdateRecoveryOperatorChange = {
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  /** `blocked`: a resume found operator changes and waits for them to be accepted */
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded' | 'blocked'
+  /** `awaiting-acceptance`: a resume found operator changes and waits for them to be accepted */
+  status:
+    | 'preparing'
+    | 'running'
+    | 'interrupted'
+    | 'resuming'
+    | 'failed'
+    | 'cleaning'
+    | 'succeeded'
+    | 'awaiting-acceptance'
   startedAt: string
   updatedAt: string
   finishedAt?: string
@@ -189,7 +197,7 @@ export type PoolRollingUpdateRecoveryRun = {
   variant?: 'xcp' | 'xs-cdn'
   /** 1 for the first attempt, incremented by each resume of the run */
   attempt?: number
-  /** whether a resume would be accepted: run failed, interrupted or blocked by operator changes */
+  /** whether a resume would be accepted: run failed, interrupted or awaiting the acceptance of operator changes */
   resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
@@ -197,7 +205,7 @@ export type PoolRollingUpdateRecoveryRun = {
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
   vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
-  /** found by the last resume, the run stays blocked until they are accepted */
+  /** found by the last resume, the run stays `awaiting-acceptance` until they are accepted */
   operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
 }
 

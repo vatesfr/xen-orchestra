@@ -247,7 +247,7 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     assert.deepEqual(resume.hostOrder, ['h1'])
   })
 
-  it('is blocked by a schedule an operator enabled again, resumes once the change is accepted', async function () {
+  it('awaits acceptance after a schedule an operator enabled again, resumes once the change is accepted', async function () {
     const { app, pools, store } = createPools({ record: makeRecord({ changedByRun: { schedules: ['s1'] } }) })
     app.getAllSchedules = async () => [{ id: 's1', name: 'nightly', enabled: true }]
     const changes = [{ type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' }]
@@ -255,7 +255,7 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>
       incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
     )
-    assert.equal(store.values.get('pool-1').status, 'blocked')
+    assert.equal(store.values.get('pool-1').status, 'awaiting-acceptance')
 
     const { resume, acceptedOperatorChanges } = await pools.resumeRpuRecoveryRun(pool, { acceptOperatorChanges: true })
     assert.deepEqual(acceptedOperatorChanges, changes)

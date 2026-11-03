@@ -1083,10 +1083,10 @@ export default class XenServers {
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
    * @throws {Error} `noSuchObject` if the pool has no recovery record
-   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed, interrupted nor blocked
+   * @throws {Error} `incorrectState` (property `status`) if the run is neither failed, interrupted nor awaiting acceptance
    * @throws {Error} `incorrectState` (property `operatorChanges`) if an operator changed a setting the run left
    *   changed, or removed a host, VM or backup schedule of the run, and `acceptOperatorChanges` is not set: the run
-   *   is then blocked, and a failed task with its trace lists the changes
+   *   then awaits acceptance, and a failed task with its trace lists the changes
    */
   async resumeRollingPoolUpdate(
     $defer,
