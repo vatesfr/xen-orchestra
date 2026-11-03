@@ -10,6 +10,7 @@
         :rows="diskRows"
         :sr-options
         :loading
+        :readonly
         @change-sr="(key, srId) => emit('changeDiskSr', key, srId)"
       />
     </template>
@@ -19,6 +20,7 @@
         :rows="nicRows"
         :network-options
         :loading
+        :readonly
         @change-network="(key, networkId) => emit('changeNicNetwork', key, networkId)"
       />
     </template>
@@ -43,6 +45,7 @@ defineProps<{
   srOptions: V2vTargetOption<FrontXoSr['id']>[]
   networkOptions: V2vTargetOption<FrontXoNetwork['id']>[]
   loading: boolean
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{

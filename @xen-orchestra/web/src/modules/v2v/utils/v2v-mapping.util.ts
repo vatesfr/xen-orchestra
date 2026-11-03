@@ -1,4 +1,4 @@
-import type { V2vResolvedTarget, V2vVmMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type { V2vResolvedTarget, V2vTargetOption, V2vVmMapping } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vDestinationDefaults, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { findOfferedId, type V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
 import { V2V_PLATFORM, type XoV2vVm } from '@vates/types'
@@ -64,4 +64,13 @@ export function setV2vOverride<TKey extends string, TValue>(
   const nextOverrides = override === undefined ? otherOverrides : { ...otherOverrides, [key]: override }
 
   return isEmpty(nextOverrides) ? undefined : nextOverrides
+}
+
+// A target gone from its collection or from the pool offers, or still loading, is named by its id rather than not at all
+export function getV2vTargetName<TId extends string>(id: TId, getName: (id: TId) => string | undefined): string {
+  return getName(id) ?? id
+}
+
+export function getV2vTargetOptionLabel<TId extends string>(options: V2vTargetOption<TId>[], id: TId): string {
+  return getV2vTargetName(id, () => options.find(option => option.id === id)?.label)
 }

@@ -1,6 +1,8 @@
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   getV2vOverride,
+  getV2vTargetName,
+  getV2vTargetOptionLabel,
   getV2vVmMapping,
   resolveV2vTarget,
   setV2vOverride,
@@ -19,6 +21,7 @@ import {
   V2V_POOL_OFFERS,
   V2V_SSD_SR,
   V2V_SYSTEM_DISK,
+  V2V_TARGET_OPTIONS,
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
@@ -163,5 +166,25 @@ describe('setV2vOverride', () => {
 
   it('creates no overrides for a key set to its default', () => {
     expect(setV2vOverride(undefined, V2V_SYSTEM_DISK.key, DEFAULTS.sr, DEFAULTS.sr)).toBeUndefined()
+  })
+})
+
+describe('getV2vTargetName', () => {
+  it('names a target by the name found for it', () => {
+    expect(getV2vTargetName(V2V_SSD_SR.id, () => V2V_SSD_SR.name_label)).toBe(V2V_SSD_SR.name_label)
+  })
+
+  it('names a target without a name found, gone or still loading, by its id', () => {
+    expect(getV2vTargetName(V2V_SSD_SR.id, () => undefined)).toBe(V2V_SSD_SR.id)
+  })
+})
+
+describe('getV2vTargetOptionLabel', () => {
+  it('names a target by the label of its option', () => {
+    expect(getV2vTargetOptionLabel(V2V_TARGET_OPTIONS.srs, V2V_SSD_SR.id)).toBe(V2V_SSD_SR.name_label)
+  })
+
+  it('names a target missing from the options by its id', () => {
+    expect(getV2vTargetOptionLabel([], V2V_SSD_SR.id)).toBe(V2V_SSD_SR.id)
   })
 })

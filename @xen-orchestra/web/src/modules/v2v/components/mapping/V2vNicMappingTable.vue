@@ -24,10 +24,11 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
-const { networkOptions, loading } = defineProps<{
+const { networkOptions, loading, readonly } = defineProps<{
   rows: V2vNicMappingRow[]
   networkOptions: V2vTargetOption<FrontXoNetwork['id']>[]
   loading: boolean
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -55,6 +56,7 @@ const { HeadCells, BodyCells } = useNicMappingColumns({
       target: row.network,
       options: networkOptions,
       loading,
+      readonly,
       onChange: networkId => emit('changeNetwork', row.key, networkId),
     })),
   }),

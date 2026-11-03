@@ -6,8 +6,8 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
 
-function mountOrigin(origin: V2vTargetOrigin) {
-  return mount(V2vValueOrigin, { props: { origin }, global: createGlobalTestConfig() })
+function mountOrigin(origin: V2vTargetOrigin, { readonly = false } = {}) {
+  return mount(V2vValueOrigin, { props: { origin, readonly }, global: createGlobalTestConfig() })
 }
 
 it.each([
@@ -27,4 +27,8 @@ it('resets an overridden value', async () => {
   await getButton(wrapper, t('action:reset-to-default')).trigger('click')
 
   expect(wrapper.emitted('reset')).toEqual([[]])
+})
+
+it('offers no reset of a read-only overridden value', () => {
+  expect(findButton(mountOrigin('overridden', { readonly: true }), t('action:reset-to-default'))).toBeUndefined()
 })
