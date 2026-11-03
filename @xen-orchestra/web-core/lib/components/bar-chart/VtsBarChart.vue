@@ -87,27 +87,24 @@ function withAlpha<T extends string | undefined>(color: T, alpha: number): T {
   ) as T
 }
 
-// a bar in its color at the top, lighter toward the axis, its top corners
-// rounded: a stack reads as segments
+// a bar in its color at the top, lighter toward the axis, square: a
+// rounded one reads as a candle
 function barStyle(color: string | undefined) {
-  return {
-    borderRadius: [4, 4, 0, 0],
-    ...(color === undefined
-      ? {}
-      : {
-          color: {
-            type: 'linear' as const,
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color },
-              { offset: 1, color: withAlpha(color, 0.45) },
-            ],
-          },
-        }),
-  }
+  return color === undefined
+    ? {}
+    : {
+        color: {
+          type: 'linear' as const,
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color },
+            { offset: 1, color: withAlpha(color, 0.45) },
+          ],
+        },
+      }
 }
 
 // the interval between two bars (the smallest step between timestamps): the
@@ -127,22 +124,6 @@ const extent = computed(() => {
 })
 
 const valueOf = (value: number | null | undefined) => (value === null || value === undefined || isNaN(value) ? null : value)
-
-// stacked: only a stack's top segment has rounded corners (a thin one
-// rounded under another reads as a narrower bar)
-const topSeries = computed(() => {
-  const top = new Map<number, number>()
-
-  data.forEach((series, index) =>
-    series.data.forEach(item => {
-      if ((valueOf(item.value) ?? 0) > 0) {
-        top.set(item.timestamp, index)
-      }
-    })
-  )
-
-  return top
-})
 
 const option = computed<EChartsOption>(() => ({
   legend: {
@@ -182,11 +163,7 @@ const option = computed<EChartsOption>(() => ({
     emphasis: { itemStyle: { shadowBlur: 10, shadowColor: withAlpha(resolvedColors.value?.[index], 0.5) } },
     // few intervals: wide bars, still apart
     barMaxWidth: 48,
-    data: series.data.map(item =>
-      stacked && topSeries.value.get(item.timestamp) !== index
-        ? { value: [item.timestamp, valueOf(item.value)], itemStyle: { borderRadius: 0 } }
-        : [item.timestamp, valueOf(item.value)]
-    ),
+    data: series.data.map(item => [item.timestamp, valueOf(item.value)]),
   })),
 }))
 </script>
