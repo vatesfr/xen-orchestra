@@ -45,7 +45,7 @@
           <title>{{ node.title }}</title>
           <circle :cx="node.x" :cy="node.y" :r="RADIUS" class="disc" />
           <text :x="node.x" :y="node.y + 5" class="count">{{ node.members }}</text>
-          <text :x="node.x" :y="node.y + RADIUS + 22" class="label">{{ node.label }}</text>
+          <text :x="node.x" :y="node.y + RADIUS + 17" class="label">{{ node.label }}</text>
         </g>
       </svg>
       <div class="legend typo-body-regular-small">
@@ -105,10 +105,11 @@ const DROP_WINDOW_MS = 60_000
 
 // GEOMETRY: the nodes on an ellipse, outside first, on the left
 const WIDTH = 1000
-const HEIGHT = 440
-const RADIUS = 30
-const CENTER = { x: WIDTH / 2, y: HEIGHT / 2 - 14 }
-const ELLIPSE = { rx: 390, ry: 150 }
+const HEIGHT = 270
+const RADIUS = 22
+// a flat ellipse: the room is in the width
+const CENTER = { x: WIDTH / 2, y: HEIGHT / 2 - 12 }
+const ELLIPSE = { rx: 400, ry: 92 }
 
 const OUTSIDE = 'outside'
 const OTHER = 'other'
@@ -357,7 +358,7 @@ function towards(center: { x: number; y: number }, point: { x: number; y: number
 
   .map {
     width: 100%;
-    max-height: 48rem;
+    max-height: 30rem;
   }
 
   .edge {
@@ -424,14 +425,14 @@ function towards(center: { x: number; y: number }, point: { x: number; y: number
     }
 
     .count {
-      font-size: 1.6rem;
+      font-size: 1.4rem;
       font-weight: 600;
       text-anchor: middle;
       fill: var(--color-neutral-txt-primary);
     }
 
     .label {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 600;
       text-anchor: middle;
       fill: var(--color-neutral-txt-primary);
