@@ -81,8 +81,12 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
   )
 
   watch(
-    () => [formData.dataSource, formData.sourceBackupRepository, formData.mode],
+    () => [formData.sourceBackupRepository, formData.mode],
     () => {
+      if (!isMirror.value) {
+        return
+      }
+
       formData.vmIds = []
       formData.vmFilter = ''
     }
@@ -129,7 +133,10 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
           required: withMessage(required, () => t('name-required')),
         },
         sourceBackupRepository: {
-          requiredIf: requiredIf(() => isMirror.value),
+          requiredIf: withMessage(
+            requiredIf(() => isMirror.value),
+            () => t('source-backup-repository-mandatory')
+          ),
         },
         vmIds: {
           atLeastOne: withMessage(
