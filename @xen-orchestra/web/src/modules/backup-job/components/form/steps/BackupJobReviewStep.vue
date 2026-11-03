@@ -1,11 +1,11 @@
 <template>
   <div class="backup-job-review-step">
     <BackupJobReviewSection :title="t('source')" @edit="emit('edit', 'source')">
-      <BackupJobSourceReview :form="source" />
+      <BackupJobReviewSource :form="source" />
     </BackupJobReviewSection>
 
     <BackupJobReviewSection v-if="transfer" :title="t('transfer')" @edit="emit('edit', 'transfer')">
-      <BackupJobTransferReview
+      <BackupJobReviewTransfer
         :form="transfer"
         :is-incremental="source.isIncremental.value"
         :is-mirror="source.isMirror.value"
@@ -13,21 +13,21 @@
     </BackupJobReviewSection>
 
     <BackupJobReviewSection :title="t('target')" @edit="emit('edit', 'target')">
-      <BackupJobTargetReview :form="target" />
+      <BackupJobReviewTarget :form="target" />
     </BackupJobReviewSection>
 
     <BackupJobReviewSection :title="t('planning')" @edit="emit('edit', 'planning')">
-      <BackupJobPlanningReview :form="planning" :is-metadata="source.isMetadata.value" />
+      <BackupJobReviewPlanning :form="planning" :is-metadata="source.isMetadata.value" />
     </BackupJobReviewSection>
   </div>
 </template>
 
 <script lang="ts" setup>
-import BackupJobPlanningReview from '@/modules/backup-job/components/form/review/BackupJobPlanningReview.vue'
+import BackupJobReviewPlanning from '@/modules/backup-job/components/form/review/BackupJobReviewPlanning.vue'
 import BackupJobReviewSection from '@/modules/backup-job/components/form/review/BackupJobReviewSection.vue'
-import BackupJobSourceReview from '@/modules/backup-job/components/form/review/BackupJobSourceReview.vue'
-import BackupJobTargetReview from '@/modules/backup-job/components/form/review/BackupJobTargetReview.vue'
-import BackupJobTransferReview from '@/modules/backup-job/components/form/review/BackupJobTransferReview.vue'
+import BackupJobReviewSource from '@/modules/backup-job/components/form/review/BackupJobReviewSource.vue'
+import BackupJobReviewTarget from '@/modules/backup-job/components/form/review/BackupJobReviewTarget.vue'
+import BackupJobReviewTransfer from '@/modules/backup-job/components/form/review/BackupJobReviewTransfer.vue'
 import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'

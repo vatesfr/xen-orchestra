@@ -16,8 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import ScheduleValuesCard from '@/modules/schedule/components/ScheduleValuesCard.vue'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -32,7 +32,7 @@ const { error } = defineProps<{
 
 const model = defineModel<number[]>({ required: true })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 function toggle(value: number) {
   model.value = model.value.includes(value)

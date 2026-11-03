@@ -13,6 +13,7 @@
         :mode="bindings.storageRepositoryScopeType.modelValue"
         :srs
         :matched-srs="matchedSrs"
+        :busy
         :error="
           bindings.storageRepositoryScopeType.modelValue === 'manual'
             ? bindings.storageRepositoryIds.error
@@ -48,6 +49,7 @@ defineProps<{
   bindings: BackupJobTargetStorageRepositoryForm['bindings']
   srs: FrontXoSr[]
   matchedSrs: FrontXoSr[]
+  busy: boolean
 }>()
 
 const { t } = useI18n()

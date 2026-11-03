@@ -18,6 +18,7 @@
         :brs
         :compatible-brs="compatibleBrs"
         :matched-brs="matchedBrs"
+        :busy
         :error="
           bindings.backupRepositoryScopeType.modelValue === 'manual'
             ? bindings.backupRepositoryIds.error
@@ -62,6 +63,7 @@ import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/Back
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobTargetBackupRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetBackupRepositoryTable.vue'
 import type { BackupJobTargetBackupRepositoryForm } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
+import { LONG_TERM_RETENTION_FIELDS } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
@@ -72,20 +74,19 @@ const { bindings } = defineProps<{
   brs: FrontXoBackupRepository[]
   compatibleBrs: FrontXoBackupRepository[]
   matchedBrs: FrontXoBackupRepository[]
+  busy: boolean
   hasRetentionStrategy: boolean
   hasStrictGfs: boolean
 }>()
 
 const { t } = useI18n()
 
-const longTermRetentionRows = computed(
-  () =>
-    [
-      { period: 'daily', retention: bindings.ltrDailyRetention, keep: bindings.ltrDailyKeep },
-      { period: 'weekly', retention: bindings.ltrWeeklyRetention, keep: bindings.ltrWeeklyKeep },
-      { period: 'monthly', retention: bindings.ltrMonthlyRetention, keep: bindings.ltrMonthlyKeep },
-      { period: 'yearly', retention: bindings.ltrYearlyRetention, keep: bindings.ltrYearlyKeep },
-    ] as const
+const longTermRetentionRows = computed(() =>
+  LONG_TERM_RETENTION_FIELDS.map(({ period, retention, keep }) => ({
+    period,
+    retention: bindings[retention],
+    keep: bindings[keep],
+  }))
 )
 </script>
 

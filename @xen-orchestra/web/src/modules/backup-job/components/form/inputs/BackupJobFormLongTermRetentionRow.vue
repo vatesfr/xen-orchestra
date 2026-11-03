@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts" setup>
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -41,7 +41,7 @@ const { error } = defineProps<{
 
 const retention = defineModel<number | undefined>({ required: true })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 </script>
 
 <style lang="postcss" scoped>

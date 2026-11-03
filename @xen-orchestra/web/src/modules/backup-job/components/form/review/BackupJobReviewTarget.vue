@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-job-target-review">
+  <div class="backup-job-review-target">
     <VtsTabularKeyValueList v-if="form.hasStorageTargetChoice.value">
       <VtsTabularKeyValueRow :label="t('storage-target')" :value="storageTargetsLabel" />
     </VtsTabularKeyValueList>
@@ -65,11 +65,12 @@
           <VtsTabularKeyValueRow :label="t('timeout')" :value="healthCheckTimeout" />
           <VtsTabularKeyValueRow :label="t('health-check-vm-tags')" :value="healthCheckVmTagsLabel" />
           <VtsTabularKeyValueRow :label="t('health-check-frequency')" :value="healthCheckScheduleLabel" />
-          <template v-if="healthCheck.formData.healthCheckSchedule === 'dynamic'">
-            <VtsTabularKeyValueRow :label="t('days-of-the-month')" :value="healthCheckMonthDaysLabel" />
-            <VtsTabularKeyValueRow :label="t('days-of-the-week')" :value="healthCheckWeekDaysLabel" />
-            <VtsTabularKeyValueRow :label="t('hours')" :value="healthCheckHoursLabel" />
-          </template>
+          <BackupJobReviewCalendarRows
+            v-if="healthCheck.formData.healthCheckSchedule === 'dynamic'"
+            :month-days="healthCheck.bindings.healthCheckMonthDays"
+            :week-days="healthCheck.bindings.healthCheckWeekDays"
+            :hours="healthCheck.bindings.healthCheckHours"
+          />
         </template>
       </VtsTabularKeyValueList>
     </template>
@@ -77,8 +78,9 @@
 </template>
 
 <script lang="ts" setup>
+import BackupJobReviewCalendarRows from '@/modules/backup-job/components/form/review/BackupJobReviewCalendarRows.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import { formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { LONG_TERM_RETENTION_FIELDS } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -111,7 +113,7 @@ const healthCheckSrName = computed(() =>
 const healthCheckTimeout = computed(() =>
   healthCheck.formData.healthCheckTimeout === undefined
     ? undefined
-    : `${healthCheck.formData.healthCheckTimeout} ${t('minutes')}`
+    : `${healthCheck.formData.healthCheckTimeout} ${t('cron:unit:minute')}`
 )
 
 const healthCheckVmTagsLabel = computed(() =>
@@ -136,32 +138,14 @@ const replicaDistributionLabel = computed(() =>
 
 const healthCheckScheduleLabel = computed(() => healthCheck.getScheduleLabel(healthCheck.formData.healthCheckSchedule))
 
-const healthCheckMonthDaysLabel = computed(() =>
-  formatSelectedLabels(healthCheck.bindings.healthCheckMonthDays.options, healthCheck.formData.healthCheckMonthDays)
-)
-
-const healthCheckWeekDaysLabel = computed(() =>
-  formatSelectedLabels(healthCheck.bindings.healthCheckWeekDays.options, healthCheck.formData.healthCheckWeekDays)
-)
-
-const healthCheckHoursLabel = computed(() =>
-  formatSelectedLabels(healthCheck.bindings.healthCheckHours.options, healthCheck.formData.healthCheckHours)
-)
-
 const storageTargetsLabel = computed(() =>
-  form.formData.storageTargets.length === 0
-    ? t('none')
-    : form.formData.storageTargets.map(target => form.getStorageTargetLabel(target)).join(', ')
+  form.formData.storageTargets.map(target => form.getStorageTargetLabel(target)).join(', ')
 )
 
 const longTermRetentionLines = computed(() =>
-  (
-    [
-      ['daily', backupRepository.formData.ltrDailyRetention, backupRepository.formData.ltrDailyKeep],
-      ['weekly', backupRepository.formData.ltrWeeklyRetention, backupRepository.formData.ltrWeeklyKeep],
-      ['monthly', backupRepository.formData.ltrMonthlyRetention, backupRepository.formData.ltrMonthlyKeep],
-      ['yearly', backupRepository.formData.ltrYearlyRetention, backupRepository.formData.ltrYearlyKeep],
-    ] as const
+  LONG_TERM_RETENTION_FIELDS.map(
+    ({ period, retention, keep }) =>
+      [period, backupRepository.formData[retention], backupRepository.formData[keep]] as const
   )
     .filter(([, retention]) => retention !== undefined && retention > 0)
     .map(([period, retention, keep]) =>
@@ -175,7 +159,7 @@ const longTermRetentionLines = computed(() =>
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-target-review {
+.backup-job-review-target {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;

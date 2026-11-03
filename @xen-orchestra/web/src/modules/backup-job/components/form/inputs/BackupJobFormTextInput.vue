@@ -10,11 +10,10 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { computed } from 'vue'
 
-const { info, warning, error } = defineProps<{
+const { warning, error } = defineProps<{
   label: string
   error?: InputWrapperMessage
   warning?: InputWrapperMessage
-  info?: string
   required?: boolean
 }>()
 
@@ -22,6 +21,6 @@ const emit = defineEmits<{ blur: [] }>()
 const model = defineModel<string>({ required: true })
 
 const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
+  () => [warning, error].filter(message => message !== undefined) as InputWrapperMessage
 )
 </script>

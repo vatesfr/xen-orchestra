@@ -1,7 +1,4 @@
-import {
-  type SrFilterableData,
-  useSrEnhancedData,
-} from '@/modules/storage-repository/composables/use-sr-enhanced-data.composable.ts'
+import { type SrFilterableData, useSrEnhancedData } from '@/modules/storage-repository/composables/use-sr-enhanced-data.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'

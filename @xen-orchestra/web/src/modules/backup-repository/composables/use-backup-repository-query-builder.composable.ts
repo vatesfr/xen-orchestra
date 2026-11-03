@@ -1,40 +1,12 @@
+import { type BackupRepositoryFilterableData, useBackupRepositoryEnhancedData } from '@/modules/backup-repository/composables/use-backup-repository-enhanced-data.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { parseBackupRepositoryUrlSafely } from '@/modules/backup-repository/utils/xo-backup-repository-parsed-url.util.ts'
-import { getBackupRepositoryStatus } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import type { Status } from '@core/components/status/VtsStatus.vue'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { toComputed } from '@core/utils/to-computed.util.ts'
-import { computed, type MaybeRefOrGetter } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType } from 'xo-remote-parser'
-
-export type BackupRepositoryStorageMode = 'block' | 'vhd'
-
-export type BackupRepositoryFilterableData = FrontXoBackupRepository & {
-  type: BackupRepositoryType | undefined
-  status: Status
-  storageMode: BackupRepositoryStorageMode
-}
-
-export function useBackupRepositoryFilterableData(rawBrs: MaybeRefOrGetter<FrontXoBackupRepository[]>) {
-  const brs = toComputed(rawBrs)
-
-  return computed<BackupRepositoryFilterableData[]>(() =>
-    brs.value.map(br => {
-      const parsedUrl = parseBackupRepositoryUrlSafely(br.url)
-
-      return {
-        ...br,
-        type: parsedUrl?.type,
-        status: getBackupRepositoryStatus(br),
-        storageMode: parsedUrl?.useVhdDirectory ? 'block' : 'vhd',
-      }
-    })
-  )
-}
+import { BACKUP_REPOSITORY_TYPE } from 'xo-remote-parser'
 
 export function useBackupRepositoryQueryBuilder(
   id: string,
@@ -43,7 +15,7 @@ export function useBackupRepositoryQueryBuilder(
 ) {
   const { t } = useI18n()
 
-  const filterableBrs = useBackupRepositoryFilterableData(rawBrs)
+  const { filterableBrs } = useBackupRepositoryEnhancedData(rawBrs)
 
   const { items, filter } = useQueryBuilderFilter(id, filterableBrs, options)
 

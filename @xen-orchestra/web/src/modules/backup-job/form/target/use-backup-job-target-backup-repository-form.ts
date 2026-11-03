@@ -1,15 +1,16 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
-import type { BackupJobTargetScopeType } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { useBackupJobScopeTypeOptions } from '@/modules/backup-job/composables/use-backup-job-scope-type-options.composable.ts'
+import type { BackupJobFormOption, BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import type { LongTermRetentionPeriod } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
-import { useBackupRepositoryFilterableData } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
+import { useBackupRepositoryEnhancedData } from '@/modules/backup-repository/composables/use-backup-repository-enhanced-data.composable.ts'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
-import { requiredIf, withMessage } from '@core/packages/form-validation'
+import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
@@ -19,7 +20,7 @@ export type BackupJobBackupDistribution = 'every' | 'distribute'
 
 export type BackupJobTargetBackupRepositoryFormData = {
   targetProxy: FrontXoProxy['id'] | undefined
-  backupRepositoryScopeType: BackupJobTargetScopeType
+  backupRepositoryScopeType: BackupJobScopeType
   backupRepositoryIds: FrontXoBackupRepository['id'][]
   backupRepositoryFilter: string
   backupDistribution: BackupJobBackupDistribution
@@ -38,8 +39,6 @@ export type BackupJobTargetBackupRepositoryFormData = {
 
 export type BackupJobTargetBackupRepositoryForm = ReturnType<typeof useBackupJobTargetBackupRepositoryForm>
 
-type LongTermRetentionPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly'
-
 export function useBackupJobTargetBackupRepositoryForm(
   formData: BackupJobTargetBackupRepositoryFormData,
   rawIsActive: MaybeRefOrGetter<boolean>,
@@ -56,7 +55,7 @@ export function useBackupJobTargetBackupRepositoryForm(
 
   const { proxies } = useXoProxyCollection()
 
-  const { backupRepositories } = useXoBackupRepositoryCollection()
+  const { backupRepositories, areBackupRepositoriesReady } = useXoBackupRepositoryCollection()
 
   const availableBackupRepositories = computed(() =>
     backupRepositories.value.filter(br => br.id !== sourceBackupRepositoryId.value)
@@ -66,7 +65,7 @@ export function useBackupJobTargetBackupRepositoryForm(
     availableBackupRepositories.value.filter(br => br.proxy === formData.targetProxy)
   )
 
-  const filterableBackupRepositories = useBackupRepositoryFilterableData(compatibleBackupRepositories)
+  const { filterableBrs: filterableBackupRepositories } = useBackupRepositoryEnhancedData(compatibleBackupRepositories)
 
   const matchedBackupRepositories = computed(() =>
     filterByQuery(filterableBackupRepositories.value, formData.backupRepositoryFilter)
@@ -102,6 +101,7 @@ export function useBackupJobTargetBackupRepositoryForm(
           ),
         },
         backupRepositoryFilter: {
+          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
           atLeastOneMatch: withMessage(
             () =>
               !isActive.value ||
@@ -118,21 +118,7 @@ export function useBackupJobTargetBackupRepositoryForm(
     },
   })
 
-  const scopeTypeLabels = computed<Record<BackupJobTargetScopeType, string>>(() => ({
-    all: t('all-objects-brs'),
-    manual: t('manual-selection'),
-    smart: t('dynamic-selection'),
-  }))
-
-  function getScopeTypeLabel(scopeType: BackupJobTargetScopeType): string {
-    return scopeTypeLabels.value[scopeType]
-  }
-
-  const scopeTypeOptions = computed<BackupJobFormOption<BackupJobTargetScopeType>[]>(() => [
-    { label: scopeTypeLabels.value.all, value: 'all' },
-    { label: scopeTypeLabels.value.manual, value: 'manual' },
-    { label: scopeTypeLabels.value.smart, value: 'smart' },
-  ])
+  const { getScopeTypeLabel, scopeTypeOptions } = useBackupJobScopeTypeOptions(() => t('all-objects-brs'))
 
   const distributionLabels = computed<Record<BackupJobBackupDistribution, string>>(() => ({
     every: t('store-backups-on-every-backup-repository'),
@@ -239,6 +225,7 @@ export function useBackupJobTargetBackupRepositoryForm(
     availableBackupRepositories,
     compatibleBackupRepositories,
     matchedBackupRepositories,
+    areBackupRepositoriesReady,
     getScopeTypeLabel,
     getDistributionLabel,
     getKeepLabel,

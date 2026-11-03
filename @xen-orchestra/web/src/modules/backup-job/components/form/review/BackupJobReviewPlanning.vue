@@ -1,12 +1,12 @@
 <template>
-  <VtsTabularKeyValueList class="backup-job-planning-review">
+  <VtsTabularKeyValueList class="backup-job-review-planning">
     <VtsTabularKeyValueRow :label="t('enabled')">
       <template #value>
         <VtsStatus :status="form.formData.enabled" />
       </template>
     </VtsTabularKeyValueRow>
     <VtsTabularKeyValueRow :label="t('resulting-expression')" :value="form.formData.cron" />
-    <VtsTabularKeyValueRow :label="t('time-zone')" :value="form.formData.timezone" />
+    <VtsTabularKeyValueRow :label="t('timezone')" :value="form.formData.timezone" />
     <VtsTabularKeyValueRow :label="t('next-runs')">
       <template #value>
         <div class="lines">
@@ -54,7 +54,7 @@ const { form } = defineProps<{
 const { t } = useI18n()
 
 const timeout = computed(() =>
-  form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('hours')}`
+  form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('cron:unit:hour')}`
 )
 
 const reportWhenLabel = computed(() => form.getReportWhenLabel(form.formData.reportWhen))
@@ -66,7 +66,7 @@ const nextRuns = useScheduleNextRuns(
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-planning-review {
+.backup-job-review-planning {
   .lines {
     display: flex;
     flex-direction: column;

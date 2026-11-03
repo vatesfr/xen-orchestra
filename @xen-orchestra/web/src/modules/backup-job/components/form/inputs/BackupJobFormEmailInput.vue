@@ -26,6 +26,7 @@ import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { email as emailRule } from '@core/packages/form-validation'
 import { useMapper } from '@core/packages/mapper'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -66,7 +67,7 @@ function addEmail() {
     return
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+  if (!emailRule.exec(value)) {
     errorType.value = 'invalid'
     return
   }

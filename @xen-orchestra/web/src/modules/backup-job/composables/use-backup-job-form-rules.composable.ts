@@ -1,14 +1,11 @@
-import { requiredIf, withMessage } from '@core/packages/form-validation'
+import { applyIf, minValue, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useI18n } from 'vue-i18n'
 
 export function useBackupJobFormRules() {
   const { t } = useI18n()
 
   function atLeast(min: number, isActive: () => boolean) {
-    return withMessage(
-      (value: unknown) => !isActive() || typeof value !== 'number' || value >= min,
-      () => t('must-be-at-least-n', { n: min })
-    )
+    return withMessage(applyIf(isActive, minValue(min)), () => t('must-be-at-least-n', { n: min }))
   }
 
   function calendarRules(isActive: () => boolean, getWeekDays: () => number[]) {

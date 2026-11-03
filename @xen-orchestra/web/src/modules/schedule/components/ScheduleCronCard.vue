@@ -28,7 +28,7 @@ import {
   getMaxStep,
   getSelectedValues,
   parseCronField,
-  setCronFieldStep,
+  toCronFieldStepValue,
   toggleCronFieldValue,
 } from '@/modules/schedule/utils/cron.util.ts'
 import { computed } from 'vue'
@@ -60,7 +60,7 @@ function toggle(value: number) {
 }
 
 function updateStep(newStep: number) {
-  field.value = formatCronField(setCronFieldStep(newStep))
+  field.value = formatCronField(toCronFieldStepValue(newStep))
 }
 </script>
 

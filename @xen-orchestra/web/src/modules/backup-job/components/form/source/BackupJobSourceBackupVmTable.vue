@@ -22,7 +22,7 @@
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import type { BackupJobMirrorVm } from '@/modules/backup-job/composables/use-backup-job-mirror-vms.composable.ts'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -34,7 +34,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useBackupArchiveVmColumns } from '@core/tables/column-sets/backup-archive-vm-columns.ts'
+import { useBackedUpVmColumns } from '@core/tables/column-sets/backed-up-vm-columns.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -74,9 +74,9 @@ const state = useTableState({
         : false,
 })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
-const { HeadCells, BodyCells } = useBackupArchiveVmColumns({
+const { HeadCells, BodyCells } = useBackedUpVmColumns({
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
@@ -98,14 +98,5 @@ const { HeadCells, BodyCells } = useBackupArchiveVmColumns({
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-
-  :deep(.table) {
-    width: 100%;
-  }
-
-  :deep(th:last-child),
-  :deep(td:last-child) {
-    white-space: nowrap;
-  }
 }
 </style>

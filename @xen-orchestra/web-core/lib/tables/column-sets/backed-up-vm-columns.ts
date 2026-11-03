@@ -5,7 +5,7 @@ import { useLinkOrTextColumn } from '@core/tables/column-definitions/link-or-tex
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useI18n } from 'vue-i18n'
 
-export const useBackupArchiveVmColumns = defineColumns(() => {
+export const useBackedUpVmColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {

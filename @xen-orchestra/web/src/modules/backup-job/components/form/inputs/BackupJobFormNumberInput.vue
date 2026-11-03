@@ -1,10 +1,6 @@
 <template>
-  <VtsInputWrapper class="backup-job-form-number-input" :label :message="messages">
-    <UiInput v-model.number="model" accent="brand" type="number" :required @blur="emit('blur')">
-      <template v-if="unit" #right-icon>
-        <span class="unit typo-body-regular">{{ unit }}</span>
-      </template>
-    </UiInput>
+  <VtsInputWrapper :label :message="messages">
+    <UiInput v-model.number="model" accent="brand" type="number" :required :suffix="unit" @blur="emit('blur')" />
   </VtsInputWrapper>
 </template>
 
@@ -30,12 +26,3 @@ const messages = computed<InputWrapperMessage>(
   () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
 )
 </script>
-
-<style lang="postcss" scoped>
-.backup-job-form-number-input {
-  .unit {
-    color: var(--color-neutral-txt-secondary);
-    pointer-events: none;
-  }
-}
-</style>

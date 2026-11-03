@@ -18,14 +18,9 @@ import { formatTimeAgoIntl, useNow } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  cron,
-  timezone,
-  count = 5,
-} = defineProps<{
+const { cron, timezone } = defineProps<{
   cron: string
   timezone: string | undefined
-  count?: number
 }>()
 
 const { t, locale } = useI18n()
@@ -34,8 +29,7 @@ const now = useNow({ interval: 60_000 })
 
 const nextRuns = useScheduleNextRuns(
   () => cron,
-  () => timezone,
-  () => count
+  () => timezone
 )
 
 const runs = computed(() =>

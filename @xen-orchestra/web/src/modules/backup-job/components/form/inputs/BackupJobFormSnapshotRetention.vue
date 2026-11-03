@@ -23,7 +23,7 @@
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
@@ -40,7 +40,7 @@ const model = defineModel<number | undefined>({ required: true })
 
 const { t } = useI18n()
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 const hasError = computed(() => errorMessage.value !== undefined)
 </script>

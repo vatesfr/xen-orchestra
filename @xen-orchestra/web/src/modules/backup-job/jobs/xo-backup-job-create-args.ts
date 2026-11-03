@@ -2,6 +2,6 @@ import type { NewBackupJobPayload } from '@/modules/backup-job/jobs/xo-backup-jo
 import { defineJobArg } from '@core/packages/job'
 
 export const payloadArg = defineJobArg<NewBackupJobPayload>({
-  identify: false,
+  identify: payload => payload.name,
   toArray: false,
 })

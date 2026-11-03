@@ -1,4 +1,4 @@
-export type BackupJobFormOption<TValue> = { label: string; value: TValue; description?: string; disabled?: boolean }
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 
 export function formatSelectedLabels(options: BackupJobFormOption<number>[], values: number[]): string | undefined {
   return values.length === 0

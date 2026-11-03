@@ -14,11 +14,12 @@
     <UiSubtitle>{{ t('incremental-specifics') }}</UiSubtitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('key-backup')" :value="keyBackupLabel" />
-      <template v-if="form.bindings.keyBackup.modelValue === 'dynamic'">
-        <VtsTabularKeyValueRow :label="t('days-of-the-month')" :value="keyBackupMonthDaysLabel" />
-        <VtsTabularKeyValueRow :label="t('days-of-the-week')" :value="keyBackupWeekDaysLabel" />
-        <VtsTabularKeyValueRow :label="t('hours')" :value="keyBackupHoursLabel" />
-      </template>
+      <BackupJobReviewCalendarRows
+        v-if="form.bindings.keyBackup.modelValue === 'dynamic'"
+        :month-days="form.bindings.keyBackupMonthDays"
+        :week-days="form.bindings.keyBackupWeekDays"
+        :hours="form.bindings.keyBackupHours"
+      />
       <VtsTabularKeyValueRow :label="t('network-block-device-nbd')">
         <template #value>
           <VtsStatus :status="form.bindings.preferNbd.modelValue" />
@@ -53,8 +54,8 @@
 </template>
 
 <script lang="ts" setup>
+import BackupJobReviewCalendarRows from '@/modules/backup-job/components/form/review/BackupJobReviewCalendarRows.vue'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import { formatSelectedLabels } from '@/modules/backup-job/utils/backup-job-form.util.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -79,18 +80,6 @@ const speedLimit = computed(() =>
 const compressionLabel = computed(() => form.getCompressionLabel(form.formData.compression))
 
 const keyBackupLabel = computed(() => form.getKeyBackupLabel(form.formData.keyBackup))
-
-const keyBackupMonthDaysLabel = computed(() =>
-  formatSelectedLabels(form.bindings.keyBackupMonthDays.options, form.formData.keyBackupMonthDays)
-)
-
-const keyBackupWeekDaysLabel = computed(() =>
-  formatSelectedLabels(form.bindings.keyBackupWeekDays.options, form.formData.keyBackupWeekDays)
-)
-
-const keyBackupHoursLabel = computed(() =>
-  formatSelectedLabels(form.bindings.keyBackupHours.options, form.formData.keyBackupHours)
-)
 
 const snapshotModeLabel = computed(() => form.getSnapshotModeLabel(form.formData.snapshotMode))
 

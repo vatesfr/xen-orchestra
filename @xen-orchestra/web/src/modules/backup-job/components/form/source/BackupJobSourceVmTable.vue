@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import type { VmFilterableData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmLastBackupDates } from '@/modules/vm/composables/use-vm-last-backup-dates.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
@@ -38,8 +38,9 @@ import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vms, error } = defineProps<{
+const { vms, busy, error } = defineProps<{
   vms: FrontXoVm[]
+  busy: boolean
   error?: InputWrapperMessage
 }>()
 
@@ -68,11 +69,12 @@ const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = u
 const { getVmLastBackupDate, areBackupLogsReady } = useVmLastBackupDates()
 
 const state = useTableState({
+  busy: () => busy,
   empty: () =>
     vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 const { HeadCells, BodyCells } = useVmColumns({
   exclude: ['ipAddresses', 'vcpus', 'ram', 'diskSpace', 'actions'],
@@ -93,14 +95,5 @@ const { HeadCells, BodyCells } = useVmColumns({
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-
-  :deep(.table) {
-    width: 100%;
-  }
-
-  :deep(th:last-child),
-  :deep(td:last-child) {
-    white-space: nowrap;
-  }
 }
 </style>

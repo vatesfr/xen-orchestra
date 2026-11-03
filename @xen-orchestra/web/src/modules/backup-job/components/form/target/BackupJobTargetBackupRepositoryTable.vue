@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import { useBackupRepositoryQueryBuilder } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
@@ -43,11 +43,12 @@ import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repo
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { mode, brs, compatibleBrs, matchedBrs, error } = defineProps<{
+const { mode, brs, compatibleBrs, matchedBrs, busy, error } = defineProps<{
   mode: 'manual' | 'smart'
   brs: FrontXoBackupRepository[]
   compatibleBrs: FrontXoBackupRepository[]
-  matchedBrs?: FrontXoBackupRepository[]
+  matchedBrs: FrontXoBackupRepository[]
+  busy: boolean
   error?: InputWrapperMessage
 }>()
 
@@ -65,7 +66,7 @@ const {
   schema,
 } = useBackupRepositoryQueryBuilder('backup-job-target-brs', () => brs, { ignoreRoute: true })
 
-const displayedBrs = computed(() => (isManual.value ? searchedBrs.value : (matchedBrs ?? [])))
+const displayedBrs = computed(() => (isManual.value ? searchedBrs.value : matchedBrs))
 
 const compatibleBrIds = computed(() => new Set(compatibleBrs.map(br => br.id)))
 
@@ -85,6 +86,7 @@ const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = u
 )
 
 const state = useTableState({
+  busy: () => busy,
   empty: () =>
     brs.length === 0
       ? t('no-backup-repository-detected')
@@ -93,7 +95,7 @@ const state = useTableState({
         : false,
 })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
   exclude: ['proxy', 'actions'],

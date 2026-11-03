@@ -1,11 +1,11 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
-import type { BackupJobTargetScopeType } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import { useBackupJobScopeTypeOptions } from '@/modules/backup-job/composables/use-backup-job-scope-type-options.composable.ts'
+import type { BackupJobFormOption, BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
-import { useSrFormFilterableData } from '@/modules/storage-repository/composables/use-sr-form-query-builder.composable.ts'
+import { useSrEnhancedData } from '@/modules/storage-repository/composables/use-sr-enhanced-data.composable.ts'
 import { type FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
-import { requiredIf, withMessage } from '@core/packages/form-validation'
+import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive } from 'vue'
@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n'
 export type BackupJobReplicaDistribution = 'every' | 'distribute'
 
 export type BackupJobTargetStorageRepositoryFormData = {
-  storageRepositoryScopeType: BackupJobTargetScopeType
+  storageRepositoryScopeType: BackupJobScopeType
   storageRepositoryIds: FrontXoSr['id'][]
   storageRepositoryFilter: string
   replicaDistribution: BackupJobReplicaDistribution
@@ -31,11 +31,11 @@ export function useBackupJobTargetStorageRepositoryForm(
 
   const isActive = toComputed(rawIsActive)
 
-  const { srs } = useXoSrCollection()
+  const { srs, areSrsReady } = useXoSrCollection()
 
   const availableStorageRepositories = computed(() => srs.value.filter(isSrWritable))
 
-  const filterableStorageRepositories = useSrFormFilterableData(availableStorageRepositories)
+  const { filterableSrs: filterableStorageRepositories } = useSrEnhancedData(availableStorageRepositories)
 
   const matchedStorageRepositories = computed(() =>
     filterByQuery(filterableStorageRepositories.value, formData.storageRepositoryFilter)
@@ -56,6 +56,7 @@ export function useBackupJobTargetStorageRepositoryForm(
           ),
         },
         storageRepositoryFilter: {
+          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
           atLeastOneMatch: withMessage(
             () =>
               !isActive.value ||
@@ -75,21 +76,7 @@ export function useBackupJobTargetStorageRepositoryForm(
     },
   })
 
-  const scopeTypeLabels = computed<Record<BackupJobTargetScopeType, string>>(() => ({
-    all: t('all-objects-srs'),
-    manual: t('manual-selection'),
-    smart: t('dynamic-selection'),
-  }))
-
-  function getScopeTypeLabel(scopeType: BackupJobTargetScopeType): string {
-    return scopeTypeLabels.value[scopeType]
-  }
-
-  const scopeTypeOptions = computed<BackupJobFormOption<BackupJobTargetScopeType>[]>(() => [
-    { label: scopeTypeLabels.value.all, value: 'all' },
-    { label: scopeTypeLabels.value.manual, value: 'manual' },
-    { label: scopeTypeLabels.value.smart, value: 'smart' },
-  ])
+  const { getScopeTypeLabel, scopeTypeOptions } = useBackupJobScopeTypeOptions(() => t('all-objects-srs'))
 
   const distributionLabels = computed<Record<BackupJobReplicaDistribution, string>>(() => ({
     every: t('store-replicas-on-every-storage-repository'),
@@ -127,6 +114,7 @@ export function useBackupJobTargetStorageRepositoryForm(
     bindings,
     availableStorageRepositories,
     matchedStorageRepositories,
+    areSrsReady,
     getScopeTypeLabel,
     getDistributionLabel,
     validate,
