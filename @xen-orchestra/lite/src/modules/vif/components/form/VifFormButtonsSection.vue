@@ -1,10 +1,10 @@
 <template>
-  <div class="new-vif-buttons-section">
+  <div class="vif-form-buttons-section">
     <UiLink :to="cancelTo" size="medium">
       {{ t('cancel') }}
     </UiLink>
     <UiButton type="submit" size="medium" accent="brand" variant="primary">
-      {{ t('action:create-vif') }}
+      {{ submitLabel }}
     </UiButton>
   </div>
 </template>
@@ -17,13 +17,14 @@ import { type RouteLocationRaw } from 'vue-router'
 
 defineProps<{
   cancelTo: RouteLocationRaw
+  submitLabel: string
 }>()
 
 const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.new-vif-buttons-section {
+.vif-form-buttons-section {
   display: flex;
   justify-content: center;
   align-items: center;

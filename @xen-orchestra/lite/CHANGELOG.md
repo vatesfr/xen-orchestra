@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
@@ -19,6 +19,7 @@
 - [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
 - [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
 - [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
+- [VM/Network] Add the possibility to edit a VIF (PR [#10505](https://github.com/vatesfr/xen-orchestra/pull/10505))
 
 ## **0.26.0** (2026-10-01)
 

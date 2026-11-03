@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.10.0** (2026-10-29)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
@@ -146,14 +148,14 @@
 - @xen-orchestra/vmware-explorer 1.2.0
 - @xen-orchestra/qa-test 1.4.0
 - @xen-orchestra/rest-api 0.41.1
-- @xen-orchestra/web 0.65.0
 - xo-server 5.213.0
 - xo-server-sdn-controller 1.6.0
 - xo-web 5.208.0
+- @xen-orchestra/web 0.65.1
 
 ## **6.9.1** (2026-10-05)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -338,8 +340,6 @@
 - xo-web 5.206.0
 
 ## **6.8.2** (2026-09-04)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
