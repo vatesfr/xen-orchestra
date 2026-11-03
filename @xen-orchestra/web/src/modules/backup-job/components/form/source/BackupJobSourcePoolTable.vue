@@ -21,24 +21,23 @@
 
 <script lang="ts" setup>
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
-import { toErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import { usePoolQueryBuilder } from '@/modules/pool/composables/use-pool-query-builder.composable.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { usePoolColumns } from '@core/tables/column-sets/pool-columns.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pools, error } = defineProps<{
+const { pools, busy, error } = defineProps<{
   pools: FrontXoPool[]
-  schema: QueryBuilderSchema
+  busy: boolean
   error?: InputWrapperMessage
 }>()
 
@@ -46,9 +45,11 @@ const selectedIds = defineModel<FrontXoPool['id'][]>({ required: true })
 
 const { t } = useI18n()
 
-const { items: filteredPools, filter } = useQueryBuilderFilter('backup-job-source-pools', () => pools, {
-  ignoreRoute: true,
-})
+const {
+  items: filteredPools,
+  filter,
+  schema,
+} = usePoolQueryBuilder('backup-job-source-pools', () => pools, { ignoreRoute: true })
 
 const { pageRecords: paginatedPools, paginationBindings } = usePagination('backup-job-source-pools', filteredPools, {
   ignoreRoute: true,
@@ -62,11 +63,12 @@ const { isSelected, toggleSelection, pageSelectionModel, selectionBindings } = u
 )
 
 const state = useTableState({
+  busy: () => busy,
   empty: () =>
     pools.length === 0 ? t('no-pools-detected') : filteredPools.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const errorMessage = computed(() => toErrorMessage(error))
+const errorMessage = computed(() => formatErrorMessage(error))
 
 const { HeadCells, BodyCells } = usePoolColumns({
   head: () => ({
@@ -86,9 +88,5 @@ const { HeadCells, BodyCells } = usePoolColumns({
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-
-  :deep(.table) {
-    width: 100%;
-  }
 }
 </style>

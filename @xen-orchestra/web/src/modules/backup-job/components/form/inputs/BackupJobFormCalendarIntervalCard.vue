@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { BackupJobFormOption } from '@/modules/backup-job/utils/backup-job-form.util.ts'
+import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import ScheduleStepInput from '@/modules/schedule/components/ScheduleStepInput.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { computed } from 'vue'

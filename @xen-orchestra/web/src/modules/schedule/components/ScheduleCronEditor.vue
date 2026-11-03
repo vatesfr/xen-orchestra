@@ -1,6 +1,6 @@
 <template>
   <div class="schedule-cron-editor">
-    <VtsInputWrapper :label="t('time-zone')">
+    <VtsInputWrapper :label="t('timezone')">
       <VtsSelect :id="timezoneSelectId" accent="brand" />
     </VtsInputWrapper>
 

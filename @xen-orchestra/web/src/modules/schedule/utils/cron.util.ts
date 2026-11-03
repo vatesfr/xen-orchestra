@@ -133,7 +133,7 @@ export function getCronFieldStep(value: CronFieldValue): number | undefined {
   }
 }
 
-export function setCronFieldStep(step: number): CronFieldValue {
+export function toCronFieldStepValue(step: number): CronFieldValue {
   return step <= 1 ? { type: 'all' } : { type: 'step', step }
 }
 

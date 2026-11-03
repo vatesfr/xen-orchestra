@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-job-source-review">
+  <div class="backup-job-review-source">
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="form.formData.name" />
       <VtsTabularKeyValueRow :label="t('data-source')" :value="dataSourceLabel" />
@@ -93,15 +93,11 @@ const sourceBackupRepository = useGetBackupRepositoryById(() => form.formData.so
 
 const isManualVmSelection = computed(() => form.hasVmSelection.value && form.formData.scopeType === 'manual')
 
-const isDynamicVmSelection = computed(
-  () => form.hasVmSelection.value && form.formData.scopeType === 'smart' && form.formData.vmFilter !== ''
-)
+const isDynamicVmSelection = computed(() => form.hasVmSelection.value && form.formData.scopeType === 'smart')
 
 const isManualPoolSelection = computed(() => form.hasPoolSelection.value && form.formData.scopeType === 'manual')
 
-const isDynamicPoolSelection = computed(
-  () => form.hasPoolSelection.value && form.formData.scopeType === 'smart' && form.formData.poolFilter !== ''
-)
+const isDynamicPoolSelection = computed(() => form.hasPoolSelection.value && form.formData.scopeType === 'smart')
 
 const {
   vmSelectionSchema,
@@ -114,7 +110,7 @@ const {
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-source-review {
+.backup-job-review-source {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;

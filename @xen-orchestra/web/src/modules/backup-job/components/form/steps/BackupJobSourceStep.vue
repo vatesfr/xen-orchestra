@@ -43,7 +43,7 @@
             :busy="!areMirrorVmsReady"
             :schema="mirrorVmSchema"
           />
-          <BackupJobSourceVmTable v-else v-bind="bindings.vmIds" :vms />
+          <BackupJobSourceVmTable v-else v-bind="bindings.vmIds" :vms :busy="!areVmsReady" />
         </template>
         <BackupJobFormDynamicSelection
           v-else-if="bindings.scopeType.modelValue === 'smart'"
@@ -53,12 +53,12 @@
           :count-label="t('n-vms', { n: matchedSelectionItems.length })"
         />
       </template>
-      <template v-else-if="hasPoolSelection">
+      <template v-else>
         <BackupJobSourcePoolTable
           v-if="bindings.scopeType.modelValue === 'manual'"
           v-bind="bindings.poolIds"
           :pools
-          :schema="poolSchema"
+          :busy="!arePoolsReady"
         />
         <BackupJobFormDynamicSelection
           v-else-if="bindings.scopeType.modelValue === 'smart'"
@@ -99,6 +99,7 @@ const { t } = useI18n()
 const {
   bindings,
   vms,
+  areVmsReady,
   mirrorVms,
   areMirrorVmsReady,
   mirrorVmSchema,
@@ -108,6 +109,7 @@ const {
   vmSelectionSchema,
   matchedSelectionItems,
   pools,
+  arePoolsReady,
   hasPoolSelection,
   poolSchema,
   matchedPoolItems,
