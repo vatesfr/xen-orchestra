@@ -410,6 +410,23 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.steps, [['host-B']])
     })
 
+    it('ignores an unfinished host forgotten while its patches were listed', async function () {
+      const xapi = new FakeXapi([0, 2])
+      const { listMissingPatches } = xapi
+      xapi.listMissingPatches = async function (hostUuid) {
+        const patches = await listMissingPatches.apply(this, arguments)
+        if (hostUuid === 'host-B') {
+          this.hosts = this.hosts.filter(host => host.uuid !== 'host-B')
+        }
+        return patches
+      }
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, [[]])
+    })
+
     it('leaves disabled an unfinished host the operator had disabled', async function () {
       const xapi = new FakeXapi([0, 0])
       Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })

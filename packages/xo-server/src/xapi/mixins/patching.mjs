@@ -913,7 +913,11 @@ const methods = {
     }
     const rebootOnlyHostIds = new Set()
     for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
-      const host = this.getObject(hostId)
+      const host = this.getObject(hostId, undefined)
+      // forgotten while its patches were listed: nothing left to do
+      if (host === undefined) {
+        continue
+      }
       // left disabled by the previous attempt, whatever is left to do on it: a
       // host handled before it, such as a master with patches released since,
       // must be able to evacuate its VMs to it. Its evacuation disables it

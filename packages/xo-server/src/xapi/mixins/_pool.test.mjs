@@ -628,6 +628,25 @@ describe('rollingPoolReboot', function () {
       assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, ['host-C', 'host-A', 'host-B'])
     })
 
+    it('keeps the order of the hosts to reboot first on a later resume', async function () {
+      const xapi = new FakeXapi([[10], [10], [10], [10]])
+      const recorder = planSpyRecorder()
+      const hostOrder = ['host-C', 'host-D', 'host-A', 'host-B']
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        rebootFirst: host => host.uuid === 'host-C' || host.uuid === 'host-D',
+        resume: { doneHostIds: new Set(), hostOrder, vmHomeById: {}, haltedPinnedVms: {} },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        hostOrder
+      )
+      assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, hostOrder)
+    })
+
     it('checks the evacuation precondition of the remaining hosts only right before evacuating them', async function () {
       const xapi = new FakeXapi([[10], [10], [10]])
       const calls = []
