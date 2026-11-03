@@ -562,7 +562,7 @@
   "firewall:error:unreadable": "La politique publiée n'est pas un JSON valide : {error}",
   "firewall:flow-map": "Carte des flux",
   "firewall:flow-map:allowed": "Connexions ouvertes : {n}",
-  "firewall:flow-map:description": "Les connexions ouvertes entre les groupes du pool, et ce qui a été bloqué dans la dernière minute. Survolez un lien pour le détailler, cliquez pour tracer l'un de ses flux.",
+  "firewall:flow-map:description": "Connexions ouvertes et blocages de la dernière minute. Cliquez sur un lien pour le tracer.",
   "firewall:flow-map:dropped": "Bloqués dans la dernière minute : {n}",
   "firewall:flow-map:edge:allow": "{from} → {to} : 1 connexion ouverte, autorisée par {by} | {from} → {to} : {n} connexions ouvertes, par ex. autorisées par {by}",
   "firewall:flow-map:edge:drop": "{from} → {to} : bloqué une fois dans la dernière minute, par {by} | {from} → {to} : bloqué {n} fois dans la dernière minute, par ex. par {by}",
