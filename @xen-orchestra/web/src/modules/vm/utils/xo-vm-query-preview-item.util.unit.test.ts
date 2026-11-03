@@ -11,7 +11,7 @@ describe('toVmQueryPreviewItem', () => {
       id: VM_ID,
       label: 'Web server',
       icon: objectIcon('vm', 'running'),
-      route: { name: '/vm/[id]/dashboard', params: { id: VM_ID } },
+      route: `/vm/${VM_ID}/dashboard`,
     })
   })
 

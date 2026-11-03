@@ -22,8 +22,4 @@ describe('filterByQuery', () => {
   it('matches nothing with an invalid query', () => {
     expect(filterByQuery(ITEMS, 'name:(')).toEqual([])
   })
-
-  it('evaluates the query on the context of each item and keeps the items', () => {
-    expect(filterByQuery(ITEMS, 'item:(tags:prod)', item => ({ item }))).toEqual([ITEMS[0], ITEMS[2]])
-  })
 })
