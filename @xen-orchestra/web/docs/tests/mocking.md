@@ -43,6 +43,8 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-delete-modal.ts` stands for `useDeleteModal`, whose overlay a unit test cannot answer: `deleteModalMock.answer('onConfirm' | 'onCancel')` sets how the next confirmation is answered, `deleteModalMock.confirm()` runs the `onConfirm` event of the last confirmation for a caller that passes its events instead of awaiting the answer, `deleteModalMock.open` is the spy to read the props it was opened with, and `deleteModalMock.reset()` goes in `beforeEach`.
 
+`mock-overlay.ts` stands for `useOverlay`, whose overlays a unit test cannot open: each call is recorded in order, as the options it was given (its `component`, its `events`) and the `open` spy it got back; `overlayMock.getOverlay<TOptions>(index = 0)` / `overlayMock.getOverlays<TOptions>()` read them back, `TOptions` typing the events for the payload they take, and `overlayMock.reset()` goes in `beforeEach`.
+
 `mock-v2v-vm-actions.ts` stands for `use-v2v-vm-actions.composable.ts`, whose composables open the settings drawer or delete an import VM: each `v2vVmActionsMock.useV2v*VmActions` spy returns fresh fake actions of its kind (read them back from `mock.results`), and `v2vVmActionsMock.reset()` goes in `beforeEach`.
 
 `mock-xo-vm-device-collections.ts` stands for the VBD, VDI and VIF collections: `vmDeviceCollectionsMock` holds `vbds`, `vdis`, `vifs` and their `are…Ready` flags (true after a reset), and its collections answer `getVbdsByIds` and `getVifsByIds`.
