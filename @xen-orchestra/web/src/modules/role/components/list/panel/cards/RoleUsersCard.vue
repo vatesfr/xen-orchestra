@@ -41,6 +41,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLinkList from '@core/components/ui/link-list/UiLinkList.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -59,9 +60,9 @@ const { t } = useI18n()
 const { getUsersByIds, useGetUsersByIds, areUsersReady, hasUserFetchError } = useXoUserCollection()
 const { useGetGroupsByIds, areGroupsReady, hasGroupFetchError } = useXoGroupCollection()
 
-const isReady = computed(() => areUsersReady.value && areGroupsReady.value)
+const isReady = logicAnd(areUsersReady, areGroupsReady)
 
-const hasFetchError = computed(() => hasUserFetchError.value || hasGroupFetchError.value)
+const hasFetchError = logicOr(hasUserFetchError, hasGroupFetchError)
 
 const directUsers = useGetUsersByIds(() => role.userIds)
 
