@@ -1,6 +1,7 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
@@ -9,7 +10,6 @@ import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.comp
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
 import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type {
   V2vLaunchGroupType,
   V2vStartProblem,
@@ -67,7 +67,7 @@ export function useV2vReviewStep() {
 
   const { getErrorMessage } = useApiErrorMessage()
 
-  const connectionStore = useV2vConnectionStore()
+  const { connection } = useV2vConnection()
 
   const { goToStep, getStepLocation } = useV2vWizardNavigation()
 
@@ -262,11 +262,11 @@ export function useV2vReviewStep() {
   async function launch() {
     launchError.value = undefined
 
-    const connection = connectionStore.connection
+    const sourceConnection = connection.value
     const list = migrationList.list.value
 
     // Without a connection or a list, the wizard does not show the step: the check narrows their types
-    if (connection === undefined || list === undefined) {
+    if (sourceConnection === undefined || list === undefined) {
       return
     }
 
@@ -281,7 +281,7 @@ export function useV2vReviewStep() {
     const count = launchCount.value
 
     payload.value = buildV2vStartPayload({
-      connection,
+      connection: sourceConnection,
       defaults: list.defaults,
       settings: { ...form.formData, concurrency },
       vms: startVms.value,
