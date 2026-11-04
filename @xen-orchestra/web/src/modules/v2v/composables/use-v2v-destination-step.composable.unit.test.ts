@@ -1,13 +1,11 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import {
   createV2vDestinationDefaults,
   createV2vMigrationList,
@@ -17,6 +15,7 @@ import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -69,14 +68,10 @@ async function mountDestinationStep(query: Record<string, string> = {}) {
   destinationCollectionsMock.templates.value = [createVmTemplate({ id: STORED_TEMPLATE_ID })]
   const router = await createV2vWizardRouter('destination', query)
 
-  const result = mountComposable(
-    () => {
-      useV2vConnectionStore().setConnection(CONNECTION, createV2vInventory())
-
-      return useV2vDestinationStep()
-    },
-    { router }
-  ).wrapper.vm
+  const result = mountComposable(() => useV2vDestinationStep(), {
+    router,
+    provide: v2vConnectionProvide(createConnectedV2vContext({ connection: CONNECTION })),
+  }).wrapper.vm
 
   return { result, router }
 }

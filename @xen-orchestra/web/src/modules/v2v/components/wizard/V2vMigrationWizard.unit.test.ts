@@ -4,12 +4,11 @@ import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWiza
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { createV2vConnectionContext } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { mount } from '@vue/test-utils'
@@ -27,11 +26,9 @@ async function mountWizard(
 ) {
   const router = await createV2vWizardRouter(step, { pool })
 
-  const context = createV2vConnectionContext()
-
-  if (isConnected) {
-    context.setConnection(createV2vConnection({ host: 'vcenter-prod.lab' }), createV2vInventory())
-  }
+  const context = isConnected
+    ? createConnectedV2vContext({ connection: createV2vConnection({ host: 'vcenter-prod.lab' }) })
+    : createV2vConnectionContext()
 
   return mount(V2vMigrationWizard, {
     global: createGlobalTestConfig({
