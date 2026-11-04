@@ -1,10 +1,10 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createPool, DISKOR_POOL_NAME, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { ref } from 'vue'
 
 vi.mock(
@@ -24,12 +24,8 @@ function mountSourceAndDestination(
 ) {
   xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
 
-  return mountComposable(() => {
-    if (isConnected) {
-      connectV2vSource({ connection: CONNECTION })
-    }
-
-    return useV2vSourceAndDestination(poolId)
+  return mountComposable(() => useV2vSourceAndDestination(poolId), {
+    provide: v2vConnectionProvide(isConnected ? createConnectedV2vContext({ connection: CONNECTION }) : undefined),
   }).wrapper.vm
 }
 
