@@ -48,7 +48,7 @@ const LIST_ISSUE = { label: 'Import in progress', accent: 'danger' } as const
 
 // The cards render what the container hands them, each covered by its own test: here only the wiring matters
 function mountCards() {
-  return mountV2vVmMappingComponent((list, router) => {
+  return mountV2vVmMappingComponent((list, router, provide) => {
     const vm = createV2vNewMappingStepVm({ list, listIssue: LIST_ISSUE })
 
     return {
@@ -57,6 +57,7 @@ function mountCards() {
         props: { vm },
         global: createGlobalTestConfig({
           router,
+          provide,
           stubs: {
             V2vVmSourceCard: true,
             V2vVmChecksCard: true,

@@ -2,7 +2,6 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
@@ -11,6 +10,7 @@ import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
   V2V_DISK_OVERRIDES,
@@ -80,29 +80,36 @@ export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
 ) {
   const storedList = seedV2vVmMappingList(listVm)
 
-  return mountComposableWithI18n(() => {
-    if (isSourceConnected) {
-      connectV2vSource({ inventory: V2V_MAPPING_INVENTORY })
+  return mountComposableWithI18n(
+    () => {
+      const migrationList = useV2vMigrationList(storedList.sourceId, storedList.poolId)
+
+      return useMapping(migrationList, () => migrationList.list.value as V2vMigrationList)
+    },
+    {
+      provide: v2vConnectionProvide(
+        isSourceConnected ? createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY }) : undefined
+      ),
     }
-
-    const migrationList = useV2vMigrationList(storedList.sourceId, storedList.poolId)
-
-    return useMapping(migrationList, () => migrationList.list.value as V2vMigrationList)
-  })
+  )
 }
 
 /**
  * The component variant of `mountV2vVmMapping`: on the same pools, mounts with `mountComponent` a mapping component
- * handed the list holding `listVm` (stored too), then connects the mapping inventory as source.
+ * handed the list holding `listVm` (stored too), with the mapping inventory as connected source.
  * Needs the destination collections mocked with `mock-xo-collections.ts`.
  */
 export async function mountV2vVmMappingComponent<TMounted>(
-  mountComponent: (list: V2vMigrationList, router: Router) => TMounted,
+  mountComponent: (
+    list: V2vMigrationList,
+    router: Router,
+    provide: Parameters<Parameters<typeof mountOnV2vWizard>[0]>[1]
+  ) => TMounted,
   { listVm = V2V_OVERRIDDEN_LIST_VM }: Pick<MountV2vVmMappingOptions, 'listVm'> = {}
 ) {
   const list = seedV2vVmMappingList(listVm)
 
-  const { mounted } = await mountOnV2vWizard(router => mountComponent(list, router), {
+  const { mounted } = await mountOnV2vWizard((router, provide) => mountComponent(list, router, provide), {
     source: { inventory: V2V_MAPPING_INVENTORY },
   })
 

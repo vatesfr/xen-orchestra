@@ -63,11 +63,12 @@ vi.mock(
 // matters
 function mountDrawer({ vm = V2V_MAPPED_VM, listVm }: { vm?: XoV2vVm; listVm?: V2vMigrationListVm } = {}) {
   return mountV2vVmMappingComponent(
-    (list, router) =>
+    (list, router, provide) =>
       mount(V2vVmSettingsDrawer, {
         props: { vm, list },
         global: createGlobalTestConfig({
           router,
+          provide,
           stubs: { V2vDiskMappingTable: true, V2vNicMappingTable: true, V2vVmOptionsFields: true },
         }),
         attachTo: document.body,

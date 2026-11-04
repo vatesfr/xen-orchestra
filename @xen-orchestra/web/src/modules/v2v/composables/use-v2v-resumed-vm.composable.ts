@@ -1,9 +1,9 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { getV2vActiveMapping } from '@/modules/v2v/utils/v2v-active-mapping.util.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
@@ -37,7 +37,7 @@ function getTargetName<TId extends string>(
 
 // A resumed VM keeps the mapping of its first sync, read back from the devices of its import VM
 export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: MaybeRefOrGetter<FrontXoVm>) {
-  const connectionStore = useV2vConnectionStore()
+  const { inventory } = useV2vConnection()
 
   const { getDiskDetailParts, getNicDetailParts } = useV2vVmLabels()
 
@@ -69,8 +69,6 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
       powerLabel: powerState.value.text,
     })
   )
-
-  const inventory = computed(() => connectionStore.inventory)
 
   const activeMapping = computed(() =>
     getV2vActiveMapping(vm.value, vdis.value, getVbdsByIds(importVm.value.$VBDs), getVifsByIds(importVm.value.VIFs))

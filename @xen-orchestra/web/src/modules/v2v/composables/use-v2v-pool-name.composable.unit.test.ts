@@ -2,6 +2,7 @@ import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.comp
 import { createPool } from '@/test/create-pool.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
@@ -11,7 +12,7 @@ vi.mock(
 const POOL = createPool()
 
 function mountPoolName() {
-  return mountComposable(() => ({ poolName: useV2vPoolName(POOL.id) })).wrapper.vm
+  return mountComposable(() => ({ poolName: useV2vPoolName(POOL.id) }), { provide: v2vConnectionProvide() }).wrapper.vm
 }
 
 beforeEach(() => {

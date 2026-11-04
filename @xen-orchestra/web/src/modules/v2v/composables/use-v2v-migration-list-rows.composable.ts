@@ -1,19 +1,19 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import { computed } from 'vue'
 
 // The migration list of the connected source for the pool of the route, and the VMs of that source as rows
 export function useV2vMigrationListRows() {
-  const connectionStore = useV2vConnectionStore()
+  const { sourceId } = useV2vConnection()
 
   const poolId = useV2vPoolIdQuery()
 
   const { sourceHost } = useV2vSourceAndDestination(poolId)
 
-  const migrationList = useV2vMigrationList(() => connectionStore.sourceId, poolId)
+  const migrationList = useV2vMigrationList(sourceId, poolId)
 
   const listVmIds = computed(() => migrationList.list.value?.vms.map(vm => vm.id) ?? [])
 

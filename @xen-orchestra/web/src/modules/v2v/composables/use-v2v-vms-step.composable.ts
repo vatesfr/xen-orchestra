@@ -47,7 +47,7 @@ const DATASTORE_PROPERTY = 'datastore'
 export function useV2vVmsStep() {
   const { t } = useI18n()
 
-  const { sourceId, inventory } = useV2vConnection()
+  const { inventory } = useV2vConnection()
 
   const { goToStep } = useV2vWizardNavigation()
 
