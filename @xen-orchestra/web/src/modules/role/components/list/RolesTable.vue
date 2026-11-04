@@ -116,6 +116,7 @@ const { HeadCells, BodyCells } = useRoleColumns({
             {
               label: t('action:delete'),
               icon: 'action:delete',
+              accent: 'danger',
               onClick: () => deleteRoles(),
               disabled: !canDeleteRoles.value,
               busy: isDeletingRoles.value,
