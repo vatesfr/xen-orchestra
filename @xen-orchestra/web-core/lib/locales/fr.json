@@ -1201,7 +1201,6 @@
   "relative-time:past": "Il y a {str}",
   "relative-time:second": "1 seconde | {n} secondes",
   "relative-time:year": "1 an | {n} ans",
-  "remaining-space": "Espace restant",
   "remember-connection-in-browser": "Mémoriser la connexion dans ce navigateur",
   "remember-credentials-warning": "Stocker ces identifiants dans votre navigateur augmente les risques de sécurité. Assurez-vous que cela respecte vos règles de sécurité.",
   "remembered-connections": "Connexions mémorisées",
