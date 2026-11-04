@@ -27,12 +27,12 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import type { XoV2vVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 // A source VM has no page in XO to link to; its power state is not part of its heading, hence the plain VM icon
 defineProps<{
-  id: XoV2vVm['id']
+  // Not `XoV2vVm['id']`: Vue resolves the branded type to a runtime `Object` check and warns on the string id
+  id: string
   heading: V2vMappingVmHeading
 }>()
 
