@@ -110,7 +110,7 @@ it('lets a VM backup choose its storage targets', () => {
     storageRepository: false,
     healthCheck: true,
   })
-  expect(wrapper.getComponent(BackupJobFormCheckboxGroup).props('label')).toBe(t('storage-target'))
+  expect(wrapper.getComponent(BackupJobFormCheckboxGroup).get('.ui-label').text()).toBe(t('storage-target'))
 })
 
 it('shows a section for each storage target of a VM backup', () => {

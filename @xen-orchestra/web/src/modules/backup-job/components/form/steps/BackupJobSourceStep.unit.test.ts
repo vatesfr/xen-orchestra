@@ -1,6 +1,5 @@
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import BackupJobFormDynamicSelection from '@/modules/backup-job/components/form/inputs/BackupJobFormDynamicSelection.vue'
-import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import BackupJobSourceBackupVmTable from '@/modules/backup-job/components/form/source/BackupJobSourceBackupVmTable.vue'
 import BackupJobSourcePoolTable from '@/modules/backup-job/components/form/source/BackupJobSourcePoolTable.vue'
@@ -97,11 +96,12 @@ function mountSourceStep(formData: Partial<BackupJobSourceFormData> = {}) {
   )
 }
 
-function findLabels(
-  wrapper: VueWrapper,
-  component: typeof BackupJobFormRadio | typeof BackupJobFormSelect | typeof BackupJobFormCheckbox
-) {
+function findLabels(wrapper: VueWrapper, component: typeof BackupJobFormSelect | typeof BackupJobFormCheckbox) {
   return wrapper.findAllComponents(component).map(input => input.props('label'))
+}
+
+function findRadioLabels(wrapper: VueWrapper) {
+  return wrapper.findAll('.backup-job-form-radio .ui-label').map(label => label.text())
 }
 
 function findSelection(wrapper: VueWrapper) {
@@ -120,7 +120,7 @@ function findMessages(wrapper: VueWrapper) {
 it('offers the data source, the backup mode and the scope of a VM backup', () => {
   const wrapper = mountSourceStep()
 
-  expect(findLabels(wrapper, BackupJobFormRadio)).toEqual([t('data-source'), t('backup-mode'), t('scope-type')])
+  expect(findRadioLabels(wrapper)).toEqual([t('data-source'), t('backup-mode'), t('scope-type')])
   expect(findLabels(wrapper, BackupJobFormSelect)).toEqual([])
   expect(findLabels(wrapper, BackupJobFormCheckbox)).toEqual([])
 })
@@ -134,14 +134,14 @@ it('selects the source proxy and backup repository of a mirror backup', () => {
 it('offers the options of a metadata backup, without backup mode', () => {
   const wrapper = mountSourceStep({ dataSource: 'metadata' })
 
-  expect(findLabels(wrapper, BackupJobFormRadio)).toEqual([t('data-source'), t('scope-type')])
+  expect(findRadioLabels(wrapper)).toEqual([t('data-source'), t('scope-type')])
   expect(findLabels(wrapper, BackupJobFormCheckbox)).toEqual([t('save-xo-config'), t('save-pools-metadata')])
 })
 
 it('selects no scope for a metadata backup saving the XO config only', () => {
   const wrapper = mountSourceStep({ dataSource: 'metadata', saveXoConfig: true, savePoolsMetadata: false })
 
-  expect(findLabels(wrapper, BackupJobFormRadio)).toEqual([t('data-source')])
+  expect(findRadioLabels(wrapper)).toEqual([t('data-source')])
 })
 
 it('tells that the replications are excluded from the VM selection', () => {

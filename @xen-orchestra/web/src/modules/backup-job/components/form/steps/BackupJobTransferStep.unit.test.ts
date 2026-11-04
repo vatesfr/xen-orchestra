@@ -1,6 +1,5 @@
 import BackupJobFormCalendarCards from '@/modules/backup-job/components/form/inputs/BackupJobFormCalendarCards.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
-import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSnapshotRetention from '@/modules/backup-job/components/form/inputs/BackupJobFormSnapshotRetention.vue'
 import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
 import {
@@ -53,41 +52,45 @@ function findSectionTitles(wrapper: VueWrapper) {
   return wrapper.findAll('.section > .ui-title').map(title => title.text())
 }
 
-function findLabels(wrapper: VueWrapper, component: typeof BackupJobFormNumberInput | typeof BackupJobFormRadio) {
-  return wrapper.findAllComponents(component).map(input => input.props('label'))
+function findNumberInputLabels(wrapper: VueWrapper) {
+  return wrapper.findAllComponents(BackupJobFormNumberInput).map(input => input.props('label'))
+}
+
+function findRadioLabels(wrapper: VueWrapper) {
+  return wrapper.findAll('.backup-job-form-radio .ui-label').map(label => label.text())
 }
 
 it('shows the general information, the incremental specifics and the snapshot of an incremental backup', () => {
   const wrapper = mountTransferStep()
 
   expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('incremental-specifics'), t('snapshot')])
-  expect(findLabels(wrapper, BackupJobFormRadio)).not.toContain(t('compression-type'))
+  expect(findRadioLabels(wrapper)).not.toContain(t('compression-type'))
 })
 
 it('compresses a full backup, without incremental specifics', () => {
   const wrapper = mountTransferStep({}, { isIncremental: false })
 
   expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('snapshot')])
-  expect(findLabels(wrapper, BackupJobFormRadio)).toContain(t('compression-type'))
+  expect(findRadioLabels(wrapper)).toContain(t('compression-type'))
 })
 
 it('shows the general information only of a mirror backup', () => {
   const wrapper = mountTransferStep({}, { isMirror: true })
 
   expect(findSectionTitles(wrapper)).toEqual([t('general-information')])
-  expect(findLabels(wrapper, BackupJobFormRadio)).toEqual([])
+  expect(findRadioLabels(wrapper)).toEqual([])
 })
 
 it('offers the speed limit and the VM read concurrency', () => {
   const wrapper = mountTransferStep({ preferNbd: false })
 
-  expect(findLabels(wrapper, BackupJobFormNumberInput)).toEqual([t('source-speed-limit'), t('vm-read-concurrency')])
+  expect(findNumberInputLabels(wrapper)).toEqual([t('source-speed-limit'), t('vm-read-concurrency')])
 })
 
 it('offers the NBD concurrency when NBD is enabled', () => {
   const wrapper = mountTransferStep()
 
-  expect(findLabels(wrapper, BackupJobFormNumberInput)).toContain(t('nbd-concurrency-per-disk'))
+  expect(findNumberInputLabels(wrapper)).toContain(t('nbd-concurrency-per-disk'))
 })
 
 it('shows the key backup calendar for a dynamic key backup only', () => {
@@ -98,15 +101,13 @@ it('shows the key backup calendar for a dynamic key backup only', () => {
 it('offers the snapshot mode, its synchronisation and its retention', () => {
   const wrapper = mountTransferStep()
 
-  expect(findLabels(wrapper, BackupJobFormRadio)).toEqual(
-    expect.arrayContaining([t('snapshot-mode'), t('snapshot-synchronisation')])
-  )
+  expect(findRadioLabels(wrapper)).toEqual(expect.arrayContaining([t('snapshot-mode'), t('snapshot-synchronisation')]))
   expect(wrapper.findComponent(BackupJobFormSnapshotRetention).exists()).toBe(true)
 })
 
 it('takes no snapshot for an offline backup', () => {
   const wrapper = mountTransferStep({ offlineBackup: true })
 
-  expect(findLabels(wrapper, BackupJobFormRadio)).not.toContain(t('snapshot-mode'))
+  expect(findRadioLabels(wrapper)).not.toContain(t('snapshot-mode'))
   expect(wrapper.findComponent(BackupJobFormSnapshotRetention).exists()).toBe(false)
 })
