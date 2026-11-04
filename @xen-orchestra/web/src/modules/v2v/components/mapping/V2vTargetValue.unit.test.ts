@@ -2,10 +2,10 @@ import V2vTargetValue from '@/modules/v2v/components/mapping/V2vTargetValue.vue'
 import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { V2V_SSD_SR, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_SSD_SR, V2V_TARGET_OPTIONS, createV2vOfferedTarget } from '@/test/v2v-mapping-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
-const TARGET = { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true } as const
+const TARGET = createV2vOfferedTarget(V2V_SSD_SR.id, 'overridden')
 
 function mountValue(options = V2V_TARGET_OPTIONS.srs) {
   return mount(V2vTargetValue, { props: { target: TARGET, options }, global: createGlobalTestConfig() })

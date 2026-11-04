@@ -20,8 +20,8 @@ import { findV2vPortGroup, findV2vVmHost, getV2vDatastoreName } from '@/modules/
 import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
-import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 // The issue of the VM in the list, if any, is told with the checks of its source.

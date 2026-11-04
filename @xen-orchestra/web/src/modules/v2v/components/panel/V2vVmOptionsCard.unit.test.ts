@@ -4,12 +4,17 @@ import { getGenericComponent } from '@/test/find-generic-components.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { V2V_DEBIAN_TEMPLATE, V2V_MIGRATED_VM_TAGS, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
+import {
+  V2V_DEBIAN_TEMPLATE,
+  V2V_MIGRATED_VM_TAGS,
+  V2V_TARGET_OPTIONS,
+  createV2vOfferedTarget,
+} from '@/test/v2v-mapping-fixtures.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import { mount } from '@vue/test-utils'
 import type { ComponentProps } from 'vue-component-type-helpers'
 
-const TEMPLATE = { value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true } as const
+const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')
 
 function mountCard(props: Partial<ComponentProps<typeof V2vVmOptionsCard>> = {}) {
   return mount(V2vVmOptionsCard, {

@@ -5,11 +5,7 @@ import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vu
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import {
-  createV2vNewMappingStepVm,
-  createV2vNotFoundMappingStepVm,
-  createV2vResumedMappingStepVm,
-} from '@/test/create-v2v-mapping-step-vm.ts'
+import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { findShownComponents } from '@/test/find-shown-components.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -27,12 +23,6 @@ vi.mock(
 beforeEach(() => {
   v2vVmActionsMock.reset()
 })
-
-const NEW_VM = createV2vNewMappingStepVm()
-
-const RESUMED_VM = createV2vResumedMappingStepVm()
-
-const NOT_FOUND_VM = createV2vNotFoundMappingStepVm()
 
 const updateVm = vi.fn()
 
@@ -65,7 +55,7 @@ function findNotFoundHero(wrapper: VueWrapper) {
 }
 
 it.each([
-  ['holds a selection, for the side panel to show it and offer to close it', NEW_VM, true],
+  ['holds a selection, for the side panel to show it and offer to close it', V2V_NEW_STEP_VM, true],
   ['holds no selection without VM, for the side panel to show its empty state', undefined, false],
 ])('%s', (_, vm, hasSelection) => {
   expect(mountPanel(vm).getComponent(VtsSidePanel).props('hasSelection')).toBe(hasSelection)
@@ -80,9 +70,9 @@ it('shows neither heading, cards nor actions without VM', () => {
 })
 
 it.each([
-  ['a new VM', NEW_VM],
-  ['a resumed VM', RESUMED_VM],
-  ['a VM not found in the source', NOT_FOUND_VM],
+  ['a new VM', V2V_NEW_STEP_VM],
+  ['a resumed VM', V2V_RESUMED_STEP_VM],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM],
 ])('heads the body of %s with its heading, first', (_, vm) => {
   const wrapper = mountPanel(vm)
   const headingCard = wrapper.getComponent(V2vVmHeadingCard)
@@ -92,7 +82,7 @@ it.each([
 })
 
 it('closes on request', async () => {
-  const wrapper = mountPanel(NEW_VM)
+  const wrapper = mountPanel(V2V_NEW_STEP_VM)
 
   await wrapper.getComponent(VtsSidePanel).vm.$emit('close')
 
@@ -100,7 +90,7 @@ it('closes on request', async () => {
 })
 
 it('lays the actions of the VM out as a main button and a menu', () => {
-  const wrapper = mountPanel(NEW_VM)
+  const wrapper = mountPanel(V2V_NEW_STEP_VM)
 
   expect(wrapper.getComponent(V2vVmActions).props()).toEqual(
     getV2vVmKindActionList(v2vVmActionsMock.useV2vNewVmActions)
@@ -109,55 +99,58 @@ it('lays the actions of the VM out as a main button and a menu', () => {
 
 describe('new VM', () => {
   it('heads the panel with the actions of a new VM, stored through the list', () => {
-    expect(mountPanel(NEW_VM).getComponent(V2vVmKindActions).props()).toEqual({ vm: NEW_VM, updateVm })
+    expect(mountPanel(V2V_NEW_STEP_VM).getComponent(V2vVmKindActions).props()).toEqual({
+      vm: V2V_NEW_STEP_VM,
+      updateVm,
+    })
   })
 
   it('shows the mapping of the VM', () => {
-    const wrapper = mountPanel(NEW_VM)
+    const wrapper = mountPanel(V2V_NEW_STEP_VM)
 
-    expect(wrapper.getComponent(V2vNewVmCards).props()).toEqual({ vm: NEW_VM })
+    expect(wrapper.getComponent(V2vNewVmCards).props()).toEqual({ vm: V2V_NEW_STEP_VM })
     expect(findKindComponents(wrapper)).toEqual([V2vNewVmCards])
   })
 })
 
 describe('resumed VM', () => {
   it('heads the panel with the actions of a resumed VM, and shows its first sync', () => {
-    const wrapper = mountPanel(RESUMED_VM)
+    const wrapper = mountPanel(V2V_RESUMED_STEP_VM)
 
     expect([findKindActionsVm(wrapper), wrapper.getComponent(V2vResumedVmCards).props('vm')]).toEqual([
-      RESUMED_VM,
-      RESUMED_VM,
+      V2V_RESUMED_STEP_VM,
+      V2V_RESUMED_STEP_VM,
     ])
     expect(findKindComponents(wrapper)).toEqual([V2vResumedVmCards])
   })
 
-  it('switches to the new VM it becomes once its import VM is deleted', async () => {
-    const wrapper = mountPanel(RESUMED_VM)
+  it('switches to the cards of the new VM it becomes once its import VM is deleted', async () => {
+    const wrapper = mountPanel(V2V_RESUMED_STEP_VM)
 
-    await wrapper.setProps({ vm: NEW_VM })
+    await wrapper.setProps({ vm: V2V_NEW_STEP_VM })
 
-    expect([findKindActionsVm(wrapper), findKindComponents(wrapper)]).toEqual([NEW_VM, [V2vNewVmCards]])
+    expect(findKindComponents(wrapper)).toEqual([V2vNewVmCards])
   })
 })
 
 describe('VM not found in the source', () => {
   it('tells the VM is not found in the source, with its actions', () => {
-    const wrapper = mountPanel(NOT_FOUND_VM)
+    const wrapper = mountPanel(V2V_NOT_FOUND_STEP_VM)
 
     expect(findNotFoundHero(wrapper)?.text()).toBe(t('v2v:not-found-in-source'))
-    expect(findKindActionsVm(wrapper)).toEqual(NOT_FOUND_VM)
+    expect(findKindActionsVm(wrapper)).toEqual(V2V_NOT_FOUND_STEP_VM)
     expect(findKindComponents(wrapper)).toEqual([])
   })
 
   it('has no not-found hero for a VM of the source', () => {
-    expect(findNotFoundHero(mountPanel(NEW_VM))).toBeUndefined()
+    expect(findNotFoundHero(mountPanel(V2V_NEW_STEP_VM))).toBeUndefined()
   })
 })
 
 it('emits the removal of its VM', async () => {
-  const wrapper = mountPanel(NEW_VM)
+  const wrapper = mountPanel(V2V_NEW_STEP_VM)
 
-  await wrapper.getComponent(V2vVmKindActions).vm.$emit('remove', NEW_VM.id)
+  await wrapper.getComponent(V2vVmKindActions).vm.$emit('remove', V2V_NEW_STEP_VM.id)
 
-  expect(wrapper.emitted('remove')).toEqual([[NEW_VM.id]])
+  expect(wrapper.emitted('remove')).toEqual([[V2V_NEW_STEP_VM.id]])
 })

@@ -15,6 +15,7 @@ import {
   V2V_NIC_ROWS,
   V2V_POOL_OFFERS,
   V2V_TARGET_OPTIONS,
+  createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
@@ -104,7 +105,7 @@ it('shows the options of the VM', async () => {
 
   expect(wrapper.getComponent(V2vVmOptionsCard).props()).toEqual({
     keepMac: true,
-    template: { value: V2V_DEFAULT_TEMPLATE.id, origin: 'default', isOffered: true },
+    template: createV2vOfferedTarget(V2V_DEFAULT_TEMPLATE.id),
     templateOptions: V2V_TARGET_OPTIONS.templates,
     tags: V2V_MIGRATED_VM_TAGS,
   })
