@@ -1,0 +1,71 @@
+import {
+  createV2vConnectionContext,
+  useV2vConnection,
+} from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
+import { createV2vConnection } from '@/test/create-v2v-connection.ts'
+import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
+import { mountComposable } from '@/test/mount-composable.ts'
+import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+
+describe('createV2vConnectionContext', () => {
+  it('is not connected at first', () => {
+    const context = createV2vConnectionContext()
+
+    expect(context.connection.value).toBeUndefined()
+    expect(context.inventory.value).toBeUndefined()
+  })
+
+  it('keeps the connection and its inventory', () => {
+    const context = createV2vConnectionContext()
+    const connection = createV2vConnection()
+    const inventory = createV2vInventory()
+
+    context.setConnection(connection, inventory)
+
+    expect(context.connection.value).toEqual(connection)
+    expect(context.inventory.value).toEqual(inventory)
+  })
+})
+
+describe('sourceId', () => {
+  it('is unknown before connecting', () => {
+    expect(createV2vConnectionContext().sourceId.value).toBeUndefined()
+  })
+
+  it('is the vCenter instance UUID', () => {
+    const context = createV2vConnectionContext()
+
+    context.setConnection(createV2vConnection(), createV2vInventory({ instanceUuid: 'vcenter-uuid-2' }))
+
+    expect(context.sourceId.value).toBe('vcenter-uuid-2')
+  })
+
+  it('is the connection address for a standalone ESXi', () => {
+    const context = createV2vConnectionContext()
+
+    context.setConnection(
+      createV2vConnection({ host: 'esxi.lab', port: 443 }),
+      createV2vInventory({ instanceUuid: undefined })
+    )
+
+    expect(context.sourceId.value).toBe('esxi.lab:443')
+  })
+})
+
+describe('useV2vConnection', () => {
+  it('reads the context provided by the wizard', () => {
+    const context = createV2vConnectionContext()
+
+    const { wrapper } = mountComposable(() => ({ injected: useV2vConnection() }), {
+      provide: v2vConnectionProvide(context),
+    })
+
+    expect(wrapper.vm.injected).toBe(context)
+  })
+
+  it('throws outside of the wizard', () => {
+    expect(() => mountComposable(() => ({ injected: useV2vConnection() }))).toThrow(
+      'useV2vConnection must be called under the V2V migration page'
+    )
+  })
+})

@@ -1,12 +1,13 @@
 import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import MigrationWizard from '@/modules/v2v/components/wizard/MigrationWizard.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
+import { createV2vConnectionContext } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -14,16 +15,18 @@ import { nextTick } from 'vue'
 async function mountWizard(step: string | undefined, { isConnected = false } = {}) {
   const router = await createV2vWizardRouter(step)
 
-  const wrapper = mount(MigrationWizard, {
-    global: { ...createGlobalTestConfig({ router }), stubs: { V2vSourceStep: true } },
-  })
+  const context = createV2vConnectionContext()
 
   if (isConnected) {
-    useV2vConnectionStore().setConnection(createV2vConnection({ host: 'vcenter-prod.lab' }), createV2vInventory())
-    await nextTick()
+    context.setConnection(createV2vConnection({ host: 'vcenter-prod.lab' }), createV2vInventory())
   }
 
-  return wrapper
+  return mount(MigrationWizard, {
+    global: {
+      ...createGlobalTestConfig({ router, provide: v2vConnectionProvide(context) }),
+      stubs: { V2vSourceStep: true },
+    },
+  })
 }
 
 it('opens the source step by default', async () => {
@@ -57,16 +60,8 @@ it('keeps the connection while moving between steps', async () => {
   const wrapper = await mountWizard('destination', { isConnected: true })
 
   await wrapper.vm.$router.push({ query: { step: 'vms' } })
+  await nextTick()
 
-  expect(useV2vConnectionStore().connection).toBeDefined()
-})
-
-it('forgets the connection and its inventory once closed', async () => {
-  const wrapper = await mountWizard('destination', { isConnected: true })
-  const store = useV2vConnectionStore()
-
-  wrapper.unmount()
-
-  expect(store.connection).toBeUndefined()
-  expect(store.inventory).toBeUndefined()
+  expect(wrapper.findComponent(V2vSourceStep).exists()).toBe(false)
+  expect(wrapper.getComponent(V2vWizardHeader).props('summary')).toBe('vcenter-prod.lab')
 })

@@ -1,5 +1,5 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vSourceStep } from '@/modules/v2v/composables/use-v2v-source-step.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
 import { getV2vSourceId } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { createV2vConnection, createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
@@ -12,6 +12,7 @@ import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vRememberedConnections } from '@/test/v2v-remembered-connections-storage.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { V2V_ERROR_CODE, V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
@@ -41,8 +42,9 @@ afterEach(() => {
 async function mountSourceStep(options: Parameters<typeof useV2vSourceStep>[0] = {}) {
   const router = await createV2vWizardRouter('source')
 
-  const result = mountComposableWithI18n(() => ({ ...useV2vSourceStep(options), store: useV2vConnectionStore() }), {
+  const result = mountComposableWithI18n(() => ({ ...useV2vSourceStep(options), context: useV2vConnection() }), {
     router,
+    provide: v2vConnectionProvide(),
   })
 
   return { result, router }
@@ -85,8 +87,8 @@ describe('submit', () => {
 
     await submitConnection(result, connection)
 
-    expect(result.store.connection).toEqual(connection)
-    expect(result.store.inventory).toEqual(inventory)
+    expect(result.context.connection.value).toEqual(connection)
+    expect(result.context.inventory.value).toEqual(inventory)
     expect(router.currentRoute.value.query.step).toBe('destination')
   })
 
@@ -144,7 +146,7 @@ describe('submit', () => {
     expect(result.form.usernameInputBindings.error).toEqual(invalidCredentialsMessage())
     expect(result.form.passwordInputBindings.error).toEqual(invalidCredentialsMessage())
     expect(result.connectionError).toBeUndefined()
-    expect(result.store.connection).toBeUndefined()
+    expect(result.context.connection.value).toBeUndefined()
     expect(router.currentRoute.value.query.step).toBe('source')
   })
 
@@ -192,7 +194,7 @@ describe('connectRemembered', () => {
     await result.connectRemembered(remembered)
     await flushPromises()
 
-    expect(result.store.inventory).toEqual(inventory)
+    expect(result.context.inventory.value).toEqual(inventory)
     expect(router.currentRoute.value.query.step).toBe('destination')
   })
 
