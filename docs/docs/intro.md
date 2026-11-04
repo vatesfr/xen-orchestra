@@ -184,7 +184,7 @@ This documentation covers Xen Orchestra itself. Its two siblings cover the rest 
 | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | Xen Orchestra: the interfaces, the backup engine, the REST API and automation, XOA                                                     | **You are here**                            |
 | XCP-ng: installing and operating the hypervisor, hosts, storage and networks, hardware compatibility                                   | [docs.xcp-ng.org](https://docs.xcp-ng.org/) |
-| The stack as a whole: getting started end to end, bundles and licensing, compatibility ecosystem, security advisories, product roadmap | [docs.vates.tech](https://docs.vates.tech/) |
+| The stack as a whole: getting started end to end, bundles and subscriptions, compatibility ecosystem, security advisories, product roadmap | [docs.vates.tech](https://docs.vates.tech/) |
 
 :::tip One search for the three documentations
 The search bar at the top covers docs.xen-orchestra.com, docs.xcp-ng.org and docs.vates.tech at once, with results grouped by product. Wherever a topic lives, searching from here will find it.

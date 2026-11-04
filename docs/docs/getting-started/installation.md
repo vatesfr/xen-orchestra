@@ -67,11 +67,11 @@ or check your router's DHCP leases for an `xoa` entry.
 Appliance images are not rebuilt every month, unlike Xen Orchestra itself: right after deploying, an update is usually available. Register, update, then explore.
 :::
 
-To try everything XO can do, start the trial from the same view ("Start Trial", the green button), and click Upgrade: your appliance runs the complete **Premium** feature set for 30 days.
+To try everything XO can do, start the trial from the same view ("Start Trial", the green button), and click Upgrade: your appliance runs with every feature enabled for 30 days.
 
-<UiDetail src="/img/xoa/start-trial.png" alt="Starting the 30-day Premium trial" width={520} />
+<UiDetail src="/img/xoa/start-trial.png" alt="Starting the 30-day trial" width={520} />
 
-When the trial ends, the appliance keeps working and simply returns to the Free feature set: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](configuration.md#xoa-appliance).
+When the trial ends, the appliance keeps working and simply returns to the features available without a subscription: you lose no data and no configuration. For system-level settings of the appliance (firewall, NTP, service restart), see [the XOA appliance settings](configuration.md#xoa-appliance).
 
 ## Alternative deployment methods {#alternative-install}
 

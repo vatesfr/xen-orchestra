@@ -233,7 +233,7 @@ Since XOA runs as a virtual machine, you can apply standard VM protection measur
 If you lose the host running your XOA VM:
 
 - **If the XOA VM was on shared storage**, you can restart it on another host in your pool.
-- **If the XOA VM was stored locally** or your host was alone in its pool, deploy a new XOA VM. You can do this proactively, as there’s no limit to the number of XOA VMs in your infrastructure. Register the new VM with the same Vates account, update it, and migrate your XOA license from the old VM if needed.
+- **If the XOA VM was stored locally** or your host was alone in its pool, deploy a new XOA VM. You can do this proactively, as there’s no limit to the number of XOA VMs in your infrastructure. Register the new VM with the same Vates account, update it, and [move your subscription](https://docs.vates.tech/pricing-licencing/migrating-licences/) from the old VM if needed.
 - **If you are running XCP-ng 8.3**, you can use XO-lite by connecting to your master host’s IP address to manage your VMs.
 
 :::warning

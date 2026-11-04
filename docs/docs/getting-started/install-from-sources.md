@@ -210,7 +210,7 @@ Running from the sources shows a banner reminding you that this version comes wi
 You can also support XO by spreading the word, reporting bugs, and contributing code.
 
 :::tip
-Exceptional individual contributors are awarded a free XOA Premium subscription. If you think you deserve it, contact us!
+Exceptional individual contributors are awarded a free XOA subscription. If you think you deserve it, contact us!
 :::
 
 ## FreeBSD and OpenBSD

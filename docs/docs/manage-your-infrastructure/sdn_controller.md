@@ -10,7 +10,7 @@ sidebar_position: 5
 Be sure to enable the plugin on only one XOA instance.
 :::
 
-The SDN Controller enables a user to **create pool-wide and cross-pool private networks** and more. It's available as a Xen Orchestra plugin (included in XOA Premium).
+The SDN Controller enables a user to **create pool-wide and cross-pool private networks** and more. It's available as a Xen Orchestra plugin. On XOA, it requires a Vates VMS subscription that includes it (see [Support & subscription](/support-and-subscription/support#subscription)).
 
 ## Global Private Networks
 
