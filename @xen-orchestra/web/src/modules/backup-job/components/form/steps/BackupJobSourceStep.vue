@@ -110,7 +110,6 @@ const {
   matchedSelectionItems,
   pools,
   arePoolsReady,
-  hasPoolSelection,
   poolSchema,
   matchedPoolItems,
 } = form
