@@ -1,8 +1,8 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
 import { useV2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import { whenever } from '@vueuse/core'
 import { computed, reactive, ref, watch } from 'vue'
@@ -13,7 +13,7 @@ export function useV2vDestinationStep() {
 
   const route = useRoute()
 
-  const connectionStore = useV2vConnectionStore()
+  const { connection, sourceId } = useV2vConnection()
 
   const { arePoolsReady, hasPoolById } = useXoPoolCollection()
 
@@ -21,7 +21,7 @@ export function useV2vDestinationStep() {
 
   const pool = ref(poolQuery.value)
 
-  const migrationList = useV2vMigrationList(() => connectionStore.sourceId, pool)
+  const migrationList = useV2vMigrationList(sourceId, pool)
 
   const form = useV2vDestinationForm({ pool, storedList: migrationList.list })
 
@@ -45,7 +45,7 @@ export function useV2vDestinationStep() {
   const existingList = computed(() => {
     // An empty stored list only holds defaults: there is nothing to reopen
     const vmCount = migrationList.list.value?.vms.length ?? 0
-    const sourceHost = connectionStore.connection?.host
+    const sourceHost = connection.value?.host
     const pool = form.selectedPool.value
 
     const hasExistingList = vmCount > 0 && sourceHost !== undefined && pool !== undefined
