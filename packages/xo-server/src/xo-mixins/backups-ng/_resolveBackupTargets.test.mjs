@@ -38,6 +38,12 @@ describe('resolveBackupSrs()', () => {
     assert.deepEqual(resolveBackupSrs({ srs: 'sr:type:nfs' }, srs, RUN_CONTEXT), ['writable'])
   })
 
+  it('never returns an SR of a disconnected pool', () => {
+    const srs = [sr({ uuid: 'live' }), { ...sr({ uuid: 'stale' }), $lastSeen: Date.now() }]
+
+    assert.deepEqual(resolveBackupSrs({ srs: 'sr:type:nfs' }, srs, RUN_CONTEXT), ['live'])
+  })
+
   it('evaluates the run context', () => {
     const srs = [sr({ uuid: 'nfs-sr' })]
 
