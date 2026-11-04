@@ -3,6 +3,10 @@ import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import { createLogger } from '@xen-orchestra/log'
 
+import { DispatchClient } from '../client/dispatchClient.js'
+import { RestApiClient } from '../client/restApiClient.js'
+import { createTestUser, deleteTestUser } from '../utils/aclUtils.js'
+import { getRequiredEnv } from '../utils/index.js'
 import { setup, teardown } from './setup.js'
 
 const log = createLogger('qa:sdn-controller')
@@ -512,5 +516,144 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
       await deleteRule('vifs', vifId, { ...VIF_RULE, priority: 50000 })
       assert.strictEqual(findRule(await rulesOf('vifs', vifId), VIF_RULE), undefined)
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+
+// The networks go on the pools the suite already tests on: the pool of SDN_CONTROLLER_VM_ID and, when it is another
+// one, the pool of REFERENCE_VM_ID. Never any other pool XO is connected to: a private network sets the SDN controller
+// of its pools. The tunnels go through the network of the management PIF of each pool's master
+describe('SDN Controller private networks', { skip: !process.env.SDN_CONTROLLER_VM_ID }, () => {
+  let dispatchClient
+  let pools
+  const networkIds = []
+
+  // RestApiClient answers only the body, and the route's statuses are checked too
+  const createPrivateNetwork = async (body, client = dispatchClient.restApiClient) => {
+    const response = await fetch(`${client.baseUrl}${BASE}/private_networks?sync=true`, {
+      method: 'POST',
+      headers: client.headers,
+      body: JSON.stringify(body),
+    })
+    const result = await response.json()
+    networkIds.push(...(result.ids ?? []))
+    return { status: response.status, result }
+  }
+
+  const bodyFor = (pools, params) => ({
+    poolIds: pools.map(pool => pool.id),
+    pifIds: pools.map(pool => pool.pifId),
+    name: `qa-sdn-private-network-${Date.now()}`,
+    description: 'created by the qa-test suite',
+    encapsulation: 'gre',
+    ...params,
+  })
+
+  const networksNamed = async name =>
+    (await dispatchClient.restApiClient.getObjects('/rest/v0/networks')).filter(network => network.name_label === name)
+
+  before(async () => {
+    dispatchClient = new DispatchClient()
+    await dispatchClient.initialize()
+
+    const { restApiClient } = dispatchClient
+    const vmPoolIds = await Promise.all(
+      [process.env.SDN_CONTROLLER_VM_ID, getRequiredEnv('REFERENCE_VM_ID')].map(
+        async id => (await restApiClient.get(`/rest/v0/vms/${id}`)).$pool
+      )
+    )
+    const [allPools, hosts, pifs] = await Promise.all(
+      ['pools', 'hosts', 'pifs'].map(collection => restApiClient.getObjects(`/rest/v0/${collection}`))
+    )
+    pools = [...new Set(vmPoolIds)].map(id => {
+      const { master } = allPools.find(pool => pool.id === id)
+      return {
+        id,
+        masterId: master,
+        pifId: pifs.find(pif => pif.$host === master && pif.management)?.id,
+        hostCount: hosts.filter(host => host.$pool === id).length,
+      }
+    })
+    log.debug('Private network pools', { pools })
+  })
+
+  after(async () => {
+    for (const id of networkIds) {
+      try {
+        await dispatchClient.restApiClient.delete(`/rest/v0/networks/${id}`)
+      } catch (error) {
+        log.warn('Failed to delete a private network', { error, networkId: id })
+      }
+    }
+    await dispatchClient?.close()
+  })
+
+  // the preferred center is a host of the last pool, so that its network is not the first one asked for
+  it('should create one network per pool, each with a tunnel on every host, in a single private network', async t => {
+    if (pools.length === 1) {
+      t.diagnostic('XO is connected to a single pool: the private network spans it alone')
+    }
+    const preferredCenterId = pools.at(-1).masterId
+    const body = bodyFor(pools, { mtu: 1400, preferredCenterId })
+
+    const { status, result } = await createPrivateNetwork(body)
+    assert.strictEqual(status, 201, JSON.stringify(result))
+    assert.strictEqual(result.ids.length, pools.length)
+
+    const networks = await Promise.all(
+      result.ids.map(id => dispatchClient.restApiClient.get(`/rest/v0/networks/${id}?fields=*`))
+    )
+    const { 'xo:sdn-controller:private-network-uuid': privateNetworkUuid, 'xo:sdn-controller:vni': vni } =
+      networks[0].other_config
+    assert.match(privateNetworkUuid, /^[0-9a-f-]{36}$/)
+    assert.match(vni, /^\d+$/)
+    assert.deepStrictEqual(networks.map(network => network.$pool).sort(), pools.map(pool => pool.id).sort())
+    for (const network of networks) {
+      const pool = pools.find(pool => pool.id === network.$pool)
+      assert.strictEqual(network.name_label, body.name)
+      assert.strictEqual(network.MTU, 1400)
+      assert.strictEqual(network.PIFs.length, pool.hostCount, 'one tunnel access PIF per host')
+      assert.deepStrictEqual(
+        {
+          encapsulation: network.other_config['xo:sdn-controller:encapsulation'],
+          preferredCenter: network.other_config['xo:sdn-controller:preferred-center'],
+          privateNetworkUuid: network.other_config['xo:sdn-controller:private-network-uuid'],
+          vni: network.other_config['xo:sdn-controller:vni'],
+        },
+        { encapsulation: 'gre', preferredCenter: preferredCenterId, privateNetworkUuid, vni }
+      )
+    }
+  })
+
+  it('should refuse an unknown pool, a pool without a PIF or an unknown encapsulation, creating no network', async () => {
+    const body = bodyFor(pools.slice(0, 1))
+    for (const [params, expectedStatus] of [
+      [{ poolIds: ['00000000-0000-0000-0000-000000000000'] }, 404],
+      [{ pifIds: [] }, 422],
+      [{ encapsulation: 'ipip' }, 422],
+    ]) {
+      const { status, result } = await createPrivateNetwork({ ...body, ...params })
+      assert.strictEqual(status, expectedStatus, `${JSON.stringify(params)}: ${JSON.stringify(result)}`)
+    }
+    assert.deepStrictEqual(await networksNamed(body.name), [])
+  })
+
+  it('should refuse a user who is not an admin', async () => {
+    const user = await createTestUser(dispatchClient.xoClient)
+    try {
+      const client = new RestApiClient({
+        xoUrl: getRequiredEnv('HOSTNAME'),
+        username: user.email,
+        password: user.password,
+      })
+      await client.connect()
+      const body = bodyFor(pools.slice(0, 1))
+      const { status, result } = await createPrivateNetwork(body, client)
+      assert.strictEqual(status, 403, JSON.stringify(result))
+      assert.deepStrictEqual(await networksNamed(body.name), [])
+    } finally {
+      await deleteTestUser(dispatchClient.xoClient, user.id)
+    }
   })
 })
