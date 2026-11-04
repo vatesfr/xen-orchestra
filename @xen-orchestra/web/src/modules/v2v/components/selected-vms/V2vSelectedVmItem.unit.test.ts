@@ -31,6 +31,10 @@ it('tags the VM with its kind', async () => {
   expect(findAccentedTags(await mountItem(createV2vSelectedVm({ kind })))).toEqual([kind])
 })
 
+it('has no kind tag without a kind', async () => {
+  expect(findAccentedTags(await mountItem(createV2vSelectedVm({ kind: undefined })))).toEqual([])
+})
+
 it('lays out its mapping', async () => {
   expect(findParts(await mountItem(), '.mapping')).toEqual(ITEM.mappingParts)
 })

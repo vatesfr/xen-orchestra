@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard>
     <UiPanelCardTitle size="small" :label="item.name" :to="item.mappingRoute">
-      <template #action>
+      <template v-if="item.kind" #action>
         <UiTag :accent="item.kind.accent" variant="secondary">{{ item.kind.label }}</UiTag>
       </template>
       <template #more-actions>

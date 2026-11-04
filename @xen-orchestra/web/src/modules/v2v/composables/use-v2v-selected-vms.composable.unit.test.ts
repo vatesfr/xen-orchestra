@@ -126,6 +126,12 @@ describe('items', () => {
     ])
   })
 
+  it('leaves a VM gone from the inventory without a kind tag', async () => {
+    const { result } = await mountSelectedVms({ list: createV2vMigrationList({ vms: [{ id: GONE_VM_ID }] }) })
+
+    expect(result.items.map(item => item.kind)).toEqual([undefined])
+  })
+
   it('maps a new VM to the defaults of the list and locks the mapping of a resumed one', async () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 

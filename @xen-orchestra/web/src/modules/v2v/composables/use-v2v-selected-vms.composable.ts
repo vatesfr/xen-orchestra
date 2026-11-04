@@ -32,7 +32,7 @@ export type V2vSelectedVmsContext = {
 export type V2vSelectedVm = {
   id: XoV2vVm['id']
   name: string
-  kind: V2vAccentedLabel<TagAccent>
+  kind?: V2vAccentedLabel<TagAccent>
   mappingParts: string[]
   check: V2vAccentedLabel<InfoAccent>
   mappingRoute: RouteLocationRaw
@@ -96,7 +96,8 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
       ({ id, kind, check, mapping }): V2vSelectedVm => ({
         id,
         name: getName(id),
-        kind: getKindTag(kind),
+        // A VM gone from the source is neither new nor resumed: its check alone tells it
+        kind: check.type === 'not-found' ? undefined : getKindTag(kind),
         mappingParts: getMappingParts(mapping),
         check: getCheckInfo(check, getCheckPoolName(check)),
         mappingRoute: getStepLocation('mapping', { vm: id }),
