@@ -43,6 +43,8 @@ const MOVED_FROM_XOA: Record<string, string> = {
  * anchors complete the trip to the right page over there.
  */
 const MOVED_TO_VATES_DOCS: Record<string, string> = {
+  // renamed in place when the section became Support & subscription
+  licensing: '#subscription',
   'direct-purchase': 'https://docs.vates.tech/pricing-licencing/vms-bundle-overview/',
   'via-your-purchase-departement': 'https://docs.vates.tech/pricing-licencing/contact-quote-requests/',
   invoices: 'https://docs.vates.tech/pricing-licencing/account-management/',
@@ -65,7 +67,7 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   if (path === '/getting-started/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
   }
-  if (path === '/support-and-licencing/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+  if (path === '/support-and-subscription/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
   }
 }
