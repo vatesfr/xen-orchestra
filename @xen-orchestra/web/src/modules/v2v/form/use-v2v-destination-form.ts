@@ -22,7 +22,6 @@ import {
   type FrontXoVmTemplate,
   useXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { pickBy } from 'lodash-es'
@@ -72,7 +71,7 @@ export function useV2vDestinationForm({
   const { networks } = useXoNetworkCollection()
   const { pifs } = useXoPifCollection()
   const { templates } = useXoVmTemplateCollection()
-  const { getSrLocation } = useXoSrUtils()
+  const { getSrSelectLabel } = useXoSrUtils()
 
   const selectedPool = computed(() => pools.value.find(pool => pool.id === formData.pool))
 
@@ -150,11 +149,7 @@ export function useV2vDestinationForm({
     required: true,
     placeholder: () => t('action:select-storage'),
     option: {
-      label: sr => {
-        const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
-
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
+      label: sr => getSrSelectLabel(sr),
       value: 'id',
     },
   })
