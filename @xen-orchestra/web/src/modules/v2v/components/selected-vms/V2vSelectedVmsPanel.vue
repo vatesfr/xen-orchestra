@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel has-selection persistent>
+  <VtsSidePanel class="v2v-selected-vms-panel" has-selection persistent>
     <template v-if="areItemsShown" #actions>
       <UiButton
         accent="brand"
@@ -76,7 +76,9 @@ const areItemsShown = computed(() => !isEmpty && !isBusy)
 </script>
 
 <style lang="postcss" scoped>
-.storage-info {
-  color: var(--color-neutral-txt-secondary);
+.v2v-selected-vms-panel {
+  .storage-info {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>
