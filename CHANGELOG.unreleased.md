@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API/VIFs] VIFs can be restricted to a list of VLANs (VLAN filtering, XCP-ng 8.3) (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [VM/Network] Changing the MAC address of a VIF keeps the VLANs it is restricted to (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 

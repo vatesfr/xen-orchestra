@@ -184,6 +184,9 @@ export async function set({
           qos_algorithm_params: newRateLimit != null ? { kbps: String(newRateLimit) } : undefined,
           network: network.$ref,
           other_config: otherConfig,
+          // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS) and the
+          // old VIF is already gone: drop them there, an access port only sees its own VLAN anyway
+          trunks: network.$PIFs.some(pif => pif.VLAN !== -1) ? undefined : vif.trunks,
           VM: vm.$ref,
           MTU: vif.MTU,
           device: vif.device,
