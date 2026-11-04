@@ -9,6 +9,7 @@ import {
   type MountV2vVmMappingOptions,
   readV2vStoredListVm,
   V2V_VM_MAPPING_POOL,
+  V2V_OTHER_LIST_VM,
 } from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DATA_DISK,
@@ -29,6 +30,7 @@ import {
   V2V_TARGET_OPTIONS,
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
+  createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDatastore, XoV2vHost, XoV2vVm } from '@vates/types'
@@ -172,9 +174,10 @@ describe('diskRows', () => {
   })
 
   it('maps every disk of a VM missing from the list to the default SR', () => {
-    const listVm = createV2vMigrationListVm({ id: 'vm-other' as XoV2vVm['id'], disks: V2V_DISK_OVERRIDES })
-
-    expect(mountVmMapping({ listVm }).diskRows.map(row => row.sr.origin)).toEqual(['default', 'default'])
+    expect(mountVmMapping({ listVm: V2V_OTHER_LIST_VM }).diskRows.map(row => row.sr.origin)).toEqual([
+      'default',
+      'default',
+    ])
   })
 })
 
@@ -186,7 +189,7 @@ describe('nicRows', () => {
 
 describe('template', () => {
   it('maps the VM to the default template without override', () => {
-    expect(mountVmMapping().template).toEqual({ value: V2V_DEFAULT_TEMPLATE.id, origin: 'default', isOffered: true })
+    expect(mountVmMapping().template).toEqual(createV2vOfferedTarget(V2V_DEFAULT_TEMPLATE.id))
   })
 })
 
@@ -202,8 +205,8 @@ describe('setDiskSr', () => {
     mapping.setDiskSr(V2V_SYSTEM_DISK.key, V2V_SSD_SR.id)
 
     expect(mapping.diskRows.map(row => row.sr)).toEqual([
-      { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
-      { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
+      createV2vOfferedTarget(V2V_SSD_SR.id, 'overridden'),
+      createV2vOfferedTarget(V2V_SSD_SR.id, 'overridden'),
     ])
     expect(readV2vStoredListVm().disks).toEqual({
       [V2V_SYSTEM_DISK.key]: V2V_SSD_SR.id,
@@ -216,7 +219,7 @@ describe('setDiskSr', () => {
 
     mapping.setDiskSr(V2V_DATA_DISK.key, clearing === 'default' ? V2V_DEFAULT_SR.id : undefined)
 
-    expect(mapping.diskRows[1].sr).toEqual({ value: V2V_DEFAULT_SR.id, origin: 'default', isOffered: true })
+    expect(mapping.diskRows[1].sr).toEqual(createV2vOfferedTarget(V2V_DEFAULT_SR.id))
     expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, nics: V2V_NIC_OVERRIDES })
   })
 })
@@ -227,7 +230,7 @@ describe('setNicNetwork', () => {
 
     mapping.setNicNetwork(V2V_LAN_NIC.key, V2V_VLAN_NETWORK.id)
 
-    expect(mapping.nicRows[0].network).toEqual({ value: V2V_VLAN_NETWORK.id, origin: 'overridden', isOffered: true })
+    expect(mapping.nicRows[0].network).toEqual(createV2vOfferedTarget(V2V_VLAN_NETWORK.id, 'overridden'))
     expect(readV2vStoredListVm().nics).toEqual({
       [V2V_LAN_NIC.key]: V2V_VLAN_NETWORK.id,
       [V2V_VLAN_NIC.key]: V2V_VLAN_NETWORK.id,
@@ -239,7 +242,7 @@ describe('setNicNetwork', () => {
 
     mapping.setNicNetwork(V2V_VLAN_NIC.key, clearing === 'default' ? V2V_DEFAULT_NETWORK.id : undefined)
 
-    expect(mapping.nicRows[1].network).toEqual({ value: V2V_DEFAULT_NETWORK.id, origin: 'default', isOffered: true })
+    expect(mapping.nicRows[1].network).toEqual(createV2vOfferedTarget(V2V_DEFAULT_NETWORK.id))
     expect(readV2vStoredListVm()).toEqual({ id: V2V_MAPPED_VM.id, disks: V2V_DISK_OVERRIDES })
   })
 })
@@ -250,7 +253,7 @@ describe('setTemplate', () => {
 
     mapping.setTemplate(V2V_DEBIAN_TEMPLATE.id)
 
-    expect(mapping.template).toEqual({ value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true })
+    expect(mapping.template).toEqual(createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden'))
     expect(readV2vStoredListVm().template).toBe(V2V_DEBIAN_TEMPLATE.id)
   })
 

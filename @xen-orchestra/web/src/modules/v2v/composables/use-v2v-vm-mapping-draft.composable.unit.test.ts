@@ -1,17 +1,17 @@
 import { useV2vVmMappingDraft } from '@/modules/v2v/composables/use-v2v-vm-mapping-draft.composable.ts'
-import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import {
   mountV2vVmMapping,
   readV2vStoredListVm,
   V2V_OVERRIDDEN_LIST_VM,
   type MountV2vVmMappingOptions,
+  V2V_OTHER_LIST_VM,
+  V2V_FULLY_OVERRIDDEN_LIST_VM,
+  V2V_LIST_VM_OVERRIDES,
 } from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEBIAN_TEMPLATE,
-  V2V_DISK_OVERRIDES,
   V2V_DISK_ROWS,
   V2V_LAN_NIC,
   V2V_MAPPED_VM,
@@ -21,8 +21,8 @@ import {
   V2V_SYSTEM_DISK,
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
+  createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
-import type { XoV2vVm } from '@vates/types'
 import { nextTick } from 'vue'
 
 vi.mock(
@@ -50,13 +50,6 @@ vi.mock(
   () => import('@/test/mock-xo-collections.ts')
 )
 
-const FULLY_OVERRIDDEN_VM: V2vMigrationListVm = {
-  ...V2V_OVERRIDDEN_LIST_VM,
-  template: V2V_DEBIAN_TEMPLATE.id,
-  keepMac: false,
-  tags: ['web'],
-}
-
 function mountVmMappingDraft(options?: MountV2vVmMappingOptions) {
   return mountV2vVmMapping(
     (migrationList, list) => ({
@@ -73,20 +66,19 @@ beforeEach(() => {
 
 describe('draft', () => {
   it('starts from the stored overrides of the VM', () => {
-    const draft = mountVmMappingDraft({ listVm: FULLY_OVERRIDDEN_VM })
+    const draft = mountVmMappingDraft({ listVm: V2V_FULLY_OVERRIDDEN_LIST_VM })
 
     expect([draft.diskRows, draft.nicRows, draft.template, draft.keepMac, draft.tags]).toEqual([
       V2V_DISK_ROWS,
       V2V_NIC_ROWS,
-      { value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true },
+      createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden'),
       false,
       ['web'],
     ])
   })
 
   it('starts on the defaults for a VM missing from the list', () => {
-    const listVm = createV2vMigrationListVm({ id: 'vm-other' as XoV2vVm['id'], disks: V2V_DISK_OVERRIDES })
-    const draft = mountVmMappingDraft({ listVm })
+    const draft = mountVmMappingDraft({ listVm: V2V_OTHER_LIST_VM })
 
     expect([draft.diskRows.map(row => row.sr.origin), draft.toOverrides()]).toEqual([['default', 'default'], {}])
   })
@@ -109,8 +101,8 @@ describe('setters', () => {
     draft.setNicNetwork(V2V_LAN_NIC.key, V2V_VLAN_NETWORK.id)
 
     expect([draft.diskRows[0].sr, draft.nicRows[0].network]).toEqual([
-      { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
-      { value: V2V_VLAN_NETWORK.id, origin: 'overridden', isOffered: true },
+      createV2vOfferedTarget(V2V_SSD_SR.id, 'overridden'),
+      createV2vOfferedTarget(V2V_VLAN_NETWORK.id, 'overridden'),
     ])
   })
 
@@ -129,7 +121,7 @@ describe('setters', () => {
 
 describe('toOverrides', () => {
   it('returns the changed overrides, leaving out the cleared ones and keeping the untouched ones', () => {
-    const draft = mountVmMappingDraft({ listVm: FULLY_OVERRIDDEN_VM })
+    const draft = mountVmMappingDraft({ listVm: V2V_FULLY_OVERRIDDEN_LIST_VM })
 
     draft.setDiskSr(V2V_SYSTEM_DISK.key, V2V_SSD_SR.id)
     draft.setNicNetwork(V2V_VLAN_NIC.key, undefined)
@@ -150,22 +142,20 @@ describe('toOverrides', () => {
 
     expect([draft.keepMac, draft.tags]).toEqual([false, ['web']])
     expect(draft.toOverrides()).toStrictEqual({
-      disks: V2V_DISK_OVERRIDES,
-      nics: V2V_OVERRIDDEN_LIST_VM.nics,
+      ...V2V_LIST_VM_OVERRIDES,
       keepMac: false,
       tags: ['web'],
     })
   })
 
   it('leaves out keepMac and the tags set back to their default', () => {
-    const draft = mountVmMappingDraft({ listVm: FULLY_OVERRIDDEN_VM })
+    const draft = mountVmMappingDraft({ listVm: V2V_FULLY_OVERRIDDEN_LIST_VM })
 
     draft.setKeepMac(true)
     draft.setTags([...V2V_MIGRATED_VM_TAGS])
 
     expect(draft.toOverrides()).toStrictEqual({
-      disks: V2V_DISK_OVERRIDES,
-      nics: V2V_OVERRIDDEN_LIST_VM.nics,
+      ...V2V_LIST_VM_OVERRIDES,
       template: V2V_DEBIAN_TEMPLATE.id,
     })
   })

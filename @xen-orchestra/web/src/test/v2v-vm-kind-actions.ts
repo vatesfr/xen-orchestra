@@ -1,8 +1,9 @@
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
-import type { VueWrapper } from '@vue/test-utils'
-import { type ComputedRef, defineComponent, h, type PropType, toValue } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { type Component, type ComputedRef, defineComponent, h, type PropType, toValue } from 'vue'
 
 // Stands for what the caller of a kind action component lays its actions out as
 const V2vVmActionListStub = defineComponent({
@@ -16,6 +17,11 @@ const V2vVmActionListStub = defineComponent({
 // The slot to mount a kind action component with, for `findV2vVmSlotActions` to read the actions it hands to its slot
 export const V2V_VM_ACTIONS_SLOTS = {
   default: (actions: V2vVmActionList) => h(V2vVmActionListStub, actions),
+}
+
+// Mounts a kind action component with `V2V_VM_ACTIONS_SLOTS`, for `findV2vVmSlotActions` to read its actions
+export function mountV2vVmKindActions(component: Component, props: { vm: V2vMappingStepVm } & Record<string, unknown>) {
+  return mount(component, { props, slots: V2V_VM_ACTIONS_SLOTS, global: createGlobalTestConfig() })
 }
 
 export function findV2vVmSlotActions(wrapper: Pick<VueWrapper, 'getComponent'>): V2vVmActionList {

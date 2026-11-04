@@ -12,6 +12,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import {
+  V2V_DEBIAN_TEMPLATE,
   V2V_DISK_OVERRIDES,
   V2V_MAPPED_VM,
   V2V_MAPPING_INVENTORY,
@@ -19,6 +20,7 @@ import {
   V2V_POOL_OFFERS,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import type { XoV2vVm } from '@vates/types'
 import type { Router } from 'vue-router'
 
 /** The pool of the stored list, offering the mapping fixtures. */
@@ -26,11 +28,24 @@ export const V2V_VM_MAPPING_POOL = createPool()
 
 const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 
+/** The overrides of the mapped VM in the list: on its data disk and on its VLAN NIC. */
+export const V2V_LIST_VM_OVERRIDES = { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES }
+
 /** The mapped VM in the list, with an override on its data disk and on its VLAN NIC. */
-export const V2V_OVERRIDDEN_LIST_VM = createV2vMigrationListVm({
-  id: V2V_MAPPED_VM.id,
+export const V2V_OVERRIDDEN_LIST_VM = createV2vMigrationListVm({ id: V2V_MAPPED_VM.id, ...V2V_LIST_VM_OVERRIDES })
+
+/** The mapped VM in the list, with its options overridden too: template, MAC addresses not kept, tags. */
+export const V2V_FULLY_OVERRIDDEN_LIST_VM: V2vMigrationListVm = {
+  ...V2V_OVERRIDDEN_LIST_VM,
+  template: V2V_DEBIAN_TEMPLATE.id,
+  keepMac: false,
+  tags: ['web'],
+}
+
+/** Another VM in the list, with an override on the data disk: the mapped VM is missing from that list. */
+export const V2V_OTHER_LIST_VM = createV2vMigrationListVm({
+  id: 'vm-other' as XoV2vVm['id'],
   disks: V2V_DISK_OVERRIDES,
-  nics: V2V_NIC_OVERRIDES,
 })
 
 // Stores the list holding `listVm`, on a pool offering the mapping fixtures (another pool offers one target of each kind)

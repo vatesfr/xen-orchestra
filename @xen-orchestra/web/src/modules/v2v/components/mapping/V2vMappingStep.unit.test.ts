@@ -1,6 +1,7 @@
 import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
 import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
 import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
+import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -15,7 +16,6 @@ import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import type { Router } from 'vue-router'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -78,10 +78,6 @@ function getVmPanel(wrapper: VueWrapper) {
   return wrapper.getComponent(V2vVmSidePanel)
 }
 
-function findRouteQuery(router: Router) {
-  return router.currentRoute.value.query
-}
-
 beforeEach(() => {
   v2vVmRowsCollectionsMock.reset()
   xoCollectionsMock.reset()
@@ -106,7 +102,7 @@ describe('table', () => {
     getTable(wrapper).vm.$emit('select', V2V_DB_VM.id)
     await flushPromises()
 
-    expect(findRouteQuery(router).vm).toBe(V2V_DB_VM.id)
+    expect(findV2vRouteQuery(router).vm).toBe(V2V_DB_VM.id)
   })
 
   it('shows the step busy, without table, while the VMs load', async () => {
@@ -141,7 +137,7 @@ describe('VM panel', () => {
     getVmPanel(wrapper).vm.$emit('close')
     await flushPromises()
 
-    expect(findRouteQuery(router).vm).toBeUndefined()
+    expect(findV2vRouteQuery(router).vm).toBeUndefined()
     expect(getVmPanel(wrapper).props('vm')).toBeUndefined()
   })
 
@@ -176,7 +172,7 @@ describe('list changes', () => {
     await flushPromises()
 
     expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-    expect(findRouteQuery(router).vm).toBeUndefined()
+    expect(findV2vRouteQuery(router).vm).toBeUndefined()
   })
 })
 
@@ -187,7 +183,7 @@ describe('navigation', () => {
     await getButton(wrapper, t('action:back')).trigger('click')
     await flushPromises()
 
-    expect(findRouteQuery(router).step).toBe('vms')
+    expect(findV2vRouteQuery(router).step).toBe('vms')
   })
 
   it('goes on to the review, even with an incomplete mapping', async () => {
@@ -200,6 +196,6 @@ describe('navigation', () => {
     await flushPromises()
 
     expect(nextButton.props('disabled')).toBeFalsy()
-    expect(findRouteQuery(router).step).toBe('review')
+    expect(findV2vRouteQuery(router).step).toBe('review')
   })
 })

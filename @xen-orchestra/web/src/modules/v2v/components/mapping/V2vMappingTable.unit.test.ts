@@ -1,10 +1,11 @@
 import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepRow } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
+import { getV2vVmMenuActions } from '@/modules/v2v/utils/v2v-vm-actions.util.ts'
 import {
+  V2V_NEW_STEP_VM,
+  V2V_NOT_FOUND_STEP_VM,
   createV2vMappingStepRow,
-  createV2vNewMappingStepVm,
-  createV2vNotFoundMappingStepVm,
   createV2vResumedMappingStepVm,
 } from '@/test/create-v2v-mapping-step-vm.ts'
 import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
@@ -32,16 +33,12 @@ beforeEach(() => {
   v2vVmActionsMock.reset()
 })
 
-const NEW_VM = createV2vNewMappingStepVm()
-
 // The synced VM is the mapped one, resumed: its row needs an id of its own
 const RESUMED_VM = createV2vResumedMappingStepVm({ id: 'vm-resumed' as XoV2vVm['id'] })
 
-const NOT_FOUND_VM = createV2vNotFoundMappingStepVm()
-
 // The item labels are the table input: read back as given
 const ROWS: V2vMappingStepRow[] = [
-  createV2vMappingStepRow(NEW_VM, {
+  createV2vMappingStepRow(V2V_NEW_STEP_VM, {
     kind: { label: 'New', accent: 'neutral' },
     mappingParts: ['2 disks → sr-a', '1 NIC → net'],
     check: { label: 'Mapping incomplete', accent: 'danger' },
@@ -52,7 +49,7 @@ const ROWS: V2vMappingStepRow[] = [
     check: { label: 'Ready', accent: 'success' },
     isSelected: true,
   }),
-  createV2vMappingStepRow(NOT_FOUND_VM, {
+  createV2vMappingStepRow(V2V_NOT_FOUND_STEP_VM, {
     kind: undefined,
     mappingParts: [],
     check: { label: 'Not found in the source', accent: 'danger' },
@@ -82,9 +79,9 @@ it('heads the columns of the VMs of the list', () => {
 
 it('lists the VMs in the given order, by name', () => {
   expect(findTableColumn(mountTable(), t('vm'))).toEqual([
-    NEW_VM.heading.name,
+    V2V_NEW_STEP_VM.heading.name,
     RESUMED_VM.heading.name,
-    NOT_FOUND_VM.heading.name,
+    V2V_NOT_FOUND_STEP_VM.heading.name,
   ])
 })
 
@@ -134,7 +131,7 @@ describe('row menu', () => {
     const items = await openRowMenu(wrapper, rowIndex)
     const { mainAction, moreActions } = getV2vVmKindActionList(useActions)
 
-    expect(items.props('actions')).toEqual([mainAction, { ...moreActions[0], separator: true }])
+    expect(items.props('actions')).toEqual(getV2vVmMenuActions(mainAction, moreActions))
   })
 
   it('offers the actions of a VM not found in the source, without separator', async () => {
@@ -148,15 +145,15 @@ describe('row menu', () => {
 
     await openRowMenu(wrapper, 0)
 
-    expect(wrapper.getComponent(V2vVmKindActions).props()).toEqual({ vm: NEW_VM, updateVm })
+    expect(wrapper.getComponent(V2vVmKindActions).props()).toEqual({ vm: V2V_NEW_STEP_VM, updateVm })
   })
 
   it('emits the removal of the VM of a row, for the step to confirm it', async () => {
     const wrapper = mountTable()
 
     await openRowMenu(wrapper, 2)
-    v2vVmActionsMock.useV2vNotFoundVmActions.mock.lastCall?.[1].remove(NOT_FOUND_VM.id)
+    v2vVmActionsMock.useV2vNotFoundVmActions.mock.lastCall?.[1].remove(V2V_NOT_FOUND_STEP_VM.id)
 
-    expect(wrapper.emitted('remove')).toEqual([[NOT_FOUND_VM.id]])
+    expect(wrapper.emitted('remove')).toEqual([[V2V_NOT_FOUND_STEP_VM.id]])
   })
 })

@@ -55,6 +55,13 @@ export function createV2vNotFoundMappingStepVm(
   }
 }
 
+// One mapping step VM of each kind, as created by default
+export const V2V_NEW_STEP_VM = createV2vNewMappingStepVm()
+
+export const V2V_RESUMED_STEP_VM = createV2vResumedMappingStepVm()
+
+export const V2V_NOT_FOUND_STEP_VM = createV2vNotFoundMappingStepVm()
+
 // A row of the mapping table: the VM, its item of the selected VMs named after it
 export function createV2vMappingStepRow(
   vm: V2vMappingStepVm,

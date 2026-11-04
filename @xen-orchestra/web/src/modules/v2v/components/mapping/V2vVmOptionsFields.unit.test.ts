@@ -5,14 +5,14 @@ import { getButton } from '@/test/get-button.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { V2V_DEBIAN_TEMPLATE, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_DEBIAN_TEMPLATE, V2V_TARGET_OPTIONS, createV2vOfferedTarget } from '@/test/v2v-mapping-fixtures.ts'
 import { getV2vTargetSelect } from '@/test/v2v-target-cells.ts'
 import VtsTagsInput from '@core/components/tags-input/VtsTagsInput.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { V2V_PARTIAL_IMPORT_TAG } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-const TEMPLATE = { value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true } as const
+const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')
 
 const TAGS = ['migrated-from:vmware', 'web']
 
