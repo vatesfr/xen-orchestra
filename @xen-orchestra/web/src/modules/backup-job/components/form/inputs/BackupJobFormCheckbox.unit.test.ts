@@ -17,7 +17,7 @@ function findMessages(wrapper: VueWrapper) {
 }
 
 it('shows its label', () => {
-  expect(getCheckbox(mountCheckbox(), 'Offline backup').exists()).toBe(true)
+  expect(mountCheckbox().get('.checkbox-label').text()).toBe('Offline backup')
 })
 
 it('shows no message without info nor error', () => {
