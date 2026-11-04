@@ -1,8 +1,8 @@
 import type { V2vVmOverrides } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountV2vVmMapping, readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
 import { V2V_DEBIAN_TEMPLATE, V2V_DISK_OVERRIDES, V2V_MAPPED_VM } from '@/test/v2v-mapping-fixtures.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 
 type OverlayOptions = {
   events: {
@@ -11,20 +11,10 @@ type OverlayOptions = {
   }
 }
 
-const { useOverlayMock, open } = vi.hoisted(() => ({
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
-}))
-
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 beforeEach(() => {
-  useOverlayMock.mockReset()
-  open.mockReset()
-
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
+  overlayMock.reset()
 })
 
 function mountVmSettingsEdit() {
@@ -40,7 +30,7 @@ function mountVmSettingsEdit() {
 }
 
 function getOverlayOptions(): OverlayOptions {
-  return useOverlayMock.mock.calls[0][0]
+  return overlayMock.getOverlay<OverlayOptions>()
 }
 
 describe('editVmSettings', () => {
@@ -49,7 +39,7 @@ describe('editVmSettings', () => {
 
     result.editVmSettings()
 
-    expect(open).toHaveBeenCalledWith({ props: { vm: V2V_MAPPED_VM, list: result.list } })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: { vm: V2V_MAPPED_VM, list: result.list } })
   })
 
   it('closes the drawer when it is cancelled', () => {

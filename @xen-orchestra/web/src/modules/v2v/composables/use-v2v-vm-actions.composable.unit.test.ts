@@ -5,21 +5,17 @@ import {
 } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
 import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { ref, toValue } from 'vue'
 
-const { useOverlayMock, open, useDelete, deleteVm } = vi.hoisted(() => ({
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
+const { useDelete, deleteVm } = vi.hoisted(() => ({
   useDelete: vi.fn(),
   deleteVm: vi.fn(),
 }))
 
 // The settings drawer is an overlay of the app, out of reach of a unit test
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 // The composable calls the REST API and opens modals
 vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
@@ -27,12 +23,10 @@ vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
 }))
 
 beforeEach(() => {
-  useOverlayMock.mockReset()
-  open.mockReset()
+  overlayMock.reset()
   useDelete.mockReset()
   deleteVm.mockReset()
 
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
   mockDelete()
 })
 
@@ -72,7 +66,9 @@ describe('useV2vNewVmActions', () => {
 
     actions.editAction.onClick()
 
-    expect(open).toHaveBeenCalledWith({ props: { vm: V2V_NEW_STEP_VM.vm, list: V2V_NEW_STEP_VM.list } })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({
+      props: { vm: V2V_NEW_STEP_VM.vm, list: V2V_NEW_STEP_VM.list },
+    })
   })
 })
 
