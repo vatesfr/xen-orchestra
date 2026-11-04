@@ -1297,9 +1297,11 @@ const messages = {
   rpuRecoverySucceeded:
     'The last rolling pool update completed but its record was kept: it could not be removed, or some VMs were stopped or deleted during the update. A new one cannot start until it is finalized.',
   rpuRecoveryAttempt: 'Attempt {attempt}',
+  rpuRecoveryPlanChanged:
+    'Hosts added to the update after it started, because of patches released since or because they joined the pool:',
   rpuRecoveryResume: 'Resume',
   rpuRecoveryResumeConfirm:
-    'Resume the rolling pool update: only the hosts with remaining work are handled, then the VMs are migrated back to their original host. The settings it left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end, then are restored.',
+    'Resume the rolling pool update: the hosts with remaining work are handled, and a host already finished is updated and rebooted again if patches were released since. Then the VMs are migrated back to their original host. The settings it left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end, then are restored.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
     'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore. VMs that are not on their original host are left where they are.',

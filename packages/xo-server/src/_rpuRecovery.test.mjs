@@ -7,6 +7,7 @@ import {
   buildRpuRecoveryView,
   createRpuRecoveryRecord,
   filterError,
+  listRpuPlanChange,
   listUnrestoredItems,
   noopRpuRecorder,
   planRpuResume,
@@ -160,6 +161,20 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.h1.steps.update.status, 'pending')
     // h2 not started yet but listed through hostOrder
     assert.equal(view.hosts.h2.status, 'pending')
+    // the plan did not change
+    assert.equal(view.planChange, undefined)
+  })
+
+  it('reports the hosts a resume added to the plan, not the recomputed inventory', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hasMissingPatchesByHost = { h1: false, h2: true }
+    record.recomputedPlan = { attempt: 2, hasMissingPatchesByHost: { h1: true, h2: true }, addedHostIds: ['h1'] }
+
+    assert.deepEqual(buildRpuRecoveryView(record).planChange, { attempt: 2, addedHostIds: ['h1'] })
+
+    // recomputed without new patches
+    record.recomputedPlan.addedHostIds = []
+    assert.equal(buildRpuRecoveryView(record).planChange, undefined)
   })
 
   it('derives per-host statuses', () => {
@@ -696,6 +711,69 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.deepEqual(stored().hasMissingPatchesByHost, { h1: true, h2: true })
   })
 
+  it('setPatchInventory keeps the plan a resume recomputed next to the initial inventory', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('first attempt'))
+
+    const { recorder: resumed } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    resumed.setPatchInventory({ h1: true, h2: true }, ['h1'])
+    await resumed.fail(new Error('later'))
+
+    assert.deepEqual(stored().hasMissingPatchesByHost, { h1: false, h2: true })
+    assert.deepEqual(stored().recomputedPlan, {
+      attempt: 2,
+      hasMissingPatchesByHost: { h1: true, h2: true },
+      addedHostIds: ['h1'],
+    })
+  })
+
+  it('reopenHost forgets what a previous attempt did on a host, but not whether the operator had it enabled', async () => {
+    const { recorder, stored } = await makeRecorder()
+    recorder.hostStarting('h1', '123', false)
+    for (const name of ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']) {
+      recorder.stepObserved('h1', name)
+    }
+
+    recorder.reopenHost('h1')
+    recorder.hostStarting('h1', '456', true)
+    await recorder.fail(new Error('later'))
+
+    assert.deepEqual(stored().hosts.h1, { steps: {}, enabledBeforeUpdate: false, agentStartedAtBeforeUpdate: '456' })
+  })
+
+  it('reopenHost leaves a host done while the attempt has not started it: its VMs are still to bring back', async () => {
+    const { recorder, stored } = await makeRecorder()
+    recorder.hostStarting('h1', '123', false)
+    for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
+      recorder.stepObserved('h1', name)
+    }
+
+    recorder.reopenHost('h1')
+    await recorder.fail(new Error('failed before reaching h1'))
+
+    assert.deepEqual(Object.keys(stored().hosts.h1.steps), ['evacuate', 'update', 'reboot', 'enable'])
+  })
+
+  it('setPatchInventory keeps the hosts an earlier resume added when a later one adds none', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('first attempt'))
+    const { recorder: second } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    second.setPatchInventory({ h1: true, h2: true }, ['h1'])
+    await second.fail(new Error('second attempt'))
+
+    const { recorder: third } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    third.setPatchInventory({ h1: true, h2: false }, [])
+    await third.fail(new Error('third attempt'))
+
+    assert.deepEqual(stored().recomputedPlan, {
+      attempt: 2,
+      hasMissingPatchesByHost: { h1: true, h2: false },
+      addedHostIds: ['h1'],
+    })
+  })
+
   it('dropIfNothingToRecover never throws: the record stays failed when it cannot be dropped', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
@@ -831,6 +909,44 @@ describe('planRpuResume()', () => {
     assert.equal(plan.unfinishedHosts.rebooting.rebooting, true)
     assert.deepEqual([...plan.patchedHostIds], ['done', 'updateRunning', 'rebootFailed', 'rebooting'])
     assert.equal(plan.hostsStarted, true)
+  })
+
+  it('passes on the patch inventory of the first attempt', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    assert.equal(planRpuResume(record).patchInventory, undefined)
+
+    record.hasMissingPatchesByHost = { h1: true }
+    assert.deepEqual(planRpuResume(record).patchInventory, { h1: true })
+  })
+})
+
+describe('listRpuPlanChange()', () => {
+  it('lists the hosts with missing patches the initial plan did not update, or a previous attempt finished', () => {
+    const addedHostIds = listRpuPlanChange({
+      patchInventory: { current: false, done: true, pending: true, stillCurrent: false, doneCurrent: true },
+      hasMissingPatchesByHost: {
+        current: true,
+        done: true,
+        pending: true,
+        stillCurrent: false,
+        doneCurrent: false,
+        joined: true,
+      },
+      doneHostIds: new Set(['done', 'doneCurrent']),
+    })
+
+    assert.deepEqual(addedHostIds, ['current', 'done', 'joined'])
+  })
+
+  it('has no change without an initial inventory to compare to', () => {
+    assert.deepEqual(
+      listRpuPlanChange({
+        patchInventory: undefined,
+        hasMissingPatchesByHost: { h1: true },
+        doneHostIds: new Set(),
+      }),
+      []
+    )
   })
 
   it('has nothing done without a host order, nor started hosts without host', () => {

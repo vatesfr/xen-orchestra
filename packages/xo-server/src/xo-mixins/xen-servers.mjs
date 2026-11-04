@@ -1065,8 +1065,9 @@ export default class XenServers {
   }
 
   /**
-   * Resumes the failed or interrupted rolling pool update of the pool: same run, only the hosts with remaining work
-   * are handled, then the VMs go back to the host they were on before the first attempt. The settings the previous
+   * Resumes the failed or interrupted rolling pool update of the pool: same run, the hosts with remaining work are
+   * handled, and a host a previous attempt finished is updated and rebooted again if patches were released since.
+   * Then the VMs go back to the host they were on before the first attempt. The settings the previous
    * attempts left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end of
    * the run, then are restored.
    *
