@@ -46,12 +46,15 @@ mv Cargo.toml.tmp Cargo.toml
 awk -v new="$new" 'prev == "name = \"vectura\"" && /^version = / { $0 = "version = \"" new "\"" } { print; prev = $0 }' Cargo.lock > Cargo.lock.tmp
 mv Cargo.lock.tmp Cargo.lock
 
-scripts/build.sh "$tmp"
-scripts/check-binary.sh "$tmp/vectura"
+scripts/build.sh "$tmp/x86_64" x86_64
+scripts/check-binary.sh "$tmp/x86_64/vectura"
+scripts/build.sh "$tmp/aarch64" aarch64
+scripts/check-binary.sh "$tmp/aarch64/vectura"
 
-# mv keeps the mode build.sh set, which git records: the binary stays
+# mv keeps the mode build.sh set, which git records: the binaries stay
 # executable in the npm package
-mv "$tmp/vectura" vectura
+mv "$tmp/x86_64/vectura" vectura
+mv "$tmp/aarch64/vectura" vectura-aarch64
 trap - EXIT
 rm -r "$tmp"
-echo "vectura $new built: commit Cargo.toml, Cargo.lock and vectura"
+echo "vectura $new built: commit Cargo.toml, Cargo.lock, vectura and vectura-aarch64"
