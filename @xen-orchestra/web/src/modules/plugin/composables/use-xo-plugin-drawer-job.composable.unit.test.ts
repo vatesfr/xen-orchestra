@@ -4,6 +4,7 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
@@ -36,7 +37,7 @@ beforeEach(() => {
   useOverlayMock.mockReset()
   open.mockReset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useJob.mockReturnValue(createJobResult(run))
   useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
