@@ -18,7 +18,7 @@ export async function mountV2vVmsStep<TResult extends Record<string, unknown>>(
   { list, query, inventory = V2V_VMS_INVENTORY }: MountV2vVmsStepOptions
 ) {
   const { mounted: result, router } = await mountOnV2vWizard(
-    router => mountComposableWithI18n(composable, { router }),
+    (router, provide) => mountComposableWithI18n(composable, { router, provide }),
     { step: 'vms', query, list: list ?? undefined, source: inventory === null ? undefined : { inventory } }
   )
 

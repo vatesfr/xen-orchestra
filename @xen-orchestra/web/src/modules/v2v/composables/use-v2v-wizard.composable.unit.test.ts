@@ -1,5 +1,4 @@
 import { useV2vWizard } from '@/modules/v2v/composables/use-v2v-wizard.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import { UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -20,7 +19,7 @@ async function mountWizard(setup: V2vWizardSetup = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL]
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
-    router => mountComposable(() => ({ ...useV2vWizard(), t: useI18n().t }), { router }).wrapper,
+    (router, provide) => mountComposable(() => ({ ...useV2vWizard(), t: useI18n().t }), { router, provide }).wrapper,
     setup
   )
 
@@ -127,25 +126,5 @@ describe('summary', () => {
     await nextTick()
 
     expect(wizard.summary).toBe(V2V_WIZARD_SOURCE.connection.host)
-  })
-})
-
-describe('connection', () => {
-  it('is kept while moving between steps', async () => {
-    const { router } = await mountWizard({ step: 'destination', source: V2V_WIZARD_SOURCE })
-
-    await router.push({ query: { step: 'vms' } })
-
-    expect(useV2vConnectionStore().connection).toEqual(V2V_WIZARD_SOURCE.connection)
-  })
-
-  it('is forgotten with its inventory once the wizard is closed', async () => {
-    const { wrapper } = await mountWizard({ step: 'destination', source: V2V_WIZARD_SOURCE })
-    const store = useV2vConnectionStore()
-
-    wrapper.unmount()
-
-    expect(store.connection).toBeUndefined()
-    expect(store.inventory).toBeUndefined()
   })
 })

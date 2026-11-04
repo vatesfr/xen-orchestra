@@ -1,20 +1,17 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vIsUnknownPool } from '@/modules/v2v/composables/use-v2v-is-unknown-pool.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import { resolveV2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { storeToRefs } from 'pinia'
-import { computed, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function useV2vWizard() {
   const { t } = useI18n()
 
-  const connectionStore = useV2vConnectionStore()
-
-  const { connection, sourceId } = storeToRefs(connectionStore)
+  const { connection, sourceId } = useV2vConnection()
 
   const requestedStep = useRouteQuery('step')
 
@@ -47,9 +44,6 @@ export function useV2vWizard() {
 
     return showsDestination ? t('source-to-destination', { source, destination }) : source
   })
-
-  // The credentials are kept in memory only while the wizard is open (spec)
-  onUnmounted(() => connectionStore.clear())
 
   return { currentStep, summary }
 }
