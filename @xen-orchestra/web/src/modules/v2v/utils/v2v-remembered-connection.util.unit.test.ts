@@ -8,7 +8,6 @@ import {
   getRememberedConnectionKey,
   parseRememberedConnectionsStorage,
   sortRememberedConnectionsByLastUse,
-  toV2vConnection,
   upsertRememberedConnection,
 } from '@/modules/v2v/utils/v2v-remembered-connection.util.ts'
 import { getV2vAddress } from '@/modules/v2v/utils/v2v-source.util.ts'
@@ -201,25 +200,5 @@ describe('fromXo5RememberedConnection', () => {
     { host: 'esxi.lab', user: '', password: 'secret' },
   ])('returns nothing without a host and a user (%j)', stored => {
     expect(fromXo5RememberedConnection(stored)).toBeUndefined()
-  })
-})
-
-describe('toV2vConnection', () => {
-  it('uses the remembered password', () => {
-    expect(toV2vConnection(createV2vRememberedConnection({ password: 'stored' }))).toEqual(
-      createV2vConnection({ password: 'stored' })
-    )
-  })
-
-  it('prefers the given password over the remembered one', () => {
-    expect(toV2vConnection(createV2vRememberedConnection({ password: 'stored' }), 'typed')?.password).toBe('typed')
-  })
-
-  it('uses the given password when none was remembered', () => {
-    expect(toV2vConnection(omit(CONNECTION_A, 'password'), 'typed')?.password).toBe('typed')
-  })
-
-  it.each([undefined, ''])('returns nothing without any password (%j)', password => {
-    expect(toV2vConnection({ ...omit(CONNECTION_A, 'password'), password })).toBeUndefined()
   })
 })
