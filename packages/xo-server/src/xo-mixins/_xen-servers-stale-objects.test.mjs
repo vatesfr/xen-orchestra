@@ -203,6 +203,39 @@ describe('objects of a lost connection', function () {
     assert.equal(xenServers.getXenServerIdByObject('vm-1'), 'server-1')
   })
 
+  it('are kept, flagged, when an attempt to reconnect fails after fetching some of them', async function () {
+    const { lastSeenById, xenServers } = createXenServers({
+      durations: { xapiObjectsFetchTimeout: DELAY, xapiStaleObjectsMaxAge: DELAY * 20 },
+    })
+    await xenServers.connectXenServer('server-1')
+    await xapis[0].disconnect()
+    await sleep(10)
+
+    // the next attempt provides part of the objects, then times out
+    nextXapiObjects = [xapiObject('pool', 'pool-1'), xapiObject('VM', 'vm-1')]
+    nextObjectsFetchDuration = DELAY * 2
+    await assert.rejects(xenServers.connectXenServer('server-1'), {
+      data: { objectId: 'server-1', code: 'TIMEOUT_CONNECT_SERVER' },
+    })
+    assert.deepEqual(lastSeenById(), { 'pool-1': LAST_SEEN, 'vm-1': LAST_SEEN, 'vm-2': LAST_SEEN })
+
+    // and the next connection reconciles all of them
+    nextXapiObjects = [xapiObject('pool', 'pool-1'), xapiObject('VM', 'vm-1'), xapiObject('VM', 'vm-2')]
+    nextObjectsFetchDuration = 0
+    await xenServers.connectXenServer('server-1')
+    assert.deepEqual(lastSeenById(), { 'pool-1': undefined, 'vm-1': undefined, 'vm-2': undefined })
+  })
+
+  it('are removed when a first connection fails after fetching some of them', async function () {
+    const { lastSeenById, xenServers } = createXenServers({ durations: { xapiObjectsFetchTimeout: DELAY } })
+    nextObjectsFetchDuration = DELAY * 2
+
+    await assert.rejects(xenServers.connectXenServer('server-1'), {
+      data: { objectId: 'server-1', code: 'TIMEOUT_CONNECT_SERVER' },
+    })
+    assert.deepEqual(lastSeenById(), {})
+  })
+
   it('are removed after the max age when the server does not reconnect', async function () {
     const { lastSeenById, xenServers } = createXenServers()
     await xenServers.connectXenServer('server-1')

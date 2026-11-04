@@ -525,6 +525,11 @@ export default class XenServers {
       watchEvents: false,
     }))
 
+    // set by a failed attempt to reconnect a lost server, whose objects are kept
+    // flagged: the objects this attempt has fetched so far replaced some of them,
+    // and must be kept, flagged, like the others, not removed
+    let keepObjectsOnFailure = false
+
     try {
       await xapi.connect()
 
@@ -756,9 +761,11 @@ export default class XenServers {
         clearTimeout(removeStaleTimeout)
 
         // `disconnectXenServer` and failed connections forget the Xapi
-        // beforehand: deliberate disconnections remove the objects, the others
-        // keep them, flagged, until the server reconnects
-        if (this._xapis[server.id] === xapi) {
+        // beforehand: deliberate disconnections and failed first connections
+        // remove the objects, the others, including a failed attempt to
+        // reconnect a lost server, keep them, flagged, until the server
+        // reconnects
+        if (this._xapis[server.id] === xapi || keepObjectsOnFailure) {
           xapi.xo.markStale()
           xapi.xo.detach()
           this._keepStaleObjects(server.id, xapi.xo.getXoIds())
@@ -794,6 +801,7 @@ export default class XenServers {
       this._app.emit('server:connected', { server, xapi })
       await this.updateXenServer(id, { error: null, status: 'connected' })::ignoreErrors()
     } catch (error) {
+      keepObjectsOnFailure = this._staleObjects[server.id] !== undefined
       delete this._xapis[server.id]
       await xapi.disconnect()::ignoreErrors()
 
