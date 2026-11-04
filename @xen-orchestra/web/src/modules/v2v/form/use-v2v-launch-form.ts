@@ -19,7 +19,13 @@ export type V2vLaunchForm = ReturnType<typeof useV2vLaunchForm>
 export function useV2vLaunchForm() {
   const { t } = useI18n()
 
-  const formData = reactive<V2vLaunchFormData>({ stopSource: true, stopOnError: true, concurrency: 2 })
+  const formData = reactive<V2vLaunchFormData>({
+    stopSource: true,
+    repair: false,
+    startVm: false,
+    stopOnError: true,
+    concurrency: 2,
+  })
 
   const { useField, validate } = useValidatedForm(formData, {
     errors: {
@@ -38,6 +44,14 @@ export function useV2vLaunchForm() {
     stopSourceCheckboxBindings: useField('stopSource', () => ({
       label: t('v2v:stop-source-vm'),
       info: t('v2v:stop-source-vm-info'),
+    })),
+    repairCheckboxBindings: useField('repair', () => ({
+      label: t('v2v:repair-vm'),
+      info: t('v2v:repair-vm-info'),
+    })),
+    startVmCheckboxBindings: useField('startVm', () => ({
+      label: t('v2v:start-vm-on-xcp-ng'),
+      info: t('v2v:start-vm-on-xcp-ng-info'),
     })),
     stopOnErrorCheckboxBindings: useField('stopOnError', () => ({
       label: t('stop-on-error'),

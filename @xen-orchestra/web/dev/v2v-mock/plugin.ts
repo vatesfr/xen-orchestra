@@ -47,8 +47,6 @@ async function handleInventory(request: IncomingMessage, response: ServerRespons
 
 type V2vStartProblem = { vm?: XoV2vVm['id']; field?: string; message: string }
 
-const START_VM_UNSUPPORTED = 'starting the VM after its import is not supported yet'
-
 const CLEANUP_UNSUPPORTED = 'cleaning up the VM is not supported yet'
 
 // Mirrors `planMigration` of the REST API (`@xen-orchestra/rest-api/src/v2v/v2v.plan.mts`): every problem at once
@@ -56,10 +54,6 @@ function planMockMigration({ connection, defaults, vms }: XoV2vStartPayload): V2
   const problems: V2vStartProblem[] = []
   const sourceVms = new Map(createMockInventory(connection.host).vms.map(vm => [vm.id, vm]))
   const seenVmIds = new Set<XoV2vVm['id']>()
-
-  if (defaults.startVm) {
-    problems.push({ field: 'defaults.startVm', message: START_VM_UNSUPPORTED })
-  }
 
   if (defaults.cleanup) {
     problems.push({ field: 'defaults.cleanup', message: CLEANUP_UNSUPPORTED })
@@ -84,10 +78,6 @@ function planMockMigration({ connection, defaults, vms }: XoV2vStartPayload): V2
       continue
     }
 
-    if (vm.startVm) {
-      report(START_VM_UNSUPPORTED, 'startVm')
-    }
-
     if (vm.cleanup) {
       report(CLEANUP_UNSUPPORTED, 'cleanup')
     }
@@ -98,6 +88,17 @@ function planMockMigration({ connection, defaults, vms }: XoV2vStartPayload): V2
 
     if (!vm.keepMac) {
       report('the MAC addresses are always kept for now', 'keepMac')
+    }
+
+    // the guest is only repaired, and the VM only started, once its import is complete
+    const isPartial = !(vm.stopSource ?? defaults.stopSource) && sourceVm.powerState !== 'poweredOff'
+
+    if (isPartial && (vm.repair ?? defaults.repair) !== false) {
+      report('the guest can only be repaired by a complete import: stop the source, or use stopSource', 'repair')
+    }
+
+    if (isPartial && (vm.startVm ?? defaults.startVm)) {
+      report('the VM can only be started after a complete import: stop the source, or use stopSource', 'startVm')
     }
 
     for (const disk of sourceVm.disks) {

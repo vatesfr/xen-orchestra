@@ -6,11 +6,8 @@
     </UiCardTitle>
     <div class="vm-options">
       <FormCheckbox v-bind="stopSourceCheckboxBindings" />
-      <FormCheckbox :label="t('v2v:start-vm-on-xcp-ng')" :model-value="false" :info="t('not-supported-yet')" disabled />
-      <div class="preview-option">
-        <FormCheckbox :label="t('v2v:clean-up-vm')" :model-value="false" :info="t('not-supported-yet')" disabled />
-        <UiTag accent="warning" variant="secondary" class="preview-tag">{{ t('preview') }}</UiTag>
-      </div>
+      <FormCheckbox v-bind="repairCheckboxBindings" />
+      <FormCheckbox v-bind="startVmCheckboxBindings" />
     </div>
     <div class="launch-options">
       <FormCheckbox v-bind="stopOnErrorCheckboxBindings" />
@@ -27,11 +24,12 @@ import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   stopSourceCheckboxBindings: V2vLaunchForm['stopSourceCheckboxBindings']['value']
+  repairCheckboxBindings: V2vLaunchForm['repairCheckboxBindings']['value']
+  startVmCheckboxBindings: V2vLaunchForm['startVmCheckboxBindings']['value']
   stopOnErrorCheckboxBindings: V2vLaunchForm['stopOnErrorCheckboxBindings']['value']
   concurrencyInputBindings: V2vLaunchForm['concurrencyInputBindings']['value']
 }>()
@@ -51,16 +49,6 @@ const { t } = useI18n()
   .launch-options {
     padding-block-start: 1.6rem;
     border-block-start: 0.1rem solid var(--color-neutral-border);
-  }
-
-  .preview-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-  }
-
-  .preview-tag {
-    flex-shrink: 0;
   }
 }
 </style>

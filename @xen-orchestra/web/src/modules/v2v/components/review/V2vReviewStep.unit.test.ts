@@ -140,7 +140,7 @@ it('shows the default options, then the options of each launchable VM', async ()
   })
   expect(wrapper.getComponent(V2vVmLaunchOptionsTable).props()).toMatchObject({
     rows: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }],
-    defaultStopSource: true,
+    defaults: { stopSource: true, repair: false, startVm: false },
   })
 })
 
@@ -148,7 +148,7 @@ it('overrides stopping the source of a VM from its row', async () => {
   const { wrapper } = await mountStep()
   const table = wrapper.getComponent(V2vVmLaunchOptionsTable)
 
-  table.vm.$emit('changeStopSource', V2V_DB_VM.id, false)
+  table.vm.$emit('changeOption', V2V_DB_VM.id, 'stopSource', false)
   await flushPromises()
 
   expect(table.props('rows')[1].overrides).toEqual({ stopSource: false })

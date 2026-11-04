@@ -11,9 +11,9 @@ export type V2vStartPayloadInput = {
   vms: V2vStartVm[]
 }
 
-// The back end refuses to start or clean up a VM, to tag it or to give it new MACs: only what it accepts is sent,
-// whatever the list holds
-const UNSUPPORTED_DEFAULTS = { startVm: false, cleanup: false }
+// The back end refuses to clean up a VM, to tag it or to give it new MACs: only what it accepts is sent, whatever
+// the list holds
+const UNSUPPORTED_DEFAULTS = { cleanup: false }
 
 const UNSUPPORTED_VM_OPTIONS = { tags: [], keepMac: true }
 
@@ -22,15 +22,22 @@ function buildVm({ id, kind, disks, nics, template, overrides }: V2vStartVm): Xo
   const mapping = kind === 'resume' ? {} : { disks, nics, template }
 
   // An `undefined` key is not sent: the VM is then on the list defaults or the launch settings
-  return { id, ...mapping, stopSource: overrides?.stopSource, ...UNSUPPORTED_VM_OPTIONS }
+  return {
+    id,
+    ...mapping,
+    stopSource: overrides?.stopSource,
+    repair: overrides?.repair,
+    startVm: overrides?.startVm,
+    ...UNSUPPORTED_VM_OPTIONS,
+  }
 }
 
 export function buildV2vStartPayload({ connection, defaults, settings, vms }: V2vStartPayloadInput): XoV2vStartPayload {
-  const { stopSource, stopOnError, concurrency } = settings
+  const { stopSource, repair, startVm, stopOnError, concurrency } = settings
 
   return {
     connection,
-    defaults: { ...defaults, stopSource, ...UNSUPPORTED_DEFAULTS },
+    defaults: { ...defaults, stopSource, repair, startVm, ...UNSUPPORTED_DEFAULTS },
     vms: vms.map(buildVm),
     stopOnError,
     concurrency,

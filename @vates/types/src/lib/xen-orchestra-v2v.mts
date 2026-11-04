@@ -188,8 +188,16 @@ export type XoV2vInventory = {
   vms: XoV2vVm[]
 }
 
+// How the repair ISO prepares the guest to boot on XCP-ng, `true` takes the defaults of the back end
+export type XoV2vRepairOptions = {
+  windowsCleanup?: 'standard' | 'full'
+  windowsMsiPatterns?: string
+  isoVersion?: string
+}
+
 export type XoV2vStartOptions = {
   stopSource: boolean
+  repair: boolean | XoV2vRepairOptions
   startVm: boolean
   cleanup: boolean
 }

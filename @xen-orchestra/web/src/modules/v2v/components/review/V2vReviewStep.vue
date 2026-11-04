@@ -19,12 +19,18 @@
         </InlineParts>
       </template>
     </UiCardTitle>
-    <V2vLaunchOptionsCard :stop-source-checkbox-bindings :stop-on-error-checkbox-bindings :concurrency-input-bindings />
+    <V2vLaunchOptionsCard
+      :stop-source-checkbox-bindings
+      :repair-checkbox-bindings
+      :start-vm-checkbox-bindings
+      :stop-on-error-checkbox-bindings
+      :concurrency-input-bindings
+    />
     <V2vVmLaunchOptionsTable
       v-if="vmLaunchOptionsRows.length > 0"
       :rows="vmLaunchOptionsRows"
-      :default-stop-source="formData.stopSource"
-      @change-stop-source="(id, value) => changeStopSource(id, value)"
+      :defaults="formData"
+      @change-option="(id, option, value) => changeLaunchOption(id, option, value)"
     />
     <V2vLaunchGroup :heading="groupHeadings.excluded" :count="excludedVms.length">
       <V2vLaunchGroupVm v-for="vm of excludedVms" :key="vm.id">
@@ -98,7 +104,14 @@ const {
   isBusy,
   summaryParts,
   destinationPoolName,
-  form: { formData, stopSourceCheckboxBindings, stopOnErrorCheckboxBindings, concurrencyInputBindings },
+  form: {
+    formData,
+    stopSourceCheckboxBindings,
+    repairCheckboxBindings,
+    startVmCheckboxBindings,
+    stopOnErrorCheckboxBindings,
+    concurrencyInputBindings,
+  },
   vmLaunchOptionsRows,
   groupHeadings,
   excludedVms,
@@ -112,7 +125,7 @@ const {
   launchError,
   launched,
   confirmSecondCopy,
-  changeStopSource,
+  changeLaunchOption,
   launch,
   back,
   backToVms,

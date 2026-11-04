@@ -26,14 +26,20 @@ function createRefusedLaunchError(errors: unknown) {
 }
 
 describe('buildV2vStartPayload', () => {
-  it('sends the connection, the launch settings and the list defaults, never starting nor cleaning up the VMs', () => {
+  it('sends the connection, the launch settings and the list defaults, never cleaning up the VMs', () => {
     const payload = buildPayload({
-      settings: createV2vLaunchSettings({ stopSource: false, stopOnError: false, concurrency: 4 }),
+      settings: createV2vLaunchSettings({
+        stopSource: false,
+        repair: true,
+        startVm: true,
+        stopOnError: false,
+        concurrency: 4,
+      }),
     })
 
     expect(payload).toMatchObject({
       connection: createV2vConnection(),
-      defaults: { ...createV2vDestinationDefaults(), stopSource: false, startVm: false, cleanup: false },
+      defaults: { ...createV2vDestinationDefaults(), stopSource: false, repair: true, startVm: true, cleanup: false },
       stopOnError: false,
       concurrency: 4,
     })
@@ -58,6 +64,12 @@ describe('buildV2vStartPayload', () => {
   it.each([true, false])('sends the stop source override (%s) of a VM', stopSource => {
     expect(buildPayload({ vms: [createV2vStartVm({ overrides: { stopSource } })] }).vms).toEqual([
       { id: 'vm-1', stopSource, tags: [], keepMac: true },
+    ])
+  })
+
+  it('sends the repair and start overrides of a VM', () => {
+    expect(buildPayload({ vms: [createV2vStartVm({ overrides: { repair: true, startVm: false } })] }).vms).toEqual([
+      { id: 'vm-1', repair: true, startVm: false, tags: [], keepMac: true },
     ])
   })
 
