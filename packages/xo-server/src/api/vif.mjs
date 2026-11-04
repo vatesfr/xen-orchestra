@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { diffItems } from '../utils.mjs'
 
@@ -108,6 +109,15 @@ export async function set({
 
     const xapi = this.getXapi(vif)
 
+    // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS), and the delete+create
+    // fallback below would recreate the VIF without them: moved back later to a network without VLAN, it would
+    // see every VLAN. Refuse, as XAPI does
+    if (isNetworkChanged && vif.trunks?.length > 0 && xapi.getObject(network.id).$PIFs.some(pif => pif.VLAN !== -1)) {
+      throw invalidParameters(
+        `remove the VLANs VIF ${vif.id} is restricted to before moving it to a network with a VLAN`
+      )
+    }
+
     // If only the network is changing (not MAC), try to use VIF.move which is non-destructive
     // VIF.move was introduced in XenServer 7.1 and keeps the VIF UUID, avoiding network downtime
     if (isNetworkChanged && mac === undefined) {
@@ -184,6 +194,7 @@ export async function set({
           qos_algorithm_params: newRateLimit != null ? { kbps: String(newRateLimit) } : undefined,
           network: network.$ref,
           other_config: otherConfig,
+          trunks: vif.trunks,
           VM: vm.$ref,
           MTU: vif.MTU,
           device: vif.device,
