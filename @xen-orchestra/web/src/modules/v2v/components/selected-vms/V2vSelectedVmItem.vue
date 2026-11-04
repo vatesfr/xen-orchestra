@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard>
+  <UiPanelCard class="v2v-selected-vm-item">
     <UiPanelCardTitle size="small" :label="item.name" :to="item.mappingRoute">
       <template v-if="item.kind" #action>
         <UiTag :accent="item.kind.accent" variant="secondary">{{ item.kind.label }}</UiTag>
@@ -49,7 +49,9 @@ const removeLabel = computed(() => t('action:remove-name-from-list', { name: ite
 </script>
 
 <style lang="postcss" scoped>
-.mapping {
-  color: var(--color-neutral-txt-secondary);
+.v2v-selected-vm-item {
+  .mapping {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>
