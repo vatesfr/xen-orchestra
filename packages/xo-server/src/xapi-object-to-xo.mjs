@@ -846,6 +846,7 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
       other_config: obj.other_config,
+      trunks: obj.trunks?.map(Number),
 
       // See: https://xapi-project.github.io/xen-api/networking.html
       txChecksumming: !(txChecksumming === 'false' || txChecksumming === 'off'),

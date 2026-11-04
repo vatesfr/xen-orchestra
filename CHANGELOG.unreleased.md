@@ -41,6 +41,7 @@
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
+- [REST API/VIFs] VIFs can be restricted to a list of VLANs (VLAN filtering, XCP-ng 8.3) (PR [#10742](https://github.com/vatesfr/xen-orchestra/pull/10742))
 
 ### Bug fixes
 
@@ -85,6 +86,7 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch

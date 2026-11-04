@@ -8,6 +8,7 @@ import {
   Patch,
   Path,
   Post,
+  Put,
   Query,
   Request,
   Response,
@@ -27,6 +28,7 @@ import type {
   XoAlarm,
   XoMessage,
   XoNetwork,
+  XoPif,
   XoTask,
   XoVif,
   XoVm,
@@ -61,18 +63,28 @@ import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/tas
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
+
+/**
+ * @isInt vlan must be an integer
+ * @minimum 0 vlan must be between 0 and 4094
+ * @maximum 4094 vlan must be between 0 and 4094
+ */
+type VlanTag = number
+
 type CreateVifParams = Parameters<Xapi['VIF_create']>
-type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' | 'qos_algorithm_params'> &
+type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' | 'qos_algorithm_params' | 'trunks'> &
   CreateVifParams[1] & {
     networkId: string
     vmId: string
     other_config?: { [key: string]: string } //  "ethtool-tx" : "false"
     qos_algorithm_params?: { [key: string]: string } // "kbps": "1000"
+    trunks?: VlanTag[]
   }
 
-type UpdateVifRequestBody = Omit<EditVifProps, 'ipv4Allowed' | 'ipv6Allowed'> & {
+type UpdateVifRequestBody = Omit<EditVifProps, 'ipv4Allowed' | 'ipv6Allowed' | 'trunks'> & {
   allowedIpv4Addresses?: EditVifProps['ipv4Allowed']
   allowedIpv6Addresses?: EditVifProps['ipv6Allowed']
+  trunks?: VlanTag[]
 }
 
 const UPDATE_VIF_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vif.update).map(
@@ -90,6 +102,26 @@ export class VifController extends XapiXoController<XoVif> {
   constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('VIF', restApi)
     this.#alarmService = alarmService
+  }
+
+  // A VIF of a pool without VLAN filtering (xapi < 26.1.16) has no `trunks`, and XAPI would answer a trunks call with
+  // MESSAGE_METHOD_UNKNOWN, which the client would get as a 500
+  #assertVlanFiltering(vif: XoVif) {
+    if (vif.trunks === undefined) {
+      throw invalidParameters('VLAN filtering needs XCP-ng 8.3 with xapi 26.1.16 or later', [
+        { field: 'trunks', message: `pool ${vif.$pool} has no VLAN filtering` },
+      ])
+    }
+  }
+
+  // Same rule as XAPI's assert_network_compatible_with_trunks_on_pif: a VIF on a network with a VLAN
+  // is an access port, and XAPI refuses trunks there with NETWORK_INCOMPATIBLE_WITH_TRUNKS, which the
+  // client would get as a 500
+  #assertTrunksAllowed(networkId: XoNetwork['id']) {
+    const network = this.restApi.getObject<XoNetwork>(networkId, 'network')
+    if (network.PIFs.some(pifId => this.restApi.getObject<XoPif>(pifId, 'PIF').vlan !== -1)) {
+      throw invalidParameters(`VLAN filtering needs a network without VLAN, network ${networkId} has one`)
+    }
   }
 
   /**
@@ -139,12 +171,15 @@ export class VifController extends XapiXoController<XoVif> {
    * Partial update of a VIF: only the fields present in the body are modified.
    * Setting the allowed IPs to a non-empty list switches the locking mode to `locked`.
    * `rateLimit` is expressed in kB/s (kilobytes per second).
+   * `trunks` restricts a VIF on a network without VLAN to these 802.1Q VLANs (VLAN filtering, XCP-ng 8.3
+   * with xapi 26.1.16 or later); `[]` lets every VLAN through again. Untagged traffic counts as VLAN 0: a VIF
+   * restricted to other VLANs loses it, include 0 to keep it.
    *
    * Required privilege per field provided in the body:
    * - resource: vif, action: update:&lt;field&gt;
    *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
-   * @example body { "lockingMode": "locked", "allowedIpv4Addresses": ["192.168.0.42"], "rateLimit": 1000 }
+   * @example body { "lockingMode": "locked", "allowedIpv4Addresses": ["192.168.0.42"], "rateLimit": 1000, "trunks": [0, 10, 20] }
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
@@ -163,12 +198,19 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async updateVif(@Path() id: string, @Body() body: UpdateVifRequestBody): Promise<void> {
     const vifId = id as XoVif['id']
-    const { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, rateLimit, txChecksumming } = body
+    const { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, rateLimit, trunks, txChecksumming } = body
 
     // resolve first so a missing VIF 404s before any side effect
     const vif = this.getObject(vifId)
     if (Object.keys(body).length === 0) {
       return
+    }
+
+    if (trunks !== undefined) {
+      this.#assertVlanFiltering(vif)
+      if (trunks.length !== 0) {
+        this.#assertTrunksAllowed(vif.$network)
+      }
     }
 
     // keep XO's IP-pool accounting in sync when the allowed IPs change
@@ -189,8 +231,58 @@ export class VifController extends XapiXoController<XoVif> {
       ipv6Allowed: allowedIpv6Addresses,
       lockingMode,
       rateLimit,
+      trunks,
       txChecksumming,
     })
+  }
+
+  /**
+   * Adds an 802.1Q VLAN to the ones this VIF is restricted to (VLAN filtering, XCP-ng 8.3 with xapi
+   * 26.1.16 or later). Only a VIF on a network without VLAN can be restricted.
+   * Untagged traffic counts as VLAN 0: adding a first VLAN other than 0 cuts it, add 0 to keep it.
+   *
+   * Required privilege:
+   * - resource: vif, action: update:trunks
+   *
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example vlan 20
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Put('{id}/trunks/{vlan}')
+  @Middlewares(acl({ resource: 'vif', action: 'update:trunks', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  async putVifTrunk(@Path() id: string, @Path() vlan: VlanTag): Promise<void> {
+    const vifId = id as XoVif['id']
+    const vif = this.getObject(vifId)
+    this.#assertVlanFiltering(vif)
+    this.#assertTrunksAllowed(vif.$network)
+    await this.getXapiObject(vifId).$call('add_trunks', vlan)
+  }
+
+  /**
+   * Removes an 802.1Q VLAN from the ones this VIF is restricted to. Removing the last one lets every
+   * VLAN through again.
+   *
+   * Required privilege:
+   * - resource: vif, action: update:trunks
+   *
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example vlan 20
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Delete('{id}/trunks/{vlan}')
+  @Middlewares(acl({ resource: 'vif', action: 'update:trunks', objectId: 'params.id' }))
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  async deleteVifTrunk(@Path() id: string, @Path() vlan: VlanTag): Promise<void> {
+    const vifId = id as XoVif['id']
+    this.#assertVlanFiltering(this.getObject(vifId))
+    await this.getXapiObject(vifId).$call('remove_trunks', vlan)
   }
 
   /**
@@ -298,6 +390,9 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
+   * `trunks` restricts the VIF to these 802.1Q VLANs (VLAN filtering, XCP-ng 8.3 with xapi 26.1.16 or
+   * later), only on a network without VLAN. Untagged traffic counts as VLAN 0: include 0 to keep it.
+   *
    * Required privilege:
    * - resource: vif, action: create
    *
@@ -310,7 +405,8 @@ export class VifController extends XapiXoController<XoVif> {
    *  "qos_algorithm_params": {
    *    "kbps": "42"
    *  },
-   *  "qos_algorithm_type": "ratelimit"
+   *  "qos_algorithm_type": "ratelimit",
+   *  "trunks": [0, 10, 20]
    * }
    */
   @Example(vifId)
@@ -333,6 +429,10 @@ export class VifController extends XapiXoController<XoVif> {
 
     if (vm.$pool !== network.$pool) {
       throw invalidParameters(`the VM ${vmId} and network ${networkId} do not belong to the same pool`)
+    }
+
+    if (rest.trunks !== undefined && rest.trunks.length !== 0) {
+      this.#assertTrunksAllowed(network.id)
     }
 
     const xapi = this.getXapi(vmId as XoVm['id'])
