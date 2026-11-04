@@ -755,8 +755,9 @@ export class VmController extends XapiXoController<XoVm> {
    * the hosts. The ISO stays inserted for as long as the browser serving it stays connected, and is read: then it is
    * ejected, see `POST /browser-media/{id}/actions/eject`. Meanwhile, the VM cannot migrate nor be suspended.
    *
-   * The VM must be halted, or running with an empty CD drive. A halted VM without CD drive gets a bootable one, removed
-   * with the ISO. A VM protected by HA is refused, since the ISO is attached to a single host.
+   * The VM must be halted, or running with an empty CD drive. A halted VM without CD drive gets a bootable one, which
+   * is removed with the ISO if the VM is halted by then, and is otherwise left empty. A VM protected by HA is refused,
+   * since the ISO is attached to a single host.
    *
    * The browser serves the ISO over a WebSocket to `/api/browser-media`, authenticated by the `token` cookie of an
    * administrator:

@@ -1,4 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
 import { incorrectState, noHostsAvailable } from 'xo-common/api-errors.js'
+
+const log = createLogger('xo:browser-media')
+
+// CD drives whose invalid tag was reported: they are looked at by each release and recovery attempt
+const reportedInvalidTags = new Set()
 
 // tags what a session changed in a pool, so that it can be undone even after a crash: the SR
 // (`sm_config`), the CD drive (`other_config`) and the blocked operations of the VM (their reason)
@@ -14,6 +20,27 @@ const BLOCKED_OPERATIONS = ['checkpoint', 'migrate_send', 'pool_migrate', 'suspe
 
 const blockedReason = sessionId =>
   `an ISO is streamed into this VM from a browser, which must stay connected (${TAG}:${sessionId})`
+
+/**
+ * The session a CD drive was changed for, from its tag.
+ *
+ * @returns {{ session: string, created: boolean, backendKind: boolean } | undefined} undefined if
+ * the drive is not tagged, or if its tag is invalid, e.g. edited by hand
+ */
+function parseCdTag(vbdRef, otherConfig) {
+  const tag = otherConfig[TAG]
+  if (tag === undefined) {
+    return undefined
+  }
+  try {
+    return JSON.parse(tag)
+  } catch (error) {
+    if (!reportedInvalidTags.has(vbdRef)) {
+      reportedInvalidTags.add(vbdRef)
+      log.warn('ignoring a CD drive whose browser media tag is invalid', { error, vbd: vbdRef, tag: tag.slice(0, 200) })
+    }
+  }
+}
 
 /**
  * Check what can be checked before inserting the ISO of a session in `vm`, e.g. before starting a
@@ -126,7 +153,8 @@ export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
 
 /**
  * Eject the ISO of `sessionId` from its CD drive, if it is still there, and undo what was changed
- * on the drive: a drive created for the ISO is destroyed once the VM is halted.
+ * on the drive: a drive created for the ISO is destroyed if the VM is halted, and is otherwise left
+ * empty.
  *
  * Nothing is done to a drive which was not changed for this session, and only one of `vdiRefs` is
  * ejected: another client may have replaced the ISO meanwhile.
@@ -141,10 +169,7 @@ export async function ejectIso(xapi, { vbdRef, vdiRefs, sessionId }) {
     }
     throw error
   }
-  let tag
-  try {
-    tag = JSON.parse(vbd.other_config[TAG])
-  } catch {}
+  const tag = parseCdTag(vbdRef, vbd.other_config)
   if (tag?.session !== sessionId) {
     return
   }
@@ -166,11 +191,9 @@ export async function findTaggedCds(xapi, vmRef, sessionId) {
   const refs = []
   for (const vbdRef of await xapi.getField('VM', vmRef, 'VBDs')) {
     const otherConfig = await xapi.getField('VBD', vbdRef, 'other_config')
-    try {
-      if (JSON.parse(otherConfig[TAG]).session === sessionId) {
-        refs.push(vbdRef)
-      }
-    } catch {}
+    if (parseCdTag(vbdRef, otherConfig)?.session === sessionId) {
+      refs.push(vbdRef)
+    }
   }
   return refs
 }

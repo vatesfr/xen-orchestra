@@ -1,5 +1,14 @@
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
-import { forbiddenOperation, incorrectState, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { setTimeout as sleep } from 'node:timers/promises'
+import { pRetry } from 'promise-toolbox'
+import {
+  forbiddenOperation,
+  incorrectState,
+  invalidCredentials,
+  noSuchObject,
+  objectAlreadyExists,
+} from 'xo-common/api-errors.js'
 import { parse as parseCookies } from 'cookie'
 import { WebSocketServer } from 'ws'
 
@@ -34,13 +43,19 @@ const MAX_SESSIONS = 16
 const TIMEOUT = 30e3
 const TICK_INTERVAL = 15e3
 const RECONCILE_INTERVAL = 30e3
+// a failed release is retried after 30 s, then 1, 2, 4 and 8 minutes, then at each reconciliation
+// (RECONCILE_INTERVAL), quietly, and once the pool of the VM reconnects
 const RELEASE_RETRY_DELAY = 30e3
+const RELEASE_TRIES = 5
+const RECOVERY_CONCURRENCY = 8
 const STOP_TIMEOUT = 10e3
 const DEFAULT_IDLE_TIMEOUT = 3600e3
 
 // the session journal: what was started in a pool, by session id, so that it can be undone after
 // a crash. Local to this XO: the sessions of another XO are none of its business
 const STORE_NAMESPACE = 'browserMedia'
+
+const noop = () => {}
 
 const SR_DESCRIPTION = 'ISO streamed from a browser by Xen Orchestra, released when the browser disconnects'
 
@@ -111,15 +126,27 @@ export default class BrowserMedia {
   #sessionsByVbdRef = new Map()
   // session id -> recovery in progress
   #recoveries = new Map()
-  // pools whose journal entries wait for a connection, reported once
+  // pools whose journal entries wait for a connection, reported once per disconnection
   #missingPools = new Set()
+  // sessions of a previous run whose recovery failed, reported once: retried at each reconciliation
+  #failedRecoveries = new Set()
 
   #store
   #webSockets
 
-  // `tickInterval` is injectable for tests only
-  constructor(app, { tickInterval = TICK_INTERVAL } = {}) {
+  #releaseRetryDelay
+
+  // the intervals are injectable for tests only
+  constructor(
+    app,
+    {
+      tickInterval = TICK_INTERVAL,
+      reconcileInterval = RECONCILE_INTERVAL,
+      releaseRetryDelay = RELEASE_RETRY_DELAY,
+    } = {}
+  ) {
     this.#app = app
+    this.#releaseRetryDelay = releaseRetryDelay
 
     app.hooks.on('start', () => {
       if (app.config.getOptional('browserMedia.enabled') === false) {
@@ -131,8 +158,10 @@ export default class BrowserMedia {
 
       const tick = setInterval(() => this.#tick(), tickInterval).unref()
       const reconcile = () => this.#reconcile().catch(error => log.warn('browser media recovery failed', { error }))
-      const reconcileTimer = setInterval(reconcile, RECONCILE_INTERVAL).unref()
+      const reconcileTimer = setInterval(reconcile, reconcileInterval).unref()
       const onServerConnected = ({ xapi }) => {
+        // reported again if it disconnects again, at the next reconciliation which misses it
+        this.#missingPools.delete(xapi.pool?.uuid)
         this.#listen(xapi)
         reconcile()
       }
@@ -153,12 +182,13 @@ export default class BrowserMedia {
         app.removeListener('server:connected', onServerConnected)
         const releases = [...this.#sessions.values()].map(session => {
           session.close(CLOSE_UNAVAILABLE, 'xo-server is stopping')
-          return session.releasing
+          // an insertion in progress undoes itself, its release is part of it
+          return (session.insertingPromise ?? Promise.resolve()).catch(noop).then(() => session.releasingPromise)
         })
         // what is left is undone by the recovery on next start
         let timer
         await Promise.race([
-          Promise.allSettled(releases),
+          Promise.allSettled([...releases, ...this.#recoveries.values()]),
           new Promise(resolve => (timer = setTimeout(resolve, STOP_TIMEOUT))),
         ])
         clearTimeout(timer)
@@ -168,14 +198,21 @@ export default class BrowserMedia {
     })
   }
 
-  async #getStore() {
-    this.#store ??= this.#app.getStore(STORE_NAMESPACE)
+  #getStore() {
+    this.#store ??= this.#app.getStore(STORE_NAMESPACE).catch(error => {
+      // tried again next time
+      this.#store = undefined
+      throw error
+    })
     return this.#store
   }
 
   #assertEnabled() {
     if (!this.#enabled) {
       throw forbiddenOperation('browser media', 'disabled by browserMedia.enabled')
+    }
+    if (this.#stopping) {
+      throw forbiddenOperation('browser media', 'xo-server is stopping')
     }
   }
 
@@ -221,8 +258,13 @@ export default class BrowserMedia {
     try {
       const { token } = parseCookies(req.headers.cookie ?? '')
       ;({ user } = await this.#app.authenticateUser({ token }, { ip: remoteAddress }))
-    } catch {
-      return refuseUpgrade(socket, '401 Unauthorized')
+    } catch (error) {
+      // a failed attempt is already traced by the authentication task
+      if (invalidCredentials.is(error)) {
+        return refuseUpgrade(socket, '401 Unauthorized')
+      }
+      log.warn('could not authenticate a browser media connection', { error, ip: remoteAddress })
+      return refuseUpgrade(socket, '503 Service Unavailable')
     }
     if (user.permission !== 'admin') {
       return refuseUpgrade(socket, '403 Forbidden')
@@ -231,8 +273,15 @@ export default class BrowserMedia {
     this.#webSockets.handleUpgrade(req, socket, head, ws => {
       // the browser describes its ISO first
       const timer = setTimeout(() => ws.terminate(), TIMEOUT)
+      const onEarlyClose = () => clearTimeout(timer)
+      // e.g. an invalid frame: the socket is closed by `ws`
+      const onEarlyError = error => log.debug('browser media connection failed', { error })
+      ws.once('close', onEarlyClose)
+      ws.on('error', onEarlyError)
       ws.once('message', (data, binary) => {
         clearTimeout(timer)
+        ws.removeListener('close', onEarlyClose)
+        ws.removeListener('error', onEarlyError)
         const iso = parseIsoDescription(data, binary)
         if (typeof iso === 'string') {
           return ws.close(CLOSE_INVALID, iso)
@@ -271,6 +320,87 @@ export default class BrowserMedia {
     this.#release(session).catch(() => {
       // logged and retried by #release
     })
+  }
+
+  /** Undo the insertion of `session`, retrying in the background if it fails. */
+  #release(session) {
+    return this.#releaseOnce(session).catch(error => {
+      if (this.#stopping) {
+        log.warn('could not release a browser ISO, the recovery will release it on next start', {
+          error,
+          session: session.id,
+        })
+      } else if (session.releaseGivenUp) {
+        log.debug('could not release a browser ISO, will retry', { error, session: session.id })
+      } else {
+        this.#retryRelease(session, error)
+      }
+      throw error
+    })
+  }
+
+  /**
+   * Retry a failed release a few times, with an increasing delay. Then it is only retried at each
+   * reconciliation, quietly: e.g. the pool of the VM may stay disconnected for days, and the VM
+   * must not stay blocked once it is back.
+   */
+  #retryRelease(session, error) {
+    if (session.insertion === undefined || session.retryingReleasePromise !== undefined) {
+      return
+    }
+    log.warn('could not release a browser ISO, will retry', { error, session: session.id })
+    let delay = this.#releaseRetryDelay
+    // whether the release is still to be done by this retry
+    const isPending = () => !this.#stopping && session.insertion !== undefined
+    const attempt = async () => {
+      // a pending timer must not delay the stop of xo-server: the recovery takes over on next start
+      await sleep(delay, undefined, { ref: false })
+      delay *= 2
+      if (!isPending()) {
+        return false
+      }
+      await this.#releaseOnce(session)
+      return true
+    }
+    session.retryingReleasePromise = pRetry(attempt, {
+      tries: RELEASE_TRIES,
+      delay: 0, // waits in `attempt`
+      when: isPending,
+      onRetry: error => log.debug('could not release a browser ISO, will retry', { error, session: session.id }),
+    })
+      .then(
+        released => {
+          if (released) {
+            log.info('released a browser ISO after a retry', { session: session.id })
+          }
+        },
+        error => {
+          if (isPending()) {
+            session.releaseGivenUp = true
+            log.warn('could not release a browser ISO, will keep retrying quietly', { error, session: session.id })
+          }
+        }
+      )
+      .finally(() => {
+        session.retryingReleasePromise = undefined
+      })
+  }
+
+  /** Retry the releases whose retries with a delay are over, at each reconciliation. */
+  #retryGivenUpReleases() {
+    for (const session of this.#sessions.values()) {
+      if (
+        session.releaseGivenUp &&
+        session.insertion !== undefined &&
+        session.releasingPromise === undefined &&
+        session.retryingReleasePromise === undefined
+      ) {
+        this.#release(session).then(
+          () => log.info('released a browser ISO after a retry', { session: session.id }),
+          noop // logged by #release
+        )
+      }
+    }
   }
 
   #tick() {
@@ -320,10 +450,10 @@ export default class BrowserMedia {
     const cd = this.assertBrowserMediaInsertable({ id, vmId })
     const session = this.#getSession(id)
     // an eject waits for the insertion to end, and to be undone if it fails
-    const inserting = (session.inserting = this.#insert(session, vmId, cd).finally(() => {
-      session.inserting = undefined
+    const insertingPromise = (session.insertingPromise = this.#insert(session, vmId, cd).finally(() => {
+      session.insertingPromise = undefined
     }))
-    return inserting
+    return insertingPromise
   }
 
   async #insert(session, vmId, cd) {
@@ -402,7 +532,7 @@ export default class BrowserMedia {
     const session = this.#getSession(id)
     session.close(CLOSE_EJECTED, 'ejected')
     // a failed insertion is undone by itself
-    await session.inserting?.catch(() => {})
+    await session.insertingPromise?.catch(() => {})
     if (session.insertion !== undefined) {
       await this.#release(session)
     }
@@ -415,25 +545,23 @@ export default class BrowserMedia {
    * Undo everything an insertion did, and forget the session once its browser is gone.
    *
    * The journal entry is only deleted once everything is released. As long as the device is mounted,
-   * a failed attempt is retried, the target still answering the host. Once the mount is gone with
+   * a failed attempt can be retried, the target still answering the host. Once the mount is gone with
    * part of what it had to release (e.g. the SR could not be forgotten), the recovery takes over,
    * from the journal and the tags, like after a crash.
    *
    * @returns {Promise<void>} rejects if this attempt failed
    */
-  #release(session) {
-    if (session.releasing !== undefined) {
-      return session.releasing
+  #releaseOnce(session) {
+    if (session.releasingPromise !== undefined) {
+      return session.releasingPromise
     }
     if (session.insertion === undefined) {
       // released or handed over meanwhile
       return Promise.resolve()
     }
-    const wasInserted = session.status === 'inserted'
-    if (wasInserted) {
-      session.status = 'ejecting'
-    }
-    const releasing = (session.releasing = (async () => {
+    // also for a failed insertion, so that `inserting` only means that the insertion runs
+    session.status = 'ejecting'
+    const releasingPromise = (session.releasingPromise = (async () => {
       const { insertion } = session
       try {
         if (insertion.mountId !== undefined) {
@@ -457,39 +585,48 @@ export default class BrowserMedia {
           await (await this.#getStore()).del(session.id)
         }
       } catch (error) {
-        session.releasing = undefined
+        session.releasingPromise = undefined
         if (insertion.mounted && insertion.mountId === undefined) {
           log.warn('a browser ISO was partly released, the recovery will release the rest', {
             error,
             session: session.id,
           })
           this.#handOver(session)
-        } else {
-          log.warn('could not release a browser ISO, will retry', { error, session: session.id })
-          if (!this.#stopping) {
-            setTimeout(() => this.#release(session).catch(() => {}), RELEASE_RETRY_DELAY).unref()
-          }
         }
+        // otherwise, retried by #release
         throw error
       }
-      if (wasInserted) {
+      if (session.insertedAt !== undefined) {
         log.info('browser ISO ejected', { session: session.id, vm: session.vmId })
       }
+      this.#forgetCd(insertion)
       session.insertion = undefined
-      session.releasing = undefined
+      session.releasingPromise = undefined
+      session.releaseGivenUp = false
       if (session.closed) {
         this.#sessions.delete(session.id)
       } else {
         // a failed insertion: the browser can try again
         session.status = 'connected'
         session.vmId = undefined
+        session.vdiUuid = undefined
+        session.insertedAt = undefined
       }
     })())
-    return releasing
+    return releasingPromise
+  }
+
+  /** Stop watching the CD drive of an insertion. */
+  #forgetCd(insertion) {
+    if (insertion.vbdRef !== undefined) {
+      this.#sessionsByVbdRef.delete(insertion.vbdRef)
+      insertion.vbdRef = undefined
+    }
   }
 
   /** Leave what is left of an insertion to the recovery, which works from the journal. */
   #handOver(session) {
+    this.#forgetCd(session.insertion)
     session.insertion = undefined
     session.close(CLOSE_UNAVAILABLE, 'the ISO storage could not be released')
     this.#sessions.delete(session.id)
@@ -523,6 +660,7 @@ export default class BrowserMedia {
         await xapi.call('VM.get_by_uuid', insertion.vmUuid)
       } catch (error) {
         if (error.code === 'UUID_INVALID') {
+          this.#forgetCd(insertion)
           insertion.blocked = false
           return
         }
@@ -537,7 +675,8 @@ export default class BrowserMedia {
       this.#sessionsByVbdRef.delete(vbdRef)
       await ejectIso(xapi, { vbdRef, vdiRefs, sessionId: session.id })
     }
-    insertion.vbdRef = undefined
+    // also if its tag was removed meanwhile, and it was not found
+    this.#forgetCd(insertion)
     if (insertion.blocked) {
       await unblockOperations(xapi, vm._xapiRef, session.id)
       insertion.blocked = false
@@ -553,7 +692,7 @@ export default class BrowserMedia {
     if (session.insertion !== undefined) {
       session.insertion.mountId = undefined
     }
-    if (session.releasing === undefined) {
+    if (session.releasingPromise === undefined) {
       // not ejected by this mixin, e.g. the SR was forgotten by hand: the ISO is gone
       session.close(CLOSE_EJECTED, 'the ISO storage was removed')
     }
@@ -587,7 +726,7 @@ export default class BrowserMedia {
     const session = this.#sessionsByVbdRef.get(vbd?.$ref)
     if (session !== undefined) {
       this.#sessionsByVbdRef.delete(vbd.$ref)
-      if (session.insertion !== undefined) {
+      if (session.insertion?.vbdRef === vbd.$ref) {
         session.insertion.vbdRef = undefined
       }
       session.close(CLOSE_EJECTED, 'the CD drive was removed')
@@ -597,20 +736,33 @@ export default class BrowserMedia {
   // ---------------------------------------------------------------------------
   // recovery
 
-  /** Undo the insertions journaled by a previous run of xo-server, in the pools reachable now. */
+  /**
+   * Undo the insertions journaled by a previous run of xo-server, in the pools reachable now, and
+   * retry the releases of this run which still fail.
+   */
   async #reconcile() {
     if (this.#stopping) {
       return
     }
+    this.#retryGivenUpReleases()
     const store = await this.#getStore()
-    const entries = []
-    for await (const entry of store.createReadStream()) {
-      entries.push(entry)
-    }
-    await Promise.all(
-      entries.map(({ key: sessionId, value: entry }) => {
-        if (this.#sessions.has(sessionId) || this.#recoveries.has(sessionId)) {
-          return undefined
+    // one read per key rather than createReadStream(): a value which fails to decode would error the
+    // whole stream, here it only skips that entry
+    await asyncEach(
+      store.createKeyStream(),
+      async sessionId => {
+        if (this.#stopping || this.#sessions.has(sessionId) || this.#recoveries.has(sessionId)) {
+          return
+        }
+        let entry
+        try {
+          entry = await store.get(sessionId)
+          if (typeof entry?.pool !== 'string' || typeof entry.vm !== 'string') {
+            throw new Error('invalid journal entry')
+          }
+        } catch (error) {
+          this.#reportRecoveryFailure(sessionId, error)
+          return
         }
         const xapi = Object.values(this.#app.getAllXapis()).find(xapi => xapi.pool?.uuid === entry.pool)
         if (xapi === undefined) {
@@ -618,19 +770,34 @@ export default class BrowserMedia {
             this.#missingPools.add(entry.pool)
             log.info('a browser ISO left by a previous run waits for its pool to be connected', { pool: entry.pool })
           }
-          return undefined
+          return
         }
         const recovery = this.#recover(xapi, sessionId, entry)
           .then(() => store.del(sessionId))
           .then(
-            () => log.info('released a browser ISO left by a previous run', { session: sessionId }),
-            error => log.warn('could not release a browser ISO left by a previous run, will retry', { error })
+            () => {
+              this.#failedRecoveries.delete(sessionId)
+              log.info('released a browser ISO left by a previous run', { session: sessionId })
+            },
+            error => this.#reportRecoveryFailure(sessionId, error)
           )
           .finally(() => this.#recoveries.delete(sessionId))
         this.#recoveries.set(sessionId, recovery)
-        return recovery
-      })
+        await recovery
+      },
+      // as many as the browser media sessions of a crashed XO, and each makes several XAPI calls
+      { concurrency: RECOVERY_CONCURRENCY }
     )
+  }
+
+  /** Warn once per journal entry: it is retried at each reconciliation. */
+  #reportRecoveryFailure(sessionId, error) {
+    const firstFailure = !this.#failedRecoveries.has(sessionId)
+    this.#failedRecoveries.add(sessionId)
+    log[firstFailure ? 'warn' : 'debug']('could not release a browser ISO left by a previous run, will retry', {
+      error,
+      session: sessionId,
+    })
   }
 
   async #recover(xapi, sessionId, { vm: vmUuid, size }) {
