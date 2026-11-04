@@ -57,13 +57,21 @@ describe('validate', () => {
     expect(form.hostInputBindings.error).toEqual(dangerMessage(form.t('host-required')))
   })
 
-  it('reports an invalid port', async () => {
+  it.each(['0', '65536', 'abc'])('reports the invalid port %s', async port => {
     const form = mountConnectionForm()
     fillV2vConnectionForm(form)
-    form.formData.port = '65536'
+    form.formData.port = port
 
     expect(await form.validate()).toBe(false)
     expect(form.portInputBindings.error).toEqual(dangerMessage(form.t('invalid-port')))
+  })
+
+  it.each(['1', '65535'])('accepts the port %s', async port => {
+    const form = mountConnectionForm()
+    fillV2vConnectionForm(form)
+    form.formData.port = port
+
+    expect(await form.validate()).toBe(true)
   })
 
   it('accepts a form whose fields are all valid', async () => {
