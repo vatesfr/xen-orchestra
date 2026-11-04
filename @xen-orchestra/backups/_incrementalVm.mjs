@@ -382,10 +382,22 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
 
       if (network) {
+        // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS), where the VIF
+        // is an access port that only sees its own VLAN anyway
+        let { trunks } = vif
+        if (trunks !== undefined && trunks.length !== 0 && network.$PIFs.some(pif => pif.VLAN !== -1)) {
+          Task.warning('VLAN filtering dropped: the target network has a VLAN', {
+            network: pick(network, 'uuid', 'name_label'),
+            vif: pick(vif, 'device', 'trunks'),
+          })
+          trunks = undefined
+        }
+
         return xapi.VIF_create(
           {
             ...vif,
             network: network.$ref,
+            trunks,
             VM: vmRef,
           },
           {
