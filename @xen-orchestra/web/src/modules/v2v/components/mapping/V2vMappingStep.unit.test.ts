@@ -52,10 +52,11 @@ async function mountStep(vm?: string) {
   const { mounted: wrapper, router } = await mountV2vMappingStep(
     setup =>
       mountOnV2vWizard(
-        router =>
+        (router, provide) =>
           mount(V2vMappingStep, {
             global: createGlobalTestConfig({
               router,
+              provide,
               stubs: {
                 V2vMappingTable: true,
                 V2vVmSidePanel: true,
