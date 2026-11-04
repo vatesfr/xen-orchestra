@@ -149,20 +149,3 @@ export function fromXo5RememberedConnection(stored: {
     skipSslCheck: true,
   }
 }
-
-export function toV2vConnection(
-  connection: V2vRememberedConnection,
-  password = connection.password
-): XoV2vConnection | undefined {
-  if (!password) {
-    return undefined
-  }
-
-  return {
-    host: connection.host,
-    port: connection.port,
-    username: connection.username,
-    password,
-    skipSslCheck: connection.skipSslCheck,
-  }
-}
