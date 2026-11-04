@@ -4,7 +4,11 @@ import { V2V_VM_POWER_STATE, type XoV2vDatastore, type XoV2vVm } from '@vates/ty
 
 export const V2V_DATASTORE_A = createV2vDatastore({ id: 'datastore-a' as XoV2vDatastore['id'], name: 'ds-a' })
 
+export const V2V_DATASTORE_A_FILTER = `datastore:/^${V2V_DATASTORE_A.name}$/`
+
 export const V2V_DATASTORE_B = createV2vDatastore({ id: 'datastore-b' as XoV2vDatastore['id'], name: 'ds-b' })
+
+export const V2V_DATASTORE_B_FILTER = `datastore:/^${V2V_DATASTORE_B.name}$/`
 
 // One VM per case the VMs step tells apart, spread over the two datastores
 export const V2V_WEB_VM = createV2vVmWithDisks([{ datastoreId: V2V_DATASTORE_A.id, capacity: 80 * ONE_GB }], {

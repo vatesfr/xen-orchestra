@@ -10,7 +10,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
-import { V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
+import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findButton, getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -20,7 +20,13 @@ import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
-import { V2V_DATASTORE_B, V2V_LISTED_VM, V2V_VMS_INVENTORY, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
+import {
+  V2V_DATASTORE_B,
+  V2V_DATASTORE_B_FILTER,
+  V2V_LISTED_VM,
+  V2V_VMS_INVENTORY,
+  V2V_WEB_VM,
+} from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import { usePanelStore } from '@core/stores/panel.store.ts'
@@ -58,17 +64,11 @@ const EMPTY_LIST = createV2vMigrationList()
 
 const POOL = createPool({ id: LIST.poolId })
 
-const DATASTORE_B_FILTER = `datastore:/^${V2V_DATASTORE_B.name}$/`
-
-const DATASTORE_B_AND_NAME_FILTER = `${DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
+const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
 
 const SOURCE_HOST = createV2vConnection().host
 
 const SHOW_PANEL_LABEL = t('selected-vms-n', { n: LIST.vms.length })
-
-function getQuery(filter?: string) {
-  return { pool: LIST.poolId, [V2V_VMS_FILTER_QUERY_KEY]: filter }
-}
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; filter?: string } = {}) {
@@ -89,7 +89,7 @@ async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; fil
           },
         }),
       }),
-    { step: 'vms', query: getQuery(filter), list, source: { inventory: V2V_VMS_INVENTORY } }
+    { step: 'vms', query: getV2vVmsQuery(LIST.poolId, filter), list, source: { inventory: V2V_VMS_INVENTORY } }
   )
 
   return { wrapper, router }
@@ -155,7 +155,10 @@ describe('VMs', () => {
 
   it('offers the query builder of the VM properties', async () => {
     const { wrapper } = await mountStep()
-    const { result: vmsStep } = await mountV2vVmsStep(() => useV2vVmsStep(), { list: LIST, query: getQuery() })
+    const { result: vmsStep } = await mountV2vVmsStep(() => useV2vVmsStep(), {
+      list: LIST,
+      query: getV2vVmsQuery(LIST.poolId),
+    })
 
     expect(getQueryBuilder(wrapper).props('schema')).toEqual(vmsStep.schema)
   })
@@ -191,7 +194,7 @@ describe('VMs', () => {
 
 describe('datastore view', () => {
   it('shows the datastore of the filter in the route', async () => {
-    const { wrapper } = await mountStep({ filter: DATASTORE_B_FILTER })
+    const { wrapper } = await mountStep({ filter: V2V_DATASTORE_B_FILTER })
 
     expect(findTableView(wrapper).type).toBe('datastore')
     expect(getFilterHeader(wrapper).props('datastoreSummary')?.chipLabel).toBe(`datastore:${V2V_DATASTORE_B.name}`)
