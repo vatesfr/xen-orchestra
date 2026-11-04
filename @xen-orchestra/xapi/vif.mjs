@@ -13,6 +13,7 @@ export default class Vif {
       other_config = {},
       qos_algorithm_params = {},
       qos_algorithm_type = '',
+      trunks,
       VM,
     },
     {
@@ -51,6 +52,8 @@ export default class Vif {
       other_config,
       qos_algorithm_params,
       qos_algorithm_type,
+      // a host without VLAN filtering (xapi < 26.1.16) ignores this unknown field
+      trunks,
       VM,
     })
 

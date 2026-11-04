@@ -30,6 +30,7 @@ export const vif = {
   MAC: 'fe:2e:01:f9:75:38',
   MTU: 1500,
   other_config: {},
+  trunks: [],
   txChecksumming: true,
   $network: '6b6ca0f5-6611-0636-4b0a-1fb1c8e96414',
   $VM: '9c3842a5-d9e5-ab9c-958e-264fea958690',

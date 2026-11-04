@@ -73,6 +73,8 @@ export default {
         ]),
     },
 
+    trunks: true,
+
     txChecksumming: {
       set: (value, vif) => vif.update_other_config('ethtool-tx', value === null ? null : String(value)),
     },
