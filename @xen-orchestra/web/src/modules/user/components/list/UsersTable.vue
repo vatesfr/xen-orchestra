@@ -89,6 +89,7 @@ const { HeadCells, BodyCells } = useUserColumns({
             {
               label: t('action:delete'),
               icon: 'action:delete',
+              accent: 'danger',
               onClick: () => deleteUsers(),
               disabled: !canDeleteUsers.value,
               busy: isDeletingUsers.value,
