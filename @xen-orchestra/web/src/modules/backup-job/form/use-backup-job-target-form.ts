@@ -1,4 +1,3 @@
-import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import {
   type BackupJobTargetBackupRepositoryFormData,
   useBackupJobTargetBackupRepositoryForm,
@@ -11,6 +10,7 @@ import {
   type BackupJobTargetStorageRepositoryFormData,
   useBackupJobTargetStorageRepositoryForm,
 } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
+import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
