@@ -469,22 +469,55 @@ export type XoBrowserMediaSession = {
   size: number
   /** User whose browser serves the ISO */
   userId: XoUser['id']
-  status: 'connected' | 'inserting' | 'inserted' | 'ejecting'
   /** Timestamp of the browser connection */
   createdAt: number
   /** Total of the bytes read from the browser */
   bytesRead: number
   /** Timestamp of the last read from the browser */
   lastReadAt?: number
-  /** VM the ISO is inserted in, from the start of the insertion */
-  vmId?: XoVm['id']
-  /** VDI inserted in the CD drive of the VM */
-  vdiId?: XoVdi['id']
-  /** Timestamp of the end of the insertion */
-  insertedAt?: number
-  /** Why the last insertion failed */
-  error?: string
-}
+} & (
+  | {
+      /** Not inserted in any VM */
+      status: 'connected'
+      vmId?: undefined
+      vdiId?: undefined
+      insertedAt?: undefined
+      /** Why the last insertion failed */
+      error?: string
+    }
+  | {
+      /** Being inserted in a VM */
+      status: 'inserting'
+      /** VM the ISO is being inserted in */
+      vmId: XoVm['id']
+      vdiId?: undefined
+      insertedAt?: undefined
+      error?: undefined
+    }
+  | {
+      /** Inserted in the CD drive of a VM */
+      status: 'inserted'
+      /** VM the ISO is inserted in */
+      vmId: XoVm['id']
+      /** VDI inserted in the CD drive of the VM */
+      vdiId: XoVdi['id']
+      /** Timestamp of the end of the insertion */
+      insertedAt: number
+      error?: undefined
+    }
+  | {
+      /** Being ejected, or a failed insertion being undone */
+      status: 'ejecting'
+      /** VM the ISO is ejected from */
+      vmId: XoVm['id']
+      /** VDI inserted in the CD drive of the VM, unless the insertion failed before */
+      vdiId?: XoVdi['id']
+      /** Timestamp of the end of the insertion, unless it failed */
+      insertedAt?: number
+      /** Why the insertion failed */
+      error?: string
+    }
+)
 
 export type XoProxy = {
   id: Branded<'proxy'>

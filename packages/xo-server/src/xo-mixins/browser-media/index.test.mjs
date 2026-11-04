@@ -3,7 +3,7 @@ import { EventEmitter, once } from 'node:events'
 import { createServer } from 'node:http'
 import { after, afterEach, describe, it } from 'node:test'
 import WebSocket from 'ws'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import BrowserMedia from './index.mjs'
 import { TAG } from './_xapi.mjs'
@@ -182,10 +182,15 @@ function makeStore(entries = {}) {
     async del(key) {
       map.delete(key)
     },
-    async *createReadStream() {
-      for (const [key, value] of map) {
-        yield { key, value }
+    async get(key) {
+      const value = map.get(key)
+      if (value instanceof Error) {
+        throw value // stands for a value which fails to decode
       }
+      return value
+    },
+    async *createKeyStream() {
+      yield* map.keys()
     },
   }
 }
@@ -206,6 +211,8 @@ async function setup({
   store = makeStore(),
   config = {},
   tickInterval,
+  reconcileInterval,
+  releaseRetryDelay,
 } = {}) {
   const app = new EventEmitter()
   app.hooks = new EventEmitter()
@@ -224,7 +231,7 @@ async function setup({
     if (token === 'user-token') {
       return { user: { id: 'user-id', name: 'user', permission: 'none' } }
     }
-    throw new Error('invalid credentials')
+    throw invalidCredentials()
   }
   app.getObject = (id, type) => {
     if (type === 'VM' && id === VM_ID) {
@@ -254,7 +261,7 @@ async function setup({
     throw new Error(`unknown object ${id}`)
   }
 
-  const media = new BrowserMedia(app, { tickInterval })
+  const media = new BrowserMedia(app, { tickInterval, reconcileInterval, releaseRetryDelay })
   app.hooks.emit('start')
 
   const server = createServer()
@@ -302,6 +309,10 @@ const upgradeStatus = (url, headers) =>
     socket.on('error', () => {})
   })
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+const stop = app => Promise.all(app.hooks.listeners('stop').map(listener => listener()))
+
 const until = async predicate => {
   for (let i = 0; i < 200; ++i) {
     if (await predicate()) {
@@ -323,6 +334,14 @@ describe('browser connection', () => {
     const { port } = new URL(url)
     assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token', origin: `http://127.0.0.1:${port}` }), 101)
     assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token' }), 101)
+  })
+
+  it('is not answered as invalid credentials when the authentication itself fails', async () => {
+    const { app, url } = await setup()
+    app.authenticateUser = async () => {
+      throw new Error('the task store is unavailable')
+    }
+    assert.equal(await upgradeStatus(url, { cookie: 'token=admin-token' }), 503)
   })
 
   it('is refused when disabled', async () => {
@@ -548,6 +567,121 @@ describe('failures while releasing', () => {
     assert.notDeepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
     assert.equal(media.getBrowserMediaSession(session).status, 'ejecting')
   })
+
+  it('retries a failed release in the background', async () => {
+    const { app, liveMount, media, store, url } = await setup({ releaseRetryDelay: 5 })
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+
+    app.poolDisconnected = true
+    await assert.rejects(media.ejectBrowserMedia(session), /not connected/)
+    app.poolDisconnected = false
+
+    await until(() => store.map.size === 0)
+    assert.equal(liveMount.mounts.size, 0)
+    assert.deepEqual(media.getAllBrowserMediaSessions(), [])
+  })
+
+  it('gives up after a few tries, and retries once the pool of the VM reconnects', async () => {
+    const { app, media, store, url, xapi } = await setup({ releaseRetryDelay: 1 })
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+
+    app.poolDisconnected = true
+    await assert.rejects(media.ejectBrowserMedia(session), /not connected/)
+    // 1 + 2 + 4 + 8 + 16 ms of retries
+    await new Promise(resolve => setTimeout(resolve, 100))
+    app.poolDisconnected = false
+    await new Promise(resolve => setTimeout(resolve, 20))
+    assert.equal(store.map.size, 1)
+
+    app.emit('server:connected', { xapi })
+    await until(() => store.map.size === 0)
+    assert.deepEqual(media.getAllBrowserMediaSessions(), [])
+  })
+
+  it('keeps retrying quietly once the retries are over, in a pool which stays connected', async () => {
+    const { media, store, url, xapi } = await setup({ releaseRetryDelay: 1, reconcileInterval: 10 })
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+    const { call } = xapi
+    let failEject = true
+    xapi.call = async (method, ...args) => {
+      if (failEject && method === 'VBD.eject') {
+        throw new Error('VBD_TRAY_LOCKED')
+      }
+      return call(method, ...args)
+    }
+
+    await assert.rejects(media.ejectBrowserMedia(session), /VBD_TRAY_LOCKED/)
+    // 1 + 2 + 4 + 8 + 16 ms of retries
+    await sleep(100)
+    failEject = false
+
+    await until(() => store.map.size === 0)
+    assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.deepEqual(media.getAllBrowserMediaSessions(), [])
+  })
+
+  it('makes no release attempt once xo-server stops', async () => {
+    const { app, liveMount, media, url } = await setup({ releaseRetryDelay: 20 })
+    const { session } = await connect(url)
+    await media.insertBrowserMedia({ id: session, vmId: VM_ID })
+    app.poolDisconnected = true
+    await assert.rejects(media.ejectBrowserMedia(session), /not connected/)
+
+    await stop(app)
+    app.poolDisconnected = false
+    let unmounted = false
+    liveMount.unmountBlockDevice = async () => {
+      unmounted = true
+    }
+    await sleep(60)
+    assert.equal(unmounted, false)
+  })
+})
+
+describe('stop', () => {
+  it('waits for an insertion in progress to be undone, and refuses new ones', async () => {
+    const { app, media, store, url, xapi } = await setup({ liveMount: makeLiveMount({ mountDelay: 30 }) })
+    const { session } = await connect(url)
+    const inserting = media.insertBrowserMedia({ id: session, vmId: VM_ID })
+    inserting.catch(() => {})
+    await sleep(5)
+
+    await stop(app)
+    await assert.rejects(inserting, /disconnected during the insertion/)
+    assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+    assert.equal(store.map.size, 0)
+
+    assert.throws(
+      () => media.insertBrowserMedia({ id: session, vmId: VM_ID }),
+      error => error.data?.reason === 'xo-server is stopping'
+    )
+  })
+
+  it('waits for the recoveries in progress, and starts no other one', async () => {
+    const xapi = makeXapi()
+    const entries = {}
+    for (let i = 0; i < 20; ++i) {
+      entries[`old-${i}`] = { pool: POOL_UUID, vm: `gone-${i}`, createdAt: 0 }
+    }
+    const store = makeStore(entries)
+    const { call } = xapi
+    xapi.call = async (...args) => {
+      await sleep(10)
+      return call(...args)
+    }
+    const { app } = await setup({ xapi, store })
+    await sleep(2)
+
+    await stop(app)
+    const nCalls = xapi.calls.length
+    await sleep(100)
+    assert.equal(xapi.calls.length, nCalls)
+    // started before the stop, at most as many as the concurrency, and completed
+    assert.ok(store.map.size >= 20 - 8 && store.map.size < 20)
+  })
 })
 
 describe('recovery', () => {
@@ -604,6 +738,18 @@ describe('recovery', () => {
     assert.deepEqual(xapi.records.VBD[CD_REF].other_config, {})
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, { destroy: 'protected by someone else' })
     assert.deepEqual(xapi.records.SR, {})
+  })
+
+  it('skips a journal entry which cannot be read, and recovers the others', async () => {
+    const xapi = makeXapi()
+    const store = makeStore({
+      corrupt: new Error('failed to decode'),
+      'not-an-entry': null,
+      'old-session': { pool: POOL_UUID, vm: 'gone', createdAt: 0 },
+    })
+    await setup({ xapi, store })
+    await until(() => !store.map.has('old-session'))
+    assert.deepEqual([...store.map.keys()], ['corrupt', 'not-an-entry'])
   })
 
   it('does not eject an ISO another client inserted meanwhile', async () => {

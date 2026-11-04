@@ -18,6 +18,20 @@ export const CLOSE_IDLE = 4408
 export const CLOSE_UNAVAILABLE = 4503
 
 /**
+ * What an insertion changed so far, undone when the session is released.
+ *
+ * @typedef {object} Insertion
+ * @property {string} pool - uuid of the pool of the VM
+ * @property {string} vmUuid
+ * @property {boolean} [journaled] - the session is in the journal
+ * @property {boolean} [blocked] - operations of the VM are blocked for the session
+ * @property {string} [mountId] - id of the live mount serving the ISO, while it is mounted
+ * @property {boolean} [mounted] - the ISO was mounted, even if the mount has ended since
+ * @property {string} [vdiRef] - opaque ref of the VDI of the ISO
+ * @property {string} [vbdRef] - opaque ref of the CD drive the ISO is inserted in
+ */
+
+/**
  * Validate the first message of the browser, which describes its ISO.
  *
  * @returns {{ name: string, size: number } | string} the ISO, or why it is refused
@@ -49,16 +63,22 @@ export function parseIsoDescription(data, binary) {
  * read requests `{"id", "offset", "length"}`, each answered by a binary message:
  * `id` as a big-endian uint32, followed by exactly `length` bytes of the ISO.
  *
- * Any protocol violation, a read left unanswered for `timeout`, or a heartbeat
- * missed for as long, closes the session: reads then fail, and the guest gets
- * I/O errors, never wrong data.
+ * Any protocol violation, pending reads without any reply for `timeout`, a read
+ * pending for longer than all the reads the browser can be asked at once take
+ * at that pace (`MAX_PENDING_READS` × `timeout`), or a heartbeat missed for
+ * `timeout`, closes the session: reads then fail, and the guest gets I/O errors,
+ * never wrong data.
  */
 export class BrowserMediaSession {
   id = randomBytes(16).toString('hex')
   bytesRead = 0
   closed = false
   createdAt = Date.now()
-  /** @type {'connected' | 'inserting' | 'inserted' | 'ejecting'} */
+  /**
+   * `inserting` while the insertion runs, `ejecting` while an insertion, even a failed one, is undone
+   *
+   * @type {'connected' | 'inserting' | 'inserted' | 'ejecting'}
+   */
   status = 'connected'
 
   /** @type {string | undefined} */
@@ -72,9 +92,22 @@ export class BrowserMediaSession {
   /** @type {string | undefined} uuid of the inserted VDI */
   vdiUuid
 
+  /** @type {Insertion | undefined} what the insertion changed, until it is undone */
+  insertion
+  /** @type {Promise<{ vdiId: string }> | undefined} the insertion in progress */
+  insertingPromise
+  /** @type {Promise<void> | undefined} the attempt to undo the insertion in progress */
+  releasingPromise
+  /** @type {Promise<void> | undefined} the retries of a failed release, in progress */
+  retryingReleasePromise
+  /** whether the retries of a failed release are over: it is then only retried quietly */
+  releaseGivenUp = false
+
   #nextId = 0
   #pending = new Map()
   #expires
+  // armed while reads are pending, re-armed by each reply
+  #stallTimer
   #onClose
   #socket
   #timeout
@@ -118,6 +151,25 @@ export class BrowserMediaSession {
     this.bytesRead += pending.length
     this.lastReadAt = Date.now()
     pending.resolve(data.subarray(4))
+    // the browser is making progress: on a slow link, the last of the concurrent reads may be
+    // answered long after it was requested
+    this.#clearStallTimer()
+    if (this.#pending.size !== 0) {
+      this.#armStallTimer()
+    }
+  }
+
+  // until `timeout` from now, or until the oldest pending read has waited too long: a browser
+  // answering the other reads must not leave one unanswered forever
+  #armStallTimer() {
+    const oldest = this.#pending.values().next().value
+    const delay = Math.min(this.#timeout, oldest.requestedAt + MAX_PENDING_READS * this.#timeout - Date.now())
+    this.#stallTimer = setTimeout(() => this.close(), Math.max(0, delay))
+  }
+
+  #clearStallTimer() {
+    clearTimeout(this.#stallTimer)
+    this.#stallTimer = undefined
   }
 
   /** Ping the browser, or close the session if it missed the previous heartbeats. */
@@ -154,14 +206,16 @@ export class BrowserMediaSession {
     const id = this.#nextId
     this.#nextId = (this.#nextId + 1) >>> 0
     return new Promise((resolve, reject) => {
-      // an unanswered read means the browser is stuck: the guest must not wait on it
-      const timer = setTimeout(() => this.close(), this.#timeout)
       const settle = fn => value => {
-        clearTimeout(timer)
         this.#pending.delete(id)
         fn(value)
       }
-      this.#pending.set(id, { length, resolve: settle(resolve), reject: settle(reject) })
+      this.#pending.set(id, { length, requestedAt: Date.now(), resolve: settle(resolve), reject: settle(reject) })
+      // reads left unanswered mean the browser is stuck: the guest must not wait on it. A new read
+      // does not extend the wait of the pending ones
+      if (this.#stallTimer === undefined) {
+        this.#armStallTimer()
+      }
       this.#socket.send(JSON.stringify({ id, offset, length }), error => {
         if (error) {
           this.close()
@@ -181,6 +235,7 @@ export class BrowserMediaSession {
       return
     }
     this.closed = true
+    this.#clearStallTimer()
     if (code === undefined) {
       this.#socket.terminate()
     } else {
