@@ -38,7 +38,7 @@
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
-- @xen-orchestra/qa-test patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor

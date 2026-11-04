@@ -10,6 +10,7 @@ import {
   getBackupTransferredBytes,
   getDefaultSchedule,
   getScheduleKey,
+  waitUntil,
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
@@ -169,7 +170,7 @@ describe('Incremental Replication', () => {
     )
     return scheduleIds.filter(id => id === scheduleId).length
   }
-  
+
   /**
    * @param {Error} error
    * @returns {boolean} Whether the error looks like a "not found" response rather than a transient failure.
@@ -955,6 +956,51 @@ describe('Incremental Replication', () => {
         )
         assert.strictEqual(newUuids2[0], replicaA, 'The second run should reuse/extend the same base replica')
       })
+    })
+  })
+
+  // ===========================================================================
+  // VLAN filtering — the replica's VIF keeps the VLANs the source VIF is
+  // restricted to (needs xapi >= 26.1.16)
+  // ===========================================================================
+
+  describe('VIF VLAN filtering', () => {
+    /** @type {Array<string>} */
+    const replicatedVmUuids = []
+
+    after(async () => cleanupVms(replicatedVmUuids))
+
+    it('should keep the VLANs a VIF is restricted to on the replica', async t => {
+      const { restApiClient } = dispatchClient
+      const [vifId] = (await restApiClient.get(`/rest/v0/vms/${vm.uuid}`)).VIFs
+      const vif = await restApiClient.get(`/rest/v0/vifs/${vifId}`)
+      if (vif.trunks === undefined) {
+        return t.skip('the pool of REFERENCE_VM_ID has no VLAN filtering (xapi < 26.1.16)')
+      }
+      const pifs = await restApiClient.getObjects('/rest/v0/pifs', { fields: ['vlan', '$network'] })
+      if (pifs.some(pif => pif.$network === vif.$network && pif.vlan !== -1)) {
+        return t.skip('the first VIF of REFERENCE_VM_ID is on a VLAN network, where XAPI refuses trunks')
+      }
+
+      await restApiClient.patch(`/rest/v0/vifs/${vifId}`, { trunks: [10, 20] })
+      // the export reads XO's copy of the VIF, which follows XAPI's event
+      await waitUntil(async () => (await restApiClient.get(`/rest/v0/vifs/${vifId}`)).trunks.length === 2)
+
+      const { jobId, scheduleKey } = await createReplicationJob(vm, sourceVmSrUuid, 'VLAN filtering')
+      const vmUuidsBefore = new Set((await dispatchClient.vm.list()).map(v => v.uuid))
+      const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+      assertBackupSuccess(result, 'Replication')
+
+      const newUuids = await findNewVmUuids(vmUuidsBefore)
+      assert.strictEqual(newUuids.length, 1, 'The replication should create exactly one new VM')
+      replicatedVmUuids.push(...newUuids)
+
+      const [replicaVifId] = (await restApiClient.get(`/rest/v0/vms/${newUuids[0]}`)).VIFs
+      const { trunks } = await restApiClient.get(`/rest/v0/vifs/${replicaVifId}`)
+      assert.deepStrictEqual(
+        trunks?.toSorted((a, b) => a - b),
+        [10, 20]
+      )
     })
   })
 })
