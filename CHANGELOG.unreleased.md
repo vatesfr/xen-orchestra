@@ -34,6 +34,7 @@
 - [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB) (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [REST API/VM] Experimental, administrators only: insert an ISO selected in a browser in the CD drive of a VM, without uploading it and without installing anything on the hosts (`POST /vms/{id}/actions/insert_browser_iso` and `/browser-media`). The ISO is ejected once the browser disconnects or stops being read. Enabled by default, `browserMedia.enabled = false` disables it (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [XO6/VM/Console] Experimental: a CD drive card on the console page inserts an ISO from this computer, without uploading it, while the VM is halted or running. Keep the tab open while the VM reads the ISO: closing it ejects the ISO (PR [#10466](https://github.com/vatesfr/xen-orchestra/pull/10466))
 
 ### Bug fixes
 

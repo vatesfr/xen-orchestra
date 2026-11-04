@@ -1,23 +1,29 @@
 <template>
-  <VtsStateHero v-if="!isVmConsoleRunning" format="page" type="offline" size="large" class="state-hero">
-    <span>{{ t('console-offline') }}</span>
-    <span class="title typo-h1">{{ t('vm-not-running') }}</span>
-    <div class="description typo-body-bold">
-      <span>{{ t('console-unavailable-reason', { type: 'virtual machine' }) }}</span>
-      <span>{{ t('start-console', { type: 'VM' }) }}</span>
-    </div>
-  </VtsStateHero>
-  <VtsLayoutConsole v-else>
-    <VtsRemoteConsole ref="console-element" :url :is-console-available="isConsoleAvailable" />
+  <VtsLayoutConsole>
+    <VtsStateHero v-if="!isVmConsoleRunning" format="page" type="offline" size="large" class="state-hero">
+      <span>{{ t('console-offline') }}</span>
+      <span class="title typo-h1">{{ t('vm-not-running') }}</span>
+      <div class="description typo-body-bold">
+        <span>{{ t('console-unavailable-reason', { type: 'virtual machine' }) }}</span>
+        <span>{{ t('start-console', { type: 'VM' }) }}</span>
+      </div>
+    </VtsStateHero>
+    <VtsRemoteConsole v-else ref="console-element" :url :is-console-available="isConsoleAvailable" />
     <template #actions>
-      <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
-      <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <template v-if="isVmConsoleRunning">
+        <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
+        <VtsDivider type="stretch" />
+        <VtsClipboardConsole />
+        <VtsDivider type="stretch" />
+      </template>
+      <!-- also while the VM is halted: an ISO is usually inserted before starting the VM -->
+      <BrowserMediaCdDriveCard :vm />
     </template>
   </VtsLayoutConsole>
 </template>
 
 <script lang="ts" setup>
+import BrowserMediaCdDriveCard from '@/modules/browser-media/components/BrowserMediaCdDriveCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
@@ -60,6 +66,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 
 <style scoped lang="postcss">
 .state-hero {
+  flex: 1;
   padding: 0.8rem;
 
   .title {
