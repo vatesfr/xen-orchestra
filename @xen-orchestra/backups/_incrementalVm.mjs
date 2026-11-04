@@ -13,6 +13,7 @@ import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mj
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -365,7 +366,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     }),
 
     // Create VIFs.
-    asyncMap(Object.values(incrementalVm.vifs), vif => {
+    asyncMap(Object.values(incrementalVm.vifs), async vif => {
       let network = vif.$network$uuid && xapi.getObjectByUuid(vif.$network$uuid, undefined)
 
       if (network === undefined) {
@@ -382,16 +383,41 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
 
       if (network) {
-        return xapi.VIF_create(
-          {
-            ...vif,
-            network: network.$ref,
-            VM: vmRef,
-          },
-          {
-            MAC: newMacAddresses ? undefined : vif.MAC,
+        // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS), where the VIF
+        // is an access port that only sees its own VLAN anyway
+        let { trunks } = vif
+        if (trunks !== undefined && trunks.length !== 0 && network.$PIFs.some(pif => pif.VLAN !== -1)) {
+          Task.warning('VLAN filtering dropped: the target network has a VLAN', {
+            network: pick(network, 'uuid', 'name_label'),
+            vif: pick(vif, 'device', 'trunks'),
+          })
+          trunks = undefined
+        }
+
+        const createVif = trunks =>
+          xapi.VIF_create(
+            {
+              ...vif,
+              network: network.$ref,
+              trunks,
+              VM: vmRef,
+            },
+            {
+              MAC: newMacAddresses ? undefined : vif.MAC,
+            }
+          )
+
+        // VIF_create refuses trunks on a pool without VLAN filtering (xapi < 26.1.16): restore the VM anyway,
+        // and say in the task log that its VIF now sees every VLAN
+        try {
+          return await createVif(trunks)
+        } catch (error) {
+          if (!invalidParameters.is(error, { errors: [{ field: 'trunks' }] })) {
+            throw error
           }
-        )
+          Task.warning('VLAN filtering dropped: the target pool has none', { vif: pick(vif, 'device', 'trunks') })
+          return createVif(undefined)
+        }
       }
     }),
   ])

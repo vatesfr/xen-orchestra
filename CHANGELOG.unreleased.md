@@ -31,6 +31,7 @@
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files.:format` to get file(s) from a bare disk (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API/VIFs] VIFs can be restricted to a list of VLANs (VLAN filtering, XCP-ng 8.3) (PR [#10742](https://github.com/vatesfr/xen-orchestra/pull/10742))
 - [VM/Network] Changing the MAC address of a VIF keeps the VLANs it is restricted to, and moving it to a network with a VLAN is refused until they are removed (PR [#10742](https://github.com/vatesfr/xen-orchestra/pull/10742))
+- [Backup/Restore] Incremental restores and replications keep the VLANs a VIF is restricted to, and warn in the log when the target cannot (PR [#10742](https://github.com/vatesfr/xen-orchestra/pull/10742))
 
 ### Bug fixes
 
