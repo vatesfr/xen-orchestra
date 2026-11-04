@@ -7,13 +7,15 @@ import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
-import { V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
+import { getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
+  V2V_DATASTORE_A_FILTER,
   V2V_DATASTORE_B,
+  V2V_DATASTORE_B_FILTER,
   V2V_DB_VM,
   V2V_LISTED_VM,
   V2V_RDM_VM,
@@ -43,8 +45,6 @@ vi.mock(
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
 
-const DS_B_FILTER = 'datastore:/^ds-b$/'
-
 async function mountVmsStep({
   filter,
   inventory = V2V_VMS_INVENTORY,
@@ -55,7 +55,7 @@ async function mountVmsStep({
   return mountV2vVmsStep(() => useV2vVmsStep(), {
     list,
     inventory,
-    query: { pool: LIST.poolId, [V2V_VMS_FILTER_QUERY_KEY]: filter },
+    query: getV2vVmsQuery(LIST.poolId, filter),
   })
 }
 
@@ -90,7 +90,7 @@ beforeEach(() => {
 
 describe('tableView', () => {
   it('pages the rows matching the filter', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     expect(getV2vVmNames(result.tableView.rows)).toEqual([V2V_DB_VM.name, V2V_RDM_VM.name, V2V_LISTED_VM.name])
   })
@@ -118,7 +118,7 @@ describe('tableView', () => {
   })
 
   it('tells what concerns the datastore of the datastore view', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     expect(result.tableView).toMatchObject({
       type: 'datastore',
@@ -157,14 +157,14 @@ describe('filter', () => {
   it('lives in the route', async () => {
     const { result, router } = await mountVmsStep()
 
-    result.filter = DS_B_FILTER
+    result.filter = V2V_DATASTORE_B_FILTER
     await flushPromises()
 
-    expect(router.currentRoute.value.query[V2V_VMS_FILTER_QUERY_KEY]).toBe(DS_B_FILTER)
+    expect(router.currentRoute.value.query[V2V_VMS_FILTER_QUERY_KEY]).toBe(V2V_DATASTORE_B_FILTER)
   })
 
   it('removes the datastore clause only', async () => {
-    const { result } = await mountVmsStep({ filter: `name:db ${DS_B_FILTER}` })
+    const { result } = await mountVmsStep({ filter: `name:db ${V2V_DATASTORE_B_FILTER}` })
 
     result.removeDatastoreFilter()
 
@@ -172,7 +172,7 @@ describe('filter', () => {
   })
 
   it('clears the whole filter', async () => {
-    const { result } = await mountVmsStep({ filter: `name:db ${DS_B_FILTER}` })
+    const { result } = await mountVmsStep({ filter: `name:db ${V2V_DATASTORE_B_FILTER}` })
 
     result.clearFilter()
 
@@ -180,18 +180,18 @@ describe('filter', () => {
   })
 
   it('filters by a datastore, keeping the other clauses', async () => {
-    const { result } = await mountVmsStep({ filter: 'name:db datastore:/^ds-a$/' })
+    const { result } = await mountVmsStep({ filter: `name:db ${V2V_DATASTORE_A_FILTER}` })
 
     result.filterByDatastore(V2V_DATASTORE_B.name)
 
-    expect(result.filter).toBe(`name:db ${DS_B_FILTER}`)
+    expect(result.filter).toBe(`name:db ${V2V_DATASTORE_B_FILTER}`)
     expect(result.tableView.type).toBe('datastore')
   })
 })
 
 describe('selection', () => {
   it('selects every selectable VM of the filter on "select all"', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     result.selection.bindings.onSelectAll()
 
@@ -273,9 +273,9 @@ describe('addSelected', () => {
 
 describe('datastoreSummary', () => {
   it.each([
-    ['one datastore clause', DS_B_FILTER],
-    ['one datastore clause among others', `name:db ${DS_B_FILTER}`],
-    ['one datastore clause and a preset', `${DS_B_FILTER} migration:/^warm$/`],
+    ['one datastore clause', V2V_DATASTORE_B_FILTER],
+    ['one datastore clause among others', `name:db ${V2V_DATASTORE_B_FILTER}`],
+    ['one datastore clause and a preset', `${V2V_DATASTORE_B_FILTER} migration:/^warm$/`],
   ])('summarizes the VMs on the datastore of %s by status', async (_, filter) => {
     const { result } = await mountVmsStep({ filter })
 
@@ -286,7 +286,7 @@ describe('datastoreSummary', () => {
   })
 
   it('keeps summarizing the whole datastore once a preset is applied', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     result.applyPreset('not-migrated')
 
@@ -296,7 +296,7 @@ describe('datastoreSummary', () => {
   it.each([
     ['no filter', undefined],
     ['no datastore clause', 'name:db'],
-    ['two datastore clauses', `datastore:/^ds-a$/ ${DS_B_FILTER}`],
+    ['two datastore clauses', `${V2V_DATASTORE_A_FILTER} ${V2V_DATASTORE_B_FILTER}`],
     ['a clause of two datastores', 'datastore:|(/^ds-a$/ /^ds-b$/)'],
     ['a datastore missing from the inventory', 'datastore:/^ds-unknown$/'],
   ])('summarizes no datastore for %s', async (_, filter) => {
@@ -307,7 +307,7 @@ describe('datastoreSummary', () => {
   })
 
   it('summarizes no datastore without inventory', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER, inventory: null })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER, inventory: null })
 
     expect(result.datastoreSummary).toBeUndefined()
   })
@@ -328,11 +328,11 @@ describe('presets', () => {
   })
 
   it('writes the preset in the filter, keeping the datastore clause, and marks it active', async () => {
-    const { result } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     result.applyPreset('not-migrated')
 
-    expect(result.filter).toBe(`${DS_B_FILTER} migration:/^none$/`)
+    expect(result.filter).toBe(`${V2V_DATASTORE_B_FILTER} migration:/^none$/`)
     expect(result.presets.filter(preset => preset.isActive).map(preset => preset.id)).toEqual(['not-migrated'])
   })
 
@@ -394,14 +394,14 @@ describe('navigation', () => {
   })
 
   it('goes on to the mapping, keeping the pool and the filter', async () => {
-    const { result, router } = await mountVmsStep({ filter: DS_B_FILTER })
+    const { result, router } = await mountVmsStep({ filter: V2V_DATASTORE_B_FILTER })
 
     await result.next()
 
     expect(router.currentRoute.value.query).toMatchObject({
       step: 'mapping',
       pool: LIST.poolId,
-      [V2V_VMS_FILTER_QUERY_KEY]: DS_B_FILTER,
+      [V2V_VMS_FILTER_QUERY_KEY]: V2V_DATASTORE_B_FILTER,
     })
   })
 
