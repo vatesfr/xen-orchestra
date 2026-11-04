@@ -850,6 +850,8 @@ You can also forget it from the command line, on the pool master:
 xe host-forget uuid=<dead host UUID>
 ```
 
+For the XCP-ng side of removing a host from a pool (`pool-eject` versus `host-forget`), see [Remove a host from a pool](https://docs.xcp-ng.org/management/hosts-pools/#remove-a-host-from-a-pool) in the XCP-ng documentation.
+
 #### After forgetting the host
 
 - The local SRs of the forgotten host (local storage, removable devices…) can stay behind with no host attached. Once you made sure you don't need them anymore, forget them from the **Storage** view.
