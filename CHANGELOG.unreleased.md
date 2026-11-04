@@ -18,6 +18,7 @@
 - [Pool/Traffic rules] Display traffic rules by priority within their network (PR [#10688](https://github.com/vatesfr/xen-orchestra/pull/10688))
 - [VMs/Hosts] Show a loader in VM and host icons while their power state is changing, with the operation in progress in the tooltip, and move the header loader next to the name (PR [#10720](https://github.com/vatesfr/xen-orchestra/pull/10720))
 - [REST API] Create, update and delete backup jobs and schedules (admin only): `POST /rest/v0/backup-jobs`, `PATCH|DELETE /rest/v0/backup-jobs/:id`, `POST /rest/v0/schedules`, `PATCH|DELETE /rest/v0/schedules/:id` (PR [#10595](https://github.com/vatesfr/xen-orchestra/pull/10595))
+- [Backup jobs] Add backup job creation form in admin menu (PR [#10673](https://github.com/vatesfr/xen-orchestra/pull/10673))
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/lite patch
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
