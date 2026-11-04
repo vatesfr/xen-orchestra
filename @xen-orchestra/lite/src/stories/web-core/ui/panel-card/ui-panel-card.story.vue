@@ -1,6 +1,6 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[prop('selected').bool().widget(), slot()]">
-    <UiPanelCard v-bind="properties">
+  <ComponentStory :params="[slot()]">
+    <UiPanelCard>
       <div class="content">Content 1</div>
       <div class="content">Content 2</div>
       <div class="content">Content 3</div>
@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param.ts'
+import { slot } from '@/libs/story/story-param.ts'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 </script>
 
