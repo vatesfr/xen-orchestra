@@ -22,24 +22,29 @@ export function useUserDelete(rawUsers: MaybeRefOrGetter<FrontXoUser[]>) {
 
   const { open } = useDeleteModal()
 
+  function confirmDelete() {
+    const userIds = users.value.map(user => user.id)
+
+    run({
+      detached: true,
+      onSuccess: results => {
+        const isSelectedUserDeleted = results.some(
+          (result, index) => result.status === 'fulfilled' && userIds[index] === selectedUserId.value
+        )
+
+        if (isSelectedUserDeleted) {
+          selectedUserId.value = ''
+        }
+      },
+    })
+  }
+
   function deleteUsers() {
     const count = users.value.length
 
     return open({
       events: {
-        onConfirm: async () => {
-          try {
-            const isSelectedUserDeleted = users.value.some(user => user.id === selectedUserId.value)
-
-            await run()
-
-            if (isSelectedUserDeleted) {
-              selectedUserId.value = ''
-            }
-          } catch (error) {
-            console.error('Error when deleting user:', error)
-          }
-        },
+        onConfirm: confirmDelete,
       },
       props: {
         subject: t('n-users', { n: count }),
