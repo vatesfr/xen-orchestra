@@ -318,16 +318,26 @@ describe('vmLaunchOptionsRows', () => {
   it('overrides stopping the source of a VM', async () => {
     const { result } = await mountReviewStep()
 
-    result.changeStopSource(V2V_DB_VM.id, false)
+    result.changeLaunchOption(V2V_DB_VM.id, 'stopSource', false)
 
     expect(result.vmLaunchOptionsRows[1].overrides).toEqual({ stopSource: false })
+  })
+
+  it('overrides repairing and starting a VM, against the launch settings', async () => {
+    const { result } = await mountReviewStep()
+
+    result.changeLaunchOption(V2V_DB_VM.id, 'repair', true)
+    result.changeLaunchOption(V2V_DB_VM.id, 'startVm', true)
+    result.changeLaunchOption(V2V_WEB_VM.id, 'repair', false)
+
+    expect(result.vmLaunchOptionsRows.map(row => row.overrides)).toEqual([undefined, { repair: true, startVm: true }])
   })
 
   it('clears the override of a VM set back to the launch settings', async () => {
     const { result } = await mountReviewStep()
 
-    result.changeStopSource(V2V_DB_VM.id, false)
-    result.changeStopSource(V2V_DB_VM.id, true)
+    result.changeLaunchOption(V2V_DB_VM.id, 'stopSource', false)
+    result.changeLaunchOption(V2V_DB_VM.id, 'stopSource', true)
 
     expect(result.vmLaunchOptionsRows[1].overrides).toBeUndefined()
   })
@@ -374,7 +384,7 @@ describe('launch', () => {
     ])
     const { result } = await mountReviewStep({ list })
 
-    result.changeStopSource(V2V_DB_VM.id, false)
+    result.changeLaunchOption(V2V_DB_VM.id, 'stopSource', false)
     await launch(result)
 
     const payload = buildPayload([

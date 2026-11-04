@@ -21,7 +21,11 @@
 
 <script lang="ts" setup>
 import V2vLaunchOptionSelect from '@/modules/v2v/components/review/V2vLaunchOptionSelect.vue'
-import type { V2vLaunchSettings, V2vVmLaunchOptionsRow } from '@/modules/v2v/types/v2v-launch.type.ts'
+import type {
+  V2vLaunchSettings,
+  V2vVmLaunchOption,
+  V2vVmLaunchOptionsRow,
+} from '@/modules/v2v/types/v2v-launch.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -32,13 +36,13 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { h } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { defaultStopSource } = defineProps<{
+const { defaults } = defineProps<{
   rows: V2vVmLaunchOptionsRow[]
-  defaultStopSource: V2vLaunchSettings['stopSource']
+  defaults: Pick<V2vLaunchSettings, V2vVmLaunchOption>
 }>()
 
 const emit = defineEmits<{
-  changeStopSource: [vmId: V2vVmLaunchOptionsRow['id'], value: boolean | undefined]
+  changeOption: [vmId: V2vVmLaunchOptionsRow['id'], option: V2vVmLaunchOption, value: boolean | undefined]
 }>()
 
 const { t } = useI18n()
@@ -46,23 +50,25 @@ const { t } = useI18n()
 const useVmLaunchOptionsColumns = defineColumns(() => ({
   vm: useTextColumn({ headerLabel: () => t('vm') }),
   stopSource: useTextColumn({ headerLabel: () => t('v2v:stop-source') }),
+  repair: useTextColumn({ headerLabel: () => t('v2v:repair') }),
   startVm: useTextColumn({ headerLabel: () => t('v2v:start-on-xcp-ng') }),
-  cleanup: useTextColumn({ headerLabel: () => t('v2v:clean-up-preview') }),
 }))
+
+const renderOptionSelect = (row: V2vVmLaunchOptionsRow, option: V2vVmLaunchOption) =>
+  renderBodyCell(() =>
+    h(V2vLaunchOptionSelect, {
+      modelValue: row.overrides?.[option],
+      defaultValue: defaults[option],
+      'onUpdate:modelValue': value => emit('changeOption', row.id, option, value),
+    })
+  )
 
 const { HeadCells, BodyCells } = useVmLaunchOptionsColumns({
   body: (row: V2vVmLaunchOptionsRow) => ({
     vm: renderer => renderer(row.name),
-    stopSource: () =>
-      renderBodyCell(() =>
-        h(V2vLaunchOptionSelect, {
-          modelValue: row.overrides?.stopSource,
-          defaultValue: defaultStopSource,
-          'onUpdate:modelValue': value => emit('changeStopSource', row.id, value),
-        })
-      ),
-    startVm: renderer => renderer(t('not-supported-yet')),
-    cleanup: renderer => renderer(t('not-supported-yet')),
+    stopSource: () => renderOptionSelect(row, 'stopSource'),
+    repair: () => renderOptionSelect(row, 'repair'),
+    startVm: () => renderOptionSelect(row, 'startVm'),
   }),
 })
 </script>
