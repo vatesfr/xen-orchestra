@@ -22,24 +22,29 @@ export function useRoleDelete(rawRoles: MaybeRefOrGetter<FrontXoRole[]>) {
 
   const { open } = useDeleteModal()
 
+  function confirmDelete() {
+    const roleIds = roles.value.map(role => role.id)
+
+    run({
+      detached: true,
+      onSuccess: results => {
+        const isSelectedRoleDeleted = results.some(
+          (result, index) => result.status === 'fulfilled' && roleIds[index] === selectedRoleId.value
+        )
+
+        if (isSelectedRoleDeleted) {
+          selectedRoleId.value = ''
+        }
+      },
+    })
+  }
+
   function deleteRoles() {
     const count = roles.value.length
 
     return open({
       events: {
-        onConfirm: async () => {
-          try {
-            const isSelectedRoleDeleted = roles.value.some(role => role.id === selectedRoleId.value)
-
-            await run()
-
-            if (isSelectedRoleDeleted) {
-              selectedRoleId.value = ''
-            }
-          } catch (error) {
-            console.error('Error when deleting role:', error)
-          }
-        },
+        onConfirm: confirmDelete,
       },
       props: {
         subject: t('n-roles', { n: count }),
