@@ -70,7 +70,7 @@ function toPortGroup(network: VmwareNetwork): XoV2vPortGroup {
   return { id: network.id as XoV2vPortGroup['id'], name: network.name, vlan }
 }
 
-function toDisk({ key, label, datastore, capacity, diskMode, rdm, encrypted }: VmwareVmDisk): XoV2vDisk {
+function toDisk({ key, label, datastore, capacity, diskMode, rdm, encrypted, chainPaths }: VmwareVmDisk): XoV2vDisk {
   return {
     key: key as XoV2vDisk['key'],
     label,
@@ -80,6 +80,7 @@ function toDisk({ key, label, datastore, capacity, diskMode, rdm, encrypted }: V
     mode: toDiskMode(diskMode),
     isRdm: rdm,
     isEncrypted: encrypted,
+    chainPaths,
   }
 }
 
