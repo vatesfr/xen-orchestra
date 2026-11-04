@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Backup jobs] Add backup job creation form in admin menu (PR [#10673](https://github.com/vatesfr/xen-orchestra/pull/10673))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -33,9 +35,10 @@
 
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/lite patch
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor
