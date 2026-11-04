@@ -18,9 +18,13 @@ import type { Router } from 'vue-router'
  * without it the injections miss, and reading `uiStore.hasUi` would throw.
  *
  * Pass a `router` to navigate before mounting, which is what makes an active
- * route assertable.
+ * route assertable, and `provide` to stand in for what a parent component
+ * would provide (a root component injects from the app).
  */
-export function createGlobalTestConfig({ router = createTestRouter() }: { router?: Router } = {}) {
+export function createGlobalTestConfig({
+  router = createTestRouter(),
+  provide = {},
+}: { router?: Router; provide?: Record<symbol, unknown> } = {}) {
   const plugins: (Plugin | [Plugin, ...unknown[]])[] = [
     i18n,
     [RegleVuePlugin, formValidationConfig],
@@ -28,5 +32,5 @@ export function createGlobalTestConfig({ router = createTestRouter() }: { router
     router,
   ]
 
-  return { plugins }
+  return { plugins, provide }
 }

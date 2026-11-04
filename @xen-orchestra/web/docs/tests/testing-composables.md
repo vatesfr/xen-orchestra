@@ -15,7 +15,7 @@ expect(result.powerState.text).toBe(result.t('vm:status:running'))
 
 `mountComposable` does the same without `t` and returns `{ wrapper }`, for a test that needs neither the translation nor a returned object spread.
 
-Both take the options of `createGlobalTestConfig()` as a second argument, e.g. `{ router }` for a composable that navigates (build it with `createTestRouter()` and assert on `router.currentRoute.value`).
+Both take the options of `createGlobalTestConfig()` as a second argument, e.g. `{ router }` for a composable that navigates (build it with `createTestRouter()` and assert on `router.currentRoute.value`), or `{ provide }` for a composable injecting what a parent component provides.
 
 The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through it rather than destructuring it: a destructured value is a snapshot and stops following updates.
 

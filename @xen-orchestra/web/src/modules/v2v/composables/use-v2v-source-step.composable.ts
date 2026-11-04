@@ -1,8 +1,8 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vRememberedConnections } from '@/modules/v2v/composables/use-v2v-remembered-connections.composable.ts'
 import { useV2vConnectionForm } from '@/modules/v2v/form/use-v2v-connection-form.ts'
 import { useXoV2vInventoryJob } from '@/modules/v2v/jobs/xo-v2v-inventory.job.ts'
 import { useXoV2vStatus } from '@/modules/v2v/remote-resources/use-xo-v2v-status.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type {
   V2vRememberedConnection,
   V2vRememberedConnectionKey,
@@ -35,7 +35,7 @@ export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: 
 
   const { connections, remember, forget, forgetPassword } = useV2vRememberedConnections()
 
-  const connectionStore = useV2vConnectionStore()
+  const { setConnection } = useV2vConnection()
 
   const { v2vPrerequisite, canConnectV2vSource } = useXoV2vStatus()
 
@@ -55,7 +55,7 @@ export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: 
     try {
       const inventory = await loadInventory()
 
-      connectionStore.setConnection(connection, inventory)
+      setConnection(connection, inventory)
 
       const key = getRememberedConnectionKey(connection)
 
