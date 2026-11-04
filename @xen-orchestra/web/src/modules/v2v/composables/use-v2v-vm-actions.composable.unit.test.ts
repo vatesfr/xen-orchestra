@@ -4,11 +4,7 @@ import {
   useV2vResumedVmActions,
 } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
 import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
-import {
-  createV2vNewMappingStepVm,
-  createV2vNotFoundMappingStepVm,
-  createV2vResumedMappingStepVm,
-} from '@/test/create-v2v-mapping-step-vm.ts'
+import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { ref, toValue } from 'vue'
@@ -44,16 +40,10 @@ function mockDelete(isDeletingVm = false) {
   useDelete.mockReturnValue({ deleteVm, isDeletingVm: ref(isDeletingVm) })
 }
 
-const NEW_VM = createV2vNewMappingStepVm()
-
-const RESUMED_VM = createV2vResumedMappingStepVm()
-
-const NOT_FOUND_VM = createV2vNotFoundMappingStepVm()
-
 function mountNewVmActions() {
   const remove = vi.fn()
 
-  const actions = mountComposableWithI18n(() => useV2vNewVmActions(NEW_VM, { updateVm: vi.fn(), remove }))
+  const actions = mountComposableWithI18n(() => useV2vNewVmActions(V2V_NEW_STEP_VM, { updateVm: vi.fn(), remove }))
 
   return { actions, remove }
 }
@@ -61,13 +51,13 @@ function mountNewVmActions() {
 function mountNotFoundVmActions() {
   const remove = vi.fn()
 
-  const actions = mountComposableWithI18n(() => useV2vNotFoundVmActions(NOT_FOUND_VM, { remove }))
+  const actions = mountComposableWithI18n(() => useV2vNotFoundVmActions(V2V_NOT_FOUND_STEP_VM, { remove }))
 
   return { actions, remove }
 }
 
 function mountResumedVmActions() {
-  return mountComposableWithI18n(() => useV2vResumedVmActions(RESUMED_VM))
+  return mountComposableWithI18n(() => useV2vResumedVmActions(V2V_RESUMED_STEP_VM))
 }
 
 describe('useV2vNewVmActions', () => {
@@ -82,7 +72,7 @@ describe('useV2vNewVmActions', () => {
 
     actions.editAction.onClick()
 
-    expect(open).toHaveBeenCalledWith({ props: { vm: NEW_VM.vm, list: NEW_VM.list } })
+    expect(open).toHaveBeenCalledWith({ props: { vm: V2V_NEW_STEP_VM.vm, list: V2V_NEW_STEP_VM.list } })
   })
 })
 
@@ -111,7 +101,7 @@ describe('useV2vResumedVmActions', () => {
 
     deleteAction.onClick()
 
-    expect(toValue(useDelete.mock.lastCall?.[0])).toEqual(RESUMED_VM.importVm)
+    expect(toValue(useDelete.mock.lastCall?.[0])).toEqual(V2V_RESUMED_STEP_VM.importVm)
     expect(deleteVm).toHaveBeenCalledOnce()
   })
 
@@ -124,8 +114,8 @@ describe('useV2vResumedVmActions', () => {
 
 // A new VM and a VM gone from the source both leave the list, the only action of their menu
 describe.each([
-  ['useV2vNewVmActions', NEW_VM.id, mountNewVmActions],
-  ['useV2vNotFoundVmActions', NOT_FOUND_VM.id, mountNotFoundVmActions],
+  ['useV2vNewVmActions', V2V_NEW_STEP_VM.id, mountNewVmActions],
+  ['useV2vNotFoundVmActions', V2V_NOT_FOUND_STEP_VM.id, mountNotFoundVmActions],
 ])('%s', (_, id, mountActions) => {
   it('only offers to remove the VM from the list, as a dangerous action', () => {
     const { actions } = mountActions()

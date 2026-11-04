@@ -3,6 +3,7 @@ import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.comp
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
+import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -62,10 +63,6 @@ function mountMappingStep(options?: Parameters<typeof mountV2vMappingStep>[1]) {
 
 type MappingStep = Awaited<ReturnType<typeof mountMappingStep>>
 
-function findRouteVmId({ router }: MappingStep) {
-  return router.currentRoute.value.query.vm
-}
-
 async function removeOnceConfirmed({ result }: MappingStep, id: XoV2vVm['id']) {
   deleteModalMock.answer('onConfirm')
 
@@ -93,7 +90,7 @@ describe('selectedVm', () => {
     const step = await mountMappingStep({ vm })
 
     expect(step.result.selectedVm).toBeUndefined()
-    expect(findRouteVmId(step)).toBe(vm)
+    expect(findV2vRouteQuery(step.router).vm).toBe(vm)
   })
 
   it('maps a new VM on the list, ready', async () => {
@@ -214,7 +211,7 @@ describe('select', () => {
     step.result.select(V2V_DB_VM.id)
     await flushPromises()
 
-    expect(findRouteVmId(step)).toBe(V2V_DB_VM.id)
+    expect(findV2vRouteQuery(step.router).vm).toBe(V2V_DB_VM.id)
     expect(step.result.selectedVm?.id).toBe(V2V_DB_VM.id)
   })
 })
@@ -226,7 +223,7 @@ describe('close', () => {
     step.result.close()
     await flushPromises()
 
-    expect(findRouteVmId(step)).toBeUndefined()
+    expect(findV2vRouteQuery(step.router).vm).toBeUndefined()
     expect(step.result.selectedVm).toBeUndefined()
   })
 })
@@ -240,7 +237,7 @@ describe('remove', () => {
     await flushPromises()
 
     expect(readV2vMigrationListVmIds()).toEqual(getV2vVmIds(V2V_MAPPING_STEP_LIST.vms))
-    expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
+    expect(findV2vRouteQuery(step.router).vm).toBe(V2V_WEB_VM.id)
   })
 
   it('removes the selected VM, then selects no VM', async () => {
@@ -249,7 +246,7 @@ describe('remove', () => {
     await removeOnceConfirmed(step, V2V_DB_VM.id)
 
     expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-    expect(findRouteVmId(step)).toBeUndefined()
+    expect(findV2vRouteQuery(step.router).vm).toBeUndefined()
     expect(step.result.selectedVm).toBeUndefined()
   })
 
@@ -259,7 +256,7 @@ describe('remove', () => {
     await removeOnceConfirmed(step, V2V_DB_VM.id)
 
     expect(readV2vMigrationListVmIds()).toEqual([V2V_WEB_VM.id, V2V_GONE_VM_ID])
-    expect(findRouteVmId(step)).toBe(V2V_WEB_VM.id)
+    expect(findV2vRouteQuery(step.router).vm).toBe(V2V_WEB_VM.id)
   })
 
   it('goes back to the VMs step once the list is empty', async () => {

@@ -3,16 +3,11 @@ import V2vNotFoundVmActions from '@/modules/v2v/components/panel/V2vNotFoundVmAc
 import V2vResumedVmActions from '@/modules/v2v/components/panel/V2vResumedVmActions.vue'
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import {
-  createV2vNewMappingStepVm,
-  createV2vNotFoundMappingStepVm,
-  createV2vResumedMappingStepVm,
-} from '@/test/create-v2v-mapping-step-vm.ts'
+import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { findShownComponents } from '@/test/find-shown-components.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
-import { findV2vVmSlotActions, getV2vVmKindActionList, V2V_VM_ACTIONS_SLOTS } from '@/test/v2v-vm-kind-actions.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mountV2vVmKindActions, findV2vVmSlotActions, getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
+import { type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
   import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
@@ -23,20 +18,10 @@ beforeEach(() => {
   v2vVmActionsMock.reset()
 })
 
-const NEW_VM = createV2vNewMappingStepVm()
-
-const RESUMED_VM = createV2vResumedMappingStepVm()
-
-const NOT_FOUND_VM = createV2vNotFoundMappingStepVm()
-
 const updateVm = vi.fn()
 
 function mountKindActions(vm: V2vMappingStepVm) {
-  return mount(V2vVmKindActions, {
-    props: { vm, updateVm },
-    slots: V2V_VM_ACTIONS_SLOTS,
-    global: createGlobalTestConfig(),
-  })
+  return mountV2vVmKindActions(V2vVmKindActions, { vm, updateVm })
 }
 
 const KIND_ACTIONS = [V2vNewVmActions, V2vResumedVmActions, V2vNotFoundVmActions]
@@ -46,9 +31,9 @@ function findKindActions(wrapper: VueWrapper) {
 }
 
 it.each([
-  ['a new VM, stored through the list', NEW_VM, V2vNewVmActions, { vm: NEW_VM, updateVm }],
-  ['a resumed VM', RESUMED_VM, V2vResumedVmActions, { vm: RESUMED_VM }],
-  ['a VM not found in the source', NOT_FOUND_VM, V2vNotFoundVmActions, { vm: NOT_FOUND_VM }],
+  ['a new VM, stored through the list', V2V_NEW_STEP_VM, V2vNewVmActions, { vm: V2V_NEW_STEP_VM, updateVm }],
+  ['a resumed VM', V2V_RESUMED_STEP_VM, V2vResumedVmActions, { vm: V2V_RESUMED_STEP_VM }],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, V2vNotFoundVmActions, { vm: V2V_NOT_FOUND_STEP_VM }],
 ] as const)('runs the actions of %s', (_, vm, kindActions, props) => {
   const wrapper = mountKindActions(vm)
 
@@ -57,9 +42,9 @@ it.each([
 })
 
 it.each([
-  ['a new VM', NEW_VM, v2vVmActionsMock.useV2vNewVmActions],
-  ['a resumed VM', RESUMED_VM, v2vVmActionsMock.useV2vResumedVmActions],
-  ['a VM not found in the source', NOT_FOUND_VM, v2vVmActionsMock.useV2vNotFoundVmActions],
+  ['a new VM', V2V_NEW_STEP_VM, v2vVmActionsMock.useV2vNewVmActions],
+  ['a resumed VM', V2V_RESUMED_STEP_VM, v2vVmActionsMock.useV2vResumedVmActions],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, v2vVmActionsMock.useV2vNotFoundVmActions],
 ] as const)('hands its slot the actions of %s', (_, vm, useActions) => {
   const wrapper = mountKindActions(vm)
 
@@ -67,16 +52,16 @@ it.each([
 })
 
 it('switches to the actions of the new VM a resumed one becomes once its import VM is deleted', async () => {
-  const wrapper = mountKindActions(RESUMED_VM)
+  const wrapper = mountKindActions(V2V_RESUMED_STEP_VM)
 
-  await wrapper.setProps({ vm: NEW_VM })
+  await wrapper.setProps({ vm: V2V_NEW_STEP_VM })
 
   expect(findKindActions(wrapper)).toEqual([V2vNewVmActions])
 })
 
 it.each([
-  ['a new VM', NEW_VM, V2vNewVmActions],
-  ['a VM not found in the source', NOT_FOUND_VM, V2vNotFoundVmActions],
+  ['a new VM', V2V_NEW_STEP_VM, V2vNewVmActions],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, V2vNotFoundVmActions],
 ] as const)('emits the removal of %s', async (_, vm, kindActions) => {
   const wrapper = mountKindActions(vm)
 

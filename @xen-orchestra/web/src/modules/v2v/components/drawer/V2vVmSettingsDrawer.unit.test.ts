@@ -8,7 +8,11 @@ import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountV2vVmMappingComponent, V2V_OVERRIDDEN_LIST_VM } from '@/test/mount-v2v-vm-mapping.ts'
+import {
+  mountV2vVmMappingComponent,
+  V2V_FULLY_OVERRIDDEN_LIST_VM,
+  V2V_LIST_VM_OVERRIDES,
+} from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEBIAN_TEMPLATE,
@@ -23,6 +27,7 @@ import {
   V2V_SYSTEM_DISK,
   V2V_TARGET_OPTIONS,
   V2V_VLAN_NETWORK,
+  createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
@@ -53,13 +58,6 @@ vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-
-const OPTIONS_LIST_VM: V2vMigrationListVm = {
-  ...V2V_OVERRIDDEN_LIST_VM,
-  template: V2V_DEBIAN_TEMPLATE.id,
-  keepMac: false,
-  tags: ['web'],
-}
 
 // The tables and the fields render what the drawer hands them, each covered by its own test: here only the wiring
 // matters
@@ -119,11 +117,11 @@ it('maps the disks and the NICs of the VM on the targets of the pool of the list
 })
 
 it('shows the options of the VM', async () => {
-  const wrapper = await mountDrawer({ listVm: OPTIONS_LIST_VM })
+  const wrapper = await mountDrawer({ listVm: V2V_FULLY_OVERRIDDEN_LIST_VM })
 
   expect(getOptionsFields(wrapper).props()).toEqual({
     keepMac: false,
-    template: { value: V2V_DEBIAN_TEMPLATE.id, origin: 'overridden', isOffered: true },
+    template: createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden'),
     templateOptions: V2V_TARGET_OPTIONS.templates,
     tags: ['web'],
     loading: false,
@@ -160,28 +158,28 @@ it.each([
     'the SR of a disk',
     (wrapper: VueWrapper) =>
       wrapper.getComponent(V2vDiskMappingTable).vm.$emit('changeSr', V2V_SYSTEM_DISK.key, V2V_SSD_SR.id),
-    { disks: { ...V2V_DISK_OVERRIDES, [V2V_SYSTEM_DISK.key]: V2V_SSD_SR.id }, nics: V2V_NIC_OVERRIDES },
+    { ...V2V_LIST_VM_OVERRIDES, disks: { ...V2V_DISK_OVERRIDES, [V2V_SYSTEM_DISK.key]: V2V_SSD_SR.id } },
   ],
   [
     'the network of a NIC',
     (wrapper: VueWrapper) =>
       wrapper.getComponent(V2vNicMappingTable).vm.$emit('changeNetwork', V2V_LAN_NIC.key, V2V_VLAN_NETWORK.id),
-    { disks: V2V_DISK_OVERRIDES, nics: { ...V2V_NIC_OVERRIDES, [V2V_LAN_NIC.key]: V2V_VLAN_NETWORK.id } },
+    { ...V2V_LIST_VM_OVERRIDES, nics: { ...V2V_NIC_OVERRIDES, [V2V_LAN_NIC.key]: V2V_VLAN_NETWORK.id } },
   ],
   [
     'the MAC addresses kept',
     (wrapper: VueWrapper) => getOptionsFields(wrapper).vm.$emit('changeKeepMac', false),
-    { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES, keepMac: false },
+    { ...V2V_LIST_VM_OVERRIDES, keepMac: false },
   ],
   [
     'the template',
     (wrapper: VueWrapper) => getOptionsFields(wrapper).vm.$emit('changeTemplate', V2V_DEBIAN_TEMPLATE.id),
-    { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES, template: V2V_DEBIAN_TEMPLATE.id },
+    { ...V2V_LIST_VM_OVERRIDES, template: V2V_DEBIAN_TEMPLATE.id },
   ],
   [
     'the tags',
     (wrapper: VueWrapper) => getOptionsFields(wrapper).vm.$emit('changeTags', ['prod']),
-    { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES, tags: ['prod'] },
+    { ...V2V_LIST_VM_OVERRIDES, tags: ['prod'] },
   ],
   [
     'the SR of a disk reset',
@@ -198,19 +196,13 @@ it.each([
   expect(wrapper.emitted('confirm')).toStrictEqual([[overrides]])
 })
 
-it('cancels from the cancel button', async () => {
+it.each([
+  ['from the cancel button', cancelDrawer],
+  ['once dismissed', (wrapper: VueWrapper) => wrapper.getComponent(UiDrawer).vm.$emit('dismiss')],
+])('cancels %s', async (_, cancel) => {
   const wrapper = await mountDrawer()
 
-  await cancelDrawer(wrapper)
-
-  expect(wrapper.emitted('cancel')).toHaveLength(1)
-  expect(wrapper.emitted('confirm')).toBeUndefined()
-})
-
-it('cancels once dismissed', async () => {
-  const wrapper = await mountDrawer()
-
-  wrapper.getComponent(UiDrawer).vm.$emit('dismiss')
+  await cancel(wrapper)
 
   expect(wrapper.emitted('cancel')).toHaveLength(1)
   expect(wrapper.emitted('confirm')).toBeUndefined()

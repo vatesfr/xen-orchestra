@@ -1,6 +1,12 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { V2vActiveMappingRow, V2vDiskMappingRow, V2vNicMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type {
+  V2vActiveMappingRow,
+  V2vDiskMappingRow,
+  V2vNicMappingRow,
+  V2vResolvedTarget,
+  V2vTargetOrigin,
+} from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
@@ -27,6 +33,11 @@ import { t } from '@/test/i18n.ts'
 import { V2V_VDI_OTHER_CONFIG, V2V_VM_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
 
 const DEFAULTS = createV2vDestinationDefaults()
+
+/** A target of a mapping, among the pool offers, coming from `origin`. */
+export function createV2vOfferedTarget<TId>(value: TId, origin: V2vTargetOrigin = 'default'): V2vResolvedTarget<TId> {
+  return { value, origin, isOffered: true }
+}
 
 // The system disk went through a snapshot: its chain is the base disk, then the snapshot delta
 export const V2V_SYSTEM_DISK = createV2vDisk({
@@ -117,14 +128,14 @@ export const V2V_DISK_ROWS: V2vDiskMappingRow[] = [
     label: V2V_SYSTEM_DISK.label,
     datastore: 'ds-prod-01',
     size: V2V_SYSTEM_DISK.capacity,
-    sr: { value: V2V_DEFAULT_SR.id, origin: 'default', isOffered: true },
+    sr: createV2vOfferedTarget(V2V_DEFAULT_SR.id),
   },
   {
     key: V2V_DATA_DISK.key,
     label: V2V_DATA_DISK.label,
     datastore: 'ds-prod-01',
     size: V2V_DATA_DISK.capacity,
-    sr: { value: V2V_SSD_SR.id, origin: 'overridden', isOffered: true },
+    sr: createV2vOfferedTarget(V2V_SSD_SR.id, 'overridden'),
   },
 ]
 
@@ -134,14 +145,14 @@ export const V2V_NIC_ROWS: V2vNicMappingRow[] = [
     label: V2V_LAN_NIC.label,
     portGroupParts: [V2V_PROD_PORT_GROUP.name, t('vlan-id', { id: V2V_PROD_PORT_GROUP.vlan })],
     macAddress: V2V_LAN_NIC.macAddress,
-    network: { value: V2V_DEFAULT_NETWORK.id, origin: 'default', isOffered: true },
+    network: createV2vOfferedTarget(V2V_DEFAULT_NETWORK.id),
   },
   {
     key: V2V_VLAN_NIC.key,
     label: V2V_VLAN_NIC.label,
     portGroupParts: [],
     macAddress: V2V_VLAN_NIC.macAddress,
-    network: { value: V2V_VLAN_NETWORK.id, origin: 'overridden', isOffered: true },
+    network: createV2vOfferedTarget(V2V_VLAN_NETWORK.id, 'overridden'),
   },
 ]
 
