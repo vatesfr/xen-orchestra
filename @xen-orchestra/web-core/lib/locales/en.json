@@ -1201,7 +1201,6 @@
   "relative-time:past": "{str} ago",
   "relative-time:second": "1 second | {n} seconds",
   "relative-time:year": "1 year | {n} years",
-  "remaining-space": "Remaining space",
   "remember-connection-in-browser": "Remember connection in this browser",
   "remember-credentials-warning": "Storing these credentials in your browser increases security risks. Make sure this complies with your security guidelines.",
   "remembered-connections": "Remembered connections",
