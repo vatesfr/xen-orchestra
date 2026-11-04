@@ -409,7 +409,7 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 
 ### Requirements
 
-- Xen Orchestra with Premium license
+- Xen Orchestra with a Vates VMS Premium subscription
 - Prometheus server (or compatible: Victoria Metrics, Mimir, etc.)
 - (Optional) Grafana for visualization
 
