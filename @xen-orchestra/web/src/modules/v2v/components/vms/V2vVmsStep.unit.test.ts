@@ -75,10 +75,11 @@ async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; fil
   xoCollectionsMock.pools.value = [POOL]
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
-    router =>
+    (router, provide) =>
       mount(V2vVmsStep, {
         global: createGlobalTestConfig({
           router,
+          provide,
           stubs: {
             V2vVmsFilterHeader: true,
             VtsQueryBuilder: true,

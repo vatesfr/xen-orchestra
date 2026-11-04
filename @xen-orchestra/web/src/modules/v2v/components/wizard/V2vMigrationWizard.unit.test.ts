@@ -21,10 +21,11 @@ async function mountWizard(setup: V2vWizardSetup = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL]
 
   const { mounted: wrapper } = await mountOnV2vWizard(
-    router =>
+    (router, provide) =>
       mount(V2vMigrationWizard, {
         global: createGlobalTestConfig({
           router,
+          provide,
           stubs: { V2vSourceStep: true, V2vDestinationStep: true, V2vVmsStep: true },
         }),
       }),

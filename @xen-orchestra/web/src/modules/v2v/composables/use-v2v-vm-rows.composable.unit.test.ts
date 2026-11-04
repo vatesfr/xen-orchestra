@@ -1,10 +1,10 @@
 import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composable.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createV2vImportTask } from '@/test/create-task.ts'
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
@@ -33,12 +33,8 @@ function mountRows({
   listVmIds = new Set(),
   inventory = INVENTORY,
 }: { listVmIds?: MaybeRefOrGetter<Set<XoV2vVm['id']>>; inventory?: XoV2vInventory | null } = {}) {
-  return mountComposable(() => {
-    if (inventory !== null) {
-      connectV2vSource({ inventory })
-    }
-
-    return useV2vVmRows(listVmIds)
+  return mountComposable(() => useV2vVmRows(listVmIds), {
+    provide: v2vConnectionProvide(inventory === null ? undefined : createConnectedV2vContext({ inventory })),
   }).wrapper.vm
 }
 

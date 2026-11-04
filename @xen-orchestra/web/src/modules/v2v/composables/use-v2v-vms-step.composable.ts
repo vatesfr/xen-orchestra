@@ -1,3 +1,4 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
 import type { V2vSelectedVmsContext } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
@@ -6,7 +7,6 @@ import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.comp
 import { useV2vVmQueryBuilder } from '@/modules/v2v/composables/use-v2v-vm-query-builder.composable.ts'
 import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import {
   applyV2vPreset,
@@ -50,7 +50,7 @@ const DATASTORE_PROPERTY = 'datastore'
 export function useV2vVmsStep() {
   const { t } = useI18n()
 
-  const connectionStore = useV2vConnectionStore()
+  const { sourceId, inventory } = useV2vConnection()
 
   const { goToStep } = useV2vWizardNavigation()
 
@@ -58,15 +58,15 @@ export function useV2vVmsStep() {
 
   const poolId = useV2vPoolIdQuery()
 
-  const { sourceHost } = useV2vSourceAndDestination(pool)
+  const { sourceHost } = useV2vSourceAndDestination(poolId)
 
-  const migrationList = useV2vMigrationList(() => connectionStore.sourceId, poolId)
+  const migrationList = useV2vMigrationList(sourceId, poolId)
 
   const listVmIds = computed(() => new Set(migrationList.list.value?.vms.map(vm => vm.id)))
 
   const { rows, areRowsReady } = useV2vVmRows(listVmIds)
 
-  const datastores = computed(() => connectionStore.inventory?.datastores ?? [])
+  const datastores = computed(() => inventory.value?.datastores ?? [])
 
   const {
     items: filteredRows,
