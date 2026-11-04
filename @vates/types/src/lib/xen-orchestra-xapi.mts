@@ -98,6 +98,8 @@ export interface EditVifProps {
   lockingMode?: VIF_LOCKING_MODE
   // in kB/s, `null` removes the limit
   rateLimit?: number | null
+  // `[]` lets every VLAN through
+  trunks?: number[]
   txChecksumming?: boolean
 }
 
@@ -474,6 +476,7 @@ export interface Xapi {
       other_config?: Record<string, string>
       qos_algorithm_params?: Record<string, string>
       qos_algorithm_type?: string
+      trunks?: number[]
       VM: XenApiVm['$ref']
     },
     extraOptions?: {

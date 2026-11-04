@@ -1,6 +1,10 @@
+import { invalidParameters } from 'xo-common/api-errors.js'
+
 import isVmRunning from './_isVmRunning.mjs'
 
 export default class Vif {
+  // A pool without VLAN filtering (xapi < 26.1.16) ignores the unknown `trunks` field, and its records lack it: the
+  // VIF would see every VLAN, the opposite of what was asked. Such a VIF is destroyed before it is plugged
   async create(
     {
       currently_attached = true,
@@ -13,6 +17,7 @@ export default class Vif {
       other_config = {},
       qos_algorithm_params = {},
       qos_algorithm_type = '',
+      trunks,
       VM,
     },
     {
@@ -51,8 +56,16 @@ export default class Vif {
       other_config,
       qos_algorithm_params,
       qos_algorithm_type,
+      trunks,
       VM,
     })
+
+    if (trunks !== undefined && trunks.length !== 0 && (await this.getRecord('VIF', vifRef)).trunks === undefined) {
+      await this.call('VIF.destroy', vifRef)
+      throw invalidParameters('VLAN filtering needs XCP-ng 8.3 with xapi 26.1.16 or later', [
+        { field: 'trunks', message: `pool ${this.pool.uuid} has no VLAN filtering` },
+      ])
+    }
 
     if (currently_attached && isVmRunning(powerState)) {
       await this.callAsync('VIF.plug', vifRef)
