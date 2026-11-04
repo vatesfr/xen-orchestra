@@ -1,12 +1,12 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vDiskMappingRow, V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
@@ -46,7 +46,7 @@ export function useV2vVmMapping(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
   { list: rawList, listIssue, listVm: rawListVm }: Omit<V2vVmMappingContext, 'updateVm'>
 ) {
-  const connectionStore = useV2vConnectionStore()
+  const { inventory } = useV2vConnection()
 
   const { getPortGroupParts } = useV2vVmLabels()
 
@@ -67,8 +67,6 @@ export function useV2vVmMapping(
   const listVm = computed(() => toValue(rawListVm) ?? findV2vMigrationListVm(list.value, vm.value.id))
 
   const mapping = computed(() => getV2vVmMapping(vm.value, listVm.value, list.value.defaults, offers.value))
-
-  const inventory = computed(() => connectionStore.inventory)
 
   const hostName = computed(() => findV2vVmHost(inventory.value, vm.value)?.name)
 

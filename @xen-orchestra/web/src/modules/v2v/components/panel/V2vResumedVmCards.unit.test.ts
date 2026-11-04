@@ -48,11 +48,12 @@ async function mountCards() {
   seedV2vResumedVmCollections()
 
   const { mounted: wrapper } = await mountOnV2vWizard(
-    router =>
+    (router, provide) =>
       mount(V2vResumedVmCards, {
         props: { vm: VM },
         global: createGlobalTestConfig({
           router,
+          provide,
           stubs: { V2vDestinationVmCard: true, V2vNextRunCard: true, V2vActiveMappingCard: true },
         }),
       }),

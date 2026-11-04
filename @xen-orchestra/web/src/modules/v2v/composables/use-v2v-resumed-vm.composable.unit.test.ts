@@ -1,11 +1,11 @@
 import { useV2vResumedVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { connectV2vSource } from '@/test/connect-v2v-source.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_ACTIVE_DISK_ROWS,
   V2V_ACTIVE_NIC_ROWS,
@@ -48,10 +48,8 @@ vi.mock(
 function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
   seedV2vResumedVmCollections()
 
-  return mountComposableWithI18n(() => {
-    connectV2vSource({ inventory: V2V_MAPPING_INVENTORY })
-
-    return useV2vResumedVm(vm, importVm)
+  return mountComposableWithI18n(() => useV2vResumedVm(vm, importVm), {
+    provide: v2vConnectionProvide(createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY })),
   })
 }
 

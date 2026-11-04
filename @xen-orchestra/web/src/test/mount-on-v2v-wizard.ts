@@ -1,7 +1,7 @@
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
-import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import type { LocationQueryRaw, Router } from 'vue-router'
 
@@ -38,7 +38,7 @@ export async function mountComposableOnV2vWizard<TResult extends Record<string, 
   setup: V2vWizardSetup
 ) {
   const { mounted: result, router } = await mountOnV2vWizard(
-    router => mountComposableWithI18n(composable, { router }),
+    (router, provide) => mountComposableWithI18n(composable, { router, provide }),
     setup
   )
 

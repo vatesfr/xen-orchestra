@@ -1,3 +1,4 @@
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vIdQuery } from '@/modules/v2v/composables/use-v2v-id-query.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
 import {
@@ -7,7 +8,6 @@ import {
 } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import { useV2vConnectionStore } from '@/modules/v2v/stores/v2v-connection.store.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { isV2vListIssue } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
@@ -60,7 +60,7 @@ export type V2vMappingStepRow = {
 
 // The mapping step lists the VMs of the list, the one of the route selected, if any
 export function useV2vMappingStep() {
-  const connectionStore = useV2vConnectionStore()
+  const { inventory } = useV2vConnection()
 
   const { goToStep } = useV2vWizardNavigation()
 
@@ -76,8 +76,7 @@ export function useV2vMappingStep() {
 
   // A VM gone from the source is only known to have been on it. A part the inventory cannot tell is left out
   function getLocationParts(row: V2vVmRow | undefined): string[] {
-    const vmParts =
-      row === undefined ? [] : [getV2vVmDatacenterName(connectionStore.inventory, row.vm), row.datastore.join(', ')]
+    const vmParts = row === undefined ? [] : [getV2vVmDatacenterName(inventory.value, row.vm), row.datastore.join(', ')]
 
     return compact([sourceHost.value, ...vmParts])
   }
