@@ -1521,7 +1521,7 @@
   "v2v:action:add-to-migration-list": "Ajouter à la liste de migration",
   "v2v:already-migrated-confirm-at-launch": "Déjà migrée, confirmation au lancement",
   "v2v:check:mapping-incomplete": "Correspondance incomplète",
-  "v2v:check:n-snapshots": "1 instantané sur la VM source | {n} instantanés sur la VM source",
+  "v2v:check:n-snapshots": "0 instantané sur la VM source | 1 instantané sur la VM source | {n} instantanés sur la VM source",
   "v2v:check:no-snapshot": "Aucun instantané sur la VM source",
   "v2v:check:no-unsupported-disk": "Aucun disque non pris en charge (RDM, indépendant, chiffré)",
   "v2v:choose-vmware-source": "Choisir la source VMware",
