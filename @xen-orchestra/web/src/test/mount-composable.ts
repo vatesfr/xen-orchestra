@@ -1,12 +1,9 @@
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { defineComponent, type RenderFunction, type ShallowUnwrapRef } from 'vue'
+import { defineComponent, type ShallowUnwrapRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type MountComposableOptions = NonNullable<Parameters<typeof createGlobalTestConfig>[0]> & {
-  // For a composable driving a component of its caller, which must be rendered beside it
-  render?: RenderFunction
-}
+export type MountComposableOptions = NonNullable<Parameters<typeof createGlobalTestConfig>[0]>
 
 /**
  * Runs a composable inside a mounted component so it has access to a Vue
@@ -18,14 +15,14 @@ export type MountComposableOptions = NonNullable<Parameters<typeof createGlobalT
  * values and stops observing updates.
  */
 export function mountComposable<TResult extends Record<string, unknown>>(
-  composable: () => TResult | void,
-  { render = () => null, ...globalOptions }: MountComposableOptions = {}
+  composable: () => TResult,
+  globalOptions: MountComposableOptions = {}
 ) {
   const wrapper = mount(
     defineComponent({
       // Vue calls `setup(props, ctx)`: passing `composable` as-is would land `props` on its first parameter
       setup: () => composable(),
-      render,
+      render: () => null,
     }),
     { global: createGlobalTestConfig(globalOptions) }
     // `defineComponent` cannot infer the bindings of a generic setup

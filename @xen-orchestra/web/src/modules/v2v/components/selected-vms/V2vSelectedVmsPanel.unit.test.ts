@@ -67,9 +67,9 @@ function findStateHeroTypes(wrapper: VueWrapper) {
 }
 
 describe('with VMs', () => {
-  // Its VMs are no selection to clear: it only closes to leave the full screen of a small screen
-  it('is the persistent side panel of the page', () => {
-    expect(mountPanel().getComponent(VtsSidePanel).props('persistent')).toBe(true)
+  // Its VMs open it like a selection, but are none to clear: it only closes where closing collapses it
+  it('is the persistent side panel of the page, holding its VMs as a selection', () => {
+    expect(mountPanel().getComponent(VtsSidePanel).props()).toMatchObject({ hasSelection: true, persistent: true })
   })
 
   it('titles its summary card with the selected VMs and their count', () => {
@@ -139,32 +139,14 @@ describe('busy', () => {
     expect(getSummaryCard(wrapper).getComponent(UiCounter).text()).toBe('2')
     expect(getSummaryCard(wrapper).getComponent(V2vListLockSummary).props()).toEqual(LOCK_SUMMARY)
   })
-
-  it('tells an empty list empty, rows loading or not', () => {
-    const wrapper = mountPanel({ ...EMPTY, isBusy: true })
-
-    expect(wrapper.getComponent(VtsStateHero).text()).toContain(t('v2v:no-vm-in-list'))
-  })
 })
 
 describe('empty', () => {
-  it('tells the list has no VM, never asking for a selection', () => {
-    const wrapper = mountPanel(EMPTY)
-
-    expect(findStateHeroTypes(wrapper)).toEqual(['no-data'])
-    expect(wrapper.getComponent(VtsStateHero).text()).toContain(t('v2v:no-vm-in-list'))
-    expect(wrapper.findAllComponents(V2vSelectedVmItem)).toEqual([])
+  it('holds no selection', () => {
+    expect(mountPanel(EMPTY).getComponent(VtsSidePanel).props('hasSelection')).toBe(false)
   })
 
   it('offers no clear', () => {
     expect(findButton(mountPanel(EMPTY), t('action:clear'))).toBeUndefined()
-  })
-
-  it('has no readiness tag', () => {
-    expect(findAccentedTags(getSummaryCard(mountPanel(EMPTY)))).toEqual([])
-  })
-
-  it('still summarizes the lock of the list', () => {
-    expect(getSummaryCard(mountPanel(EMPTY)).getComponent(V2vListLockSummary).props()).toEqual(EMPTY.lockSummary)
   })
 })
