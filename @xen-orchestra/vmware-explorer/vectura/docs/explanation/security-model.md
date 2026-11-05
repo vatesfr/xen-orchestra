@@ -53,10 +53,16 @@ presents. The ticket came through the verified management session, so
 its thumbprint is trusted the way the password's destination was. Vectura
 then asks the host, inside the first TLS session, to confirm the SHA-256
 of its certificate, and compares that with what the TLS layer saw as
-well. This is why a host that does not announce `SHA256 supported` is
-refused: without the confirmation, the data port would rest on SHA-1
-alone. Finally, the second TLS session that carries the disk must present
+well. Finally, the second TLS session that carries the disk must present
 the same certificate as the first.
+
+The SHA-256 confirmation exists from ESXi 7 on. An ESXi 6.x host does not
+announce `SHA256 supported`; asked the older `THUMBPRINT`, it answers with
+a SHA-1, which adds nothing to the ticket's, so Vectura does not check it. On such
+a host the data port rests on the ticket's SHA-1 and on both TLS sessions
+presenting the same certificate. There is no flag to accept or refuse
+this: a 6.x host is served like any other, and the management port, which
+carries the password, is verified the same way on every host.
 
 An attacker who controls the network between Vectura and the host sees
 TLS on 443 and TLS on 902, and can complete neither handshake without the

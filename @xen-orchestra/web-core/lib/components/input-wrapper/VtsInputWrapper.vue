@@ -5,7 +5,7 @@
     </UiLabel>
     <slot />
     <UiInfo v-for="{ content, accent } of messages" :key="content" :accent :wrap="wrapMessage">
-      {{ content }}
+      <slot name="message" :content :accent>{{ content }}</slot>
     </UiInfo>
   </div>
 </template>
@@ -39,6 +39,7 @@ const { message: _message } = defineProps<{
 defineSlots<{
   default(): any
   label?(): any
+  message?(props: { content: string; accent: InfoAccent }): any
 }>()
 
 const id = useId()

@@ -2,9 +2,9 @@
   <nav class="administration-menu" :aria-label="t('administration')">
     <section v-for="(section, index) in sections" :key="index" class="menu-section">
       <div class="section-title typo-h6">{{ section.title }}</div>
-      <ul class="links">
+      <ul class="menu-links">
         <MenuItem v-for="(item, itemIndex) in section.items" :key="itemIndex" accent="neutral">
-          <UiLink size="small" class="link" :href="item.href" :to="item.to">
+          <UiLink size="small" class="menu-link" :href="item.href" :to="item.to" @click="closeSidebarOnSmallScreen()">
             {{ item.label }}
           </UiLink>
         </MenuItem>
@@ -17,6 +17,8 @@
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -33,18 +35,27 @@ type AdminMenuSection = {
 const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
+const uiStore = useUiStore()
+const leftSidebar = useLeftSidebarStore()
+
+function closeSidebarOnSmallScreen() {
+  if (uiStore.isSmall) {
+    leftSidebar.toggleExpand(false)
+  }
+}
+
 const sections = computed<AdminMenuSection[]>(() => [
   {
     title: t('backup-and-replication'),
     items: [
-      { label: t('jobs'), href: buildXo5Route('/backup/overview'), to: undefined },
-      { label: t('backup-repositories'), href: undefined, to: { name: '/admin/backup-and-replication' } },
-      { label: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
+      { label: t('jobs'), href: undefined, to: { name: '/admin/backup-and-replication/jobs' } },
       {
-        label: t('logs'),
-        href: buildXo5Route('/backup/overview'),
-        to: undefined,
+        label: t('backup-repositories'),
+        href: undefined,
+        to: { name: '/admin/backup-and-replication/backup-repositories' },
       },
+      { label: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
+      { label: t('logs'), href: undefined, to: { name: '/admin/backup-and-replication/logs' } },
     ],
   },
   {
@@ -55,10 +66,14 @@ const sections = computed<AdminMenuSection[]>(() => [
       { label: t('roles'), href: buildXo5Route('/settings/acls'), to: undefined },
       {
         label: t('ldap-auth-providers'),
-        href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
-        to: undefined,
+        href: undefined,
+        to: { name: '/admin/plugins', query: { 'qb.plugins': 'name:/^auth-/' } },
       },
     ],
+  },
+  {
+    title: t('settings'),
+    items: [{ label: t('plugins'), href: undefined, to: { name: '/admin/plugins' } }],
   },
 ])
 </script>
@@ -83,11 +98,11 @@ const sections = computed<AdminMenuSection[]>(() => [
     border-block-start: 0.1rem solid var(--color-neutral-border);
   }
 
-  .links {
+  .menu-links {
     margin: 0;
     padding: 0.4rem 0;
 
-    .link {
+    .menu-link {
       flex-grow: 1;
       padding-block: 1.2rem;
       text-decoration: none;

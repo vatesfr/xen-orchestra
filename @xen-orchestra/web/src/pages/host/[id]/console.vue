@@ -8,11 +8,21 @@
     </div>
   </VtsStateHero>
   <VtsLayoutConsole v-else>
-    <VtsRemoteConsole ref="console-element" :url :is-console-available="isHostConsoleAvailable" />
+    <VtsRemoteConsole
+      ref="console-element"
+      :url
+      :is-console-available="isHostConsoleAvailable"
+      @clipboard="clipboardText = $event"
+    />
     <template #actions>
       <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
       <VtsDivider type="stretch" />
-      <VtsClipboardConsole />
+      <VtsClipboardConsole
+        v-model="clipboardText"
+        :is-console-connected="isConsoleConnected"
+        :send-to-console="sendToConsole"
+        is-keyboard-layout-disabled
+      />
     </template>
   </VtsLayoutConsole>
 </template>
@@ -26,6 +36,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
 import { HOST_ALLOWED_OPERATIONS } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -47,9 +58,9 @@ const isHostConsoleRunning = computed(() => props.host.power_state === 'Running'
 const isHostConsoleAvailable = computed(() =>
   props.host.controlDomain !== undefined ? !isHostOperationPending(props.host!, STOP_OPERATIONS) : false
 )
-const consoleElement = useTemplateRef('console-element')
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style scoped lang="postcss">

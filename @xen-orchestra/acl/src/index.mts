@@ -1,4 +1,3 @@
-import assert from 'node:assert'
 import type { XoUser } from '@vates/types/xo'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE } from './actions/index.mjs'
@@ -42,10 +41,21 @@ export function hasPrivilegeOn<T extends SupportedResource>({
 }) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
-  assert.strictEqual(typeof user?.permission, 'string')
-  assert.strictEqual(typeof action, 'string')
-  assert.strictEqual(typeof resource, 'string')
-  assert.strictEqual(objects === undefined, false)
+  if (typeof user?.permission !== 'string') {
+    throw new TypeError('user.permission must be a string')
+  }
+
+  if (typeof action !== 'string') {
+    throw new TypeError('action must be a string')
+  }
+
+  if (typeof resource !== 'string') {
+    throw new TypeError('resource must be a string')
+  }
+
+  if (objects === undefined) {
+    throw new TypeError('objects must be defined')
+  }
 
   CPrivilege.checkActionIsValid(resource, action as SupportedActions<typeof resource>)
 

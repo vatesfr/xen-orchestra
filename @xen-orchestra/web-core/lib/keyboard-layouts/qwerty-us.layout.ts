@@ -1,0 +1,46 @@
+import type { KeyStroke } from '@core/types/keyboard-layout.type.ts'
+import { defineKeyboardLayout } from './define-keyboard-layout.ts'
+
+const SYMBOLS: Record<string, KeyStroke[]> = {
+  ' ': [{ code: 'Space' }],
+  '\n': [{ code: 'Enter' }],
+  '\t': [{ code: 'Tab' }],
+  '`': [{ code: 'Backquote' }],
+  '~': [{ code: 'Backquote', shift: true }],
+  '!': [{ code: 'Digit1', shift: true }],
+  '@': [{ code: 'Digit2', shift: true }],
+  '#': [{ code: 'Digit3', shift: true }],
+  $: [{ code: 'Digit4', shift: true }],
+  '%': [{ code: 'Digit5', shift: true }],
+  '^': [{ code: 'Digit6', shift: true }],
+  '&': [{ code: 'Digit7', shift: true }],
+  '*': [{ code: 'Digit8', shift: true }],
+  '(': [{ code: 'Digit9', shift: true }],
+  ')': [{ code: 'Digit0', shift: true }],
+  '-': [{ code: 'Minus' }],
+  _: [{ code: 'Minus', shift: true }],
+  '=': [{ code: 'Equal' }],
+  '+': [{ code: 'Equal', shift: true }],
+  '[': [{ code: 'BracketLeft' }],
+  '{': [{ code: 'BracketLeft', shift: true }],
+  ']': [{ code: 'BracketRight' }],
+  '}': [{ code: 'BracketRight', shift: true }],
+  '\\': [{ code: 'Backslash' }],
+  '|': [{ code: 'Backslash', shift: true }],
+  ';': [{ code: 'Semicolon' }],
+  ':': [{ code: 'Semicolon', shift: true }],
+  "'": [{ code: 'Quote' }],
+  '"': [{ code: 'Quote', shift: true }],
+  ',': [{ code: 'Comma' }],
+  '<': [{ code: 'Comma', shift: true }],
+  '.': [{ code: 'Period' }],
+  '>': [{ code: 'Period', shift: true }],
+  '/': [{ code: 'Slash' }],
+  '?': [{ code: 'Slash', shift: true }],
+}
+
+export const qwertyUsLayout = defineKeyboardLayout({
+  id: 'en-us-qwerty',
+  label: 'English (US, QWERTY)',
+  symbols: SYMBOLS,
+})

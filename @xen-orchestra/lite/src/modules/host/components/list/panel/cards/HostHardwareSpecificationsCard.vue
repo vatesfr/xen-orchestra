@@ -1,0 +1,52 @@
+<template>
+  <UiPanelCard class="host-hardware-specifications-card">
+    <UiPanelCardTitle size="medium" :label="t('hardware-specifications')" />
+    <div class="content">
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('manufacturer-info') }}</template>
+        <template #value>{{ manufacturerInfo }}</template>
+        <template #addons>
+          <VtsCopyButton :value="manufacturerInfo" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('core-socket') }}</template>
+        <template #value>{{ coreSocketInfo }}</template>
+        <template #addons>
+          <VtsCopyButton :value="coreSocketInfo" />
+        </template>
+      </VtsCardRowKeyValue>
+    </div>
+  </UiPanelCard>
+</template>
+
+<script lang="ts" setup>
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/host.util.ts'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { host } = defineProps<{
+  host: XenApiHost
+}>()
+
+const { t } = useI18n()
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
+</script>
+
+<style lang="postcss" scoped>
+.host-hardware-specifications-card {
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+</style>

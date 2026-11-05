@@ -8,12 +8,22 @@
         <span>{{ t('start-console', { type: 'VM' }) }}</span>
       </div>
     </VtsStateHero>
-    <VtsRemoteConsole v-else ref="console-element" :url :is-console-available="isConsoleAvailable" />
+    <VtsRemoteConsole
+      v-else
+      ref="console-element"
+      :url
+      :is-console-available="isConsoleAvailable"
+      @clipboard="clipboardText = $event"
+    />
     <template #actions>
       <template v-if="isVmConsoleRunning">
         <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
         <VtsDivider type="stretch" />
-        <VtsClipboardConsole />
+        <VtsClipboardConsole
+          v-model="clipboardText"
+          :is-console-connected="isConsoleConnected"
+          :send-to-console="sendToConsole"
+        />
         <VtsDivider type="stretch" />
       </template>
       <!-- also while the VM is halted: an ISO is usually inserted before starting the VM -->
@@ -32,6 +42,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
 import { VM_OPERATIONS } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -59,9 +70,9 @@ const isVmConsoleRunning = computed(() => props.vm.power_state === 'Running' && 
 const isConsoleAvailable = computed(() =>
   props.vm !== undefined ? !isVmOperationPending(props.vm, STOP_OPERATIONS) : false
 )
-const consoleElement = useTemplateRef('console-element')
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style scoped lang="postcss">

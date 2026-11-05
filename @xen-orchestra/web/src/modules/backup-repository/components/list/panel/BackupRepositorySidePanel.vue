@@ -1,5 +1,9 @@
 <template>
   <VtsSidePanel :has-selection="!!br" @close="emit('close')">
+    <template v-if="br" #actions>
+      <BackupRepositoryActions :br />
+    </template>
+
     <template v-if="br" #default>
       <BackupRepositoryInfosCard :br :parsed-br-url />
       <BackupRepositorySpeedCard :br />
@@ -16,6 +20,7 @@
 </template>
 
 <script lang="ts" setup>
+import BackupRepositoryActions from '@/modules/backup-repository/components/actions/BackupRepositoryActions.vue'
 import BackupRepositoryAzureAzuriteCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import BackupRepositoryLocalCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryLocalCard.vue'

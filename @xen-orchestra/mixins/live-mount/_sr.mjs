@@ -2,14 +2,13 @@ import { randomUUID } from 'node:crypto'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
+import { OC_MOUNT } from './_utils.mjs'
+
 const { debug, info, warn } = createLogger('xo:mixins:LiveMount')
 
 // Raw "LUN per VDI" driver: the LUN becomes a VDI as-is, with no LVM written to
 // it — the only iSCSI SR type usable on a read-only LUN.
 const SR_TYPE = 'iscsi'
-
-// identifies the SRs we created, to recognize leftovers
-const OC_MOUNT = 'xo:live-mount'
 
 // Our target exposes exactly one LUN, numbered 0.
 const LUN_ID = '0'
@@ -90,7 +89,7 @@ export async function forgetSr(xapi, srRef) {
  * one asked for. The LUN itself is what actually enforces it: a read-only
  * `BlockDevice` is reported write-protected, and writes are refused.
  */
-export async function introduceVdi({ xapi, srRef, SCSIid, size, nameLabel, nameDescription, readOnly }) {
+export async function introduceVdi({ xapi, srRef, SCSIid, size, id, nameLabel, nameDescription, readOnly }) {
   const uuid = randomUUID()
   await xapi.call(
     'VDI.introduce',
@@ -127,6 +126,7 @@ export async function introduceVdi({ xapi, srRef, SCSIid, size, nameLabel, nameD
     if (vdi.uuid !== uuid) {
       info('the driver renamed the introduced VDI', { asked: uuid, got: vdi.uuid })
     }
+    await xapi.setFieldEntry('VDI', vdiRef, 'other_config', OC_MOUNT, id)
     return vdi.uuid
   }
   warn('no VDI found for the introduced LUN', { SCSIid, srRef, nameLabel })

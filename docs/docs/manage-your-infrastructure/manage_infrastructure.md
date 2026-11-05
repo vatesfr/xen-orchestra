@@ -519,6 +519,40 @@ VM migration with storage motion allows you to migrate a VM from one host to ano
 - Migrating a VM that has VDIs on a shared SR from host A to host B using a particular network must trigger a "VM Migration with Storage Motion" without moving its VDIs.
 - Migrating a VM from host A to host B with a destination SR must trigger a "VM Migration with Storage Motion" and move VDIs to the destination SR, regardless of where the VDIs were stored.
 
+### Warm migration
+
+Warm migration moves a running VM to another SR, including on another pool, with minimal downtime. Unlike the migrations above, the data doesn't go directly from host to host: Xen Orchestra reads the VM from the source and writes it to the destination, using the same mechanism as [incremental replication](../backups-and-dr/backup-types/incremental_replication.md).
+
+#### How it works
+
+1. A first copy of the VM is sent to the destination SR while the source VM keeps running.
+2. The source VM is shut down (clean shutdown, or hard shutdown if it fails).
+3. Only the changes made since the first copy are sent to the destination. Since the source is stopped, this transfer is short and the copy is fully up to date.
+4. Optionally, the migrated VM is started, and the source VM is deleted.
+
+The downtime is limited to the time needed to shut down the source VM, transfer the last changes and boot the destination VM.
+
+#### Use Cases
+
+- Migrate a VM to another pool when a live migration is not possible (for example between pools with incompatible CPUs).
+- Migrate a VM between pools whose hosts can't reach each other directly, since all data goes through Xen Orchestra.
+
+#### How to use it
+
+1. Go to the VM's page, in the **Advanced** tab.
+2. Click on **Warm migration**. This button is only displayed when the VM is running.
+3. Select the **Destination SR**.
+4. Choose whether to **Delete source VM** and **Start the migrated VM**.
+5. Confirm.
+
+:::info
+Warm migration requires an XOA Premium plan, and can only be run by an administrator.
+:::
+
+:::tip
+If you keep the source VM, it can't be started anymore: Xen Orchestra blocks its start operation, since it might not be up to date. It also keeps a snapshot named `[XO warm migration …]`, which you can delete once the migration is checked. The source VM is only deleted when **Start the migrated VM** is also selected.
+:::
+
 ### Preventing VM migration
 
 To prevent a virtual machine from migrating:

@@ -1,7 +1,8 @@
 import { createLogger } from '@xen-orchestra/log'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
-import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+import { SUPPORTED_VDI_EXPORT_FORMAT, SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
+import { toVmdkStream } from '@xen-orchestra/vmdk'
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import type { Disk } from '@xen-orchestra/disk-transform'
 import type { XoVdi, XoVdiSnapshot } from '@vates/types'
@@ -79,9 +80,9 @@ export class VdiService {
   async exportContent<Vdi extends XoVdi | XoVdiSnapshot>(
     id: Vdi['id'],
     type: Vdi['type'],
-    { format }: { format: SUPPORTED_VDI_FORMAT }
+    { format }: { format: SUPPORTED_VDI_EXPORT_FORMAT }
   ): Promise<ExportedContentStream> {
-    if (format === SUPPORTED_VDI_FORMAT.vhd) {
+    if (format === SUPPORTED_VDI_EXPORT_FORMAT.vhd) {
       const { size } = this.#restApi.getObject<Vdi>(id, type)
       if (size > VHD_MAX_SIZE) {
         throw new ApiError(`a VDI of ${size} bytes is too large to be exported as VHD`, 422, {
@@ -92,8 +93,16 @@ export class VdiService {
       return this.#exportContentFromDiskSource<Vdi>(id, type, disk => toVhdStream(disk))
     }
 
-    if (format === SUPPORTED_VDI_FORMAT.qcow2) {
+    if (format === SUPPORTED_VDI_EXPORT_FORMAT.qcow2) {
       return this.#exportContentFromDiskSource<Vdi>(id, type, disk => toQcow2Stream(disk))
+    }
+
+    if (format === SUPPORTED_VDI_EXPORT_FORMAT.vmdk) {
+      // the `withLength` layout pads the grains so that the size is known before the
+      // export starts, at the cost of not shrinking the file to its compressed size
+      return this.#exportContentFromDiskSource<Vdi>(id, type, disk =>
+        toVmdkStream(disk, { diskName: `${id}.vmdk`, layout: 'withLength' })
+      )
     }
 
     return this.#exportContentAsRaw<Vdi>(id, type)

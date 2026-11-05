@@ -1,7 +1,7 @@
 import {
   anyBackupJobFields,
   type FrontXoVmBackupJob,
-} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { vmContainsNoBakTag } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'

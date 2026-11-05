@@ -97,6 +97,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import type { XoVdi } from '@vates/types'
 import { useFileDialog } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
@@ -106,7 +107,7 @@ const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { getLocalSession, hasEnded, cancel, dismiss } = useBrowserMediaSessions()
 const { getBrowserMediaByVmId, reloadBrowserMediaSessions } = useXoBrowserMediaCollection()
@@ -185,7 +186,7 @@ const servedIsoStats = computed(() => {
   }
 
   return t('browser-media:stats', {
-    since: d(new Date(server.insertedAt), 'datetime_short'),
+    since: formatDateTime(server.insertedAt),
     size: formatSize(server.bytesRead, 1),
   })
 })

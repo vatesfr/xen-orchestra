@@ -23,6 +23,7 @@ import {
   faServer,
   faUserCircle,
   faUsers,
+  faWindowMaximize,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -273,9 +274,10 @@ export const objectIcons = defineIconPack({
       icon: runningNeutral,
     },
   ],
+  plugin: constructIcon(faPuzzlePiece),
   proxy: constructIcon(faCircleNodes),
   task: constructIcon(faBarsProgress),
-  template: constructIcon(faPuzzlePiece),
+  template: constructIcon(faWindowMaximize),
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),

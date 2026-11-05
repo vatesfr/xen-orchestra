@@ -56,7 +56,8 @@ vectura serve --host esxi.example --thumbprint sha256:BA:78:16:...:AD ...
 The data port needs no pin from you. The ticket Vectura obtains inside the
 verified management session carries the SHA-1 thumbprint of the data
 port's certificate, the host confirms the SHA-256 in the data-port
-dialogue, and both must match the certificate presented there. On the
+dialogue from ESXi 7 on, and both must match the certificate presented
+there. On the
 hosts measured so far, both ports present the same certificate, which is
 why the `443` and `902` lines above are equal.
 
