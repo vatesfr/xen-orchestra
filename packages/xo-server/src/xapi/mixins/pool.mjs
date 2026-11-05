@@ -275,6 +275,8 @@ const methods = {
         // the records, so requiring the next state to be a different one is
         // what makes this gate a barrier.
         gate.stamps = result.stamps
+        // the last reason it held for would otherwise stay on a finished wait
+        Task.set('twinstorState', 'synced')
         Task.set('progress', 100)
       })
     } finally {

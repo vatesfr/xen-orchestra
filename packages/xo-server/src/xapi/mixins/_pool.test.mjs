@@ -847,8 +847,15 @@ describe('_waitForTwinstorSync', function () {
       xapi.otherConfigs.host = { ...DAEMON_UP, 'twinstor-alive': '2000' }
     }, 20)
 
-    await xapi._waitForTwinstorSync(gate, { name: 'Waiting for TWINSTOR storage to be in sync' })
+    const events = []
+    const task = new Task({ properties: { name: 'run' }, onProgress: event => events.push(event) })
+    await task.run(() => xapi._waitForTwinstorSync(gate, { name: 'Waiting for TWINSTOR storage to be in sync' }))
     assert.deepEqual(gate.stamps, ['2000', '2000'])
+
+    // a finished wait does not keep showing what it held for
+    const states = events.filter(_ => _.type === 'property' && _.name === 'twinstorState').map(_ => _.value)
+    assert.match(states[0], /is syncing/)
+    assert.equal(states.at(-1), 'synced')
   })
 
   it('throws rather than proceeding when the sync does not complete in time', async function () {
