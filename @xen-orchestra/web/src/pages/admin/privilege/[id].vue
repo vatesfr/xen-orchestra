@@ -1,5 +1,10 @@
 <template>
-  <VtsStateHero v-if="!isPrivilegeReady || !areRolesReady" format="page" type="busy" size="large" />
+  <VtsStateHero
+    v-if="(!isPrivilegeReady && !hasPrivilegeFetchError) || !areRolesReady"
+    format="page"
+    type="busy"
+    size="large"
+  />
   <VtsStateHero v-else-if="!privilege || !role" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
@@ -27,7 +32,7 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const { privilege, isPrivilegeReady } = useXoPrivilegeResource({}, () => route.params.id)
+const { privilege, isPrivilegeReady, hasPrivilegeFetchError } = useXoPrivilegeResource({}, () => route.params.id)
 
 const { useGetRoleById, areRolesReady } = useXoRoleCollection()
 

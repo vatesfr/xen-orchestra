@@ -8,5 +8,6 @@ export const useXoPrivilegeResource = defineRemoteResource({
   state: (privilege, context) => ({
     privilege,
     isPrivilegeReady: context.isReady,
+    hasPrivilegeFetchError: context.hasError,
   }),
 })
