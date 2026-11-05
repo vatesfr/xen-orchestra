@@ -4,6 +4,7 @@ import { newUserArg } from '@/modules/user/jobs/xo-user-args.ts'
 import { type FrontXoUser, useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import type { NewUserPayload } from '@/modules/user/types.ts'
 import { fetchPost, fetchPut } from '@/shared/utils/fetch.util.ts'
+import { settleSequentially } from '@/shared/utils/promise.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
@@ -20,12 +21,13 @@ export const useXoUserCreateJob = defineJob('user.create', [newUserArg], () => {
     async run({ user, groupIds, roleIds }: NewUserPayload) {
       const { id } = await fetchPost<{ id: FrontXoUser['id'] }>('users', user)
 
-      const results = await Promise.allSettled([
-        ...groupIds.map(groupId => fetchPut(`groups/${groupId}/users/${id}`)),
-        ...roleIds.map(roleId => fetchPut(`acl-roles/${roleId}/users/${id}`)),
+      const results = await Promise.all([
+        settleSequentially(groupIds.map(groupId => () => fetchPut(`groups/${groupId}/users/${id}`))),
+        Promise.allSettled(roleIds.map(roleId => fetchPut(`acl-roles/${roleId}/users/${id}`))),
       ])
 
       results
+        .flat()
         .filter(result => result.status === 'rejected')
         .forEach(result => console.error('Failed to assign a group or a role to the new user:', result.reason))
 
