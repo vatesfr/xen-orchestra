@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel class="v2v-selected-vms-panel" has-selection persistent>
+  <VtsSidePanel class="v2v-selected-vms-panel" :has-selection="!isEmpty" persistent>
     <template v-if="areItemsShown" #actions>
       <UiButton
         accent="brand"
@@ -29,10 +29,7 @@
         </UiTag>
       </UiTagsList>
     </UiPanelCard>
-    <VtsStateHero v-if="isEmpty" format="panel" type="no-data" size="small">
-      {{ t('v2v:no-vm-in-list') }}
-    </VtsStateHero>
-    <VtsStateHero v-else-if="isBusy" format="panel" type="busy" size="small" />
+    <VtsStateHero v-if="isBusy" format="panel" type="busy" size="small" />
     <template v-else>
       <V2vSelectedVmItem v-for="item of items" :key="item.id" :item @remove="id => emit('remove', id)" />
     </template>

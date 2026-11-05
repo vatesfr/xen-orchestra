@@ -308,6 +308,15 @@ describe('selected VMs', () => {
     expect(panelStore.isExpanded).toBe(true)
     expect(findShowPanelButton(wrapper)).toBeUndefined()
   })
+
+  it('has no button to show the panel of an empty list', async () => {
+    const { wrapper } = await mountStep({ list: EMPTY_LIST })
+
+    usePanelStore().collapse()
+    await flushPromises()
+
+    expect(findButton(wrapper, t('selected-vms-n', { n: 0 }))).toBeUndefined()
+  })
 })
 
 describe('navigation', () => {
