@@ -114,7 +114,7 @@ const { HeadCells, BodyCells } = useUserColumns({
 
     return {
       checkbox: r =>
-        r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id), disabled: !user.isDirect }),
+        user.isDirect ? r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }) : r(),
       username: r => r(user.name, { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
       firstName: r => r(user.firstname),
       lastName: r => r(user.lastname),
