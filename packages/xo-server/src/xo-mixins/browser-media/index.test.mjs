@@ -3,7 +3,7 @@ import { EventEmitter, once } from 'node:events'
 import { createServer } from 'node:http'
 import { after, afterEach, describe, it } from 'node:test'
 import WebSocket from 'ws'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { incorrectState, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import BrowserMedia from './index.mjs'
 import { TAG } from './_xapi.mjs'
@@ -531,7 +531,7 @@ describe('failures while releasing', () => {
     const inserting = media.insertBrowserMedia({ id: session, vmId: VM_ID })
     await media.ejectBrowserMedia(session)
 
-    await assert.rejects(inserting, /disconnected during the insertion/)
+    await assert.rejects(inserting, error => incorrectState.is(error, { actual: 'disconnected', property: 'status' }))
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
     assert.deepEqual(xapi.records.SR, {})
     assert.equal(store.map.size, 0)
@@ -650,7 +650,7 @@ describe('stop', () => {
     await sleep(5)
 
     await stop(app)
-    await assert.rejects(inserting, /disconnected during the insertion/)
+    await assert.rejects(inserting, error => incorrectState.is(error, { actual: 'disconnected', property: 'status' }))
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
     assert.equal(store.map.size, 0)
 
