@@ -6,7 +6,7 @@
     :can-detach="canDetachSelectedUsers"
     :is-detaching="isDetachingSelectedUsers"
     :detach-error-message="detachSelectedUsersErrorMessage"
-    @add="addUsers()"
+    @add="addUsersUnselected()"
     @detach="detachSelectedUsers({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
@@ -78,6 +78,12 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   pageItems: paginatedUsers,
   getItemId: user => user.id,
 })
+
+async function addUsersUnselected() {
+  const addedUsers = await addUsers()
+
+  addedUsers.forEach(user => toggleSelection(user.id, false))
+}
 
 const selectedUsers = computed(() => users.filter(user => selectedIds.value.includes(user.id)))
 

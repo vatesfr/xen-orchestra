@@ -29,16 +29,18 @@ export function useGroupUsersAdd(rawGroup: MaybeRefOrGetter<FrontXoGroup>) {
     },
   })
 
-  async function addUsers() {
+  async function addUsers(): Promise<FrontXoUser[]> {
     const response = await open({ props: { users: selectableUsers.value, title: t('action:add-users') } })
 
     if (response.event !== 'onConfirm') {
-      return
+      return []
     }
 
     usersToAdd.value = response.payload
 
     run({ detached: true })
+
+    return response.payload
   }
 
   return { addUsers, canAddUsers, isAddingUsers }
