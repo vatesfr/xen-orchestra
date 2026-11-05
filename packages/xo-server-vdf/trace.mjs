@@ -202,8 +202,12 @@ function summary(result) {
 // the agent's JSON
 export async function trace(xapi, args, callHop) {
   const { from, to, proto, port, state, broadcast } = checkTraceArgs(args)
-  const src = endpoint(xapi, from, args.family ?? 0)
-  const family = args.family || (isV6(src.ip) ? 6 : 4)
+  // an end given as an address sets the family, so that a VM end named by
+  // uuid takes its address of that family (a VM to an IPv6 outsider traces
+  // over IPv6), whichever end it is
+  const given = args.family || isIP(from) || isIP(to)
+  const src = endpoint(xapi, from, given)
+  const family = given || (isV6(src.ip) ? 6 : 4)
   const dst = endpoint(xapi, to, family)
 
   if (isV6(src.ip) !== isV6(dst.ip)) {
