@@ -41,6 +41,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-load-balancer patch
 - xo-server-netbox patch
 - xo-server-perf-alert patch
 - xo-server-usage-report patch
