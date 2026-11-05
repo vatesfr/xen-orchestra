@@ -7,7 +7,6 @@ export function useV2vWizardNavigation() {
 
   const route = useRoute()
 
-  // For a link to the step, `goToStep` moves to it
   function getStepLocation(step: V2vWizardStep, query: LocationQueryRaw = {}): RouteLocationRaw {
     return { query: { ...route.query, ...query, step } }
   }
