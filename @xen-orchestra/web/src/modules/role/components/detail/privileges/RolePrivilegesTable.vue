@@ -64,7 +64,7 @@ const { HeadCells, BodyCells } = usePrivilegeColumns({
 
     return {
       resource: r => r(privilege.resource),
-      scope: r => r(scopeTypeLabels[getPrivilegeScopeType(privilege.selector)]),
+      scope: r => r(scopeTypeLabels[getPrivilegeScopeType(privilege.resource, privilege.selector)]),
       appliedTo: r => r(appliedToCount.value),
       action: r => r(privilege.action),
       effect: r => r(t(privilege.effect), EFFECT_ACCENTS[privilege.effect]),
