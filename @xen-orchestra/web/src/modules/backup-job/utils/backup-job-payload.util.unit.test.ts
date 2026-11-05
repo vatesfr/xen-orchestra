@@ -22,6 +22,7 @@ const SOURCE_PROXY_ID = 'proxy-source' as FrontXoProxy['id']
 
 const SOURCE: BackupJobSourceFormData = {
   name: 'Daily backup',
+  enabled: true,
   dataSource: 'vm',
   mode: 'delta',
   saveXoConfig: false,
@@ -91,7 +92,6 @@ const HEALTH_CHECK: BackupJobTargetHealthCheckFormData = {
 }
 
 const PLANNING: BackupJobPlanningFormData = {
-  enabled: true,
   cron: '0 0 * * *',
   timezone: 'Europe/Paris',
   timeout: undefined,
@@ -302,6 +302,12 @@ describe('toBackupJobPayload', () => {
         reportRecipients: ['admin@example.com'],
         hideSuccessfulItems: true,
       })
+    })
+
+    it('disables the schedule of a disabled job', () => {
+      const payload = toBackupJobPayload(createFormDataSet({ source: { enabled: false } }))
+
+      expect(payload.schedules).toEqual({ schedule: { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: false } })
     })
   })
 

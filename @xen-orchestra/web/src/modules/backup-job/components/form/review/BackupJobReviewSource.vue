@@ -2,6 +2,11 @@
   <div class="backup-job-review-source">
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="form.formData.name" />
+      <VtsTabularKeyValueRow :label="t('enabled')">
+        <template #value>
+          <VtsStatus :status="form.formData.enabled" />
+        </template>
+      </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('data-source')" :value="dataSourceLabel" />
       <VtsTabularKeyValueRow v-if="!form.isMetadata.value" :label="t('backup-mode')" :value="modeLabel" />
       <template v-if="form.isMirror.value">

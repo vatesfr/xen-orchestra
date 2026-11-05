@@ -32,6 +32,7 @@ export type BackupJobMode = 'delta' | 'full'
 
 export type BackupJobSourceFormData = {
   name: string
+  enabled: boolean
   dataSource: BackupJobDataSource
   mode: BackupJobMode
   saveXoConfig: boolean
@@ -240,6 +241,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const bindings = reactive({
     name: useField('name', () => ({ label: t('name'), required: true })),
+    enabled: useField('enabled'),
     dataSource: useField('dataSource', () => ({ label: t('data-source'), options: dataSourceOptions.value })),
     mode: useField('mode', () => ({ label: t('backup-mode'), options: modeOptions.value })),
     saveXoConfig: useField('saveXoConfig', () => ({ label: t('save-xo-config') })),

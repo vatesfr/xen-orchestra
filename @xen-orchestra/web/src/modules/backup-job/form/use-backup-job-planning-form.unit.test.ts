@@ -8,7 +8,6 @@ import { useI18n } from 'vue-i18n'
 
 function createPlanningFormData(): BackupJobPlanningFormData {
   return {
-    enabled: true,
     cron: '0 0 * * *',
     timezone: 'Europe/Paris',
     timeout: undefined,

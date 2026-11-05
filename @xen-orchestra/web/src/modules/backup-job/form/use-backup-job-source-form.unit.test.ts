@@ -103,6 +103,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collectio
 function createSourceFormData(): BackupJobSourceFormData {
   return {
     name: 'Daily backup',
+    enabled: true,
     dataSource: 'vm',
     mode: 'delta',
     saveXoConfig: false,
