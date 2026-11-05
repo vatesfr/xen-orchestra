@@ -6,7 +6,6 @@ import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export type BackupJobPlanningFormData = {
-  enabled: boolean
   cron: string
   timezone: string | undefined
   timeout: number | undefined
@@ -35,7 +34,6 @@ export function useBackupJobPlanningForm(formData: BackupJobPlanningFormData) {
   )
 
   const bindings = reactive({
-    enabled: useField('enabled'),
     cron: useField('cron'),
     timezone: useField('timezone'),
     timeout: useField('timeout', () => ({ label: t('timeout'), info: t('timeout-info'), unit: t('cron:unit:hour') })),

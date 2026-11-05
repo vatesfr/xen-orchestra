@@ -164,9 +164,10 @@ describe('goToStep', () => {
 })
 
 describe('formData', () => {
-  it('starts the job from scratch, but its name, when the data source changes', async () => {
+  it('starts the job from scratch, but its name and its activation, when the data source changes', async () => {
     const form = mountNewForm()
     form.source.formData.name = 'Daily backup'
+    form.source.formData.enabled = false
     form.source.formData.scopeType = 'manual'
     form.transfer.formData.concurrency = 4
     form.target.formData.storageTargets = ['storage-repository']
@@ -174,7 +175,12 @@ describe('formData', () => {
 
     await selectDataSource(form, 'mirror')
 
-    expect(form.source.formData).toMatchObject({ name: 'Daily backup', dataSource: 'mirror', scopeType: 'all' })
+    expect(form.source.formData).toMatchObject({
+      name: 'Daily backup',
+      enabled: false,
+      dataSource: 'mirror',
+      scopeType: 'all',
+    })
     expect(form.transfer.formData.concurrency).toBe(2)
     expect(form.target.formData.storageTargets).toEqual([])
     expect(form.planning.formData.reportWhen).toBe('failure')

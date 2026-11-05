@@ -31,6 +31,7 @@ const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
 function createSourceFormData(): BackupJobSourceFormData {
   return {
     name: '',
+    enabled: true,
     dataSource: 'vm',
     mode: 'delta',
     saveXoConfig: false,
@@ -119,7 +120,6 @@ function createTargetFormData(): BackupJobTargetFormData {
 
 function createPlanningFormData(): BackupJobPlanningFormData {
   return {
-    enabled: true,
     cron: DEFAULT_CRON,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     timeout: undefined,
@@ -150,7 +150,12 @@ export function useNewBackupJobForm() {
   watch(
     () => source.formData.dataSource,
     dataSource => {
-      Object.assign(source.formData, { ...createSourceFormData(), name: source.formData.name, dataSource })
+      Object.assign(source.formData, {
+        ...createSourceFormData(),
+        name: source.formData.name,
+        enabled: source.formData.enabled,
+        dataSource,
+      })
       Object.assign(transfer.formData, createTransferFormData())
       target.formData.storageTargets = []
       Object.assign(target.backupRepository.formData, createTargetBackupRepositoryFormData())

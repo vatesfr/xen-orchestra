@@ -1,10 +1,5 @@
 <template>
   <VtsTabularKeyValueList class="backup-job-review-planning">
-    <VtsTabularKeyValueRow :label="t('enabled')">
-      <template #value>
-        <VtsStatus :status="form.formData.enabled" />
-      </template>
-    </VtsTabularKeyValueRow>
     <VtsTabularKeyValueRow :label="t('resulting-expression')" :value="form.formData.cron" />
     <VtsTabularKeyValueRow :label="t('timezone')" :value="form.formData.timezone" />
     <VtsTabularKeyValueRow :label="t('next-runs')">
