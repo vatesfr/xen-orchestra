@@ -61,7 +61,7 @@ const typoClasses = {
   medium: 'typo-body-bold',
 }
 
-const isLink = computed(() => to !== undefined || href !== undefined)
+const isLink = computed(() => to !== undefined || href !== undefined || disabled)
 
 const counterProps = computed(() => {
   if (counter === undefined) {
