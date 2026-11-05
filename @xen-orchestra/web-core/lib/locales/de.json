@@ -887,7 +887,6 @@
   "total-used:": "Gesamt genutzt:",
   "traffic-rule": "Traffic Regel",
   "traffic-rules": "Traffic Regeln",
-  "traffic-rules:info-message": "Reihenfolge der Traffic Regeln wird implementiert. Es kann zu unvorgesehenen Verhalten führen.",
   "traffic-rules:no-traffic-rules-detected": "Keine Traffic Regeln erkannt",
   "translation-tool": "Übersetzungstool",
   "trigger": "Trigger",
