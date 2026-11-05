@@ -1508,7 +1508,6 @@
   "v2v:list-lock-info": "One source and one destination per list: choosing another source or pool opens its own list.",
   "v2v:mapping-locked": "mapping locked",
   "v2v:name-from-migration-list": "{name} from the migration list",
-  "v2v:no-vm-in-list": "No VM in the migration list",
   "v2v:not-found-in-source": "Not found in the source",
   "v2v:partial-import-on-pool": "Partial import on pool {pool}",
   "v2v:prerequisite-checking": "Prerequisite check: checking vectura…",
