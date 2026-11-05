@@ -7,16 +7,16 @@ import { enableAutoUnmount } from '@vue/test-utils'
 // override this stub locally with `vi.stubGlobal('fetch', …)` (see
 // `stub-fetch-response.ts`): the stub is installed again before each test, so
 // an override never leaks into the next test.
-// happy-dom keeps the local storage across the tests of a file: each test starts with an empty one
-beforeEach(() => {
-  localStorage.clear()
-})
-
 beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn(() => new Promise(() => {}))
   )
+})
+
+// happy-dom keeps the local storage across the tests of a file: each test starts with an empty one
+beforeEach(() => {
+  localStorage.clear()
 })
 
 enableAutoUnmount(afterEach)
