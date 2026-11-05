@@ -18,7 +18,11 @@
           </UiButton>
         </template>
       </UiTitle>
-      <NewRolePrivilegesTable :privileges @edit="editPrivilege" @remove="removePrivilege" />
+      <NewRolePrivilegesTable
+        :privileges
+        @edit="privilege => editPrivilege(privilege)"
+        @remove="privilege => removePrivilege(privilege)"
+      />
     </section>
 
     <div class="buttons">

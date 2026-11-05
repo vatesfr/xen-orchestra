@@ -13,7 +13,7 @@
       </template>
     </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
-      <NewRoleForm @create="createRole" @cancel="router.push(ROLES_ROUTE)" />
+      <NewRoleForm @create="role => createRole(role)" @cancel="router.push(ROLES_ROUTE)" />
     </UiCard>
   </div>
 </template>
