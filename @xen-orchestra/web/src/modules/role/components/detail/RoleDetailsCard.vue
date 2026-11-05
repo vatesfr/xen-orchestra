@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ t('role-details') }}
+      {{ t('role:details') }}
     </UiTitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="role.name" />
