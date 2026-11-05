@@ -38,7 +38,7 @@ export type V2vSelectedVm = {
   mappingRoute: RouteLocationRaw
 }
 
-export type V2vListLock = {
+export type V2vListPair = {
   sourceHost?: string
   poolName?: string
 }
@@ -117,7 +117,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     return getReadinessTags(countOccurrences(V2V_READINESS_LEVELS, levels))
   })
 
-  const lockSummary = computed((): V2vListLock => ({ sourceHost: sourceHost.value, poolName: poolName.value }))
+  const listPair = computed((): V2vListPair => ({ sourceHost: sourceHost.value, poolName: poolName.value }))
 
   // One confirmation for removing one VM or all of them: either way, only the list changes
   async function confirmListChange(subject: string, confirmLabel: string) {
@@ -150,5 +150,5 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     }
   }
 
-  return { items, count, isEmpty, isBusy, readinessTags, lockSummary, remove, clear }
+  return { items, count, isEmpty, isBusy, readinessTags, listPair, remove, clear }
 }
