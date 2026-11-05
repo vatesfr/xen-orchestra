@@ -35,7 +35,7 @@ const EMPTY = {
   count: 0,
   isEmpty: true,
   readinessTags: [],
-  lockSummary: createV2vListLock({ isLocked: false }),
+  lockSummary: createV2vListLock(),
 }
 
 function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> = {}) {
