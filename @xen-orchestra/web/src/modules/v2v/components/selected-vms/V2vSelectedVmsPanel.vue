@@ -22,7 +22,7 @@
         <span>{{ t('v2v:saved-in-this-browser') }}</span>
         <span>{{ t('v2v:sent-to-xo-at-launch') }}</span>
       </InlineParts>
-      <V2vListLockSummary v-bind="lockSummary" />
+      <V2vListPairSummary v-bind="listPair" />
       <UiTagsList v-if="areItemsShown">
         <UiTag v-for="tag of readinessTags" :key="tag.label" :accent="tag.accent" variant="secondary">
           {{ tag.label }}
@@ -37,9 +37,9 @@
 </template>
 
 <script lang="ts" setup>
-import V2vListLockSummary from '@/modules/v2v/components/selected-vms/V2vListLockSummary.vue'
+import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPairSummary.vue'
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vListLock, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import InlineParts from '@/shared/components/InlineParts.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -59,7 +59,7 @@ const { isEmpty, isBusy } = defineProps<{
   isEmpty: boolean
   isBusy: boolean
   readinessTags: V2vAccentedLabel<TagAccent>[]
-  lockSummary: V2vListLock
+  listPair: V2vListPair
 }>()
 
 const emit = defineEmits<{

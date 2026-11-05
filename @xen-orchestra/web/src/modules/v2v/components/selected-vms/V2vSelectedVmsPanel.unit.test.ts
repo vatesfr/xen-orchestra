@@ -1,8 +1,8 @@
-import V2vListLockSummary from '@/modules/v2v/components/selected-vms/V2vListLockSummary.vue'
+import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPairSummary.vue'
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
 import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
 import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import { createV2vListLock, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
+import { createV2vListPair, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { findButton, getButton } from '@/test/get-button.ts'
@@ -28,14 +28,14 @@ const READINESS_TAGS: V2vAccentedLabel<TagAccent>[] = [
   { label: '1 blocking', accent: 'danger' },
 ]
 
-const LOCK_SUMMARY = createV2vListLock()
+const LIST_PAIR = createV2vListPair()
 
 const EMPTY = {
   items: [],
   count: 0,
   isEmpty: true,
   readinessTags: [],
-  lockSummary: createV2vListLock(),
+  listPair: createV2vListPair(),
 }
 
 function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> = {}) {
@@ -46,7 +46,7 @@ function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> =
       isEmpty: false,
       isBusy: false,
       readinessTags: READINESS_TAGS,
-      lockSummary: LOCK_SUMMARY,
+      listPair: LIST_PAIR,
       ...props,
     },
     global: createGlobalTestConfig(),
@@ -86,8 +86,8 @@ describe('with VMs', () => {
     ])
   })
 
-  it('summarizes the lock of the list', () => {
-    expect(getSummaryCard(mountPanel()).getComponent(V2vListLockSummary).props()).toEqual(LOCK_SUMMARY)
+  it('summarizes the source and pool of the list', () => {
+    expect(getSummaryCard(mountPanel()).getComponent(V2vListPairSummary).props()).toEqual(LIST_PAIR)
   })
 
   it('tags the readiness of the VMs', () => {
@@ -133,11 +133,11 @@ describe('busy', () => {
     expect(findButton(wrapper, t('action:clear'))).toBeUndefined()
   })
 
-  it('still titles the selected VMs with their count and summarizes the lock of the list', () => {
+  it('still titles the selected VMs with their count and summarizes the source and pool of the list', () => {
     const wrapper = mountPanel({ isBusy: true })
 
     expect(getSummaryCard(wrapper).getComponent(UiCounter).text()).toBe('2')
-    expect(getSummaryCard(wrapper).getComponent(V2vListLockSummary).props()).toEqual(LOCK_SUMMARY)
+    expect(getSummaryCard(wrapper).getComponent(V2vListPairSummary).props()).toEqual(LIST_PAIR)
   })
 })
 
