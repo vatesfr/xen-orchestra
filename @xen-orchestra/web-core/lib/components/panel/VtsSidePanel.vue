@@ -71,8 +71,8 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-// A persistent panel holds no selection to clear: it only closes to leave the full screen of a small screen
-const isClosable = computed(() => hasSelection && (!persistent || uiStore.isSmall))
+// A persistent panel holds no selection to clear: it only closes where closing collapses it
+const isClosable = computed(() => hasSelection && (!persistent || panelStore.syncsOpenStateWithSelection))
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
