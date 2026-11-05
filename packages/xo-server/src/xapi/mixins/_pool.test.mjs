@@ -346,6 +346,285 @@ describe('rollingPoolReboot', function () {
   })
 })
 
+// Records what the run asks of XAPI, and plays HA and the pool settings as no-ops
+const instrument = xapi => {
+  const log = []
+  const getField = xapi.getField.bind(xapi)
+  xapi.getField = async (type, ref, field) => {
+    log.push(['getField', type, field])
+    return getField(type, ref, field)
+  }
+  const call = xapi.call.bind(xapi)
+  xapi.call = async (method, ...args) => {
+    log.push(['call', method])
+    if (method === 'pool.disable_ha' || method === 'pool.enable_ha') {
+      return
+    }
+    return call(method, ...args)
+  }
+  const callAsync = xapi.callAsync.bind(xapi)
+  xapi.callAsync = async (method, ...args) => {
+    log.push(['callAsync', method, args[0]])
+    return callAsync(method, ...args)
+  }
+  const clearHost = xapi.clearHost.bind(xapi)
+  xapi.clearHost = async host => {
+    log.push(['clearHost', host.uuid])
+    return clearHost(host)
+  }
+  xapi.enableHost = async hostId => {
+    log.push(['enableHost', hostId])
+  }
+  xapi.pool.update_other_config = async (key, value) => log.push(['other_config', key, value])
+  return log
+}
+
+const withHaAndAutoPowerOn = xapi => {
+  xapi.pool.ha_enabled = true
+  xapi.pool.$ha_statefiles = []
+  xapi.pool.ha_configuration = {}
+  xapi.pool.other_config.auto_poweron = 'true'
+  return xapi
+}
+
+const restoredHaAndAutoPowerOn = log =>
+  log.some(_ => _[0] === 'call' && _[1] === 'pool.enable_ha') &&
+  log.some(_ => _[0] === 'other_config' && _[1] === 'auto_poweron' && _[2] === 'true')
+
+// most pools have no TWINSTOR SR: the gate must cost them nothing
+describe('rollingPoolReboot without TWINSTOR', function () {
+  for (const [label, setup] of [
+    ['no SR at all', () => {}],
+    [
+      'no SR index',
+      xapi => {
+        xapi.objects.indexes.type = {}
+      },
+    ],
+    [
+      'unrelated SRs and leftover TWINSTOR keys on the hosts',
+      xapi => {
+        xapi.objects.indexes.type.SR = {
+          a: { $type: 'SR', $ref: 'OpaqueRef:sr-a', other_config: { 'xo:foo': 'bar', 'twinstor-version': '0.5' } },
+          b: { $type: 'SR', $ref: 'OpaqueRef:sr-b' },
+          c: { $type: 'SR', $ref: 'OpaqueRef:sr-c', other_config: null },
+        }
+        for (const host of xapi.hosts) {
+          host.other_config = { ...host.other_config, 'twinstor-version': '0.5.0', 'twinstor-alive': '1' }
+        }
+      },
+    ],
+  ]) {
+    it(`creates no TWINSTOR task and makes no extra XAPI call (${label})`, async function () {
+      const xapi = new FakeXapi([[30], [30], [30]])
+      setup(xapi)
+      const log = instrument(xapi)
+
+      const { error, taskNames } = await rollingPoolReboot(xapi)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        taskNames.filter(_ => /TWINSTOR/i.test(_)),
+        []
+      )
+      assert.deepEqual(
+        log.filter(_ => _[0] === 'getField' && _[2] === 'other_config'),
+        []
+      )
+      assert.deepEqual(
+        log.filter(_ => _[0] === 'call').map(_ => _[1]),
+        ['host.get_servertime', 'host.get_servertime', 'host.get_servertime']
+      )
+      assert.deepEqual(
+        log.filter(_ => _[0] === 'enableHost'),
+        []
+      )
+    })
+  }
+
+  it('puts an evacuated host back in service when a step fails before its reboot', async function () {
+    const xapi = new FakeXapi([[30], [30]])
+    const log = instrument(xapi)
+
+    const { error } = await rollingPoolReboot(xapi, {
+      beforeRebootHost: async () => {
+        throw new Error('yum failed')
+      },
+    })
+
+    assert.equal(error?.message, 'yum failed')
+    assert.deepEqual(
+      log.filter(_ => _[0] === 'enableHost'),
+      [['enableHost', 'host-A']]
+    )
+  })
+
+  it('leaves a host the operator had disabled in maintenance when a step fails', async function () {
+    const xapi = new FakeXapi([[30], [30]])
+    xapi.hosts[0].enabled = false
+    const log = instrument(xapi)
+
+    const { error } = await rollingPoolReboot(xapi, {
+      beforeRebootHost: async () => {
+        throw new Error('yum failed')
+      },
+    })
+
+    assert.equal(error?.message, 'yum failed')
+    assert.deepEqual(
+      log.filter(_ => _[0] === 'enableHost'),
+      []
+    )
+  })
+
+  it('does not call a host which was sent to reboot, and restores the pool settings straight away', async function () {
+    const xapi = withHaAndAutoPowerOn(new FakeXapi([[30], [30]]))
+    const log = instrument(xapi)
+    let nWaits = 0
+    xapi._waitObjectState = async () => {
+      // the first wait is the metrics before the evacuation, the second the host coming back
+      if (++nWaits === 2) {
+        throw new Error('Host host-A took too long to restart')
+      }
+    }
+
+    const { error } = await rollingPoolReboot(xapi)
+
+    assert.match(error?.message ?? '', /took too long/)
+    const afterReboot = log.slice(log.findIndex(_ => _[0] === 'callAsync' && _[1] === 'host.reboot') + 1)
+    assert.deepEqual(
+      afterReboot.map(_ => _.slice(0, 2)),
+      [
+        ['other_config', 'auto_poweron'],
+        ['call', 'pool.enable_ha'],
+      ]
+    )
+  })
+
+  it('stops on an abort which lands while the run is still setting up, before any host is touched', async function () {
+    const xapi = withHaAndAutoPowerOn(new FakeXapi([[30], [30]]))
+    const log = instrument(xapi)
+    const parentTask = new Task({ properties: { name: 'rolling pool reboot' } })
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      // disabling HA takes long enough for the user to give up meanwhile
+      if (method === 'pool.disable_ha') {
+        parentTask.abort('aborted by the user')
+      }
+      return call(method, ...args)
+    }
+
+    let error
+    await parentTask
+      .run(async () => {
+        try {
+          await poolMethods.rollingPoolReboot.call(xapi, parentTask)
+        } catch (err) {
+          error = err
+        }
+      })
+      .catch(() => {})
+
+    assert.equal(error, 'aborted by the user')
+    assert.deepEqual(
+      log.filter(_ => _[0] === 'clearHost' || _[1] === 'host.reboot'),
+      []
+    )
+    assert.ok(restoredHaAndAutoPowerOn(log))
+  })
+
+  it('changes nothing on the pool when aborted before it starts', async function () {
+    const xapi = withHaAndAutoPowerOn(new FakeXapi([[30], [30]]))
+    const log = instrument(xapi)
+    const parentTask = new Task({ properties: { name: 'rolling pool reboot' } })
+
+    let error
+    await parentTask
+      .run(async () => {
+        parentTask.abort('aborted by the user')
+        try {
+          await poolMethods.rollingPoolReboot.call(xapi, parentTask)
+        } catch (err) {
+          error = err
+        }
+      })
+      .catch(() => {})
+
+    assert.equal(error, 'aborted by the user')
+    assert.deepEqual(log, [])
+  })
+
+  it('stops after the host being handled when aborted, and leaves the VMs where the evacuation put them', async function () {
+    const xapi = withHaAndAutoPowerOn(new FakeXapi([[30], [30], [30]]))
+    const log = instrument(xapi)
+    const parentTask = new Task({ properties: { name: 'rolling pool reboot' } })
+    const callAsync = xapi.callAsync
+    xapi.callAsync = async (...args) => {
+      await callAsync(...args)
+      if (args[0] === 'host.reboot') {
+        parentTask.abort('aborted by the user')
+      }
+    }
+
+    let error
+    await parentTask
+      .run(async () => {
+        try {
+          await poolMethods.rollingPoolReboot.call(xapi, parentTask)
+        } catch (err) {
+          error = err
+        }
+      })
+      .catch(() => {})
+
+    assert.equal(error, 'aborted by the user')
+    assert.equal(xapi._nReboots, 1)
+    assert.ok(restoredHaAndAutoPowerOn(log))
+    // the rebooted host came back enabled by itself
+    assert.deepEqual(
+      log.filter(_ => _[0] === 'enableHost'),
+      []
+    )
+    assert.equal(xapi.nMigrations, 0)
+    assert.deepEqual(xapi.strayedVms(), ['vm-a1'])
+  })
+})
+
+describe('_assertTwinstorSyncedAround without TWINSTOR', function () {
+  for (const bypass of [false, true]) {
+    it(`runs the operation once and passes its error through untouched (bypass: ${bypass})`, async function () {
+      const calls = []
+      const xapi = {
+        ...poolMethods,
+        objects: {
+          all: { h: { $type: 'host', $ref: 'h', other_config: { 'twinstor-version': '1' } } },
+          indexes: { type: {} },
+        },
+        getField: async () => calls.push('getField'),
+        call: async () => calls.push('call'),
+        enableHost: async () => calls.push('enableHost'),
+      }
+
+      let nRuns = 0
+      await xapi._assertTwinstorSyncedAround('h', bypass, async () => {
+        nRuns++
+      })
+      assert.equal(nRuns, 1)
+
+      const original = Object.assign(new Error('CANNOT_EVACUATE_HOST'), { code: 'CANNOT_EVACUATE_HOST' })
+      await assert.rejects(
+        xapi._assertTwinstorSyncedAround('h', bypass, async () => {
+          throw original
+        }),
+        error => error === original
+      )
+
+      await xapi.assertTwinstorSynced()
+      assert.deepEqual(calls, [])
+    })
+  }
+})
+
 // ===================================================================
 // TWINSTOR
 
@@ -390,9 +669,10 @@ const makeXapi = ({ SR = SYNCED, host = DAEMON_UP, getField } = {}) => ({
   getObject: ref => ({ name_label: ref }),
 })
 
-const makeGate = ({ stamps, timeLeft = 0, pollInterval = 5 } = {}) => ({
+const makeGate = ({ abortSignal, stamps, timeLeft = 0, pollInterval = 5 } = {}) => ({
   srRefs: [SR_REF],
   hostRefs: [HOST_REF],
+  abortSignal,
   stamps,
   timeLeft,
   pollInterval,
@@ -601,7 +881,29 @@ describe('_waitForTwinstorSync', function () {
         parent.run(async () => {
           // abort while the gate is parked in its poll delay
           setTimeout(() => parent.abort('aborted by the user'), 20)
-          return xapi._waitForTwinstorSync(makeGate({ timeLeft: 60 * 60e3 }), { name: 'Waiting' })
+          return xapi._waitForTwinstorSync(makeGate({ abortSignal: Task.abortSignal, timeLeft: 60 * 60e3 }), {
+            name: 'Waiting',
+          })
+        }),
+      error => error === 'aborted by the user'
+    )
+  })
+
+  it('gives up at once when the run was aborted before the wait started', async function () {
+    const parent = new Task({ properties: { name: 'Rolling pool reboot' } })
+    // not even read: an aborted run does not wait for a verdict
+    const xapi = makeXapi({
+      getField: async () => {
+        throw new Error('read the storage state')
+      },
+    })
+
+    await assert.rejects(
+      () =>
+        parent.run(async () => {
+          const abortSignal = Task.abortSignal
+          parent.abort('aborted by the user')
+          return xapi._waitForTwinstorSync(makeGate({ abortSignal, timeLeft: 60 * 60e3 }), { name: 'Waiting' })
         }),
       error => error === 'aborted by the user'
     )

@@ -752,6 +752,10 @@ const methods = {
       recorder = noopRpuRecorder,
     } = {}
   ) {
+    // the signal of the task the user aborts, captured while it is current:
+    // the subtasks created later miss an abort which landed before them
+    const abortSignal = Task.abortSignal
+
     const master = this.pool.$master
     const isXcp = _isXcp(master)
     const isXsWithCdnUpdates = _isXsWithCdnUpdates(master)
@@ -841,6 +845,7 @@ const methods = {
 
     await Task.run({ properties: { name: `Updating and rebooting` } }, async () => {
       await this.rollingPoolReboot(parentTask, {
+        abortSignal,
         xsCredentials,
         shutdownPinnedVms,
         recorder,

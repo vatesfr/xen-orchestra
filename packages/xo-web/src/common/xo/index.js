@@ -1338,6 +1338,7 @@ export const stopHost = async host => {
   })
 
   let ignoreBackup = false
+  let bypassEvacuate = false
   return _call('host.stop', { id: resolveId(host) })
     .catch(async err => {
       if (
@@ -1368,7 +1369,8 @@ export const stopHost = async host => {
           title: _('forceStopHost'),
         })
         // Retry with bypassEvacuate.
-        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, bypassBackupCheck: ignoreBackup })
+        bypassEvacuate = true
+        return _call('host.stop', { id: resolveId(host), bypassEvacuate, bypassBackupCheck: ignoreBackup })
       }
       throw err
     })
@@ -1388,6 +1390,7 @@ export const stopHost = async host => {
           id: resolveId(host),
           bypassTwinstorCheck: true,
           bypassBackupCheck: ignoreBackup,
+          bypassEvacuate,
         })
       }
       throw err

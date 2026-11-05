@@ -250,8 +250,10 @@ const methods = {
     try {
       await Task.run({ properties: { ...taskProperties, progress: 0 } }, async () => {
         // the one step which can hold for hours, and the only one where the run
-        // is waiting not to have rebooted anything yet
-        const abortSignal = Task.abortSignal
+        // is waiting not to have rebooted anything yet. The run's own signal:
+        // a task created after its parent was aborted never hears of it
+        const { abortSignal } = gate
+        abortSignal?.throwIfAborted()
 
         let result = await this._readTwinstor(gate)
         while (result.blockedBy !== undefined) {
@@ -285,7 +287,16 @@ const methods = {
   async rollingPoolReboot(
     $defer,
     parentTask,
-    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
+    {
+      // the signal of the task the user aborts, captured while it is current:
+      // the subtasks created later miss an abort which landed before them
+      abortSignal = Task.abortSignal,
+      beforeEvacuateVms,
+      beforeRebootHost,
+      ignoreHost,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+    } = {}
   ) {
     const hosts = filter(this.objects.all, { $type: 'host' })
 
@@ -297,13 +308,17 @@ const methods = {
       // how much longer this run may spend waiting on the storage, in total
       twinstor.timeLeft = this._twinstorSyncTimeout
       twinstor.pollInterval = TWINSTOR_POLL_INTERVAL
+      twinstor.abortSignal = abortSignal
     }
 
-    // held here, before HA, auto power on, the load balancer and the pool's
-    // backup schedules are disabled: a pool whose storage is not redundant is
-    // better left waiting with everything still enabled than held for hours
-    // with everything off
+    // held here, before HA and auto power on are disabled: a pool whose
+    // storage is not redundant is better left waiting with HA still on than
+    // held for hours without it. The backup schedules and the load balancer
+    // of a rolling pool update are already off by now, disabled by the caller
     await this._waitForTwinstorSync(twinstor, { name: 'Waiting for TWINSTOR storage to be in sync' })
+
+    // nothing has been changed on the pool yet
+    abortSignal?.throwIfAborted()
 
     // migrating the VMs back to their host doubles the migrations of the run: a
     // pool can opt out of that phase by setting this key to `false`
@@ -451,7 +466,7 @@ const methods = {
         // the one point where stopping is free: the previous host is back up
         // and nothing has been done to this one yet. Not applied once a host is
         // on its way down, there is no un-rebooting it.
-        Task.abortSignal?.throwIfAborted()
+        abortSignal?.throwIfAborted()
 
         if (!ignoreHost || !ignoreHost(host)) {
           // live values right before the run touches the host, `hosts` is a
@@ -534,8 +549,21 @@ const methods = {
             // clearHost leaves the host disabled and only the reboot below
             // re-enables it, so anything failing in between would leave it in
             // maintenance mode and take the pinned-VM restart down with it
-            // (VM.start_on refuses a disabled host)
-            $defer.onFailure(() => this.enableHost(hostId))
+            // (VM.start_on refuses a disabled host).
+            //
+            // Only a host this run disabled: one in maintenance before the run
+            // stays there. And only until it is sent to reboot: from then on
+            // its agent restarts and enables it, and calling it, the pool
+            // master in particular, would hold the other restores on a host
+            // which is going down.
+            let reEnableOnFailure = enabled
+            $defer.onFailure(async () => {
+              if (reEnableOnFailure) {
+                await this.enableHost(hostId).catch(error => {
+                  log.warn('could not re-enable a host after a failed rolling pool reboot', { hostId, error })
+                })
+              }
+            })
             recorder.stepObserved(hostId, 'evacuate')
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
@@ -564,6 +592,7 @@ const methods = {
             await Task.run({ properties: { name: `Restart`, hostId, hostName } }, async () => {
               await this.callAsync('host.reboot', host.$ref)
             })
+            reEnableOnFailure = false
 
             const waitingHostSubtask = new Task({
               properties: { name: `Waiting for host to be up`, objectId: hostId, hostId, hostName, progress: 0 },

@@ -122,11 +122,12 @@ export class HostService {
       force: boolean
       bypassBackupCheck?: boolean
       bypassVersionCheck: boolean
+      bypassTwinstorCheck: boolean
     }
   ): Promise<void> {
     const { xapi } = await this.#rebootChecks(hostId, opts)
 
-    await xapi.rebootHost(hostId, opts.force)
+    await xapi.rebootHost(hostId, opts.force, { bypassTwinstorCheck: opts.bypassTwinstorCheck })
   }
 
   async smartRebootHost(

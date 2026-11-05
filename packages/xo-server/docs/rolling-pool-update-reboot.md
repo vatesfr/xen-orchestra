@@ -88,7 +88,7 @@ Both are heartbeats, rewritten every 60 seconds even when nothing changed (`ALIV
 
 Detection is SR-based, not host-based: uninstalling TWINSTOR destroys the SR and its keys, but leaves `twinstor-version` on the hosts forever, so a host-based check would keep gating a pool which no longer uses TWINSTOR. `pool.other_config:twinstor_setup` is not used, it is cleared once the cluster is formed.
 
-The first wait is placed before HA, `auto_poweron`, the load balancer and the pool's backup schedules are disabled: a pool whose storage is not redundant waits there with everything still enabled, and aborting it costs nothing.
+The first wait is placed before HA and `auto_poweron` are disabled: a pool whose storage is not redundant waits there with HA still on, and aborting it costs nothing. For a rolling pool update, the pool's backup schedules and the load balancer are already disabled at that point (the caller does it before the run starts) and are restored on abort like on any failure.
 
 ### Outside a rolling run
 
@@ -102,7 +102,7 @@ The emergency paths, `host.emergencyShutdownHost` and the pool-wide emergency sh
 
 ### Aborting a run
 
-Aborting (`POST /rest/v0/tasks/<id>/actions/abort`) while the run waits on the storage stops it at once, without rebooting the host it was waiting for. It is honored between two hosts too, so aborting during host 1's reboot means host 2 is never touched. It is not honored once a host is on its way down, there is no un-rebooting it. Cleanups then run as on any failure: HA and `auto_poweron` restored, shut-down pinned VMs started again, evacuated host re-enabled. VMs are left where they were evacuated to.
+Aborting (`POST /rest/v0/tasks/<id>/actions/abort`) while the run waits on the storage stops it at once, without rebooting the host it was waiting for. It is honored between two hosts too, so aborting during host 1's reboot means host 2 is never touched. An abort which lands while the run is still setting up (disabling HA, checking the pinned VMs) is honored before the first host is touched: the run reads the signal of the task the user aborts, captured when it starts, because a subtask created after the abort would never see it. It is not honored once a host is on its way down, there is no un-rebooting it. Cleanups then run as on any failure: HA and `auto_poweron` restored, shut-down pinned VMs started again, and a host evacuated but not yet sent to reboot re-enabled, only if it was enabled before the run (a host the operator had put in maintenance stays there). The migrate back phase does not run: VMs are left where they were evacuated to.
 
 ### Timeout
 

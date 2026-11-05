@@ -671,7 +671,8 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body {
    *  "force": false,
    *  "bypassBackupCheck": false,
-   *  "bypassVersionCheck": false
+   *  "bypassVersionCheck": false,
+   *  "bypassTwinstorCheck": false
    * }
    */
   @Example(taskLocation)
@@ -693,6 +694,8 @@ export class HostController extends XapiXoController<XoHost> {
       bypassBackupCheck?: boolean
       /** Skip the version/upgrade compatibility check before rebooting. Defaults to false. */
       bypassVersionCheck?: boolean
+      /** Reboot even though the pool's TWINSTOR storage is not in sync. Defaults to the value of force. */
+      bypassTwinstorCheck?: boolean
     },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
@@ -701,6 +704,7 @@ export class HostController extends XapiXoController<XoHost> {
       force,
       bypassBackupCheck: body?.bypassBackupCheck ?? force,
       bypassVersionCheck: body?.bypassVersionCheck ?? force,
+      bypassTwinstorCheck: body?.bypassTwinstorCheck ?? force,
     }
 
     const hostId = id as XoHost['id']

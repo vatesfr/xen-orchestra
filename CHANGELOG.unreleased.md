@@ -11,14 +11,14 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [RPU/RPR] On a pool backed by TWINSTOR, wait for the replicated storage to be back in sync before rebooting each host, instead of rebooting while a single host holds the only up-to-date copy of the data. The first wait happens before HA and the backup schedules are disabled, so a pool whose storage is not redundant holds there rather than with everything off (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
+- [RPU/RPR] On a pool backed by TWINSTOR, wait for the replicated storage to be back in sync before rebooting each host, instead of rebooting while a single host holds the only up-to-date copy of the data. The first wait happens before HA is disabled, so a pool whose storage is not redundant holds there rather than with HA off (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 - [Host] On a pool backed by TWINSTOR, refuse a host reboot, smart reboot or shutdown while the replicated storage is catching up, with the reason and a confirmation to go ahead anyway. Emergency shutdowns are never refused (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [RPU/RPR] Aborting the task now stops the run instead of being ignored: the remaining hosts are no longer rebooted (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
+- [RPU/RPR] Aborting the task now stops the run instead of being ignored, including while it is still setting up: the remaining hosts are no longer rebooted, and VMs stay where the evacuations put them (PR [#10248](https://github.com/vatesfr/xen-orchestra/pull/10248))
 
 ### Packages to release
 
