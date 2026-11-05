@@ -13,9 +13,6 @@
       </UiMenuItem>
     </template>
     <slot />
-    <template v-if="slots.panel" #panel>
-      <slot name="panel" />
-    </template>
   </DetailPageLayout>
 </template>
 
@@ -31,9 +28,8 @@ defineProps<{
   privilege: XoAclBasePrivilege
 }>()
 
-const slots = defineSlots<{
+defineSlots<{
   default(): any
-  panel?(): any
 }>()
 
 const { t } = useI18n()
