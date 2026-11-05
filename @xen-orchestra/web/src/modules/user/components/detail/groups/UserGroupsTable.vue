@@ -6,7 +6,7 @@
     :can-detach="canDetachSelectedGroups"
     :is-detaching="isDetachingSelectedGroups"
     :detach-error-message="detachSelectedGroupsErrorMessage"
-    @add="addGroups()"
+    @add="addGroupsUnselected()"
     @detach="detachSelectedGroups({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
@@ -78,6 +78,12 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   pageItems: paginatedGroups,
   getItemId: group => group.id,
 })
+
+async function addGroupsUnselected() {
+  const addedGroups = await addGroups()
+
+  addedGroups.forEach(group => toggleSelection(group.id, false))
+}
 
 const selectedGroups = computed(() => groups.filter(group => selectedIds.value.includes(group.id)))
 
