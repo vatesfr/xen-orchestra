@@ -36,7 +36,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
 import { type UserRole, useXoUserRoles } from '@/modules/user/composables/use-xo-user-roles.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -59,20 +58,14 @@ const { user } = defineProps<{
 
 const { t } = useI18n()
 
-const { userRoles, areUserRolesReady, hasUserRoleFetchError } = useXoUserRoles(() => user)
-
-const { useGetGroupsByIds } = useXoGroupCollection()
-
-const userGroups = useGetGroupsByIds(() => user.groups)
+const { userRoles, userGroups, areUserRolesReady, hasUserRoleFetchError } = useXoUserRoles(() => user)
 
 const sections = computed<RoleSection[]>(() => {
   const inheritedSections = userGroups.value
     .map(group => ({
       key: group.id,
       label: t('user:roles-from-group', { group: group.name }),
-      roles: userRoles.value.filter(role =>
-        role.inheritedFromGroups.some(inheritedGroup => inheritedGroup.id === group.id)
-      ),
+      roles: userRoles.value.filter(role => role.groupIds.includes(group.id)),
     }))
     .filter(section => section.roles.length > 0)
 

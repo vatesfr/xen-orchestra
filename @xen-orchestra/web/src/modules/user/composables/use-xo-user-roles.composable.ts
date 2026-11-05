@@ -35,5 +35,5 @@ export function useXoUserRoles(rawUser: MaybeRefOrGetter<FrontXoUser>) {
 
   const hasUserRoleFetchError = computed(() => hasRoleFetchError.value || hasGroupFetchError.value)
 
-  return { userRoles, areUserRolesReady, hasUserRoleFetchError }
+  return { userRoles, userGroups, areUserRolesReady, hasUserRoleFetchError }
 }
