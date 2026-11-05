@@ -20,7 +20,6 @@ export type V2vVmStatusSummary = {
   counts: Record<V2vVmStatus, number>
 }
 
-// A label with the accent of the tag or the info it is shown in
 export type V2vAccentedLabel<TAccent extends string> = {
   label: string
   accent: TAccent
@@ -131,7 +130,6 @@ export function useV2vVmLabels() {
     }
   }
 
-  // `poolName` names the pool of the check, when it has one
   function getCheckInfo(check: V2vSelectedVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
