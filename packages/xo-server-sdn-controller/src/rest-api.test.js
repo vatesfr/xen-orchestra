@@ -155,6 +155,36 @@ describe('the update of a rule', () => {
     return added
   }
 
+  it('puts the old rule back when the new one cannot be added', async () => {
+    const controller = createController()
+    const added = []
+    controller._deleteNetworkOfRule = noop
+    controller._addNetworkRule = rule => {
+      added.push(rule)
+      if (rule.ipRange === '192.168.0.0/16') {
+        throw new Error('refused by the host')
+      }
+    }
+    await assert.rejects(
+      runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule: { ipRange: '192.168.0.0/16' } }),
+      /refused by the host/
+    )
+    assert.equal(added.length, 2)
+    assert.deepEqual(added[1], { ...NETWORK_RULE, networkId: 'net' })
+  })
+
+  it('fails with the error of the new rule, even if the old one cannot be put back', async () => {
+    const controller = createController()
+    controller._deleteNetworkOfRule = noop
+    controller._addNetworkRule = rule => {
+      throw new Error(rule.ipRange === '192.168.0.0/16' ? 'refused by the host' : 'host unreachable')
+    }
+    await assert.rejects(
+      runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule: { ipRange: '192.168.0.0/16' } }),
+      /refused by the host/
+    )
+  })
+
   it('keeps the priority when `newRule` leaves it out', async () => {
     assert.deepEqual(await update({ allow: true }), { ...SSH, allow: true, priority: 40000, networkId: 'net' })
   })

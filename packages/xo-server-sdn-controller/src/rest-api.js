@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import { flatMap } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
+
+const log = createLogger('xo:sdn-controller:rest-api')
 
 const QUERY_SYNC = { sync: { type: 'boolean', optional: true } }
 
@@ -55,8 +58,10 @@ const RESOURCES = [
     acl: 'vif',
     type: 'VIF',
     idKey: 'vifId',
-    addRule: (controller, rule) => controller._addRule(rule),
-    deleteRule: (controller, rule) => controller._deleteRule(rule),
+    // a rule the host can't install (or remove) fails the call, and the VIF's
+    // other_config is left as it was
+    addRule: (controller, rule) => controller._addRule(rule, { strict: true }),
+    deleteRule: (controller, rule) => controller._deleteRule(rule, true, { strict: true }),
   },
 ]
 
@@ -248,8 +253,23 @@ function updateRuleRoute(controller, resource) {
             controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority)
           }
 
-          await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
-          await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+          const oldRuleOf = { ...oldRule, [resource.idKey]: id }
+          await resource.deleteRule(controller, oldRuleOf)
+          try {
+            await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+          } catch (error) {
+            // e.g. a host refused the new rule: the old one is put back, so that a failed update
+            // leaves the rules as they were
+            try {
+              await resource.addRule(controller, oldRuleOf)
+            } catch (restoreError) {
+              log.warn('could not put back a traffic rule after a failed update', {
+                error: restoreError,
+                rule: oldRuleOf,
+              })
+            }
+            throw error
+          }
         },
         {
           sync: req.query.sync ?? false,
