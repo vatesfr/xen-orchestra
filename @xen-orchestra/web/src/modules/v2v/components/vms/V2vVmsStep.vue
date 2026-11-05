@@ -11,9 +11,9 @@
         <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
         <V2vVmPresets :presets @apply="id => applyPreset(id)" />
         <div class="selection-actions">
-          <!-- On a small screen the panel stays closed, not to cover the table, until opened from here -->
+          <!-- Its VMs are no table selection: once closed, the panel opens again from here -->
           <UiButton
-            v-if="!panelStore.isExpanded"
+            v-if="!isEmpty && !panelStore.isExpanded"
             accent="brand"
             variant="secondary"
             size="medium"
@@ -59,7 +59,6 @@ import V2vVmPresets from '@/modules/v2v/components/vms/V2vVmPresets.vue'
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import V2vVmsTable from '@/modules/v2v/components/vms/V2vVmsTable.vue'
 import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
-import { useV2vSelectedVmsPanel } from '@/modules/v2v/composables/use-v2v-selected-vms-panel.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -97,8 +96,6 @@ const { items, count, isEmpty, isBusy, readinessTags, lockSummary, remove, clear
   useV2vSelectedVms(selectedVmsContext)
 
 const panelStore = usePanelStore()
-
-useV2vSelectedVmsPanel()
 </script>
 
 <style lang="postcss" scoped>
