@@ -1523,7 +1523,6 @@
   "v2v:mapping-locked": "mapping locked",
   "v2v:migration-list-of-newer-version": "A newer version of Xen Orchestra stored this migration list. Reload the page to continue with it.",
   "v2v:name-from-migration-list": "{name} from the migration list",
-  "v2v:no-vm-in-list": "No VM in the migration list",
   "v2v:not-found-in-source": "Not found in the source",
   "v2v:partial-import-on-pool": "Partial import on pool {pool}",
   "v2v:prerequisite-checking": "Prerequisite check: checking vectura…",

@@ -1523,7 +1523,6 @@
   "v2v:mapping-locked": "correspondance verrouillée",
   "v2v:migration-list-of-newer-version": "Une version plus récente de Xen Orchestra a enregistré cette liste de migration. Rechargez la page pour la reprendre.",
   "v2v:name-from-migration-list": "{name} de la liste de migration",
-  "v2v:no-vm-in-list": "Aucune VM dans la liste de migration",
   "v2v:not-found-in-source": "Introuvable dans la source",
   "v2v:partial-import-on-pool": "Import partiel sur le pool {pool}",
   "v2v:prerequisite-checking": "Vérification des prérequis : vérification de vectura…",
