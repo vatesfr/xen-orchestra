@@ -24,6 +24,16 @@
   background: #f4f4f4;
 }
 
+/* object of a disconnected pool, kept but possibly outdated */
+.stale {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+.stale:hover {
+  opacity: 0.8;
+}
+
 .item:hover .itemActionButons {
   opacity: 1;
 }

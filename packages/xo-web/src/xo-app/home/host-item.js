@@ -1,4 +1,5 @@
 import _ from 'intl'
+import classNames from 'classnames'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
@@ -7,6 +8,7 @@ import map from 'lodash/map'
 import React from 'react'
 import semver from 'semver'
 import SingleLineRow from 'single-line-row'
+import { isStale, StaleObjectPill } from 'stale-object'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Col } from 'grid'
@@ -285,7 +287,7 @@ export default class HostItem extends Component {
     const { container, expandAll, item: host, nVms, selected, hostState } = this.props
     const proSupportStatus = this._getProSupportStatus()
     return (
-      <div className={styles.item}>
+      <div className={classNames(styles.item, isStale(host) && styles.stale)}>
         <BlockLink to={`/hosts/${host.id}`}>
           <SingleLineRow>
             <Col smallSize={10} mediumSize={9} largeSize={3}>
@@ -312,6 +314,7 @@ export default class HostItem extends Component {
                 <Ellipsis>
                   <Text value={host.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
+                <StaleObjectPill object={host} />
                 &nbsp;
                 {container && host.id === container.master && (
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>

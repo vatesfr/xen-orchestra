@@ -1,5 +1,6 @@
 import _ from 'intl'
 import BulkIcons from 'bulk-icons'
+import classNames from 'classnames'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
@@ -7,6 +8,7 @@ import Link, { BlockLink } from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
+import { isStale, StaleObjectPill } from 'stale-object'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
@@ -126,7 +128,7 @@ export default class VmItem extends Component {
     const state = this._getVmState()
 
     return (
-      <div className={styles.item}>
+      <div className={classNames(styles.item, isStale(vm) && styles.stale)}>
         <BlockLink to={`/vms/${vm.id}`}>
           <SingleLineRow>
             <Col smallSize={10} mediumSize={6} largeSize={5}>
@@ -136,7 +138,9 @@ export default class VmItem extends Component {
                 <Tooltip
                   content={
                     <span>
-                      {_(`powerState${state}`)}
+                      {isStale(vm)
+                        ? _('staleObjectPowerState', { state: _(`powerState${state}`) })
+                        : _(`powerState${state}`)}
                       {state === 'Busy' && (
                         <span>
                           {' ('}
@@ -158,6 +162,7 @@ export default class VmItem extends Component {
                     useLongClick
                   />
                 </Ellipsis>
+                <StaleObjectPill object={vm} />
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
               </EllipsisContainer>
