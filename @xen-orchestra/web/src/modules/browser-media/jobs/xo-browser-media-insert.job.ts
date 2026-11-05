@@ -19,7 +19,7 @@ const fileArg = defineJobArg<File | undefined>({ identify: false, toArray: false
  */
 export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoVmArg, fileArg], () => {
   const { t } = useI18n()
-  const { getLocalSession, insert } = useBrowserMediaSessions()
+  const { getLocalSession, hasEnded, insert } = useBrowserMediaSessions()
   const { getBrowserMediaByVmId } = useXoBrowserMediaCollection()
   const { getVbdsByIds, areVbdsReady } = useXoVbdCollection()
 
@@ -42,9 +42,11 @@ export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoV
       }
 
       const localSession = getLocalSession(vm.id)
+      // the polled list of xo-server may still have a session this tab ended, e.g. while it is ejected
+      const serverSession = getBrowserMediaByVmId(vm.id)
       if (
         (localSession !== undefined && localSession.status !== 'ended') ||
-        getBrowserMediaByVmId(vm.id) !== undefined
+        (serverSession !== undefined && !hasEnded(serverSession.id))
       ) {
         throw new JobError(t('job:browser-media-insert:already-inserted'))
       }
