@@ -1,8 +1,16 @@
 <template>
   <div class="backup-job-source-step">
-    <BackupJobFormRow>
-      <BackupJobFormTextInput v-bind="bindings.name" />
-    </BackupJobFormRow>
+    <div class="general">
+      <BackupJobFormRow>
+        <BackupJobFormTextInput v-bind="bindings.name" />
+      </BackupJobFormRow>
+      <UiToggle
+        :model-value="bindings.enabled.modelValue"
+        @update:model-value="bindings.enabled['onUpdate:modelValue']($event ?? false)"
+      >
+        {{ t('action:enable') }}
+      </UiToggle>
+    </div>
     <BackupJobFormRadio v-bind="bindings.dataSource" />
     <div v-if="!isMetadata" class="mode">
       <BackupJobFormRadio v-bind="bindings.mode" />
@@ -87,6 +95,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -126,6 +135,12 @@ const isSourceBackupRepositoryMissing = computed(
   gap: 4.8rem;
   margin-block-start: 2.4rem;
   text-align: left;
+
+  .general {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
 
   .mode {
     display: flex;

@@ -1,11 +1,5 @@
 <template>
   <div class="backup-job-planning-step">
-    <UiToggle
-      :model-value="bindings.enabled.modelValue"
-      @update:model-value="bindings.enabled['onUpdate:modelValue']($event ?? false)"
-    >
-      {{ t('enabled') }}
-    </UiToggle>
     <UiAlert accent="info">{{ t('daylight-saving-time-warning') }}</UiAlert>
     <ScheduleCronEditor
       v-bind="bindings.cron"
@@ -41,7 +35,6 @@ import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup
 import ScheduleCronEditor from '@/modules/schedule/components/ScheduleCronEditor.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

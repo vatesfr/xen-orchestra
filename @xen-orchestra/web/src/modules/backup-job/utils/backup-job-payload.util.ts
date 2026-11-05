@@ -155,12 +155,15 @@ function getBackupRepositoryPattern(backupRepository: BackupJobTargetBackupRepos
   )
 }
 
-function getSchedules(planning: BackupJobPlanningFormData): Record<string, BackupJobSchedule> {
+function getSchedules(
+  source: BackupJobSourceFormData,
+  planning: BackupJobPlanningFormData
+): Record<string, BackupJobSchedule> {
   return {
     [SCHEDULE_KEY]: {
       cron: planning.cron,
       timezone: planning.timezone,
-      enabled: planning.enabled,
+      enabled: source.enabled,
     },
   }
 }
@@ -215,7 +218,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
           target.storageRepository.storageRepositoryFilter
         )
       : undefined,
-    schedules: getSchedules(planning),
+    schedules: getSchedules(source, planning),
     settings: {
       '': {
         ...getTransferSettings(transfer),
@@ -269,7 +272,7 @@ function toMirrorBackupJobPayload({
     sourceRemote: source.sourceBackupRepository,
     filter: getMirrorFilter(source),
     remotes: getBackupRepositoryPattern(target.backupRepository),
-    schedules: getSchedules(planning),
+    schedules: getSchedules(source, planning),
     settings: {
       '': {
         ...getTransferSettings(transfer),
@@ -299,7 +302,7 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
     xoMetadata: source.saveXoConfig,
     pools: source.savePoolsMetadata ? toPattern(source.scopeType, source.poolIds, source.poolFilter) : undefined,
     remotes: getBackupRepositoryPattern(target.backupRepository),
-    schedules: getSchedules(planning),
+    schedules: getSchedules(source, planning),
     settings: {
       '': getReportSettings(planning),
       [SCHEDULE_KEY]: {

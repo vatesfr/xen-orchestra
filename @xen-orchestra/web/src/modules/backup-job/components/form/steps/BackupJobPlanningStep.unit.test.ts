@@ -12,7 +12,6 @@ import { defineComponent, h, reactive } from 'vue'
 
 function mountPlanningStep({ isMetadata = false } = {}) {
   const data = reactive<BackupJobPlanningFormData>({
-    enabled: true,
     cron: '0 0 * * *',
     timezone: 'Europe/Paris',
     timeout: undefined,
@@ -41,14 +40,6 @@ it('edits the schedule of the job in its timezone', () => {
     modelValue: '0 0 * * *',
     timezone: 'Europe/Paris',
   })
-})
-
-it('disables the job from the toggle', async () => {
-  const { wrapper, data } = mountPlanningStep()
-
-  await wrapper.get('.backup-job-planning-step > .ui-toggle input').setValue(false)
-
-  expect(data.enabled).toBe(false)
 })
 
 it('handles the failures of a VM backup', () => {

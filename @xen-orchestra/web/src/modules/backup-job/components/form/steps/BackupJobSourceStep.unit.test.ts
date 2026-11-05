@@ -72,6 +72,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collectio
 function mountSourceStep(formData: Partial<BackupJobSourceFormData> = {}) {
   const data = reactive<BackupJobSourceFormData>({
     name: '',
+    enabled: true,
     dataSource: 'vm',
     mode: 'delta',
     saveXoConfig: false,
@@ -116,6 +117,23 @@ function findSelection(wrapper: VueWrapper) {
 function findMessages(wrapper: VueWrapper) {
   return wrapper.findAll('.ui-info').map(message => message.text())
 }
+
+function getEnableToggle(wrapper: VueWrapper) {
+  return wrapper.get('.general .ui-toggle')
+}
+
+it('enables the job by default', () => {
+  const toggle = getEnableToggle(mountSourceStep())
+
+  expect(toggle.text()).toBe(t('action:enable'))
+  expect(toggle.get<HTMLInputElement>('input').element.checked).toBe(true)
+})
+
+it('shows a disabled job as disabled', () => {
+  expect(getEnableToggle(mountSourceStep({ enabled: false })).get<HTMLInputElement>('input').element.checked).toBe(
+    false
+  )
+})
 
 it('offers the data source, the backup mode and the scope of a VM backup', () => {
   const wrapper = mountSourceStep()
