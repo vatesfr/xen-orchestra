@@ -546,7 +546,7 @@ The downtime is limited to the time needed to shut down the source VM, transfer 
 5. Confirm.
 
 :::info
-Warm migration requires an XOA Premium plan, and can only be run by an administrator.
+On XOA, warm migration requires a Vates VMS subscription that includes it (see [Support & subscription](/support-and-subscription/support#subscription)). It can only be run by an administrator.
 :::
 
 :::tip

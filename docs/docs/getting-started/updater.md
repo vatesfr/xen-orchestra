@@ -7,7 +7,7 @@ sidebar_position: 6
 
 All updates are pushed through the updater, which is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
 
-It also allows you to change your current version into another (Free, Starter, Enterprise or Premium) **without downloading a new XOA**.
+It also applies the features of your subscription (or of a trial) to the appliance **without downloading a new XOA**.
 
 :::tip
 By design, the updater is only available in XOA. If you are using XO from the sources, [update with `git` and rebuild](install-from-sources.md#updating).

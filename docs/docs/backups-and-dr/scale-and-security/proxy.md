@@ -62,7 +62,7 @@ Without a proxy, the main XOA handles every data stream itself. For a remote sit
 
 ### Prerequisites
 
-Each deployed proxy needs its own proxy license: see [Pricing and available add-ons](https://docs.vates.tech/pricing-licencing/pricing-addons/) in the Vates docs. If you have an unused license on your account, it will be bound automatically to the proxy at deployment time.
+Each deployed proxy needs its own XO Proxy add-on on your subscription: see [Pricing and available add-ons](https://docs.vates.tech/pricing-licencing/pricing-addons/) in the Vates VMS docs. If your account has an unused XO Proxy add-on, it is bound automatically to the proxy at deployment time.
 
 ### Minimum Requirements
 
@@ -86,7 +86,7 @@ XO proxies require the following resources:
 
 <UiDetail src="/img/xo5/proxy-first-config.png" alt="The Deploy a proxy modal asking for a destination SR, a destination network and the network configuration" width={602} />
 
-4. If you have an available license, it will be automatically bound to your newly deployed proxy.
+4. If your account has an unused XO Proxy add-on, it is automatically bound to your newly deployed proxy.
 
 ## Backup repository through a proxy {#proxy-remote-creation}
 

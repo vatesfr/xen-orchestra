@@ -409,7 +409,7 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 
 ### Requirements
 
-- Xen Orchestra with Premium license
+- On XOA, a Vates VMS subscription that includes OpenMetrics (see [Support & subscription](/support-and-subscription/support#subscription))
 - Prometheus server (or compatible: Victoria Metrics, Mimir, etc.)
 - (Optional) Grafana for visualization
 
@@ -1122,7 +1122,7 @@ curl http://your-xoa-ip/openmetrics/health
 
 - Verify pools are connected in Xen Orchestra
 - Check xo-server logs: `DEBUG=xo:xo-server-openmetrics* yarn start`
-- Ensure the license includes the OpenMetrics feature
+- Ensure your XOA subscription includes the OpenMetrics feature
 
 **Stale or missing data:**
 

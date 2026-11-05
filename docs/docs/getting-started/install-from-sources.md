@@ -210,13 +210,13 @@ Running from the sources shows a banner reminding you that this version comes wi
 You can also support XO by spreading the word, reporting bugs, and contributing code.
 
 :::tip
-Exceptional individual contributors are awarded a free XOA Premium subscription. If you think you deserve it, contact us!
+Exceptional individual contributors are awarded a free XOA subscription. If you think you deserve it, contact us!
 :::
 
 ## FreeBSD and OpenBSD
 
 :::note Community territory
-We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../support-and-licencing/community.md): we would be happy to have more testers and maintainers for these targets.
+We do not test Xen Orchestra on FreeBSD or OpenBSD at all: everything below comes purely from community feedback, and may lag behind reality. If you run XO on these systems and want to help maintain these instructions, [contact us](../support-and-subscription/community.md): we would be happy to have more testers and maintainers for these targets.
 :::
 
 ### FreeBSD

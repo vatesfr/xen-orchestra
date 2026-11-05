@@ -19,7 +19,7 @@ The original [ACL system](./users.md#acls) allowed granting access to individual
 RBAC introduces a full role-based model with effects, selectors, and an action hierarchy, covering the entire infrastructure including XO management objects.
 
 :::info
-On XOA, RBAC is included in the **Essential+**, **Pro** and **Enterprise** bundles. Installations from the sources are not restricted.
+On XOA, RBAC requires a Vates VMS subscription that includes it (see [Support & subscription](/support-and-subscription/support#subscription)). Installations from the sources are not restricted.
 :::
 
 ---

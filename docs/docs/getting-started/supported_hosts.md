@@ -17,7 +17,7 @@ Xen Orchestra should be functional with any version of these two platforms. For 
 
 ## XCP-ng
 
-Xen Orchestra and XCP-ng are built by the same company ([Vates](https://vates.tech)) and ship together as [Vates VMS](https://docs.vates.tech/): one subscription covers the XCP-ng licenses for all your hosts and your Xen Orchestra Appliance, and each monthly release is tested as a stack. If you run the bundle and keep it updated, XO and XCP-ng compatibility is a given.
+Xen Orchestra and XCP-ng are built by the same company ([Vates](https://vates.tech)) and ship together as [Vates VMS](https://docs.vates.tech/): one subscription covers all your XCP-ng hosts and your Xen Orchestra Appliance, and each monthly release is tested as a stack. If you run the bundle and keep it updated, XO and XCP-ng compatibility is a given.
 
 The table below matters if you run XO from the sources, manage a mixed estate, or still have pools on older XCP-ng releases:
 
