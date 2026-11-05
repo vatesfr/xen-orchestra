@@ -7,10 +7,13 @@ export function usePrivilegeScopeObjectsByIds(
   resource: MaybeRefOrGetter<SelectablePrivilegeResource | undefined>,
   ids: MaybeRefOrGetter<string[]>
 ) {
-  const { objects } = usePrivilegeScopeObjects(resource)
+  const { objects, isReady, hasError } = usePrivilegeScopeObjects(resource)
 
   const objectsById = computed(() => new Map(objects.value.map(object => [object.id, object])))
 
-  // An object deleted since it was selected is still part of the selector, so it stays listed by its id.
-  return computed<PrivilegeScopeObject[]>(() => toValue(ids).map(id => objectsById.value.get(id) ?? { id, label: id }))
+  const objectsByIds = computed<PrivilegeScopeObject[]>(() =>
+    toValue(ids).map(id => objectsById.value.get(id) ?? { id, label: id })
+  )
+
+  return { objects: objectsByIds, isReady, hasError }
 }

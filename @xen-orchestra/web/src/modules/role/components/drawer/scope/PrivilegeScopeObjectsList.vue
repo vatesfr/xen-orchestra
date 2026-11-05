@@ -16,7 +16,7 @@ const { resource, ids } = defineProps<{
   ids: string[]
 }>()
 
-const selectedObjects = usePrivilegeScopeObjectsByIds(
+const { objects: selectedObjects } = usePrivilegeScopeObjectsByIds(
   () => resource,
   () => ids
 )

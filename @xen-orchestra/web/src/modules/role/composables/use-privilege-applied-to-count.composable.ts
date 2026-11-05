@@ -5,7 +5,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 export function usePrivilegeAppliedToCount(
   privilegeRaw: MaybeRefOrGetter<Pick<FrontXoPrivilege, 'resource' | 'selector'>>
 ) {
-  const appliedToIds = usePrivilegeAppliedToIds(privilegeRaw)
+  const { appliedToIds } = usePrivilegeAppliedToIds(privilegeRaw)
 
   return computed(() => appliedToIds.value?.length)
 }

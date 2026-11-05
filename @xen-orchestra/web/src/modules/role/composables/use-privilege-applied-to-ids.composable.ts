@@ -16,17 +16,19 @@ export function usePrivilegeAppliedToIds(
     isSelectablePrivilegeResource(privilege.value.resource) ? privilege.value.resource : undefined
   )
 
-  const { matches, isReady } = usePrivilegeSelectorMatches({
+  const { matches, isReady, hasError } = usePrivilegeSelectorMatches({
     resource: selectableResource,
     selector: () => privilege.value.selector ?? '',
     isEnabled: () => scopeType.value !== 'manual-selection' && selectableResource.value !== undefined,
   })
 
-  return computed(() => {
+  const appliedToIds = computed(() => {
     if (scopeType.value === 'manual-selection') {
       return parseManualSelectionSelector(privilege.value.selector ?? '')
     }
 
     return isReady.value ? matches.value.map(match => match.id) : undefined
   })
+
+  return { appliedToIds, hasAppliedToIdsError: hasError }
 }

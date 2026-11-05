@@ -14,9 +14,18 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-    <template v-if="selectableResource !== undefined && appliedToIds !== undefined">
+    <template v-if="selectableResource !== undefined">
       <UiPanelCardTitle size="small" :label="t('privilege:currently-applied-to')" />
-      <VtsStateHero v-if="appliedToIds.length === 0" type="no-data" format="card" horizontal size="extra-small">
+      <VtsStateHero v-if="hasError" type="error" format="card" horizontal size="extra-small">
+        {{ t('error-no-data') }}
+      </VtsStateHero>
+      <VtsStateHero
+        v-else-if="appliedToIds === undefined || !areAppliedToObjectsReady"
+        type="busy"
+        format="card"
+        size="small"
+      />
+      <VtsStateHero v-else-if="appliedToIds.length === 0" type="no-data" format="card" horizontal size="extra-small">
         {{ t('privilege:no-object') }}
       </VtsStateHero>
       <UiCollapsibleList v-else tag="div" :total-items="appliedToObjects.length">
@@ -42,6 +51,7 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -59,9 +69,15 @@ const selectableResource = computed(() =>
   isSelectablePrivilegeResource(privilege.resource) ? privilege.resource : undefined
 )
 
-const appliedToIds = usePrivilegeAppliedToIds(() => privilege)
+const { appliedToIds, hasAppliedToIdsError } = usePrivilegeAppliedToIds(() => privilege)
 
-const appliedToObjects = usePrivilegeScopeObjectsByIds(selectableResource, () => appliedToIds.value ?? [])
+const {
+  objects: appliedToObjects,
+  isReady: areAppliedToObjectsReady,
+  hasError: hasAppliedToObjectsError,
+} = usePrivilegeScopeObjectsByIds(selectableResource, () => appliedToIds.value ?? [])
+
+const hasError = logicOr(hasAppliedToIdsError, hasAppliedToObjectsError)
 </script>
 
 <style lang="postcss" scoped>
