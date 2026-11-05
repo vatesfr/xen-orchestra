@@ -1254,7 +1254,7 @@
   "role:delete-warning": "Supprimer ce rôle le retirera définitivement, ainsi que tous ses privilèges. Cette action est irréversible. Procédez avec prudence. | Supprimer ces rôles les retirera définitivement, ainsi que tous leurs privilèges. Cette action est irréversible. Procédez avec prudence.",
   "role:details": "Détails du rôle",
   "role:direct-users": "Direct",
-  "role:name-info": "Par exemple : Opérateur VM, Administrateur réseau ou Lecteur seul",
+  "role:name-info": "Par exemple : Opérateur VM, Administrateur réseau ou Lecteur seul",
   "role:new": "Nouveau rôle",
   "role:unable-to-create": "Impossible de créer le nouveau rôle",
   "role:users-from-group": "Du groupe {group}",
