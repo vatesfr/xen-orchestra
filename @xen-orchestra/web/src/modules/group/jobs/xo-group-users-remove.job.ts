@@ -3,6 +3,7 @@ import { type FrontXoGroup, useXoGroupCollection } from '@/modules/group/remote-
 import { xoUsersArg } from '@/modules/user/jobs/xo-user-args.ts'
 import { type FrontXoUser, useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
+import { settleSequentially } from '@/shared/utils/promise.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
@@ -15,8 +16,8 @@ export const useXoGroupUsersRemoveJob = defineJob('group.users.remove', [xoGroup
 
   return {
     async run(groups: FrontXoGroup[], users: FrontXoUser[]) {
-      const results = await Promise.allSettled(
-        groups.flatMap(group => users.map(user => fetchDelete(`groups/${group.id}/users/${user.id}`)))
+      const results = await settleSequentially(
+        groups.flatMap(group => users.map(user => () => fetchDelete(`groups/${group.id}/users/${user.id}`)))
       )
 
       results
