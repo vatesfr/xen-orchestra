@@ -19,7 +19,7 @@
           <UserFormTextInput v-bind="passwordConfirmationInputBindings" />
         </div>
 
-        <NewUserGroupsTable
+        <GroupsSelectionTable
           v-show="currentStep === 'groups'"
           v-model:selected-group-ids="formData.groups.groupIds"
           :groups="selectableGroups"
@@ -27,14 +27,18 @@
           :error="hasGroupFetchError"
         />
 
-        <NewUserRolesTable
-          v-show="currentStep === 'roles'"
-          v-model:selected-role-ids="formData.roles.roleIds"
-          :roles
-          :inherited-role-ids
-          :busy="!areRolesReady || !areGroupsReady"
-          :error="hasRoleFetchError || hasGroupFetchError"
-        />
+        <div v-show="currentStep === 'roles'" class="roles">
+          <UiAlert accent="info">
+            {{ t('user:roles-from-groups-info') }}
+          </UiAlert>
+          <RolesSelectionTable
+            v-model:selected-role-ids="formData.roles.roleIds"
+            :roles
+            :inherited-role-ids
+            :busy="!areRolesReady || !areGroupsReady"
+            :error="hasRoleFetchError || hasGroupFetchError"
+          />
+        </div>
 
         <NewUserReview
           v-if="currentStep === 'review'"
@@ -59,11 +63,11 @@
 </template>
 
 <script lang="ts" setup>
+import GroupsSelectionTable from '@/modules/group/components/drawer/GroupsSelectionTable.vue'
 import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
+import RolesSelectionTable from '@/modules/role/components/drawer/RolesSelectionTable.vue'
 import { useXoRoleCollection } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
-import NewUserGroupsTable from '@/modules/user/components/drawer/NewUserGroupsTable.vue'
 import NewUserReview from '@/modules/user/components/drawer/NewUserReview.vue'
-import NewUserRolesTable from '@/modules/user/components/drawer/NewUserRolesTable.vue'
 import UserFormTextInput from '@/modules/user/components/form/inputs/UserFormTextInput.vue'
 import { useNewUserForm } from '@/modules/user/form/new/use-new-user-form.ts'
 import type { NewUserPayload } from '@/modules/user/types.ts'
@@ -141,6 +145,12 @@ async function onSubmit() {
 <style lang="postcss" scoped>
 .error {
   margin-block-end: 2.4rem;
+}
+
+.roles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
 .details {

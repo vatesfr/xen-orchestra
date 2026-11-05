@@ -1,8 +1,5 @@
 <template>
-  <div class="new-user-roles-table">
-    <UiAlert accent="info">
-      {{ t('user:roles-from-groups-info') }}
-    </UiAlert>
+  <div class="roles-selection-table">
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -28,7 +25,6 @@ import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-co
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
@@ -36,11 +32,16 @@ import { useRoleColumns } from '@core/tables/column-sets/role-columns.ts'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { roles, inheritedRoleIds, busy, error } = defineProps<{
+const {
+  roles,
+  inheritedRoleIds = [],
+  busy,
+  error,
+} = defineProps<{
   roles: FrontXoRole[]
-  inheritedRoleIds: FrontXoRole['id'][]
-  busy: boolean
-  error: boolean
+  inheritedRoleIds?: FrontXoRole['id'][]
+  busy?: boolean
+  error?: boolean
 }>()
 
 const selectedRoleIds = defineModel<FrontXoRole['id'][]>('selectedRoleIds', { required: true })
@@ -51,11 +52,11 @@ const {
   items: filteredRoles,
   filter,
   schema,
-} = useRoleQueryBuilder('new-user-roles', () => roles, {
+} = useRoleQueryBuilder('roles-selection', () => roles, {
   ignoreRoute: true,
 })
 
-const { pageRecords: paginatedRoles, paginationBindings } = usePagination('new-user-roles', filteredRoles, {
+const { pageRecords: paginatedRoles, paginationBindings } = usePagination('roles-selection', filteredRoles, {
   ignoreRoute: true,
 })
 
@@ -75,6 +76,8 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   getItemId: role => role.id,
 })
 
+const hasNoSelectableRoleOnPage = computed(() => paginatedRoles.value.every(role => inheritedRoleIds.includes(role.id)))
+
 watch(selectedIds, ids => {
   selectedRoleIds.value = selectableRoles.value.filter(role => ids.includes(role.id)).map(role => role.id)
 })
@@ -82,7 +85,7 @@ watch(selectedIds, ids => {
 const { HeadCells, BodyCells } = useRoleColumns({
   exclude: ['group', 'actions'],
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => r(pageSelectionModel, { disabled: hasNoSelectableRoleOnPage.value }),
   }),
   body: (role: FilterableRole) => ({
     checkbox: r =>
@@ -101,7 +104,7 @@ const { HeadCells, BodyCells } = useRoleColumns({
 </script>
 
 <style lang="postcss" scoped>
-.new-user-roles-table {
+.roles-selection-table {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;

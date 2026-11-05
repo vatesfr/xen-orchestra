@@ -1,5 +1,5 @@
 <template>
-  <div class="new-user-groups-table">
+  <div class="groups-selection-table">
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -34,8 +34,8 @@ import { useI18n } from 'vue-i18n'
 
 const { groups, busy, error } = defineProps<{
   groups: FrontXoGroup[]
-  busy: boolean
-  error: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const selectedGroupIds = defineModel<FrontXoGroup['id'][]>('selectedGroupIds', { required: true })
@@ -46,11 +46,11 @@ const {
   items: filteredGroups,
   filter,
   schema,
-} = useGroupQueryBuilder('new-user-groups', () => groups, {
+} = useGroupQueryBuilder('groups-selection', () => groups, {
   ignoreRoute: true,
 })
 
-const { pageRecords: paginatedGroups, paginationBindings } = usePagination('new-user-groups', filteredGroups, {
+const { pageRecords: paginatedGroups, paginationBindings } = usePagination('groups-selection', filteredGroups, {
   ignoreRoute: true,
 })
 
@@ -88,7 +88,7 @@ const { HeadCells, BodyCells } = useGroupColumns({
 </script>
 
 <style lang="postcss" scoped>
-.new-user-groups-table {
+.groups-selection-table {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
