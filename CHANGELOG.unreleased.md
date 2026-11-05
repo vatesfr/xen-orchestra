@@ -7,9 +7,13 @@
 
 > Security fixes and new features should go in this section
 
+- [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
+
+- [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured. Logs are sent as RFC 5424 messages with their namespace as message ID (`format = 'rfc3164'` for the previous format) (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
@@ -44,6 +48,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-audit minor
 - xo-web minor
 
 <!--packages-end-->

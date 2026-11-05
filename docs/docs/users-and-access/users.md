@@ -648,6 +648,10 @@ XO Audit Log is a plugin that records all important actions performed by users a
 
 XO Audit Log listens to important actions performed by users and stores them in the XOA database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
 
+### Secrets in the records
+
+Before storing a record, the plugin removes the secrets it knows about: passwords and tokens in the parameters, created API tokens, credentials and encryption keys in URLs (e.g. backup repositories), and one-time download/upload links. Records stored by previous versions are left untouched so that the chain stays valid.
+
 ### Trustability of the records
 
 Stored records are secured by:
@@ -667,6 +671,26 @@ The recording of the users' actions is disabled by default. To enable it:
 <UiDetail src="/img/xo5/audit-log-plugin-config.png" alt="The audit plugin configuration, with the active toggle enabled" width={620} />
 
 Now, the audit plugin will record users' actions and upload the last record in the chain every day at **06:00 AM (UTC)**.
+
+### Forwarding to a remote syslog server
+
+To send the records to a SIEM or any other log collector, fill the `syslog` section of the plugin configuration:
+
+- `uri`: the address of the syslog server, like `udp://syslog.company.lan`, `tcp://syslog.company.lan:1514` or `tls://syslog.company.lan` (default port is `514`, `6514` for TLS)
+- `facility`: the syslog facility of the messages, `authpriv` by default
+- `framing` (TCP and TLS only): `lf` (default, a line feed after each message) or `octet-counting` (required by some servers, e.g. the `syslog()` driver of syslog-ng)
+- `ignoreUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
+- `certificateAuthorities` (TLS only): paths to PEM files of additional certificate authorities to trust, e.g. when the certificate of the server is issued by an internal authority
+
+Each new record is still stored in XO and a copy is sent as an [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) message:
+
+- the app name is `xo-audit`
+- the message ID is the event of the record (e.g. `apiCall`, `signInFailed`)
+- the content is the record as JSON, including its `id` and `previousId` hashes so that the copies can be checked against the chain stored in XO
+
+Forwarding is best effort: records that cannot be sent (e.g. the syslog server is unreachable, or stopped reading) are not sent again later, but they remain in XO and can be exported. Prefer TLS (or TCP on a trusted network): UDP and TCP messages are not encrypted, and UDP messages can be lost or rejected when a record is too big.
+
+Use the test button of the plugin to send a test message to the syslog server.
 
 ## Debugging
 
