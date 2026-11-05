@@ -19,7 +19,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XO5/XO6/Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
-- [Auth/OIDC] Handle missing profile fields in username resolution (PR [#9648](https://github.com/vatesfr/xen-orchestra/pull/9648))
+- [Auth/OIDC] Fix sign in with providers whose ID token only carries the minimal claims, as the OpenID specification requires once an access token is issued (e.g. SimpleSAMLphp, SATOSA): the username and the groups are then read from the userinfo endpoint (PR [#9648](https://github.com/vatesfr/xen-orchestra/pull/9648))
 
 ### Packages to release
 
