@@ -72,7 +72,8 @@
   color: var(--ifm-color-primary-contrast-foreground, #fff);
 }
 
-.details {
+.details,
+.email {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid var(--ifm-color-emphasis-300);
@@ -80,7 +81,6 @@
   background: var(--ifm-background-color);
   color: var(--ifm-font-color-base);
   font: inherit;
-  resize: vertical;
 }
 
 .actions {
@@ -115,4 +115,34 @@
 
 .thanks {
   font-weight: 600;
+}
+
+.details {
+  resize: vertical;
+}
+
+.followUp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.email {
+  max-width: 24rem;
+}
+
+.followUp small {
+  color: var(--ifm-font-color-secondary);
+}
+
+.voteButton:disabled,
+.reason:disabled,
+.skip:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  margin: 0.6rem 0 0;
+  color: var(--ifm-color-danger);
 }

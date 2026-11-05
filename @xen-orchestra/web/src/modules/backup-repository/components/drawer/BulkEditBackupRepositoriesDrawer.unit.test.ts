@@ -6,6 +6,7 @@ import type { BulkEditBackupRepositoryPayloads } from '@/modules/backup-reposito
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { submitDrawer } from '@/test/drawer.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -61,11 +62,6 @@ async function fill(wrapper: VueWrapper, label: string, value: string) {
   await getField(wrapper, label).get('input').setValue(value)
 }
 
-async function submit(wrapper: VueWrapper) {
-  await wrapper.get('form').trigger('submit')
-  await flushPromises()
-}
-
 it('shows the number of edited repositories in its title', async () => {
   const wrapper = await mountDrawer()
 
@@ -98,7 +94,7 @@ it('confirms with the payload of each repository when it is submitted', async ()
   const wrapper = await mountDrawer()
   await fill(wrapper, t('host-or-ip-address'), '192.168.1.20')
 
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   const [[payloads]] = wrapper.emitted('confirm') as [[BulkEditBackupRepositoryPayloads]]
 
@@ -113,7 +109,7 @@ it('does not confirm when it is submitted while invalid', async () => {
   const wrapper = await mountDrawer()
   await fill(wrapper, t('name'), '')
 
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   expect(wrapper.emitted('confirm')).toBeUndefined()
 })

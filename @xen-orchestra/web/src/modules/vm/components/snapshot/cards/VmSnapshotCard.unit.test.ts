@@ -2,9 +2,10 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import type { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VmSnapshotCard from '@/modules/vm/components/snapshot/cards/VmSnapshotCard.vue'
 import { createVmSnapshot } from '@/test/create-vm-snapshot.ts'
-import { findCopiedValues, findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCopiedValues, findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 
 const { buildXo5VmSnapshotRoute } = vi.hoisted(() => ({
@@ -41,9 +42,7 @@ it('shows the name and the creation date of the snapshot', () => {
   const labelledValues = findLabelledValues(mountSnapshotCard(snapshot))
 
   expect(labelledValues[t('snapshot')]).toBe('Before upgrade')
-  expect(labelledValues[t('snapshot-created-on')]).toBe(
-    d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' })
-  )
+  expect(labelledValues[t('snapshot-created-on')]).toBe(formatDateTime(snapshot.snapshot_time * 1000))
 })
 
 it('links the snapshot to its XO 5 page', () => {

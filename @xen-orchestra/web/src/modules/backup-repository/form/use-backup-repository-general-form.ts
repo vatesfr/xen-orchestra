@@ -1,5 +1,5 @@
-import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import type { XoBackupFormat } from '@/modules/backup-repository/types/xo-backup-repository.type.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'

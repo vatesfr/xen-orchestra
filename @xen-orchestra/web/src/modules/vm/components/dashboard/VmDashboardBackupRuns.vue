@@ -32,7 +32,7 @@
       <template #description>
         <I18nT keypath="configure-for-protected" scope="global" tag="div">
           <template #backup-job>
-            <UiLink size="small" :to="{ name: '/(site)/backups' }">
+            <UiLink size="small" :to="{ name: '/admin/backup-and-replication/jobs' }">
               {{ t('backup-job') }}
             </UiLink>
           </template>
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

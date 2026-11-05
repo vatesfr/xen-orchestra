@@ -1,4 +1,4 @@
-import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobsUsingBackupRepository } from '@/modules/backup-repository/utils/xo-backup-repository-backup-jobs.util.ts'
 import { createBr } from '@/test/create-br.ts'
 
@@ -42,5 +42,14 @@ describe('getBackupJobsUsingBackupRepository', () => {
     })
 
     expect(getBackupJobsUsingBackupRepository(br.id, [otherTarget, otherSource])).toEqual([])
+  })
+
+  it('treats a job using an expression as using every repository', () => {
+    const job = createBackupJob({
+      id: 'expression',
+      remotes: 'backupRepository:type:nfs',
+    })
+
+    expect(getBackupJobsUsingBackupRepository(br.id, [job])).toEqual([job])
   })
 })

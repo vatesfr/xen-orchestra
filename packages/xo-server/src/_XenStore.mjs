@@ -17,6 +17,18 @@ const xenStoreExec = (command, args) =>
     throw err
   })
 
+/**
+ * Whether the XenStore failed because XO does not run in a Xen VM: there is no client to read it,
+ * or no XenStore for that client to talk to. Any other failure, e.g. not being allowed to read it,
+ * is a misconfiguration of a VM which has one.
+ *
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+export const isNotInXenVm = error =>
+  // the callback form of `execFile` does not attach the output to the error, only to its message
+  error?.cause?.code === 'ENOENT' || /xs_open: no such file or directory/i.test(error?.message ?? '')
+
 export const read = key => xenStoreExec('xenstore-read', [key])
 export const write = (key, value) => xenStoreExec('xenstore-write', [key, value])
 export const rm = key => xenStoreExec('xenstore-rm', [key])
