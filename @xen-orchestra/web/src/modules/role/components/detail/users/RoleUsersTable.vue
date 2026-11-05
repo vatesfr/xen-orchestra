@@ -7,7 +7,7 @@
     :is-detaching="isDetachingSelectedUsers"
     :detach-error-message="detachSelectedUsersErrorMessage"
     @add="addUsers()"
-    @detach="detachSelectedUsers({ detached: true })"
+    @detach="detachSelectedUsers({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
       <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
@@ -120,7 +120,7 @@ const { HeadCells, BodyCells } = useUserColumns({
             {
               label: t('action:detach'),
               icon: 'action:detach',
-              onClick: () => detachUser({ detached: true }),
+              onClick: () => detachUser({ detached: true, onSuccess: () => toggleSelection(user.id, false) }),
               disabled: !canDetachUser.value,
               busy: isDetachingUser.value,
               hint: detachUserErrorMessage.value,
