@@ -74,7 +74,7 @@ const { HeadCells, BodyCells } = useVmColumns({
   }),
   body: (vm: VmDisplayData) => ({
     checkbox: r => r({ selected: isSelected(vm.id), onToggle: () => toggleSelection(vm.id) }),
-    vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon }),
+    vm: r => r({ label: vm.name_label, to: { name: '/vm/[id]/dashboard', params: { id: vm.id } }, icon: vm.vmIcon }),
     ipAddresses: r => r(vm.ipAddresses),
     vcpus: r => r(vm.CPUs.number),
     ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),

@@ -97,7 +97,7 @@ const { HeadCells, BodyCells } = useHostColumns({
       host: r =>
         r({
           label: host.name_label,
-          to: `/host/${host.id}/dashboard`,
+          to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
           rightIcon: rightIcon.value,
         }),
