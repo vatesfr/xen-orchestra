@@ -7,7 +7,7 @@
     :is-detaching="isDetachingSelectedRoles"
     :detach-error-message="detachSelectedRolesErrorMessage"
     @add="addRoles()"
-    @detach="detachSelectedRoles({ detached: true })"
+    @detach="detachSelectedRoles({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
       <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
@@ -120,7 +120,7 @@ const { HeadCells, BodyCells } = useRoleColumns({
             {
               label: t('action:detach'),
               icon: 'action:detach',
-              onClick: () => detachRole({ detached: true }),
+              onClick: () => detachRole({ detached: true, onSuccess: () => toggleSelection(role.id, false) }),
               disabled: !canDetachRole.value,
               busy: isDetachingRole.value,
               hint: detachRoleErrorMessage.value,
