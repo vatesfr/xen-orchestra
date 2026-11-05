@@ -65,8 +65,61 @@ Old traces are garbage-collected on mtime (`rpu.tracesRetention`, 31 days by def
 | `MESSAGE_PARAMETER_COUNT_MISMATCH(host.evacuate, 1, 3)` (DEBUG)                       | Expected signature fallback on XAPI 8.2. WARN only if every supported signature fails.                                                                                      |
 | Timeout on `Waiting for host to be up`                                                | Host takes too long to boot. `xapiOptions.restartHostTimeout` (default 20 minutes).                                                                                         |
 | Pool stays `disconnected` after the master rebooted, `EHOSTUNREACH`                   | Stale connection error, the retry did not kick in yet. `POST /rest/v0/servers/<id>/actions/connect` reconnects immediately.                                                 |
+| `TWINSTOR storage did not get back in sync in time`                                   | See TWINSTOR pacing below. The message carries what was holding the run back.                                                                                               |
+| `unsupported TWINSTOR schema`                                                         | The pool runs a TWINSTOR version newer than this XO. Update XO. See TWINSTOR pacing below.                                                                                  |
 
 Note on granularity: `Evacuate` is a single `host.evacuate` XAPI call, there is no per-VM detail in the tree for that phase. When `shutdownPinnedVms` is enabled and pinned VMs are present, per-VM subtasks also appear under `Shut down pinned VMs` and `Restart pinned VMs`.
+
+## TWINSTOR pacing
+
+On a pool whose SR is backed by TWINSTOR, the two hosts hold one replica each. While a replica is catching up, a single host holds the only up-to-date copy of the data, so rebooting the other one takes the storage down under the running VMs. Rebooting is itself what starts the next resync, so this is what paces the whole run.
+
+The run holds three times: once before it disables anything, then before evacuating each host and again right before rebooting it, as a `Waiting for TWINSTOR storage to be in sync` task. Its `progress` is the resync percentage and its `twinstorState` property says what is holding it back. Pools without a TWINSTOR SR are unaffected.
+
+A host is rebooted only once every one of these holds:
+
+- every TWINSTOR SR has `twinstor-synced=true` and `twinstor-storage-state=synced`, both, not either. Only the pool master writes these, from its own DRBD status, which is the one that sees both replicas
+- its `twinstor-updated-at` differs from the one accepted by the previous wait, which proves the pool master has published this verdict rather than left it behind when a host went down
+- every TWINSTOR host's `twinstor-alive` differs likewise, which proves its daemon is running: DRBD keeps replicating in the kernel without it, so the pair reads as healthy while a node has no supervision at all
+
+Both are heartbeats, rewritten every 60 seconds even when nothing changed (`ALIVE_STAMP_INTERVAL` in the daemon), so XO never reads their value and never has to decide how old a stamp is against its own clock. The cost is that each wait lasts until the next heartbeat, so up to about a minute on a healthy pool. A graceful daemon stop removes `twinstor-alive` outright, which blocks the gate at once rather than after a staleness delay.
+
+`twinstor-schema` is the version of the key set, bumped when the meaning of the keys changes. An unrecognized value fails the run at once instead of after the timeout. Currently supported: `1`.
+
+Detection is SR-based, not host-based: uninstalling TWINSTOR destroys the SR and its keys, but leaves `twinstor-version` on the hosts forever, so a host-based check would keep gating a pool which no longer uses TWINSTOR. `pool.other_config:twinstor_setup` is not used, it is cleared once the cluster is formed.
+
+The first wait is placed before HA, `auto_poweron`, the load balancer and the pool's backup schedules are disabled: a pool whose storage is not redundant waits there with everything still enabled, and aborting it costs nothing.
+
+### Outside a rolling run
+
+The same verdict guards every other operation that takes a host down: `host.restart`, its smart-reboot variant, `host.stop`, and their REST equivalents (`actions/clean_reboot`, `actions/smart_reboot`, `actions/clean_shutdown`). Those cannot hold for a resync the way a rolling run can, so they **refuse** instead, with an `incorrectState` on `twinstorStorageState` carrying the same reason string. Each exposes a `bypassTwinstorCheck` parameter, defaulting to `force` where the method has one, so an operator who means it can go ahead. XO 5 surfaces it as a confirmation like the other `bypass*` checks; XO 6 and the REST API accept the parameter but have no confirmation flow yet, so a refusal there has to be retried explicitly.
+
+`rebootHost` and `shutdownHost` check twice, once before evacuating and once just before the host goes down, because an evacuation takes long enough for the storage to have lost its redundancy in between. The second check runs on a host which is already disabled with its VMs moved away, so it is put back in service before the refusal is raised. The smart-reboot variant checks once, its suspend phase being inside `@xen-orchestra/xapi`.
+
+A one-shot check has no earlier state to compare against, so instead of requiring the stamps to have moved it requires them to be younger than 150 seconds, which is what TWINSTOR's own peer interlock allows. The age is taken against the pool master's clock (`host.get_servertime`), not XO's.
+
+The emergency paths, `host.emergencyShutdownHost` and the pool-wide emergency shutdown, are deliberately **not** gated: they exist for the case where the pool has to go down now, and a whole-pool shutdown does not strand a resync the way taking one host out of a pair does.
+
+### Aborting a run
+
+Aborting (`POST /rest/v0/tasks/<id>/actions/abort`) while the run waits on the storage stops it at once, without rebooting the host it was waiting for. It is honored between two hosts too, so aborting during host 1's reboot means host 2 is never touched. It is not honored once a host is on its way down, there is no un-rebooting it. Cleanups then run as on any failure: HA and `auto_poweron` restored, shut-down pinned VMs started again, evacuated host re-enabled. VMs are left where they were evacuated to.
+
+### Timeout
+
+`xapiOptions.twinstorSyncTimeout` (default 2 hours) is the total a run may spend waiting on the storage, shared by every wait, so it also bounds how long the pool is held with HA disabled. Only waiting is charged to it, not evacuating, patching or rebooting. The storage is polled every 10 seconds throughout. On expiry the run fails rather than proceeding.
+
+Note that HA is off for the whole run, so TWINSTOR raises its own `twinstor_ha_disarmed` alert after 30 minutes. During a gated run that is expected.
+
+| `twinstorState` says                                                | What it is                                                                                                                                                                                          |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<SR> is syncing`                                                   | A resync genuinely longer than the budget, e.g. a full sync after a disk replacement (~90 min for 500 GB on 1 GbE, proportionally longer on a larger SR). Raise `twinstorSyncTimeout` and relaunch. |
+| `<SR> is stalled`                                                   | The replication link is saturated or broken. Check it on the hosts with `twinstor status` before relaunching.                                                                                       |
+| `<SR> is degraded`                                                  | The peer's disk is failed or detached, the storage has no redundant copy. Fix the storage first, the pool must not be rebooted in this state.                                                       |
+| `<SR> is not-ready`                                                 | No up-to-date replica is available at all. Fix the storage first, the pool must not be rebooted in this state.                                                                                      |
+| `<SR> is in an unknown state`                                       | The SR advertises no `twinstor-storage-state` at all, usually a daemon which never came up on the pool master.                                                                                      |
+| `TWINSTOR has not published its state since the last host rebooted` | The pool master has not published since the previous reboot. Normally clears within a minute of its daemon coming back.                                                                             |
+| `the TWINSTOR daemon is not running on <host>`                      | That host stopped stamping `twinstor-alive`. DRBD keeps replicating without the daemon, but the node has no supervision, fencing or recovery. Start it.                                             |
+| `the TWINSTOR state of the pool could not be read`                  | XAPI did not answer. Usually transient while the master reconnects after its own reboot, the run keeps retrying.                                                                                    |
 
 ## Task logs
 
@@ -76,13 +129,19 @@ Rolling pool update and rolling pool reboot task logs have major parts in common
 
 ```
 task.start({ name: 'Rolling pool reboot', poolId: string, poolName: string })
+├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync', progress: number, twinstorState: string })
+│  └─ task.end
 ├─ task.start({ name: 'Restarting hosts', total: number, progress: number, done: number })
 |  ├─ task.start({ name: `Restarting host ${hostId}`, hostId: string, hostName: string })
+|  |  ├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync before evacuating', objectId: string, hostId: string, hostName: string, progress: number, twinstorState: string })
+│  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Shut down pinned VMs', hostId: string, hostName: string })
 |  |  |  ├─ task.start({ name: `Shutting down VM ${vmId}`, hostId: string, hostName: string, vmId: string, vmName: string })
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Evacuate', hostId: string, hostName: string })
+│  │  │  └─ task.end
+|  |  ├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync before rebooting', objectId: string, hostId: string, hostName: string, progress: number, twinstorState: string })
 │  │  │  └─ task.end
 |  |  ├─ task.start({ name: 'Restart', hostId: string, hostName: string })
 │  │  │  └─ task.end
@@ -120,10 +179,14 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  └─ task.end
 │  └─ task.end
 ├─ task.start({ name: 'Updating and rebooting' })
+│  ├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync', progress: number, twinstorState: string })
+│  │  └─ task.end
 │  ├─ task.start({ name: 'Installing XS patches' })
 │  │  └─ task.end
 │  ├─ task.start({ name: 'Restarting hosts', total: number, progress: number, done: number })
 │  |  ├─ task.start({ name: `Restarting host ${hostId}`, hostId: string, hostName: string })
+│  |  |  ├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync before evacuating', objectId: string, hostId: string, hostName: string, progress: number, twinstorState: string })
+│  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Shut down pinned VMs', hostId: string, hostName: string })
 │  |  |  |  ├─ task.start({ name: `Shutting down VM ${vmId}`, hostId: string, hostName: string, vmId: string, vmName: string })
 │  │  │  │  │  └─ task.end
@@ -131,6 +194,8 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  |  |  ├─ task.start({ name: 'Evacuate', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Installing patches', hostId: string, hostName: string })
+│  │  │  │  └─ task.end
+│  |  |  ├─ task.start({ name: 'Waiting for TWINSTOR storage to be in sync before rebooting', objectId: string, hostId: string, hostName: string, progress: number, twinstorState: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Restart', hostId: string, hostName: string })
 │  │  │  │  └─ task.end

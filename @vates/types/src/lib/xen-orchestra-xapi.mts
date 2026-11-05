@@ -196,7 +196,8 @@ export interface Xapi {
   host_smartReboot(
     hostRef: XenApiHost['$ref'],
     bypassBlockedSuspend?: boolean,
-    bypassCurrentVmCheck?: boolean
+    bypassCurrentVmCheck?: boolean,
+    bypassTwinstorCheck?: boolean
   ): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
@@ -243,8 +244,11 @@ export interface Xapi {
   forgetSr(id: XoSr['id']): Promise<void>
   forgetHost(hostId: XoHost['id']): Promise<void>
   powerOnHost(hostId: XoHost['id']): Promise<void>
-  rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
-  shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
+  rebootHost(hostId: XoHost['id'], force?: boolean, opts?: { bypassTwinstorCheck?: boolean }): Promise<void>
+  shutdownHost(
+    hostId: XoHost['id'],
+    opts?: { force?: boolean; bypassEvacuate?: boolean; bypassTwinstorCheck?: boolean }
+  ): Promise<void>
   SR_create(params: {
     content_type?: XoSr['content_type']
     // index signature, not `Record<string, string>`: tsoa emits an empty schema for `Record`

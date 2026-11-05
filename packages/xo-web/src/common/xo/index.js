@@ -1222,6 +1222,21 @@ const _restartHost = async ({ host, ...opts }) => {
       return _restartHost({ ...opts, host, bypassVersionCheck: true })
     }
 
+    if (twinstorNotSynced(error)) {
+      await chooseAction({
+        body: (
+          <p>
+            <Icon icon='alarm' /> {_('twinstorNotSyncedMessage', { state: error.data.actual })}
+          </p>
+        ),
+        buttons: [{ label: _('restartAnyway'), btnStyle: 'danger' }],
+        icon: 'alarm',
+        title: _('twinstorNotSyncedTitle'),
+      })
+
+      return _restartHost({ ...opts, host, bypassTwinstorCheck: true })
+    }
+
     if (noHostsAvailableErrCheck(error)) {
       alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
     }
@@ -1252,6 +1267,12 @@ const masterNeedsUpdate = err =>
   err !== undefined &&
   incorrectState.is(err, {
     property: 'rebootRequired',
+  })
+
+const twinstorNotSynced = err =>
+  err !== undefined &&
+  incorrectState.is(err, {
+    property: 'twinstorStorageState',
   })
 
 const noHostsAvailableErrCheck = err => err !== undefined && noHostsAvailable.is(err)
@@ -1348,6 +1369,26 @@ export const stopHost = async host => {
         })
         // Retry with bypassEvacuate.
         return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, bypassBackupCheck: ignoreBackup })
+      }
+      throw err
+    })
+    .catch(async err => {
+      if (twinstorNotSynced(err)) {
+        await chooseAction({
+          body: (
+            <p>
+              <Icon icon='alarm' /> {_('twinstorNotSyncedMessage', { state: err.data.actual })}
+            </p>
+          ),
+          buttons: [{ label: _('shutdownAnyway'), btnStyle: 'danger' }],
+          icon: 'alarm',
+          title: _('twinstorNotSyncedTitle'),
+        })
+        return _call('host.stop', {
+          id: resolveId(host),
+          bypassTwinstorCheck: true,
+          bypassBackupCheck: ignoreBackup,
+        })
       }
       throw err
     })

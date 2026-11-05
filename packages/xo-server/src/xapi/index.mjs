@@ -74,6 +74,7 @@ export default class Xapi extends XapiBase {
     guessVhdSizeOnImport,
     maxUncoalescedVdis,
     restartHostTimeout,
+    twinstorSyncTimeout = '2 hours',
     vdiExportConcurrency,
     vmEvacuationConcurrency,
     vmExportConcurrency,
@@ -87,6 +88,7 @@ export default class Xapi extends XapiBase {
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
+    this._twinstorSyncTimeout = parseDuration(twinstorSyncTimeout)
     this._vmEvacuationConcurrency = vmEvacuationConcurrency
     this._vmShutdownTimeout = parseDuration(vmShutdownTimeout)
 
@@ -341,11 +343,23 @@ export default class Xapi extends XapiBase {
     await this.callAsync('host.power_on', this.getObject(hostId).$ref)
   }
 
-  async rebootHost(hostId, force = false) {
+  async rebootHost(hostId, force = false, { bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
 
-    await this.clearHost(host, force)
+    await this._assertTwinstorSyncedAround(hostId, bypassTwinstorCheck, () => this.clearHost(host, force))
     await this.callAsync('host.reboot', host.$ref)
+  }
+
+  // Guard the shared implementation rather than its callers: both the legacy
+  // API and the REST API reach `host_smartReboot` directly.
+  //
+  // Checked once only, unlike rebootHost: the suspend phase this would have to
+  // straddle is inside the implementation, in another package.
+  async host_smartReboot(ref, bypassBlockedSuspend, bypassCurrentVmCheck, bypassTwinstorCheck = false) {
+    if (!bypassTwinstorCheck) {
+      await this.assertTwinstorSynced()
+    }
+    return super.host_smartReboot(ref, bypassBlockedSuspend, bypassCurrentVmCheck)
   }
 
   async setRemoteSyslogHost(hostId, syslogDestination) {
@@ -360,13 +374,15 @@ export default class Xapi extends XapiBase {
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  async shutdownHost(hostId, { force = false, bypassEvacuate = false } = {}) {
+  async shutdownHost(hostId, { force = false, bypassEvacuate = false, bypassTwinstorCheck = force } = {}) {
     const host = this.getObject(hostId)
-    if (bypassEvacuate) {
-      await this.call('host.disable', host.$ref)
-    } else {
-      await this.clearHost(host, force)
-    }
+    await this._assertTwinstorSyncedAround(hostId, bypassTwinstorCheck, async () => {
+      if (bypassEvacuate) {
+        await this.call('host.disable', host.$ref)
+      } else {
+        await this.clearHost(host, force)
+      }
+    })
     await this.callAsync('host.shutdown', host.$ref)
   }
 
