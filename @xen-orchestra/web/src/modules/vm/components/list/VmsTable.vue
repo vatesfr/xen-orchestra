@@ -45,7 +45,7 @@ const {
   error?: boolean
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
@@ -66,7 +66,20 @@ const { HeadCells, BodyCells } = useVmColumns({
   exclude: ['checkbox'],
   body: (vm: VmDisplayData) => {
     return {
-      vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon }),
+      vm: r =>
+        r({
+          label: vm.name_label,
+          to: `/vm/${vm.id}/dashboard`,
+          icon: vm.vmIcon,
+          // object of a disconnected pool, kept by XO but possibly outdated
+          rightIcon:
+            vm.$lastSeen === undefined
+              ? undefined
+              : {
+                  icon: 'status:warning-circle',
+                  tooltip: t('pool-disconnected-last-seen', { time: d(vm.$lastSeen, 'datetime_short') }),
+                },
+        }),
       ipAddresses: r => r(vm.ipAddresses),
       vcpus: r => r(vm.CPUs.number),
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),

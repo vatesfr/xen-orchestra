@@ -5,6 +5,7 @@
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <SrHeader v-if="uiStore.hasUi" :sr :scope />
+    <StaleObjectBanner :object="sr" />
     <component :is="Component" :sr />
   </RouterView>
 </template>
@@ -16,6 +17,7 @@ import {
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { parseSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
+import StaleObjectBanner from '@/shared/components/stale-object/StaleObjectBanner.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
