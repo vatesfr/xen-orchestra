@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Community support
 
 We do our best to assist users running Xen Orchestra from the sources on [our community forum](https://xcp-ng.org/forum/category/12/xen-orchestra) (you can also chat with the community on [Discord](https://discord.gg/Hr98F6wRvx)). However there's no guarantee you will receive a solution (from us or the community), nor any guarantee on a timeframe. Usually we are responsive, but keep in mind that if you need production level support, you should consider subscribing to our [XOA offers](https://vates.tech/pricing-and-support/).

@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Users
 
 <InterfaceNote>This page describes user management in the XO 5 interface. XO 6 currently lists users (with their groups and tokens); creating and editing them still happens here.</InterfaceNote>

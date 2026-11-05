@@ -1,5 +1,6 @@
 ---
 sidebar_label: RBAC
+sidebar_position: 2
 ---
 
 # RBAC: Role-Based Access Control

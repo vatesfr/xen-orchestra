@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # Backup proxies
 
 A Xen Orchestra proxy is a small appliance you deploy in your infrastructure to handle the data streams of your backup jobs locally, while your main Xen Orchestra appliance (XOA) keeps orchestrating everything. The two most common reasons to use a proxy are:

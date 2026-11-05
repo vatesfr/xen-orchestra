@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Bundles and licences
 
 The following resources are available in the Vates VMS documentation:
