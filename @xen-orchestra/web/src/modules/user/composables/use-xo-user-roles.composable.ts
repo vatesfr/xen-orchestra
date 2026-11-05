@@ -8,7 +8,7 @@ export type UserRole = FrontXoRole & {
   inheritedFromGroups: FrontXoGroup[]
 }
 
-export function getUserRoles(user: FrontXoUser, roles: FrontXoRole[], userGroups: FrontXoGroup[]): UserRole[] {
+function getUserRoles(user: FrontXoUser, roles: FrontXoRole[], userGroups: FrontXoGroup[]): UserRole[] {
   return roles.flatMap(role => {
     const isDirect = role.userIds.includes(user.id)
 
