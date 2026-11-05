@@ -66,7 +66,7 @@ export function usePoolEnhancedData(rawServers: MaybeRefOrGetter<FrontXoServer[]
 
     return {
       ...pool,
-      poolIcon: pool.poolName ? icon('object:pool') : undefined,
+      poolIcon: getPoolInfo(pool).icon,
       hostIcon,
       primaryHostIcon: hostIcon,
       primaryHostRightIcon,

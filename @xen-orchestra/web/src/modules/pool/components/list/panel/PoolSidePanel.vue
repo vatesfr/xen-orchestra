@@ -19,13 +19,20 @@
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
-        <UiPanelCard v-if="server.error === undefined">
+        <UiAlert v-if="server.error !== undefined" accent="danger">
+          {{ t('connection-failed') }}
+          <template #description>
+            {{ t('unable-to-connect-to-the-pool') }}
+          </template>
+        </UiAlert>
+        <UiPanelCard v-if="poolInfo?.label">
           <UiPanelCardTitle
-            :id="server.id"
+            :id="server.poolId"
             size="medium"
-            :label="server.poolNameLabel ?? server.label"
-            :to="poolRoute"
-            icon="object:pool"
+            :label="poolInfo.label"
+            :to="poolInfo.to"
+            :icon="poolInfo.icon"
+            :disabled="!isConnected"
           />
           <div class="content">
             <!-- Description -->
@@ -50,12 +57,6 @@
             </VtsCardRowKeyValue>
           </div>
         </UiPanelCard>
-        <UiAlert v-else accent="danger">
-          {{ t('connection-failed') }}
-          <template #description>
-            {{ t('unable-to-connect-to-the-pool') }}
-          </template>
-        </UiAlert>
         <UiPanelCard>
           <UiPanelCardTitle size="medium" :label="t('connection')" />
           <!-- status -->
@@ -142,6 +143,7 @@ import PoolConnectionToggleButton from '@/modules/pool/components/actions/connec
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
 import PoolForgetButton from '@/modules/pool/components/actions/forget/PoolForgetButton.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -178,12 +180,14 @@ const pool = useGetPoolById(() => server?.poolId)
 const primaryHost = useGetHostById(() => server?.master)
 const hosts = computed(() => (server?.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
-const poolRoute = computed(() =>
-  server?.poolId !== undefined ? { name: '/pool/[id]/dashboard', params: { id: server.poolId } } : undefined
-)
+const poolInfo = computed(() => (server ? getPoolInfo(server) : undefined))
+
+const connectionState = computed(() => (server ? (server.error ? 'error' : server.status) : 'error'))
+
+const isConnected = computed(() => connectionState.value === 'connected')
 
 const connectionStatus = useMapper(
-  () => (server ? (server.error ? 'error' : server.status) : 'error'),
+  connectionState,
   {
     error: { accent: 'danger', text: t('unable-to-connect-to-the-pool') },
     disconnected: { accent: 'muted', text: t('disconnected') },
