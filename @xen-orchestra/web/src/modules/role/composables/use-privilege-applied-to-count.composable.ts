@@ -8,7 +8,7 @@ import { computed, type MaybeRefOrGetter } from 'vue'
 export function usePrivilegeAppliedToCount(privilegeRaw: MaybeRefOrGetter<NewPrivilegePayload>) {
   const privilege = toComputed(privilegeRaw)
 
-  const scopeType = computed(() => getPrivilegeScopeType(privilege.value.selector))
+  const scopeType = computed(() => getPrivilegeScopeType(privilege.value.resource, privilege.value.selector))
 
   const selectableResource = computed(() =>
     isSelectablePrivilegeResource(privilege.value.resource) ? privilege.value.resource : undefined

@@ -69,10 +69,17 @@ export function getAvailablePrivilegeScopeTypes(resource: PrivilegeResource | un
   return [...PRIVILEGE_SCOPE_TYPES]
 }
 
-export function getPrivilegeScopeType(selector: string | undefined): PrivilegeScopeType {
+export function getPrivilegeScopeType(
+  resource: PrivilegeResource | undefined,
+  selector: string | undefined
+): PrivilegeScopeType {
   if (selector === undefined) {
     return 'all-objects'
   }
 
-  return parseManualSelectionSelector(selector) === undefined ? 'dynamic-selection' : 'manual-selection'
+  const isManualSelection =
+    getAvailablePrivilegeScopeTypes(resource).includes('manual-selection') &&
+    parseManualSelectionSelector(selector) !== undefined
+
+  return isManualSelection ? 'manual-selection' : 'dynamic-selection'
 }

@@ -38,7 +38,7 @@ function getErrorContent(error: InputWrapperMessage | undefined) {
 export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undefined) {
   const { t } = useI18n()
 
-  const initialScopeType = getPrivilegeScopeType(privilegeToEdit?.selector)
+  const initialScopeType = getPrivilegeScopeType(privilegeToEdit?.resource, privilegeToEdit?.selector)
 
   const formData = defineFormSteps({
     details: {

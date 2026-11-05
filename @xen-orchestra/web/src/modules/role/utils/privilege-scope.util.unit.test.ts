@@ -1,6 +1,7 @@
 import {
   buildManualSelectionSelector,
   getAvailablePrivilegeScopeTypes,
+  getPrivilegeScopeType,
   parseManualSelectionSelector,
 } from '@/modules/role/utils/privilege-scope.util.ts'
 
@@ -53,5 +54,23 @@ describe('getAvailablePrivilegeScopeTypes', () => {
 
   it('offers only all objects for a resource whose objects cannot be listed', () => {
     expect(getAvailablePrivilegeScopeTypes('vtpm')).toEqual(['all-objects'])
+  })
+})
+
+describe('getPrivilegeScopeType', () => {
+  it('reads a privilege without selector as applying to all objects', () => {
+    expect(getPrivilegeScopeType('vm', undefined)).toBe('all-objects')
+  })
+
+  it('reads an id selector as a manual selection', () => {
+    expect(getPrivilegeScopeType('vm', buildManualSelectionSelector(['vm-1', 'vm-2']))).toBe('manual-selection')
+  })
+
+  it('reads any other selector as a dynamic selection', () => {
+    expect(getPrivilegeScopeType('vm', 'power_state:running')).toBe('dynamic-selection')
+  })
+
+  it('reads an id selector as a dynamic selection for a resource without manual selection', () => {
+    expect(getPrivilegeScopeType('pif', 'id:abc')).toBe('dynamic-selection')
   })
 })

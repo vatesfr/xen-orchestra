@@ -48,7 +48,7 @@ const scopeTypeLabels = usePrivilegeScopeTypeLabels()
 
 const { HeadCells, BodyCells } = usePrivilegeColumns({
   body: (privilege: StagedPrivilege) => {
-    const scopeLabel = computed(() => scopeTypeLabels[getPrivilegeScopeType(privilege.selector)])
+    const scopeLabel = computed(() => scopeTypeLabels[getPrivilegeScopeType(privilege.resource, privilege.selector)])
 
     const appliedToCount = usePrivilegeAppliedToCount(privilege)
 
