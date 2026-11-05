@@ -1,7 +1,7 @@
 import type {
   FrontAnyXoBackupJob,
   useXoBackupJobCollection,
-} from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
@@ -26,7 +26,7 @@ vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
 }))
 
-vi.mock(import('@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'), () => ({
+vi.mock(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
   useXoBackupJobCollection: (() => ({
     backupJobs: ref(backupJobs.value),
   })) as unknown as typeof useXoBackupJobCollection,

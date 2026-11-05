@@ -366,6 +366,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/form-error-summary/vts-form-error-summary': RouteRecordInfo<
+      '/story/web-core/form-error-summary/vts-form-error-summary',
+      '/story/web-core/form-error-summary/vts-form-error-summary',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/input-wrapper/vts-input-wrapper': RouteRecordInfo<
       '/story/web-core/input-wrapper/vts-input-wrapper',
       '/story/web-core/input-wrapper/vts-input-wrapper',
@@ -404,6 +411,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/legend-group/vts-legend-group': RouteRecordInfo<
       '/story/web-core/legend-group/vts-legend-group',
       '/story/web-core/legend-group/vts-legend-group',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-action-items': RouteRecordInfo<
+      '/story/web-core/menu/vts-action-items',
+      '/story/web-core/menu/vts-action-items',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1010,6 +1024,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/vif/[uuid]/edit': RouteRecordInfo<
+      '/vif/[uuid]/edit',
+      '/vif/:uuid/edit',
+      { uuid: ParamValue<true> },
+      { uuid: ParamValue<false> },
+      | never
+    >,
     '/vif/new': RouteRecordInfo<
       '/vif/new',
       '/vif/new',
@@ -1406,6 +1427,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/form-error-summary/vts-form-error-summary.story.vue': {
+      routes:
+        | '/story/web-core/form-error-summary/vts-form-error-summary'
+      views:
+        | never
+    }
     'src/stories/web-core/input-wrapper/vts-input-wrapper.story.vue': {
       routes:
         | '/story/web-core/input-wrapper/vts-input-wrapper'
@@ -1439,6 +1466,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/legend-group/vts-legend-group.story.vue': {
       routes:
         | '/story/web-core/legend-group/vts-legend-group'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-action-items.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-action-items'
       views:
         | never
     }
@@ -1955,6 +1988,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/user-logo/user-logo.story.vue': {
       routes:
         | '/story/web-core/ui/user-logo/user-logo'
+      views:
+        | never
+    }
+    'src/pages/vif/[uuid]/edit.vue': {
+      routes:
+        | '/vif/[uuid]/edit'
       views:
         | never
     }

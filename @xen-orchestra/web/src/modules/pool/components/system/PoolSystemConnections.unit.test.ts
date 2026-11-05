@@ -3,7 +3,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import type { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createServer } from '@/test/create-server.ts'
-import { findCopiedValues } from '@/test/find-labelled-values.ts'
+import { findCopiedValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'

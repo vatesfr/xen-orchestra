@@ -34,50 +34,56 @@ function mountHostUtils(overrides: Partial<FrontXoHost> = {}) {
   }).wrapper.vm
 }
 
-describe('getHostStatus', () => {
+describe('getHostStateDisplay', () => {
   it('maps the running state to its label and running-circle icon', () => {
-    const { getHostStatus, t } = mountHostUtils()
+    const { getHostStateDisplay, t } = mountHostUtils()
 
-    expect(getHostStatus('running')).toEqual({
+    expect(getHostStateDisplay('running')).toEqual({
       text: t('host:status:running'),
       icon: 'status:running-circle',
     })
   })
 
   it('maps the halted state to its label and halted-circle icon', () => {
-    const { getHostStatus, t } = mountHostUtils()
+    const { getHostStateDisplay, t } = mountHostUtils()
 
-    expect(getHostStatus('halted')).toEqual({
+    expect(getHostStateDisplay('halted')).toEqual({
       text: t('host:status:halted'),
       icon: 'status:halted-circle',
     })
   })
 
   it('maps the disabled state to its label and disabled-circle icon', () => {
-    const { getHostStatus, t } = mountHostUtils()
+    const { getHostStateDisplay, t } = mountHostUtils()
 
-    expect(getHostStatus('disabled')).toEqual({
+    expect(getHostStateDisplay('disabled')).toEqual({
       text: t('host:status:disabled'),
       icon: 'status:host-disabled-circle',
     })
   })
 
   it('maps the unknown state to its label and no icon', () => {
-    const { getHostStatus, t } = mountHostUtils()
+    const { getHostStateDisplay, t } = mountHostUtils()
 
-    expect(getHostStatus('unknown')).toEqual({ text: t('host:status:unknown'), icon: undefined })
+    expect(getHostStateDisplay('unknown')).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 
   it('falls back to the unknown entry for an out-of-range value', () => {
-    const { getHostStatus, t } = mountHostUtils()
+    const { getHostStateDisplay, t } = mountHostUtils()
 
     const outOfRangeState = 'Suspended' as XoHostState
 
-    expect(getHostStatus(outOfRangeState)).toEqual({ text: t('host:status:unknown'), icon: undefined })
+    expect(getHostStateDisplay(outOfRangeState)).toEqual({ text: t('host:status:unknown'), icon: undefined })
   })
 })
 
-describe('getRelativeStartTime', () => {
+describe('relativeStartTime', () => {
+  it('is undefined when the host has no start time', () => {
+    const { relativeStartTime } = mountHostUtils({ startTime: null })
+
+    expect(relativeStartTime).toBeUndefined()
+  })
+
   it('reports the start time relative to now, reading it as seconds', () => {
     const startTimeInSeconds = 1660000000
 
@@ -85,7 +91,7 @@ describe('getRelativeStartTime', () => {
       const { locale } = useI18n()
 
       return {
-        relativeStartTime: useXoHostUtils(createHost()).getRelativeStartTime(startTimeInSeconds),
+        relativeStartTime: useXoHostUtils(createHost({ startTime: startTimeInSeconds })).relativeStartTime,
         expectedRelativeTime: getRelativeTime(new Date(startTimeInSeconds * 1000), locale.value),
       }
     })
