@@ -79,6 +79,8 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   getItemId: user => user.id,
 })
 
+const hasNoDirectUserOnPage = computed(() => paginatedUsers.value.every(user => !user.isDirect))
+
 const selectedUsers = computed(() => users.filter(user => selectedIds.value.includes(user.id)))
 
 const {
@@ -91,7 +93,7 @@ const {
 const { HeadCells, BodyCells } = useUserColumns({
   exclude: ['providers'],
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => r(pageSelectionModel, { disabled: hasNoDirectUserOnPage.value }),
   }),
   body: (user: FilterableUser<RoleUser>) => {
     const {
