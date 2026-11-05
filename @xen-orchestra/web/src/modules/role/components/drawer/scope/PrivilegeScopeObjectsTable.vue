@@ -30,7 +30,6 @@ import { usePrivilegeScopeObjectColumns } from '@core/tables/column-sets/privile
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { useI18n } from 'vue-i18n'
 
-// For the resources without a dedicated table in XO 6: the objects are only listed by name.
 const { tableId, objects, isReady, hasError, emptyMessage } = defineProps<{
   tableId: string
   objects: PrivilegeScopeObject[]

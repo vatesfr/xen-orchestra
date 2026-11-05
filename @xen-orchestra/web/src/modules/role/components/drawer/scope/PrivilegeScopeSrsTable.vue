@@ -39,7 +39,6 @@ import { useI18n } from 'vue-i18n'
 
 const selectedIds = defineModel<string[]>('selectedIds', { required: true })
 
-// A privilege is not bound to a pool or a host, so the SRs are shown as on the pool storage page.
 const SCOPE: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
 const { t } = useI18n()

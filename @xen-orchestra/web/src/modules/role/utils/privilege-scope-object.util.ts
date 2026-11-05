@@ -40,7 +40,6 @@ export function toPoolScopeObject(pool: FrontXoPool): PrivilegeScopeObject {
   }
 }
 
-// A privilege is not bound to a pool or a host, so the SR is shown with the status of all its PBDs.
 export function toSrScopeObject(sr: FrontXoSr, pbds: FrontXoPbd[]): PrivilegeScopeObject {
   return {
     id: sr.id,

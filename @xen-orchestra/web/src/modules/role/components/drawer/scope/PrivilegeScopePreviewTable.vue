@@ -32,7 +32,6 @@ const { resource, matches, isReady, hasError } = defineProps<{
   hasError: boolean
 }>()
 
-// The matches only carry a name: the scope objects provide the icon and the link of each of them.
 const { objects, isReady: areObjectsReady } = usePrivilegeScopeObjects(() => resource)
 
 const objectsById = computed(() => new Map(objects.value.map(object => [object.id, object])))

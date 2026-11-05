@@ -63,7 +63,6 @@ export const useXoPrivilegeSelectorMatchesCollection = defineRemoteResource({
 
     const url = resource === 'backup-archive' ? `${baseUrl}&backup-repository=*` : baseUrl
 
-    // An empty selector lists every object of the resource, as a privilege without selector applies to them all.
     return selector === '' ? url : `${url}&filter=${encodeURIComponent(selector)}`
   },
 

@@ -36,7 +36,6 @@ export function useNewRolePrivileges() {
 
     const index = privileges.value.findIndex(({ key }) => key === privilege.key)
 
-    // Editing can turn a single privilege into several, since one action makes one privilege.
     privileges.value.splice(index, 1, ...stagePrivileges(response.payload))
   }
 

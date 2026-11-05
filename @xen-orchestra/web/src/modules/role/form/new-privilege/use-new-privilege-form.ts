@@ -21,8 +21,6 @@ import type { XoAclBasePrivilege } from '@vates/types'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// `useField` shapes the error for input wrappers, which the query builder and the scope tables are not:
-// they only need the raw text to display it themselves.
 function getErrorContent(error: InputWrapperMessage | undefined) {
   if (typeof error === 'string') {
     return error
@@ -147,8 +145,6 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
     isEnabled: isSelectorPreviewEnabled,
   })
 
-  // The available actions, the properties a selector can be built on and the selectable objects all
-  // depend on the resource, so a resource change invalidates them.
   watch(
     () => formData.details.resource,
     () => {
@@ -192,7 +188,6 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
 
     const selector = buildSelector()
 
-    // A privilege carries a single action, so a multi-action selection yields one privilege per action.
     return actions.map((action: PrivilegeAction) => ({ resource, action, effect, selector }))
   }
 

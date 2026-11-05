@@ -4,7 +4,6 @@ import { type MaybeRefOrGetter, type Ref, toValue, watch } from 'vue'
 
 type SelectableObject = { id: string }
 
-// Binds the rows selection of a scope table to the ids of the manual selection.
 export function usePrivilegeScopeSelection(config: {
   selectedIds: Ref<string[]>
   items: MaybeRefOrGetter<SelectableObject[]>
