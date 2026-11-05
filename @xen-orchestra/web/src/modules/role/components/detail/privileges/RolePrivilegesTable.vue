@@ -3,6 +3,7 @@
     <UiTitle>
       {{ t('privileges') }}
     </UiTitle>
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <VtsTable :state :pagination-bindings sticky="right">
       <thead>
         <tr>
@@ -24,10 +25,12 @@
 
 <script lang="ts" setup>
 import { usePrivilegeAppliedToCount } from '@/modules/role/composables/use-privilege-applied-to-count.composable.ts'
+import { usePrivilegeQueryBuilder } from '@/modules/role/composables/use-privilege-query-builder.composable.ts'
 import { usePrivilegeScopeTypeLabels } from '@/modules/role/composables/use-privilege-scope-type-labels.composable.ts'
 import type { FrontXoPrivilege } from '@/modules/role/remote-resources/use-xo-role-privileges-collection.ts'
 import { getPrivilegeScopeType } from '@/modules/role/utils/privilege-scope.util.ts'
 import { EFFECT_ACCENTS } from '@/modules/role/utils/xo-privilege.util.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -47,13 +50,20 @@ const { t } = useI18n()
 
 const selectedPrivilegeId = useRouteQuery('id')
 
+const { items: filteredPrivileges, filter, schema } = usePrivilegeQueryBuilder('role-privileges', () => privileges)
+
 const state = useTableState({
   busy: () => busy,
   error: () => error,
-  empty: () => (privileges.length === 0 ? t('no-privilege-attached') : false),
+  empty: () =>
+    privileges.length === 0
+      ? t('no-privilege-attached')
+      : filteredPrivileges.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
-const { pageRecords: paginatedPrivileges, paginationBindings } = usePagination('role-privileges', () => privileges)
+const { pageRecords: paginatedPrivileges, paginationBindings } = usePagination('role-privileges', filteredPrivileges)
 
 const scopeTypeLabels = usePrivilegeScopeTypeLabels()
 
