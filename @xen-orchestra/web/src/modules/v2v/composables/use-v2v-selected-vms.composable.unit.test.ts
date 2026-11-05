@@ -265,20 +265,10 @@ describe('readinessTags', () => {
 })
 
 describe('lockSummary', () => {
-  it('locks the source and the pool while the list holds VMs', async () => {
+  it('names the source and the pool of the list', async () => {
     const { result } = await mountSelectedVms()
 
-    expect(result.lockSummary).toEqual({
-      sourceHost: createV2vConnection().host,
-      poolName: POOL.name_label,
-      isLocked: true,
-    })
-  })
-
-  it('unlocks them once the list is empty', async () => {
-    const { result } = await mountSelectedVms({ list: EMPTY_LIST })
-
-    expect(result.lockSummary.isLocked).toBe(false)
+    expect(result.lockSummary).toEqual({ sourceHost: createV2vConnection().host, poolName: POOL.name_label })
   })
 
   it('names no pool while the pools load', async () => {
@@ -294,7 +284,7 @@ describe('lockSummary', () => {
   it('names no pool before one is chosen', async () => {
     const { result } = await mountSelectedVms({ pool: null })
 
-    expect(result.lockSummary).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined, isLocked: false })
+    expect(result.lockSummary).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined })
   })
 })
 

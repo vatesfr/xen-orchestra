@@ -19,5 +19,5 @@ export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2v
 }
 
 export function createV2vListLock(overrides: Partial<V2vListLock> = {}): V2vListLock {
-  return { sourceHost: createV2vConnection().host, poolName: DISKOR_POOL_NAME, isLocked: true, ...overrides }
+  return { sourceHost: createV2vConnection().host, poolName: DISKOR_POOL_NAME, ...overrides }
 }

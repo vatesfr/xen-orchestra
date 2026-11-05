@@ -41,7 +41,6 @@ export type V2vSelectedVm = {
 export type V2vListLock = {
   sourceHost?: string
   poolName?: string
-  isLocked: boolean
 }
 
 export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }: V2vSelectedVmsContext) {
@@ -118,9 +117,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     return getReadinessTags(countOccurrences(V2V_READINESS_LEVELS, levels))
   })
 
-  const lockSummary = computed(
-    (): V2vListLock => ({ sourceHost: sourceHost.value, poolName: poolName.value, isLocked: !isEmpty.value })
-  )
+  const lockSummary = computed((): V2vListLock => ({ sourceHost: sourceHost.value, poolName: poolName.value }))
 
   // One confirmation for removing one VM or all of them: either way, only the list changes
   async function confirmListChange(subject: string, confirmLabel: string) {

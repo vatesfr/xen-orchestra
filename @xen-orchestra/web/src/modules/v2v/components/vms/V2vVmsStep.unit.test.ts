@@ -257,7 +257,7 @@ describe('selected VMs', () => {
       isEmpty: false,
       isBusy: false,
       readinessTags: [{ label: t('n-ready', { n: 1 }), accent: 'success' }],
-      lockSummary: { sourceHost: SOURCE_HOST, poolName: POOL.name_label, isLocked: true },
+      lockSummary: { sourceHost: SOURCE_HOST, poolName: POOL.name_label },
     })
     expect(findPanelItemIds(wrapper)).toEqual([V2V_LISTED_VM.id])
   })
