@@ -27,14 +27,77 @@ const MOVED_TO_SOURCES = new Set([
  */
 const MOVED_FROM_XOA: Record<string, string> = {
   firewall: '/getting-started/configuration#firewall',
-  timezone: '/configuration#timezone',
-  'setting-a-custom-ntp-server': '/configuration#setting-a-custom-ntp-server',
-  'restart-the-service': '/configuration#restart-the-service',
-  'technical-support': '/getting-started/troubleshooting#still-stuck',
-  'xoa-check': '/troubleshooting#first-reflex-xoa-check',
-  'support-tunnel': '/troubleshooting#support-tunnel',
-  'ssh-pro-support': '/troubleshooting#support-tunnel',
-  'migrate-from-an-older-xoa': '/getting-started/migrate_to_new_xoa',
+  timezone: '/getting-started/configuration#timezone',
+  'setting-a-custom-ntp-server': '/getting-started/configuration#setting-a-custom-ntp-server',
+  'restart-the-service': '/getting-started/configuration#restart-the-service',
+  'technical-support': '/support-and-reference/troubleshooting#still-stuck',
+  'xoa-check': '/support-and-reference/troubleshooting#first-reflex-xoa-check',
+  'support-tunnel': '/support-and-reference/troubleshooting#support-tunnel',
+  'ssh-pro-support': '/support-and-reference/troubleshooting#support-tunnel',
+  'migrate-from-an-older-xoa': 'https://docs.vates.tech/kb/vkb-1031/',
+}
+
+/**
+ * Sections that moved to another page, keyed by the page they left.
+ * Redirects from older URLs of these pages keep the hash, so this also
+ * covers them.
+ */
+const MOVED_SECTIONS: Record<string, Record<string, string>> = {
+  '/getting-started/installation': {
+    'xoa-vm-specifications': '/getting-started/requirements#xoa-vm-specifications',
+    sizing: '/getting-started/requirements#sizing',
+    'from-the-sources': '/getting-started/install-from-sources',
+  },
+  '/getting-started/configuration': {
+    'using-xo-5-as-the-default-interface': '/getting-started/installation#change-the-default-interface',
+    'temporary-switch-to-xo-5': '/getting-started/installation#temporary-switch-to-xo-5',
+    'making-xo-5-the-default-ui': '/getting-started/installation#making-xo-5-the-default-ui',
+    'apply-the-changes': '/getting-started/installation#apply-the-changes',
+  },
+  '/whats-new/whatsnew': {
+    highlights: '/whats-new/xo6vsxo5#xo-6-highlights',
+  },
+  // The authentication section moved to its own page, with the same anchors.
+  '/security/user-management/users': Object.fromEntries(
+    [
+      'built-in',
+      'otp-authentication-2fa',
+      'enabling-totp',
+      'disabling-totp',
+      'ldap',
+      'common-ldap-filters',
+      'group-synchronization',
+      'troubleshooting',
+      'openid-connect',
+      'overview',
+      'prerequisites',
+      'user-workflow',
+      'log-in-with-openid-connect',
+      'administrator-guide',
+      'set-up-the-openid-connect-plugin',
+      'required-configuration',
+      'advanced-configuration-optional',
+      'save-and-activate-the-plugin',
+      'enabling-passkeys-in-xoa-with-keycloak',
+      'generating-certificates',
+      'trust-the-keycloak-cert-in-xoa',
+      'configuring-keycloak',
+      'sample',
+      'saml',
+      'configuration',
+      'vendor-specific',
+      'google-workspace---saml-supportgooglecom',
+      'github',
+      'google',
+      'creating-the-google-project',
+      'configure-the-xo-plugin',
+    ].map(anchor => [anchor, `/security/user-management/authentication-providers#${anchor}`])
+  ),
+  '/core-concepts/coreconcepts': {
+    'dashboards-at-every-level': '/core-concepts/coreconcepts/dashboards',
+    'tabs-tables-and-the-side-panel': '/core-concepts/coreconcepts/tabs-tables-side-panel',
+    'tasks-everything-is-tracked': '/core-concepts/coreconcepts/tasks',
+  },
 }
 
 /**
@@ -60,12 +123,16 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   const path = location.pathname.replace(/\/+$/, '')
   const anchor = location.hash.replace(/^#/, '')
   if (path === '/getting-started/installation' && MOVED_TO_SOURCES.has(anchor)) {
-    window.location.replace(`/install-from-sources#${anchor}`)
+    window.location.replace(`/getting-started/install-from-sources#${anchor}`)
   }
   if (path === '/getting-started/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
   }
-  if (path === '/support-and-licencing/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+  if (path === '/support-and-reference/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
+  }
+  const movedSection = MOVED_SECTIONS[path]?.[anchor]
+  if (movedSection !== undefined) {
+    window.location.replace(movedSection)
   }
 }

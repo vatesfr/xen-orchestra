@@ -1,10 +1,10 @@
 ---
-sidebar_position: 1
+sidebar_position: 6
 ---
 
 # Releases
 
-Xen Orchestra is distributed in two ways: as a turnkey virtual appliance (**XOA**) and **from the sources** on GitHub. Both contain the same Xen Orchestra, including its two web interfaces ([XO 6 and XO 5](../discover-xen-orchestra/xo6vsxo5.md)), the REST API and the backup engine.
+Xen Orchestra is distributed in two ways: as a turnkey virtual appliance (**XOA**) and **from the sources** on GitHub. Both contain the same Xen Orchestra, including its two web interfaces ([XO 6 and XO 5](../whats-new/xo6vsxo5.md)), the REST API and the backup engine.
 
 ## XOA, the appliance
 
@@ -17,7 +17,7 @@ XOA (**X**en **O**rchestra virtual **A**ppliance) is the pre-installed VM, and t
 - extra services (XO Hub, recipes, advanced metrics)
 - a secured system (sudo, firewall)
 
-Deploying one is trivial: see the [XOA install section](installation.md#xoa).
+Deploying one is trivial: see the [XOA install section](installation/xoa.md#xoa).
 
 :::tip
 Whatever your future usage, try XOA first: it is the easiest way to test everything, and the only way to get professional support.
@@ -36,7 +36,7 @@ Switching channels is done from the Updates view, without redeploying anything.
 
 ## From the sources
 
-Xen Orchestra is fully open source, and you can [install it from the sources](install-from-sources.md). In that case there are no releases to speak of: **stay on `master`**, and update before reporting anything:
+Xen Orchestra is fully open source, and you can [install it from the sources](installation/install-from-sources.md). In that case there are no releases to speak of: **stay on `master`**, and update before reporting anything:
 
 <Terminal shell title="xo — updating an installation from the sources">{`
 cd xen-orchestra

@@ -14,8 +14,8 @@ The two replication job types now have clearer names, but the XO 5 screens below
 
 | Current name                                                       | Former name, still shown in XO 5 |
 | ------------------------------------------------------------------ | -------------------------------- |
-| [Full replication](./backup-types/full_replication.md)                          | Disaster Recovery (DR)           |
-| [Incremental replication](./backup-types/incremental_replication.md)               | Continuous Replication (CR)      |
+| [Full replication](../replication/full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](../replication/incremental_replication.md)               | Continuous Replication (CR)      |
 
 Nothing changed in behaviour: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
 :::

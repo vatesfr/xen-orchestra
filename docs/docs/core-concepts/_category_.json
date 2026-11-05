@@ -1,0 +1,9 @@
+{
+  "label": "Core concepts",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/core-concepts",
+    "description": "How Xen Orchestra is built and how XO 6 is organized"
+  }
+}

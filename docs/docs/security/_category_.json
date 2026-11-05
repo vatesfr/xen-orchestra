@@ -1,0 +1,9 @@
+{
+  "label": "Security",
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/security",
+    "description": "Users, access rights and the security of your Xen Orchestra"
+  }
+}
