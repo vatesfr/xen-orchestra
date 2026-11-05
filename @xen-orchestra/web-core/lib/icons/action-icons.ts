@@ -4,10 +4,12 @@ import { faCopy, faSquare as checkboxEmpty, type IconDefinition } from '@fortawe
 import {
   faAdd,
   faArrowCircleRight,
+  faArrowDown,
   faArrowDownLong,
   faArrowRight,
   faArrowRotateLeft,
   faArrowRotateRight,
+  faArrowUp,
   faArrowUpLong,
   faArrowUpRightFromSquare,
   faBan,
@@ -148,6 +150,8 @@ export const actionIcons = defineIconPack({
   forget: constructIcon(faEraser),
   delete: { icon: faTrash, color: 'var(--color-danger-txt-primary)' },
   'more-actions': constructIcon(faEllipsis),
+  'move-down': constructIcon(faArrowDown),
+  'move-up': constructIcon(faArrowUp),
   'more-actions-vertical': {
     icon: faEllipsis,
     color: 'var(--color-neutral-txt-primary)',
