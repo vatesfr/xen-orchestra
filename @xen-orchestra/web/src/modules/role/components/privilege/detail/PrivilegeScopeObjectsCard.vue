@@ -7,7 +7,7 @@
       :resource
       :matches="appliedToMatches"
       :is-ready="appliedToIds !== undefined"
-      :has-error="false"
+      :has-error="hasAppliedToIdsError"
     />
   </UiCard>
 </template>
@@ -30,7 +30,7 @@ const { privilege } = defineProps<{
 
 const { t } = useI18n()
 
-const appliedToIds = usePrivilegeAppliedToIds(() => privilege)
+const { appliedToIds, hasAppliedToIdsError } = usePrivilegeAppliedToIds(() => privilege)
 
 const appliedToMatches = computed<PrivilegeSelectorMatch[]>(() =>
   (appliedToIds.value ?? []).map(id => ({ id, name: id }))
