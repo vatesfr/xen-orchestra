@@ -69,7 +69,7 @@ const state = useTableState({
   busy: () => busy,
   error: () => error,
   empty: () =>
-    users.length === 0 ? t('no-user-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
+    users.length === 0 ? t('no-user-attached') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
