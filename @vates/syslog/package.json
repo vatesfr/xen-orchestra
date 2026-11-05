@@ -1,0 +1,33 @@
+{
+  "private": false,
+  "name": "@vates/syslog",
+  "description": "Syslog client: RFC 5424 messages over UDP, TCP or TLS, with a bounded buffer",
+  "keywords": [
+    "rfc5424",
+    "syslog",
+    "tls"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/syslog",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/syslog",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "split-host": "^2.0.0"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test": "node --test"
+  }
+}

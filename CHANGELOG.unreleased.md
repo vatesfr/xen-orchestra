@@ -11,9 +11,13 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured. Logs are sent as RFC 5424 messages with their namespace as message ID (`format = 'rfc3164'` for the previous format) (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
+
+- [Logs] Fix the syslog transport sending every log with the _informational_ severity, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
 ### Packages to release
 
@@ -31,8 +35,10 @@
 
 <!--packages-start-->
 
+- @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/log minor
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
