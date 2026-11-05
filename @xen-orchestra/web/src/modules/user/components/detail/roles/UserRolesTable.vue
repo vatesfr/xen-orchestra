@@ -79,6 +79,8 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   getItemId: role => role.id,
 })
 
+const hasNoDirectRoleOnPage = computed(() => paginatedRoles.value.every(role => !role.isDirect))
+
 const selectedRoles = computed(() => roles.filter(role => selectedIds.value.includes(role.id)))
 
 const {
@@ -91,7 +93,7 @@ const {
 const { HeadCells, BodyCells } = useRoleColumns({
   exclude: ['users', 'groups'],
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => r(pageSelectionModel, { disabled: hasNoDirectRoleOnPage.value }),
   }),
   body: (role: FilterableRole<UserRole>) => {
     const {
