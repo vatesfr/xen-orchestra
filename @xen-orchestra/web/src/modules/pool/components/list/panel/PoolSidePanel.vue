@@ -20,25 +20,14 @@
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
         <UiPanelCard v-if="server.error === undefined">
-          <UiPanelCardTitle :id="server.id" size="medium" :label="server.label" icon="object:pool" />
+          <UiPanelCardTitle
+            :id="server.id"
+            size="medium"
+            :label="server.poolNameLabel ?? server.label"
+            :to="poolRoute"
+            icon="object:pool"
+          />
           <div class="content">
-            <!-- Pool -->
-            <VtsCardRowKeyValue>
-              <template #key>{{ t('pool') }}</template>
-              <template #value>
-                <UiLink
-                  v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
-                  icon="object:pool"
-                  size="small"
-                  :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
-                >
-                  {{ server.poolNameLabel }}
-                </UiLink>
-              </template>
-              <template v-if="server.poolId !== undefined" #addons>
-                <VtsCopyButton :value="server.poolId" />
-              </template>
-            </VtsCardRowKeyValue>
             <!-- Description -->
             <VtsCardRowKeyValue truncate align-top>
               <template #key>{{ t('description') }}</template>
@@ -164,7 +153,6 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -189,6 +177,10 @@ const { useGetHostById, hostsByPool } = useXoHostCollection()
 const pool = useGetPoolById(() => server?.poolId)
 const primaryHost = useGetHostById(() => server?.master)
 const hosts = computed(() => (server?.poolId ? hostsByPool.value.get(server.poolId) : undefined))
+
+const poolRoute = computed(() =>
+  server?.poolId !== undefined ? { name: '/pool/[id]/dashboard', params: { id: server.poolId } } : undefined
+)
 
 const connectionStatus = useMapper(
   () => (server ? (server.error ? 'error' : server.status) : 'error'),
