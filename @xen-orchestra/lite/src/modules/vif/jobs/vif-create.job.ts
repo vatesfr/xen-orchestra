@@ -16,9 +16,12 @@ export type BaseVifPayload = {
   other_config: Record<string, string>
 }
 
-export type NewVifPayload = BaseVifPayload & {
-  vmRef: XenApiVm['$ref']
+export type VifPayload = BaseVifPayload & {
   network: XenApiNetwork['$ref']
+}
+
+export type NewVifPayload = VifPayload & {
+  vmRef: XenApiVm['$ref']
 }
 
 export const useVifCreateJob = defineJob('vif.create', [newVifPayloadArg], () => {

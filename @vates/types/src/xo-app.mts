@@ -9,11 +9,13 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoPlugin,
   XoPool,
   XoPoolBackupArchive,
   XoProxy,
   XoSchedule,
   XoServer,
+  XoSr,
   XoTask,
   XoUser,
   XoVif,
@@ -175,13 +177,13 @@ export type PoolRollingUpdateRecoveryBlocked = {
 
 export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
 
-/** A disk of a backup archive currently served as a read-only iSCSI LUN */
+/** A disk of a backup archive currently served as an iSCSI LUN */
 export type BackupArchiveDiskMount = {
   /** Handle to pass to `unmountBackupArchiveDisk` */
   id: string
   /** UUID of the SR introduced on the host */
   srUuid: string
-  /** UUID of the read-only VDI exposing the backup disk */
+  /** UUID of the VDI exposing the backup disk, read-only unless it is cached */
   vdiUuid: string
   /** IQN of the target serving the disk */
   iqn: string
@@ -241,12 +243,6 @@ export type XoApp = EventEmitter & {
       }
     }
   }
-
-  /**
-   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
-   * `remove` events carrying the archive and its previous value
-   */
-  vmBackupArchives: EventEmitter
 
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
@@ -347,8 +343,10 @@ export type XoApp = EventEmitter & {
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
+  disablePluginAutoload(id: XoPlugin['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
+  enablePluginAutoload(id: XoPlugin['id']): Promise<void>
   findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
@@ -374,6 +372,8 @@ export type XoApp = EventEmitter & {
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
+  getPlugin(id: XoPlugin['id']): Promise<XoPlugin>
+  getPlugins(): Promise<XoPlugin[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -450,9 +450,13 @@ export type XoApp = EventEmitter & {
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  /** the connection of the pool holding this object, which may not be connected */
+  getXenServerIdByObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type?: T['type'] | T['type'][]): XoServer['id']
+  getXenServerWithCredentials(id: XoServer['id']): Promise<XoServer & { password: string }>
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
@@ -463,18 +467,25 @@ export type XoApp = EventEmitter & {
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
   /**
-   * Serve one disk of a backup archive as a read-only iSCSI LUN and attach it to
-   * `host` as an SR. Undone by `unmountBackupArchiveDisk`.
+   * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
+   * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
    *
    * The LUN is served by whoever can read the backup repository: this appliance, or the proxy the
    * repository is linked to.
    */
   mountBackupArchiveDisk(params: {
     archiveId: XoVmBackupArchive['id']
+    /**
+     * SR of a VDI of the serving appliance, which the disk is materialized into as it is read and
+     * which holds the writes; unset, nothing is cached and the mount is read-only. On a local SR,
+     * the serving appliance must not be migrated while the mount lasts: the VDI cannot follow it
+     */
+    cacheSrId?: XoSr['id']
     /** One of the archive's `disks[].id` */
     diskId: string
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
+  purgePluginConfiguration(id: XoPlugin['id']): Promise<void>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /**
    * Record the live mounts a proxy created by itself, while running a restore: they never went
@@ -515,6 +526,7 @@ export type XoApp = EventEmitter & {
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
+  testPlugin(id: XoPlugin['id'], data?: unknown): Promise<void>
   testRemote(
     id: XoBackupRepository['id']
   ): Promise<
@@ -524,6 +536,7 @@ export type XoApp = EventEmitter & {
   touchXoObject(type: string, id: NonXapiXoRecord['id']): Promise<void>
   /** Detach a disk mounted by `mountBackupArchiveDisk` and stop serving it */
   unmountBackupArchiveDisk(id: BackupArchiveDiskMount['id']): Promise<void>
+  unloadPlugin(id: XoPlugin['id']): Promise<void>
   reclaimSpace(
     remoteId: XoBackupRepository['id'],
     opts?: { vmUuid?: XoVm['id']; merge?: boolean; remove?: boolean }

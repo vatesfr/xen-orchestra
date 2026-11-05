@@ -5,6 +5,7 @@ import {
   useBackupRepositoryGeneralForm,
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -19,8 +20,6 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 }))
 
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
-
-const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 function createGeneralFormData(): BackupRepositoryGeneralFormData {
   return { name: '', type: undefined, backupFormat: undefined, proxy: undefined, encrypted: false, encryptionKey: '' }
@@ -227,12 +226,15 @@ describe('edit mode', () => {
     expect(result.bindings.encrypted.disabled).toBe(true)
   })
 
-  it('locks the type and the format of an encrypted repository, as the encryption requires the block based one', () => {
+  it('locks the type and the format of an encrypted repository', () => {
     expect(findDisabledSelects(ENCRYPTED_NFS_FORM_DATA)).toEqual([t('type'), t('backup-format')])
   })
 
-  it('locks only the type of an unencrypted repository', () => {
-    expect(findDisabledSelects({ name: 'My repository', type: 'nfs', backupFormat: 'block' })).toEqual([t('type')])
+  it('locks the type and the format of an unencrypted repository', () => {
+    expect(findDisabledSelects({ name: 'My repository', type: 'nfs', backupFormat: 'block' })).toEqual([
+      t('type'),
+      t('backup-format'),
+    ])
   })
 
   it('accepts the obfuscated key sent back by the API', async () => {
@@ -245,5 +247,71 @@ describe('edit mode', () => {
     const result = mountEditGeneralForm(ENCRYPTED_NFS_FORM_DATA)
 
     expect(result.buildUrlOptions()).toEqual({ useVhdDirectory: true, encryptionKey: OBFUSCATED_VALUE })
+  })
+})
+
+describe('multi-edit mode', () => {
+  function createMultiEditGeneralForm(
+    formData: Partial<BackupRepositoryGeneralFormData>,
+    mixedFields: (keyof BackupRepositoryGeneralFormData)[] = []
+  ) {
+    return useBackupRepositoryGeneralForm(reactive({ ...createGeneralFormData(), ...formData }), {
+      isEditing: true,
+      isMultiEdit: true,
+      mixedFields,
+    })
+  }
+
+  // The selects display the label of their selected option
+  function findSelectedLabels(
+    formData: Partial<BackupRepositoryGeneralFormData>,
+    mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
+  ) {
+    const wrapper = mount(
+      defineComponent(() => {
+        const { bindings } = createMultiEditGeneralForm(formData, mixedFields)
+
+        return () => h(BackupRepositoryGeneralStep, { bindings })
+      }),
+      { global: createGlobalTestConfig() }
+    )
+
+    return Object.fromEntries(
+      wrapper
+        .findAllComponents(BackupRepositoryFormSelect)
+        .map(select => [select.props('label'), select.getComponent(UiInput).props('modelValue')])
+    )
+  }
+
+  it('shows the mixed value on the type, the format and the proxy which differ between the repositories', () => {
+    expect(findSelectedLabels({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
+      [t('type')]: t('mixed-value'),
+      [t('backup-format')]: t('mixed-value'),
+      [t('proxy')]: t('mixed-value'),
+    })
+  })
+
+  it('shows the values shared by all the repositories', () => {
+    const selectedLabels = findSelectedLabels({
+      name: 'My repository',
+      type: 'nfs',
+      backupFormat: 'block',
+      proxy: null,
+    })
+
+    expect(selectedLabels).toMatchObject({ [t('backup-format')]: t('block-based'), [t('proxy')]: t('none') })
+    expect(selectedLabels[t('type')]).not.toBe(t('mixed-value'))
+  })
+
+  it('removes the proxy of all the repositories with "None"', () => {
+    expect(findSelectedLabels({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
+  })
+
+  it('accepts a type and a format left mixed', async () => {
+    const result = mountComposable(() =>
+      createMultiEditGeneralForm({ name: 'My repository' }, ['type', 'backupFormat'])
+    ).wrapper.vm
+
+    expect(await result.validate()).toBe(true)
   })
 })

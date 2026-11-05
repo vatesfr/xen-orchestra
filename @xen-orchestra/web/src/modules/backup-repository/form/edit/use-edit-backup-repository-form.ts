@@ -27,6 +27,9 @@ export function useEditBackupRepositoryForm(br: FrontXoBackupRepository) {
     {
       isEditing: true,
       detailsInitialData: getBackupRepositoryDetailsInitialData(parsedUrl, br.options),
+      // no field of this form sets it: without this, editing the repository drops it, and the VM backups
+      // cache rebuilds the repository with the default listing interval
+      urlOptionsToKeep: { fullListingInterval: parsedUrl.fullListingInterval },
     }
   )
 

@@ -1,14 +1,13 @@
 import { useEditBackupRepositoryForm } from '@/modules/backup-repository/form/edit/use-edit-backup-repository-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
-
-const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
@@ -83,6 +82,23 @@ describe('validateAndBuildPayload', () => {
 
     expect(payload?.name).toBe('Weekly backups')
     expect(parseBackupRepositoryUrl(payload!.url)).toMatchObject({ host: '192.168.1.20' })
+  })
+
+  it('keeps the listing interval of the URL, which no field of the form sets', async () => {
+    const form = mountEditForm(createBr({ url: 'nfs://192.168.1.10:/exports/backups?fullListingInterval=360' }))
+    form.general.formData.name = 'Weekly backups'
+
+    const payload = await form.validateAndBuildPayload()
+
+    expect(parseBackupRepositoryUrl(payload!.url)).toMatchObject({ fullListingInterval: 360 })
+  })
+
+  it('does not add a listing interval to a repository without one', async () => {
+    const payload = await mountEditForm(
+      createBr({ url: 'nfs://192.168.1.10:/exports/backups' })
+    ).validateAndBuildPayload()
+
+    expect(parseBackupRepositoryUrl(payload!.url)).not.toHaveProperty('fullListingInterval')
   })
 
   it('removes the proxy and the options once they are cleared', async () => {

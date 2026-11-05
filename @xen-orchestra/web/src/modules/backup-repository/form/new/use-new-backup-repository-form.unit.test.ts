@@ -1,6 +1,8 @@
-import { NFS_DEFAULT_PORT } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
-import { SMB_DEFAULT_DOMAIN } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
 import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
+import {
+  NFS_DEFAULT_PORT,
+  SMB_DEFAULT_DOMAIN,
+} from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'

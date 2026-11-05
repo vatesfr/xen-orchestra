@@ -56,6 +56,24 @@ describe('assemblePdu / readPdu round-trip', () => {
 })
 
 describe('readPdu framing', () => {
+  it('rejects a data segment longer than the limit before reading it', async () => {
+    const bhs = allocBhs(InitiatorOpcode.SCSI_COMMAND)
+    bhs.writeUIntBE(16 * 1024 * 1024 - 1, 5, 3) // announced data segment length
+    const stream = new PassThrough()
+    stream.write(bhs) // the announced payload is never sent
+    await assert.rejects(readPdu(stream, 8192), /data segment too long/)
+  })
+
+  it('accepts a data segment of exactly the limit', async () => {
+    const data = Buffer.alloc(8192, 0x5a)
+    const pdu = await (async () => {
+      const stream = new PassThrough()
+      stream.end(buildScsiCommandPdu(1, 1, Buffer.alloc(16), data))
+      return readPdu(stream, 8192)
+    })()
+    assert.deepEqual(pdu?.data, data)
+  })
+
   it('reassembles a PDU split across multiple TCP chunks', async () => {
     const data = Buffer.from('hello world!!') // 13 bytes -> padded to 16
     const wire = buildScsiCommandPdu(7, 7, Buffer.alloc(16), data)

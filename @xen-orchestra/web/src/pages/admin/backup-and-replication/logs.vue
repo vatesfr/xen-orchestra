@@ -2,19 +2,19 @@
   <VtsContentSidePanel>
     <div class="container">
       <UiCard>
-        <AdminBackupLogsTable :backup-logs :busy="!areBackupLogsReady" :error="hasBackupLogFetchError" />
+        <BackupLogsTable :backup-logs :busy="!areBackupLogsReady" :error="hasBackupLogFetchError" />
       </UiCard>
     </div>
 
-    <AdminBackupLogSidePanel :backup-log="selectedBackupLog" @close="selectedBackupLog = undefined" />
+    <BackupLogSidePanel :backup-log="selectedBackupLog" @close="selectedBackupLog = undefined" />
   </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
-import AdminBackupLogsTable from '@/modules/admin-backup-log/components/list/AdminBackupLogsTable.vue'
-import AdminBackupLogSidePanel from '@/modules/admin-backup-log/components/list/panel/AdminBackupLogSidePanel.vue'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
-import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import BackupLogsTable from '@/modules/backup-log/components/list/BackupLogsTable.vue'
+import BackupLogSidePanel from '@/modules/backup-log/components/list/panel/BackupLogSidePanel.vue'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'

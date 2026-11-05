@@ -21,7 +21,15 @@ export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.COPY,
   VM_OPERATIONS.EXPORT,
   VM_OPERATIONS.IMPORT,
+  VM_OPERATIONS.MIGRATE_SEND,
+  VM_OPERATIONS.POOL_MIGRATE,
 ]
+
+export const MIGRATION_OPERATIONS: VM_OPERATIONS[] = [VM_OPERATIONS.MIGRATE_SEND, VM_OPERATIONS.POOL_MIGRATE]
+
+export function isVmMigrationBlocked(vm: FrontXoVm) {
+  return MIGRATION_OPERATIONS.some(operation => vm.blockedOperations[operation] !== undefined)
+}
 
 export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
   const currentOperations = Object.values(vm.current_operations)

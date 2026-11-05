@@ -375,14 +375,15 @@ fn the_disk_stays_readable_across_the_idle_gap() {
     assert!(succeeded, "second read {outcome}; transcript:\n{stderr}");
 }
 
-/// A legacy host is refused at its greeting, the message listing what it announced.
+/// A legacy host prints both thumbprints of one certificate on both ports.
 ///
-/// `fingerprint` reads the port-902 greeting through the parser `serve` uses,
-/// so the refusal is the same and needs neither credentials nor a pin;
+/// `fingerprint` reads the port-902 greeting through the parser `serve` uses
+/// and needs neither credentials nor a pin; reached directly, an ESXi 6.0
+/// host presents the same certificate on both ports.
 /// `VECTURA_LAB_LEGACY_HOST` names the host as `host[:port]`.
 #[test]
 #[ignore = "needs a legacy host in VECTURA_LAB_LEGACY_HOST"]
-fn a_legacy_host_is_refused_at_the_greeting_with_its_capability_list() {
+fn a_legacy_host_is_fingerprinted_with_one_certificate_on_both_ports() {
     let Some(host) = lab("VECTURA_LAB_LEGACY_HOST") else {
         return;
     };
@@ -392,11 +393,19 @@ fn a_legacy_host_is_refused_at_the_greeting_with_its_capability_list() {
         .output()
         .expect("the vectura binary runs");
 
-    let stderr = text(&output.stderr);
-    assert_eq!(output.status.code(), Some(1), "{stderr}");
-    assert!(
-        stderr.contains("does not announce \"SHA256 supported\"; announced: ["),
-        "{stderr}"
-    );
-    report(&format!("legacy host refused: {}", stderr.trim_end()));
+    let stdout = text(&output.stdout);
+    assert_eq!(output.status.code(), Some(0), "{}", text(&output.stderr));
+    let thumbprints = stdout
+        .lines()
+        .map(|line| {
+            line.split_once(' ')
+                .map_or(line, |(_, thumbprint)| thumbprint)
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(thumbprints.len(), 4, "{stdout}");
+    assert_eq!(thumbprints[..2], thumbprints[2..], "{stdout}");
+    report(&format!(
+        "legacy host fingerprinted:\n{}",
+        stdout.trim_end()
+    ));
 }

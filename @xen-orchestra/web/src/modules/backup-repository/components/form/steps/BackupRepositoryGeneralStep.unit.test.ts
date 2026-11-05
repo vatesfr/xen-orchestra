@@ -17,7 +17,7 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
 }))
 
-function mountGeneralStep(formData: Partial<BackupRepositoryGeneralFormData> = {}) {
+function mountGeneralStep(formData: Partial<BackupRepositoryGeneralFormData> = {}, { hideEncryption = false } = {}) {
   const data = reactive<BackupRepositoryGeneralFormData>({
     name: '',
     type: undefined,
@@ -32,7 +32,7 @@ function mountGeneralStep(formData: Partial<BackupRepositoryGeneralFormData> = {
     defineComponent(() => {
       const { bindings } = useBackupRepositoryGeneralForm(data)
 
-      return () => h(BackupRepositoryGeneralStep, { bindings })
+      return () => h(BackupRepositoryGeneralStep, { bindings, hideEncryption })
     }),
     { global: createGlobalTestConfig(), attachTo: document.body }
   )
@@ -55,6 +55,13 @@ it('splits the fields into a general information section and an options section'
   const { wrapper } = mountGeneralStep()
 
   expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('options')])
+})
+
+it('hides the options section, and its encryption, when asked to', () => {
+  const { wrapper } = mountGeneralStep({}, { hideEncryption: true })
+
+  expect(findSectionTitles(wrapper)).toEqual([t('general-information')])
+  expect(wrapper.findComponent(BackupRepositoryFormCheckbox).exists()).toBe(false)
 })
 
 it('offers the name, type, backup format and proxy fields', () => {

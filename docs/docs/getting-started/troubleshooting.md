@@ -107,29 +107,9 @@ Reduce the static max memory of the XOA VM to a lower value and migrate again.
 
 ### xo-server out of memory
 
-If `xo-server` crashes with `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory` in its logs, give it more room, in two steps.
+If `xo-server` crashes with `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory` in its logs, give the XOA VM more memory (see [Sizing your XOA](installation.md#sizing)) and restart it.
 
-First, increase the memory of the XOA VM itself (4 or 8 GiB).
-
-Then raise the memory limit of the `xo-server` process: edit `/etc/systemd/system/xo-server.service` and find this line:
-
-```ini
-ExecStart=/usr/local/bin/xo-server
-```
-
-Replace it with the following line, where the number is your VM memory in MiB minus about 512 MiB for the OS (for a 4096 MiB VM, use 3584):
-
-```ini
-ExecStart=/usr/local/bin/node --max-old-space-size=3584 /usr/local/bin/xo-server
-```
-
-<Terminal shell title="xoa — apply the service change">{`
-systemctl daemon-reload
-`}</Terminal>
-
-<Terminal shell title="xoa — restart xo-server">{`
-systemctl restart xo-server
-`}</Terminal>
+Since Xen Orchestra 6.8, `xo-server` sets its Node.js memory limit to 70% of the VM's RAM (1 GiB minimum), recalculated at each start: no manual setting is needed. If you previously added `--max-old-space-size` to `/etc/systemd/system/xo-server.service` by hand, you can remove it: the automatic limit makes it unnecessary.
 
 ### Stats not showing on a pool
 
