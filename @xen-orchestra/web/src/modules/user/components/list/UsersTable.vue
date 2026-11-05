@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserProvidersLabel } from '@/modules/user/utils/xo-user.util.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -110,10 +111,7 @@ const { HeadCells, BodyCells } = useUserColumns({
       checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
       username: r => r(user.name ?? '', { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
       email: r => r(user.email),
-      providers: r => {
-        const providers = Object.keys(user.authProviders ?? {})
-        return r(providers.length === 0 ? t('local') : providers.join(', '))
-      },
+      providers: r => r(getUserProvidersLabel(user, t('local'))),
       actions: r =>
         r({
           onClick: () => (selectedUserId.value = user.id),

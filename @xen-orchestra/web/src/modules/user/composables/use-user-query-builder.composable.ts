@@ -1,4 +1,5 @@
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserProvidersLabel } from '@/modules/user/utils/xo-user.util.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
@@ -15,17 +16,13 @@ export function useUserQueryBuilder(
   const { t } = useI18n()
 
   const filterableUsers = computed<FilterableUser[]>(() =>
-    toValue(users).map(user => {
-      const providers = Object.keys(user.authProviders ?? {})
-
-      return {
-        ...user,
-        name: user.name ?? '',
-        firstname: user.firstname ?? '',
-        lastname: user.lastname ?? '',
-        providers: providers.length === 0 ? t('local') : providers.join(', '),
-      }
-    })
+    toValue(users).map(user => ({
+      ...user,
+      name: user.name ?? '',
+      firstname: user.firstname ?? '',
+      lastname: user.lastname ?? '',
+      providers: getUserProvidersLabel(user, t('local')),
+    }))
   )
 
   const { items, filter } = useQueryBuilderFilter(id, filterableUsers, options)
