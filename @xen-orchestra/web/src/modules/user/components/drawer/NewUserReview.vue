@@ -1,7 +1,7 @@
 <template>
   <div class="new-user-review">
     <UiTitle>
-      {{ t('user:details') }}
+      {{ t('user-details') }}
       <template #action>
         <UiButton left-icon="fa:edit" variant="tertiary" accent="brand" size="medium" @click="emit('edit', 'details')">
           {{ t('action:edit') }}

@@ -1520,7 +1520,6 @@
   "user-management": "Gestion des utilisateurs",
   "user:create-new": "Créer un nouvel utilisateur",
   "user:delete-warning": "Supprimer cet utilisateur retirera définitivement son accès et les permissions associées. Cette action est irréversible. Procédez avec prudence. | Supprimer ces utilisateurs retirera définitivement leurs accès et les permissions associées. Cette action est irréversible. Procédez avec prudence.",
-  "user:details": "Détails de l'utilisateur",
   "user:direct-roles": "Rôles directs",
   "user:groups-assignment": "Affectation des groupes",
   "user:roles-assignment": "Affectation des rôles",

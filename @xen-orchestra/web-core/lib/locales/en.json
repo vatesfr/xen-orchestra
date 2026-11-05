@@ -1520,7 +1520,6 @@
   "user-management": "User management",
   "user:create-new": "Create new user",
   "user:delete-warning": "Deleting this user will permanently remove their access and associated permissions. This action cannot be undone. Proceed with caution. | Deleting these users will permanently remove their access and associated permissions. This action cannot be undone. Proceed with caution.",
-  "user:details": "User details",
   "user:direct-roles": "Direct roles",
   "user:groups-assignment": "Groups assignment",
   "user:roles-assignment": "Roles assignment",

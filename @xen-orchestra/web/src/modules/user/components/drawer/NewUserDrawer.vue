@@ -113,7 +113,7 @@ const { roles, areRolesReady, hasRoleFetchError } = useXoRoleCollection()
 const selectableGroups = computed(() => groups.value.filter(group => group.provider === undefined))
 
 const steps = computed<StepDefinition[]>(() => [
-  { label: t('user:details') },
+  { label: t('user-details') },
   { label: t('user:groups-assignment') },
   { label: t('user:roles-assignment') },
   { label: t('review-and-confirm') },
