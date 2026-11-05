@@ -37,5 +37,5 @@ const { t } = useI18n()
 
 const scopeTypeLabels = usePrivilegeScopeTypeLabels()
 
-const scopeType = computed(() => getPrivilegeScopeType(privilege.selector))
+const scopeType = computed(() => getPrivilegeScopeType(privilege.resource, privilege.selector))
 </script>
