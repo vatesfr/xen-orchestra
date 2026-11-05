@@ -46,7 +46,7 @@
       :is-empty
       :is-busy
       :readiness-tags
-      :lock-summary
+      :list-pair
       @remove="id => remove(id)"
       @clear="clear()"
     />
@@ -92,8 +92,7 @@ const {
   selectedVmsContext,
 } = useV2vVmsStep()
 
-const { items, count, isEmpty, isBusy, readinessTags, lockSummary, remove, clear } =
-  useV2vSelectedVms(selectedVmsContext)
+const { items, count, isEmpty, isBusy, readinessTags, listPair, remove, clear } = useV2vSelectedVms(selectedVmsContext)
 
 const panelStore = usePanelStore()
 </script>

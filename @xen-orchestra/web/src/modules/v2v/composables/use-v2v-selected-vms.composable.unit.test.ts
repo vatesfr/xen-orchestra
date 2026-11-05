@@ -264,11 +264,11 @@ describe('readinessTags', () => {
   })
 })
 
-describe('lockSummary', () => {
+describe('listPair', () => {
   it('names the source and the pool of the list', async () => {
     const { result } = await mountSelectedVms()
 
-    expect(result.lockSummary).toEqual({ sourceHost: createV2vConnection().host, poolName: POOL.name_label })
+    expect(result.listPair).toEqual({ sourceHost: createV2vConnection().host, poolName: POOL.name_label })
   })
 
   it('names no pool while the pools load', async () => {
@@ -277,14 +277,14 @@ describe('lockSummary', () => {
     xoCollectionsMock.pools.value = []
     xoCollectionsMock.arePoolsReady.value = false
 
-    expect(result.lockSummary.poolName).toBeUndefined()
+    expect(result.listPair.poolName).toBeUndefined()
     expect(findItemIds(result)).toEqual(LIST_IDS)
   })
 
   it('names no pool before one is chosen', async () => {
     const { result } = await mountSelectedVms({ pool: null })
 
-    expect(result.lockSummary).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined })
+    expect(result.listPair).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined })
   })
 })
 
