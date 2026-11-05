@@ -7,10 +7,45 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
-import type { HostStatusItem, LabelLookupData, SrDataItem, XoMetricsData } from './index.mjs'
+import type {
+  HostStatusItem,
+  LabelLookupData,
+  SrDataItem,
+  VdiDataItem,
+  VmStatusItem,
+  XoMetricsData,
+  XostorAlarmEntry,
+  XostorAlarmsItem,
+  XostorAlarmsPayload,
+  XostorClusterItem,
+  XostorPayload,
+  XostorSmartDevice,
+  XostorSmartHost,
+  XostorSmartPayload,
+  XostorUpdateItem,
+  XostorUpdatePackage,
+  XostorUpdatesPayload,
+} from './index.mjs'
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
-export type { HostStatusItem, SrDataItem, XoMetricsData }
+export type {
+  HostStatusItem,
+  SrDataItem,
+  VdiDataItem,
+  VmStatusItem,
+  XoMetricsData,
+  XostorAlarmEntry,
+  XostorAlarmsItem,
+  XostorAlarmsPayload,
+  XostorClusterItem,
+  XostorPayload,
+  XostorSmartDevice,
+  XostorSmartHost,
+  XostorSmartPayload,
+  XostorUpdateItem,
+  XostorUpdatePackage,
+  XostorUpdatesPayload,
+}
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -115,6 +150,20 @@ export const HOST_METRICS: MetricDefinition[] = [
     extractLabels: matches => ({ core: matches[1]! }),
   },
 
+  // Aggregated network metrics (PIF)
+  {
+    test: 'pif_aggr_rx',
+    openMetricName: 'host_network_aggregated_receive_bytes',
+    type: 'gauge',
+    help: 'Aggregated received bytes per second',
+  },
+  {
+    test: 'pif_aggr_tx',
+    openMetricName: 'host_network_aggregated_transmit_bytes',
+    type: 'gauge',
+    help: 'Aggregated transmitted bytes per second',
+  },
+
   // Network metrics (PIF)
   {
     test: /^pif_(.+)_rx$/,
@@ -198,6 +247,67 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_power_consumption_watts',
     type: 'gauge',
     help: 'Host power consumption in watts (DCMI)',
+  },
+
+  // Normalized host load
+  {
+    test: 'hostload',
+    openMetricName: 'host_load',
+    type: 'gauge',
+    help: 'Normalized host load',
+  },
+
+  // Reclaimed memory metrics
+  {
+    test: 'memory_reclaimed',
+    openMetricName: 'host_memory_reclaimed_bytes',
+    type: 'gauge',
+    help: 'Reclaimed host memory in bytes',
+    transformValue: v => v * 1024, // KiB to bytes
+  },
+  {
+    test: 'memory_reclaimed_max',
+    openMetricName: 'host_memory_reclaimed_max_bytes',
+    type: 'gauge',
+    help: 'Maximum reclaimable host memory in bytes',
+    transformValue: v => v * 1024, // KiB to bytes
+  },
+
+  // Running vCPUs
+  {
+    test: 'running_vcpus',
+    openMetricName: 'host_running_vcpus',
+    type: 'gauge',
+    help: 'Total number of running vCPUs',
+  },
+
+  // Total disk IOPS per SR
+  {
+    test: /^iops_total_(.+)$/,
+    openMetricName: 'host_disk_iops_total',
+    type: 'gauge',
+    help: 'Total IOPS (read + write) per SR',
+    extractLabels: matches => ({ sr: matches[1]! }),
+  },
+
+  // Total disk throughput per SR
+  {
+    test: /^io_throughput_total_(.+)$/,
+    openMetricName: 'host_disk_throughput_total_bytes',
+    type: 'gauge',
+    help: 'Total I/O throughput per SR in bytes per second',
+    transformValue: v => v * Math.pow(2, 20), // MiB to bytes
+    extractLabels: matches => ({ sr: matches[1]! }),
+  },
+
+  // Combined disk latency per SR
+  {
+    test: /^latency_(.+)$/,
+    openMetricName: 'host_disk_latency_seconds',
+    type: 'gauge',
+    help: 'Combined I/O latency per SR in seconds',
+    transformValue: v => v / 1e6, // µs to seconds
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 ]
 
@@ -455,6 +565,27 @@ export const SR_METRICS: MetricDefinition[] = [
   },
 ]
 
+/**
+ * VDI disk metric definitions.
+ *
+ * These metrics are derived from XO VDI objects, not RRD data.
+ * They provide per-VDI disk size information for monitoring.
+ */
+export const VDI_METRICS: MetricDefinition[] = [
+  {
+    test: 'virtual_size',
+    openMetricName: 'vdi_virtual_size_bytes',
+    type: 'gauge',
+    help: 'VDI virtual size in bytes',
+  },
+  {
+    test: 'physical_usage',
+    openMetricName: 'vdi_physical_usage_bytes',
+    type: 'gauge',
+    help: 'VDI physical space used in bytes (allocated on SR)',
+  },
+]
+
 // ============================================================================
 // Metric Matching Functions
 // ============================================================================
@@ -604,6 +735,139 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
   return syntheticMetrics
 }
 
+function emitHostPowerMetrics(
+  metrics: FormattedMetric[],
+  hostPowerWatts: Record<string, number>,
+  labelContext?: LabelContext
+): void {
+  for (const [hostId, watts] of Object.entries(hostPowerWatts)) {
+    // Drop any existing host power series for this host (dedup, IPMI preferred).
+    for (let i = metrics.length - 1; i >= 0; i--) {
+      const m = metrics[i]
+      if (m !== undefined && m.name === 'xcp_host_power_consumption_watts' && m.labels.uuid === hostId) {
+        metrics.splice(i, 1)
+      }
+    }
+
+    const labels: Record<string, string> = { uuid: hostId, type: 'host', source: 'ipmi' }
+    const hostName = labelContext?.labels.hosts[hostId]?.name_label
+    if (hostName !== undefined && hostName !== '') {
+      labels.host_name = hostName
+    }
+
+    metrics.push({
+      name: 'xcp_host_power_consumption_watts',
+      help: 'Host power consumption in watts (IPMI)',
+      type: 'gauge',
+      labels,
+      value: watts,
+      timestamp: Math.floor(Date.now() / 1000),
+    })
+  }
+}
+
+function computeVmPowerConsumption(metrics: FormattedMetric[], labelContext?: LabelContext): FormattedMetric[] {
+  // Labels carried by per-resource VM metrics that must not leak onto the
+  // aggregate per-VM power series.
+  const PER_RESOURCE_LABELS = new Set([
+    'core',
+    'device',
+    'vdi_name',
+    'sr_name',
+    'sr_type',
+    'vif',
+    'network_name',
+    'interface',
+  ])
+
+  const hostPower = new Map<string, { watts: number; timestamp: number }>()
+  const guestsByHost = new Map<string, Map<string, FormattedMetric>>() // hostId -> vmUuid -> representative metric
+  const cpuByVm = new Map<string, { value: number; timestamp: number }>()
+
+  for (const metric of metrics) {
+    const { labels } = metric
+    if (labels.uuid === undefined) {
+      continue
+    }
+
+    if (labels.type === 'host' && metric.name === 'xcp_host_power_consumption_watts') {
+      hostPower.set(labels.uuid, { watts: metric.value, timestamp: metric.timestamp })
+      continue
+    }
+
+    if (labels.type !== 'vm') {
+      continue
+    }
+    const hostId = labels.host_id
+    // No residence host or dom0 → takes no share.
+    if (hostId === undefined || hostId === '' || labels.is_control_domain === 'true') {
+      continue
+    }
+
+    let guests = guestsByHost.get(hostId)
+    if (guests === undefined) {
+      guests = new Map()
+      guestsByHost.set(hostId, guests)
+    }
+    if (!guests.has(labels.uuid)) {
+      guests.set(labels.uuid, metric)
+    }
+
+    if (metric.name === 'xcp_vm_cpu_usage') {
+      cpuByVm.set(labels.uuid, { value: metric.value, timestamp: metric.timestamp })
+    }
+  }
+
+  const out: FormattedMetric[] = []
+
+  for (const [hostId, power] of hostPower) {
+    const guests = guestsByHost.get(hostId)
+    if (guests === undefined || guests.size === 0) {
+      continue
+    }
+
+    const loadByVm = new Map<string, { load: number; complete: boolean }>()
+    let totalLoad = 0
+    for (const vmUuid of guests.keys()) {
+      const cpu = cpuByVm.get(vmUuid)?.value
+      const vcpus = labelContext?.labels.vms[vmUuid]?.vcpus ?? 1
+      const load = (cpu ?? 0) * vcpus
+      loadByVm.set(vmUuid, { load, complete: cpu !== undefined })
+      totalLoad += load
+    }
+
+    const equalSplit = totalLoad < 0.01
+
+    for (const [vmUuid, representative] of guests) {
+      const entry = loadByVm.get(vmUuid)
+      const load = entry?.load ?? 0
+      const watts = equalSplit ? power.watts / guests.size : (power.watts * load) / totalLoad
+
+      const labels: Record<string, string> = {}
+      for (const [key, value] of Object.entries(representative.labels)) {
+        if (!PER_RESOURCE_LABELS.has(key)) {
+          labels[key] = value
+        }
+      }
+      labels.estimate = 'true'
+      if (entry?.complete === false) {
+        labels.data_complete = 'false'
+      }
+
+      out.push({
+        name: 'xcp_vm_power_consumption_watts',
+        help: 'Estimated VM power consumption in watts (estimate, host power split by CPU load)',
+        type: 'gauge',
+        labels,
+        value: watts,
+        timestamp: cpuByVm.get(vmUuid)?.timestamp ?? power.timestamp,
+      })
+    }
+  }
+
+  return out
+}
+
 // ============================================================================
 // Formatting Functions
 // ============================================================================
@@ -613,6 +877,29 @@ const METRIC_PREFIX = 'xcp'
 
 /** OpenMetrics prefix for XO management plane metrics */
 const XO_METRIC_PREFIX = 'xo'
+
+/**
+ * Serialize XO object tags into the `tags` label value
+ *
+ * @param tags - Raw tag list from the XO object
+ * @returns Comma-separated, sorted tag list (e.g. `"prod,web"`)
+ */
+export function serializeTags(tags: readonly string[] | undefined): string {
+  if (tags === undefined || tags.length === 0) {
+    return ''
+  }
+  return [...new Set(tags)]
+    .filter(tag => tag.trim() !== '')
+    .sort()
+    .join(',')
+}
+
+function addTagsLabel(labels: Record<string, string>, tags: readonly string[] | undefined): void {
+  const serialized = serializeTags(tags)
+  if (serialized !== '') {
+    labels.tags = serialized
+  }
+}
 
 /**
  * Escape special characters in label values.
@@ -651,7 +938,8 @@ function formatLabels(labels: Record<string, string>): string {
 export function transformMetric(
   metric: ParsedMetric,
   poolId: string,
-  labelContext?: LabelContext
+  labelContext?: LabelContext,
+  hostId?: string
 ): FormattedMetric | null {
   const { legend, value, timestamp } = metric
 
@@ -685,6 +973,12 @@ export function transformMetric(
     type: legend.objectType,
   }
 
+  if (legend.objectType === 'vm' && hostId !== undefined && hostId !== '') {
+    labels.host_id = hostId
+  }
+
+  let objectTags: readonly string[] | undefined
+
   // Add pool_name from host credentials
   if (labelContext !== undefined) {
     const hostCred = labelContext.hosts.find(h => h.poolId === poolId)
@@ -699,6 +993,7 @@ export function transformMetric(
         if (hostInfo.name_label !== '') {
           labels.host_name = hostInfo.name_label
         }
+        objectTags = hostInfo.tags
 
         // For PIF metrics, add network_name
         if (extractedLabels.interface !== undefined) {
@@ -712,11 +1007,18 @@ export function transformMetric(
         if (extractedLabels.sr !== undefined) {
           const srSuffix = extractedLabels.sr
           // Try to find the full SR UUID from the suffix
-          const srUuid = labelContext.labels.srSuffixToUuid[srSuffix]
-          if (srUuid !== undefined) {
+          const srUuidIndex = labelContext.labels.srTruncatedToUuid
+          const srUuid = Object.hasOwn(srUuidIndex, srSuffix) ? srUuidIndex[srSuffix] : undefined
+          if (srUuid != null) {
+            labels.sr_uuid = srUuid
             const srInfo = labelContext.labels.srs[srUuid]
-            if (srInfo !== undefined && srInfo.name_label !== '') {
-              labels.sr_name = srInfo.name_label
+            if (srInfo !== undefined) {
+              if (srInfo.name_label !== '') {
+                labels.sr_name = srInfo.name_label
+              }
+              if (srInfo.SR_type !== '') {
+                labels.sr_type = srInfo.SR_type
+              }
             }
           }
         }
@@ -724,12 +1026,19 @@ export function transformMetric(
     }
 
     if (legend.objectType === 'vm') {
+      if (hostId !== undefined && hostId !== '') {
+        const residentHost = labelContext.labels.hosts[hostId]
+        if (residentHost !== undefined && residentHost.name_label !== '') {
+          labels.host_name = residentHost.name_label
+        }
+      }
       const vmInfo = labelContext.labels.vms[legend.uuid]
       if (vmInfo !== undefined) {
         if (vmInfo.name_label !== '') {
           labels.vm_name = vmInfo.name_label
         }
         labels.is_control_domain = vmInfo.is_control_domain ? 'true' : 'false'
+        objectTags = vmInfo.tags
 
         // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
@@ -738,14 +1047,19 @@ export function transformMetric(
             labels.vdi_name = vdiName
           }
 
-          // Resolve sr_name via device → VDI UUID → SR UUID → SR name
+          // Resolve sr_name and sr_type via device → VDI UUID → SR UUID → SR info
           const vdiUuid = vmInfo.vbdDeviceToVdiUuid[extractedLabels.device]
           if (vdiUuid !== undefined) {
             const srUuid = labelContext.labels.vdiUuidToSrUuid[vdiUuid]
             if (srUuid !== undefined) {
               const srInfo = labelContext.labels.srs[srUuid]
-              if (srInfo !== undefined && srInfo.name_label !== '') {
-                labels.sr_name = srInfo.name_label
+              if (srInfo !== undefined) {
+                if (srInfo.name_label !== '') {
+                  labels.sr_name = srInfo.name_label
+                }
+                if (srInfo.SR_type !== '') {
+                  labels.sr_type = srInfo.SR_type
+                }
               }
             }
           }
@@ -764,6 +1078,7 @@ export function transformMetric(
 
   // Add extracted labels (device, interface, vif, sr, core)
   Object.assign(labels, extractedLabels)
+  addTagsLabel(labels, objectTags)
 
   return {
     name: `${METRIC_PREFIX}_${definition.openMetricName}`,
@@ -834,15 +1149,20 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
  *
  * @param rrdDataList - Array of ParsedRrdData from all pools
  * @param labelContext - Optional label context for enriching metrics with human-readable names
+ * @param hostPowerWatts - Optional map of host UUID -> power draw in watts (IPMI)
  * @returns Complete OpenMetrics output string with EOF marker
  */
-export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelContext?: LabelContext): string {
+export function formatAllPoolsToOpenMetrics(
+  rrdDataList: ParsedRrdData[],
+  labelContext?: LabelContext,
+  hostPowerWatts?: Record<string, number>
+): string {
   const allMetrics: FormattedMetric[] = []
   const unmatchedMetrics: Set<string> = new Set()
 
   for (const rrdData of rrdDataList) {
     for (const metric of rrdData.metrics) {
-      const formatted = transformMetric(metric, rrdData.poolId, labelContext)
+      const formatted = transformMetric(metric, rrdData.poolId, labelContext, rrdData.hostId)
       if (formatted !== null) {
         allMetrics.push(formatted)
       } else if (metric.value !== null) {
@@ -857,10 +1177,15 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
     logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
+  if (hostPowerWatts !== undefined) {
+    emitHostPowerMetrics(allMetrics, hostPowerWatts, labelContext)
+  }
+
   // Compute fallback vm_cpu_usage for VMs that don't have the native metric
   // This handles XCP-ng 8.2 and other versions that only report per-core metrics
   const syntheticCpuMetrics = computeVmCpuUsageFallback(allMetrics)
   allMetrics.push(...syntheticCpuMetrics)
+  allMetrics.push(...computeVmPowerConsumption(allMetrics, labelContext))
 
   // Sort metrics by name for consistent output
   allMetrics.sort((a, b) => {
@@ -905,6 +1230,10 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
     if (sr.pool_name !== '') {
       baseLabels.pool_name = sr.pool_name
     }
+    baseLabels.content_type = sr.content_type
+    if (sr.sr_type !== '') {
+      baseLabels.sr_type = sr.sr_type
+    }
 
     // For local SRs, add host information
     if (sr.host_id !== undefined) {
@@ -913,6 +1242,8 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
     if (sr.host_name !== undefined) {
       baseLabels.host_name = sr.host_name
     }
+
+    addTagsLabel(baseLabels, sr.tags)
 
     // Virtual size (virtual_allocation)
     metrics.push({
@@ -949,6 +1280,70 @@ export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
 }
 
 /**
+ * Format VDI disk size metrics.
+ *
+ * Creates two FormattedMetric entries per VDI:
+ * - virtual_size_bytes (virtual disk size)
+ * - physical_usage_bytes (actual space allocated on SR)
+ *
+ * Labels include pool, SR, VDI identifiers, and optionally VM info if attached.
+ *
+ * @param vdiDataList - Array of VDI data with size information
+ * @returns Array of FormattedMetric entries for VDI disk sizes
+ */
+export function formatVdiMetrics(vdiDataList: VdiDataItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const vdi of vdiDataList) {
+    const baseLabels: Record<string, string> = {
+      pool_id: vdi.pool_id,
+      sr_uuid: vdi.sr_uuid,
+      sr_name: vdi.sr_name,
+      vdi_uuid: vdi.uuid,
+      vdi_name: vdi.name_label,
+    }
+
+    if (vdi.pool_name !== '') {
+      baseLabels.pool_name = vdi.pool_name
+    }
+    if (vdi.sr_type !== '') {
+      baseLabels.sr_type = vdi.sr_type
+    }
+
+    // Add VM labels if VDI is attached to a VM
+    if (vdi.vm_uuid !== undefined) {
+      baseLabels.vm_uuid = vdi.vm_uuid
+    }
+    if (vdi.vm_name !== undefined) {
+      baseLabels.vm_name = vdi.vm_name
+    }
+
+    // Virtual size
+    metrics.push({
+      name: `${METRIC_PREFIX}_vdi_virtual_size_bytes`,
+      help: 'VDI virtual size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: vdi.size,
+      timestamp,
+    })
+
+    // Physical usage (allocated on SR)
+    metrics.push({
+      name: `${METRIC_PREFIX}_vdi_physical_usage_bytes`,
+      help: 'VDI physical space used in bytes (allocated on SR)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: vdi.usage,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
  * Format host status metrics.
  *
  * Creates one FormattedMetric per host with power_state and enabled labels.
@@ -973,6 +1368,8 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
       labels.pool_name = host.pool_name
     }
 
+    addTagsLabel(labels, host.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_status`,
       help: 'Host status (1 = current state)',
@@ -981,6 +1378,318 @@ export function formatHostStatusMetrics(hostStatusList: HostStatusItem[]): Forma
       value: 1,
       timestamp,
     })
+  }
+
+  return metrics
+}
+
+/**
+ * Format VM status metrics.
+ *
+ * Creates one FormattedMetric per VM with power_state label.
+ *
+ * @param vmStatusList - Array of VM status data
+ * @returns Array of FormattedMetric entries for VM status
+ */
+export function formatVmStatusMetrics(vmStatusList: VmStatusItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const vm of vmStatusList) {
+    const labels: Record<string, string> = {
+      pool_id: vm.pool_id,
+      uuid: vm.uuid,
+      power_state: vm.power_state,
+    }
+
+    if (vm.pool_name !== '') {
+      labels.pool_name = vm.pool_name
+    }
+
+    if (vm.name_label !== '') {
+      labels.vm_name = vm.name_label
+    }
+
+    addTagsLabel(labels, vm.tags)
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_vm_status`,
+      help: 'VM power state indicator (always 1; current state is carried by the power_state label)',
+      type: 'gauge',
+      labels,
+      value: 1,
+      timestamp,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format XOSTOR cluster metrics derived from `linstor-manager.healthCheck`.
+ *
+ * Produces three metric families per detected LINSTOR-backed SR:
+ *  - `xcp_xostor_up` (gauge): 1 when healthCheck succeeded, 0 otherwise.
+ *    Acts as a collection-health signal so a silently-failing cluster shows
+ *    up on the dashboard instead of disappearing.
+ *  - `xcp_xostor_node_status` (gauge, value = 1): one entry per LINSTOR node,
+ *    with `role` (master|satellite) and `state` labels. Following the same
+ *    pattern as `xcp_host_status`, the actual state is carried by the label
+ *    rather than encoded as a numeric value.
+ *  - `xcp_xostor_resource_total` (gauge): total count of LINSTOR resources
+ *    in the cluster — Phase 1 analogue of the proposed OSD count.
+ */
+export function formatXostorClusterMetrics(payload: XostorPayload): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  if (payload.clusters.length === 0) {
+    return metrics
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const cluster of payload.clusters) {
+    const baseLabels: Record<string, string> = {
+      sr_uuid: cluster.sr_uuid,
+      pool_id: cluster.pool_id,
+    }
+    if (cluster.pool_name !== '') {
+      baseLabels.pool_name = cluster.pool_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_xostor_up`,
+      help: 'XOSTOR cluster reachability (1 = healthCheck succeeded, 0 = collection failed)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: cluster.up ? 1 : 0,
+      timestamp,
+    })
+
+    for (const node of cluster.nodes) {
+      metrics.push({
+        name: `${METRIC_PREFIX}_xostor_node_status`,
+        help: 'XOSTOR cluster node status (always 1; current state is carried by the role and state labels)',
+        type: 'gauge',
+        labels: {
+          ...baseLabels,
+          node_name: node.node_name,
+          role: node.role,
+          state: node.state,
+        },
+        value: 1,
+        timestamp,
+      })
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_xostor_resource_total`,
+      help: 'Total number of LINSTOR resources defined in the XOSTOR cluster',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: cluster.resourceCount,
+      timestamp,
+    })
+
+    for (const [state, count] of Object.entries(cluster.replicaStates)) {
+      metrics.push({
+        name: `${METRIC_PREFIX}_xostor_resource_state_count`,
+        help: 'Number of LINSTOR resource replicas in each disk-state across the XOSTOR cluster',
+        type: 'gauge',
+        labels: { ...baseLabels, state },
+        value: count,
+        timestamp,
+      })
+    }
+  }
+
+  return metrics
+}
+
+/**
+ * Format XOSTOR active alarm metrics derived from XAPI messages.
+ *
+ * Two metric families per cluster:
+ *  - `xcp_xostor_alarms_up` (gauge): 1 when alarm collection succeeded, 0
+ *    otherwise. Mirrors the per-feature collection-status pattern used by
+ *    Phase 1's `xcp_xostor_up`.
+ *  - `xcp_xostor_alarms_count` (gauge): one series per
+ *    (cluster, alarm_name, target_type) carrying the number of matching
+ *    XAPI messages. Buckets with zero count are not emitted; their absence
+ *    means "no such alarm currently raised".
+ *
+ * Designed so PromQL alerting rules can express
+ * `sum by (sr_uuid) (xcp_xostor_alarms_count) > 0` without per-host knowledge.
+ */
+export function formatXostorAlarmsMetrics(payload: XostorAlarmsPayload): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  if (payload.clusters.length === 0) {
+    return metrics
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const cluster of payload.clusters) {
+    const baseLabels: Record<string, string> = {
+      sr_uuid: cluster.sr_uuid,
+      pool_id: cluster.pool_id,
+    }
+    if (cluster.pool_name !== '') {
+      baseLabels.pool_name = cluster.pool_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_xostor_alarms_up`,
+      help: 'XOSTOR alarm collection success (1 = collected, 0 = collection failed)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: cluster.up ? 1 : 0,
+      timestamp,
+    })
+
+    for (const entry of cluster.entries) {
+      metrics.push({
+        name: `${METRIC_PREFIX}_xostor_alarms_count`,
+        help: 'Number of active XAPI alarm messages targeting a XOSTOR SR or one of its hosts',
+        type: 'gauge',
+        labels: {
+          ...baseLabels,
+          alarm_name: entry.alarm_name,
+          target_type: entry.target_type,
+        },
+        value: entry.count,
+        timestamp,
+      })
+    }
+  }
+
+  return metrics
+}
+
+/**
+ * Format XOSTOR per-host SMART health metrics derived from `smartctl.py`.
+ *
+ * Two metric families per XOSTOR host:
+ *  - `xcp_xostor_smart_up` (gauge): 1 when the plugin returned data, 0 when
+ *    the plugin call failed or `smartctl.py` is not installed on the host.
+ *    Always emitted so absence is unambiguous.
+ *  - `xcp_xostor_disk_smart_status` (gauge, value=1): one series per
+ *    (host, device) carrying the overall-health string as a `status` label.
+ *    Following the same pattern as `xcp_host_status` and
+ *    `xcp_xostor_node_status`, the actual state lives in a label rather
+ *    than the value.
+ *
+ * The host scope is "every host backing a XOSTOR PBD" — non-XOSTOR disks
+ * on these hosts are still relevant because a boot disk failure removes
+ * the node from the cluster.
+ */
+export function formatXostorSmartMetrics(payload: XostorSmartPayload): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  if (payload.hosts.length === 0) {
+    return metrics
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const host of payload.hosts) {
+    const baseLabels: Record<string, string> = {
+      sr_uuid: host.sr_uuid,
+      pool_id: host.pool_id,
+      host_uuid: host.host_uuid,
+    }
+    if (host.pool_name !== '') {
+      baseLabels.pool_name = host.pool_name
+    }
+    if (host.host_name !== '') {
+      baseLabels.host_name = host.host_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_xostor_smart_up`,
+      help: 'XOSTOR SMART data collection success per host (1 = smartctl.py replied, 0 = plugin missing or call failed)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: host.up ? 1 : 0,
+      timestamp,
+    })
+
+    for (const device of host.devices) {
+      metrics.push({
+        name: `${METRIC_PREFIX}_xostor_disk_smart_status`,
+        help: 'SMART overall-health status per disk on a XOSTOR host (always 1; current status is carried by the status label)',
+        type: 'gauge',
+        labels: {
+          ...baseLabels,
+          device: device.device,
+          status: device.status,
+        },
+        value: 1,
+        timestamp,
+      })
+    }
+  }
+
+  return metrics
+}
+
+/**
+ * Format XOSTOR pending-update metrics derived from `updater.py check_update`.
+ *
+ * Two metric families per XOSTOR host:
+ *  - `xcp_xostor_updates_up` (gauge): 1 when the plugin returned data, 0
+ *    when the call failed or repos are unreachable (e.g. air-gapped hosts).
+ *  - `xcp_xostor_package_update_available` (gauge, value=1): one entry per
+ *    pending package update on a host. Emitted with a *presence* pattern
+ *    (no `0` lines) — absence means "no update pending AND collection
+ *    succeeded" (because `_up=1`). Duplicate package entries collapse to a
+ *    single series.
+ *
+ * No `severity` label is exposed: XCP-ng's `updater.py` payload does not
+ * carry one and emitting a constant placeholder would mislead operators.
+ */
+export function formatXostorUpdatesMetrics(payload: XostorUpdatesPayload): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  if (payload.hosts.length === 0) {
+    return metrics
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const host of payload.hosts) {
+    const baseLabels: Record<string, string> = {
+      sr_uuid: host.sr_uuid,
+      pool_id: host.pool_id,
+      host_uuid: host.host_uuid,
+    }
+    if (host.pool_name !== '') {
+      baseLabels.pool_name = host.pool_name
+    }
+    if (host.host_name !== '') {
+      baseLabels.host_name = host.host_name
+    }
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_xostor_updates_up`,
+      help: 'XOSTOR update check success per host (1 = updater.py replied, 0 = call failed or repo unreachable)',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: host.up ? 1 : 0,
+      timestamp,
+    })
+
+    const seenPackages = new Set<string>()
+    for (const entry of host.packages) {
+      if (seenPackages.has(entry.package)) continue
+      seenPackages.add(entry.package)
+
+      metrics.push({
+        name: `${METRIC_PREFIX}_xostor_package_update_available`,
+        help: 'Pending XOSTOR-related package update on a host (always 1; absent means no update pending)',
+        type: 'gauge',
+        labels: { ...baseLabels, package: entry.package },
+        value: 1,
+        timestamp,
+      })
+    }
   }
 
   return metrics
@@ -1181,9 +1890,69 @@ export function formatHostUptimeMetrics(labelContext: LabelContext): FormattedMe
       labels.host_name = hostInfo.name_label
     }
 
+    addTagsLabel(labels, hostInfo.tags)
+
     metrics.push({
       name: `${METRIC_PREFIX}_host_uptime_seconds`,
       help: 'Host uptime in seconds since boot',
+      type: 'gauge',
+      labels,
+      value: uptimeSeconds,
+      timestamp: now,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Format VM uptime metrics to OpenMetrics format.
+ *
+ * Creates a FormattedMetric entry for each VM's uptime, calculated as
+ * the difference between current time and vm.startTime (boot time).
+ * VM-controllers (dom0) are excluded.
+ *
+ * @param labelContext - Label context containing host credentials and label lookup data
+ * @returns Array of FormattedMetric entries for VM uptime
+ */
+export function formatVmUptimeMetrics(labelContext: LabelContext): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const now = Math.floor(Date.now() / 1000)
+
+  for (const [vmUuid, vmInfo] of Object.entries(labelContext.labels.vms)) {
+    if (vmInfo.is_control_domain) {
+      continue
+    }
+
+    // Only emit uptime for running VMs — halted/suspended VMs retain stale startTime
+    if (vmInfo.power_state !== 'Running') {
+      continue
+    }
+
+    if (vmInfo.startTime === null || vmInfo.startTime === undefined) {
+      continue
+    }
+
+    const uptimeSeconds = Math.max(0, now - vmInfo.startTime)
+
+    const labels: Record<string, string> = {
+      pool_id: vmInfo.pool_id,
+      uuid: vmUuid,
+    }
+
+    if (vmInfo.pool_name !== '') {
+      labels.pool_name = vmInfo.pool_name
+    }
+
+    if (vmInfo.name_label !== '') {
+      labels.vm_name = vmInfo.name_label
+    }
+
+    addTagsLabel(labels, vmInfo.tags)
+
+    metrics.push({
+      name: `${METRIC_PREFIX}_vm_uptime_seconds`,
+      help: 'VM uptime in seconds since boot',
       type: 'gauge',
       labels,
       value: uptimeSeconds,

@@ -1,4 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
@@ -16,6 +17,7 @@ export const useVdiColumns = defineColumns(() => {
     usedSpace: useProgressBarColumn({ headerLabel: () => t('used-space') }),
     size: useNumberColumn({ headerLabel: () => t('size') }),
     format: useLiteralColumn({ headerLabel: () => t('format') }),
+    actions: useActionColumn({}),
     selectItem: useSelectItemColumn(),
   }
 })

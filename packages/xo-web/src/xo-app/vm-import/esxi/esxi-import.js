@@ -3,22 +3,13 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Collapse from 'collapse'
 import Component from 'base-component'
-import Dropzone from 'dropzone'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import {
-  esxiCheckInstall,
-  esxiListVms,
-  importVddkLib,
-  importVmsFromEsxi,
-  installNbdInfo,
-  installNbdKit,
-  isSrWritable,
-} from 'xo'
-import { find, isEmpty, keyBy, map, pick } from 'lodash'
+import { esxiCheckInstall, esxiListVms, importVmsFromEsxi, isSrWritable } from 'xo'
+import { find, forEach, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
@@ -33,7 +24,7 @@ function EsxiCheckResults({ esxiCheck }) {
   return (
     <ul className='list-group'>
       {Object.entries(esxiCheck).map(([name, value]) => {
-        const { status, error, version, expectedVersion } = value
+        const { status, error } = value
         return (
           <li key={name}>
             <Icon icon={status} size='lg' fixedWidth />
@@ -42,7 +33,6 @@ function EsxiCheckResults({ esxiCheck }) {
             {status === 'error' && `"${error}"`}
             &nbsp;
             {status === 'error' && _('esxiCheckingPrerequisiteError')}
-            {version && status === 'alarm' && _('esxiCheckedPrerequisiteVersion', { version, expectedVersion })}
           </li>
         )
       })}
@@ -53,12 +43,16 @@ function EsxiCheckResults({ esxiCheck }) {
 @connectStore({
   hostsById: createGetObjectsOfType('host'),
   pifsById: createGetObjectsOfType('PIF'),
+  xoVmsById: createGetObjectsOfType('VM'),
+  vbdsById: createGetObjectsOfType('VBD'),
+  vdisById: createGetObjectsOfType('VDI'),
+  srsById: createGetObjectsOfType('SR'),
+  poolsById: createGetObjectsOfType('pool'),
 })
 class EsxiImport extends Component {
   state = {
     concurrency: N_IMPORT_VMS_IN_PARALLEL,
     hostIp: window.localStorage.getItem('esxi_host') ?? '',
-    installingEsxiLib: false,
     importing: false,
     isConnected: false,
     password: window.localStorage.getItem('esxi_password') ?? '',
@@ -67,9 +61,7 @@ class EsxiImport extends Component {
     stopOnError: true,
     template: undefined,
     user: window.localStorage.getItem('esxi_user') ?? '',
-    vddkFile: undefined,
     esxiCheck: undefined,
-    esxiCheckError: undefined,
     rememberConnection: !!window.localStorage.getItem('esxi_host'),
   }
 
@@ -77,32 +69,10 @@ class EsxiImport extends Component {
     this._esxiCheck()
   }
   _esxiCheck() {
-    this.setState({ esxiCheck: undefined, installingEsxiLib: false }, async () => {
+    this.setState({ esxiCheck: undefined }, async () => {
       const esxiCheck = await esxiCheckInstall()
       this.setState({ esxiCheck })
     })
-  }
-  _handleDropVddk = files => {
-    this.setState({ vddkFile: files?.[0] })
-  }
-  _handleImportVddk = async () => {
-    this.setState({ installingEsxiLib: true })
-    try {
-      await importVddkLib({ file: this.state.vddkFile })
-    } catch (error) {
-      this.setState({ esxiCheckError: error })
-    }
-    return this._esxiCheck()
-  }
-  _installNbdInfo = async () => {
-    this.setState({ installingEsxiLib: true })
-    await installNbdInfo()
-    return this._esxiCheck()
-  }
-  _installNbKit = async () => {
-    this.setState({ installingEsxiLib: true })
-    await installNbdKit()
-    return this._esxiCheck()
   }
   _getDefaultNetwork = createSelector(
     () => this.state.pool?.master,
@@ -130,6 +100,65 @@ class EsxiImport extends Component {
     () => this.state.pool?.id,
     poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
+
+  // A VM previously imported from the same source ESXi VM that can be used as
+  // the base of a delta transfer. It still has its `sourceVmId` set and its
+  // `start` operation blocked: the lock is only removed once the VM has been
+  // fully imported (see xo-server vmware mixin).
+  _getReferenceVmBySourceId = createSelector(
+    () => this.props.xoVmsById,
+    xoVmsById => {
+      const referenceVmBySourceId = {}
+      forEach(xoVmsById, vm => {
+        const sourceVmId = vm.other?.sourceVmId
+        const blockedStart = vm.blockedOperations?.start
+        if (sourceVmId !== undefined && blockedStart !== undefined && blockedStart !== '') {
+          referenceVmBySourceId[sourceVmId] = vm
+        }
+      })
+      return referenceVmBySourceId
+    }
+  )
+
+  // Returns the import status of a source ESXi VM, or `undefined` while no
+  // target SR is selected:
+  // { status: 'none' }                : no previous import found, the whole VM will be transferred
+  // { status: 'sameSr' }              : reference VM found, its disks are on the target SR -> delta transfer
+  // { status: 'otherSr', srLabel }    : reference VM found, but (at least) one disk is on another SR -> full transfer
+  _getReferenceVmStatus(esxiVmId) {
+    const targetSrId = resolveId(this.state.sr)
+    if (!targetSrId) {
+      return
+    }
+    const referenceVm = this._getReferenceVmBySourceId()[esxiVmId]
+    if (referenceVm === undefined) {
+      return { status: 'none' }
+    }
+
+    const { poolsById, srsById, vbdsById, vdisById } = this.props
+    // first disk (CDROM excluded) that is not on the target SR will cause a full  transfer
+    // can only reuse the reference VM if all its disks are already on the target SR
+    let offTargetSr
+    for (const vbdId of referenceVm.$VBDs ?? []) {
+      const vbd = vbdsById[vbdId]
+      if (vbd === undefined || vbd.is_cd_drive || vbd.VDI === undefined) {
+        continue
+      }
+      const vdi = vdisById[vbd.VDI]
+      if (vdi !== undefined && vdi.$SR !== targetSrId) {
+        offTargetSr = srsById[vdi.$SR]
+        break
+      }
+    }
+
+    if (offTargetSr === undefined) {
+      return { status: 'sameSr' }
+    }
+
+    const pool = poolsById[offTargetSr.$poolId]
+    const srLabel = pool === undefined ? offTargetSr.name_label : `${pool.name_label} - ${offTargetSr.name_label}`
+    return { status: 'otherSr', srLabel }
+  }
 
   _importVms = () => {
     const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, template, vms } =
@@ -202,7 +231,6 @@ class EsxiImport extends Component {
       concurrency,
       esxiCheck,
       hostIp,
-      installingEsxiLib,
       importing,
       isConnected,
       network = this._getDefaultNetwork(),
@@ -214,7 +242,6 @@ class EsxiImport extends Component {
       stopSource,
       stopOnError,
       user,
-      vddkFile,
       vms,
       vmsById,
     } = this.state
@@ -223,72 +250,12 @@ class EsxiImport extends Component {
       return <div>checking</div>
     }
 
-    // cehck nbdkit, nbdinfo, nbdkit plugin vddk
-    for (const [library, fn] of [
-      ['nbdinfo', this._installNbdInfo],
-      ['nbdkit', this._installNbKit],
-      ['nbdkitPluginVddk', this._installNbKit],
-    ]) {
-      const check = esxiCheck[library]
-      if (check.status !== 'success') {
-        return (
-          <div>
-            <Row>
-              <EsxiCheckResults esxiCheck={esxiCheck} />
-            </Row>
-            {check.version === undefined && (
-              <div>
-                <div className='mt-1 form-group pull-right'>
-                  <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
-                    {_('esxiLibraryAutoInstall', { library })}
-                  </ActionButton>
-                  {installingEsxiLib && (
-                    <p>
-                      {_('esxiLibraryInstalling', { library })}
-                      <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
-                        {_('esxiProgressLinkText')}
-                      </Link>
-                    </p>
-                  )}
-                  {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
-                </div>
-              </div>
-            )}
-            {check.version !== undefined && (
-              <p>
-                {_('esxiLibraryOutdated', { library, expectedVersion: check.expectedVersion, version: check.version })}
-              </p>
-            )}
-          </div>
-        )
-      }
-    }
-
-    if (esxiCheck.vddk?.status === 'error') {
+    // vectura is the only prerequisite: one binary, shipped with xo-server
+    if (esxiCheck.vectura.status !== 'success') {
       return (
-        <div>
-          <Row>
-            <EsxiCheckResults esxiCheck={esxiCheck} />
-          </Row>
-          <p>
-            {_('esxiLibraryInfo')} :{' '}
-            <a
-              href='https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0'
-              target='_blank'
-              rel='noreferrer'
-            >
-              {_('esxiLibraryLink')}
-            </a>
-          </p>
-          <Dropzone multiple={false} onDrop={this._handleDropVddk} message={_('esxiVddkLibrary')} accept='.tar.gz' />
-          {vddkFile && (
-            <div className='form-group pull-right'>
-              <ActionButton btnStyle='primary' className='mr-1' handler={this._handleImportVddk} icon='import'>
-                {_('esxiVddkLibraryImport')}
-              </ActionButton>
-            </div>
-          )}
-        </div>
+        <Row>
+          <EsxiCheckResults esxiCheck={esxiCheck} />
+        </Row>
       )
     }
 
@@ -447,7 +414,7 @@ class EsxiImport extends Component {
             {vms.map(vm => (
               <Collapse className='mt-1 mb-1' buttonText={vm.label} key={vm.value} size='small'>
                 <div className='mt-1'>
-                  <VmData data={vmsById[vm.value]} />
+                  <VmData data={vmsById[vm.value]} referenceVmStatus={this._getReferenceVmStatus(vm.value)} />
                 </div>
               </Collapse>
             ))}

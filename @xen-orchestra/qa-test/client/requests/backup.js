@@ -1,5 +1,8 @@
-import { waitUntil } from '../../utils/index.js'
+import { createLogger } from '@xen-orchestra/log'
+import { toSimplePattern, waitUntil } from '../../utils/index.js'
 import { AbstractRequest } from './abstract.js'
+
+const log = createLogger('xo:qa-test:backup')
 
 /**
  * Specialized request handler for XenOrchestra backup operations.
@@ -36,24 +39,27 @@ export class BackupRequest extends AbstractRequest {
       throw new Error('Valid backup configuration object is required')
     }
 
-    // Convert dynamic key format to XO expected format
     const convertConfig = cfg => {
-      const { vms, remotes, ...rest } = cfg
+      const { vms, remotes, srs, ...rest } = cfg
 
-      // Extract first VM UUID
-      const vmUuid = vms && typeof vms === 'object' ? Object.keys(vms)[0] : undefined
-      // Extract first Backup Repository ID
-      const backupRepositoryId = remotes && typeof remotes === 'object' ? Object.keys(remotes)[0] : undefined
+      const result = { ...rest }
 
-      return {
-        ...rest,
-        vms: {
-          id: vmUuid,
-        },
-        remotes: {
-          id: backupRepositoryId,
-        },
+      const vmIds = vms && typeof vms === 'object' ? Object.keys(vms) : []
+      if (vmIds.length > 0) {
+        result.vms = toSimplePattern(vmIds)
       }
+
+      const backupRepositoryIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
+      if (backupRepositoryIds.length > 0) {
+        result.remotes = toSimplePattern(backupRepositoryIds)
+      }
+
+      const srIds = srs && typeof srs === 'object' ? Object.keys(srs) : []
+      if (srIds.length > 0) {
+        result.srs = toSimplePattern(srIds)
+      }
+
+      return result
     }
 
     const xoConfig = convertConfig({ ...config, mode: config.mode || 'delta' })
@@ -62,12 +68,7 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.createJob', xoConfig)
       return result
     } catch (error) {
-      console.error('❌ Backup job creation failed:', {
-        message: error.message,
-        code: error.code,
-        data: error.data,
-        fullError: JSON.stringify(error, null, 2),
-      })
+      log.warn('Backup job creation failed', { message: error.message, code: error.code, data: error.data })
       throw error
     }
   }
@@ -93,7 +94,10 @@ export class BackupRequest extends AbstractRequest {
       const result = await this.dispatchClient.xoClient.call('backupNg.deleteJob', { id: jobId })
       return result
     } catch (error) {
-      console.error('❌ Delete backup job failed:', error.message)
+      // "no such job" means the caller used the wrong delete method (e.g. mirror job) — let it handle the fallback
+      if (error?.data?.type !== 'job') {
+        log.warn('Delete backup job failed', { error })
+      }
       throw error
     }
   }
@@ -121,7 +125,7 @@ export class BackupRequest extends AbstractRequest {
         remotes,
       })
     } catch (error) {
-      console.error('❌ List VM backups failed:', error.message)
+      log.warn('List VM backups failed', { error })
       throw error
     }
   }
@@ -150,10 +154,381 @@ export class BackupRequest extends AbstractRequest {
         ids,
       })
     } catch (error) {
-      console.error('❌ Delete VM backups failed:', error.message)
+      log.warn('Delete VM backups failed', { error })
       throw error
     }
   }
+
+  /**
+   * Restores a VM backup to a new VM on the given SR (backupNg.importVmBackup).
+   *
+   * @param {string} backupId - Backup ID as returned by `listVmBackups`
+   * @param {string} srId - Target Storage Repository UUID
+   * @param {Object} [settings={}]
+   * @returns {Promise<string>} UUID of the restored VM
+   */
+  async importVmBackup(backupId, srId, settings = {}) {
+    this._ensureConnected()
+
+    try {
+      return await this.dispatchClient.xoClient.call('backupNg.importVmBackup', {
+        id: backupId,
+        sr: srId,
+        settings,
+      })
+    } catch (error) {
+      log.warn('Import VM backup failed', { error })
+      throw error
+    }
+  }
+
+  /**
+   * Runs a backup health check on a backup (backupNg.checkBackup).
+   *
+   * @param {string} backupId - Backup ID as returned by `listVmBackups`
+   * @param {string} srId - Storage Repository the check restores to
+   * @param {Object} [settings={}]
+   * @returns {Promise<void>}
+   */
+  async checkBackup(backupId, srId, settings = {}) {
+    this._ensureConnected()
+
+    return this.dispatchClient.xoClient.call('backupNg.checkBackup', { id: backupId, sr: srId, settings })
+  }
+
+  /**
+   * Serves one disk of a backup archive as a read-only iSCSI LUN attached to a host.
+   *
+   * @param {string} archiveId - `<backup repository id>/<metadata path>`, i.e. a backup id
+   * @param {string} diskId - id of one of the archive's disks, as listed in `backup.disks`
+   * @param {string} hostId - host the disk is attached to
+   * @returns {Promise<{id: string, srUuid: string, vdiUuid: string}>} the mount, whose `id` is the
+   * handle to pass to `unmountLiveDisk`
+   */
+  async mountLiveDisk(archiveId, diskId, hostId) {
+    this._ensureConnected()
+
+    return this.dispatchClient.restApiClient.post(
+      `${this.#archiveEndpoint(archiveId)}/actions/mount_live_disk?sync=true`,
+      {
+        diskId,
+        hostId,
+      }
+    )
+  }
+
+  /**
+   * Detaches a disk mounted by `mountLiveDisk`, or by a restore which live mounted it.
+   *
+   * @param {string} archiveId - archive the mount belongs to
+   * @param {string} mountId - identifier of the mount
+   * @returns {Promise<void>}
+   */
+  async unmountLiveDisk(archiveId, mountId) {
+    this._ensureConnected()
+
+    return this.dispatchClient.restApiClient.post(
+      `${this.#archiveEndpoint(archiveId)}/live_disks/${encodeURIComponent(mountId)}/actions/unmount?sync=true`
+    )
+  }
+
+  // a backup archive id contains slashes, so it has to be encoded to stay a single path segment
+  #archiveEndpoint(archiveId) {
+    return `/rest/v0/backup-archives/${encodeURIComponent(archiveId)}`
+  }
+
+  // ===========================================================================
+  // Mirror Backup operations (mirrorBackup.* API)
+  // ===========================================================================
+
+  /**
+   * Creates a new mirror backup job in XenOrchestra.
+   *
+   * Mirror backup replicates backups from one remote to another.
+   * Uses `mirrorBackup.createJob` WebSocket API.
+   *
+   * @param {Object} config - Mirror backup job configuration
+   * @param {string} config.mode - 'full' or 'delta'
+   * @param {string} config.sourceRemote - ID of the source remote
+   * @param {Object} config.remotes - Destination remotes (e.g., { [remoteId]: {} })
+   * @param {string} [config.name] - Job name
+   * @param {Object} [config.schedules] - Schedule definitions
+   * @param {Object} [config.settings] - Job settings
+   * @param {Object} [config.filter] - VM filter (by UUID)
+   * @returns {Promise<string>} The created mirror backup job ID
+   */
+  async createMirrorBackupJob(config) {
+    this._ensureConnected()
+
+    if (!config || typeof config !== 'object') {
+      throw new Error('Valid mirror backup configuration object is required')
+    }
+
+    const { remotes, ...rest } = config
+
+    // Convert destination remotes to a simple pattern (supports one or several)
+    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
+
+    const xoConfig = {
+      ...rest,
+      mode: config.mode || 'full',
+    }
+
+    if (remoteIds.length > 0) {
+      xoConfig.remotes = toSimplePattern(remoteIds)
+    }
+
+    try {
+      const result = await this.dispatchClient.xoClient.call('mirrorBackup.createJob', xoConfig)
+      return result
+    } catch (error) {
+      log.warn('Mirror backup job creation failed', { message: error.message, code: error.code, data: error.data })
+      throw error
+    }
+  }
+
+  /**
+   * Deletes a mirror backup job.
+   *
+   * @param {string} jobId - ID of the mirror backup job to delete
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteMirrorBackupJob(jobId) {
+    this._ensureConnected()
+
+    if (!jobId || typeof jobId !== 'string') {
+      throw new Error('Valid mirror backup job ID is required')
+    }
+
+    try {
+      const result = await this.dispatchClient.xoClient.call('mirrorBackup.deleteJob', { id: jobId })
+      return result
+    } catch (error) {
+      if (error?.data?.type !== 'job') {
+        log.warn('Delete mirror backup job failed', { error })
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Executes a mirror backup job and monitors completion.
+   *
+   * @param {string} jobId - Mirror backup job ID to execute
+   * @param {string} scheduleId - Schedule ID to use for this execution
+   * @returns {Promise<Object>} Complete backup log with status and details
+   */
+  async runMirrorJobAndGetLog(jobId, scheduleId) {
+    this._ensureConnected()
+
+    log.debug('Running mirror backup job', { jobId, scheduleId })
+
+    const runStartTime = Date.now() - 5000
+
+    try {
+      await this.dispatchClient.xoClient.call('mirrorBackup.runJob', {
+        id: jobId,
+        schedule: scheduleId,
+      })
+    } catch (wsError) {
+      log.warn('Run mirror backup job failed', { error: wsError.message })
+      throw wsError
+    }
+
+    const backupLog = await waitUntil(
+      async () => {
+        try {
+          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
+
+          if (!latestLog) {
+            return false
+          }
+
+          const status = latestLog.status?.toLowerCase()
+          if (status === 'success' || status === 'failure' || latestLog.end) {
+            return latestLog
+          }
+
+          return false
+        } catch (error) {
+          log.debug('Waiting for mirror backup completion', { error })
+          return false
+        }
+      },
+      2000,
+      300_000,
+      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
+    )
+
+    log.debug('Mirror backup completed', { status: backupLog.status })
+    return backupLog
+  }
+
+  // ===========================================================================
+  // Metadata Backup operations (metadataBackup.* API)
+  // ===========================================================================
+
+  /**
+   * Creates a new metadata backup job in XenOrchestra.
+   *
+   * Accepts a caller-friendly shape:
+   *   { name, pools: { [poolId]: true }, remotes: { [remoteId]: true },
+   *     schedules, settings, xoMetadata }
+   * and converts pools/remotes to the { id } pattern expected by the API.
+   *
+   * @param {Object} config - Metadata backup job configuration
+   * @returns {Promise<string>} The created job ID
+   */
+  async createMetadataBackupJob(config) {
+    this._ensureConnected()
+
+    if (!config || typeof config !== 'object') {
+      throw new Error('Valid metadata backup configuration object is required')
+    }
+
+    const { pools, remotes, ...rest } = config
+
+    const poolIds = pools && typeof pools === 'object' ? Object.keys(pools) : []
+    const remoteIds = remotes && typeof remotes === 'object' ? Object.keys(remotes) : []
+
+    const xoConfig = { ...rest }
+    if (poolIds.length > 0) xoConfig.pools = toSimplePattern(poolIds)
+    if (remoteIds.length > 0) xoConfig.remotes = toSimplePattern(remoteIds)
+
+    try {
+      const result = await this.dispatchClient.xoClient.call('metadataBackup.createJob', xoConfig)
+      // metadataBackup.createJob returns the full job object (unlike backupNg.createJob which returns only the ID)
+      return result?.id ?? result
+    } catch (error) {
+      log.warn('Metadata backup job creation failed', { message: error.message, code: error.code, data: error.data })
+      throw error
+    }
+  }
+
+  /**
+   * Gets a metadata backup job by ID.
+   *
+   * Uses the WebSocket API because the backup-jobs REST endpoint only covers VM backup jobs.
+   *
+   * @param {string} jobId - Metadata backup job ID
+   * @returns {Promise<Object>} The job object
+   */
+  async getMetadataJob(jobId) {
+    this._ensureConnected()
+
+    if (!jobId || typeof jobId !== 'string') {
+      throw new Error('Valid job ID is required')
+    }
+
+    try {
+      return await this.dispatchClient.xoClient.call('metadataBackup.getJob', { id: jobId })
+    } catch (error) {
+      log.warn('Get metadata backup job failed', { jobId, error })
+      throw error
+    }
+  }
+
+  /**
+   * Deletes a metadata backup job.
+   *
+   * @param {string} jobId - Metadata backup job ID to delete
+   * @returns {Promise<void>}
+   */
+  async deleteMetadataBackupJob(jobId) {
+    this._ensureConnected()
+
+    if (!jobId || typeof jobId !== 'string') {
+      throw new Error('Valid job ID is required')
+    }
+
+    try {
+      return await this.dispatchClient.xoClient.call('metadataBackup.deleteJob', { id: jobId })
+    } catch (error) {
+      log.warn('Delete metadata backup job failed', { jobId, error })
+      throw error
+    }
+  }
+
+  /**
+   * Executes a metadata backup job and monitors completion.
+   *
+   * Same polling pattern as runJobAndGetLog, but calls metadataBackup.runJob.
+   *
+   * @param {string} jobId - Metadata backup job ID to execute
+   * @param {string} scheduleId - Schedule ID to use for this execution
+   * @returns {Promise<Object>} Complete backup log with status and details
+   */
+  async runMetadataJobAndGetLog(jobId, scheduleId) {
+    this._ensureConnected()
+
+    log.debug('Running metadata backup job', { jobId, scheduleId })
+
+    const runStartTime = Date.now()
+
+    try {
+      await this.dispatchClient.xoClient.call('metadataBackup.runJob', {
+        id: jobId,
+        schedule: scheduleId,
+      })
+    } catch (wsError) {
+      // The server has a known bug where a post-job cleanup error of `undefined` causes
+      // serializeError() to throw, returning a -32000 WS error even though the backup
+      // already completed. Continue polling for the log rather than failing immediately.
+      log.debug('metadataBackup.runJob returned a WS error, polling for backup log anyway', {
+        jobId,
+        code: wsError.code,
+        error: wsError.message,
+      })
+    }
+
+    const backupLog = await waitUntil(
+      async () => {
+        try {
+          const latestLog = await this.dispatchClient.backupLog.getLatestForJob(jobId, runStartTime)
+          if (!latestLog) return false
+          const status = latestLog.status?.toLowerCase()
+          if (status === 'success' || status === 'failure' || latestLog.end) {
+            return latestLog
+          }
+          return false
+        } catch (error) {
+          log.debug('Waiting for metadata backup completion', { error })
+          return false
+        }
+      },
+      2000,
+      300_000,
+      { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
+    )
+
+    log.debug('Metadata backup completed', { status: backupLog.status })
+    return backupLog
+  }
+
+  /**
+   * Lists metadata backups for the given backup repositories.
+   *
+   * @param {string[]} remoteIds - Array of backup repository IDs
+   * @returns {Promise<{xo: Object, pool: Object}>} Nested metadata backup structure
+   */
+  async listMetadataBackups(remoteIds) {
+    this._ensureConnected()
+
+    if (!Array.isArray(remoteIds) || remoteIds.length === 0) {
+      throw new Error('Valid array of remote IDs is required')
+    }
+
+    try {
+      return await this.dispatchClient.xoClient.call('metadataBackup.list', { remotes: remoteIds })
+    } catch (error) {
+      log.warn('List metadata backups failed', { error })
+      throw error
+    }
+  }
+
+  // ===========================================================================
+  // Standard Backup operations (backupNg.* API)
+  // ===========================================================================
 
   /**
    * Executes a backup job and monitors completion.
@@ -169,7 +544,7 @@ export class BackupRequest extends AbstractRequest {
   async runJobAndGetLog(jobId, scheduleId) {
     this._ensureConnected()
 
-    console.log(`🚀 Running backup job ${jobId} with schedule ${scheduleId}...`)
+    log.debug('Running backup job', { jobId, scheduleId })
 
     // Capture timestamp BEFORE starting the job (with small buffer for clock differences)
     const runStartTime = Date.now() - 5000 // 5 second buffer before job start
@@ -181,8 +556,13 @@ export class BackupRequest extends AbstractRequest {
         schedule: scheduleId,
       })
     } catch (wsError) {
-      console.error('❌ Run backup job failed:', wsError.message)
-      throw wsError
+      if (wsError.code === -32000 && wsError.message.includes('task has not started yet')) {
+        // sometimes we get a task not started error
+        await new Promise(resolve => setTimeout(resolve, 10_000))
+      } else {
+        console.error('❌ Run backup job failed:', wsError.message)
+        throw wsError
+      }
     }
 
     // Wait for the backup to complete and get the log
@@ -203,7 +583,7 @@ export class BackupRequest extends AbstractRequest {
 
           return false // Still running
         } catch (error) {
-          console.debug('Waiting for backup completion...', error.message)
+          log.debug('Waiting for backup completion', { error })
           return false
         }
       },
@@ -212,7 +592,7 @@ export class BackupRequest extends AbstractRequest {
       { exponentialBackoff: true, backoffMultiplier: 1.2, maxInterval: 10_000 }
     )
 
-    console.log(`✅ Backup completed: ${backupLog.status}`)
+    log.debug('Backup completed', { status: backupLog.status })
     return backupLog
   }
 }

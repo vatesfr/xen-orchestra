@@ -1,11 +1,11 @@
 export const backupArchiveIds = [
-  '/rest/v0/backup-archives/231264c3-af43-4ec0-a3be-394c5b1fdbfc//xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json',
-  '/rest/v0/backup-archives/1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
+  '/rest/v0/backup-archives/231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json',
+  '/rest/v0/backup-archives/1af95910-01b4-4e87-9c2f-d895cafe0776/xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
 ]
 
 export const partialBackupArchives = [
   {
-    id: '231264c3-af43-4ec0-a3be-394c5b1fdbfc//xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json',
+    id: '231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json',
     backupRepository: '231264c3-af43-4ec0-a3be-394c5b1fdbfc',
     disks: [
       {
@@ -22,7 +22,7 @@ export const partialBackupArchives = [
     href: '/rest/v0/backup-archives/231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json',
   },
   {
-    id: '1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
+    id: '1af95910-01b4-4e87-9c2f-d895cafe0776/xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
     backupRepository: '1af95910-01b4-4e87-9c2f-d895cafe0776',
     disks: [
       {
@@ -31,9 +31,18 @@ export const partialBackupArchives = [
         uuid: '73ed06ed-fdc8-43ef-a1c4-253e9005fbe0',
       },
     ],
-    href: '/rest/v0/backup-archives/1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
+    href: '/rest/v0/backup-archives/1af95910-01b4-4e87-9c2f-d895cafe0776/xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
   },
 ]
+
+export const backupArchiveDiskMount = {
+  id: '6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  srUuid: '9f2d1c74-3b5a-4e18-9c60-1d7ae4f2b301',
+  vdiUuid: 'c922ef3c-9d76-4482-87f8-a4da5849ee45',
+  iqn: 'iqn.2026-07.tech.vates.xo:live-mount-6b1f0e9c2a7d4f83b5c1d9e0a4f76b28',
+  address: '192.168.0.1',
+  port: 44321,
+}
 
 export const backupArchive = {
   type: 'xo-vm-backup',
@@ -45,7 +54,7 @@ export const backupArchive = {
       uuid: 'c922ef3c-9d76-4482-87f8-a4da5849ee45',
     },
   ],
-  id: '1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
+  id: '1af95910-01b4-4e87-9c2f-d895cafe0776/xo-vm-backups/7cf6150f-a978-09e6-6b41-0d1d41967bdc/20250918T132942Z.json',
   jobId: 'f2599aa4-7bb4-434b-bf71-cf0ebe1e06a4',
   mode: 'delta',
   scheduleId: '8db1c2da-2635-436f-8f78-62079fea3aa6',

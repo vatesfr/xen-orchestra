@@ -37,3 +37,6 @@ export const getSyncedHandler = async (...opts) => {
     value: handler,
   }
 }
+
+
+export { default as RemoteHandlerAbstract } from './abstract.js'

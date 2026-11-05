@@ -6,7 +6,6 @@ import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
-import hrp from 'http-request-plus'
 import mapKeys from 'lodash/mapKeys.js'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
@@ -15,6 +14,8 @@ import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
+import { Agent } from 'undici'
+import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 
 import { forEach, map, mapFilter, noop, parseSize, safeDateFormat } from '../utils.mjs'
@@ -166,7 +167,9 @@ export const create = defer(async function ($defer, params) {
   let checkLimits
 
   if (resourceSet) {
-    await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    // an admin can add the created VM to a resource set even if the objects it
+    // uses (template, SRs, networks) are not part of this resource set
+    await this.checkResourceSetConstraints(resourceSet, user.id, user.permission === 'admin' ? undefined : objectIds)
     checkLimits = async limits2 => {
       const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
       await this.allocateLimitsInResourceSet(_limits, resourceSet)
@@ -752,7 +755,7 @@ set.params = {
   // Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true },
 
-  cpuMask: { type: 'array', optional: true },
+  cpuMask: { type: 'array', items: { type: 'integer' }, optional: true },
 
   cpuWeight: { type: ['integer', 'null'], optional: true },
 
@@ -1303,6 +1306,13 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
 
+  // Propagate content-length so putResource avoids the 1PiB fallback hack that causes
+  // IMPORT_ERROR_PREMATURE_EOF — same reason multipart sets part.length = part.byteCount.
+  const contentLength = parseInt(req.headers['content-length'], 10)
+  if (!isNaN(contentLength)) {
+    req.length = contentLength
+  }
+
   // expect "multipart/form-data; boundary=something"
   const contentType = req.headers['content-type']
   const vm = await (contentType !== undefined && contentType.startsWith('multipart/form-data')
@@ -1360,8 +1370,19 @@ async function import_({ data, sr, type = 'xva', url }) {
     }
 
     const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
-    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
-    return xapi.call('VM.get_uuid', ref)
+    // `timeout` is an inactivity timeout: undici's headers/body timeouts match this semantic
+    const dispatcher = new Agent({ headersTimeout: timeout, bodyTimeout: timeout })
+    try {
+      const response = await fetch(url, { dispatcher })
+      if (!response.ok) {
+        await response.body?.cancel() // free the socket
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
+      const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
+      return await xapi.call('VM.get_uuid', ref)
+    } finally {
+      await dispatcher.close()
+    }
   }
 
   return {
@@ -1453,6 +1474,12 @@ importFromEsxi.params = {
   template: { type: 'string' },
   vm: { type: 'string' },
   workDirRemote: { type: 'string', optional: true },
+}
+
+importFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 /**
@@ -1556,6 +1583,12 @@ importMultipleFromEsxi.params = {
     uniqueItems: true,
   },
   workDirRemote: { type: 'string', optional: true },
+}
+
+importMultipleFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 // -------------------------------------------------------------------

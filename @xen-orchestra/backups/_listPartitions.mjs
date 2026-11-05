@@ -29,6 +29,15 @@ export const LVM_PARTITION_TYPE_MBR = 0x8e
 // GPT LVM type
 export const LVM_PARTITION_TYPE_GPT = 'e6d6d379-f507-44c2-a23c-238f2a3df928'
 
+// Generic "Linux filesystem data" types. These are the only non-LVM-typed
+// partitions worth probing for a hidden LVM PV, because some installers (e.g.
+// Ubuntu subiquity) place a PV on a partition left with this generic type.
+// Other types (BIOS boot, EFI, swap, …) are never LVM PVs.
+// MBR Linux native
+export const LINUX_DATA_PARTITION_TYPE_MBR = 0x83
+// GPT Linux filesystem data
+export const LINUX_DATA_PARTITION_TYPE_GPT = '0fc63daf-8483-4772-8e79-3d69d8477de4'
+
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
   valueTransform: (value, key) => {

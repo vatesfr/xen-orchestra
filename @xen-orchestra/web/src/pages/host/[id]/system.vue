@@ -1,5 +1,5 @@
 <template>
-  <VtsColumns>
+  <VtsColumns extra-space-around>
     <VtsColumn>
       <HostSystemGeneralInformation :host />
       <HostSystemNetworking :host />

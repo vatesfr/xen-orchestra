@@ -180,7 +180,7 @@ const XO_TASKS_COLUMNS = [
   {
     itemRenderer: task => {
       const { objectId } = task.properties ?? task
-      return objectId === undefined ? null : renderXoItemFromId(task.objectId, { link: true })
+      return objectId === undefined ? null : renderXoItemFromId(objectId, { link: true })
     },
     name: _('object'),
   },

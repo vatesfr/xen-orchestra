@@ -1,41 +1,37 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { XoClient } from './xo-client.mjs'
 
+import { fetchSwaggerSpec, parseSwagger, type ParseOptions } from './bootstrap/swagger.mjs'
+import { registerDomainTools } from './bootstrap/tool-generator.mjs'
 import { registerCheckConnection } from './tools/utility/check-connection.mjs'
 import { registerSearchDocs } from './tools/utility/search-docs.mjs'
-import { registerListPools } from './tools/query/list-pools.mjs'
-import { registerGetPoolDashboard } from './tools/query/get-pool-dashboard.mjs'
-import { registerListHosts } from './tools/query/list-hosts.mjs'
-import { registerListVms } from './tools/query/list-vms.mjs'
-import { registerListVdis } from './tools/query/list-vdis.mjs'
-import { registerGetVmDetails } from './tools/query/get-vm-details.mjs'
-import { registerGetInfrastructureSummary } from './tools/query/get-infrastructure-summary.mjs'
-import { registerListSrs } from './tools/query/list-srs.mjs'
-import { registerGetSrDetails } from './tools/query/get-sr-details.mjs'
-import { registerListNetworks } from './tools/query/list-networks.mjs'
-import { registerGetNetworkDetails } from './tools/query/get-network-details.mjs'
+import { registerGetInfrastructureSummary } from './tools/utility/get-infrastructure-summary.mjs'
 
-export function createServer(getClient: () => XoClient): McpServer {
-  const server = new McpServer({
-    name: 'xo-mcp-server',
-    version: '1.0.0',
-  })
+function parseEnvOverrides(): ParseOptions {
+  const opts: ParseOptions = {}
+  if (process.env.XO_MCP_ENABLE_ACTIONS === '1') opts.includeConfirm = true
 
-  // Utility tools
+  const denyList = process.env.XO_MCP_DENY_LIST?.split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+  if (denyList?.length) opts.denyList = denyList
+
+  return opts
+}
+
+export async function createServer(getClient: () => XoClient): Promise<McpServer> {
+  const server = new McpServer({ name: 'xo-mcp-server', version: '1.0.0' })
+
+  const client = getClient()
+  const spec = await fetchSwaggerSpec(client.getBaseUrl(), client.getAuthHeaders(), client.fetchFn)
+  const domains = parseSwagger(spec, parseEnvOverrides())
+
+  for (const domain of domains.values()) {
+    registerDomainTools(server, getClient, domain)
+  }
+
   registerCheckConnection(server, getClient)
-  registerSearchDocs(server)
-
-  // Query tools
-  registerListPools(server, getClient)
-  registerGetPoolDashboard(server, getClient)
-  registerListHosts(server, getClient)
-  registerListVms(server, getClient)
-  registerListVdis(server, getClient)
-  registerGetVmDetails(server, getClient)
-  registerListSrs(server, getClient)
-  registerGetSrDetails(server, getClient)
-  registerListNetworks(server, getClient)
-  registerGetNetworkDetails(server, getClient)
+  registerSearchDocs(server, getClient)
   registerGetInfrastructureSummary(server, getClient)
 
   return server

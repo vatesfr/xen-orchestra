@@ -1,4 +1,3 @@
-import forEach from 'lodash/forEach.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
@@ -13,25 +12,44 @@ const isSkippedError = error =>
     error.message === 'no VMs match this pattern' ||
     error.message === 'unhealthy VDI chain')
 
-const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
-  status === 'failure' && isSkippedError(error) ? 'skipped' : status
+const getStatus = (error, status) => (status === 'failure' && isSkippedError(error) ? 'skipped' : status)
 
-const computeStatusAndSortTasks = (status, tasks) => {
-  if (status === 'failure' || tasks === undefined) {
+// check if an error subtask was successful after retry
+const isSupersededByRetry = (subtask, siblings) =>
+  siblings.some(
+    other =>
+      other !== subtask &&
+      other.status === 'success' &&
+      other.properties?.name === subtask.properties?.name &&
+      // disambiguates subtasks with the same name but different targets, e.g. two export subtasks for different SRs
+      other.properties?.id === subtask.properties?.id
+  )
+
+export const computeStatusAndSortSubtasks = task => {
+  let status = getStatus(task.result, task.status)
+
+  if (status === 'failure' || task.tasks === undefined) {
     return status
   }
 
-  for (let i = 0, n = tasks.length; i < n; ++i) {
-    const taskStatus = tasks[i].status
-    if (taskStatus === 'failure') {
-      return taskStatus
+  // A retried subtask leaves a warning at the VM task level.
+  // If the initial try fails but a retry succeeds, the failure must not affect the parent task status.
+  const wasRetried = task.warnings?.some(({ data }) => data?.isRetry === true) ?? false
+
+  for (let i = 0, n = task.tasks.length; i < n; ++i) {
+    const subtask = task.tasks[i]
+    if (subtask.status === 'failure') {
+      if (wasRetried && isSupersededByRetry(subtask, task.tasks)) {
+        continue
+      }
+      return 'failure'
     }
-    if (taskStatus === 'skipped') {
-      status = taskStatus
+    if (subtask.status === 'skipped') {
+      status = subtask.status
     }
   }
 
-  tasks.sort(taskTimeComparator)
+  task.tasks.sort(taskTimeComparator)
 
   return status
 }
@@ -52,6 +70,56 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   return 1
 }
 
+function adaptTask(task) {
+  let { name, metadata, ...data } = task.properties
+  task.message = name
+  if (metadata !== undefined) {
+    data = { ...data, ...metadata }
+  }
+  if (Object.keys(data).length > 0) {
+    task.data = data
+  }
+  delete task.properties
+  task.tasks?.forEach(adaptTask)
+}
+
+export function taskFormatAdapter(log) {
+  const isXoTask = log.tasks?.length > 0 && !!log.tasks[0].properties
+  if (isXoTask) {
+    adaptTask(log.tasks[0])
+    if (log.tasks[0].infos !== undefined && log.tasks[0].infos.length > 0) {
+      log.infos = [...(log.infos ?? []), ...log.tasks[0].infos]
+    }
+    if (log.tasks[0].warnings !== undefined && log.tasks[0].warnings.length !== 0) {
+      log.warnings = [...(log.warnings ?? []), ...log.tasks[0].warnings]
+    }
+    log.tasks = log.tasks[0].tasks
+  }
+}
+
+async function getRestoreLogs(store) {
+  return new Promise((resolve, reject) => {
+    const restoreLogs = {}
+    const metadataRestoreLogs = {}
+
+    store
+      .createReadStream()
+      .on('data', data => {
+        if (data.value.properties?.name === 'restore') {
+          restoreLogs[data.key] = data.value
+        } else if (data.value.properties?.name === 'metadataRestore') {
+          metadataRestoreLogs[data.key] = data.value
+        }
+      })
+      .on('end', () => {
+        resolve({ restoreLogs, metadataRestoreLogs })
+      })
+      .on('error', reject)
+  })
+}
+
+const statusFromError = error => (error === undefined ? 'success' : 'failure')
+
 // type Task = {
 //   data: any,
 //   end?: number,
@@ -68,17 +136,19 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 export default {
   getBackupNgLogs: debounceWithKey(
     async function getBackupNgLogs(runId) {
-      const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
+      const [jobLogs, oldRestoreLogs, oldMetadataRestoreLogs] = await Promise.all([
         this.getLogs('jobs'),
         this.getLogs('restore'),
         this.getLogs('metadataRestore'),
       ])
+      const taskStore = await this.getStore('tasks')
+      const { restoreLogs, metadataRestoreLogs } = await getRestoreLogs(taskStore)
 
       const { runningJobs, runningRestores, runningMetadataRestores } = this
       const consolidated = {}
       const started = {}
 
-      const handleLog = ({ data, time, message }, id) => {
+      const handleLog = async ({ data, time, message }, id) => {
         const { event } = data
         if (event === 'job.start') {
           if ((data.type === 'backup' || data.key === undefined) && (runId === undefined || runId === id)) {
@@ -101,7 +171,17 @@ export default {
           if (log !== undefined) {
             delete started[runJobId]
             log.end = time
-            log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
+            log.result = data.error
+            log.status = statusFromError(data.error)
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
+          }
+        } else if (event === 'job.backupTaskStart') {
+          // happens once, only for backups using XO Tasks
+          const { runJobId } = data
+          const log = started[runJobId]
+          if (log !== undefined && (await taskStore.has(data.backupTaskId))) {
+            log.tasks = [await taskStore.get(data.backupTaskId)]
           }
         } else if (event === 'task.start') {
           const task = {
@@ -133,7 +213,10 @@ export default {
             // TODO: merge/transfer work-around
             delete started[taskId]
             log.end = time
-            log.status = computeStatusAndSortTasks(getStatus((log.result = data.result), data.status), log.tasks)
+            log.result = data.result
+            log.status = data.status
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
           }
         } else if (event === 'task.warning') {
           const parent = started[data.taskId]
@@ -170,14 +253,38 @@ export default {
           if (log !== undefined) {
             delete started[runCallId]
             log.end = time
-            log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
+            log.result = data.error
+            log.status = statusFromError(data.error)
+            // computeStatusAndSortSubtasks reads log.status
+            log.status = computeStatusAndSortSubtasks(log)
           }
         }
       }
 
-      forEach(jobLogs, handleLog)
-      forEach(restoreLogs, handleLog)
-      forEach(restoreMetadataLogs, handleLog)
+      for (const [logId, log] of Object.entries(jobLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(oldRestoreLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(oldMetadataRestoreLogs)) {
+        await handleLog(log, logId)
+      }
+
+      // adapt new backup logs to the old backup log structure
+      for (const log of Object.values(consolidated)) {
+        taskFormatAdapter(log)
+      }
+
+      for (const [logId, log] of Object.entries(restoreLogs)) {
+        adaptTask(log)
+        consolidated[logId] = log
+      }
+
+      for (const [logId, log] of Object.entries(metadataRestoreLogs)) {
+        adaptTask(log)
+        consolidated[logId] = log
+      }
 
       if (runId !== undefined) {
         if (consolidated[runId] === undefined) {

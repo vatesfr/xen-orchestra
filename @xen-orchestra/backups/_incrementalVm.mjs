@@ -4,9 +4,9 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
 
 import { cancelableMap } from './_cancelableMap.mjs'
-import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
@@ -15,6 +15,17 @@ import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
+
+// The dynamic memory range MUST respect this inequality at any moment: static_min <= dynamic_min <= dynamic_max <= static_max.
+// VM.set_memory_limits sets all four fields atomically, so there is no intermediate state for XAPI to reject
+export async function updateMemoryFields(xapi, targetVm, vmRecord) {
+  const staticMin = vmRecord.memory_static_min ?? targetVm.memory_static_min
+  const staticMax = vmRecord.memory_static_max ?? targetVm.memory_static_max
+  const dynamicMin = vmRecord.memory_dynamic_min ?? targetVm.memory_dynamic_min
+  const dynamicMax = vmRecord.memory_dynamic_max ?? targetVm.memory_dynamic_max
+
+  await xapi.call('VM.set_memory_limits', targetVm.$ref, staticMin, staticMax, dynamicMin, dynamicMax)
+}
 
 export async function exportIncrementalVm(
   vm,
@@ -124,7 +135,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  { cancelToken = CancelToken.none, newMacAddresses = false, targetRef = undefined } = {}
+  {
+    cancelToken = CancelToken.none,
+    newMacAddresses = false,
+    targetRef = undefined,
+    vmNamePrefix = '[Importing…] ',
+  } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -160,6 +176,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   let vmRef
   if (isUpdate) {
     vmRef = targetRef
+
+    await updateMemoryFields(xapi, targetVm, vmRecord)
+
     await Promise.all([
       xapi.setFields('VM', vmRef, {
         actions_after_crash: vmRecord.actions_after_crash,
@@ -171,10 +190,6 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         HVM_boot_params: vmRecord.HVM_boot_params,
         HVM_boot_policy: vmRecord.HVM_boot_policy,
         HVM_shadow_multiplier: vmRecord.HVM_shadow_multiplier,
-        memory_dynamic_max: vmRecord.memory_dynamic_max,
-        memory_dynamic_min: vmRecord.memory_dynamic_min,
-        memory_static_max: vmRecord.memory_static_max,
-        memory_static_min: vmRecord.memory_static_min,
         name_label: vmRecord.name_label,
         name_description: vmRecord.name_description,
         order: vmRecord.order,
@@ -214,7 +229,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         },
         ha_always_run: false,
         is_a_template: false,
-        name_label: '[Importing…] ' + vmRecord.name_label,
+        name_label: vmNamePrefix + vmRecord.name_label,
       },
       {
         bios_strings: vmRecord.bios_strings,
@@ -245,7 +260,12 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     const vdi = vdiRecords[vdiRef]
     let newVdi
 
-    if (vdi.baseVdi?.$ref !== undefined) {
+    const isLiveMounted = vdi.liveMountedVdiRef !== undefined
+    if (isLiveMounted) {
+      // the disk is served by a live mount: the VDI already exists and only has to be attached.
+      // No `$defer.onFailure` destroy here, it belongs to the mount and not to this import.
+      newVdi = await xapi.getRecord('VDI', vdi.liveMountedVdiRef)
+    } else if (vdi.baseVdi?.$ref !== undefined) {
       if (isUpdate) {
         // In update mode, reuse the existing target VDI directly — no clone needed.
         newVdi = vdi.baseVdi
@@ -274,6 +294,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       await asyncMap(Object.values(vdiVbds), vbd =>
         xapi.VBD_create({
           ...vbd,
+          // an uncached live mount serves its disk read only: attach it as such, instead of letting
+          // the guest discover it through I/O errors on its first write
+          mode: isLiveMounted && vdi.liveMountedReadOnly ? 'RO' : vbd.mode,
           VDI: newVdi.$ref,
           VM: vmRef,
         })
@@ -284,9 +307,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   })
 
   // 3.5. Destroy old VDIs that are no longer attached to the VM.
-  // Uses ignoreErrors because some storage backends refuse to destroy a VDI that still has snapshot children;
-  // those VDIs will become truly orphaned once the old snapshot VMs are cleaned up by _deleteOldEntries.
-  await asyncMap([...oldVdiRefs], ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
+  // Some storage backends refuse to destroy a VDI that still has snapshot children.
+  // Log it and leave it for later cleanup.
+  await asyncMap([...oldVdiRefs], ref =>
+    xapi.call('VDI.destroy', ref).catch(error =>
+      Task.warning('failed to destroy orphaned VDI', {
+        vdi: xapi.getObject(ref, undefined)?.uuid ?? ref,
+        error,
+      })
+    )
+  )
 
   // 4. For updates, destroy existing VIFs before recreating them.
   if (isUpdate) {
@@ -365,12 +395,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       }
     }),
   ])
-  // recreate VTPMs
-  await Promise.all(
-    (incrementalVm.vtpms ?? []).map(async contents => {
-      await xapi.VTPM_create({ VM: vmRef, contents })
-    })
-  )
+
+  // recreate vtpm (note there is normally only one VTPM per VM at most)
+  const existingVtpmRefs = await xapi.getField('VM', vmRef, 'VTPMs')
+  for (const vtpmRef of existingVtpmRefs ?? []) {
+    await xapi.call('VTPM_destroy', vtpmRef)
+  }
+  for (const contents of incrementalVm.vtpms ?? []) {
+    await xapi.VTPM_create({ VM: vmRef, contents })
+  }
+
   const vm = await xapi.getRecord('VM', vmRef)
   await Promise.all([
     vmRecord.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),

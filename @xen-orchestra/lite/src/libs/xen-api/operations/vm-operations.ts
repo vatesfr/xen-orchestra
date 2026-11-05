@@ -1,9 +1,8 @@
-import type XenApi from '@/libs/xen-api/xen-api'
-import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import type { OpenModal } from '@core/packages/modal/types.ts'
+import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums.ts'
+import type XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import type { MaybeArray } from '@core/types/utility.type.ts'
-import { toArray } from '@core/utils/to-array.utils'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import type { OPAQUE_REF_NULL } from '@vates/types/common'
 
 export function createVmOperations(xenApi: XenApi) {
@@ -42,7 +41,7 @@ export function createVmOperations(xenApi: XenApi) {
 
     delete: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.destroy', [vmRef]))),
 
-    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE, openModal: OpenModal) => {
+    export: async (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE) => {
       const blockedUrls: URL[] = []
 
       toArray(vmRefs).forEach(vmRef => {
@@ -54,22 +53,14 @@ export function createVmOperations(xenApi: XenApi) {
           use_compression: compression,
         }).toString()
 
-        const _window = window.open(url.href, '_blank')
+        const openedWindow = window.open(url.href, '_blank')
 
-        if (_window === null) {
+        if (openedWindow === null) {
           blockedUrls.push(url)
-        } else {
-          URL.revokeObjectURL(url.toString())
         }
       })
 
-      if (blockedUrls.length > 0) {
-        await openModal('blocked-urls', {
-          component: import('@/components/modals/VmExportBlockedUrlsModal.vue'),
-          props: { blockedUrls },
-          onConfirm: () => blockedUrls.forEach(url => URL.revokeObjectURL(url.toString())),
-        })
-      }
+      return { blockedUrls }
     },
 
     getAllowedVbdDevices: (vmRefs: VmRefs): Promise<string[][]> =>
@@ -113,12 +104,19 @@ export function createVmOperations(xenApi: XenApi) {
     setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
+    // XAPI may re-add `cores-per-socket` between `remove_from_platform` and `add_to_platform` (e.g. when setting the
+    // VCPUs), which fails with `MAP_DUPLICATE_KEY`, so the whole `platform` map is replaced instead, like xen-api does:
+    // https://github.com/vatesfr/xen-orchestra/blob/493aa7f15d51f60e34d0f76db2b033ccfc56737b/packages/xen-api/index.mjs#L542-L549
     setCoresPerSocket: async (vmRef: XenApiVm['$ref'], coresPerSocket: number | null) => {
-      await xenApi.call('VM.remove_from_platform', [vmRef, 'cores-per-socket'])
+      const platform = await xenApi.getField<XenApiVm['platform']>('VM', vmRef, 'platform')
 
-      if (coresPerSocket !== null) {
-        await xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', String(coresPerSocket)])
+      if (coresPerSocket === null) {
+        delete platform['cores-per-socket']
+      } else {
+        platform['cores-per-socket'] = String(coresPerSocket)
       }
+
+      await xenApi.call('VM.set_platform', [vmRef, platform])
     },
 
     setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>

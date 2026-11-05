@@ -16,9 +16,9 @@
           left-icon="status:info-circle"
           size="small"
           variant="tertiary"
-          @click="openVmProtectedModal()"
+          @click="openVmProtectedInfoModal()"
         >
-          {{ t('what-does-protected-means?') }}
+          {{ t('what-does-protected-mean?') }}
         </UiButton>
       </div>
     </template>
@@ -35,7 +35,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useVmProtectedInfoModal } from '@core/composables/modals/use-vm-protected-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,9 +45,7 @@ const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
 
-const openVmProtectedModal = useModal(() => ({
-  component: import('@/shared/components/modals/VmProtected.vue'),
-}))
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const dashboardBackups = computed(() => dashboard.value.backups)
 
@@ -77,7 +75,7 @@ const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(()
     accent: 'warning',
   },
   {
-    label: t('backups:vms-protection:no-job'),
+    label: t('backups:vms-protection:no-active-job'),
     value: vmsProtection.value?.notInJob ?? vms.value.length,
     accent: 'muted',
   },

@@ -1,45 +1,62 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="networks">
     <UiCard class="container">
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks>
         <template #title-actions>
-          <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
-            {{ t('action:add-network-in-xo-5') }}
-          </UiLink>
+          <MenuList placement="bottom-end">
+            <template #trigger="{ open }">
+              <UiDropdownButton @click="open($event)">{{ t('new') }}</UiDropdownButton>
+            </template>
+            <MenuItem accent="neutral">
+              <UiLink
+                class="new-network-link"
+                :to="{ name: '/network/new', query: { poolid: pool.id } }"
+                icon="fa:plus"
+                size="small"
+              >
+                {{ t('action:create-network') }}
+              </UiLink>
+            </MenuItem>
+            <MenuItem accent="neutral">
+              <UiLink
+                class="new-network-link"
+                :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
+                icon="fa:plus"
+                size="small"
+              >
+                {{ t('action:create-bonded-network') }}
+              </UiLink>
+            </MenuItem>
+          </MenuList>
         </template>
       </NetworksTable>
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="internalNetworks" internal>
         <template #title-actions>
-          <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
-            {{ t('action:add-host-internal-network-in-xo-5') }}
+          <UiLink :to="{ name: '/network/new-internal', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
+            {{ t('new') }}
           </UiLink>
         </template>
       </NetworksTable>
     </UiCard>
-    <NetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script setup lang="ts">
 import NetworksTable from '@/modules/network/components/NetworksTable.vue'
 import NetworkSidePanel from '@/modules/network/components/panel/NetworkSidePanel.vue'
 import {
-  useXoNetworkCollection,
   type FrontXoNetwork,
+  useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,12 +66,8 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-const xo5NewNetworkHref = computed(() => buildXo5Route(`/new/network?pool=${pool.id}`))
-
 const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
   useXoNetworkCollection()
-const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
 
@@ -68,15 +81,19 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
   .container {
     height: fit-content;
     margin: 0.8rem;
     gap: 4rem;
   }
+}
+
+/* This selector can't be nested,
+* as the links in MenuItem are teleported and are not children of .networks element.
+* This selector extends the clickable area of the links for better accessibility
+*/
+.new-network-link {
+  height: 100%;
+  width: 100%;
 }
 </style>

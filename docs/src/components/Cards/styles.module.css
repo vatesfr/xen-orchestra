@@ -1,0 +1,38 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.9rem;
+  margin: 1.2rem 0 1.8rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1.05rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.4);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.desc {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--ifm-color-emphasis-700);
+}

@@ -1,39 +1,35 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
+  <VtsSidePanel :has-selection="!!vdi" @close="emit('close')">
+    <template v-if="vbd" #actions>
+      <VbdConnectButton v-if="!vbd.attached" :vbd :vm />
+      <VbdDisconnectButton v-else :vbd :vm />
     </template>
-    <template #default>
+    <template v-if="vdi" #more-actions>
+      <VdiActions :vdi :vbd :vm />
+    </template>
+    <template v-if="vdi" #default>
       <VdiInfosCard :vdi :vm />
       <VdiSpaceCard :vdi />
-      <VdiConfigurationCard :vdi />
+      <VdiConfigurationCard :vdi :vm />
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
+import VbdConnectButton from '@/modules/vbd/components/actions/connect/VbdConnectButton.vue'
+import VbdDisconnectButton from '@/modules/vbd/components/actions/disconnect/VbdDisconnectButton.vue'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import VdiActions from '@/modules/vdi/components/actions/VdiActions.vue'
 import VdiConfigurationCard from '@/modules/vdi/components/list/panel/cards/VdiConfigurationCard.vue'
 import VdiInfosCard from '@/modules/vdi/components/list/panel/cards/VdiInfosCard.vue'
 import VdiSpaceCard from '@/modules/vdi/components/list/panel/cards/VdiSpaceCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
-import { useI18n } from 'vue-i18n'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import { computed } from 'vue'
 
-defineProps<{
-  vdi: FrontXoVdi
+const { vdi, vm } = defineProps<{
+  vdi?: FrontXoVdi
   vm: FrontXoVm
 }>()
 
@@ -41,21 +37,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n()
+const { useGetVbdsByIds } = useXoVbdCollection()
 
-const uiStore = useUiStore()
+const vbds = useGetVbdsByIds(() => vdi?.$VBDs ?? [])
+
+const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 </script>
-
-<style scoped lang="postcss">
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-</style>

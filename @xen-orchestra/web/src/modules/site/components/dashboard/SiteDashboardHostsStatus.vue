@@ -26,12 +26,15 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useDisabledHostInfoModal } from '@core/composables/modals/use-disabled-host-info-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const { open: openDisabledHostInfoModal } = useDisabledHostInfoModal()
 
 const hostsStatus = computed(() => dashboard.value.hostsStatus)
 
@@ -43,11 +46,11 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: hostsStatus.value?.running ?? 0,
     accent: 'success',
   },
-  // TODO instead of tooltips for disabled , we need to add a modal with a button
   {
     label: t('host:status:disabled', 2),
     value: hostsStatus.value?.disabled ?? 0,
     accent: 'muted',
+    onInfoClick: () => openDisabledHostInfoModal(),
   },
   {
     label: t('host:status:halted', 2),

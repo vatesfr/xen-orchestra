@@ -3,47 +3,11 @@
     <UiTitle>
       {{ t('networks') }}
       <template #action>
-        <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
+        <slot name="title-actions" />
       </template>
     </UiTitle>
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('action:copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-        </UiTableActions>
-      </div>
+      <UiQuerySearchBar @search="value => (searchQuery = value)" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -64,34 +28,33 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+<script lang="ts" setup>
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkUtils } from '@/modules/network/composables/network-utils.composable.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
-import { logicNot } from '@vueuse/math'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks } = defineProps<{
+const { networks, busy, error } = defineProps<{
   networks: XenApiNetwork[]
+  busy?: boolean
+  error?: boolean
 }>()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
+defineSlots<{
+  'title-actions'(): any
+}>()
+
 const { records: pifs } = usePifStore().subscribe()
-const { getPifCarrier } = usePifMetricsStore().subscribe()
+const { getNetworkStatus } = useNetworkUtils()
 
 const { t } = useI18n()
 
@@ -103,25 +66,6 @@ const getNetworkVlan = (network: XenApiNetwork) => {
   if (networkPIFs.length > 0) {
     return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
   }
-}
-
-const getNetworkStatus = (network: XenApiNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
-
-  if (networkPIFs.length === 0) {
-    return 'disconnected'
-  }
-
-  const isConnected = networkPIFs.map(pif => pif.currently_attached && getPifCarrier(pif))
-  if (isConnected.every(Boolean)) {
-    return 'connected'
-  }
-
-  if (isConnected.some(Boolean)) {
-    return 'partially-connected'
-  }
-
-  return 'disconnected'
 }
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
@@ -143,8 +87,8 @@ const filteredNetworks = computed(() => {
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
 const state = useTableState({
-  busy: logicNot(isReady),
-  error: hasError,
+  busy: () => busy,
+  error: () => error,
   empty: () =>
     networks.length === 0
       ? t('no-network-detected')
@@ -154,6 +98,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
+  exclude: ['actions'],
   body: (network: XenApiNetwork) => {
     const status = computed(() => getNetworkStatus(network))
     const vlan = computed(() => getNetworkVlan(network))
@@ -174,7 +119,6 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 
 <style scoped lang="postcss">
 .pool-networks-table,
-.table-actions,
 .container {
   display: flex;
   flex-direction: column;
@@ -183,8 +127,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
 .pool-networks-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .container {
     gap: 0.8rem;
   }
 }

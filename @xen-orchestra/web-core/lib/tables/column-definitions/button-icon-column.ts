@@ -4,19 +4,19 @@ import UiButtonIcon, {
 } from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { IconName } from '@core/icons'
-import { defineColumn } from '@core/packages/table/define-column'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { defineColumn } from '@core/packages/table/define-column.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
-import { h, toValue, type MaybeRefOrGetter } from 'vue'
+import { h, type MaybeRefOrGetter, toValue } from 'vue'
 
-type ButtonIconConfig = {
+export type ButtonIconConfig = {
   buttonIcon: MaybeRefOrGetter<IconName>
   buttonSize?: MaybeRefOrGetter<ButtonIconSize>
   buttonAccent?: MaybeRefOrGetter<ButtonIconAccent>
 }
 
 export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
-  renderHead: () => renderHeadCell(config.headerIcon, config.headerLabel),
+  renderHead: () => renderHeadCell(config.headerLabel),
   renderBody: (onClick: () => void) =>
     h(UiTableCell, { align: 'center', style: 'width: 6rem' }, () =>
       h(UiButtonIcon, {

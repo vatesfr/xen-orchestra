@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
@@ -105,7 +106,7 @@ const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unl
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: internal ? ['vlan', 'status'] : [],
+  exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
     const { buildXo5Route } = useXoRoutes()
 
@@ -115,6 +116,8 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     const vlan = computed(() => getNetworkVlan(network))
     const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
     const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
+
+    const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => [network])
 
     return {
       network: r =>
@@ -128,7 +131,19 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       vlan: r => r(vlan.value),
       mtu: r => r(network.MTU),
       defaultLockingMode: r => r(defaultLockingMode.value),
-      selectItem: r => r(() => (selectedNetworkId.value = network.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedNetworkId.value = network.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteNetworks(),
+              busy: isDeletingNetworks.value,
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

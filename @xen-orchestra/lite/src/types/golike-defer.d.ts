@@ -8,5 +8,5 @@ declare module 'golike-defer' {
 
   function defer<T, A extends Array<unknown>>(fn: ($defer: Defer, ...args: A) => Promise<T> | T): () => Promise<T> | T
 
-  export default defer
+  export { defer }
 }

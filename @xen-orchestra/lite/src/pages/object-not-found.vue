@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePageTitleStore } from '@/stores/page-title.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

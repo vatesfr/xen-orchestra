@@ -42,6 +42,9 @@ export class DiskPassthrough extends Disk {
   getBlockIndexes(): Array<number> {
     return this.source.getBlockIndexes()
   }
+  getBlockIndexesCount(): number {
+    return this.source.getBlockIndexesCount()
+  }
   hasBlock(index: number): boolean {
     return this.source.hasBlock(index)
   }
@@ -101,6 +104,9 @@ export abstract class RandomDiskPassthrough extends RandomAccessDisk {
   }
   getBlockIndexes(): Array<number> {
     return this.source.getBlockIndexes()
+  }
+  getBlockIndexesCount(): number {
+    return this.source.getBlockIndexesCount()
   }
   hasBlock(index: number): boolean {
     return this.source.hasBlock(index)

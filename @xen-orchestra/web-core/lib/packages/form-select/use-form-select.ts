@@ -378,7 +378,14 @@ export function useFormSelect<
       selectedValues,
       newValues => {
         if (isMultiple.value) {
-          model.value = newValues as TMultiple extends true ? $TValue[] : $TValue
+          const modelValues = model.value as $TValue[]
+
+          if (
+            newValues.length !== modelValues.length ||
+            newValues.some((value, index) => toRaw(value) !== toRaw(modelValues[index]))
+          ) {
+            model.value = newValues as TMultiple extends true ? $TValue[] : $TValue
+          }
         } else if (newValues.length > 0) {
           model.value = newValues[0] as TMultiple extends true ? $TValue[] : $TValue
         }

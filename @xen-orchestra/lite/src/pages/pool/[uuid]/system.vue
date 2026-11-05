@@ -3,7 +3,7 @@
   <VtsStateHero v-else-if="pool === undefined" format="page" type="no-data" size="medium">
     {{ t('no-data') }}
   </VtsStateHero>
-  <VtsColumns v-else>
+  <VtsColumns v-else extra-space-around>
     <VtsColumn>
       <PoolGeneralInfo :pool />
       <PoolNetworking :pool />
@@ -20,8 +20,8 @@ import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolManagement from '@/components/pool/system/PoolManagement.vue'
 import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
 import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

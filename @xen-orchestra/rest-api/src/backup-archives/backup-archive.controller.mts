@@ -1,22 +1,50 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Body,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
-import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { Request as ExRequest } from 'express'
-import type { XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import { json, type Request as ExRequest } from 'express'
+import { noSuchObject } from 'xo-common/api-errors.js'
+import type { BackupArchiveDiskMount, XoBackupRepository, XoHost, XoVm, XoVmBackupArchive } from '@vates/types'
 
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  asynchronousActionResp,
+  badRequestResp,
+  createdResp,
+  forbiddenOperationResp,
+  invalidParameters,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   backupArchive,
+  backupArchiveDiskMount,
   backupArchiveIds,
   partialBackupArchives,
 } from '../open-api/oa-examples/backup-archive.oa-example.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
-
-// BR uuid/xo-vm-backups/VM uuid/(ISO 8601 compact).json
-const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)\.json$/
+import { BackupArchiveService } from './backup-archive.service.mjs'
+import type { MountLiveDiskBody } from './backup-archive.type.mjs'
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-archives')
 @Security('*')
@@ -25,8 +53,14 @@ const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA
 @Tags('backup-archives')
 @provide(BackupArchiveController)
 export class BackupArchiveController extends XoController<XoVmBackupArchive> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #backupArchiveService: BackupArchiveService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(BackupArchiveService) backupArchiveService: BackupArchiveService
+  ) {
     super('backup-archive', restApi)
+    this.#backupArchiveService = backupArchiveService
   }
 
   async getAllCollectionObjects({
@@ -46,30 +80,20 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
     const backupArchivesByRemote = await this.restApi.xoApp.listVmBackupsNg(backupRepositoryIds)
     const vmBackupArchives = Object.values(backupArchivesByRemote)
-      .filter(backupsByVm => backupsByVm !== undefined)
+      .filter(backupsByVm => backupsByVm !== null)
       .map(backupsByVm => Object.values(backupsByVm))
       .flat(2)
 
     return vmBackupArchives
   }
 
-  async getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
-    const match = id.match(BACKUP_ARCHIVE_ID_REGEX)
-    if (match === null) {
-      throw noSuchObject(id, 'backup-archive')
-    }
-
-    const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], string]
-
-    const backupArchive = (await this.restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(ba => ba.id === id)
-    if (backupArchive === undefined) {
-      throw noSuchObject(id, 'backup-archive')
-    }
-
-    return backupArchive
+  getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
+    return this.#backupArchiveService.getBackupArchive(id)
   }
 
   /**
+   * Returns all backup archives that match the following privilege:
+   * - resource: backup-archive, action: read
    *
    * You can use the alias "*" in "backup-repository" to select all backup repositories.
    *
@@ -80,28 +104,134 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    */
   @Example(backupArchiveIds)
   @Example(partialBackupArchives)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   @Response(notFoundResp.status, notFoundResp.description)
   async getBackupArchives(
     @Request() req: ExRequest,
     @Query('backup-repository') backupRepositories?: string[],
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoVmBackupArchive>>>> {
-    const backupArchives = await this.getObjects({ backupRepositories, filter, limit })
-    return this.sendObjects(Object.values(backupArchives), req)
+  ): SendObjects<Partial<Unbrand<XoVmBackupArchive>>> {
+    const backupArchives = await this.getObjects({ backupRepositories, filter })
+    return this.sendObjects(Object.values(backupArchives), req, {
+      limit,
+      privilege: { action: 'read', resource: 'backup-archive' },
+    })
   }
 
   /**
-   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc//xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * Required privilege:
+   * - resource: backup-archive, action: read
+   *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
    */
   @Example(backupArchive)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-archive',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async getBackupArchive(@Path() id: string): Promise<Unbrand<XoVmBackupArchive>> {
     const backupArchive = await this.getObject(id as XoVmBackupArchive['id'])
     return backupArchive
+  }
+
+  /**
+   * Restricted to administrators.
+   *
+   * Serve one disk of this archive as a read-only iSCSI LUN and attach it to a host as an SR, so its
+   * content is readable without being restored. Nothing is copied: the disk is read from the backup
+   * repository on demand.
+   *
+   * The returned `id` is the `liveDiskId` to pass to `POST {id}/live_disks/{liveDiskId}/actions/unmount`.
+   *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example body {
+   *  "diskId": "/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/vdis/8b650248-ddd6-4188-ad8b-c0502865ac6c/f1f3c902-dcaa-4ec6-943e-6162c9d85fb2/20250801T080832Z.vhd",
+   *  "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/mount_live_disk')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response<BackupArchiveDiskMount>(createdResp.status, createdResp.description, backupArchiveDiskMount)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  mountLiveDisk(
+    @Path() id: string,
+    @Body() body: MountLiveDiskBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<BackupArchiveDiskMount> {
+    const archiveId = id as XoVmBackupArchive['id']
+
+    const action = () =>
+      this.restApi.xoApp.mountBackupArchiveDisk({
+        archiveId,
+        diskId: body.diskId,
+        hostId: body.hostId as XoHost['id'],
+      })
+
+    return this.createAction<BackupArchiveDiskMount>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: { name: 'mount backup archive disk', objectId: archiveId, params: body },
+    })
+  }
+
+  /**
+   * Restricted to administrators.
+   *
+   * Detach a disk mounted by `POST {id}/actions/mount_live_disk`: the SR is unplugged and forgotten, and the
+   * iSCSI target is stopped.
+   *
+   * @example id "231264c3-af43-4ec0-a3be-394c5b1fdbfc/xo-vm-backups/6ef7c09e-677b-1e6f-0546-7ab30413c61c/20250801T080832Z.json"
+   * @example liveDiskId "6b1f0e9c2a7d4f83b5c1d9e0a4f76b28"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/live_disks/{liveDiskId}/actions/unmount')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  unmountLiveDisk(
+    @Path() id: string,
+    @Path() liveDiskId: string,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const archiveId = id as XoVmBackupArchive['id']
+    // the mount is addressed by its own id, so the archive in the path is only
+    // trustworthy once checked against the one the mount was created for
+    const { archiveId: ownerArchiveId } = this.restApi.xoApp.getBackupArchiveDiskMountOwner(liveDiskId)
+    if (ownerArchiveId !== archiveId) {
+      throw noSuchObject(liveDiskId, 'backup-archive-live-disk')
+    }
+
+    const action = () => this.restApi.xoApp.unmountBackupArchiveDisk(liveDiskId)
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'unmount backup archive disk',
+        objectId: archiveId,
+        params: { liveDiskId },
+      },
+    })
   }
 }

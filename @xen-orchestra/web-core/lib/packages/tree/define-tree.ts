@@ -1,12 +1,12 @@
-import { BranchDefinition } from '@core/packages/tree/branch-definition'
-import { LeafDefinition } from '@core/packages/tree/leaf-definition'
+import { BranchDefinition } from '@core/packages/tree/branch-definition.ts'
+import { LeafDefinition } from '@core/packages/tree/leaf-definition.ts'
 import type {
   ChildTreeDefinitionGetter,
   Identifiable,
   Labeled,
   TreeNodeDefinition,
   TreeNodeOptions,
-} from '@core/packages/tree/types'
+} from '@core/packages/tree/types.ts'
 
 // Overload 1: Leaf with no options
 export function defineTree<TData extends Identifiable & Labeled, const TDiscriminator = any>(

@@ -1,20 +1,20 @@
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
-import vueRouter from 'unplugin-vue-router/vite'
 import { defineConfig, loadEnv, PluginOption } from 'vite'
+import vueRouter from 'vue-router/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const { VITE_XO_REST_HOST } = loadEnv(mode, process.cwd())
+  const isDevMode = mode === 'development'
 
   return {
     base: './',
     plugins: [
       vueRouter({
-        // Temp fix to make prod build work
-        // TODO: uncomment when links in /dev pages are correctly handled
-        // exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
+        dts: isDevMode ? './src/route-map.d.ts' : false,
+        exclude: isDevMode ? [] : ['src/pages/dev/**'],
       }),
       vue(),
       vueI18n({
@@ -38,13 +38,26 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    build: {
-      commonjsOptions: {
-        include: [/value-matcher/, /complex-matcher/, /node_modules/],
-      },
-    },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher'],
+      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser', '@xen-orchestra/cron'],
+    },
+    test: {
+      globals: true,
+      setupFiles: ['./src/test/setup.ts'],
+      alias: {
+        // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
+        'placement.js': fileURLToPath(new URL('../../node_modules/placement.js/dist/index.es.js', import.meta.url)),
+      },
+      projects: [
+        {
+          extends: true,
+          test: {
+            include: ['**/*.unit.{test,spec}.ts'],
+            name: 'unit',
+            environment: 'happy-dom',
+          },
+        },
+      ],
     },
   }
 })

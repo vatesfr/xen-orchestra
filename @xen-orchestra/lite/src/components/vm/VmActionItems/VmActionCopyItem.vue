@@ -1,9 +1,10 @@
 <template>
   <MenuItem
     v-tooltip="!areAllSelectedVmsHalted && t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
+    accent="neutral"
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
-    icon="fa:copy"
+    icon="action:duplicate"
     @click="handleCopy"
   >
     {{ t('action:copy') }}
@@ -11,13 +12,13 @@
 </template>
 
 <script lang="ts" setup>
-import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmStore } from '@/stores/xen-api/vm.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { isVmOperationPending } from '@/libs/vm.ts'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

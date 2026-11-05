@@ -22,8 +22,8 @@
       />
       <HostDashboardPatches class="patches" :host />
       <HostDashboardVmsStatus class="vms-status" :host />
-      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardRamProvisioning class="ram-provisioning" :host />
+      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <template v-if="data">
         <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
         <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
@@ -79,7 +79,7 @@ const uiStore = useUiStore()
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
     'alarms alarms alarms alarms alarms patches patches patches'
-    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
+    'vms-status vms-status ram-provisioning ram-provisioning ram-provisioning cpu-provisioning cpu-provisioning cpu-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 

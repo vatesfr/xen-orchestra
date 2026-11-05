@@ -8,7 +8,9 @@
     "target": "es2022",
     "skipLibCheck": true,
     "types": ["node"],
-    "declaration": true
+    "declaration": true,
+    "noImplicitAny": false,
+    "useUnknownInCatchVariables": false
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules", "./dist"]

@@ -15,7 +15,7 @@
     <RouterTab :to="{ name: '/pool/[uuid]/network', params: { uuid: pool?.uuid ?? '-' } }">
       {{ t('network') }}
     </RouterTab>
-    <RouterTab :to="{ name: '/pool/[uuid]/storage', params: { uuid: pool?.uuid ?? '-' } }" disabled>
+    <RouterTab :to="{ name: '/pool/[uuid]/storage', params: { uuid: pool?.uuid ?? '-' } }">
       {{ t('storage') }}
     </RouterTab>
     <RouterTab :to="{ name: '/pool/[uuid]/tasks', params: { uuid: pool?.uuid ?? '-' } }">
@@ -32,8 +32,8 @@
 
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import TabList from '@core/components/tab/TabList.vue'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import TabList from '@core/components/tab-list/TabList.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

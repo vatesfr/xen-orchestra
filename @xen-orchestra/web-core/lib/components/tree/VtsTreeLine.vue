@@ -1,13 +1,12 @@
 <template>
   <div class="vts-tree-line">
-    <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical" />
+    <div class="tree-line-vertical" />
     <div :class="{ right }" class="tree-line-horizontal" />
   </div>
 </template>
 
 <script lang="ts" setup>
 defineProps<{
-  halfHeight?: boolean
   right?: boolean
 }>()
 </script>
@@ -23,8 +22,7 @@ defineProps<{
   .tree-line-vertical {
     width: 0.1rem;
     background: var(--color-brand-txt-base);
-    height: calc(100% + 0.7rem);
-    transform: translateY(calc(0.7rem * -1));
+    height: calc(100% + 0.2rem);
   }
 
   .tree-line-horizontal {
@@ -34,15 +32,6 @@ defineProps<{
 
     &.right {
       background: var(--color-brand-txt-base);
-    }
-  }
-}
-
-.vts-tree-item:last-child {
-  > .ui-tree-item-label {
-    .tree-line-half-height {
-      align-self: start;
-      height: calc(50% + 0.7rem);
     }
   }
 }

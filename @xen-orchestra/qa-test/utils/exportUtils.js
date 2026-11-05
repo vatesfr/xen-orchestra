@@ -1,6 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
+import assert from 'node:assert'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { waitUntil, assertNonEmptyString } from './index.js'
+
+const log = createLogger('xo:qa-test:export-utils')
 
 /**
  * VHD file format magic bytes at the start of the footer.
@@ -15,6 +19,30 @@ export const VHD_MAGIC = Buffer.from('conectix')
  * @constant {number}
  */
 export const VHD_FOOTER_SIZE = 512
+
+/**
+ * Largest VDI that can be exported as VHD, bigger ones are rejected with a 422.
+ * Same value as VHD_MAX_SIZE in @xen-orchestra/xapi.
+ * @constant {number}
+ */
+export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
+
+/**
+ * Returns the first VDI that can be exported as VHD.
+ * The VM can also have disks over 2TB (qcow2), which can't be exported as VHD.
+ *
+ * @param {Array<{uuid: string, name_label: string, virtual_size: number}>} vdis - VDIs from getVdisForVm
+ * @returns {{uuid: string, name_label: string, virtual_size: number}} The VDI to export
+ * @throws {assert.AssertionError} If no VDI is small enough
+ */
+export function findVhdExportableVdi(vdis) {
+  const vdi = vdis.find(vdi => vdi.virtual_size <= VHD_MAX_SIZE)
+  assert.ok(
+    vdi !== undefined,
+    `VM should have at least one VDI of at most ${formatBytes(VHD_MAX_SIZE)} to be exported as VHD, got ${vdis.length} VDIs`
+  )
+  return vdi
+}
 
 /**
  * Generates a unique export file name with timestamp.
@@ -214,7 +242,11 @@ export function assertCompressionEfficiency(compressedSize, uncompressedSize, me
   }
 
   const savings = (((uncompressedSize - compressedSize) / uncompressedSize) * 100).toFixed(1)
-  console.log(`Compression savings: ${savings}% (${formatBytes(uncompressedSize)} -> ${formatBytes(compressedSize)})`)
+  log.debug('Compression savings', {
+    savings: `${savings}%`,
+    from: formatBytes(uncompressedSize),
+    to: formatBytes(compressedSize),
+  })
 }
 
 /**
@@ -260,7 +292,7 @@ export async function cleanupExportFiles(directory, patterns = ['*.vhd', '*.xva'
         try {
           await fs.unlink(filePath)
           deleted.push(file)
-          console.log(`Deleted export file: ${filePath}`)
+          log.debug('Deleted export file', { filePath })
         } catch (error) {
           errors.push(`Failed to delete ${file}: ${error.message}`)
         }
@@ -313,7 +345,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
     throw error
   }
 
-  console.log(`Waiting for VM ${vmUuid} to boot (timeout: ${timeoutMs / 1000}s)...`)
+  log.debug('Waiting for VM to boot', { vmUuid, timeoutSec: timeoutMs / 1000 })
 
   // Wait for VM to reach Running state with tools active
   await waitUntil(
@@ -326,7 +358,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
         return true
       }
 
-      console.log(`VM state: ${vm.power_state}, Xen Tools: ${vm.xenTools || 'unknown'}`)
+      log.debug('VM not ready yet', { powerState: vm.power_state, xenTools: vm.xenTools || 'unknown' })
       return false
     },
     5000, // Check every 5 seconds
@@ -337,7 +369,7 @@ export async function waitForVmBoot(dispatchClient, vmUuid, timeoutMs = 300_000)
   )
 
   const duration = Date.now() - startTime
-  console.log(`VM ${vmUuid} booted successfully in ${duration}ms`)
+  log.debug('VM booted successfully', { vmUuid, duration })
 
   return {
     booted: true,
@@ -360,7 +392,7 @@ export async function assertVhdIntegrity(filePath, message) {
     throw new Error(msg)
   }
 
-  console.log(`VHD integrity validated: ${filePath} (${formatBytes(result.size)})`)
+  log.debug('VHD integrity validated', { filePath, size: formatBytes(result.size) })
 }
 
 /**
@@ -378,5 +410,5 @@ export async function assertXvaIntegrity(filePath, message) {
     throw new Error(msg)
   }
 
-  console.log(`XVA integrity validated: ${filePath} (${formatBytes(result.size)})`)
+  log.debug('XVA integrity validated', { filePath, size: formatBytes(result.size) })
 }

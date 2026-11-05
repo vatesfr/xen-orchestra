@@ -3,6 +3,7 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import type { XoHost, XoNetwork, XoSr, XoVdi, XoVif } from '@vates/types'
 
 export interface Vdi {
+  key: string
   id?: XoVdi['id']
   name_label: string
   name_description: string
@@ -30,6 +31,7 @@ export type InstallMode = 'no-config' | 'ssh-key' | 'cloud-init-config' | 'cdrom
 export interface VmState {
   affinity_host?: XoHost['id']
   autoPoweron: boolean
+  highAvailability: '' | 'restart' | 'best-effort'
   installMode?: InstallMode
   bootFirmware: string
   boot_vm: boolean

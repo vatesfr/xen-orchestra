@@ -19,7 +19,31 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
+import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
+import type {
+  XoAuditPlugin,
+  XoAuthGithubPlugin,
+  XoAuthGooglePlugin,
+  XoAuthLdapPlugin,
+  XoAuthOidcPlugin,
+  XoAuthSamlPlugin,
+  XoBackupReportsPlugin,
+  XoIpmiSensorsPlugin,
+  XoLoadBalancerPlugin,
+  XoNetboxPlugin,
+  XoOpenmetricsPlugin,
+  XoPerfAlertPlugin,
+  XoSdnControllerPlugin,
+  XoTestPluginPlugin,
+  XoTransportEmailPlugin,
+  XoTransportIcinga2Plugin,
+  XoTransportNagiosPlugin,
+  XoTransportSlackPlugin,
+  XoTransportXmppPlugin,
+  XoUsageReportPlugin,
+  XoWebHooksPlugin,
+} from './lib/xen-orchestra-plugins.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -75,7 +99,7 @@ type BaseXoVm = BaseXapiXo & {
   expNestedHvm: boolean
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
-  high_availability: string
+  high_availability: 'best-effort' | 'restart' | ''
   installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
@@ -106,6 +130,10 @@ type BaseXoVm = BaseXapiXo & {
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
+  /**
+   * Value in MiB.
+   * See: https://wiki.xenproject.org/wiki/XCP_PV_templates_start
+   */
   videoram?: number
   viridian: boolean
   virtualizationMode: DOMAIN_TYPE
@@ -113,7 +141,7 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
         major: null | number
@@ -135,6 +163,7 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 }
 
 // TODO: to be typed when Bastien.N has finished working on the XO task
+// Once the [key:string]: unknown is removed, remove the `as XoMessage` in event.class.mts
 type BaseXoLog = {
   id: Branded<'xo-log'>
   infos?: { data: unknown; message: string }[]
@@ -195,15 +224,24 @@ export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   type: 'xo-pool-metadata-backup'
 }
 
+export type XoBackupRepositoryBenchmark = {
+  readRate: number
+  timestamp: number
+  writeRate: number
+}
+
 export type XoBackupRepository = {
-  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  available?: number
+  benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
   id: Branded<'backup-repository'>
   name: string
   options?: string
   proxy?: XoProxy['id']
+  size?: number
   url: string
+  used?: number
 }
 
 export type XoGpuGroup = BaseXapiXo & {
@@ -217,6 +255,7 @@ export type XoGroup = {
   provider?: string
   providerGroupId?: string
   users: XoUser['id'][]
+  aclRoleIds: XoAclRole['id'][]
 }
 
 export type XoHost = BaseXapiXo & {
@@ -330,6 +369,7 @@ export type XoNetwork = BaseXapiXo & {
   defaultIsLocked: boolean
   id: Branded<'network'>
   insecureNbd?: boolean
+  isBonded: boolean
   name_description: string
   name_label: string
   nbd?: boolean
@@ -427,6 +467,7 @@ export type XoPool = BaseXapiXo & {
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
   default_SR?: XoSr['id']
   HA_enabled: boolean
+  haRebootVmOnInternalShutdown: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>
   master: XoHost['id']
@@ -441,6 +482,29 @@ export type XoPool = BaseXapiXo & {
   vtpmSupported: boolean
   zstdSupported: boolean
 }
+
+export type XoPlugin =
+  | XoAuditPlugin
+  | XoAuthGithubPlugin
+  | XoAuthGooglePlugin
+  | XoAuthLdapPlugin
+  | XoAuthOidcPlugin
+  | XoAuthSamlPlugin
+  | XoBackupReportsPlugin
+  | XoIpmiSensorsPlugin
+  | XoLoadBalancerPlugin
+  | XoNetboxPlugin
+  | XoOpenmetricsPlugin
+  | XoPerfAlertPlugin
+  | XoSdnControllerPlugin
+  | XoTestPluginPlugin
+  | XoTransportEmailPlugin
+  | XoTransportIcinga2Plugin
+  | XoTransportNagiosPlugin
+  | XoTransportSlackPlugin
+  | XoTransportXmppPlugin
+  | XoUsageReportPlugin
+  | XoWebHooksPlugin
 
 export type XoProxy = {
   id: Branded<'proxy'>
@@ -488,8 +552,8 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
 }
 export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
-  fullInterval?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  fullInterval?: number | string
   copyRetention?: number
   snapshotRetention?: number
   cbtDestroySnapshotData?: boolean
@@ -500,9 +564,9 @@ export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  remotes?: CMType.IdOr<XoBackupRepository['id']> | string
   vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
-  srs?: CMType.IdOr<XoSr['id']>
+  srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
     '': XoVmBackupJobGeneralSettings
@@ -534,13 +598,15 @@ export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   nRetriesVmBackupFailures?: number
   mergeBackupsSynchronously?: boolean
   timeout?: number
+  timezone?: string
   maxExportRate?: number
   backupReportTpl?: 'compactMjml'
   reportWhen: 'failure'
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  vmFilter?: string
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }
@@ -558,6 +624,21 @@ export type XoMirrorBackupJob = BaseXoJob & {
 
 export type XoJob = BaseXoJob & {
   type: 'call'
+  method: string
+  paramsVector?: {
+    type: string
+    items: {
+      type?: string
+      values?: {
+        schedules?: XoSchedule['id'][]
+        [key: string]: unknown
+      }[]
+      [key: string]: unknown
+    }[]
+  }
+  userId?: XoUser['id']
+  createdBy?: XoUser['id']
+  updatedBy?: XoUser['id']
 }
 
 export type XoSchedule = {
@@ -579,10 +660,11 @@ export type XoServer = {
   label?: string
   master?: XoHost['id']
   poolId?: XoPool['id']
+  poolMembersAddresses?: string[]
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
-  status: 'connected' | 'disconnected' | 'connecting'
+  status: 'connected' | 'disconnecting' | 'disconnected' | 'connecting'
   username: string
 }
 
@@ -594,10 +676,11 @@ export type XoSr = BaseXapiXo & {
   VDIs: AnyXoVdi['id'][]
 
   allocationStrategy?: 'thin' | 'thick' | 'unknown'
-  content_type: string
+  content_type: 'user' | 'iso' | 'disk'
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
+  is_tools_sr: boolean
   name_description: string
   name_label: string
   other_config: Record<string, string>
@@ -605,7 +688,28 @@ export type XoSr = BaseXapiXo & {
   shared: boolean
   size: number
   sm_config: Record<string, string>
-  SR_type: string
+  // SM drivers shipped with XCP-ng/XenServer
+  SR_type:
+    | 'cephfs'
+    | 'dummy'
+    | 'ext'
+    | 'file'
+    | 'glusterfs'
+    | 'hba'
+    | 'iso'
+    | 'largeblock'
+    | 'linstor'
+    | 'lvm'
+    | 'lvmofcoe'
+    | 'lvmohba'
+    | 'lvmoiscsi'
+    | 'moosefs'
+    | 'nfs'
+    | 'shm'
+    | 'smb'
+    | 'udev'
+    | 'xfs'
+    | 'zfs'
   tags: string[]
   type: 'SR'
   usage: number
@@ -645,6 +749,7 @@ export type XoTask = {
       | 'backup-log'
       | 'backup-repository'
       | 'group'
+      | 'plugin'
       | 'proxy'
       | 'restore'
       | 'restore-log'
@@ -652,13 +757,15 @@ export type XoTask = {
       | 'server'
       | 'task'
       | 'user'
+      | 'acl-privilege'
+      | 'acl-role'
     params?: Record<string, unknown>
     progress?: number
     type?: string
     userId?: string
     [key: string]: unknown | undefined
   }
-  result: Record<string, unknown>
+  result?: Record<string, unknown>
   start: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
@@ -669,12 +776,18 @@ export type XoTask = {
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
+  firstname?: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
+  lastname?: string
+  /**
+   * @deprecated use username instead
+   */
   name?: string
-  permission: string
+  permission: 'none' | 'admin'
   pw_hash?: string
   preferences: Record<string, string>
+  username?: string
 }
 
 export type XoAuthenticationToken = {
@@ -725,6 +838,7 @@ type BaseXoVdi = BaseXapiXo & {
 
 export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
+  chainPhysicalUsage: number
   type: 'VDI'
 }
 
@@ -849,9 +963,9 @@ export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
+  | XoAuthenticationToken
   | XoGroup
-  | XoProxy
-  | XoGroup
+  | XoPlugin
   | XoProxy
   | XoJob
   | XoBackupRepository
@@ -859,6 +973,8 @@ export type NonXapiXoRecord =
   | XoServer
   | XoTask
   | XoUser
+  | XoAclRole
+  | XoAclBasePrivilege
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 

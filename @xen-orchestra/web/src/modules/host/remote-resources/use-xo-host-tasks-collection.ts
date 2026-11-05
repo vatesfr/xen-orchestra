@@ -9,7 +9,8 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { toValue } from 'vue'
 
 export const useXoHostTasksCollection = defineRemoteResource({
-  url: (hostId: string) => `${BASE_URL}/hosts/${hostId}/tasks?fields=${taskFields.join(',')}`,
+  url: (hostId: string) => `${BASE_URL}/hosts/${hostId}/tasks?fields=${taskFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () =>
     useWatchCollection<FrontXoTask>({
       collectionId: 'hostTask',
@@ -23,9 +24,9 @@ export const useXoHostTasksCollection = defineRemoteResource({
         const [id] = context.args
         const hostId = toValue(id)
 
-      return task.properties.objectId === hostId || task.properties.params?.id === hostId
-    },
-  }),
+        return task.properties.objectId === hostId || task.properties.params?.id === hostId
+      },
+    }),
   initialData: () => [] as FrontXoTask[],
   state: createTaskCollectionState,
 })

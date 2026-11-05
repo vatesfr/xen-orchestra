@@ -19,7 +19,7 @@ async function cleanFiles(vmDirs, { fix, merge, remove }) {
         try {
           nbStarted++
           await new RemoteAdapter(handler).cleanVm(basename(vmDir), {
-            fixMetadata: fix,
+            fix,
             remove,
             merge,
             logInfo: (...args) => console.log(...args),
@@ -50,7 +50,7 @@ async function cleanRemote(url, { fix, merge, remove }) {
         try {
           nbStarted++
           await remoteAdapter.cleanVm(join('xo-vm-backups', vmUuid), {
-            fixMetadata: fix,
+            fix,
             remove,
             merge,
             logInfo: (...args) => console.log(...args),

@@ -4,7 +4,7 @@
     <div class="inputs">
       <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" class="advanced-input" />
       <template v-else>
-        <VtsSelect :id="builderPropertySelectId" accent="brand" :icon="currentFilterIcon" />
+        <VtsSelect :id="builderPropertySelectId" accent="brand" />
         <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
         <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
         <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
@@ -19,9 +19,8 @@
 
 <script lang="ts" setup>
 import UiActionButton from '@/components/ui/UiActionButton.vue'
-import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils'
-import { getFilterIcon } from '@/libs/utils'
-import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter'
+import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils.ts'
+import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
@@ -103,8 +102,6 @@ function getDefaultComparisonType(property: string) {
 }
 
 const currentFilter = computed<Filter | undefined>(() => availableFilters[builderProperty.value])
-
-const currentFilterIcon = computed(() => getFilterIcon(currentFilter.value))
 
 const hasValueInput = computed(() =>
   currentFilter.value ? ['string', 'number'].includes(currentFilter.value?.type) : false

@@ -23,7 +23,7 @@
     td {
       padding: 0.3rem 0.6rem;
       border-bottom: 0.1rem solid var(--color-neutral-border);
-      vertical-align: center;
+      vertical-align: middle;
     }
 
     &:nth-child(odd) {

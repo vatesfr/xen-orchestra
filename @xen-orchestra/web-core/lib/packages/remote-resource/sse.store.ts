@@ -2,7 +2,7 @@ import { useNow } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watch as watchVue } from 'vue'
 
-type EventFn = (object: unknown) => void
+type EventFn = (object: unknown) => Promise<void>
 export type THandlePost = (sseId: string) => Promise<string>
 export type THandleDelete = (sseId: string, subscriptionId: string) => Promise<void>
 export type THandleWatching = (
@@ -13,9 +13,9 @@ export type THandleWatching = (
         configs: Record<
           string,
           {
-            add: (object: unknown) => void
-            update: (object: unknown) => void
-            remove: (object: unknown) => void
+            add: EventFn
+            update: EventFn
+            remove: EventFn
           }
         >
       }
@@ -49,7 +49,7 @@ export const useSseStore = defineStore('sse', () => {
       return false
     }
 
-    return now.value.getTime() - sse.value.lastPing > 32_000
+    return now.value.getTime() - sse.value.lastPing > 40_000
   })
 
   const hasErrorSse = computed(() => isError.value || sse.value.errorSse !== null)

@@ -1,0 +1,33 @@
+import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import { useXoVmSnapshotDeleteJob } from '@/modules/snapshot/jobs/xo-vm-snapshot-delete.job.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import type { MaybeRefOrGetter } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+export function useVmSnapshotDelete(rawSnapshots: MaybeRefOrGetter<FrontXoVmSnapshot[]>) {
+  const snapshots = toComputed(rawSnapshots)
+
+  const { t } = useI18n()
+
+  const { run, canRun: canDeleteVmSnapshots, isRunning: isDeletingVmSnapshots } = useXoVmSnapshotDeleteJob(snapshots)
+
+  const { open } = useDeleteModal()
+
+  function deleteVmSnapshots() {
+    const count = snapshots.value.length
+
+    return open({
+      props: {
+        subject: t('n-snapshots', { n: count }),
+        description: t('snapshot-delete-warning', { n: count }),
+        confirmLabel: t('action:delete-n-snapshots', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true }),
+      },
+    })
+  }
+
+  return { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots }
+}

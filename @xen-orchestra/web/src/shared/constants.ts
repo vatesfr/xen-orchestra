@@ -1,9 +1,16 @@
+import { SUPPORTED_VDI_EXPORT_FORMAT } from '@vates/types'
+
 export const XOA_NAME = 'Xen Orchestra Appliance'
+export const IS_XOA_BUILD = import.meta.env.VITE_XOA_BUILD === 'true'
 
 export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
+  DOC_SDN_CONTROLLER_MIGRATION:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
+  DOC_SDN_CONTROLLER_XAPI_PLUGIN:
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 
@@ -15,12 +22,29 @@ export const XCP_LINKS = {
   GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools',
 }
 
-export const CONNECTION_STATUS = {
-  CONNECTED: 'connected',
-  PARTIALLY_CONNECTED: 'partially-connected',
-  DISCONNECTED: 'disconnected',
-  PHYSICALLY_DISCONNECTED: 'physically-disconnected',
-  DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
+export const RULE_STATUS = {
+  ALLOW: 'allow',
+  DROP: 'drop',
 } as const
 
 export const ONE_GB = 1024 ** 3
+
+// sent by the API in place of a secret, see `@vates/obfuscate`
+export const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
+
+export const VDI_SOURCE = {
+  EMPTY: 'empty',
+  FILE: 'file',
+  URL: 'url',
+} as const
+
+export type VdiExportFormat = Exclude<SUPPORTED_VDI_EXPORT_FORMAT, 'qcow2'>
+
+export const VDI_PAGE_CONTEXT = {
+  VM: 'vm',
+  SR: 'sr',
+  SNAPSHOT: 'snapshot',
+  VDI_SNAPSHOT: 'vdi_snapshot',
+} as const
+
+export type VdiPageContext = (typeof VDI_PAGE_CONTEXT)[keyof typeof VDI_PAGE_CONTEXT]

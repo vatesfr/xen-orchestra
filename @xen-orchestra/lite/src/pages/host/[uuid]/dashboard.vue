@@ -18,8 +18,8 @@
     </div>
     <template v-else>
       <HostDashboardVmsStatus class="vms-status" :host />
-      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardRamProvisioning class="ram-provisioning" :host />
+      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
       <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
@@ -40,7 +40,7 @@ import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVms
 import useFetchStats from '@/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/libs/xapi-stats.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { usePageTitleStore } from '@/stores/page-title.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -93,7 +93,7 @@ onUnmounted(() => setRegisteredHost(undefined))
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
+    'vms-status vms-status ram-provisioning ram-provisioning ram-provisioning cpu-provisioning cpu-provisioning cpu-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 

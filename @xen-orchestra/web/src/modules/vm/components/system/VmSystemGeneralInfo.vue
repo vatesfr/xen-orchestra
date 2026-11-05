@@ -3,32 +3,44 @@
     <UiTitle>
       {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('name')" :value="vm.name_label" />
-    <VtsQuickInfoRow :label="t('id')" :value="vm.id" />
-    <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
-    <VtsQuickInfoRow :label="t('tags')">
-      <template v-if="vm.tags.length > 0" #value>
-        <UiTagsList>
-          <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
-        </UiTagsList>
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('os-name')" :value="vm.os_version?.name" />
-    <VtsQuickInfoRow :label="t('os-kernel')" :value="vm.os_version?.uname" />
-    <VtsQuickInfoRow :label="t('management-agent-version')" :value="vm.pvDriversVersion" />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow :label="t('name')" :value="vm.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('id')" :value="vm.id" copy />
+      <VtsTabularKeyValueRow :label="t('description')" :value="vm.name_description" />
+      <VtsTabularKeyValueRow :label="t('tags')">
+        <template v-if="vm.tags.length > 0" #value>
+          <UiTagsList>
+            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
+          </UiTagsList>
+        </template>
+      </VtsTabularKeyValueRow>
+      <VtsTabularKeyValueRow :label="t('os-name')" :value="vm.os_version?.name" />
+      <VtsTabularKeyValueRow :label="t('os-kernel')" :value="vm.os_version?.uname" />
+      <VtsTabularKeyValueRow :label="t('management-agent-version')" :value="vm.pvDriversVersion" />
+      <VtsTabularKeyValueRow :label="t('guest-tools')">
+        <template #value>
+          <VmGuestToolsStatus :guest-tools-display />
+        </template>
+      </VtsTabularKeyValueRow>
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
+import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ vm: FrontXoVm }>()
+const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
+
+const { guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>

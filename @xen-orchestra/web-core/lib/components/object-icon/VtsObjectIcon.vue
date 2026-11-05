@@ -1,5 +1,5 @@
 <template>
-  <VtsIcon :name="iconName" :size />
+  <VtsIcon :name="iconName" :size :busy :busy-tooltip />
 </template>
 
 <script generic="TType extends ObjectType, TState extends ObjectState<TType>" lang="ts" setup>
@@ -11,6 +11,8 @@ const { type, state } = defineProps<{
   type: TType
   state?: TState
   size: IconSize
+  busy?: boolean
+  busyTooltip?: string
 }>()
 
 const iconName = computed(() => (state ? objectIcon(type, state) : icon(`object:${type}`)))

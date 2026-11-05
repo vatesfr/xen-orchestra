@@ -3,6 +3,7 @@
     v-slot="{ properties }"
     :params="[
       prop('columns').num().default(2).widget(),
+      prop('extra-space-around').bool().widget(),
       slot().help('Meant to receive VtsColumn component or any element'),
     ]"
     :presets
@@ -23,7 +24,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 

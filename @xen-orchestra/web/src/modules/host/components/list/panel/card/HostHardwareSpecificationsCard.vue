@@ -1,8 +1,6 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('hardware-specifications') }}
-    </UiCardTitle>
+  <UiPanelCard class="host-hardware-specifications-card">
+    <UiPanelCardTitle size="medium" :label="t('hardware-specifications')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
@@ -19,15 +17,16 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/xo-host.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -37,24 +36,13 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const manufacturerInfo = computed(
-  () =>
-    (host.bios_strings['system-manufacturer'] ?? '') +
-    (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
-)
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
 
-const coreSocketInfo = computed(() => {
-  const cores = host.cpus.cores ?? 0
-  const sockets = host.cpus.sockets ?? 0
-
-  return `${cores} (${sockets})`
-})
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.host-hardware-specifications-card {
   .content {
     display: flex;
     flex-direction: column;

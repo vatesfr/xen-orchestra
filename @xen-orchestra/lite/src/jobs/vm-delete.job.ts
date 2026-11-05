@@ -1,7 +1,7 @@
-import { vmsArg } from '@/jobs/args'
-import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { vmsArg } from '@/jobs/args.ts'
+import { isVmOperationPending } from '@/libs/vm.ts'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { useI18n } from 'vue-i18n'
 
@@ -17,7 +17,7 @@ export const useVmDeleteJob = defineJob('vm.delete', [vmsArg], () => {
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.DESTROY))) {
-        throw new JobRunningError(t('job:vm-delete:in-progress'))
+        throw new JobRunningError(t('job:delete:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {

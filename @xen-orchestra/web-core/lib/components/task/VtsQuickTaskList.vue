@@ -27,7 +27,7 @@
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiQuickTaskItem from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
-import type { Task } from '@core/types/task.type.ts'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useI18n } from 'vue-i18n'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 

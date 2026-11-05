@@ -192,6 +192,7 @@ export interface XenApiPool {
   ha_host_failures_to_tolerate: number
   ha_overcommitted: boolean
   ha_plan_exists_for: number
+  ha_reboot_vm_on_internal_shutdown?: boolean
   ha_statefiles: string[]
   health_check_config: Record<string, string>
   igmp_snooping_enabled?: boolean
@@ -491,7 +492,9 @@ export interface XenApiDrTask {
   uuid: string
 }
 
-type XenApiHostCallMethods = TagCallMethods & {}
+type XenApiHostCallMethods = TagCallMethods & {
+  <T>(method: 'call_plugin', plugin: string, fn: string, args: Record<string, string>): Promise<T>
+}
 export interface XenApiHost {
   $ref: Branded<'host'>
   address: string
@@ -568,7 +571,9 @@ export interface XenApiHost {
   uuid: string
   virtual_hardware_platform_versions: number[]
 }
-export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods>
+export interface XenApiHostWrapped extends WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods> {
+  $restartAgent(): Promise<void>
+}
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>
@@ -819,7 +824,10 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation: number
 }
-export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods>
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods> & {
+  // resolved by xen-api from `PBDs`
+  $PBDs: XenApiPbdWrapped[]
+}
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>

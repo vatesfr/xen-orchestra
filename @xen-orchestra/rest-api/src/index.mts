@@ -9,13 +9,17 @@ import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 import { logMiddleware } from './middlewares/log.middleware.mjs'
+import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
+import { type OpenAPIV3 } from 'openapi-types'
+import { createExternalRouter, sendObjects } from './router/external-router.mjs'
+import { BASE_URL } from './helpers/utils.helper.mjs'
+
+export { sendObjects }
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
 // https://github.com/nodejs/node/issues/51622
 const require = createRequire(import.meta.url)
-const swaggerOpenApiSpec = require('../open-api/spec/swagger.json')
-
-export const BASE_URL = '/rest/v0'
+const swaggerOpenApiSpec = require('../open-api/spec/swagger.json') as OpenAPIV3.Document
 
 const SWAGGER_UI_OPTIONS = {
   swaggerOptions: {
@@ -45,10 +49,16 @@ const SWAGGER_UI_OPTIONS = {
 export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
 
+  // Create dynamic router so it can be used by plugin to register rest routes
+  const { mountExternalRoute, externalRouter } = createExternalRouter(swaggerOpenApiSpec)
+
   express.use(BASE_URL, setupApiContext(xoApp))
   express.use(BASE_URL, logMiddleware)
+  express.use(BASE_URL, mcpGateMiddleware)
 
   RegisterRoutes(express)
+
+  express.use(BASE_URL, externalRouter)
 
   express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
     res.setHeader('Content-Type', 'application/json')
@@ -65,4 +75,6 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
 
   express.use(BASE_URL, tsoaToXoErrorHandler)
   express.use(BASE_URL, genericErrorHandler)
+
+  return { mountExternalRoute }
 }

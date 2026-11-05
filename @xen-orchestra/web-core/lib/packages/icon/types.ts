@@ -1,5 +1,4 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import type { SimpleIcon } from 'simple-icons'
 
 export const ICON_SYMBOL = Symbol('Icon')
 
@@ -14,7 +13,7 @@ export type IconTransforms = {
 }
 
 export type IconSingleConfig = {
-  icon?: IconDefinition | SimpleIcon | IconSingle | IconStack
+  icon?: IconDefinition | IconSingle | IconStack
 } & IconTransforms
 
 export type IconStackConfig = IconTransforms

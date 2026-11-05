@@ -1,5 +1,15 @@
 import { AbstractAggregatedRemoteWriter } from './_AbstractAggregatedRemoteWriter.mjs'
 export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteWriter {
+  /**
+   * the backup can land on any of the adapters, the compression is only known if they all use the same one
+   * (based on the adapters since the child writers are only created in beforeBackup())
+   * @returns {string | undefined} see RemoteAdapter#getVhdDirectoryCompression
+   */
+  getVhdDirectoryCompression() {
+    const compressions = new Set(Object.values(this.adapters).map(adapter => adapter.getVhdDirectoryCompression()))
+    return compressions.size === 1 ? [...compressions][0] : undefined
+  }
+
   async deleteOldBackupsOnAdapter(adapter, backups) {
     await adapter.deleteDeltaVmBackups(backups)
   }
@@ -22,7 +32,7 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     }
     // update the parameter with our best candidate
     // that can be an empty map
-    baseUuidToSrcVdi.forEach(key => {
+    baseUuidToSrcVdi.forEach((_, key) => {
       if (!selectedCopy.has(key)) {
         baseUuidToSrcVdi.delete(key)
       }
@@ -50,13 +60,8 @@ export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteW
     await Promise.all(this.writers.map(writer => writer.prepare({ isFull })))
   }
   // write only on the main writer
-  transfer({ isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot }) {
-    return this.mainWriter.transfer({ isVhdDifferencing, timestamp, deltaExport, vm, vmSnapshot })
-  }
-
-  // chain only on the main writer
-  updateUuidAndChain({ isVhdDifferencing, vdis }) {
-    return this.mainWriter.updateUuidAndChain({ isVhdDifferencing, vdis })
+  transfer(args) {
+    return this.mainWriter.transfer(args)
   }
 
   // remove the backups and remove the entries

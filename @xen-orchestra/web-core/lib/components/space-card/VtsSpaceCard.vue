@@ -1,11 +1,11 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('space') }}
-    </UiCardTitle>
+  <UiPanelCard class="vts-space-card">
+    <UiPanelCardTitle size="medium" :label="t('space')" />
+
+    <slot name="alert" />
 
     <div class="content">
-      <VtsProgressBar noruler :current="used" :total :label legend-type="percent" class="progress" />
+      <VtsProgressBar no-ruler :current="used" :total :label legend-type="percent" class="progress" />
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('used-space') }}</template>
@@ -35,16 +35,16 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { formatSize } from '@core/utils/size.util'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,6 +53,10 @@ const { used, total } = defineProps<{
   total: number
   label: string
   totalSizeLabel?: string
+}>()
+
+defineSlots<{
+  alert?(): any
 }>()
 
 const { t } = useI18n()
@@ -78,9 +82,7 @@ const freeSpace = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vts-space-card {
   .content {
     display: flex;
     flex-direction: column;

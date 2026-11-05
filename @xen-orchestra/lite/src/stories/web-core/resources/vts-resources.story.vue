@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { slot } from '@/libs/story/story-param.ts'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 </script>

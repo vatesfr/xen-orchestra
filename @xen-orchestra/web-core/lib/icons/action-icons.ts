@@ -1,11 +1,14 @@
+import { slash } from '@core/icons/custom-icons.ts'
 import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import { faCopy, faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAdd,
   faArrowCircleRight,
+  faArrowDownLong,
   faArrowRight,
   faArrowRotateLeft,
   faArrowRotateRight,
+  faArrowUpLong,
   faArrowUpRightFromSquare,
   faBan,
   faBars,
@@ -24,11 +27,13 @@ import {
   faLink,
   faLinkSlash,
   faMinus,
+  faPlug,
   faPowerOff,
   faRefresh,
   faRoute,
   faSearch,
   faSquare,
+  faStarOfLife,
   faThumbTack,
   faThumbTackSlash,
   faTrash,
@@ -39,8 +44,32 @@ import {
 function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
-    color: 'var(--color-neutral-txt-primary)',
+    color: 'currentColor',
   }
+}
+
+function constructBadgedIcon(icon: IconDefinition, badge: IconDefinition): IconSingleConfig[] {
+  return [
+    constructIcon(icon),
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: faCircle,
+      color: 'currentColor',
+      translate: [7, 5.5],
+      size: 10,
+    },
+    {
+      icon: badge,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 6,
+    },
+  ]
 }
 
 export const actionIcons = defineIconPack({
@@ -62,27 +91,7 @@ export const actionIcons = defineIconPack({
   search: constructIcon(faSearch),
   'close-cancel-clear': constructIcon(faClose),
   disable: constructIcon(faBan),
-  'disable-and-evacuate': [
-    constructIcon(faBan),
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 13,
-    },
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-txt-primary)',
-      translate: [7, 5.5],
-      size: 10,
-    },
-    {
-      icon: faArrowRight,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 6,
-    },
-  ],
+  'disable-and-evacuate': constructBadgedIcon(faBan, faArrowRight),
   add: constructIcon(faAdd),
   'add-circle': [
     {
@@ -132,8 +141,10 @@ export const actionIcons = defineIconPack({
   fill: constructIcon(faFillDrip),
   duplicate: constructIcon(faClone),
   copy: constructIcon(faCopy),
-  connect: constructIcon(faLink),
-  disconnect: constructIcon(faLinkSlash),
+  attach: constructIcon(faLink),
+  detach: constructIcon(faLinkSlash),
+  connect: constructIcon(faPlug),
+  disconnect: [constructIcon(faPlug), { icon: slash }],
   forget: constructIcon(faEraser),
   delete: { icon: faTrash, color: 'var(--color-danger-txt-primary)' },
   'more-actions': constructIcon(faEllipsis),
@@ -142,50 +153,22 @@ export const actionIcons = defineIconPack({
     color: 'var(--color-neutral-txt-primary)',
     rotate: 90,
   },
+  'import-export': [
+    {
+      icon: faArrowUpLong,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [-5, 0],
+    },
+    {
+      icon: faArrowDownLong,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [5, 0],
+    },
+  ],
   reboot: constructIcon(faArrowRotateRight),
-  'force-reboot': [
-    constructIcon(faArrowRotateRight),
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 13,
-    },
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-txt-primary)',
-      translate: [7, 5.5],
-      size: 10,
-    },
-    {
-      icon: faBolt,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 6,
-    },
-  ],
+  'force-reboot': constructBadgedIcon(faArrowRotateRight, faBolt),
   shutdown: constructIcon(faSquare),
-  'force-shutdown': [
-    constructIcon(faSquare),
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 13,
-    },
-    {
-      icon: faCircle,
-      color: 'var(--color-neutral-txt-primary)',
-      translate: [7, 5.5],
-      size: 10,
-    },
-    {
-      icon: faBolt,
-      color: 'var(--color-neutral-background-primary)',
-      translate: [7, 5.5],
-      size: 6,
-    },
-  ],
+  'force-shutdown': constructBadgedIcon(faSquare, faBolt),
   'smart-reboot': [
     constructIcon(faArrowRotateRight),
     {
@@ -209,4 +192,19 @@ export const actionIcons = defineIconPack({
   download: constructIcon(faDownload),
   'health-check': constructIcon(faHeart),
   evacuate: constructIcon(faArrowCircleRight),
+  'emergency-shutdown': [
+    constructIcon(faSquare),
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: faStarOfLife,
+      color: 'currentColor',
+      translate: [7, 5.5],
+      size: 10,
+    },
+  ],
 })

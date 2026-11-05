@@ -1,4 +1,4 @@
-import type { XoHost } from './xo.mjs'
+import type { XapiXoRecord, XoHost, XoNetwork, XoVif } from './xo.mjs'
 
 declare const __brand: unique symbol
 
@@ -663,6 +663,19 @@ export const SUPPORTED_VDI_FORMAT = {
 
 export type SUPPORTED_VDI_FORMAT = (typeof SUPPORTED_VDI_FORMAT)[keyof typeof SUPPORTED_VDI_FORMAT]
 
+/**
+ * Formats a VDI can be exported to by XO: the XAPI ones, plus the ones XO generates
+ * itself from the blocks of the disk.
+ */
+export const SUPPORTED_VDI_EXPORT_FORMAT = {
+  raw: 'raw',
+  vhd: 'vhd',
+  qcow2: 'qcow2',
+  vmdk: 'vmdk',
+} as const
+
+export type SUPPORTED_VDI_EXPORT_FORMAT = (typeof SUPPORTED_VDI_EXPORT_FORMAT)[keyof typeof SUPPORTED_VDI_EXPORT_FORMAT]
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {
@@ -740,3 +753,67 @@ export type XapiVmStatsRaw = {
 export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
 
 export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>
+
+export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
+
+export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
+export const SDN_CONTROLLER_OF_METHOD_KEY = 'xo:sdn-controller:of-method'
+export const SDN_CONTROLLER_OF_FORMAT_KEY = 'xo:sdn-controller:of-format'
+export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
+export const TRAFFIC_RULE_PROTOCOLS_WITH_PORT: readonly TrafficRuleProtocol[] = ['TCP', 'UDP']
+
+export type TrafficRuleTargetType = XoNetwork['type'] | XoVif['type']
+
+export type TrafficRuleDirection = 'from' | 'to' | 'from/to'
+
+export type RawTrafficRule = {
+  allow: boolean
+  protocol: TrafficRuleProtocol
+  ipRange: string
+  direction: TrafficRuleDirection
+  port?: string
+}
+
+type BaseTrafficRule = RawTrafficRule & {
+  id: string
+  networkId: XoNetwork['id']
+}
+
+export type TrafficRule =
+  | (BaseTrafficRule & { type: XoVif['type']; sourceId: XoVif['id'] })
+  | (BaseTrafficRule & { type: XoNetwork['type']; sourceId: XoNetwork['id'] })
+
+export const XAPI_TYPES: readonly string[] = [
+  'network',
+  'VIF',
+  'message',
+  'gpuGroup',
+  'host',
+  'PBD',
+  'PCI',
+  'PGPU',
+  'PIF',
+  'pool',
+  'SR',
+  'VBD',
+  'VDI',
+  'VDI-snapshot',
+  'VDI-unmanaged',
+  'vgpu',
+  'vgpuType',
+  'VM',
+  'VM-controller',
+  'VM-snapshot',
+  'VM-template',
+  'VTPM',
+  'SM',
+] satisfies readonly XapiXoRecord['type'][]
+
+/** steps of a rolling pool update on one host, in execution order */
+export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
+
+export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
+
+export const COMMON_TAG = {
+  NOBAK: 'xo:no-bak',
+} as const

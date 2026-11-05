@@ -1,0 +1,540 @@
+import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import {
+  MergeRemoteDisk,
+  openDisk,
+  openDisposableDisk,
+  RemoteDisk,
+  isDisk,
+  openDiskChain,
+} from '@xen-orchestra/backup-archive/disks'
+import Disposable from 'promise-toolbox/Disposable'
+import {
+  CleanResult,
+  DEFAULT_MERGE_CONCURRENCY,
+  DEFAULT_REMOVE_CONCURRENCY,
+  ResolvedBackupCleanOptions,
+} from './VmBackup.types.mjs'
+import { asyncEach } from '@vates/async-each'
+import { Task } from '@vates/task'
+import { limitConcurrency } from 'limit-concurrency-decorator'
+import assert from 'node:assert/strict'
+
+const defaultMergeLimiter = limitConcurrency(1)
+const MERGE_STATE_FILE_RE = /^\.(.+)\.merge\.json$/
+/**
+ * Tracks the disk chain for a single VDI across all backup snapshots.
+ * Owns merge and deletion decisions for its chain given which disks are still
+ * referenced by active backups (accumulated via addActiveDiskPath).
+ */
+export class RemoteDiskLineage {
+  #handler: RemoteHandlerAbstract
+  #vdiDir: string
+  #opts: ResolvedBackupCleanOptions
+
+  // Concrete disk paths discovered in this VDI directory (normalized)
+  #diskPaths: Set<string> = new Set()
+  // Disk paths that exist on disk but failed to open (corrupted)
+  #brokenDiskPaths: Set<string> = new Set()
+  // child path: parent path (from disk header)
+  #parentOf: Map<string, string> = new Map()
+  // parent path: child path
+  #childOf: Map<string, string> = new Map()
+  // Disk paths declared active by their owning archives (accumulated across all referencing archives)
+  #activeDiskPaths: Set<string> = new Set()
+  // Interrupted merges: normalized parent path { stateFilePath, chain, step }
+  #interruptedMerges: Map<string, { stateFilePath: string; chain?: string[]; step?: 'mergeBlocks' | 'cleanup' }> =
+    new Map()
+
+  constructor(handler: RemoteHandlerAbstract, vdiDir: string, opts: ResolvedBackupCleanOptions) {
+    this.#handler = handler
+    this.#vdiDir = normalize(vdiDir)
+    this.#opts = opts
+  }
+
+  #unregisterDisk(diskPath: string): void {
+    this.#diskPaths.delete(diskPath)
+    const parent = this.#parentOf.get(diskPath)
+    if (parent !== undefined) {
+      this.#parentOf.delete(diskPath)
+      this.#childOf.delete(parent)
+    }
+    const child = this.#childOf.get(diskPath)
+    if (child !== undefined) {
+      this.#childOf.delete(diskPath)
+      this.#parentOf.delete(child)
+    }
+  }
+
+  /**
+   * Lists disk files and reads their headers to build the parent-child chain.
+   * Also detects interrupted merge state files.
+   */
+  async init(): Promise<void> {
+    let files: string[]
+    try {
+      files = await this.#handler.list(this.#vdiDir, { prependDir: true })
+    } catch (error) {
+      if (error?.code === 'NOT_SUPPORTED') throw error
+      this.#opts.logWarn('failed to list VDI directory', { vdiDir: this.#vdiDir, error })
+      return
+    }
+
+    for (const filePath of files) {
+      if (isDisk(filePath)) {
+        this.#diskPaths.add(normalize(filePath))
+      }
+    }
+
+    const mergeParentPaths = new Set<string>()
+    for (const filePath of files) {
+      const match = MERGE_STATE_FILE_RE.exec(basename(filePath))
+      if (match !== null) {
+        mergeParentPaths.add(normalize(this.#vdiDir + '/' + match[1]))
+      }
+    }
+
+    const uuidToPath = new Map<string, string>()
+    for (const diskPath of this.#diskPaths) {
+      let disk: RemoteDisk | undefined
+      try {
+        if (mergeParentPaths.has(diskPath)) {
+          disk = await openDisk({ handler: this.#handler, path: diskPath, force: true })
+        } else {
+          disk = await openDisk({ handler: this.#handler, path: diskPath })
+        }
+      } catch (error) {
+        if (error?.code === 'NOT_SUPPORTED' && this.#opts.merge) {
+          throw error
+        }
+        this.#opts.logWarn('failed to open disk', { path: diskPath, error })
+        // Broken disks will be removed by the clean phase
+        // because they are marked as NOT active
+        this.#brokenDiskPaths.add(diskPath)
+        continue
+      }
+      try {
+        const uuid = disk.getUuid()
+        // Detect Disks with the same UUIDs
+        // Due to a bug introduced in a1bcd35e2
+        const existingPath = uuidToPath.get(uuid)
+        if (existingPath !== undefined) {
+          this.#opts.logWarn('duplicate disk UUID detected', { uuid, path1: existingPath, path2: diskPath })
+          let existingDisk: RemoteDisk | undefined
+          try {
+            existingDisk = await openDisk({ handler: this.#handler, path: existingPath })
+            if (existingDisk.containsAllDataOf(disk)) {
+              this.#opts.logWarn('should drop duplicate disk, existing is superset', { dropped: diskPath })
+              continue
+            } else if (disk.containsAllDataOf(existingDisk)) {
+              this.#opts.logWarn('should drop old duplicate disk, new is superset', { dropped: existingPath })
+            } else {
+              this.#opts.logWarn('duplicate disks have different content, should first-seen', { dropped: diskPath })
+              continue
+            }
+          } catch (error) {
+            this.#opts.logWarn('failed to open existing duplicate disk, dropping it', { path: existingPath, error })
+            this.#unregisterDisk(existingPath)
+          } finally {
+            await existingDisk?.close()
+          }
+        }
+        uuidToPath.set(uuid, diskPath)
+
+        if (disk.isDifferencing()) {
+          const parentPath = disk.getParentPath()
+          this.#parentOf.set(diskPath, parentPath)
+          if (this.#childOf.has(parentPath)) {
+            const error = new Error('this script does not support multiple children', {
+              cause: {
+                parent: parentPath,
+                child1: this.#childOf.get(parentPath),
+                child2: diskPath,
+              },
+            })
+            throw error
+          }
+          this.#childOf.set(parentPath, diskPath)
+        }
+      } catch (error) {
+        this.#opts.logWarn('failed to read disk parent info', { path: diskPath, error })
+      } finally {
+        await disk.close()
+      }
+    }
+
+    this.#interruptedMerges = await MergeRemoteDisk.findInterruptedMerges(
+      this.#handler,
+      this.#vdiDir,
+      files,
+      uuidToPath,
+      this.#childOf
+    )
+
+    const propagateBroken = (diskPath: string) => {
+      if (!this.#brokenDiskPaths.has(diskPath)) {
+        this.#brokenDiskPaths.add(diskPath)
+        const child = this.#childOf.get(diskPath)
+        if (child !== undefined) {
+          propagateBroken(child)
+        }
+      }
+    }
+
+    for (const [child, parent] of this.#parentOf) {
+      if (!this.#diskPaths.has(parent) || this.#brokenDiskPaths.has(parent)) {
+        this.#opts.logWarn('disk broken: parent missing or broken', { child, parent })
+        propagateBroken(child)
+      }
+    }
+  }
+
+  /**
+   * Returns true if the disk path exists on disk and opened without errors during init.
+   * Used by VmIncrementalBackupArchive.check() to detect corrupted disks without extra I/O.
+   */
+  isPathAccessible(diskPath: string): boolean {
+    return this.#diskPaths.has(diskPath) && !this.#brokenDiskPaths.has(diskPath)
+  }
+
+  /** Returns true if the disk exists but failed to open during init. */
+  isBroken(diskPath: string): boolean {
+    return this.#brokenDiskPaths.has(diskPath)
+  }
+
+  /** Verifies that every parent referenced in disk headers exists in the directory. */
+  async check(): Promise<void> {
+    for (const [child, parent] of this.#parentOf) {
+      if (!this.#diskPaths.has(parent)) {
+        this.#opts.logWarn('parent disk is missing', { child, parent })
+      }
+    }
+  }
+
+  /**
+   * Declares disk paths as active for this lineage.
+   * Called by each archive that references this lineage after it determines it is complete.
+   * Accumulated across all referencing archives before clean() is called.
+   */
+  addActiveDiskPath(diskPath: string): void {
+    this.#activeDiskPaths.add(normalize(diskPath))
+  }
+
+  /**
+   * For each orphan disk:
+   * - If it has an active descendant in the chain → build a merge chain and merge (if opts.merge).
+   * - If it has no active descendant → delete it (if opts.remove).
+   *
+   * Also resumes interrupted merges (detected via .merge.json files) when opts.merge is true.
+   * Deletes orphan merge state files (for missing disks) when opts.remove is true.
+   *
+   * Requires activeDiskPaths to be completed to have been called by all referencing archives before this.
+   * @returns Set of deleted disk paths.
+   */
+  async clean({
+    remove = this.#opts.remove ?? false,
+    merge = this.#opts.merge ?? false,
+  }: { remove?: boolean; merge?: boolean } = {}): Promise<CleanResult> {
+    const orphanDisks = new Set([...this.#diskPaths].filter(p => !this.#activeDiskPaths.has(p)))
+    const toDelete = new Set<string>()
+    const toMerge: { chain: string[]; isResuming: boolean }[] = []
+    const visited = new Set<string>()
+
+    // Walk from an orphan toward its descendants.
+    // Returns a merge chain [orphan, ..., activeAnchor] if an active child exists,
+    // or undefined if the subtree is entirely orphaned (mark for deletion).
+    const getUsedChildChainOrDelete = (diskPath: string): string[] | undefined => {
+      if (visited.has(diskPath)) {
+        return undefined
+      }
+      visited.add(diskPath)
+
+      if (!orphanDisks.has(diskPath)) {
+        // Active disk, anchor of the merge chain
+        return [diskPath]
+      }
+
+      const child = this.#childOf.get(diskPath)
+      if (child !== undefined) {
+        const chain = getUsedChildChainOrDelete(child)
+        if (chain !== undefined) {
+          chain.unshift(diskPath)
+          return chain
+        }
+      }
+
+      toDelete.add(diskPath)
+      return undefined
+    }
+
+    // Read-only walk toward the descendants: true if any of them is still referenced by a backup.
+    // Unlike getUsedChildChainOrDelete, it neither marks disks visited nor schedules deletions.
+    const hasUsedDescendant = (diskPath: string): boolean => {
+      // `seen` guards against a cycle in corrupted headers
+      const seen = new Set<string>()
+      for (let p: string | undefined = diskPath; p !== undefined && !seen.has(p); p = this.#childOf.get(p)) {
+        seen.add(p)
+        if (!orphanDisks.has(p)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    // Keeps the orphan loop away from a chain that must not be touched this run. Pinned disks are
+    // differencing: every ancestor they read through must survive too, however deep the lineage is
+    // (e.g. after a retention change). The ancestors are merged normally once the chain is
+    // resumed or dropped.
+    const pin = (paths: readonly string[]): void => {
+      for (const path of paths) {
+        // `seen` guards against a cycle in corrupted headers
+        const seen = new Set<string>()
+        for (let p: string | undefined = path; p !== undefined && !seen.has(p); p = this.#parentOf.get(p)) {
+          seen.add(p)
+          visited.add(p)
+          toDelete.delete(p)
+        }
+      }
+    }
+
+    // Process interrupted merges first so their disks are protected from the orphan loop
+    for (const [parentPath, { stateFilePath, chain: stateChain, step }] of this.#interruptedMerges) {
+      if (!this.#diskPaths.has(parentPath)) {
+        this.#opts.logWarn('orphan merge state', { stateFilePath, missingDisk: parentPath })
+        if (remove) {
+          this.#opts.logInfo('deleting orphan merge state', { stateFilePath })
+          await this.#handler.unlink(stateFilePath)
+        }
+        continue
+      }
+
+      let chain: string[] | undefined
+      if (stateChain !== undefined) {
+        const missing = stateChain.filter(p => !this.#diskPaths.has(p))
+
+        // A merge only removes disks during its cleanup step, so outside of it every disk of the
+        // recorded chain must still be there. Merging what is left would fold the surviving
+        // children into the parent and then rename it onto the chain tip, silently dropping the
+        // blocks of the disks that went missing. Never resume such a chain.
+        if (missing.length > 0 && step !== 'cleanup') {
+          // Each surviving disk is walked on its own: the missing disk breaks the `childOf` links,
+          // so a walk from the parent alone would stop at the gap.
+          const survivors = stateChain.filter(p => this.#diskPaths.has(p))
+          if (survivors.some(hasUsedDescendant)) {
+            // A backup still references a disk downstream: pin the chain so the orphan loop
+            // neither merges it afresh nor deletes it. It is dropped once nothing uses it anymore.
+            this.#opts.logWarn('merge chain lost disks before its cleanup step, refusing to resume', {
+              stateFilePath,
+              parentPath,
+              step,
+              missing,
+            })
+            pin(survivors)
+            continue
+          }
+
+          // Nothing uses the chain anymore (descendants of the missing disk are broken, so never
+          // active): drop the state, the orphan loop below deletes the disks.
+          this.#opts.logWarn('unmergeable merge chain on a fully orphaned lineage', {
+            stateFilePath,
+            parentPath,
+            step,
+            missing,
+          })
+          if (remove) {
+            this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
+          continue
+        }
+
+        const existing = stateChain.filter(p => this.#diskPaths.has(p))
+        if (existing.length >= 2) {
+          chain = existing
+        } else {
+          // fewer than 2 disks of the recorded chain are left, there is nothing to resume and
+          // the state would otherwise stay on disk forever.
+          //
+          // only done when the chain was read successfully: an undefined `stateChain` also
+          // covers a state file that is merely unreadable right now, which must be kept
+          this.#opts.logWarn('merge state without a resumable chain', { stateFilePath, parentPath })
+          if (remove) {
+            this.#opts.logInfo('deleting unresumable merge state', { stateFilePath })
+            await this.#handler.unlink(stateFilePath)
+          }
+          continue
+        }
+      }
+
+      if (chain === undefined) {
+        // state file unreadable: leave it alone, the orphan loop below schedules a fresh merge
+        continue
+      }
+
+      // Nothing downstream of the merge parent is still referenced by a backup: merging would
+      // write into a lineage nothing points at, and pinning it below would exempt it from the
+      // orphan loop forever. The walk already marked the whole lineage for deletion, so only
+      // the state file is left to drop.
+      //
+      // It walks the live lineage rather than `stateChain`, which is frozen at the retention
+      // boundary of the run that created it and can be shorter than the real chain.
+      if (getUsedChildChainOrDelete(parentPath) === undefined) {
+        this.#opts.logWarn('merge state on a fully orphaned lineage', { stateFilePath, parentPath })
+        if (remove) {
+          this.#opts.logInfo('deleting merge state of orphaned lineage', { stateFilePath })
+          await this.#handler.unlink(stateFilePath)
+        }
+        continue
+      }
+
+      pin(chain)
+      toMerge.push({ chain, isResuming: true })
+    }
+
+    for (const orphan of orphanDisks) {
+      if (!visited.has(orphan)) {
+        const parent = this.#parentOf.get(orphan)
+        if (parent === undefined || !orphanDisks.has(parent)) {
+          const chain = getUsedChildChainOrDelete(orphan)
+          if (chain !== undefined && chain.length > 1) {
+            toMerge.push({ chain, isResuming: false })
+          }
+        }
+      }
+    }
+
+    if (remove) {
+      await asyncEach(
+        Array.from(toDelete),
+        async path => {
+          this.#opts.logInfo('deleting unused disk', { path })
+          try {
+            const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
+            await disk.unlink({ force: true })
+            // Remove from tracking so #cleanOrphanDataFiles skips this now-deleted path
+            this.#unregisterDisk(path)
+          } catch (error) {
+            this.#opts.logWarn('failed to delete unused disk', { path, error })
+          }
+        },
+        { concurrency: DEFAULT_REMOVE_CONCURRENCY }
+      )
+    }
+
+    if (toMerge.length > 0) {
+      this.#opts.logInfo('Disk chain needs merging', { count: toMerge.length })
+    }
+
+    // mergeTargetPath: final size of the disk everything was merged into
+    const mergedSizes = new Map<string, number>()
+    if (merge) {
+      const limitedMergeChain = defaultMergeLimiter(this.#mergeChain.bind(this))
+      const doMerge = async () => {
+        await asyncEach(
+          toMerge,
+          async ({ chain, isResuming }) => {
+            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
+            mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
+            // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
+            // intermediates deleted by childDisk.unlink() when removeUnused=true
+            // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
+            // and produce false "missing target of alias" warnings.
+            for (const deletedPath of chain.slice(0, -1)) {
+              this.#unregisterDisk(deletedPath)
+            }
+          },
+          { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
+        )
+      }
+      if (toMerge.length !== 0) {
+        await Task.run({ properties: { name: 'merge' } }, doMerge)
+      }
+    }
+
+    await this.#cleanOrphanDataFiles(remove)
+
+    return {
+      removedFiles: Array.from(toDelete),
+      merge: toMerge.length > 0,
+      size: [...mergedSizes.values()].reduce((total, subSize) => total + subSize, 0),
+      mergedSizes,
+    }
+  }
+
+  /**
+   * Merges ancestors into the active child at the end of the chain.
+   * Returns the final size of the merge target and its path.
+   */
+  async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
+    assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
+    const parentPath = chain[0]
+    this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain
+    // The last disk in the chain is the active one that everything gets merged into
+    const mergeTargetPath = chain.pop()!
+
+    const merger = new MergeRemoteDisk(this.#handler, {
+      logInfo: this.#opts.logInfo,
+      removeUnused: this.#opts.remove,
+      mergeBlockConcurrency: this.#opts.mergeBlockConcurrency,
+      onProgress: this.#opts.onProgress,
+    })
+    let parentDisk: RemoteDisk | undefined
+    let childDisk: RemoteDisk | undefined
+    try {
+      parentDisk = await openDisk({ handler: this.#handler, path: parentPath, force: isResuming })
+      childDisk = await openDiskChain({
+        handler: this.#handler,
+        path: mergeTargetPath,
+        until: parentPath,
+        force: isResuming,
+      })
+
+      const { finalDiskSize } = (await merger.merge(parentDisk, childDisk!))!
+      return { finalDiskSize, mergeTargetPath }
+    } finally {
+      await parentDisk?.close().catch(error => {
+        this.#opts.logWarn('Error closing parent Disk', error)
+      })
+      await childDisk?.close().catch(error => {
+        this.#opts.logWarn('Error closing child Disk', error)
+      })
+    }
+  }
+
+  /**
+   * Validates each disk integrity, then scans discovered data subdirs
+   * and deletes any files not associated to a known disk.
+   */
+  async #cleanOrphanDataFiles(remove: boolean): Promise<void> {
+    const claimedFiles = new Set<string>()
+    for (const diskPath of this.#diskPaths) {
+      const claimed = await Disposable.use(
+        openDisposableDisk({ handler: this.#handler, path: diskPath, ignoreBlockIndexes: true }),
+        async disk => {
+          await disk.clean({ remove, logWarn: this.#opts.logWarn, logInfo: this.#opts.logInfo })
+          return disk.listAssociatedFiles(this.#vdiDir)
+        }
+      )
+      for (const f of claimed) claimedFiles.add(normalize(f))
+    }
+
+    const dataDirs = new Set([...claimedFiles].map(p => dirname(normalize(p))).filter(p => p !== this.#vdiDir))
+    for (const dataDir of dataDirs) {
+      const items = await this.#handler.list(dataDir, { prependDir: true }).catch(() => [] as string[])
+      for (const item of items) {
+        if (!claimedFiles.has(normalize(item))) {
+          this.#opts.logWarn('orphaned data file', { path: item })
+          if (remove) {
+            await this.#handler.unlink(item).catch(async err => {
+              if (err?.code === 'EISDIR') {
+                await this.#handler.rmtree(item)
+              } else {
+                this.#opts.logWarn('failed to delete orphaned data file', { path: item, error: err })
+              }
+            })
+          }
+        }
+      }
+    }
+  }
+}

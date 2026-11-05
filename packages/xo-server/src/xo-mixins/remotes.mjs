@@ -1,25 +1,46 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Obfuscate from '@vates/obfuscate'
 import { basename } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'xo-remote-parser'
 import { DEFAULT_ENCRYPTION_ALGORITHM, getHandler, isLegacyEncryptionAlgorithm } from '@xen-orchestra/fs'
-import { ignoreErrors, timeout } from 'promise-toolbox'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
+import { ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
+import { invalidParameters, noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
-
 import patch from '../patch.mjs'
 import { Remotes } from '../models/remote.mjs'
 import Disposable from 'promise-toolbox/Disposable'
+import { BACKUP_DIR } from '@xen-orchestra/backups/_getVmBackupDir.mjs'
+import { Task } from '@vates/task'
+import { asyncEach } from '@vates/async-each'
 
 // ===================================================================
 
-const { warn } = createLogger('xo:mixins:remotes')
+const { warn, debug } = createLogger('xo:mixins:remotes')
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
   remote.url = format(Obfuscate.obfuscate(parsedUrl))
   return remote
+}
+
+const REMOTE_INFO_RETRY_DELAY = 5e3
+const REMOTE_INFO_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+const BACKUP_REPOSITORY_INFO_REFRESH_DELAY = 10e3
+const RETRY_CODES = new Set(['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'ENOTCONN', 'ESTALE'])
+function _isRetryableRemoteError(error) {
+  return error instanceof TimeoutError || RETRY_CODES.has(error.code)
+}
+export function remoteInfoRetryDelay(attempt) {
+  let prev = 1
+  let curr = 1
+
+  for (let i = 0; i < attempt; i++) {
+    const next = prev + curr
+    prev = curr
+    curr = next
+  }
+
+  return Math.min(prev * REMOTE_INFO_RETRY_DELAY, REMOTE_INFO_RETRY_MAX_DELAY)
 }
 
 // these properties should be defined on the remote object itself and not as
@@ -55,7 +76,18 @@ export default class {
   constructor(app) {
     this._handlers = { __proto__: null }
     this._remotesInfo = {}
+    this._remotesInfoRetry = { __proto__: null }
+    this._backupRepositoryInfoRefresh = { __proto__: null }
     this._app = app
+
+    // `add` and `update` carry the archives, `remove` their ids: `<backup repository id>/<metadata path>`
+    const onVmBackupArchivesChange = archives =>
+      archives.forEach(archive => this._scheduleBackupRepositoryInfoRefresh(archive.backupRepository))
+    const vmBackupArchivesListeners = {
+      add: onVmBackupArchivesChange,
+      update: onVmBackupArchivesChange,
+      remove: ids => ids.forEach(id => this._scheduleBackupRepositoryInfoRefresh(id.slice(0, id.indexOf('/')))),
+    }
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
     app.hooks.on('core started', () => {
@@ -63,6 +95,12 @@ export default class {
         connection: app._redis,
         namespace: 'remote',
         indexes: ['enabled'],
+        crypto: app.cryptoCredentials,
+      })
+      app.hooks.emit('registerCollection', {
+        collection: this._remotes,
+        type: 'backup-repository',
+        decorate: obfuscateRemote,
       })
 
       app.addConfigManager(
@@ -72,18 +110,34 @@ export default class {
       )
     })
     app.hooks.on('start', async () => {
+      Object.entries(vmBackupArchivesListeners).forEach(([event, listener]) => app.vmBackupArchives.on(event, listener))
+
       const remotes = await this._remotes.get()
       remotes.forEach(remote => {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
+        if (remote.enabled) {
+          ignoreErrors.call(this._refreshRemoteInfo(remote))
+        }
       })
     })
     app.hooks.on('stop', async () => {
+      Object.entries(vmBackupArchivesListeners).forEach(([event, listener]) =>
+        app.vmBackupArchives.off(event, listener)
+      )
+      Object.keys(this._backupRepositoryInfoRefresh).forEach(id => {
+        clearTimeout(this._backupRepositoryInfoRefresh[id])
+        delete this._backupRepositoryInfoRefresh[id]
+      })
+      Object.keys(this._remotesInfoRetry).forEach(id => this._cancelRemoteInfoRetry(id))
       const handlers = this._handlers
       for (const id in handlers) {
         try {
+          const handler = handlers[id]
           delete handlers[id]
-          await handlers[id].forget()
-        } catch (_) {}
+          await handler.forget()
+        } catch (error) {
+          warn('failed to forget handler', { id, error })
+        }
       }
     })
   }
@@ -122,21 +176,33 @@ export default class {
     return handler
   }
 
+  async pingRemote(remoteId) {
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
+    remote.proxy !== undefined
+      ? await this._app.callProxyMethod(remote.proxy, 'remote.ping', {
+          remote,
+        })
+      : await this.getRemoteHandler(remoteId)
+
+    return { success: true }
+  }
+
   async testRemote(remoteId) {
     const remote = await this.getRemoteWithCredentials(remoteId)
 
-    const { readRate, writeRate, ...answer } =
+    const result =
       remote.proxy !== undefined
         ? await this._app.callProxyMethod(remote.proxy, 'remote.test', {
             remote,
           })
         : await this.getRemoteHandler(remoteId).then(handler => handler.test())
 
-    if (answer.success) {
+    if (result.success) {
       const benchmark = {
-        readRate,
+        readRate: result.readRate,
         timestamp: Date.now(),
-        writeRate,
+        writeRate: result.writeRate,
       }
       await this._updateRemote(remoteId, {
         error: null,
@@ -147,51 +213,206 @@ export default class {
       })
     } else {
       await this._updateRemote(remoteId, {
-        error: answer.error,
+        error: result.error,
       })
     }
 
-    return answer
+    return result
+  }
+
+  // checks if a job referencing this remote is currently running
+  async #isReferencedByRunningJob(remoteId) {
+    const jobs = await this._app.getAllJobs()
+    return jobs.some(job => {
+      if (job.runId === undefined) {
+        return false
+      }
+      if (job.type === 'backup' || job.type === 'metadataBackup') {
+        return this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      if (job.type === 'mirrorBackup') {
+        return job.sourceRemote === remoteId || this.#isRemoteReferenced(job.remotes, remoteId)
+      }
+      return false
+    })
+  }
+
+  #isRemoteReferenced(idsToCheck, remoteId) {
+    if (idsToCheck === undefined) {
+      return false
+    }
+    if (typeof idsToCheck === 'string') {
+      return true
+    } else {
+      const { id } = idsToCheck
+      const ids = typeof id === 'string' ? [id] : id.__or
+      return ids.includes(remoteId)
+    }
+  }
+
+  // The caller of this function have to create a parent Task
+  async reclaimSpace(remoteId, { vmUuid, merge = true, remove = true } = {}) {
+    if (await this.#isReferencedByRunningJob(remoteId)) {
+      throw incorrectState({ actual: 'running', expected: 'idle', object: 'backup job referencing this remote' })
+    }
+
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
+    if (remote.proxy !== undefined) {
+      return this._app.callProxyMethod(
+        remote.proxy,
+        'remote.reclaimSpace',
+        {
+          remote,
+          vmUuid,
+          merge,
+          remove,
+        },
+        { timeout: 600e3 }
+      ) // by default in config file it's 1 min, now it's 10 min
+    }
+
+    return Disposable.use(this._app.getBackupsRemoteAdapter(remote), async adapter => {
+      const allVms = await adapter.listAllVms()
+      if (vmUuid !== undefined && !allVms.includes(vmUuid)) {
+        throw noSuchObject(vmUuid, 'VM')
+      }
+      const vmUuids = vmUuid !== undefined ? [vmUuid] : allVms
+      Task.set('total', vmUuids.length)
+      let done = 0
+
+      const results = []
+      await asyncEach(
+        vmUuids,
+        async uuid => {
+          try {
+            const { merge: didMerge, size } = await Task.run(
+              { properties: { name: `Clean VM ${uuid}`, data: { type: 'VM', id: uuid } } },
+              () =>
+                adapter.cleanVm(`${BACKUP_DIR}/${uuid}`, {
+                  remove,
+                  merge,
+                  logInfo: Task.info,
+                  logWarn: Task.warning,
+                })
+            )
+            results.push({ vmUuid: uuid, success: true, merge: didMerge, size })
+          } catch (error) {
+            results.push({
+              vmUuid: uuid,
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            })
+          } finally {
+            done++
+            Task.set('progress', Math.round((done / vmUuids.length) * 100))
+          }
+        },
+        { concurrency: 2, stopOnError: false }
+      )
+
+      return results
+    })
   }
 
   async getAllRemotesInfo() {
-    const remotesInfo = this._remotesInfo
-    await asyncMapSettled(this._remotes.get(), async remote => {
-      if (!remote.enabled) {
-        return
+    for (const remote of await this._remotes.get()) {
+      if (remote.enabled && this._remotesInfoRetry[remote.id] === undefined) {
+        ignoreErrors.call(this._refreshRemoteInfo(remote))
       }
+    }
+    return this._remotesInfo
+  }
 
-      let encryption
-
-      if (this._handlers[remote.id] !== undefined) {
-        const algorithm = this._handlers[remote.id].encryptionAlgorithm
-        encryption = {
-          algorithm,
-          isLegacy: isLegacyEncryptionAlgorithm(algorithm),
-          recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
-        }
+  async _fetchRemoteInfo(remote) {
+    let encryption
+    if (this._handlers[remote.id] !== undefined) {
+      const algorithm = this._handlers[remote.id].encryptionAlgorithm
+      encryption = {
+        algorithm,
+        isLegacy: isLegacyEncryptionAlgorithm(algorithm),
+        recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
       }
+    }
 
-      const promise =
-        remote.proxy !== undefined
-          ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
-              remote,
-            })
-          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
+    const promise =
+      remote.proxy !== undefined
+        ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', { remote })
+        : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-      try {
-        await timeout.call(
-          promise.then(info => {
-            remotesInfo[remote.id] = {
-              ...info,
-              encryption,
-            }
-          }),
-          5e3
-        )
-      } catch (_) {}
-    })
-    return remotesInfo
+    const info = { ...(await timeout.call(promise, 5e3)), encryption }
+
+    const currentRemote = await ignoreErrors.call(this._remotes.first(remote.id))
+    if (!currentRemote?.enabled) {
+      return
+    }
+
+    const { size, used, available } = info
+    if (currentRemote.size !== size || currentRemote.used !== used || currentRemote.available !== available) {
+      await this._updateRemote(remote.id, {
+        size: size ?? null,
+        used: used ?? null,
+        available: available ?? null,
+      })
+    }
+    this._remotesInfo[remote.id] = info
+  }
+
+  async _refreshRemoteInfo(remote) {
+    try {
+      await this._fetchRemoteInfo(remote)
+      this._cancelRemoteInfoRetry(remote.id)
+    } catch (error) {
+      if (_isRetryableRemoteError(error)) {
+        this._scheduleRemoteInfoRetry(remote, error)
+      } else {
+        debug('failed to get remote info, will NOT retry', { id: remote.id, name: remote.name, error })
+        this._cancelRemoteInfoRetry(remote.id)
+      }
+    }
+  }
+
+  _scheduleRemoteInfoRetry({ id, name }, error) {
+    let state = this._remotesInfoRetry[id]
+    if (!state) {
+      state = this._remotesInfoRetry[id] = { attempt: 0 }
+    }
+    const attempt = state.attempt++
+    const delay = remoteInfoRetryDelay(attempt)
+
+    const log = attempt === 1 ? warn : debug
+    log('failed to get remote info, will retry', { id, name, delay, error })
+
+    state.timer = setTimeout(() => ignoreErrors.call(this._retryRemoteInfo(id)), delay)
+    state.timer.unref?.()
+  }
+
+  async _retryRemoteInfo(id) {
+    const remote = await this._remotes.first(id).catch(() => undefined)
+    if (remote?.enabled) {
+      await this._refreshRemoteInfo(remote)
+    } else {
+      this._cancelRemoteInfoRetry(id)
+    }
+  }
+
+  _cancelRemoteInfoRetry(id) {
+    const state = this._remotesInfoRetry[id]
+    if (state !== undefined) {
+      clearTimeout(state.timer)
+      delete this._remotesInfoRetry[id]
+    }
+  }
+
+  _scheduleBackupRepositoryInfoRefresh(backupRepositoryId) {
+    clearTimeout(this._backupRepositoryInfoRefresh[backupRepositoryId])
+    this._backupRepositoryInfoRefresh[backupRepositoryId] = setTimeout(async () => {
+      delete this._backupRepositoryInfoRefresh[backupRepositoryId]
+      const backupRepository = await ignoreErrors.call(this._remotes.first(backupRepositoryId))
+      if (backupRepository?.enabled) {
+        await this._refreshRemoteInfo(backupRepository)
+      }
+    }, BACKUP_REPOSITORY_INFO_REFRESH_DELAY)
   }
 
   async getAllRemotes() {
@@ -255,7 +476,7 @@ export default class {
     return /* await */ this.updateRemote(remote.id, { enabled: true })
   }
 
-  updateRemote(id, { enabled, name, options, proxy, url }) {
+  async updateRemote(id, { enabled, name, options, proxy, url }) {
     if (url !== undefined) {
       validateUrl(url)
     }
@@ -267,13 +488,46 @@ export default class {
       ignoreErrors.call(handler.forget())
     }
 
-    return this._updateRemote(id, {
+    this._cancelRemoteInfoRetry(id)
+
+    const sizeProps = {}
+    if (enabled === false) {
+      // it will not be listed again: its backups are no longer part of the collection
+      this._app.forgetVmBackupRepository(id)
+      sizeProps.size = null
+      sizeProps.used = null
+      sizeProps.available = null
+    } else {
+      this._app.invalidateVmBackupsListing(id)
+    }
+
+    const remote = await this._updateRemote(id, {
       enabled,
       name,
       options,
       proxy,
       url,
+      ...sizeProps,
     })
+    if (enabled === false) {
+      delete this._remotesInfo[id]
+    }
+
+    const isTargetChanged = url !== undefined || options !== undefined || proxy !== undefined
+    if (enabled === true || (remote.enabled && isTargetChanged)) {
+      ignoreErrors.call(this._refreshRemoteInfo(remote))
+    }
+
+    // the start lists only the repositories enabled then: one enabled later would have its archives
+    // neither announced nor polled until a client lists it. Listed once the update is stored, as the
+    // listing reads the remote from its record, which must not still say it is disabled
+    //
+    // not awaited, the listing can take a while: it never rejects
+    if (enabled === true) {
+      this._app.listVmBackupsNg([id])
+    }
+
+    return remote
   }
 
   @synchronized()
@@ -295,6 +549,10 @@ export default class {
   }
 
   async removeRemote(id) {
+    this._cancelRemoteInfoRetry(id)
+    this._app.forgetVmBackupRepository(id)
+    delete this._remotesInfo[id]
+
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {

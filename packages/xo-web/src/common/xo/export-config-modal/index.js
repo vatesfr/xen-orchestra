@@ -17,13 +17,7 @@ export default class ExportConfigModalBody extends Component {
     return (
       <div>
         <p>{_('exportConfigEnterPassphrase')}</p>
-        <Password
-          autoFocus
-          defaultVisible
-          enableGenerator
-          onChange={this.linkState('passphrase')}
-          value={this.state.passphrase}
-        />
+        <Password autoFocus enableGenerator onChange={this.linkState('passphrase')} value={this.state.passphrase} />
       </div>
     )
   }

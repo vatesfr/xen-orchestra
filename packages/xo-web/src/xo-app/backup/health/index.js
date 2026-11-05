@@ -176,8 +176,18 @@ const Health = decorate([
       initialize({ fetchBackupList }) {
         return fetchBackupList()
       },
+      // fetch each remote independently so that its backups are displayed as
+      // soon as they are available, instead of waiting for the slowest remote
       async fetchBackupList() {
-        this.state.backupsByRemote = await listVmBackups(toArray(await getRemotes()))
+        const remotes = toArray(await getRemotes())
+        this.state.backupsByRemote = {}
+
+        await Promise.all(
+          remotes.map(async remote => {
+            const backupsByRemote = await listVmBackups([remote])
+            this.state.backupsByRemote = { ...this.state.backupsByRemote, ...backupsByRemote }
+          })
+        )
       },
     },
     computed: {

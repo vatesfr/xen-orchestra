@@ -3,23 +3,26 @@ import {
   type THandlePost,
   type THandleWatching,
   useSseStore,
-} from '@core/packages/remote-resource/sse.store'
+} from '@core/packages/remote-resource/sse.store.ts'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
-import { ifElse } from '@core/utils/if-else.utils.ts'
-import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
+import { noop, useDebounceFn, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
   type ComputedRef,
   type EffectScope,
+  effectScope,
   getCurrentScope,
+  type MaybeRef,
   type MaybeRefOrGetter,
   onScopeDispose,
   reactive,
   type Ref,
   ref,
+  shallowReactive,
+  shallowRef,
   toRef,
   toValue,
   watch,
@@ -37,7 +40,12 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -46,7 +54,12 @@ export function defineRemoteResource<
 export function defineRemoteResource<TData, TState extends object, TArgs extends any[] = []>(config: {
   url: string | ((...args: TArgs) => string)
   state?: (data: Ref<TData | undefined>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<TData | undefined>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<TData | undefined>,
+    receivedData: any,
+    calledFrom: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -60,8 +73,13 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => Promise<void>
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => Promise<void>
   stream?: boolean
   initWatchCollection: () => {
     collectionId: string
@@ -70,7 +88,7 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => Promise<boolean> | boolean
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -82,8 +100,13 @@ export function defineRemoteResource<
   url: string | ((...args: TArgs) => string)
   initialData?: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataReceived?: (
+    data: Ref<NoInfer<TData>>,
+    receivedData: any,
+    calledFrom: 'execute' | 'update',
+    context?: ResourceContext<TArgs>
+  ) => Promise<void>
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => Promise<void>
   cacheExpirationMs?: number | false
   pollingIntervalMs?: number | false
   stream?: boolean
@@ -94,22 +117,28 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => Promise<boolean> | boolean
   }
 }) {
-  const cache = new Map<
-    string,
-    {
-      count: number
-      pause: VoidFunction
-      resume: VoidFunction
-      state: object
-      isReady: Ref<boolean>
-      isFetching: Ref<boolean>
-      lastError: Ref<Error | undefined>
-      hasError: ComputedRef<boolean>
-    }
-  >()
+  type EventBuffer<TData> = { events: ['update' | 'remove', TData][]; isProcessed: boolean }
+
+  type CacheEntry = {
+    count: number
+    evictionTimeout?: NodeJS.Timeout // TODO : Fixme , the actual type in browser is number, but NodeJS.Timeout in nodejs.
+    // Due to transitive types of vates/types, the type is NodeJS.Timeout.
+    pause: VoidFunction
+    resume: VoidFunction
+    execute: () => Promise<void>
+    isPaused: boolean
+    state: object
+    stateScope: EffectScope
+    isReady: Ref<boolean>
+    isFetching: Ref<boolean>
+    lastError: Ref<Error | undefined>
+    hasError: ComputedRef<boolean>
+  }
+
+  const cache = shallowReactive(new Map<string, CacheEntry>())
 
   const buildUrl = typeof config.url === 'string' ? () => config.url as string : config.url
 
@@ -117,7 +146,8 @@ export function defineRemoteResource<
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
-  const cacheExpiration = config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS
+  const cacheExpiration =
+    config.cacheExpirationMs === false ? 0 : (config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS)
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
@@ -135,68 +165,68 @@ export function defineRemoteResource<
     })
   }
 
-  const bufferedEvents: ['update' | 'remove', TData][] = []
-  let isBufferEventsProcessed = false
-  function handleBuffer(data: Ref<TData[]>) {
-    while (bufferedEvents.length > 0) {
-      const buffer = bufferedEvents.shift()
-      if (buffer === undefined) {
-        continue
-      }
-
-      const type = buffer[0]
-      const event = buffer[1]
-
-      removeData(data.value, event)
-      if (type !== 'remove') {
-        data.value.push(event)
-      }
-    }
-  }
-
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
+    (async (
+      data: Ref<TData>,
+      receivedData: any,
+      calledFrom: 'execute' | 'update',
+      context?: ResourceContext<TArgs>,
+      buffer?: EventBuffer<TData>
+    ) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (watchCollection?.predicate?.(receivedData, context) === false) {
-        return
-      }
-
-      if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
-        data.value = receivedData
-
-        if (watchCollection !== undefined && Array.isArray(data.value)) {
-          handleBuffer(data as Ref<TData[]>)
-          isBufferEventsProcessed = true
+      if ((await watchCollection?.predicate?.(receivedData, context)) === false) {
+        // on update, the object may no longer belong to this (sub-)collection (e.g. VM removed from a backup job)
+        if (calledFrom === 'update' && Array.isArray(data.value) && !Array.isArray(receivedData)) {
+          if (buffer !== undefined && !buffer.isProcessed) {
+            buffer.events.push(['remove', receivedData])
+          } else {
+            removeData(data.value, receivedData)
+          }
         }
         return
       }
 
-      if (Array.isArray(data.value)) {
-        if (!isBufferEventsProcessed) {
-          bufferedEvents.push(['update', receivedData])
+      if (!Array.isArray(data.value)) {
+        if (data.value === undefined) {
+          data.value = receivedData
         } else {
-          removeData(data.value, receivedData)
-          data.value.push(receivedData)
+          merge(data.value, receivedData)
         }
+
         return
       }
 
-      merge(data.value, receivedData)
+      const store = data.value as TData[]
+
+      if (Array.isArray(receivedData)) {
+        data.value = receivedData as TData
+
+        return
+      }
+
+      if (calledFrom === 'execute') {
+        store.push(receivedData)
+      } else if (buffer !== undefined && !buffer.isProcessed) {
+        buffer.events.push(['update', receivedData])
+      } else {
+        removeData(store, receivedData)
+        store.push(receivedData)
+      }
     })
 
   const onDataRemoved =
     config.onDataRemoved ??
-    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
+    (async (data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>, buffer?: EventBuffer<TData>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (watchCollection?.predicate?.(receivedData, context) === false) {
+      if ((await watchCollection?.predicate?.(receivedData, context)) === false) {
         return
       }
 
       // for now only support `onDataRemoved` when watching XapiXoRecord collection
       if (Array.isArray(data.value) && !Array.isArray(receivedData)) {
-        if (!isBufferEventsProcessed) {
-          bufferedEvents.push(['remove', receivedData])
+        if (buffer !== undefined && !buffer.isProcessed) {
+          buffer.events.push(['remove', receivedData])
         } else {
           removeData(data.value, receivedData)
         }
@@ -216,7 +246,12 @@ export function defineRemoteResource<
     entry.count += 1
 
     if (entry.count === 1) {
-      entry.resume()
+      clearTimeout(entry.evictionTimeout)
+      entry.evictionTimeout = undefined
+      if (entry.isPaused) {
+        entry.resume()
+        entry.isPaused = false
+      }
     }
   }
 
@@ -233,13 +268,16 @@ export function defineRemoteResource<
       return
     }
 
-    entry.pause()
+    scheduleEviction(url, entry)
+  }
 
-    if (cacheExpiration !== false) {
-      setTimeout(() => {
-        cache.delete(url)
-      }, cacheExpiration)
-    }
+  function scheduleEviction(url: string, entry: CacheEntry) {
+    entry.evictionTimeout = setTimeout(() => {
+      entry.pause()
+      entry.isPaused = true
+      entry.stateScope.stop()
+      cache.delete(url)
+    }, cacheExpiration)
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -254,10 +292,50 @@ export function defineRemoteResource<
     const lastError = ref<Error>()
 
     const hasError = computed(() => lastError.value !== undefined)
+    const stateScope = effectScope(true)
+    const sharedContext = { ...context, scope: stateScope }
+    const buffer: EventBuffer<TData> = { events: [], isProcessed: false }
+    const data = shallowRef(buildData()) as Ref<TData>
 
-    const data = ref(buildData()) as Ref<TData>
+    // create a new JS reference to ensure vueJS detect the change, even when
+    // the value is only compared by identity (e.g. a component prop)
+    const flushData = useDebounceFn(
+      () => {
+        if (Array.isArray(data.value)) {
+          data.value = data.value.slice() as TData
+        } else if (data.value != null) {
+          data.value = { ...data.value }
+        }
+      },
+      100,
+      { maxWait: 500 }
+    )
+
+    function handleBuffer(data: Ref<TData[]>) {
+      if (buffer.isProcessed) {
+        console.warn(`buffer already handled for: ${url}`)
+        return
+      }
+      while (buffer.events.length > 0) {
+        const bufferedEvent = buffer.events.shift()
+        if (bufferedEvent === undefined) {
+          continue
+        }
+
+        const type = bufferedEvent[0]
+        const event = bufferedEvent[1]
+
+        removeData(data.value, event)
+        if (type !== 'remove') {
+          data.value.push(event)
+        }
+      }
+
+      buffer.isProcessed = true
+    }
 
     async function execute() {
+      buffer.isProcessed = false
       try {
         isFetching.value = true
 
@@ -273,17 +351,29 @@ export function defineRemoteResource<
         }
 
         if (config.stream) {
+          if (Array.isArray(data.value)) {
+            data.value = [] as TData
+          }
+
           for await (const event of readNDJSONStream(response.body)) {
-            onDataReceived(data, event)
+            await onDataReceived(data, event, 'execute', sharedContext)
+            void flushData()
           }
         } else {
-          onDataReceived(data, await response.json())
+          await onDataReceived(data, await response.json(), 'execute', sharedContext)
+          void flushData()
         }
 
         isReady.value = true
+        lastError.value = undefined
       } catch (error) {
         lastError.value = error instanceof Error ? error : new Error(String(error))
       } finally {
+        if (watchCollection !== undefined && Array.isArray(data.value)) {
+          handleBuffer(data as Ref<TData[]>)
+          void flushData()
+        }
+
         isFetching.value = false
       }
     }
@@ -292,7 +382,8 @@ export function defineRemoteResource<
     let resume: VoidFunction = execute
 
     if (watchCollection !== undefined) {
-      const { collectionId, resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const { resource, handleDelete, handlePost, handleWatching } = watchCollection
+      const collectionId = `${watchCollection.collectionId}:${url}`
       const { watch, unwatch } = useSseStore()
 
       pause = () => unwatch({ collectionId, resource, handleDelete })
@@ -302,8 +393,14 @@ export function defineRemoteResource<
           handleWatching,
           handlePost,
           resource,
-          onDataReceived: receivedData => onDataReceived(data, receivedData, context),
-          onDataRemoved: receivedData => onDataRemoved(data, receivedData, context),
+          onDataReceived: async receivedData => {
+            await onDataReceived(data, receivedData, 'update', sharedContext, buffer)
+            void flushData()
+          },
+          onDataRemoved: async receivedData => {
+            await onDataRemoved(data, receivedData, sharedContext, buffer)
+            void flushData()
+          },
         })
         await execute()
       }
@@ -317,36 +414,59 @@ export function defineRemoteResource<
       resume = timeoutPoll.resume
     }
 
-    const state = buildState(data, context)
+    const state = stateScope.run(() => buildState(data, sharedContext))!
 
-    cache.set(url, {
+    const entry: CacheEntry = {
       count: 0,
       pause,
       resume,
+      execute,
+      isPaused: true,
       state,
+      stateScope,
       isReady,
       isFetching,
       lastError,
       hasError,
-    })
+    }
+
+    cache.set(url, entry)
+
+    scheduleEviction(url, entry)
   }
 
   function initializeUrl(url: ComputedRef<string>, context: ResourceContext<TArgs>) {
+    let subscribedUrl: string | undefined
+
     watch(
-      url,
-      (toUrl, fromUrl) => {
-        registerUrl(toUrl, context)
+      [url, context.isEnabled],
+      ([currentUrl, isEnabled]) => {
+        registerUrl(currentUrl, context)
 
-        if (context.isEnabled.value) {
-          subscribeToUrl(toUrl)
+        const targetUrl = isEnabled ? currentUrl : undefined
+
+        if (targetUrl === subscribedUrl) {
+          return
         }
 
-        if (fromUrl) {
-          unsubscribeFromUrl(fromUrl)
+        if (targetUrl !== undefined) {
+          subscribeToUrl(targetUrl)
         }
+
+        if (subscribedUrl !== undefined) {
+          unsubscribeFromUrl(subscribedUrl)
+        }
+
+        subscribedUrl = targetUrl
       },
       { immediate: true }
     )
+
+    onScopeDispose(() => {
+      if (subscribedUrl !== undefined) {
+        unsubscribeFromUrl(subscribedUrl)
+      }
+    })
   }
 
   return function useRemoteResource(
@@ -359,14 +479,16 @@ export function defineRemoteResource<
       throw new Error('No effect scope found. Please provide a scope or use this function within a Vue component.')
     }
 
+    if (!scope.active) {
+      throw new Error(
+        'useRemoteResource() was called with an inactive effect scope. This usually means a stale scope/context, (e.g. captured from an unmounted component) is being reused'
+      )
+    }
+
     const isEnabled = toRef(optionsOrParentContext?.isEnabled ?? true)
 
     return scope.run(() => {
       const url = computed(() => buildUrl(...(args.map(arg => toValue(arg)) as TArgs)))
-
-      onScopeDispose(() => {
-        unsubscribeFromUrl(url.value)
-      })
 
       const context: ResourceContext<TArgs> = {
         scope,
@@ -382,9 +504,8 @@ export function defineRemoteResource<
         disable: () => {
           isEnabled.value = false
         },
-        forceReload: () => {
-          cache.get(url.value)?.pause()
-          cache.get(url.value)?.resume()
+        forceReload: async () => {
+          await cache.get(url.value)?.execute()
         },
       }
 
@@ -392,16 +513,12 @@ export function defineRemoteResource<
 
       const state = reactive({} as TState)
 
-      ifElse(
-        isEnabled,
-        () => subscribeToUrl(url.value),
-        () => unsubscribeFromUrl(url.value)
-      )
-
       watch(
-        url,
-        () => {
-          Object.assign(state, cache.get(url.value)!.state)
+        () => cache.get(url.value),
+        entry => {
+          if (entry !== undefined) {
+            Object.assign(state, entry.state)
+          }
         },
         { immediate: true }
       )

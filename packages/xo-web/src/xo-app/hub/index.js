@@ -3,7 +3,7 @@ import Icon from 'icon'
 import React from 'react'
 
 import { Container, Col, Row } from 'grid'
-import { getXoaPlan, routes, TryXoa } from 'utils'
+import { routes } from 'utils'
 import { NavLink, NavTabs } from 'nav'
 
 import Page from '../page'
@@ -39,16 +39,7 @@ const Hub = routes('hub', {
   recipes: Recipes,
 })(({ children }) => (
   <Page header={Header} title='hubPage' formatTitle>
-    {getXoaPlan() === 'Community' ? (
-      <Container>
-        <h2 className='text-info'>{_('hubCommunity')}</h2>
-        <p>
-          <TryXoa page='hub' />
-        </p>
-      </Container>
-    ) : (
-      children
-    )}
+    {children}
   </Page>
 ))
 

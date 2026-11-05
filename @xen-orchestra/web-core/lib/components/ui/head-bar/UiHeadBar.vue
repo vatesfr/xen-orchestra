@@ -3,7 +3,7 @@
   <div class="ui-head-bar">
     <div class="label-wrapper">
       <slot name="icon">
-        <VtsIcon :name="icon" size="medium" />
+        <VtsIcon :name="icon" size="large" />
       </slot>
       <h4 v-tooltip class="typo-h4 label text-ellipsis">
         <slot />
@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 
 defineProps<{
@@ -37,7 +37,7 @@ const slots = defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-head-bar {
-  min-height: 5.6rem;
+  min-height: 6rem;
   padding: 0.8rem 1.6rem;
   display: flex;
   gap: 1.6rem;

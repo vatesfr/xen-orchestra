@@ -8,6 +8,10 @@
  * tracker.clearTrackedResources();
  */
 
+import { createLogger } from '@xen-orchestra/log'
+
+const log = createLogger('xo:qa-test:tracker')
+
 // Resource type configuration
 const RESOURCE_TYPES = {
   vm: { array: true, label: 'VM' },
@@ -39,7 +43,7 @@ export function createResourceTracker(sessionId = null) {
     testSessionId: sessionId || `test-session-${Date.now()}`,
   }
 
-  console.log(`🎯 Created resource tracker for session: ${resources.testSessionId}`)
+  log.debug('Created resource tracker', { sessionId: resources.testSessionId })
 
   /**
    * Track a resource of a specific type.
@@ -79,7 +83,7 @@ export function createResourceTracker(sessionId = null) {
       resources[type] = resourceData
     }
 
-    console.log(`📝 Tracked ${type}: ${id}${metadata.name ? ` (${metadata.name})` : ''}`)
+    log.debug('Tracked resource', { type, id, ...(metadata.name && { name: metadata.name }) })
   }
 
   // Helper for shallow copy
@@ -152,7 +156,7 @@ export function createResourceTracker(sessionId = null) {
       const index = resources[arrayName].findIndex(r => r.id === id)
       if (index !== -1) {
         resources[arrayName].splice(index, 1)
-        console.log(`✅ Untracked ${config.label}: ${id}`)
+        log.debug('Untracked resource', { label: config.label, id })
         return true
       }
       return false
@@ -160,7 +164,7 @@ export function createResourceTracker(sessionId = null) {
 
     if (resources[type]?.id === id) {
       resources[type] = null
-      console.log(`✅ Untracked ${config.label}: ${id}`)
+      log.debug('Untracked resource', { label: config.label, id })
       return true
     }
 
@@ -183,7 +187,7 @@ export function createResourceTracker(sessionId = null) {
     resources.restoredVms = []
     resources.importedVdis = []
 
-    console.log(`🧹 Cleared: ${summaryText}`)
+    log.debug('Cleared tracked resources', { summary: summaryText })
     return summary
   }
 

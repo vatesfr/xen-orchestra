@@ -1,47 +1,46 @@
 <template>
-  <div class="host-network-view" :class="{ mobile: uiStore.isSmall }">
+  <VtsContentSidePanel class="network">
     <UiCard class="container">
-      <HostPifsTable :pifs />
+      <HostPifsTable :pifs>
+        <template #title-actions>
+          <HostScanPifsButton :host />
+        </template>
+      </HostPifsTable>
     </UiCard>
-    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
-    <UiPanel v-else-if="!uiStore.isSmall">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
-        {{ t('select-to-see-details') }}
-      </VtsStateHero>
-    </UiPanel>
-  </div>
+    <HostPifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifsTable from '@/components/host/network/HostPifsTable.vue'
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import type { XenApiHost, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import HostScanPifsButton from '@/modules/host/components/actions/scan-pifs/HostScanPifsButton.vue'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = usePifStore().subscribe()
-const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
-const uiStore = useUiStore()
+const { getByOpaqueRef: getHostOpaqueRef, getByUuid: getHostByUuid } = useHostStore().subscribe()
 
 const route = useRoute<'/host/[uuid]/network'>()
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
 
+const host = computed(() => getHostByUuid(route.params.uuid as XenApiHost['uuid']))
+
 const pifs = computed(() => {
   return records.value.filter(pif => {
-    const host = getHostOpaqueRef(pif.host)
+    const pifHost = getHostOpaqueRef(pif.host)
 
-    return host?.uuid === route.params.uuid
+    return pifHost?.uuid === route.params.uuid
   })
 })
 
@@ -52,12 +51,7 @@ const selectedPif = useRouteQuery<XenApiPif | undefined>('id', {
 </script>
 
 <style lang="postcss" scoped>
-.host-network-view {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40rem;
-  }
-
+.network {
   .container {
     height: fit-content;
     margin: 0.8rem;

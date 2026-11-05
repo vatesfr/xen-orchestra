@@ -2,8 +2,7 @@ import { type GRANULARITY, RRD_STEP_FROM_STRING } from '@/shared/utils/rest-api-
 import type { XoHost, XoPool, XoVm } from '@vates/types'
 import type { XapiHostStats, XapiPoolStats, XapiVmStats } from '@vates/types/common'
 import { useFetch, useIntervalFn } from '@vueuse/core'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
-import { computed, type ShallowRef, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter, type ShallowRef, toValue } from 'vue'
 
 type StatsByObjectType = {
   host: { stats: XapiHostStats; id: XoHost['id'] }

@@ -1,0 +1,202 @@
+import { basename, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
+import assert from 'node:assert'
+import { FileDescriptor, RemoteHandlerAbstract } from '@xen-orchestra/fs'
+import {
+  ArchiveCleanOptions,
+  CheckResult,
+  CleanResult,
+  VmBackupInterface,
+  PartialBackupMetadata,
+  ResolvedBackupCleanOptions,
+  DEFAULT_REMOVE_CONCURRENCY,
+} from './VmBackup.types.mjs'
+import { asyncEach } from '@vates/async-each'
+import { unlinkTolerant } from './_unlinkTolerant.mjs'
+
+const COMPRESSED_MAGIC_NUMBERS: Buffer[] = [
+  // https://tools.ietf.org/html/rfc1952.html#page-5
+  Buffer.from('1F8B', 'hex'),
+
+  // https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
+  Buffer.from('28B52FFD', 'hex'),
+]
+
+const MAGIC_NUMBER_MAX_LENGTH: number = Math.max(...COMPRESSED_MAGIC_NUMBERS.map(buf => buf.length))
+
+const isCompressedFile = async (handler: RemoteHandlerAbstract, fd: FileDescriptor): Promise<boolean> => {
+  const header = Buffer.allocUnsafe(MAGIC_NUMBER_MAX_LENGTH)
+  assert.strictEqual((await handler.read(fd, header, 0)).bytesRead, header.length)
+
+  for (const magicNumber of COMPRESSED_MAGIC_NUMBERS) {
+    if (magicNumber.compare(header, 0, magicNumber.length) === 0) {
+      return true
+    }
+  }
+  return false
+}
+
+const isValidTar = async (handler: RemoteHandlerAbstract, size: number, fd: FileDescriptor): Promise<boolean> => {
+  if (size <= 1024 || size % 512 !== 0) {
+    return false
+  }
+
+  const buf = Buffer.allocUnsafe(1024)
+  assert.strictEqual((await handler.read(fd, buf, size - buf.length)).bytesRead, buf.length)
+  return buf.every(byte => byte === 0)
+}
+
+export async function isValidXva(
+  handler: RemoteHandlerAbstract,
+  filePath: string,
+  metadataSize?: number
+): Promise<boolean> {
+  // size is longer when encrypted + reading part of an encrypted file is not implemented
+  if (handler.isEncrypted) {
+    const size = await handler.getSizeOnDisk(filePath)
+    return size > 20
+  }
+
+  let isValid = true
+
+  const fd = await handler.openFile(filePath, 'r')
+  try {
+    const size = await handler.getSize(filePath)
+    if (size < 20) {
+      // neither a valid gzip nor tar
+      return false
+    }
+    let validSize = true
+    if (metadataSize !== undefined) {
+      validSize = metadataSize === size
+    }
+
+    const validDisk = (await isCompressedFile(handler, fd))
+      ? true // compressed files cannot be validated at this time
+      : await isValidTar(handler, size, fd)
+    isValid = validSize && validDisk
+  } finally {
+    handler.closeFile(fd).catch(noop)
+  }
+  return isValid
+}
+
+const noop = (): void => {}
+
+/**
+ * Deletes a full VM backup's metadata json and, when provided, its xva and checksum.
+ * `xva` is the path as stored in the metadata, i.e. relative to the metadata file.
+ * Shared with the legacy @xen-orchestra/backups RemoteAdapter.
+ */
+export async function deleteFullVmBackups(
+  handler: RemoteHandlerAbstract,
+  backups: Array<{ metadataPath: string; xva?: string }>
+): Promise<void> {
+  await asyncEach(
+    backups,
+    async ({ metadataPath, xva }) => {
+      await unlinkTolerant(handler, metadataPath)
+      if (xva !== undefined) {
+        const xvaPath = resolveFromFile(metadataPath, xva)
+        await unlinkTolerant(handler, xvaPath)
+        await unlinkTolerant(handler, `${xvaPath}.checksum`)
+      }
+    },
+    { concurrency: DEFAULT_REMOVE_CONCURRENCY, stopOnError: false }
+  )
+}
+
+export class VmFullBackupArchive implements VmBackupInterface {
+  handler: RemoteHandlerAbstract
+  rootPath: string
+  xvaPath: string
+  isValid?: boolean
+  missingDisk = false
+  metadataPath: string
+  metadata: PartialBackupMetadata
+  opts: ResolvedBackupCleanOptions
+
+  constructor(
+    handler: RemoteHandlerAbstract,
+    rootPath: string, // xo-vm-backups/<vmUuid>/
+    metadataPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.json
+    metadata: PartialBackupMetadata,
+    xvaPath: string, // xo-vm-backups/<vmUuid>/<timestamp>_<scheduleId>.xva
+    opts: ResolvedBackupCleanOptions
+  ) {
+    this.handler = handler
+    this.rootPath = normalize(rootPath)
+    this.metadataPath = normalize(metadataPath)
+    this.metadata = metadata
+    this.xvaPath = normalize(xvaPath)
+    this.opts = opts
+  }
+
+  async init() {}
+
+  /**
+   * As we are not 100% sure if XVA is valid,
+   * we prefer to warn if it is the case but not remove it.
+   */
+  async check(): Promise<CheckResult> {
+    if (this.isValid === undefined) {
+      try {
+        this.isValid = await isValidXva(this.handler, this.xvaPath, this.metadata.size)
+      } catch (error) {
+        this.isValid = false
+        if (error?.code === 'ENOENT') {
+          this.missingDisk = true
+        }
+        this.opts.logWarn('Issue while checking XVA', { error })
+      }
+      if (!this.handler.isEncrypted) {
+        try {
+          await this.handler.getSize(`${this.xvaPath}.checksum`)
+        } catch (error) {
+          this.opts.logWarn('Checksum file not valid, not blocking', { error })
+        }
+      }
+    }
+    if (!this.isValid) {
+      if (this.missingDisk) {
+        this.opts.logWarn('XVA is missing', { path: this.xvaPath })
+      } else {
+        this.opts.logWarn('XVA might be broken', { path: this.xvaPath })
+      }
+    }
+    return { isValid: this.isValid }
+  }
+
+  async clean({ remove = this.opts.remove ?? false }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+    if (this.isValid === undefined) {
+      await this.check()
+    }
+    const removedFiles: string[] = []
+
+    if (!this.isValid && this.missingDisk) {
+      removedFiles.push(this.metadataPath, `${this.xvaPath}.checksum`)
+    }
+
+    if (remove) {
+      if (!this.isValid) {
+        if (!this.missingDisk) {
+          this.opts.logWarn(`This files may be corrupted but not yet to be removed`, {
+            files: this.getAssociatedFiles({ prefix: false }),
+          })
+        } else {
+          try {
+            await deleteFullVmBackups(this.handler, [{ metadataPath: this.metadataPath, xva: this.metadata.xva }])
+          } catch (error) {
+            this.opts.logWarn(`Issue removing backup files`, { error, metadataPath: this.metadataPath })
+          }
+        }
+      }
+    }
+
+    return { removedFiles, merge: false }
+  }
+
+  getAssociatedFiles({ prefix = false }): Array<string> {
+    const validFiles = [this.metadataPath, this.xvaPath, `${this.xvaPath}.checksum`]
+    return prefix ? validFiles : validFiles.map(file => basename(file))
+  }
+}

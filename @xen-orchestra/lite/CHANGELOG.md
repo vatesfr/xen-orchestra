@@ -1,11 +1,83 @@
 # ChangeLog
 
-## **next**
+## **0.27.0** (2026-10-29)
+
+- [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
+- [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
+- [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
+- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
+- [Host] Add possibility to enable/disable a host (PR [#10337](https://github.com/vatesfr/xen-orchestra/pull/10337))
+- [Host] Add possibility to restart a host toolstack (PR [#10480](https://github.com/vatesfr/xen-orchestra/pull/10480))
+- [Host] Add possibility to detach a host (PR [#10520](https://github.com/vatesfr/xen-orchestra/pull/10520))
+- [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
+- [VM/New] Fix UEFI VMs booting in BIOS mode when created with a network install or without disk (PR [#10521](https://github.com/vatesfr/xen-orchestra/pull/10521))
+- [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
+- [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
+- [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [New/VM] Fix `MAP_DUPLICATE_KEY` error that could randomly prevent the VM creation (PR [#10552](https://github.com/vatesfr/xen-orchestra/pull/10552))
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
+- [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
+- [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
+- [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
+- [VM/Network] Add the possibility to edit a VIF (PR [#10505](https://github.com/vatesfr/xen-orchestra/pull/10505))
+
+## **0.26.0** (2026-10-01)
+
+- [Host] Add possibility to reboot a host (PR [#10250](https://github.com/vatesfr/xen-orchestra/pull/10250))
+- [Web-Core/TabItem] Update the component to remove uppercase for better readability (PR [#10338](https://github.com/vatesfr/xen-orchestra/pull/10338))
+- [Host] Add possibility to force reboot a host (PR [#10311](https://github.com/vatesfr/xen-orchestra/pull/10311))
+- [Icons] Update FontAwesome, clean unused libraries (PR [#10365](https://github.com/vatesfr/xen-orchestra/pull/10365))
+- [Host] Add possibility to shut down and start a host (PR [#10314](https://github.com/vatesfr/xen-orchestra/pull/10314))
+- Use `MenuItem`'s `accent` prop to color menu actions instead of custom CSS classes (PR [#10348](https://github.com/vatesfr/xen-orchestra/pull/10348))
+- [Host] Add possibility to forget a host (PR [#10315](https://github.com/vatesfr/xen-orchestra/pull/10315))
+- [Pool/Network] Add the possibility to delete host internal networks (PR [#10332](https://github.com/vatesfr/xen-orchestra/pull/10332))
+
+## **0.25.0** (2026-08-31)
+
+- [Treeview] Add VM tree actions (PR [#10304](https://github.com/vatesfr/xen-orchestra/pull/10304))
+- [Pool/networks] Add the possibility to create new network or bonded network (PR [#10145](https://github.com/vatesfr/xen-orchestra/pull/10145))
+- [VM] Add VDIs page with table and side panel (PR [#10269](https://github.com/vatesfr/xen-orchestra/pull/10269))
+- [Host/Network] Add ability to rescan physical network interfaces (PIFs) (PR [#10147](https://github.com/vatesfr/xen-orchestra/pull/10147))
+- Fix inconsistent spacing in side panel cards (PR [#10279](https://github.com/vatesfr/xen-orchestra/pull/10279))
+- Fix missing collapse buttons on pools and hosts in the tree sidebar (added `hasChildren` prop) (PR [#10244](https://github.com/vatesfr/xen-orchestra/pull/10244))
+- [Pool/networks] Add the possibility to create new internal network (PR [#10235](https://github.com/vatesfr/xen-orchestra/pull/10235))
+
+## **0.24.0** (2026-07-30)
+
+- [Host/dashboard] Switch CPU and RAM panels order to match Pool dashboard layout (PR [#10059](https://github.com/vatesfr/xen-orchestra/pull/10059))
+- Remove all "coming soon" disabled button placeholders from network, VM, and pool components (PR [#10068](https://github.com/vatesfr/xen-orchestra/pull/10068))
+- [VM/Network] add possibility to “connect/disconnect” a VIF on a VM (PR [#10080](https://github.com/vatesfr/xen-orchestra/pull/10080))
+- [Pool/networks] Add the possibility to copy information from one or more networks in JSON format (PR [#10083](https://github.com/vatesfr/xen-orchestra/pull/10083))
+- Fix some design inconsistency between pages (PR [#10109](https://github.com/vatesfr/xen-orchestra/pull/10109))
+- [VM/Network/VIF] Add possibility to create VIF from VM > Network screen (PR [#10216](https://github.com/vatesfr/xen-orchestra/pull/10216))
+
+## **0.23.0** (2026-06-30)
+
+- Update the UiTitle component to use the one from web-core (PR [#9869](https://github.com/vatesfr/xen-orchestra/pull/9869))
+- [Pool/System] Add `Reboot VM on internal shutdown` in pool's system tab (PR [#9962](https://github.com/vatesfr/xen-orchestra/pull/9962))
+- Update the UiCard component to use the one from web-core (PR [#9980](https://github.com/vatesfr/xen-orchestra/pull/9980))
+- Update the UiCardTitle component to use the one from web-core (PR [#9982](https://github.com/vatesfr/xen-orchestra/pull/9982))
+- Replacement of the UiSeparator component with VtsDivider from web-core (PR [#10017](https://github.com/vatesfr/xen-orchestra/pull/10017))
+- Update side panels (PR [#9836](https://github.com/vatesfr/xen-orchestra/pull/9836))
+- [XOA deploy] Update log visualization component (PR [#9995](https://github.com/vatesfr/xen-orchestra/pull/9995))
+- [SidePanels] Add and use new `VtsCardObjectTitle` component to display object title and ID in side panels (PR [#9755](https://github.com/vatesfr/xen-orchestra/pull/9755))
+- Replacement of the UiSpinner component with UiLoader from web-core (PR [#10023](https://github.com/vatesfr/xen-orchestra/pull/10023))
+- [Pool,Host/Storage] Add Storage tabs (PR [#10005](https://github.com/vatesfr/xen-orchestra/pull/10005))
+- [Pool,Host/Storage] Storage repositories can now be connected, disconnected and deleted from the Storage tabs (PR [#10006](https://github.com/vatesfr/xen-orchestra/pull/10006))
+
+## **0.22.0** (2026-05-28)
+
+- [System] Update system pages layout ([user feedback](https://feedback.vates.tech/posts/37/xo6-ui-very-messy-columns-width-in-vm-system-far-better-in-xo5)) (PR [#9746](https://github.com/vatesfr/xen-orchestra/pull/9746))
+- Introduce robots.txt for avoid browser indexing (PR [#9858](https://github.com/vatesfr/xen-orchestra/pull/9858))
+- [XOA deploy] Add confirmation before leaving the page during deployment (PR [#9893](https://github.com/vatesfr/xen-orchestra/pull/9893))
+
+## **0.20.0** (2026-04-01)
 
 - [VM/New] Added secureBoot support (PR [#9423](https://github.com/vatesfr/xen-orchestra/pull/9423))
 - [Dashboard] Fix reactivity of dashboard (PR [#9378](https://github.com/vatesfr/xen-orchestra/pull/9378))
 - [VM] Fixed duplicated ip addresses in the network tab [Forum#101359](https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback/110) (PR [#9547](https://github.com/vatesfr/xen-orchestra/pull/9547))
 - [Stats] Return `null` instead of `0` when no stats available (PR [#9634](https://github.com/vatesfr/xen-orchestra/pull/9634))
+- [Treeview/Pool/Host] Add button to download bugtools (PR [#9419](https://github.com/vatesfr/xen-orchestra/pull/9419))
 
 ## **0.19.0** (2026-02-26)
 
@@ -30,7 +102,7 @@
 - [Settings] fix key-value alignment and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
 - [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
 - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
-- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/xen-orchestra/pull/8910))
 
 ## **0.14.1** (2025-09-04)
 
@@ -69,7 +141,7 @@
 
 ## **0.11.0** (2025-05-27)
 
-- [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
+- [VM/system] Display system information in vm/system tab (PR [#8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
 - [Host/system] Display system view information in host/system tab (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
 - [Host/Dashboard] Update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
 
@@ -98,7 +170,7 @@
 ## **0.8.0** (2025-02-27)
 
 - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
-- [i18n] Merge XO Lite translations files into one file in web-core ([PR #8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
+- [i18n] Merge XO Lite translations files into one file in web-core (PR [#8380](https://github.com/vatesfr/xen-orchestra/pull/8380))
 - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8150](https://github.com/vatesfr/xen-orchestra/pull/8150))
 - [Host/Network]: Display pifs information in side panel (PR [#8186](https://github.com/vatesfr/xen-orchestra/pull/8186))
 
@@ -114,7 +186,7 @@
 - [Console]: Adding a border when console is focused (PR [#8235](https://github.com/vatesfr/xen-orchestra/pull/8235))
 - [Pool/Network]: Display networks and host internal networks lists in pool view (PR [#8147](https://github.com/vatesfr/xen-orchestra/pull/8147))
 - [Host/Network]: Display pifs list in host view (PR [#8180](https://github.com/vatesfr/xen-orchestra/pull/8180))
-- [Host/Network]: Fix issue with wording in host pif table (PR [8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
+- [Host/Network]: Fix issue with wording in host pif table (PR [#8285](https://github.com/vatesfr/xen-orchestra/pull/8285))
 - [Pool/Network]: Fix issue with network status (PR [#8284](https://github.com/vatesfr/xen-orchestra/pull/8284))
 
 ## **0.6.0** (2024-11-29)
@@ -153,7 +225,7 @@
 ## **0.2.1** (2024-04-02)
 
 - Fix duplicate consoles after failed connection (PR [#7505](https://github.com/vatesfr/xen-orchestra/pull/7505))
-- [Tabs] Disable navigation to in-progress views (PR [7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
+- [Tabs] Disable navigation to in-progress views (PR [#7482](https://github.com/vatesfr/xen-orchestra/pull/7482))
 
 ## **0.2.0** (2024-02-29)
 
@@ -220,7 +292,7 @@
 - Add "Under Construction" views (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6673))
 - Ability to change the state of selected VMs from the pool's list of VMs (PR [#6782](https://github.com/vatesfr/xen-orchestra/pull/6782))
 - Ability to copy selected VMs from the pool's list of VMs (PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
-- Ability to delete selected VMs from the pool's list of VMs (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6860))
+- Ability to delete selected VMs from the pool's list of VMs (PR [#6860](https://github.com/vatesfr/xen-orchestra/pull/6860))
 
 ## **0.1.0**
 

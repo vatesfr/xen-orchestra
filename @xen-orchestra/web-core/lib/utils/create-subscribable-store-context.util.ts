@@ -1,5 +1,5 @@
-import type { SubscribableStoreConfig, Subscribe, SubscribeContext } from '@core/types/subscribable-store.type'
-import { ifElse } from '@core/utils/if-else.utils'
+import type { SubscribableStoreConfig, Subscribe, SubscribeContext } from '@core/types/subscribable-store.type.ts'
+import { ifElse } from '@core/utils/if-else.utils.ts'
 import { computed, onBeforeUnmount, readonly, type Ref, ref, toValue } from 'vue'
 
 export function createSubscribableStoreContext<TContext>(

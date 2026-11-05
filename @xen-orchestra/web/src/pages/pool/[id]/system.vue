@@ -1,6 +1,6 @@
 <template>
   <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
-  <VtsColumns v-else>
+  <VtsColumns v-else extra-space-around>
     <VtsColumn>
       <PoolSystemGeneralInfo :pool />
       <PoolSystemNetworking :pool />

@@ -1,15 +1,17 @@
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { Task } from '@vates/task'
 
 import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
-import { Task } from '../Task.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { FullRemote } from './_vmRunners/FullRemote.mjs'
 import { IncrementalRemote } from './_vmRunners/IncrementalRemote.mjs'
 import { Throttle } from '@vates/generator-toolbox'
 import createStreamThrottle from './_createStreamThrottle.mjs'
+import { compileExpression, isExpression } from '../_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '../_buildContext.mjs'
 
 const noop = Function.prototype
 
@@ -60,27 +62,46 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
           return
         }
 
+        const runContext = job.runContext ?? buildRunContext(new Date(), settings.timezone)
+        const predicate = isExpression(settings.vmFilter) ? compileExpression(settings.vmFilter) : null
+
         const vmsUuids = await sourceRemoteAdapter.listAllVms()
 
+        const queue = new Set(vmsUuids)
+
         Task.info('vms', { vms: vmsUuids })
+        let nbVms = vmsUuids.length
+        let nbVmsDone = 0
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const queue = new Set(vmsUuids)
         const taskByVmId = {}
         const nTriesByVmId = {}
 
-        const handleVm = vmUuid => {
+        const handleVm = async vmUuid => {
           if (nTriesByVmId[vmUuid] === undefined) {
             nTriesByVmId[vmUuid] = 0
           }
           nTriesByVmId[vmUuid]++
 
-          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+          const taskStart = { properties: { id: vmUuid, name: 'backup VM', type: 'VM' } }
           const vmSettings = { ...settings, ...allSettings[vmUuid] }
           const isLastRun = nTriesByVmId[vmUuid] === vmSettings.nRetriesVmBackupFailures + 1
+
+          const vmBackups = await sourceRemoteAdapter.listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
+
+          // avoiding to create tasks for empty directories
+          if (vmBackups.length === 0) {
+            nbVms--
+            return
+          }
+
+          if (predicate !== null && !predicate(buildVmContext(vmBackups.at(-1).vm, runContext))) {
+            nbVms--
+            return
+          }
 
           const opts = {
             baseSettings,
@@ -88,6 +109,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             job,
             healthCheckSr,
             remoteAdapters,
+            runContext,
             schedule,
             settings: vmSettings,
             sourceRemoteAdapter,
@@ -104,37 +126,39 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             throw new Error(`Job mode ${job.mode} not implemented for mirror backup`)
           }
 
-          return sourceRemoteAdapter
-            .listVmBackups(vmUuid, ({ mode }) => mode === job.mode)
-            .then(vmBackups => {
-              // avoiding to create tasks for empty directories
-              if (vmBackups.length > 0) {
-                if (taskByVmId[vmUuid] === undefined) {
-                  taskByVmId[vmUuid] = new Task(taskStart)
-                }
-                const task = taskByVmId[vmUuid]
-                return task
-                  .run(async () => {
-                    try {
-                      const result = await vmBackup.run()
-                      task.success(result)
-                      return result
-                    } catch (error) {
-                      if (isLastRun) {
-                        throw error
-                      } else {
-                        Task.warning(`Retry the VM mirror backup due to an error`, {
-                          attempt: nTriesByVmId[vmUuid],
-                          error: error.message,
-                        })
-                        queue.add(vmUuid)
-                      }
-                    }
-                  })
-                  .catch(noop)
+          if (taskByVmId[vmUuid] === undefined) {
+            taskByVmId[vmUuid] = new Task(taskStart)
+          }
+          const task = taskByVmId[vmUuid]
+          // error has to be caught in the task to prevent its failure, but handled outside the task to execute another task.run()
+          let taskError
+          return task
+            .runInside(async () =>
+              vmBackup.run().catch(error => {
+                taskError = error
+              })
+            )
+            .then(result => {
+              if (taskError === undefined) {
+                nbVmsDone++
+                return task.success(result)
               }
+              if (isLastRun) {
+                nbVmsDone++
+                return task.failure(taskError)
+              }
+              Task.set('progress', Math.round((nbVmsDone * 100) / nbVms))
+              // don't end the task
+              task.warning(`Retry the VM mirror backup due to an error`, {
+                attempt: nTriesByVmId[vmUuid],
+                error: taskError.message,
+                isRetry: true,
+              })
+              queue.add(vmUuid)
             })
+            .catch(noop)
         }
+
         const { concurrency } = settings
         const _handleVm = !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm)
 
@@ -144,6 +168,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
 
           await asyncMapSettled(vmIds, _handleVm)
         }
+        Task.set('progress', 100)
       }
     )
   }

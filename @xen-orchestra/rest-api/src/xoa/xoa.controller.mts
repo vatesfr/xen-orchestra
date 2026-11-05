@@ -1,4 +1,4 @@
-import { Controller, Example, Get, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Controller, Example, Extension, Get, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
@@ -29,6 +29,7 @@ export class XoaController extends Controller {
   }
 
   @Example(xoaDashboard)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('dashboard')
   @Response(badRequestResp.status, badRequestResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -52,6 +53,7 @@ export class XoaController extends Controller {
 
   @Security('none')
   @Example(pingResponse)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('ping')
   ping(): PingResponse {
     return {
@@ -62,6 +64,7 @@ export class XoaController extends Controller {
 
   @Security('none')
   @Example(guiRoutes)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('gui-routes')
   async getGuiRoutes(): Promise<XoGuiRoutes> {
     const { v5, v6 } = await this.#restApi.xoApp.config.getGuiRoutes()

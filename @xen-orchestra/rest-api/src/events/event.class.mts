@@ -7,8 +7,10 @@ import type { PassThrough } from 'node:stream'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
-import type { XapiXoRecord, XoAlarm, XoTask } from '@vates/types'
+import type { AnyXoJob, XoAlarm, XoAuthenticationToken, XoMessage, XoPlugin, XoRecord, XoUser } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
+import type { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { obfuscatePluginSecrets } from '../plugins/plugin.helper.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -17,6 +19,8 @@ export class Subscriber {
   #manager: SubscriberManager
   #connection: PassThrough
   #isAlive: boolean
+  #cleanupCallbacks: Set<() => void> = new Set()
+  #userId: XoUser['id']
 
   get id() {
     return this.#id
@@ -30,7 +34,11 @@ export class Subscriber {
     return this.#connection
   }
 
-  constructor(connection: PassThrough, manager: SubscriberManager) {
+  get userId() {
+    return this.#userId
+  }
+
+  constructor(connection: PassThrough, manager: SubscriberManager, userId: XoUser['id']) {
     this.#id = crypto.randomUUID() as SubscriberId
 
     connection.on('close', () => this.clear())
@@ -40,6 +48,7 @@ export class Subscriber {
     this.#connection = connection
     this.#manager = manager
     this.#isAlive = true
+    this.#userId = userId
   }
 
   #safeWrite(payload: string) {
@@ -51,6 +60,11 @@ export class Subscriber {
       )
       this.clear()
     }
+  }
+
+  onClear(callback: () => void): () => void {
+    this.#cleanupCallbacks.add(callback)
+    return () => this.#cleanupCallbacks.delete(callback)
   }
 
   broadcast(event: EventType | 'init', data: object) {
@@ -66,35 +80,47 @@ export class Subscriber {
   }
 
   clear() {
-    this.#isAlive = false
-    if (!this.#connection.closed || !this.#connection.destroyed) {
-      this.#connection.destroy()
+    if (!this.#isAlive) {
+      return
     }
+
+    this.#isAlive = false
+    this.#connection.destroy()
+    this.#cleanupCallbacks.forEach(cb => cb())
+    this.#cleanupCallbacks.clear()
     this.#manager.removeSubscriber(this.id)
   }
 }
 
-export class XoListener extends Listener {
-  #type: XoListenerType
+export class XoListener extends Listener<XoListenerType> {
   #alarmService?: AlarmService
+  #backupJobService?: BackupJobService
 
-  constructor(type: XoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
-    super(eventEmitter, ['add', 'update', 'remove'])
-    this.#type = type
-    this.#alarmService = alarmService
+  constructor(
+    type: XoListenerType,
+    eventEmitter: EventEmitter,
+    opts: { alarmService?: AlarmService; backupJobService?: BackupJobService } = {}
+  ) {
+    super(eventEmitter, ['add', 'update', 'remove'], type)
+    this.#alarmService = opts.alarmService
+    this.#backupJobService = opts.backupJobService
   }
 
-  handleData<T extends Exclude<XapiXoRecord, XoAlarm> | XoTask>(
-    { fields, event }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
+  async handleData<T extends Exclude<XoRecord, XoAlarm>>(
+    { fields, event, subscriber }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
-  ): (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType }) | undefined {
-    let _object: Partial<XapiXoRecord | XoTask> | undefined = object
-    let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
+  ): Promise<(Partial<XoRecord> & { $subscription: XoListenerType; event: CollectionEventType }) | undefined> {
+    let _object: Partial<XoRecord> | undefined = object
+    let _prevObject: Partial<XoRecord> | undefined = previousObj
 
-    if (this.#type === 'alarm' || this.#type === 'message') {
+    if (this.type === 'alarm' || this.type === 'message') {
       const isAlarm = (object: T | undefined): object is Extract<T, { type: 'message' }> =>
-        object !== undefined && 'type' in object && object.type === 'message' && this.#alarmService!.isAlarm(object)
+        object !== undefined &&
+        'type' in object &&
+        object.type === 'message' &&
+        // FIXME: remove the as XoMessage once the BaseXoLog is correctly typed
+        this.#alarmService!.isAlarm(object as XoMessage)
 
       const objectIsAlarm = isAlarm(object)
       const prevObjectIsAlarm = isAlarm(previousObj)
@@ -102,18 +128,52 @@ export class XoListener extends Listener {
       // If we are in an alarm listener and the objects are messages
       // we clean them to ensure they are not sent via the SSE
       // Same if we are in a message listener and the objects are alarms
-      if (this.#type === 'alarm') {
+      if (this.type === 'alarm') {
         _object = objectIsAlarm ? this.#alarmService!.parseAlarm(object) : undefined
         _prevObject = prevObjectIsAlarm ? this.#alarmService!.parseAlarm(previousObj) : undefined
       } else {
         _object = objectIsAlarm ? undefined : object
-        _prevObject = prevObjectIsAlarm ? undefined : object
+        _prevObject = prevObjectIsAlarm ? undefined : previousObj
       }
+    } else if (this.type === 'backup-job') {
+      // If we are in an backup job listener and the objects a simple jobs
+      // we clean them to ensure they are not sent via the SSE
+      // `as` assertions are safe here, as we check that we are on a Backup job listener (and then manage AnyXoJob objects)
+      _object = object !== undefined && this.#backupJobService!.isBackupJob(object as AnyXoJob) ? object : undefined
+      _prevObject =
+        previousObj !== undefined && this.#backupJobService!.isBackupJob(previousObj as AnyXoJob)
+          ? previousObj
+          : undefined
+    } else if (this.type === 'authentication_token') {
+      // `as` assertion safe because we are in the `authentication_token` listener
+      _object = (object as XoAuthenticationToken | undefined)?.user_id === subscriber.userId ? object : undefined
+      _prevObject =
+        (previousObj as XoAuthenticationToken | undefined)?.user_id === subscriber.userId ? previousObj : undefined
+    } else if (this.type === 'plugin') {
+      // `as` assertions safe because we are in the `plugin` listener
+      _object = object === undefined ? undefined : obfuscatePluginSecrets(object as XoPlugin)
+      _prevObject = previousObj === undefined ? undefined : obfuscatePluginSecrets(previousObj as XoPlugin)
     }
 
     if (_object === undefined && _prevObject === undefined) {
       return
     }
+
+    // a user is always able to see his own authentication token. no privileges required
+    const aclEvent =
+      this.type === 'authentication_token'
+        ? event
+        : await this.getAclEvent({
+            event,
+            object: _object,
+            previousObject: _prevObject,
+            userId: subscriber.userId,
+          })
+    // If the user has no 'read' privileges for the changes, don't send the update
+    if (aclEvent === undefined) {
+      return
+    }
+    event = aclEvent
 
     if (fields !== '*') {
       if (_object !== undefined) {
@@ -130,7 +190,7 @@ export class XoListener extends Listener {
     }
 
     // if _object === undefined, this means we are on a remove event, so _prevObject will not be undefined
-    return { $subscription: this.#type, ...(_object ?? _prevObject) }
+    return { $subscription: this.type, event, ...(_object ?? _prevObject) }
   }
 }
 
@@ -144,7 +204,7 @@ export class PingListener extends Listener {
     }, 1000 * 30)
   }
 
-  handleData(): { ping: number } {
+  async handleData(): Promise<{ ping: number }> {
     return { ping: Date.now() }
   }
 
@@ -179,11 +239,6 @@ export class SubscriberManager {
   }
 
   clear() {
-    this.#subscribers.forEach(subscriber => {
-      if (!subscriber.connection.closed) {
-        subscriber.connection.destroy()
-      }
-      this.#subscribers.delete(subscriber.id)
-    })
+    this.#subscribers.forEach(subscriber => subscriber.clear())
   }
 }

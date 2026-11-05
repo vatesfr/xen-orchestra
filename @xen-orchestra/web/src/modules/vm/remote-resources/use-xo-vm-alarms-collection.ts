@@ -8,7 +8,8 @@ import { useSorted } from '@vueuse/core'
 import { toValue } from 'vue'
 
 export const useXoVmAlarmsCollection = defineRemoteResource({
-  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/alarms?fields=${alarmFields.join(',')}`,
+  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/alarms?fields=${alarmFields.join(',')}&ndjson=true`,
+  stream: true,
   initialData: () => [] as FrontXoAlarm[],
   initWatchCollection: () =>
     useWatchCollection<FrontXoAlarm>({

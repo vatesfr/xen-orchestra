@@ -1,9 +1,9 @@
-import type { Branch } from '@core/packages/tree/branch'
-import type { BranchDefinition } from '@core/packages/tree/branch-definition'
-import type { Leaf } from '@core/packages/tree/leaf'
-import type { LeafDefinition } from '@core/packages/tree/leaf-definition'
-import type { TreeNodeBase } from '@core/packages/tree/tree-node-base'
-import { useTree } from '@core/packages/tree/use-tree'
+import type { BranchDefinition } from '@core/packages/tree/branch-definition.ts'
+import type { Branch } from '@core/packages/tree/branch.ts'
+import type { LeafDefinition } from '@core/packages/tree/leaf-definition.ts'
+import type { Leaf } from '@core/packages/tree/leaf.ts'
+import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
+import { useTree } from '@core/packages/tree/use-tree.ts'
 import type { Ref } from 'vue'
 
 export type TreeNodeId = string | number
@@ -23,6 +23,12 @@ export type TreeNode<
   TChildNode extends TreeNode = TreeNode<any, any>,
   TDiscriminator = any,
 > = Leaf<TData, TDiscriminator> | Branch<TData, TChildNode, TDiscriminator>
+
+export type FlatTreeNode<TNode extends TreeNode = TreeNode> = {
+  id: TreeNodeId
+  node: TNode
+  depth: number
+}
 
 export type BaseTreeNodeOptions<TData extends object, TDiscriminator> = {
   discriminator?: TDiscriminator

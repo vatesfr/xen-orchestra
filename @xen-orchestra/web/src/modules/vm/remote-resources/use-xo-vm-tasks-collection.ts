@@ -9,7 +9,8 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { toValue } from 'vue'
 
 export const useXoVmTasksCollection = defineRemoteResource({
-  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/tasks?fields=${taskFields.join(',')}`,
+  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/tasks?fields=${taskFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () =>
     useWatchCollection<FrontXoTask>({
       collectionId: 'vmTask',
@@ -23,9 +24,9 @@ export const useXoVmTasksCollection = defineRemoteResource({
         const [id] = context.args
         const vmId = toValue(id)
 
-      return task.properties.objectId === vmId || task.properties.params?.id === vmId
-    },
-  }),
+        return task.properties.objectId === vmId || task.properties.params?.id === vmId
+      },
+    }),
   initialData: () => [] as FrontXoTask[],
   state: createTaskCollectionState,
 })

@@ -1,10 +1,9 @@
 <template>
-  <div :class="className" class="vts-select">
+  <div ref="rootRef" :class="className" class="vts-select">
     <UiInput
       ref="triggerRef"
       :accent
       :disabled="isDisabled"
-      :icon
       :model-value="selectedLabel"
       :placeholder
       :required="isRequired"
@@ -24,6 +23,7 @@
               :placeholder="searchPlaceholder"
               right-icon="fa:magnifying-glass"
               accent="brand"
+              detached
             />
           </div>
         </template>
@@ -46,7 +46,6 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import type { IconName } from '@core/icons'
 import {
   type FormSelect,
   type FormSelectId,
@@ -54,14 +53,13 @@ import {
   useFormSelectController,
 } from '@core/packages/form-select'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { useCurrentElement, useElementSize } from '@vueuse/core'
+import { useElementSize } from '@vueuse/core'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { accent, id } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
   id: TSelectId
-  icon?: IconName
 }>()
 
 defineSlots<{
@@ -88,11 +86,13 @@ const {
   isLoading,
 } = select as FormSelect
 
-const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelectController(select as FormSelect)
+const { rootRef, triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelectController(
+  select as FormSelect
+)
 
 const className = computed(() => toVariants({ accent }))
 
-const { width } = useElementSize(useCurrentElement())
+const { width } = useElementSize(rootRef)
 
 const minWidth = computed(() => `${width.value}px`)
 
@@ -108,7 +108,6 @@ defineExpose({
   }
 }
 
-/* Teleported */
 .dropdown-list {
   min-width: v-bind(minWidth);
   max-height: 36.2rem; /* 8 Dropdown items */

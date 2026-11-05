@@ -1,5 +1,5 @@
-import type { StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
 import type { TableState } from '@core/components/table/VtsTable.vue'
+import type { StateHeroType } from '@core/types/state-hero.type.ts'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 

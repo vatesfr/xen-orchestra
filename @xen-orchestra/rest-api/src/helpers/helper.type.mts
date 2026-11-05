@@ -1,6 +1,6 @@
 import type { Readable } from 'node:stream'
 import type { Request, Response } from 'express'
-import type { SecurityName } from '../middlewares/authentication.middleware.mjs'
+import type { SecurityName } from '@vates/types'
 
 export type MaybePromise<T> = T | Promise<T>
 
@@ -17,7 +17,7 @@ export interface XoError extends Error {
 
 export type NdjsonStream = Readable
 
-export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream
+export type SendObjects<T> = Promise<string[] | WithHref<T>[] | NdjsonStream | string>
 
 export type PromiseWriteInStreamError = { error: true }
 
@@ -39,3 +39,8 @@ export type ReplaceKey<Type, OldKey extends keyof Type, NewKey extends string, N
   OldKey
 > &
   Record<NewKey, NewKeyType>
+
+export type SafeOmit<T, K extends keyof T> = T extends T ? Omit<T, K> : never
+
+// Force tsoa to resolve the computed type (conditional/distributive types otherwise produce a self-referencing schema)
+export type Simplify<T> = { [K in keyof T]: T[K] }

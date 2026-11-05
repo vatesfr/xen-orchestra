@@ -1,75 +1,63 @@
 <template>
-  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!areHostsReady">
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('state')">
+  <VtsQuickInfoCard :loading="!areHostsReady" class="host-dashboard-quick-info">
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('state')">
         <template #value>
           <span class="power-state">
-            <VtsIcon :name="powerState.icon" size="medium" />
-            {{ powerState.text }}
+            <VtsIcon :name="hostStateDisplay.icon" size="medium" />
+            {{ hostStateDisplay.text }}
           </span>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="host.address" />
-      <VtsQuickInfoRow
+      </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" copy />
+      <VtsKeyValueRow
         :label="t('started')"
         :value="host.power_state === HOST_POWER_STATE.RUNNING ? relativeStartTime : undefined"
       />
-      <VtsQuickInfoRow :label="t('master')">
+      <VtsKeyValueRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink
-            v-else-if="masterHost !== undefined"
-            :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-            size="medium"
-            :icon="`object:host:${toLower(masterHost.power_state)}`"
-          >
-            {{ masterHost.name_label }}
-          </UiLink>
+          <HostLink v-else-if="masterHost !== undefined" :host="masterHost" size="medium" />
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="host.id" />
-      <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
-      <VtsQuickInfoRow :label="t('version')" :value="host.version" />
-      <VtsQuickInfoRow
-        :label="t('hardware')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-      <VtsQuickInfoRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
-      <VtsQuickInfoRow :label="t('tags')">
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('uuid')" :value="host.id" copy />
+      <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
+      <VtsKeyValueRow :label="t('version')" :value="host.version" />
+      <VtsKeyValueRow :label="t('hardware')" :value="manufacturerInfo" />
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="coreSocketInfo" />
+      <VtsKeyValueRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
+      <VtsKeyValueRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in host.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
   </VtsQuickInfoCard>
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
+import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
-import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -77,24 +65,22 @@ const { host } = defineProps<{
   host: FrontXoHost
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
-const { getPowerState } = useXoHostUtils()
+const { getHostStateDisplay, relativeStartTime } = useXoHostUtils(() => host)
 
-const powerState = computed(() => getPowerState(host.power_state))
-
-const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
-
-const relativeStartTime = computed(() =>
-  date.value === undefined ? undefined : getRelativeTime(date.value, locale.value)
-)
+const hostStateDisplay = computed(() => getHostStateDisplay(getHostState(host)))
 
 const isMaster = computed(() => isMasterHost(host.id))
 
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))
+
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
+
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
 
 <style lang="postcss" scoped>

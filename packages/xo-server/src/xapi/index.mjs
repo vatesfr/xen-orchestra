@@ -78,6 +78,7 @@ export default class Xapi extends XapiBase {
     vmEvacuationConcurrency,
     vmExportConcurrency,
     vmMigrationConcurrency = 3,
+    vmShutdownTimeout,
     vmSnapshotConcurrency,
     ...opts
   }) {
@@ -87,6 +88,7 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
     this._vmEvacuationConcurrency = vmEvacuationConcurrency
+    this._vmShutdownTimeout = parseDuration(vmShutdownTimeout)
 
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
@@ -201,8 +203,9 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async clearHost({ $ref: hostRef, $pool: pool }, force) {
-    await this.call('host.disable', hostRef)
+  // If `transient` is false, the host will be disabled indefinitely, across toolstack restarts and host reboots, until re-enabled explicitly with Host.enable.
+  async clearHost({ $ref: hostRef, $pool: pool }, force, { transient = true } = {}) {
+    await this.disableHost(hostRef, { transient })
 
     const migrationNetworkRef = (id => {
       if (id !== undefined) {
@@ -239,7 +242,12 @@ export default class Xapi extends XapiBase {
         delay: 0,
         when: { code: 'MESSAGE_PARAMETER_COUNT_MISMATCH' },
         onRetry: error => {
-          log.warn(error)
+          if (params.length <= 1) {
+            log.warn(error)
+            throw error
+          }
+
+          log.debug(error)
           popParamsAndTrim(1)
         },
       })
@@ -289,16 +297,28 @@ export default class Xapi extends XapiBase {
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
+    // Only shared SRs are affected by multipathing, local SRs can stay connected.
+    //
+    // Unplugging a shared SR would break running VMs with disks on it, the
+    // user must migrate them first.
+    const vmsOnSharedSrs = host.$resident_VMs.filter(
+      vm => !vm.is_control_domain && vm.$VBDs.some(vbd => vbd.$VDI?.$SR?.shared)
+    )
+    if (vmsOnSharedSrs.length !== 0) {
+      throw forbiddenOperation(
+        'set host multipathing',
+        `the following VMs have disks on shared SRs and must be migrated first: ${vmsOnSharedSrs
+          .map(vm => vm?.name_label + ': ' + vm.uuid)
+          .join(', ')}`
+      )
+    }
+
     if (host.enabled) {
       await this.disableHost(hostId)
       $defer(() => this.enableHost(hostId))
     }
 
-    // Xen center evacuate running VMs before unplugging the PBDs.
-    // The evacuate method uses the live migration to migrate running VMs
-    // from host to another. It only works when a shared SR is present
-    // in the host. For this reason we chose to show a warning instead.
-    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached && pbd.$SR?.shared)
     await asyncMapSettled(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
@@ -941,8 +961,8 @@ export default class Xapi extends XapiBase {
     const host = hostXapi.getObject(hostId)
     const targetPool = hostXapi.getObject(host.$pool)
 
-    const accrossPools = vm.$pool !== host.$pool
-    const useStorageMotion = accrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
+    const acrossPools = vm.$pool !== host.$pool
+    const useStorageMotion = acrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
 
     const defaultMigrationNetworkId = targetPool.other_config['xo:migrationNetwork']
     const migrationNetwork =
@@ -1316,7 +1336,7 @@ export default class Xapi extends XapiBase {
       preferNbd,
     })
     await disk.init()
-    const stream = toQcow2Stream(disk)
+    const stream = await toQcow2Stream(disk)
     return stream
   }
 

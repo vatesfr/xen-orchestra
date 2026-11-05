@@ -16,51 +16,13 @@ npm install --save @xen-orchestra/rest-api
 
 ## Usage
 
-# @xen-orchestra/rest-api
+REST API to manage your XOA.
 
-## Rules
+The user-facing documentation is available at [docs.xen-orchestra.com](https://docs.xen-orchestra.com/rest_api).
 
-The REST API is based on the `TSOA` framework and therefore we use decorators a lot to define the behavior of a route or a group of routes. To keep things easily visible, it is best to always use the decorators in the same order.
+## Development guidelines
 
-### Class decorator
-
-```ts
-@Routes('foo')
-@Security('*')
-@Response(401)
-@Tags('foo')
-@provide(Foo)
-class Foo extends Controller {}
-```
-
-### Methods decorator
-
-```ts
-@Routes('foo')
-...
-class Foo extends Controller {
-
-
- /**
-  * any jsdoc annotations
-  * @example id 1234
-  */
- @Example(['foo', 'bar'])
- @Get('{id}')
- @Security('*')
- @Middlewares(json())
- @Tags('foo')
- @SuccessResponse(202)
- @Response(404)
- getFoo(@Path() id: string) {
-    return this.getFoo(id)
- }
-}
-```
-
-### Examples
-
-In order not to pollute important decorators, all example structures should be in a separate file. `src/open-api/examples/<resource>.example.mts`
+Any change to this package **must** follow the [REST API guidelines](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/rest-api/docs/guidelines.md), in addition to the [backend project guidelines](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/guidelines.md).
 
 ## Contributions
 

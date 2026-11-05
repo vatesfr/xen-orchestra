@@ -1,8 +1,8 @@
 <template>
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="host-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
-    <UiSpinner v-else-if="!isReady" class="spinner" />
-    <VtsStateHero v-else-if="!isHostRunning" format="page" type="offline" size="large">
+    <UiLoader v-else-if="!isReady" class="loader" />
+    <VtsStateHero v-else-if="!isHostRunning" format="page" type="offline" size="large" class="state-hero">
       <span>{{ t('console-offline') }}</span>
       <span class="title typo-h1">{{ t('host-not-running') }}</span>
       <div class="description typo-body-bold">
@@ -12,11 +12,22 @@
     </VtsStateHero>
     <template v-else-if="host && hostConsole">
       <VtsLayoutConsole>
-        <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
+        <VtsRemoteConsole
+          v-if="url"
+          ref="console-element"
+          :url
+          :is-console-available="isConsoleAvailable"
+          @clipboard="clipboardText = $event"
+        />
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
-          <VtsClipboardConsole />
+          <VtsClipboardConsole
+            v-model="clipboardText"
+            :is-console-connected="isConsoleConnected"
+            :send-to-console="sendToConsole"
+            is-keyboard-layout-disabled
+          />
         </template>
       </VtsLayoutConsole>
     </template>
@@ -24,22 +35,23 @@
 </template>
 
 <script lang="ts" setup>
-import UiSpinner from '@/components/ui/UiSpinner.vue'
-import { isHostOperationPending } from '@/libs/host'
-import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useConsoleStore } from '@/stores/xen-api/console.store'
-import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { isHostOperationPending } from '@/modules/host/utils/host.util.ts'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useConsoleStore } from '@/stores/xen-api/console.store.ts'
+import { useControlDomainStore } from '@/stores/xen-api/control-domain.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -97,7 +109,7 @@ const url = computed(() => {
   }
 
   const _url = new URL(hostConsole.value!.location)
-  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  _url.protocol = new URL(xenApiStore.getXapi().hostUrl).protocol === 'https:' ? 'wss:' : 'ws:'
   _url.searchParams.set('session_id', xenApiStore.currentSessionId)
 
   return _url
@@ -107,9 +119,9 @@ const isConsoleAvailable = computed(() =>
   controlDomain.value !== undefined ? !isHostOperationPending(host.value!, STOP_OPERATIONS) : false
 )
 
-const consoleElement = useTemplateRef('console-element')
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -122,20 +134,23 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
     height: 100%;
   }
 
-  .title {
-    color: var(--color-neutral-txt-primary);
-  }
+  .state-hero {
+    padding: 0.8rem;
 
-  .description {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    align-items: center;
-    color: var(--color-neutral-txt-secondary);
+    .title {
+      color: var(--color-neutral-txt-primary);
+    }
+
+    .description {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      color: var(--color-neutral-txt-secondary);
+    }
   }
 }
 
-.spinner {
+.loader {
   color: var(--color-brand-txt-base);
   display: flex;
   margin: auto;

@@ -29,7 +29,7 @@ import {
 function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
-    color: 'var(--color-neutral-txt-primary)',
+    color: 'currentColor',
   }
 }
 
@@ -200,6 +200,17 @@ export const statusIcons = defineIconPack({
     {
       icon: faStar,
       color: 'var(--color-info-txt-item)',
+      size: 10,
+    },
+  ],
+  'primary-circle-disabled': [
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: faStar,
+      color: 'var(--color-neutral-background-primary)',
       size: 10,
     },
   ],

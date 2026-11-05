@@ -1,19 +1,19 @@
-<!-- v2 -->
+<!-- v4 -->
 <template>
-  <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
-    <div class="modal">
+  <form :class="className" class="ui-modal" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
+    <div :aria-labelledby="slots.title ? titleId : undefined" aria-modal="true" class="modal" role="dialog">
       <UiButtonIcon
         v-if="onDismiss"
-        :accent="closeIconAccent"
+        :accent
         :target-scale="2"
         class="dismiss-button"
-        icon="fa:xmark"
-        size="small"
+        icon="action:close-cancel-clear"
+        size="medium"
         @click="emit('dismiss')"
       />
       <main class="main">
         <VtsIcon v-if="icon" :name="icon" class="icon" size="current" />
-        <div v-if="slots.title" class="typo-h4">
+        <div v-if="slots.title" :id="titleId" class="typo-h4">
           <slot name="title" />
         </div>
         <div class="content">
@@ -32,19 +32,21 @@ import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
-import { useMapper } from '@core/packages/mapper'
+import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
+import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, provide, useId } from 'vue'
 
-export type ModalAccent = 'info' | 'success' | 'warning' | 'danger'
+export type ModalAccent = 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: ModalAccent
   icon?: IconName
-  onDismiss?: () => void
+  onDismiss?: () => any
 }>()
 
 const emit = defineEmits<{
+  confirm: []
   dismiss: []
 }>()
 
@@ -54,18 +56,16 @@ const slots = defineSlots<{
   title?(): any
 }>()
 
-const closeIconAccent = useMapper(
-  () => accent,
-  {
-    info: 'brand',
-    success: 'brand',
-    warning: 'warning',
-    danger: 'danger',
-  },
-  'info'
-)
+useOverlayEscape(() => emit('dismiss'))
+
+const titleId = useId()
 
 const className = computed(() => toVariants({ accent }))
+
+provide(
+  IK_OVERLAY_ACCENT,
+  computed(() => accent)
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -84,7 +84,10 @@ const className = computed(() => toVariants({ accent }))
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
+    background-color: var(--color-neutral-background-secondary);
     border-radius: 1rem;
+    border-width: 0.1rem;
+    border-style: solid;
 
     &:not(:has(.buttons)) {
       padding-bottom: 3.2rem;
@@ -122,7 +125,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--info {
     .modal {
-      background-color: var(--color-info-background-selected);
+      border-color: var(--color-info-item-base);
     }
 
     .main .icon {
@@ -130,19 +133,9 @@ const className = computed(() => toVariants({ accent }))
     }
   }
 
-  &.accent--success {
-    .modal {
-      background-color: var(--color-success-background-selected);
-    }
-
-    .main .icon {
-      color: var(--color-success-txt-base);
-    }
-  }
-
   &.accent--warning {
     .modal {
-      background-color: var(--color-warning-background-selected);
+      border-color: var(--color-warning-item-base);
     }
 
     .main .icon {
@@ -152,7 +145,7 @@ const className = computed(() => toVariants({ accent }))
 
   &.accent--danger {
     .modal {
-      background-color: var(--color-danger-background-selected);
+      border-color: var(--color-danger-item-base);
     }
 
     .main .icon {

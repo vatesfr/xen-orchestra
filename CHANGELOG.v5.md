@@ -93,7 +93,7 @@
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
-  - [Dashboards] Prevent charts reloading every 30 seconds (PR [#8939](https://github.com/vatesfr/pull/8939))
+  - [Dashboards] Prevent charts reloading every 30 seconds (PR [#8939](https://github.com/vatesfr/xen-orchestra/pull/8939))
   - [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 - [REST API] _parse error: expected end of input at position #_ when an invalid query parameter is provided, a 400 error is returned with more details (PR [#9244](https://github.com/vatesfr/xen-orchestra/pull/9244))
@@ -126,8 +126,6 @@
 - xo-server-perf-alert 1.0.2
 
 ## **5.112.1** (2025-11-03)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -276,8 +274,6 @@
 
 ## **5.111.1** (2025-10-06)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Enhancements
 
 - **Migrated REST API endpoints**:
@@ -318,7 +314,7 @@
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
-  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/xen-orchestra/pull/8910))
   - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
   - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
   - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
@@ -470,7 +466,7 @@
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 - [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
 - [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
-- [Backup] fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
+- [Backup] fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/xen-orchestra/pull/8882))
 
 ### Released packages
 

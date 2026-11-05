@@ -1,5 +1,5 @@
 <template>
-  <VtsColumns>
+  <VtsColumns extra-space-around>
     <VtsColumn>
       <VmSystemGeneralInfo :vm />
       <VmSystemNetworking :vm />

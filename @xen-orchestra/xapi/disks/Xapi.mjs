@@ -1,12 +1,18 @@
 // @ts-check
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('@xen-orchestra/disk-transform').RandomAccessDisk} RandomAccessDisk
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
+import {
+  DiskLargerBlock,
+  DiskPassthrough,
+  RandomAccessDisk,
+  ReadAhead,
+  TimeoutDisk,
+} from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
@@ -14,7 +20,6 @@ import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
 import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '../index.mjs'
 
-// @todo how to type this ?
 const { debug, info, warn } = createLogger('xo:xapi:xapi-disks')
 
 /**
@@ -44,6 +49,8 @@ export class XapiDiskSource extends DiskPassthrough {
   /** @type {number} */
   #timeout
 
+  /** @type {boolean} */
+  #onlyListChangedBlocks = false
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -53,6 +60,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=20*60*1000]
+   * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
    */
   constructor({
     xapi,
@@ -62,6 +70,7 @@ export class XapiDiskSource extends DiskPassthrough {
     nbdConcurrency = 2,
     blockSize = 2 * 1024 * 1024,
     timeout = 20 * 60 * 1000,
+    onlyListChangedBlocks = false,
   }) {
     super(undefined)
     this.#baseRef = baseRef
@@ -71,51 +80,53 @@ export class XapiDiskSource extends DiskPassthrough {
     this.#timeout = timeout
     this.#vdiRef = vdiRef
     this.#xapi = xapi
+    this.#onlyListChangedBlocks = onlyListChangedBlocks
   }
 
   /**
    * Create a disk source using stream export + NBD.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<Disk|RandomAccessDisk>}
+   * @returns {Promise<Disk>}
    */
   async #openNbdStream() {
     const xapi = this.#xapi
-    const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
     /**
-     * @type {Disk}
+     * @type {XapiStreamNbdSource|undefined}
      */
     let source
     let streamSource
     try {
-      streamSource = await this.#openExportStream()
+      // we will only use the stream for block list
+      streamSource = await this.#openExportStream({ onlyListChangedBlocks: true })
       if (streamSource === undefined) {
         throw new Error(`Can't open stream source`)
       }
-      source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+      source = new XapiStreamNbdSource(streamSource, {
+        vdiRef,
+        xapi,
+        nbdConcurrency: this.#nbdConcurrency,
+        onlyListChangedBlocks: this.#onlyListChangedBlocks,
+      })
       await source.init()
-      if (source.getBlockSize() < this.#blockSize) {
-        source = new DiskLargerBlock(source, this.#blockSize)
-      }
+      this.#useNbd = true
+
+      return await this.#formatSourceDisk(source, 'NBD')
     } catch (err) {
-      if (err.code === 'NO_NBD_AVAILABLE') {
-        warn(`can't connect through NBD, fall back to stream export`)
-        if (streamSource === undefined) {
-          throw new Error(`Can't open stream source`)
-        }
-        return streamSource
-      }
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
+
+      if (/** @type {NodeJS.ErrnoException} */ (err).code === 'NO_NBD_AVAILABLE') {
+        const warningMessage = `can't connect through NBD, fall back to stream export`
+        // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
+        Task.warning(warningMessage)
+        warn(warningMessage, err)
+        // reopen the stream with the block data
+        return this.#openExportStream()
+      }
       throw err
     }
-    this.#useNbd = true
-    const readAhead = new ReadAhead(source)
-    source = new TimeoutDisk(source, this.#timeout)
-    const label = await xapi.getField('VDI', vdiRef, 'name_label')
-    readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`)
-    return readAhead
   }
 
   async #getPreferedExportFormat() {
@@ -153,7 +164,7 @@ export class XapiDiskSource extends DiskPassthrough {
    *
    * @returns {Promise<Disk>}
    */
-  async #openExportStream() {
+  async #openExportStream({ onlyListChangedBlocks = this.#onlyListChangedBlocks } = {}) {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
@@ -170,6 +181,17 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       await source.init()
       if (source.getBlockSize() < this.#blockSize) {
+        if (!onlyListChangedBlocks && baseRef !== undefined) {
+          // enlarging blocks needs to fill gaps from the parent chain (see DiskLargerBlock's
+          // isDifferencing branch), but XapiQcow2StreamSource doesn't implement instantiateParent()
+          // yet: safe when onlyListChangedBlocks (readBlock() is never called, only used for
+          // hasBlock/getBlockIndexes metadata by XapiStreamNbdSource), unsafe otherwise.
+          throw new Error(`Can't change the block size of a differencing disk through xapi export`)
+        }
+        if (!(source instanceof RandomAccessDisk)) {
+          // XapiQcow2StreamSource is a RandomAccessDisk but only when reading forward
+          throw new Error(`can't adapt ${source.constructor.name}'s block size: not random access`)
+        }
         source = new DiskLargerBlock(source, this.#blockSize)
       }
       source = new TimeoutDisk(source, this.#timeout)
@@ -177,7 +199,10 @@ export class XapiDiskSource extends DiskPassthrough {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
       if (baseRef !== undefined) {
-        warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
+        const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full`
+        // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
+        Task.warning(warningMessage)
+        warn(warningMessage, { error })
         this.#baseRef = undefined
         return this.#openExportStream()
       } else {
@@ -185,6 +210,34 @@ export class XapiDiskSource extends DiskPassthrough {
       }
     }
     return source
+  }
+
+  /**
+   *
+   * @param {RandomAccessDisk} source
+   * @param {string} exportMethod
+   * @returns {Promise<TimeoutDisk>}
+   */
+  async #formatSourceDisk(source, exportMethod) {
+    const xapi = this.#xapi
+    const vdiRef = this.#vdiRef
+    let formattedSource = source
+    if (formattedSource.getBlockSize() < this.#blockSize) {
+      formattedSource = new DiskLargerBlock(source, this.#blockSize)
+    } else if (formattedSource.getBlockSize() > this.#blockSize) {
+      throw new Error(
+        `Smaller block size is not implemented, source is ${formattedSource.getBlockSize()}, asked for  ${this.#blockSize}`
+      )
+    }
+    const readAhead = new ReadAhead(formattedSource)
+    const label = await xapi.getField('VDI', vdiRef, 'name_label')
+    // manually create an export task for NBD since xapi xan't do it automatically
+    readAhead.addProgressHandler(
+      new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through ${exportMethod}`)
+    )
+    // wraps the ReadAhead's block generator, not the raw NBD source: see #openNbdStream for why
+    // TimeoutDisk must sit outside ReadAhead.
+    return new TimeoutDisk(readAhead, this.#timeout)
   }
 
   /**
@@ -200,21 +253,22 @@ export class XapiDiskSource extends DiskPassthrough {
     /**
      * @type {RandomAccessDisk}
      */
-    let source = new XapiVhdCbtSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+    const source = new XapiVhdCbtSource({
+      vdiRef,
+      baseRef,
+      xapi,
+      nbdConcurrency: this.#nbdConcurrency,
+      onlyListChangedBlocks: this.#onlyListChangedBlocks,
+    })
     try {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
-      const readAhead = new ReadAhead(source)
-      source = new TimeoutDisk(source, this.#timeout)
-      if (source.getBlockSize() < this.#blockSize) {
-        source = new DiskLargerBlock(source, this.#blockSize)
-      }
-      const label = await xapi.getField('VDI', vdiRef, 'name_label')
-      readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
-      return readAhead
+      return await this.#formatSourceDisk(source, 'NBD+CBT')
     } catch (error) {
-      info('Error in openNbdCBT', error)
+      if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'CBT_DISABLED') {
+        info('Error in openNbdCBT', error)
+      }
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
 

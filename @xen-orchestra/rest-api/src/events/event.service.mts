@@ -1,4 +1,3 @@
-import os from 'node:os'
 import { createLogger } from '@xen-orchestra/log'
 import { PassThrough, pipeline } from 'node:stream'
 import type { EventEmitter } from 'node:events'
@@ -6,16 +5,19 @@ import type { Response } from 'express'
 
 import type { Listener } from '../abstract-classes/listener.mjs'
 import { PingListener, Subscriber, SubscriberManager, XoListener } from './event.class.mjs'
-import type { ListenerType, SubscriberId } from './event.type.mjs'
+import type { ListenerType, SubscriberId, XoListenerType } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import { XAPI_TYPES, type XapiXoRecord } from '@vates/types'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
 export class EventService {
   #alarmService: AlarmService
+  #backupJobService: BackupJobService
   #restApi: RestApi
-  #listeners: Map<string, Listener> = new Map()
+  #listeners: Map<string, Listener | Listener<XoListenerType>> = new Map()
   #subscriberManager = new SubscriberManager()
 
   constructor(restApi: RestApi) {
@@ -28,29 +30,40 @@ export class EventService {
 
     this.#restApi = restApi
     this.#alarmService = restApi.ioc.get(AlarmService)
+    this.#backupJobService = restApi.ioc.get(BackupJobService)
   }
 
-  #getListener(type: ListenerType): Listener {
+  #getListener<Type extends ListenerType>(type: Type): Listener | Listener<XoListenerType> {
     if (this.#listeners.has(type)) {
       return this.#listeners.get(type)!
     }
 
-    let listener: Listener
+    let listener: Listener<XoListenerType> | Listener
     if (type === 'ping') {
       listener = new PingListener()
     } else {
+      const isBackupJob = type === 'backup-job'
       const isMessage = type === 'alarm' || type === 'message'
 
       let eventEmitter: EventEmitter
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
-      } else {
+      } else if (type === 'backup-log') {
+        eventEmitter = this.#restApi.xoApp.backupLogsEe
+      } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {
         // alarm is purely XO-related; it doesn't exist at the XAPI level.
         // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
-        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isMessage ? 'message' : type)
+        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(
+          isMessage ? 'message' : (type as XapiXoRecord['type'])
+        )
+      } else {
+        eventEmitter = this.#restApi.xoApp.getXoEventEmitterByType(isBackupJob ? 'job' : type)
       }
 
-      listener = new XoListener(type, eventEmitter, isMessage ? this.#alarmService : undefined)
+      listener = new XoListener(type, eventEmitter, {
+        alarmService: isMessage ? this.#alarmService : undefined,
+        backupJobService: isBackupJob ? this.#backupJobService : undefined,
+      })
     }
 
     this.#listeners.set(type, listener)
@@ -65,9 +78,9 @@ export class EventService {
     })
     res.setHeaders(headers)
 
-    const maxRam = this.#restApi.xoApp.config.get<number>('rest-api.percentOfRamAllocatedPerSseClient')
+    const maxRam = this.#restApi.xoApp.config.get<number>('rest-api.maxRamAllocatedPerSseClient')
     const connection = new PassThrough({
-      highWaterMark: Math.round(os.totalmem() * (maxRam / 100)),
+      highWaterMark: Math.round(1024 * 1024 * maxRam),
     })
     pipeline(connection, res, error => {
       if (error?.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
@@ -75,7 +88,8 @@ export class EventService {
       }
     })
 
-    const subscriber = new Subscriber(connection, this.#subscriberManager)
+    const user = this.#restApi.getCurrentUser()
+    const subscriber = new Subscriber(connection, this.#subscriberManager, user.id)
     subscriber.broadcast('init', { id: subscriber.id })
 
     this.addListenerFor(subscriber.id, { type: 'ping' })

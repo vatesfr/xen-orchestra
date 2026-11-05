@@ -5,8 +5,12 @@ import map from 'lodash/map.js'
 
 import { ModelAlreadyExists } from '../collection.mjs'
 import { Acls } from '../models/acl.mjs'
+import { EventListenersManager } from '@vates/event-listeners-manager'
+import { createLogger } from '@xen-orchestra/log'
 
 // ===================================================================
+
+const log = createLogger('xo:acls')
 
 export default class {
   constructor(app) {
@@ -17,7 +21,18 @@ export default class {
         connection: app._redis,
         namespace: 'acl',
         indexes: ['subject', 'object'],
+        crypto: app.cryptoCredentials,
       }))
+
+      const onAclsChange = () =>
+        app.clearObjectFilterCache().catch(error => log.warn('failed to invalidate the object filter cache', { error }))
+
+      const events = new EventListenersManager(aclsDb)
+      for (const event of ['add', 'update', 'remove']) {
+        events.add(event, onAclsChange)
+      }
+
+      app.hooks.on('stop', () => events.removeAll())
 
       app.addConfigManager(
         'acls',

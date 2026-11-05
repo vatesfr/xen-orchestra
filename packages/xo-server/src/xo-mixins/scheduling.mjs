@@ -41,7 +41,9 @@ export default class Scheduling {
       const db = (this._db = new Schedules({
         connection: app._redis,
         namespace: 'schedule',
+        crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', { collection: db, type: 'schedule' })
 
       app.addConfigManager(
         'schedules',

@@ -1,12 +1,12 @@
 <template>
-  <VmStartButton :vm />
+  <VmMoreActions :vm show-change-state />
 </template>
 
-<script lang="ts" setup>
-import VmStartButton from '@/modules/vm/components/actions/start/VmStartButton.vue'
+<script setup lang="ts">
+import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 
-defineProps<{
+const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 </script>

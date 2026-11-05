@@ -57,6 +57,28 @@ const checkSelf = ({ id }, permission) => {
   return permissionsForObject && permissionsForObject[permission]
 }
 
+function checkVdi(vdi, permission) {
+  // Check authorization for the containing SR.
+  if (checkAuthorization(vdi.$SR, permission)) {
+    return true
+  }
+
+  // Check authorization for each of the connected VMs.
+  for (const vbdId of vdi.$VBDs) {
+    const vbd = getObject(vbdId)
+
+    if (vbd === undefined) {
+      continue
+    }
+
+    if (checkAuthorization(vbd.VM, permission)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 // ===================================================================
 
 const checkAuthorizationByTypes = {
@@ -84,23 +106,11 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI(vdi, permission) {
-    // Check authorization for the containing SR.
-    if (checkAuthorization(vdi.$SR, permission)) {
-      return true
-    }
-
-    // Check authorization for each of the connected VMs.
-    for (const vbdId of vdi.$VBDs) {
-      if (checkAuthorization(getObject(vbdId).VM, permission)) {
-        return true
-      }
-    }
-
-    return false
-  },
+  VDI: checkVdi,
 
   'VDI-snapshot': checkMember('$snapshot_of'),
+
+  'VDI-unmanaged': checkVdi,
 
   VIF: or(checkMember('$network'), checkMember('$VM')),
 
@@ -165,5 +175,20 @@ exports.check = function checkPermissions() {
       return false
     }
     throw error
+  }
+}
+
+// We use this function to test if a user can see an object, instead of check
+// as its throw/catch costs ~2.5 µs per denied object
+exports.test = function testPermission(permissionsByObject_, getObject_, objectId, permission) {
+  // Assign global variables.
+  permissionsByObject = permissionsByObject_
+  getObject = getObject_
+
+  try {
+    return Boolean(checkAuthorization(objectId, permission))
+  } finally {
+    // Free the global variables.
+    permissionsByObject = getObject = null
   }
 }

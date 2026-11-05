@@ -3,18 +3,21 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
+    <VtsTabularKeyValueList>
+      <VtsTabularKeyValueRow v-for="{ label, value } of resources" :key="label" :label :value />
+    </VtsTabularKeyValueList>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
+import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,10 +52,10 @@ const maxCpu = computed(() =>
   hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : (vm.VCPUs_at_startup ?? 0)
 )
 
-const minimumCpuLimitText = computed(() => {
-  const minimumCpuLimit = hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : vm.VCPUs_at_startup
+const vCpuAtStartupText = computed(() => {
+  const vCpuAtStartup = hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : vm.VCPUs_at_startup
 
-  return t('n-cpus', minimumCpuLimit)
+  return t('n-vcpus', vCpuAtStartup)
 })
 const resources = computed(() => {
   return [
@@ -69,12 +72,12 @@ const resources = computed(() => {
       value: vm.VCPUs_params.weight,
     },
     {
-      label: t('minimum-cpu-limit'),
-      value: minimumCpuLimitText.value,
+      label: t('vcpu-at-startup'),
+      value: vCpuAtStartupText.value,
     },
     {
-      label: t('maximum-cpu-limit'),
-      value: t('n-cpus', vm.VCPUs_max),
+      label: t('maximum-vcpu'),
+      value: t('n-vcpus', vm.VCPUs_max),
     },
     {
       label: t('vm-limit-topology'),

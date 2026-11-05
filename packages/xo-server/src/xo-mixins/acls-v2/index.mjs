@@ -1,0 +1,751 @@
+// @ts-check
+
+import keyBy from 'lodash/keyBy.js'
+import isEqual from 'lodash/isEqual.js'
+import { asyncEach } from '@vates/async-each'
+import { forbiddenOperation, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+
+import {
+  ADMINISTRATOR,
+  REAL_ONLY_ALL,
+  VMS_CREATOR,
+  VMS_POWER_STATE_MANAGER,
+  VMS_READ_ONLY,
+  VMS_ADMINISTRATOR,
+  NETWORK_ADMINISTRATOR,
+  STORAGE_ADMINISTRATOR,
+} from './template-roles.mjs'
+
+import { Roles } from '../../models/acls-v2/role.mjs'
+import { Privileges } from '../../models/acls-v2/privilege.mjs'
+import { UserRoles } from '../../models/acls-v2/user-role.mjs'
+import { GroupRoles } from '../../models/acls-v2/group-role.mjs'
+
+/**
+ * @typedef {import('@xen-orchestra/acl').SupportedResource} SupportedResource
+ * @typedef {import('@xen-orchestra/acl').Privilege<SupportedResource>} Privilege
+ * @typedef {import('@vates/types').XoAclRole } XoAclRole
+ * @typedef {import('@vates/types').XoUser} XoUser
+ * @typedef {import('@vates/types').XoGroup} XoGroup
+ * @typedef {{
+ *  roleTemplateId: number,
+ *  name: XoAclRole['name'],
+ *  description: XoAclRole['description'],
+ *  privileges: {
+ *    action: Privilege['action'],
+ *    resource: Privilege['resource'],
+ *    effect: Privilege['effect'],
+ *    selector?: Privilege['selector']
+ *  }[]
+ * }} RoleTemplate
+ *
+ * @typedef {{
+ *  id: string,
+ *  roleId: XoAclRole['id'],
+ *  userId: XoUser['id']
+ * }} UserRole
+ *
+ * @typedef {{
+ * id: string,
+ * roleId: XoAclRole['id'],
+ * groupId: XoGroup['id']
+ * }} GroupRole
+ */
+
+/**
+ * @type {RoleTemplate[]}
+ */
+const TEMPLATE_ROLES = [
+  /** @type {RoleTemplate} */ (REAL_ONLY_ALL),
+  /** @type {RoleTemplate} */ (VMS_POWER_STATE_MANAGER),
+  /** @type {RoleTemplate} */ (VMS_CREATOR),
+  /** @type {RoleTemplate} */ (VMS_READ_ONLY),
+  /** @type {RoleTemplate} */ (VMS_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (NETWORK_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (STORAGE_ADMINISTRATOR),
+]
+
+export default class {
+  /**
+   * @type {Roles}
+   */
+  // @ts-ignore initialized in core-started
+  #roleDb
+
+  /**
+   * @type {Privileges}
+   */
+  // @ts-ignore initialized in core-started
+  #privilegeDb
+
+  /**
+   * @type {UserRoles}
+   */
+  // @ts-ignore initialized in core-started
+  #userRoleDb
+
+  /**
+   * @type {GroupRoles}
+   */
+  // @ts-ignore initialized in core-started
+  #groupRoleDb
+
+  /**
+   *  Use XoApp from @vates/types when available
+   * @param {any} app
+   */
+  constructor(app) {
+    this._app = app
+
+    app.hooks.on('core started', () => {
+      const roleDb = new Roles({
+        connection: app._redis,
+        namespace: 'acl-v2-role',
+        crypto: app.cryptoCredentials,
+      })
+      app.hooks.emit('registerCollection', {
+        collection: roleDb,
+        type: 'acl-role',
+        decorate: this.#normalizeAclV2Role.bind(this),
+      })
+      this.#roleDb = roleDb
+
+      const privilegeDb = new Privileges({
+        connection: app._redis,
+        namespace: 'acl-v2-privilege',
+        // @ts-ignore indexes typed as never[]
+        indexes: ['roleId'],
+        crypto: app.cryptoCredentials,
+      })
+      app.hooks.emit('registerCollection', { collection: privilegeDb, type: 'acl-privilege' })
+      this.#privilegeDb = privilegeDb
+
+      const userRoleDb = new UserRoles({
+        connection: app._redis,
+        namespace: 'acl-v2-user-role',
+        // @ts-ignore indexes typed as never[]
+        indexes: ['userId', 'roleId'],
+        crypto: app.cryptoCredentials,
+      })
+      this.#userRoleDb = userRoleDb
+
+      const groupRoleDb = new GroupRoles({
+        connection: app._redis,
+        namespace: 'acl-v2-group-role',
+        // @ts-ignore indexes typed as never[]
+        indexes: ['groupId', 'roleId'],
+        crypto: app.cryptoCredentials,
+      })
+      this.#groupRoleDb = groupRoleDb
+
+      app.addConfigManager(
+        'roles',
+        () => roleDb.get(),
+        (/** @type {XoAclRole[]} */ roles) => roleDb.update(roles)
+      )
+
+      app.addConfigManager(
+        'privileges',
+        () => privilegeDb.get(),
+        (/** @type {Privilege[]} */ privileges) => privilegeDb.update(privileges),
+        ['roles']
+      )
+
+      app.addConfigManager(
+        'userRole',
+        () => userRoleDb.get(),
+        (/** @type {UserRole[]} */ userRoles) => userRoleDb.update(userRoles),
+        ['users', 'roles']
+      )
+
+      app.addConfigManager(
+        'groupRole',
+        () => groupRoleDb.get(),
+        (/** @type {GroupRole[]} */ groupRoles) => groupRoleDb.update(groupRoles),
+        ['groups', 'roles']
+      )
+    })
+
+    app.hooks.on('clean', () =>
+      Promise.all([
+        this.#roleDb.rebuildIndexes(),
+        this.#privilegeDb.rebuildIndexes(),
+        this.#userRoleDb.rebuildIndexes(),
+        this.#groupRoleDb.rebuildIndexes(),
+      ])
+    )
+
+    app.hooks.on('start', () => this.#createDefaultConfiguration())
+  }
+
+  /**
+   * Setup template role with their privileges
+   */
+  async #createDefaultConfiguration() {
+    const templateRoleByRoleTemplateId = keyBy(
+      (await this.getAclV2Roles()).filter(role => 'isTemplate' in role),
+      'roleTemplateId'
+    )
+
+    // Remove template roles of the DB, if it doesn't exist anymore in TEMPLATE_ROLES
+    for (const roleTemplateId in templateRoleByRoleTemplateId) {
+      const dbRole = templateRoleByRoleTemplateId[roleTemplateId]
+
+      if (!TEMPLATE_ROLES.some(templateRole => templateRole.roleTemplateId === dbRole.roleTemplateId)) {
+        await this.deleteAclV2Role(dbRole.id, { force: true })
+      }
+    }
+
+    await Promise.all(
+      TEMPLATE_ROLES.map(async ({ privileges, roleTemplateId, ...props }) => {
+        const templateRole = templateRoleByRoleTemplateId[roleTemplateId]
+
+        if (templateRole === undefined) {
+          const role = await this.#createAclV2TemplateRole({ ...props, roleTemplateId })
+          await Promise.all(
+            privileges.map(privilege => this.createAclV2Privilege({ ...privilege, roleId: role.id }, { force: true }))
+          )
+        } else {
+          const role = await this.updateAclV2Role(templateRole.id, props, { force: true })
+          const dbRolePrivileges = await this.getAclV2RolePrivileges(role.id)
+
+          const dbPrivilegesToDelete = dbRolePrivileges.filter(
+            ({ id, roleId, ...dbPrivilege }) => !privileges.some(privilege => isEqual(privilege, dbPrivilege))
+          )
+          const privilegesToCreate = privileges.filter(
+            privilege => !dbRolePrivileges.some(({ id, roleId, ...dbPrivilege }) => isEqual(privilege, dbPrivilege))
+          )
+
+          await Promise.all(
+            privilegesToCreate.map(privilege =>
+              this.createAclV2Privilege({ ...privilege, roleId: role.id }, { force: true })
+            )
+          )
+
+          await Promise.all(
+            dbPrivilegesToDelete.map(dbPrivilege => this.deleteAclV2Privilege(dbPrivilege.id, { force: true }))
+          )
+        }
+      })
+    )
+  }
+
+  // === Role
+  /**
+   * @param {object} role
+   * @param {XoAclRole['name']} role.name
+   * @param {XoAclRole['description']} role.description
+   * @param {number} role.roleTemplateId
+   * @returns  {Promise<XoAclRole>}
+   */
+  #createAclV2TemplateRole(role) {
+    return this.#roleDb.add({ ...role, isTemplate: true })
+  }
+
+  /**
+   * @param {XoAclRole['id']} id
+   * @returns {Promise<Omit<XoAclRole, 'privilegeIds' | 'groupIds' | 'userIds'>>}
+   */
+  async #getRawAclV2Role(id) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#roleDb.first(id)
+    if (role === undefined) {
+      throw noSuchObject(id, 'role')
+    }
+
+    return role
+  }
+
+  /**
+   * @param {object} role
+   * @param {XoAclRole['name']} role.name
+   * @param {XoAclRole['description']} [role.description]
+   * @param {Omit<Privilege, 'id'| 'roleId'>[]} [role.privileges]
+   * @returns {Promise<XoAclRole>}
+   */
+  async createAclV2Role(role) {
+    await this._app.checkFeatureAuthorization('RBAC')
+    const { privileges, ..._role } = role
+
+    const newRole = await this.#roleDb.add(_role)
+    if (privileges !== undefined) {
+      try {
+        await asyncEach(privileges, async privilege => {
+          await this.createAclV2Privilege({ ...privilege, roleId: newRole.id })
+        })
+      } catch (error) {
+        await this.deleteAclV2Role(newRole.id)
+        throw error
+      }
+    }
+
+    return newRole
+  }
+
+  /**
+   * @param {XoAclRole['id']} id
+   * @param {object} [opts]
+   * @param {boolean} [opts.force]
+   * @returns {Promise<boolean>}
+   */
+  async deleteAclV2Role(id, { force = false } = {}) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#getRawAclV2Role(id)
+
+    if (!force && 'isTemplate' in role) {
+      throw forbiddenOperation('delete ACL V2 role', 'role is a template')
+    }
+
+    /** @type {UserRole[]} */
+    const userRoles = await this.#userRoleDb._get({ roleId: role.id })
+    await Promise.all(userRoles.map(userRole => this.deleteAclV2UserRole(userRole.userId, userRole.roleId)))
+
+    /** @type {GroupRole[]} */
+    const groupRoles = await this.#groupRoleDb._get({ roleId: role.id })
+    await Promise.all(groupRoles.map(groupRole => this.deleteAclV2GroupRole(groupRole.groupId, groupRole.roleId)))
+
+    const privileges = await this.getAclV2RolePrivileges(role.id)
+    await Promise.all(privileges.map(privilege => this.deleteAclV2Privilege(privilege.id, { force })))
+
+    return this.#roleDb.remove(role.id)
+  }
+
+  /**
+   * @param {XoAclRole['id']} id
+   * @param {object} role
+   * @param {XoAclRole['name']} [role.name]
+   * @param {XoAclRole['description'] | null} [role.description]
+   * @param {object} [opts]
+   * @param {boolean} [opts.force]
+   *
+   * @returns {Promise<XoAclRole>}
+   */
+  async updateAclV2Role(id, { name, description }, { force = false } = {}) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#getRawAclV2Role(id)
+    if (!force && 'isTemplate' in role) {
+      throw forbiddenOperation('update ACL V2 role', 'role is a template')
+    }
+    if (name !== undefined) {
+      role.name = name
+    }
+
+    if (description !== undefined) {
+      if (description === null) {
+        delete role.description
+      } else {
+        role.description = description
+      }
+    }
+
+    return this.#roleDb.update(role)
+  }
+
+  /**
+   * @param {XoAclRole} role
+   */
+  async #normalizeAclV2Role(role) {
+    if (!('isTemplate' in role)) {
+      /** @type {[UserRole[], GroupRole[]]} */
+      const [userRoles, groupRoles] = await Promise.all([
+        this.#userRoleDb._get({ roleId: role.id }),
+        this.#groupRoleDb._get({ roleId: role.id }),
+      ])
+
+      role.userIds = userRoles.map(userRole => userRole.userId)
+      role.groupIds = groupRoles.map(groupRole => groupRole.groupId)
+    }
+
+    /** @type {Privilege[]} */
+    const privileges = await this.#privilegeDb._get({ roleId: role.id })
+    role.privilegeIds = privileges.map(privilege => privilege.id)
+
+    return role
+  }
+
+  /**
+   * @param {XoAclRole['id']} id
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @returns {Promise<XoAclRole>}
+   */
+  async getAclV2Role(id, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+
+    const role = await this.#roleDb.first(id)
+    if (role === undefined) {
+      throw noSuchObject(id, 'role')
+    }
+
+    return this.#normalizeAclV2Role(role)
+  }
+
+  /**
+   * @returns {Promise<XoAclRole[]>}
+   */
+  async getAclV2Roles() {
+    await this._app.checkFeatureAuthorization('RBAC')
+    const roles = await this.#roleDb.get()
+    // @ts-ignore typed as Promise<void>...
+    return Promise.all(roles.map(role => this.#normalizeAclV2Role(role)))
+  }
+  // === Role
+  // === Privilege
+  /**
+   * @param {object} privilege
+   * @param {Privilege['action']} privilege.action
+   * @param {Privilege['selector']} [privilege.selector]
+   * @param {Privilege['effect']} [privilege.effect]
+   * @param {Privilege['resource']} privilege.resource
+   * @param {Privilege['roleId']} privilege.roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.force]
+   *
+   * @returns {Promise<Privilege>}
+   */
+  async createAclV2Privilege({ action, selector, effect = 'allow', resource, roleId }, { force = false } = {}) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#getRawAclV2Role(roleId)
+    if (!force && 'isTemplate' in role) {
+      throw forbiddenOperation('create ACL V2 privilege', 'role is a template')
+    }
+
+    const privilege = await this.#privilegeDb.add({ action, selector, effect, resource, roleId })
+    await this._app.touchXoObject('acl-role', roleId)
+
+    return privilege
+  }
+
+  /**
+   * @param {Privilege['id']} id
+   * @param {object} [opts]
+   * @param {boolean} [opts.force]
+   *
+   * @returns {Promise<boolean>}
+   */
+  async deleteAclV2Privilege(id, { force = false } = {}) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const privilege = await this.getAclV2Privilege(id)
+    const role = await this.#getRawAclV2Role(privilege.roleId)
+
+    if (!force && 'isTemplate' in role) {
+      throw forbiddenOperation('delete ACL V2 privilege', 'role is a template')
+    }
+
+    const removed = await this.#privilegeDb.remove(privilege.id)
+    await this._app.touchXoObject('acl-role', role.id)
+
+    return removed
+  }
+
+  /**
+   * @param {Privilege['id']} id
+   * @param {object} privilege
+   * @param {Privilege['action']} [privilege.action]
+   * @param {Privilege['selector'] | null} [privilege.selector]
+   * @param {Privilege['effect']} [privilege.effect]
+   * @param {Privilege['resource']} [privilege.resource]
+   *
+   * @returns {Promise<Privilege>}
+   */
+  async updateAclV2Privilege(id, { action, selector, effect, resource }) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const privilege = await this.getAclV2Privilege(id)
+    const role = await this.#getRawAclV2Role(privilege.roleId)
+
+    if ('isTemplate' in role) {
+      throw forbiddenOperation('update ACL V2 privilege', 'role is a template')
+    }
+
+    if (action !== undefined) {
+      privilege.action = action
+    }
+
+    if (selector !== undefined) {
+      if (selector === null) {
+        delete privilege.selector
+      } else {
+        privilege.selector = selector
+      }
+    }
+
+    if (effect !== undefined) {
+      privilege.effect = effect
+    }
+
+    if (resource !== undefined) {
+      privilege.resource = resource
+    }
+
+    return this.#privilegeDb.update(privilege)
+  }
+
+  /**
+   * @param {Privilege['id']} id
+   *
+   * @returns {Promise<Privilege>}
+   */
+  async getAclV2Privilege(id) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const privilege = await this.#privilegeDb.first(id)
+    if (privilege === undefined) {
+      throw noSuchObject(id, 'privilege')
+    }
+
+    return privilege
+  }
+
+  /**
+   * @returns {Promise<Privilege[]>}
+   */
+  async getAclV2Privileges() {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    // @ts-ignore typed as Promise<void>...
+    return this.#privilegeDb.get()
+  }
+  // === Privilege
+  // === UserRole
+  /**
+   *
+   * Attach a role to a user
+   *
+   * @param {XoUser['id']} userId
+   * @param {XoAclRole['id']} roleId
+   *
+   * @returns {Promise<UserRole>}
+   */
+  async addAclV2UserRole(userId, roleId) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    /**
+     * @type {UserRole[]}
+     */
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
+
+    const userRole = userRoles[0]
+
+    if (userRole !== undefined) {
+      throw objectAlreadyExists({ objectId: userRole.id, objectType: 'userRole' })
+    }
+
+    const role = await this.#getRawAclV2Role(roleId)
+    if ('isTemplate' in role) {
+      throw forbiddenOperation('attach ACL V2 role to user', 'role is a template')
+    }
+
+    const newUserRole = await this.#userRoleDb.add({ userId, roleId })
+    await this._app.touchXoObject('acl-role', role.id)
+
+    return newUserRole
+  }
+
+  /**
+   *
+   * Detach a role from a user
+   *
+   * @param {XoUser['id']} userId
+   * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   *
+   * @returns {Promise<boolean>}
+   */
+  async deleteAclV2UserRole(userId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+
+    /**
+     * @type {UserRole[]}
+     */
+    const userRoles = await this.#userRoleDb._get({ userId, roleId })
+    if (userRoles.length > 1) throw new Error(`More than 1 userRoles were found for ${userId} and ${roleId}`)
+
+    const userRole = userRoles[0]
+
+    if (userRole === undefined) {
+      throw noSuchObject(`userId:${userId} and roleId:${roleId}`, 'userRole')
+    }
+
+    const removed = await this.#userRoleDb.remove(userRole.id)
+    await this._app.touchXoObject('acl-role', roleId)
+
+    return removed
+  }
+  // === UserRole
+  // === GroupRole
+  /**
+   *
+   * Attach a role to a group
+   *
+   * @param {XoGroup['id']} groupId
+   * @param {XoAclRole['id']} roleId
+   *
+   * @returns {Promise<GroupRole>}
+   */
+  async addAclV2GroupRole(groupId, roleId) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    /**
+     * @type {GroupRole[]}
+     */
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
+
+    const groupRole = groupRoles[0]
+
+    if (groupRole !== undefined) {
+      throw objectAlreadyExists({ objectId: groupRole.id, objectType: 'groupRole' })
+    }
+
+    const role = await this.#getRawAclV2Role(roleId)
+    if ('isTemplate' in role) {
+      throw forbiddenOperation('attach ACL V2 role to group', 'role is a template')
+    }
+
+    const newGroupRole = await this.#groupRoleDb.add({ groupId, roleId })
+    await Promise.all([this._app.touchXoObject('acl-role', role.id), this._app.touchXoObject('group', groupId)])
+
+    return newGroupRole
+  }
+
+  /**
+   *
+   * Detach a role from a group
+   *
+   * @param {XoGroup['id']} groupId
+   * @param {XoAclRole['id']} roleId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   *
+   * @returns {Promise<boolean>}
+   */
+  async deleteAclV2GroupRole(groupId, roleId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+    /**
+     * @type {GroupRole[]}
+     */
+    const groupRoles = await this.#groupRoleDb._get({ groupId, roleId })
+    if (groupRoles.length > 1) throw new Error(`More than 1 groupRoles were found for ${groupId} and ${roleId}`)
+
+    const groupRole = groupRoles[0]
+
+    if (groupRole === undefined) {
+      throw noSuchObject(`groupId:${groupId} and roleId:${roleId}`, 'groupRole')
+    }
+
+    const removed = await this.#groupRoleDb.remove(groupRole.id)
+    await Promise.all([this._app.touchXoObject('acl-role', roleId), this._app.touchXoObject('group', groupId)])
+
+    return removed
+  }
+  // === GroupRole
+
+  /**
+   * @param {XoAclRole['id']} roleId
+   * @returns {Promise<Privilege[]>}
+   */
+  async getAclV2RolePrivileges(roleId) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#getRawAclV2Role(roleId)
+    return this.#privilegeDb._get({ roleId: role.id })
+  }
+
+  /**
+   * @param {XoUser['id']} userId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @param {boolean} [opts.fromGroup]
+   * @param {boolean} [opts.fromUser]
+   * @returns {Promise<XoAclRole[]>}
+   */
+  async getAclV2UserRoles(userId, { bypassAuthorization = false, fromGroup = true, fromUser = true } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+
+    /** @type {XoUser} */
+    const user = await this._app.getUser(userId)
+
+    const groupRoles = fromGroup
+      ? (
+          await Promise.all(user.groups.map(groupId => this.getAclV2GroupRoles(groupId, { bypassAuthorization })))
+        ).flat()
+      : []
+
+    /** @type {UserRole[]} */
+    const dbUserRoles = fromUser ? await this.#userRoleDb._get({ userId: user.id }) : []
+    const userRoles = await Promise.all(
+      dbUserRoles.map(dbUserRole => this.getAclV2Role(dbUserRole.roleId, { bypassAuthorization }))
+    )
+
+    return [...groupRoles, ...userRoles]
+  }
+
+  /**
+   * @param {XoUser['id']} userId
+   * @returns {Promise<Privilege[]>}
+   */
+  async getAclV2UserPrivileges(userId) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const roles = await this.getAclV2UserRoles(userId)
+    return (await Promise.all(roles.map(role => this.getAclV2RolePrivileges(role.id)))).flat()
+  }
+
+  /**
+   * @param {XoGroup['id']} groupId
+   * @param {object} [opts]
+   * @param {boolean} [opts.bypassAuthorization]
+   * @returns {Promise<Exclude<XoAclRole, {isTemplate: true}>[]>}
+   */
+  async getAclV2GroupRoles(groupId, { bypassAuthorization = false } = {}) {
+    if (!bypassAuthorization) {
+      await this._app.checkFeatureAuthorization('RBAC')
+    }
+
+    /** @type {GroupRole[]} */
+    const dbGroupRoles = await this.#groupRoleDb._get({ groupId })
+
+    return /** @type {Promise<Exclude<XoAclRole, { isTemplate: true }>[]>} */ (
+      Promise.all(dbGroupRoles.map(dbGroupRole => this.getAclV2Role(dbGroupRole.roleId, { bypassAuthorization })))
+    )
+  }
+
+  /**
+   * @param {XoAclRole['id']} roleId
+   * @param {object} [params]
+   * @param {XoAclRole['name']} [params.name]
+   * @param {XoAclRole['description']} [params.description]
+   * @returns {Promise<XoAclRole['id']>}
+   */
+  async copyAclV2Role(roleId, params = {}) {
+    await this._app.checkFeatureAuthorization('RBAC')
+
+    const role = await this.#getRawAclV2Role(roleId)
+    const privileges = await this.getAclV2RolePrivileges(roleId)
+
+    const replicaRole = await this.createAclV2Role({
+      name: params.name ?? role.name,
+      description: params.description ?? role.description,
+      privileges: privileges.map(({ id, roleId, ...privilege }) => privilege),
+    })
+
+    return replicaRole.id
+  }
+}

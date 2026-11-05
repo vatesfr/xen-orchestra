@@ -13,17 +13,21 @@ export class OpenFlowPlugin {
 
   async #callPluginOnAllNetwork(network, method, parameters) {
     const bridge = this.#getBridge(network)
-    return asyncEach(network.$PIFs, async PIF => {
-      const host = PIF.$host
-      return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
-    }, { stopOnError: false })
+    return asyncEach(
+      network.$PIFs,
+      async PIF => {
+        const host = PIF.$host
+        return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
+      },
+      { stopOnError: false }
+    )
   }
 
-  async addRule({ vif, allow, protocol, ipRange, direction, port }) {
+  async addRule({ vif, allow, protocol, ipRange, direction, port, priority }) {
     if (port) {
       port = String(port)
     }
-    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port })
+    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port, priority })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -31,6 +35,8 @@ export class OpenFlowPlugin {
       ipRange,
       direction,
       port,
+      // 0 is a valid priority
+      priority: priority === undefined ? undefined : String(priority),
     })
   }
 
@@ -49,30 +55,33 @@ export class OpenFlowPlugin {
     })
   }
 
-  async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+  async addNetworkRule({ network, allow, protocol, ipRange, direction, port, priority, cookie }) {
     if (port) {
       port = String(port)
     }
-    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port })
+    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, priority, cookie })
     return this.#callPluginOnAllNetwork(network, 'add-rule', {
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
       direction,
       port,
+      priority: priority === undefined ? undefined : String(priority),
+      cookie,
     })
   }
-  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
     if (port) {
       port = String(port)
     }
-    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port })
+    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
     return this.#callPluginOnAllNetwork(network, 'del-rule', {
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
       direction,
       port,
+      cookie,
     })
   }
 
@@ -84,6 +93,7 @@ export class OpenFlowPlugin {
     let lastError
     if (!host.$PIFs) {
       log.error('error while listing the host PIFs', host)
+      lastError = new Error(`No network associated to host ${host.id}`)
     } else {
       for (const { $network } of host.$PIFs) {
         try {
@@ -103,13 +113,18 @@ export class OpenFlowPlugin {
             // plugin is not installed , no need to test other networks
             throw error
           }
-          log.error('error while checking if the host has the sdn plugin', error)
-          // track at least
+          log.warn('error while checking if the host has the sdn plugin', {
+            host: host.uuid,
+            network: $network.uuid,
+            bridge: $network.bridge,
+            error,
+          })
+          // track it: it will be throw only if no call_plugin successed
           lastError = error
         }
       }
     }
 
-    throw lastError ?? new Error(`No network associated to host ${host.id}`)
+    throw lastError
   }
 }

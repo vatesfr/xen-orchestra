@@ -1,5 +1,5 @@
 /**
- * @import {XoHost, XoSr, XoVm} from "@vates/types"
+ * @import {XoHost, XoSr, XoVm, XoApp} from "@vates/types"
  * @import {AlarmChanges, MonitorStrategy} from "./Strategy.js"
  */
 
@@ -7,6 +7,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { MonitorRuleSet } from './Rules.js'
 
 import templates from './templates/index.js'
+import { Alarm } from './Strategy.js'
 import { HybridStrategy } from './HybridStrategy.js'
 export { configurationSchema } from './schema.js'
 
@@ -29,25 +30,32 @@ class PerfAlertXoPlugin {
   #strategy
 
   constructor(xo) {
+    /**
+     * @type {XoApp}
+     */
     this._xo = xo
   }
 
   /**
    *
    * @param {AlarmChanges} param0
+   * @param {object} [opts]
+   * @param {string} [opts.subjectPrefix]
    * @returns
    */
-  async sendAlarmChange({ newAlarms, closedAlarms, activeAlarms }) {
+  async sendAlarmChange({ newAlarms, closedAlarms, activeAlarms }, { subjectPrefix = '' } = {}) {
     if (newAlarms.size === 0 && closedAlarms.size === 0) {
       // don't send anything is the alarms didn't change
       return
     }
     const byRules = {}
+    const { default: defaultRoute } = await this._xo.config.getGuiRoutes()
+    const isV6 = defaultRoute?.path.includes('@xen-orchestra/web/dist')
     newAlarms.forEach(alarm => {
       byRules[alarm.rule.id] = byRules[alarm.rule.id] ?? { alarms: [] }
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'new',
       })
     })
@@ -56,7 +64,7 @@ class PerfAlertXoPlugin {
       byRules[alarm.rule.id] = byRules[alarm.rule.id] ?? { alarms: [] }
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'active',
       })
     })
@@ -66,7 +74,7 @@ class PerfAlertXoPlugin {
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
         value: '', // we don't want to show the old value for closed Alarms
-        url: this._generateUrl(alarm.rule.objectType, alarm.target),
+        url: this._generateUrl(alarm.rule.objectType, alarm.target, isV6),
         notificationType: 'closed',
       })
     })
@@ -90,7 +98,7 @@ class PerfAlertXoPlugin {
     }
     const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
     const text = await templates.markdown.$newAlarms({ byRules })
-    return this._sendAlertEmail(subject, html, text)
+    return this._sendAlertEmail(`${subjectPrefix}${subject}`, html, text)
   }
 
   async load() {
@@ -120,24 +128,65 @@ class PerfAlertXoPlugin {
    *
    * @param {string} type
    * @param {XoHost|XoSr|XoVm} object
+   * @param {boolean} isV6
    * @returns
    */
-  _generateUrl(type, object) {
+  _generateUrl(type, object, isV6) {
     const { baseUrl } = this.#configuration
     const { uuid } = object
     switch (type) {
       case 'VM':
-        return `${baseUrl}#/vms/${uuid}/stats`
+        return isV6 ? `${baseUrl}#/vm/${uuid}/dashboard` : `${baseUrl}v5/#/vms/${uuid}/stats`
       case 'host':
-        return `${baseUrl}#/hosts/${uuid}/stats`
-      case 'sr':
-        return `${baseUrl}#/srs/${uuid}/general`
+        return isV6 ? `${baseUrl}#/host/${uuid}/dashboard` : `${baseUrl}v5/#/hosts/${uuid}/stats`
+      case 'SR':
+        return isV6 ? `${baseUrl}#/sr/${uuid}/general` : `${baseUrl}v5/#/srs/${uuid}/general`
       default:
         return `unknown type ${type}`
     }
   }
 
-  async test() {}
+  async test() {
+    const ruleSet = this.#monitorRuleSet
+    if (ruleSet === undefined || ruleSet.rules.size === 0) {
+      throw new Error('no monitor is configured')
+    }
+
+    /**
+     * @type {AlarmChanges}
+     */
+    const changes = { newAlarms: new Map(), activeAlarms: new Map(), closedAlarms: new Map() }
+    const alarmType = Object.keys(changes)
+
+    for (const rule of ruleSet.rules) {
+      const affectedObjects =
+        this._xo.getObjectsByType(rule.objectType, {
+          filter: object => rule.isObjectAffected(object),
+        }) ?? {}
+      const objects = Object.values(affectedObjects).slice(0, alarmType.length)
+      if (objects.length === 0) {
+        for (let i = 0; i < alarmType.length; i++) {
+          const object = {
+            name_label: `[#${i + 1} FAKE object] no object matches this rule`,
+            uuid: `${i + 1}234567a-1a2b-1234-1a2b-123456789abc`,
+          }
+          object.id = object.uuid
+          objects.push(object)
+        }
+      }
+      objects.forEach((object, index) => {
+        const delta = 2 + index * 3
+        const alarm = new Alarm({
+          rule,
+          target: object,
+          value: rule.comparator === '>' ? rule.triggerLevel + delta : rule.triggerLevel - delta,
+        })
+        changes[alarmType[index]].set(alarm.id, alarm)
+      })
+    }
+
+    await this.sendAlarmChange(changes, { subjectPrefix: '[TEST] - ' })
+  }
 
   /**
    *
@@ -145,9 +194,9 @@ class PerfAlertXoPlugin {
    * @param {string} html
    * @param {string} markdown
    */
-  _sendAlertEmail(subject, html, markdown) {
+  async _sendAlertEmail(subject, html, markdown) {
     if (this.#configuration.toEmails !== undefined && this._xo.sendEmail !== undefined) {
-      this._xo.sendEmail({
+      await this._xo.sendEmail({
         to: this.#configuration.toEmails,
         subject,
         html,

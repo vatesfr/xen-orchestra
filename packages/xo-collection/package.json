@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-collection",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "license": "AGPL-3.0-or-later",
   "description": "Generic in-memory collection with events",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-collection",
@@ -22,13 +22,13 @@
   },
   "dependencies": {
     "kindof": "^2.0.0",
-    "lodash": "^4.17.2",
+    "lodash": "^4.18.0",
     "make-error": "^1.0.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/cli": "^7.29.0",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "cross-env": "^7.0.2",
     "promise-toolbox": "^0.21.0",
     "rimraf": "^6.0.1"

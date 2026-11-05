@@ -10,7 +10,11 @@ export type Unbrand<T> = {
       ? string[]
       : T[K] extends Branded<string> | undefined
         ? string | undefined
-        : T[K]
+        : T[K] extends Branded<string> | null
+          ? string | null
+          : T[K] extends Branded<string> | null | undefined
+            ? string | null | undefined
+            : T[K]
 }
 
 export const createdResp = {
@@ -46,6 +50,11 @@ export const noContentResp = {
 export const internalServerErrorResp = {
   status: 500,
   description: 'Internal server error, XenServer/XCP-ng error',
+} as const
+
+export const notImplementedResp = {
+  status: 501,
+  description: 'Not implemented',
 } as const
 
 export const resourceAlreadyExists = {

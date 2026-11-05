@@ -1,40 +1,73 @@
-/**
- * XO REST API Client
- *
- * Minimal client using native fetch to interact with Xen Orchestra REST API.
- * Authentication is done via Basic Auth or token cookie.
- */
-
-import type { XoPool, XoHost, XoVm, XoVdi, XoNetwork, XoSr } from '@vates/types/xo'
-import type { XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
-
-export type { XoPool, XoHost, XoVm, XoVdi, XoNetwork, XoSr, XapiVmStats, XapiStatsGranularity }
-
-export interface ListOptions {
-  filter?: string
-  fields?: string
-  limit?: number
-}
+import { proxyFetch, type FetchFn } from './utils/proxy.mjs'
 
 const REQUEST_TIMEOUT_MS = 30_000
+const BOOT_CHECK_TIMEOUT_MS = 10_000
 
-export type XoClientConfig = { url: string; username: string; password: string } | { url: string; token: string }
+// Identifies outgoing requests as coming from the MCP binary so the
+// xo-server `mcp-gate` middleware can apply the global kill-switch.
+export const MCP_CLIENT_HEADER: Readonly<Record<string, string>> = Object.freeze({ 'X-XO-Client': 'mcp' })
 
-export interface XoPoolDashboard {
-  hostsByStatus?: Record<string, number>
-  vmsByStatus?: Record<string, number>
-  topHostsByRam?: Array<{ id: string; name: string; value: number }>
-  topHostsByCpu?: Array<{ id: string; name: string; value: number }>
-  alarms?: Array<{ id: string; name: string; time: number }>
-}
+// Wire-level error code returned by xo-server when the MCP kill-switch is on.
+const MCP_DISABLED_ERROR = 'mcp_disabled'
+
+export type XoClientConfig =
+  | { url: string; username: string; password: string; fetch?: FetchFn }
+  | { url: string; token: string; fetch?: FetchFn }
 
 export class XoClient {
   private readonly baseUrl: string
   private readonly authHeaders: Record<string, string>
   private readonly authMode: 'token' | 'basic'
+  /** Transport shared by every outbound request of the process (XO API, OpenAPI spec, docs). */
+  readonly fetchFn: FetchFn
+
+  /**
+   * Probes the XO server's `/rest/v0/mcp/status` endpoint to verify that the
+   * MCP kill-switch is not engaged. Throws with a human-readable error when
+   * the server is unreachable or when MCP has been disabled by the admin.
+   */
+  static async assertMcpEnabled(xoUrl: string, fetchFn: FetchFn = proxyFetch): Promise<void> {
+    const url = `${xoUrl.replace(/\/$/, '')}/rest/v0/mcp/status`
+
+    let response: Response
+    try {
+      const init: RequestInit = {
+        headers: { ...MCP_CLIENT_HEADER },
+        signal: AbortSignal.timeout(BOOT_CHECK_TIMEOUT_MS),
+      }
+      response = await fetchFn(url, init)
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause)
+      throw new Error(`Unable to reach XO server at ${xoUrl} to verify MCP status: ${message}`, { cause })
+    }
+
+    if (response.ok) {
+      return
+    }
+
+    // A fetch Response body can only be read once, so read it as text first and
+    // then attempt to parse it as JSON instead of chaining `.json()` and `.text()`
+    // — the second call would throw "Body is unusable".
+    const text = await response.text().catch(() => '')
+    let body: { data?: { error?: string } } | undefined
+    try {
+      body = text === '' ? undefined : (JSON.parse(text) as { data?: { error?: string } })
+    } catch {
+      body = undefined
+    }
+
+    // xo-server serializes ApiError as `{ error: <human message>, data: { error: 'mcp_disabled' } }`,
+    // so the machine-readable code lives under `data.error`, not at the top level.
+    if (response.status === 503 && body?.data?.error === MCP_DISABLED_ERROR) {
+      throw new Error('MCP disabled by admin')
+    }
+
+    throw new Error(`Unable to verify MCP status (HTTP ${response.status}): ${text || response.statusText}`)
+  }
 
   constructor(config: XoClientConfig) {
     this.baseUrl = config.url.replace(/\/$/, '')
+    this.fetchFn = config.fetch ?? proxyFetch
 
     if ('token' in config) {
       this.authHeaders = { cookie: `authenticationToken=${config.token}` }
@@ -46,20 +79,17 @@ export class XoClient {
     }
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async fetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const url = `${this.baseUrl}/rest/v0${endpoint}`
 
     let response: Response
     try {
-      response = await fetch(url, {
+      const init: RequestInit = {
         ...options,
-        headers: {
-          ...this.authHeaders,
-          Accept: 'application/json',
-          ...options.headers,
-        },
+        headers: { ...MCP_CLIENT_HEADER, ...this.authHeaders, ...options.headers },
         signal: options.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
+      }
+      response = await this.fetchFn(url, init)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
       if (message.includes('ECONNREFUSED') || message.includes('fetch failed')) {
@@ -86,96 +116,55 @@ export class XoClient {
       throw new Error(`XO API error (${response.status} ${response.statusText}): ${errorText}`)
     }
 
-    try {
-      return (await response.json()) as T
-    } catch (cause) {
-      throw new Error(`XO API returned invalid JSON for ${endpoint}`, { cause })
+    return response
+  }
+
+  /**
+   * Generic REST call. Returns a string for text/markdown responses, a parsed
+   * object/array for JSON responses. Callers that want markdown should set
+   * `query.markdown = 'true'`; the server ignores it when the endpoint does
+   * not support markdown rendering.
+   */
+  async apiRequest(
+    method: string,
+    path: string,
+    options?: { query?: Record<string, string>; body?: unknown }
+  ): Promise<unknown> {
+    let endpoint = path.startsWith('/') ? path : `/${path}`
+    if (options?.query) {
+      const params = new URLSearchParams()
+      for (const [k, v] of Object.entries(options.query)) {
+        if (v !== undefined && v !== '') params.set(k, v)
+      }
+      const qs = params.toString()
+      if (qs) endpoint += `?${qs}`
     }
+
+    const init: RequestInit = { method: method.toUpperCase() }
+    if (options?.body !== undefined) {
+      init.headers = { 'Content-Type': 'application/json' }
+      init.body = JSON.stringify(options.body)
+    }
+
+    const response = await this.fetch(endpoint, init)
+    const contentType = response.headers.get('content-type') ?? ''
+    return contentType.includes('application/json') ? ((await response.json()) as unknown) : await response.text()
+  }
+
+  getAuthHeaders(): Record<string, string> {
+    return { ...this.authHeaders }
+  }
+
+  getBaseUrl(): string {
+    return this.baseUrl
   }
 
   async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
-      await this.request('/pools?limit=1')
+      await this.fetch('/pools?limit=1')
       return { ok: true }
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-  }
-
-  private buildListParams(defaultFields: string, options?: ListOptions): URLSearchParams {
-    const params = new URLSearchParams()
-    params.set('fields', options?.fields ?? defaultFields)
-    if (options?.filter) {
-      params.set('filter', options.filter)
-    }
-    if (options?.limit !== undefined) {
-      params.set('limit', String(options.limit))
-    }
-    return params
-  }
-
-  async listPools(fields?: string): Promise<Partial<XoPool>[]> {
-    const params = new URLSearchParams()
-    params.set('fields', fields ?? 'id,name_label,name_description,auto_poweron,HA_enabled')
-
-    return this.request<Partial<XoPool>[]>(`/pools?${params}`)
-  }
-
-  async getPool(poolId: string): Promise<XoPool> {
-    return this.request<XoPool>(`/pools/${encodeURIComponent(poolId)}`)
-  }
-
-  async getPoolDashboard(poolId: string): Promise<XoPoolDashboard> {
-    return this.request<XoPoolDashboard>(`/pools/${encodeURIComponent(poolId)}/dashboard?ndjson=false`)
-  }
-
-  async listHosts(options?: ListOptions): Promise<Partial<XoHost>[]> {
-    const params = this.buildListParams('id,name_label,productBrand,version,power_state', options)
-    return this.request<Partial<XoHost>[]>(`/hosts?${params}`)
-  }
-
-  async getHost(hostId: string): Promise<XoHost> {
-    return this.request<XoHost>(`/hosts/${encodeURIComponent(hostId)}`)
-  }
-
-  async listVms(options?: ListOptions): Promise<Partial<XoVm>[]> {
-    const params = this.buildListParams('id,name_label,power_state,CPUs,memory', options)
-    return this.request<Partial<XoVm>[]>(`/vms?${params}`)
-  }
-
-  async listVdis(options?: ListOptions): Promise<Partial<XoVdi>[]> {
-    const params = this.buildListParams('id,name_label,name_description,$SR,size,usage,VDI_type', options)
-    return this.request<Partial<XoVdi>[]>(`/vdis?${params}`)
-  }
-
-  async getVm(vmId: string): Promise<XoVm> {
-    return this.request<XoVm>(`/vms/${encodeURIComponent(vmId)}`)
-  }
-
-  async listNetworks(options?: ListOptions): Promise<Partial<XoNetwork>[]> {
-    const params = this.buildListParams('id,name_label,name_description,bridge,MTU,nbd', options)
-    return this.request<Partial<XoNetwork>[]>(`/networks?${params}`)
-  }
-
-  async getNetwork(networkId: string): Promise<XoNetwork> {
-    return this.request<XoNetwork>(`/networks/${encodeURIComponent(networkId)}`)
-  }
-
-  async listSrs(options?: ListOptions): Promise<Partial<XoSr>[]> {
-    const params = this.buildListParams(
-      'id,name_label,SR_type,allocationStrategy,size,usage,physical_usage,shared',
-      options
-    )
-    return this.request<Partial<XoSr>[]>(`/srs?${params}`)
-  }
-
-  async getSr(srId: string): Promise<XoSr> {
-    return this.request<XoSr>(`/srs/${encodeURIComponent(srId)}`)
-  }
-
-  async getVmStats(vmId: string, granularity: XapiStatsGranularity = 'hours'): Promise<XapiVmStats> {
-    const params = new URLSearchParams()
-    params.set('granularity', granularity)
-    return this.request<XapiVmStats>(`/vms/${encodeURIComponent(vmId)}/stats?${params}`)
   }
 }

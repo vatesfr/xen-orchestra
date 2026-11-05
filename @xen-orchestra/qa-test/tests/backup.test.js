@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
+import { createLogger } from '@xen-orchestra/log'
 
 import { backupConfig } from '../backup.config.js'
 import { FilterBuilder } from '../client/FilterBuilder.js'
@@ -11,8 +12,12 @@ import {
   extractHealthCheckData,
   assertHealthCheckExists,
   assertHealthCheckSuccess,
+  getRequiredEnv,
 } from '../utils/index.js'
+import { assertBackupSuccess } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
+
+const log = createLogger('qa:backup:base')
 
 describe('Backup basic tests', () => {
   let vm
@@ -31,7 +36,7 @@ describe('Backup basic tests', () => {
     ;({ dispatchClient, tracker } = await setup())
 
     // Look for test VMs with incremental naming pattern
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
     const filter = FilterBuilder.create().withGlob('name_label', `${vmPrefix}-QA-Test-*`)
     const qaVms = await dispatchClient.vm.list(filter)
 
@@ -39,25 +44,19 @@ describe('Backup basic tests', () => {
 
     // Use the first available QA VM for backup tests
     vm = qaVms[0]
-    console.log(`✅ Found test VM for backup tests: ${vm.name_label} (${vm.uuid})`)
+    log.debug('Found test VM for backup tests', { name: vm.name_label, uuid: vm.uuid })
 
-    backupRepository = await dispatchClient.backupRepository.get({
-      name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-    })
+    const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
+    backupRepository = await dispatchClient.backupRepository.get({ name: backupRepositoryName })
 
     if (!backupRepository) {
-      console.warn(
-        `⚠️ Backup repository "${process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'}" not found, creating it for tests...`
-      )
+      log.warn('Backup repository not found, creating it for tests', { name: backupRepositoryName })
 
       // Create the backup repository for testing
       try {
-        const backupRepositoryId = await dispatchClient.backupRepository.create(
-          process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-          {
-            path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
-          }
-        )
+        const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
+          url: getRequiredEnv('BACKUP_REPOSITORY_URL'),
+        })
 
         // Fetch the canonical repository object from the API
         // eslint-disable-next-line require-atomic-updates -- sequential code in before() hook, no race condition
@@ -68,31 +67,26 @@ describe('Backup basic tests', () => {
         }
 
         // Track the newly created repository for cleanup
-        tracker.trackResource('backupRepository', backupRepositoryId, {
-          name: process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA',
-        })
+        tracker.trackResource('backupRepository', backupRepositoryId, { name: backupRepositoryName })
       } catch (error) {
-        console.error('❌ Failed to create test backup repository:', error.message)
+        log.warn('Failed to create test backup repository', { error })
         assert.fail(
-          `Backup repository "${process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'}" is required for backup tests - could not create it: ${error.message}`
+          `Backup repository "${backupRepositoryName}" is required for backup tests - could not create it: ${error.message}`
         )
       }
     }
 
     // Get SR for health checks by ID
-    const srId = process.env.SR_ID
-    if (!srId) {
-      throw new Error('SR_ID environment variable is required for backup tests with health checks')
-    }
+    const srId = getRequiredEnv('SR_ID')
 
-    console.log(`🔍 Getting SR for health checks by ID: ${srId}`)
+    log.debug('Getting SR for health checks', { srId })
     healthCheckSr = await dispatchClient.sr.details(srId)
 
     if (!healthCheckSr) {
       throw new Error(`SR with ID "${srId}" not found - cannot run backup tests with health checks`)
     }
 
-    console.log(`✅ Found SR for health checks: ${healthCheckSr.name_label}`)
+    log.debug('Found SR for health checks', { name: healthCheckSr.name_label })
 
     name = generateBackupJobName()
     defaultSchedule = getDefaultSchedule()
@@ -132,14 +126,14 @@ describe('Backup basic tests', () => {
 
       for (let index = 0; index < 3; index++) {
         const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
-        assert(result.status === 'success', `Expected backup status to be 'success', but got '${result.status}'`)
+        assertBackupSuccess(result, `Delta backup run ${index + 1}/3`)
         assertFullOrDelta(result, backupRepository.id, { mustBeFull: index === 0 })
 
         // Validate health check
         assertHealthCheckExists(result)
         assertHealthCheckSuccess(result)
         const healthCheckData = extractHealthCheckData(result)
-        console.log(`✅ Health check validated: ${healthCheckData.status} (${healthCheckData.duration}ms)`)
+        log.debug('Health check validated', { status: healthCheckData.status, duration: healthCheckData.duration })
       }
     })
     it('should run the backup job in full mode with health checks', async () => {
@@ -149,14 +143,14 @@ describe('Backup basic tests', () => {
       assert(realScheduleKey, 'Schedule key is required but was undefined')
 
       const result = await dispatchClient.backup.runJobAndGetLog(backupJobId, realScheduleKey)
-      assert(result.status === 'success', `Expected backup status to be 'success', but got '${result.status}'`)
+      assertBackupSuccess(result, 'Full backup with health checks')
       assertFullOrDelta(result, backupRepository.id, { mustBeFull: true })
 
       // Validate health check
       assertHealthCheckExists(result)
       assertHealthCheckSuccess(result)
       const healthCheckData = extractHealthCheckData(result)
-      console.log(`✅ Health check validated: ${healthCheckData.status} (${healthCheckData.duration}ms)`)
+      log.debug('Health check validated', { status: healthCheckData.status, duration: healthCheckData.duration })
     })
     it('should run backup without health check when SR not configured', async () => {
       const name = generateBackupJobName()
@@ -172,7 +166,7 @@ describe('Backup basic tests', () => {
 
       const healthCheckData = extractHealthCheckData(result)
       assert.strictEqual(healthCheckData.exists, false, 'Health check should not exist')
-      console.log(`✅ Backup without health check: confirmed no health check task`)
+      log.debug('Backup without health check: confirmed no health check task')
     })
     it('should detect health check task with different statuses', async () => {
       // Test success status
@@ -230,7 +224,7 @@ describe('Backup basic tests', () => {
         assert(error.message.includes('VM failed to start'), 'Error should include failure details')
       }
 
-      console.log(`✅ Health check error detection validated`)
+      log.debug('Health check error detection validated')
     })
   })
 

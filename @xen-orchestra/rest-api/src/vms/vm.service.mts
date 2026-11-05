@@ -31,7 +31,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import groupBy from 'lodash/groupBy.js'
-import { VmDashboard } from './vm.type.mjs'
+import type { UpdateVmRequestBody, VmDashboard } from './vm.type.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const log = createLogger('xo:rest-api:vm-service')
@@ -130,7 +130,7 @@ export class VmService {
           nSuspended++
           break
         default:
-          log.warn('Invalid VM power_state', {vmId: vm.id, vmPowerState : vm.power_state})
+          log.warn('Invalid VM power_state', { vmId: vm.id, vmPowerState: vm.power_state })
           nUnknown++
           break
       }
@@ -157,6 +157,7 @@ export class VmService {
     vmType: T['type']
   ): VdiType[] {
     const getObject = this.#restApi.getObject.bind(this.#restApi)
+    const vdiType = vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'
     const vdis: VdiType[] = []
 
     const vm = getObject<T>(id, vmType)
@@ -164,8 +165,12 @@ export class VmService {
     for (const vbdId of vm.$VBDs) {
       const vbd = getObject<XoVbd>(vbdId, 'VBD')
       if (vbd.VDI !== undefined) {
-        const vdi = getObject<VdiType>(vbd.VDI, [vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'])
-        vdis.push(vdi)
+        // Search for all VDI types, then push only the VDIs associated with the VM type.
+        // This avoids the "no such VDI ..." error if the VM has faulty VDIs. (is_snapshot:false, $snapshot_of: <vdiId>)
+        const vdi = getObject<VdiType>(vbd.VDI, ['VDI-snapshot', 'VDI'])
+        if (vdi.type === vdiType) {
+          vdis.push(vdi)
+        }
       }
     }
 
@@ -175,7 +180,11 @@ export class VmService {
   async export<Vm extends XoVm | XoVmSnapshot | XoVmTemplate>(
     id: Vm['id'],
     vmType: Vm['type'],
-    { compress, format, response }: { compress?: boolean; format: 'ova' | 'xva'; response?: ExResponse }
+    {
+      compress,
+      format,
+      response,
+    }: { compress?: boolean | 'zstd' | 'gzip'; format: 'ova' | 'xva'; response?: ExResponse }
   ): Promise<Readable> {
     const xapiVm = this.#restApi.getXapiObject(id, vmType)
 
@@ -210,6 +219,27 @@ export class VmService {
     })
 
     return alarms
+  }
+
+  async updateVm(id: XoVm['id'], body: UpdateVmRequestBody): Promise<void> {
+    const { resourceSet, share, ...editProps } = body
+
+    // Touch the object so 404 is raised before any side effect.
+    void this.#restApi.getObject<XoVm>(id, 'VM')
+    const xoApp = this.#restApi.xoApp
+
+    if (resourceSet !== undefined) {
+      await xoApp.setVmResourceSet(id, resourceSet, true)
+    } else if (share) {
+      // `share: false` is a no-op.
+      await xoApp.shareVmResourceSet(id)
+    }
+
+    if (Object.keys(editProps).length === 0) {
+      return
+    }
+
+    await xoApp.getXapi(id).editVm(id, editProps)
   }
 
   #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {
@@ -264,27 +294,32 @@ export class VmService {
 
   #getLastReplication(id: XoVm['id']): VmDashboard['backupsInfo']['replication'] {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
-    const replicatedVms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: obj => obj.other['xo:backup:vm'] === vm.id,
+    const snapshotReplicas = this.#restApi.getObjectsByType<XoVmSnapshot>('VM-snapshot', {
+      filter: obj => obj.other['xo:backup:vm'] === vm.id && obj.$snapshot_of !== vm.id,
     })
 
     let lastTimestamp: number | undefined
-    let lastReplica: XoVm | undefined
-    for (const id in replicatedVms) {
-      const replica = replicatedVms[id as XoVm['id']]
-      const timestamp = parseDateTime(replica.other['xo:backup:datetime'])
+    let lastReplicaId: XoVm['id'] | undefined
+    for (const id in snapshotReplicas) {
+      const snapshot = snapshotReplicas[id as XoVmSnapshot['id']]
+      const timestamp = parseDateTime(snapshot.other['xo:backup:datetime'])
+      if (timestamp === null) {
+        // the snapshot has no backup date, it can't be the last replication
+        continue
+      }
 
       if (lastTimestamp === undefined || lastTimestamp < timestamp) {
         lastTimestamp = timestamp
-        lastReplica = replica
+        lastReplicaId = snapshot.$snapshot_of
       }
     }
 
-    if (lastReplica === undefined) {
+    if (lastReplicaId === undefined) {
       return {}
     }
 
-    const vdis = this.getVmVdis(id, 'VM')
+    const replica = this.#restApi.getObject<XoVm>(lastReplicaId, 'VM')
+    const vdis = this.getVmVdis(replica.id, 'VM')
     let sr: XoSr['id'] | undefined = undefined
     for (const vdi of vdis) {
       if (sr === undefined) {
@@ -300,7 +335,7 @@ export class VmService {
     }
 
     return {
-      id: lastReplica.id,
+      id: replica.id,
       timestamp: lastTimestamp! * 1000,
       sr,
     }
@@ -390,7 +425,7 @@ export class VmService {
     const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
 
     return Object.values(backupArchivesByVmByBr)
-      .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
+      .filter(backupArchiveByVm => backupArchiveByVm !== null)
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)

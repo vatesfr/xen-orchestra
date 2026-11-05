@@ -183,6 +183,51 @@ test('close propagation', async () => {
   assert(source.closed)
 })
 
+test('getBlockIndexesCount - last source block not allocated, no trimming needed', async () => {
+  // virtualSize=2048, sourceBlockSize=512, blockSize=256, blockRatio=2
+  // #maxBlockIndex=8, lastSourceBlockIndex=3, hasBlock(3)=false
+  // count = 2 * 2 = 4
+  const source = new MockDisk(512, 2048, [
+    [0, Buffer.alloc(512)],
+    [2, Buffer.alloc(512)],
+  ])
+  await source.init()
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  assert.strictEqual(disk.getBlockIndexesCount(), 4)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+})
+
+test('getBlockIndexesCount - last source block allocated and aligned, excess=0', async () => {
+  // virtualSize=1024, sourceBlockSize=512, blockSize=256, blockRatio=2
+  // #maxBlockIndex=4, lastSourceBlockIndex=1, hasBlock(1)=true
+  // excess = (1+1)*2 - 4 = 0 -> count = 1*2 = 2
+  const source = new MockDisk(512, 1024, [[1, Buffer.alloc(512)]])
+  await source.init()
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  assert.strictEqual(disk.getBlockIndexesCount(), 2)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+})
+
+test('getBlockIndexesCount - unaligned end, last source block allocated, excess>0', async () => {
+  // virtualSize=2304, sourceBlockSize=1024, blockSize=256, blockRatio=4
+  // #maxBlockIndex=9, lastSourceBlockIndex=2, hasBlock(2)=true
+  // excess = (2+1)*4 - 9 = 3 -> count = 2*4 - 3 = 5
+  const source = new MockDisk(1024, 2048 + 256, [
+    [0, Buffer.alloc(1024)],
+    [2, Buffer.alloc(1024)],
+  ])
+  await source.init()
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  assert.strictEqual(disk.getBlockIndexesCount(), 5)
+  assert.strictEqual(disk.getBlockIndexesCount(), disk.getBlockIndexes().length)
+})
+
 test('unaligned END ', async () => {
   const source = new MockDisk(1024, 2048 + 256, [
     [0, Buffer.alloc(1024)],

@@ -16,7 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
-const SUPPORTED_VERSION = '>=2.10 <4.6'
+const SUPPORTED_VERSION = '>=2.10 <4.8'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -27,6 +27,16 @@ const M = 1024 ** 2
 const G = 1024 ** 3
 
 const { push } = Array.prototype
+
+const RFC1918_10 = ipaddr.parseCIDR('10.0.0.0/8')
+const RFC1918_172 = ipaddr.parseCIDR('172.16.0.0/12')
+const RFC1918_192 = ipaddr.parseCIDR('192.168.0.0/16')
+const IPV4_KIND = 'ipv4'
+const isRfc1918 = ip =>
+  ip.kind() === IPV4_KIND &&
+  (ip.match(RFC1918_10[0], RFC1918_10[1]) ||
+    ip.match(RFC1918_172[0], RFC1918_172[1]) ||
+    ip.match(RFC1918_192[0], RFC1918_192[1]))
 
 // =============================================================================
 
@@ -46,6 +56,7 @@ class Netbox {
   #syncUsers
   #token
   #xo
+  #ignoreRfc1918
 
   constructor({ xo }) {
     this.#xo = xo
@@ -66,9 +77,11 @@ class Netbox {
     }
     this.#allowUnauthorized = configuration.allowUnauthorized ?? false
     this.#syncUsers = configuration.syncUsers ?? false
-    this.#token = configuration.token
+    // NetBox UI may include "Bearer " or "Token " when copying tokens: strip it if present
+    this.#token = configuration.token.replace(/^(?:Bearer|Token)\s+/i, '')
     this.#xoPools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (state.loaded) {
@@ -141,10 +154,14 @@ class Netbox {
 
     let url = this.#endpoint + '/api' + path
     const options = {
-      headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: this.#token.startsWith('nbt_') ? `Bearer ${this.#token}` : `Token ${this.#token}`,
+      },
       method,
       rejectUnauthorized: !this.#allowUnauthorized,
       timeout: REQUEST_TIMEOUT,
+      bypassStatusCheck: true, // we want to get the error body
     }
 
     const httpRequest = async () => {
@@ -158,16 +175,21 @@ class Netbox {
         error.method = method
         error.requestBody = dataDebug
 
-        let resBody = 'Netbox error could not be retrieved'
-        try {
-          resBody = await error.response.text()
-          error.netboxError = JSON.parse(resBody)
-        } catch (err) {
-          log.error(err)
-          // If the error couldn't be parsed, expose the response's raw body
-          error.netboxError = resBody
+        // On a non-2xx response, `httpRequest` throws with the (undrained)
+        // response attached as `error.response` consume its body to expose the Netbox error. A root error (e.g.
+        // ECONNRESET) has no response and is rethrown as-is.
+        const { response } = error
+        if (response !== undefined) {
+          let resBody = 'Netbox error could not be retrieved'
+          try {
+            resBody = await response.text()
+            error.netboxError = JSON.parse(resBody)
+          } catch (err) {
+            log.error(err)
+            // If the error couldn't be parsed, expose the response's raw body
+            error.netboxError = resBody
+          }
         }
-
         throw error
       }
     }
@@ -211,7 +233,7 @@ class Netbox {
       throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
     }
     const types = uuidCustomField.object_types ?? uuidCustomField.content_types
-    const typesWithUuid = TYPES_WITH_UUID
+    const typesWithUuid = [...TYPES_WITH_UUID]
     if (this.#syncUsers) {
       typesWithUuid.push('tenancy.tenant')
     }
@@ -224,7 +246,7 @@ class Netbox {
     try {
       this.#netboxVersion = semver.coerce((await this.#request('/status/'))['netbox-version']).version
     } catch (err) {
-      if (err?.response?.statusCode === 404) {
+      if (err?.response?.status === 404) {
         // Endpoint not supported on versions prior to v2.10
         // Best effort to support earlier versions without knowing the version explicitly
         return
@@ -236,6 +258,16 @@ class Netbox {
 
   async #checkNetboxVersion() {
     await this.#fetchNetboxVersion()
+
+    if (
+      this.#netboxVersion !== undefined &&
+      semver.satisfies(this.#netboxVersion, '>=4.5') &&
+      !this.#token.startsWith('nbt_')
+    ) {
+      log.warn(
+        'You are using a v1 API token, which is deprecated since NetBox 4.5 and will be removed in v5.0. Please migrate to a v2 token (tokens starting with "nbt_") from your NetBox interface.'
+      )
+    }
 
     if (!this.#xo.config.getOptional('netbox.checkNetboxVersion')) {
       return
@@ -498,18 +530,37 @@ class Netbox {
 
       const distro = xoVm.os_version?.distro
       if (distro != null) {
-        const slug = slugify(distro)
-        let nbPlatform = find(nbPlatforms, { slug })
-        if (nbPlatform === undefined) {
+        const distroSlug = slugify(distro)
+        let nbDistroPlatform = find(nbPlatforms, { slug: distroSlug })
+        if (nbDistroPlatform === undefined) {
           // TODO: Should we also delete/update platforms in Netbox?
-          nbPlatform = await this.#request('/dcim/platforms/', 'POST', {
+          nbDistroPlatform = await this.#request('/dcim/platforms/', 'POST', {
             name: distro,
-            slug,
+            slug: distroSlug,
           })
-          nbPlatforms[nbPlatform.id] = nbPlatform
+          nbPlatforms[nbDistroPlatform.id] = nbDistroPlatform
         }
 
-        nbVm.platform = nbPlatform.id
+        const major = xoVm.os_version?.major
+        if (major != null && this.#netboxVersion !== undefined && semver.satisfies(this.#netboxVersion, '>=4.4')) {
+          // Use the parent's name rather than the raw distro string to ensure
+          // consistent casing across sibling platforms (e.g. always "Fedora 37",
+          // "Fedora 38" even if different VMs report "fedora" and "Fedora")
+          const versionedName = `${nbDistroPlatform.name} ${major}`
+          const versionedSlug = slugify(versionedName)
+          let nbVersionedPlatform = find(nbPlatforms, { slug: versionedSlug })
+          if (nbVersionedPlatform === undefined) {
+            nbVersionedPlatform = await this.#request('/dcim/platforms/', 'POST', {
+              name: versionedName,
+              slug: versionedSlug,
+              parent: nbDistroPlatform.id,
+            })
+            nbPlatforms[nbVersionedPlatform.id] = nbVersionedPlatform
+          }
+          nbVm.platform = nbVersionedPlatform.id
+        } else {
+          nbVm.platform = nbDistroPlatform.id
+        }
       }
 
       // Tags
@@ -580,7 +631,7 @@ class Netbox {
     // necessary
     const allNbVmsList = await this.#request('/virtualization/virtual-machines/?' + allClusterFilter)
     // Then get only the ones from the pools we're synchronizing
-    const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster.id }))
+    const nbVmsList = allNbVmsList.filter(nbVm => some(nbClusters, { id: nbVm.cluster?.id }))
     // Then make them objects to map the Netbox VMs to their XO VMs
     // { VM UUID → Netbox VM }
     const allNbVms = keyBy(allNbVmsList, 'custom_fields.uuid')
@@ -603,7 +654,7 @@ class Netbox {
       const nbCluster = nbClusters[xoPoolId]
 
       // Get Netbox VMs that are supposed to be in this pool
-      const xoPoolNbVms = pickBy(nbVms, nbVm => nbVm.cluster.id === nbCluster.id)
+      const xoPoolNbVms = pickBy(nbVms, nbVm => nbVm.cluster?.id === nbCluster.id)
 
       // For each XO VM of this pool (I)
       for (const xoVm of Object.values(xoPoolVms)) {
@@ -808,12 +859,17 @@ class Netbox {
           }
           const ipKind = parsedIp.kind()
 
+          if (this.#ignoreRfc1918 && isRfc1918(parsedIp)) {
+            continue
+          }
+
           // Find the smallest prefix within Netbox's existing prefixes
           // Users must create prefixes themselves
           let smallestPrefix
           let highestBits = 0
           nbPrefixes.forEach(({ prefix }) => {
-            const [range, bits] = prefix.split('/')
+            const [range, bitsStr] = prefix.split('/')
+            const bits = Number(bitsStr)
             let parsedRange
             try {
               parsedRange = ipaddr.parse(range)
@@ -835,7 +891,8 @@ class Netbox {
 
           const xoCompactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
           const nbIp = find(nbIpsToCheck, nbIp => {
-            const [ip, bits] = nbIp.address.split('/')
+            const [ip, bitsStr] = nbIp.address.split('/')
+            const bits = Number(bitsStr)
             let nbCompactIp
             try {
               nbCompactIp = ipaddr.parse(ip).toString()

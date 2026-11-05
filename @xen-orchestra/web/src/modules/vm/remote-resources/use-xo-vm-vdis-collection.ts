@@ -1,20 +1,22 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { vdiFields, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { type FrontXoVdi, vdiFields } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import { useOncePerScope, waitForCollection } from '@core/packages/remote-resource/utils/remote-resource.util.ts'
 import { toValue } from 'vue'
 
 export const useXoVmVdisCollection = defineRemoteResource({
-  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}`,
+  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}&ndjson=true`,
+  stream: true,
   initialData: () => [] as FrontXoVdi[],
   initWatchCollection: () =>
     useWatchCollection<FrontXoVdi>({
       collectionId: 'vmVdi',
       resource: 'VDI',
       fields: vdiFields,
-      predicate(obj, context) {
+      async predicate(obj, context) {
         if (context === undefined || context.args === undefined || Array.isArray(obj)) {
           return true
         }
@@ -22,9 +24,9 @@ export const useXoVmVdisCollection = defineRemoteResource({
         const [id] = context.args
         const vmId = toValue(id)
 
-        const { getVbdsByIds } = useXoVbdCollection(context)
-        const vbds = getVbdsByIds(obj.$VBDs)
+        const { getVbdsByIds } = await waitForCollection(useOncePerScope(useXoVbdCollection, context))
 
+        const vbds = getVbdsByIds(obj.$VBDs)
         return vbds.some(vbd => vbd.VM === vmId)
       },
     }),

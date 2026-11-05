@@ -1,9 +1,9 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { join } from '@xen-orchestra/fs/path'
+import { Task } from '@vates/task'
 
 import { DIR_XO_CONFIG_BACKUPS } from '../RemoteAdapter.mjs'
 import { formatFilenameDate } from '../_filenameDate.mjs'
-import { Task } from '../Task.mjs'
 
 export class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {
@@ -51,8 +51,8 @@ export class XoMetadataBackup {
       ([remoteId, adapter]) =>
         Task.run(
           {
-            name: `Starting XO metadata backup for the remote (${remoteId}). (${job.id})`,
-            data: {
+            properties: {
+              name: `Starting XO metadata backup for the remote (${remoteId}). (${job.id})`,
               id: remoteId,
               type: 'remote',
             },

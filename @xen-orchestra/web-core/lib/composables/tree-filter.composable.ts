@@ -1,5 +1,5 @@
 import { useDebouncedRef } from '@core/composables/debounced-ref.composable.ts'
-import type { TreeNodeBase } from '@core/packages/tree/tree-node-base'
+import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
 import { whenever } from '@vueuse/shared'
 import { computed } from 'vue'
 

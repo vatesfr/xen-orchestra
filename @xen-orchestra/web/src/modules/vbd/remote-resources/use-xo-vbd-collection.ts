@@ -15,10 +15,13 @@ const vbdFields = [
   'type',
   'attached',
   'device',
+  'read_only',
+  'bootable',
 ] as const satisfies readonly (keyof XoVbd)[]
 
 export const useXoVbdCollection = defineRemoteResource({
-  url: `${BASE_URL}/vbds?fields=${vbdFields.join(',')}`,
+  url: `${BASE_URL}/vbds?fields=${vbdFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VBD', fields: vbdFields }),
   initialData: () => [] as FrontXoVbd[],
   state: (vbds, context) =>

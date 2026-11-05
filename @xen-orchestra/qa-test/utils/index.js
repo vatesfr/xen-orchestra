@@ -1,9 +1,31 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
+
+const log = createLogger('xo:qa-test:utils')
 
 // =============================================================================
 // VALIDATION UTILITIES
 // =============================================================================
+
+/**
+ * Reads a required environment variable, throwing if it is missing or empty.
+ *
+ * Used everywhere the QA suite needs configuration so that a missing `.env`
+ * (or a typoed key) fails the test immediately with a clear message rather
+ * than silently falling back to a default that may point at production data.
+ *
+ * @param {string} name - Environment variable name
+ * @returns {string} The variable's value
+ * @throws {Error} If the variable is unset or an empty string
+ */
+export function getRequiredEnv(name) {
+  const value = process.env[name]
+  if (value === undefined || value === '') {
+    throw new Error(`Required environment variable ${name} is not set — check that .env is loaded`)
+  }
+  return value
+}
 
 /**
  * Asserts that a value is a non-empty string.
@@ -104,6 +126,23 @@ export function generateBackupJobName() {
   return `${BACKUP_JOB_NAME_PREFIX}${Date.now()}`
 }
 
+/**
+ * Converts a non-empty list of resource IDs into a backupNg "simple pattern".
+ *
+ * Inverse of `extractIdsFromSimplePattern` (@xen-orchestra/backups):
+ *   - one id:      { id: 'a' }
+ *   - several ids: { id: { __or: ['a', 'b'] } }
+ *
+ * Callers must guard against empty input; an empty list yields the degenerate
+ * pattern `{ id: { __or: [] } }`, which matches nothing.
+ *
+ * @param {ReadonlyArray<string>} ids - Resource IDs (vms, remotes, srs, pools…)
+ * @returns {{ id: string | { __or: string[] } }} The simple pattern
+ */
+export function toSimplePattern(ids) {
+  return ids.length === 1 ? { id: ids[0] } : { id: { __or: ids } }
+}
+
 export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, options = {}) {
   const startTime = Date.now()
   let currentInterval = interval
@@ -116,7 +155,7 @@ export async function waitUntil(conditionFn, interval = 1000, timeout = 15_000, 
       }
     } catch (error) {
       // Continue waiting on errors
-      console.debug('waitUntil condition error:', error.message)
+      log.debug('waitUntil condition error', { error })
     }
 
     await delay(currentInterval)
@@ -194,6 +233,131 @@ export function getIsFullForBackupRepository(logEntry, backupRepositoryUuid) {
   }
 
   return undefined // Export operation not found for this backup repository
+}
+
+// =============================================================================
+// SR REPLICATION (CR/DR MODE) UTILITIES
+// =============================================================================
+
+/**
+ * Determines whether a replication was full or incremental for a specific SR.
+ *
+ * Similar to getIsFullForBackupRepository but checks for SR-type exports
+ * (used in CR mode — delta replication to SR).
+ *
+ * @param {Object} logEntry - Backup log entry object from XenOrchestra
+ * @param {string} srUuid - UUID of the target SR
+ * @returns {boolean|undefined} True if full, false if incremental, undefined if not found
+ */
+export function getIsFullForSr(logEntry, srUuid) {
+  if (!logEntry || typeof logEntry !== 'object') {
+    throw new Error('Valid log entry object is required')
+  }
+
+  assertNonEmptyString(srUuid, 'Valid SR UUID string is required')
+
+  function searchTasks(tasks) {
+    if (!Array.isArray(tasks)) {
+      return undefined
+    }
+
+    for (const task of tasks) {
+      if (
+        task.message === 'export' &&
+        task.data &&
+        task.data.id === srUuid &&
+        task.data.type === 'SR' &&
+        typeof task.data.isFull === 'boolean'
+      ) {
+        return task.data.isFull
+      }
+
+      if (task.tasks && task.tasks.length > 0) {
+        const result = searchTasks(task.tasks)
+        if (result !== undefined) {
+          return result
+        }
+      }
+    }
+
+    return undefined
+  }
+
+  if (logEntry.tasks && logEntry.tasks.length > 0) {
+    const result = searchTasks(logEntry.tasks)
+    if (result !== undefined) {
+      return result
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * Asserts replication type (full or delta) for a given target SR.
+ *
+ * @param {Object} result - Backup log result
+ * @param {string} srUuid - UUID of the target SR
+ * @param {Object} options
+ * @param {boolean} options.mustBeFull - Whether replication should be full
+ * @throws {Error} If replication type does not match expectation
+ */
+export function assertFullOrDeltaForSr(result, srUuid, { mustBeFull }) {
+  const isFull = getIsFullForSr(result, srUuid)
+  assert.strictEqual(
+    isFull,
+    mustBeFull,
+    `SR replication should be ${mustBeFull ? 'full' : 'delta'}, got ${isFull === undefined ? 'not found' : isFull ? 'full' : 'delta'}`
+  )
+}
+
+/**
+ * Finds the first task matching a given message name in a backup log entry.
+ *
+ * Recursively searches through all tasks and subtasks.
+ *
+ * @param {Object} logEntry - Backup log entry from XenOrchestra
+ * @param {string} message - Task message to search for (e.g., 'target snapshot', 'transfer')
+ * @returns {Object|null} The matching task or null if not found
+ */
+export function findTaskByMessage(logEntry, message) {
+  function search(tasks) {
+    if (!Array.isArray(tasks)) {
+      return null
+    }
+
+    for (const task of tasks) {
+      if (task.message === message) {
+        return task
+      }
+
+      if (task.tasks && task.tasks.length > 0) {
+        const result = search(task.tasks)
+        if (result) {
+          return result
+        }
+      }
+    }
+
+    return null
+  }
+
+  return search(logEntry.tasks || [])
+}
+
+/**
+ * Finds the first info matching a given message name in a backup log entry.
+ *
+ * Only the infos of the log itself are searched: the infos emitted on the root
+ * task are merged into it (see `taskFormatAdapter()` in
+ * xo-server/src/xo-mixins/backups-ng-logs.mjs).
+ *
+ * @param {Object} logEntry - Backup log entry from XenOrchestra
+ * @param {string} message - Info message to search for (e.g., 'vms', 'synchronized snapshot')
+ * @returns {Object|null} The matching info or null if not found
+ */
+export function findInfoByMessage(logEntry, message) {
+  return logEntry.infos?.find(info => info.message === message) ?? null
 }
 
 // =============================================================================
@@ -460,6 +624,55 @@ export function getBackupTransferredBytes(logEntry) {
   }
 
   return findTransferSize(logEntry.tasks || [])
+}
+
+// Unlike getBackupTransferredBytes (first match only), sums across every VM in the log.
+export function sumBackupTransferredBytes(logEntry) {
+  let total = 0
+
+  function walk(tasks) {
+    for (const task of tasks ?? []) {
+      if (task.message === 'transfer' && task.result?.size !== undefined) {
+        total += task.result.size
+      }
+      if (task.tasks?.length > 0) {
+        walk(task.tasks)
+      }
+    }
+  }
+
+  walk(logEntry?.tasks || [])
+  return total
+}
+
+// Sums, across every VM in the log, snapshot duration and both clean-vm calls: the one before
+// export (pre-run cleanup, normally a no-op) and the one inside export (post-transfer, where a
+// merge triggered by exportRetention actually happens) — kept separate since only the latter
+// tends to get expensive.
+export function sumBackupPhaseDurations(logEntry) {
+  let snapshotDurationMs = 0
+  let cleanVmBeforeDurationMs = 0
+  let cleanVmAfterDurationMs = 0
+
+  const duration = task => (task.end ?? task.start) - task.start
+
+  for (const vmTask of logEntry?.tasks ?? []) {
+    for (const task of vmTask.tasks ?? []) {
+      if (task.message === 'snapshot') {
+        snapshotDurationMs += duration(task)
+      } else if (task.message === 'clean-vm') {
+        cleanVmBeforeDurationMs += duration(task)
+      } else if (task.message === 'export') {
+        for (const exportTask of task.tasks ?? []) {
+          if (exportTask.message === 'clean-vm') {
+            cleanVmAfterDurationMs += duration(exportTask)
+          }
+        }
+      }
+    }
+  }
+
+  return { snapshotDurationMs, cleanVmBeforeDurationMs, cleanVmAfterDurationMs }
 }
 
 /**

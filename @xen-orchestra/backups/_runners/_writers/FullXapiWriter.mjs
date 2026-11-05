@@ -1,9 +1,9 @@
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { Task } from '@vates/task'
 
 import { formatFilenameDate } from '../../_filenameDate.mjs'
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { Task } from '../../Task.mjs'
 
 import { AbstractFullWriter } from './_AbstractFullWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
@@ -14,11 +14,11 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
   constructor(props) {
     super(props)
 
-    this.run = Task.wrapFn(
+    this.run = Task.wrap(
       {
-        name: 'export',
-        data: {
+        properties: {
           id: props.sr.uuid,
+          name: 'export',
           name_label: this._sr.name_label,
           type: 'SR',
 
@@ -34,7 +34,7 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
     const sr = this._sr
     const settings = this._settings
     const job = this._job
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
     const { uuid: srUuid, $xapi: xapi } = sr
 
@@ -52,7 +52,7 @@ export class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
     }
 
     let targetVmRef
-    await Task.run({ name: 'transfer' }, async () => {
+    await Task.run({ properties: { name: 'transfer' } }, async () => {
       targetVmRef = await xapi.VM_import(stream, sr.$ref, vm =>
         Promise.all([
           !_warmMigration && vm.add_tags('Disaster Recovery'),

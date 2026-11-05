@@ -1,0 +1,108 @@
+<template>
+  <UiPanelCard class="storage-repository-infos-card">
+    <UiPanelCardTitle
+      :id="sr.uuid"
+      size="medium"
+      :label="sr.name_label"
+      :icon="sr.name_label ? srStatusIcon : undefined"
+    />
+    <div class="content">
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('status') }}</template>
+        <template #value>
+          <VtsStatus :status="srConnectionStatus" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
+        <template #key>{{ t('description') }}</template>
+        <template #value>{{ sr.name_description }}</template>
+        <template v-if="sr.name_description" #addons>
+          <VtsCopyButton :value="sr.name_description" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
+        <template #key>{{ t('tags') }}</template>
+        <template #value>
+          <UiTagsList v-if="sr.tags.length > 0">
+            <VtsTag v-for="tag in sr.tags" :key="tag" :value="tag" />
+          </UiTagsList>
+        </template>
+        <template v-if="sr.tags.length > 0" #addons>
+          <VtsCopyButton :value="sr.tags.join(', ')" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('storage-format') }}</template>
+        <template #value>{{ sr.type }}</template>
+        <template #addons>
+          <VtsCopyButton :value="sr.type" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('access-mode') }}</template>
+        <template #value>{{ isSrSharedI18nValue }}</template>
+        <template #addons>
+          <VtsCopyButton :value="isSrSharedI18nValue" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('provisioning') }}</template>
+        <template #value>{{ allocationStrategy }}</template>
+        <template #addons>
+          <VtsCopyButton :value="allocationStrategy" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('high-availability') }}</template>
+        <template #value><VtsStatus :status="isHaSr" /></template>
+      </VtsCardRowKeyValue>
+    </div>
+  </UiPanelCard>
+</template>
+
+<script lang="ts" setup>
+import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
+import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { sr, pool, scope } = defineProps<{
+  sr: XenApiSr
+  pool: XenApiPool
+  scope: SrScope
+}>()
+
+const { t } = useI18n()
+
+const { isHaSr: isHaSrForPool, getAllocationStrategy } = useSrStore().subscribe()
+
+const { srConnectionStatus, srStatusIcon } = useSrUtils(
+  () => sr,
+  () => scope
+)
+
+const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
+
+const allocationStrategy = computed(() => getAllocationStrategy(sr) ?? t('unknown'))
+
+const isHaSr = computed(() => isHaSrForPool(sr, pool))
+</script>
+
+<style scoped lang="postcss">
+.storage-repository-infos-card {
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+</style>

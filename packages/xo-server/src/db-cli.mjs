@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { createClient as createRedisClient } from 'redis'
 import { start as startRepl } from 'repl'
 import appConf from 'app-conf'
+import { startSpinner } from './_cli-utils.mjs'
 
 import RedisCollection from './collection/redis.mjs'
 
@@ -14,16 +14,16 @@ function assert(test, message) {
 }
 
 async function getDb(namespace) {
-  const { connection } = this
   return new RedisCollection({
-    connection,
-    indexes: await connection.sMembers(`xo:${namespace}::indexes`),
+    connection: this.xo._redis,
+    indexes: await this.xo._redis.sMembers(`xo:${namespace}::indexes`),
     namespace,
+    crypto: this.xo.cryptoCredentials,
   })
 }
 
 function getNamespaces() {
-  return this.connection.sMembers('xo::namespaces')
+  return this.xo._redis.sMembers('xo::namespaces')
 }
 
 function parseParam(args) {
@@ -77,7 +77,7 @@ const COMMANDS = {
       prompt: '> ',
     })
     const { context } = repl
-    context.redis = this.connection
+    context.redis = this.xo._redis
     for (const namespace of await this.getNamespaces()) {
       context[namespace] = await this.getDb(namespace)
     }
@@ -93,6 +93,26 @@ const COMMANDS = {
     await new Promise((resolve, reject) => {
       repl.on('error', reject).on('exit', resolve)
     })
+  },
+
+  async 'disable-remote'(args) {
+    const id = args[0]
+    assert(id, 'disable-remote requires a remote id')
+
+    const db = await this.getDb('remote')
+    const remote = await db.first(id)
+
+    assert(remote, `Remote ${id} not found`)
+
+    if (remote.enabled !== true && remote.enabled !== 'true') {
+      process.stdout.write(`Remote ${remote.name} (${id}) already disabled\n`)
+      return
+    }
+
+    remote.enabled = false
+    await db.update(remote)
+
+    process.stdout.write(`Remote ${remote.name} (${id}) disabled\n`)
   },
 }
 
@@ -116,7 +136,7 @@ xo-server-db ls <namespace> [<pattern>...]
 
       Patterns have the following format \`<field>=<value>\`.
 
-xo-server-logs repl
+xo-server-db repl
 
     Open a REPL to interact directly with the database.
 
@@ -124,29 +144,45 @@ xo-server-logs repl
       - redis: a raw node-redis instance connected to the database
       - <namespace>: an xo-collection instance to the corresponding namespace in the database
 
+xo-server-db disable-remote <id>
+
+    Disable a remote so that xo-server does not mount it on its next start.
+
+    <id>
+      The id of the remote to disable.
+
 `)
     return
   }
 
-  const config = await appConf.load('xo-server', {
-    appDir: new URL('..', import.meta.url).pathname,
-    ignoreUnknownFormats: true,
-  })
+  const stopSpinner = startSpinner()
 
-  const { socket: path, uri: url } = config.redis || {}
-  const connection = createRedisClient({
-    socket: { path },
-    url,
-  })
-  await connection.connect()
-  // await repl({ context: { redis: connection } })
+  // Import xo.mjs now so we display the loader.
+  const [{ default: Xo }, config] = await Promise.all([
+    import('./xo.mjs'),
+    appConf.load('xo-server', {
+      appDir: new URL('..', import.meta.url).pathname,
+      ignoreUnknownFormats: true,
+    }),
+  ])
+
+  const xo = new Xo({ config })
+  await xo.hooks.startCore()
+  stopSpinner()
+
   try {
     const fn = COMMANDS[args.shift()]
     assert(fn !== undefined, 'command must be one of: ' + Object.keys(COMMANDS).join(', '))
 
-    await fn.call({ connection, getDb, getNamespaces }, args)
+    await fn.call({ xo, getDb, getNamespaces }, args)
   } finally {
-    await connection.quit()
+    await xo.hooks.stop()
   }
 }
-main(process.argv.slice(2)).catch(console.error)
+main(process.argv.slice(2)).then(
+  () => process.exit(0),
+  error => {
+    console.error(error)
+    process.exit(1)
+  }
+)

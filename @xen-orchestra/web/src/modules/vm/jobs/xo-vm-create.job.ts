@@ -1,9 +1,28 @@
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
-import { fetchPost } from '@/shared/utils/fetch.util'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import type { XoGpuGroup, XoHost, XoPool, XoTask, XoVdi, XoVgpuType, XoVm, XoVmTemplate } from '@vates/types'
+import type { XoGpuGroup, XoHost, XoPool, XoSr, XoTask, XoVdi, XoVgpuType, XoVm, XoVmTemplate } from '@vates/types'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+export type NewVmVdiPayload =
+  | /** Create VDI */ {
+      name_label: string
+      size: number
+      sr: XoSr['id'] | undefined
+      name_description?: string
+    }
+  | /** Update VDI */ {
+      userdevice: string
+      name_label?: string
+      size?: number
+      sr?: XoSr['id']
+      name_description?: string
+    }
+  | /** Destroy VDI */ {
+      destroy: true
+      userdevice: string
+    }
 
 // Payload that the REST API expects
 type TCreateVmPayload = {
@@ -15,22 +34,8 @@ type TCreateVmPayload = {
   poolId: XoPool['id']
   template: XoVmTemplate['uuid']
   affinity?: XoHost['id']
-  vdis?: (
-    | {
-        name_label: string
-        size: number
-        sr?: string
-        name_description?: string
-      }
-    /** Update existing VDI */
-    | {
-        userdevice: string
-        name_label?: string
-        size: number
-        sr?: string
-        name_description?: string
-      }
-  )[]
+  high_availability?: '' | 'restart' | 'best-effort'
+  vdis?: NewVmVdiPayload[]
   vifs?: unknown[]
   install?: {
     method: 'cdrom' | 'network' | 'ssh-key'
@@ -69,7 +74,7 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
 
     validate(isRunning, payloads) {
       if (isRunning) {
-        throw new JobRunningError(t('job:vm-create:in-progress'))
+        throw new JobRunningError(t('job:create:in-progress'))
       }
 
       if (payloads.length === 0) {
@@ -95,10 +100,10 @@ export const useXoVmCreateJob = defineJob('vm.create', [payloadsArg], () => {
         }
 
         if (value.name_label.length === 0) {
-          throw new JobError(t('job:arg:name-label-required'))
+          throw new JobError(t('job:arg:name-required'))
         }
 
-        if (value.vdis?.some(vdi => vdi.sr === undefined)) {
+        if (value.vdis?.some(vdi => !('userdevice' in vdi) && vdi.sr === undefined)) {
           throw new JobError(t('job:arg:sr-vdi-required'))
         }
       })

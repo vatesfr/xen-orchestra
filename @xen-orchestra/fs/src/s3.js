@@ -26,6 +26,7 @@ import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './path'
 import { asyncEach } from '@vates/async-each'
+import { version } from '../package.json'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -39,10 +40,19 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
   #s3
+  #httpAgent
+  #httpsAgent
   #immutable = false
   #maxPartSize
   #maxPartNumber
   #minPartSize
+
+  getConfig(key) {
+    if (key === 'useVhdDirectory') {
+      return true // compatibility layer
+    }
+    return super.getConfig(key)
+  }
 
   constructor(remote, _opts) {
     super(remote, _opts)
@@ -64,6 +74,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     this.#minPartSize = minPartSize
 
     this.#s3 = new S3Client({
+      customUserAgent: `xen-orchestra-fs-${version}`,
       apiVersion: '2006-03-01',
       endpoint: `${protocol}://${host}`,
       forcePathStyle: true,
@@ -75,13 +86,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       region,
       requestHandler: new NodeHttpHandler({
         socketTimeout: 600000,
-        httpAgent: new HttpAgent({
+        httpAgent: (this.#httpAgent = new HttpAgent({
           keepAlive: true,
-        }),
-        httpsAgent: new HttpsAgent({
+        })),
+        httpsAgent: (this.#httpsAgent = new HttpsAgent({
           rejectUnauthorized: !allowUnauthorized,
           keepAlive: true,
-        }),
+        })),
       }),
       // from https://github.com/aws/aws-sdk-js-v3/issues/6810
       // some non AWS services like backblaze or cloudflare don't expect the new headers
@@ -96,6 +107,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   get type() {
     return 's3'
+  }
+
+  async _forget() {
+    this.#s3.destroy()
+    this.#httpAgent.destroy()
+    this.#httpsAgent.destroy()
   }
 
   #makeCopySource(path) {
@@ -286,7 +303,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _unlink(path) {
-    await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    try {
+      await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    } catch (error) {
+      // Some providers answers 404 NoSuchKey where AWS answers 204
+      if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
+        throw error
+      }
+    }
 
     if (await this.#isNotEmptyDir(path)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
@@ -353,8 +377,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
-    return +result.ContentLength
+    try {
+      const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
+      return +result.ContentLength
+    } catch (error) {
+      // a HEAD response has no body, so a missing object is reported as
+      // NotFound instead of the NoSuchKey the other methods get
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: error })
+        enoentError.code = 'ENOENT'
+        enoentError.path = file
+        throw enoentError
+      }
+      throw error
+    }
   }
 
   async _read(file, buffer, position = 0) {
@@ -431,7 +467,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
             new DeleteObjectsCommand({
               Bucket: this.#bucket,
               Delete: {
-                Objects: result.Contents ?? [],
+                // only keep the key: `ETag` and `Size` are also part of `ObjectIdentifier`, where they
+                // mean "delete only if it still matches", and passing the whole listed object would
+                // serialize them in the request. Beyond making the deletion conditional, some
+                // providers reject these elements with a `MalformedXML` error.
+                Objects: (result.Contents ?? []).map(({ Key }) => ({ Key })),
               },
             })
           )
@@ -480,9 +520,5 @@ export default class S3Handler extends RemoteHandlerAbstract {
         throw error
       }
     }
-  }
-
-  useVhdDirectory() {
-    return true
   }
 }

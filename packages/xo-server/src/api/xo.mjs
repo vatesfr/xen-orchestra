@@ -1,9 +1,14 @@
 import * as CM from 'complex-matcher'
+import { asyncEach } from '@vates/async-each'
 import { fromCallback } from 'promise-toolbox'
 import { getStreamAsBuffer } from 'get-stream'
+import { parseDateTime } from '@xen-orchestra/xapi'
 import { pipeline } from 'readable-stream'
-
+import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
+import { getCurrentVmUuid as getCurrentVmUuidFromXenStore, isNotInXenVm } from '../_XenStore.mjs'
+import iteratee from 'lodash/iteratee.js'
+import { ALL_VISIBLE } from '../_objectVisibility.mjs'
 
 // ===================================================================
 
@@ -16,7 +21,8 @@ clean.permission = 'admin'
 // -------------------------------------------------------------------
 
 export async function exportConfig({ compress, entries, passphrase }) {
-  let suffix = '/config.json'
+  const date = safeDateFormat(new Date())
+  let suffix = `/XO-config_${date}.json`
   if (compress) {
     suffix += '.gz'
   }
@@ -55,10 +61,25 @@ function handleGetAllObjects(req, res, { filter, limit }) {
   return fromCallback(pipeline, createNdJsonStream(objects), res)
 }
 
-export function getAllObjects({ filter, limit, ndjson = false }) {
+function composeFilter(filter, isObjectVisible) {
+  const predicate = filter === undefined ? undefined : iteratee(filter)
+
+  if (isObjectVisible === ALL_VISIBLE) {
+    return predicate
+  } else if (predicate === undefined) {
+    return (object, id) => isObjectVisible(id)
+  } else {
+    return (object, id, objects) => isObjectVisible(id) && predicate(object, id, objects)
+  }
+}
+
+export async function getAllObjects({ filter, limit, ndjson = false }) {
   if (typeof filter === 'string') {
     filter = CM.parse(filter).createPredicate()
   }
+
+  const isObjectVisible = await this.getObjectFilterForUser(this.apiContext.user.id)
+  filter = composeFilter(filter, isObjectVisible)
 
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, {
@@ -93,3 +114,58 @@ importConfig.permission = 'admin'
 importConfig.params = {
   passphrase: { type: 'string', optional: true },
 }
+
+export async function snapshotBeforeUpgrade() {
+  const SNAPSHOT_LABEL = 'Snapshot before update, delete after successful upgrade.'
+
+  // Maximum number of upgrade snapshots to keep, including the one about to be
+  // created. Older snapshots beyond this limit are rotated out.
+  //
+  // Defaults to 1 (keep only the latest) when the config entry is missing.
+  const maxSnapshots = Math.max(1, this.config.getOptional('xoa.numberOfUpgradeSnapshots') ?? 1)
+
+  const vmUuid = await getCurrentVmUuidFromXenStore()
+  let vm, xapi
+  try {
+    vm = this.getXapiObject(vmUuid, 'VM')
+    xapi = vm.$xapi
+  } catch (err) {
+    throw new Error(`This VM is not handled by this XOA, maybe it's not connected to the pool running it `, {
+      cause: err,
+    })
+  }
+
+  // delete the oldest upgrade snapshots so that at most `maxSnapshots` remain
+  // once the new one is created
+  const upgradeSnapshots = vm.$snapshots
+    .filter(({ name_label }) => name_label === SNAPSHOT_LABEL)
+    .sort((a, b) => parseDateTime(a.snapshot_time) - parseDateTime(b.snapshot_time))
+  const snapshotsToDelete = upgradeSnapshots.slice(0, Math.max(0, upgradeSnapshots.length - (maxSnapshots - 1)))
+  await asyncEach(snapshotsToDelete, snapshot => snapshot.$destroy(), { concurrency: 2 })
+
+  await xapi.VM_snapshot(vm.$ref, { name_label: SNAPSHOT_LABEL })
+}
+
+snapshotBeforeUpgrade.permission = 'admin'
+
+snapshotBeforeUpgrade.params = {}
+
+// lets a client tell which SRs can hold a VDI plugged onto this VM, e.g. the cache of a live restore
+export async function getCurrentVmUuid() {
+  try {
+    return await getCurrentVmUuidFromXenStore()
+  } catch (error) {
+    // any other failure, e.g. not being allowed to read the XenStore, is reported rather than
+    // turned into a missing VM, which would silently disable what depends on it
+    if (!isNotInXenVm(error)) {
+      throw error
+    }
+    return null
+  }
+}
+
+getCurrentVmUuid.description = 'UUID of the VM running XO, null when XO does not run in a Xen VM'
+
+getCurrentVmUuid.permission = 'admin'
+
+getCurrentVmUuid.params = {}

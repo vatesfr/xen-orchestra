@@ -7,7 +7,8 @@ import type { XoPci } from '@vates/types'
 const pciFields = ['id', 'device_name', 'type'] as const satisfies readonly (keyof XoPci)[]
 
 export const useXoPciCollection = defineRemoteResource({
-  url: `${BASE_URL}/pcis?fields=${pciFields.join(',')}`,
+  url: `${BASE_URL}/pcis?fields=${pciFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'PCI', fields: pciFields }),
   initialData: () => [] as Pick<XoPci, (typeof pciFields)[number]>[],
   state: (pcis, context) =>

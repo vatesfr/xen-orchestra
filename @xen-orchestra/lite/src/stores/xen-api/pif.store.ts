@@ -1,9 +1,9 @@
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useBondStore } from '@/stores/xen-api/bond.store'
-import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiHost, XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { useBondStore } from '@/stores/xen-api/bond.store.ts'
+import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config.ts'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util.ts'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -33,6 +33,19 @@ export const usePifStore = defineStore('xen-api-pif', () => {
       })
 
     return hostMasterPifsByNetworkMap
+  })
+
+  const pifsByHost = computed(() => {
+    const pifsByHostMap = new Map<XenApiHost['$ref'], XenApiPif[]>()
+
+    baseContext.records.value.forEach(pif => {
+      if (!pifsByHostMap.has(pif.host)) {
+        pifsByHostMap.set(pif.host, [])
+      }
+      pifsByHostMap.get(pif.host)?.push(pif)
+    })
+
+    return pifsByHostMap
   })
 
   const getPifsByNetworkRef = (networkRef: XenApiNetwork['$ref']) => {
@@ -69,6 +82,7 @@ export const usePifStore = defineStore('xen-api-pif', () => {
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
+    pifsByHost,
     getPifsByNetworkRef,
     getPifStatus,
     getBondsDevices,

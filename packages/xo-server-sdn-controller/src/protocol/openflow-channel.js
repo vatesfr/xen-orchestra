@@ -9,7 +9,7 @@ import { fromEvent } from 'promise-toolbox'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller:openflow-controller')
+const log = createLogger('xo:xo-server-sdn-controller:openflow-channel')
 
 const version = openflow.versions.openFlow11
 const ofProtocol = openflow.protocols[version]
@@ -119,8 +119,8 @@ export class OpenFlowChannel extends EventEmitter {
     try {
       await this._coalesceConnect()
     } catch (error) {
-      log.error("addRule: _coalesceConnect", {
-        error
+      log.error('addRule: _coalesceConnect', {
+        error,
       })
       return
     }
@@ -200,8 +200,8 @@ export class OpenFlowChannel extends EventEmitter {
     try {
       await this._coalesceConnect()
     } catch (error) {
-      log.error("addRule: _coalesceConnect", {
-        error
+      log.error('deleteRule: _coalesceConnect', {
+        error,
       })
       return
     }

@@ -1,8 +1,6 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('configuration') }}
-    </UiCardTitle>
+  <UiPanelCard class="vdi-configuration-card">
+    <UiPanelCardTitle size="medium" :label="t('configuration')" />
     <div class="content">
       <VdiFormatCardItem :format="vdi.image_format" />
       <VtsCardRowKeyValue>
@@ -22,35 +20,51 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
+          {{ t('read-only') }}
+        </template>
+        <template #value>
+          <VtsStatus :status="isReadOnly" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
           {{ t('change-block-tracking') }}
         </template>
         <template #value>
           <VtsStatus :status="vdi.cbt_enabled ?? false" />
         </template>
-        <template v-if="vdi.cbt_enabled" #addons>
-          <VtsCopyButton :value="t('enabled')" />
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>
+          {{ t('bootable') }}
+        </template>
+        <template #value>
+          <VtsStatus :status="isBootable" />
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi } = defineProps<{
+const { vdi, vm } = defineProps<{
   vdi: FrontXoVdi
+  vm: FrontXoVm
 }>()
 
 const { t } = useI18n()
@@ -58,16 +72,23 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const { useGetSrById } = useXoSrCollection()
+const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
 const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
+
+const vbds = useGetVbdsByIds(() => vdi.$VBDs)
+
+const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
+
+const isReadOnly = computed(() => vbd.value?.read_only ?? false)
+
+const isBootable = computed(() => vbd.value?.bootable ?? false)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vdi-configuration-card {
   .content {
     display: flex;
     flex-direction: column;

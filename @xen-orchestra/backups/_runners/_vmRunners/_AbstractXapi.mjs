@@ -6,9 +6,10 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { asyncEach } from '@vates/async-each'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { Task } from '@vates/task'
+import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
-import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
 import {
   COPY_OF,
@@ -16,9 +17,11 @@ import {
   JOB_ID,
   SCHEDULE_ID,
   VM_UUID,
+  EXPORTED_SUCCESSFULLY,
   resetVmOtherConfig,
   setVmOtherConfig,
   setVmSnapshotContentKeys,
+  markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 
 const { warn, info } = createLogger('xo:backups:AbstractXapi')
@@ -33,9 +36,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     job,
     remoteAdapters,
     remotes,
+    runContext,
     schedule,
     settings,
     srs,
+    synchronizedSnapshotTimestamp,
     throttleGenerator,
     throttleStream,
     vm,
@@ -59,13 +64,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this.timestamp = undefined
 
     // VM currently backed up
-    const tags = (this._tags = vm.tags)
+    const tags = vm.tags
 
     // VM (snapshot) that is really exported
     this._exportedVm = undefined
+    this._synchronizedSnapshotTimestamp = synchronizedSnapshotTimestamp
     this._vm = vm
+    this._runContext = runContext
 
-    this._baseVdis = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isIncremental = job.mode === 'delta'
     this._healthCheckSr = healthCheckSr
@@ -86,6 +92,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       settings.offlineSnapshot = true
     }
     this._settings = settings
+
+    this._compileHealthCheckPredicate()
+
     // Create writers
     {
       const writers = new Set()
@@ -105,7 +114,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
               config,
               healthCheckSr,
               job,
-              scheduleId: schedule.id,
+              schedule,
               vmUuid: vm.uuid,
               settings,
             })
@@ -123,7 +132,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
                   config,
                   healthCheckSr,
                   job,
-                  scheduleId: schedule.id,
+                  schedule,
                   vmUuid: vm.uuid,
                   remoteId,
                   settings: targetSettings,
@@ -141,7 +150,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
               healthCheckSr,
               job,
               ReplicationWriter,
-              scheduleId: schedule.id,
+              schedule,
               vmUuid: vm.uuid,
               srs,
               settings,
@@ -159,7 +168,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
                   config,
                   healthCheckSr,
                   job,
-                  scheduleId: schedule.id,
+                  schedule,
                   vmUuid: vm.uuid,
                   sr,
                   settings: targetSettings,
@@ -174,21 +183,40 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   // ensure the VM itself does not have any backup metadata which would be
   // copied on manual snapshots and interfere with the backup jobs
+
   async _cleanMetadata() {
-    const vm = this._vm
-    if (JOB_ID in vm.other_config) {
-      await resetVmOtherConfig(this._xapi, vm.$ref)
-    }
+    await resetVmOtherConfig(this._xapi, this._vm.$ref)
   }
 
   async _snapshot() {
+    if (this._synchronizedSnapshotTimestamp !== undefined) {
+      const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
+      const candidates = this._vm.$snapshots.filter(
+        snapshot =>
+          snapshot?.other_config[JOB_ID] === this._jobId &&
+          snapshot?.other_config[DATETIME] === datetime &&
+          !snapshot.other_config[EXPORTED_SUCCESSFULLY]
+      )
+      if (candidates.length === 1) {
+        this._exportedVm = candidates[0]
+        this.timestamp = this._synchronizedSnapshotTimestamp
+        return
+      }
+
+      warn('expected exactly one synchronized snapshot to reuse, taking a fresh one', {
+        vm: this._vm.uuid,
+        datetime,
+        count: candidates.length,
+      })
+    }
+
     const vm = this._vm
     const xapi = this._xapi
 
     const settings = this._settings
 
     if (await this._mustDoSnapshot()) {
-      await Task.run({ name: 'snapshot' }, async () => {
+      await Task.run({ properties: { name: 'snapshot' } }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
@@ -215,6 +243,35 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           vmUuid: vm.uuid,
         })
         await setVmSnapshotContentKeys(xapi, snapshotRef)
+
+        // Verify that setVmOtherConfig actually tagged every disk we expected.
+        // If the snapshot exposes fewer 'Disk' VBDs than the live VM has, the
+        // tagging call silently skipped some VDIs and the resulting snapshot
+        // will be invisible to retention/cleanup on the next run.
+        const liveDisks = await xapi.VM_getDisks(vm.$ref)
+        const snapshotDisks = await xapi.VM_getDisks(snapshotRef)
+        if (liveDisks.length !== snapshotDisks.length) {
+          const snapshotVbdRefs = await xapi.getField('VM', snapshotRef, 'VBDs')
+          const snapshotVbds = await xapi.getRecords('VBD', snapshotVbdRefs)
+          warn('inconsistent snapshot tagging detected', {
+            vmUuid: vm.uuid,
+            vmName: vm.name_label,
+            snapshotRef,
+            jobId: this._jobId,
+            timestamp: this.timestamp,
+            expectedDiskCount: liveDisks.length,
+            actualDiskCount: snapshotDisks.length,
+            liveDisks,
+            snapshotDisks,
+            snapshotVbds: snapshotVbds.map(vbd => ({
+              uuid: vbd.uuid,
+              type: vbd.type,
+              VDI: vbd.VDI,
+              currently_attached: vbd.currently_attached,
+            })),
+          })
+        }
+
         const snapshot = await xapi.getRecord('VM', snapshotRef)
         await snapshot.set_name_label(this._getSnapshotNameLabel(vm))
         // reload data to ensure it is up to date with the new name label
@@ -238,28 +295,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   //   ensure they are attached to only one vm snapshot
   //   ensure any VM-snapshot harvested by this has all its disk harvested (no mix of vdi snapshot from this job and not)
 
-  async _fetchJobSnapshots() {
-    const jobId = this._jobId
-    const xapi = this._xapi
-
-    const vdiCandidates = {}
-    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
-    Object.values(xapi.objects.indexes.type.VDI)
-      .filter(_ => !!_) // filter nullish
-      .filter(({ other_config, snapshot_of }) => {
-        return (
-          vdiUuids.includes(snapshot_of) &&
-          other_config[JOB_ID] === jobId &&
-          other_config[VM_UUID] === this._vm.uuid &&
-          other_config[COPY_OF] === undefined
-        )
-      })
-      .forEach(vdi => {
-        vdiCandidates[vdi.uuid] = vdi
-      })
-
-    // check that user snapshots are clean
-
+  _filterValidSnapshotVdis(vdiCandidates) {
     for (const vdi of Object.values(vdiCandidates)) {
       // cbt metadata are always considered linked to a backup job
       // if they have the right other_config
@@ -281,7 +317,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       const userVms = vbds.map(({ $VM }) => $VM)
       if (vbds.length > 1) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}.
               This disk snapshot will be excluded from the backup cleaning`,
           { vdi, userVms }
         )
@@ -296,7 +332,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // => we exclude these from the backup processing
       if (vm.$snapshot_of === undefined) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}.
           This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
@@ -313,7 +349,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         vm.other_config[VM_UUID] !== vdi.other_config[VM_UUID]
       ) {
         warn(
-          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a snapshot vm ${vm.name_label} ${vm.uuid} out of this backup job scope. 
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a snapshot vm ${vm.name_label} ${vm.uuid} out of this backup job scope.
           This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
@@ -330,7 +366,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         .forEach(({ $VDI: outOfSnapshotsVdi, ...other }) => {
           warn(
             `vdi ${vdi.name_label} ${vdi.uuid} is recognized as a snapshot of the backup job,
-           linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid} 
+           linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid}
            is not linked to the job. This disk snapshot will be excluded from the backup cleaning`,
             { vdi, vm, vbds, outOfSnapshotsVdi }
           )
@@ -338,8 +374,47 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           delete vdiCandidates[vdi.uuid]
         })
     }
+  }
+
+  async _fetchJobSnapshots() {
+    const jobId = this._jobId
+    const xapi = this._xapi
+
+    const vdiCandidates = {}
+    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
+    Object.values(xapi.objects.indexes.type.VDI)
+      .filter(_ => !!_) // filter nullish
+      .filter(({ other_config, snapshot_of }) => {
+        return (
+          vdiUuids.includes(snapshot_of) &&
+          other_config[JOB_ID] === jobId &&
+          other_config[VM_UUID] === this._vm.uuid &&
+          other_config[COPY_OF] === undefined
+        )
+      })
+      .forEach(vdi => {
+        vdiCandidates[vdi.uuid] = vdi
+      })
+
+    this._filterValidSnapshotVdis(vdiCandidates)
 
     this._jobSnapshotVdis = Object.values(vdiCandidates)
+
+    // For VMs with no disks, retention must be tracked directly on VM snapshots
+    // since there are no VDIs to anchor the discovery.
+    if (vdiUuids.length === 0) {
+      this._disklessJobSnapshotVms = this._vm.$snapshots
+        .filter(Boolean)
+        .filter(
+          ({ other_config, $snapshot_of }) =>
+            $snapshot_of !== undefined &&
+            other_config[JOB_ID] === jobId &&
+            other_config[VM_UUID] === this._vm.uuid &&
+            other_config[COPY_OF] === undefined
+        )
+    } else {
+      this._disklessJobSnapshotVms = []
+    }
   }
 
   async _removeUnusedSnapshots() {
@@ -351,9 +426,25 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     await xapi.barrier()
     // ensure cached object are up to date
     this._jobSnapshotVdis = this._jobSnapshotVdis.map(vdi => xapi.getObject(vdi.$ref))
+    let disklessVmSnapshots = this._disklessJobSnapshotVms.map(vm => xapi.getObject(vm.$ref))
 
-    // get the datetime of the most recent snapshot
-    const lastSnapshotDateTime = this._jobSnapshotVdis
+    // The synchronized snapshot for this run is taken up-front by the batch
+    // phase but transferred later. Until it has been exported, hide it from
+    // retention so it is not reclaimed. This makes the pre-transfer pass behave
+    // like a normal run, where the snapshot does not exist yet.
+    if (this._synchronizedSnapshotTimestamp !== undefined) {
+      const datetime = formatDateTime(this._synchronizedSnapshotTimestamp)
+      const isInFlightSyncSnapshot = ({ other_config }) =>
+        other_config[DATETIME] === datetime && !other_config[EXPORTED_SUCCESSFULLY]
+      this._jobSnapshotVdis = this._jobSnapshotVdis.filter(vdi => !isInFlightSyncSnapshot(vdi))
+      disklessVmSnapshots = disklessVmSnapshots.filter(vm => !isInFlightSyncSnapshot(vm))
+    }
+
+    const isExported = ({ other_config }) => EXPORTED_SUCCESSFULLY in other_config
+
+    // get the datetime of the most recent exported snapshot across both VDI and diskless VM snapshots
+    const lastExportedSnapshotDateTime = [...this._jobSnapshotVdis, ...disklessVmSnapshots]
+      .filter(isExported)
       .map(({ other_config }) => other_config[DATETIME])
       .sort()
       .pop()
@@ -373,9 +464,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
       const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
-        // keep the last snapshot across all schedules for delta
+        // keep the last exported snapshot across all schedules for delta
         // since we'll need it to compute delta for next backup
-        if (this.job.mode === 'delta' && datetime === lastSnapshotDateTime) {
+        if (
+          this.job.mode === 'delta' &&
+          lastExportedSnapshotDateTime !== undefined &&
+          datetime === lastExportedSnapshotDateTime
+        ) {
           return
         }
         const vdis = snapshotPerDatetime[datetime]
@@ -418,7 +513,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             vm = vdiVm
           }
         }
+
         if (vm?.$ref !== undefined) {
+          this._forgetExportedVm(vm.$ref)
           return xapi.VM_destroy(vm.$ref)
         } else {
           return asyncMap(
@@ -430,10 +527,47 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       })
     })
 
+    // Retention for VMs with no disks: VM snapshots are not reachable via VDIs
+    if (disklessVmSnapshots.length > 0) {
+      const snapshotsPerSchedule = groupBy(disklessVmSnapshots, _ => _.other_config[SCHEDULE_ID])
+      await asyncEach(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
+        // we only have one snapshot per date time since it's at the VM level
+        const snapshotPerDatetime = Object.fromEntries(snapshots.map(s => [s.other_config[DATETIME], s.$ref]))
+        const datetimes = Object.keys(snapshotPerDatetime).sort()
+        const settings = {
+          ...baseSettings,
+          ...allSettings[scheduleId],
+          ...allSettings[this._vm.uuid],
+        }
+        const retention = settings.snapshotRetention ?? 0
+        await asyncEach(getOldEntries(retention, datetimes), async datetime => {
+          if (
+            this.job.mode === 'delta' &&
+            lastExportedSnapshotDateTime !== undefined &&
+            datetime === lastExportedSnapshotDateTime
+          ) {
+            return
+          }
+
+          this._forgetExportedVm(snapshotPerDatetime[datetime])
+          await xapi.VM_destroy(snapshotPerDatetime[datetime])
+        })
+      })
+    }
+
     // list and remove the snapshot were the jobs failed between
     // makesnapshot and update_other_config
     const snapshots = this._vm.$snapshots.filter(_ => !!_).filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
     await asyncEach(snapshots, snapshot => snapshot.$destroy())
+  }
+
+  // _exportedVm is the VM (usually a snapshot) this run exported. Retention may destroy
+  // it in the same run and everything reading it would then operate on a destroyed VM.
+  // Forget it as soon as it is reclaimed.
+  _forgetExportedVm(vmRef) {
+    if (vmRef === this._exportedVm?.$ref) {
+      this._exportedVm = undefined
+    }
   }
 
   async _removeSnapshotData() {
@@ -481,6 +615,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   async _selectBaseVm() {
     throw new Error('Not implemented')
+  }
+
+  async _prepareAndSnapshot() {
+    await this._cleanMetadata()
+    await this._snapshot()
   }
 
   async run($defer) {
@@ -545,6 +684,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
       if (this._writers.size !== 0) {
         await this._copy()
+      }
+      // not the case if offlineBackup
+      if (this._exportedVm.is_a_snapshot) {
+        await markExportSuccessfull(this._xapi, this._exportedVm.$ref)
       }
     } finally {
       if (startAfter) {

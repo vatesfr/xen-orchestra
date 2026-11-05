@@ -71,6 +71,27 @@ function toTimestamp(date) {
   }
 }
 
+/**
+ * Builds a `{ taskId -> operation }` map from an XAPI object's raw
+ * `current_operations` (`{ OpaqueRef -> operation }`), dropping any entry
+ * whose task is no longer present in the local cache (e.g. it finished and
+ * was collected).
+ *
+ * This lets consumers know an operation is truly over once it disappears
+ * from the map, instead of seeing a stale entry forever.
+ */
+function getCurrentOperations(obj) {
+  const currentOperations = {}
+  const { $xapi } = obj
+  forEach(obj.current_operations, (operation, ref) => {
+    const task = $xapi.getObjectByRef(ref, undefined)
+    if (task !== undefined) {
+      currentOperations[task.$id] = operation
+    }
+  })
+  return currentOperations
+}
+
 // https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773-L827
 const getVmGuestToolsProps = vm => {
   const { $metrics: metrics, $guest_metrics: guestMetrics } = vm
@@ -180,9 +201,10 @@ const TRANSFORMS = {
     return {
       auto_poweron: obj.other_config.auto_poweron === 'true',
       crashDumpSr: link(obj, 'crash_dump_SR'),
-      current_operations: obj.current_operations,
+      current_operations: getCurrentOperations(obj),
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
+      haRebootVmOnInternalShutdown: obj.ha_reboot_vm_on_internal_shutdown ?? true,
 
       // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
       haSrs: obj.$ha_statefiles.filter(vdi => vdi !== undefined).map(vdi => link(vdi, 'SR')),
@@ -266,7 +288,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
-      current_operations: obj.current_operations,
+      current_operations: getCurrentOperations(obj),
       hostname: obj.hostname,
       iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
       zstdSupported: obj.license_params.restrict_zstd_export === 'false',
@@ -397,17 +419,6 @@ const TRANSFORMS = {
       }
     }
 
-    // Build a { taskId → operation } map instead of forwarding the
-    // { taskRef → operation } map directly
-    const currentOperations = {}
-    const { $xapi } = obj
-    forEach(obj.current_operations, (operation, ref) => {
-      const task = $xapi.getObjectByRef(ref, undefined)
-      if (task !== undefined) {
-        currentOperations[task.$id] = operation
-      }
-    })
-
     const { creation } = xoData.extract(obj) ?? {}
 
     let $container
@@ -455,7 +466,7 @@ const TRANSFORMS = {
         number: isRunning && metrics && xenTools ? +metrics.VCPUs_number : +obj.VCPUs_at_startup,
       },
       creation,
-      current_operations: currentOperations,
+      current_operations: getCurrentOperations(obj),
       docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
@@ -575,6 +586,7 @@ const TRANSFORMS = {
     } else {
       // https://github.com/vatesfr/xen-orchestra/issues/9111
       // TODO: Remove when correctly handled by XCP-ng
+      // also remove the workaround here: https://github.com/vatesfr/xen-orchestra/pull/10201
       obj
         .update_platform('cores-per-socket', String(vm.CPUs.number))
         .catch(err => {
@@ -655,6 +667,7 @@ const TRANSFORMS = {
       type: 'SR',
 
       content_type: obj.content_type,
+      is_tools_sr: obj.is_tools_sr,
 
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
@@ -712,7 +725,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pif(obj) {
+  pif(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const metrics = obj.$metrics
     const isBondMaster = !isEmpty(obj.bond_master_of)
     const isBondSlave = obj.bond_slave_of !== 'OpaqueRef:NULL'
@@ -784,6 +799,16 @@ const TRANSFORMS = {
       vdi.$snapshot_of = link(obj, 'snapshot_of')
     } else if (!obj.managed) {
       vdi.type += '-unmanaged'
+    } else {
+      let total = +obj.physical_utilisation
+      let parentUuid = obj.sm_config['vhd-parent']
+      while (parentUuid !== undefined) {
+        const parent = obj.$xapi.getObject(parentUuid, undefined)
+        if (parent === undefined) break
+        total += +parent.physical_utilisation
+        parentUuid = parent.sm_config?.['vhd-parent']
+      }
+      vdi.chainPhysicalUsage = total
     }
 
     return vdi
@@ -857,6 +882,15 @@ const TRANSFORMS = {
       VIFs: link(obj, 'VIFs'),
       nbd: obj.purpose?.includes('nbd'),
       insecureNbd: obj.purpose?.includes('insecure_nbd'),
+      isBonded:
+        obj.$PIFs !== undefined
+          ? obj.$PIFs.some(pif => {
+              const isBondMaster = !isEmpty(pif.bond_master_of)
+              const isBondSlave = pif.bond_slave_of !== 'OpaqueRef:NULL'
+
+              return isBondMaster || isBondSlave
+            })
+          : false,
     }
   },
 

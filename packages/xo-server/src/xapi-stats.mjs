@@ -61,6 +61,20 @@ function parseNumber(value) {
   return isNaN(value) ? null : value
 }
 
+// Like parseNumber but keeps NaN as-is instead of returning null, so missing values
+// can be stored in a typed array (where null would be coerced to 0). They are turned
+// back into null when read, see computeValues.
+function parseRrdValue(value) {
+  if (typeof value === 'string') {
+    const asNumber = +value
+    if (isNaN(asNumber) && value !== 'NaN') {
+      throw new Error('cannot parse number: ' + value)
+    }
+    return asNumber
+  }
+  return value
+}
+
 async function getServerTimestamp(xapi, hostRef) {
   return parseDateTime(await xapi.call('host.get_servertime', hostRef))
 }
@@ -70,16 +84,17 @@ async function getServerTimestamp(xapi, hostRef) {
 // -------------------------------------------------------------------
 
 /**
- * @param {{t: string, values: string[]}[]} dataRow
+ * @param {{t: string, values: Float32Array}[]} dataRow
  * @param {number} legendIndex
  * @param {(value: number) => number} [transformValue]
  * @returns {(number | null)[]}
  */
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
   dataRow.map(({ values }) => {
-    const value = parseNumber(values[legendIndex])
+    const value = values[legendIndex]
 
-    if (value === null) {
+    // missing/NaN values are stored as NaN (see parseRrdValue) and exposed as null
+    if (Number.isNaN(value)) {
       return null
     }
 
@@ -156,6 +171,10 @@ const STATS = {
         test: /^iops_write_(\w+)$/,
         getPath: matches => ['iops', 'w', matches[1]],
       },
+      total: {
+        test: /^iops_total_(\w+)$/,
+        getPath: matches => ['iops', 'total', matches[1]],
+      },
     },
     ioThroughput: {
       r: {
@@ -167,6 +186,11 @@ const STATS = {
         test: /^io_throughput_write_(\w+)$/,
         getPath: matches => ['ioThroughput', 'w', matches[1]],
         transformValue: value => value * 2 ** 20,
+      },
+      total: {
+        test: /^io_throughput_total_(\w+)$/,
+        getPath: matches => ['ioThroughput', 'total', matches[1]],
+        transformValue: value => value * 2 ** 20, // MiB/s to bytes/s
       },
     },
     latency: {
@@ -180,10 +204,39 @@ const STATS = {
         getPath: matches => ['latency', 'w', matches[1]],
         transformValue: value => value / 1e3,
       },
+      total: {
+        test: /^latency_(\w+)$/,
+        getPath: matches => ['latency', 'total', matches[1]],
+        transformValue: value => value / 1e3,
+      },
     },
     iowait: {
       test: /^iowait_(\w+)$/,
       getPath: matches => ['iowait', matches[1]],
+    },
+    hostload: {
+      test: 'hostload',
+    },
+    memoryReclaimed: {
+      test: 'memory_reclaimed',
+      transformValue: value => value * 1024, // KiB to bytes
+    },
+    memoryReclaimedMax: {
+      test: 'memory_reclaimed_max',
+      transformValue: value => value * 1024, // KiB to bytes
+    },
+    runningVcpus: {
+      test: 'running_vcpus',
+    },
+    pifsAggr: {
+      rx: {
+        test: 'pif_aggr_rx',
+        getPath: () => ['pifsAggr', 'rx'],
+      },
+      tx: {
+        test: 'pif_aggr_tx',
+        getPath: () => ['pifsAggr', 'tx'],
+      },
     },
   },
   vm: {
@@ -279,12 +332,12 @@ const STATS = {
       r: {
         test: /^vbd_xvd(.)_read_latency$/,
         getPath: matches => ['vbdLatency', 'r', matches[1]],
-        transformValue: value => value / 1000,
+        transformValue: value => value / 1e3, // µs to ms
       },
       w: {
         test: /^vbd_xvd(.)_write_latency$/,
         getPath: matches => ['vbdLatency', 'w', matches[1]],
-        transformValue: value => value / 1000,
+        transformValue: value => value / 1e3, // µs to ms
       },
     },
     ioThroughput: {
@@ -307,12 +360,12 @@ const STATS = {
     vbdAvgLatency: {
       test: /^vbd_xvd(.)_latency$/,
       getPath: matches => ['vbdAvgLatency', matches[1]],
-      transformValue: value => value / 1e3,
+      transformValue: value => value / 1e3, // µs to ms (for xo-web formatTime)
     },
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,
       getPath: matches => ['vbdIowait', matches[1]],
-      transofrmValue: value => value * 1e2,
+      transformValue: value => value * 1e2,
     },
     vbdInflight: {
       test: /^vbd_xvd(.)_inflight$/,
@@ -366,12 +419,28 @@ export default class XapiStats {
       })
       .then(response => response.body.text())
       .then(data => {
+        let json
         try {
           // starting from XAPI 23.31, the response is valid JSON
-          return JSON.parse(data)
+          json = JSON.parse(data)
         } catch (_) {
-          return JSON5.parse(data)
+          json = JSON5.parse(data)
         }
+
+        const rows = json.data
+        if (Array.isArray(rows)) {
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i]
+            const { values } = row
+            const floats = new Float32Array(values.length)
+            for (let j = 0; j < values.length; j++) {
+              floats[j] = parseRrdValue(values[j])
+            }
+            row.values = floats
+          }
+        }
+
+        return json
       })
       .catch(err => {
         delete this.#hostCache[hostUuid][step]

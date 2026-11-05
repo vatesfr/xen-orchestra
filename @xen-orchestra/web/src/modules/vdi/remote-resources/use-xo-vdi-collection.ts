@@ -23,7 +23,8 @@ export const vdiFields = [
 ] as const satisfies readonly (keyof XoVdi)[]
 
 export const useXoVdiCollection = defineRemoteResource({
-  url: `${BASE_URL}/vdis?fields=${vdiFields.join(',')}`,
+  url: `${BASE_URL}/vdis?fields=${vdiFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VDI', fields: vdiFields }),
   initialData: () => [] as FrontXoVdi[],
   state: (vdis, context) =>

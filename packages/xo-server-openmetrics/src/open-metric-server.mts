@@ -17,6 +17,7 @@
 import { createServer, type Server } from 'node:http'
 import { Agent, request as undiciRequest } from 'undici'
 import { asyncEach } from '@vates/async-each'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
@@ -26,10 +27,23 @@ import {
   formatHostUptimeMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
+  formatVdiMetrics,
+  formatVmStatusMetrics,
+  formatVmUptimeMetrics,
   formatXoMetrics,
+  formatXostorAlarmsMetrics,
+  formatXostorClusterMetrics,
+  formatXostorSmartMetrics,
+  formatXostorUpdatesMetrics,
   type HostStatusItem,
   type SrDataItem,
+  type VdiDataItem,
+  type VmStatusItem,
   type XoMetricsData,
+  type XostorAlarmsPayload,
+  type XostorPayload,
+  type XostorSmartPayload,
+  type XostorUpdatesPayload,
 } from './openmetric-formatter.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:child')
@@ -68,23 +82,31 @@ interface VmLabelInfo {
   vbdDeviceToVdiName: Record<string, string>
   vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>
+  startTime: number | null
+  power_state: string
+  pool_id: string
+  pool_name: string
+  tags?: string[]
 }
 
 interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string>
   startTime: number | null
+  tags?: string[]
 }
 
 interface SrLabelInfo {
   name_label: string
+  /** Mirrors `XoSr.SR_type` — see the canonical type in `index.mts`. */
+  SR_type: string
 }
 
 interface LabelLookupData {
   vms: Record<string, VmLabelInfo>
   hosts: Record<string, HostLabelInfo>
   srs: Record<string, SrLabelInfo>
-  srSuffixToUuid: Record<string, string>
+  srTruncatedToUuid: Record<string, string | null>
   vdiUuidToSrUuid: Record<string, string>
 }
 
@@ -97,8 +119,16 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+interface VdiDataPayload {
+  vdis: VdiDataItem[]
+}
+
 interface HostStatusPayload {
   hosts: HostStatusItem[]
+}
+
+interface VmStatusPayload {
+  vms: VmStatusItem[]
 }
 
 interface PendingRequest<T> {
@@ -155,19 +185,17 @@ function handleParentMessage(rawMessage: unknown): void {
       break
 
     case 'XAPI_CREDENTIALS':
-      handleCredentialsResponse(message)
-      break
-
     case 'SR_DATA':
-      handleSrDataResponse(message)
-      break
-
+    case 'VDI_DATA':
     case 'HOST_STATUS':
-      handleHostStatusResponse(message)
-      break
-
+    case 'VM_STATUS':
+    case 'HOST_POWER':
     case 'XO_METRICS':
-      handleXoMetricsResponse(message)
+    case 'XOSTOR_DATA':
+    case 'XOSTOR_ALARMS':
+    case 'XOSTOR_SMART':
+    case 'XOSTOR_UPDATES':
+      resolvePendingRequest(message)
       break
 
     default:
@@ -200,49 +228,7 @@ async function handleShutdown(): Promise<void> {
   await cleanup()
 }
 
-function handleCredentialsResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleSrDataResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleHostStatusResponse(message: IpcMessage): void {
-  const requestId = message.requestId
-  if (requestId === undefined) {
-    return
-  }
-
-  const pending = pendingRequests.get(requestId)
-  if (pending !== undefined) {
-    clearTimeout(pending.timer)
-    pendingRequests.delete(requestId)
-    pending.resolve(message.payload)
-  }
-}
-
-function handleXoMetricsResponse(message: IpcMessage): void {
+function resolvePendingRequest(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return
@@ -321,6 +307,25 @@ async function requestSrData(): Promise<SrDataPayload> {
   })
 }
 
+async function requestVdiData(): Promise<VdiDataPayload> {
+  const requestId = `vdi-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for VDI data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as VdiDataPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_VDI_DATA', requestId })
+  })
+}
+
 async function requestHostStatusData(): Promise<HostStatusPayload> {
   const requestId = `host-status-${++requestIdCounter}`
 
@@ -337,6 +342,44 @@ async function requestHostStatusData(): Promise<HostStatusPayload> {
     })
 
     sendToParent({ type: 'GET_HOST_STATUS', requestId })
+  })
+}
+
+async function requestVmStatusData(): Promise<VmStatusPayload> {
+  const requestId = `vm-status-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for VM status data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as VmStatusPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_VM_STATUS', requestId })
+  })
+}
+
+async function requestHostPowerData(): Promise<Record<string, number>> {
+  const requestId = `host-power-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for host power data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as Record<string, number>),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_HOST_POWER', requestId })
   })
 }
 
@@ -359,6 +402,82 @@ async function requestXoMetrics(): Promise<XoMetricsData> {
   })
 }
 
+async function requestXostorData(): Promise<XostorPayload> {
+  const requestId = `xostor-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_DATA', requestId })
+  })
+}
+
+async function requestXostorAlarms(): Promise<XostorAlarmsPayload> {
+  const requestId = `xostor-alarms-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR alarms from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorAlarmsPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_ALARMS', requestId })
+  })
+}
+
+async function requestXostorSmart(): Promise<XostorSmartPayload> {
+  const requestId = `xostor-smart-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR SMART data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorSmartPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_SMART', requestId })
+  })
+}
+
+async function requestXostorUpdates(): Promise<XostorUpdatesPayload> {
+  const requestId = `xostor-updates-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for XOSTOR updates from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as XostorUpdatesPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_XOSTOR_UPDATES', requestId })
+  })
+}
+
 // ============================================================================
 // RRD Data Fetching
 // ============================================================================
@@ -374,7 +493,7 @@ async function requestXoMetrics(): Promise<XoMetricsData> {
  * @returns ParsedRrdData or null on error
  */
 async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | null> {
-  const { hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
+  const { hostId, hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
 
   // Calculate start time: current time minus 2 intervals (to ensure we get recent data)
   const now = Math.floor(Date.now() / 1000)
@@ -412,7 +531,7 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
 
     try {
       // Parse RRD response using the dedicated parser (handles JSON5 fallback)
-      return parseRrdResponse(text, poolId)
+      return parseRrdResponse(text, poolId, hostId)
     } catch (parseError) {
       logger.warn('RRD parse failed', { hostLabel, poolLabel, error: parseError })
       return null
@@ -436,18 +555,58 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  *
  * @returns OpenMetrics-formatted string
  */
+/**
+ * Wrap an XOSTOR IPC request so any failure logs a warning and yields the
+ * supplied fallback. Keeps `/metrics` responding even when one collector
+ * misbehaves.
+ */
+function safeXostorRequest<T>(promise: Promise<T>, label: string, empty: T): Promise<T> {
+  return promise.catch((err: unknown) => {
+    logger.warn(`XOSTOR ${label} request failed; emitting empty payload`, { error: err })
+    return empty
+  })
+}
+
 async function collectMetrics(): Promise<string> {
-  const [credentials, srData, hostStatusData, xoMetricsData] = await Promise.all([
+  const [
+    credentials,
+    srData,
+    vdiData,
+    hostStatusData,
+    vmStatusData,
+    xoMetricsData,
+    xostorData,
+    xostorAlarms,
+    xostorSmart,
+    xostorUpdates,
+    hostPowerData,
+  ] = await Promise.all([
     requestXapiCredentials(),
     requestSrData(),
+    requestVdiData(),
     requestHostStatusData(),
+    requestVmStatusData(),
     requestXoMetrics(),
+    safeXostorRequest(requestXostorData(), 'data', { clusters: [] } as XostorPayload),
+    safeXostorRequest(requestXostorAlarms(), 'alarms', { clusters: [] } as XostorAlarmsPayload),
+    safeXostorRequest(requestXostorSmart(), 'SMART', { hosts: [] } as XostorSmartPayload),
+    safeXostorRequest(requestXostorUpdates(), 'updates', { hosts: [] } as XostorUpdatesPayload),
+    requestHostPowerData().catch((err: unknown) => {
+      logger.warn('Host power request failed; emitting no host power', { error: err })
+      return {} as Record<string, number>
+    }),
   ])
 
   logger.debug('Collecting metrics', {
     hostCount: credentials.hosts.length,
     srCount: srData.srs.length,
+    vdiCount: vdiData.vdis.length,
     hostStatusCount: hostStatusData.hosts.length,
+    vmStatusCount: vmStatusData.vms.length,
+    xostorClusterCount: xostorData.clusters.length,
+    xostorAlarmClusterCount: xostorAlarms.clusters.length,
+    xostorSmartHostCount: xostorSmart.hosts.length,
+    xostorUpdatesHostCount: xostorUpdates.hosts.length,
   })
 
   if (credentials.hosts.length === 0) {
@@ -494,13 +653,18 @@ async function collectMetrics(): Promise<string> {
     hostCount: rrdDataList.length,
     totalMetrics: rrdDataList.reduce((sum, d) => sum + d.metrics.length, 0),
   })
-  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials)
+  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials, hostPowerData)
   logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
 
   // Format SR capacity metrics
   const srMetrics = formatSrMetrics(srData.srs)
   const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
   logger.debug('Formatted SR metrics', { srCount: srMetrics.length })
+
+  // Format VDI disk size metrics
+  const vdiMetrics = formatVdiMetrics(vdiData.vdis)
+  const vdiMetricsOutput = vdiMetrics.length > 0 ? formatToOpenMetrics(vdiMetrics) : ''
+  logger.debug('Formatted VDI metrics', { vdiCount: vdiMetrics.length })
 
   // Format host status metrics
   const hostStatusMetrics = formatHostStatusMetrics(hostStatusData.hosts)
@@ -512,10 +676,40 @@ async function collectMetrics(): Promise<string> {
   const uptimeMetricsOutput = uptimeMetrics.length > 0 ? formatToOpenMetrics(uptimeMetrics) : ''
   logger.debug('Formatted host uptime metrics', { hostCount: uptimeMetrics.length })
 
+  // Format VM status metrics
+  const vmStatusMetrics = formatVmStatusMetrics(vmStatusData.vms)
+  const vmStatusOutput = vmStatusMetrics.length > 0 ? formatToOpenMetrics(vmStatusMetrics) : ''
+  logger.debug('Formatted VM status metrics', { vmCount: vmStatusMetrics.length })
+
+  // Format VM uptime metrics
+  const vmUptimeMetrics = formatVmUptimeMetrics(credentials)
+  const vmUptimeOutput = vmUptimeMetrics.length > 0 ? formatToOpenMetrics(vmUptimeMetrics) : ''
+  logger.debug('Formatted VM uptime metrics', { vmCount: vmUptimeMetrics.length })
+
   // Format XO management plane metrics
   const xoMetrics = formatXoMetrics(xoMetricsData)
   const xoMetricsOutput = xoMetrics.length > 0 ? formatToOpenMetrics(xoMetrics) : ''
   logger.debug('Formatted XO metrics', { count: xoMetrics.length })
+
+  // Format XOSTOR cluster metrics
+  const xostorMetrics = formatXostorClusterMetrics(xostorData)
+  const xostorMetricsOutput = xostorMetrics.length > 0 ? formatToOpenMetrics(xostorMetrics) : ''
+  logger.debug('Formatted XOSTOR metrics', { count: xostorMetrics.length })
+
+  // Format XOSTOR alarm metrics
+  const xostorAlarmsMetrics = formatXostorAlarmsMetrics(xostorAlarms)
+  const xostorAlarmsOutput = xostorAlarmsMetrics.length > 0 ? formatToOpenMetrics(xostorAlarmsMetrics) : ''
+  logger.debug('Formatted XOSTOR alarm metrics', { count: xostorAlarmsMetrics.length })
+
+  // Format XOSTOR SMART metrics
+  const xostorSmartMetrics = formatXostorSmartMetrics(xostorSmart)
+  const xostorSmartOutput = xostorSmartMetrics.length > 0 ? formatToOpenMetrics(xostorSmartMetrics) : ''
+  logger.debug('Formatted XOSTOR SMART metrics', { count: xostorSmartMetrics.length })
+
+  // Format XOSTOR pending-updates metrics
+  const xostorUpdatesMetrics = formatXostorUpdatesMetrics(xostorUpdates)
+  const xostorUpdatesOutput = xostorUpdatesMetrics.length > 0 ? formatToOpenMetrics(xostorUpdatesMetrics) : ''
+  logger.debug('Formatted XOSTOR update metrics', { count: xostorUpdatesMetrics.length })
 
   // Combine pool metrics with RRD metrics, SR metrics, host status metrics, uptime metrics, and XO metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
@@ -531,6 +725,10 @@ async function collectMetrics(): Promise<string> {
     allMetricsSections.push(srMetricsOutput)
   }
 
+  if (vdiMetricsOutput !== '') {
+    allMetricsSections.push(vdiMetricsOutput)
+  }
+
   if (hostStatusOutput !== '') {
     allMetricsSections.push(hostStatusOutput)
   }
@@ -539,8 +737,32 @@ async function collectMetrics(): Promise<string> {
     allMetricsSections.push(uptimeMetricsOutput)
   }
 
+  if (vmStatusOutput !== '') {
+    allMetricsSections.push(vmStatusOutput)
+  }
+
+  if (vmUptimeOutput !== '') {
+    allMetricsSections.push(vmUptimeOutput)
+  }
+
   if (xoMetricsOutput !== '') {
     allMetricsSections.push(xoMetricsOutput)
+  }
+
+  if (xostorMetricsOutput !== '') {
+    allMetricsSections.push(xostorMetricsOutput)
+  }
+
+  if (xostorAlarmsOutput !== '') {
+    allMetricsSections.push(xostorAlarmsOutput)
+  }
+
+  if (xostorSmartOutput !== '') {
+    allMetricsSections.push(xostorSmartOutput)
+  }
+
+  if (xostorUpdatesOutput !== '') {
+    allMetricsSections.push(xostorUpdatesOutput)
   }
 
   return allMetricsSections.join('\n') + '\n# EOF'
@@ -549,6 +771,16 @@ async function collectMetrics(): Promise<string> {
 // ============================================================================
 // HTTP Server
 // ============================================================================
+
+/**
+ * Collect metrics, sharing one collection between overlapping scrapes.
+ *
+ * A collection can take long when hosts are unreachable,
+ * since each one costs a full RRD_FETCH_TIMEOUT_MS. This allows to wait for one
+ * metric instead of piling up, each pulling full payloads from
+ * the parent over IPC until the parent ran out of memory.
+ */
+const collectMetricsShared = coalesceCalls(collectMetrics)
 
 async function startServer(): Promise<void> {
   if (configuration === undefined) {
@@ -583,7 +815,7 @@ async function startServer(): Promise<void> {
     // Metrics endpoint
     if (url === '/metrics' && method === 'GET') {
       try {
-        const metrics = await collectMetrics()
+        const metrics = await collectMetricsShared()
         res.writeHead(200, {
           'Content-Type': 'application/openmetrics-text; version=1.0.0; charset=utf-8',
         })

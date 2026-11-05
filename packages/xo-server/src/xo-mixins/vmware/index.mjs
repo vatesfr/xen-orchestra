@@ -5,11 +5,13 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
-import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
+import { checkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
+import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { finished, PassThrough } from 'node:stream'
+import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
 
@@ -21,14 +23,31 @@ export default class MigrateVm {
   #connectToEsxi(host, user, password, sslVerify) {
     return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
-      await fromEvent(esxi, 'ready')
+      try {
+        await fromEvent(esxi, 'ready')
+      } catch (error) {
+        // the login may have succeeded even though connecting did not, e.g. when it is listing the
+        // datacenters which failed: that session would linger on the host until it expires
+        await this.#closeEsxi(esxi, host)
+        throw error
+      }
       return esxi
     })
   }
 
+  // a session is not released when this process ends, it lingers on the host until it expires, and
+  // a host only accepts a limited number of them. Failing to close is not worth failing a job
+  #closeEsxi(esxi, host) {
+    return esxi.close().catch(error => warn('failed to close the ESXi session', { error, host }))
+  }
+
   async connectToEsxiAndList({ host, user, password, sslVerify }) {
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    return esxi.getAllVmMetadata()
+    try {
+      return await esxi.getAllVmMetadata()
+    } finally {
+      await this.#closeEsxi(esxi, host)
+    }
   }
 
   async #findBaseVM(xapi, metadata) {
@@ -57,15 +76,21 @@ export default class MigrateVm {
   async #updateVmMetadata(xapiVm, metadata) {
     // update memory, nb cpu, name, description
 
-    await xapiVm.$xapi.editVm(xapiVm.$ref, {
-      cpus: metadata.nCpus,
-      memory: metadata.memory,
-    })
+    const props = { cpus: metadata.nCpus }
+    if (metadata.memory >= xapiVm.memory_static_min) {
+      props.memory = metadata.memory
+    } else {
+      warn(
+        `cannot lower ${xapiVm.uuid}'s memory below its current minimum (${xapiVm.memory_static_min}), keeping it unchanged`
+      )
+    }
+
+    await xapiVm.$xapi.editVm(xapiVm.$ref, props)
     return xapiVm
   }
 
   async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
-    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
+    const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
@@ -81,7 +106,8 @@ export default class MigrateVm {
           memory_dynamic_min: memory,
           memory_static_max: memory,
           // allow the user to reduce the memory of this VM to the limit set by the template
-          memory_static_min: template.memory_static_min,
+          // but it shouldn't be less than the actual memory
+          memory_static_min: Math.min(template.memory_static_min, memory),
           name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
           platform: { ...template.platform },
@@ -116,6 +142,12 @@ export default class MigrateVm {
           $defer.onFailure(() => xapi.call('VIF.destroy', ref))
         })
       )
+
+      if (cdrom) {
+        const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
+        $defer.onFailure(() => xapi.call('VBD.destroy', ref))
+      }
+
       return vm
     })
   }
@@ -147,10 +179,9 @@ export default class MigrateVm {
     })
     // ensure the vmware session stays alive
     const interval = setInterval(
-      async () => {
-        try {
-          await esxi.fetchProperty('VirtualMachine', vmId, 'config')
-        } catch (_) {}
+      () => {
+        // a failure here is not fatal: the client logs in again when a call finds the session gone
+        esxi.keepAlive().catch(error => warn('failed to keep the ESXi session alive', { error, vmId }))
       },
       15 * 60 * 1000
     )
@@ -169,7 +200,13 @@ export default class MigrateVm {
     await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
     if (isRunning) {
       if (stopSource) {
-        await esxi.powerOff(vmId)
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
+          // a clean shut down when the guest allows it: a power off leaves the file systems dirty
+          const stoppedBy = await esxi.shutdown(vmId, { signal: Task.abortSignal })
+          if (stoppedBy === 'powerOff') {
+            Task.warning('the guest could not be shut down cleanly, it was powered off')
+          }
+        })
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,
@@ -177,8 +214,10 @@ export default class MigrateVm {
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: undefined })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
         await vm.$snapshot({ name_label: 'complete import from V2V' })
+      } else {
+        await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
       }
     }
   }
@@ -189,6 +228,8 @@ export default class MigrateVm {
   ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    // every transfer is awaited below, nothing is left reading from the host when this returns
+    $defer(() => this.#closeEsxi(esxi, host))
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
@@ -197,12 +238,75 @@ export default class MigrateVm {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    if (!metadata.snapshots || !metadata.snapshots.current) {
-      if (metadata.powerState !== 'poweredOff') {
-        await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+    // the change tracking of the host gives the blocks to read: every block the disk uses for the
+    // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
+    // it, a full pass reads the unallocated blocks too
+    let isChangeTrackingEnabled = false
+    let isChangeTrackingNew = false
+    try {
+      isChangeTrackingNew = await Task.run({ properties: { name: `enabling change tracking on ${vmId}` } }, () =>
+        esxi.enableChangeTracking(vmId)
+      )
+      isChangeTrackingEnabled = true
+    } catch (error) {
+      // not fatal: the disks are read to find their blocks
+      warn('failed to enable the change tracking on the source', { error, vmId })
+      Task.warning(`the change tracking could not be enabled on the source: ${error.message}`)
+    }
+
+    const isRunning = metadata.powerState !== 'poweredOff'
+    // a running VM is only read up to a snapshot
+    const isSnapshotRequired = isRunning && !metadata.snapshots?.current
+    // tracking only starts with the next snapshot: before it the host has no tracking file to answer
+    // from, and an existing snapshot carries no changeId. This is checked on the source rather than
+    // deduced from this run turning the tracking on: a previous run may have turned it on, then failed
+    // before its snapshot. A partial import made from a snapshot without changeId is not resumed on
+    // purpose: its delta can only be read from a COWD extent, which ESXi 7 and later no longer write,
+    // the transfer starts over
+    let isSnapshotUseful = isChangeTrackingNew
+    if (isChangeTrackingEnabled && !isChangeTrackingNew && !isSnapshotRequired) {
+      isSnapshotUseful = await esxi.isChangeTrackingReady(vmId, { signal: Task.abortSignal }).then(
+        isReady => !isReady,
+        error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: a snapshot which turns out useless costs less than a transfer without tracking
+          warn('failed to check the change tracking of the source', { error, vmId })
+          return true
+        }
+      )
+    }
+
+    if (isSnapshotRequired || isSnapshotUseful) {
+      let snapshotTaskInfo
+      try {
+        snapshotTaskInfo = await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
           return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
+      } catch (error) {
+        if (isSnapshotRequired) {
+          throw error
+        }
+        Task.abortSignal?.throwIfAborted()
+        // not fatal, like the change tracking it would have started
+        warn('failed to snapshot the source to start its change tracking', { error, vmId })
+        Task.warning(`the source could not be snapshotted to start its change tracking: ${error.message}`)
+      }
 
+      const snapshotId = snapshotTaskInfo?.result?.$value
+      if (!isRunning && snapshotId !== undefined) {
+        // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
+        // nothing would ever remove this snapshot from the source
+        await Task.run({ properties: { name: `removing the snapshot of ${vmId}` } }, () =>
+          esxi.removeSnapshot(snapshotId)
+        ).catch(error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: the import reads the chain of the disks, this snapshot included
+          warn('failed to remove the snapshot which started the change tracking', { error, snapshotId, vmId })
+          Task.warning(`the snapshot ${snapshotId} could not be removed from the source: ${error.message}`)
+        })
+      }
+
+      if (snapshotTaskInfo !== undefined) {
         metadata = await Task.run(
           { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
           () => esxi.getTransferableVmMetadata(vmId)
@@ -229,8 +333,8 @@ export default class MigrateVm {
     return vm.uuid
   }
 
-  async checkVddkDependencies() {
-    return checkVddkDependencies()
+  async checkEsxiDependencies() {
+    return checkDependencies()
   }
 
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
@@ -265,7 +369,9 @@ export default class MigrateVm {
     }
     const disk = chain.pop()
     const stream = new PassThrough()
+    // the transfer outlives this call, so the session cannot be released before the stream is done
     importStream({ esxi, disk, vmId, format }, source => {
+      stream.length = source.length
       source.pipe(stream)
       return new Promise((resolve, reject) => {
         finished(source, { writable: false }, error => {
@@ -275,10 +381,30 @@ export default class MigrateVm {
           error ? reject(error) : resolve()
         })
       })
-    }).catch(error => {
-      warn('Error while reading the disk from esxi', warn)
-      throw error
     })
+      .catch(error => {
+        // rethrowing was an unhandled rejection: nothing awaits this promise. Whoever reads the
+        // stream is the one which has to learn about the failure
+        warn('error while reading the disk from esxi', { diskId, error, vmId })
+        stream.destroy(error)
+      })
+      .finally(() => this.#closeEsxi(esxi, host))
     return stream
+  }
+
+  async importEsxiDiskToSr({
+    disk,
+    format = VDI_FORMAT_VHD,
+    host,
+    user,
+    password,
+    sslVerify = true,
+    sr: srId,
+    vm: vmId,
+  }) {
+    const sr = this._app.getXapiObject(srId)
+    const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm: vmId })
+    const vdiRef = await sr.$importVdi(stream, { format, name_label: `[ESXI] ${vmId} / ${disk}` })
+    return sr.$xapi.getObject(vdiRef).uuid
   }
 }

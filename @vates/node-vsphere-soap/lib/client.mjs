@@ -19,16 +19,29 @@ import soap from 'soap'
 import Cookie from 'soap-cookie' // required for session persistence
 import { createLogger } from '@xen-orchestra/log'
 
+import { parseFault } from './_parseFault.mjs'
+
+// exposed for the consumers talking to the host outside of the WSDL, e.g. `Fetch`
+export { parseFault } from './_parseFault.mjs'
+
 const { warn } = createLogger('xo:node-vsphere-soap:client')
 class VmwareError extends Error {
   constructor(rawError) {
-    super(rawError.body)
-    const matches = rawError.body?.match(/<faultstring[^>]*>(.*)<\/faultstring>/im)
-    this.message = matches?.[1] ?? rawError.message
+    const { code, faultcode, faultstring, localizedMessage, body } = parseFault(rawError)
+    super(localizedMessage ?? faultstring ?? rawError?.message ?? 'unknown SOAP error')
     this.name = 'VmwareError'
-    this.stack = rawError.stack
-    // not putting the cause since the error failed to be stringified correctly down the road
-    warn(rawError)
+    // the vim25 fault type, the only part of a fault a caller can branch on
+    this.code = code
+    this.faultcode = faultcode
+    this.faultstring = faultstring
+    this.localizedMessage = localizedMessage
+    this.body = body
+    if (rawError?.stack !== undefined) {
+      this.stack = rawError.stack
+    }
+    // legacy constraint: not putting the cause since the error failed to be stringified correctly
+    // down the road, the fault is exposed through own properties instead
+    warn('SOAP call failed', { code, faultcode, faultstring, localizedMessage })
   }
 }
 // Client class
@@ -38,6 +51,7 @@ class VmwareError extends Error {
 export function Client(vCenterHostname, username, password, sslVerify) {
   this.status = 'disconnected'
   this.reconnectCount = 0
+  this._exitHook = undefined
 
   sslVerify = typeof sslVerify !== 'undefined' ? sslVerify : false
 
@@ -90,44 +104,49 @@ util.inherits(Client, EventEmitter)
 
 Client.prototype.runCommand = function (command, args) {
   const self = this
-  let cmdargs
-  if (!args || args === null) {
-    cmdargs = {}
-  } else {
-    cmdargs = args
-  }
+  const cmdargs = args ?? {}
 
   const emitter = new EventEmitter()
 
+  const onResponse = function (err, result, raw, soapHeader) {
+    if (err) {
+      // an error and a result are mutually exclusive: emitting both makes every caller listening
+      // for 'result' believe the call succeeded, with `result` undefined
+      _soapErrorHandler(self, emitter, command, cmdargs, err)
+      return
+    }
+    if (command === 'Logout') {
+      self.status = 'disconnected'
+      self._unregisterExitHook()
+    }
+    emitter.emit('result', result, raw, soapHeader)
+  }
+
+  const send = function () {
+    self.client.VimService.VimPort[command](cmdargs, onResponse)
+  }
+
   // check if client has successfully connected
   if (self.status === 'ready' || self.status === 'connecting') {
-    self.client.VimService.VimPort[command](cmdargs, function (err, result, raw, soapHeader) {
-      if (err) {
-        _soapErrorHandler(self, emitter, command, cmdargs, err)
-      }
-      if (command === 'Logout') {
-        self.status = 'disconnected'
-        process.removeAllListeners('beforeExit')
-      }
-      emitter.emit('result', result, raw, soapHeader)
-    })
+    send()
   } else {
     // if connection not ready or connecting, reconnect to instance
     if (self.status === 'disconnected') {
       self.emit('connect')
     }
-    self.once('ready', function () {
-      self.client.VimService.VimPort[command](cmdargs, function (err, result, raw, soapHeader) {
-        if (err) {
-          _soapErrorHandler(self, emitter, command, cmdargs, err)
-        }
-        if (command === 'Logout') {
-          self.status = 'disconnected'
-          process.removeAllListeners('beforeExit')
-        }
-        emitter.emit('result', result, raw, soapHeader)
-      })
-    })
+
+    // a failed connection would otherwise leave this listener registered for ever, and the next
+    // successful one would replay every command whose caller has long given up
+    const onConnectionError = error => {
+      self.off('ready', onReady)
+      emitter.emit('error', error)
+    }
+    const onReady = () => {
+      self.off('error', onConnectionError)
+      send()
+    }
+    self.once('ready', onReady)
+    self.once('error', onConnectionError)
   }
 
   return emitter
@@ -153,9 +172,11 @@ Client.prototype._connect = function () {
     self.clientopts,
     function (err, client) {
       if (err) {
-        const vErr = new VmwareError(err)
-        self.emit('error', vErr)
-        throw vErr
+        self.status = 'disconnected'
+        // throwing here would be an uncaught exception: we are in an async callback, not in the
+        // stack of the caller
+        self.emit('error', new VmwareError(err))
+        return
       }
 
       self.client = client // save client for later use
@@ -186,7 +207,7 @@ Client.prototype._connect = function () {
 
               self.status = 'ready'
               self.emit('ready')
-              process.once('beforeExit', self._close)
+              self._registerExitHook()
             })
             .once('error', function (err) {
               self.status = 'disconnected'
@@ -202,8 +223,35 @@ Client.prototype._connect = function () {
   )
 }
 
+// Logs out on process exit, so that a session is not left open on the server until it expires.
+//
+// The hook must be stored: passing `self._close` directly would call it with `this === process`,
+// and removing it with `process.removeAllListeners('beforeExit')` would drop the hooks of every
+// other module of the process.
+Client.prototype._registerExitHook = function () {
+  const self = this
+
+  if (self._exitHook === undefined) {
+    self._exitHook = function () {
+      self._close()
+    }
+    process.once('beforeExit', self._exitHook)
+  }
+}
+
+Client.prototype._unregisterExitHook = function () {
+  const self = this
+
+  if (self._exitHook !== undefined) {
+    process.off('beforeExit', self._exitHook)
+    self._exitHook = undefined
+  }
+}
+
 Client.prototype._close = function () {
   const self = this
+
+  self._unregisterExitHook()
 
   if (self.status === 'ready') {
     self
@@ -220,34 +268,64 @@ Client.prototype._close = function () {
   }
 }
 
-function _soapErrorHandler(self, emitter, command, args, err) {
+// Errors are only emitted on `emitter`, the emitter of the failed call: throwing from here would
+// be an uncaught exception since we are always in an async callback, and emitting on the client
+// would reject unrelated concurrent calls.
+//
+// Exported for the unit tests: building a `Client` connects to a host.
+export function _soapErrorHandler(self, emitter, command, args, err) {
   err = err || { body: 'general error' }
 
-  if (err.body?.match(/session is not authenticated/)) {
-    self.status = 'disconnected'
-    process.removeAllListeners('beforeExit')
+  const vErr = new VmwareError(err)
 
-    if (self.reconnectCount < 10) {
-      self.reconnectCount += 1
-      self
-        .runCommand(command, args)
-        .once('result', function (result, raw, soapHeader) {
-          emitter.emit('result', result, raw, soapHeader)
-        })
-        .once('error', function (err) {
-          const vErr = new VmwareError(err)
-          emitter.emit('error', vErr)
-          throw vErr
-        })
-    } else {
-      const vErr = new VmwareError(err)
-      emitter.emit('error', vErr)
-      throw vErr
-    }
-  } else {
-    const vErr = new VmwareError(err)
+  // `NotAuthenticated` is raised when the session expired: log in again and replay the call.
+  //
+  // The fault type is used instead of the previous `err.body?.match(...)`: node-soap only fills
+  // `body` for streamed responses, so the string test never matched and the session was never
+  // renewed
+  const isSessionExpired =
+    vErr.code === 'NotAuthenticated' || /session is not authenticated/i.test(vErr.faultstring ?? vErr.message)
+
+  if (!isSessionExpired || self.reconnectCount >= 10) {
     emitter.emit('error', vErr)
-    throw vErr
+    return
+  }
+
+  // The call is replayed only once a new session is ready. Handing it straight to `runCommand`
+  // would send it right away while the status is 'connecting' — i.e. on the very session which
+  // just expired — and the failure of that replay would land back here.
+  const onConnectionError = function (error) {
+    self.off('ready', onReady)
+    emitter.emit('error', error)
+  }
+  const onReady = function () {
+    self.off('error', onConnectionError)
+    self
+      .runCommand(command, args)
+      .once('result', function (result, raw, soapHeader) {
+        emitter.emit('result', result, raw, soapHeader)
+      })
+      .once('error', function (retryError) {
+        emitter.emit('error', retryError)
+      })
+  }
+  self.once('ready', onReady)
+  self.once('error', onConnectionError)
+
+  // A whole wave of calls can fail on the same expired session, e.g. during an import. Only the
+  // first one to notice drops it and pays for a retry: the others ride the reconnect it started,
+  // instead of each burning one of the 10 and of resetting the status under a `_connect` already
+  // in flight — which used to start a second `soap.createClient` and replace `self.client` under
+  // the first one.
+  if (self.status === 'ready') {
+    self.status = 'disconnected'
+    self._unregisterExitHook()
+    self.reconnectCount += 1
+  }
+  if (self.status === 'disconnected') {
+    // no reconnect in flight: either this call is the first to notice, or the previous attempt
+    // already failed
+    self.emit('connect')
   }
 }
 

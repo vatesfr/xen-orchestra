@@ -7,17 +7,32 @@
 
 <script lang="ts" setup>
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import { useUiStore } from '@core/stores/ui.store'
-import VncClient from '@novnc/novnc/lib/rfb'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import type { KeyboardLayoutId } from '@core/types/keyboard-layout.type.ts'
+import { getKeyboardLayout, getKeysymKeyStrokes, typeText } from '@core/utils/keyboard-layout.util.ts'
+import type NoVncClient from '@novnc/novnc/lib/rfb'
+import _RFB from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
-import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+export type RemoteConsoleTypeText = (text: string, layoutId?: KeyboardLayoutId) => Promise<string[]> | undefined
+
+export type RemoteConsoleExposed = {
+  isConnected: boolean
+  sendCtrlAltDel: () => void
+  typeText: RemoteConsoleTypeText
+}
+
+const { url, isConsoleAvailable } = defineProps<{
   url: URL
   isConsoleAvailable: boolean
+}>()
+
+const emit = defineEmits<{
+  clipboard: [text: string]
 }>()
 
 const { t } = useI18n()
@@ -30,23 +45,24 @@ const FIBONACCI_MS_ARRAY: number[] = Array.from(fibonacci().toMs().take(N_TOTAL_
 const consoleContainer = useTemplateRef<HTMLDivElement | null>('console-container')
 const isReady = ref(false)
 
-let vncClient: VncClient | undefined
+// See https://rolldown.rs/in-depth/bundling-cjs#ambiguous-default-import-from-cjs-modules
+const VncClient = typeof _RFB === 'object' && _RFB !== null && (_RFB as any).__esModule ? (_RFB as any).default : _RFB
+
+let vncClient: NoVncClient | undefined
 let nConnectionAttempts = 0
 
 function handleDisconnectionEvent() {
   clearVncClient()
-  if (props.isConsoleAvailable) {
+  if (isConsoleAvailable) {
     nConnectionAttempts++
 
     if (nConnectionAttempts > N_TOTAL_TRIES) {
-      console.error('The number of reconnection attempts has been exceeded for:', props.url)
+      console.error('The number of reconnection attempts has been exceeded for:', url)
       return
     }
 
     console.error(
-      `Connection lost for the remote console: ${props.url}. New attempt in ${
-        FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]
-      }ms`
+      `Connection lost for the remote console: ${url}. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
     )
     createVncConnection()
   }
@@ -57,12 +73,17 @@ function handleConnectionEvent() {
   isReady.value = true
 }
 
+function handleClipboardEvent(event: CustomEvent<{ text: string }>) {
+  emit('clipboard', event.detail.text)
+}
+
 function clearVncClient() {
   isReady.value = false
   if (vncClient === undefined) {
     return
   }
 
+  vncClient.removeEventListener('clipboard', handleClipboardEvent)
   vncClient.removeEventListener('disconnect', handleDisconnectionEvent)
   vncClient.removeEventListener('connect', handleConnectionEvent)
   vncClient.disconnect()
@@ -80,14 +101,15 @@ async function createVncConnection() {
     }
   }
 
-  vncClient = new VncClient(consoleContainer.value!, props.url.toString(), {
+  vncClient = new VncClient(consoleContainer.value!, url.toString(), {
     wsProtocols: ['binary'],
-  })
+  }) as NoVncClient
   vncClient.scaleViewport = true
   vncClient.background = 'transparent'
 
   vncClient.addEventListener('disconnect', handleDisconnectionEvent)
   vncClient.addEventListener('connect', handleConnectionEvent)
+  vncClient.addEventListener('clipboard', handleClipboardEvent)
   const canvas = consoleContainer.value?.querySelector('canvas') as HTMLCanvasElement | null
   if (canvas !== null) {
     // Todo: See with Clémence to specify the desired focus behavior
@@ -114,23 +136,49 @@ whenever(
   }
 )
 
-watchEffect(() => {
-  if (consoleContainer.value === null || !props.isConsoleAvailable) {
-    return
-  }
+// `consoleContainer` is a shallow ref: passing it directly in a multi-source watch forces the callback
+// to run each time `url` gets a new (but identical) URL object, which reconnected the console on every VM update
+watch(
+  [() => consoleContainer.value, () => isConsoleAvailable, () => url.toString()],
+  ([container, isAvailable]) => {
+    if (container === null || !isAvailable) {
+      return
+    }
 
-  nConnectionAttempts = 0
+    nConnectionAttempts = 0
 
-  clearVncClient()
-  createVncConnection()
-})
+    clearVncClient()
+    createVncConnection()
+  },
+  { immediate: true }
+)
 
 onBeforeUnmount(() => {
   clearVncClient()
 })
 
+function typeTextInConsole(text: string, layoutId?: KeyboardLayoutId) {
+  const client = vncClient
+
+  if (client === undefined) {
+    return
+  }
+
+  // not exposed by noVNC and only true when the server announced the QEMU extended key event, which the host console does not
+  const isScancodeSupported = '_qemuExtKeyEventSupported' in client && client._qemuExtKeyEventSupported === true
+
+  return typeText(
+    (keysym, code, down) => client.sendKey(keysym, code, down),
+    text,
+    isScancodeSupported && layoutId !== undefined ? getKeyboardLayout(layoutId).getKeyStrokes : getKeysymKeyStrokes,
+    () => vncClient !== client
+  )
+}
+
 defineExpose({
+  isConnected: isReady,
   sendCtrlAltDel: () => vncClient?.sendCtrlAltDel(),
+  typeText: typeTextInConsole,
 })
 </script>
 

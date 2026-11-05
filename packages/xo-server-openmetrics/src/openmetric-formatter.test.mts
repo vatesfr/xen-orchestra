@@ -14,11 +14,31 @@ import {
   formatAllPoolsToOpenMetrics,
   formatHostStatusMetrics,
   formatHostUptimeMetrics,
+  formatSrMetrics,
+  formatVdiMetrics,
+  formatVmStatusMetrics,
+  formatVmUptimeMetrics,
+  formatXostorAlarmsMetrics,
+  formatXostorClusterMetrics,
+  formatXostorSmartMetrics,
+  formatXostorUpdatesMetrics,
+  serializeTags,
   type FormattedMetric,
   type LabelContext,
 } from './openmetric-formatter.mjs'
 
-import type { HostStatusItem } from './index.mjs'
+import { indexSrUuidTruncations, POWER_SENSOR_REGEX } from './index.mjs'
+
+import type {
+  HostStatusItem,
+  SrDataItem,
+  VdiDataItem,
+  VmStatusItem,
+  XostorAlarmsItem,
+  XostorClusterItem,
+  XostorSmartHost,
+  XostorUpdateItem,
+} from './index.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
 
@@ -185,6 +205,118 @@ describe('HOST_METRICS DCMI', () => {
     assert.equal(dcmi.test, 'DCMI-power-reading')
     assert.equal(dcmi.transformValue, undefined)
     assert.equal(dcmi.extractLabels, undefined)
+  })
+})
+
+describe('HOST_METRICS new metrics', () => {
+  it('should include hostload metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_load')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'hostload')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include memory_reclaimed metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed')
+    assert.ok(metric.transformValue)
+    // 512 KiB * 1024 = 524288 bytes
+    assert.equal(metric.transformValue!(512), 512 * 1024)
+  })
+
+  it('should include memory_reclaimed_max metric with KiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_memory_reclaimed_max_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'memory_reclaimed_max')
+    assert.ok(metric.transformValue)
+    assert.equal(metric.transformValue!(1024), 1024 * 1024)
+  })
+
+  it('should include running_vcpus metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_running_vcpus')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'running_vcpus')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_rx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_receive_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_rx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should include pif_aggr_tx metric', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_network_aggregated_transmit_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.test, 'pif_aggr_tx')
+    assert.equal(metric.transformValue, undefined)
+  })
+
+  it('should match pif_aggr_rx before the generic PIF regex', () => {
+    const result = findMetricDefinition('pif_aggr_rx', 'host')
+    assert.ok(result)
+    assert.equal(result.definition.openMetricName, 'host_network_aggregated_receive_bytes')
+  })
+
+  it('should include iops_total per SR with label extraction', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_iops_total')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.extractLabels)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('iops_total_abc12345')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc12345' })
+  })
+
+  it('should include io_throughput_total per SR with MiB to bytes transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_throughput_total_bytes')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 2 MiB/s = 2 * 2^20 bytes/s
+    assert.equal(metric.transformValue!(2), 2 * 2 ** 20)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('io_throughput_total_def-456-789')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'def-456-789' })
+  })
+
+  it('should include latency per SR with µs to seconds transformation', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    assert.equal(metric.type, 'gauge')
+    assert.ok(metric.transformValue)
+    assert.ok(metric.extractLabels)
+
+    // 500 µs / 1e6 = 0.0005 seconds
+    assert.equal(metric.transformValue!(500), 0.0005)
+
+    const regex = metric.test as RegExp
+    const match = regex.exec('latency_abc-def-123')
+    assert.ok(match)
+    assert.deepEqual(metric.extractLabels!(match), { sr: 'abc-def-123' })
+  })
+
+  it('should not match read_latency or write_latency with latency_<sr> regex', () => {
+    const metric = HOST_METRICS.find(m => m.openMetricName === 'host_disk_latency_seconds')
+    assert.ok(metric)
+    const regex = metric.test as RegExp
+    // ^latency_ anchor prevents matching read_latency_ and write_latency_
+    assert.equal(regex.exec('read_latency_abc12345'), null)
+    assert.equal(regex.exec('write_latency_abc12345'), null)
   })
 })
 
@@ -622,6 +754,10 @@ describe('transformMetric with labelContext', () => {
           vbdDeviceToVdiName: { xvda: 'System Disk', xvdb: 'Data Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system', xvdb: 'vdi-uuid-data' },
           vifIndexToNetworkName: { '0': 'Pool-wide network', '1': 'Storage network' },
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-456',
+          pool_name: 'Production Pool',
         },
       },
       hosts: {
@@ -634,9 +770,10 @@ describe('transformMetric with labelContext', () => {
       srs: {
         'sr-uuid-full-1234567890': {
           name_label: 'Local Storage',
+          SR_type: 'lvm',
         },
       },
-      srSuffixToUuid: {
+      srTruncatedToUuid: {
         '1234567890': 'sr-uuid-full-1234567890',
       },
       vdiUuidToSrUuid: {
@@ -804,6 +941,145 @@ describe('transformMetric with labelContext', () => {
     assert.equal(result.labels.sr_name, 'Local Storage')
   })
 
+  it('should add sr_type label for host SR-tagged metrics (iops/throughput/latency)', () => {
+    const ctx = createLabelContext()
+    ctx.labels.srs['sr-uuid-full-1234567890']!.SR_type = 'linstor'
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'iops_read_1234567890',
+        rawLegend: 'AVERAGE:host:host-uuid-123:iops_read_1234567890',
+      },
+      value: 100,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr_type, 'linstor')
+  })
+
+  it('should add sr_type label for VBD VM disk metrics via VDI→SR mapping', () => {
+    const ctx = createLabelContext()
+    ctx.labels.srs['sr-uuid-full-1234567890']!.SR_type = 'linstor'
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_iops_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_iops_read',
+      },
+      value: 200,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr_type, 'linstor')
+  })
+
+  it('should omit sr_type label when SR_type is empty', () => {
+    const ctx = createLabelContext()
+    ctx.labels.srs['sr-uuid-full-1234567890']!.SR_type = ''
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'iops_read_1234567890',
+        rawLegend: 'AVERAGE:host:host-uuid-123:iops_read_1234567890',
+      },
+      value: 100,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr_type, undefined)
+  })
+
+  it('should resolve SR labels from a UUID prefix (XCP-ng RRD encoding)', () => {
+    // XCP-ng encodes the SR in RRD legends as the first 8 chars of the UUID.
+    // The label context must therefore index that prefix.
+    const fullUuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const prefix = fullUuid.slice(0, 8)
+    const ctx = createLabelContext()
+    ctx.labels.srs[fullUuid] = { name_label: 'XOSTOR NVME', SR_type: 'linstor' }
+    ctx.labels.srTruncatedToUuid[prefix] = fullUuid
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: `iops_read_${prefix}`,
+        rawLegend: `AVERAGE:host:host-uuid-123:iops_read_${prefix}`,
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, prefix)
+    assert.equal(result.labels.sr_uuid, fullUuid)
+    assert.equal(result.labels.sr_name, 'XOSTOR NVME')
+    assert.equal(result.labels.sr_type, 'linstor')
+  })
+
+  it('should omit SR enrichment when a UUID truncation is ambiguous', () => {
+    const prefix = 'c787b75c'
+    const ctx = createLabelContext()
+    ctx.labels.srTruncatedToUuid[prefix] = null
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: `iops_read_${prefix}`,
+        rawLegend: `AVERAGE:host:host-uuid-123:iops_read_${prefix}`,
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', ctx)
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, prefix)
+    assert.equal(result.labels.sr_uuid, undefined)
+    assert.equal(result.labels.sr_name, undefined)
+    assert.equal(result.labels.sr_type, undefined)
+  })
+
+  it('should ignore inherited SR truncation keys', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'iops_read_constructor',
+        rawLegend: 'AVERAGE:host:host-uuid-123:iops_read_constructor',
+      },
+      value: 42,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, 'constructor')
+    assert.equal(result.labels.sr_uuid, undefined)
+    assert.doesNotThrow(() => formatToOpenMetrics([result]))
+  })
+
   it('should handle missing label context gracefully', () => {
     const metric: ParsedMetric = {
       legend: {
@@ -851,6 +1127,10 @@ describe('transformMetric with labelContext', () => {
       vbdDeviceToVdiName: {},
       vbdDeviceToVdiUuid: {},
       vifIndexToNetworkName: {},
+      startTime: null,
+      power_state: 'Running',
+      pool_id: 'pool-456',
+      pool_name: 'Production Pool',
     }
 
     const metric: ParsedMetric = {
@@ -934,6 +1214,10 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
           vbdDeviceToVdiName: { xvda: 'System Disk' },
           vbdDeviceToVdiUuid: { xvda: 'vdi-1' },
           vifIndexToNetworkName: { '0': 'Management' },
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-1',
+          pool_name: 'Production',
         },
       },
       hosts: {
@@ -944,7 +1228,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
         },
       },
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     },
   })
@@ -1000,6 +1284,225 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
     const result = formatAllPoolsToOpenMetrics(rrdDataList, createLabelContext())
 
     assert.ok(result.includes('vm_name="Web Server"'))
+  })
+})
+
+// ============================================================================
+// VM power consumption (estimate) tests
+// ============================================================================
+
+describe('xcp_vm_power_consumption_watts', () => {
+  // Label context whose VMs carry vcpus / host_id, keyed by uuid.
+  const labelContext = (
+    vms: Record<string, { vcpus: number; is_control_domain?: boolean; host_id?: string }>
+  ): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '10.0.0.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+      {
+        hostId: 'host-2',
+        hostAddress: '10.0.0.2',
+        hostLabel: 'Host 2',
+        poolId: 'pool-1',
+        poolLabel: 'Prod',
+        sessionId: 's',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: Object.fromEntries(
+        Object.entries(vms).map(([uuid, v]) => [
+          uuid,
+          {
+            name_label: uuid,
+            is_control_domain: v.is_control_domain ?? false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            vcpus: v.vcpus,
+            host_id: v.host_id ?? 'host-1',
+            pool_id: 'pool-1',
+            pool_name: 'Prod',
+          },
+        ])
+      ),
+      hosts: {
+        'host-1': { name_label: 'Host 1', pifDeviceToNetworkName: {}, startTime: null },
+        'host-2': { name_label: 'Host 2', pifDeviceToNetworkName: {}, startTime: null },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const cpuUsage = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'cpu_usage',
+      rawLegend: `AVERAGE:vm:${uuid}:cpu_usage`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const memory = (uuid: string, value: number): ParsedMetric => ({
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid,
+      metricName: 'memory_internal_free',
+      rawLegend: `AVERAGE:vm:${uuid}:memory_internal_free`,
+    },
+    value,
+    timestamp: 1700000000,
+  })
+  const hostFetch = (hostId: string, metrics: ParsedMetric[]): ParsedRrdData => ({
+    poolId: 'pool-1',
+    hostId,
+    timestamp: 1700000000,
+    metrics,
+  })
+
+  // Parse `name{labels} value timestamp` lines for a metric name.
+  const series = (output: string, name: string): Array<{ line: string; value: number }> =>
+    output
+      .split('\n')
+      .filter(l => l.startsWith(`${name}{`))
+      .map(l => ({
+        line: l,
+        value: Number(
+          l
+            .slice(l.lastIndexOf('}') + 1)
+            .trim()
+            .split(/\s+/)[0]
+        ),
+      }))
+  const uuidOf = (line: string): string => line.match(/uuid="([^"]+)"/)![1]!
+
+  it('splits host power across running guests proportional to cpu_usage × vCPUs (conservation)', () => {
+    // loads: vm-a = 0.25×4 = 1, vm-b = 0.75×4 = 3, total 4 → 50 / 150 W of 200 W
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.25), cpuUsage('vm-b', 0.75)])],
+      labelContext({ 'vm-a': { vcpus: 4 }, 'vm-b': { vcpus: 4 } }),
+      { 'host-1': 200 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 50)
+    assert.equal(byVm['vm-b'], 150)
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      200
+    ) // Σ == host power
+    assert.ok(lines.every(l => l.line.includes('estimate="true"')))
+    assert.ok(lines.every(l => l.line.includes('host_id="host-1"')))
+  })
+
+  it('emits no VM series for a host without a power reading', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 2 } }),
+      {} // no power for host-1
+    )
+    assert.equal(series(out, 'xcp_vm_power_consumption_watts').length, 0)
+  })
+
+  it('excludes dom0 from numerator and denominator', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5), cpuUsage('dom0', 5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, dom0: { vcpus: 1, is_control_domain: true } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(lines[0]!.line.includes('uuid="vm-a"'))
+    assert.equal(lines[0]!.value, 100) // dom0 took no share
+  })
+
+  it('falls back to equal split when the host is quasi-idle (Σ load < 0.01)', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0), cpuUsage('vm-b', 0)])],
+      labelContext({ 'vm-a': { vcpus: 2 }, 'vm-b': { vcpus: 2 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 2)
+    assert.ok(lines.every(l => l.value === 50))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    )
+  })
+
+  it('flags a running VM with an RRD gap (no cpu_usage) as data_complete="false" with 0 W', () => {
+    // vm-a load 1 (takes all power); vm-b present only via a memory metric → load 0, incomplete
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 1), memory('vm-b', 1024)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-b': { vcpus: 1 } }),
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    const byVm = Object.fromEntries(lines.map(l => [uuidOf(l.line), l]))
+    assert.equal(byVm['vm-a']!.value, 100)
+    assert.equal(byVm['vm-b']!.value, 0)
+    assert.ok(byVm['vm-b']!.line.includes('data_complete="false"'))
+    assert.ok(!byVm['vm-a']!.line.includes('data_complete'))
+    assert.equal(
+      lines.reduce((s, l) => s + l.value, 0),
+      100
+    ) // conservation preserved
+  })
+
+  it('does not mix VMs across hosts', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)]), hostFetch('host-2', [cpuUsage('vm-b', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1, host_id: 'host-1' }, 'vm-b': { vcpus: 1, host_id: 'host-2' } }),
+      { 'host-1': 200, 'host-2': 100 }
+    )
+    const byVm = Object.fromEntries(series(out, 'xcp_vm_power_consumption_watts').map(l => [uuidOf(l.line), l.value]))
+    assert.equal(byVm['vm-a'], 200)
+    assert.equal(byVm['vm-b'], 100)
+  })
+
+  it('emits nothing for powered-off VMs and labels IPMI host power source="ipmi"', () => {
+    const out = formatAllPoolsToOpenMetrics(
+      [hostFetch('host-1', [cpuUsage('vm-a', 0.5)])],
+      labelContext({ 'vm-a': { vcpus: 1 }, 'vm-off': { vcpus: 1 } }), // vm-off absent from RRD
+      { 'host-1': 100 }
+    )
+    const lines = series(out, 'xcp_vm_power_consumption_watts')
+    assert.equal(lines.length, 1)
+    assert.ok(!lines.some(l => l.line.includes('vm-off')))
+    assert.ok(/xcp_host_power_consumption_watts\{[^}]*source="ipmi"/.test(out))
+  })
+})
+
+describe('POWER_SENSOR_REGEX', () => {
+  it('matches the supported vendor power-sensor names and nothing else', () => {
+    for (const name of ['pwr consumption', 'Sys Power', 'system power', 'power consumption', 'total_power']) {
+      assert.ok(POWER_SENSOR_REGEX.test(name), name)
+    }
+    for (const name of ['cpu temp', 'fan1', 'psu1 status', 'voltage 1']) {
+      assert.ok(!POWER_SENSOR_REGEX.test(name), name)
+    }
+  })
+
+  it('parseFloat strips a unit suffix from the reading', () => {
+    assert.equal(Number.parseFloat('210 Watts'), 210)
+    assert.equal(Number.parseFloat('195'), 195)
+    assert.ok(Number.isNaN(Number.parseFloat('N/A')))
   })
 })
 
@@ -1201,11 +1704,15 @@ describe('CPU usage fallback', () => {
             vbdDeviceToVdiName: {},
             vbdDeviceToVdiUuid: {},
             vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Production',
           },
         },
         hosts: {},
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1463,7 +1970,7 @@ describe('formatHostUptimeMetrics', () => {
         },
       },
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     },
   })
@@ -1513,7 +2020,7 @@ describe('formatHostUptimeMetrics', () => {
         vms: {},
         hosts: {},
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1561,7 +2068,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1601,7 +2108,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1636,7 +2143,7 @@ describe('formatHostUptimeMetrics', () => {
           },
         },
         srs: {},
-        srSuffixToUuid: {},
+        srTruncatedToUuid: {},
         vdiUuidToSrUuid: {},
       },
     }
@@ -1645,5 +2152,1663 @@ describe('formatHostUptimeMetrics', () => {
 
     assert.equal(metrics.length, 1)
     assert.equal(metrics[0]!.labels.host_name, undefined)
+  })
+})
+
+// ============================================================================
+// SR Metrics Tests
+// ============================================================================
+
+describe('formatSrMetrics', () => {
+  const createSrDataItem = (overrides: Partial<SrDataItem> = {}): SrDataItem => ({
+    uuid: 'sr-uuid-456',
+    name_label: 'Local Storage',
+    size: 1_000_000_000_000,
+    physical_usage: 250_000_000_000,
+    usage: 500_000_000_000,
+    pool_id: 'pool-789',
+    pool_name: 'Production Pool',
+    content_type: 'user',
+    sr_type: 'lvm',
+    ...overrides,
+  })
+
+  it('should emit 3 metrics per SR with sr_type label when present', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ sr_type: 'linstor' })])
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.sr_type, 'linstor')
+    }
+  })
+
+  it('should omit sr_type label when empty', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ sr_type: '' })])
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.sr_type, undefined)
+    }
+  })
+
+  it('should emit content_type label when present', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ content_type: 'iso' })])
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.content_type, 'iso')
+    }
+    assert.match(formatToOpenMetrics(metrics), /content_type="iso"/)
+  })
+
+  it('should distinguish multiple SRs by sr_type label', () => {
+    const metrics = formatSrMetrics([
+      createSrDataItem({ uuid: 'sr-a', sr_type: 'linstor' }),
+      createSrDataItem({ uuid: 'sr-b', sr_type: 'lvm' }),
+    ])
+
+    const typesByUuid = new Map<string, string>()
+    for (const m of metrics) {
+      const srUuid = m.labels.sr_uuid
+      const srType = m.labels.sr_type
+      if (srUuid !== undefined && srType !== undefined) {
+        typesByUuid.set(srUuid, srType)
+      }
+    }
+    assert.equal(typesByUuid.get('sr-a'), 'linstor')
+    assert.equal(typesByUuid.get('sr-b'), 'lvm')
+  })
+
+  it('should round-trip sr_type through formatToOpenMetrics', () => {
+    const metrics = formatSrMetrics([createSrDataItem({ sr_type: 'linstor' })])
+    const output = formatToOpenMetrics(metrics)
+    assert.match(output, /sr_type="linstor"/)
+  })
+})
+
+// ============================================================================
+// VDI Metrics Tests
+// ============================================================================
+
+describe('formatVdiMetrics', () => {
+  const createVdiDataItem = (overrides: Partial<VdiDataItem> = {}): VdiDataItem => ({
+    uuid: 'vdi-uuid-123',
+    name_label: 'System Disk',
+    size: 107374182400, // 100 GiB
+    usage: 53687091200, // 50 GiB
+    sr_uuid: 'sr-uuid-456',
+    sr_name: 'Local Storage',
+    sr_type: 'lvm',
+    pool_id: 'pool-789',
+    pool_name: 'Production Pool',
+    ...overrides,
+  })
+
+  it('should generate 2 metrics per VDI with all labels when attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+
+    // Virtual size metric
+    const virtualSize = metrics[0]!
+    assert.equal(virtualSize.name, 'xcp_vdi_virtual_size_bytes')
+    assert.equal(virtualSize.type, 'gauge')
+    assert.equal(virtualSize.help, 'VDI virtual size in bytes')
+    assert.equal(virtualSize.value, 107374182400)
+    assert.equal(virtualSize.labels.pool_id, 'pool-789')
+    assert.equal(virtualSize.labels.pool_name, 'Production Pool')
+    assert.equal(virtualSize.labels.sr_uuid, 'sr-uuid-456')
+    assert.equal(virtualSize.labels.sr_name, 'Local Storage')
+    assert.equal(virtualSize.labels.vdi_uuid, 'vdi-uuid-123')
+    assert.equal(virtualSize.labels.vdi_name, 'System Disk')
+    assert.equal(virtualSize.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(virtualSize.labels.vm_name, 'My VM')
+
+    // Physical usage metric
+    const physicalUsage = metrics[1]!
+    assert.equal(physicalUsage.name, 'xcp_vdi_physical_usage_bytes')
+    assert.equal(physicalUsage.type, 'gauge')
+    assert.equal(physicalUsage.help, 'VDI physical space used in bytes (allocated on SR)')
+    assert.equal(physicalUsage.value, 53687091200)
+    assert.equal(physicalUsage.labels.vm_uuid, 'vm-uuid-abc')
+    assert.equal(physicalUsage.labels.vm_name, 'My VM')
+  })
+
+  it('should omit vm labels when VDI is not attached to a VM', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem()]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+    assert.equal(metrics[0]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[0]!.labels.vm_name, undefined)
+    assert.equal(metrics[1]!.labels.vm_uuid, undefined)
+    assert.equal(metrics[1]!.labels.vm_name, undefined)
+  })
+
+  it('should return empty array for empty input', () => {
+    const metrics = formatVdiMetrics([])
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate correct number of metrics for multiple VDIs', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({ uuid: 'vdi-1', name_label: 'Disk 1' }),
+      createVdiDataItem({ uuid: 'vdi-2', name_label: 'Disk 2' }),
+      createVdiDataItem({ uuid: 'vdi-3', name_label: 'Disk 3' }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 6) // 2 metrics * 3 VDIs
+  })
+
+  it('should map size to virtual_size_bytes and usage to physical_usage_bytes', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        size: 1000,
+        usage: 500,
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    const virtualSize = metrics.find(m => m.name === 'xcp_vdi_virtual_size_bytes')!
+    const physicalUsage = metrics.find(m => m.name === 'xcp_vdi_physical_usage_bytes')!
+
+    assert.equal(virtualSize.value, 1000)
+    assert.equal(physicalUsage.value, 500)
+  })
+
+  it('should omit pool_name label when pool_name is empty', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem({ pool_name: '' })]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should propagate sr_type label when present', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem({ sr_type: 'linstor' })]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    assert.equal(metrics.length, 2)
+    for (const m of metrics) {
+      assert.equal(m.labels.sr_type, 'linstor')
+    }
+  })
+
+  it('should omit sr_type label when empty', () => {
+    const vdiData: VdiDataItem[] = [createVdiDataItem({ sr_type: '' })]
+
+    const metrics = formatVdiMetrics(vdiData)
+
+    for (const m of metrics) {
+      assert.equal(m.labels.sr_type, undefined)
+    }
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        vm_uuid: 'vm-uuid-abc',
+        vm_name: 'My VM',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('xcp_vdi_virtual_size_bytes'))
+    assert.ok(output.includes('xcp_vdi_physical_usage_bytes'))
+    assert.ok(output.includes('vdi_uuid="vdi-uuid-123"'))
+    assert.ok(output.includes('vm_uuid="vm-uuid-abc"'))
+  })
+
+  it('should escape special characters in label values', () => {
+    const vdiData: VdiDataItem[] = [
+      createVdiDataItem({
+        name_label: 'Disk "with quotes"',
+      }),
+    ]
+
+    const metrics = formatVdiMetrics(vdiData)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('vdi_name="Disk \\"with quotes\\""'))
+  })
+})
+
+// ============================================================================
+// formatVmStatusMetrics Tests
+// ============================================================================
+
+describe('formatVmStatusMetrics', () => {
+  it('should return empty array for empty input', () => {
+    const result = formatVmStatusMetrics([])
+    assert.deepEqual(result, [])
+  })
+
+  it('should create one metric per VM with value 1', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'vm-2',
+        name_label: 'VM 2',
+        power_state: 'Halted',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result.length, 2)
+    assert.equal(result[0]!.value, 1)
+    assert.equal(result[1]!.value, 1)
+  })
+
+  it('should set correct metric name and type', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.name, 'xcp_vm_status')
+    assert.equal(result[0]!.type, 'gauge')
+  })
+
+  it('should include all expected labels', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Production',
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+    const labels = result[0]!.labels
+
+    assert.equal(labels.pool_id, 'pool-1')
+    assert.equal(labels.pool_name, 'Production')
+    assert.equal(labels.uuid, 'vm-1')
+    assert.equal(labels.vm_name, 'VM 1')
+    assert.equal(labels.power_state, 'Running')
+  })
+
+  it('should omit pool_name when empty', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-1', name_label: 'VM 1', power_state: 'Running', pool_id: 'pool-1', pool_name: '' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.pool_name, undefined)
+  })
+
+  it('should handle all VM power_state values', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-0', name_label: 'VM 0', power_state: 'Running', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-1', name_label: 'VM 1', power_state: 'Paused', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-2', name_label: 'VM 2', power_state: 'Halted', pool_id: 'pool-1', pool_name: 'Pool' },
+      { uuid: 'vm-3', name_label: 'VM 3', power_state: 'Suspended', pool_id: 'pool-1', pool_name: 'Pool' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result.length, 4)
+    assert.equal(result[0]!.labels.power_state, 'Running')
+    assert.equal(result[1]!.labels.power_state, 'Paused')
+    assert.equal(result[2]!.labels.power_state, 'Halted')
+    assert.equal(result[3]!.labels.power_state, 'Suspended')
+  })
+
+  it('should produce valid OpenMetrics output', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+      {
+        uuid: 'vm-2',
+        name_label: 'VM 2',
+        power_state: 'Halted',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatVmStatusMetrics(vms)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(
+      output.includes(
+        '# HELP xcp_vm_status VM power state indicator (always 1; current state is carried by the power_state label)'
+      )
+    )
+    assert.ok(output.includes('# TYPE xcp_vm_status gauge'))
+    assert.ok(output.includes('power_state="Running"'))
+    assert.ok(output.includes('power_state="Halted"'))
+
+    // HELP and TYPE should appear only once
+    const helpCount = (output.match(/# HELP xcp_vm_status/g) || []).length
+    const typeCount = (output.match(/# TYPE xcp_vm_status/g) || []).length
+    assert.equal(helpCount, 1)
+    assert.equal(typeCount, 1)
+  })
+
+  it('should escape special characters in VM names', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM "with quotes"',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const metrics = formatVmStatusMetrics(vms)
+    const output = formatToOpenMetrics(metrics)
+
+    assert.ok(output.includes('vm_name="VM \\"with quotes\\""'))
+  })
+
+  it('should omit vm_name when empty', () => {
+    const vms: VmStatusItem[] = [
+      { uuid: 'vm-1', name_label: '', power_state: 'Running', pool_id: 'pool-1', pool_name: 'Pool' },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.vm_name, undefined)
+  })
+})
+
+// ============================================================================
+// formatVmUptimeMetrics Tests
+// ============================================================================
+
+describe('formatVmUptimeMetrics', () => {
+  const createVmLabelContext = (
+    overrides: Partial<{
+      startTime: number | null
+      is_control_domain: boolean
+      name_label: string
+      pool_name: string
+      power_state: string
+    }> = {}
+  ): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-123': {
+          name_label: overrides.name_label ?? 'Test VM',
+          is_control_domain: overrides.is_control_domain ?? false,
+          vbdDeviceToVdiName: {},
+          vbdDeviceToVdiUuid: {},
+          vifIndexToNetworkName: {},
+          startTime: overrides.startTime !== undefined ? overrides.startTime : Math.floor(Date.now() / 1000) - 3600,
+          power_state: overrides.power_state ?? 'Running',
+          pool_id: 'pool-456',
+          pool_name: overrides.pool_name ?? 'Production Pool',
+        },
+      },
+      hosts: {
+        'host-1': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime: Math.floor(Date.now() / 1000) - 7200,
+        },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  it('should generate uptime metric for VM with valid startTime', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const bootTime = now - 3600 // 1 hour ago
+    const labelContext = createVmLabelContext({ startTime: bootTime })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    const metric = metrics[0]!
+    assert.equal(metric.name, 'xcp_vm_uptime_seconds')
+    assert.equal(metric.type, 'gauge')
+    assert.equal(metric.help, 'VM uptime in seconds since boot')
+    assert.equal(metric.labels.pool_id, 'pool-456')
+    assert.equal(metric.labels.pool_name, 'Production Pool')
+    assert.equal(metric.labels.uuid, 'vm-uuid-123')
+    assert.equal(metric.labels.vm_name, 'Test VM')
+    // Value should be approximately 3600 (1 hour)
+    assert.ok(metric.value >= 3599 && metric.value <= 3601)
+  })
+
+  it('should skip VM with null startTime', () => {
+    const labelContext = createVmLabelContext({ startTime: null })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip VM-controller (is_control_domain)', () => {
+    const labelContext = createVmLabelContext({ is_control_domain: true })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should generate metrics for multiple VMs', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-1',
+          poolLabel: 'Pool A',
+          sessionId: 'session-1',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {
+          'vm-1': {
+            name_label: 'VM 1',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: now - 7200, // 2 hours
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Pool A',
+          },
+          'vm-2': {
+            name_label: 'VM 2',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: now - 1800, // 30 minutes
+            power_state: 'Running',
+            pool_id: 'pool-1',
+            pool_name: 'Pool A',
+          },
+        },
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: now - 86400,
+          },
+        },
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 2)
+    const vm1Metric = metrics.find(m => m.labels.uuid === 'vm-1')
+    const vm2Metric = metrics.find(m => m.labels.uuid === 'vm-2')
+    assert.ok(vm1Metric)
+    assert.ok(vm2Metric)
+    assert.ok(vm1Metric.value >= 7199 && vm1Metric.value <= 7201)
+    assert.ok(vm2Metric.value >= 1799 && vm2Metric.value <= 1801)
+  })
+
+  it('should omit pool_name when empty', () => {
+    const labelContext = createVmLabelContext({ pool_name: '' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.pool_name, undefined)
+  })
+
+  it('should omit vm_name when empty', () => {
+    const labelContext = createVmLabelContext({ name_label: '' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.vm_name, undefined)
+  })
+
+  it('should skip halted VM with stale startTime', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 86400, power_state: 'Halted' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip suspended VM', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 3600, power_state: 'Suspended' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+
+  it('should skip paused VM', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const labelContext = createVmLabelContext({ startTime: now - 3600, power_state: 'Paused' })
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 0)
+  })
+})
+
+// ============================================================================
+// formatXostorClusterMetrics Tests
+// ============================================================================
+
+describe('formatXostorClusterMetrics', () => {
+  const makeCluster = (overrides: Partial<XostorClusterItem> = {}): XostorClusterItem => ({
+    sr_uuid: 'sr-xostor-1',
+    pool_id: 'pool-1',
+    pool_name: 'Production',
+    up: true,
+    nodes: [
+      { node_name: 'host-a', role: 'master', state: 'ONLINE' },
+      { node_name: 'host-b', role: 'satellite', state: 'ONLINE' },
+      { node_name: 'host-c', role: 'satellite', state: 'ONLINE' },
+    ],
+    resourceCount: 12,
+    replicaStates: {},
+    ...overrides,
+  })
+
+  it('should return empty array for empty input', () => {
+    const result = formatXostorClusterMetrics({ clusters: [] })
+    assert.deepEqual(result, [])
+  })
+
+  it('should emit xcp_xostor_up metric per cluster with value 1 on success', () => {
+    const result = formatXostorClusterMetrics({ clusters: [makeCluster()] })
+    const up = result.find(m => m.name === 'xcp_xostor_up')
+    assert.ok(up)
+    assert.equal(up.type, 'gauge')
+    assert.equal(up.value, 1)
+    assert.equal(up.labels.sr_uuid, 'sr-xostor-1')
+    assert.equal(up.labels.pool_id, 'pool-1')
+    assert.equal(up.labels.pool_name, 'Production')
+  })
+
+  it('should emit xcp_xostor_up with value 0 when collection failed', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [makeCluster({ up: false, nodes: [], resourceCount: 0 })],
+    })
+    const up = result.find(m => m.name === 'xcp_xostor_up')
+    assert.ok(up)
+    assert.equal(up.value, 0)
+  })
+
+  it('should emit one xcp_xostor_node_status per node with role and state labels', () => {
+    const result = formatXostorClusterMetrics({ clusters: [makeCluster()] })
+    const nodeMetrics = result.filter(m => m.name === 'xcp_xostor_node_status')
+
+    assert.equal(nodeMetrics.length, 3)
+    for (const m of nodeMetrics) {
+      assert.equal(m.type, 'gauge')
+      assert.equal(m.value, 1)
+      assert.equal(m.labels.sr_uuid, 'sr-xostor-1')
+      assert.equal(m.labels.pool_id, 'pool-1')
+      assert.equal(m.labels.pool_name, 'Production')
+      assert.ok(m.labels.node_name)
+      assert.ok(m.labels.role)
+      assert.ok(m.labels.state)
+    }
+
+    const masterMetric = nodeMetrics.find(m => m.labels.role === 'master')
+    assert.ok(masterMetric)
+    assert.equal(masterMetric.labels.node_name, 'host-a')
+
+    const satelliteMetrics = nodeMetrics.filter(m => m.labels.role === 'satellite')
+    assert.equal(satelliteMetrics.length, 2)
+  })
+
+  it('should emit xcp_xostor_resource_total gauge with count value', () => {
+    const result = formatXostorClusterMetrics({ clusters: [makeCluster({ resourceCount: 42 })] })
+    const total = result.find(m => m.name === 'xcp_xostor_resource_total')
+
+    assert.ok(total)
+    assert.equal(total.type, 'gauge')
+    assert.equal(total.value, 42)
+    assert.equal(total.labels.sr_uuid, 'sr-xostor-1')
+    assert.equal(total.labels.pool_id, 'pool-1')
+    assert.equal(total.labels.pool_name, 'Production')
+  })
+
+  it('should preserve offline node states (no filtering)', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [
+        makeCluster({
+          nodes: [
+            { node_name: 'host-a', role: 'master', state: 'ONLINE' },
+            { node_name: 'host-b', role: 'satellite', state: 'OFFLINE' },
+          ],
+        }),
+      ],
+    })
+
+    const nodeMetrics = result.filter(m => m.name === 'xcp_xostor_node_status')
+    assert.equal(nodeMetrics.length, 2)
+
+    const offline = nodeMetrics.find(m => m.labels.state === 'OFFLINE')
+    assert.ok(offline)
+    assert.equal(offline.value, 1)
+  })
+
+  it('should omit pool_name label when empty', () => {
+    const result = formatXostorClusterMetrics({ clusters: [makeCluster({ pool_name: '' })] })
+
+    for (const metric of result) {
+      assert.equal(metric.labels.pool_name, undefined)
+    }
+  })
+
+  it('should handle cluster with no nodes (partial data tolerated)', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [makeCluster({ nodes: [], resourceCount: 0 })],
+    })
+
+    const upMetric = result.find(m => m.name === 'xcp_xostor_up')
+    assert.ok(upMetric)
+    assert.equal(result.filter(m => m.name === 'xcp_xostor_node_status').length, 0)
+
+    const totalMetric = result.find(m => m.name === 'xcp_xostor_resource_total')
+    assert.ok(totalMetric)
+    assert.equal(totalMetric.value, 0)
+  })
+
+  it('should isolate clusters: each cluster emits its own set of metrics', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [
+        makeCluster({ sr_uuid: 'sr-a', pool_id: 'pool-a', resourceCount: 5 }),
+        makeCluster({ sr_uuid: 'sr-b', pool_id: 'pool-b', resourceCount: 7 }),
+      ],
+    })
+
+    const upMetrics = result.filter(m => m.name === 'xcp_xostor_up')
+    assert.equal(upMetrics.length, 2)
+    assert.ok(upMetrics.some(m => m.labels.sr_uuid === 'sr-a'))
+    assert.ok(upMetrics.some(m => m.labels.sr_uuid === 'sr-b'))
+
+    const resourceMetrics = result.filter(m => m.name === 'xcp_xostor_resource_total')
+    assert.equal(resourceMetrics.length, 2)
+    const valuesBySr = new Map(resourceMetrics.map(m => [m.labels.sr_uuid, m.value]))
+    assert.equal(valuesBySr.get('sr-a'), 5)
+    assert.equal(valuesBySr.get('sr-b'), 7)
+  })
+
+  it('should produce metrics that round-trip through formatToOpenMetrics', () => {
+    const metrics = formatXostorClusterMetrics({ clusters: [makeCluster()] })
+    const output = formatToOpenMetrics(metrics)
+
+    assert.match(output, /# HELP xcp_xostor_up /)
+    assert.match(output, /# TYPE xcp_xostor_up gauge/)
+    assert.match(output, /# HELP xcp_xostor_node_status /)
+    assert.match(output, /# TYPE xcp_xostor_node_status gauge/)
+    assert.match(output, /# HELP xcp_xostor_resource_total /)
+    assert.match(output, /# TYPE xcp_xostor_resource_total gauge/)
+    assert.match(output, /role="master"/)
+    assert.match(output, /role="satellite"/)
+  })
+
+  it('should emit no resource_state_count when replicaStates is empty', () => {
+    const result = formatXostorClusterMetrics({ clusters: [makeCluster({ replicaStates: {} })] })
+    const stateMetrics = result.filter(m => m.name === 'xcp_xostor_resource_state_count')
+    assert.equal(stateMetrics.length, 0)
+  })
+
+  it('should emit one resource_state_count per state with the bucket count as value', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [
+        makeCluster({
+          replicaStates: { UpToDate: 28, Inconsistent: 2 },
+        }),
+      ],
+    })
+
+    const stateMetrics = result.filter(m => m.name === 'xcp_xostor_resource_state_count')
+    assert.equal(stateMetrics.length, 2)
+    for (const m of stateMetrics) {
+      assert.equal(m.type, 'gauge')
+      assert.equal(m.labels.sr_uuid, 'sr-xostor-1')
+      assert.equal(m.labels.pool_id, 'pool-1')
+      assert.equal(m.labels.pool_name, 'Production')
+      assert.ok(m.labels.state)
+    }
+
+    const valuesByState = new Map(stateMetrics.map(m => [m.labels.state, m.value]))
+    assert.equal(valuesByState.get('UpToDate'), 28)
+    assert.equal(valuesByState.get('Inconsistent'), 2)
+  })
+
+  it('should preserve raw state names verbatim (no case normalization)', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [
+        makeCluster({
+          replicaStates: { UpToDate: 5, Outdated: 1, Diskless: 3, Unknown: 0 },
+        }),
+      ],
+    })
+
+    const states = new Set(result.filter(m => m.name === 'xcp_xostor_resource_state_count').map(m => m.labels.state))
+
+    assert.ok(states.has('UpToDate'))
+    assert.ok(states.has('Outdated'))
+    assert.ok(states.has('Diskless'))
+    assert.ok(states.has('Unknown'))
+  })
+
+  it('should omit pool_name on resource_state_count when pool_name empty', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [makeCluster({ pool_name: '', replicaStates: { UpToDate: 3 } })],
+    })
+
+    const stateMetric = result.find(m => m.name === 'xcp_xostor_resource_state_count')
+    assert.ok(stateMetric)
+    assert.equal(stateMetric.labels.pool_name, undefined)
+  })
+
+  it('should isolate replicaStates per cluster', () => {
+    const result = formatXostorClusterMetrics({
+      clusters: [
+        makeCluster({ sr_uuid: 'sr-a', replicaStates: { UpToDate: 9 } }),
+        makeCluster({ sr_uuid: 'sr-b', replicaStates: { UpToDate: 6, Inconsistent: 1 } }),
+      ],
+    })
+
+    const stateMetrics = result.filter(m => m.name === 'xcp_xostor_resource_state_count')
+    assert.equal(stateMetrics.length, 3)
+
+    const srAState = stateMetrics.find(m => m.labels.sr_uuid === 'sr-a')
+    assert.ok(srAState)
+    assert.equal(srAState.value, 9)
+
+    const srBInconsistent = stateMetrics.find(m => m.labels.sr_uuid === 'sr-b' && m.labels.state === 'Inconsistent')
+    assert.ok(srBInconsistent)
+    assert.equal(srBInconsistent.value, 1)
+  })
+})
+
+// ============================================================================
+// formatXostorAlarmsMetrics Tests
+// ============================================================================
+
+describe('formatXostorAlarmsMetrics', () => {
+  const makeCluster = (overrides: Partial<XostorAlarmsItem> = {}): XostorAlarmsItem => ({
+    sr_uuid: 'sr-xostor-1',
+    pool_id: 'pool-1',
+    pool_name: 'Production',
+    up: true,
+    entries: [],
+    ...overrides,
+  })
+
+  it('should return empty array for empty input', () => {
+    const result = formatXostorAlarmsMetrics({ clusters: [] })
+    assert.deepEqual(result, [])
+  })
+
+  it('should emit xcp_xostor_alarms_up per cluster with value 1 on success', () => {
+    const result = formatXostorAlarmsMetrics({ clusters: [makeCluster()] })
+    const up = result.find(m => m.name === 'xcp_xostor_alarms_up')
+
+    assert.ok(up)
+    assert.equal(up.type, 'gauge')
+    assert.equal(up.value, 1)
+    assert.equal(up.labels.sr_uuid, 'sr-xostor-1')
+    assert.equal(up.labels.pool_id, 'pool-1')
+    assert.equal(up.labels.pool_name, 'Production')
+  })
+
+  it('should emit xcp_xostor_alarms_up with value 0 when collection failed', () => {
+    const result = formatXostorAlarmsMetrics({ clusters: [makeCluster({ up: false })] })
+    const up = result.find(m => m.name === 'xcp_xostor_alarms_up')
+
+    assert.ok(up)
+    assert.equal(up.value, 0)
+  })
+
+  it('should emit one xcp_xostor_alarms_count per entry with count value', () => {
+    const result = formatXostorAlarmsMetrics({
+      clusters: [
+        makeCluster({
+          entries: [
+            { alarm_name: 'ALARM', target_type: 'sr', count: 3 },
+            { alarm_name: 'BOND_STATUS_CHANGED', target_type: 'host', count: 2 },
+          ],
+        }),
+      ],
+    })
+
+    const counts = result.filter(m => m.name === 'xcp_xostor_alarms_count')
+    assert.equal(counts.length, 2)
+
+    const sr = counts.find(m => m.labels.alarm_name === 'ALARM')
+    assert.ok(sr)
+    assert.equal(sr.value, 3)
+    assert.equal(sr.labels.target_type, 'sr')
+
+    const host = counts.find(m => m.labels.alarm_name === 'BOND_STATUS_CHANGED')
+    assert.ok(host)
+    assert.equal(host.value, 2)
+    assert.equal(host.labels.target_type, 'host')
+  })
+
+  it('should emit no alarms_count when entries is empty', () => {
+    const result = formatXostorAlarmsMetrics({ clusters: [makeCluster({ entries: [] })] })
+    const counts = result.filter(m => m.name === 'xcp_xostor_alarms_count')
+    assert.equal(counts.length, 0)
+
+    const up = result.find(m => m.name === 'xcp_xostor_alarms_up')
+    assert.ok(up)
+  })
+
+  it('should omit pool_name label when empty', () => {
+    const result = formatXostorAlarmsMetrics({
+      clusters: [
+        makeCluster({
+          pool_name: '',
+          entries: [{ alarm_name: 'ALARM', target_type: 'sr', count: 1 }],
+        }),
+      ],
+    })
+
+    for (const m of result) {
+      assert.equal(m.labels.pool_name, undefined)
+    }
+  })
+
+  it('should isolate alarms_count per cluster', () => {
+    const result = formatXostorAlarmsMetrics({
+      clusters: [
+        makeCluster({
+          sr_uuid: 'sr-a',
+          entries: [{ alarm_name: 'ALARM', target_type: 'sr', count: 5 }],
+        }),
+        makeCluster({
+          sr_uuid: 'sr-b',
+          entries: [{ alarm_name: 'MULTIPATH_PERIODIC_ALERT', target_type: 'host', count: 2 }],
+        }),
+      ],
+    })
+
+    const counts = result.filter(m => m.name === 'xcp_xostor_alarms_count')
+    assert.equal(counts.length, 2)
+
+    const a = counts.find(m => m.labels.sr_uuid === 'sr-a')
+    assert.ok(a)
+    assert.equal(a.value, 5)
+    assert.equal(a.labels.alarm_name, 'ALARM')
+
+    const b = counts.find(m => m.labels.sr_uuid === 'sr-b')
+    assert.ok(b)
+    assert.equal(b.value, 2)
+    assert.equal(b.labels.alarm_name, 'MULTIPATH_PERIODIC_ALERT')
+  })
+
+  it('should produce metrics that round-trip through formatToOpenMetrics', () => {
+    const result = formatXostorAlarmsMetrics({
+      clusters: [
+        makeCluster({
+          entries: [
+            { alarm_name: 'ALARM', target_type: 'sr', count: 1 },
+            { alarm_name: 'BOND_STATUS_CHANGED', target_type: 'host', count: 2 },
+          ],
+        }),
+      ],
+    })
+    const output = formatToOpenMetrics(result)
+
+    assert.match(output, /# HELP xcp_xostor_alarms_up /)
+    assert.match(output, /# TYPE xcp_xostor_alarms_up gauge/)
+    assert.match(output, /# HELP xcp_xostor_alarms_count /)
+    assert.match(output, /# TYPE xcp_xostor_alarms_count gauge/)
+    assert.match(output, /alarm_name="ALARM"/)
+    assert.match(output, /target_type="host"/)
+  })
+})
+
+// ============================================================================
+// formatXostorSmartMetrics Tests
+// ============================================================================
+
+describe('formatXostorSmartMetrics', () => {
+  const makeHost = (overrides: Partial<XostorSmartHost> = {}): XostorSmartHost => ({
+    sr_uuid: 'sr-xostor-1',
+    pool_id: 'pool-1',
+    pool_name: 'Production',
+    host_uuid: 'host-a-uuid',
+    host_name: 'host-a',
+    up: true,
+    devices: [
+      { device: 'sda', status: 'PASSED' },
+      { device: 'sdb', status: 'PASSED' },
+    ],
+    ...overrides,
+  })
+
+  it('should return empty array for empty input', () => {
+    const result = formatXostorSmartMetrics({ hosts: [] })
+    assert.deepEqual(result, [])
+  })
+
+  it('should emit xcp_xostor_smart_up per host with value 1 on success', () => {
+    const result = formatXostorSmartMetrics({ hosts: [makeHost()] })
+    const up = result.find(m => m.name === 'xcp_xostor_smart_up')
+
+    assert.ok(up)
+    assert.equal(up.type, 'gauge')
+    assert.equal(up.value, 1)
+    assert.equal(up.labels.sr_uuid, 'sr-xostor-1')
+    assert.equal(up.labels.pool_id, 'pool-1')
+    assert.equal(up.labels.pool_name, 'Production')
+    assert.equal(up.labels.host_uuid, 'host-a-uuid')
+    assert.equal(up.labels.host_name, 'host-a')
+  })
+
+  it('should emit xcp_xostor_smart_up with value 0 when plugin call failed', () => {
+    const result = formatXostorSmartMetrics({ hosts: [makeHost({ up: false, devices: [] })] })
+    const up = result.find(m => m.name === 'xcp_xostor_smart_up')
+
+    assert.ok(up)
+    assert.equal(up.value, 0)
+  })
+
+  it('should emit one xcp_xostor_disk_smart_status per device with value 1', () => {
+    const result = formatXostorSmartMetrics({ hosts: [makeHost()] })
+    const disks = result.filter(m => m.name === 'xcp_xostor_disk_smart_status')
+
+    assert.equal(disks.length, 2)
+    for (const m of disks) {
+      assert.equal(m.type, 'gauge')
+      assert.equal(m.value, 1)
+      assert.equal(m.labels.host_uuid, 'host-a-uuid')
+      assert.equal(m.labels.host_name, 'host-a')
+      assert.ok(m.labels.device)
+      assert.ok(m.labels.status)
+    }
+
+    const sda = disks.find(m => m.labels.device === 'sda')
+    assert.ok(sda)
+    assert.equal(sda.labels.status, 'PASSED')
+  })
+
+  it('should preserve mixed status strings verbatim (no normalization)', () => {
+    const result = formatXostorSmartMetrics({
+      hosts: [
+        makeHost({
+          devices: [
+            { device: 'sda', status: 'PASSED' },
+            { device: 'sdb', status: 'FAILED' },
+            { device: 'nvme0n1', status: 'UNKNOWN' },
+          ],
+        }),
+      ],
+    })
+
+    const statuses = new Set(result.filter(m => m.name === 'xcp_xostor_disk_smart_status').map(m => m.labels.status))
+    assert.ok(statuses.has('PASSED'))
+    assert.ok(statuses.has('FAILED'))
+    assert.ok(statuses.has('UNKNOWN'))
+  })
+
+  it('should emit only smart_up (no disk metrics) when devices is empty and up=true', () => {
+    const result = formatXostorSmartMetrics({ hosts: [makeHost({ devices: [] })] })
+
+    const up = result.find(m => m.name === 'xcp_xostor_smart_up')
+    assert.ok(up)
+    assert.equal(up.value, 1)
+
+    const disks = result.filter(m => m.name === 'xcp_xostor_disk_smart_status')
+    assert.equal(disks.length, 0)
+  })
+
+  it('should omit pool_name and host_name labels when empty', () => {
+    const result = formatXostorSmartMetrics({
+      hosts: [makeHost({ pool_name: '', host_name: '' })],
+    })
+
+    for (const m of result) {
+      assert.equal(m.labels.pool_name, undefined)
+      assert.equal(m.labels.host_name, undefined)
+    }
+  })
+
+  it('should isolate disks per host across multiple hosts', () => {
+    const result = formatXostorSmartMetrics({
+      hosts: [
+        makeHost({ host_uuid: 'host-a', devices: [{ device: 'sda', status: 'PASSED' }] }),
+        makeHost({ host_uuid: 'host-b', devices: [{ device: 'sdc', status: 'FAILED' }] }),
+      ],
+    })
+
+    const disks = result.filter(m => m.name === 'xcp_xostor_disk_smart_status')
+    assert.equal(disks.length, 2)
+
+    const a = disks.find(m => m.labels.host_uuid === 'host-a')
+    assert.ok(a)
+    assert.equal(a.labels.device, 'sda')
+
+    const b = disks.find(m => m.labels.host_uuid === 'host-b')
+    assert.ok(b)
+    assert.equal(b.labels.device, 'sdc')
+    assert.equal(b.labels.status, 'FAILED')
+  })
+
+  it('should produce metrics that round-trip through formatToOpenMetrics', () => {
+    const metrics = formatXostorSmartMetrics({ hosts: [makeHost()] })
+    const output = formatToOpenMetrics(metrics)
+
+    assert.match(output, /# HELP xcp_xostor_smart_up /)
+    assert.match(output, /# TYPE xcp_xostor_smart_up gauge/)
+    assert.match(output, /# HELP xcp_xostor_disk_smart_status /)
+    assert.match(output, /# TYPE xcp_xostor_disk_smart_status gauge/)
+    assert.match(output, /device="sda"/)
+    assert.match(output, /status="PASSED"/)
+  })
+})
+
+// ============================================================================
+// formatXostorUpdatesMetrics Tests
+// ============================================================================
+
+describe('formatXostorUpdatesMetrics', () => {
+  const makeHost = (overrides: Partial<XostorUpdateItem> = {}): XostorUpdateItem => ({
+    sr_uuid: 'sr-xostor-1',
+    pool_id: 'pool-1',
+    pool_name: 'Production',
+    host_uuid: 'host-a-uuid',
+    host_name: 'host-a',
+    up: true,
+    packages: [],
+    ...overrides,
+  })
+
+  it('should return empty array for empty input', () => {
+    const result = formatXostorUpdatesMetrics({ hosts: [] })
+    assert.deepEqual(result, [])
+  })
+
+  it('should emit xcp_xostor_updates_up per host with value 1 on success', () => {
+    const result = formatXostorUpdatesMetrics({ hosts: [makeHost()] })
+    const up = result.find(m => m.name === 'xcp_xostor_updates_up')
+
+    assert.ok(up)
+    assert.equal(up.type, 'gauge')
+    assert.equal(up.value, 1)
+    assert.equal(up.labels.sr_uuid, 'sr-xostor-1')
+    assert.equal(up.labels.pool_id, 'pool-1')
+    assert.equal(up.labels.pool_name, 'Production')
+    assert.equal(up.labels.host_uuid, 'host-a-uuid')
+    assert.equal(up.labels.host_name, 'host-a')
+  })
+
+  it('should emit xcp_xostor_updates_up with value 0 when collection failed', () => {
+    const result = formatXostorUpdatesMetrics({ hosts: [makeHost({ up: false })] })
+    const up = result.find(m => m.name === 'xcp_xostor_updates_up')
+
+    assert.ok(up)
+    assert.equal(up.value, 0)
+  })
+
+  it('should emit one xcp_xostor_package_update_available per pending package', () => {
+    const result = formatXostorUpdatesMetrics({
+      hosts: [
+        makeHost({
+          packages: [{ package: 'linstor-satellite' }, { package: 'linstor-controller' }],
+        }),
+      ],
+    })
+
+    const updates = result.filter(m => m.name === 'xcp_xostor_package_update_available')
+    assert.equal(updates.length, 2)
+    for (const m of updates) {
+      assert.equal(m.value, 1)
+      assert.equal(m.type, 'gauge')
+      assert.equal(m.labels.host_uuid, 'host-a-uuid')
+      assert.ok(m.labels.package)
+    }
+    const packages = new Set(updates.map(m => m.labels.package))
+    assert.ok(packages.has('linstor-satellite'))
+    assert.ok(packages.has('linstor-controller'))
+  })
+
+  it('should emit only updates_up (no package metrics) when packages is empty and up=true', () => {
+    const result = formatXostorUpdatesMetrics({ hosts: [makeHost({ packages: [] })] })
+
+    const up = result.find(m => m.name === 'xcp_xostor_updates_up')
+    assert.ok(up)
+    assert.equal(up.value, 1)
+
+    const updates = result.filter(m => m.name === 'xcp_xostor_package_update_available')
+    assert.equal(updates.length, 0)
+  })
+
+  it('should omit pool_name and host_name labels when empty', () => {
+    const result = formatXostorUpdatesMetrics({
+      hosts: [makeHost({ pool_name: '', host_name: '', packages: [{ package: 'linstor-satellite' }] })],
+    })
+
+    for (const m of result) {
+      assert.equal(m.labels.pool_name, undefined)
+      assert.equal(m.labels.host_name, undefined)
+    }
+  })
+
+  it('should isolate packages per host across multiple hosts', () => {
+    const result = formatXostorUpdatesMetrics({
+      hosts: [
+        makeHost({ host_uuid: 'host-a', packages: [{ package: 'linstor-satellite' }] }),
+        makeHost({ host_uuid: 'host-b', packages: [{ package: 'xcp-ng-linstor' }] }),
+      ],
+    })
+
+    const updates = result.filter(m => m.name === 'xcp_xostor_package_update_available')
+    assert.equal(updates.length, 2)
+
+    const a = updates.find(m => m.labels.host_uuid === 'host-a')
+    assert.ok(a)
+    assert.equal(a.labels.package, 'linstor-satellite')
+
+    const b = updates.find(m => m.labels.host_uuid === 'host-b')
+    assert.ok(b)
+    assert.equal(b.labels.package, 'xcp-ng-linstor')
+  })
+
+  it('should dedupe duplicate package entries per host', () => {
+    const result = formatXostorUpdatesMetrics({
+      hosts: [
+        makeHost({
+          packages: [
+            { package: 'linstor-satellite' },
+            { package: 'linstor-satellite' }, // dup, should be merged
+          ],
+        }),
+      ],
+    })
+
+    const updates = result.filter(m => m.name === 'xcp_xostor_package_update_available')
+    assert.equal(updates.length, 1)
+  })
+
+  it('should produce metrics that round-trip through formatToOpenMetrics', () => {
+    const metrics = formatXostorUpdatesMetrics({
+      hosts: [makeHost({ packages: [{ package: 'linstor-controller' }] })],
+    })
+    const output = formatToOpenMetrics(metrics)
+
+    assert.match(output, /# HELP xcp_xostor_updates_up /)
+    assert.match(output, /# TYPE xcp_xostor_updates_up gauge/)
+    assert.match(output, /# HELP xcp_xostor_package_update_available /)
+    assert.match(output, /# TYPE xcp_xostor_package_update_available gauge/)
+    assert.match(output, /package="linstor-controller"/)
+  })
+})
+
+// ============================================================================
+// indexSrUuidTruncations Tests
+// ============================================================================
+
+describe('indexSrUuidTruncations', () => {
+  it('should index both UUID prefix and suffix at all configured lengths', () => {
+    const uuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const index: Record<string, string | null> = {}
+
+    indexSrUuidTruncations(uuid, index)
+
+    // XCP-ng's typical 8-char prefix (the reason the bug existed)
+    assert.equal(index[uuid.slice(0, 8)], uuid)
+    // 8-char suffix (legacy / variant builds)
+    assert.equal(index[uuid.slice(-8)], uuid)
+    // 12, 16, 20 truncations also indexed at both ends
+    for (const len of [12, 16, 20]) {
+      assert.equal(index[uuid.slice(0, len)], uuid)
+      assert.equal(index[uuid.slice(-len)], uuid)
+    }
+  })
+
+  it('should keep colliding truncations marked as ambiguous', () => {
+    const firstUuid = 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33'
+    const secondUuid = 'c787b75c-1111-2222-3333-444444444444'
+    const thirdUuid = 'c787b75c-aaaa-bbbb-cccc-dddddddddddd'
+    const prefix = firstUuid.slice(0, 8)
+    const index: Record<string, string | null> = {}
+
+    indexSrUuidTruncations(firstUuid, index)
+    indexSrUuidTruncations(secondUuid, index)
+    indexSrUuidTruncations(thirdUuid, index)
+
+    assert.equal(index[prefix], null)
+  })
+
+  it('should skip truncations longer than the UUID itself', () => {
+    const shortUuid = 'abc1234'
+    const index: Record<string, string | null> = {}
+
+    indexSrUuidTruncations(shortUuid, index)
+
+    // 8/12/16/20 are all longer than the 7-char input
+    assert.equal(Object.keys(index).length, 0)
+  })
+})
+
+// ============================================================================
+// Tags Label Tests
+// ============================================================================
+
+describe('serializeTags', () => {
+  it('should return empty string for undefined or empty input', () => {
+    assert.equal(serializeTags(undefined), '')
+    assert.equal(serializeTags([]), '')
+  })
+
+  it('should join tags with commas', () => {
+    assert.equal(serializeTags(['production', 'web']), 'production,web')
+  })
+
+  it('should sort tags for stable series identity', () => {
+    assert.equal(serializeTags(['web', 'production', 'customer-a']), 'customer-a,production,web')
+  })
+
+  it('should deduplicate tags', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'web']), 'prod,web')
+  })
+
+  it('should filter out empty tags', () => {
+    assert.equal(serializeTags(['', 'prod', '']), 'prod')
+  })
+
+  it('should filter out whitespace-only tags', () => {
+    assert.equal(serializeTags(['   ', 'prod', '\t']), 'prod')
+    assert.equal(serializeTags([' ']), '')
+  })
+
+  it('should collapse a list of identical tags to a single entry', () => {
+    assert.equal(serializeTags(['prod', 'prod', 'prod']), 'prod')
+  })
+})
+
+describe('tags label on RRD metrics (transformMetric)', () => {
+  const createTaggedLabelContext = (hostTags?: string[], vmTags?: string[]): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-uuid-123',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-789': {
+          name_label: 'Web Server',
+          is_control_domain: false,
+          vbdDeviceToVdiName: {},
+          vbdDeviceToVdiUuid: {},
+          vifIndexToNetworkName: {},
+          startTime: null,
+          power_state: 'Running',
+          pool_id: 'pool-456',
+          pool_name: 'Production Pool',
+          tags: vmTags,
+        },
+      },
+      hosts: {
+        'host-uuid-123': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: {},
+          startTime: null,
+          tags: hostTags,
+        },
+      },
+      srs: {},
+      srTruncatedToUuid: {},
+      vdiUuidToSrUuid: {},
+    },
+  })
+
+  const hostMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'host',
+      uuid: 'host-uuid-123',
+      metricName: 'cpu_avg',
+      rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+    },
+    value: 0.75,
+    timestamp: 1700000000,
+  }
+
+  const vmMetric: ParsedMetric = {
+    legend: {
+      cf: 'AVERAGE',
+      objectType: 'vm',
+      uuid: 'vm-uuid-789',
+      metricName: 'cpu_usage',
+      rawLegend: 'AVERAGE:vm:vm-uuid-789:cpu_usage',
+    },
+    value: 0.5,
+    timestamp: 1700000000,
+  }
+
+  it('should add tags label to host metrics', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext(['prod', 'dc1']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'dc1,prod')
+  })
+
+  it('should add tags label to VM metrics', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext(undefined, ['customer-a', 'web']))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, 'customer-a,web')
+  })
+
+  it('should omit tags label when host has no tags', () => {
+    const result = transformMetric(hostMetric, 'pool-456', createTaggedLabelContext([]))
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+
+  it('should omit tags label when VM tags are undefined', () => {
+    const result = transformMetric(vmMetric, 'pool-456', createTaggedLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.tags, undefined)
+  })
+})
+
+describe('tags label on status, uptime and SR metrics', () => {
+  it('should add tags label to host status metrics', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['prod', 'dc1'],
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, 'dc1,prod')
+  })
+
+  it('should omit tags label on host status metrics without tags', () => {
+    const hosts: HostStatusItem[] = [
+      {
+        uuid: 'host-1',
+        name_label: 'Host 1',
+        power_state: 'Running',
+        enabled: true,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+      },
+    ]
+
+    const result = formatHostStatusMetrics(hosts)
+
+    assert.equal(result[0]!.labels.tags, undefined)
+  })
+
+  it('should add tags label to VM status metrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['web', 'customer-a'],
+      },
+    ]
+
+    const result = formatVmStatusMetrics(vms)
+
+    assert.equal(result[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should add tags label to all SR capacity metrics', () => {
+    const srs: SrDataItem[] = [
+      {
+        uuid: 'sr-1',
+        name_label: 'Local Storage',
+        size: 1000,
+        physical_usage: 500,
+        usage: 250,
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        content_type: 'user',
+        sr_type: 'lvm',
+        tags: ['fast', 'ssd'],
+      },
+    ]
+
+    const metrics = formatSrMetrics(srs)
+
+    assert.equal(metrics.length, 3)
+    for (const m of metrics) {
+      assert.equal(m.labels.tags, 'fast,ssd')
+    }
+  })
+
+  it('should add tags label to host uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-1',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {},
+        hosts: {
+          'host-1': {
+            name_label: 'Host 1',
+            pifDeviceToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 7200,
+            tags: ['prod'],
+          },
+        },
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatHostUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'prod')
+  })
+
+  it('should add tags label to VM uptime metrics', () => {
+    const labelContext: LabelContext = {
+      hosts: [],
+      labels: {
+        vms: {
+          'vm-1': {
+            name_label: 'VM 1',
+            is_control_domain: false,
+            vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
+            vifIndexToNetworkName: {},
+            startTime: Math.floor(Date.now() / 1000) - 3600,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['web', 'customer-a'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metrics = formatVmUptimeMetrics(labelContext)
+
+    assert.equal(metrics.length, 1)
+    assert.equal(metrics[0]!.labels.tags, 'customer-a,web')
+  })
+
+  it('should escape special characters in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['with"quote', 'with\\backslash'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    assert.match(output, /tags="with\\"quote,with\\\\backslash"/)
+  })
+
+  it('should escape newlines in tag values through formatToOpenMetrics', () => {
+    const vms: VmStatusItem[] = [
+      {
+        uuid: 'vm-1',
+        name_label: 'VM 1',
+        power_state: 'Running',
+        pool_id: 'pool-1',
+        pool_name: 'Pool',
+        tags: ['line1\nline2'],
+      },
+    ]
+
+    const output = formatToOpenMetrics(formatVmStatusMetrics(vms))
+
+    // The newline must be escaped as the two characters `\` + `n`
+    assert.match(output, /tags="line1\\nline2"/)
+    assert.ok(!output.includes('tags="line1\nline2"'))
+  })
+
+  it('should keep tags label on VBD metrics where extracted labels are added afterwards', () => {
+    const labelContext: LabelContext = {
+      hosts: [
+        {
+          hostId: 'host-uuid-123',
+          hostAddress: '192.168.1.1',
+          hostLabel: 'Host 1',
+          poolId: 'pool-456',
+          poolLabel: 'Production Pool',
+          sessionId: 'session-123',
+          protocol: 'https:',
+        },
+      ],
+      labels: {
+        vms: {
+          'vm-uuid-789': {
+            name_label: 'Web Server',
+            is_control_domain: false,
+            vbdDeviceToVdiName: { xvda: 'System Disk' },
+            vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system' },
+            vifIndexToNetworkName: {},
+            startTime: null,
+            power_state: 'Running',
+            pool_id: 'pool-456',
+            pool_name: 'Production Pool',
+            tags: ['prod'],
+          },
+        },
+        hosts: {},
+        srs: {},
+        srTruncatedToUuid: {},
+        vdiUuidToSrUuid: {},
+      },
+    }
+
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_read',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', labelContext)
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvda')
+    assert.equal(result.labels.tags, 'prod')
   })
 })

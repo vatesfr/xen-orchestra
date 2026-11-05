@@ -1,4 +1,90 @@
+import { createLogger } from '@xen-orchestra/log'
+import { findInfoByMessage } from './index.js'
 import assert from 'node:assert'
+import { getSyncedHandler } from '@xen-orchestra/fs'
+
+const log = createLogger('xo:qa-test:backup-utils')
+
+/**
+ * Asserts that a backup repository is empty (contains no VM backups).
+ *
+ * This safety check prevents tests from running against repositories that
+ * already contain data, which could lead to accidental data loss if the
+ * repository is misconfigured to point at a production remote.
+ *
+ * @param {import('../client/dispatchClient.js').DispatchClient} dispatchClient
+ * @param {{id: string, name: string}} repository - The backup repository to check
+ * @throws {Error} If the repository contains existing backups
+ */
+export const assertRepositoryEmpty = async (dispatchClient, repository) => {
+  const backups = await dispatchClient.backup.listVmBackups([repository.id])
+  const count = Object.values(backups).flatMap(vmBackups => Object.values(vmBackups).flat()).length
+
+  if (count > 0) {
+    const message =
+      `Repository "${repository.name}" (${repository.id}) contains ${count} existing backup(s). ` +
+      `Tests require empty repositories to avoid accidental data loss. ` +
+      `Please purge the backups manually or use a dedicated test repository.`
+    log.warn(message, { repositoryName: repository.name, repositoryId: repository.id, count })
+    throw new Error(message)
+  }
+}
+
+/**
+ * Asserts that a backup repository's URL matches the URL declared in the .env.
+ *
+ * The QA suite identifies repositories by name (e.g. `BACKUP_REPOSITORY_NAME`)
+ * but it is the URL that determines where data physically lands. If a repository
+ * with the expected name already exists on the XO server but points at a different
+ * location, tests would silently operate on the wrong remote. This check fails fast
+ * so that the operator can either delete the misconfigured remote in XO or update
+ * the .env to match it.
+ *
+ * Passwords are stripped before comparison: XO obfuscates stored remote passwords,
+ * so comparing credentials would always fail for existing remotes.
+ *
+ * @param {{id: string, name: string, url: string}} repository - Repository as returned by the REST API
+ * @param {string} expectedUrl - Full @xen-orchestra/fs URL expected by the test (from `BACKUP_REPOSITORY_URL`)
+ * @throws {Error} If `repository.url` does not match `expectedUrl` (ignoring password)
+ */
+export const assertRepositoryMatchesConfig = (repository, expectedUrl) => {
+  // Strip password from scheme://user:password@host URLs before comparing.
+  // XO returns stored URLs with an obfuscated password, so credential comparison
+  // would always fail for an already-existing remote.
+  const stripPassword = url => url.replace(/(:\/\/[^:@/]+):([^@]+)@/, '$1:***@')
+
+  if (stripPassword(repository.url) !== stripPassword(expectedUrl)) {
+    throw new Error(
+      `Backup repository "${repository.name}" (${repository.id}) has url "${repository.url}", ` +
+        `but the .env requires "${expectedUrl}". ` +
+        `Delete this remote in XO and re-run, or update the env to match the existing remote.`
+    )
+  }
+}
+
+// Same find-or-create logic as tests/setup.js, factored out for reuse by load tests.
+// Only tracks (for teardown) the repository if this call is the one that created it.
+export async function resolveOrCreateBackupRepository(dispatchClient, tracker, { name, url }) {
+  if (url.startsWith('file://')) {
+    const { dispose } = await getSyncedHandler({ url })
+    await dispose()
+  }
+
+  const existing = await dispatchClient.backupRepository.get({ name })
+  if (existing) {
+    assertRepositoryMatchesConfig(existing, url)
+    return existing
+  }
+
+  const id = await dispatchClient.backupRepository.create(name, { url })
+  const created = await dispatchClient.backupRepository.get({ id })
+  if (!created) {
+    throw new Error(`Failed to retrieve created backup repository ${id}`)
+  }
+  tracker?.trackResource('backupRepository', id, { name })
+  log.debug('Created backup repository', { name, id })
+  return created
+}
 
 /**
  * Extracts an error message from a backup task's result or error fields.
@@ -68,7 +154,62 @@ export const assertBackupSuccess = (result, context = 'Backup') => {
   if (result.status !== 'success') {
     const errors = extractBackupErrors(result)
     const details = errors.length > 0 ? errors.join(' | ') : 'no task-level error details'
-    console.error(`${context} failed — raw backup log tasks:`, JSON.stringify(result.tasks, null, 2))
+    log.warn(`${context} failed`, { details, tasks: result.tasks })
     assert.strictEqual(result.status, 'success', `${context} should succeed, got '${result.status}': ${details}`)
   }
+}
+
+/**
+ * Asserts that a backup run performed a synchronized snapshot: all VMs were
+ * snapshotted in a single batch phase, before any transfer, and the per-VM
+ * backups reused those batched snapshots (no VM was snapshotted twice).
+ * @param {Object} result - Backup log result
+ * @param {number} vmCount - Number of VMs concerned by this backup job
+ */
+export const assertSynchronizedSnapshot = (result, vmCount) => {
+  const synchronizedInfo = findInfoByMessage(result, 'synchronized snapshot')
+  assert(synchronizedInfo, `Synchronized backup should have batched snapshots`)
+  const batchedVms = synchronizedInfo.data?.vms
+  assert(
+    batchedVms?.length === vmCount,
+    `Synchronized backup should have made a snapshot per vm (expected ${vmCount}, found ${batchedVms?.length})`
+  )
+
+  // Collect every task with a given message across the whole task tree.
+  const collectByMessage = message => {
+    const found = []
+    const walk = tasks => {
+      for (const task of tasks ?? []) {
+        if (task.message === message) {
+          found.push(task)
+        }
+        if (task.tasks) {
+          walk(task.tasks)
+        }
+      }
+    }
+    walk(result.tasks)
+    return found
+  }
+
+  // Every snapshot must come from the batch phase: there should be exactly one
+  // 'snapshot' task per VM (the batched ones) and none taken again during the
+  // per-VM backup. A larger count means a VM was snapshotted a second time at
+  // transfer time, i.e. the backup did NOT reuse the synchronized snapshot.
+  //
+  // Those tasks are subtasks of the VM they belong to, batched or not, hence
+  // the recursive walk: the batch phase does not have a task of its own, it is
+  // only reported by the 'synchronized snapshot' info above.
+  const snapshots = collectByMessage('snapshot')
+  assert(
+    snapshots.length === vmCount,
+    `Synchronized backup should reuse the batched snapshots (expected ${vmCount} 'snapshot' tasks, found ${snapshots.length})`
+  )
+
+  const transfers = collectByMessage('transfer')
+  assert(transfers.length > 0, `Synchronized backup should have transfered snapshots.`)
+
+  const earliestStart = Math.min(...transfers.map(t => t.start))
+  const latestSnapshotEnd = Math.max(...snapshots.map(t => t.end))
+  assert(latestSnapshotEnd <= earliestStart, `Synchronized backup snapshots should be complete before transfer starts`)
 }

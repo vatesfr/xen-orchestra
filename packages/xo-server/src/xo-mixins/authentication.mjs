@@ -70,7 +70,7 @@ export default class {
 
         token.last_uses = last_uses
 
-        this._tokens.update(token)
+        await this._tokens.update(token)
 
         return { bypassOtp: true, expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
@@ -96,7 +96,12 @@ export default class {
         connection: app._redis,
         namespace: 'token',
         indexes: ['client_id', 'user_id'],
+        crypto: app.cryptoCredentials,
       }))
+      app.hooks.emit('registerCollection', {
+        collection: tokensDb,
+        type: 'authentication_token',
+      })
 
       app.addConfigManager(
         'authTokens',

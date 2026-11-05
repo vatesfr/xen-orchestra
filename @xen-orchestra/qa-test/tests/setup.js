@@ -1,5 +1,12 @@
+import '../logSetup.js'
+import { createLogger } from '@xen-orchestra/log'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
+import { getRequiredEnv } from '../utils/index.js'
+import { assertRepositoryMatchesConfig } from '../utils/backupUtils.js'
+
+const log = createLogger('setup')
 
 /**
  * Generates incremental VM name by finding the highest existing number.
@@ -19,58 +26,80 @@ async function generateIncrementalVmName(dispatchClient, baseName) {
 
     return `${baseName}-${maxNumber + 1}`
   } catch (error) {
-    console.warn(`⚠️ Failed to generate incremental name:`, error.message)
+    log.warn('Failed to generate incremental name', { error })
     return `${baseName}-${Date.now()}`
   }
 }
 
 /**
  * Test setup with automatic resource creation and tracking.
+ * @param {Object} options - Setup options
+ * @param {string} [options.referenceVmId] - Optional reference VM ID to clone for testing
+ * @param {string} [options.requiredVmQty] - Optional number of clone to create, defaults to 1
  * @returns {Promise<Object>} Setup result with dispatchClient and created resources
  */
-export const setup = async () => {
-  console.log('🚀 Setting up test environment...')
+export const setup = async ({ referenceVmId, requiredVmQty = 1 } = {}) => {
+  log.debug('Setting up test environment')
 
   const tracker = createResourceTracker()
   const dispatchClient = new DispatchClient()
-  await dispatchClient.initialize({
-    xoUrl: process.env.HOSTNAME,
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
-  })
+  await dispatchClient.initialize()
 
   const createdResources = {
-    vm: null,
+    vms: [],
     backupRepository: null,
     sessionId: tracker.getSessionId(),
   }
 
   try {
-    // Find and clone reference VM (ID is required)
-    const referenceVm = await findReferenceVm(dispatchClient)
+    // Find and clone reference VM — use provided ID or fall back to REFERENCE_VM_ID env var
+    const referenceVm = referenceVmId
+      ? await dispatchClient.vm.details(referenceVmId)
+      : await findReferenceVm(dispatchClient)
 
-    const vmPrefix = process.env.VM_PREFIX || 'TST'
-    const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
+    if (!referenceVm) {
+      throw new Error(`Reference VM with ID "${referenceVmId}" not found`)
+    }
 
-    console.log(`🔄 Creating test VM: ${testVmName}`)
+    const vmPrefix = getRequiredEnv('VM_PREFIX')
+    for (let i = 0; i < requiredVmQty; i++) {
+      const testVmName = await generateIncrementalVmName(dispatchClient, `${vmPrefix}-QA-Test`)
 
-    const testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
-      description: `Test VM for QA tests`,
-      fastClone: true,
-    })
+      log.debug('Creating test VM', { name: testVmName })
 
-    createdResources.vm = await dispatchClient.vm.details(testVmId)
-    tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
+      const testVmId = await dispatchClient.vm.clone(referenceVm.uuid, testVmName, {
+        description: `Test VM for QA tests`,
+        fastClone: true,
+      })
+
+      log.debug('Starting test VM', { id: testVmId })
+      await dispatchClient.vm.start(testVmId)
+      await dispatchClient.vm.waitForPowerState(testVmId, 'Running', 120_000)
+
+      createdResources.vms.push(await dispatchClient.vm.details(testVmId))
+      tracker.trackResource('vm', testVmId, { name: testVmName, source: referenceVm.name_label })
+    }
 
     // Create or get backup repository
-    const backupRepositoryName = process.env.BACKUP_REPOSITORY_NAME || 'Test backup QA'
+    const backupRepositoryName = getRequiredEnv('BACKUP_REPOSITORY_NAME')
+    const repoUrl = getRequiredEnv('BACKUP_REPOSITORY_URL')
+
+    // For file:// remotes: ensure the local directory exists before XO tries to use it.
+    // Other backends (s3://, nfs://, …) are managed by XO — their connectivity is
+    // validated when the backup job actually runs.
+    if (repoUrl.startsWith('file://')) {
+      const { dispose } = await getSyncedHandler({ url: repoUrl })
+      await dispose()
+    }
+
     let backupRepository = await dispatchClient.backupRepository.get({ name: backupRepositoryName })
 
     if (backupRepository) {
-      console.log(`✅ Using existing backup repository: ${backupRepositoryName}`)
+      log.debug('Using existing backup repository', { name: backupRepositoryName })
+      assertRepositoryMatchesConfig(backupRepository, repoUrl)
     } else {
       const backupRepositoryId = await dispatchClient.backupRepository.create(backupRepositoryName, {
-        path: process.env.BACKUP_REPOSITORY_PATH || '/tmp/xo-test-backups',
+        url: repoUrl,
       })
 
       backupRepository = await dispatchClient.backupRepository.get({ id: backupRepositoryId })
@@ -83,15 +112,15 @@ export const setup = async () => {
 
     createdResources.backupRepository = backupRepository
 
-    console.log(`✅ Setup completed. Tracked: ${tracker.getResourceSummary()}`)
+    log.debug('Setup completed', { tracked: tracker.getResourceSummary() })
   } catch (error) {
-    console.error('❌ Setup failed:', error.message)
+    log.warn('Setup failed', { error })
 
     try {
-      console.log('🧹 Cleaning up partial resources...')
+      log.debug('Cleaning up partial resources')
       await performCleanup(dispatchClient, tracker, true)
     } catch (cleanupError) {
-      console.error('❌ Cleanup failed:', cleanupError.message)
+      log.warn('Cleanup failed', { error: cleanupError.message })
     }
 
     throw error
@@ -107,18 +136,22 @@ export const setup = async () => {
  * @returns {Promise<void>}
  */
 export const teardown = async (dispatchClient, tracker) => {
-  console.log('🧹 Starting test teardown...')
+  log.debug('Starting test teardown')
 
-  try {
-    await performCleanup(dispatchClient, tracker)
-    console.log('✅ Teardown completed')
-  } catch (error) {
-    console.error('❌ Teardown failed:', error.message)
-  } finally {
+  if (tracker !== undefined) {
+    try {
+      await performCleanup(dispatchClient, tracker)
+      log.debug('Teardown completed')
+    } catch (error) {
+      log.warn('Teardown failed', { error })
+    }
+  }
+
+  if (dispatchClient !== undefined) {
     try {
       await dispatchClient.close()
     } catch (error) {
-      console.error('❌ Failed to close connections:', error.message)
+      log.warn('Failed to close connections', { error })
     }
   }
 }
@@ -128,20 +161,16 @@ export const teardown = async (dispatchClient, tracker) => {
  * @private
  */
 async function findReferenceVm(dispatchClient) {
-  const referenceVmId = process.env.REFERENCE_VM_ID
+  const referenceVmId = getRequiredEnv('REFERENCE_VM_ID')
 
-  if (!referenceVmId) {
-    throw new Error('REFERENCE_VM_ID environment variable is required but not set')
-  }
-
-  console.log(`🔍 Searching reference VM by ID: ${referenceVmId}`)
+  log.debug('Searching reference VM by ID', { referenceVmId })
   const referenceVm = await dispatchClient.vm.details(referenceVmId)
 
   if (!referenceVm) {
     throw new Error(`Reference VM with ID "${referenceVmId}" not found`)
   }
 
-  console.log(`✅ Found reference VM by ID: ${referenceVm.name_label}`)
+  log.debug('Found reference VM', { name: referenceVm.name_label })
   return referenceVm
 }
 
@@ -157,11 +186,11 @@ async function performCleanup(dispatchClient, tracker, forceCleanup = false) {
     trackedResources.summary.totalBackupJobs === 0 &&
     !trackedResources.summary.hasBackupRepository
   ) {
-    console.log('✅ No resources to cleanup')
+    log.debug('No resources to cleanup')
     return
   }
 
-  console.log(`🧹 Cleaning up: ${tracker.getResourceSummary()}`)
+  log.debug('Cleaning up resources', { summary: tracker.getResourceSummary() })
 
   try {
     const cleanupResult = await dispatchClient.cleanup.fullCleanup({
@@ -175,14 +204,14 @@ async function performCleanup(dispatchClient, tracker, forceCleanup = false) {
     })
 
     if (cleanupResult.success) {
-      console.log(`✅ Cleanup succeeded: ${cleanupResult.totalDeleted} resources deleted`)
+      log.debug('Cleanup succeeded', { totalDeleted: cleanupResult.totalDeleted })
     } else {
-      console.warn(`⚠️ Cleanup completed with ${cleanupResult.totalFailed} failures`)
+      log.warn('Cleanup completed with failures', { totalFailed: cleanupResult.totalFailed })
     }
 
     tracker.clearTrackedResources()
   } catch (error) {
-    console.error('❌ Cleanup failed:', error.message)
+    log.warn('Cleanup failed', { error })
     if (!forceCleanup) {
       throw error
     }

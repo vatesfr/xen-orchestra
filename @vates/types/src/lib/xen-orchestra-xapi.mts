@@ -22,9 +22,13 @@ import type {
   VBD_TYPE,
   VDI_TYPE,
   VIF_LOCKING_MODE,
+  VM_OPERATIONS,
 } from '../common.mjs'
+import type { DiskPassthrough } from '@xen-orchestra/disk-transform'
+import type { EventEmitter } from 'node:events'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
+  XapiXoRecord,
   XoGpuGroup,
   XoHost,
   XoNetwork,
@@ -36,7 +40,66 @@ import type {
   XoVm,
   XoVmTemplate,
   XoVif,
+  XoVmSnapshot,
 } from '../xo.mjs'
+
+/**
+ * Properties accepted by {@link Xapi.editVm}.
+ *
+ * Field names match the canonical (camelCase) properties defined by the
+ * underlying `_editVm` (via `makeEditObject`). `_editVm` still resolves the
+ * snake_case and legacy aliases, but the canonical names are used here.
+ */
+export interface EditVmProps {
+  affinityHost?: string | null
+  autoPoweron?: boolean
+  blockedOperations?: Partial<Record<VM_OPERATIONS, boolean | string | null>>
+  coresPerSocket?: number | string | null
+  cpuCap?: number | null
+  cpuMask?: number[]
+  cpuWeight?: number | null
+  cpus?: number
+  cpusStaticMax?: number | string
+  /**
+   * Update VM creation metadata stored under `other_config.xo:*`. The object is
+   * merged with the existing data.
+   */
+  creation?: { user?: string }
+  expNestedHvm?: boolean
+  hasVendorDevice?: boolean
+  highAvailability?: 'best-effort' | 'restart' | ''
+  hvmBootFirmware?: string | null
+  memory?: number | string
+  memoryMax?: number | string
+  memoryMin?: number | string
+  memoryStaticMax?: number | string
+  nameDescription?: string
+  nameLabel?: string
+  nestedVirt?: boolean
+  nicType?: string | null
+  notes?: string | null
+  PV_args?: string
+  secureBoot?: boolean
+  startDelay?: number
+  suspendSr?: string | null
+  tags?: string[]
+  uefiMode?: 'setup' | 'user'
+  vga?: 'std' | 'cirrus'
+  videoram?: 1 | 2 | 4 | 8 | 16
+  viridian?: boolean
+  virtualizationMode?: 'pv' | 'hvm'
+  xenStoreData?: Record<string, string | null>
+}
+
+/** Properties accepted by {@link Xapi.editVif}. */
+export interface EditVifProps {
+  ipv4Allowed?: string[]
+  ipv6Allowed?: string[]
+  lockingMode?: VIF_LOCKING_MODE
+  // in kB/s, `null` removes the limit
+  rateLimit?: number | null
+  txChecksumming?: boolean
+}
 
 export type XcpPatches = {
   changelog?: {
@@ -67,16 +130,40 @@ export type XsPatches = {
   uuid?: string
 }
 
+type WrappedRecordOfType<Type extends WrappedXenApiRecord['$type']> = Extract<WrappedXenApiRecord, { $type: Type }>
+
 export interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _auth: { user: string; password: string }
+  _url: { protocol: string; hostname: string; hostnameRaw: string; port?: string }
+
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
 
   barrier<T extends XenApiRecord>(ref: T['$ref']): Promise<Extract<WrappedXenApiRecord, { $ref: T['$ref'] }>>
+  connectVif(vifId: XoVif['id']): Promise<void>
   getField<T extends XenApiRecord, K extends keyof T>(
     type: Extract<WrappedXenApiRecord, T>['$type'],
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  // the record is inferred from `type`, for a JS caller which cannot spell it out as a type argument
+  getField<Type extends WrappedXenApiRecord['$type'], Field extends keyof WrappedRecordOfType<Type>>(
+    type: Type,
+    ref: WrappedRecordOfType<Type>['$ref'],
+    field: Field
+  ): Promise<WrappedRecordOfType<Type>[Field]>
+  /** Synchronous: the record as the object cache currently holds it. */
+  getObjectByRef<Ref extends WrappedXenApiRecord['$ref']>(ref: Ref): Extract<WrappedXenApiRecord, { $ref: Ref }>
+  getObject: <
+    XoRecord extends XapiXoRecord,
+    WrappedRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: XoRecord['type'] }>,
+  >(
+    idOrUuidOrRef: XoRecord['id'] | WrappedRecord['$ref'] | WrappedRecord['uuid'],
+    defaultValue?: WrappedRecord
+  ) => WrappedRecord
   createNetwork(
     params:
       | {
@@ -102,7 +189,15 @@ export interface Xapi {
   }): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
+  disconnectVif(vifId: XoVif['id']): Promise<void>
   exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
+  emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
+  ejectHostFromPool(hostId: XoHost['id']): Promise<void>
+  host_smartReboot(
+    hostRef: XenApiHost['$ref'],
+    bypassBlockedSuspend?: boolean,
+    bypassCurrentVmCheck?: boolean
+  ): Promise<void>
   migrateVm(
     vmId: XoVm['id'],
     hostXapi: Xapi,
@@ -116,9 +211,11 @@ export interface Xapi {
       bypassAssert?: boolean
     }
   ): Promise<void>
+  joinPool(masterAddress: string, masterUsername: string, masterPassword: string, force?: boolean): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
+  revertVm(snapshotId: XoVmSnapshot['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
   cloneVm(
     vmId: XoVm['id'],
@@ -144,6 +241,40 @@ export interface Xapi {
     }
   ): Promise<{ vm: XenApiVmWrapped }>
   forgetSr(id: XoSr['id']): Promise<void>
+  forgetHost(hostId: XoHost['id']): Promise<void>
+  powerOnHost(hostId: XoHost['id']): Promise<void>
+  rebootHost(hostId: XoHost['id'], force?: boolean): Promise<void>
+  shutdownHost(hostId: XoHost['id'], opts?: { force?: boolean; bypassEvacuate?: boolean }): Promise<void>
+  SR_create(params: {
+    content_type?: XoSr['content_type']
+    // index signature, not `Record<string, string>`: tsoa emits an empty schema for `Record`
+    // (https://github.com/lukeautry/tsoa/pull/1858). device_config keys are driver-specific (SR_type).
+    device_config: {
+      chapuser?: string
+      chappassword?: string
+      device?: string
+      legacy_mode?: string
+      location?: string
+      nfsversion?: string
+      options?: string
+      password?: string
+      SCSIid?: string
+      server?: string
+      serverpath?: string
+      target?: string
+      targetIQN?: string
+      username?: string
+    } & {
+      [key: string]: string
+    }
+    host: XenApiHost['$ref']
+    name_description?: XoSr['name_description']
+    name_label: XoSr['name_label']
+    physical_size?: number
+    shared: boolean
+    sm_config?: { [key: string]: string }
+    type: XoSr['SR_type']
+  }): Promise<XenApiSr['$ref']>
   SR_importVdi(
     ref: XenApiSr['$ref'],
     stream: Readable,
@@ -162,6 +293,48 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
+  VBD_create(params: {
+    bootable?: boolean
+    currently_attached?: boolean
+    device?: string
+    empty?: boolean
+    mode?: VBD_MODE
+    other_config?: Record<string, string>
+    qos_algorithm_params?: Record<string, string>
+    qos_algorithm_type?: string
+    /** a plug failure, only logged otherwise, is thrown: the VBD exists all the same */
+    throwVbdPlug?: boolean
+    type?: VBD_TYPE
+    unpluggable?: boolean
+    userdevice?: string
+    VDI?: XenApiVdi['$ref']
+    VM: XenApiVm['$ref']
+  }): Promise<XenApiVbd['$ref']>
+  /** unplugs the VBD first, if needed */
+  VBD_destroy(ref: XenApiVbd['$ref']): Promise<void>
+  VDI_create(
+    params: {
+      name_description?: string
+      name_label: string
+      other_config?: Record<string, string>
+      read_only?: boolean
+      sharable?: boolean
+      SR?: XenApiSr['$ref']
+      tags?: string[]
+      type?: VDI_TYPE
+      virtual_size: number
+      xenstore_data?: Record<string, string>
+    },
+    opts?: { sm_config?: Record<string, string> }
+  ): Promise<XenApiVdi['$ref']>
+  /** a VDI which no longer exists counts as destroyed */
+  VDI_destroy(ref: XenApiVdi['$ref']): Promise<void>
+  editVm(
+    id: XoVm['id'],
+    props: EditVmProps,
+    checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
+  ): Promise<void>
+  editVif(id: XoVif['id'], props: EditVifProps): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
@@ -179,7 +352,7 @@ export interface Xapi {
   ): Promise<void>
   VM_export(
     vmRef: XenApiVm['$ref'],
-    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+    opts?: { cancelToken?: unknown; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
   ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
@@ -233,6 +406,7 @@ export interface Xapi {
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
+      highAvailability?: XoVm['high_availability']
       hvmBootFirmware?: 'uefi' | 'bios'
       secureBoot?: boolean
     },
@@ -285,7 +459,7 @@ export interface Xapi {
   ): Promise<Readable & { length?: number }>
   VDI_importContent(
     vdiRef: XenApiVdi['$ref'],
-    stream: Readable,
+    stream: Readable | Buffer,
     opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
   VIF_create(
@@ -324,8 +498,12 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
-  clearHost(host: Pick<XenApiHostWrapped, '$ref' | '$pool'>, force?: boolean): Promise<void>
-  disableHost(hostId: XoHost['id']): Promise<void>
+  clearHost(
+    host: Pick<XenApiHostWrapped, '$ref' | '$pool'>,
+    force?: boolean,
+    opts?: { transient?: boolean }
+  ): Promise<void>
+  disableHost(hostId: XoHost['id'], opts?: { transient?: boolean }): Promise<void>
   enableHost(hostId: XoHost['id']): Promise<void>
   getRecordByUuid<
     Type extends WrappedXenApiRecord['$type'],
@@ -336,4 +514,58 @@ export interface Xapi {
   ): Promise<XenApiRecord>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
+  destroySr(id: XoSr['id']): Promise<void>
+  xostor_delete(ref: XenApiSr['$ref']): Promise<void>
+  objects: {
+    // emits `add`/`update`/`remove` only while the connection watches the pool events
+    allIndexes: {
+      type: {
+        getEventEmitterByType(type: WrappedXenApiRecord['$type']): EventEmitter
+      }
+    }
+    indexes: {
+      type: {
+        [XenApiRecord in WrappedXenApiRecord as XenApiRecord['$type']]: Record<XenApiRecord['uuid'], XenApiRecord>
+      }
+    }
+  }
 }
+
+/**
+ * Parameters accepted by the `XapiDiskSource` constructor.
+ *
+ * `baseRef` turns the export into a differencing one: leaving it out exports the whole disk.
+ * `preferNbd` only expresses a preference, {@link XapiDiskSource} silently falls back to a plain
+ * stream export — and, when `baseRef` can't be used as a base, to a full one.
+ */
+export interface XapiDiskSourceOptions {
+  baseRef?: XenApiVdi['$ref']
+  blockSize?: number
+  nbdConcurrency?: number
+  /** When true, only `getBlockIndexes()` may be called: `readBlock()` throws. */
+  onlyListChangedBlocks?: boolean
+  preferNbd?: boolean
+  timeout?: number
+  vdiRef: XenApiVdi['$ref']
+  xapi: Xapi
+}
+
+/**
+ * Disk source handling the fallback logic of a VDI export: NBD + CBT, then NBD + stream export
+ * for the block list, then plain stream export.
+ *
+ * {@link XapiDiskSourceOptions.preferNbd} is a preference, not a guarantee: call
+ * {@link XapiDiskSource.useNbd} and {@link XapiDiskSource.useCbt} after `init()` to know what the
+ * export actually used.
+ */
+export interface XapiDiskSource extends DiskPassthrough {
+  useCbt(): boolean
+  useNbd(): boolean
+}
+
+/**
+ * Signature of `@xen-orchestra/xapi`'s `parseDateTime`.
+ *
+ * Returns a Unix timestamp in seconds, or `null` if the field is empty (as encoded by XAPI).
+ */
+export type ParseDateTime = (input: string | number | Date) => number | null

@@ -69,7 +69,10 @@ export async function watchRemote(
   )
   await File.makeImmutable(settingPath)
 
-  const close = await startRemoteWatcher(root, err => warn('watcher error', { err }), { delayBetweenSizeCheck })
+  const close = await startRemoteWatcher(root, err => warn('watcher error', { err }), {
+    delayBetweenSizeCheck,
+    immutabilityDuration,
+  })
 
   return { close }
 }

@@ -1,20 +1,22 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useLinkColumn } from '@core/tables/column-definitions/link-column'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
+import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { useProgressBarColumn } from '@core/tables/column-definitions/progress-bar-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column'
-import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column'
+import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
 import { useI18n } from 'vue-i18n'
 
 export const useSrColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
+    checkbox: useCheckboxColumn(),
     storageRepository: useLinkColumn({ headerLabel: () => t('storage-repository') }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     storageFormat: useLiteralColumn({ headerLabel: () => t('storage-format') }),
     accessMode: useLiteralColumn({ headerLabel: () => t('access-mode') }),
     usedSpace: useProgressBarColumn({ headerLabel: () => t('used-space') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

@@ -1,4 +1,7 @@
+import { createLogger } from '@xen-orchestra/log'
 import { FilterBuilder } from './FilterBuilder.js'
+
+const log = createLogger('rest')
 
 /**
  * REST API client for XenOrchestra HTTP-based operations.
@@ -92,7 +95,7 @@ export class RestApiClient {
         },
       }
 
-      const url = `${this.baseUrl}/rest/v0/users/authentication_tokens`
+      const url = `${this.baseUrl}/rest/v0/users/me/authentication_tokens`
       const response = await fetch(url, options)
 
       if (!response.ok) {
@@ -107,11 +110,30 @@ export class RestApiClient {
       }
 
       this.updateHeaders(jsonResp.token.id)
-      console.log(`🌐 Successfully authenticated with XenOrchestra REST API`)
+      log.debug('Successfully authenticated with XenOrchestra REST API')
     } catch (error) {
-      console.error(`❌ Failed to connect to XO REST API: ${error.message}`)
+      log.warn('Failed to connect to XO REST API', { error })
       throw error
     }
+  }
+
+  /**
+   * Executes a fetch call, re-authenticates and retries once on 401.
+   * A 401 can happen transiently when a Redis-backed token lookup fails;
+   * re-connecting creates a fresh token that succeeds on the next attempt.
+   *
+   * @param {Function} fetchFn - () => Promise<Response>
+   * @returns {Promise<Response>}
+   * @private
+   */
+  async #executeWithRetry(fetchFn) {
+    const response = await fetchFn()
+    if (response.status !== 401) {
+      return response
+    }
+    log.debug('Received 401, re-authenticating and retrying once')
+    await this.connect()
+    return fetchFn()
   }
 
   /**
@@ -124,10 +146,12 @@ export class RestApiClient {
   async get(endpoint) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.headers,
-      })
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method: 'GET',
+          headers: this.headers,
+        })
+      )
 
       if (response.ok) {
         const text = await response.text()
@@ -135,7 +159,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      console.error(`❌ GET request failed: ${error.message}`)
+      log.warn('GET request failed on ' + endpoint, { error })
       throw error
     }
   }
@@ -153,11 +177,14 @@ export class RestApiClient {
   async _requestWithBody(method, endpoint, data) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method,
-        headers: this.headers,
-        body: JSON.stringify(data),
-      })
+      const body = JSON.stringify(data)
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method,
+          headers: this.headers,
+          body,
+        })
+      )
 
       if (response.ok) {
         const text = await response.text()
@@ -165,7 +192,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      console.error(`❌ ${method} request failed: ${error.message}`)
+      log.warn(`${method} request failed`, { error })
       throw error
     }
   }
@@ -216,10 +243,12 @@ export class RestApiClient {
   async delete(endpoint) {
     try {
       const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: this.headers,
-      })
+      const response = await this.#executeWithRetry(() =>
+        fetch(url, {
+          method: 'DELETE',
+          headers: this.headers,
+        })
+      )
 
       if (response.ok) {
         // Some DELETE endpoints return empty response
@@ -228,7 +257,7 @@ export class RestApiClient {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     } catch (error) {
-      console.error(`❌ DELETE request failed: ${error.message}`)
+      log.warn('DELETE request failed', { error })
       throw error
     }
   }

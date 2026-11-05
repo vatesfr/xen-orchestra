@@ -4,7 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 // =============================================================================
 
-const log = createLogger('xo:xo-server:sdn-controller:tls-connect')
+const log = createLogger('xo:xo-server-sdn-controller:tls-helper')
 
 // =============================================================================
 

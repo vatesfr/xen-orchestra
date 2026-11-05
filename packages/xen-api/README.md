@@ -53,6 +53,8 @@ Options:
 - `readOnly = false`: if true, no methods with side-effects can be called
 - `callTimeout`: number of milliseconds after which a call is considered failed (can also be a map of timeouts by methods)
 - `httpProxy`: URL of the HTTP/HTTPS proxy used to reach the host, can include credentials
+- `candidateHostnames`: addresses of other pool members to fall back on when the configured target becomes unreachable (e.g. the master died and another host took over). Refreshed automatically from the pool on each connection and exposed back through the `candidateHostnames` getter, so a caller can persist them and feed them back across restarts
+- `probeTimeout = 20e3`: number of milliseconds after which an unreachable member is given up on while probing for a survivor
 
 ```js
 // Force connection.

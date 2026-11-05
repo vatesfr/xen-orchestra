@@ -1,6 +1,5 @@
 import CancelToken from 'promise-toolbox/CancelToken'
 import groupBy from 'lodash/groupBy.js'
-import hrp from 'http-request-plus'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pRetry from 'promise-toolbox/retry'
 import pickBy from 'lodash/pickBy.js'
@@ -14,12 +13,15 @@ import { extract } from '@xen-orchestra/xapi/xoData.mjs'
 import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
+import { Agent } from 'undici'
 import { Ref } from 'xen-api'
 
 import isDefaultTemplate from './isDefaultTemplate.mjs'
 import isVmRunning from './_isVmRunning.mjs'
 
 const { warn, error } = createLogger('xo:xapi:vm')
+
+const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } })
 
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
@@ -192,11 +194,16 @@ class Vm {
     }
 
     try {
-      await hrp(url, {
+      const response = await fetch(url, {
         headers,
-        rejectUnauthorized: false,
-        timeout: this._syncHookTimeout ?? 60e3,
+        dispatcher: insecureAgent,
+        signal: AbortSignal.timeout(this._syncHookTimeout ?? 60e3),
       })
+      // the response body is not used, free the socket
+      await response.body?.cancel()
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
     } catch (error) {
       warn('HTTP hook failed', { error, url, vm: uuid })
     }
@@ -558,6 +565,29 @@ class Vm {
         finished(response.body, destroySnapshot)
       }
 
+      // When exporting with compression, obtaining the first block of data may take some time.
+      // Therefore, we wait until the first block is received before returning the stream
+      // the promise timeout if no block is received after 30 minutes.
+      await new Promise((resolve, reject) => {
+        function _resolve() {
+          _clean()
+          resolve()
+        }
+        function _onError(err) {
+          _clean()
+          reject(err)
+        }
+        function _clean() {
+          clearTimeout(timeoutId)
+          response.body.off('readable', _resolve)
+          response.body.off('error', _onError)
+        }
+        const timeoutId = setTimeout(() => _onError(new Error('Export timeout')), 1000 * 60 * 30)
+
+        response.body.once('readable', _resolve)
+        response.body.once('error', _onError)
+      })
+
       return response
     } catch (error) {
       // augment the error with as much relevant info as possible
@@ -620,7 +650,7 @@ class Vm {
         task: taskRef,
       })
       if (onVmCreation != null) {
-        ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
+        await ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
       }
       return ref
     } catch (error) {

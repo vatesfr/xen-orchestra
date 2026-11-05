@@ -107,7 +107,7 @@ export class AbstractAggregatedRemoteWriter {
   }
 
   async getEntriesPerAdapter(adapter) {
-    const scheduleId = this.#props.scheduleId
+    const scheduleId = this.#props.schedule.id
     const vmUuid = this.#props.vmUuid
     return (await adapter.listVmBackups(vmUuid, _ => _.scheduleId === scheduleId)).map(entry => ({
       ...entry,

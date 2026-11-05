@@ -13,6 +13,10 @@ export class Servers extends Collection {
     const { error } = server
     server.error = error != null ? JSON.stringify(serializeError(error)) : undefined
     server.readOnly = server.readOnly ? 'true' : undefined
+    server.poolMembersAddresses =
+      Array.isArray(server.poolMembersAddresses) && server.poolMembersAddresses.length > 0
+        ? JSON.stringify(server.poolMembersAddresses)
+        : undefined
   }
 
   _unserialize(server) {
@@ -24,6 +28,12 @@ export class Servers extends Collection {
       delete server.error
     }
     server.readOnly = server.readOnly === 'true'
+
+    if (server.poolMembersAddresses) {
+      server.poolMembersAddresses = parseProp('server', server, 'poolMembersAddresses', [])
+    } else {
+      delete server.poolMembersAddresses
+    }
 
     // see https://github.com/vatesfr/xen-orchestra/issues/6656
     if (server.httpProxy === '') {

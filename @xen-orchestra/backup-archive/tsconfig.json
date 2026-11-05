@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "strict": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2022",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "useUnknownInCatchVariables": false,
+    "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
+  },
+  "include": ["src/**/*"],
+  // *.integ.mjs deliberately imports from the built dist/ output to test it
+  "exclude": ["node_modules", "dist", "**/*.integ.mjs"]
+}

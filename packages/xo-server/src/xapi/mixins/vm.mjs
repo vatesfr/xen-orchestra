@@ -13,6 +13,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
 
 import { parseSize } from '../../utils.mjs'
@@ -114,10 +115,14 @@ const methods = {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if ((isEmpty(vdis) && isEmpty(existingVdis)) || installMethod === 'network') {
+        // For HVM, boot order is controlled exclusively by HVM_boot_params.order ('c'=disk, 'd'=CD, 'n'=network).
+        // Only modify the order when an install method is set, otherwise preserve the template's boot order to avoid unintended network boot attempts.
+        if (installMethod === 'network') {
           const { order } = vm.HVM_boot_params
-
           vm.update_HVM_boot_params('order', order ? 'n' + order.replace('n', '') : 'ncd')
+        } else if (installMethod === 'cd') {
+          const { order } = vm.HVM_boot_params
+          vm.update_HVM_boot_params('order', order ? 'd' + order.replace('d', '') : 'dcn')
         }
       } else {
         // PV
@@ -394,7 +399,31 @@ const methods = {
         cpus: lte,
       },
       get: vm => +vm.VCPUs_max,
-      set: 'VCPUs_max',
+      set: [
+        'VCPUs_max',
+        (value, vm, { coresPerSocket }) => {
+          if (coresPerSocket !== undefined) {
+            // if coresPerSocket was explicitly passed as arguments
+            // to _editVm, ignore the topology compatibilty check
+            return
+          }
+
+          const currentCoresPerSocket = vm.platform['cores-per-socket']
+          if (currentCoresPerSocket > 0 && Number.isSafeInteger(value / currentCoresPerSocket)) {
+            return
+          }
+
+          log.warn(
+            "CPU topology set to 1 core per socket because the new CPU static max value doesn't match the current CPU topology",
+            {
+              vmId: vm.uuid,
+              newCpuStaticMax: value,
+              oldTopology: `${currentCoresPerSocket} cores per socket`,
+            }
+          )
+          return vm.update_platform('cores-per-socket', '1')
+        },
+      ],
     },
 
     cpuWeight: {
@@ -408,6 +437,7 @@ const methods = {
 
     memoryMin: {
       constraints: {
+        _memoryStaticMin: lte,
         memoryMax: gte,
       },
       get: vm => +vm.memory_dynamic_min,
@@ -415,9 +445,22 @@ const methods = {
       set: 'memory_dynamic_min',
     },
 
+    // Read-only
+    _memoryStaticMin: {
+      get: vm => +vm.memory_static_min,
+      set(value, vm) {
+        throw invalidParameters(
+          `memory (${value}) must be greater than or equal to this VM's static minimum memory (${vm.memory_static_min}), which is a readonly property`
+        )
+      },
+    },
+
     _memory: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(memory, vm) {
@@ -437,6 +480,9 @@ const methods = {
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',
+      constraints: {
+        _memoryStaticMin: lte,
+      },
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
       set(dynamicMax, vm) {
@@ -452,7 +498,7 @@ const methods = {
           )
         }
 
-        const staticMin = Math.min(vm.memory_static_min, dynamicMax)
+        const staticMin = vm.memory_static_min
         return this.call(
           'VM.set_memory_limits',
           $ref,
@@ -537,6 +583,42 @@ const methods = {
           vm.update_HVM_boot_params('firmware', firmware),
           vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
         ]),
+    },
+
+    suspendSr: {
+      get: 'suspend_SR',
+      set(value, vm) {
+        return this.call('VM.set_suspend_SR', vm.$ref, value === null ? Ref.EMPTY : this.getObject(value).$ref)
+      },
+    },
+
+    uefiMode: {
+      set(value, vm) {
+        return this.call('VM.set_uefi_mode', vm.$ref, value)
+      },
+    },
+
+    xenStoreData: {
+      set(value, vm) {
+        const prefixed = {}
+        for (const [key, val] of Object.entries(value)) {
+          // Sandbox the xenstore namespace: strip any client-supplied `vm-data/` prefix
+          // and reject path-traversal segments before re-applying the prefix.
+          const stripped = key.replace(/^(vm-data\/)+/, '')
+          if (stripped === '' || stripped.includes('..') || stripped.startsWith('/')) {
+            throw invalidParameters(`invalid xenstore key: ${key}`)
+          }
+          prefixed['vm-data/' + stripped] = val
+        }
+        return vm.update_xenstore_data(prefixed)
+      },
+    },
+
+    creation: {
+      set(value, vm) {
+        const existing = xoData.extract(vm)
+        return xoData.set(vm, { creation: { ...existing?.creation, ...value } })
+      },
     },
   }),
 

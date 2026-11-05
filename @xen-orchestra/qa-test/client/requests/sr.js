@@ -1,6 +1,8 @@
+import { createLogger } from '@xen-orchestra/log'
 import { AbstractRequest } from './abstract.js'
-
 import { FilterBuilder } from '../FilterBuilder.js'
+
+const log = createLogger('xo:qa-test:sr')
 
 /**
  * Specialized request handler for XenOrchestra Storage Repository (SR) operations.
@@ -56,9 +58,7 @@ export class SRRequest extends AbstractRequest {
     }
 
     const freeSpaceGB = (freeSpace / 1024 ** 3).toFixed(2)
-    console.log(
-      `✅ Found Storage Repository for health checks: ${storageRepository.name_label} (${freeSpaceGB} GB free)`
-    )
+    log.debug('Found Storage Repository for health checks', { name: storageRepository.name_label, freeSpaceGB })
     return storageRepository
   }
 }

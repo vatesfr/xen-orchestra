@@ -5,6 +5,7 @@ import HttpProxy from '@xen-orchestra/mixins/HttpProxy.mjs'
 import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
+import LiveMount from '@xen-orchestra/mixins/live-mount/index.mjs'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
 import once from 'lodash/once.js'
@@ -21,9 +22,15 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
+import { computeObjectNotifications } from './_objectNotifications.mjs'
+import { asyncEach } from '@vates/async-each'
 
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
+
+/**
+ * @typedef {import('@vates/types').NonXapiXoRecord} NonXapiXoRecord
+ */
 
 // ===================================================================
 
@@ -31,10 +38,19 @@ const log = createLogger('xo:xo')
 
 @mixinLegacy(Object.values(mixins))
 export default class Xo extends EventEmitter {
+  /**
+   * @type {Map<string, EventEmitter>}
+   */
+  #eeByType = new Map()
+  /**
+   * @type {Map<string, (id: NonXapiXoRecord['id']) => Promise<void>>}
+   */
+  #refreshByType = new Map()
+
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy, LiveMount, SslCertificate, Tasks }, [opts])
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 
@@ -60,7 +76,78 @@ export default class Xo extends EventEmitter {
     }
 
     this.hooks.on('start', () => this._watchObjects())
+    // `decorate` can return `undefined` to ignore an object
+    this.hooks.on('registerCollection', async ({ collection, type, decorate = obj => obj }) => {
+      const cache = new Map()
+      const emitter = new EventEmitter()
+      const queueById = new Map()
 
+      const initialLoad = (async () => {
+        const objects = await collection.get()
+        await Promise.all(
+          objects.map(async object => {
+            // pass a copy of the object to avoid any mutation on the source object
+            const obj = await decorate({ ...object })
+            if (obj !== undefined) {
+              cache.set(obj.id, obj)
+            }
+          })
+        )
+      })()
+
+      const serialize = (id, fn) => {
+        const current = (queueById.get(id) ?? initialLoad)
+          .then(fn)
+          .catch(error => log.warn(`error while handling a ${type} collection event`, { error, id }))
+          .finally(() => {
+            if (queueById.get(id) === current) {
+              queueById.delete(id)
+            }
+          })
+        queueById.set(id, current)
+      }
+
+      const onAddOrUpdate = objects => {
+        for (const object of objects) {
+          serialize(object.id, async () => {
+            const previous = cache.get(object.id)
+            const newEntry = previous === undefined
+            const obj = await decorate({ ...object })
+            if (obj === undefined) {
+              if (!newEntry) {
+                cache.delete(object.id)
+                emitter.emit('remove', undefined, previous)
+              }
+              return
+            }
+            cache.set(obj.id, obj)
+            emitter.emit(newEntry ? 'add' : 'update', obj, previous)
+          })
+        }
+      }
+      const onRemove = ids => {
+        for (const id of ids) {
+          serialize(id, () => {
+            const previous = cache.get(id)
+            cache.delete(id)
+            emitter.emit('remove', undefined, previous)
+          })
+        }
+      }
+
+      collection.on('add', onAddOrUpdate)
+      collection.on('update', onAddOrUpdate)
+      collection.on('remove', onRemove)
+
+      await initialLoad
+      this.#eeByType.set(type, emitter)
+      this.#refreshByType.set(type, async id => {
+        const object = await collection.first(id)
+        if (object !== undefined) {
+          await onAddOrUpdate([object])
+        }
+      })
+    })
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
     this.hooks.on('stop', debounceResource.flushAll)
@@ -75,6 +162,29 @@ export default class Xo extends EventEmitter {
   }
 
   // -----------------------------------------------------------------
+
+  getXoEventEmitterByType(type) {
+    const emitter = this.#eeByType.get(type)
+    if (emitter === undefined) {
+      throw new Error(`collection ${type} not registered`)
+    }
+
+    return emitter
+  }
+
+  /**
+   * Manually emit an `add/update` event for a non XAPI XO object
+   *
+   * @param {string} type
+   * @param {NonXapiXoRecord['id']} id
+   */
+  async touchXoObject(type, id) {
+    const refresh = this.#refreshByType.get(type)
+    if (refresh === undefined) {
+      throw new Error(`collection ${type} not registered`)
+    }
+    await refresh(id)
+  }
 
   // Returns an object from its key or UUID.
   getObject(key, type) {
@@ -319,32 +429,77 @@ export default class Xo extends EventEmitter {
     })
 
     objects.on('finish', () => {
-      const enteredMessage = !isEmpty(entered) && {
-        type: 'enter',
-        items: entered,
-      }
-      const exitedMessage = !isEmpty(exited) && {
-        type: 'exit',
-        items: exited,
-      }
+      const enteredBatch = entered
+      const exitedBatch = exited
 
-      if (!enteredMessage && !exitedMessage) {
+      reset()
+
+      if (isEmpty(enteredBatch) && isEmpty(exitedBatch)) {
         return
       }
 
-      for (const connection of this.apiConnections) {
-        // Notifies only authenticated clients.
-        if (connection.has('user_id') && connection.notify) {
-          if (enteredMessage) {
-            connection.notify('all', enteredMessage)
-          }
-          if (exitedMessage) {
-            connection.notify('all', exitedMessage)
+      this.#notifyObjectChanges(enteredBatch, exitedBatch).catch(error =>
+        log.warn('failed to notify object changes', { error })
+      )
+    })
+  }
+
+  async #notifyObjectChanges(entered, exited) {
+    const connections = []
+    for (const apiConnection of this.apiConnections) {
+      if (apiConnection.has('user_id') && apiConnection.notify !== undefined) {
+        connections.push(apiConnection)
+      }
+    }
+
+    if (connections.length === 0) {
+      return
+    }
+
+    const connectionsByUserId = new Map()
+    for (const connection of connections) {
+      const connectionUserId = connection.get('user_id')
+
+      const userConnections = connectionsByUserId.get(connectionUserId)
+      if (userConnections === undefined) {
+        connectionsByUserId.set(connectionUserId, [connection])
+      } else {
+        userConnections.push(connection)
+      }
+    }
+
+    await asyncEach(
+      connectionsByUserId,
+      async ([userId, userConnections]) => {
+        let objectFilter
+        try {
+          objectFilter = await this.getObjectFilterForUser(userId)
+        } catch (error) {
+          log.warn('failed to compute the object filter of a user', { error, userId })
+        }
+
+        if (objectFilter) {
+          const { enter, exit } = computeObjectNotifications({
+            entered,
+            exited,
+            isObjectVisible: objectFilter,
+          })
+
+          for (const userConnection of userConnections) {
+            if (enter !== undefined) {
+              userConnection.notify('all', { type: 'enter', items: enter })
+            }
+
+            if (exit !== undefined) {
+              userConnection.notify('all', { type: 'exit', items: exit })
+            }
           }
         }
+      },
+      {
+        concurrency: 10,
+        stopOnError: false,
       }
-
-      reset()
-    })
+    )
   }
 }

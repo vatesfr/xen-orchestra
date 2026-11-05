@@ -9,14 +9,14 @@
       />
     </template>
 
-    <MenuItem v-for="(link, index) in links" :key="index">
-      <UiLink size="small" class="link typo-body-bold-small" v-bind="link.props">
+    <MenuItem v-for="(link, index) in links" :key="index" accent="brand">
+      <UiLink size="small" class="link" v-bind="link.props">
         {{ link.label }}
       </UiLink>
     </MenuItem>
 
-    <MenuItem class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
-      <span class="link typo-body-bold-small">{{ t('action:log-out') }}</span>
+    <MenuItem accent="brand" icon="fa:arrow-right-from-bracket" @click="logout()">
+      <span class="link">{{ t('action:log-out') }}</span>
     </MenuItem>
   </MenuList>
 </template>
@@ -107,16 +107,5 @@ const links = computed<{ label: string; props: LinkOptions & { icon: IconName } 
   padding-block: 1.2rem;
   /* Make the link take the available width in the MenuItem component */
   flex-grow: 1;
-}
-.icon {
-  color: var(--color-brand-txt-base);
-
-  &:hover {
-    color: var(--color-brand-txt-hover);
-  }
-
-  &:active {
-    color: var(--color-brand-txt-active);
-  }
 }
 </style>

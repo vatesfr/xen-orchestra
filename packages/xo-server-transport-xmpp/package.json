@@ -32,9 +32,9 @@
     "@xmpp/client": "^0.13.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
+    "@babel/cli": "^7.29.0",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "cross-env": "^7.0.2",
     "rimraf": "^6.0.1"
   },

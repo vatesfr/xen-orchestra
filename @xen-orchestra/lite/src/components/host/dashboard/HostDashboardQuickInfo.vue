@@ -1,15 +1,15 @@
 <template>
   <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isReady">
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('state')">
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('state')">
         <template #value>
           <VtsIcon :name="powerState.icon" size="medium" />
           {{ powerState.text }}
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="host.address" />
-      <VtsQuickInfoRow :label="t('started')" :value="isRunning ? relativeStartTime : undefined" />
-      <VtsQuickInfoRow :label="t('master')">
+      </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('ip-address')" :value="host.address" copy />
+      <VtsKeyValueRow :label="t('started')" :value="isRunning ? relativeStartTime : undefined" />
+      <VtsKeyValueRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
             <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -24,51 +24,44 @@
             {{ masterHost.name_label }}
           </UiLink>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="host.uuid" />
-      <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
-      <VtsQuickInfoRow :label="t('version')" :value="host.software_version.product_version" />
-      <VtsQuickInfoRow
-        :label="t('hardware')"
-        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
-      />
-    </VtsQuickInfoColumn>
-    <VtsQuickInfoColumn>
-      <VtsQuickInfoRow
-        :label="t('cores-with-sockets')"
-        :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`"
-      />
-      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
-      <VtsQuickInfoRow :label="t('tags')">
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('uuid')" :value="host.uuid" copy />
+      <VtsKeyValueRow :label="t('description')" :value="host.name_description" />
+      <VtsKeyValueRow :label="t('version')" :value="host.software_version.product_version" />
+      <VtsKeyValueRow :label="t('hardware')" :value="manufacturerInfo" />
+    </VtsKeyValueList>
+    <VtsKeyValueList>
+      <VtsKeyValueRow :label="t('cores-with-sockets')" :value="coreSocketInfo" />
+      <VtsKeyValueRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsKeyValueRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <VtsTag v-for="tag in host.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
-      </VtsQuickInfoRow>
-    </VtsQuickInfoColumn>
+      </VtsKeyValueRow>
+    </VtsKeyValueList>
   </VtsQuickInfoCard>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
+import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
-import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
+import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
-import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import useRelativeTime from '@core/composables/relative-time.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { formatSizeRaw } from '@core/utils/size.util'
-import { parseDateTime } from '@core/utils/time.util'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -79,24 +72,17 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost, masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
+const { masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { isHostRunning, getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+
+const { isMaster, isRunning, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
 
-const isRunning = computed(() => isHostRunning(host))
+const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
 
-const powerState = computed<{ text: string; icon: IconName }>(() => ({
-  text: isRunning.value ? t(`host:status:running`) : t('host:status:halted'),
-  icon: isRunning.value ? 'status:running-circle' : 'status:halted-circle',
-}))
-
-const date = computed(() => new Date(parseDateTime(Number(host.other_config.boot_time) * 1000)))
-
-const relativeStartTime = useRelativeTime(date)
-
-const isMaster = computed(() => isMasterHost(host.$ref))
+const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 
 const ram = computed(() => {
   const memory = getHostMemory(host)

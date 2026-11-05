@@ -1,9 +1,11 @@
+import assert from 'node:assert'
+import humanFormat from 'human-format'
+
 import { asyncMapSettled } from '@xen-orchestra/async-map'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import { Task } from '@vates/task'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { importIncrementalVm } from '../../_incrementalVm.mjs'
-import { Task } from '../../Task.mjs'
 
 import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
@@ -17,84 +19,360 @@ import {
   REPLICATED_TO_SR_UUID,
   DATETIME,
   VM_UUID,
+  CONTENT_KEY,
+  INCLUDE_NON_NBD_QCOW2_FIX,
+  resetVmOtherConfig,
 } from '../../_otherConfig.mjs'
-import assert from 'node:assert'
 import { formatFilenameDate } from '../../_filenameDate.mjs'
+import { XapiDiskSource } from '@xen-orchestra/xapi'
+import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
+import { VM_POWER_STATE } from '@vates/types'
+import { diskHasData } from './_diskHasData.mjs'
+
+const { debug, warn } = createLogger('xo:backups:IncrementalXapiWriter')
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
-  async checkBaseVdis(baseUuidToSrcVdi) {
+  // Map of source VDI UUID (COPY_OF) → validated active VDI on the target SR.
+  // Built by checkBaseVdis, consumed by #decorateVmMetadata to set baseVdi.
+  #baseVdisBySourceUuid = new Map()
+
+  /**
+   * Finds VDIs on the target SR that can serve as base for the next delta transfer.
+   *
+   * For each entry in `baseUuidToSrcVdi`, searches the target SR for a matching snapshot
+   * using CONTENT_KEY when available, then falls back to COPY_OF matching for older snapshots.
+   * Entries with no matching base found on the target SR are removed from `baseUuidToSrcVdi`.
+   *
+   * Side-effects: populates `#baseVdisBySourceUuid`; may set `_targetVmRef`.
+   *
+   * @param {Map<string, string>} baseUuidToSrcVdi - Source snapshot UUID → source active VDI UUID. Mutated in place.
+   * @param {Map<string, string>} contentKeys - Source snapshot UUID → CONTENT_KEY value (empty for pre-CONTENT_KEY snapshots).
+   * @returns {Promise<void>}
+   */
+  async checkBaseVdis(baseUuidToSrcVdi, contentKeys) {
     const sr = this._sr
+    this.#baseVdisBySourceUuid = new Map()
+
     if (baseUuidToSrcVdi.size === 0) {
       // searching for the vdis is expensive
       // don't do it if there is nothing to find
       return
     }
 
-    // Only match live (non-snapshot) VDIs attached to exactly one
-    // non-control-domain VM that is a valid replication target for this job.
-    // This must stay consistent with the filter in #decorateVmMetadata.
-    const replicatedVdis = sr.$VDIs.filter(vdi => {
-      if (!vdi?.managed || vdi?.is_a_snapshot || !baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])) {
-        return false
-      }
-      const userVbds = vdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
-      if (userVbds.length !== 1) {
-        return false
-      }
-      const vm = userVbds[0].$VM
-      return (
-        vm.other_config[JOB_ID] === this._job.id &&
-        vm.other_config[VM_UUID] === this._vmUuid &&
-        'start' in vm.blocked_operations
-      )
-    })
+    // look for the same snapshot
+    // ensure there are no data between the snapshot and the active disk
 
-    const replicatedCopyOfUuids = replicatedVdis.map(({ other_config }) => other_config?.[COPY_OF]).filter(_ => !!_)
+    const snapshotCandidates = new Map()
+
+    for (const [baseUuid, srcVdiuid] of baseUuidToSrcVdi) {
+      let target
+
+      const contentKey = contentKeys.get(baseUuid)
+
+      if (contentKey !== undefined) {
+        debug('got one content key, look for a candidate')
+        target = sr.$VDIs.find(
+          vdi =>
+            vdi?.managed &&
+            vdi?.is_a_snapshot &&
+            vdi.other_config[CONTENT_KEY] === contentKey && // &&
+            // ensure we don't replicate on ourself or any of the vdi in the source  chain
+            vdi.$snapshot_of.uuid !== srcVdiuid
+        )
+      }
+
+      // fall back for older snapshots
+      if (target === undefined) {
+        debug('content key not here or not found , look by jobid ')
+        target = sr.$VDIs.find(
+          vdi =>
+            vdi?.managed &&
+            vdi?.is_a_snapshot &&
+            vdi.other_config[JOB_ID] === this._job.id &&
+            vdi.other_config[VM_UUID] === this._vmUuid &&
+            vdi?.other_config[COPY_OF] === baseUuid
+        )
+      }
+      if (target !== undefined) {
+        // A delta is only chained onto a qcow2 base when NBD is enabled; without NBD a qcow2
+        // export falls back to a full, so there is no suspect base.
+        if (this._settings.preferNbd) {
+          // Every copy written by fixed code carries the flag, so the marker on the most recent
+          // link is enough: if it is there, this chain was already verified (or re-based) by a
+          // run that had the fix, and older links need no re-check.
+          const suspect = target.other_config[INCLUDE_NON_NBD_QCOW2_FIX] !== 'true'
+          if (suspect) {
+            const chain = this.#diskReplicaSnapshots(target)
+            // probe the OLDEST link (least-masked view of the corruption — a later delta could
+            // have overwritten the corrupt blocks and hidden the damage on a more recent snapshot).
+            // Re-replicating a full is expensive, so only force one when it actually looks corrupt.
+            let base = target
+            assert.notStrictEqual(base.other_config[DATETIME], undefined)
+            for (const vdi of chain) {
+              const datetime = vdi.other_config[DATETIME]
+              assert.notStrictEqual(datetime, undefined)
+              if (datetime < base.other_config[DATETIME]) {
+                base = vdi
+              }
+            }
+            let chainable
+            try {
+              chainable = await this.#baseVdiHasData(base.$ref)
+            } catch (error) {
+              // can't read the base to decide → don't chain onto it
+              warn('checkBaseVdis: error probing replicated base, forcing a full', { error, baseVdi: base.uuid })
+              chainable = false
+            }
+            if (!chainable) {
+              Task.warning('forcing a full: replicated qcow2 chain predates the non-NBD qcow2 fix and looks corrupt', {
+                baseVdi: base.uuid,
+              })
+              // drop it so neither the snapshot nor the legacy fallback reuses it → full
+              baseUuidToSrcVdi.delete(baseUuid)
+              continue
+            }
+          }
+        }
+        snapshotCandidates.set(baseUuid, target)
+      }
+    }
+
+    debug('checkBaseVdis, got snapshot candidates,', snapshotCandidates.size)
+
+    if (snapshotCandidates.size > 0) {
+      // reset before searching for candidates
+      this.#baseVdisBySourceUuid = new Map()
+      this._targetVmRef = undefined
+      const { baseVdisBySourceUuid, targetVmRef } = await this.#validateSnapshotCandidates(snapshotCandidates)
+      for (const [sourceUuid, vdi] of baseVdisBySourceUuid) {
+        this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
+      }
+      debug(' this.#baseVdisBySourceUuid ', this.#baseVdisBySourceUuid.size)
+      if (targetVmRef !== undefined) {
+        this._targetVmRef = targetVmRef
+      }
+    } else {
+      debug('legacy fallback ( no content key ) ')
+      // Legacy fallback (upgrade from pre-6.3): no target snapshots exist yet,
+      // look for active (non-snapshot) VDIs with matching COPY_OF, like the old code did.
+      debug('checkBaseVdis, no snapshot candidates, falling back to legacy active VDI lookup')
+      const legacyVdis = sr.$VDIs.filter(vdi => {
+        return vdi?.managed && !vdi?.is_a_snapshot && baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
+      })
+      for (const vdi of legacyVdis) {
+        const sourceUuid = vdi.other_config[COPY_OF]
+        if (sourceUuid) {
+          this.#baseVdisBySourceUuid.set(sourceUuid, vdi)
+        }
+      }
+    }
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
-      if (!replicatedCopyOfUuids.includes(uuid)) {
+      if (!this.#baseVdisBySourceUuid.has(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
       }
     }
+  }
 
-    // Track the target VM (the replicated VM to update on the next transfer).
-    if (replicatedVdis.length > 0) {
-      const vbd = replicatedVdis[0].$VBDs.find(vbd => vbd.$VM && !vbd.$VM.is_control_domain)
-      this._targetVmRef = vbd.$VM.$ref
+  // All replica snapshots of a given disk share the same active target VDI ($snapshot_of). Return
+  // them (same job+vm) so the caller can inspect the whole chain: any link missing the fix marker
+  // makes the chain suspect, and the oldest link (by DATETIME) is the least-masked base to probe.
+  // Scoped by $snapshot_of, so history before a CR VM recreation (which resets it) is not included.
+  #diskReplicaSnapshots(target) {
+    const activeUuid = target.$snapshot_of?.uuid
+    const snapshots = []
+    for (const vdi of this._sr.$VDIs) {
+      if (
+        vdi?.managed &&
+        vdi?.is_a_snapshot &&
+        vdi.$snapshot_of?.uuid === activeUuid &&
+        vdi.other_config[JOB_ID] === this._job.id &&
+        vdi.other_config[VM_UUID] === this._vmUuid
+      ) {
+        snapshots.push(vdi)
+      }
+    }
+    return snapshots
+  }
+
+  // Probe a replicated base VDI for the DiskLargerBlock corruption signature (block 0 valid,
+  // following allocated blocks all zero). Uses an export (not NBD): block flow is guaranteed
+  // to be in index order, so block 0 comes first and inspecting the first few blocks is enough.
+  // Returns false only when no allocated non-zero block is found among the first ones.
+  async #baseVdiHasData(vdiRef) {
+    const source = new XapiDiskSource({ xapi: this._sr.$xapi, vdiRef, preferNbd: false })
+    try {
+      await source.init()
+      return await diskHasData(source)
+    } finally {
+      await source.close()
     }
   }
-  updateUuidAndChain() {
-    // nothing to do, the chaining is not modified in this case
+
+  /**
+   * 6.3+ snapshot-based validation: for each snapshot candidate, check whether
+   * the active VDI has diverged from the snapshot. Returns a baseVdisBySourceUuid
+   * map and, when all disks are clean, the targetVmRef to reuse.
+   *
+   * @param {Map<XenApiVdi['id'], import('@vates/types').XenApiVdi>} snapshotCandidates - Snapshot VDIs on the target SR to validate.
+   * @returns {Promise<{ baseVdisBySourceUuid: Map<string, import('@vates/types').XenApiVdi>, targetVmRef:  import('@vates/types').XenApiVm['$ref'] | undefined }>}
+   */
+  async #validateSnapshotCandidates(snapshotCandidates) {
+    const sr = this._sr
+    const baseVdisBySourceUuid = new Map()
+    let targetVmRef
+    let canChainToTargetVm = true
+
+    await asyncEach(
+      snapshotCandidates.entries(),
+      async ([sourceUuid, snapshot]) => {
+        let diffDisk
+        let activeVdi
+        try {
+          activeVdi = sr.$xapi.getObject(snapshot.$snapshot_of)
+          const userVbds = activeVdi.$VBDs?.filter(vbd => vbd.$VM && !vbd.$VM.is_control_domain) ?? []
+          if (userVbds.length !== 1) {
+            canChainToTargetVm = false
+            debug('checkBaseVdis, shared vbd ', { ref: snapshot.$ref, userVbds })
+            // shared vdi ignore / don't chain
+            return
+          }
+          const vm = userVbds[0].$VM
+
+          // a running VM will fail to compute disk exports
+          // also a running VM can be assumed to have changed data
+          if (vm.power_state !== VM_POWER_STATE.HALTED && vm.power_state !== VM_POWER_STATE.SUSPENDED) {
+            canChainToTargetVm = false
+            debug('checkBaseVdis, target vm is not halted or suspended', {
+              ref: snapshot.$ref,
+              userVbds,
+              powerState: vm.power_state,
+            })
+          }
+          // from this disk of from another
+          // skip the costly part, only do the disk chaining
+          if (!canChainToTargetVm) {
+            debug("Can't chain VM anyway , fast return and chain with snapshot")
+            baseVdisBySourceUuid.set(sourceUuid, snapshot)
+            return
+          }
+          diffDisk = new XapiDiskSource({
+            xapi: sr.$xapi,
+            vdiRef: activeVdi.$ref,
+            baseRef: snapshot.$ref,
+            onlyListChangedBlocks: true,
+            preferNbd: this._settings.preferNbd,
+          })
+          await diffDisk.init()
+          if (diffDisk.getBlockIndexes().length === 0) {
+            debug(' NO CHANGE , source detected ? ', !!sourceUuid)
+            // no block modification since the common snapshot, we can chain VM and disk
+            // the disk is chained with the active to keep the chain linear
+            baseVdisBySourceUuid.set(sourceUuid, activeVdi)
+            // Track the target VM (the replicated VM to update on the next transfer).
+            targetVmRef = vm.$ref
+          } else {
+            debug(' GOT CHANGE, source detected ? ', !!sourceUuid)
+            baseVdisBySourceUuid.set(sourceUuid, snapshot)
+            // there are changed block since the snapshot
+            // we can reuse it to transfer a delta, but we will
+            // create a new VM
+            canChainToTargetVm = false
+            debug('checkBaseVdis, data between snapshot and active disk', {
+              vdiRef: snapshot.$ref,
+              nbBlocks: diffDisk.getBlockIndexes().length,
+            })
+          }
+        } catch (error) {
+          debug('checkBaseVdis, skipping snapshot', { ref: snapshot.$ref, error })
+          return
+        } finally {
+          await diffDisk?.close().catch(error => debug('checkBaseVdis, error closing', error))
+          await sr.$xapi.VDI_disconnectFromControlDomain(snapshot.$ref)
+          if (activeVdi !== undefined) {
+            await sr.$xapi.VDI_disconnectFromControlDomain(activeVdi.$ref)
+          }
+        }
+      },
+      {
+        concurrency: 4,
+      }
+    )
+
+    if (!canChainToTargetVm) {
+      debug('checkBaseVdis,NOT a valid vm target')
+      // if at least one disk has new data, create a new VM
+      // instead of updating it
+      targetVmRef = undefined
+    } else if (targetVmRef !== undefined) {
+      debug('checkBaseVdis,got a valid vm target', targetVmRef)
+    }
+
+    debug('checkBaseVdis,base vdis found : ', baseVdisBySourceUuid.size)
+    return { baseVdisBySourceUuid, targetVmRef }
   }
+
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
-      name: 'export',
-      data: {
+      properties: {
         id: this._sr.uuid,
         isFull,
+        name: 'export',
         name_label: this._sr.name_label,
         type: 'SR',
       },
     })
-    const hasHealthCheckSr = this._healthCheckSr !== undefined
-    this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup, !hasHealthCheckSr)
-    this.healthCheck = task.wrapFn(this.healthCheck, hasHealthCheckSr)
+    this._prepare = task.wrapInside(this._prepare)
+    this.transfer = task.wrapInside(this.transfer)
+    if (this._healthCheckSr !== undefined) {
+      this.cleanup = task.wrapInside(this.cleanup)
+      this.healthCheck = task.wrap(this.healthCheck)
+    } else {
+      this.cleanup = task.wrap(this.cleanup)
+    }
 
-    return task.run(() => this._prepare(isFull))
+    return this._prepare(isFull)
   }
 
   async _prepare(isFull) {
     const settings = this._settings
     const { uuid: srUuid, $xapi: xapi } = this._sr
     const vmUuid = this._vmUuid
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
-    // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
+    const entries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
 
-    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+    // delete previous interrupted copies: #decorateVmMetadata sets DATETIME to this sentinel
+    // before a transfer starts and only updates it to the real timestamp once the transfer
+    // completes, so any entry still carrying it is a leftover from a transfer that never finished.
+    //
+    // Two cases must survive this cleanup regardless of the sentinel:
+    // - checkBaseVdis (which runs before _prepare) may already have validated this run's target
+    //   VM as chainable despite the sentinel (e.g. the interrupted transfer never wrote any data),
+    //   in which case it must survive to be reused, not be destroyed out from under this run.
+    // - an interrupted update of an existing target VM carries the sentinel on the live VM, not on
+    //   a snapshot, but that VM's snapshots are still valid restore points from earlier, completed
+    //   runs. Destroying it would cascade-destroy them too, so only a VM with no snapshots (a
+    //   brand new, never-completed replica) is safe to destroy here.
+    const interruptedEntries = entries.filter(
+      e =>
+        e.other_config[DATETIME] === formatFilenameDate(0) &&
+        e.$ref !== this._targetVmRef &&
+        (e.is_a_snapshot || e.snapshots.length === 0)
+    )
+    await Task.run({ properties: { name: 'cleanup interrupted entries' } }, async () => {
+      await asyncMapSettled(interruptedEntries, async vm => {
+        try {
+          await vm.$destroy({ bypassBlockedOperation: true })
+        } catch (error) {
+          warn('failed to cleanup interrupted entry', { error, vmUuid: vm.uuid })
+          Task.warning('failed to cleanup interrupted replication', { vmUuid: vm.uuid })
+        }
+      })
+    })
+    const allEntries = entries.filter(e => !interruptedEntries.includes(e))
 
     // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
     // snapshots (one per transfer). That VM must not be subject to retention — only its
@@ -105,14 +383,15 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
-    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
+    if (settings.deleteFirst && !settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
-      if (this._oldEntries.length > 1 && settings.copyRetention === 1 && !isFull) {
+      if (this._oldEntries.length > 0 && settings.copyRetention === 1 && !isFull) {
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
       this._oldEntries = mostRecentEntry !== undefined ? [mostRecentEntry] : []
     }
   }
@@ -120,6 +399,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   async cleanup() {
     if (!this._settings.skipDeleteOldEntries) {
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
     }
   }
 
@@ -127,20 +407,49 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
   }
 
+  // VDIs from this job/VM/SR that ended up detached from any VM, because a previous run
+  // was interrupted or a storage backend refused to destroy a VDI at import time.
+  // Destroying a VM only reaches the VDIs still attached to it, _deleteOldEntries never cleans them.
+  async _deleteOrphanVdis() {
+    const sr = this._sr
+    const vmUuid = this._vmUuid
+    const jobId = this._job.id
+
+    const orphanVdis = sr.$VDIs.filter(
+      vdi =>
+        vdi?.managed &&
+        vdi.other_config[JOB_ID] === jobId &&
+        vdi.other_config[VM_UUID] === vmUuid &&
+        vdi.other_config[REPLICATED_TO_SR_UUID] === sr.uuid &&
+        vdi.type !== 'suspend' &&
+        // a VBD or VM missing from the cache (e.g. just destroyed) keeps the VDI, next run will handle it
+        vdi.$VBDs.every(vbd => vbd?.$VM?.is_control_domain === true)
+    )
+
+    await asyncEach(
+      orphanVdis,
+      vdi =>
+        sr.$xapi
+          .call('VDI.destroy', vdi.$ref)
+          .catch(error => Task.warning('failed to delete orphan VDI', { vdi: vdi.uuid, error })),
+      { concurrency: 5 }
+    )
+  }
+
   #decorateVmMetadata(backup, timestamp) {
     const { _warmMigration } = this._settings
     const sr = this._sr
     const vm = backup.vm
     const job = this._job
-    const scheduleId = this._scheduleId
+    const scheduleId = this._schedule.id
 
-    vm.name_label = `${vm.name_label} - ${job.name}`
     // update other_config data as soon as possible to ensure the next job
     // will be able to detect any partial transfer and lean them
     vm.other_config[COPY_OF] = vm.uuid
     vm.other_config[JOB_ID] = job.id
     vm.other_config[SCHEDULE_ID] = scheduleId
     vm.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+    vm.other_config[VM_UUID] = this._vmUuid
     // set the timestamp in the past to ensure any incomplete VM will be deleted on next run
     vm.other_config[DATETIME] = formatFilenameDate(0)
 
@@ -152,38 +461,28 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     if (!_warmMigration) {
       vm.tags.push('Continuous Replication')
     }
-    // extracting the uuid of each delta vdi on the source
-    // get all in one pass, since there is a lot of objects
-    const sourceVdiUuids = Object.values(backup.vdis)
-      .map(({ other_config }) => other_config[BASE_DELTA_VDI])
-      // full vdi don't have a base
-      .filter(_ => !!_)
-    // @todo use index ?
-
-    const replicatedVdis = sr.$VDIs.filter(vdi => {
-      // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
-      return vdi?.managed && !vdi?.is_a_snapshot && sourceVdiUuids.includes(vdi?.other_config[COPY_OF])
-    })
 
     Object.values(backup.vdis).forEach(vdi => {
+      // setVmSnapshotContentKeys sets CONTENT_KEY = the snapshot VDI's own UUID, but
+      // that XenAPI write may not be visible in the xapi cache yet when exportIncrementalVm
+      // reads vdi.other_config. Derive the correct value directly instead of relying on cache.
+      vdi.other_config[CONTENT_KEY] = vdi.uuid
       vdi.other_config[COPY_OF] = vdi.uuid
       vdi.other_config[JOB_ID] = job.id
       vdi.other_config[SCHEDULE_ID] = scheduleId
       vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
-      vdi.other_config[VM_UUID] = vm.uuid
+      vdi.other_config[VM_UUID] = this._vmUuid
 
-      if (sourceVdiUuids.length > 0) {
-        const baseReplicatedTo = replicatedVdis.filter(
-          replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
-        )
-        assert.ok(
-          baseReplicatedTo.length <= 1,
-          `Target of a replication must be unique, got ${baseReplicatedTo.length} candidates`
-        )
-        // baseReplicatedTo can be undefined if a new disk is added and other are already replicated
-        vdi.baseVdi = baseReplicatedTo[0]
+      const baseDeltaVdiUuid = vdi.other_config[BASE_DELTA_VDI]
+      if (baseDeltaVdiUuid !== undefined) {
+        // reuse the validated mapping built by checkBaseVdis
+        vdi.baseVdi = this.#baseVdisBySourceUuid.get(baseDeltaVdiUuid)
+        // BASE_DELTA_VDI is set, so the export is differencing. Without a base to clone,
+        // importIncrementalVm would create a blank VDI and write only the changed blocks
+        // into it, silently producing a corrupt replica: fail the job instead.
+        assert.notStrictEqual(vdi.baseVdi, undefined, `no validated target base for ${baseDeltaVdiUuid}`)
       } else {
-        // first replication of this disk
+        // first replication of this disk (full, no base)
         vdi.baseVdi = undefined
       }
       // ensure the VDI are created on the target SR
@@ -197,11 +496,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const { _warmMigration } = this._settings
     const sr = this._sr
     const job = this._job
-    const scheduleId = this._scheduleId
+    const schedule = this._schedule
+    const scheduleId = schedule.id
     const { uuid: srUuid, $xapi: xapi } = sr
 
     let targetVmRef
-    await Task.run({ name: 'transfer' }, async () => {
+    await Task.run({ properties: { name: 'transfer' } }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
         targetRef: this._targetVmRef,
       })
@@ -213,19 +513,27 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         vmUuid: vm.uuid,
         srUuid,
       })
-
-      // take a snapshot to ensure these data are not modified until next snapshot
-      await Task.run({ name: 'target snapshot' }, () =>
-        xapi.VM_snapshot(targetVmRef, {
-          name_label: `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`,
-        })
+      const size = Object.values(deltaExport.disks).reduce(
+        (sum, disk) => sum + disk.getNbGeneratedBlock() * disk.getBlockSize(),
+        0
       )
-      // size is mandatory to ensure the task have the right data
+      await xapi.setField(
+        'VM',
+        targetVmRef,
+        'name_description',
+        deltaExport.vm.name_description +
+          ` -- last replication: ${formatFilenameDate(timestamp)} ${humanFormat.bytes(size)} read`
+      )
+      // take a snapshot to ensure these data are not modified until next snapshot
+      await Task.run({ properties: { name: 'target snapshot' } }, async () => {
+        await xapi.VM_snapshot(targetVmRef, {
+          name_label: `${vm.name_label} - ${job.name} / ${schedule.name} ${formatFilenameDate(timestamp)}`,
+        })
+        await resetVmOtherConfig(xapi, targetVmRef)
+      })
+
       return {
-        size: Object.values(deltaExport.disks).reduce(
-          (sum, disk) => sum + disk.getNbGeneratedBlock() * disk.getBlockSize(),
-          0
-        ),
+        size,
       }
     })
     this._targetVmRef = targetVmRef

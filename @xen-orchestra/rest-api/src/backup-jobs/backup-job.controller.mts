@@ -12,6 +12,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import {
   Deprecated,
   Example,
+  Extension,
   Get,
   Hidden,
   Middlewares,
@@ -26,11 +27,18 @@ import {
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 
+import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examples/backup-log.oa-example.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  notFoundResp,
+  unauthorizedResp,
+  Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
   UnbrandXoMetadataBackupJob,
@@ -50,7 +58,6 @@ import {
   vmBackupJob,
   vmBackupJobIds,
 } from '../open-api/oa-examples/backup-job.oa-example.mjs'
-import { BASE_URL } from '../index.mjs'
 import { BackupJobService } from './backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:backupJob-controller')
@@ -75,16 +82,13 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
     return backupJobs
   }
 
-  async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
-    const job = await this.restApi.xoApp.getJob(id)
-    if (!this.#backupJobService.isBackupJob(job)) {
-      throw noSuchObject(id, 'backup-job')
-    }
-
-    return job
+  getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
+    return this.#backupJobService.getBackupJob(id)
   }
 
   /**
+   * Returns all backup jobs that match the following privilege:
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,type,id"
    * @example filter "type:backup"
@@ -92,24 +96,45 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
    */
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   async getBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<UnbrandAnyXoBackupJob>>> {
-    const backupJobs = await this.getObjects({ filter, limit })
-    return this.sendObjects(Object.values(backupJobs), req, 'backup-jobs')
+  ): SendObjects<Partial<UnbrandAnyXoBackupJob>> {
+    const backupJobs = await this.getObjects({ filter })
+    return this.sendObjects(Object.values(backupJobs), req, {
+      path: 'backup-jobs',
+      limit,
+      privilege: { action: 'read', resource: 'backup-job' },
+    })
   }
 
   /**
+   *
+   * Required privilege:
+   * - resource: backup-job, action: read
+   *
    * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
    */
   @Example(vmBackupJob)
-  @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(
+    acl({
+      resource: 'backup-job',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: autoBindService(BackupJobService, 'getBackupJob'),
+    })
+  )
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
   getBackupJob(@Path() id: string): Promise<UnbrandAnyXoBackupJob> {
     return this.getObject(id as AnyXoBackupJob['id'])
   }
@@ -170,6 +195,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   }
 
   /**
+   * Returns all VM backup jobs that match the following privilege:
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
@@ -178,21 +205,29 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(vmBackupJobIds)
   @Example(partialVmBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/vm')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getVmBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<UnbrandXoVmBackupJob>>> {
+  ): SendObjects<Partial<UnbrandXoVmBackupJob>> {
     const vmBackupJobs = await this.restApi.xoApp.getAllJobs('backup')
-    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter, limit }), req, 'backup-jobs')
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter }), req, {
+      path: 'backup-jobs',
+      limit,
+      privilege: { action: 'read', resource: 'backup-job' },
+    })
   }
 
   // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
   @Hidden()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/{id}')
   @Tags('backup-jobs')
   async redirectToVmBackupJob(@Request() req: ExRequest, @Path() id: string) {
@@ -206,6 +241,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(vmBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/vm/{id}')
   @Tags('backup-jobs')
   getVmBackupJob(@Path() id: string): Promise<UnbrandXoVmBackupJob> {
@@ -213,6 +249,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   }
 
   /**
+   * Returns all metadata backup jobs that match the following privilege:
+   * - resource: backup-job, action: read
    *
    * @example fields "name,xoMetadata,id"
    * @example filter "xoMetadata?"
@@ -221,17 +259,24 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(metadataBackupJobIds)
   @Example(partialMetadataBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/metadata')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getMetadataBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<UnbrandXoMetadataBackupJob>>> {
+  ): SendObjects<Partial<UnbrandXoMetadataBackupJob>> {
     const metadataBackupJobs = await this.restApi.xoApp.getAllJobs('metadataBackup')
-    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter, limit }), req, 'backup-jobs')
+    return this.sendObjects(limitAndFilterArray(metadataBackupJobs, { filter }), req, {
+      path: 'backup-jobs',
+      limit,
+      privilege: { action: 'read', resource: 'backup-job' },
+    })
   }
 
   /**
@@ -240,6 +285,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(metadataBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/metadata/{id}')
   @Tags('backup-jobs')
   getMetadataBackupJob(@Path() id: string): Promise<UnbrandXoMetadataBackupJob> {
@@ -247,6 +293,8 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   }
 
   /**
+   * Returns all mirror backup jobs that match the following privilege:
+   * - resource: backup-job, action: read
    *
    * @example fields "name,mode,id"
    * @example filter "mode:delta"
@@ -255,17 +303,24 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(mirrorBackupJobIds)
   @Example(partialMirrorBackupJobs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/mirror')
+  @Security('*', ['acl'])
   @Tags('backup-jobs')
   async getMirrorBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<UnbrandXoMirrorBackupJob>>> {
+  ): SendObjects<Partial<UnbrandXoMirrorBackupJob>> {
     const mirrorBackupJobs = await this.restApi.xoApp.getAllJobs('mirrorBackup')
-    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter, limit }), req, 'backup-jobs')
+    return this.sendObjects(limitAndFilterArray(mirrorBackupJobs, { filter }), req, {
+      path: 'backup-jobs',
+      limit,
+      privilege: { action: 'read', resource: 'backup-job' },
+    })
   }
 
   /**
@@ -274,6 +329,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(mirrorBackupJob)
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('jobs/mirror/{id}')
   @Tags('backup-jobs')
   getMirrorBackupJob(@Path() id: string): Promise<UnbrandXoMirrorBackupJob> {
@@ -281,6 +337,9 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   }
 
   /**
+   * Returns all backup logs that match the following privilege:
+   * - resource: backup-log, action: read
+   *
    * @example fields "jobName,status,data"
    * @example filter "status:success"
    * @example limit 42
@@ -288,15 +347,18 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   @Example(backupLogIds)
   @Example(partialBackupLogs)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('logs')
+  @Security('*', ['acl'])
   @Tags('backup-logs')
   async getDeprecatedBackupLogs(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
+  ): SendObjects<Partial<Unbrand<XoBackupLog>>> {
     const userFilter = filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate()
 
     const predicate = (log: AnyXoLog) => {
@@ -306,8 +368,12 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
       return userFilter(log)
     }
-    const logs = (await this.restApi.xoApp.getBackupNgLogsSorted({ filter: predicate, limit })) as XoBackupLog[]
-    return this.sendObjects(logs, req, 'backup-logs')
+    const logs = (await this.restApi.xoApp.getBackupNgLogsSorted({ filter: predicate })) as XoBackupLog[]
+    return this.sendObjects(logs, req, {
+      path: 'backup-logs',
+      limit,
+      privilege: { action: 'read', resource: 'backup-log' },
+    })
   }
 
   /**
@@ -315,6 +381,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
    */
   @Example(backupLog)
   @Deprecated()
+  @Extension('x-mcp-exposure', 'allow')
   @Get('logs/{id}')
   @Tags('backup-logs')
   async getDeprecatedBackupLog(@Path() id: string): Promise<Unbrand<XoBackupLog>> {

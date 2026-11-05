@@ -21,7 +21,9 @@ const VM_UUID = 'aaaaaaaa-0000-0000-0000-000000000001'
 const JOB_UUID = 'bbbbbbbb-0000-0000-0000-000000000001'
 const VDI_UUID = 'cccccccc-0000-0000-0000-000000000001'
 const SCHEDULE_UUID = 'dddddddd-0000-0000-0000-000000000001'
-const BACKUP_DATE = '20240115T120000Z'
+// Generate a current datetime so it falls within any reasonable immutabilityDuration window.
+// A hardcoded past date would be rejected by the datetime-based expiry check added in the watcher.
+const BACKUP_DATE = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -137,7 +139,13 @@ describe('protectRemotes/watchRemote', async () => {
       await fs.writeFile(path.join(vmDir, `${BACKUP_DATE}.json`), '{}')
 
       // The whole directory (and its contents) must become immutable.
+      // `chattr -R` flags the directory before recursing into its children, so
+      // waiting on the directory alone races with the files inside it.
       await waitFor(() => Directory.isImmutable(vhdDir))
+      await waitFor(() => Directory.isImmutable(blocks))
+      await waitFor(() => File.isImmutable(bat))
+      await waitFor(() => File.isImmutable(header))
+      await waitFor(() => File.isImmutable(footer))
 
       assert.strictEqual(await Directory.isImmutable(vhdDir), true, 'vhd dir should be immutable')
       assert.strictEqual(await File.isImmutable(bat), true, 'bat should be immutable')

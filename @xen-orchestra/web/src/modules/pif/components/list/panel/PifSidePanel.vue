@@ -1,24 +1,13 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
-          @click="emit('close')"
-        />
-      </div>
+  <VtsSidePanel :has-selection="!!pif" class="pif-side-panel" @close="emit('close')">
+    <template v-if="pif" #actions>
+      <PifSetManagementButton :pif />
     </template>
-    <template #default>
+    <template v-if="pif">
       <!-- PIF -->
-      <UiCard class="card">
-        <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle :id="pif.id" size="medium" :label="pif.isBondMaster ? t('bond') : t('pif')" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="pif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -26,7 +15,7 @@
             </template>
             <template #value>
               <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
-                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+                {{ network.name_label }}
               </UiLink>
             </template>
             <template v-if="network" #addons>
@@ -81,7 +70,7 @@
             <template #key>{{ t('tags') }}</template>
             <template #value>
               <UiTagsList v-if="network && network.tags.length > 0">
-                <UiTag v-for="tag in network.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+                <VtsTag v-for="tag in network.tags" :key="tag" :value="tag" />
               </UiTagsList>
             </template>
             <template v-if="network && network.tags.length > 0" #addons>
@@ -89,10 +78,10 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <template v-if="ipAddresses.length">
@@ -105,14 +94,7 @@
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />
-                <UiButtonIcon
-                  v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
               </template>
             </VtsCardRowKeyValue>
           </template>
@@ -194,22 +176,15 @@
               <template #value>{{ device }}</template>
               <template #addons>
                 <VtsCopyButton :value="device" />
-                <UiButtonIcon
-                  v-if="index === 0 && bondDevices.length > 1"
-                  v-tooltip="t('coming-soon!')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="small"
-                  accent="brand"
-                />
+                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 1" :values="bondDevices" />
               </template>
             </VtsCardRowKeyValue>
           </div>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- PROPERTIES -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle size="medium" :label="t('properties')" />
         <div class="content">
           <!-- MTU -->
           <VtsCardRowKeyValue>
@@ -245,36 +220,35 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { CONNECTION_STATUS } from '@/shared/constants.ts'
+import PifSetManagementButton from '@/modules/pif/components/actions/set-management/PifSetManagementButton.vue'
+import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pif } = defineProps<{
-  pif: FrontXoPif
+  pif?: FrontXoPif
 }>()
 
 const emit = defineEmits<{
@@ -283,13 +257,18 @@ const emit = defineEmits<{
 
 const { useGetNetworkById } = useXoNetworkCollection()
 const { getBondsDevices } = useXoPifCollection()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
+const ipAddresses = computed(() => {
+  if (pif === undefined) {
+    return []
+  }
 
-const network = useGetNetworkById(() => pif.$network)
+  return [pif.ip, ...pif.ipv6].filter(ip => ip)
+})
+
+const network = useGetNetworkById(() => pif?.$network)
 
 const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
@@ -297,13 +276,17 @@ const networkTo = computed(() =>
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-const status = computed(() => (pif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
+const status = computed(() => (pif?.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
 const physicalInterfaceStatus = computed(() =>
-  pif.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
+  pif?.carrier ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.PHYSICALLY_DISCONNECTED
 )
 
 const ipConfigurationMode = computed(() => {
+  if (pif === undefined) {
+    return t('none')
+  }
+
   switch (pif.mode) {
     case 'Static':
       return t('static')
@@ -314,9 +297,13 @@ const ipConfigurationMode = computed(() => {
   }
 })
 
-const bondDevices = computed(() => getBondsDevices(pif))
+const bondDevices = computed(() => (pif !== undefined ? getBondsDevices(pif) : []))
 
 const speed = computed(() => {
+  if (pif === undefined) {
+    return ''
+  }
+
   const speed = pif.speed || 0
   const speedInBytes = speed * 1000000
 
@@ -329,9 +316,7 @@ const speed = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.pif-side-panel {
   .content {
     display: flex;
     flex-direction: column;
@@ -340,18 +325,6 @@ const speed = computed(() => {
 
   .value:empty::before {
     content: '-';
-  }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
   }
 }
 </style>

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pools') }}
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -22,14 +22,18 @@
 </template>
 
 <script setup lang="ts">
+import { usePoolBugToolsDownload } from '@/modules/pool/composables/use-pool-bugtools-download.composable.ts'
 import {
-  usePoolEnhancedData,
   type PoolDisplayData,
   type PoolFilterableData,
+  usePoolEnhancedData,
 } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
+import { useServerDisconnect } from '@/modules/server/composables/use-server-disconnect.composable.ts'
+import { useServerForget } from '@/modules/server/composables/use-server-forget.composable.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
 import {
-  useXoServerCollection,
   type FrontXoServer,
+  useXoServerCollection,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -70,6 +74,7 @@ const schema = useQueryBuilderSchema<PoolFilterableData>({
   poolStatus: useStringSchema(t('status'), {
     connected: t('connected'),
     connecting: t('connecting'),
+    disconnecting: t('disconnecting'),
     disconnected: t('disconnected'),
     'unable-to-connect-to-the-pool': t('unable-to-connect-to-the-pool'),
   }),
@@ -104,6 +109,35 @@ const { HeadCells, BodyCells } = useServerColumns({
       icon: server.poolIcon,
     }))
 
+    const serverIdArg = computed(() => server.id)
+
+    const {
+      run: connectServer,
+      canRun: canConnectServer,
+      isRunning: isConnectingServer,
+    } = useXoServerConnectJob([serverIdArg])
+
+    const { disconnectServer, canDisconnectServer, isDisconnectingServer } = useServerDisconnect(() => server.id)
+
+    const {
+      download: downloadBugTools,
+      isBusy: isDownloadBusy,
+      isDisabled: isDownloadDisabled,
+    } = usePoolBugToolsDownload(() => server.poolId)
+
+    async function handleConnect() {
+      try {
+        await connectServer()
+      } catch (error) {
+        console.error('Error when connecting server:', error)
+      }
+    }
+
+    const { forgetServer, isForgettingServer } = useServerForget(
+      () => server.id,
+      () => server.label
+    )
+
     return {
       pool: r => r(poolInfo.value),
       hostIp: r => r(server.masterHostIp),
@@ -120,7 +154,42 @@ const { HeadCells, BodyCells } = useServerColumns({
               }
             : undefined,
         }),
-      selectItem: r => r(() => (selectedServerId.value = server.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedServerId.value = server.id),
+          actions: [
+            server.status === 'connected' || server.status === 'connecting'
+              ? {
+                  label: t('action:disconnect-pool'),
+                  icon: 'action:disconnect',
+                  busy: isDisconnectingServer.value,
+                  disabled: !canDisconnectServer.value,
+                  onClick: () => disconnectServer(),
+                  accent: 'danger',
+                }
+              : {
+                  label: t('action:connect-pool'),
+                  icon: 'action:connect',
+                  busy: isConnectingServer.value,
+                  disabled: !canConnectServer.value,
+                  onClick: () => handleConnect(),
+                },
+            {
+              label: t('action:download-bugtools-archive'),
+              icon: 'action:download',
+              busy: isDownloadBusy.value,
+              disabled: isDownloadDisabled.value,
+              onClick: () => downloadBugTools(),
+            },
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              busy: isForgettingServer.value,
+              onClick: () => forgetServer(),
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

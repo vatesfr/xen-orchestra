@@ -9,17 +9,19 @@
       <template v-if="depth > 1">
         <VtsTreeLine v-for="i in depth - 1" :key="i" />
       </template>
-      <UiButtonIcon
-        v-if="hasToggle"
-        v-tooltip="isExpanded ? t('action:close') : t('action:open')"
-        class="toggle"
-        accent="brand"
-        :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
-        size="small"
-        :target-scale="{ x: 1.5, y: 2 }"
-        @click="emit('toggle')"
-      />
-      <div v-else class="h-line" />
+      <div class="toggle-wrapper">
+        <UiButtonIcon
+          v-if="hasToggle"
+          v-tooltip="isExpanded ? t('action:close') : t('action:open')"
+          class="toggle"
+          accent="brand"
+          :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
+          size="small"
+          :target-scale="{ x: 1.5, y: 2 }"
+          @click.stop="emit('toggle')"
+        />
+        <div v-else class="h-line" />
+      </div>
       <a :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :name="icon" size="medium" class="icon" />
@@ -28,7 +30,9 @@
           <slot />
         </div>
       </a>
-      <slot name="addons" />
+      <div class="addons-wrapper" @click.stop>
+        <slot name="addons" />
+      </div>
     </div>
   </RouterLink>
 </template>
@@ -37,9 +41,13 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
-import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
+import {
+  IK_TREE_ITEM_EXPANDED,
+  IK_TREE_ITEM_HAS_CHILDREN,
+  IK_TREE_LIST_DEPTH,
+} from '@core/utils/injection-keys.util.ts'
 import { inject, ref, useAttrs } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -72,7 +80,7 @@ const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
 
 const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
 
-const depth = inject(IK_TREE_LIST_DEPTH, 0)
+const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 </script>
 
 <style lang="postcss" scoped>
@@ -85,6 +93,13 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   gap: 0.4rem;
   padding: 0 0.8rem;
   margin-bottom: 0.2rem;
+
+  .toggle-wrapper {
+    width: 2.4rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
 
   .link {
     display: flex;
@@ -108,10 +123,19 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   .icon {
     font-size: 1.6rem;
   }
+  .addons-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .toggle {
+    width: 100%;
+  }
 
   .h-line {
-    width: 2rem;
-    margin-left: -0.4rem;
+    width: 100%;
   }
 
   /* INTERACTION VARIANTS */

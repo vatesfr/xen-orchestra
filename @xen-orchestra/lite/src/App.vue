@@ -5,13 +5,14 @@
   <div v-else class="layout">
     <AppHeader v-if="uiStore.hasUi" />
     <div class="container">
+      <VtsBackdrop v-if="uiStore.hasUi && showBackdrop" @click="leftSidebar.toggleExpand(false)" />
       <AppNavigation v-if="uiStore.hasUi" />
-      <main class="main" :class="{ 'no-ui': !uiStore.hasUi }">
+      <main class="main">
         <RouterView />
       </main>
     </div>
   </div>
-  <VtsModalList />
+  <VtsOverlayList />
   <VtsTooltipList />
 </template>
 
@@ -19,16 +20,17 @@
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
-import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import VtsModalList from '@core/components/modal/VtsModalList.vue'
+import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
+import VtsOverlayList from '@core/components/overlay/VtsOverlayList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
-import { useChartTheme } from '@core/composables/chart-theme.composable'
-import { useUiStore } from '@core/stores/ui.store'
+import { useChartTheme } from '@core/composables/chart-theme.composable.ts'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
-import { getActivePinia } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -39,13 +41,12 @@ const xenApiStore = useXenApiStore()
 
 const { pool } = usePoolStore().subscribe()
 
-// workaround
-// since this commit https://github.com/vatesfr/xen-orchestra/commit/ac2f4e9f32beee27ce4d14ad0d4ce7d9c51a1d82
-// useUiStore is unable to find the pinia instance itself.
-const pinia = getActivePinia()
-const uiStore = useUiStore(pinia)
-useChartTheme(pinia)
-// end workaround
+const uiStore = useUiStore()
+const leftSidebar = useLeftSidebarStore()
+
+const showBackdrop = computed(() => leftSidebar.isExpanded && !leftSidebar.isLocked)
+
+useChartTheme()
 
 if (import.meta.env.DEV) {
   const { locale } = useI18n()
@@ -83,17 +84,16 @@ useUnreachableHosts()
 }
 
 .container {
+  position: relative;
   display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
 }
 
 .main {
-  overflow: auto;
   flex: 1;
-  height: calc(100vh - 5.5rem);
+  overflow: auto;
   background-color: var(--color-neutral-background-secondary);
-
-  &.no-ui {
-    height: 100vh;
-  }
 }
 </style>

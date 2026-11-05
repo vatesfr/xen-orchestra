@@ -9,6 +9,10 @@ declare module '@xen-orchestra/log' {
   export function createLogger(namespace: string): Logger
 }
 
+declare module '@vates/coalesce-calls' {
+  export function coalesceCalls<T extends (...args: never[]) => Promise<unknown>>(fn: T): T
+}
+
 declare module '@vates/async-each' {
   export interface AsyncEachOptions {
     concurrency?: number

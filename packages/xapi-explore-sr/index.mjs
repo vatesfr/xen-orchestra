@@ -124,6 +124,9 @@ execPromise(async args => {
       vdi.snapshots,
       ref => {
         const vdi = vdisByRef[ref]
+        if (vdi === undefined) {
+          return
+        }
         if (full || !vdi.sm_config['vhd-parent']) {
           return makeVdiNode(vdi)
         }

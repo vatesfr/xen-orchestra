@@ -4,8 +4,8 @@
       <slot name="label">{{ label }}</slot>
     </UiLabel>
     <slot />
-    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent>
-      {{ content }}
+    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent :wrap="wrapMessage">
+      <slot name="message" :content :accent>{{ content }}</slot>
     </UiInfo>
   </div>
 </template>
@@ -15,9 +15,9 @@ import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLabel, { type LabelAccent } from '@core/components/ui/label/UiLabel.vue'
 import { useRanked } from '@core/composables/ranked.composable.ts'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import type { MaybeArray } from '@core/types/utility.type'
-import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
-import { toArray } from '@core/utils/to-array.utils'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { useArrayMap } from '@vueuse/core'
 import { provide, reactive, useId } from 'vue'
 
@@ -33,11 +33,13 @@ const { message: _message } = defineProps<{
   label?: string
   learnMoreUrl?: string
   message?: InputWrapperMessage
+  wrapMessage?: boolean
 }>()
 
 defineSlots<{
   default(): any
   label?(): any
+  message?(props: { content: string; accent: InfoAccent }): any
 }>()
 
 const id = useId()
@@ -50,10 +52,10 @@ const unsortedMessages = useArrayMap(
   })
 )
 
-const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['danger', 'warning', 'success', 'info'])
+const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['muted', 'info', 'success', 'warning', 'danger'])
 
 const labelAccent = useMapper<InfoAccent, LabelAccent>(
-  () => messages.value[0]?.accent,
+  () => messages.value.at(-1)?.accent,
   {
     info: 'neutral',
     success: 'neutral',

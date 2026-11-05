@@ -3,8 +3,8 @@
 import appConf from 'app-conf'
 import execPromise from 'exec-promise'
 import pw from 'pw'
+import { startSpinner } from './_cli-utils.mjs'
 
-import Xo from './xo.mjs'
 import { generateToken } from './utils.mjs'
 
 execPromise(async args => {
@@ -35,14 +35,20 @@ execPromise(async args => {
     console.log('The generated password is', password)
   }
 
-  const xo = new Xo({
-    config: await appConf.load('xo-server', {
+  const stopSpinner = startSpinner()
+
+  // Import xo.mjs now so we display the loader.
+  const [{ default: Xo }, config] = await Promise.all([
+    import('./xo.mjs'),
+    appConf.load('xo-server', {
       appDir: new URL('..', import.meta.url).pathname,
       ignoreUnknownFormats: true,
     }),
-  })
+  ])
 
+  const xo = new Xo({ config })
   await xo.hooks.startCore()
+  stopSpinner()
 
   const user = await xo.getUserByName(name, true)
   if (user !== null) {

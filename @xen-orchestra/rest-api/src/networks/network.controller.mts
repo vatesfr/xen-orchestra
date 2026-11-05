@@ -1,4 +1,19 @@
-import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse, Put } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -10,6 +25,7 @@ import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.m
 import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
 import {
   badRequestResp,
+  forbiddenOperationResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -20,6 +36,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 @Route('networks')
 @Security('*')
@@ -35,37 +52,58 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Returns all networks that match the following privilege:
+   * - resource: network, action: read
+   *
    * @example fields "nbd,name_label,id"
    * @example filter "nbd?"
    * @example limit 42
    */
   @Example(networkIds)
   @Example(partialNetworks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   getNetworks(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoNetwork>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'network' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
   @Example(network)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(acl({ resource: 'network', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getNetwork(@Path() id: string): Unbrand<XoNetwork> {
     return this.getObject(id as XoNetwork['id'])
   }
 
   /**
-   * @example id "593c39a5-9c56-28eb-969b-255b2f53791b"
+   * Required privilege:
+   * - resource: network, action: delete
+   *
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'network', action: 'delete', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetwork(@Path() id: string): Promise<void> {
@@ -74,13 +112,18 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getNetworkAlarms(
@@ -88,19 +131,26 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const network = this.getObject(id as XoNetwork['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${network.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -108,7 +158,9 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getNetworkMessages(
@@ -116,15 +168,23 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -132,7 +192,9 @@ export class NetworkController extends XapiXoController<XoNetwork> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getNetworkTasks(
@@ -140,20 +202,31 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: update:tags
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
@@ -161,11 +234,17 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
+   * Required privilege:
+   * - resource: network, action: update:tags
+   *
    * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'network', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])

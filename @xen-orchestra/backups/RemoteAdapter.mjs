@@ -1,38 +1,40 @@
 import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
-import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped.js'
-import { dirname, join, resolve } from 'node:path'
-import { execFile } from 'child_process'
-import { mount } from '@vates/fuse-vhd'
-import { readdir, lstat } from 'node:fs/promises'
+import assert from 'node:assert'
+import { basename, dirname, join, resolve } from 'node:path'
+import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
-import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 import groupBy from 'lodash/groupBy.js'
-import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import * as tar from 'tar'
-import zlib from 'zlib'
+import { Task } from '@vates/task'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'
-import { cleanVm } from './_cleanVm.mjs'
+import {
+  VmBackupDirectory,
+  deleteFullVmBackups as deleteFullVmBackupFiles,
+  deleteDeltaVmBackups as deleteDeltaVmBackupFiles,
+  deleteMetadataBackup as deleteMetadataBackupFiles,
+  readBackupCache,
+  writeBackupCache,
+} from '@xen-orchestra/backup-archive'
+import { fileRestoreDecorators, fileRestoreMethods } from './_fileRestore.mjs'
 import { formatFilenameDate } from './_filenameDate.mjs'
-import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
+import {
+  isKnownJournalEvent,
+  readBackupJournal,
+  writeBackupJournalEntries,
+  writeBackupJournalEntry,
+} from './_backupJournal.mjs'
 import { isValidXva } from './_isValidXva.mjs'
-import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
-import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
-import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
-import { openDiskChain } from './disks/openDiskChain.mjs'
+import { RemoteVhdDisk, openDiskChain, openDisposableDisk } from '@xen-orchestra/backup-archive/disks'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 
@@ -48,27 +50,6 @@ export const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const noop = Function.prototype
 
-const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
-const makeRelative = path => resolve('/', path).slice(1)
-const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
-
-async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
-  for (const relativePath of relativePaths) {
-    const realPath = join(realBasePath, relativePath)
-    const virtualPath = join(virtualBasePath, relativePath)
-
-    const stats = await lstat(realPath)
-    const { mode, mtime } = stats
-    const opts = { mode, mtime }
-    if (stats.isDirectory()) {
-      zip.addEmptyDirectory(virtualPath, opts)
-      await addZipEntries(zip, realPath, virtualPath, await readdir(realPath))
-    } else if (stats.isFile()) {
-      zip.addFile(realPath, virtualPath, opts)
-    }
-  }
-}
-
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
     if (error?.code !== 'ENOENT') {
@@ -77,20 +58,11 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
     return []
   })
 
-const debounceResourceFactory = factory =>
-  function () {
-    return this._debounceResource(factory.apply(this, arguments))
-  }
-
 export class RemoteAdapter {
-  constructor(
-    handler,
-    { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy = false } = {}
-  ) {
+  constructor(handler, { debounceResource = res => res, dirMode, useGetDiskLegacy = false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
-    this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
   }
@@ -99,158 +71,27 @@ export class RemoteAdapter {
     return this._handler
   }
 
-  async _findPartition(devicePath, partitionId) {
-    const partitions = await listPartitions(devicePath)
-    const partition = partitions.find(_ => _.id === partitionId)
-    if (partition === undefined) {
-      throw new Error(`partition ${partitionId} not found`)
-    }
-    return partition
-  }
-
-  async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
-    yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
-
-    debug('activate LVM volume group', { vgName })
-    await fromCallback(execFile, 'vgchange', ['-ay', vgName])
-    try {
-      debug('get LVM volume group name and path', { vgName })
-      yield lvs(['lv_name', 'lv_path'], vgName)
-    } finally {
-      debug('deactivate LVM volume group', { vgName })
-      await fromCallback(execFile, 'vgchange', ['-an', vgName])
-    }
-  }
-
-  async *_getLvmPhysicalVolume(devicePath, partition) {
-    const args = []
-    if (partition !== undefined) {
-      args.push('-o', partition.start * 512, '--sizelimit', partition.size)
-    }
-    args.push('--show', '-f', devicePath)
-
-    debug('attach loop device', { devicePath, partition })
-    const path = (await fromCallback(execFile, 'losetup', args)).trim()
-    try {
-      debug('list LVM physical volume', { path })
-      await fromCallback(execFile, 'pvscan', ['--cache', path])
-
-      yield path
-    } finally {
-      try {
-        const vgNames = await pvs('vg_name', path)
-
-        debug('deactivate LVM volume groups', { vgNames })
-        await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
-      } finally {
-        debug('detach loop device', { path })
-        await fromCallback(execFile, 'losetup', ['-d', path])
-      }
-    }
-  }
-
-  async *_getPartition(devicePath, partition) {
-    // the norecovery option is necessary because if the partition is dirty,
-    // mount will try to fix it which is impossible if because the device is read-only
-    const options = ['loop', 'ro', 'norecovery']
-
-    if (partition !== undefined) {
-      const { size, start } = partition
-      options.push(`sizelimit=${size}`)
-      if (start !== undefined) {
-        options.push(`offset=${start * 512}`)
-      }
-    }
-
-    const path = yield getTmpDir()
-    const mount = options => {
-      debug('mount device', { devicePath, mountPath: path })
-      return fromCallback(execFile, 'mount', [
-        `--options=${options.join(',')}`,
-        `--source=${devicePath}`,
-        `--target=${path}`,
-      ])
-    }
-
-    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
-    // another fs, try without
-    try {
-      await mount([...options, 'norecovery'])
-    } catch (error) {
-      await mount(options)
-    }
-    try {
-      yield path
-    } finally {
-      debug('umount device', { devicePath, mountPath: path })
-      await fromCallback(execFile, 'umount', ['--lazy', path])
-    }
-  }
-
-  _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async path => {
-      const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
-      const partitionId = partition !== undefined ? partition.id : ''
-      lvs.forEach((lv, i) => {
-        const name = lv.lv_name
-        if (name !== '') {
-          results.push({
-            id: `${partitionId}/${lv.vg_name}/${name}`,
-            name,
-            size: lv.lv_size,
-          })
-        }
-      })
-      return results
-    })
-  }
-
   // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
+  //
+  // only the candidate disk itself is checked (no ancestor walk): mergeBlock() already
+  // degrades gracefully when parent/child formats differ, so chain-wide uniformity isn't
+  // a requirement here.
   async isMergeableParent(packedParentUid, path) {
-    return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
-      // this baseUuid is not linked with this vhd
-      if (!vhd.footer.uuid.equals(packedParentUid)) {
-        return false
-      }
-
-      // check if all the chain is composed of vhd directory
-      const isVhdDirectory = vhd.checkVhdsClass(VhdDirectory)
-      return isVhdDirectory
-        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.useVhdDirectory()
-    })
+    return await Disposable.use(openDisposableDisk({ handler: this.handler, path, ignoreBlockIndexes: true }), disk =>
+      disk.isMergeableParent(stringify(packedParentUid))
+    )
   }
 
-  fetchPartitionFiles(diskId, partitionId, paths, format) {
-    const { promise, reject, resolve } = pDefer()
-    Disposable.use(
-      async function* () {
-        const path = yield this.getPartition(diskId, partitionId)
-        let outputStream
-
-        if (format === 'tgz') {
-          outputStream = tar.c({ cwd: path, gzip: true }, paths.map(makeRelative))
-        } else if (format === 'zip') {
-          const zip = new ZipFile()
-          await addZipEntries(zip, path, '', paths.map(makeRelative))
-          zip.end()
-          ;({ outputStream } = zip)
-        } else {
-          throw new Error('unsupported format ' + format)
-        }
-
-        resolve(outputStream)
-        await fromEvent(outputStream, 'end')
-      }.bind(this)
-    ).catch(error => {
-      warn(error)
-      reject(error)
-    })
-    return promise
-  }
-
-  async #removeVmBackupsFromCache(backups) {
+  // Single funnel for all the backup deletions triggered by a user or by retention: forgets them
+  // from `cache.json.gz` and records them in the journal.
+  /**
+   * @param {{ _filename: string, jobId?: string, scheduleId?: string }[]} backups the metadata of
+   * the deleted backups, or `{ _filename }` alone when it could not be read
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} reason
+   * @returns {Promise<void>}
+   */
+  async #forgetVmBackups(backups, reason) {
     await asyncEach(
       Object.entries(
         groupBy(
@@ -267,27 +108,95 @@ export class RemoteAdapter {
           }
         })
     )
+
+    // will not reject
+    await writeBackupJournalEntries(
+      this._handler,
+      backups.map(({ _filename, jobId, scheduleId }) => ({
+        event: 'del',
+        vmUuid: basename(dirname(_filename)),
+        filename: _filename,
+        who: jobId === undefined ? undefined : { jobId, scheduleId },
+        reason,
+      })),
+      { dirMode: this._dirMode }
+    )
   }
 
-  async deleteDeltaVmBackups(backups) {
-    const handler = this._handler
-
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
+  async deleteDeltaVmBackups(backups, { reason = 'retention', immediate = false } = {}) {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await deleteDeltaVmBackupFiles(
+      this._handler,
+      backups.map(({ _filename }) => ({ metadataPath: _filename }))
+    )
 
-    await this.#removeVmBackupsFromCache(backups)
+    await this.#forgetVmBackups(backups, reason)
+
+    if (immediate) {
+      return this.#mergeVmDirsAfterDelete(backups)
+    }
+
+    return new Set()
+  }
+
+  // group by VM backup dir so multiple disks/backups deleted for the same
+  // VM in one call trigger a single merge, not one per backup
+  async #mergeVmDirsAfterDelete(backups) {
+    const dirs = new Set(backups.map(({ _filename }) => dirname(_filename)))
+    const mergedDirs = new Set()
+    await Task.run(
+      {
+        properties: {
+          name: 'clean VM',
+          total: dirs.size,
+        },
+      },
+      async () => {
+        let done = 0
+
+        await asyncEach(
+          dirs,
+          async dir => {
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                try {
+                  await this.cleanVm(dir, {
+                    remove: true,
+                    merge: true,
+                    logInfo: Task.info,
+                    logWarn: Task.warning,
+                  })
+                  mergedDirs.add(dir)
+                } catch (error) {
+                  Task.warning('failed to merge VM backup chain after immediate delete', { error, path: dir })
+                  throw error
+                }
+              }
+            )
+            done++
+            Task.set('progress', Math.round((done / dirs.size) * 100))
+          },
+          { concurrency: 2, stopOnError: false }
+        )
+      }
+    )
+
+    return mergedDirs
   }
 
   async deleteMetadataBackup(backupId) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-    if (!regexp.test(backupId)) {
-      throw new Error(`The id (${backupId}) not correspond to a metadata folder`)
-    }
-
-    await this._handler.rmtree(backupId)
+    await deleteMetadataBackupFiles(this._handler, backupId)
   }
 
   async deleteOldMetadataBackups(dir, retention) {
@@ -298,122 +207,127 @@ export class RemoteAdapter {
     await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
   }
 
-  async deleteFullVmBackups(backups) {
-    const handler = this._handler
-    await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
-    )
+  /**
+   * @param {object[]} backups metadata of the backups to delete
+   * @param {object} [opts]
+   * @param {import('./_backupJournal.mjs').BackupJournalReason} [opts.reason] what triggered the
+   * deletion, as recorded in the journal
+   */
+  async deleteFullVmBackups(backups, { reason = 'retention' } = {}) {
+    await asyncMapSettled(backups, async ({ _filename, xva }) => {
+      try {
+        await deleteFullVmBackupFiles(this._handler, [{ metadataPath: _filename, xva }])
+      } catch (error) {
+        warn('error while removing full vm backup', { error, filename: _filename, failedPath: error.path })
+        throw error
+      }
+    })
 
-    await this.#removeVmBackupsFromCache(backups)
+    await this.#forgetVmBackups(backups, reason)
   }
 
   deleteVmBackup(file) {
     return this.deleteVmBackups([file])
   }
 
-  async deleteVmBackups(files) {
-    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadata, 'mode')
+  async deleteVmBackups(files, { immediate = false } = {}) {
+    const metadataOrNull = await asyncMap(files, async file => {
+      try {
+        return await this.readVmBackupMetadata(file)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // File was already removed (e.g. by coalescing); clean the stale cache entry
+          warn('backup metadata not found, removing stale cache entry', { file })
+          return null
+        }
+        throw error
+      }
+    })
+
+    const presentMetadata = []
+    const missingFiles = []
+    for (let i = 0; i < files.length; i++) {
+      if (metadataOrNull[i] === null) {
+        missingFiles.push({ _filename: files[i] })
+      } else {
+        presentMetadata.push(metadataOrNull[i])
+      }
+    }
+
+    const { delta, full, ...others } = groupBy(presentMetadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
       throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
     }
+    const promises = []
+    let deltaBackupDirsPromise = Promise.resolve(new Set())
+    if (delta !== undefined) {
+      deltaBackupDirsPromise = this.deleteDeltaVmBackups(delta, { reason: 'user', immediate })
+      promises.push(deltaBackupDirsPromise)
+    }
+    if (full !== undefined) {
+      promises.push(this.deleteFullVmBackups(full, { reason: 'user' }))
+    }
+    if (missingFiles.length) {
+      promises.push(this.#forgetVmBackups(missingFiles, 'user'))
+    }
+    await Promise.all(promises)
 
-    await Promise.all([
-      delta !== undefined && this.deleteDeltaVmBackups(delta),
-      full !== undefined && this.deleteFullVmBackups(full),
-    ])
+    const deltaBackupDirs = await deltaBackupDirsPromise
+    const otherBackupDirs = new Set(files.map(file => dirname(file)).filter(dir => !deltaBackupDirs.has(dir)))
 
-    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
-      // - don't merge in main process, unused VHDs will be merged in the next backup run
-      // - don't error in case this fails:
-      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
-      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
-      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    await Task.run(
+      {
+        properties: {
+          name: 'clean VM of non-delta backups(full backups, ...) dirs',
+          total: otherBackupDirs.size,
+        },
+      },
+      async () => {
+        let processed = 0
+        await asyncEach(
+          otherBackupDirs,
+          async dir => {
+            await Task.run(
+              {
+                properties: {
+                  name: `clean VM dir: ${dir}`,
+                },
+              },
+              async () => {
+                // - don't merge in main process, unused VHDs will be merged in the next backup run
+                try {
+                  await this.cleanVm(dir, { remove: true, logWarn: warn })
+                } catch (error) {
+                  Task.warning('failed to remove VM backup', { error, path: dir })
+                  throw error
+                }
+              }
+            )
+            processed++
+            Task.set('progress', Math.round((processed / otherBackupDirs.size) * 100))
+          },
+          { concurrency: 2, stopOnError: false }
+        )
+      }
     )
   }
 
-  #getCompressionType() {
-    return this._vhdDirectoryCompression
+  useVhdDirectory() {
+    return this.handler.getConfig('useVhdDirectory')
   }
 
-  useVhdDirectory() {
-    return this.handler.useVhdDirectory()
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote ('none' if not
+   *   compressed), undefined if this remote writes plain VHD files
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
   }
 
   #useAlias() {
     return this.useVhdDirectory()
-  }
-
-  async *#getDiskLegacy(diskId) {
-    const RE_VHDI = /^vhdi(\d+)$/
-    const handler = this._handler
-
-    const diskPath = handler.getFilePath('/' + diskId)
-    const mountDir = yield getTmpDir()
-
-    debug('mount VHD (vhdimount)', { diskPath, mountPath: mountDir })
-    await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
-    try {
-      let max = 0
-      let maxEntry
-      const entries = await readdir(mountDir)
-      entries.forEach(entry => {
-        const matches = RE_VHDI.exec(entry)
-        if (matches !== null) {
-          const value = +matches[1]
-          if (value > max) {
-            max = value
-            maxEntry = entry
-          }
-        }
-      })
-      if (max === 0) {
-        throw new Error('no disks found')
-      }
-
-      yield `${mountDir}/${maxEntry}`
-    } finally {
-      debug('umount VHD (fusermount)', { diskPath, mountPath: mountDir })
-      await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
-    }
-  }
-
-  async *getDisk(diskId) {
-    if (this._useGetDiskLegacy) {
-      yield* this.#getDiskLegacy(diskId)
-      return
-    }
-    const handler = this._handler
-    // this is a disposable
-    const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
-    // this will yield disk path to caller
-    yield `${mountDir}/vhd0`
-  }
-
-  // partitionId values:
-  //
-  // - undefined: raw disk
-  // - `<partitionId>`: partitioned disk
-  // - `<pvId>/<vgName>/<lvName>`: LVM on a partitioned disk
-  // - `/<vgName>/lvName>`: LVM on a raw disk
-  async *getPartition(diskId, partitionId) {
-    const devicePath = yield this.getDisk(diskId)
-    if (partitionId === undefined) {
-      return yield this._getPartition(devicePath)
-    }
-
-    const isLvmPartition = partitionId.includes('/')
-    if (isLvmPartition) {
-      const [pvId, vgName, lvName] = partitionId.split('/')
-      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId !== '' ? pvId : undefined, vgName)
-      return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
-    }
-
-    return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
   // if we use alias on this remote, we have to name the file alias.vhd
@@ -444,9 +358,13 @@ export class RemoteAdapter {
     return vmsUuids
   }
 
+  /**
+   * @returns {Promise<Record<string, import('./formatVmBackups.mjs').VmBackupMetadata[]>>} keyed by VM UUID,
+   * without the VMs which have no backups
+   */
   async listAllVmBackups() {
     const vmsUuids = await this.listAllVms()
-    const backups = { __proto__: null }
+    const backups = Object.create(null)
     await asyncEach(vmsUuids, async vmUuid => {
       const vmBackups = await this.listVmBackups(vmUuid)
       if (vmBackups.length !== 0) {
@@ -454,56 +372,6 @@ export class RemoteAdapter {
       }
     })
     return backups
-  }
-
-  listPartitionFiles(diskId, partitionId, path) {
-    return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
-      path = resolveSubpath(rootPath, path)
-      const entriesMap = {}
-      await asyncEach(
-        await readdir(path),
-        async name => {
-          try {
-            const stats = await lstat(`${path}/${name}`)
-            if (stats.isDirectory()) {
-              entriesMap[name + '/'] = {}
-            } else if (stats.isFile()) {
-              entriesMap[name] = {}
-            }
-          } catch (error) {
-            if (error == null || error.code !== 'ENOENT') {
-              throw error
-            }
-          }
-        },
-        { concurrency: 1 }
-      )
-
-      return entriesMap
-    })
-  }
-
-  listPartitions(diskId) {
-    return Disposable.use(this.getDisk(diskId), async devicePath => {
-      const partitions = await listPartitions(devicePath)
-
-      if (partitions.length === 0) {
-        try {
-          // handle potential raw LVM physical volume
-          return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
-        } catch (error) {
-          return []
-        }
-      }
-
-      const results = []
-      await asyncMapSettled(partitions, partition =>
-        partition.type === LVM_PARTITION_TYPE_MBR || partition.type === LVM_PARTITION_TYPE_GPT
-          ? this._listLvmLogicalVolumes(devicePath, partition, results)
-          : results.push(partition)
-      )
-      return results
-    })
   }
 
   async listPoolMetadataBackups() {
@@ -547,32 +415,33 @@ export class RemoteAdapter {
   }
 
   async _readCache(path) {
-    try {
-      return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        warn('#readCache', { error, path })
-      }
-    }
+    return readBackupCache(this.handler, path, warn)
   }
 
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
+    // immutable remote can't use any caching
+    // since the cache file may be non modifiable, and would then stay billed forever
+    if (this._handler.isImmutable()) {
+      return
+    }
+
     const cache = await this._readCache(path)
     if (cache !== undefined) {
       fn(cache)
 
       await this._writeCache(path, cache)
+    } else {
+      const regenerated = await this.#getCacheableDataListVmBackups(dirname(path))
+      if (regenerated !== undefined) {
+        await this._writeCache(path, regenerated)
+      }
     }
   }
 
   async _writeCache(path, data) {
-    try {
-      await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
-    } catch (error) {
-      warn('#writeCache', { error, path })
-    }
+    return writeBackupCache(this.handler, path, data, warn)
   }
 
   async #getCacheableDataListVmBackups(dir) {
@@ -632,8 +501,7 @@ export class RemoteAdapter {
       return
     }
 
-    // detached async action, will not reject
-    this._writeCache(path, backups)
+    await this._writeCache(path, backups)
 
     return backups
   }
@@ -676,12 +544,120 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
+  // read the backup events which happened on this remote after `cursor`, oldest first
+  /**
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
+   * @returns {Promise<import('./_backupJournal.mjs').BackupJournalEntry[]>}
+   */
+  async readBackupJournal(cursor, opts) {
+    return readBackupJournal(this._handler, cursor, opts)
+  }
+
+  // Same as `readBackupJournal()`, with the current metadata of the added and changed backups
+  // attached, so that a listing can be brought up to date from the result alone, in a single
+  // round-trip for a caller which is not on this host.
+  //
+  // The metadata is read back from the repository instead of being carried by the journal, so that
+  // the result always reflects the current content of the file, e.g. the size a merge updated.
+  /**
+   * @param {string} [cursor] path of the last entry already read, exclusive
+   * @param {object} [opts]
+   * @param {boolean} [opts.mustExist] whether a missing journal directory should throw
+   * @returns {Promise<{
+   *   events: import('./formatVmBackups.mjs').ResolvedJournalEvent[]
+   *   cursor: string | undefined
+   * }>} the cursor to pass on the next call: unchanged when nothing new was read
+   */
+  async readBackupJournalEvents(cursor, opts) {
+    const entries = await this.readBackupJournal(cursor, opts)
+
+    // the entries are oldest first, therefore the last event of a backup is its current state: a
+    // backup which was written then deleted costs no metadata read at all, and one which was
+    // rewritten several times costs a single one
+    const lastEventByFilename = new Map()
+    entries.forEach(({ event, filename, vmUuid }, index) => {
+      if (!isKnownJournalEvent(event)) {
+        warn('ignoring unsupported journal event', { event, filename })
+        return
+      }
+
+      // the entries are written by several code paths which don't agree on the leading slash
+      lastEventByFilename.set(normalize(filename), { event, index, vmUuid })
+    })
+
+    // the index, in `entries`, of the earliest one whose metadata could not be read: the cursor is
+    // clamped to just before it, so that the next call retries it instead of skipping it
+    let minFailedIndex = entries.length
+
+    // there is at most one event per backup left, therefore they can be resolved concurrently and
+    // the order `asyncEach` returns them in does not matter
+    const events = []
+    await asyncEach(lastEventByFilename, async ([filename, { event, index, vmUuid }]) => {
+      if (event === 'del') {
+        events.push({ event, vmUuid, filename })
+        return
+      }
+
+      let metadata
+      try {
+        metadata = await this.readVmBackupMetadata(filename)
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          // the metadata is gone while its last event says it should be there: it was deleted
+          // without being journaled, e.g. by a user or a third party tool directly on the
+          // repository. Report it as a deletion instead of waiting for the next full rebuild.
+          debug('reporting a backup whose metadata is missing as deleted', { event, filename })
+          events.push({ event: 'del', vmUuid, filename })
+          return
+        }
+
+        // One unreadable metadata must not fail the whole read: the caller would forget the
+        // repository and list it in full on every call for as long as the file stays unreadable,
+        // which is much more expensive than what this read costs.
+        //
+        // Its event is kept behind the cursor instead of being dropped, so that the next read
+        // tries it again: a transient failure costs nothing, and a permanent one only widens the
+        // window of a journal read, until the caller rebuilds from scratch anyway.
+        warn(`can't read the metadata of a backup an event is about`, { error, event, filename })
+        if (index < minFailedIndex) {
+          minFailedIndex = index
+        }
+        return
+      }
+
+      events.push({ event, vmUuid, filename, metadata })
+    })
+
+    // advance the cursor up to the last successfully read entry, oldest first: unchanged when
+    // nothing was read at all, or when the very first entry already failed
+    if (minFailedIndex > 0) {
+      cursor = entries[minFailedIndex - 1]._filename
+    }
+
+    return { events, cursor }
+  }
+
   async writeVmBackupMetadata(vmUuid, metadata) {
     const path = `/${BACKUP_DIR}/${vmUuid}/${formatFilenameDate(metadata.timestamp)}.json`
 
     await this.handler.outputFile(path, JSON.stringify(metadata), {
       dirMode: this._dirMode,
     })
+
+    // will not throw
+    await writeBackupJournalEntry(
+      this._handler,
+      {
+        event: 'add',
+        vmUuid,
+        filename: path,
+        who: { jobId: metadata.jobId, scheduleId: metadata.scheduleId },
+        reason: 'backup',
+      },
+      { dirMode: this._dirMode }
+    )
 
     // will not throw
     await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
@@ -698,24 +674,33 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
-      await writeToVhdDirectory({
+      return await writeToVhdDirectory({
         disk,
         target: {
           handler,
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: 'brotli',
+          compression: this.getVhdDirectoryCompression(),
+          uuid,
+          parentUuid,
+          parentPath,
         },
       })
     } else {
-      const stream = await toVhdStream(disk)
-      await this.outputStream(path, stream, { validator, checksum: false })
+      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+      const size = await this.outputStream(path, stream, {
+        validator,
+        // no checksum for VHDs, because they will be invalidated by
+        // merges and chains
+        checksum: false,
+      })
       await validator(path)
+      return size
     }
   }
 
@@ -726,7 +711,8 @@ export class RemoteAdapter {
   ) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
-      checksum,
+      // a known checksum is the one of unencrypted data: an encrypted remote stores no checksum
+      checksum: typeof checksum === 'string' && this._handler.isEncrypted ? false : checksum,
       dirMode: this._dirMode,
       maxStreamLength,
       streamLength,
@@ -739,19 +725,24 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
+      assert.strictEqual(rawBlocksCompression, undefined, `can't read raw blocks of a disk chain`)
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhdDisk({ handler, path })
+      disk = new RemoteVhdDisk({ handler, path, rawBlocksCompression })
       await disk.init()
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * `rawBlocksCompression`: the blocks of the VHD directories using this compression are read as stored (see
+   * RemoteVhdDisk), to be written as is in a remote using the same compression
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -759,7 +750,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {
@@ -775,6 +766,28 @@ export class RemoteAdapter {
 
   readFullVmBackup(metadata) {
     return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+  }
+
+  /**
+   * @returns {Promise<string | undefined>} the checksum of the XVA as stored, undefined if it is unknown (no checksum
+   *   file, or encrypted remote: the stored data are not the data read)
+   */
+  async readFullVmBackupChecksum(metadata) {
+    if (this._handler.isEncrypted) {
+      return
+    }
+    try {
+      const checksum = String(
+        await this._handler.readFile(resolve('/', dirname(metadata._filename), metadata.xva) + '.checksum')
+      ).trim()
+      // $<algorithm id>$<salt>$<hash>
+      return checksum.startsWith('$') ? checksum : undefined
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
   }
 
   async readVmBackupMetadata(path) {
@@ -877,37 +890,58 @@ export class RemoteAdapter {
   }
 }
 
+// journal the metadata files `cleanVm` removed and rewrote
+//
+// `removedFiles` also lists the files which would have been removed if `remove` were set, and files
+// which are not backup metadata (stray xva, checksums, …), hence the filtering.
+/**
+ * @param {RemoteAdapter} adapter
+ * @param {string} vmBackupPath directory of the cleaned VM, e.g. `xo-vm-backups/<vmUuid>`
+ * @param {object} cleanOpts the options `cleanVm()` ran with
+ * @param {boolean} [cleanOpts.remove] whether the removals were actually applied
+ * @param {object} result the result of `cleanVm()`
+ * @param {string[]} [result.removedFiles]
+ * @param {string[]} [result.changedFiles]
+ * @returns {Promise<void>}
+ */
+async function journalCleanVm(adapter, vmBackupPath, { remove }, { removedFiles = [], changedFiles = [] }) {
+  const dir = resolve('/', vmBackupPath)
+  const vmUuid = basename(dir)
+  const isVmMetadata = file => isMetadataFile(file) && dirname(resolve('/', file)) === dir
+
+  const entries = []
+  if (remove) {
+    for (const filename of new Set(removedFiles.filter(isVmMetadata))) {
+      entries.push({ event: 'del', vmUuid, filename, reason: 'clean-vm' })
+    }
+  }
+  for (const filename of new Set(changedFiles.filter(isVmMetadata))) {
+    entries.push({ event: 'change', vmUuid, filename, reason: 'merge' })
+  }
+
+  // will not reject
+  await writeBackupJournalEntries(adapter._handler, entries, { dirMode: adapter._dirMode })
+}
+
 Object.assign(RemoteAdapter.prototype, {
-  cleanVm(vmDir, { lock = true } = {}) {
+  cleanVm(vmBackupPath, opts = {}) {
+    const { lock = true, ...cleanOpts } = opts
+    const run = async () => {
+      const result = await VmBackupDirectory.cleanVm(this._handler, vmBackupPath, cleanOpts)
+      await journalCleanVm(this, vmBackupPath, cleanOpts, result)
+      return result
+    }
     if (lock) {
-      return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+      return Disposable.use(this._handler.lock(vmBackupPath), run)
     } else {
-      return cleanVm.apply(this, arguments)
+      return run()
     }
   },
   isValidXva,
 })
 
-decorateMethodsWith(RemoteAdapter, {
-  _getLvmLogicalVolumes: compose([
-    Disposable.factory,
-    [deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName]],
-    debounceResourceFactory,
-  ]),
+// File-level-restore methods live in ./_fileRestore.mjs; mix them onto the prototype
+// before decorating so decorateMethodsWith can wrap them.
+Object.assign(RemoteAdapter.prototype, fileRestoreMethods)
 
-  _getLvmPhysicalVolume: compose([
-    Disposable.factory,
-    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
-    debounceResourceFactory,
-  ]),
-
-  _getPartition: compose([
-    Disposable.factory,
-    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
-    debounceResourceFactory,
-  ]),
-
-  getDisk: compose([Disposable.factory, [deduped, diskId => [diskId]], debounceResourceFactory]),
-
-  getPartition: Disposable.factory,
-})
+decorateMethodsWith(RemoteAdapter, fileRestoreDecorators)

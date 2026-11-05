@@ -12,6 +12,10 @@ import { watch, watchEffect } from 'vue'
 
 const EVENTS_ENDPOINT = `${BASE_URL}/events`
 
+function eventFnLogError(error: unknown, event: 'add' | 'update' | 'remove', obj: unknown) {
+  console.error('Error during handling an SSE event', error, event, obj)
+}
+
 // TODO: move into a composable
 // https://github.com/vatesfr/xen-orchestra/pull/9183#discussion_r2561650429
 export function useWatchCollection<T extends Partial<XoRecord>>({
@@ -33,7 +37,7 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
   handleDelete?: THandleDelete
   handlePost?: THandlePost
   handleWatching?: THandleWatching
-  predicate?: (receivedObj: T | T[], context: ResourceContext<any[]> | undefined) => boolean
+  predicate?: (receivedObj: T | T[], context: ResourceContext<any[]> | undefined) => Promise<boolean> | boolean
 }) {
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.$subscription)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)
@@ -111,17 +115,17 @@ export function useWatchCollection<T extends Partial<XoRecord>>({
             break
           case 'add':
             Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
-              config.add(data.value)
+              config.add(data.value).catch(error => eventFnLogError(error, 'add', data.value))
             )
             break
           case 'update':
             Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
-              config.update(data.value)
+              config.update(data.value).catch(error => eventFnLogError(error, 'update', data.value))
             )
             break
           case 'remove':
             Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
-              config.remove(data.value)
+              config.remove(data.value).catch(error => eventFnLogError(error, 'remove', data.value))
             )
             break
           case 'ping':

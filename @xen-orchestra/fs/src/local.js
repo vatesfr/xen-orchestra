@@ -51,6 +51,22 @@ function dontAddSyncStackTrace(fn, ...args) {
   return fn.apply(this, args)
 }
 
+// writes the buffers one after the other with writev: no need to concatenate them
+// libuv already resumes the partial writes, a short count means the write stopped (like a full disk)
+// fs-extra goes through graceful-fs: an EMFILE on open is queued, like with fs.writeFile
+async function writeBuffers(path, buffers, flags) {
+  const fd = await fs.open(path, flags)
+  try {
+    const length = buffers.reduce((sum, buffer) => sum + buffer.length, 0)
+    const { bytesWritten } = await fs.writev(fd, buffers, 0)
+    if (bytesWritten !== length) {
+      throw new Error(`incomplete write of ${path}: ${bytesWritten} of ${length} bytes`)
+    }
+  } finally {
+    await fs.close(fd)
+  }
+}
+
 export default class LocalHandler extends RemoteHandlerAbstract {
   #addSyncStackTrace
   #retriesOnEagain
@@ -187,7 +203,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       // and will return a partial buffer
       // let's read the missing data to force it to really succeed or completely fail
       if (bytesRead < buffer.length) {
-        warn(`read was incomplete at first, expecting ${buffer.length} from ${position} got ${bytesRead}`)
+        warn(`read was incomplete at first, expecting ${buffer.length} from ${position} got ${bytesRead}`, {
+          path: file,
+        })
         // additionalBuffer is a view on the end of buffer
         const additionalBuffer = buffer.slice(bytesRead)
         // ensure we don't fall into an infinite loop
@@ -198,7 +216,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
         await this._read(file, additionalBuffer, position + bytesRead)
         // this code should not be used, since the real error should pop from the read, either a read after the end or a EIO
         // but if the error was transient, let's accept the result
-        warn(`read was incomplete at first, need to read the last ${additionalBuffer.length} bytes from ${position}`)
+        warn(`read was incomplete at first, need to read the last ${additionalBuffer.length} bytes from ${position}`, {
+          path: file,
+        })
       }
       return { buffer, bytesRead: buffer.length }
     } finally {
@@ -246,6 +266,13 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _writeFile(file, data, { flags }) {
+    if (Array.isArray(data)) {
+      return this.#addSyncStackTrace(writeBuffers, this.getFilePath(file), data, flags)
+    }
     return this.#addSyncStackTrace(fs.writeFile, this.getFilePath(file), data, { flag: flags })
+  }
+
+  get _writesBufferArrays() {
+    return true
   }
 }

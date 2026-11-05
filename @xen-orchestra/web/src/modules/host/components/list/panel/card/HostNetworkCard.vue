@@ -1,12 +1,10 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('network') }}
-    </UiCardTitle>
+  <UiPanelCard class="host-network-card">
+    <UiPanelCardTitle :label="t('network')" size="medium" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('management-ip') }}</template>
-        <template v-if="host.address" #value>{{ host.address }}</template>
+        <template #value>{{ host.address }}</template>
         <template v-if="host.address" #addons>
           <VtsCopyButton :value="host.address" />
         </template>
@@ -19,14 +17,7 @@
           <template #value>{{ ip }}</template>
           <template #addons>
             <VtsCopyButton :value="ip" />
-            <UiButtonIcon
-              v-if="index === 0 && ipV4Addresses.length > 1"
-              v-tooltip="t('coming-soon!')"
-              disabled
-              icon="fa:ellipsis"
-              size="small"
-              accent="brand"
-            />
+            <VtsCopyAllMenuItem v-if="index === 0 && ipV4Addresses.length > 1" :values="ipV4Addresses" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -41,14 +32,7 @@
           <template #value>{{ ip }}</template>
           <template #addons>
             <VtsCopyButton :value="ip" />
-            <UiButtonIcon
-              v-if="index === 0 && ipV6Addresses.length > 1"
-              v-tooltip="t('coming-soon!')"
-              disabled
-              icon="fa:ellipsis"
-              size="small"
-              accent="brand"
-            />
+            <VtsCopyAllMenuItem v-if="index === 0 && ipV6Addresses.length > 1" :values="ipV6Addresses" />
           </template>
         </VtsCardRowKeyValue>
       </template>
@@ -56,18 +40,17 @@
         <template #key>{{ t('ipv6-addresses') }}</template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -92,10 +75,8 @@ const ipV6Addresses = computed(
 )
 </script>
 
-<style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+<style lang="postcss" scoped>
+.host-network-card {
   .content {
     display: flex;
     flex-direction: column;

@@ -2,8 +2,10 @@ import {
   Body,
   Delete,
   Example,
+  Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -18,23 +20,37 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
-import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
-import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
+import { json, type Request as ExRequest } from 'express'
+import type {
+  SUPPORTED_VDI_EXPORT_FORMAT,
+  SUPPORTED_VDI_FORMAT,
+  Xapi,
+  XoAlarm,
+  XoMessage,
+  XoSr,
+  XoTask,
+  XoVdi,
+} from '@vates/types'
 
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
+import { invalidParameters } from 'xo-common/api-errors.js'
+
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
   createdResp,
+  forbiddenOperationResp,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
@@ -45,7 +61,20 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type CreateVdiParams = Parameters<Xapi['VDI_create']>
-type CreateVdiBody = Omit<CreateVdiParams[0], 'SR'> & { srId: string } & CreateVdiParams[1]
+type CreateVdiBody = Omit<CreateVdiParams[0], 'SR' | 'other_config'> & {
+  srId: string
+  other_config?: { [key: string]: string }
+} & CreateVdiParams[1]
+
+interface UpdateVdiRequestBody {
+  name_label?: string
+  name_description?: string
+  size?: number
+}
+
+const UPDATE_VDI_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vdi.update)
+  .filter(action => action !== 'tags')
+  .map(k => `update:${k}` as SupportedActions<'vdi'>)
 
 @Route('vdis')
 @Security('*')
@@ -67,40 +96,62 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Returns all VDIs that match the following privilege:
+   * - resource: vdi, action: read
+   *
    * @example fields "*"
    * @example filter "snapshots:length:>2"
    * @example limit 42
    */
   @Example(vdiIds)
   @Example(partialVdis)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   getVdis(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vdi' },
+    })
   }
 
   /**
    *
    * Export VDI content
    *
+   * Required privilege:
+   * - resource: vdi, action: export-content
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
+  @Middlewares(acl({ resource: 'vdi', action: 'export-content', objectId: 'params.id' }))
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+    @Path() format: SUPPORTED_VDI_EXPORT_FORMAT
   ): Promise<Readable> {
-    const res = req.res as ExResponse
-    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format, response: res })
+    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format })
+
+    this.setHeader('content-disposition', `attachment; filename=${id}.${format}`)
+    this.setHeader('content-type', 'application/octet-stream')
+    if (stream.length !== undefined) {
+      // the size of an export is always known in advance, whatever its format
+      this.setHeader('content-length', String(stream.length))
+    }
+
     process.on('SIGTERM', () => req.destroy())
     req.on('close', () => stream.destroy())
     return stream
@@ -110,10 +161,16 @@ export class VdiController extends XapiXoController<XoVdi> {
    *
    * Import VDI content
    *
+   * Required privilege:
+   * - resource: vdi, action: import-content
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Put('{id}.{format}')
+  @Middlewares(acl({ resource: 'vdi', action: 'import-content', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -132,23 +189,83 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: read
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
   @Example(vdi)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vdi', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVdi(@Path() id: string): Unbrand<XoVdi> {
     return this.getObject(id as XoVdi['id'])
   }
 
   /**
+   * Partial update of a VDI. Only the fields present in the body are modified;
+   * everything else is left untouched.
+   *
+   * Operations are applied sequentially: if one fails, previously applied
+   * changes are not rolled back.
+   *
+   * `size` is expressed in bytes and can only be increased: a VDI cannot be shrunk.
+   *
+   * Required privilege per field provided in the body:
+   * - resource: vdi, action: update:&lt;field&gt;
+   *
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   * @example body { "name_label": "my disk", "name_description": "system disk", "size": 10737418240 }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'vdi',
+      actions: actionsFromBody(UPDATE_VDI_ACTIONS),
+      objectId: 'params.id',
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async updateVdi(@Path() id: string, @Body() body: UpdateVdiRequestBody): Promise<void> {
+    const { $ref, $xapi } = this.getXapiObject(id as XoVdi['id'])
+    const { name_label, name_description, size } = body
+
+    if (name_label !== undefined) {
+      await $xapi.call('VDI.set_name_label', $ref, name_label)
+    }
+    if (name_description !== undefined) {
+      await $xapi.call('VDI.set_name_description', $ref, name_description)
+    }
+    if (size !== undefined) {
+      const currentSize = this.getObject(id as XoVdi['id']).size
+      if (size < currentSize) {
+        throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+      }
+      await $xapi.callAsync('VDI.resize', $ref, size)
+    }
+  }
+
+  /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiAlarms(
@@ -156,27 +273,43 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vdi = this.getObject(id as XoVdi['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vdi.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
-   * Create an empty VDI on the given SR.
+   * Create an empty VDI.
+   *
+   * Required privileges:
+   * - resource: sr, action: import:vdi (on the target SR)
+   * - resource: vdi, action: create
    *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
    */
   @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    acl([
+      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'vdi', action: 'create', object: ({ req }) => req.body },
+    ]),
+  ])
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVdi(@Body() body: CreateVdiBody): Promise<{ id: string }> {
@@ -202,10 +335,16 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: delete
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vdi', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdi(@Path() id: string): Promise<void> {
     const xapiVdi = this.getXapiObject(id as XoVdi['id'])
@@ -213,6 +352,9 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -220,7 +362,9 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVdiMessages(
@@ -228,15 +372,23 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVdi['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVdi['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -244,7 +396,9 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVdiTasks(
@@ -252,15 +406,24 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVdi['id'], { filter, limit })
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVdi['id'], { filter })
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
    * Migrate a VDI to another SR.
+   *
+   * Required privileges:
+   * - resource: vdi, action: migrate-send
+   * - resource: sr, action: migrate-receive (on the target SR)
    *
    * Note: After migration, the VDI will have a new ID. The new ID is returned in the response.
    *
@@ -269,9 +432,19 @@ export class VdiController extends XapiXoController<XoVdi> {
    */
   @Example(taskLocation)
   @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/migrate')
-  @Middlewares(json())
+  @Middlewares([
+    json(),
+    // Two separate checks allow independent control: a user can be allowed to migrate a VDI away
+    // without being allowed to place VDIs on any specific SR, and vice versa.
+    acl([
+      { resource: 'vdi', action: 'migrate-send', objectId: 'params.id' },
+      { resource: 'sr', action: 'migrate-receive', objectId: 'body.srId' },
+    ]),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(200, 'Ok')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -298,11 +471,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: update:tags
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])
@@ -310,11 +489,17 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vdi, action: update:tags
+   *
    * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vdi', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])

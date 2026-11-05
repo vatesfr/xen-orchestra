@@ -26,7 +26,7 @@ export const useXoSiteDashboard = defineRemoteResource({
       return {
         available: formatSizeRaw(dashboard.value.backupRepositories.other.size.available, 1),
         backups: formatSizeRaw(dashboard.value.backupRepositories.other.size.backups, 1),
-        other: formatSizeRaw(dashboard.value.backupRepositories.other.size.other ?? 0, 1),
+        other: formatSizeRaw(Math.max(0, dashboard.value.backupRepositories.other.size.other ?? 0), 1),
         total: formatSizeRaw(dashboard.value.backupRepositories.other.size.total, 1),
         used: formatSizeRaw(dashboard.value.backupRepositories.other.size.used ?? 0, 1),
       } as BackupRepositoriesFormatted

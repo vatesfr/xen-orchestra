@@ -9,29 +9,30 @@
       </template>
     </UiCardTitle>
     <div v-if="areBackupRunsReady && !isError" class="backup-head">
-      <div class="protection-infos">
-        <VtsQuickInfoRow :label="t('protection-status')">
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow :label="t('protection-status')">
           <template #value>
             <UiInfo :accent="infoVmProtectionStatus.accent">{{ infoVmProtectionStatus.text }}</UiInfo>
           </template>
-        </VtsQuickInfoRow>
-        <UiButton
-          accent="brand"
-          left-icon="status:info-circle"
-          size="small"
-          variant="tertiary"
-          @click="openProtectionHelpModal()"
-        >
-          {{ t('what-does-protected-means?') }}
-        </UiButton>
-      </div>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
+      <UiButton
+        accent="brand"
+        left-icon="status:info-circle"
+        size="small"
+        variant="tertiary"
+        class="button"
+        @click="openVmProtectedInfoModal()"
+      >
+        {{ t('what-does-protected-mean?') }}
+      </UiButton>
     </div>
     <UiAlert v-if="isNotInActiveJob" accent="warning">
       <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
       <template #description>
         <I18nT keypath="configure-for-protected" scope="global" tag="div">
           <template #backup-job>
-            <UiLink size="small" :to="{ name: '/(site)/backups' }">
+            <UiLink size="small" :to="{ name: '/admin/backup-and-replication/jobs' }">
               {{ t('backup-job') }}
             </UiLink>
           </template>
@@ -54,21 +55,22 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
-import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type { VmDashboardRun, VmProtectionStatus, XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
+import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useTableState } from '@core/composables/table-state.composable'
+import { useVmProtectedInfoModal } from '@core/composables/modals/use-vm-protected-info-modal.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper'
-import { useModal } from '@core/packages/modal/use-modal'
-import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums'
+import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,9 +84,7 @@ const { t } = useI18n()
 
 const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
 
-const openProtectionHelpModal = useModal(() => ({
-  component: import('@xen-orchestra/web/src/shared/components/modals/VmProtectedHelper.vue'),
-}))
+const { open: openVmProtectedInfoModal } = useVmProtectedInfoModal()
 
 const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 
@@ -141,13 +141,10 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
 .backup-head {
   display: flex;
   flex-direction: column;
-  gap: 2.4rem;
+  gap: 0.8rem;
 
-  .protection-infos {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+  .button {
+    align-self: flex-start;
   }
 }
 </style>

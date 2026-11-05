@@ -1,22 +1,23 @@
 <template>
   <MenuItem
     v-tooltip="areSomeVmsInExecution && t('selected-vms-in-execution')"
+    accent="danger"
     :disabled="isDisabled"
     icon="fa:trash"
-    @click="openDeleteModal"
+    @click="openDeleteModal()"
   >
     {{ t('action:delete') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,9 +37,15 @@ const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsInExecutio
 
 const xenApi = useXenApiStore().getXapi()
 
-const openDeleteModal = useModal({
-  component: import('@/components/modals/VmDeleteModal.vue'),
-  props: { count: computed(() => vmRefs.length) },
-  onConfirm: () => xenApi.vm.delete(vmRefs),
-})
+const { open: openModal } = useDeleteModal()
+
+function openDeleteModal() {
+  return openModal({
+    events: { onConfirm: () => xenApi.vm.delete(vmRefs) },
+    props: {
+      subject: t('n-vms', { n: vmRefs.length }),
+      confirmLabel: t('action:delete-n-vms', { n: vmRefs.length }),
+    },
+  })
+}
 </script>

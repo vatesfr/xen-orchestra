@@ -1,3 +1,7 @@
+import type { Branded } from '@vates/types/'
+
+export type IpAddress = Branded<'ip-address'>
+
 export const getIpAddressesByDevice = (addresses: Record<string, string>) =>
   Object.entries(addresses).reduce<Record<string, string[]>>((acc, [key, address]) => {
     const [device] = key.split('/')
@@ -15,4 +19,15 @@ export const getUniqueIpAddressesForDevice = (
   }
 
   return [...new Set(getIpAddressesByDevice(addresses)[device])]
+}
+
+export function parseIpList(value: string, separator = ';'): string[] {
+  return value
+    .split(separator)
+    .map(ip => ip.trim())
+    .filter(ip => ip !== '')
+}
+
+export function isIpv6(ip: IpAddress): boolean {
+  return ip.includes(':')
 }

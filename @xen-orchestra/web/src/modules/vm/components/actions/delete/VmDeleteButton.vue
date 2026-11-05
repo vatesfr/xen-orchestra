@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="action:delete" :busy="isRunning" class="delete" @click="openModal()">
+  <MenuItem icon="action:delete" :busy="isRunning" accent="danger" @click="openModal()">
     {{ t('action:delete') }}
   </MenuItem>
 </template>
@@ -8,10 +8,13 @@
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useModal } from '@core/packages/modal/use-modal.ts'
+import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
@@ -19,40 +22,48 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { run: deleteVM, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
+const { run: deleteVm, canRun, isRunning } = useXoVmDeleteJob(() => [vm])
 
 const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
 
-const router = useRouter()
+const route = useRoute()
 
-const openDeleteModal = useModal({
-  component: import('@/modules/vm/components/modal/VmDeleteModal.vue'),
-  props: { count: 1 },
-  onConfirm: async () => {
-    // TODO we can improve it in the future by handling errors in a better way
-    let result
-    try {
-      result = await deleteVM()
-    } catch (error) {
-      console.error('Error when deleting VM:', error)
+const { redirectIfOnObjectPage } = useRedirectAfterDelete({
+  isOnObjectPage: () => route.name?.includes('/vm/') ?? false,
+  redirectTo: () => {
+    const hostId = extractVmHostId(vm)
+
+    if (hostId !== undefined) {
+      return { name: '/host/[id]/vms', params: { id: hostId } }
     }
 
-    if (result && result[0].status === 'fulfilled' && router.currentRoute.value.path.includes(`/vm/${vm.id}`)) {
-      await router.push({ name: '/pool/[id]/dashboard', params: { id: vm.$pool } })
-    }
+    return { name: '/pool/[id]/vms', params: { id: vm.$pool } }
   },
 })
 
-const openBlockedModal = useModal({
-  component: import('@core/components/modal/VtsBlockedModal.vue'),
-  props: { blockedOperation: 'destroy', href: xo5VmAdvancedHref },
-})
+const { open: openDeleteModal } = useDeleteModal()
 
-const openModal = () => (canRun.value ? openDeleteModal() : openBlockedModal())
-</script>
+const { open: openBlockedModal } = useBlockedModal()
 
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
+function openModal() {
+  if (!canRun.value) {
+    return openBlockedModal({
+      props: {
+        blockedOperation: 'destroy',
+        href: xo5VmAdvancedHref.value,
+      },
+    })
+  }
+
+  return openDeleteModal({
+    props: {
+      subject: vm.name_label,
+      description: t('vm-delete-warning'),
+      confirmLabel: t('action:delete-n-vms', { n: 1 }),
+    },
+    events: {
+      onConfirm: () => deleteVm({ detached: true, onSuccess: redirectIfOnObjectPage }),
+    },
+  })
 }
-</style>
+</script>

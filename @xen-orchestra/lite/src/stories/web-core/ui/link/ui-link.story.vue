@@ -6,6 +6,9 @@
       prop('to').str().widget(),
       prop('href').str().widget(),
       iconProp(),
+      prop('isPrimary').bool().widget(),
+      prop('primaryTooltip').str().widget(),
+      prop('disabled').bool().widget(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
     ]"
@@ -25,7 +28,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop } from '@/libs/story/story-param'
+import { iconProp, prop } from '@/libs/story/story-param.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 </script>

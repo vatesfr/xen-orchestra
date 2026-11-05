@@ -69,6 +69,10 @@ const normalize = set => ({
   tags: set.tags || [],
 })
 
+const sameMembers = (a = [], b = []) => {
+  return a.length === b.length && difference(a, b).length === 0
+}
+
 // ===================================================================
 
 export default class {
@@ -96,8 +100,44 @@ export default class {
     return id
   }
 
-  _save(set) {
-    return this._store.put(set.id, set)
+  async _save(set) {
+    let previous
+    try {
+      previous = await this._store.get(set.id)
+    } catch (error) {
+      // expected when the set is being created
+    }
+
+    await this._store.put(set.id, set)
+
+    const previousSubjects = previous?.subjects ?? []
+    const previousObjects = previous?.objects ?? []
+    if (sameMembers(previousSubjects, set.subjects) && sameMembers(previousObjects, set.objects)) return
+
+    await this.#clearCacheForSubjects([...previousSubjects, ...set.subjects])
+  }
+
+  async #clearCacheForSubjects(subjectIds) {
+    const usersByGroupId = new Map()
+    for (const group of await this._app.getAllGroups()) {
+      usersByGroupId.set(group.id, group.users)
+    }
+
+    const userIds = new Set()
+    for (const subjectId of subjectIds) {
+      const groupUserIds = usersByGroupId.get(subjectId)
+      if (groupUserIds !== undefined) {
+        for (const userId of groupUserIds) {
+          userIds.add(userId)
+        }
+      } else {
+        userIds.add(subjectId)
+      }
+    }
+
+    for (const userId of userIds) {
+      this._app.clearObjectFilterCache(userId)
+    }
   }
 
   async checkResourceSetConstraints(id, userId, objectIds) {
@@ -154,7 +194,7 @@ export default class {
       shareByDefault,
     })
 
-    await this._store.put(id, set)
+    await this._save(set)
 
     return set
   }
@@ -168,7 +208,20 @@ export default class {
           this.setVmResourceSet(vm.id, null, true)
         )
       )
-      return store.del(id)
+
+      // read the subjects before the set is gone: they are whose cache must be
+      // dropped
+      let previous
+      try {
+        previous = await this._store.get(id)
+      } catch (error) {
+        // `has` already said it was there, so this should not happen
+      }
+
+      await store.del(id)
+      await this.#clearCacheForSubjects(previous?.subjects ?? [])
+
+      return
     }
 
     throw noSuchObject(id, 'resourceSet')

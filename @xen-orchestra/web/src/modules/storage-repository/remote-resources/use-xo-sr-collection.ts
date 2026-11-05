@@ -1,13 +1,16 @@
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useXoPoolCollection, type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
+import type { XoSr } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
 
@@ -16,7 +19,9 @@ const srFields = [
   'name_label',
   'name_description',
   '$pool',
+  '$container',
   'content_type',
+  'is_tools_sr',
   'physical_usage',
   'usage',
   'size',
@@ -32,68 +37,60 @@ const srFields = [
 ] as const satisfies readonly (keyof XoSr)[]
 
 export const useXoSrCollection = defineRemoteResource({
-  url: `${BASE_URL}/srs?fields=${srFields.join(',')}`,
+  url: `${BASE_URL}/srs?fields=${srFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'SR', fields: srFields }),
   initialData: () => [] as FrontXoSr[],
   state: (rawSrs, context) => {
-    const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
+    const sortedSrs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
 
     const { getVdiById } = useXoVdiCollection(context)
     const { getPoolById } = useXoPoolCollection()
+    const { pbdsBySr } = useXoPbdCollection()
 
-    const state = useXoCollectionState(srs, {
+    const state = useXoCollectionState(sortedSrs, {
       context,
       baseName: 'sr',
     })
 
-    const isoSrs = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
+    const vdiIsosBySrName = ref<Record<FrontXoSr['name_label'], FrontXoVdi[]>>({})
+    const srsByPool = ref(new Map<FrontXoPool['id'], FrontXoSr[]>())
 
-    const isoVdiIds = computed(() =>
-      isoSrs.value.reduce((acc, sr) => {
-        if (sr.VDIs) {
-          sr.VDIs.forEach(vdiId => acc.add(vdiId))
+    watch(sortedSrs, srs => {
+      const tmpVdiIsosBySrName: Record<FrontXoSr['name_label'], FrontXoVdi[]> = {}
+      const tmpSrsByPool = new Map<FrontXoPool['id'], FrontXoSr[]>()
+
+      srs.forEach(sr => {
+        if (sr.SR_type === 'iso' && !sr.is_tools_sr) {
+          tmpVdiIsosBySrName[sr.name_label] = []
+
+          sr.VDIs.forEach(vdiId => {
+            const vdi = getVdiById(vdiId as FrontXoVdi['id'])
+            if (vdi === undefined) {
+              return
+            }
+
+            tmpVdiIsosBySrName[sr.name_label].push(vdi)
+          })
         }
 
-        return acc
-      }, new Set<AnyXoVdi['id']>())
-    )
-
-    const vdiIsosBySrName = computed(() => {
-      const groupedVDIs: Record<string, FrontXoVdi[]> = {}
-
-      isoVdiIds.value.forEach(vdiId => {
-        const vdi = getVdiById(vdiId as XoVdi['id'])
-
-        if (!vdi) {
-          return
-        }
-
-        const srName = state.getSrById(vdi.$SR)?.name_label ?? 'Unknown SR'
-
-        if (!groupedVDIs[srName]) {
-          groupedVDIs[srName] = []
-        }
-
-        groupedVDIs[srName].push(vdi)
+        safePushInMap(tmpSrsByPool, sr.$pool, sr)
       })
 
-      return groupedVDIs
+      vdiIsosBySrName.value = tmpVdiIsosBySrName
+      srsByPool.value = tmpSrsByPool
     })
 
-    const srsByPool = computed(() => {
-      const srsByPoolMap = new Map<XoPool['id'], FrontXoSr[]>()
+    const srsByHost = computed(() => {
+      const tmpSrsByHost = new Map<FrontXoHost['id'], FrontXoSr[]>()
 
-      srs.value.forEach(sr => {
-        const poolId = sr.$pool
-
-        if (!srsByPoolMap.has(poolId)) {
-          srsByPoolMap.set(poolId, [])
-        }
-
-        srsByPoolMap.get(poolId)!.push(sr)
+      sortedSrs.value.forEach(sr => {
+        pbdsBySr.value.get(sr.id)?.forEach(pbd => {
+          safePushInMap(tmpSrsByHost, pbd.host, sr)
+        })
       })
 
-      return srsByPoolMap
+      return tmpSrsByHost
     })
 
     const isDefaultSr = (sr: FrontXoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
@@ -108,6 +105,7 @@ export const useXoSrCollection = defineRemoteResource({
       ...state,
       vdiIsosBySrName,
       srsByPool,
+      srsByHost,
       isDefaultSr,
       isHighAvailabilitySr,
     }

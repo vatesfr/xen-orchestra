@@ -1,4 +1,3 @@
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
@@ -6,7 +5,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoNetwork = Pick<XoNetwork, (typeof networkFields)[number]>
 
@@ -22,27 +21,38 @@ const networkFields = [
   'PIFs',
   'other_config',
   'type',
+  'isBonded',
 ] as const satisfies readonly (keyof XoNetwork)[]
 
 export const useXoNetworkCollection = defineRemoteResource({
-  url: `${BASE_URL}/networks?fields=${networkFields.join(',')}`,
+  url: `${BASE_URL}/networks?fields=${networkFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'network', fields: networkFields }),
   initialData: () => [] as FrontXoNetwork[],
   state: (rawNetworks, context) => {
-    const { hostMasterPifsByNetwork } = useXoPifCollection(context)
+    const sortedNetworks = useSorted(rawNetworks, sortByNameLabel)
 
-    const networks = useSorted(rawNetworks, sortByNameLabel)
+    const networksWithPifs = ref<FrontXoNetwork[]>([])
+    const networksWithoutPifs = ref<FrontXoNetwork[]>([])
 
-    const networksWithPifs = computed(() => {
-      const networkIds = Array.from(hostMasterPifsByNetwork.value.keys())
+    watch(sortedNetworks, networks => {
+      const tmpNetworksWithPifs: FrontXoNetwork[] = []
+      const tmpNetworksWithoutPifs: FrontXoNetwork[] = []
 
-      return networks.value.filter(network => networkIds.includes(network.id) && network.PIFs.length > 0)
+      networks.forEach(network => {
+        if (network.PIFs.length === 0) {
+          tmpNetworksWithoutPifs.push(network)
+        } else {
+          tmpNetworksWithPifs.push(network)
+        }
+      })
+
+      networksWithPifs.value = tmpNetworksWithPifs
+      networksWithoutPifs.value = tmpNetworksWithoutPifs
     })
 
-    const networksWithoutPifs = computed(() => networks.value.filter(network => network.PIFs.length === 0))
-
     return {
-      ...useXoCollectionState(networks, {
+      ...useXoCollectionState(sortedNetworks, {
         context,
         baseName: 'network',
       }),

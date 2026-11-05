@@ -4,7 +4,7 @@
 </template>
 
 <script lang="ts" setup>
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 
 export type UserLogoSize = 'extra-small' | 'small' | 'medium'
 

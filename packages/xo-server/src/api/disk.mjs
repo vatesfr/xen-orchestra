@@ -1,18 +1,17 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
-import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { getStreamAsBuffer } from 'get-stream'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
-import { pipeline } from 'stream'
+import { pipeline, Readable } from 'stream'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
-import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 import { parseSize } from '../utils.mjs'
-import { readChunk } from '@vates/read-chunk'
+import { readChunk, readChunkStrict } from '@vates/read-chunk'
+import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '@xen-orchestra/xapi'
 
 const log = createLogger('xo:disk')
 
@@ -157,12 +156,12 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent(req, res, { vdi }) {
+async function handleImportContent(req, res, { vdi, format }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = +req.headers['content-length']
-  await vdi.$importContent(req, { format: VDI_FORMAT_VHD })
+  await vdi.$importContent(req, { format })
   res.end(format.response(0, true))
 }
 
@@ -177,6 +176,7 @@ export async function importContent({ vdi }) {
 importContent.description = 'import contents into a VDI'
 importContent.params = {
   id: { type: 'string' },
+  format: { type: 'string', optional: true, default: VDI_FORMAT_VHD },
 }
 importContent.resolve = {
   vdi: ['id', ['VDI'], 'operate'],
@@ -232,15 +232,33 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
                 size = footer.currentSize
               }
               break
+            case 'qcow2': {
+              const QCOW2_MAGIC = 0x514649fb
+              const header = await readChunkStrict(part, 104)
+              if (header === undefined || header.length < 104) {
+                throw new JsonRpcError('QCOW2 file is too small to be valid')
+              }
+              part.unshift(header)
+              if (header.readUInt32BE(0) !== QCOW2_MAGIC) {
+                throw new JsonRpcError(`QCOW2 file had an invalid header magic`)
+              }
+              const virtualSize = header.readBigUInt64BE(24)
+              if (virtualSize >= BigInt(Number.MAX_SAFE_INTEGER)) {
+                throw new JsonRpcError('QCOW2 virtual size exceeds maximum safe integer')
+              }
+              diskFormat = VDI_FORMAT_QCOW2
+              vhdStream = part
+              size = Number(virtualSize)
+              break
+            }
             case 'iso':
               diskFormat = VDI_FORMAT_RAW
               vhdStream = part
               size = part.byteCount
               break
             default:
-              throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
+              throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd", "vmdk" or "qcow2", got ${type}`)
           }
-
           const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
               name_description: description,
@@ -286,9 +304,14 @@ async function importDisk({ sr, type, name, description, url, vmdkData }) {
       throw invalidParameters('URL import is only compatible with VHD and raw formats')
     }
 
-    const stream = await hrp(url)
-    const length = stream.headers['content-length']
-    if (length !== undefined) {
+    const response = await fetch(url)
+    if (!response.ok) {
+      await response.body?.cancel() // free the socket
+      throw new Error(`${response.status} ${response.statusText}`)
+    }
+    const stream = Readable.fromWeb(response.body)
+    const length = response.headers.get('content-length')
+    if (length !== null) {
       stream.length = length
     }
 

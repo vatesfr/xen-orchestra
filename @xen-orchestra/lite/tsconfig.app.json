@@ -1,19 +1,12 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": [
-    "env.d.ts",
-    "typed-router.d.ts",
-    "src/**/*",
-    "src/**/*.vue",
-    "../web-core/lib/**/*",
-    "../web-core/lib/**/*.vue"
-  ],
-  "exclude": ["src/**/__tests__/*"],
+  "include": ["env.d.ts", "./src/**/*", "./src/**/*.vue", "../web-core/lib/**/*", "../web-core/lib/**/*.vue"],
+  "exclude": ["./src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
-    "baseUrl": ".",
     "rootDir": "..",
+    "experimentalDecorators": true,
     "paths": {
       "@/*": ["./src/*"],
       "@core/*": ["../web-core/lib/*"]

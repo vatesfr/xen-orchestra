@@ -1,3 +1,4 @@
+import { slash } from '@core/icons/custom-icons.ts'
 import { statusIcons } from '@core/icons/status-icons.ts'
 import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
@@ -8,19 +9,21 @@ import {
   faBoxesStacked,
   faCamera,
   faCircle,
+  faCircleNodes,
   faCity,
   faClock,
   faDatabase,
   faDesktop,
   faHdd,
+  faMapPin,
   faNetworkWired,
   faPlay,
   faPuzzlePiece,
   faSatellite,
   faServer,
-  faSlash,
   faUserCircle,
   faUsers,
+  faWindowMaximize,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -46,21 +49,6 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
     color: 'var(--color-neutral-txt-primary)',
   }
 }
-
-const slash = defineIcon([
-  {
-    icon: faSlash,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [-0.5, 0.5],
-    size: 20,
-  },
-  {
-    icon: faSlash,
-    color: 'var(--color-neutral-txt-secondary)',
-    translate: [0.5, -0.5],
-    size: 20,
-  },
-])
 
 const runningNeutral = defineIcon([
   {
@@ -144,6 +132,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   host: constructIcon(faServer),
@@ -154,6 +143,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'host:running': [constructIcon(faServer), ...constructCircleStatus('running-circle')],
@@ -168,6 +158,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'vm:running': [constructIcon(faDesktop), ...constructCircleStatus('running-circle')],
@@ -189,6 +180,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'sr:connected': [constructIcon(faDatabase), ...constructCircleStatus('success-circle')],
@@ -203,12 +195,37 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'vdi:attached': [constructIcon(faHdd), ...constructCircleStatus('success-circle')],
   'vdi:disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
   'vdi:warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
   'vdi:detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
+  'vdi-snapshot': [
+    constructIcon(faHdd),
+    {
+      icon: camera,
+    },
+  ],
+  vif: [
+    {
+      icon: faMapPin,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-txt-primary)',
+      translate: [0, -4],
+      size: 12,
+    },
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [0, -4],
+      size: 8,
+    },
+  ],
   network: constructIcon(faNetworkWired),
   'network:unknown': [
     {
@@ -217,10 +234,11 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'network:connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
-  'network:warning': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
+  'network:partially-connected': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
   'network:disconnected': [constructIcon(faNetworkWired), ...constructCircleStatus('danger-circle')],
   br: constructIcon(faBoxesStacked),
   'br:unknown': [
@@ -230,6 +248,7 @@ export const objectIcons = defineIconPack({
     },
     {
       icon: slash,
+      color: 'var(--color-neutral-txt-secondary)',
     },
   ],
   'br:connected': [constructIcon(faBoxesStacked), ...constructCircleStatus('success-circle')],
@@ -255,8 +274,10 @@ export const objectIcons = defineIconPack({
       icon: runningNeutral,
     },
   ],
+  plugin: constructIcon(faPuzzlePiece),
+  proxy: constructIcon(faCircleNodes),
   task: constructIcon(faBarsProgress),
-  template: constructIcon(faPuzzlePiece),
+  template: constructIcon(faWindowMaximize),
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),

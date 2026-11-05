@@ -6,7 +6,7 @@
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -16,7 +16,7 @@
         </thead>
         <tbody>
           <VtsRow v-for="sr of paginatedSrs" :key="sr.id" :selected="selectedSrId === sr.id">
-            <BodyCells :item="sr" />
+            <BodyCells :key="getSrPbdsSignature(sr, scope)" :item="sr" />
           </VtsRow>
         </tbody>
       </VtsTable>
@@ -25,13 +25,17 @@
 </template>
 
 <script setup lang="ts">
-import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
-import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { useSrConnection } from '@/modules/storage-repository/composables/use-sr-connection.composable.ts'
+import { useSrDelete } from '@/modules/storage-repository/composables/use-sr-delete.composable.ts'
+import { useSrQueryBuilder } from '@/modules/storage-repository/composables/use-sr-query-builder.composable.ts'
+import { useGetPbdsInScope, useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -40,21 +44,20 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
+import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
-import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
   srs: rawSrs,
+  scope,
   busy,
   error,
 } = defineProps<{
   srs: FrontXoSr[]
+  scope: SrScope
   busy?: boolean
   error?: boolean
 }>()
@@ -68,18 +71,7 @@ const selectedSrId = useRouteQuery('id')
 
 const { isDefaultSr } = useXoSrCollection()
 
-const { filter, items: filteredSrs } = useQueryBuilderFilter('sr', () => rawSrs)
-
-const schema = useQueryBuilderSchema<FrontXoSr>({
-  '': useStringSchema(t('any-property')),
-  name_label: useStringSchema(t('name')),
-  name_description: useStringSchema(t('description')),
-  SR_type: useStringSchema(t('storage-format')),
-  shared: useBooleanSchema(t('access-mode'), {
-    true: t('shared'),
-    false: t('local'),
-  }),
-})
+const { items: filteredSrs, filter, schema } = useSrQueryBuilder('sr', () => rawSrs)
 
 const state = useTableState({
   busy: () => busy,
@@ -94,6 +86,8 @@ const state = useTableState({
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
+const { getSrPbdsSignature } = useGetPbdsInScope()
+
 function getPrimaryIcon(sr: FrontXoSr) {
   if (!isDefaultSr(sr)) {
     return undefined
@@ -105,30 +99,85 @@ function getPrimaryIcon(sr: FrontXoSr) {
   }
 }
 
-const { getPbdsByIds } = useXoPbdCollection()
-
 const { HeadCells, BodyCells } = useSrColumns({
+  exclude: ['checkbox'],
   body: (sr: FrontXoSr) => {
-    const { buildXo5Route } = useXoRoutes()
-
-    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
-    const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+    const { srStatusIcon, getSrAccessModeLabel } = useXoSrUtils(sr, () => scope)
+
+    const { deleteSrs, canDeleteSrs, isDeletingSrs } = useSrDelete(() => [sr])
+
+    const {
+      connectSrs,
+      disconnectSrs,
+      canConnectSrs,
+      canDisconnectSrs,
+      isConnectingSrs,
+      isDisconnectingSrs,
+      connectSrsErrorMessage,
+      disconnectSrsErrorMessage,
+      connectionTargetCount,
+      disconnectionTargetCount,
+    } = useSrConnection({
+      srs: () => [sr],
+      scope: () => scope,
+    })
+
+    const connectLabel = computed(() =>
+      shouldShowTargetCount(scope, connectionTargetCount.value)
+        ? t('action:connect-n', { n: connectionTargetCount.value })
+        : t('action:connect')
+    )
+
+    const disconnectLabel = computed(() =>
+      shouldShowTargetCount(scope, disconnectionTargetCount.value)
+        ? t('action:disconnect-n', { n: disconnectionTargetCount.value })
+        : t('action:disconnect')
+    )
 
     return {
       storageRepository: r =>
         r({
           label: sr.name_label,
-          href: href.value,
-          icon: objectIcon('sr', allPbdsConnectionStatus.value),
+          to: getSrPageLocation(sr, scope),
+          icon: srStatusIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),
       storageFormat: r => r(sr.SR_type),
-      accessMode: r => r(sr.shared ? t('shared') : t('local')),
+      accessMode: r => r(getSrAccessModeLabel(sr)),
       usedSpace: r => r(sr.physical_usage, sr.size),
-      selectItem: r => r(() => (selectedSrId.value = sr.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedSrId.value = sr.id),
+          actions: [
+            {
+              label: connectLabel.value,
+              icon: 'action:connect',
+              onClick: () => connectSrs(),
+              busy: isConnectingSrs.value,
+              disabled: !canConnectSrs.value,
+              hint: connectSrsErrorMessage.value,
+            },
+            {
+              label: disconnectLabel.value,
+              icon: 'action:disconnect',
+              onClick: () => disconnectSrs(),
+              busy: isDisconnectingSrs.value,
+              disabled: !canDisconnectSrs.value,
+              hint: disconnectSrsErrorMessage.value,
+            },
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteSrs(),
+              disabled: !canDeleteSrs.value,
+              busy: isDeletingSrs.value,
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

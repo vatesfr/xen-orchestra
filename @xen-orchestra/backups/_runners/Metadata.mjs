@@ -1,4 +1,5 @@
-import { asyncMap } from '@xen-orchestra/async-map'
+import { asyncEach } from '@vates/async-each'
+import { Task } from '@vates/task'
 import Disposable from 'promise-toolbox/Disposable'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
@@ -6,8 +7,9 @@ import { extractIdsFromSimplePattern } from '../extractIdsFromSimplePattern.mjs'
 import { PoolMetadataBackup } from './_PoolMetadataBackup.mjs'
 import { XoMetadataBackup } from './_XoMetadataBackup.mjs'
 import { DEFAULT_SETTINGS, Abstract } from './_Abstract.mjs'
-import { runTask } from './_runTask.mjs'
 import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
+
+const noop = Function.prototype
 
 const DEFAULT_METADATA_SETTINGS = {
   retentionPoolMetadata: 0,
@@ -55,13 +57,16 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
         poolIds.map(id =>
           this._getRecord('pool', id).catch(error => {
             // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
-            runTask(
+            Task.run(
               {
-                name: 'get pool record',
-                data: { type: 'pool', id },
+                properties: {
+                  id,
+                  name: 'get pool record',
+                  type: 'pool',
+                },
               },
               () => Promise.reject(error)
-            )
+            ).catch(noop)
           })
         )
       ),
@@ -77,15 +82,16 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
         // remove pools that failed (already handled)
         pools = pools.filter(_ => _ !== undefined)
 
-        const promises = []
-        if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
-          promises.push(
-            asyncMap(pools, async pool =>
-              runTask(
+        const tasks = []
+
+        if (settings.retentionPoolMetadata !== 0) {
+          for (const pool of pools) {
+            tasks.push(async () =>
+              Task.run(
                 {
-                  name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
-                  data: {
+                  properties: {
                     id: pool.$id,
+                    name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
                     pool,
                     poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
                     type: 'pool',
@@ -100,17 +106,17 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
                     schedule,
                     settings,
                   }).run()
-              )
+              ).catch(noop)
             )
-          )
+          }
         }
 
         if (job.xoMetadata !== undefined && settings.retentionXoMetadata !== 0) {
-          promises.push(
-            runTask(
+          tasks.push(() =>
+            Task.run(
               {
-                name: `Starting XO metadata backup. (${job.id})`,
-                data: {
+                properties: {
+                  name: `Starting XO metadata backup. (${job.id})`,
                   type: 'xo',
                 },
               },
@@ -122,10 +128,19 @@ export const Metadata = class MetadataBackupRunner extends Abstract {
                   schedule,
                   settings,
                 }).run()
-            )
+            ).catch(noop)
           )
         }
-        await Promise.all(promises)
+
+        const total = tasks.length
+        let transferred = 0
+
+        await asyncEach(tasks, async task => {
+          await task()
+          transferred++
+          Task.set('progress', Math.round(transferred / total))
+        })
+        Task.set('progress', 1)
       }
     )
   }

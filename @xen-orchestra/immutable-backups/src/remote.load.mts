@@ -419,7 +419,7 @@ async function main(): Promise<void> {
     }
   }, 1000)
 
-  await liftRemoteImmutability(root, 0)
+  await liftRemoteImmutability(root, 0, false)
 
   clearInterval(liftSampler)
   sampleMemory()

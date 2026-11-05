@@ -1,12 +1,15 @@
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/types'
+import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 
 export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
@@ -51,6 +54,7 @@ const vmFields = [
   'startTime',
   'installTime',
   'pvDriversDetected',
+  'pvDriversUpToDate',
   'managementAgentDetected',
   'type',
   '$VBDs',
@@ -60,30 +64,54 @@ const vmFields = [
 ] as const satisfies readonly (keyof XoVm)[]
 
 export const useXoVmCollection = defineRemoteResource({
-  url: `${BASE_URL}/vms?fields=${vmFields.join(',')}`,
+  url: `${BASE_URL}/vms?fields=${vmFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VM', fields: vmFields }),
   initialData: () => [] as FrontXoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)
 
-    const vms = useSorted(rawVms, sortByNameLabel)
+    const sortedVms = useSorted(rawVms, sortByNameLabel)
 
-    const runningVms = computed(() => vms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
+    const runningVms = ref<FrontXoVm[]>([])
+    const vmsByHost = ref(new Map<FrontXoHost['id'], FrontXoVm[]>())
+    const vmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
+    const hostLessVmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
+    const runningVmsCountByPool = ref(new Map<FrontXoPool['id'], number>())
+    const runningVmsCountByContainer = ref(new Map<FrontXoHost['id'], number>())
 
-    const vmsByHost = computed(() => createVmsByHostMap(vms.value, false))
+    watch(sortedVms, vms => {
+      const tmpRunningVms: FrontXoVm[] = []
+      const tmpVmsByHost = new Map<FrontXoHost['id'], FrontXoVm[]>()
+      const tmpVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
+      const tmpHostLessVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
+      const tmpRunningVmsCountByPool = new Map<FrontXoPool['id'], number>()
+      const tmpRunningVmsCountByContainer = new Map<FrontXoHost['id'], number>()
 
-    const hostLessVmsByPool = computed(() => createVmsByHostMap(vms.value, true))
-
-    const vmsByPool = computed(() => {
-      return vms.value.reduce((acc, vm) => {
-        if (!acc.has(vm.$pool)) {
-          acc.set(vm.$pool, [])
+      vms.forEach(vm => {
+        if (vm.power_state === VM_POWER_STATE.RUNNING) {
+          tmpRunningVms.push(vm)
+          tmpRunningVmsCountByPool.set(vm.$pool, (tmpRunningVmsCountByPool.get(vm.$pool) ?? 0) + 1)
+          const containerId = vm.$container as FrontXoHost['id']
+          tmpRunningVmsCountByContainer.set(containerId, (tmpRunningVmsCountByContainer.get(containerId) ?? 0) + 1)
         }
 
-        acc.get(vm.$pool)!.push(vm)
+        if (vm.$container !== vm.$pool) {
+          const hostId = vm.$container as FrontXoHost['id']
+          safePushInMap(tmpVmsByHost, hostId, vm)
+        } else {
+          safePushInMap(tmpHostLessVmsByPool, vm.$pool, vm)
+        }
 
-        return acc
-      }, new Map<XoPool['id'], FrontXoVm[]>())
+        safePushInMap(tmpVmsByPool, vm.$pool, vm)
+      })
+
+      runningVms.value = tmpRunningVms
+      vmsByHost.value = tmpVmsByHost
+      hostLessVmsByPool.value = tmpHostLessVmsByPool
+      vmsByPool.value = tmpVmsByPool
+      runningVmsCountByPool.value = tmpRunningVmsCountByPool
+      runningVmsCountByContainer.value = tmpRunningVmsCountByContainer
     })
 
     function getVmHost(vm: FrontXoVm): FrontXoHost | undefined {
@@ -97,11 +125,13 @@ export const useXoVmCollection = defineRemoteResource({
     }
 
     return {
-      ...useXoCollectionState(vms, {
+      ...useXoCollectionState(sortedVms, {
         context,
         baseName: 'vm',
       }),
       runningVms,
+      runningVmsCountByPool,
+      runningVmsCountByContainer,
       vmsByHost,
       vmsByPool,
       getVmHost,
@@ -109,29 +139,3 @@ export const useXoVmCollection = defineRemoteResource({
     }
   },
 })
-
-function createVmsByHostMap<THostLess extends boolean>(vms: FrontXoVm[], hostLess: THostLess) {
-  const vmsMap = new Map<THostLess extends true ? XoPool['id'] : XoHost['id'], FrontXoVm[]>()
-
-  vms.forEach(vm => {
-    const hasHost = vm.$container !== vm.$pool
-
-    if (hasHost && hostLess) {
-      return
-    }
-
-    const id = vm.$container as THostLess extends true ? XoPool['id'] : XoHost['id']
-
-    if (!vmsMap.has(id)) {
-      vmsMap.set(id, [])
-    }
-
-    vmsMap.get(id)!.push(vm)
-  })
-
-  return vmsMap
-}
-
-function extractVmHostId(vm: FrontXoVm) {
-  return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
-}

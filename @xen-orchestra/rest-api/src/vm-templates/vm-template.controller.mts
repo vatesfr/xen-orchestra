@@ -1,4 +1,19 @@
-import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, Delete, SuccessResponse, Put } from 'tsoa'
+import {
+  Delete,
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -21,6 +36,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 import {
   partialVmTemplates,
   vmTemplate,
@@ -30,6 +46,7 @@ import {
 import { VmService } from '../vms/vm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { vmExportCompressDeprecated } from '../middlewares/deprecated.middleware.mjs'
 
 @Route('vm-templates')
 @Security('*')
@@ -52,38 +69,53 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Returns all VM templates that match the following privilege:
+   * - resource: vm-template, action: read
+   *
    * @example fields "id,isDefaultTemplate,name_label"
    * @example filter "isDefaultTemplate?"
    * @example limit 42
    * */
   @Example(vmTemplateIds)
   @Example(partialVmTemplates)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('')
+  @Security('*', ['acl'])
   getVmTemplates(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmTemplate>>> {
-    return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+    return this.sendObjects(Object.values(this.getObjects({ filter })), req, {
+      limit,
+      privilege: { action: 'read', resource: 'vm-template' },
+    })
   }
 
   /**
    *
    * Export VM-template. Compress is only used for XVA format
    *
+   * Required privilege:
+   * - resource: vm-template, action: export
+   *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    */
+  @Extension('x-mcp-exposure', 'deny')
   @Get('{id}.{format}')
+  @Middlewares([acl({ resource: 'vm-template', action: 'export', objectId: 'params.id' }), vmExportCompressDeprecated])
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format, Invalid compress')
   async exportVmTemplate(
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'xva' | 'ova',
-    @Query() compress?: boolean
+    @Query() compress?: Parameters<VmService['export']>[2]['compress']
   ): Promise<Readable> {
     const stream = await this.#vmService.export(id as XoVmTemplate['id'], 'VM-template', {
       compress,
@@ -97,19 +129,30 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: read
+   *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    * */
   @Example(vmTemplate)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'read', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplate(@Path() id: string): Unbrand<XoVmTemplate> {
     return this.getObject(id as XoVmTemplate['id'])
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: delete
+   *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'delete', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -120,13 +163,18 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Returns all alarms that match the following privilege:
+   * - resource: alarm, action: read
+   *
    * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
    */
   @Example(genericAlarmsExample)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/alarms')
+  @Security('*', ['acl'])
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplateAlarms(
@@ -134,26 +182,35 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vmTemplate = this.getObject(id as XoVmTemplate['id'])
     const alarms = this.#alarmService.getAlarms({
       filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmTemplate.uuid}`,
-      limit,
     })
 
-    return this.sendObjects(Object.values(alarms), req, 'alarms')
+    return this.sendObjects(Object.values(alarms), req, {
+      path: 'alarms',
+      limit,
+      privilege: { action: 'read', resource: 'alarm' },
+    })
   }
 
   /**
+   * Returns all VDIs that match the following privilege:
+   * - resource: vdi, action: read
+   *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    * @example fields "VDI_type,id,name_label"
    * @example filter "VDI_type:user"
    * @example limit 42
    */
   @Example(vmTemplateVdis)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/vdis')
+  @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplateVdis(
@@ -161,14 +218,22 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+      path: obj => obj.type.toLowerCase() + 's',
+      limit,
+      privilege: { action: 'read', resource: 'vdi' },
+    })
   }
 
   /**
+   * Returns all messages that match the following privilege:
+   * - resource: message, action: read
+   *
    * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
@@ -176,7 +241,9 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    */
   @Example(messageIds)
   @Example(partialMessages)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/messages')
+  @Security('*', ['acl'])
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplateMessages(
@@ -184,15 +251,23 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const messages = this.getMessagesForObject(id as XoVmTemplate['id'], { filter, limit })
+    const messages = this.getMessagesForObject(id as XoVmTemplate['id'], { filter })
 
-    return this.sendObjects(Object.values(messages), req, 'messages')
+    return this.sendObjects(Object.values(messages), req, {
+      path: 'messages',
+      limit,
+      privilege: { action: 'read', resource: 'message' },
+    })
   }
 
   /**
+   * Returns all tasks that match the following privilege:
+   * - resource: task, action: read
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
@@ -200,7 +275,9 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
    */
   @Example(taskIds)
   @Example(partialTasks)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/tasks')
+  @Security('*', ['acl'])
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmTemplateTasks(
@@ -208,20 +285,31 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Path() id: string,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter, limit })
+  ): SendObjects<Partial<Unbrand<XoTask>>> {
+    const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter })
 
-    return this.sendObjects(Object.values(tasks), req, 'tasks')
+    return this.sendObjects(Object.values(tasks), req, {
+      path: 'tasks',
+      limit,
+      privilege: { action: 'read', resource: 'task' },
+    })
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: update:tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Put('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
@@ -229,11 +317,17 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
+   * Required privilege:
+   * - resource: vm-template, action: update:tags
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example tag "from-rest-api"
    */
+  @Extension('x-mcp-exposure', 'confirm')
   @Delete('{id}/tags/{tag}')
+  @Middlewares(acl({ resource: 'vm-template', action: 'update:tags', objectId: 'params.id' }))
   @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])

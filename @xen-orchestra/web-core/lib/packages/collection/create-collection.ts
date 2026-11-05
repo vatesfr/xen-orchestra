@@ -26,11 +26,17 @@ export function createCollection<
 
     const count = computed(() => flaggedItems.value.length)
 
-    const areAllOn = computed(() => items.value.length === count.value)
+    const areAllOn = computed(() => count.value > 0 && count.value === items.value.length)
 
     const areSomeOn = computed(() => count.value > 0)
 
     const areNoneOn = computed(() => count.value === 0)
+
+    const flaggedIds = computed(() => new Set(ids.value))
+
+    function isOn(id: TId) {
+      return flaggedIds.value.has(id)
+    }
 
     function toggle(id: TId, shouldBeFlagged?: boolean) {
       flagRegistry.toggleFlag(id, flag, shouldBeFlagged)
@@ -51,6 +57,7 @@ export function createCollection<
       areAllOn,
       areSomeOn,
       areNoneOn,
+      isOn,
       toggle,
       toggleAll,
       useSubset,

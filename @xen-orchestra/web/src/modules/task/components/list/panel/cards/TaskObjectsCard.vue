@@ -1,8 +1,6 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('object') }}
-    </UiCardTitle>
+  <UiPanelCard class="task-objects-card">
+    <UiPanelCardTitle size="medium" :label="t('object')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('id') }}</template>
@@ -12,15 +10,15 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -31,9 +29,7 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.task-objects-card {
   .content {
     display: flex;
     flex-direction: column;

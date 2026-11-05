@@ -34,7 +34,7 @@ declare module 'vhd-lib/disk-consumer/index.mjs' {
   export function toVhdStream(disk: RandomAccessDisk): Promise<Readable>
 }
 
-declare module '@xen-orchestra/backups/disks/openDiskChain.mjs' {
+declare module '@xen-orchestra/backup-archive/disks/openDiskChain.mjs' {
   import type { RemoteHandler } from '@xen-orchestra/fs'
   import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
@@ -42,18 +42,21 @@ declare module '@xen-orchestra/backups/disks/openDiskChain.mjs' {
     handler: RemoteHandler
     path: string
     until?: string
+    ignoreBlockIndexes?: boolean
   }): Promise<RandomAccessDisk>
 }
 
-declare module '@xen-orchestra/backups/disks' {
+declare module '@xen-orchestra/backup-archive/disks' {
   import type { RemoteHandler } from '@xen-orchestra/fs'
   import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
   export interface RemoteDisk extends RandomAccessDisk {
     getSizeOnDisk(): number
     getPath(): string
+    getPaths(): string[]
     getUuid(): string
     getParentUuid(): string
+    getParentPath(): string
     getMaxBlockCount(): number
   }
 
@@ -62,13 +65,20 @@ declare module '@xen-orchestra/backups/disks' {
     dispose: () => Promise<void>
   }
 
-  export function isDisk(handler: RemoteHandler, path: string): boolean
+  export function isDisk(path: string): boolean
 
-  export function openDisposableDisk(params: { handler: RemoteHandler; path: string }): Promise<DiskDisposable>
+  export function openDisposableDisk(params: {
+    handler: RemoteHandler
+    path: string
+    force?: boolean
+    ignoreBlockIndexes?: boolean
+  }): Promise<DiskDisposable>
 
+  // Returns a RemoteVhdDiskChain, which is a RemoteDisk exposing getPaths() over the whole lineage.
   export function openDiskChain(params: {
     handler: RemoteHandler
     path: string
     until?: string
-  }): Promise<RandomAccessDisk>
+    ignoreBlockIndexes?: boolean
+  }): Promise<RemoteDisk>
 }

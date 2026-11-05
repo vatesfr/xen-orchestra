@@ -1,8 +1,7 @@
 import { useTimeoutPoll } from '@vueuse/core'
-import type { MaybeRefOrGetter } from '@vueuse/shared'
 // eslint-disable-next-line import/namespace,import/default,import/no-named-as-default,import/no-named-as-default-member -- https://github.com/pamelafox/ndjson-readablestream/pull/13
 import readNDJSONStream from 'ndjson-readablestream'
-import { computed, isRef, toValue, watch } from 'vue'
+import { computed, isRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
 
 export function defineRequest<TState>(options: {
   url: string

@@ -1,12 +1,16 @@
-import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { XoTask } from '@vates/types'
+import { type FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { watch } from 'vue'
 
 /**
  * Normalize a Task error into a JS Error. Keep the original stacktrace
  */
-function normalizeError(taskError: Record<string, unknown>) {
+function normalizeError(taskError: Record<string, unknown> | undefined, taskId: FrontXoTask['id']) {
   const error = new Error()
+
+  if (taskError === undefined) {
+    error.message = `Task ${taskId} failed without error details`
+    return error
+  }
 
   if ('message' in taskError) {
     error.message = taskError.message as string
@@ -26,7 +30,7 @@ function normalizeError(taskError: Record<string, unknown>) {
 export function useXoTaskUtils() {
   const { useGetTaskById } = useXoTaskCollection()
 
-  async function monitorTask<TResult>(taskId: XoTask['id']): Promise<TResult> {
+  async function monitorTask<TResult>(taskId: FrontXoTask['id']): Promise<TResult> {
     const task = useGetTaskById(taskId)
 
     return new Promise((resolve, reject) => {
@@ -36,27 +40,30 @@ export function useXoTaskUtils() {
         reject(new Error(`task ID: ${taskId} never received`))
       }, 2000)
 
-      const stop = watch(
-        task,
-        task => {
-          if (task !== undefined) {
-            clearTimeout(timeout)
-            if (task.status === 'success') {
-              cleanup()
-              resolve(task.result as TResult)
-            } else if (task.status === 'failure') {
-              cleanup()
-              reject(normalizeError(task.result))
-            } else if (task.status !== 'pending') {
-              cleanup()
-              reject(normalizeError(task.result))
-            }
-          }
-        },
-        {
-          immediate: true,
+      const stop = watch(task, settle)
+
+      // The task may already be over (e.g. a fast action)
+      settle(task.value)
+
+      function settle(task: FrontXoTask | undefined) {
+        if (task === undefined) {
+          return
         }
-      )
+
+        clearTimeout(timeout)
+
+        if (task.status === 'pending') {
+          return
+        }
+
+        cleanup()
+
+        if (task.status === 'success') {
+          resolve(task.result as TResult)
+        } else {
+          reject(normalizeError(task.result, taskId))
+        }
+      }
 
       function cleanup() {
         stop()

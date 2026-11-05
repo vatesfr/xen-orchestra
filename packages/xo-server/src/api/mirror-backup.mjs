@@ -1,3 +1,5 @@
+import { assertValidSettingsExpression } from './_backupExpressions.mjs'
+
 const SCHEMA_SETTINGS = {
   type: 'object',
   properties: {
@@ -47,6 +49,8 @@ const MIRROR_BACKUP_FILTER = {
 }
 
 export function createJob({ schedules, ...job }) {
+  assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'vmFilter'])
+
   return this.createBackupNgJob('mirrorBackup', job, schedules).then(({ id }) => id)
 }
 
@@ -88,6 +92,8 @@ deleteJob.params = {
 }
 
 export function editJob(props) {
+  assertValidSettingsExpression(props.settings, ['healthCheckVmsWithTags', 'vmFilter'])
+
   return this.updateJob(props)
 }
 

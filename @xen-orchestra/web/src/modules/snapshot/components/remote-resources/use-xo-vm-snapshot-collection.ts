@@ -21,7 +21,8 @@ const vmSnapshotFields = [
 ] as const satisfies readonly (keyof XoVmSnapshot)[]
 
 export const useXoVmSnapshotCollection = defineRemoteResource({
-  url: `${BASE_URL}/vm-snapshots?fields=${vmSnapshotFields.join(',')}`,
+  url: `${BASE_URL}/vm-snapshots?fields=${vmSnapshotFields.join(',')}&ndjson=true`,
+  stream: true,
   initWatchCollection: () => useWatchCollection({ resource: 'VM-snapshot' }),
   initialData: () => [] as FrontXoVmSnapshot[],
   state: (snapshots, context) =>

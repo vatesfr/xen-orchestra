@@ -14,8 +14,8 @@ acme.setLogger(message => {
 
 // - create any missing parent directories
 // - replace existing files
-// - secure permissions (read-only for the owner)
-async function outputFile(path, content) {
+// - secure permissions (read-only for the owner by default, pass mode to override for scripts that need to be able to read the file)
+async function outputFile(path, content, mode = 0o400) {
   await fs.mkdir(dirname(path), { recursive: true })
   try {
     await fs.unlink(path)
@@ -24,7 +24,27 @@ async function outputFile(path, content) {
       throw error
     }
   }
-  await fs.writeFile(path, content, { flag: 'wx', mode: 0o400 })
+  await fs.writeFile(path, content, { flag: 'wx', mode })
+}
+
+const DNS_CHALLENGE_POLL_INTERVAL = 10000
+const DNS_CHALLENGE_DEFAULT_TIMEOUT = 30 * 60 * 1000
+
+async function waitForDoneFile(doneFile, timeout) {
+  const deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    try {
+      await fs.access(doneFile)
+      return
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, DNS_CHALLENGE_POLL_INTERVAL))
+  }
+  warn('DNS challenge timed out waiting for done file', { doneFile, timeoutMs: timeout })
+  throw new Error(`DNS challenge validation timed out after ${timeout}ms — done file never appeared: ${doneFile}`)
 }
 
 // from https://github.com/publishlab/node-acme-client/blob/master/examples/auto.js
@@ -33,6 +53,7 @@ class SslCertificate {
   #challengeCreateFn
   #challengeRemoveFn
   #delayBeforeRenewal = 30 * 24 * 60 * 60 * 1000 // 30 days
+  #retryAfter = 0
   #secureContext
   #updateSslCertificatePromise
 
@@ -62,7 +83,7 @@ class SslCertificate {
       return this.#secureContext
     }
 
-    if (this.#updateSslCertificatePromise === undefined) {
+    if (this.#updateSslCertificatePromise === undefined && Date.now() >= this.#retryAfter) {
       // not currently updating certificate
       //
       // ensure we only refresh certificate once at a time
@@ -76,7 +97,12 @@ class SslCertificate {
       return this.#secureContext
     }
 
-    return this.#updateSslCertificatePromise
+    if (this.#updateSslCertificatePromise === undefined) {
+      return undefined
+    }
+
+    const timeout = new Promise(resolve => setTimeout(() => resolve(undefined), 2 * 60 * 1000))
+    return Promise.race([this.#updateSslCertificatePromise, timeout])
   }
 
   async #save(certPath, cert, keyPath, key) {
@@ -89,7 +115,7 @@ class SslCertificate {
   }
 
   async #updateSslCertificate(config) {
-    const { cert: certPath, key: keyPath, acmeEmail, acmeDomain } = config
+    const { cert: certPath, key: keyPath, acmeEmail, acmeDomain, acmeDnsChallengeFile } = config
     try {
       let { acmeCa = 'letsencrypt/production' } = config
       if (!(acmeCa.startsWith('http:') || acmeCa.startsWith('https:'))) {
@@ -110,11 +136,50 @@ class SslCertificate {
       key = key.toString()
       debug('Successfully generated key and csr')
 
+      let challengeCreateFn, challengeRemoveFn, challengePriority
+      if (acmeDnsChallengeFile !== undefined) {
+        const { acmeDnsChallengeTimeout = DNS_CHALLENGE_DEFAULT_TIMEOUT } = config
+        challengePriority = ['dns-01']
+        challengeCreateFn = async (authz, _challenge, keyAuthorization) => {
+          const domain = `_acme-challenge.${authz.identifier.value}`
+          const doneFile = acmeDnsChallengeFile + '.done'
+          // remove any stale done file from an eventual previous failed attempt
+          try {
+            await fs.unlink(doneFile)
+          } catch (error) {
+            if (error.code !== 'ENOENT') {
+              throw error
+            }
+          }
+          await outputFile(acmeDnsChallengeFile, JSON.stringify({ domain, value: keyAuthorization }), 0o640)
+          info('DNS challenge file written, create the TXT record then create the done file to proceed', {
+            domain,
+            file: acmeDnsChallengeFile,
+            doneFile,
+          })
+          await waitForDoneFile(doneFile, acmeDnsChallengeTimeout)
+          await fs.unlink(doneFile)
+        }
+        challengeRemoveFn = async () => {
+          try {
+            await fs.unlink(acmeDnsChallengeFile)
+          } catch (error) {
+            if (error.code !== 'ENOENT') {
+              throw error
+            }
+          }
+        }
+      } else {
+        challengePriority = ['http-01']
+        challengeCreateFn = this.#challengeCreateFn
+        challengeRemoveFn = this.#challengeRemoveFn
+      }
+
       /* Certificate */
       const cert = await client.auto({
-        challengeCreateFn: this.#challengeCreateFn,
-        challengePriority: ['http-01'],
-        challengeRemoveFn: this.#challengeRemoveFn,
+        challengeCreateFn,
+        challengePriority,
+        challengeRemoveFn,
         csr,
         email: acmeEmail,
         skipChallengeVerification: true,
@@ -130,6 +195,7 @@ class SslCertificate {
       return this.#secureContext
     } catch (error) {
       warn(`couldn't renew ssl certificate`, { acmeDomain, error })
+      this.#retryAfter = Date.now() + 5 * 60 * 1000
     } finally {
       this.#updateSslCertificatePromise = undefined
     }

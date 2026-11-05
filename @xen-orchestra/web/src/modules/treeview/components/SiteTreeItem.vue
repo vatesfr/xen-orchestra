@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
     <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>
@@ -10,19 +10,34 @@
           variant="secondary"
           size="small"
         />
+        <MenuList placement="bottom-start">
+          <template #trigger="{ open, isOpen }">
+            <UiButtonIcon
+              v-tooltip="{
+                placement: 'top',
+                content: t('quick-actions'),
+              }"
+              accent="brand"
+              icon="action:more-actions"
+              size="small"
+              :selected="isOpen"
+              @click="open($event)"
+            />
+          </template>
+          <SiteTreeActions />
+        </MenuList>
       </template>
     </UiTreeItemLabel>
-    <template v-if="branch.hasChildren" #sublist>
-      <PoolTreeList :branches="branch.children" />
-    </template>
   </VtsTreeItem>
 </template>
 
 <script lang="ts" setup>
-import PoolTreeList from '@/modules/treeview/components/PoolTreeList.vue'
+import SiteTreeActions from '@/modules/site/components/actions/SiteTreeActions.vue'
 import type { SiteBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

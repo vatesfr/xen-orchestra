@@ -3,17 +3,19 @@ import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
+import { type AnyPrivilege, hasPrivilegeOn, type SupportedActions, type SupportedResource } from '@xen-orchestra/acl'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
-import { BASE_URL } from '../index.mjs'
+import { makeMarkdownTable } from '../helpers/markdown.helper.mjs'
 import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
-import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import { BASE_URL, NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 
@@ -36,13 +38,45 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends XoRecord = T>(
+  async sendObjects<Resource extends SupportedResource, Objects extends XoRecord = T>(
     objects: Objects[],
     req: Request,
-    path?: string | ((obj: Objects) => string)
+    opts?: {
+      path?: string | ((obj: Objects) => string)
+      privilege?: { action: SupportedActions<Resource>; resource: Resource }
+      limit?: number
+    }
   ): SendObjects<Objects> {
-    const mapper = makeObjectMapper(req, path)
-    const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
+    const mapper = makeObjectMapper(req, opts?.path)
+    const mappedObjects: (string | WithHref<Partial<Objects>>)[] = []
+
+    const user = this.restApi.getCurrentUser()
+    const userPrivileges = (
+      opts?.privilege !== undefined && user.permission !== 'admin'
+        ? await this.restApi.xoApp.getAclV2UserPrivileges(user.id)
+        : []
+    ) as AnyPrivilege[]
+
+    let limit = opts?.limit ?? Infinity
+    for (const object of objects) {
+      if (limit === 0) {
+        break
+      }
+
+      if (
+        opts?.privilege !== undefined &&
+        !hasPrivilegeOn({ user, userPrivileges, objects: object, ...opts.privilege })
+      ) {
+        continue
+      }
+
+      mappedObjects.push(mapper(object))
+      limit--
+    }
+
+    if (req.query.ndjson === 'true' && req.query.markdown === 'true') {
+      throw invalidParameters('Cannot use both ndjson and markdown output formats simultaneously')
+    }
 
     if (req.query.ndjson === 'true') {
       const res = req.res as ExResponse
@@ -51,8 +85,13 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const stream = Readable.from(makeNdJsonStream(mappedObjects))
 
       return stream
+    } else if (req.query.markdown === 'true') {
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+
+      return Readable.from([makeMarkdownTable(mappedObjects)])
     } else {
-      return mappedObjects
+      return mappedObjects as Awaited<SendObjects<Objects>>
     }
   }
 

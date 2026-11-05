@@ -4,12 +4,12 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Disposable } from 'promise-toolbox'
 import { createPredicate } from 'value-matcher'
+import { Task } from '@vates/task'
 
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
 
 import { Abstract } from './_Abstract.mjs'
 import { extractIdsFromSimplePattern } from '../../extractIdsFromSimplePattern.mjs'
-import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   _filterPredicate
@@ -20,6 +20,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     job,
     healthCheckSr,
     remoteAdapters,
+    runContext,
     schedule,
     settings,
     sourceRemoteAdapter,
@@ -40,10 +41,13 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._throttleGenerator = throttleGenerator
     this._throttleStream = throttleStream
     this._vmUuid = vmUuid
+    this._runContext = runContext
 
     const allSettings = job.settings
     const writers = new Set()
     this._writers = writers
+
+    this._compileHealthCheckPredicate()
 
     const [BackupWriter, AggregratedBackupWriter] = this._getRemoteWriters()
     if (settings.distributeBackups) {
@@ -54,7 +58,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
           config,
           healthCheckSr,
           job,
-          scheduleId: schedule.id,
+          schedule,
           vmUuid,
           settings,
         })
@@ -72,7 +76,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
             config,
             healthCheckSr,
             job,
-            scheduleId: schedule.id,
+            schedule,
             vmUuid,
             remoteId,
             settings: targetSettings,

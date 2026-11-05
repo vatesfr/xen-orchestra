@@ -9,7 +9,9 @@
 import type {
   XoApp,
   XoHost,
+  XoMessage,
   XoNetwork,
+  XoPbd,
   XoPif,
   XoPool,
   XoSr,
@@ -19,11 +21,12 @@ import type {
   XoVm,
   XoVmController,
 } from '@vates/types'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { getRandomValues } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import v8 from 'node:v8'
 
@@ -70,23 +73,37 @@ export interface VmLabelInfo {
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
   vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
+  startTime: number | null // Unix timestamp of VM boot (from vm.startTime)
+  power_state: string // VM power state (Running, Paused, Halted, Suspended)
+  vcpus?: number // vCPU count (vm.CPUs.max || number || 1), used to weight power share
+  host_id?: string // residence host/pool id (vm.$container); informative label only
+  pool_id: string
+  pool_name: string
+  tags?: string[]
 }
 
 export interface HostLabelInfo {
   name_label: string
   pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
   startTime: number | null // Unix timestamp of host boot (from host.startTime)
+  tags?: string[]
 }
 
 export interface SrLabelInfo {
   name_label: string
+  /**
+   * Mirrors `XoSr.SR_type` (kept in CamelCase to match the XAPI source field).
+   * Resolved into the `sr_type` snake_case OpenMetrics label by `transformMetric`.
+   */
+  SR_type: string
 }
 
 export interface LabelLookupData {
   vms: Record<XoVm['uuid'] | XoVmController['uuid'], VmLabelInfo>
   hosts: Record<XoHost['uuid'], HostLabelInfo>
   srs: Record<XoSr['uuid'], SrLabelInfo>
-  srSuffixToUuid: Record<string, XoSr['uuid']> // maps UUID suffix to full SR UUID
+  // Maps UUID truncations to full SR UUIDs; null marks a collision.
+  srTruncatedToUuid: Record<string, XoSr['uuid'] | null>
   vdiUuidToSrUuid: Record<XoVdi['uuid'], XoSr['uuid']> // maps VDI UUID to parent SR UUID
 }
 
@@ -98,8 +115,16 @@ interface XapiCredentialsPayload {
 export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_usage' | 'usage'> & {
   pool_id: string
   pool_name: string
+  content_type: XoSr['content_type']
+  /**
+   * Verbatim `XoSr.SR_type` (e.g. `'linstor'`, `'lvm'`, `'nfs'`). Emitted as
+   * the `sr_type` OpenMetrics label so Grafana queries can filter / split
+   * by storage technology.
+   */
+  sr_type: string
   host_id?: string
   host_name?: string
+  tags?: string[]
 }
 
 export interface XoMetricsData {
@@ -138,17 +163,257 @@ interface SrDataPayload {
   srs: SrDataItem[]
 }
 
+export type VdiDataItem = {
+  uuid: string
+  name_label: string
+  size: number
+  usage: number
+  sr_uuid: string
+  sr_name: string
+  /** SR_type of the parent SR, mirrored as the `sr_type` label. */
+  sr_type: string
+  pool_id: string
+  pool_name: string
+  vm_uuid?: string
+  vm_name?: string
+}
+
+interface VdiDataPayload {
+  vdis: VdiDataItem[]
+}
+
 export type HostStatusItem = Pick<XoHost, 'uuid' | 'name_label' | 'power_state' | 'enabled'> & {
   pool_id: string
   pool_name: string
+  tags?: string[]
 }
 
 interface HostStatusPayload {
   hosts: HostStatusItem[]
 }
 
+export type VmStatusItem = Pick<XoVm, 'uuid' | 'name_label' | 'power_state'> & {
+  pool_id: string
+  pool_name: string
+  tags?: string[]
+}
+
+interface VmStatusPayload {
+  vms: VmStatusItem[]
+}
+
+type HostPowerPayload = Record<string, number>
+
+/**
+ * XOSTOR cluster node entry.
+ *
+ * Represents a single LINSTOR node in a XOSTOR cluster, identified by
+ * its hostname. The role label distinguishes the pool master from satellites.
+ * The state label carries the raw status returned by linstor-manager.healthCheck.
+ */
+export interface XostorNodeItem {
+  node_name: string
+  role: 'master' | 'satellite'
+  state: string
+}
+
+/**
+ * XOSTOR cluster summary for a single LINSTOR-backed SR.
+ *
+ * `up` indicates whether the healthCheck call succeeded. When false, `nodes`
+ * is empty, `resourceCount` is 0, and `replicaStates` is `{}`; consumers
+ * should treat the cluster as unreachable rather than empty.
+ *
+ * `replicaStates` maps each `disk-state` value reported by `linstor-manager`
+ * (e.g., `UpToDate`, `Inconsistent`, `Outdated`, `Diskless`, `Unknown`) to the
+ * number of replicas across all resources in that state. The sum equals
+ * `# resources × replica_factor`.
+ */
+export interface XostorClusterItem {
+  sr_uuid: string
+  pool_id: string
+  pool_name: string
+  up: boolean
+  nodes: XostorNodeItem[]
+  resourceCount: number
+  replicaStates: Record<string, number>
+}
+
+export interface XostorPayload {
+  clusters: XostorClusterItem[]
+}
+
+/**
+ * One aggregated alarm bucket for a XOSTOR cluster.
+ *
+ * Counts the number of XAPI messages whose `name` matches `alarm_name` and
+ * whose `$object` is either the XOSTOR SR itself (`target_type='sr'`) or one
+ * of the hosts backing it via a PBD (`target_type='host'`).
+ */
+export interface XostorAlarmEntry {
+  alarm_name: string
+  target_type: 'sr' | 'host'
+  count: number
+}
+
+export interface XostorAlarmsItem {
+  sr_uuid: string
+  pool_id: string
+  pool_name: string
+  up: boolean
+  entries: XostorAlarmEntry[]
+}
+
+export interface XostorAlarmsPayload {
+  clusters: XostorAlarmsItem[]
+}
+
+/**
+ * One disk reported by `smartctl.py health` on a XOSTOR host.
+ *
+ * `status` is the raw overall-health string returned by the plugin
+ * (e.g. `"PASSED"`, `"FAILED"`, `"UNKNOWN"`). Verbatim — dashboards
+ * normalize via regex if they need to.
+ */
+export interface XostorSmartDevice {
+  device: string
+  status: string
+}
+
+/**
+ * SMART-health snapshot of a single XOSTOR host.
+ *
+ * `up` indicates whether the plugin call succeeded. When false, `devices`
+ * is empty and the host is considered unreachable for SMART data — most
+ * commonly because `smartctl.py` is not installed on the host.
+ */
+export interface XostorSmartHost {
+  sr_uuid: string
+  pool_id: string
+  pool_name: string
+  host_uuid: string
+  host_name: string
+  up: boolean
+  devices: XostorSmartDevice[]
+}
+
+export interface XostorSmartPayload {
+  hosts: XostorSmartHost[]
+}
+
+/**
+ * RPMs whose updates are relevant to a running XOSTOR cluster.
+ *
+ * Each entry must exactly match the `name` field reported by `updater.py
+ * check_update`, since matching is done by string equality. Update this set
+ * (and the parser) in lock-step if XCP-ng renames a LINSTOR-related package.
+ */
+export const XOSTOR_UPDATE_PACKAGES: ReadonlySet<string> = new Set([
+  'xcp-ng-linstor',
+  'xcp-ng-release-linstor',
+  'linstor-satellite',
+  'linstor-controller',
+  'xcp-ng-xapi-plugins',
+])
+
+/**
+ * One pending XOSTOR-related package update on a host.
+ *
+ * Severity is intentionally absent: XCP-ng's `updater.py check_update`
+ * payload does not carry advisory severity. Adding it as a constant
+ * `'Unknown'` would be misleading.
+ */
+export interface XostorUpdatePackage {
+  package: string
+}
+
+export interface XostorUpdateItem {
+  sr_uuid: string
+  pool_id: string
+  pool_name: string
+  host_uuid: string
+  host_name: string
+  up: boolean
+  packages: XostorUpdatePackage[]
+}
+
+export interface XostorUpdatesPayload {
+  hosts: XostorUpdateItem[]
+}
+
 // Union type for all XO objects we handle
 type XoObject = XoHost | XoPool | XoVm | XoVmController | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
+
+/**
+ * Names of XAPI message types treated as "alarms" by XO's web UI.
+ *
+ * Mirrors `isAlarm` in `packages/xo-server/src/utils.mjs`. Kept as a local
+ * constant because `xo-server-openmetrics` is a separate package without a
+ * runtime dependency on `xo-server`. Update both files in lock-step if XO
+ * grows the alarm-name set.
+ */
+const XAPI_ALARM_NAMES = new Set<string>(['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT'])
+
+/**
+ * Subset of `linstor-manager.healthCheck` response we consume.
+ *
+ * The plugin returns a JSON-encoded string. The shape is not versioned and
+ * can grow (the frontend tolerates `resources` being absent on older plugins).
+ * We only depend on the two top-level maps and treat everything else as
+ * untyped.
+ */
+interface XostorHealthCheckRaw {
+  nodes?: Record<string, unknown>
+  resources?: Record<string, unknown>
+}
+
+/**
+ * Time-based cache that serves stale values while reloading.
+ *
+ * `get()` returns the snapshot while fresh. Once expired it still returns
+ * it at once and starts one background reload, shared with any concurrent
+ * caller until the loader settles: a scrape never waits on a slow XAPI
+ * plugin call (a dead BMC makes `ipmitool.py` hang until its timeout).
+ * Only the first load, before any snapshot exists, is awaited and its error
+ * reaches the caller. A failed background reload is logged and drops the
+ * snapshot, so the next call loads in the foreground again.
+ *
+ * Served data can therefore be up to TTL + one scrape interval + load time old.
+ */
+export class TtlCache<T> {
+  #name: string
+  #ttlMs: number
+  #snapshot: { value: T; expiresAt: number } | undefined
+  #reload = coalesceCalls((load: () => Promise<T>) => {
+    const pending = load().then(value => {
+      this.#snapshot = { value, expiresAt: Date.now() + this.#ttlMs }
+      return value
+    })
+    // a background reload has no caller to reject into: report it here
+    pending.catch((error: unknown) => {
+      if (this.#snapshot !== undefined) {
+        logger.warn('background reload failed, dropping the stale snapshot', { cache: this.#name, error })
+        this.#snapshot = undefined
+      }
+    })
+    return pending
+  })
+
+  constructor(name: string, ttlMs: number) {
+    this.#name = name
+    this.#ttlMs = ttlMs
+  }
+
+  async get(load: () => Promise<T>): Promise<T> {
+    const now = Date.now()
+    const snap = this.#snapshot
+    if (snap !== undefined && snap.expiresAt > now) {
+      return snap.value
+    }
+    const pending = this.#reload(load)
+    return snap === undefined ? pending : snap.value
+  }
+}
 
 // ============================================================================
 // Constants
@@ -158,6 +423,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const logger = createLogger('xo:xo-server-openmetrics')
+
+/** Id under which xo-server registers this plugin (directory name minus the `xo-server-` prefix) */
+const PLUGIN_ID = 'openmetrics'
 
 /** Default port for the OpenMetrics HTTP server */
 const DEFAULT_PORT = 9004
@@ -171,6 +439,49 @@ const IPC_TIMEOUT_MS = 10_000
 /** Default timeout for graceful shutdown in milliseconds */
 const SHUTDOWN_TIMEOUT_MS = 5_000
 
+/**
+ * Cache lifetime for XOSTOR healthCheck payload (ms).
+ *
+ * Prometheus scrapes typically run every 15s; the LINSTOR controller is much
+ * slower to interrogate. Caching the healthCheck output for 60s keeps the
+ * controller idle between scrapes without making the dashboard noticeably
+ * stale.
+ */
+const XOSTOR_CACHE_TTL_MS = 60_000
+
+/** Timeout for a single XOSTOR healthCheck plugin call (ms). */
+const XOSTOR_HEALTHCHECK_TIMEOUT_MS = 8_000
+
+/**
+ * Cache lifetime for the per-host SMART payload (ms).
+ *
+ * SMART overall-status changes on a multi-hour scale; 5 minutes keeps
+ * hosts idle between scrapes without making dashboards stale.
+ */
+const XOSTOR_SMART_CACHE_TTL_MS = 300_000
+
+/** Timeout for a single `smartctl.py health` plugin call (ms). */
+const XOSTOR_SMART_TIMEOUT_MS = 10_000
+
+/**
+ * Cache lifetime for the per-host pending-update payload (ms).
+ *
+ * `updater.py check_update` triggers a yum metadata refresh, which is slow
+ * and hits the upstream repos. Pending updates change on a multi-hour
+ * timescale, so a 1 hour cache keeps hosts idle without sacrificing
+ * dashboard freshness in any operationally meaningful way.
+ */
+const XOSTOR_UPDATES_CACHE_TTL_MS = 3_600_000
+
+/** Timeout for a single `updater.py check_update` plugin call (ms). */
+const XOSTOR_UPDATES_TIMEOUT_MS = 30_000
+
+const IPMI_POWER_CACHE_TTL_MS = 60_000
+
+const IPMI_POWER_TIMEOUT_MS = 10_000
+
+export const POWER_SENSOR_REGEX = /^(pwr consumption|sys power|system power|power consumption|total_power)$/i
+
 // ============================================================================
 // Configuration Schema (exported for xo-server)
 // ============================================================================
@@ -182,10 +493,255 @@ export const configurationSchema = {
       type: 'string',
       title: 'Prometheus secret',
       description: 'Add this secret to http_config > authorization > credentials, and set type to Bearer',
-      default: Buffer.from(getRandomValues(new Uint32Array(8))).toString('hex'),
     },
   },
   additionalProperties: false,
+}
+
+/**
+ * Return the Prometheus bearer token, generating and persisting one on first use.
+ *
+ * The secret must survive an xo-server restart. It used to be a random
+ * `default` in `configurationSchema`: that expression is re-evaluated every
+ * time the module is loaded, and xo-server never saves the values it fills in
+ * from schema defaults, so each restart silently invalidated the token
+ * Prometheus was configured with.
+ *
+ * Exported for testability.
+ */
+export async function ensureSecret(
+  configuration: PluginConfiguration | undefined,
+  persist: (configuration: PluginConfiguration) => Promise<void>
+): Promise<string> {
+  const secret = configuration?.secret
+  if (secret !== undefined && secret !== '') {
+    return secret
+  }
+
+  const generated = randomBytes(32).toString('hex')
+  await persist({ secret: generated })
+  return generated
+}
+
+// ============================================================================
+// XOSTOR helpers (module scope)
+// ============================================================================
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms)
+    promise.then(
+      value => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      err => {
+        clearTimeout(timer)
+        reject(err)
+      }
+    )
+  })
+}
+
+/** UUID truncation lengths used by XAPI RRD legends. */
+export const SR_UUID_TRUNCATIONS: ReadonlyArray<number> = [8, 12, 16, 20]
+
+/**
+ * Insert every (prefix, suffix) truncation of `uuid` into `index`, mapping
+ * each truncation to the full UUID. XCP-ng RRD legends encode the SR as the
+ * first 8 chars of the UUID, but older / variant builds may use the suffix;
+ * indexing both keeps the SR-name and `sr_type` resolution stable across
+ * versions. Ambiguous truncations are marked with null to prevent incorrect
+ * cross-pool enrichment.
+ *
+ * Exported for testability.
+ */
+export function indexSrUuidTruncations(uuid: string, index: Record<string, string | null>): void {
+  for (const truncLen of SR_UUID_TRUNCATIONS) {
+    if (uuid.length < truncLen) continue
+    const prefix = uuid.slice(0, truncLen)
+    const suffix = uuid.slice(-truncLen)
+
+    for (const truncation of [prefix, suffix]) {
+      const indexedUuid = index[truncation]
+      if (indexedUuid === undefined) {
+        index[truncation] = uuid
+      } else if (indexedUuid !== uuid) {
+        index[truncation] = null
+      }
+    }
+  }
+}
+
+/**
+ * Set of host IDs that back a XOSTOR SR via its PBDs.
+ *
+ * Each PBD links one host to one SR; the set deduplicates in case the same
+ * host shows up via multiple PBDs (rare but possible).
+ */
+function xostorHostIdsFromPbds(sr: XoSr, allPbds: Record<string, XoPbd>): Set<string> {
+  const hostIds = new Set<string>()
+  for (const pbdId of sr.$PBDs) {
+    const pbd = allPbds[pbdId]
+    if (pbd !== undefined) {
+      hostIds.add(pbd.host)
+    }
+  }
+  return hostIds
+}
+
+function findLinstorGroupName(sr: XoSr, allPbds: Record<string, XoPbd>): string | undefined {
+  for (const pbdId of sr.$PBDs) {
+    const pbd = allPbds[pbdId]
+    if (pbd === undefined) continue
+    const cfg = pbd.device_config as Record<string, unknown>
+    const groupName = cfg['group-name']
+    if (typeof groupName === 'string' && groupName !== '') {
+      return groupName
+    }
+  }
+  return undefined
+}
+
+/**
+ * Aggregate the `disk-state` of every replica across all resources.
+ *
+ * For each resource → each node → first volume → `disk-state`, increment a
+ * bucket. A missing or non-string `disk-state` collapses into the `Unknown`
+ * bucket so that the sum of all buckets equals the total replica count.
+ */
+function countReplicaStates(resources: Record<string, unknown>): Record<string, number> {
+  const counts: Record<string, number> = {}
+  for (const resource of Object.values(resources)) {
+    if (resource === null || typeof resource !== 'object') continue
+    const nodes = (resource as { nodes?: unknown }).nodes
+    if (nodes === null || typeof nodes !== 'object') continue
+    for (const nodeInfo of Object.values(nodes as Record<string, unknown>)) {
+      if (nodeInfo === null || typeof nodeInfo !== 'object') continue
+      const volumes = (nodeInfo as { volumes?: unknown }).volumes
+      let state: string = 'Unknown'
+      if (Array.isArray(volumes) && volumes.length > 0) {
+        const first = volumes[0]
+        if (first !== null && typeof first === 'object') {
+          const rawState = (first as Record<string, unknown>)['disk-state']
+          if (typeof rawState === 'string' && rawState !== '') {
+            state = rawState
+          }
+        }
+      }
+      counts[state] = (counts[state] ?? 0) + 1
+    }
+  }
+  return counts
+}
+
+/**
+ * Try to coerce a XAPI plugin response to a `Record<string, unknown>`.
+ *
+ * Logs a warning and returns `undefined` when the payload is not a string of
+ * valid JSON object or not an object at all. Callers decide whether to
+ * surface this as a soft failure (return empty) or hard failure (throw).
+ */
+function tryParsePluginJson(raw: unknown, pluginLabel: string, contextId: string): Record<string, unknown> | undefined {
+  let value: unknown
+  if (typeof raw === 'string') {
+    try {
+      value = JSON.parse(raw)
+    } catch (err) {
+      logger.warn(`Failed to JSON-parse ${pluginLabel} response`, { contextId, error: err })
+      return undefined
+    }
+  } else {
+    value = raw
+  }
+  if (value === null || typeof value !== 'object') {
+    logger.warn(`Unexpected ${pluginLabel} shape (not an object)`, { contextId })
+    return undefined
+  }
+  return value as Record<string, unknown>
+}
+
+/**
+ * Validate and normalize the `smartctl.py health` plugin response.
+ *
+ * Real shape (confirmed against XCP-ng 8.3 and the consumer in
+ * `xo-web/src/xo-app/host/tab-advanced.js`): `{ [device]: string }` where
+ * the value is the overall-health string directly (e.g. `'PASSED'`).
+ * Older or variant builds may wrap each entry in `{ status: '...' }`; both
+ * shapes are accepted. Malformed entries collapse to `'UNKNOWN'`.
+ *
+ * Throws when the response is not a JSON object at all (caller catches and
+ * surfaces via `up: false`).
+ */
+function parseXostorSmartHealth(raw: unknown, hostUuid: string): XostorSmartDevice[] {
+  const obj = tryParsePluginJson(raw, 'smartctl.py', hostUuid)
+  if (obj === undefined) {
+    throw new Error('smartctl.py returned malformed payload')
+  }
+
+  const devices: XostorSmartDevice[] = []
+  for (const [device, entry] of Object.entries(obj)) {
+    let status: string = 'UNKNOWN'
+    if (typeof entry === 'string' && entry !== '') {
+      status = entry
+    } else if (entry !== null && typeof entry === 'object') {
+      const rawStatus = (entry as Record<string, unknown>).status
+      if (typeof rawStatus === 'string' && rawStatus !== '') {
+        status = rawStatus
+      }
+    }
+    devices.push({ device, status })
+  }
+  return devices
+}
+
+/**
+ * Validate `updater.py check_update` and extract XOSTOR-relevant packages.
+ *
+ * Expected shape: `{ [uuid: string]: { name?: string, ... } }` or an object
+ * with a top-level `error` field on failure (which we propagate as a throw
+ * so the host gets `up=false`).
+ *
+ * Matching against `XOSTOR_UPDATE_PACKAGES` is by exact equality of
+ * `entry.name`. Duplicates are deduped here; if multiple advisories target
+ * the same package, only one bucket is emitted.
+ */
+function parseXostorCheckUpdate(raw: unknown, hostUuid: string): XostorUpdatePackage[] {
+  const obj = tryParsePluginJson(raw, 'updater.py', hostUuid)
+  if (obj === undefined) {
+    throw new Error('updater.py returned malformed payload')
+  }
+  if (obj.error !== undefined && obj.error !== null) {
+    throw new Error(`updater.py error: ${String(obj.error)}`)
+  }
+
+  const seen = new Set<string>()
+  const packages: XostorUpdatePackage[] = []
+  for (const entry of Object.values(obj)) {
+    if (entry === null || typeof entry !== 'object') continue
+    const name = (entry as Record<string, unknown>).name
+    if (typeof name !== 'string' || name === '') continue
+    if (!XOSTOR_UPDATE_PACKAGES.has(name)) continue
+    if (seen.has(name)) continue
+    seen.add(name)
+    packages.push({ package: name })
+  }
+  return packages
+}
+
+function parseXostorHealthCheck(raw: unknown, srUuid: string): XostorHealthCheckRaw {
+  const obj = tryParsePluginJson(raw, 'linstor-manager.healthCheck', srUuid)
+  if (obj === undefined) {
+    return {}
+  }
+  const result: XostorHealthCheckRaw = {}
+  if (obj.nodes !== undefined && typeof obj.nodes === 'object' && obj.nodes !== null) {
+    result.nodes = obj.nodes as Record<string, unknown>
+  }
+  if (obj.resources !== undefined && typeof obj.resources === 'object' && obj.resources !== null) {
+    result.resources = obj.resources as Record<string, unknown>
+  }
+  return result
 }
 
 // ============================================================================
@@ -204,6 +760,11 @@ class OpenMetricsPlugin {
   #lastEluSnapshot = performance.eventLoopUtilization()
   #lastCpuUsage = process.cpuUsage()
   #eluSamplerInterval: ReturnType<typeof setInterval> | undefined
+
+  #xostorHealthCheckCache = new TtlCache<XostorPayload>('XOSTOR health', XOSTOR_CACHE_TTL_MS)
+  #xostorSmartCache = new TtlCache<XostorSmartPayload>('XOSTOR SMART', XOSTOR_SMART_CACHE_TTL_MS)
+  #xostorUpdatesCache = new TtlCache<XostorUpdatesPayload>('XOSTOR updates', XOSTOR_UPDATES_CACHE_TTL_MS)
+  #hostPowerCache = new TtlCache<HostPowerPayload>('host power', IPMI_POWER_CACHE_TTL_MS)
 
   constructor(xo: XoApp) {
     this.#xo = xo
@@ -254,11 +815,15 @@ class OpenMetricsPlugin {
       return
     }
 
+    const secret = await ensureSecret(this.#configuration, configuration =>
+      this.#xo.configurePlugin(PLUGIN_ID, configuration, true)
+    )
+
     // Port and bindAddress are fixed for security (server is behind xo-server proxy)
     const serverConfig: ServerConfiguration = {
       port: DEFAULT_PORT,
       bindAddress: DEFAULT_BIND_ADDRESS,
-      secret: this.#configuration?.secret ?? '',
+      secret,
     }
 
     logger.info('Starting OpenMetrics server', {
@@ -401,6 +966,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_VDI_DATA': {
+        const vdiData = this.#getVdiData()
+        this.#sendToChildNoWait({
+          type: 'VDI_DATA',
+          requestId: message.requestId,
+          payload: vdiData,
+        })
+        break
+      }
+
       case 'GET_HOST_STATUS': {
         const hostStatus = this.#getHostStatusData()
         this.#sendToChildNoWait({
@@ -408,6 +983,115 @@ class OpenMetricsPlugin {
           requestId: message.requestId,
           payload: hostStatus,
         })
+        break
+      }
+
+      case 'GET_VM_STATUS': {
+        const vmStatus = this.#getVmStatusData()
+        this.#sendToChildNoWait({
+          type: 'VM_STATUS',
+          requestId: message.requestId,
+          payload: vmStatus,
+        })
+        break
+      }
+
+      case 'GET_HOST_POWER': {
+        this.#getHostPowerData()
+          .then((hostPower: HostPowerPayload) => {
+            this.#sendToChildNoWait({
+              type: 'HOST_POWER',
+              requestId: message.requestId,
+              payload: hostPower,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect host power data', { error: err })
+            this.#sendToChildNoWait({
+              type: 'HOST_POWER',
+              requestId: message.requestId,
+              payload: {},
+            })
+          })
+        break
+      }
+
+      case 'GET_XOSTOR_DATA': {
+        this.#getXostorData()
+          .then((xostorPayload: XostorPayload) => {
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_DATA',
+              requestId: message.requestId,
+              payload: xostorPayload,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XOSTOR data', { error: err })
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_DATA',
+              requestId: message.requestId,
+              payload: { clusters: [] },
+            })
+          })
+        break
+      }
+
+      case 'GET_XOSTOR_ALARMS': {
+        try {
+          const alarmsPayload = this.#getXostorAlarms()
+          this.#sendToChildNoWait({
+            type: 'XOSTOR_ALARMS',
+            requestId: message.requestId,
+            payload: alarmsPayload,
+          })
+        } catch (err) {
+          logger.error('Failed to collect XOSTOR alarms', { error: err })
+          this.#sendToChildNoWait({
+            type: 'XOSTOR_ALARMS',
+            requestId: message.requestId,
+            payload: { clusters: [] },
+          })
+        }
+        break
+      }
+
+      case 'GET_XOSTOR_SMART': {
+        this.#getXostorSmartHealth()
+          .then((smartPayload: XostorSmartPayload) => {
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_SMART',
+              requestId: message.requestId,
+              payload: smartPayload,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XOSTOR SMART data', { error: err })
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_SMART',
+              requestId: message.requestId,
+              payload: { hosts: [] },
+            })
+          })
+        break
+      }
+
+      case 'GET_XOSTOR_UPDATES': {
+        this.#getXostorUpdates()
+          .then((updatesPayload: XostorUpdatesPayload) => {
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_UPDATES',
+              requestId: message.requestId,
+              payload: updatesPayload,
+            })
+          })
+          .catch((err: unknown) => {
+            logger.error('Failed to collect XOSTOR pending updates', { error: err })
+            this.#sendToChildNoWait({
+              type: 'XOSTOR_UPDATES',
+              requestId: message.requestId,
+              payload: { hosts: [] },
+            })
+          })
         break
       }
 
@@ -565,9 +1249,12 @@ class OpenMetricsPlugin {
         name_label: sr.name_label,
         pool_id: sr.$poolId,
         pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+        content_type: sr.content_type,
+        sr_type: sr.SR_type ?? '',
         size: sr.size,
         physical_usage: sr.physical_usage,
         usage: sr.usage,
+        tags: sr.tags,
       }
 
       // For local (non-shared) SRs, add host information
@@ -583,6 +1270,74 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning SR data', { srCount: srs.length })
     return { srs }
+  }
+
+  /**
+   * Get VDI data for disk size metrics.
+   * Returns virtual size and physical usage for all VDIs (excluding snapshots and unmanaged).
+   */
+  #getVdiData(): VdiDataPayload {
+    const vdis: VdiDataItem[] = []
+
+    // Get only the object types we need: SRs, VBDs, pools, VMs, VDIs
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allVbds = this.#xo.getObjects({ filter: { type: 'VBD' } }) as Record<string, XoVbd>
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Build VM lookup for resolving attached VMs via VBDs
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    // Map VM id -> VM object for quick lookup
+    const vmById = new Map<string, XoVm>()
+    for (const vm of Object.values(allVms)) {
+      vmById.set(vm.id, vm)
+    }
+
+    // Get all VDIs (excluding snapshots and unmanaged)
+    const allVdis = this.#xo.getObjects({ filter: { type: 'VDI' } }) as Record<string, XoVdi>
+
+    for (const vdi of Object.values(allVdis)) {
+      // Resolve SR
+      const sr = allSrs[vdi.$SR]
+      if (sr === undefined) {
+        continue
+      }
+
+      const vdiData: VdiDataItem = {
+        uuid: vdi.uuid,
+        name_label: vdi.name_label,
+        size: vdi.size,
+        usage: vdi.usage,
+        sr_uuid: sr.uuid,
+        sr_name: sr.name_label,
+        sr_type: sr.SR_type ?? '',
+        pool_id: sr.$poolId,
+        pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+      }
+
+      // Resolve attached VM via VBDs (use first found VM)
+      for (const vbdId of vdi.$VBDs) {
+        const vbd = allVbds[vbdId]
+        if (vbd !== undefined) {
+          const vm = vmById.get(vbd.VM)
+          if (vm !== undefined) {
+            vdiData.vm_uuid = vm.uuid
+            vdiData.vm_name = vm.name_label
+            break
+          }
+        }
+      }
+
+      vdis.push(vdiData)
+    }
+
+    logger.debug('Returning VDI data', { vdiCount: vdis.length })
+    return { vdis }
   }
 
   /**
@@ -608,11 +1363,380 @@ class OpenMetricsPlugin {
         enabled: host.enabled,
         pool_id: host.$poolId,
         pool_name: poolLabelMap.get(host.$poolId) ?? '',
+        tags: host.tags,
       })
     }
 
     logger.debug('Returning host status data', { hostCount: hosts.length })
     return { hosts }
+  }
+
+  /**
+   * Get VM status data for all VMs (excluding VM-controllers / dom0).
+   * Returns power_state for every VM.
+   */
+  #getVmStatusData(): VmStatusPayload {
+    const vms: VmStatusItem[] = []
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    const allVms = this.#xo.getObjects({ filter: { type: 'VM' } }) as Record<string, XoVm>
+
+    for (const vm of Object.values(allVms)) {
+      vms.push({
+        uuid: vm.uuid,
+        name_label: vm.name_label,
+        power_state: vm.power_state,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+        tags: vm.tags,
+      })
+    }
+
+    logger.debug('Returning VM status data', { vmCount: vms.length })
+    return { vms }
+  }
+
+  /**
+   * Collect XOSTOR cluster health data for every LINSTOR-backed SR.
+   *
+   * The healthCheck XAPI plugin call goes to the pool master and is
+   * relatively expensive; `TtlCache` caches the result for
+   * `XOSTOR_CACHE_TTL_MS` and coalesces concurrent scrapes.
+   *
+   * Per-SR failures are isolated: a failure on one cluster yields an
+   * `up: false` entry, leaving the other clusters' data intact.
+   */
+  #getXostorData(): Promise<XostorPayload> {
+    return this.#xostorHealthCheckCache.get(() => this.#collectXostorData())
+  }
+
+  async #collectXostorData(): Promise<XostorPayload> {
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const allPbds = this.#xo.getObjects({ filter: { type: 'PBD' } }) as Record<string, XoPbd>
+
+    const clusters: XostorClusterItem[] = []
+    for (const sr of Object.values(allSrs)) {
+      if (sr.SR_type !== 'linstor') {
+        continue
+      }
+
+      const pool = allPools[sr.$poolId]
+      const master = pool !== undefined ? allHosts[pool.master] : undefined
+      const poolName = pool?.name_label ?? ''
+
+      const groupName = findLinstorGroupName(sr, allPbds)
+
+      if (master === undefined || groupName === undefined) {
+        logger.warn('Skipping XOSTOR healthCheck (missing master or group-name)', {
+          srUuid: sr.uuid,
+          poolId: sr.$poolId,
+        })
+        clusters.push({
+          sr_uuid: sr.uuid,
+          pool_id: sr.$poolId,
+          pool_name: poolName,
+          up: false,
+          nodes: [],
+          resourceCount: 0,
+          replicaStates: {},
+        })
+        continue
+      }
+
+      try {
+        const xapi = this.#xo.getXapi(sr)
+        const rawResponse = await withTimeout(
+          xapi.callAsync<string>('host.call_plugin', master._xapiRef, 'linstor-manager', 'healthCheck', { groupName }),
+          XOSTOR_HEALTHCHECK_TIMEOUT_MS,
+          'linstor-manager healthCheck timed out'
+        )
+
+        const parsed = parseXostorHealthCheck(rawResponse, sr.uuid)
+        const nodes: XostorNodeItem[] = []
+        for (const [hostname, rawState] of Object.entries(parsed.nodes ?? {})) {
+          nodes.push({
+            node_name: hostname,
+            role: hostname === master.hostname ? 'master' : 'satellite',
+            state: typeof rawState === 'string' ? rawState : JSON.stringify(rawState),
+          })
+        }
+
+        clusters.push({
+          sr_uuid: sr.uuid,
+          pool_id: sr.$poolId,
+          pool_name: poolName,
+          up: true,
+          nodes,
+          resourceCount: Object.keys(parsed.resources ?? {}).length,
+          replicaStates: countReplicaStates(parsed.resources ?? {}),
+        })
+      } catch (error) {
+        logger.warn('XOSTOR healthCheck failed', { srUuid: sr.uuid, poolId: sr.$poolId, error })
+        clusters.push({
+          sr_uuid: sr.uuid,
+          pool_id: sr.$poolId,
+          pool_name: poolName,
+          up: false,
+          nodes: [],
+          resourceCount: 0,
+          replicaStates: {},
+        })
+      }
+    }
+
+    logger.debug('Returning XOSTOR data', { clusterCount: clusters.length })
+    return { clusters }
+  }
+
+  /**
+   * Aggregate XAPI alarm messages per XOSTOR cluster.
+   *
+   * Walks `xo.getObjects()` in-memory — no plugin call, no network IO, no
+   * cache (the call is sub-millisecond). For each LINSTOR-backed SR, counts
+   * the messages whose `name` is in `XAPI_ALARM_NAMES` and whose `$object`
+   * targets the SR (`target_type='sr'`) or one of the hosts backing it via
+   * a PBD (`target_type='host'`).
+   *
+   * A host shared between multiple XOSTOR SRs sees its alarms counted in
+   * each cluster it backs — by design, since an underlying host issue
+   * degrades every SR on that host.
+   */
+  #getXostorAlarms(): XostorAlarmsPayload {
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const xostorSrs = Object.values(allSrs).filter(sr => sr.SR_type === 'linstor')
+
+    // Skip the (potentially expensive) message-store scan on non-XOSTOR
+    // deployments. The message store on a busy XAPI can be in the thousands.
+    if (xostorSrs.length === 0) {
+      return { clusters: [] }
+    }
+
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const allPbds = this.#xo.getObjects({ filter: { type: 'PBD' } }) as Record<string, XoPbd>
+    const allMessages = this.#xo.getObjects({ filter: { type: 'message' } }) as Record<string, XoMessage>
+
+    const alarmMessages: XoMessage[] = []
+    for (const msg of Object.values(allMessages)) {
+      if (XAPI_ALARM_NAMES.has(msg.name)) {
+        alarmMessages.push(msg)
+      }
+    }
+
+    const clusters: XostorAlarmsItem[] = []
+    for (const sr of xostorSrs) {
+      const hostIds = xostorHostIdsFromPbds(sr, allPbds)
+
+      const buckets = new Map<string, XostorAlarmEntry>()
+      for (const msg of alarmMessages) {
+        const target = msg.$object
+        let targetType: 'sr' | 'host' | undefined
+        if (target === sr.id) {
+          targetType = 'sr'
+        } else if (hostIds.has(target)) {
+          targetType = 'host'
+        } else {
+          continue
+        }
+
+        const key = `${msg.name}|${targetType}`
+        const existing = buckets.get(key)
+        if (existing !== undefined) {
+          existing.count += 1
+        } else {
+          buckets.set(key, { alarm_name: msg.name, target_type: targetType, count: 1 })
+        }
+      }
+
+      clusters.push({
+        sr_uuid: sr.uuid,
+        pool_id: sr.$poolId,
+        pool_name: allPools[sr.$poolId]?.name_label ?? '',
+        up: true,
+        entries: [...buckets.values()],
+      })
+    }
+
+    logger.debug('Returning XOSTOR alarms', { clusterCount: clusters.length })
+    return { clusters }
+  }
+
+  /**
+   * Collect SMART overall-health for every host backing a XOSTOR PBD.
+   *
+   * Cached with `XOSTOR_SMART_CACHE_TTL_MS`. Each (sr, host) pair becomes its
+   * own `XostorSmartHost`. Per-host failures are isolated and surfaced via
+   * `up: false`; missing `smartctl.py` on a host is the same path.
+   */
+  #getXostorSmartHealth(): Promise<XostorSmartPayload> {
+    return this.#xostorSmartCache.get(() => this.#collectXostorSmartHealth())
+  }
+
+  async #collectXostorSmartHealth(): Promise<XostorSmartPayload> {
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const allPbds = this.#xo.getObjects({ filter: { type: 'PBD' } }) as Record<string, XoPbd>
+
+    const tasks: Array<Promise<XostorSmartHost>> = []
+    for (const sr of Object.values(allSrs)) {
+      if (sr.SR_type !== 'linstor') continue
+
+      const poolName = allPools[sr.$poolId]?.name_label ?? ''
+
+      for (const hostId of xostorHostIdsFromPbds(sr, allPbds)) {
+        const host = allHosts[hostId]
+        if (host === undefined) continue
+
+        tasks.push(this.#fetchHostSmart(sr, poolName, host))
+      }
+    }
+
+    const hosts = await Promise.all(tasks)
+    logger.debug('Returning XOSTOR SMART data', { hostCount: hosts.length })
+    return { hosts }
+  }
+
+  async #fetchHostSmart(sr: XoSr, poolName: string, host: XoHost): Promise<XostorSmartHost> {
+    const base = {
+      sr_uuid: sr.uuid,
+      pool_id: sr.$poolId,
+      pool_name: poolName,
+      host_uuid: host.uuid,
+      host_name: host.name_label,
+    }
+
+    try {
+      const xapi = this.#xo.getXapi(sr)
+      const rawResponse = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'smartctl.py', 'health', {}),
+        XOSTOR_SMART_TIMEOUT_MS,
+        'smartctl.py health timed out'
+      )
+      const devices = parseXostorSmartHealth(rawResponse, host.uuid)
+      return { ...base, up: true, devices }
+    } catch (error) {
+      logger.warn('smartctl.py health failed', { srUuid: sr.uuid, hostUuid: host.uuid, error })
+      return { ...base, up: false, devices: [] }
+    }
+  }
+
+  #getHostPowerData(): Promise<HostPowerPayload> {
+    return this.#hostPowerCache.get(() => this.#collectHostPowerData())
+  }
+
+  async #collectHostPowerData(): Promise<HostPowerPayload> {
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const readings = await Promise.all(Object.values(allHosts).map(host => this.#fetchHostPower(host)))
+
+    const watts: HostPowerPayload = {}
+    for (const reading of readings) {
+      if (reading !== undefined) {
+        watts[reading.hostId] = reading.watts
+      }
+    }
+    logger.debug('Returning host power data', { hostCount: Object.keys(watts).length })
+    return watts
+  }
+
+  async #fetchHostPower(host: XoHost): Promise<{ hostId: string; watts: number } | undefined> {
+    try {
+      const xapi = this.#xo.getXapi(host)
+      const available = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'ipmitool.py', 'is_ipmi_device_available', {}),
+        IPMI_POWER_TIMEOUT_MS,
+        'ipmitool.py is_ipmi_device_available timed out'
+      )
+      if (available === 'false') {
+        return undefined
+      }
+
+      const raw = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'ipmitool.py', 'get_all_sensors', {}),
+        IPMI_POWER_TIMEOUT_MS,
+        'ipmitool.py get_all_sensors timed out'
+      )
+      const sensors = JSON.parse(raw) as Array<{ name?: string; value?: string }>
+      const sensor = Array.isArray(sensors)
+        ? sensors.find(s => typeof s?.name === 'string' && POWER_SENSOR_REGEX.test(s.name))
+        : undefined
+      // ipmitool reports power as a numeric string, sometimes unit-suffixed
+      // (e.g. "210 Watts"); parseFloat strips the suffix, Number() would not.
+      const watts = sensor !== undefined ? Number.parseFloat(String(sensor.value)) : NaN
+      if (!Number.isFinite(watts)) {
+        return undefined
+      }
+      return { hostId: host.uuid, watts }
+    } catch (error) {
+      logger.info('ipmitool.py power read failed', { hostUuid: host.uuid, error })
+      return undefined
+    }
+  }
+
+  /**
+   * Collect pending XOSTOR-related package updates for every host backing a
+   * XOSTOR PBD.
+   *
+   * Cached with `XOSTOR_UPDATES_CACHE_TTL_MS` (1 h). `updater.py check_update`
+   * is yum-metadata-heavy and unsuitable for per-scrape invocation.
+   */
+  #getXostorUpdates(): Promise<XostorUpdatesPayload> {
+    return this.#xostorUpdatesCache.get(() => this.#collectXostorUpdates())
+  }
+
+  async #collectXostorUpdates(): Promise<XostorUpdatesPayload> {
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const allPbds = this.#xo.getObjects({ filter: { type: 'PBD' } }) as Record<string, XoPbd>
+
+    const tasks: Array<Promise<XostorUpdateItem>> = []
+    for (const sr of Object.values(allSrs)) {
+      if (sr.SR_type !== 'linstor') continue
+
+      const poolName = allPools[sr.$poolId]?.name_label ?? ''
+
+      for (const hostId of xostorHostIdsFromPbds(sr, allPbds)) {
+        const host = allHosts[hostId]
+        if (host === undefined) continue
+
+        tasks.push(this.#fetchHostUpdates(sr, poolName, host))
+      }
+    }
+
+    const hosts = await Promise.all(tasks)
+    logger.debug('Returning XOSTOR pending updates', { hostCount: hosts.length })
+    return { hosts }
+  }
+
+  async #fetchHostUpdates(sr: XoSr, poolName: string, host: XoHost): Promise<XostorUpdateItem> {
+    const base = {
+      sr_uuid: sr.uuid,
+      pool_id: sr.$poolId,
+      pool_name: poolName,
+      host_uuid: host.uuid,
+      host_name: host.name_label,
+    }
+
+    try {
+      const xapi = this.#xo.getXapi(sr)
+      const rawResponse = await withTimeout(
+        xapi.callAsync<string>('host.call_plugin', host._xapiRef, 'updater.py', 'check_update', {}),
+        XOSTOR_UPDATES_TIMEOUT_MS,
+        'updater.py check_update timed out'
+      )
+      const packages = parseXostorCheckUpdate(rawResponse, host.uuid)
+      return { ...base, up: true, packages }
+    } catch (error) {
+      logger.warn('updater.py check_update failed', { srUuid: sr.uuid, hostUuid: host.uuid, error })
+      return { ...base, up: false, packages: [] }
+    }
   }
 
   /**
@@ -762,7 +1886,7 @@ class OpenMetricsPlugin {
       vms: {},
       hosts: {},
       srs: {},
-      srSuffixToUuid: {},
+      srTruncatedToUuid: {},
       vdiUuidToSrUuid: {},
     }
 
@@ -771,6 +1895,7 @@ class OpenMetricsPlugin {
 
     const vms: (XoVm | XoVmController)[] = []
     const hosts: XoHost[] = []
+    const pools: XoPool[] = []
     const srs: XoSr[] = []
     const vbds: XoVbd[] = []
     const vdis: XoVdi[] = []
@@ -786,6 +1911,9 @@ class OpenMetricsPlugin {
           break
         case 'host':
           hosts.push(obj)
+          break
+        case 'pool':
+          pools.push(obj as XoPool)
           break
         case 'SR':
           srs.push(obj)
@@ -806,6 +1934,12 @@ class OpenMetricsPlugin {
           networks.push(obj)
           break
       }
+    }
+
+    // Build pool label map (uuid -> name_label) for VM enrichment
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of pools) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
     }
 
     // Build network name map (id -> name_label)
@@ -906,6 +2040,13 @@ class OpenMetricsPlugin {
         vbdDeviceToVdiName,
         vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
+        startTime: vm.startTime ?? null,
+        power_state: vm.power_state,
+        vcpus: vm.CPUs.max || vm.CPUs.number || 1,
+        host_id: vm.$container,
+        pool_id: vm.$poolId,
+        pool_name: poolLabelMap.get(vm.$poolId) ?? '',
+        tags: vm.tags,
       }
     }
 
@@ -923,26 +2064,16 @@ class OpenMetricsPlugin {
         name_label: host.name_label,
         pifDeviceToNetworkName,
         startTime: host.startTime,
+        tags: host.tags,
       }
     }
 
-    // Build SR labels with suffix mapping
     for (const sr of srs) {
       labels.srs[sr.uuid] = {
         name_label: sr.name_label,
+        SR_type: sr.SR_type ?? '',
       }
-
-      // Create suffix mappings for different suffix lengths (8, 12, 16 chars)
-      // SR metrics in RRD use truncated UUIDs
-      for (const suffixLen of [8, 12, 16, 20]) {
-        if (sr.uuid.length >= suffixLen) {
-          const suffix = sr.uuid.slice(-suffixLen)
-          // Only store if not already mapped (first match wins)
-          if (labels.srSuffixToUuid[suffix] === undefined) {
-            labels.srSuffixToUuid[suffix] = sr.uuid
-          }
-        }
-      }
+      indexSrUuidTruncations(sr.uuid, labels.srTruncatedToUuid)
     }
 
     logger.debug('Label lookup data built', {

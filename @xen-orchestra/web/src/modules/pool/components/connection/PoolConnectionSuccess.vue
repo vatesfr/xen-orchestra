@@ -59,12 +59,10 @@ const server = useGetServerById(() => serverId)
   .container {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 4rem;
   }
 
   .title {
-    text-align: center;
     color: var(--color-neutral-txt-primary);
   }
 
@@ -72,7 +70,6 @@ const server = useGetServerById(() => serverId)
     color: var(--color-neutral-txt-primary);
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 4rem;
     margin: 0 auto;
     width: 65%;
@@ -87,6 +84,7 @@ const server = useGetServerById(() => serverId)
 
     .action-buttons {
       display: flex;
+      justify-content: center;
       gap: 2.4rem;
 
       &.mobile {

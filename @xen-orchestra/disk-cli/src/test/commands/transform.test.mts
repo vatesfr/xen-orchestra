@@ -54,7 +54,7 @@ mock.module('@xen-orchestra/fs', {
   },
 })
 
-mock.module('@xen-orchestra/backups/disks', {
+mock.module('@xen-orchestra/backup-archive/disks', {
   namedExports: {
     // openDisk reads `currentLeafDisk` at call-time via closure.
     openDisposableDisk: () => Promise.resolve({ value: currentLeafDisk, dispose: leafDispose }),

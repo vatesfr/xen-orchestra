@@ -1,3 +1,4 @@
+import { createLogger } from '@xen-orchestra/log'
 import { RestApiClient } from './restApiClient.js'
 import { xoConnection } from './xoLibClient.js'
 import { VMRequest } from './requests/vm.js'
@@ -7,6 +8,9 @@ import { BackupRepositoryRequest } from './requests/misc.js'
 import { SRRequest } from './requests/sr.js'
 import { VDIRequest } from './requests/vdi.js'
 import { CleanupClient } from './cleanupClient.js'
+import { getRequiredEnv } from '../utils/index.js'
+
+const log = createLogger('dispatch')
 
 /**
  * Central orchestration client for XenOrchestra operations.
@@ -81,19 +85,13 @@ export class DispatchClient {
    * @throws {Error} If initialization fails or required environment variables are missing
    */
   async initialize() {
-    // Load environment variables
     const config = {
-      xoUrl: process.env.HOSTNAME,
-      username: process.env.USERNAME,
-      password: process.env.PASSWORD,
+      xoUrl: getRequiredEnv('HOSTNAME'),
+      username: getRequiredEnv('USERNAME'),
+      password: getRequiredEnv('PASSWORD'),
     }
 
-    // Validate configuration
-    if (!config.xoUrl || !config.username || !config.password) {
-      throw new Error('Missing required environment variables: HOSTNAME, USERNAME, PASSWORD')
-    }
-
-    console.log('🚀 Initializing XenOrchestra connections...')
+    log.debug('Initializing XenOrchestra connections')
 
     try {
       // Initialize REST API client
@@ -112,9 +110,9 @@ export class DispatchClient {
       this.vdi = new VDIRequest(this)
       this.cleanup = new CleanupClient(this)
 
-      console.log('✅ All connections established successfully')
+      log.debug('All connections established successfully')
     } catch (error) {
-      console.error('❌ Failed to initialize connections:', error.message)
+      log.warn('Failed to initialize connections', { error })
       throw error
     }
   }

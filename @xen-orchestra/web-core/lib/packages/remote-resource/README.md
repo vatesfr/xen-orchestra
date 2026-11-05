@@ -48,6 +48,48 @@ const useMyResource = defineRemoteResource({
 const { myResource, customProp } = useMyResource()
 ```
 
+### State
+
+When managing arrays, avoid using `computed` inside the `state` function. This can cause performance issues because each call to `computed` will perform a full iteration over `data` every time it's updated. For example, for a large collection of 10,000 elements, three calls to `computed` based on `data` will generate 30,000 iterations. Instead, use `watch` and a `forEach` loop, and distribute your data across multiple references (`ref`) so that `data` is only iterated over once with each modification.
+
+```typescript
+const useMyResource = defineRemoteResource({
+  url: '/api/path/to/resource',
+  initialData: () => [] as MyResource[],
+  state: (data) => {
+    const filteredResources = ref<MyResource[]>([])
+    const anotherFilteredResources = ref<MyResource[]>([])
+
+    watch(data, _data => {
+      const tmpFilteredResources: MyResource[] = []
+      const tmpAnotherFilteredResources: MyResource[] = []
+
+      _data.forEach(value => {
+        if(value.foo === 'Foo'){
+          tmpFilteredResources.push(value)
+        } else if (value.foo === 'Bar'){
+          tmpAnotherFilteredResources.push(value)
+        }
+      })
+
+      filteredResources.value = tmpFilteredResources
+      anotherFilteredResources.value = tmpAnotherFilteredResources
+    })
+
+    return {
+      myResource: data,
+      filteredResources,
+      anotherFilteredResources
+    }
+  },
+  onDataReceived: (currentData, receivedData) => {
+    deepMerge(currentData.value, receivedData)
+  }
+}
+
+
+```
+
 ## Context
 
 The context is available in the `$context` property of the returned state.
@@ -104,15 +146,17 @@ const { data } = useMyResource(() => id)
 
 By default, the resource will poll for updates every 30 seconds and cache the result for 10 seconds.
 
-This can be customized by passing the `pollingIntervalMs` and `cacheDurationMs` properties:
+This can be customized by passing the `pollingIntervalMs` and `cacheExpirationMs` properties:
 
 ```typescript
 const useMyResource = defineRemoteResource({
   url: '/api/path/to/resource',
   pollingIntervalMs: 60_000, // Poll every 60 seconds
-  cacheDurationMs: 5 * 60_000, // Cache for 5 minutes
+  cacheExpirationMs: 5 * 60_000, // Cache for 5 minutes
 })
 ```
+
+Set `cacheExpirationMs` to `false` to drop the cached data as soon as the last Component releases the resource.
 
 ## Watching a collection
 

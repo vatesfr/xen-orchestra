@@ -1,49 +1,27 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isSmall }">
-    <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
-        <UiButtonIcon
-          v-if="uiStore.isSmall"
-          v-tooltip="t('action:close')"
-          size="small"
-          variant="tertiary"
-          accent="brand"
-          icon="fa:angle-left"
-          @click="emit('close')"
-        />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
+  <VtsSidePanel :has-selection="!!network" class="pool-network-side-panel" @close="emit('close')">
+    <template v-if="network" #actions>
+      <VtsDeleteButton v-if="network.PIFs.length === 0" :busy="isDeletingNetworks" @click="deleteNetworks()" />
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open, isOpen }">
+          <UiButtonIcon
+            v-tooltip="copied && t('copied')"
             accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('action:edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon!')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('action:delete') }}
-          </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon!')" disabled accent="brand" size="small" icon="fa:ellipsis" />
-        </div>
-      </div>
+            size="small"
+            :icon="copied ? 'fa:check-circle' : 'action:more-actions'"
+            :selected="isOpen"
+            @click="open($event)"
+          />
+        </template>
+        <MenuItem accent="neutral" icon="action:copy" :disabled="!isClipboardSupported" @click="copy()">
+          {{ t('action:copy-info-json') }}
+        </MenuItem>
+      </MenuList>
     </template>
-    <template #default>
-      <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
-          {{ network.name_label }}
-        </UiCardTitle>
+    <template v-if="network" #default>
+      <UiPanelCard>
+        <UiPanelCardTitle :id="network.uuid" size="medium" :label="network.name_label" />
         <div class="content">
-          <!-- UUID -->
-          <VtsCodeSnippet :content="network.uuid" copy />
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
@@ -86,12 +64,9 @@
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
-      <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
-        <div class="typo-body-bold">
-          {{ t('pifs') }}
-          <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-        </div>
+      </UiPanelCard>
+      <UiPanelCard v-if="pifsCount && pifsCount > 0">
+        <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
         <table class="simple-table">
           <thead>
             <tr>
@@ -111,31 +86,32 @@
             <PifRow v-for="pif in pifs" :key="pif.uuid" :pif />
           </tbody>
         </table>
-      </UiCard>
+      </UiPanelCard>
     </template>
-  </UiPanel>
+  </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
+import MenuList from '@core/components/menu/MenuList.vue'
+import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network } = defineProps<{
-  network: XenApiNetwork
+  network?: XenApiNetwork
 }>()
 
 const emit = defineEmits<{
@@ -143,11 +119,12 @@ const emit = defineEmits<{
 }>()
 
 const { getPifsByNetworkRef } = usePifStore().subscribe()
-const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const pifs = computed(() => getPifsByNetworkRef(network.$ref))
+const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
+
+const pifs = computed(() => (network !== undefined ? getPifsByNetworkRef(network.$ref) : []))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
@@ -157,21 +134,21 @@ const networkVlan = computed(() => {
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : t('none')
 })
 
-const networkNbd = computed(() => (network.purpose[0] ? t('on') : t('off')))
+const networkNbd = computed(() => (network?.purpose[0] ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() =>
-  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
+  network?.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
 )
 
 const pifsCount = computed(() => pifs.value.length)
+
+const networkAsJson = computed(() => JSON.stringify(network))
+
+const { copy, copied, isSupported: isClipboardSupported } = useClipboard({ source: networkAsJson, legacy: true })
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.pool-network-side-panel {
   .content {
     display: flex;
     flex-direction: column;
@@ -194,22 +171,5 @@ const pifsCount = computed(() => pifs.value.length)
   .value:empty::before {
     content: '-';
   }
-}
-
-.mobile-drawer {
-  position: fixed;
-  inset: 0;
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>
