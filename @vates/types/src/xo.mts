@@ -483,6 +483,68 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+/**
+ * An ISO selected in a browser and streamed from it, which can be inserted in the CD drive of a VM
+ * while the browser stays connected
+ */
+export type XoBrowserMediaSession = {
+  id: Branded<'browser-media'>
+  /** File name of the ISO, as selected in the browser */
+  name: string
+  /** Size of the ISO, in bytes */
+  size: number
+  /** User whose browser serves the ISO */
+  userId: XoUser['id']
+  /** Timestamp of the browser connection */
+  createdAt: number
+  /** Total of the bytes read from the browser */
+  bytesRead: number
+  /** Timestamp of the last read from the browser */
+  lastReadAt?: number
+} & (
+  | {
+      /** Not inserted in any VM */
+      status: 'connected'
+      vmId?: undefined
+      vdiId?: undefined
+      insertedAt?: undefined
+      /** Why the last insertion failed */
+      error?: string
+    }
+  | {
+      /** Being inserted in a VM */
+      status: 'inserting'
+      /** VM the ISO is being inserted in */
+      vmId: XoVm['id']
+      vdiId?: undefined
+      insertedAt?: undefined
+      error?: undefined
+    }
+  | {
+      /** Inserted in the CD drive of a VM */
+      status: 'inserted'
+      /** VM the ISO is inserted in */
+      vmId: XoVm['id']
+      /** VDI inserted in the CD drive of the VM */
+      vdiId: XoVdi['id']
+      /** Timestamp of the end of the insertion */
+      insertedAt: number
+      error?: undefined
+    }
+  | {
+      /** Being ejected, or a failed insertion being undone */
+      status: 'ejecting'
+      /** VM the ISO is ejected from */
+      vmId: XoVm['id']
+      /** VDI inserted in the CD drive of the VM, unless the insertion failed before */
+      vdiId?: XoVdi['id']
+      /** Timestamp of the end of the insertion, unless it failed */
+      insertedAt?: number
+      /** Why the insertion failed */
+      error?: string
+    }
+)
+
 export type XoPlugin =
   | XoAuditPlugin
   | XoAuthGithubPlugin
@@ -748,6 +810,7 @@ export type XoTask = {
       | 'backup-job'
       | 'backup-log'
       | 'backup-repository'
+      | 'browser-media'
       | 'group'
       | 'plugin'
       | 'proxy'
@@ -964,6 +1027,7 @@ export type NonXapiXoRecord =
   | AnyXoJob
   | AnyXoLog
   | XoAuthenticationToken
+  | XoBrowserMediaSession
   | XoGroup
   | XoPlugin
   | XoProxy

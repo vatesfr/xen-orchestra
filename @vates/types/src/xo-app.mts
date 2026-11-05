@@ -6,6 +6,7 @@ import type {
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
+  XoBrowserMediaSession,
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
@@ -18,6 +19,7 @@ import type {
   XoSr,
   XoTask,
   XoUser,
+  XoVdi,
   XoVif,
   XoVm,
   XoVmBackupArchive,
@@ -394,6 +396,23 @@ export type XoApp = EventEmitter & {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
+  /** Every browser media session, whoever owns it; empty when the feature is disabled */
+  getAllBrowserMediaSessions(): XoBrowserMediaSession[]
+  getBrowserMediaSession(id: XoBrowserMediaSession['id']): XoBrowserMediaSession
+  /**
+   * Insert the ISO of a browser media session in the CD drive of a VM. Undone by `ejectBrowserMedia`,
+   * or when the browser disconnects.
+   *
+   * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
+   * starting a task.
+   */
+  insertBrowserMedia(params: {
+    id: XoBrowserMediaSession['id']
+    vmId: XoVm['id']
+  }): Promise<{ vdiId: XoVdi['id'] }>
+  assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
+  /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
+  ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
   getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>

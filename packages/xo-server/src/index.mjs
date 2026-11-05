@@ -1078,6 +1078,11 @@ export default async function main(args) {
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
 
+  // the browser serving an ISO, see the browser-media mixin
+  webServer.on('upgrade', (req, socket, head) => {
+    xo.handleBrowserMediaUpgrade(req, socket, head, proxyAddr(req, useForwardedHeaders))
+  })
+
   setUpStaticFiles(express, config.http.publicMounts)
 
   // Everything above is not protected by the sign in, allowing xo-cli
