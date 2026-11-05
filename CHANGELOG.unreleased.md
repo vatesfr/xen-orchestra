@@ -15,6 +15,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Auth/OIDC] Fix sign in with providers whose ID token only carries the minimal claims, as the OpenID specification requires once an access token is issued (e.g. SimpleSAMLphp, SATOSA): the username and the groups are then read from the userinfo endpoint (PR [#9648](https://github.com/vatesfr/xen-orchestra/pull/9648))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -38,6 +40,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-auth-oidc patch
 - xo-web minor
 
 <!--packages-end-->

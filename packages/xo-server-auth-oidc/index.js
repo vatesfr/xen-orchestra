@@ -75,6 +75,65 @@ Note: The \`openid\` scope is implicitly included.
 
 // ===================================================================
 
+// the claim each field of the profile of passport-openidconnect comes from
+// (https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js)
+const CLAIM_OF_PROFILE_FIELD = { displayName: 'name', email: 'email', id: 'sub', username: 'preferred_username' }
+
+function profileField(profile, usernameField) {
+  return usernameField === 'email' ? profile?.emails?.[0]?.value : profile?.[usernameField]
+}
+
+/**
+ * Whether the ID token carries the username: when an access token is issued, spec compliant
+ * providers only put the claims of the requested scopes in the userinfo response, not in the ID
+ * token (https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
+ *
+ * @param {string} usernameField
+ * @param {object} claims - of the ID token
+ * @returns {boolean}
+ */
+function hasUsername(usernameField, claims) {
+  return (
+    claims[CLAIM_OF_PROFILE_FIELD[usernameField] ?? usernameField] !== undefined || claims[usernameField] !== undefined
+  )
+}
+exports.hasUsername = hasUsername
+
+/**
+ * The username, from the userinfo response when it was fetched, then from the ID token.
+ *
+ * @param {string} usernameField
+ * @param {{ claims: object, idProfile?: object, uiProfile?: object }} sources
+ * @returns {string | undefined}
+ */
+function resolveUsername(usernameField, { claims, idProfile, uiProfile }) {
+  return (
+    profileField(uiProfile, usernameField) ??
+    profileField(idProfile, usernameField) ??
+    // a field the profile does not map
+    uiProfile?._json?.[usernameField] ??
+    claims[usernameField]
+  )
+}
+exports.resolveUsername = resolveUsername
+
+/**
+ * The groups of the user, from the userinfo response when it was fetched, then from the ID token.
+ *
+ * @returns {string[]}
+ */
+function resolveGroups({ claims, uiProfile }) {
+  const groups = uiProfile?._json?.groups ?? claims.groups
+  if (groups === undefined) {
+    return []
+  }
+  // Some OIDC auth provider send a string instead of an array when there is only 1 group
+  return Array.isArray(groups) ? groups : [groups]
+}
+exports.resolveGroups = resolveGroups
+
+// ===================================================================
+
 const WELL_KNOWN_ENDPOINT = '/.well-known/openid-configuration'
 
 class AuthOidc {
@@ -121,30 +180,41 @@ class AuthOidc {
       }
     }
 
+    const strategyOptions = {
+      ...conf,
+      // the userinfo endpoint is only asked when the ID token lacks the username, e.g. a spec
+      // compliant provider which issued an access token
+      skipUserProfile: (req, claims) => conf.userInfoURL === undefined || hasUsername(usernameField, claims),
+    }
+
     this.#unregisterPassportStrategy = xo.registerPassportStrategy(
-      new Strategy(conf, async (issuer, profile, context, idToken, done) => {
-        try {
-          const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
+      // the arity of the verify function tells passport-openidconnect to pass both profiles
+      new Strategy(
+        strategyOptions,
+        async (issuer, uiProfile, idProfile, context, idToken, accessToken, refreshToken, params, done) => {
+          try {
+            const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
+            const sources = { claims, idProfile, uiProfile }
 
-          let groups = []
-          if (claims.groups) {
-            // Some OIDC auth provider send a string instead of an array when there is only 1 group
-            groups = Array.isArray(claims.groups) ? claims.groups : [claims.groups]
+            const name = resolveUsername(usernameField, sources)
+            if (name === undefined) {
+              throw new Error(
+                `Could not find username: field "${usernameField}" is missing from the OIDC profile. Ensure the required scopes are configured and granted by your identity provider.`
+              )
+            }
+
+            const user = await xo.registerUser2('oidc:' + issuer, {
+              user: { id: idProfile.id, name },
+            })
+
+            await this._synchronizeGroups(user, resolveGroups(sources))
+
+            done(null, user)
+          } catch (error) {
+            done(error.message)
           }
-
-          // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
-          const { id } = profile
-          const user = await xo.registerUser2('oidc:' + issuer, {
-            user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
-          })
-
-          await this._synchronizeGroups(user, groups)
-
-          done(null, user)
-        } catch (error) {
-          done(error.message)
         }
-      }),
+      ),
       { label: 'OpenID Connect', name: 'oidc' }
     )
   }
