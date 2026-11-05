@@ -467,9 +467,10 @@ export default class BrowserMedia {
     session.error = undefined
     // what has been done so far, undone by #release
     const insertion = (session.insertion = { pool: xapi.pool.uuid, vmUuid: vm.uuid })
+    // e.g. the insertion was cancelled from the browser: an expected state, not a failure of xo-server
     const assertConnected = () => {
       if (session.closed) {
-        throw new Error('the browser disconnected during the insertion')
+        throw incorrectState({ actual: 'disconnected', expected: 'connected', object: session.id, property: 'status' })
       }
     }
     try {
