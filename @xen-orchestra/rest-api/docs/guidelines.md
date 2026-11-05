@@ -18,6 +18,8 @@ Naming is hard, building a coherent API is hard: ask/propose naming **before** s
 
 Use the `@Deprecated()` decorator if needed, and never remove a route without changing the API version.
 
+URLs must be written in `snake_case`.
+
 ### Resource consistency
 
 For a given resource (VMs, VIFs, users, etc.), property names must be consistent across all endpoints. The types and names of properties must also be coherent with the types in `@vates/types/xo.mts`.
@@ -37,6 +39,21 @@ PATCH /vms/:id
   name_label: 'Bar' // OK ✅
   nameDescription: 'Bar Foo' // Not OK ❌
 }
+```
+
+## Naming
+
+Always use the full name of a concept, never a shortened one, even if the context seems to make it obvious. This applies everywhere, not only to endpoints: route paths, RBAC resources, identifiers (variables, functions, types, files), JSDoc, OpenAPI descriptions, role descriptions, etc.
+
+```
+GET /backup-repositories/:id // OK ✅
+GET /repositories/:id        // Not OK ❌
+
+const backupRepository = ... // OK ✅
+const repository = ...       // Not OK ❌
+
+description: 'Full control over backup repositories' // OK ✅
+description: 'Full control over repositories'        // Not OK ❌
 ```
 
 ## Code organisation
@@ -102,7 +119,14 @@ In order not to pollute important decorators, all example structures should be i
 
 ## Actions
 
-REST API actions are reserved to user actions that won't fit the REST API. The REST API actions must use the `this.createAction` method to handle correctly synchronous and asynchronous mode.
+When to use an action?
+
+- anything that cannot be presented in REST format (e.g, SR.scan)
+- operations that can take a long time (e.g, mount live disk)
+
+An action endpoint must contain the `actions` segment in the URL (e.g. `/srs/:sr-id/actions/scan`, `/backup-archives/:ba-id/live_disks/:live-disk-id/actions/unmount`)
+
+REST API actions are reserved to user actions that won't fit the REST API. The REST API actions must use the `this.createAction` method (and must only be used for action endpoints) to handle correctly synchronous and asynchronous mode.
 
 If your action endpoint includes a request body, don't forget to add `params` to the `taskProperties` property (obfuscate sensitive params such as passwords)
 
@@ -246,3 +270,5 @@ Throw `noSuchObject(id, type)` to get an automatic 404 when the routing doesn't 
 - Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
 - Set `content-disposition: attachment; filename="…"` with a meaningful name built from domain labels (VM / disk / partition). Fold accents to ASCII and collapse anything outside `[\w.-]` so the header and the on-disk filename stay safe (also blocks header injection)
 - Tie the stream to the request lifetime (`req.on('close', () => stream.destroy())`) so a client disconnect doesn't leak the export
+- Export: return the stream (`Promise<Readable>`) and let the REST API pipe it to the response. Don't pipe it manually (`pipeline(stream, res)` + `Promise<void>`)
+- Import: tsoa has no decorator for a binary request body, so declare the `requestBody` manually in `tsoa.json` (`application/octet-stream`, `type: string`, `format: binary`) and leave a comment above the route (see `POST /pools/{id}/vms`)

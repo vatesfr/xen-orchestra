@@ -2,12 +2,12 @@
   <VtsTabularKeyValueRow :label="t('endpoint-url')" :value="form.formData.endpoint" />
   <VtsTabularKeyValueRow :label="t('https')">
     <template #value>
-      <VtsStatus :status="form.formData.useHttps" />
+      <VtsStatus :status="form.formData.useHttps === true" />
     </template>
   </VtsTabularKeyValueRow>
   <VtsTabularKeyValueRow v-if="form.formData.useHttps" :label="t('unauthorized')">
     <template #value>
-      <VtsStatus :status="form.formData.allowUnauthorized" />
+      <VtsStatus :status="form.formData.allowUnauthorized === true" />
     </template>
   </VtsTabularKeyValueRow>
   <VtsTabularKeyValueRow :label="t('region')" :value="form.formData.region" />

@@ -12,11 +12,11 @@ export class ThrottledDisk extends DiskPassthrough {
     const generator = await this.source.buildDiskBlockGenerator()
     //throttle want to be able to know the length of the data
     async function* generatorWithLength() {
-      for await (const { index, data } of generator) {
+      for await (const block of generator) {
+        // keep the other properties of the block (like the compression of a raw VHD directory block)
         yield {
-          index,
-          data,
-          length: data.length,
+          ...block,
+          length: block.data.length,
         }
       }
     }

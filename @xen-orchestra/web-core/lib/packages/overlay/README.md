@@ -241,6 +241,8 @@ useOverlayEscape(() => emit('dismiss'))
 
 Like `useOverlayTrigger()`, it works from any component rendered inside an overlay, and does nothing when the component is not rendered in an overlay.
 
+An Escape whose default has been prevented is ignored: a nested component that handles Escape itself calls `event.preventDefault()` to keep the overlay open.
+
 ## Composition: building your own composable
 
 `useOverlay` is designed to be wrapped in small, domain-specific composables:

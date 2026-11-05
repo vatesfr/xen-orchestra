@@ -5,12 +5,16 @@ import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
+import { REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 
 const { DEBUG } = process.env
 
 const { warn } = createLogger('xo:mixins:logs')
 export default class Logs {
   constructor(app) {
+    /**
+     * @type {import('@vates/types').XoApp}
+     */
     this._app = app
 
     app.hooks.on('clean', () => this._gc())
@@ -59,7 +63,14 @@ export default class Logs {
   }
 
   async _gc(keep = 2e4) {
-    const db = await this._app.getStore('logs')
+    const [db, backupLogs] = await Promise.all([
+      this._app.getStore('logs'),
+      this._app.getBackupNgLogs().catch(error => {
+        warn('cannot snapshot backup logs, no remove events for this GC', { error })
+        return {}
+      }),
+    ])
+    const removedBackupLogs = []
 
     let count = 1
     const { promise, resolve } = defer()
@@ -75,7 +86,13 @@ export default class Logs {
 
     const deleteEntry = key => {
       ++count
-      db.del(key, cb)
+      const backupLog = backupLogs[key]
+      db.del(key, error => {
+        if (error == null && backupLog?.message === 'backup') {
+          removedBackupLogs.push(backupLog)
+        }
+        cb()
+      })
     }
 
     const onData =
@@ -91,6 +108,15 @@ export default class Logs {
 
     await fromEvent(stream, 'end')
     cb()
+    await promise
+
+    if (removedBackupLogs.length > 0) {
+      this._app.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+      removedBackupLogs.forEach(backupLog => {
+        this._app.getBackupNgLogs(REMOVE_CACHE_ENTRY, backupLog.id)
+        this._app.backupLogsEe.emit('remove', undefined, backupLog)
+      })
+    }
 
     return promise
   }

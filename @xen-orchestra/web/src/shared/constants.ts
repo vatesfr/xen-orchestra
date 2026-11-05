@@ -1,4 +1,4 @@
-import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+import { SUPPORTED_VDI_EXPORT_FORMAT } from '@vates/types'
 
 export const XOA_NAME = 'Xen Orchestra Appliance'
 export const IS_XOA_BUILD = import.meta.env.VITE_XOA_BUILD === 'true'
@@ -29,13 +29,16 @@ export const RULE_STATUS = {
 
 export const ONE_GB = 1024 ** 3
 
+// sent by the API in place of a secret, see `@vates/obfuscate`
+export const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
+
 export const VDI_SOURCE = {
   EMPTY: 'empty',
   FILE: 'file',
   URL: 'url',
 } as const
 
-export type VdiExportFormat = Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+export type VdiExportFormat = Exclude<SUPPORTED_VDI_EXPORT_FORMAT, 'qcow2'>
 
 export const VDI_PAGE_CONTEXT = {
   VM: 'vm',

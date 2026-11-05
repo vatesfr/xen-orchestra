@@ -99,7 +99,7 @@ The _Xen Orchestra Appliance_ (XOA) is a VM with the whole stack pre-installed, 
 - **Always on**: as a daemon, it listens to and records every event of your infrastructure, around the clock, whether a client is watching or not. That is what makes always-up-to-date views, scheduled backup jobs and task history possible.
 - **Event driven**: `xo-server` subscribes to XAPI events instead of polling. Changes on a host or VM appear in your browser the moment they happen, and the server-side cache answers clients instantly, at any infrastructure size.
 - **A single connection point**: clients connect to `xo-server`, never to your hosts. Legacy thick clients opened connections from every admin workstation to every server; here one daemon holds one connection per pool, and any number of clients share it.
-- **A proxy for your hosts**: because everything flows through it, `xo-server` can expose VM consoles to clients that have no network access to the hosts, or stream a VM export from one pool straight into another (that is [warm migration](../manage-your-infrastructure/manage_infrastructure.md territory) without a file stop in between.
+- **A proxy for your hosts**: because everything flows through it, `xo-server` can expose VM consoles to clients that have no network access to the hosts, or stream a VM export from one pool straight into another (that is [warm migration](../manage-your-infrastructure/manage_infrastructure.md#warm-migration) territory) without a file stop in between.
 - **Pluggable**: features like LDAP authentication, load balancing, netbox synchronization or backup reports are [plugins](#plugins), not core patches.
 
 ### Events, not polling

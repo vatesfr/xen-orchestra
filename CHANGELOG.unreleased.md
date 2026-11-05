@@ -7,49 +7,18 @@
 
 > Security fixes and new features should go in this section
 
-- [Backup/Live mount] A connection to the iSCSI target that has not logged in yet, such as a port scan or a failed CHAP login, no longer interrupts the mounted disk (PR [#10465](https://github.com/vatesfr/xen-orchestra/pull/10465))
-- [Backup/Live mount] The mounted disk is reported as write-protected, so the guest sees it read-only instead of getting I/O errors on write, and the iSCSI target bounds the size of what a client can make it buffer (PR [#10566](https://github.com/vatesfr/xen-orchestra/pull/10566))
 - [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] `POST /rest/v0/acl-roles` now supports a `privileges` property, allowing privileges to be directly associated with the newly created role (PR [#10470](https://github.com/vatesfr/xen-orchestra/pull/10470))
-- [Tasks] Add link and object resolution to Tasks Overview panel, better text flow for resolved task names (PR [#10265](https://github.com/vatesfr/xen-orchestra/pull/10265))
-- [XO5/Settings/IPs] Show an example of the expected IP format when adding IPs to an IP pool (PR [#10522](https://github.com/vatesfr/xen-orchestra/pull/10522))
-- [BRs] Add backup repository create form (PR [#10271](https://github.com/vatesfr/xen-orchestra/pull/10271))
-- [REST API] SSE now supports the `backup-archive` collection: backups appearing, being merged or disappearing from a backup repository are pushed to the subscribers, instead of each client listing the repositories again to spot them. XO does not read a repository on its own, so the changes of a repository are pushed as it is listed — a listing by any client is enough — and the archives it already holds arrive as `add` events the first time it is listed after a restart (PR [#10472](https://github.com/vatesfr/xen-orchestra/pull/10472))
-- [Plugins/load balancer] Added VM-to-host affinity to force VMs to run on a given set of hosts if possible (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
-- [Plugins/load balancer] Improved migration decision making (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
-- [New VM] Allow removing existing (template) disks (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
-- [Pool] Add validation to the pool connection form (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
-- [XO6] All objects displayed in the UI are now updated in real time, except backup logs and backup archives which are still refreshed every 30 seconds (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
-- [REST API] Event subscriptions (`/rest/v0/events`) now support `authentication_token`: each user only receives events about their own tokens (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
-- [Side panels] Harmonize card titles across side panels (PR [#10289](https://github.com/vatesfr/xen-orchestra/pull/10289))
-- [Host] Add a condition to disable the detached action when the host is not running (PR [#10543](https://github.com/vatesfr/xen-orchestra/pull/10543))
-- [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
-- [New VM] Allow resizing existing (template) disks when a config drive is used (PR [#10359](https://github.com/vatesfr/xen-orchestra/pull/10359))
-- [Host] Add possibility to emergency shutdown a host (PR [#10412](https://github.com/vatesfr/xen-orchestra/pull/10412))
-- [Backup/Restore] Faster reading of the files of a remote, like the full backups (10 MiB chunks instead of 64 KiB) (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
-- [Mirror] The full mirrors between unencrypted remotes reuse the checksum of the source instead of computing it again (PR [#10537](https://github.com/vatesfr/xen-orchestra/pull/10537))
 - [REST API/VM] Experimental, administrators only: insert an ISO selected in a browser in the CD drive of a VM, without uploading it and without installing anything on the hosts (`POST /vms/{id}/actions/insert_browser_iso` and `/browser-media`). The ISO is ejected once the browser disconnects or stops being read. Enabled by default, `browserMedia.enabled = false` disables it (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Backups] Fix on distributed incremental replication and deleteFirst incorrectly disabled for non-distributed replication jobs (PR [#10452](https://github.com/vatesfr/xen-orchestra/pull/10452))
-- [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
-- [Host/VM] Fix the confirmation modal staying open and blocking the UI until the action was fully completed (PR [#10417](https://github.com/vatesfr/xen-orchestra/pull/10417))
-- [Dashboard] Fix cards staying in error state after a temporary failure to fetch data, until the page was reloaded (PR [#10516](https://github.com/vatesfr/xen-orchestra/pull/10516))
-- [backup] Properly detect a disk deleting while merging (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
-- [backup] Recover a deadlocked merge when the chain is out of retention (PR [#10424](https://github.com/vatesfr/xen-orchestra/pull/10424))
-- [Backups] Fix NBD reads failing after a reconnection, when the previous connection is closed late by the host (PR [#10456](https://github.com/vatesfr/xen-orchestra/pull/10456))
-- [Plugins/load balancer] Prevent inter-pool migrations triggered by affinity or anti-affinity (PR [#10207](https://github.com/vatesfr/xen-orchestra/pull/10207))
-- [REST API] Fix VM creation when destroying an existing VDI (PR [#10292](https://github.com/vatesfr/xen-orchestra/pull/10292))
-- [Pool] Display an error when connecting a pool that is already registered, instead of failing silently (PR [#10484](https://github.com/vatesfr/xen-orchestra/pull/10484))
-- [Backups] VMs with an `xo:no-bak=<reason>` tag are no longer listed as backed up by smart mode jobs (PR [#10450](https://github.com/vatesfr/xen-orchestra/pull/10450))
 - [Backup/Live mount] Fix mounts failing when xo-server runs without root on a system using iptables-legacy, instead of leaving the firewall alone (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 
 ### Packages to release
@@ -69,18 +38,15 @@
 <!--packages-start-->
 
 - @vates/iscsi minor
-- @vates/nbd-client patch
 - @vates/types minor
-- @xen-orchestra/backup-archive patch
 - @xen-orchestra/backups minor
-- @xen-orchestra/fs minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
+- @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
-- xo-server-load-balancer minor
 - xo-web minor
 
 <!--packages-end-->

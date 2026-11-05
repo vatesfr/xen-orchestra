@@ -282,7 +282,7 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `< 4.7`
+- `< 4.8`
 
 :::tip
 For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
@@ -479,7 +479,7 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_host_network_aggregated_transmit_bytes` | gauge   | Aggregated transmitted bytes per second                                |
 | `xcp_host_network_receive_bytes_total`       | counter | Network bytes received per interface                                   |
 | `xcp_host_network_transmit_bytes_total`      | counter | Network bytes transmitted per interface                                |
-| `xcp_host_power_consumption_watts`           | gauge   | Power consumption in watts (DCMI)                                      |
+| `xcp_host_power_consumption_watts`           | gauge   | Power consumption in watts (IPMI, falls back to RRD DCMI reading)      |
 | `xcp_host_running_vcpus`                     | gauge   | Total number of running vCPUs                                          |
 | `xcp_host_status`                            | gauge   | Host status (1 = current state, `power_state` and `enabled` in labels) |
 | `xcp_host_uptime_seconds`                    | gauge   | Host uptime in seconds since boot                                      |
@@ -519,6 +519,40 @@ Infrastructure metrics are prefixed with `xcp_` and XO management plane metrics 
 | `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                                                                   |
 | `xcp_vm_uptime_seconds`                | gauge   | VM uptime in seconds since boot (running VMs only)                                |
 | `xcp_vm_status`                        | gauge   | VM status (1 = current state, `power_state` in labels), including non-running VMs |
+| `xcp_vm_power_consumption_watts`       | gauge   | Estimated power consumption in watts (share of the host power, see below)         |
+
+#### Power Consumption Metrics
+
+XCP-ng/XenServer only measures power draw at the **host** level, through the server's BMC (IPMI/DCMI). Xen Orchestra uses it to expose two metrics:
+
+- **`xcp_host_power_consumption_watts`**: the host's measured power. When the host has an IPMI device, the value is read through the `ipmitool.py` XAPI plugin and carries a `source="ipmi"` label. In that case it replaces the RRD `DCMI-power-reading` series, so each host exposes a single power value. Hosts without IPMI keep the RRD DCMI value, if any. The IPMI reading is cached and refreshed every 60 s.
+- **`xcp_vm_power_consumption_watts`**: an **estimate** of each running VM's power consumption. Each host's measured power is split among the VMs running on it, in proportion to their CPU load:
+
+  ```
+  VM load  = xcp_vm_cpu_usage × number of vCPUs
+  VM power = host power × VM load / sum of the loads of all VMs on the host
+  ```
+
+How the estimate works:
+
+- The full host power is distributed: the sum of the VM estimates on a host equals the host's measured power. Nothing is lost or added, so the idle consumption of the host is also shared among its VMs.
+- The control domain (dom0) is excluded from the split and has no power series.
+- If the total CPU load on a host is close to zero, the host power is split equally among its VMs.
+- This metric is only available for VMs running on a host that reports its power consumption.
+
+Labels specific to these metrics:
+
+| Label           | Description                                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `source`        | `ipmi` when the host power is read from IPMI (on `xcp_host_power_consumption_watts`)                                        |
+| `estimate`      | Always `true`: the value is computed, not measured (on `xcp_vm_power_consumption_watts`)                                    |
+| `data_complete` | `false` when no CPU sample is available for the VM, whose load is then counted as 0; omitted when data is complete          |
+
+Like the other VM metrics, `xcp_vm_power_consumption_watts` carries the `host_id` and `host_name` labels of the host the VM is running on, so you can group the estimates per host.
+
+:::note
+This is an estimate based on CPU usage only. It does not take into account the power drawn by other components (disks, network, GPU, etc.) for a specific VM. Use it to compare VMs and follow trends, not as an exact measurement.
+:::
 
 #### SR Capacity Metrics
 
@@ -610,7 +644,7 @@ All metrics include these labels for filtering:
 | `uuid`              | Object UUID (host or VM)                                                                                                              |
 | `type`              | Object type (`host` or `vm`)                                                                                                          |
 | `content_type`      | XAPI SR content type (e.g. `user`, `disk`, `iso`), on SR capacity metrics and `xo_sr_total`                                          |
-| `host_name`         | Host name (for host metrics)                                                                                                          |
+| `host_name`         | Host name (for host metrics, and for VM metrics: name of the host the VM is running on)                                               |
 | `vm_name`           | VM name (for VM metrics)                                                                                                              |
 | `sr_uuid`           | Storage Repository UUID (for SR, VDI, XOSTOR, and resolved host disk metrics)                                                         |
 | `sr_name`           | Storage Repository name (for disk metrics)                                                                                            |
@@ -622,7 +656,7 @@ All metrics include these labels for filtering:
 | `core`              | CPU core number                                                                                                                       |
 | `vif`               | VIF index (for VM network metrics)                                                                                                    |
 | `sr`                | SR UUID suffix (for host disk metrics)                                                                                                |
-| `host_id`           | Host UUID (for local SR capacity metrics)                                                                                             |
+| `host_id`           | Host UUID (for local SR capacity metrics, and for VM metrics: host the VM is running on)                                              |
 | `is_control_domain` | Whether the VM is a control domain / dom0 (`true`/`false`)                                                                            |
 | `power_state`       | Power state: `Running`, `Halted`, `Unknown` (for `xcp_host_status`); `Running`, `Paused`, `Halted`, `Suspended` (for `xcp_vm_status`) |
 | `enabled`           | Whether the host is enabled: `true`/`false` (for `xcp_host_status`)                                                                   |
@@ -723,6 +757,21 @@ xcp_vm_cpu_usage{is_control_domain="false"} * 100
 
 # Top 5 user VMs by CPU (excluding dom0)
 topk(5, xcp_vm_cpu_usage{is_control_domain="false"}) * 100
+
+# Total measured power per pool (watts)
+sum by (pool_name) (xcp_host_power_consumption_watts)
+
+# Top 10 VMs by estimated power consumption (watts)
+topk(10, xcp_vm_power_consumption_watts)
+
+# Estimated VM power per host (equals the host's measured power)
+sum by (host_name) (xcp_vm_power_consumption_watts)
+
+# Estimated energy used by each VM over the last 24 hours (kWh)
+avg_over_time(xcp_vm_power_consumption_watts[24h]) * 24 / 1000
+
+# VMs whose power estimate is based on incomplete data
+xcp_vm_power_consumption_watts{data_complete="false"}
 
 # XO infrastructure totals
 xo_pool_total

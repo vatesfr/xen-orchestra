@@ -5,9 +5,10 @@ import { inject } from 'vue'
 
 /**
  * Calls the handler when Escape is pressed while the calling component is the
- * current (topmost) overlay and is not busy. The handler is expected to emit
- * the component's own close event, so that Escape goes through the exact same
- * pipeline as a pointer interaction.
+ * current (topmost) overlay, is not busy and the Escape has not been
+ * default-prevented. The handler is expected to emit the component's own close
+ * event, so that Escape goes through the exact same pipeline as a pointer
+ * interaction.
  */
 export function useOverlayEscape(handler: () => void) {
   const overlayKey = inject(IK_OVERLAY_KEY, undefined)
@@ -18,8 +19,8 @@ export function useOverlayEscape(handler: () => void) {
 
   const overlayStore = useOverlayStore()
 
-  onKeyStroke('Escape', () => {
-    if (!overlayStore.isCurrent(overlayKey.value)) {
+  onKeyStroke('Escape', event => {
+    if (event.defaultPrevented || !overlayStore.isCurrent(overlayKey.value)) {
       return
     }
 

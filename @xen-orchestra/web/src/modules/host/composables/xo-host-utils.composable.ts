@@ -3,7 +3,7 @@ import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
-import useRelativeTime from '@core/composables/relative-time.composable.ts'
+import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { createMapper, useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -17,7 +17,7 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const { vmsByHost } = useXoVmCollection()
 
-  const getHostStatus = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
+  const getHostStateDisplay = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
     {
       running: { text: t('host:status:running'), icon: 'status:running-circle' },
       halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
@@ -27,11 +27,15 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
     'unknown'
   )
 
-  function getRelativeStartTime(startTime: number) {
-    const date = computed(() => new Date(parseDateTime(startTime * 1000)))
+  const hostTimeAgo = useTimeAgo(() => new Date(parseDateTime((host.value.startTime ?? 0) * 1000)))
 
-    return useRelativeTime(date)
-  }
+  const relativeStartTime = computed(() => {
+    if (!host.value.startTime) {
+      return undefined
+    }
+
+    return hostTimeAgo.value
+  })
 
   const pendingStateOperation = computed(
     () =>
@@ -58,8 +62,8 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   )
 
   return {
-    getHostStatus,
-    getRelativeStartTime,
+    getHostStateDisplay,
+    relativeStartTime,
     isChangingState,
     currentOperation,
   }

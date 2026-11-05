@@ -28,17 +28,16 @@
       </BackupRepositoryFormRow>
     </div>
 
-    <div class="section">
+    <div v-if="!hideEncryption" class="section">
       <UiTitle>{{ t('options') }}</UiTitle>
 
       <UiAlert accent="info">
         {{ t('encryption-available-for-block-modes-only') }}
       </UiAlert>
 
-      <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
-
-      <BackupRepositoryFormRow v-if="bindings.encrypted.modelValue">
-        <BackupRepositoryFormTextInput v-bind="bindings.encryptionKey" />
+      <BackupRepositoryFormRow>
+        <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
+        <BackupRepositoryFormTextInput v-if="bindings.encrypted.modelValue" v-bind="bindings.encryptionKey" />
       </BackupRepositoryFormRow>
     </div>
   </div>
@@ -57,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   bindings: BackupRepositoryGeneralForm['bindings']
+  hideEncryption?: boolean
 }>()
 
 const { t } = useI18n()

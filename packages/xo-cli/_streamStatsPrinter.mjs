@@ -25,4 +25,8 @@ function printProgress(progress) {
   }
 }
 
-export const streamStatsPrinter = length => progressStream({ length, time: 1e3 }, printProgress)
+// length may come from an HTTP header (string or null)
+export const streamStatsPrinter = length => {
+  length = length == null ? undefined : Number(length)
+  return progressStream({ length: Number.isFinite(length) ? length : undefined, time: 1e3 }, printProgress)
+}
