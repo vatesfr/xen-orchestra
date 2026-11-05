@@ -7,7 +7,7 @@
     :is-detaching="isDetachingSelectedGroups"
     :detach-error-message="detachSelectedGroupsErrorMessage"
     @add="addGroups()"
-    @detach="detachSelectedGroups({ detached: true })"
+    @detach="detachSelectedGroups({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
       <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
@@ -122,7 +122,7 @@ const { HeadCells, BodyCells } = useGroupColumns({
             {
               label: t('action:detach'),
               icon: 'action:detach',
-              onClick: () => detachGroup({ detached: true }),
+              onClick: () => detachGroup({ detached: true, onSuccess: () => toggleSelection(group.id, false) }),
               disabled: !canDetachGroup.value,
               busy: isDetachingGroup.value,
               hint: detachGroupErrorMessage.value,
