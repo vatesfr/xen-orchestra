@@ -1,7 +1,7 @@
 <template>
   <TitleBar icon="fa:download">{{ t('action:deploy-xoa') }}</TitleBar>
   <div class="scroll-container">
-    <div v-if="deploying" class="status">
+    <div v-if="isDeployStarted" class="status">
       <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
       <!-- Error -->
@@ -255,7 +255,8 @@ const filteredNetworks = computed(() =>
   [...networks.value].sort((network1, network2) => (network1.name_label < network2.name_label ? -1 : 1))
 )
 
-const deploying = ref(false)
+const isDeploying = ref(false)
+const isDeployStarted = ref(false)
 const status = ref<string | undefined>()
 const error = ref<string | undefined>()
 const url = ref<string | undefined>()
@@ -265,8 +266,8 @@ const beforeWindowUnload = (event: BeforeUnloadEvent) => {
   event.preventDefault()
 }
 
-onBeforeRouteLeave(async () => {
-  if (deploying.value) {
+onBeforeRouteLeave(() => {
+  if (isDeploying.value) {
     if (!window.confirm(t('do-you-really-want-to-leave-this-page?'))) {
       return false
     }
@@ -278,9 +279,9 @@ onBeforeRouteLeave(async () => {
 })
 
 watch(
-  deploying,
-  deploying => {
-    if (deploying) {
+  isDeploying,
+  isDeploying => {
+    if (isDeploying) {
       window.addEventListener('beforeunload', beforeWindowUnload)
     } else {
       window.removeEventListener('beforeunload', beforeWindowUnload)
@@ -291,13 +292,14 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener('beforeunload', beforeWindowUnload)
-  if (deploying.value) {
+  if (isDeploying.value) {
     cancel()
   }
 })
 
 const resetValues = () => {
-  deploying.value = false
+  isDeployStarted.value = false
+  isDeploying.value = false
   status.value = undefined
   error.value = undefined
   url.value = undefined
@@ -396,7 +398,8 @@ async function deploy() {
     return
   }
 
-  deploying.value = true
+  isDeployStarted.value = true
+  isDeploying.value = true
 
   try {
     status.value = t('deploy-xoa-status:importing')
@@ -415,7 +418,7 @@ async function deploy() {
     const [vifRef] = (await xapi.call('VM.get_VIFs', [vmRef.value])) as string[]
     await xapi.call('VIF.destroy', [vifRef])
 
-    if (!deploying.value) {
+    if (!isDeploying.value) {
       return
     }
 
@@ -433,7 +436,7 @@ async function deploy() {
       },
     ])
 
-    if (!deploying.value) {
+    if (!isDeploying.value) {
       return
     }
 
@@ -468,7 +471,7 @@ async function deploy() {
 
     await Promise.all(promises)
 
-    if (!deploying.value) {
+    if (!isDeploying.value) {
       return
     }
 
@@ -480,7 +483,7 @@ async function deploy() {
       false, // force
     ])
 
-    if (!deploying.value) {
+    if (!isDeploying.value) {
       return
     }
 
@@ -493,7 +496,7 @@ async function deploy() {
     do {
       await new Promise(resolve => setTimeout(resolve, 1e3)) // Sleep 1s
       networks = await xapi.call('VM_guest_metrics.get_networks', [metricsRef])
-      if (!deploying.value) {
+      if (!isDeploying.value) {
         return
       }
     } while (--attempts > 0 && networks?.['0/ip'] === undefined)
@@ -517,7 +520,7 @@ async function deploy() {
     console.error(err)
     error.value = err?.message ?? err?.code ?? 'Unknown error'
   } finally {
-    deploying.value = false
+    isDeploying.value = false
   }
 }
 

@@ -19,6 +19,7 @@
 - [New/VM] Fix the storage table overflowing horizontally, which hid part of the delete button (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
 - [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#10898](https://github.com/vatesfr/xen-orchestra/pull/10898))
 - [VM/System] Display the default 4 MiB video RAM for HVM VMs that don't define it, as XO 6 does (PR [#10901](https://github.com/vatesfr/xen-orchestra/pull/10901))
+- [XOA deploy] Fix success and error screens not displayed at the end of the deployment (PR [#10715](https://github.com/vatesfr/xen-orchestra/pull/10715))
 
 ## **0.27.0** (2026-10-29)
 
