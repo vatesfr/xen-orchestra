@@ -6,7 +6,7 @@
     :can-detach="canDetachSelectedRoles"
     :is-detaching="isDetachingSelectedRoles"
     :detach-error-message="detachSelectedRolesErrorMessage"
-    @add="addRoles()"
+    @add="addRolesUnselected()"
     @detach="detachSelectedRoles({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
@@ -78,6 +78,12 @@ const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionB
   pageItems: () => paginatedRoles.value.filter(role => role.isDirect),
   getItemId: role => role.id,
 })
+
+async function addRolesUnselected() {
+  const addedRoles = await addRoles()
+
+  addedRoles.forEach(role => toggleSelection(role.id, false))
+}
 
 const hasNoDirectRoleOnPage = computed(() => paginatedRoles.value.every(role => !role.isDirect))
 
