@@ -36,7 +36,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
-import type { MaybeArray } from '@core/types/utility.type'
+import type { MaybeArray } from '@core/types/utility.type.ts'
 import { useToggle } from '@vueuse/shared'
 
 defineProps<{

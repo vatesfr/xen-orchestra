@@ -13,14 +13,13 @@ export const MAX_DELAY = 60e3
 // - connect(id): attempt the connection, throws on failure
 // - delay(ms): wait before the next attempt
 // - getServer(id): server record ({ enabled }), throws if the server was deleted
-// - getStatus(id): 'disconnected' | 'connecting' | 'connected'
 // - isFatal(error): optional, true for permanent errors not worth retrying
 // - isGone(error): optional, true when a getServer error means the server was deleted
 //
 // Resolves with the reason why the loop stopped, never rejects.
 export async function autoReconnect(
   id,
-  { connect, delay, getServer, getStatus, isFatal = () => false, isGone = () => true, log }
+  { connect, delay, getServer, isFatal = () => false, isGone = () => true, log }
 ) {
   for (const ms of fibonacci()
     .toMs()
@@ -41,7 +40,7 @@ export async function autoReconnect(
     if (!server.enabled) {
       return 'server disabled'
     }
-    if (getStatus(id) !== 'disconnected') {
+    if (server.status !== 'disconnected') {
       return 'already connected'
     }
 

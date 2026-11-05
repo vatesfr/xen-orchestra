@@ -21,25 +21,11 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
-  esxiLibraryInfo: 'The V2V tool needs the vddk library, provided by Broadcom. Please download it from their website',
-  esxiLibraryLink: 'Download link',
-
-  esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
-  esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
-  esxiLibraryManualInstall:
-    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
-  esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryInstalling:
-    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
   esxiProgressLinkText: 'Track progress',
-
-  esxiLibraryOutdated:
-    '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
   esxiCheckingPrerequisite: 'Checking prerequisite on XO',
   esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
 
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
-  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportRememberLogin: 'Remember connection in this browser',
   esxiImportRememberWarning:
@@ -605,6 +591,9 @@ const messages = {
   mergeBackupsSynchronously: 'Merge backups synchronously',
   mergeBackupsSynchronouslyTooltip:
     'This will use more resources on the backup thread, but ensure there is no locking error when chaining multiple backup jobs on the same remote',
+  synchronizedSnapshot: 'Synchronize snapshots',
+  synchronizedSnapshotTooltip:
+    'Snapshots all VMs together before transfer in order to get consistent restore points. Uses more disks, especially on thick-provisioned SRs',
   newBackupSelection: 'Select your backup type:',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
@@ -648,12 +637,13 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
+  editJobUsesExpressions: 'This job uses expressions which are not supported in XO 5, edit it in XO 6',
   preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
-  distributeBackups: 'Distribute backups accross backup repositories',
+  distributeBackups: 'Distribute backups across backup repositories',
   distributeBackupsInformation:
     'This will write exactly one backup archive of each VM instead of writing one per backup repository',
-  distributeReplications: 'Distribute replications accross the storage repositories',
+  distributeReplications: 'Distribute replications across the storage repositories',
   distributeReplicationsInformation:
     'This will write exactly one replication of each VM backup instead of writing one per storage repository',
   nbdConcurrency: 'Number of NBD connection per disk',
@@ -1057,7 +1047,10 @@ const messages = {
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
-  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  insecureNbdConnection: 'Insecure NBD Connection (not encrypted)',
+  insecureNbdConfirmTitle: 'Enable insecure NBD?',
+  insecureNbdConfirmBody:
+    'The disk data of the backups will travel unencrypted on this network. Only enable it on a network dedicated to backups and isolated from the VMs and the users (dedicated VLAN or physical network).',
   // ----- Pool patches tab -----
   multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   nVmsRunningOnLocalStorage:
@@ -1159,9 +1152,9 @@ const messages = {
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths: '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
-    'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
+    'This action will not be fulfilled if a VM is in a running state on shared SRs. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
-    'The host{nHosts, plural, one {} other {s}} will lose their connection to the SRs. Do you want to continue?',
+    'The host{nHosts, plural, one {} other {s}} will lose their connection to the shared SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
@@ -1264,6 +1257,10 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesOnHostMasterNotUpToDate:
+    'The pool master is not up to date. Installing patches on a host before its pool master can lead to severe issues. Update the pool master first, or use a rolling pool update.',
+  installAllPatchesOnHostMasterUnknown:
+    'Unable to check whether the pool master is up to date. Installing patches on a host before its pool master can lead to severe issues. Make sure the pool master is updated first, or use a rolling pool update.',
   installAllPatchesXostorWarning:
     'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
@@ -1289,6 +1286,34 @@ const messages = {
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
+  rpuRecoveryIncompleteTitle: 'Incomplete rolling pool update',
+  rpuRecoveryInterrupted:
+    'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryFailed:
+    'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+  rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
+  rpuRecoveryLastError: 'Last error:',
+  rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
+  rpuRecoveryRecordExists:
+    'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
+  rpuRecoverySucceeded:
+    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
+  rpuRecoveryFinalize: 'Finalize',
+  rpuRecoveryFinalizeConfirm:
+    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',
+  rpuRecoveryForceFinalizeConfirm:
+    'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
+  rpuRecoveryForceFinalizeUnknownConfirm:
+    'The record of the update could not be read, so what it changed and did not restore is unknown. Finalize anyway? Nothing will be restored: whatever the update left is abandoned, and the task records that the list is unknown.',
+  rpuUnrestoredHa: 'High Availability disabled',
+  rpuUnrestoredAutoPowerOn: 'Auto power on disabled',
+  rpuUnrestoredWlb: 'Workload Balancing disabled',
+  rpuUnrestoredLoadBalancer:
+    'Load balancer plugin unloaded. Unless xo-server restarted since the update, XO loads it again once the configured delay has elapsed (30 minutes by default): wait for it rather than finalizing or loading it manually',
+  rpuUnrestoredSchedule: 'Backup schedule disabled',
+  rpuUnrestoredHost: 'Host disabled',
+  rpuUnrestoredVm: 'VM away from its original host',
+  rpuUnrestoredHaltedPinnedVm: 'VM shut down for the update and not started again',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -2037,6 +2062,7 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsImmediate: 'Free delta disk space now',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
@@ -2174,6 +2200,20 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
+  vdiTargetSelectAction: 'For each VDI, choose what to do (optional)',
+  vdiTargetActionLabel: 'Action',
+  vdiTargetDestinationLabel: 'Destination',
+  vdiTargetRestore: 'Restore',
+  vdiTargetLiveMount: 'Live mount (read only)',
+  vdiTargetLiveRestore: 'Live restore (read/write)',
+  vdiTargetLiveRestoreUnavailable: 'Live restore (read/write): unavailable, the VM running XO or the proxy is unknown',
+  vdiTargetCacheSr: 'SR holding the written data…',
+  vdiTargetIgnore: 'Do not restore',
+  vdiTargetUseMainSr: 'Use main SR',
+  vdiTargetSrRequired: 'Select an SR for this disk or a main SR',
+  vdiTargetHostRequired: 'Select a host to live mount this disk on',
+  vdiTargetLiveRestoreIncomplete: 'Select a host to live restore this disk on, and an SR to hold its data',
+  vdiTargetIncompleteDestinations: 'Some disks have no destination yet',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
@@ -2211,6 +2251,8 @@ const messages = {
   importBackupModalSelectBackup: 'Select your backup…',
   importBackupModalSelectSr: 'Select a destination SR…',
   deleteOrphanedVdisModalTitle: 'Delete orphaned snapshot VDIs',
+  failedToDeleteVdisTitle: 'Delete VDI{nVdis, plural, one {} other {s}} failed',
+  failedToDeleteVdisMessage: 'Failed to delete {nVdis, number} VDI{nVdis, plural, one {} other {s}}.',
   deleteOrphanedVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} orphaned snapshot VDI{nVdis, plural, one {} other {s}}?',
   definitiveMessageModal: 'This operation is definitive.',
@@ -2244,7 +2286,6 @@ const messages = {
     'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
-  ignoreVdi: 'Ignore this VDI',
   selectDestinationSr: 'Select a destination SR',
 
   // ----- Servers -----
@@ -2550,6 +2591,7 @@ const messages = {
   // ----- IPs ------
   ipPoolName: 'Name',
   ipPoolIps: 'IPs',
+  ipPoolIpsPlaceholder: 'IPs, e.g. 192.168.0.1-192.168.0.254;192.168.1.10',
   ipPoolNetworks: 'Networks',
   ipsNoIpPool: 'No IP pools',
   ipsCreate: 'Create',
@@ -2638,11 +2680,15 @@ const messages = {
 
   // ----- XO cloud config -----
   backedUpXoConfigs: 'Backed up XO Configs',
+  disableXoConfigCloudBackupConfirm:
+    'XO config backups on Vates servers will be deleted after their expiration period (100 days). Ensure you export the XO config to your own environment',
   manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
   selectXoConfig: 'Select XO config',
   xoConfigCloudBackup: 'XO Config Cloud Backup',
   xoConfigCloudBackupTips:
     'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigAcknowledgment:
+    'I acknowledge that XO Config Cloud Backup is an optional feature outside the scope of my Vates VMS contract and does not replace my responsibility to maintain my own configuration backups. I enable it voluntarily, at my sole risk.',
   xoCloudConfigEnterPassphrase: 'Passphrase is required to encrypt backups',
   xoCloudConfigRestoreEnterPassphrase: 'Enter the passphrase:',
 
@@ -2695,6 +2741,8 @@ const messages = {
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   rpuShutdownPinnedVms:
     'The following VMs use a host-bound device (PCI passthrough, vGPU, SR-IOV VIFs) and cannot be migrated. They will be shut down before their host reboots and started again on it afterwards. Are you sure you want to continue?',
+  rpuPartiallyUpdatedPool:
+    'The master is already up to date but the following hosts are not, for example after an interrupted rolling pool update. This update will start from that state and only update these hosts. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
   setAsPreferred: 'Set as preferred',

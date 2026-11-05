@@ -1,8 +1,6 @@
 <template>
-  <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('resources') }}
-    </UiCardTitle>
+  <UiPanelCard class="vm-resources-card">
+    <UiPanelCardTitle size="medium" :label="t('resources')" />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('vcpus') }}</template>
@@ -40,7 +38,7 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
@@ -49,8 +47,8 @@ import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatSize } from '@core/utils/size.util.ts'
 import type { XoVdi } from '@vates/types'
 import { computed } from 'vue'
@@ -79,9 +77,7 @@ const formattedDiskSpace = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+.vm-resources-card {
   .content {
     display: flex;
     flex-direction: column;

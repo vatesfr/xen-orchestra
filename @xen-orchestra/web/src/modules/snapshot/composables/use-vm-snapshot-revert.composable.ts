@@ -17,14 +17,10 @@ export function useVmSnapshotRevert(rawSnapshot: MaybeRefOrGetter<FrontXoVmSnaps
   const { open: revertVmSnapshot } = useOverlay({
     component: () => import('@/modules/snapshot/components/modal/VmSnapshotRevertModal.vue'),
     events: {
-      onConfirm: async confirmedSnapshotBefore => {
+      onConfirm: confirmedSnapshotBefore => {
         snapshotBefore.value = confirmedSnapshotBefore
 
-        try {
-          await run()
-        } catch (error) {
-          console.error('Error when reverting to snapshot:', error)
-        }
+        run({ detached: true })
       },
       onCancel: true,
     },

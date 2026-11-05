@@ -4,7 +4,7 @@
     <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
       <slot />
     </UiLabel>
-    <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
+    <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea typo-body-regular" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
     <UiInfo v-if="slots.info" accent="info">
       <slot name="info" />
@@ -22,7 +22,7 @@
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import { toVariants } from '@core/utils/to-variants.util'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { useFocus } from '@vueuse/core'
 import { computed, useAttrs, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -79,6 +79,7 @@ const labelAccent = computed(() => {
   .textarea {
     border-radius: 0.4rem;
     border-width: 0.1rem;
+    border-style: solid;
     background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;

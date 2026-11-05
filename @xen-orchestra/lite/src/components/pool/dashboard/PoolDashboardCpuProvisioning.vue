@@ -22,10 +22,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ACTIVE_STATES } from '@/libs/utils'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { ACTIVE_STATES } from '@/libs/utils.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

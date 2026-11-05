@@ -12,6 +12,7 @@ import { logMiddleware } from './middlewares/log.middleware.mjs'
 import { mcpGateMiddleware } from './middlewares/mcp-gate.middleware.mjs'
 import { type OpenAPIV3 } from 'openapi-types'
 import { createExternalRouter, sendObjects } from './router/external-router.mjs'
+import { BASE_URL } from './helpers/utils.helper.mjs'
 
 export { sendObjects }
 
@@ -19,8 +20,6 @@ export { sendObjects }
 // https://github.com/nodejs/node/issues/51622
 const require = createRequire(import.meta.url)
 const swaggerOpenApiSpec = require('../open-api/spec/swagger.json') as OpenAPIV3.Document
-
-export const BASE_URL = '/rest/v0'
 
 const SWAGGER_UI_OPTIONS = {
   swaggerOptions: {

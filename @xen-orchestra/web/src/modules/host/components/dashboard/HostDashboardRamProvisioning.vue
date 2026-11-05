@@ -29,12 +29,12 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostRamProvisioning } from '@/modules/host/utils/xo-host.util.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -46,16 +46,7 @@ const { t } = useI18n()
 
 const { areHostsReady } = useXoHostCollection()
 
-const ramUsage = computed(() => {
-  const total = host.memory.size
-  const used = host.memory.usage
-
-  return {
-    total: formatSizeRaw(total, 0),
-    used: formatSizeRaw(used, 0),
-    free: formatSizeRaw(total - used, 0),
-  }
-})
+const ramUsage = computed(() => getHostRamProvisioning(host))
 </script>
 
 <style lang="postcss" scoped>

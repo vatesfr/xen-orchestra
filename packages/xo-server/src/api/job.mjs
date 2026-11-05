@@ -25,8 +25,11 @@ get.params = {
 }
 
 export async function create({ job }) {
-  if (!job.userId) {
-    job.userId = this.apiContext.user.id
+  const userId = this.apiContext.user.id
+  if (this.isJobSequence(job)) {
+    job = { ...job, createdBy: userId, updatedBy: userId, userId: job.userId ?? userId }
+  } else if (!job.userId) {
+    job = { ...job, userId }
   }
 
   return (await this.createJob(job)).id
@@ -62,6 +65,16 @@ create.params = {
 }
 
 export async function set({ job }) {
+  const currentJob = await this.getJob(job.id)
+  if (this.isJobSequence(currentJob)) {
+    const userId = this.apiContext.user.id
+    job = {
+      ...job,
+      createdBy: currentJob.createdBy,
+      updatedBy: userId,
+      userId: job.userId ?? userId,
+    }
+  }
   await this.updateJob(job)
 }
 

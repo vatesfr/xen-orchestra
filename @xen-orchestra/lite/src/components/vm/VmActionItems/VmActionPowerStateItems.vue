@@ -1,11 +1,23 @@
 <template>
-  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
+  <MenuItem
+    accent="neutral"
+    :busy="areVmsBusyToStart"
+    :disabled="!areVmsHalted"
+    icon="fa:play"
+    @click="xenApi.vm.start(vmRefs)"
+  >
     {{ t('action:start') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
+  <MenuItem accent="neutral" :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="object:host">
     {{ t('action:start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" icon="object:host" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+      <MenuItem
+        v-for="host in hosts"
+        :key="host.$ref"
+        accent="neutral"
+        icon="object:host"
+        @click="xenApi.vm.startOn(vmRefs, host.$ref)"
+      >
         <div class="wrapper">
           {{ host.name_label }}
           <div>
@@ -16,13 +28,26 @@
       </MenuItem>
     </template>
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" icon="fa:pause" @click="xenApi.vm.pause(vmRefs)">
+  <MenuItem
+    accent="neutral"
+    :busy="areVmsBusyToPause"
+    :disabled="!areVmsRunning"
+    icon="fa:pause"
+    @click="xenApi.vm.pause(vmRefs)"
+  >
     {{ t('pause') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" icon="fa:moon" @click="xenApi.vm.suspend(vmRefs)">
+  <MenuItem
+    accent="neutral"
+    :busy="areVmsBusyToSuspend"
+    :disabled="!areVmsRunning"
+    icon="fa:moon"
+    @click="xenApi.vm.suspend(vmRefs)"
+  >
     {{ t('action:suspend') }}
   </MenuItem>
   <MenuItem
+    accent="neutral"
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
     icon="fa:play"
@@ -31,6 +56,7 @@
     {{ t('action:resume') }}
   </MenuItem>
   <MenuItem
+    accent="neutral"
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
     icon="action:reboot"
@@ -39,6 +65,7 @@
     {{ t('action:reboot') }}
   </MenuItem>
   <MenuItem
+    accent="neutral"
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
     icon="action:force-reboot"
@@ -47,6 +74,7 @@
     {{ t('action:force-reboot') }}
   </MenuItem>
   <MenuItem
+    accent="neutral"
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
     icon="action:shutdown"
@@ -55,6 +83,7 @@
     {{ t('action:shutdown') }}
   </MenuItem>
   <MenuItem
+    accent="neutral"
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
     icon="action:force-shutdown"
@@ -66,14 +95,14 @@
 
 <script lang="ts" setup>
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
-import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { isVmOperationPending } from '@/libs/vm.ts'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { computed } from 'vue'

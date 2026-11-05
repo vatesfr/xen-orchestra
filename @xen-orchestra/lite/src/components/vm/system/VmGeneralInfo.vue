@@ -4,8 +4,8 @@
       {{ t('general-information') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('name')" :value="vm.name_label" />
-      <VtsTabularKeyValueRow :label="t('id')" :value="vm.uuid" />
+      <VtsTabularKeyValueRow :label="t('name')" :value="vm.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('id')" :value="vm.uuid" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="vm.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="vm.tags.length > 0" #value>
@@ -22,8 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'

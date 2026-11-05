@@ -27,8 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
+import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'

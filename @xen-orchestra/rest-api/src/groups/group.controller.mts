@@ -38,7 +38,6 @@ import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateGroupRequestBody } from './group.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { UserService } from '../users/user.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
@@ -53,11 +52,8 @@ import { aclRoleIds, partialAclRoles } from '../open-api/oa-examples/acl-role.oa
 @Tags('groups')
 @provide(GroupController)
 export class GroupController extends XoController<XoGroup> {
-  #userService: UserService
-
-  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     super('group', restApi)
-    this.#userService = userService
   }
 
   // --- abstract methods
@@ -288,7 +284,7 @@ export class GroupController extends XoController<XoGroup> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoUser>>> {
     const group = await this.getObject(id as XoGroup['id'])
-    const users = await Promise.all(group.users.map(id => this.#userService.getUser(id)))
+    const users = await Promise.all(group.users.map(id => this.restApi.xoApp.getUser(id, { obfuscatePassword: true })))
     return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
       path: 'users',
       limit,

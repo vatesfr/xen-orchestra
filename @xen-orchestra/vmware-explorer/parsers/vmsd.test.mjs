@@ -130,4 +130,22 @@ describe('parseVmsd', function () {
     // disk10 must not be mistaken for an index of disk1
     assert.deepEqual(snapshots[0].disks[10], { fileName: 'vm_10-000001.vmdk', node: 'scsi0:10' })
   })
+
+  it('does not let a malicious .vmsd pollute Object.prototype', function () {
+    try {
+      parseVmsd(
+        [
+          '.encoding = "UTF-8"',
+          'snapshot.current = "1"',
+          'snapshot0.uid = "1"',
+          'snapshot0.__proto__.polluted = "evil"',
+          'snapshot0.constructor.prototype.polluted = "evil"',
+        ].join('\n')
+      )
+
+      assert.equal({}.polluted, undefined)
+    } finally {
+      delete Object.prototype.polluted
+    }
+  })
 })

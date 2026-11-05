@@ -2,7 +2,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { TaskObjectSegment } from '@core/types/task.type.ts'
+import type { TaskObjectSegment } from '@core/components/ui/task-item/UiTaskItem.vue'
 import type { XoHost, XoPool, XoSr, XoVm } from '@vates/types'
 
 const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g
@@ -31,7 +31,7 @@ export function useXoTaskNameResolver() {
 
     const sr = getSrById(uuid as XoSr['id'])
     if (sr) {
-      return { text: sr.name_label }
+      return { text: sr.name_label, to: { name: '/sr/[id]/general', params: { id: uuid } } }
     }
 
     return undefined

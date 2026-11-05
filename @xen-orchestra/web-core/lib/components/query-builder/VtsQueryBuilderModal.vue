@@ -16,7 +16,7 @@ import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelBut
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsQueryBuilderGroup from '@core/components/query-builder/VtsQueryBuilderGroup.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
-import { type QueryBuilderGroup } from '@core/packages/query-builder/types'
+import { type QueryBuilderGroup } from '@core/packages/query-builder/types.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 

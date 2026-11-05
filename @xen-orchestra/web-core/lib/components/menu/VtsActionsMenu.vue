@@ -1,5 +1,5 @@
 <template>
-  <MenuList placement="bottom-start">
+  <MenuList placement="bottom-end">
     <template #trigger="{ open }">
       <UiButtonIcon
         v-tooltip="{
@@ -13,37 +13,15 @@
       />
     </template>
     <slot>
-      <MenuItem
-        v-for="(action, index) of actions"
-        :key="index"
-        :icon="action.icon"
-        :disabled="action.disabled"
-        :busy="action.busy"
-        :on-click="action.onClick"
-      >
-        {{ action.label }}
-        <i v-if="action.hint" class="em-dash-prefix">{{ action.hint }}</i>
-        <template v-if="isGroupAction(action)" #submenu>
-          <MenuItem
-            v-for="(child, childIndex) of action.children"
-            :key="childIndex"
-            :icon="child.icon"
-            :disabled="child.disabled"
-            :busy="child.busy"
-            :on-click="child.onClick"
-          >
-            {{ child.label }}
-            <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
-          </MenuItem>
-        </template>
-      </MenuItem>
+      <VtsActionItems :actions />
     </slot>
   </MenuList>
 </template>
 
 <script setup lang="ts">
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import type { ButtonIconSize } from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -67,6 +45,8 @@ type BaseActionItem = {
   icon?: IconName
   disabled?: boolean
   busy?: boolean
+  accent?: MenuItemAccent
+  separator?: boolean
 }
 
 export type LeafActionItem = BaseActionItem & {
@@ -80,8 +60,4 @@ export type GroupActionItem = BaseActionItem & {
 }
 
 export type ActionItem = LeafActionItem | GroupActionItem
-
-function isGroupAction(action: ActionItem): action is GroupActionItem {
-  return 'children' in action
-}
 </script>

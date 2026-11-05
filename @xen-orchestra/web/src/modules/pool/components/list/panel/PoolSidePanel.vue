@@ -1,8 +1,8 @@
 <template>
-  <VtsSidePanel :has-selection="!!server" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!server" class="pool-side-panel" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
-      <MenuList v-if="server.poolId !== undefined" placement="bottom-end">
+      <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiButtonIcon
             v-tooltip="{ placement: 'left', content: t('more-actions') }"
@@ -12,14 +12,15 @@
             @click="open($event)"
           />
         </template>
-        <PoolDownloadButton :pool-id="server.poolId" />
+        <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
+        <PoolForgetButton :server />
       </MenuList>
     </template>
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
       <template v-else>
-        <UiCard v-if="server.error === undefined" class="card-container">
-          <VtsCardObjectTitle :id="server.id" :label="server.label" icon="object:pool" />
+        <UiPanelCard v-if="server.error === undefined">
+          <UiPanelCardTitle :id="server.id" size="medium" :label="server.label" icon="object:pool" />
           <div class="content">
             <!-- Pool -->
             <VtsCardRowKeyValue>
@@ -59,17 +60,15 @@
               </template>
             </VtsCardRowKeyValue>
           </div>
-        </UiCard>
+        </UiPanelCard>
         <UiAlert v-else accent="danger">
           {{ t('connection-failed') }}
           <template #description>
             {{ t('unable-to-connect-to-the-pool') }}
           </template>
         </UiAlert>
-        <UiCard class="card-container">
-          <UiCardTitle>
-            {{ t('connection') }}
-          </UiCardTitle>
+        <UiPanelCard>
+          <UiPanelCardTitle size="medium" :label="t('connection')" />
           <!-- status -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('status') }}</template>
@@ -83,16 +82,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ t('master') }}</template>
             <template #value>
-              <UiLink
-                v-if="primaryHost !== undefined"
-                :icon="`object:host:${toLower(primaryHost.power_state)}`"
-                size="small"
-                :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
-                is-primary
-                :primary-tooltip="t('master')"
-              >
-                {{ primaryHost.name_label }}
-              </UiLink>
+              <HostLink v-if="primaryHost !== undefined" :host="primaryHost" size="small" />
             </template>
             <template v-if="primaryHost !== undefined" #addons>
               <VtsCopyButton :value="primaryHost.id" />
@@ -137,52 +127,35 @@
               <VtsStatus :status="server.allowUnauthorized" />
             </template>
           </VtsCardRowKeyValue>
-        </UiCard>
-        <UiCard v-if="hosts !== undefined">
-          <UiCardTitle>
-            <span>
-              {{ t('hosts') }}
-              <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
-            </span>
-          </UiCardTitle>
+        </UiPanelCard>
+        <UiPanelCard v-if="hosts !== undefined">
+          <UiPanelCardTitle size="medium" :label="t('hosts')" :counter="hosts.length" />
           <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" size="small">
             {{ t('no-data') }}
           </VtsStateHero>
           <template v-else>
-            <UiLink
-              v-for="host in hosts"
-              :key="host.id"
-              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-              :icon="`object:host:${toLower(host.power_state)}`"
-              size="small"
-            >
-              {{ host.name_label }}
-              <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="status:primary-circle" size="medium" />
-            </UiLink>
+            <HostLink v-for="host in hosts" :key="host.id" :host="host" size="small" />
           </template>
-        </UiCard>
-        <UiCard v-if="server.error">
-          <UiCardTitle>
-            {{ t('error') }}
-            <UiCounter :value="1" accent="danger" size="small" variant="primary" />
-          </UiCardTitle>
+        </UiPanelCard>
+        <UiPanelCard v-if="server.error">
+          <UiPanelCardTitle size="medium" :label="t('error')" :counter="{ value: 1, accent: 'danger' }" />
           <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
-        </UiCard>
+        </UiPanelCard>
       </template>
     </template>
   </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import PoolConnectionToggleButton from '@/modules/pool/components/actions/connection/PoolConnectionToggleButton.vue'
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
+import PoolForgetButton from '@/modules/pool/components/actions/forget/PoolForgetButton.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -190,16 +163,14 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -224,6 +195,7 @@ const connectionStatus = useMapper(
   {
     error: { accent: 'danger', text: t('unable-to-connect-to-the-pool') },
     disconnected: { accent: 'muted', text: t('disconnected') },
+    disconnecting: { accent: 'info', text: t('disconnecting') }, // TODO: fix when designed
     connected: { accent: 'success', text: t('connected') },
     connecting: { accent: 'info', text: t('connecting') },
   },
@@ -232,11 +204,7 @@ const connectionStatus = useMapper(
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.pool-side-panel {
   .content {
     display: flex;
     flex-direction: column;

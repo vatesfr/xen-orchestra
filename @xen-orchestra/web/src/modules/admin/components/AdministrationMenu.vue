@@ -1,11 +1,11 @@
 <template>
   <nav class="administration-menu" :aria-label="t('administration')">
-    <section v-for="section in sections" :key="section.titleKey" class="menu-section">
-      <div class="section-title typo-h6">{{ t(section.titleKey) }}</div>
-      <ul class="links">
-        <MenuItem v-for="item in section.items" :key="item.labelKey">
-          <UiLink size="small" class="link" :href="item.href" :to="item.to">
-            {{ t(item.labelKey) }}
+    <section v-for="(section, index) in sections" :key="index" class="menu-section">
+      <div class="section-title typo-h6">{{ section.title }}</div>
+      <ul class="menu-links">
+        <MenuItem v-for="(item, itemIndex) in section.items" :key="itemIndex" accent="neutral">
+          <UiLink size="small" class="menu-link" :href="item.href" :to="item.to" @click="closeSidebarOnSmallScreen()">
+            {{ item.label }}
           </UiLink>
         </MenuItem>
       </ul>
@@ -17,14 +17,16 @@
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useLeftSidebarStore } from '@core/packages/sidebar'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 type AdminMenuSection = {
-  titleKey: string
+  title: string
   items: {
-    labelKey: string
+    label: string
     href: string | undefined
     to: RouteLocationRaw | undefined
   }[]
@@ -33,19 +35,45 @@ type AdminMenuSection = {
 const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
+const uiStore = useUiStore()
+const leftSidebar = useLeftSidebarStore()
+
+function closeSidebarOnSmallScreen() {
+  if (uiStore.isSmall) {
+    leftSidebar.toggleExpand(false)
+  }
+}
+
 const sections = computed<AdminMenuSection[]>(() => [
   {
-    titleKey: 'user-management',
+    title: t('backup-and-replication'),
     items: [
-      { labelKey: 'users', href: undefined, to: { name: '/admin/user-management' } },
-      { labelKey: 'groups', href: buildXo5Route('/settings/groups'), to: undefined },
-      { labelKey: 'roles', href: buildXo5Route('/settings/acls'), to: undefined },
+      { label: t('jobs'), href: undefined, to: { name: '/admin/backup-and-replication/jobs' } },
       {
-        labelKey: 'ldap-auth-providers',
-        href: buildXo5Route('/settings/plugins?s=name%3A%2F%5Eauth-%2F'),
-        to: undefined,
+        label: t('backup-repositories'),
+        href: undefined,
+        to: { name: '/admin/backup-and-replication/backup-repositories' },
+      },
+      { label: t('archives'), href: buildXo5Route('/backup/restore'), to: undefined },
+      { label: t('logs'), href: undefined, to: { name: '/admin/backup-and-replication/logs' } },
+    ],
+  },
+  {
+    title: t('user-management'),
+    items: [
+      { label: t('users'), href: undefined, to: { name: '/admin/user-management' } },
+      { label: t('groups'), href: buildXo5Route('/settings/groups'), to: undefined },
+      { label: t('roles'), href: buildXo5Route('/settings/acls'), to: undefined },
+      {
+        label: t('ldap-auth-providers'),
+        href: undefined,
+        to: { name: '/admin/plugins', query: { 'qb.plugins': 'name:/^auth-/' } },
       },
     ],
+  },
+  {
+    title: t('settings'),
+    items: [{ label: t('plugins'), href: undefined, to: { name: '/admin/plugins' } }],
   },
 ])
 </script>
@@ -70,12 +98,11 @@ const sections = computed<AdminMenuSection[]>(() => [
     border-block-start: 0.1rem solid var(--color-neutral-border);
   }
 
-  .links {
+  .menu-links {
     margin: 0;
     padding: 0.4rem 0;
-    list-style: none;
 
-    .link {
+    .menu-link {
       flex-grow: 1;
       padding-block: 1.2rem;
       text-decoration: none;

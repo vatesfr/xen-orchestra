@@ -1,11 +1,17 @@
 <template>
-  <VtsSidePanel :has-selection="!!network" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!network" class="network-side-panel" @close="emit('close')">
     <template v-if="network" #actions>
       <VtsDeleteButton :busy="isDeletingNetworks" @click="deleteNetworks()" />
     </template>
     <template v-if="network" #default>
-      <UiCard class="card-container">
-        <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" :href="networkHref" />
+      <UiPanelCard>
+        <UiPanelCardTitle
+          :id="network.id"
+          size="medium"
+          :label="network.name_label"
+          icon="object:network"
+          :href="networkHref"
+        />
         <div class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
@@ -51,7 +57,7 @@
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <NetworkPifsInfoCard :network />
     </template>
   </VtsSidePanel>
@@ -64,11 +70,11 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -108,11 +114,7 @@ const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.network-side-panel {
   .content {
     display: flex;
     flex-direction: column;

@@ -5,6 +5,7 @@ import { pipeline } from 'readable-stream'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
+import { assertValidSettingsExpression, assertValidExpression } from './_backupExpressions.mjs'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
@@ -64,6 +65,10 @@ const SCHEMA_SETTINGS = {
 }
 
 export function createJob({ schedules, ...job }) {
+  assertValidExpression('srs', job.srs)
+  assertValidExpression('remotes', job.remotes)
+  assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'fullInterval'])
+
   return this.createBackupNgJob('backup', job, schedules).then(({ id }) => id)
 }
 
@@ -85,7 +90,7 @@ createJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   schedules: {
@@ -94,7 +99,7 @@ createJob.params = {
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {
@@ -105,6 +110,7 @@ createJob.params = {
 export function getSuggestedExcludedTags() {
   return ['Continuous Replication', 'Disaster Recovery', this.config.get('xo-proxy.vmTag')]
 }
+getSuggestedExcludedTags.permission = 'admin'
 
 export function deleteJob({ id }) {
   return this.deleteBackupNgJob(id, 'backup')
@@ -117,6 +123,10 @@ deleteJob.params = {
 }
 
 export function editJob(props) {
+  assertValidExpression('srs', props.srs)
+  assertValidExpression('remotes', props.remotes)
+  assertValidSettingsExpression(props.settings, ['healthCheckVmsWithTags', 'fullInterval'])
+
   return this.updateJob(props)
 }
 
@@ -142,12 +152,12 @@ editJob.params = {
     optional: true,
   },
   remotes: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   settings: SCHEMA_SETTINGS,
   srs: {
-    type: 'object',
+    type: ['object', 'string'],
     optional: true,
   },
   vms: {
@@ -175,6 +185,8 @@ getJob.params = {
 }
 
 export async function runJob({ id, schedule, settings, vm, vms = vm !== undefined ? [vm] : undefined }) {
+  assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
+
   return this.runJobSequence([id], await this.getSchedule(schedule), {
     settings,
     vms,
@@ -266,8 +278,8 @@ deleteVmBackup.params = {
   },
 }
 
-export function deleteVmBackups({ ids }) {
-  return this.deleteVmBackupsNg(ids)
+export function deleteVmBackups({ ids, immediate }) {
+  return this.deleteVmBackupsNg(ids, immediate)
 }
 
 deleteVmBackups.permission = 'admin'
@@ -276,6 +288,10 @@ deleteVmBackups.params = {
   ids: {
     type: 'array',
     items: { type: 'string' },
+  },
+  immediate: {
+    type: 'boolean',
+    optional: true,
   },
 }
 

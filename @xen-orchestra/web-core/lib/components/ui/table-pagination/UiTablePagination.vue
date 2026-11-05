@@ -27,7 +27,7 @@ import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type TablePaginationSize = 'small' | 'medium'
+export type TablePaginationSize = 'small' | 'large'
 
 const { size } = defineProps<{
   from: number
@@ -70,7 +70,7 @@ const { id: showBySelectId } = useFormSelect([12, 24, 48, -1], {
     align-items: flex-end;
   }
 
-  &.size--medium {
+  &.size--large {
     flex-direction: row;
   }
 

@@ -28,19 +28,13 @@ export function useVdiDelete(options: {
     const count = vdis.value.length
 
     return open({
-      events: {
-        onConfirm: async () => {
-          try {
-            await run()
-          } catch (error) {
-            console.error('Error when deleting VDI:', error)
-          }
-        },
-      },
       props: {
         subject: t('n-vdis', { n: count }),
         description: t('vdi-delete-warning'),
         confirmLabel: t('action:delete-n-vdis', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true }),
       },
     })
   }

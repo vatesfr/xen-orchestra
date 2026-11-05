@@ -55,7 +55,7 @@ export function replacer(key, value) {
  *
  * @param {object} params
  * @param {string} params.dir - Directory where the files are created
- * @param {'rpu'|'rpr'} params.kind - Kind of operation, used as file name prefix
+ * @param {'rpu'|'rpr'|'rpu-finalize'} params.kind - Kind of operation, used as file name prefix
  * @param {string} params.poolId - Identifier of the target pool
  * @returns {{ traceFile: string, heartbeatFile: string, attach: (task: object) => void, stop: () => void } | undefined}
  *   `undefined` if the files cannot be created (observability is optional)

@@ -2,6 +2,9 @@
   <div class="pool-host-internal-networks-table">
     <UiTitle>
       {{ t('host-internal-networks') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <div class="container">
       <UiQuerySearchBar @search="value => (searchQuery = value)" />
@@ -26,15 +29,16 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
+import NetworkDeleteButton from '@/modules/network/components/actions/delete/NetworkDeleteButton.vue'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTableState } from '@core/composables/table-state.composable'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -42,6 +46,10 @@ import { useI18n } from 'vue-i18n'
 
 const { networks } = defineProps<{
   networks: XenApiNetwork[]
+}>()
+
+defineSlots<{
+  'title-actions'(): any
 }>()
 
 const { isReady, hasError } = useNetworkStore().subscribe()
@@ -80,13 +88,18 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: ['status', 'vlan', 'actions'],
+  exclude: ['status', 'vlan', 'selectItem'],
   body: (network: XenApiNetwork) => ({
     network: r => r({ label: network.name_label }),
     description: r => r(network.name_description),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
+    actions: r =>
+      r({
+        onClick: () => (selectedNetworkId.value = network.uuid),
+        component: NetworkDeleteButton,
+        props: { network },
+      }),
   }),
 })
 </script>

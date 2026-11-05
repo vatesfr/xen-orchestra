@@ -22,6 +22,7 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -29,6 +30,8 @@ import { useI18n } from 'vue-i18n'
 const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const { open: openInfoModal } = useInfoModal()
 
 const dashboardMissingPatches = computed(() => dashboard.value.missingPatches)
 
@@ -86,13 +89,15 @@ const hostsSegments = computed(() => {
     { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
-  // TODO instead of tooltips for nHostsEol , we need to add a modal with a button
   if (typeof missingPatches.value.nHostsEol === 'number') {
     segments.push({
       value: missingPatches.value.nHostsEol,
       accent: 'danger',
       label: t('eol'),
-      tooltip: t('end-of-life'),
+      onInfoClick: () =>
+        openInfoModal({
+          props: { title: t('what-is-an-eol-host?'), content: t('what-is-an-eol-host-content') },
+        }),
     })
   }
 

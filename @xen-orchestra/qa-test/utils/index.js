@@ -345,6 +345,21 @@ export function findTaskByMessage(logEntry, message) {
   return search(logEntry.tasks || [])
 }
 
+/**
+ * Finds the first info matching a given message name in a backup log entry.
+ *
+ * Only the infos of the log itself are searched: the infos emitted on the root
+ * task are merged into it (see `taskFormatAdapter()` in
+ * xo-server/src/xo-mixins/backups-ng-logs.mjs).
+ *
+ * @param {Object} logEntry - Backup log entry from XenOrchestra
+ * @param {string} message - Info message to search for (e.g., 'vms', 'synchronized snapshot')
+ * @returns {Object|null} The matching info or null if not found
+ */
+export function findInfoByMessage(logEntry, message) {
+  return logEntry.infos?.find(info => info.message === message) ?? null
+}
+
 // =============================================================================
 // BACKUP ASSERTION UTILITIES
 // =============================================================================

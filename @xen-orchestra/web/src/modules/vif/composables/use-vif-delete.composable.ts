@@ -1,7 +1,7 @@
 import { useXoVifDeleteJob } from '@/modules/vif/jobs/xo-vif-delete.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useRedirectAfterDelete } from '@/shared/composables/redirect-after-delete.composable.ts'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -33,22 +33,12 @@ export function useVifDelete(rawVifs: MaybeRefOrGetter<FrontXoVif[]>) {
     const count = vifs.value.length
 
     return open({
-      events: {
-        onConfirm: async () => {
-          let result
-
-          try {
-            result = await run()
-          } catch (error) {
-            console.error('Error when deleting VIF:', error)
-          }
-
-          await redirectIfOnObjectPage(result)
-        },
-      },
       props: {
         subject: t('n-vifs', { n: count }),
         confirmLabel: t('action:delete-n-vifs', { n: count }),
+      },
+      events: {
+        onConfirm: () => run({ detached: true, onSuccess: redirectIfOnObjectPage }),
       },
     })
   }

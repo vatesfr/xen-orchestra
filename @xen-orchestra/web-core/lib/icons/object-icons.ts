@@ -9,6 +9,7 @@ import {
   faBoxesStacked,
   faCamera,
   faCircle,
+  faCircleNodes,
   faCity,
   faClock,
   faDatabase,
@@ -22,6 +23,7 @@ import {
   faServer,
   faUserCircle,
   faUsers,
+  faWindowMaximize,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -236,7 +238,7 @@ export const objectIcons = defineIconPack({
     },
   ],
   'network:connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
-  'network:warning': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
+  'network:partially-connected': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
   'network:disconnected': [constructIcon(faNetworkWired), ...constructCircleStatus('danger-circle')],
   br: constructIcon(faBoxesStacked),
   'br:unknown': [
@@ -272,8 +274,10 @@ export const objectIcons = defineIconPack({
       icon: runningNeutral,
     },
   ],
+  plugin: constructIcon(faPuzzlePiece),
+  proxy: constructIcon(faCircleNodes),
   task: constructIcon(faBarsProgress),
-  template: constructIcon(faPuzzlePiece),
+  template: constructIcon(faWindowMaximize),
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),

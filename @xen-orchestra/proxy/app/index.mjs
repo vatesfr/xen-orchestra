@@ -1,6 +1,7 @@
 import Config from '@xen-orchestra/mixins/Config.mjs'
 import Hooks from '@xen-orchestra/mixins/Hooks.mjs'
 import HttpProxy from '@xen-orchestra/mixins/HttpProxy.mjs'
+import LiveMount from '@xen-orchestra/mixins/live-mount/index.mjs'
 import SslCertificate from '@xen-orchestra/mixins/SslCertificate.mjs'
 import mixin from '@xen-orchestra/mixin'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
@@ -25,6 +26,7 @@ export default class App {
         Config,
         Hooks,
         HttpProxy,
+        LiveMount,
         Logs,
         Remotes,
         ReverseProxy,

@@ -8,11 +8,12 @@ import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
+import { asyncEach } from '@vates/async-each'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
-import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
+import { filter, forEach, get, includes, isEmpty, isEqual, map, mapValues, once, size, sortBy, throttle } from 'lodash'
 import {
   forbiddenOperation,
   incorrectState,
@@ -501,6 +502,19 @@ subscribeHostMissingPatches.forceRefresh = host => {
   }
 }
 
+const rollingUpdateRecoveryByPool = {}
+export const subscribeRollingUpdateRecovery = (pool, cb) => {
+  const poolId = resolveId(pool)
+
+  if (rollingUpdateRecoveryByPool[poolId] == null) {
+    rollingUpdateRecoveryByPool[poolId] = createSubscription(() =>
+      _call('pool.getRollingUpdateRecovery', { pool: poolId })
+    )
+  }
+
+  return rollingUpdateRecoveryByPool[poolId](cb)
+}
+
 const proxiesApplianceUpdaterState = {}
 export const subscribeProxyApplianceUpdaterState = (proxyId, cb) => {
   if (proxiesApplianceUpdaterState[proxyId] === undefined) {
@@ -572,6 +586,25 @@ export const subscribeXoTasks = (() => {
     }
   }, 100)
 
+  // Surfaces a lost tasks stream in the UI: the subscription retries silently,
+  // which used to leave the list frozen with no indication that it was no
+  // longer live. This entry is dropped by the `cache.clear()` below as soon as
+  // the stream is successfully reestablished.
+  const DISCONNECTED_ID = 'xo:tasks-stream-disconnected'
+  function notifyDisconnected(error) {
+    const now = Date.now()
+    cache.set(DISCONNECTED_ID, {
+      id: DISCONNECTED_ID,
+      name: 'XO tasks stream disconnected, retrying…',
+      properties: { name: 'XO tasks stream disconnected, retrying…' },
+      start: now,
+      end: now,
+      status: 'failure',
+      error: error === undefined ? undefined : String(error?.message ?? error),
+    })
+    notify()
+  }
+
   async function run() {
     if (abortController !== undefined) {
       return
@@ -584,39 +617,76 @@ export const subscribeXoTasks = (() => {
         // starts watching collection
         const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal: abortController.signal })
 
-        // fetches existing objects
-        const response = await fetch(basePath, { signal: abortController.signal })
-        const objects = await response.json()
-        cache.clear()
-        for (const object of objects) {
-          cache.set(object.id, object)
+        const applyEvent = ([event, object]) => {
+          if (event === 'remove') {
+            cache.delete(object.id)
+          } else {
+            cache.set(object.id, object)
+          }
         }
-        notify()
 
-        // handles events
-        let buf = ''
-        for await (const chunk of resWatch.body) {
-          buf += String.fromCharCode(...chunk)
+        // events received before the existing objects have been fetched cannot
+        // be applied yet: the fetched collection would override them
+        let ready = false
+        const queuedEvents = []
 
-          let i
-          while ((i = buf.indexOf('\n')) !== -1) {
-            const line = buf.slice(0, i)
-            buf = buf.slice(i + 1)
-            const [event, object] = JSON.parse(line)
-            if (event === 'remove') {
-              cache.delete(object.id)
-            } else {
-              cache.set(object.id, object)
+        // this stream must be consumed as soon as possible: events not read are
+        // buffered by the server, which closes the connection when too many of
+        // them pile up
+        const watching = (async () => {
+          // eslint-disable-next-line n/no-unsupported-features/node-builtins
+          const decoder = new TextDecoder()
+          let buf = ''
+          for await (const chunk of resWatch.body) {
+            buf += decoder.decode(chunk, { stream: true })
+
+            let i
+            while ((i = buf.indexOf('\n')) !== -1) {
+              const line = buf.slice(0, i)
+              buf = buf.slice(i + 1)
+              const event = JSON.parse(line)
+              if (ready) {
+                applyEvent(event)
+              } else {
+                queuedEvents.push(event)
+              }
+            }
+            if (ready) {
+              notify()
             }
           }
+        })()
+
+        // fetches existing objects
+        const fetching = (async () => {
+          const response = await fetch(basePath, { signal: abortController.signal })
+          const objects = await response.json()
+          cache.clear()
+          for (const object of objects) {
+            cache.set(object.id, object)
+          }
+
+          for (const event of queuedEvents) {
+            applyEvent(event)
+          }
+          queuedEvents.length = 0
+          ready = true
+
           notify()
-        }
+        })()
+
+        // `Promise.all()` also ensures none of these rejections is unhandled
+        await Promise.all([fetching, watching])
+
+        // the iteration ended without an error: the server closed the stream
+        notifyDisconnected()
       } catch (error) {
         if (error === 'abort') {
           break
         }
 
         console.error('monitor XO tasks', error)
+        notifyDisconnected(error)
       }
 
       await new Promise(resolve => setTimeout(resolve, 10e3))
@@ -1442,12 +1512,39 @@ export const isPubKeyTooShort = host => {
   return _call('host.isPubKeyTooShort', { id: host.id })
 }
 
+const getMasterPatchesWarningId = async host => {
+  const { master } = getObject(store.getState(), host.$pool)
+  if (master === host.id) {
+    return
+  }
+
+  if (getObject(store.getState(), master).power_state !== 'Running') {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  const masterMissingPatches = await getHostMissingPatches(master)
+  if (masterMissingPatches === null) {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  if (masterMissingPatches.length > 0) {
+    return 'installAllPatchesOnHostMasterNotUpToDate'
+  }
+}
+
 // for XCP-ng now
-export const installAllPatchesOnHost = ({ host }) =>
-  confirm({
+export const installAllPatchesOnHost = async ({ host }) => {
+  const masterPatchesWarningId = await getMasterPatchesWarningId(host)
+
+  return confirm({
     body: (
       <div>
         <p>{_('installAllPatchesOnHostContent')}</p>
+        {masterPatchesWarningId !== undefined && (
+          <p className='text-danger'>
+            <Icon icon='alarm' /> {_(masterPatchesWarningId)}
+          </p>
+        )}
         <p className='text-warning'>
           {_('installAllPatchesXostorWarning')}
           <br />
@@ -1463,6 +1560,7 @@ export const installAllPatchesOnHost = ({ host }) =>
       subscribeHostMissingPatches.forceRefresh(host)
     )
   )
+}
 
 export const installPatches = (patches, pool) =>
   confirm({
@@ -1496,9 +1594,9 @@ export const rollingPoolUpdate = async poolId => {
     icon: 'pool-rolling-update',
   })
 
-  const rpu = async ({ bypassBackupCheck = false, rebootVm = false, shutdownPinnedVms = false } = {}) => {
+  const rpu = async (options = {}) => {
     try {
-      await _call('pool.rollingUpdate', { pool: poolId, bypassBackupCheck, rebootVm, shutdownPinnedVms })
+      await _call('pool.rollingUpdate', { pool: poolId, ...options })
       subscribeHostMissingPatches.forceRefresh()
     } catch (err) {
       if (forbiddenOperation.is(err)) {
@@ -1511,7 +1609,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck: true, rebootVm, shutdownPinnedVms })
+        return rpu({ ...options, bypassBackupCheck: true })
       }
       if (incorrectState.is(err, { property: 'guidance' })) {
         await confirm({
@@ -1523,7 +1621,7 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm: true, shutdownPinnedVms })
+        return rpu({ ...options, rebootVm: true })
       }
       if (incorrectState.is(err, { property: 'pinnedVms' })) {
         await confirm({
@@ -1542,13 +1640,86 @@ export const rollingPoolUpdate = async poolId => {
           title: _('rollingPoolUpdate'),
           icon: 'pool-rolling-update',
         })
-        return rpu({ bypassBackupCheck, rebootVm, shutdownPinnedVms: true })
+        return rpu({ ...options, shutdownPinnedVms: true })
+      }
+      if (incorrectState.is(err, { property: 'partiallyUpdatedPool' })) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuPartiallyUpdatedPool')}
+              </p>
+              <ul>
+                {err.data.actual.map(hostId => (
+                  <li key={hostId}>{renderXoItemFromId(hostId)}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        })
+        return rpu({ ...options, acceptCurrentStateAsBaseline: true })
       }
       throw err
     }
   }
 
   await rpu()
+}
+
+const RPU_UNRESTORED_ITEM_LABELS = {
+  autoPowerOn: 'rpuUnrestoredAutoPowerOn',
+  ha: 'rpuUnrestoredHa',
+  haltedPinnedVm: 'rpuUnrestoredHaltedPinnedVm',
+  host: 'rpuUnrestoredHost',
+  loadBalancer: 'rpuUnrestoredLoadBalancer',
+  schedule: 'rpuUnrestoredSchedule',
+  vm: 'rpuUnrestoredVm',
+  wlb: 'rpuUnrestoredWlb',
+}
+
+export const finalizeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryFinalizeConfirm'),
+    title: _('rpuRecoveryFinalize'),
+    icon: 'pool-rolling-update',
+  })
+
+  try {
+    await _call('pool.finalizeRollingUpdate', { pool: poolId })
+  } catch (err) {
+    if (!incorrectState.is(err, { property: 'unrestoredItems' })) {
+      throw err
+    }
+    // what the update changed and did not restore, or null when its record
+    // cannot be read: a second confirmation abandons them
+    const items = err.data.actual
+    await confirm({
+      body: (
+        <div className='text-warning'>
+          <p>
+            <Icon icon='alarm' />{' '}
+            {_(items === null ? 'rpuRecoveryForceFinalizeUnknownConfirm' : 'rpuRecoveryForceFinalizeConfirm')}
+          </p>
+          {items !== null && (
+            <ul>
+              {items.map(({ type, id, name }) => (
+                <li key={type + id}>
+                  {_(RPU_UNRESTORED_ITEM_LABELS[type])}
+                  {name !== undefined && `: ${name}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ),
+      title: _('rpuRecoveryFinalize'),
+      icon: 'pool-rolling-update',
+    })
+    await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  }
+  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
 }
 
 export const installSupplementalPack = (host, file) => {
@@ -2592,7 +2763,21 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
-  }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
+  }).then(async () => {
+    let nErrors = 0
+    await asyncEach(
+      map(vdis, resolveId),
+      id =>
+        _call('vdi.delete', { id }).catch(() => {
+          nErrors++
+        }),
+      { concurrency: 5 }
+    )
+
+    if (nErrors !== 0) {
+      error(_('failedToDeleteVdisTitle', { nVdis: nErrors }), _('failedToDeleteVdisMessage', { nVdis: nErrors }))
+    }
+  }, noop)
 
 export const migrateVdi = (vdi, sr, resourceSet) =>
   _call('vdi.migrate', {
@@ -2716,6 +2901,13 @@ export const editNetwork = (network, props) => _call('network.set', { ...props, 
 
 export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
+
+// the disk data are sent in clear: the user must confirm the network is dedicated
+export const confirmInsecureNbd = () =>
+  confirm({
+    title: _('insecureNbdConfirmTitle'),
+    body: _('insecureNbdConfirmBody'),
+  })
 export const createBondedNetwork = params => _call('network.createBonded', params)
 export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
@@ -3146,6 +3338,38 @@ export const runBackupNgJob = ({ force, ...params }) => {
 
 export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
+// Per disk restore target, from the objects the modal holds to the ids the server expects.
+//
+// `resolveIds` cannot do it: it is shallow, so it would leave the SR nested in a target untouched.
+// A legacy value, an SR object or `null` to skip the disk, still goes through as before.
+const resolveVdiRestoreTargets = mapVdisSrs =>
+  mapValues(mapVdisSrs, target => {
+    if (target === null || typeof target !== 'object' || target.type === undefined) {
+      return resolveId(target)
+    }
+
+    const { type } = target
+    if (type === 'restore') {
+      const sr = resolveId(target.sr)
+      // an SR which has been cleared must not be sent as `null`, which means "do not restore this
+      // disk": leaving it out is what makes the server fall back to the restore's main SR
+      return sr == null ? { type } : { type, sr }
+    }
+    if (type === 'live-mount') {
+      return { type, host: resolveId(target.host) }
+    }
+    // a live restore is a live mount which a cache makes read/write
+    if (type === 'live-restore') {
+      const cacheSr = resolveId(target.cacheSr)
+      // without its cache SR, the server would silently fall back to a read-only live mount
+      if (cacheSr == null) {
+        throw new Error('a live restore requires a cache SR')
+      }
+      return { type: 'live-mount', host: resolveId(target.host), cacheSr }
+    }
+    return { type }
+  })
+
 export const restoreBackup = (
   backup,
   sr,
@@ -3153,7 +3377,11 @@ export const restoreBackup = (
 ) => {
   const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),
-    settings: { mapVdisSrs: resolveIds(mapVdisSrs), newMacAddresses: generateNewMacAddresses, useDifferentialRestore },
+    settings: {
+      mapVdisSrs: resolveVdiRestoreTargets(mapVdisSrs),
+      newMacAddresses: generateNewMacAddresses,
+      useDifferentialRestore,
+    },
     sr: resolveId(sr),
   })
 
@@ -3167,15 +3395,15 @@ export const restoreBackup = (
 export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
   return _call('backupNg.checkBackup', {
     id: resolveId(backup),
-    settings: { mapVdisSrs: resolveIds(mapVdisSrs) },
+    settings: { mapVdisSrs: resolveVdiRestoreTargets(mapVdisSrs) },
     sr: resolveId(sr),
   })
 }
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups =>
-  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
+export const deleteBackups = async (backups, immediate) =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)), immediate })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)
@@ -4116,6 +4344,9 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const snapshotXoa = () => _call('xo.snapshotBeforeUpgrade')
 
+// `null` when XO does not run in a VM, or cannot tell which one
+export const getXoVmUuid = () => _call('xo.getCurrentVmUuid')
+
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
 export const restartXoServer = async () => {
@@ -4316,38 +4547,6 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
-export const importVddkLib = file => {
-  return _call('esxi.installVddkLib').then(({ $sendTo }) => {
-    return post($sendTo, file.file)
-      .then(res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success('lib successfully installed')
-      })
-      .catch(err => {
-        error('fail to install vddk lib', err)
-      })
-  })
-}
-export const installNbdInfo = file => {
-  return _call('esxi.installNbdInfoFromSource')
-    .then(() => {
-      success('nbdInfo successfullly installed successfully installed')
-    })
-    .catch(err => {
-      error('fail to install nbdInfo', err)
-    })
-}
-export const installNbdKit = file => {
-  return _call('esxi.installNbdKitFromSource')
-    .then(() => {
-      success('nbdkit successfullly installed successfully installed')
-    })
-    .catch(err => {
-      error('fail to install nbdkit', err)
-    })
-}
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

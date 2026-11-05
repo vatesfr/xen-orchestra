@@ -49,7 +49,6 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
-import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -58,6 +57,10 @@ import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/a
 import type { AnyPrivilege } from '@xen-orchestra/acl'
 
 const log = createLogger('xo:rest-api:user-controller')
+const aclMiddlewareGetUser =
+  ({ restApi }) =>
+  (id: XoUser['id']) =>
+    restApi.xoApp.getUser(id, { obfuscatePassword: true })
 
 @Route('users')
 @Security('*')
@@ -67,20 +70,17 @@ const log = createLogger('xo:rest-api:user-controller')
 @Tags('users')
 @provide(UserController)
 export class UserController extends XoController<XoUser> {
-  #userService: UserService
-
-  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     super('user', restApi)
-    this.#userService = userService
   }
 
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    return this.#userService.getUsers()
+    return this.restApi.xoApp.getAllUsers({ obfuscatePassword: true })
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    return this.#userService.getUser(id)
+    return this.restApi.xoApp.getUser(id, { obfuscatePassword: true })
   }
 
   /**
@@ -125,7 +125,7 @@ export class UserController extends XoController<XoUser> {
       resource: 'user',
       action: actionIfNotSelfUser('read'),
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -139,10 +139,13 @@ export class UserController extends XoController<XoUser> {
    *
    * Required privileges:
    * - resource: user, action: update (grants all fields)
+   * - resource: user, action: update:firstname (if firstname is passed)
+   * - resource: user, action: update:lastname (if lastname is passed)
    * - resource: user, action: update:name (if name is passed)
    * - resource: user, action: update:password (if password is passed)
    * - resource: user, action: update:permission (if permission is passed)
    * - resource: user, action: update:preferences (if preferences is passed)
+   * - resource: user, action: update:username (if username is passed)
    *
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example body {
@@ -158,9 +161,17 @@ export class UserController extends XoController<XoUser> {
     json(),
     acl({
       resource: 'user',
-      actions: actionsFromBody(['update:name', 'update:password', 'update:permission', 'update:preferences']),
+      actions: actionsFromBody([
+        'update:firstname',
+        'update:lastname',
+        'update:name',
+        'update:password',
+        'update:permission',
+        'update:preferences',
+        'update:username',
+      ]),
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     }),
   ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -176,12 +187,12 @@ export class UserController extends XoController<XoUser> {
 
     const user = await this.getObject(id as XoUser['id'])
 
-    if (
-      user.authProviders !== undefined &&
-      Object.keys(user.authProviders).length > 0 &&
-      (body.name !== undefined || body.password !== undefined)
-    ) {
-      throw forbiddenOperation('update user', 'cannot change name or password of synchronized user')
+    if (user.authProviders !== undefined && Object.keys(user.authProviders).length > 0) {
+      const noEditFields = this.restApi.xoApp.getUserIdentityFields()
+      const unallowedEdits = noEditFields.filter(key => body[key] !== undefined)
+      if (unallowedEdits.length > 0) {
+        throw forbiddenOperation('update user', `cannot change ${unallowedEdits.join(' or ')} of synchronized user`)
+      }
     }
 
     await this.restApi.xoApp.updateUser(user.id, body)
@@ -191,7 +202,14 @@ export class UserController extends XoController<XoUser> {
    * Required privilege:
    * - resource: user, action: create
    *
-   * @example body { "name": "new user", "password": "password", "permission": "none" }
+   * @example body {
+   *   "firstname": "Ada",
+   *   "lastname": "Lovelace",
+   *   "name": "new user",
+   *   "password": "password",
+   *   "permission": "none",
+   *   "username": "ada.lovelace"
+   *  }
    */
   @Example(userId)
   @Extension('x-mcp-exposure', 'confirm')
@@ -202,7 +220,15 @@ export class UserController extends XoController<XoUser> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createUser(
-    @Body() body: { name: string; password: string; permission?: XoUser['permission'] }
+    @Body()
+    body: {
+      firstname?: string
+      lastname?: string
+      name: string
+      password: string
+      permission?: XoUser['permission']
+      username?: string
+    }
   ): Promise<{ id: Unbrand<XoUser>['id'] }> {
     const user = await this.restApi.xoApp.createUser(body)
 
@@ -222,7 +248,7 @@ export class UserController extends XoController<XoUser> {
       resource: 'user',
       action: 'delete',
       objectId: 'params.id',
-      getObject: ({ restApi }) => restApi.xoApp.getUser,
+      getObject: aclMiddlewareGetUser,
     })
   )
   @SuccessResponse(noContentResp.status, noContentResp.description)

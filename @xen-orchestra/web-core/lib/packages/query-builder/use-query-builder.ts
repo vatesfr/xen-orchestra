@@ -1,5 +1,5 @@
-import { buildRootGroup } from '@core/packages/query-builder/group/build-root-group'
-import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group'
+import { buildRootGroup } from '@core/packages/query-builder/group/build-root-group.ts'
+import { createQueryBuilderGroup } from '@core/packages/query-builder/group/create-query-builder-group.ts'
 import { handleNode } from '@core/packages/query-builder/node/handle-node.ts'
 import type { QueryBuilderNode, QueryBuilderSchema, UseQueryBuilderReturn } from '@core/packages/query-builder/types.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -19,7 +19,7 @@ export function useQueryBuilder(
       const parsed = parse(filter.value)
       rootNode.value = handleNode({ node: parsed, negate: false, schema: schema.value })
     } catch {
-      return undefined
+      rootNode.value = undefined
     }
   }
 

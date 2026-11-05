@@ -17,7 +17,7 @@ import type { VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import { VDI_SOURCE } from '@/shared/constants.ts'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const model = defineModel<VdiSource>({ required: true })

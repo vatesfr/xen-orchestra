@@ -33,7 +33,7 @@
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
-import TabList from '@core/components/tab/TabList.vue'
+import TabList from '@core/components/tab-list/TabList.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

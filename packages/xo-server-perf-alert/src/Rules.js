@@ -129,6 +129,9 @@ export class MonitorRule {
 }
 
 export class MonitorRuleSet {
+  /**
+   * @type {Set<MonitorRule>}
+   */
   rules = new Set()
   constructor(configuration) {
     for (const definition of configuration.hostMonitors ?? []) {

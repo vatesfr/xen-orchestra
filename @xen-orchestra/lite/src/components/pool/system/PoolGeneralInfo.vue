@@ -4,8 +4,8 @@
       {{ t('general-information') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('name')" :value="pool.name_label" />
-      <VtsTabularKeyValueRow :label="t('uuid')" :value="pool.uuid" />
+      <VtsTabularKeyValueRow :label="t('name')" :value="pool.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="pool.uuid" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="pool.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="pool.tags.length > 0" #value>
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
+import type { XenApiPool } from '@/libs/xen-api/xen-api.types.ts'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'

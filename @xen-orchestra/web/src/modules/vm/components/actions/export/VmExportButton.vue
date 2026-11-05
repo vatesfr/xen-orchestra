@@ -1,12 +1,12 @@
 <template>
-  <MenuItem icon="action:download" @click="exportVm()">
+  <MenuItem accent="neutral" icon="action:download" @click="exportVm()">
     {{ t('action:export') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import { useVmExport } from '@/modules/vm/composables/use-vm-export.composable.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
 

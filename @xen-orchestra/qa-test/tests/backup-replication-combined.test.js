@@ -20,6 +20,7 @@ import {
   validateVhdIntegrity,
   validateXvaIntegrity,
   formatBytes,
+  findVhdExportableVdi,
 } from '../utils/exportUtils.js'
 import { assertBackupSuccess, assertRepositoryEmpty } from '../utils/backupUtils.js'
 import { setup, teardown } from './setup.js'
@@ -108,7 +109,8 @@ describe('Backup + Replication Combined Tests', () => {
     const setupResult = await setup()
     dispatchClient = setupResult.dispatchClient
     tracker = setupResult.tracker
-    vm = setupResult.vm
+    // Only using one VM
+    vm = setupResult.vms[0]
 
     assert.ok(vm, 'Setup should provide a test VM')
     log.debug('Using test VM from setup', { name: vm.name_label, uuid: vm.uuid })
@@ -260,9 +262,7 @@ describe('Backup + Replication Combined Tests', () => {
 
       // Step 2: Export VDI as VHD
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert.ok(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-combined-vhd`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
@@ -352,9 +352,7 @@ describe('Backup + Replication Combined Tests', () => {
 
       // Step 2: Export VDI as VHD
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert.ok(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-restore-vhd`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 

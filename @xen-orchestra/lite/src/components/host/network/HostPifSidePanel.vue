@@ -1,9 +1,17 @@
 <template>
-  <VtsSidePanel :has-selection="!!pif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!pif" class="host-pif-side-panel" @close="emit('close')">
+    <template v-if="pif" #actions>
+      <VtsForgetButton
+        :busy="isForgettingPifs"
+        :disabled="!canForgetPifs"
+        :tooltip="!canForgetPifs && forgetPifsErrorMessage"
+        @click="forgetPifs()"
+      />
+    </template>
     <template v-if="pif" #default>
       <!-- PIF -->
-      <UiCard class="card">
-        <VtsCardObjectTitle :id="pif.uuid" :label="isBond ? t('bond') : t('pif')" />
+      <UiPanelCard>
+        <UiPanelCardTitle :id="pif.uuid" size="medium" :label="isBond ? t('bond') : t('pif')" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
@@ -75,10 +83,10 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
@@ -180,10 +188,10 @@
             </VtsCardRowKeyValue>
           </div>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- PROPERTIES -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle size="medium" :label="t('properties')" />
         <div class="content">
           <!-- MTU -->
           <VtsCardRowKeyValue>
@@ -219,28 +227,29 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
 
 <script setup lang="ts">
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsForgetButton from '@core/components/forget-button/VtsForgetButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -258,6 +267,10 @@ const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
 
 const { t } = useI18n()
+
+const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() =>
+  pif !== undefined ? [pif] : []
+)
 
 const ipAddresses = computed(() => {
   if (pif === undefined) {
@@ -317,9 +330,7 @@ const speed = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.host-pif-side-panel {
   .content {
     display: flex;
     flex-direction: column;

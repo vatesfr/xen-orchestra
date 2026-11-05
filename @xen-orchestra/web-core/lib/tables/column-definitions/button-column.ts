@@ -4,9 +4,9 @@ import UiButton, {
   type ButtonVariant,
   type ButtonSize,
 } from '@core/components/ui/button/UiButton.vue'
-import { defineColumn } from '@core/packages/table/define-column'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { defineColumn } from '@core/packages/table/define-column.ts'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h, toValue, type MaybeRefOrGetter } from 'vue'
 

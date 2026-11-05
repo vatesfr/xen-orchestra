@@ -44,9 +44,9 @@
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { usePanelStore } from '@core/stores/panel.store'
-import { useUiStore } from '@core/stores/ui.store'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { usePanelStore } from '@core/stores/panel.store.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

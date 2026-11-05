@@ -9,7 +9,6 @@ import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
 import { asyncEach } from '@vates/async-each'
 import { fromCallback } from 'promise-toolbox'
-import backupGuard from './_backupGuard.mjs'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -157,7 +156,7 @@ set.resolve = {
 // FIXME: set force to false per default when correctly implemented in
 // UI.
 export async function restart({
-  bypassBackupCheck = false,
+  bypassBackupCheck,
   host,
   force = false,
   suspendResidentVms,
@@ -208,11 +207,7 @@ export async function restart({
     }
   }
 
-  if (bypassBackupCheck) {
-    log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
-  } else {
-    await backupGuard.call(this, host.$poolId)
-  }
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.restart' })
 
   const xapi = this.getXapi(host)
   return suspendResidentVms
@@ -260,12 +255,8 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restartAgent({ bypassBackupCheck = false, host }) {
-  if (bypassBackupCheck) {
-    log.warn('host.restartAgent with argument "bypassBackupCheck" set to true', { hostId: host.id })
-  } else {
-    await backupGuard.call(this, host.$poolId)
-  }
+export async function restartAgent({ bypassBackupCheck, host }) {
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.restartAgent' })
   return this.getXapiObject(host).$restartAgent()
 }
 
@@ -319,12 +310,8 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function stop({ bypassBackupCheck = false, bypassTwinstorCheck = false, host, bypassEvacuate }) {
-  if (bypassBackupCheck) {
-    log.warn('host.stop with argument "bypassBackupCheck" set to true', { hostId: host.id })
-  } else {
-    await backupGuard.call(this, host.$poolId)
-  }
+export async function stop({ bypassBackupCheck, bypassTwinstorCheck = false, host, bypassEvacuate }) {
+  await this.backupGuard(host.id, { bypassBackupCheck, operation: 'host.stop' })
   return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate, bypassTwinstorCheck })
 }
 

@@ -8,15 +8,24 @@
     </UiTitle>
     <UiAlert accent="info">{{ t('traffic-rules:info-message') }}</UiAlert>
     <UiAlert v-if="showRulesFormatWarning" accent="warning">
-      <I18nT keypath="traffic-rules:format-warning">
+      <I18nT keypath="traffic-rules:format-warning" scope="global">
         <template #check-doc>
-          <UiLink size="small" href="https://docs.xen-orchestra.com/xo5/sdn_controller#migration-path">
+          <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_MIGRATION">
             {{ t('traffic-rules:format-warning:check-doc') }}
           </UiLink>
         </template>
       </I18nT>
     </UiAlert>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <UiAlert v-if="showXapiPluginRequiredError" accent="danger">
+      <I18nT keypath="traffic-rules:error-plugin" scope="global">
+        <template #check-doc>
+          <UiLink size="small" :href="XO_LINKS.DOC_SDN_CONTROLLER_XAPI_PLUGIN">
+            {{ t('traffic-rules:error-plugin:check-doc') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -43,7 +52,9 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
+import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traffic-rule-edit.composable.ts'
 import type { EnrichedTrafficRule } from '@/modules/traffic-rules/types.ts'
+import { XO_LINKS } from '@/shared/constants.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -59,7 +70,7 @@ import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-c
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { type TrafficRule, SDN_CONTROLLER_OF_METHOD_KEY, SDN_CONTROLLER_OF_FORMAT_KEY } from '@vates/types'
+import { SDN_CONTROLLER_OF_FORMAT_KEY, SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule } from '@vates/types'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -69,11 +80,13 @@ const {
   pool,
   busy,
   error,
+  showXapiPluginRequiredError,
 } = defineProps<{
   rules: TrafficRule[]
   pool?: FrontXoPool
   busy?: boolean
   error?: boolean
+  showXapiPluginRequiredError?: boolean
 }>()
 
 defineSlots<{
@@ -142,6 +155,8 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
     const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
       useTrafficRuleDelete(() => [rule])
 
+    const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule } = useTrafficRuleEdit(() => rule)
+
     return {
       order: r => r(rule.order),
       policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
@@ -155,12 +170,20 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
           onClick: () => (selectedRuleId.value = rule.id),
           actions: [
             {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => editTrafficRule(),
+              busy: isEditingTrafficRule.value,
+              disabled: !canEditTrafficRule.value,
+            },
+            {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteTrafficRules(),
               disabled: !canDeleteTrafficRules.value,
               busy: isDeletingTrafficRules.value,
               hint: deleteTrafficRulesErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),

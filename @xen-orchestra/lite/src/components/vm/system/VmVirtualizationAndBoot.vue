@@ -34,9 +34,9 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVtpmStore } from '@/stores/xen-api/vtpm.store.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'

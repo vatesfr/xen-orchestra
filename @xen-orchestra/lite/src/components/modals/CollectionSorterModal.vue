@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { NewSort, Sorts } from '@/types/sort'
+import type { NewSort, Sorts } from '@/types/sort.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'

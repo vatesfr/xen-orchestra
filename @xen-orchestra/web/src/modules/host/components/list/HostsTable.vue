@@ -1,9 +1,9 @@
 <template>
   <div class="hosts-table">
     <UiTitle>{{ t('hosts') }}</UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
+      <VtsTable :pagination-bindings :state sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -17,25 +17,27 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { useXoHostCollection, type FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+<script lang="ts" setup>
+import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
+import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
+import { useGetPbdsInScope } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTableState } from '@core/composables/table-state.composable'
-import { icon, objectIcon } from '@core/icons'
-import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
-import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
-import { useHostColumns } from '@core/tables/column-sets/host-columns'
-import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { HOST_POWER_STATE } from '@vates/types'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable.ts'
+import { icon } from '@core/icons'
+import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
+import { CONNECTION_STATUS } from '@core/types/connection.ts'
+import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -43,10 +45,12 @@ const {
   busy,
   hosts: rawHosts,
   error,
+  sr,
 } = defineProps<{
   hosts: FrontXoHost[]
   busy?: boolean
   error?: boolean
+  sr?: FrontXoSr
 }>()
 
 const { t } = useI18n()
@@ -61,20 +65,7 @@ const isReady = logicAnd(() => !busy, arePifsReady)
 
 const hasError = logicOr(() => error, hasPifFetchError)
 
-const { items: filteredHosts, filter } = useQueryBuilderFilter('hosts', () => rawHosts)
-
-const schema = useQueryBuilderSchema<FrontXoHost>({
-  '': useStringSchema(t('any-property')),
-  name_label: useStringSchema(t('name')),
-  name_description: useStringSchema(t('description')),
-  address: useStringSchema(t('ip-address')),
-  power_state: useStringSchema(t('power-state'), {
-    [HOST_POWER_STATE.RUNNING]: t('status:running'),
-    [HOST_POWER_STATE.HALTED]: t('status:halted'),
-    [HOST_POWER_STATE.UNKNOWN]: t('status:unknown'),
-  }),
-  tags: useStringSchema(t('tags')),
-})
+const { items: filteredHosts, filter, schema } = useHostQueryBuilder('hosts', () => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -84,6 +75,14 @@ const state = useTableState({
 })
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
+
+const { getPbdsInScope } = useGetPbdsInScope()
+
+function getSrConnectionStatus(sr: FrontXoSr, host: FrontXoHost) {
+  const scope: SrScope = { type: SR_SCOPE_TYPE.HOST, hostId: host.id }
+
+  return getPbdsConnectionStatus(getPbdsInScope(sr, scope))
+}
 
 function getMasterIcon(host: FrontXoHost) {
   if (!isMasterHost(host.id)) {
@@ -97,39 +96,42 @@ function getMasterIcon(host: FrontXoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
+  exclude: sr === undefined ? ['checkbox', 'srStatus'] : ['checkbox'],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
-    const hostIcon = computed(() => objectIcon('host', toLower(host.power_state)))
+    const hostIcon = computed(() => getHostIcon(host))
     const rightIcon = computed(() => getMasterIcon(host))
+    const srConnectionStatus = computed(() =>
+      sr === undefined ? CONNECTION_STATUS.DISCONNECTED : getSrConnectionStatus(sr, host)
+    )
 
     return {
       host: r =>
         r({
           label: host.name_label,
-          to: `/host/${host.id}/dashboard`,
+          to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
           rightIcon: rightIcon.value,
         }),
       description: r => r(host.name_description),
       ipAddresses: r => r(ipAddresses.value),
       tags: r => r(host.tags),
+      srStatus: r => r(srConnectionStatus.value),
       selectItem: r => r(() => (selectedHostId.value = host.id)),
     }
   },
 })
 </script>
 
-<style scoped lang="postcss">
-.container,
+<style lang="postcss" scoped>
 .hosts-table {
   display: flex;
   flex-direction: column;
-}
-
-.hosts-table {
   gap: 2.4rem;
 
   .container {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 }

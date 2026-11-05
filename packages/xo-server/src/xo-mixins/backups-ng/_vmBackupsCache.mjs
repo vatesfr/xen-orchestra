@@ -1,0 +1,805 @@
+// @ts-check
+
+import isEqual from 'lodash/isEqual.js'
+import { compareTimestamp } from '@xen-orchestra/backups/RemoteAdapter.mjs'
+import { createLogger } from '@xen-orchestra/log'
+import { EventEmitter } from 'node:events'
+import { journalCursorAt } from '@xen-orchestra/backups/_backupJournal.mjs'
+import { parse } from 'xo-remote-parser'
+
+/**
+ * A backup repository, as required by `VmBackupsCache`.
+ *
+ * @typedef {import('@vates/types').XoBackupRepository} Repository
+ */
+
+/**
+ * A backup, as formatted by `formatVmBackup()`.
+ *
+ * @typedef {import('@vates/types').XoVmBackupArchive} FormattedBackup
+ */
+
+/**
+ * The backups of a VM, keyed by the name of their metadata.
+ *
+ * @typedef {Record<string, FormattedBackup>} Backups
+ */
+
+/**
+ * The formatted backups of a repository, keyed by VM UUID then metadata filename.
+ *
+ * @typedef {Record<string, Backups>} BackupsByVm
+ */
+
+/**
+ * What happened to a backup since the previous read, as the source reports it: `backup` is its
+ * current value, or `undefined` when it is gone.
+ *
+ * @typedef {import('@xen-orchestra/backups/formatVmBackups.mjs').FormattedJournalEvent} JournalEvent
+ */
+
+/**
+ * @typedef {object} JournalRead
+ * @property {JournalEvent[]} events
+ * @property {string} [cursor] path bounding the next journal read, see `readBackupJournal()`;
+ * unchanged from the cursor passed in when nothing new was read
+ */
+
+/**
+ * Reads the backups of a repository. See `VmBackupsSource`.
+ *
+ * @typedef {object} Source
+ * @property {(repository: Repository) => Promise<BackupsByVm>} listAll
+ * @property {(repository: Repository, vmUuid: string) => Promise<Backups>} listOneVm
+ * @property {(repository: Repository, cursor: string | undefined, opts?: { mustExist?: boolean }) => Promise<JournalRead | undefined>} readJournal
+ * `undefined` when this repository cannot be replayed at all, e.g. it is attached to a proxy which
+ * does not expose its journal
+ */
+
+/**
+ * @typedef {object} Entry
+ * @property {BackupsByVm} [backupsByVm] set once the initial listing has completed
+ * @property {number} builtAt when this process listed the repository in full, compared with its clock
+ * as `refreshedAt` is
+ * @property {string} cursor opaque watermark owned by the source, only ever passed back to it: it is
+ * stamped by the process which reads the journal, which is not necessarily this one, and must
+ * therefore never be compared with this process' clock
+ * @property {boolean} [journalConfirmed] whether the journal directory has already been read
+ * successfully once, i.e. whether it disappearing on the next replay is anomalous rather than benign
+ * @property {Repository['options']} [options]
+ * @property {string} [proxy]
+ * @property {number} rebuildInterval how long after `builtAt` the repository is listed in full again,
+ * see `rebuildIntervalOf()`
+ * @property {number} refreshedAt when this process last brought the entry up to date: with `builtAt`,
+ * the only fields which may be compared with its clock
+ * @property {boolean} stale
+ * @property {string} url
+ */
+
+const { debug, warn } = createLogger('xo:xo-mixins:backups-ng:vmBackupsCache')
+
+// Journal entries are stamped with the clock of the process which wrote them, which is not
+// necessarily this one. There is no journal entry to anchor the very first replay of an entry on, so
+// its cursor is bootstrapped from this process' clock instead, read a bit before the listing's
+// watermark to cover the gap between the two clocks; every replay after that chains on the cursor of
+// the previous one, which is immune to clock skew.
+//
+// Replaying an entry twice is harmless: `add`/`change` are upserts and `del` is an idempotent
+// removal.
+const CLOCK_SKEW_TOLERANCE = 5 * 60 * 1e3
+
+// how long an entry is kept up to date from its journal before it is listed in full again, which
+// bounds the drift described in `VmBackupsCache` at the price of one full listing per period
+const DEFAULT_REBUILD_INTERVAL = 60 * 60 * 1e3
+
+// how many reads one `#refresh()` call makes at most while `refresh()` keeps being called during them:
+// past it, the next `get()` reads the entry again, so a source written to faster than it is read
+// cannot hold the callers of `get()` forever
+const MAX_REFRESH_READS = 3
+
+/**
+ * @param {Entry} entry
+ * @param {Repository} repository
+ * @returns {boolean}
+ */
+const isSameRepository = (entry, repository) =>
+  entry.url === repository.url && entry.options === repository.options && entry.proxy === repository.proxy
+
+/**
+ * How long an entry of a repository is brought up to date from the journal before it is listed in
+ * full again: the `fullListingInterval` parameter of its URL, a positive whole number of minutes,
+ * otherwise `DEFAULT_REBUILD_INTERVAL`.
+ *
+ *
+ * Read when the entry is built: the URL changing rebuilds the entry anyway, see `isSameRepository()`.
+ *
+ * @param {Repository} repository
+ * @returns {number}
+ */
+const rebuildIntervalOf = repository => {
+  const { fullListingInterval } = parse(repository.url)
+  if (fullListingInterval === undefined) {
+    return DEFAULT_REBUILD_INTERVAL
+  }
+
+  // `parse()` reads the parameters of the URL as JSON: a number of minutes is already a number
+  //
+  // a typo in an optional setting, or a duration with a unit, must not make the repository
+  // unreadable, nor an interval which is not positive make every read list it in full
+  if (typeof fullListingInterval !== 'number' || !Number.isInteger(fullListingInterval) || fullListingInterval <= 0) {
+    warn('invalid fullListingInterval, using the default one', {
+      repositoryId: repository.id,
+      fullListingInterval,
+      defaultInterval: DEFAULT_REBUILD_INTERVAL,
+    })
+    return DEFAULT_REBUILD_INTERVAL
+  }
+  return fullListingInterval * 60e3
+}
+
+/**
+ * forgets a backup, and the VM it belonged to when it was its last one
+ *
+ * @param {BackupsByVm} backupsByVm
+ * @param {string} vmUuid
+ * @param {string} key
+ * @returns {void}
+ */
+const removeBackup = (backupsByVm, vmUuid, key) => {
+  const backups = backupsByVm[vmUuid]
+  if (backups === undefined) {
+    return
+  }
+
+  delete backups[key]
+  if (Object.keys(backups).length === 0) {
+    // `RemoteAdapter#listAllVmBackups` skips the VMs without backups
+    delete backupsByVm[vmUuid]
+  }
+}
+
+/**
+ * The archives of the backup repositories, with the interface the app expects from the collections
+ * registered with it (see `registerCollection` in `xo.mjs`): `add` and `update` carry archives,
+ * `remove` their ids. `off()` is for the other mixins which listen to them, see `vmBackupArchives`
+ * in `index.mjs`.
+ *
+ * @typedef {{
+ *   on: {
+ *     (event: 'add' | 'update', listener: (archives: [FormattedBackup]) => void): void
+ *     (event: 'remove', listener: (ids: [FormattedBackup['id']]) => void): void
+ *   },
+ *   off: {
+ *     (event: 'add' | 'update', listener: (archives: [FormattedBackup]) => void): void
+ *     (event: 'remove', listener: (ids: [FormattedBackup['id']]) => void): void
+ *   },
+ *   get: () => Promise<FormattedBackup[]>,
+ *   first: (id: FormattedBackup['id']) => Promise<FormattedBackup | undefined>,
+ * }} Archives
+ */
+
+/**
+ * What a journal event changed in the backups of a repository, as `#emit()` announces it.
+ *
+ * @typedef {object} Change
+ * @property {'add' | 'update' | 'remove'} event
+ * @property {FormattedBackup} backup the backup added, updated or removed
+ */
+
+/**
+ * Applies one journal event to the backups of a repository.
+ *
+ * @param {BackupsByVm} backupsByVm backups to bring up to date, mutated in place
+ * @param {JournalEvent} journalEvent
+ * @returns {Change | undefined} what it changed, `undefined` when it changed nothing
+ */
+const applyEvent = (backupsByVm, journalEvent) => {
+  const { vmUuid, filename } = journalEvent
+  const previous = backupsByVm[vmUuid]?.[filename]
+
+  if (journalEvent.event === 'del') {
+    removeBackup(backupsByVm, vmUuid, filename)
+    return previous === undefined ? undefined : { event: 'remove', backup: previous }
+  }
+
+  const { backup } = journalEvent
+  const backups = (backupsByVm[vmUuid] ??= {})
+  backups[filename] = backup
+  if (isEqual(previous, backup)) {
+    return
+  }
+  return { event: previous === undefined ? 'add' : 'update', backup }
+}
+
+/**
+ * The archive a backup is served and announced as: the cache keys the backups of a repository by
+ * the name of their metadata, which is only unique within that repository.
+ *
+ * @param {FormattedBackup} backup
+ * @param {string} repositoryId
+ * @returns {FormattedBackup}
+ */
+const archiveOf = (backup, repositoryId) =>
+  /** @type {FormattedBackup} */ ({ ...backup, id: `${repositoryId}/${backup.id}` })
+
+/**
+ * Turns the backups of a repository into the shape expected by the API:
+ * `{ [vmUuid]: <backups sorted by timestamp> }`, restricted to `vmId` when it is given.
+ *
+ * @param {BackupsByVm} backupsByVm
+ * @param {string} remoteId
+ * @param {string} [vmId]
+ * @returns {Record<string, FormattedBackup[]>}
+ */
+export function serveVmBackups(backupsByVm, remoteId, vmId) {
+  /** @type {Record<string, FormattedBackup[]>} */
+  const result = {}
+  for (const vmUuid of vmId === undefined ? Object.keys(backupsByVm) : [vmId]) {
+    const backups = backupsByVm[vmUuid]
+    result[vmUuid] =
+      backups === undefined
+        ? []
+        : Object.values(backups)
+            // inject the remote id on the backup which is needed for importVmBackupNg()
+            .map(backup => archiveOf(backup, remoteId))
+            .sort(compareTimestamp)
+  }
+  return result
+}
+
+/**
+ * In-memory listing of the VM backups of the backup repositories, as
+ * `{ [vmUuid]: { [metadataFilename]: <formatted backup> } }`.
+ *
+ * Listing a repository costs one directory listing and one metadata read per VM, which is expensive
+ * on object storages, and cannot be cached on the repository itself when it is immutable. Instead of
+ * re-listing it, an entry is brought up to date by replaying the events its journal recorded since
+ * the previous read (see `@xen-orchestra/backups/_backupJournal.mjs`).
+ *
+ * How a repository is read is `VmBackupsSource`'s business: this class only decides *when* to list
+ * it, when to replay it, and what to serve in the meantime.
+ *
+ * Entries are rebuilt from scratch an hour after they were built, or after the `fullListingInterval`
+ * of the URL of the repository, see `rebuildIntervalOf()`, which bounds the drift accumulated
+ * from the events which could not be journaled, or which are not journaled at all (e.g. the
+ * `immutable-backups` daemon lifting the immutability of a backup), when the remote is re-pointed,
+ * reconfigured or moved to another proxy, which the entry detects by itself from what it was built
+ * from, and when the source turns out not to be able to replay the repository at all.
+ *
+ * What it holds is also served as a collection, `archives`, for the app to register with its other
+ * collections.
+ */
+export class VmBackupsCache {
+  // repository id → the backups last announced for it, which is the object the entry holds while it
+  // has one: a replay mutates it in place, and only a listing replaces it
+  //
+  // it outlives the entry so that a repository which is read from scratch again only announces what
+  // really changed in the meantime, instead of removing then re-adding everything it holds
+  //
+  // therefore only `remove()` releases it: it is the call which says that a repository is not coming
+  // back, while `delete()` keeps it for the listing which is going to compare itself against it
+  /** @type {Map<Repository['id'], BackupsByVm>} */
+  #announced = new Map()
+
+  #emitter = new EventEmitter()
+
+  // an object of its own rather than the cache itself, so that its consumers can only listen and read:
+  // they must not reach `delete()` or `remove()`, which would bypass the listing state their owner keeps
+  /** @type {Archives} */
+  #archives = {
+    on: (event, listener) => {
+      this.#emitter.on(event, listener)
+    },
+    off: (event, listener) => {
+      this.#emitter.off(event, listener)
+    },
+    get: async () => this.#listArchives(),
+    first: async id => this.#findArchive(id),
+  }
+
+  // repository id → { backupsByVm, builtAt, cursor, journalConfirmed, options, proxy, rebuildInterval,
+  // refreshedAt, stale, url }
+  /** @type {Map<string, Entry>} */
+  #entries = new Map()
+
+  /** @type {number} */
+  #minRefreshDelay
+
+  // repository id → promise of the ongoing build or replay, to coalesce concurrent listings
+  /** @type {Map<string, Promise<BackupsByVm>>} */
+  #pending = new Map()
+
+  /** @type {Source} */
+  #source
+
+  // ids of the repositories the source turned out not to be able to replay: bringing them up to date
+  // means listing them again in full, until one of their replays succeeds
+  /** @type {Set<Repository['id']>} */
+  #unreplayable = new Set()
+
+  /**
+   * The archives the cache holds, as a collection to register with the app.
+   *
+   * @returns {Archives}
+   */
+  get archives() {
+    return this.#archives
+  }
+
+  // the listeners of `archives` are the ones `registerCollection` attached: they must be removed when the
+  // app stops, otherwise a start after a stop would attach them a second time to the same emitter
+  removeArchivesListeners() {
+    this.#emitter.removeAllListeners()
+  }
+
+  /**
+   * @param {Source} source
+   * @param {object} [options]
+   * @param {number} [options.minRefreshDelay] minimum delay between two journal reads of the same
+   * repository, in milliseconds
+   */
+  constructor(source, { minRefreshDelay = 0 } = {}) {
+    this.#source = source
+    this.#minRefreshDelay = minRefreshDelay
+  }
+
+  /**
+   * Forgets a repository: the next listing will rebuild its entry from scratch.
+   *
+   * To call when the repository itself is gone or has been reconfigured, or when the caller has a
+   * reason to distrust the journal.
+   *
+   * Also drops a build or replay still in flight for this repository, if any: a caller of `get()`
+   * arriving after `delete()` must not be served the outcome of an operation which started before it,
+   * e.g. against a since-reconfigured repository.
+   *
+   * Announces nothing: the repository is going to be read again, and the listing which does it only
+   * announces what actually changed — the archives last announced for it are kept for that
+   * comparison, and are only released by `remove()`.
+   *
+   * A repository which is not going to be listed again must therefore go through `remove()` instead:
+   * after this call, its archives stay in the collection, and in memory, for as long as the process
+   * lives.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
+   */
+  delete(repositoryId) {
+    if (this.#entries.delete(repositoryId)) {
+      debug('entry deleted', { repositoryId })
+    }
+    this.#pending.delete(repositoryId)
+
+    // e.g. it has been moved from a proxy which does not expose its journal: the next replay finds out
+    // again
+    this.#unreplayable.delete(repositoryId)
+  }
+
+  /**
+   * Whether a repository is worth reading without waiting for a listing: its archives are in the
+   * collection, and as far as the cache knows, reading it does not mean listing it in full.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {boolean}
+   */
+  isReplayable(repositoryId) {
+    return this.#announced.has(repositoryId) && !this.#unreplayable.has(repositoryId)
+  }
+
+  /**
+   * The repositories `isReplayable()` holds for.
+   *
+   * @returns {Array<Repository['id']>}
+   */
+  replayableRepositoryIds() {
+    return this.#repositoryIds(false)
+  }
+
+  /**
+   * The repositories of the collection `isReplayable()` does not hold for.
+   *
+   * @returns {Array<Repository['id']>}
+   */
+  unreplayableRepositoryIds() {
+    return this.#repositoryIds(true)
+  }
+
+  // Both listings filter the announced set on the same test, so a change to how it is filtered is made once
+  /**
+   * @param {boolean} unreplayable whether to keep the repositories `isReplayable()` does not hold for
+   * @returns {Array<Repository['id']>}
+   */
+  #repositoryIds(unreplayable) {
+    return [...this.#announced.keys()].filter(id => this.#unreplayable.has(id) === unreplayable)
+  }
+
+  /**
+   * Announces that a repository is gone: every archive it held is removed from the collection, and
+   * it is forgotten as `delete()` does.
+   *
+   * To call when the repository itself is removed or disabled, i.e. when it will not be listed
+   * again; a repository which is merely re-read must go through `delete()`.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
+   */
+  remove(repositoryId) {
+    const announced = this.#announced.get(repositoryId)
+    this.delete(repositoryId)
+
+    if (announced === undefined) {
+      return
+    }
+    this.#announced.delete(repositoryId)
+
+    for (const backups of Object.values(announced)) {
+      for (const backup of Object.values(backups)) {
+        this.#emit('remove', repositoryId, backup)
+      }
+    }
+  }
+
+  /**
+   * Marks a repository as stale: the next listing will replay its journal instead of waiting for the
+   * end of the current refresh window, and a read already in progress reads it again before it
+   * settles, unless that means listing it in full, see `#refresh()`.
+   *
+   * To call after a mutation triggered by this process, so that its effect is visible at once.
+   *
+   * @param {Repository['id']} repositoryId
+   * @returns {void}
+   */
+  refresh(repositoryId) {
+    const entry = this.#entries.get(repositoryId)
+    if (entry !== undefined) {
+      entry.stale = true
+    }
+  }
+
+  /**
+   * Returns the up-to-date backups of a repository.
+   *
+   * The returned value is the cache itself: it must not be mutated by the caller.
+   *
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
+  async get(repository) {
+    const { id } = repository
+
+    let pending = this.#pending.get(id)
+    if (pending === undefined) {
+      pending = this.#refresh(repository).finally(() => {
+        if (this.#pending.get(id) === pending) {
+          this.#pending.delete(id)
+        }
+      })
+      this.#pending.set(id, pending)
+    }
+    return pending
+  }
+
+  /**
+   * Reads the repository again for as long as `refresh()` is called during the read: `#build()` and
+   * `#replay()` unset `stale` before they read, so what they read may miss the mutation which
+   * prompted that call, and the callers of `get()` which joined this read must not be served it.
+   *
+   * Not when reading it again means listing it in full: with mutations coming faster than a listing,
+   * e.g. a backup job writing VM after VM, this read would never settle. `stale` stays set instead,
+   * so the next read lists it again.
+   *
+   * Not either after `MAX_REFRESH_READS` reads, even when each of them is a replay: a backup job
+   * writing VM after VM can outpace the journal reads as well, and the callers of `get()` must not
+   * wait for every write. `stale` stays set as well, so the next read replays the entry.
+   *
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
+  async #refresh(repository) {
+    for (let nReads = 1; ; nReads++) {
+      const backupsByVm = await this.#read(repository)
+
+      // only the entry this call has just read: one built by another call since is that call's
+      // business
+      const entry = this.#entries.get(repository.id)
+      if (entry?.backupsByVm !== backupsByVm || !entry.stale || this.#unreplayable.has(repository.id)) {
+        return backupsByVm
+      }
+
+      // reading again would list it in full: `stale` stays set for the next read
+      if (Date.now() - entry.builtAt >= entry.rebuildInterval) {
+        return backupsByVm
+      }
+
+      // reading again would go on past the bound: `stale` stays set for the next read
+      if (nReads >= MAX_REFRESH_READS) {
+        return backupsByVm
+      }
+    }
+  }
+
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
+  async #read(repository) {
+    const { id } = repository
+    const entry = this.#entries.get(id)
+    const now = Date.now()
+
+    try {
+      if (entry === undefined || !isSameRepository(entry, repository) || now - entry.builtAt >= entry.rebuildInterval) {
+        return await this.#build(repository)
+      }
+
+      if (
+        (entry.stale || now - entry.refreshedAt >= this.#minRefreshDelay) &&
+        !(await this.#replay(repository, entry))
+      ) {
+        // the source cannot replay this repository, e.g. it is attached to a proxy which does not
+        // expose its journal: the only way to bring the entry up to date is to list it again
+        //
+        // not recorded for an entry dropped during the read, e.g. the repository has been moved off
+        // that proxy: `delete()` has just forgotten what this read would record
+        if (this.#entries.get(id) === entry) {
+          this.#unreplayable.add(id)
+        }
+        return await this.#build(repository)
+      }
+
+      // populated: this branch is only reached for an entry `#build()` has already completed
+      return /** @type {BackupsByVm} */ (entry.backupsByVm)
+    } catch (error) {
+      // the repository is probably unreachable: don't keep serving a listing which cannot be
+      // refreshed anymore
+      if (this.#entries.get(id) === entry) {
+        this.delete(id)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Returns the up-to-date backups of a single VM, without paying for a listing of every VM on
+   * the repository when the entry is still cold.
+   *
+   * Delegates to `get()` whenever an entry already exists or is being built or replayed, since a
+   * dedicated read would not save anything there; otherwise reads just this VM and lets `get()`
+   * build the full entry in the background, for the callers which do want every VM.
+   *
+   * @param {Repository} repository
+   * @param {string} vmUuid
+   * @returns {Promise<BackupsByVm>}
+   */
+  async getOneVm(repository, vmUuid) {
+    const { id } = repository
+
+    if (this.#entries.has(id) || this.#pending.has(id)) {
+      const backupsByVm = await this.get(repository)
+      return backupsByVm[vmUuid] === undefined ? {} : { [vmUuid]: backupsByVm[vmUuid] }
+    }
+
+    const backups = await this.#source.listOneVm(repository, vmUuid)
+
+    // warms the entry in the background for the callers which want every VM
+    this.get(repository).catch(error => {
+      warn('failed to warm the entry', { repositoryId: id, error })
+    })
+
+    // `RemoteAdapter#listAllVmBackups` skips the VMs without backups
+    return Object.keys(backups).length === 0 ? {} : { [vmUuid]: backups }
+  }
+
+  /**
+   * Every archive of the collection: those of the repositories listed since the process started, and
+   * not removed since.
+   *
+   * @returns {FormattedBackup[]}
+   */
+  #listArchives() {
+    /** @type {FormattedBackup[]} */
+    const archives = []
+    for (const [repositoryId, backupsByVm] of this.#announced) {
+      for (const backups of Object.values(backupsByVm)) {
+        for (const backup of Object.values(backups)) {
+          archives.push(archiveOf(backup, repositoryId))
+        }
+      }
+    }
+    return archives
+  }
+
+  /**
+   * The archive with this id, if any: walks the announced backups and only builds the matching one,
+   * instead of building every archive of the collection to pick one.
+   *
+   * @param {FormattedBackup['id']} id
+   * @returns {FormattedBackup | undefined}
+   */
+  #findArchive(id) {
+    for (const [repositoryId, backupsByVm] of this.#announced) {
+      for (const backups of Object.values(backupsByVm)) {
+        for (const backup of Object.values(backups)) {
+          // same id as `archiveOf()` gives, compared before building the archive
+          if (`${repositoryId}/${backup.id}` === id) {
+            return archiveOf(backup, repositoryId)
+          }
+        }
+      }
+    }
+    return undefined
+  }
+
+  /**
+   * Announces one change of the archives, with the payload of the other collections of the app: an
+   * array of archives on `add` and `update`, of ids on `remove`, here of a single one, since
+   * `registerCollection` handles them one by one anyway.
+   *
+   * @param {'add' | 'update' | 'remove'} event
+   * @param {Repository['id']} repositoryId
+   * @param {FormattedBackup} backup the backup added, updated or removed
+   * @returns {void}
+   */
+  #emit(event, repositoryId, backup) {
+    const archive = archiveOf(backup, repositoryId)
+
+    // the listeners run synchronously inside the listing path: a consumer which throws must not fail
+    // the listing which announced the change, nor the changes announced after it
+    try {
+      this.#emitter.emit(event, [event === 'remove' ? archive.id : archive])
+    } catch (error) {
+      warn('a listener failed', { event, repositoryId, error })
+    }
+  }
+
+  /**
+   * Announces what changed between the backups a repository has just been listed with and the ones
+   * last announced for it, and makes them the announced ones.
+   *
+   * @param {Repository['id']} repositoryId
+   * @param {BackupsByVm} backupsByVm
+   * @returns {void}
+   */
+  #announce(repositoryId, backupsByVm) {
+    const announced = this.#announced.get(repositoryId)
+    this.#announced.set(repositoryId, backupsByVm)
+
+    for (const [vmUuid, backups] of Object.entries(backupsByVm)) {
+      const announcedBackups = announced?.[vmUuid]
+      for (const [key, backup] of Object.entries(backups)) {
+        const previous = announcedBackups?.[key]
+        if (previous === undefined) {
+          this.#emit('add', repositoryId, backup)
+        } else if (!isEqual(previous, backup)) {
+          this.#emit('update', repositoryId, backup)
+        }
+      }
+    }
+
+    if (announced === undefined) {
+      return
+    }
+
+    for (const [vmUuid, backups] of Object.entries(announced)) {
+      const currentBackups = backupsByVm[vmUuid]
+      for (const [key, backup] of Object.entries(backups)) {
+        if (currentBackups?.[key] === undefined) {
+          this.#emit('remove', repositoryId, backup)
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {Repository} repository
+   * @returns {Promise<BackupsByVm>}
+   */
+  async #build(repository) {
+    const { id } = repository
+
+    // the cursor is bootstrapped from this process' clock before the listing, so that the events
+    // which happen during it are replayed on the next read
+    const now = Date.now()
+    /** @type {Entry} */
+    const entry = {
+      backupsByVm: undefined,
+      builtAt: now,
+      cursor: journalCursorAt(now - CLOCK_SKEW_TOLERANCE),
+      options: repository.options,
+      proxy: repository.proxy,
+      rebuildInterval: rebuildIntervalOf(repository),
+      refreshedAt: now,
+      stale: false,
+      url: repository.url,
+    }
+
+    // registered before the listing: if the entry is deleted while it is being built, it is not
+    // resurrected, only this call sees the result
+    this.#entries.set(id, entry)
+
+    try {
+      const backupsByVm = await this.#source.listAll(repository)
+
+      debug('entry built', { repositoryId: id, nVms: Object.keys(backupsByVm).length })
+
+      entry.backupsByVm = backupsByVm
+
+      // the entry may have been dropped while it was being built: it is not resurrected, and what it
+      // read is not announced either
+      if (this.#entries.get(id) === entry) {
+        this.#announce(id, backupsByVm)
+      }
+
+      return backupsByVm
+    } catch (error) {
+      // don't leave a half-built entry behind, but don't wipe one a newer build has published
+      if (this.#entries.get(id) === entry) {
+        this.#entries.delete(id)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * @param {Repository} repository
+   * @param {Entry} entry
+   * @returns {Promise<boolean>} whether the entry could be brought up to date from the journal
+   */
+  async #replay(repository, entry) {
+    // populated: `#replay()` is only called for an entry `#build()` has already completed
+    const backupsByVm = /** @type {BackupsByVm} */ (entry.backupsByVm)
+
+    // taken and cleared before the journal read, so that a mutation or a `refresh()` which happens
+    // during it is not swallowed and the next listing replays again — and for a `refresh()`, so that
+    // `#refresh()` reads again before this read settles
+    //
+    // this is also why they are left as they are when the source turns out not to be replayable: the
+    // rebuild which follows is at least as fresh as the replay would have been
+    const refreshedAt = Date.now()
+    entry.stale = false
+
+    const read = await this.#source.readJournal(repository, entry.cursor, { mustExist: entry.journalConfirmed })
+    if (read === undefined) {
+      return false
+    }
+
+    // e.g. the proxy it is attached to has been updated to a version which exposes its journal: it is
+    // no longer listed in full on each read
+    //
+    // only while the entry is still in place: one dropped during the read says nothing about the
+    // repository as it is now, e.g. it has been moved to another proxy
+    if (this.#entries.get(repository.id) === entry) {
+      this.#unreplayable.delete(repository.id)
+    }
+
+    // the repository may have been removed while its journal was being read: the entry is still
+    // brought up to date for the call which started the replay, but what it reads is only announced
+    // while these backups are still the announced ones
+    const announced = this.#announced.get(repository.id) === backupsByVm
+
+    // the source reduced the events to the last one of each backup, therefore they are independent
+    // and the order they are applied in does not matter
+    for (const journalEvent of read.events) {
+      const change = applyEvent(backupsByVm, journalEvent)
+      if (announced && change !== undefined) {
+        this.#emit(change.event, repository.id, change.backup)
+      }
+    }
+
+    // the cursor, not the events, is what says whether the journal moved forward: the entries it
+    // covers may all have resolved to no event at all, e.g. they are of a kind this version does
+    // not support, and reading them again on every replay would widen the read a bit more every
+    // minute, until the next rebuild
+    if (read.cursor !== undefined && read.cursor !== entry.cursor) {
+      entry.cursor = /** @type {string} */ (read.cursor)
+      // the journal has now actually been observed to exist: it disappearing on a later replay is
+      // anomalous rather than a repository which has simply never been written to
+      entry.journalConfirmed = true
+    }
+    entry.refreshedAt = refreshedAt
+
+    debug('entry replayed', { repositoryId: repository.id, nEvents: read.events.length })
+
+    return true
+  }
+}

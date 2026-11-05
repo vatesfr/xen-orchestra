@@ -4,8 +4,8 @@
       {{ t('general-information') }}
     </UiTitle>
     <VtsTabularKeyValueList>
-      <VtsTabularKeyValueRow :label="t('name')" :value="host.name_label" />
-      <VtsTabularKeyValueRow :label="t('uuid')" :value="host.uuid" />
+      <VtsTabularKeyValueRow :label="t('name')" :value="host.name_label" copy />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="host.uuid" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="host.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="host.tags.length > 0" #value>
@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -70,8 +70,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { computed } from 'vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -80,9 +79,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { pool, isMasterHost, masterHost } = usePoolStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
+const { pool, masterHost } = usePoolStore().subscribe()
 
-const isMaster = computed(() => isMasterHost(host.$ref))
-const isRunning = computed(() => isHostRunning(host))
+const { isMaster, isRunning } = useHostUtils(() => host)
 </script>

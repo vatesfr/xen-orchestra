@@ -1,7 +1,9 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoPbdUtils } from '@/modules/pbd/composables/xo-pbd-utils.composable.ts'
 import { useXoPbdCollection, type FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { ONE_GB } from '@/shared/constants.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -33,12 +35,16 @@ export function useGetPbdsInScope() {
 
   function getSrPbdsSignature(sr: FrontXoSr | undefined, scope: SrScope) {
     if (sr === undefined) {
-      return scope.type === 'host' ? `host:${scope.hostId}` : 'pool'
+      return scope.type === SR_SCOPE_TYPE.HOST ? `host:${scope.hostId}` : 'pool'
     }
 
     const scopedPbds = getPbdsInScope(sr, scope)
 
     return scopedPbds.map(pbd => `${pbd.id}:${pbd.attached}`).join('|') || sr.id
+  }
+
+  function isConnectedInScope(sr: FrontXoSr, scope: SrScope) {
+    return getPbdsInScope(sr, scope).some(pbd => pbd.attached)
   }
 
   function isPartiallyConnectedInScope(sr: FrontXoSr, scope: SrScope) {
@@ -52,6 +58,7 @@ export function useGetPbdsInScope() {
     getAttachedPbdsInScope,
     getDetachedPbdsInScope,
     getSrPbdsSignature,
+    isConnectedInScope,
     isPartiallyConnectedInScope,
   }
 }
@@ -89,6 +96,10 @@ export function useXoSrUtils(
 
   const srStatusIcon = computed<IconName>(() => objectIcon('sr', allPbdsConnectionStatus.value))
 
+  function getSrStatusIcon(sr: FrontXoSr): IconName {
+    return objectIcon('sr', getPbdsConnectionStatus(getPbdsInScope(sr, scope.value)))
+  }
+
   function getSrLocation(sr: FrontXoSr): string {
     if (sr.shared) {
       return t('shared')
@@ -102,11 +113,29 @@ export function useXoSrUtils(
     return hostName ?? t('unknown')
   }
 
+  function getSrSelectLabel(sr: FrontXoSr): string {
+    const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
+
+    return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
+  }
+
+  function getSrAccessModeLabel(sr: FrontXoSr): string {
+    return sr.shared ? t('shared') : t('local')
+  }
+
+  function getSrProvisioningLabel(sr: FrontXoSr): string {
+    return sr.allocationStrategy ?? t('unknown')
+  }
+
   return {
     pbdsInScope,
     srConnectionStatus: allPbdsConnectionStatus,
     isPartiallyConnectedInScope,
     srStatusIcon,
+    getSrStatusIcon,
     getSrLocation,
+    getSrSelectLabel,
+    getSrAccessModeLabel,
+    getSrProvisioningLabel,
   }
 }

@@ -1,15 +1,11 @@
 import isEmpty from 'lodash/isEmpty.js'
 import throttle from 'lodash/throttle.js'
-import { createLogger } from '@xen-orchestra/log'
 
-import backupGuard from './_backupGuard.mjs'
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
 import { forEach, isSrWritable, parseXml } from '../utils.mjs'
 import { PREFERED_IMAGE_FORMAT_PROPERTY } from '@xen-orchestra/xapi/pbd.mjs'
-
-const log = createLogger('xo:api:sr')
 
 const AUTHORIZED_IMAGE_FORMAT_LISTS = ['vhd', 'qcow2', 'vhd, qcow2', 'qcow2, vhd']
 
@@ -1051,12 +1047,8 @@ disableMaintenanceMode.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function reclaimSpace({ sr, bypassBackupCheck = false }) {
-  if (bypassBackupCheck) {
-    log.warn('sr.reclaimSpace with argument "bypassBackupCheck" set to true', { srId: sr.id })
-  } else {
-    await backupGuard.call(this, sr.$pool)
-  }
+export async function reclaimSpace({ sr, bypassBackupCheck }) {
+  await this.backupGuard(sr.id, { bypassBackupCheck, operation: 'sr.reclaimSpace' })
   await this.getXapiObject(sr).$reclaimSpace()
 }
 

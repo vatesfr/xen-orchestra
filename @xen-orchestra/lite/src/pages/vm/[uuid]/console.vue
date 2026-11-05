@@ -12,11 +12,21 @@
     </VtsStateHero>
     <template v-else-if="vm && vmConsole">
       <VtsLayoutConsole>
-        <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
+        <VtsRemoteConsole
+          v-if="url"
+          ref="console-element"
+          :url
+          :is-console-available="isConsoleAvailable"
+          @clipboard="clipboardText = $event"
+        />
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
-          <VtsClipboardConsole />
+          <VtsClipboardConsole
+            v-model="clipboardText"
+            :is-console-connected="isConsoleConnected"
+            :send-to-console="sendToConsole"
+          />
         </template>
       </VtsLayoutConsole>
     </template>
@@ -24,13 +34,13 @@
 </template>
 
 <script lang="ts" setup>
-import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useConsoleStore } from '@/stores/xen-api/console.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
+import { isVmOperationPending } from '@/libs/vm.ts'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useConsoleStore } from '@/stores/xen-api/console.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -38,7 +48,8 @@ import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import { useUiStore } from '@core/stores/ui.store'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -92,7 +103,7 @@ const url = computed(() => {
     return
   }
   const _url = new URL(vmConsole.value!.location)
-  _url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  _url.protocol = new URL(xenApiStore.getXapi().hostUrl).protocol === 'https:' ? 'wss:' : 'ws:'
   _url.searchParams.set('session_id', xenApiStore.currentSessionId)
   return _url
 })
@@ -101,9 +112,9 @@ const isConsoleAvailable = computed(() =>
   vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
 )
 
-const consoleElement = useTemplateRef('console-element')
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style lang="postcss" scoped>

@@ -4,9 +4,9 @@
 
 <script lang="ts" setup>
 import VmsPageContent from '@/components/vm/VmsPageContent.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import { logicAnd, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'

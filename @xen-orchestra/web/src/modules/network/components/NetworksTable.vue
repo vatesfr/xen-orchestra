@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -140,6 +140,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
               icon: 'action:delete',
               onClick: () => deleteNetworks(),
               busy: isDeletingNetworks.value,
+              accent: 'danger',
             },
           ],
         }),

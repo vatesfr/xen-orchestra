@@ -88,6 +88,35 @@
   }
   ```
 
+## Imports of TypeScript files MUST include the `.ts` extension
+
+Enforced by the `import/extensions` ESLint rule.
+
+❌ Bad
+
+```ts
+import { toVariants } from '@core/utils/to-variants.util'
+import { useUiStore } from '@core/stores/ui.store'
+```
+
+✅ Good
+
+```ts
+import { toVariants } from '@core/utils/to-variants.util.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
+```
+
+Barrel files are the exception — the import points to a directory, which resolves to its `index.ts`.
+The rule only exempts the existing ones (web-core's packages and icons):
+
+```ts
+import { useJob } from '@core/packages/job'
+import type { IconName } from '@core/icons'
+```
+
+Adding a barrel outside `@core/packages/*` or `@core/icons` requires extending
+`pathGroupOverrides` in `.eslintrc.js`.
+
 ## Use "_early return_" pattern when possible
 
 When possible, use "_early return_" pattern to improve readability and avoid unnecessary code nesting.
@@ -347,15 +376,69 @@ See [named routes documentation](https://router.vuejs.org/guide/essentials/named
 ❌ Bad
 
 ```vue
-<UiLink :to="`/vm/${vm.id}/dashboard`">
-  {{ t('dashboard') }}
-</UiLink>
+<template>
+  <UiLink :to="`/vm/${vm.id}/dashboard`">
+    {{ t('dashboard') }}
+  </UiLink>
+</template>
 ```
 
 ✅ Good
 
 ```vue
-<UiLink :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-  {{ t('dashboard') }}
-</UiLink>
+<template>
+  <UiLink :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+    {{ t('dashboard') }}
+  </UiLink>
+</template>
+```
+
+## Route params MUST NOT be passed as `undefined`
+
+When building a named route location for `<UiLink>`, `<RouterLink>`, or `router.push()`, Vue Router merges params with the active route. If a param value is `undefined`, the router reuses the current route’s param with the same name, which produces incorrect URLs.
+
+Either use a computed to return `undefined` as the route (disabling the link while still showing the component), or guard the link with a `v-if` (hide the link entirely).
+
+❌ Bad
+
+```vue
+<template>
+  <UiLink :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of } }">
+    {{ vdi.name_label }}
+  </UiLink>
+</template>
+```
+
+✅ Good
+
+```vue
+<template>
+  <UiLink :to="vdiRoute">{{ vdi.name_label }}</UiLink>
+</template
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { RouteLocationAsRelative } from 'vue-router'
+
+const vdiRoute = computed<RouteLocationAsRelative | undefined>(() => {
+  if (!vdi.$snapshot_of) {
+    return undefined
+  }
+
+  return {
+    name: '/vdi/[id]/general',
+    params: { id: vdi.$snapshot_of },
+  }
+})
+</script>
+```
+
+✅ Also good
+
+```vue
+<template>
+  <UiLink v-if="vdi.$snapshot_of" :to="{ name: '/vdi/[id]/general', params: { id: vdi.$snapshot_of } }">
+    {{ vdi.name_label }}
+  </UiLink>
+</template>
 ```

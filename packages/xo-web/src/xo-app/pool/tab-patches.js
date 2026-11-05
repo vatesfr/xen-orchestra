@@ -1,4 +1,6 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
+import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -9,7 +11,9 @@ import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
+import { renderXoItemFromId } from 'render-xo-item'
 import {
+  finalizeRollingPoolUpdate,
   installAllPatchesOnPool,
   installPatches,
   isSrShared,
@@ -17,9 +21,11 @@ import {
   rollingPoolUpdate,
   subscribeCurrentUser,
   subscribeHostMissingPatches,
+  subscribeRollingUpdateRecovery,
 } from 'xo'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
+import map from 'lodash/map.js'
 import size from 'lodash/size.js'
 import some from 'lodash/some.js'
 import { isXsHostWithCdnPatches } from 'xo/utils'
@@ -135,6 +141,71 @@ const INDIVIDUAL_ACTIONS_XCP = [
   },
 ]
 
+// a record only warrants a warning in these statuses: live statuses mean a
+// run is in progress, absence of record means nothing to do
+const RPU_RECOVERY_MESSAGES = {
+  blocked: 'rpuRecoveryBlocked',
+  failed: 'rpuRecoveryFailed',
+  interrupted: 'rpuRecoveryInterrupted',
+  succeeded: 'rpuRecoverySucceeded',
+}
+
+const RpuRecoveryBanner = ({ poolId, recovery }) => {
+  const message = RPU_RECOVERY_MESSAGES[recovery?.status]
+  if (message === undefined) {
+    return null
+  }
+
+  const { blockedReason, hostOrder = [], hosts = {}, haltedPinnedVms = {}, lastError } = recovery
+  const haltedVmIds = Object.keys(haltedPinnedVms)
+
+  return (
+    <Row>
+      <Col>
+        <div className='alert alert-warning'>
+          <h4>
+            <Icon icon='alarm' /> {_('rpuRecoveryIncompleteTitle')}
+          </h4>
+          <p>{_(message)}</p>
+          {blockedReason !== undefined && <p>{blockedReason}</p>}
+          {hostOrder.length > 0 && (
+            <ul>
+              {hostOrder.map(hostId => (
+                <li key={hostId}>
+                  {renderXoItemFromId(hostId)} — {hosts[hostId]?.status}
+                </li>
+              ))}
+            </ul>
+          )}
+          {lastError != null && (
+            <p>
+              <strong>{_('rpuRecoveryLastError')}</strong> {lastError.message ?? String(lastError)}
+            </p>
+          )}
+          {haltedVmIds.length > 0 && (
+            <div>
+              <strong>{_('rpuRecoveryHaltedPinnedVms')}</strong>
+              <ul>
+                {haltedVmIds.map(vmId => (
+                  <li key={vmId}>{renderXoItemFromId(vmId)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <ActionButton
+            btnStyle='warning'
+            handler={finalizeRollingPoolUpdate}
+            handlerParam={poolId}
+            icon='pool-rolling-update'
+          >
+            {_('rpuRecoveryFinalize')}
+          </ActionButton>
+        </div>
+      </Col>
+    </Row>
+  )
+}
+
 const INSTALLED_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
@@ -167,10 +238,6 @@ const INSTALLED_PATCH_COLUMNS = [
   },
 ]
 
-@addSubscriptions(({ master }) => ({
-  missingPatches: cb => subscribeHostMissingPatches(master, cb),
-  userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
-}))
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getPoolSrs = (state, props) =>
@@ -200,6 +267,24 @@ const INSTALLED_PATCH_COLUMNS = [
     poolSrs: getPoolSrs,
   }
 })
+// below the store connection: the subscriptions need the hosts of the pool
+@addSubscriptions(({ master, pool, poolHosts }) => ({
+  // the rolling pool update looks at every host: a current master over
+  // outdated members is still a pool to update
+  hasMissingPatchesByHost: cb => {
+    const byHost = {}
+    const unsubscribes = map(poolHosts, host =>
+      subscribeHostMissingPatches(host, patches => {
+        byHost[host.id] = !isEmpty(patches)
+        cb({ ...byHost })
+      })
+    )
+    return () => unsubscribes.forEach(unsubscribe => unsubscribe())
+  },
+  missingPatches: cb => subscribeHostMissingPatches(master, cb),
+  rollingUpdateRecovery: cb => subscribeRollingUpdateRecovery(pool, cb),
+  userPreferences: cb => subscribeCurrentUser(user => cb(user.preferences)),
+}))
 export default class TabPatches extends Component {
   getNVmsRunningOnLocalStorage = createSelector(
     () => this.props.runningVms,
@@ -219,11 +304,13 @@ export default class TabPatches extends Component {
 
   render() {
     const {
+      hasMissingPatchesByHost = {},
       hostPatches,
       master: { productBrand, version },
       missingPatches = [],
       pool,
       poolHosts,
+      rollingUpdateRecovery,
       userPreferences,
     } = this.props
 
@@ -235,27 +322,42 @@ export default class TabPatches extends Component {
 
     const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
+    // xo-server refuses a new run as long as the previous one left a record
+    const hasIncompleteRun = rollingUpdateRecovery != null
+
+    // with recovery, xo-server updates each host from its own missing patches;
+    // older XenServer and CH install the master's missing patches pool-wide
+    const supportsRpuRecovery = productBrand === 'XCP-ng' || _isXsHostWithCdnPatches
+
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>
+          <RpuRecoveryBanner poolId={pool.id} recovery={rollingUpdateRecovery} />
           <Row>
             <Col className='text-xs-right'>
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
+                  disabled={
+                    (supportsRpuRecovery ? !some(hasMissingPatchesByHost) : isEmpty(missingPatches)) ||
+                    hasMultipleVmsRunningOnLocalStorage ||
+                    isSingleHost ||
+                    hasIncompleteRun
+                  }
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
                   tooltip={
-                    hasMultipleVmsRunningOnLocalStorage
-                      ? _('nVmsRunningOnLocalStorage', {
-                          nVms: this.getNVmsRunningOnLocalStorage(),
-                        })
-                      : isSingleHost
-                        ? _('multiHostPoolUpdate')
-                        : undefined
+                    hasIncompleteRun
+                      ? _('rpuRecoveryRecordExists')
+                      : hasMultipleVmsRunningOnLocalStorage
+                        ? _('nVmsRunningOnLocalStorage', {
+                            nVms: this.getNVmsRunningOnLocalStorage(),
+                          })
+                        : isSingleHost
+                          ? _('multiHostPoolUpdate')
+                          : undefined
                   }
                 />
               )}

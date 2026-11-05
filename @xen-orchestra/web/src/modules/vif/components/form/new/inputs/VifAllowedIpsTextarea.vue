@@ -2,11 +2,8 @@
   <UiTextarea v-model.trim="model" :accent="errorMessage !== undefined ? 'danger' : 'brand'">
     {{ t('allowed-ips') }}
 
-    <template #info>
-      <!--      TODO change to have both when component will be updated -->
-      <template v-if="errorMessage === undefined">{{ t('allowed-ips-example') }}</template>
-      <template v-else>{{ errorMessage }}</template>
-    </template>
+    <template #info>{{ t('allowed-ips-example') }}</template>
+    <template v-if="errorMessage !== undefined" #message>{{ errorMessage }}</template>
   </UiTextarea>
 </template>
 

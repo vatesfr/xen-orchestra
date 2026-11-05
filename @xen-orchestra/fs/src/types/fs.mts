@@ -7,6 +7,7 @@ export interface RemoteInfo {
   encryptionKey?: string
   immutable?: boolean
   useVhdDirectory?: boolean
+  compressionType?: string
   [key: string]: unknown
 }
 
@@ -135,7 +136,7 @@ export abstract class RemoteHandlerAbstract {
   abstract read(file: FileDescriptor, buffer: Buffer, position?: number): Promise<ReadResult>
 
   abstract outputStream(path: string, input: Readable, options?: OutputStreamOptions): Promise<void>
-  abstract outputFile(file: string, data: string | Buffer, options?: OutputFileOptions): Promise<void>
+  abstract outputFile(file: string, data: string | Buffer | Buffer[], options?: OutputFileOptions): Promise<void>
   abstract writeFile(file: string, data: string | Buffer, options?: WriteFileOptions): Promise<void>
 
   abstract write(file: FileArg, buffer: Buffer, position?: number): Promise<void>
@@ -161,6 +162,8 @@ export abstract class RemoteHandlerAbstract {
   abstract lock(path: string): Promise<LockDisposer>
   abstract test(): Promise<TestResult>
   abstract isImmutable(): boolean
-  abstract useVhdDirectory(): boolean
+  abstract getConfig(key: 'useVhdDirectory'): boolean | undefined
+  abstract getConfig(key: 'compressionType'): string | undefined
+  abstract getConfig(key: string): unknown
   abstract addPrefix(prefix: string): RemoteHandlerAbstract
 }

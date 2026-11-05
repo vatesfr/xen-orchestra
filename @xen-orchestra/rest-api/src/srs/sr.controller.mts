@@ -21,11 +21,9 @@ import { provide } from 'inversify-binding-decorators'
 import { json, Request as ExRequest } from 'express'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
-
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { BASE_URL } from '../index.mjs'
-import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,

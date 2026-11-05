@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { computed } from 'vue'

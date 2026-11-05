@@ -7,10 +7,9 @@ import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.mjs'
 import { execFile } from 'child_process'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
+import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
-import { JsonRpcError } from 'json-rpc-protocol'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
@@ -105,14 +104,6 @@ export default class Backups {
         }
       }
     })(run)
-    run = (run =>
-      async function () {
-        const license = await app.appliance.getSelfLicense()
-        if (license === undefined) {
-          throw new JsonRpcError('no valid proxy license')
-        }
-        return run.apply(this, arguments)
-      })(run)
 
     run = (run => async (params, onLog) => {
       if (onLog === undefined || !app.config.get('backups').disableWorkers) {
@@ -165,13 +156,14 @@ export default class Backups {
           },
         ],
         deleteVmBackups: [
-          ({ filenames, remote }) =>
-            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames)),
+          ({ filenames, remote, immediate }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames, { immediate })),
           {
             description: 'delete VM backups',
             params: {
               filenames: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
+              immediate: { type: 'boolean', optional: true },
             },
           },
         ],
@@ -192,14 +184,38 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          async ({ backupId, remote, srUuid, settings, streamLogs = false, xapi: xapiOpts }) => {
+          async ({ backupId, cacheXapi, remote, srUuid, settings, streamLogs = false, vm: vmUuid, xapi: xapiOpts }) => {
             const {
               dispose,
               value: [adapter, xapi],
             } = await Disposable.all([this.getAdapter(remote), this.getXapi(xapiOpts)])
 
             const metadata = await adapter.readVmBackupMetadata(backupId)
-            const run = () => new ImportVmBackup({ adapter, metadata, settings, srUuid, xapi }).run()
+            const run = () =>
+              new ImportVmBackup({
+                adapter,
+                // a live mount outlives the restore which created it, so it cannot share the
+                // resources disposed at the end of this call: `#mountDisk` takes its own and
+                // releases them on unmount
+                liveMount: {
+                  mountDisk: ({ cacheSrUuid, diskPath, hostId, xapiLabels }) =>
+                    this.#mountDisk({
+                      cacheSrUuid,
+                      cacheXapi,
+                      diskPath,
+                      hostUuid: hostId,
+                      remote,
+                      vmUuid,
+                      xapi: xapiOpts,
+                      xapiLabels,
+                    }),
+                  unmountDisk: mountId => app.liveMount.unmountDisk(mountId),
+                },
+                metadata,
+                settings,
+                srUuid,
+                xapi,
+              }).run()
 
             if (streamLogs) {
               return runWithLogs(
@@ -231,10 +247,14 @@ export default class Backups {
             description: 'create a new VM from a backup',
             params: {
               backupId: { type: 'string' },
+              // connection options of the pool running this proxy, required by a cached live mount
+              cacheXapi: { type: 'object', optional: true },
               remote: { type: 'object' },
               settings: { type: 'object', optional: true },
               srUuid: { type: 'string' },
               streamLogs: { type: 'boolean', optional: true },
+              // uuid of this proxy's own VM, required by a cached live mount in `settings.mapVdisSrs`
+              vm: { type: 'string', optional: true },
               xapi: { type: 'object' },
             },
           },
@@ -319,6 +339,27 @@ export default class Backups {
             },
           },
         ],
+        listVmBackupsJournal: [
+          async ({ remote, remoteId, cursor, mustExist }) => {
+            // unlike `listVmBackups`, a repository which could not be read must reject: the caller
+            // purges its cache on failure, and would otherwise keep serving a listing it has no
+            // way to refresh
+            const { events, cursor: nextCursor } = await Disposable.use(this.getAdapter(remote), adapter =>
+              adapter.readBackupJournalEvents(cursor, { mustExist })
+            )
+
+            return { events: formatJournalEvents(events, remoteId), cursor: nextCursor }
+          },
+          {
+            description: 'read the backup journal of a remote, with the added and changed backups resolved',
+            params: {
+              remote: { type: 'object' },
+              remoteId: { type: 'string' },
+              cursor: { type: 'string', optional: true },
+              mustExist: { type: 'boolean', optional: true },
+            },
+          },
+        ],
         listRunningJobs: [
           () => Object.keys(runningJobs),
           {
@@ -346,6 +387,39 @@ export default class Backups {
                 type: 'object',
                 additionalProperties: { type: 'object' },
               },
+            },
+          },
+        ],
+        mountDisk: [
+          ({ cacheSr, cacheXapi, disk, host, nameLabel, remote, vm, xapi, xapiLabels = { srNameLabel: nameLabel } }) =>
+            this.#mountDisk({
+              cacheSrUuid: cacheSr,
+              cacheXapi,
+              diskPath: disk,
+              hostUuid: host,
+              remote,
+              vmUuid: vm,
+              xapi,
+              xapiLabels,
+            }),
+          {
+            description:
+              'serve a disk of a backup repository as an iSCSI LUN attached to a host as an SR, read-only unless cached',
+            params: {
+              // uuid of the SR of a local cache VDI, requires `vm` and `cacheXapi`
+              cacheSr: { type: 'string', optional: true },
+              // connection options of the pool running this proxy, which holds `cacheSr`
+              cacheXapi: { type: 'object', optional: true },
+              disk: { type: 'string' },
+              host: { type: 'string' },
+              // name of the SR, superseded by `xapiLabels.srNameLabel`: still sent by older XOs
+              nameLabel: { type: 'string', optional: true },
+              remote: { type: 'object' },
+              // uuid of this proxy's own VM, the cache VDI is plugged onto it
+              vm: { type: 'string', optional: true },
+              xapi: { type: 'object' },
+              // `{ srNameLabel?, vdiNameLabel?, vdiNameDescription? }`, see the live mount mixin
+              xapiLabels: { type: 'object', optional: true },
             },
           },
         ],
@@ -395,6 +469,15 @@ export default class Backups {
             },
           },
         ],
+        unmountDisk: [
+          ({ id }) => app.liveMount.unmountDisk(id),
+          {
+            description: 'detach a disk mounted by mountDisk and stop serving it',
+            params: {
+              id: { type: 'string' },
+            },
+          },
+        ],
       },
     })
 
@@ -428,12 +511,66 @@ export default class Backups {
     })
   }
 
+  /**
+   * Serve a disk of a backup repository as an iSCSI LUN and attach it, as an SR, to a host of the
+   * pool `xapiOpts` points at. Read-only, unless it is cached.
+   *
+   * The adapter and the XAPI connection are acquired here but released by the unmount, not by the
+   * call which created the mount: the mount outlives it and needs both until it is torn down —
+   * the handler to serve every read, the XAPI connection to forget the SR.
+   *
+   * @param {object} params
+   * @param {string} params.diskPath - path of the disk on the backup repository
+   * @param {string} params.hostUuid - uuid of the host the disk is attached to
+   * @param {object} params.remote - backup repository holding the disk
+   * @param {object} params.xapi - connection options of the pool owning `hostUuid`
+   * @param {string} [params.cacheSrUuid] - SR of a local cache VDI, requires `vmUuid` and `cacheXapi`
+   * @param {object} [params.cacheXapi] - connection options of the pool running this proxy, which
+   * holds `cacheSrUuid`: it may not be the pool owning `hostUuid`
+   * @param {string} [params.vmUuid] - uuid of this proxy's own VM
+   * @param {object} [params.xapiLabels] - names of the SR and of the VDI shown to the user
+   */
+  async #mountDisk({
+    cacheSrUuid,
+    cacheXapi: cacheXapiOpts,
+    diskPath,
+    hostUuid,
+    remote,
+    vmUuid,
+    xapi: xapiOpts,
+    xapiLabels,
+  }) {
+    const resources = [this.getAdapter(remote), this.getXapi(xapiOpts)]
+    if (cacheXapiOpts !== undefined) {
+      resources.push(this.getXapi(cacheXapiOpts))
+    }
+    const {
+      dispose,
+      value: [adapter, xapi, cacheXapi],
+    } = await Disposable.all(resources)
+    try {
+      return await this._app.liveMount.mountDisk({
+        cacheSrUuid,
+        cacheXapi,
+        diskPath,
+        handler: adapter.handler,
+        hostRef: await xapi.call('host.get_by_uuid', hostUuid),
+        release: dispose,
+        vmUuid,
+        xapi,
+        xapiLabels,
+      })
+    } catch (error) {
+      await dispose()
+      throw error
+    }
+  }
+
   *getAdapter(remote) {
     const app = this._app
     return new RemoteAdapter(yield app.remotes.getHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
-      vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
       useGetDiskLegacy: app.config.getOptional('backups.useGetDiskLegacy'),
     })
   }

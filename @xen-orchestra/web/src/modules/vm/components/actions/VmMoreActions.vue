@@ -1,10 +1,11 @@
 <template>
-  <MenuItem v-if="showChangeState" icon="action:change-state" class="change-state">
+  <MenuItem v-if="showChangeState" accent="brand" icon="action:change-state">
     {{ t('action:change-state') }}
     <template #submenu>
       <VmPowerStateActions :vm />
     </template>
   </MenuItem>
+  <VmMigrateButton :vm />
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
   <VmExportButton :vm />
@@ -16,6 +17,7 @@
 import VmDeleteButton from '@/modules/vm/components/actions/delete/VmDeleteButton.vue'
 import VmDuplicateButton from '@/modules/vm/components/actions/duplicate/VmDuplicateButton.vue'
 import VmExportButton from '@/modules/vm/components/actions/export/VmExportButton.vue'
+import VmMigrateButton from '@/modules/vm/components/actions/migrate/VmMigrateButton.vue'
 import VmSnapshotButton from '@/modules/vm/components/actions/snapshot/VmSnapshotButton.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -30,9 +32,3 @@ defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.change-state {
-  color: var(--color-brand-txt-base);
-}
-</style>

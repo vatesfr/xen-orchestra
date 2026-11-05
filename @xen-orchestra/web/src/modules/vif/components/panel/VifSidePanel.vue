@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :has-selection="!!vif" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!vif" class="vif-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
       <VifConnectionToggleButton :vif :vm />
     </template>
@@ -8,8 +8,8 @@
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
-      <UiCard class="card">
-        <VtsCardObjectTitle :id="vif.id" :to="vifTo" :label="t('vif')" icon="object:vif" />
+      <UiPanelCard>
+        <UiPanelCardTitle :id="vif.id" size="medium" :to="vifTo" :label="t('vif')" icon="object:vif" />
         <div class="content">
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
@@ -86,10 +86,10 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
       <!-- NETWORK INFORMATION -->
-      <UiCard class="card">
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
+      <UiPanelCard>
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
         <div class="content">
           <!-- IP ADDRESSES -->
           <template v-if="ipAddresses.length">
@@ -125,7 +125,7 @@
             </template>
           </VtsCardRowKeyValue>
         </div>
-      </UiCard>
+      </UiPanelCard>
     </template>
   </VtsSidePanel>
 </template>
@@ -139,14 +139,13 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { computed } from 'vue'
@@ -188,9 +187,7 @@ const status = computed(() => (vif?.attached ? CONNECTION_STATUS.CONNECTED : CON
 </script>
 
 <style scoped lang="postcss">
-.card {
-  gap: 1.6rem;
-
+.vif-side-panel {
   .content {
     display: flex;
     flex-direction: column;

@@ -230,6 +230,21 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
+   * Checks whether this disk (or chain) can act as the merge-target parent for a disk
+   * about to be written with the given reference configuration.
+   *
+   * Base check: this disk's own uuid matches the expected parent uuid. Subclasses should
+   * override to add implementation-specific compatibility checks (storage sub-format,
+   * compression, ...) — calling `super.isMergeableParent()` first.
+   *
+   * @param {string} parentUuid
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid) {
+    return this.getUuid() === parentUuid
+  }
+
+  /**
    * Abstract
    * Rename alias/disk
    * @param {string} newPath

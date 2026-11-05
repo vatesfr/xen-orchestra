@@ -38,16 +38,14 @@ import {
   unauthorizedResp,
   Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { BASE_URL } from '../index.mjs'
 import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
-import type { SendObjects } from '../helpers/helper.type.mjs'
+import { BASE_URL, limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import type { SafeOmit, SendObjects, Simplify } from '../helpers/helper.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { entityId } from '../open-api/oa-examples/common.oa-example.mjs'
 import { inject } from 'inversify'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { UserService } from '../users/user.service.mjs'
 import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 
@@ -60,11 +58,8 @@ const log = createLogger('xo:rest-api:acl-role-controller')
 @Tags('rbacs')
 @provide(AclRoleController)
 export class AclRoleController extends XoController<XoAclRole> {
-  #userService: UserService
-
-  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     super('acl-role', restApi)
-    this.#userService = userService
   }
 
   getAllCollectionObjects(): Promise<XoAclRole[]> {
@@ -103,10 +98,15 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Required privilege:
    * - resource: acl-role, action: create
+   * - resource: acl-privilege, action: create (if privileges is passed)
    *
    * @example body {
    *  "name": "VMs creator",
-   *  "description": "Allow to create VMs"
+   *  "description": "Allow to create VMs",
+   *  "privileges": [
+   *    {"resource":"vm-template", "action":"instantiate"},
+   *    {"resource":"pool", "action":"create:vm"}
+   *  ]
    * }
    */
   @Example(entityId)
@@ -114,17 +114,34 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Post('')
   @Middlewares([
     json(),
-    acl({
-      resource: 'acl-role',
-      action: 'create',
-      object: ({ req }) => req.body,
-    }),
+    acl([
+      {
+        resource: 'acl-role',
+        action: 'create',
+        // extracts `privileges` because they have their own acl check
+        object: ({
+          req: {
+            body: { privileges, ...role },
+          },
+        }) => role,
+      },
+      {
+        resource: 'acl-privilege',
+        action: ({ req }) => (req.body.privileges !== undefined ? 'create' : undefined),
+        objects: ({ req }) => req.body.privileges,
+      },
+    ]),
   ])
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createAclV2Role(
-    @Body() body: { name: string; description?: string }
+    @Body()
+    body: {
+      name: string
+      description?: string
+      privileges?: Simplify<SafeOmit<AnyPrivilege, 'id' | 'roleId'>>[]
+    }
   ): Promise<{ id: Unbrand<XoAclRole>['id'] }> {
     const newRole = await this.restApi.xoApp.createAclV2Role(body)
     return { id: newRole.id }
@@ -462,14 +479,14 @@ export class AclRoleController extends XoController<XoAclRole> {
       'isTemplate' in role
         ? []
         : await Promise.all(
-          role.userIds.map(userId =>
-            this.#userService.getUser(userId).catch(err => {
-              log.warn(`cannot resolve user: ${userId}`, err)
-              // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
-              return { id: userId } as XoUser
-            })
+            role.userIds.map(userId =>
+              this.restApi.xoApp.getUser(userId, { obfuscatePassword: true }).catch(err => {
+                log.warn(`cannot resolve user: ${userId}`, err)
+                // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+                return { id: userId } as XoUser
+              })
+            )
           )
-        )
 
     return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
       path: 'users',
@@ -508,14 +525,14 @@ export class AclRoleController extends XoController<XoAclRole> {
       'isTemplate' in role
         ? []
         : await Promise.all(
-          role.groupIds.map(groupId =>
-            this.restApi.xoApp.getGroup(groupId).catch(err => {
-              log.warn(`cannot resolve group: ${groupId}`, err)
-              // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
-              return { id: groupId } as XoGroup
-            })
+            role.groupIds.map(groupId =>
+              this.restApi.xoApp.getGroup(groupId).catch(err => {
+                log.warn(`cannot resolve group: ${groupId}`, err)
+                // if the group is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
+                return { id: groupId } as XoGroup
+              })
+            )
           )
-        )
 
     return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
       path: 'groups',

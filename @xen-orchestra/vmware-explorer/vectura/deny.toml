@@ -1,0 +1,79 @@
+# cargo-deny policy. `cargo deny --locked check` runs in CI (Vectura workflow)
+# and locally after `cargo install cargo-deny`.
+# Every key states why it holds its value, so a change here is a reviewed
+# decision rather than a knob turned to make a red run green.
+
+[graph]
+# Resolve the graph for the platforms Vectura is built for, not for whichever
+# host runs the check, so a platform-only dependency is still audited.
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+  "x86_64-apple-darwin",
+  "aarch64-apple-darwin",
+  "x86_64-pc-windows-msvc",
+]
+# Audit optional dependencies too: a feature nobody enables today is enabled
+# by someone tomorrow.
+all-features = true
+
+[advisories]
+# Empty on purpose. An advisory is waived here only with its RUSTSEC id, the
+# reason and a date, and the pull request says why.
+ignore = []
+# A yanked crate was pulled by its author for a reason; do not build on it.
+yanked = "deny"
+# Unmaintained or unsound dependencies are reported for the crates this
+# workspace depends on directly or transitively, which is all of them here.
+unmaintained = "workspace"
+unsound = "workspace"
+
+[licenses]
+# What may enter the binary. OpenSSL is on the list for aws-lc-sys, which the
+# default rustls crypto provider builds on; nothing else needs it.
+allow = [
+  "0BSD",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "CC0-1.0",
+  "ISC",
+  "MIT",
+  "MIT-0",
+  "MPL-2.0",
+  "OpenSSL",
+  "Unicode-3.0",
+  "Unlicense",
+  "Zlib",
+]
+# How sure the license-text classifier must be before a detected license is
+# accepted; below this the crate is reported instead of guessed.
+confidence-threshold = 0.8
+# Per-crate exceptions to the allow list; empty, and each one added must say
+# why in a comment.
+exceptions = []
+# Development dependencies ship in nobody's binary, but they run on every
+# contributor machine and in CI, so their licenses are checked too.
+include-dev = true
+
+[licenses.private]
+# Vectura is AGPL-3.0-or-later and `publish = false`. Skip the crate itself:
+# the allow list above says what a dependency may bring into the binary, and
+# AGPL stays off it on purpose.
+ignore = true
+
+[bans]
+# Two versions of one crate double the audit surface; reported, not fatal,
+# because a dependency bump often carries a duplicate for one release.
+multiple-versions = "warn"
+# A `*` requirement accepts whatever the registry serves next; refuse it.
+wildcards = "deny"
+
+[sources]
+# Only crates.io. A git or alternative-registry dependency bypasses the audit
+# and advisory data everything above relies on.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

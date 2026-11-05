@@ -4,6 +4,7 @@
       v-for="task of tasksItems"
       :key="task.id"
       :task="task.source"
+      show-eye-icon
       :expanded="task.flags.expanded"
       :depth="depth + 1"
       :selected="selectedTaskId === task.id"
@@ -30,7 +31,7 @@ const emit = defineEmits<{
 }>()
 
 const { items: tasksItems } = useCollection(() => tasks, {
-  flags: ['expanded'],
+  flags: { expanded: true },
 })
 </script>
 

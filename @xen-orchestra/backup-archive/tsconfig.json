@@ -14,5 +14,6 @@
     "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  // *.integ.mjs deliberately imports from the built dist/ output to test it
+  "exclude": ["node_modules", "dist", "**/*.integ.mjs"]
 }

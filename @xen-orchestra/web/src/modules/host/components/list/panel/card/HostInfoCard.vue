@@ -1,22 +1,23 @@
 <template>
-  <UiCard class="card-container">
-    <VtsCardObjectTitle
+  <UiPanelCard class="host-info-card">
+    <UiPanelCardTitle
       :id="host.id"
+      :icon="hostIcon"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="`object:host:${toLower(host.power_state)}`"
+      size="medium"
     />
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
           <span class="value">
-            <VtsIcon :name="powerState.icon" size="medium" />
-            {{ powerState.text }}
+            <VtsIcon :name="hostStateDisplay.icon" size="medium" />
+            {{ hostStateDisplay.text }}
           </span>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue align-top truncate>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ host.name_description }}</template>
         <template v-if="host.name_description" #addons>
@@ -44,7 +45,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" icon="object:pool" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -61,15 +62,7 @@
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
-            <UiLink
-              :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
-              size="small"
-              :icon="`object:host:${toLower(masterHost.power_state)}`"
-              is-primary
-              :primary-tooltip="t('master')"
-            >
-              {{ masterHost.name_label }}
-            </UiLink>
+            <HostLink :host="masterHost" size="small" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -80,7 +73,7 @@
         <template #key>{{ t('started') }}</template>
         <template #value>{{ relativeStartTime }}</template>
         <template v-if="relativeStartTime" #addons>
-          <VtsCopyButton :value="String(relativeStartTime)" />
+          <VtsCopyButton :value="relativeStartTime" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -96,26 +89,27 @@
         </template>
       </VtsCardRowKeyValue>
     </div>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
+import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -125,7 +119,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPowerState, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getHostStateDisplay, relativeStartTime } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -143,15 +137,15 @@ const nMissingPatches = computed(() => missingPatches.value.length)
 
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
-const powerState = computed(() => getPowerState(host.power_state))
+const hostState = computed(() => getHostState(host))
 
-const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
+const hostStateDisplay = computed(() => getHostStateDisplay(hostState.value))
+
+const hostIcon = computed(() => getHostIcon(host))
 </script>
 
-<style scoped lang="postcss">
-.card-container {
-  gap: 1.6rem;
-
+<style lang="postcss" scoped>
+.host-info-card {
   .content {
     display: flex;
     flex-direction: column;

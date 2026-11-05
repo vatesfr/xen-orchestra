@@ -3,13 +3,13 @@
     v-tooltip="!canEnableHost && enableHostErrorMessage"
     size="medium"
     variant="tertiary"
-    accent="brand"
+    accent="neutral"
     :disabled="!canEnableHost"
     icon="status:success-circle"
     :busy="isEnablingHost"
     @click="openEnableHostModal()"
   >
-    {{ t('action:enable-host') }}
+    {{ t('action:enable') }}
   </MenuItem>
 </template>
 
@@ -38,13 +38,15 @@ const { open: openActionModal } = useActionModal()
 
 function openEnableHostModal() {
   return openActionModal({
-    events: { onConfirm: () => enableHost() },
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'enable',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => enableHost({ detached: true }),
     },
   })
 }

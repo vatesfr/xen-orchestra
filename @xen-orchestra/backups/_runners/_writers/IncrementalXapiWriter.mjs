@@ -3,7 +3,6 @@ import humanFormat from 'human-format'
 
 import { asyncMapSettled } from '@xen-orchestra/async-map'
 import { Task } from '@vates/task'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { importIncrementalVm } from '../../_incrementalVm.mjs'
@@ -263,6 +262,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             vdiRef: activeVdi.$ref,
             baseRef: snapshot.$ref,
             onlyListChangedBlocks: true,
+            preferNbd: this._settings.preferNbd,
           })
           await diffDisk.init()
           if (diffDisk.getBlockIndexes().length === 0) {
@@ -342,10 +342,37 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     const vmUuid = this._vmUuid
     const scheduleId = this._schedule.id
 
-    // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
+    const entries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
 
-    const allEntries = listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
+    // delete previous interrupted copies: #decorateVmMetadata sets DATETIME to this sentinel
+    // before a transfer starts and only updates it to the real timestamp once the transfer
+    // completes, so any entry still carrying it is a leftover from a transfer that never finished.
+    //
+    // Two cases must survive this cleanup regardless of the sentinel:
+    // - checkBaseVdis (which runs before _prepare) may already have validated this run's target
+    //   VM as chainable despite the sentinel (e.g. the interrupted transfer never wrote any data),
+    //   in which case it must survive to be reused, not be destroyed out from under this run.
+    // - an interrupted update of an existing target VM carries the sentinel on the live VM, not on
+    //   a snapshot, but that VM's snapshots are still valid restore points from earlier, completed
+    //   runs. Destroying it would cascade-destroy them too, so only a VM with no snapshots (a
+    //   brand new, never-completed replica) is safe to destroy here.
+    const interruptedEntries = entries.filter(
+      e =>
+        e.other_config[DATETIME] === formatFilenameDate(0) &&
+        e.$ref !== this._targetVmRef &&
+        (e.is_a_snapshot || e.snapshots.length === 0)
+    )
+    await Task.run({ properties: { name: 'cleanup interrupted entries' } }, async () => {
+      await asyncMapSettled(interruptedEntries, async vm => {
+        try {
+          await vm.$destroy({ bypassBlockedOperation: true })
+        } catch (error) {
+          warn('failed to cleanup interrupted entry', { error, vmUuid: vm.uuid })
+          Task.warning('failed to cleanup interrupted replication', { vmUuid: vm.uuid })
+        }
+      })
+    })
+    const allEntries = entries.filter(e => !interruptedEntries.includes(e))
 
     // In the snapshot-based flow a non-snapshot VM (the live target) coexists with its
     // snapshots (one per transfer). That VM must not be subject to retention — only its
@@ -356,14 +383,15 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     retentionEntries.sort(compareReplicatedVmDatetime)
     this._oldEntries = getOldEntries(settings.copyRetention - 1, retentionEntries)
 
-    if (settings.deleteFirst && settings.skipDeleteOldEntries) {
+    if (settings.deleteFirst && !settings.skipDeleteOldEntries) {
       // we want to keep the baseVM when copying a delta
       // even if we want to keep only one after
       let mostRecentEntry
-      if (this._oldEntries.length > 1 && settings.copyRetention === 1 && !isFull) {
+      if (this._oldEntries.length > 0 && settings.copyRetention === 1 && !isFull) {
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
       this._oldEntries = mostRecentEntry !== undefined ? [mostRecentEntry] : []
     }
   }
@@ -371,11 +399,41 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   async cleanup() {
     if (!this._settings.skipDeleteOldEntries) {
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
     }
   }
 
   async _deleteOldEntries() {
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
+  }
+
+  // VDIs from this job/VM/SR that ended up detached from any VM, because a previous run
+  // was interrupted or a storage backend refused to destroy a VDI at import time.
+  // Destroying a VM only reaches the VDIs still attached to it, _deleteOldEntries never cleans them.
+  async _deleteOrphanVdis() {
+    const sr = this._sr
+    const vmUuid = this._vmUuid
+    const jobId = this._job.id
+
+    const orphanVdis = sr.$VDIs.filter(
+      vdi =>
+        vdi?.managed &&
+        vdi.other_config[JOB_ID] === jobId &&
+        vdi.other_config[VM_UUID] === vmUuid &&
+        vdi.other_config[REPLICATED_TO_SR_UUID] === sr.uuid &&
+        vdi.type !== 'suspend' &&
+        // a VBD or VM missing from the cache (e.g. just destroyed) keeps the VDI, next run will handle it
+        vdi.$VBDs.every(vbd => vbd?.$VM?.is_control_domain === true)
+    )
+
+    await asyncEach(
+      orphanVdis,
+      vdi =>
+        sr.$xapi
+          .call('VDI.destroy', vdi.$ref)
+          .catch(error => Task.warning('failed to delete orphan VDI', { vdi: vdi.uuid, error })),
+      { concurrency: 5 }
+    )
   }
 
   #decorateVmMetadata(backup, timestamp) {
@@ -391,6 +449,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     vm.other_config[JOB_ID] = job.id
     vm.other_config[SCHEDULE_ID] = scheduleId
     vm.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
+    vm.other_config[VM_UUID] = this._vmUuid
     // set the timestamp in the past to ensure any incomplete VM will be deleted on next run
     vm.other_config[DATETIME] = formatFilenameDate(0)
 
@@ -412,7 +471,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       vdi.other_config[JOB_ID] = job.id
       vdi.other_config[SCHEDULE_ID] = scheduleId
       vdi.other_config[REPLICATED_TO_SR_UUID] = sr.uuid
-      vdi.other_config[VM_UUID] = vm.uuid
+      vdi.other_config[VM_UUID] = this._vmUuid
 
       const baseDeltaVdiUuid = vdi.other_config[BASE_DELTA_VDI]
       if (baseDeltaVdiUuid !== undefined) {

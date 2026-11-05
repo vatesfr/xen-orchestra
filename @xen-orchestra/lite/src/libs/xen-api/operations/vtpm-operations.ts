@@ -1,5 +1,5 @@
-import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type XenApi from '@/libs/xen-api/xen-api.ts'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import type { XenApiVtpm } from '@vates/types'
 
 export function createVtpmOperations(xenApi: XenApi) {

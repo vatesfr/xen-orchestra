@@ -10,7 +10,7 @@
           <I18nT keypath="popup-first-connection-default-interface">
             <template #documentationLink>
               <UiLink
-                href="https://docs.xen-orchestra.com/configuration#using-xo-5-as-the-default-interface"
+                href="https://docs.xen-orchestra.com/getting-started/configuration#using-xo-5-as-the-default-interface"
                 size="medium"
               >
                 {{ t('popup-first-connection-follow-this-guide') }}

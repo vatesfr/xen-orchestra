@@ -22,6 +22,7 @@ const log = createLogger('qa:backup:nbd')
 
 describe('NBD Incremental Backup Tests', () => {
   let vm
+  let vms
   let backupRepository
   let healthCheckSr
   let backupJob
@@ -31,7 +32,9 @@ describe('NBD Incremental Backup Tests', () => {
   let createBackupJobForTest
 
   before(async () => {
-    ;({ dispatchClient, tracker } = await setup())
+    ;({ dispatchClient, tracker, vms } = await setup())
+    // Only using one VM
+    vm = vms[0]
 
     // Look for test VMs with incremental naming pattern
     const vmPrefix = getRequiredEnv('VM_PREFIX')

@@ -24,6 +24,7 @@ const poolFields = [
   'type',
   'name_description',
   'haRebootVmOnInternalShutdown',
+  'current_operations',
 ] as const satisfies readonly (keyof XoPool)[]
 
 export const useXoPoolCollection = defineRemoteResource({

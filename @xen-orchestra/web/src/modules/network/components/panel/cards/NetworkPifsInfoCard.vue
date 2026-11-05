@@ -1,9 +1,6 @@
 <template>
-  <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
-    <div class="typo-body-bold">
-      {{ t('pifs') }}
-      <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
-    </div>
+  <UiPanelCard v-if="pifsCount && pifsCount > 0" class="network-pifs-info-card">
+    <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
     <table class="simple-table">
       <thead>
         <tr>
@@ -23,15 +20,15 @@
         <PifRow v-for="pif in pifs" :key="pif.id" :pif />
       </tbody>
     </table>
-  </UiCard>
+  </UiPanelCard>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,11 +46,7 @@ const pifsCount = computed(() => pifs.value.length)
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
+.network-pifs-info-card {
   .content {
     display: flex;
     flex-direction: column;

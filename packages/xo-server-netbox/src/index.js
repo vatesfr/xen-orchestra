@@ -16,7 +16,7 @@ import slugify from './slugify'
 
 const log = createLogger('xo:netbox')
 
-const SUPPORTED_VERSION = '>=2.10 <4.7'
+const SUPPORTED_VERSION = '>=2.10 <4.8'
 const CLUSTER_TYPE = 'XCP-ng Pool'
 const TYPES_WITH_UUID = ['virtualization.cluster', 'virtualization.virtualmachine', 'virtualization.vminterface']
 const CHUNK_SIZE = 100
@@ -868,7 +868,8 @@ class Netbox {
           let smallestPrefix
           let highestBits = 0
           nbPrefixes.forEach(({ prefix }) => {
-            const [range, bits] = prefix.split('/')
+            const [range, bitsStr] = prefix.split('/')
+            const bits = Number(bitsStr)
             let parsedRange
             try {
               parsedRange = ipaddr.parse(range)
@@ -890,7 +891,8 @@ class Netbox {
 
           const xoCompactIp = parsedIp.toString() // use compact notation (e.g. ::1) before ===-comparison
           const nbIp = find(nbIpsToCheck, nbIp => {
-            const [ip, bits] = nbIp.address.split('/')
+            const [ip, bitsStr] = nbIp.address.split('/')
+            const bits = Number(bitsStr)
             let nbCompactIp
             try {
               nbCompactIp = ipaddr.parse(ip).toString()

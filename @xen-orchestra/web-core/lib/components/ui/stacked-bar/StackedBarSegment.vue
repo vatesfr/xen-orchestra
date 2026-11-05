@@ -13,8 +13,8 @@
 </template>
 
 <script lang="ts" setup>
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { hasEllipsis } from '@core/utils/has-ellipsis.util'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
 import { useResizeObserver } from '@vueuse/core'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'

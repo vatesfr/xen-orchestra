@@ -1,5 +1,6 @@
 import type { XenApiPbd, XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.composable.ts'
+import { getPbdsConnectionStatus } from '@/modules/storage-repository/utils/pbd.util.ts'
 import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
@@ -23,6 +24,10 @@ export function useGetPbdsInScope() {
 
   function getAttachedPbdsInScope(sr: XenApiSr, scope: SrScope): XenApiPbd[] {
     return getPbdsInScope(sr, scope).filter(pbd => pbd.currently_attached)
+  }
+
+  function isConnectedInScope(sr: XenApiSr, scope: SrScope) {
+    return getPbdsInScope(sr, scope).some(pbd => pbd.currently_attached)
   }
 
   function getDetachedPbdsInScope(sr: XenApiSr, scope: SrScope): XenApiPbd[] {
@@ -50,6 +55,7 @@ export function useGetPbdsInScope() {
     getAttachedPbdsInScope,
     getDetachedPbdsInScope,
     getSrPbdsSignature,
+    isConnectedInScope,
     isPartiallyConnectedInScope,
   }
 }
@@ -83,10 +89,15 @@ export function useSrUtils(
 
   const srStatusIcon = computed<IconName>(() => objectIcon('sr', allPbdsConnectionStatus.value))
 
+  function getSrStatusIcon(sr: XenApiSr): IconName {
+    return objectIcon('sr', getPbdsConnectionStatus(getPbdsInScope(sr, scope.value)))
+  }
+
   return {
     pbdsInScope,
     srConnectionStatus: allPbdsConnectionStatus,
     isPartiallyConnectedInScope,
     srStatusIcon,
+    getSrStatusIcon,
   }
 }

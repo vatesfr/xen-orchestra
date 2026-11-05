@@ -47,6 +47,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #maxPartNumber
   #minPartSize
 
+  getConfig(key) {
+    if (key === 'useVhdDirectory') {
+      return true // compatibility layer
+    }
+    return super.getConfig(key)
+  }
+
   constructor(remote, _opts) {
     super(remote, _opts)
     const {
@@ -296,7 +303,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _unlink(path) {
-    await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    try {
+      await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    } catch (error) {
+      // Some providers answers 404 NoSuchKey where AWS answers 204
+      if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
+        throw error
+      }
+    }
 
     if (await this.#isNotEmptyDir(path)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
@@ -363,8 +377,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
-    return +result.ContentLength
+    try {
+      const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
+      return +result.ContentLength
+    } catch (error) {
+      // a HEAD response has no body, so a missing object is reported as
+      // NotFound instead of the NoSuchKey the other methods get
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: error })
+        enoentError.code = 'ENOENT'
+        enoentError.path = file
+        throw enoentError
+      }
+      throw error
+    }
   }
 
   async _read(file, buffer, position = 0) {
@@ -494,9 +520,5 @@ export default class S3Handler extends RemoteHandlerAbstract {
         throw error
       }
     }
-  }
-
-  useVhdDirectory() {
-    return true
   }
 }

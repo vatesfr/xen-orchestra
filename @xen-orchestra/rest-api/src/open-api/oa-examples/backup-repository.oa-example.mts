@@ -41,3 +41,12 @@ export const backupRepositoryBenchmark = {
   readRate: 7999965,
   writeRate: 7767798,
 }
+
+export const backupRepositoryReclaimSpaceResults = [
+  {
+    vmUuid: '1dc9a1d4-65bc-4211-9529-4abbd0ff2072',
+    success: true,
+    merge: true,
+    size: 0,
+  },
+]

@@ -167,7 +167,9 @@ export const create = defer(async function ($defer, params) {
   let checkLimits
 
   if (resourceSet) {
-    await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    // an admin can add the created VM to a resource set even if the objects it
+    // uses (template, SRs, networks) are not part of this resource set
+    await this.checkResourceSetConstraints(resourceSet, user.id, user.permission === 'admin' ? undefined : objectIds)
     checkLimits = async limits2 => {
       const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
       await this.allocateLimitsInResourceSet(_limits, resourceSet)
@@ -1474,6 +1476,12 @@ importFromEsxi.params = {
   workDirRemote: { type: 'string', optional: true },
 }
 
+importFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
+}
+
 /**
  * on success:  returns an object, the keys are the esxi id, and the values are the created vm uuid
  * On error: throw an error. If stopOnError is false, continue when an error occurs, throws an error at the end with a 'succeeded'
@@ -1575,6 +1583,12 @@ importMultipleFromEsxi.params = {
     uniqueItems: true,
   },
   workDirRemote: { type: 'string', optional: true },
+}
+
+importMultipleFromEsxi.resolve = {
+  network: ['network', 'network', 'administrate'],
+  sr: ['sr', 'SR', 'administrate'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 // -------------------------------------------------------------------

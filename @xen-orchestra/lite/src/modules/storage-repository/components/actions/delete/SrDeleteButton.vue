@@ -1,10 +1,10 @@
 <template>
   <MenuItem
     v-tooltip="!canDeleteSrs && deleteSrsErrorMessage"
+    accent="danger"
     icon="action:delete"
     :disabled="!canDeleteSrs"
     :busy="isDeletingSrs"
-    class="delete"
     @click="deleteSrs()"
   >
     {{ t('action:delete') }}
@@ -26,9 +26,3 @@ const { t } = useI18n()
 
 const { deleteSrs, canDeleteSrs, isDeletingSrs, deleteSrsErrorMessage } = useSrDelete(() => [sr])
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

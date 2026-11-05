@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.app.json",
+  "exclude": [],
+  "compilerOptions": {
+    "types": ["vitest/globals"]
+  }
+}

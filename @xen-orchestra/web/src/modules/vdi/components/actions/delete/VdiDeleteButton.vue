@@ -1,5 +1,11 @@
 <template>
-  <MenuItem icon="action:delete" class="delete" :disabled="!canDeleteVdis" :busy="isDeletingVdis" @click="deleteVdis()">
+  <MenuItem
+    icon="action:delete"
+    accent="danger"
+    :disabled="!canDeleteVdis"
+    :busy="isDeletingVdis"
+    @click="deleteVdis()"
+  >
     {{ t('action:delete') }}
     <i v-if="hint">{{ hint }}</i>
   </MenuItem>
@@ -35,9 +41,3 @@ const hint = computed(() => {
   return undefined
 })
 </script>
-
-<style lang="postcss" scoped>
-.delete {
-  color: var(--color-danger-item-base);
-}
-</style>

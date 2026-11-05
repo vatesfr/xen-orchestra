@@ -1,15 +1,13 @@
 <template>
   <MenuItem
     v-tooltip="!canDisableHost && disableHostErrorMessage"
-    size="medium"
-    variant="tertiary"
-    accent="brand"
+    accent="neutral"
     :disabled="!canDisableHost"
     icon="action:disable"
     :busy="isDisablingHost"
     @click="openDisableHostModal()"
   >
-    {{ t('action:disable-host') }}
+    {{ t('action:disable') }}
   </MenuItem>
 </template>
 
@@ -32,19 +30,21 @@ const {
   canRun: canDisableHost,
   isRunning: isDisablingHost,
   errorMessage: disableHostErrorMessage,
-} = useXoHostDisableJob(() => host)
+} = useXoHostDisableJob(() => host, false)
 
 const { open: openActionModal } = useActionModal()
 
 function openDisableHostModal() {
   return openActionModal({
-    events: { onConfirm: () => disableHost() },
     props: {
-      accent: 'warning',
+      accent: 'info',
       action: 'disable',
       object: 'host',
       hostName: host.name_label,
-      icon: 'status:warning-picto',
+      icon: 'status:info-picto',
+    },
+    events: {
+      onConfirm: () => disableHost({ detached: true }),
     },
   })
 }

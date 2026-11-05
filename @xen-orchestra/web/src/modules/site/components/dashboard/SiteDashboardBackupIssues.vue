@@ -11,7 +11,7 @@
       />
       <template v-if="hasBackupIssues" #info>
         <!-- TODO Need to be Filter on “Last 3 backups”: “Skipped runs, no errors”, “Errors detected “ -->
-        <UiLink size="small" :to="{ name: '/(site)/backups' }">{{ t('action:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/admin/backup-and-replication/jobs' }">{{ t('action:see-all') }}</UiLink>
       </template>
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
@@ -39,9 +39,9 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useTableState } from '@core/composables/table-state.composable'
+import { useTableState } from '@core/composables/table-state.composable.ts'
 import { createMapper } from '@core/packages/mapper'
-import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-columns'
+import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-columns.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -113,7 +113,7 @@ const { HeadCells, BodyCells } = useBackupIssueColumns({
       job: r =>
         r({
           label: issue.name ?? t('untitled'),
-          to: `/backup/${issue.uuid}/runs`,
+          to: { name: '/admin/backup-and-replication/jobs', query: { id: issue.uuid } },
           icon: 'object:backup-job',
         }),
       lastRuns: r => r(lastRuns),

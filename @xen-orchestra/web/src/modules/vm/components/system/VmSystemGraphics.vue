@@ -10,8 +10,8 @@
         </template>
       </VtsTabularKeyValueRow>
       <VtsTabularKeyValueRow :label="t('video-ram')">
-        <template v-if="videoRamValue?.value" #value>
-          {{ `${videoRamValue.value} ${videoRamValue.prefix || t('bytes:mi')}` }}
+        <template v-if="vm.videoram" #value>
+          {{ `${vm.videoram} ${t('bytes:mi')}` }}
         </template>
       </VtsTabularKeyValueRow>
     </VtsTabularKeyValueList>
@@ -25,13 +25,9 @@ import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsT
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm } = defineProps<{ vm: FrontXoVm }>()
+defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
-
-const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(vm.videoram, 0) : null))
 </script>

@@ -20,9 +20,11 @@
           </UiButton>
           <UiButtonIcon v-else icon="fa:ellipsis" size="medium" accent="brand" @click="open" />
         </template>
-        <MenuItem icon="fa:clone" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
-        <MenuItem icon="fa:layer-group" @click="emit('convertToGroup')">{{ t('action:turn-into-group') }}</MenuItem>
-        <MenuItem icon="fa:trash" @click="emit('remove')">{{ t('action:delete-filter') }}</MenuItem>
+        <MenuItem accent="neutral" icon="fa:clone" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
+        <MenuItem accent="neutral" icon="fa:layer-group" @click="emit('convertToGroup')">
+          {{ t('action:turn-into-group') }}
+        </MenuItem>
+        <MenuItem accent="danger" icon="fa:trash" @click="emit('remove')">{{ t('action:delete-filter') }}</MenuItem>
       </MenuList>
     </div>
   </div>
@@ -36,7 +38,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import type { PropertySchema, OperatorSchema, ValueSchema } from '@core/packages/query-builder/types'
+import type { PropertySchema, OperatorSchema, ValueSchema } from '@core/packages/query-builder/types.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { onMounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'

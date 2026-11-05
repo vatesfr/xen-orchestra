@@ -303,6 +303,10 @@ export class VmService {
     for (const id in snapshotReplicas) {
       const snapshot = snapshotReplicas[id as XoVmSnapshot['id']]
       const timestamp = parseDateTime(snapshot.other['xo:backup:datetime'])
+      if (timestamp === null) {
+        // the snapshot has no backup date, it can't be the last replication
+        continue
+      }
 
       if (lastTimestamp === undefined || lastTimestamp < timestamp) {
         lastTimestamp = timestamp
@@ -421,7 +425,7 @@ export class VmService {
     const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
 
     return Object.values(backupArchivesByVmByBr)
-      .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
+      .filter(backupArchiveByVm => backupArchiveByVm !== null)
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)

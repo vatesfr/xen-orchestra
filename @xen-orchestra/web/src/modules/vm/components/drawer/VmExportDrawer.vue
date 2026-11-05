@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { VmExportCompression, VmExportType } from '@/modules/vm/jobs/xo-vm-export.job'
+import type { VmExportCompression, VmExportType } from '@/modules/vm/jobs/xo-vm-export.job.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'

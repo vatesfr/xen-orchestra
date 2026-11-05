@@ -14,6 +14,6 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, slot } from '@/libs/story/story-param'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 </script>

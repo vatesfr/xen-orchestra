@@ -1,8 +1,7 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { XapiXoRecord, XoAlarm, XoMessage } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { BASE_URL } from '../index.mjs'
-import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/

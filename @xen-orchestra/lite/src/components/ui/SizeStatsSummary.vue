@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { formatSize, percent } from '@/libs/utils'
+import { formatSize, percent } from '@/libs/utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

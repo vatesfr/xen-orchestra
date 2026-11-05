@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { usePifManagementReconfigureModal } from '@/modules/pif/composables/use-pif-management-reconfigure-modal.composable.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -40,7 +41,7 @@ import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import type { IP_CONFIGURATION_MODE } from '@vates/types'
-import { logicNot } from '@vueuse/math'
+import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,7 +54,11 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById } = useXoNetworkCollection()
+const { useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
+
+const isReady = logicAnd(arePifsReady, areNetworksReady)
+
+const hasError = logicOr(hasPifFetchError, hasNetworkFetchError)
 
 const { t } = useI18n()
 
@@ -71,8 +76,8 @@ const filteredPifs = computed(() => {
 })
 
 const state = useTableState({
-  busy: logicNot(arePifsReady),
-  error: hasPifFetchError,
+  busy: logicNot(isReady),
+  error: hasError,
   empty: () =>
     rawPifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
@@ -106,6 +111,7 @@ function getManagementIcon(pif: FrontXoPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
+  exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
     const vlan = computed(() => getVlanData(pif.vlan))
@@ -118,6 +124,13 @@ const { HeadCells, BodyCells } = usePifColumns({
     const poolNetworkRoute = computed(() =>
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
+
+    const {
+      openModal: openManagementReconfigureModal,
+      canRun: canReconfigureManagement,
+      isRunning: isReconfiguringManagement,
+      errorMessage: reconfigureManagementErrorMessage,
+    } = usePifManagementReconfigureModal(() => pif)
 
     return {
       network: r =>
@@ -134,7 +147,20 @@ const { HeadCells, BodyCells } = usePifColumns({
       ip: r => r(ip.value),
       mac: r => r(pif.mac),
       mode: r => r(mode.value),
-      selectItem: r => r(() => (selectedPifId.value = pif.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.id),
+          actions: [
+            {
+              label: t('action:set-pif-management'),
+              hint: reconfigureManagementErrorMessage.value,
+              icon: canReconfigureManagement.value ? 'status:primary-circle' : 'status:primary-circle-disabled',
+              onClick: () => openManagementReconfigureModal(),
+              disabled: !canReconfigureManagement.value,
+              busy: isReconfiguringManagement.value,
+            },
+          ],
+        }),
     }
   },
 })

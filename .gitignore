@@ -5,6 +5,7 @@
 
 /@vates/*/dist/
 /@vates/*/node_modules/
+/@vates/node-vsphere-soap/test/config-test.mjs
 /@xen-orchestra/*/dist/
 /@xen-orchestra/*/node_modules/
 /@xen-orchestra/rest-api/open-api/spec/swagger.json

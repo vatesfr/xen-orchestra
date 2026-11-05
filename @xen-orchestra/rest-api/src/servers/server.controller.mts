@@ -28,6 +28,7 @@ import {
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  internalServerErrorResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -181,6 +182,7 @@ export class ServerController extends XoController<XoServer> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   connectServer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const serverId = id as XoServer['id']
     const action = async () => {

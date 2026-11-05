@@ -19,6 +19,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   #blobServiceClient
   #containerClient
 
+  getConfig(key) {
+    if (key === 'useVhdDirectory') {
+      return true // compatibility layer
+    }
+    return super.getConfig(key)
+  }
   constructor(remote, _opts) {
     super(remote, _opts)
     const { username, path, password, host, protocol } = parse(remote.url)
@@ -243,8 +249,19 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
     file = this.#makeFullPath(file)
     const blobClient = this.#containerClient.getBlobClient(file)
-    const properties = await blobClient.getProperties()
-    return properties.contentLength
+    try {
+      const properties = await blobClient.getProperties()
+      return properties.contentLength
+    } catch (e) {
+      // a HEAD response has no body, so there is no BlobNotFound code to match
+      if (e.name === 'RestError' && e.statusCode === 404) {
+        const error = new Error(`ENOENT: no such file '${file}'`, { cause: e })
+        error.code = 'ENOENT'
+        error.path = file
+        throw error
+      }
+      throw e
+    }
   }
 
   async _read(file, buffer, position = 0) {
@@ -312,9 +329,5 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (batch.batchRequest.operationCount > 0) {
       await blobBatchClient.submitBatch(batch)
     }
-  }
-
-  useVhdDirectory() {
-    return true
   }
 }

@@ -1,6 +1,6 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
+import { COMMON_TAG, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { castArray } from 'lodash-es'
 
 export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
@@ -21,7 +21,15 @@ export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.COPY,
   VM_OPERATIONS.EXPORT,
   VM_OPERATIONS.IMPORT,
+  VM_OPERATIONS.MIGRATE_SEND,
+  VM_OPERATIONS.POOL_MIGRATE,
 ]
+
+export const MIGRATION_OPERATIONS: VM_OPERATIONS[] = [VM_OPERATIONS.MIGRATE_SEND, VM_OPERATIONS.POOL_MIGRATE]
+
+export function isVmMigrationBlocked(vm: FrontXoVm) {
+  return MIGRATION_OPERATIONS.some(operation => vm.blockedOperations[operation] !== undefined)
+}
 
 export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) {
   const currentOperations = Object.values(vm.current_operations)
@@ -31,6 +39,17 @@ export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] 
 
 export function areVmsOperationPending(vms: FrontXoVm[], operations: VM_OPERATIONS[] | VM_OPERATIONS) {
   return vms.some(vm => isVmOperationPending(vm, operations))
+}
+
+export function getVmsPendingOperation(vms: FrontXoVm[], operations: VM_OPERATIONS[] | VM_OPERATIONS) {
+  for (const vm of vms) {
+    const currentOperations = Object.values(vm.current_operations)
+    const currentOperation = castArray(operations).find(operation => currentOperations.includes(operation))
+
+    if (currentOperation !== undefined) {
+      return currentOperation
+    }
+  }
 }
 
 export function areAllVmsHavingPowerState(vms: FrontXoVm[], powerStates: VM_POWER_STATE[]) {
@@ -49,4 +68,8 @@ export function getVmIpAddresses(vm: FrontXoVm) {
 
 export function extractVmHostId(vm: FrontXoVm) {
   return vm.$container === vm.$pool ? undefined : (vm.$container as FrontXoHost['id'])
+}
+
+export function vmContainsNoBakTag(vm: FrontXoVm) {
+  return vm.tags.some(tag => tag.split('=', 1)[0] === COMMON_TAG.NOBAK)
 }

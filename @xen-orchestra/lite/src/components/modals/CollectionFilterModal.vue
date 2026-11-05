@@ -36,8 +36,8 @@
 <script lang="ts" setup>
 import CollectionFilterRow from '@/components/CollectionFilterRow.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
-import { getFilterIcon } from '@/libs/utils'
-import type { Filters, NewFilter } from '@/types/filter'
+import { getFilterIcon } from '@/libs/utils.ts'
+import type { Filters, NewFilter } from '@/types/filter.ts'
 import VtsOverlayButton from '@core/components/overlay/VtsOverlayButton.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'

@@ -1,6 +1,6 @@
 import { payloadsArg } from '@/modules/network/jobs/xo-network-create-args.ts'
-import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable'
-import { fetchPost } from '@/shared/utils/fetch.util'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoNetwork, XoPif, XoPool, XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
@@ -12,6 +12,7 @@ export type BaseNewNetworkPayload = {
   description?: string
   mtu?: number
   nbd?: boolean
+  insecureNbd?: boolean
 }
 
 // Payload that the REST API expects
@@ -61,6 +62,10 @@ export const useXoNetworkCreateJob = defineJob('network.create', [payloadsArg], 
 
         if (payload.vlan === undefined) {
           throw new JobError(t('job:arg:vlan-required'))
+        }
+
+        if (payload.nbd && payload.insecureNbd) {
+          throw new JobError(t('job:arg:nbd-and-insecure-nbd-exclusive'))
         }
       })
     },

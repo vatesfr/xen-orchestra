@@ -5,6 +5,7 @@
  * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
  * @typedef {import('vhd-lib/_createFooterHeader.js').VhdFooter} VhdFooter
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('vhd-lib/disk-consumer/compressedBlock.mjs').CompressedDiskBlock} CompressedDiskBlock
  * @typedef {import('@xen-orchestra/fs').RemoteHandlerAbstract} RemoteHandlerAbstract
  *
 
@@ -46,25 +47,35 @@ export class RemoteVhdDisk extends RemoteDisk {
   #blockSize = 2 * 1024 * 1024
 
   /**
-   * @type {number}
-   */
-  #bitmapSize = 512
-
-  /**
    * @type {() => any}
    */
   #dispose = () => {}
 
   /**
+   * @type {string | undefined}
+   */
+  #rawBlocksCompression
+
+  /**
+   * set in init(): this disk is a VHD directory using #rawBlocksCompression
+   * @type {boolean}
+   */
+  #rawBlocks = false
+
+  /**
    * @param {Object} params
    * @param {RemoteHandlerAbstract} params.handler
    * @param {string} params.path
+   * @param {string} [params.rawBlocksCompression] if this disk is a VHD directory using this compression, its blocks
+   *   are read as stored (see CompressedDiskBlock), to be written as is in a VHD directory using the same compression.
+   *   Otherwise (plain VHD, other compression), they are read normally
    */
-  constructor({ handler, path }) {
+  constructor({ handler, path, rawBlocksCompression }) {
     super()
     // @todo : ensure this is the full path from the root of the remote
     this.#path = path
     this.#handler = handler
+    this.#rawBlocksCompression = rawBlocksCompression
   }
 
   /**
@@ -81,12 +92,16 @@ export class RemoteVhdDisk extends RemoteDisk {
         })
         this.#vhd = value
 
+        this.#dispose = dispose
+
         if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
           this.#vhd = undefined
           throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
         }
+        // the disk may predate a change of the remote configuration: only use its raw blocks if they match
+        this.#rawBlocks =
+          this.#rawBlocksCompression !== undefined && this.#getCompressionType() === this.#rawBlocksCompression
 
-        this.#dispose = dispose
         if (!options.ignoreBlockIndexes) {
           await this.#vhd.readBlockAllocationTable()
         }
@@ -262,10 +277,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     if (this.#vhd === undefined) {
       throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
     }
-    await this.#vhd.writeEntireBlock({
-      id: diskBlock.index,
-      buffer: Buffer.concat([Buffer.alloc(this.#bitmapSize, 255), diskBlock.data]),
-    })
+    await this.#vhd.writeBlockData(diskBlock.index, diskBlock.data)
 
     return this.getBlockSize()
   }
@@ -273,11 +285,21 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * Reads a specific block from the VHD.
    * @param {number} index
-   * @returns {Promise<DiskBlock>} diskBlock
+   * @returns {Promise<DiskBlock | CompressedDiskBlock>} diskBlock
    */
   async readBlock(index) {
     if (this.#vhd === undefined) {
       throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
+    }
+    if (this.#rawBlocks) {
+      /** @type {CompressedDiskBlock} */
+      const block = {
+        index,
+        // only a VHD directory has a compression, checked in init()
+        data: await /** @type {VhdDirectory} */ (this.#vhd).readCompressedBlock(index),
+        compression: /** @type {string} */ (this.#rawBlocksCompression),
+      }
+      return block
     }
     const { data } = await this.#vhd.readBlock(index)
     return {
@@ -431,6 +453,36 @@ export class RemoteVhdDisk extends RemoteDisk {
       throw new Error(`can't call isDifferencing of a RemoteVhdDisk before init`)
     }
     return this.#isDifferencing
+  }
+
+  /**
+   * Returns the compression codec id. Only meaningful for VHD directories;
+   * undefined for plain VHDs.
+   * @returns {string | undefined}
+   */
+  #getCompressionType() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't check compressionType of a RemoteVhdDisk before init`)
+    }
+    return this.#vhd instanceof VhdDirectory ? this.#vhd.compressionType : undefined
+  }
+
+  /**
+   * Adds VHD-specific compatibility checks on top of the uuid check: the storage
+   * sub-format (VHD directory vs plain) and, for directories, the compression codec
+   * must match what this remote would write for a new disk.
+   * @param {string} parentUuid
+   * @returns {Promise<boolean>}
+   */
+  async isMergeableParent(parentUuid) {
+    if (!(await super.isMergeableParent(parentUuid))) {
+      return false
+    }
+
+    const useVhdDirectory = this.#handler.getConfig('useVhdDirectory') ?? false
+    const compressionType = this.#handler.getConfig('compressionType') ?? 'brotli'
+    const isDirectory = await this.isDirectory()
+    return isDirectory ? useVhdDirectory && this.#getCompressionType() === compressionType : !useVhdDirectory
   }
 
   /**

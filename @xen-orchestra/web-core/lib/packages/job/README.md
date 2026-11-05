@@ -95,6 +95,29 @@ const {
 } = useMyJob(userId, selectedItems, false)
 ```
 
+### Detaching a job from its caller
+
+Called without arguments, `run` returns a promise you are meant to await. When the caller must stay
+responsive instead — typically a modal confirmation handler, which keeps the overlay open until its
+handler resolves — pass `{ detached: true }`: the job starts on its own, `run` returns nothing, and
+any failure is logged. The progress is reported by `isRunning`, usually through the `busy` state of
+the button that opened the modal.
+
+```typescript
+const { run } = useMyJob(userId, selectedItems)
+
+// The modal closes right away, the job keeps running
+open({ events: { onConfirm: () => run({ detached: true }) } })
+```
+
+Whatever has to happen once the job succeeded goes in `onSuccess`, which receives the job result and
+may be async. It is skipped when the job failed, so a redirection never claims a success that did
+not happen:
+
+```typescript
+run({ detached: true, onSuccess: results => redirectIfOnObjectPage(results) })
+```
+
 When calling `run`, the job will be marked as "running" for the specified `userId` and `selectedItems` (`force` is ignored because it has been configured with `identify: false`)
 
 When using an array, the tracking is done for each item individually.

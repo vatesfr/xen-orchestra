@@ -1,3 +1,4 @@
+import { limitConcurrency } from 'limit-concurrency-decorator'
 import {
   filter,
   groupBy,
@@ -15,6 +16,12 @@ import { inspect } from 'util'
 
 import { EXECUTION_DELAY, debug, warn } from './utils'
 
+// caps how many `set_affinity` XAPI calls _processVmToHostAffinity fires at once; independent from
+// _concurrentMigrationLimiter, which is dedicated to actual VM migrations
+const MAX_CONCURRENT_AFFINITY_UPDATES = 5
+
+// value is shared with DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY in packages/xo-server/src/xo-mixins/xen-servers.mjs
+// and loadBalancerReEnableDelay in config.toml
 const MINUTES_OF_HISTORICAL_DATA = 30
 
 // CPU threshold in percent.
@@ -44,6 +51,7 @@ const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 export const debugAffinity = str => debug(`affinity: ${str}`)
 export const debugAntiAffinity = str => debug(`anti-affinity: ${str}`)
 export const debugVcpuBalancing = str => debug(`vCPU balancing: ${str}`)
+export const debugVmToHostAffinity = str => debug(`vm-to-host affinity: ${str}`)
 
 // ===================================================================
 // Averages.
@@ -137,7 +145,7 @@ export default class Plan {
     xo,
     name,
     poolIds,
-    { excludedHosts, thresholds, balanceVcpus, affinityTags = [], antiAffinityTags = [] },
+    { excludedHosts, thresholds, balanceVcpus, affinityTags = [], antiAffinityTags = [], vmToHostAffinityTags = [] },
     globalOptions,
     concurrentMigrationLimiter
   ) {
@@ -156,6 +164,7 @@ export default class Plan {
     }
     this._affinityTags = affinityTags
     this._antiAffinityTags = antiAffinityTags
+    this._vmToHostAffinityTags = vmToHostAffinityTags
     // balanceVcpus variable name was kept for compatibility with past configuration schema
     this._performanceSubmode =
       balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : balanceVcpus
@@ -323,6 +332,80 @@ export default class Plan {
   }
 
   // ===================================================================
+  // Migration helpers
+  // ===================================================================
+
+  // Check if VM was recently migrated and is in cooldown period
+  _isVmInCooldown(vm) {
+    const { migrationCooldown, migrationHistory } = this._globalOptions
+    if (migrationCooldown > 0) {
+      const lastMigration = migrationHistory.get(vm.id)
+      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
+        return true
+      }
+    }
+    return false
+  }
+
+  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
+    const { migrationHistory } = this._globalOptions
+    return this._concurrentMigrationLimiter(() => {
+      const task = this.xo.tasks.create({
+        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
+        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
+        objectId: vm.id,
+        type: 'xo:load-balancer:migration',
+      })
+      return task.run(async () =>
+        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
+          migrationHistory.set(vm.id, Date.now())
+        })
+      )
+    })
+  }
+
+  // More co-located same-tag VMs is better: compares against the VM's current host instead of
+  // requiring an absolute count, so a VM with no current affinity-mates is never stuck.
+  _wouldDeteriorateAffinity({ vm, countsByHostId, sourceHostId, destinationHostId }) {
+    const tags = intersection(vm.tags, this._affinityTags)
+    if (tags.length === 0) {
+      return false
+    }
+    return tags.some(tag => {
+      const sourceOtherCount = countsByHostId[sourceHostId].tagCounts[tag] - 1
+      const destinationCount = countsByHostId[destinationHostId].tagCounts[tag]
+      return destinationCount < sourceOtherCount
+    })
+  }
+
+  // Fewer co-located same-tag VMs is better: compares against the VM's current host so that, when
+  // there are more anti-affinity-tagged VMs than hosts, spreading them as evenly as possible stays
+  // allowed instead of requiring a conflict-free destination that may not exist.
+  _wouldDeteriorateAntiAffinity({ vm, countsByHostId, sourceHostId, destinationHostId }) {
+    const tags = intersection(vm.tags, this._antiAffinityTags)
+    if (tags.length === 0) {
+      return false
+    }
+    return tags.some(tag => {
+      const sourceOtherCount = countsByHostId[sourceHostId].tagCounts[tag] - 1
+      const destinationCount = countsByHostId[destinationHostId].tagCounts[tag]
+      return destinationCount > sourceOtherCount
+    })
+  }
+
+  // Matching more of the VM's vm-to-host affinity tags is better: compares against the VM's current
+  // host so an already-misplaced VM (or a tag matching no host) never gets stuck.
+  _wouldDeteriorateVmToHostAffinity({ vm, idToHost, sourceHostId, destinationHostId }) {
+    const tags = intersection(vm.tags, this._vmToHostAffinityTags)
+    if (tags.length === 0) {
+      return false
+    }
+    const sourceMatches = intersection(tags, idToHost[sourceHostId].tags).length
+    const destinationMatches = intersection(tags, idToHost[destinationHostId].tags).length
+    return sourceMatches > destinationMatches
+  }
+
+  // ===================================================================
   // vCPU pre-positioning helpers
   // ===================================================================
 
@@ -369,6 +452,18 @@ export default class Plan {
       return
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
+
+    // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
+    // would deteriorate a VM's constraints, instead of excluding it from vCPU prepositioning entirely
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(this._getTaggedHosts({ hosts: sanitizedHostList, tagList: this._affinityTags, vms: allVms }).hosts, 'id')
+      : undefined
+    const antiAffinityCountsByHostId = this._antiAffinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: sanitizedHostList, tagList: this._antiAffinityTags, vms: allVms }).hosts,
+          'id'
+        )
+      : undefined
 
     // 1. Find source host from which to migrate.
     const sources = sortBy(
@@ -437,14 +532,25 @@ export default class Plan {
         // ex: if we have a host with 19 vCPU and 9 host with 10 vCPU, each with the same number of CPU, then ideal vCPU per host is 10.9, rounding to 10 would make host with 19 vCPU have no destination to send VMs to
         // reversely, we could have a host with 5 vCPU and 9 host with 10 vCPU, and then the 5 vCPU host would have no source to receive VMs from
         let delta = Math.ceil(Math.min(deltaSource, -deltaDestination))
+        // don't exclude VMs with meaningful tags entirely: only avoid a destination that would
+        // deteriorate the VM's affinity / anti-affinity / vm-to-host affinity constraints
         const vms = sortBy(
-          filter(
-            sourceVms,
-            vm =>
-              !this._isVmInCooldown(vm) &&
-              hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
-              vm.CPUs.number <= delta
-          ),
+          filter(sourceVms, vm => {
+            if (
+              this._isVmInCooldown(vm) ||
+              hostsAverages[destinationHost.id].memoryFree < vmsAverages[vm.id].memory ||
+              vm.CPUs.number > delta
+            ) {
+              return false
+            }
+
+            const params = { vm, sourceHostId: sourceHost.id, destinationHostId: destinationHost.id }
+            return (
+              !this._wouldDeteriorateAffinity({ ...params, countsByHostId: affinityCountsByHostId }) &&
+              !this._wouldDeteriorateAntiAffinity({ ...params, countsByHostId: antiAffinityCountsByHostId }) &&
+              !this._wouldDeteriorateVmToHostAffinity({ ...params, idToHost })
+            )
+          }),
           [vm => -vm.CPUs.number]
         )
 
@@ -485,6 +591,19 @@ export default class Plan {
                 destHostId: destination._xapiId,
                 reason: 'to balance vCPUs over CPUs',
               })
+            )
+            // keep our local counts in sync so later VMs in this loop aren't checked against stale data
+            this._adjustTagCounts(
+              affinityCountsByHostId,
+              intersection(vm.tags, this._affinityTags),
+              sourceHost.id,
+              destinationHost.id
+            )
+            this._adjustTagCounts(
+              antiAffinityCountsByHostId,
+              intersection(vm.tags, this._antiAffinityTags),
+              sourceHost.id,
+              destinationHost.id
             )
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
@@ -533,10 +652,10 @@ export default class Plan {
       const host = idToHost[hostId]
       host.vcpuCount += vm.CPUs.number
 
-      if (
-        vm.xenTools &&
-        vm.tags.every(tag => !this._antiAffinityTags.includes(tag) && !this._affinityTags.includes(tag))
-      ) {
+      // don't exclude VMs with meaningful tags entirely: _processVcpuPrepositioning avoids
+      // destinations that would deteriorate their affinity / anti-affinity / vm-to-host affinity
+      // constraints instead
+      if (vm.xenTools) {
         host.vms[vm.id] = vm
       }
     }
@@ -553,10 +672,26 @@ export default class Plan {
       return
     }
 
+    // process each pool independently: spreading anti-affinity-tagged VMs must never cross pool
+    // boundaries, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
     const allHosts = this._getHosts()
-    if (allHosts.length <= 1) {
-      return
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length <= 1) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processAntiAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`anti-affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
     }
+    return Promise.allSettled(promises)
+  }
+
+  async _processAntiAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
@@ -565,14 +700,14 @@ export default class Plan {
     // 1. Check if we must migrate VMs...
     const tagsDiff = {}
     for (const watchedTag of this._antiAffinityTags) {
-      const getCount = fn => fn(taggedHosts.hosts, host => host.tags[watchedTag]).tags[watchedTag]
+      const getCount = fn => fn(taggedHosts.hosts, host => host.tagCounts[watchedTag]).tagCounts[watchedTag]
       const diff = getCount(maxBy) - getCount(minBy)
       if (diff > 1) {
         tagsDiff[watchedTag] = diff - 1
       }
     }
     if (isEmpty(tagsDiff)) {
-      return
+      return []
     }
 
     // 2. Migrate!
@@ -592,20 +727,33 @@ export default class Plan {
 
     // 3. Done!
     debugAntiAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
-    return Promise.all(promises)
+    return promises
   }
 
   _processAntiAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost }) {
     const promises = []
+
+    // per-host counts of affinity tagged VMs, to check whether a candidate destination would
+    // deteriorate a VM's affinity constraint, instead of blocking its migration entirely
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({
+            hosts: Object.values(idToHost),
+            tagList: this._affinityTags,
+            vms: this._getAllRunningVms(),
+          }).hosts,
+          'id'
+        )
+      : undefined
 
     while (true) {
       // safety to prevent infinite loop if destination has no VM able to migrate
       let emptyLoop = true
       // 1. Find source host from which to migrate.
       const sources = sortBy(
-        filter(taggedHosts.hosts, host => host.tags[tag] > 1),
+        filter(taggedHosts.hosts, host => host.tagCounts[tag] > 1),
         [
-          host => host.tags[tag],
+          host => host.tagCounts[tag],
           // Find host with the most memory used. Don't forget the "-". ;)
           host => -hostsAverages[host.id].memoryFree,
         ]
@@ -620,9 +768,12 @@ export default class Plan {
 
         // 2. Find destination host.
         const destinations = sortBy(
-          filter(taggedHosts.hosts, host => host.id !== sourceHost.id && host.tags[tag] + 1 < sourceHost.tags[tag]),
+          filter(
+            taggedHosts.hosts,
+            host => host.id !== sourceHost.id && host.tagCounts[tag] + 1 < sourceHost.tagCounts[tag]
+          ),
           [
-            host => host.tags[tag],
+            host => host.tagCounts[tag],
             // Ideally it would be interesting to migrate in the same pool.
             host => host.poolId !== sourceHost.poolId,
             // Find host with the least memory used. Don't forget the "-". ;)
@@ -643,13 +794,28 @@ export default class Plan {
           destinationHost = destination
           debugAntiAffinity(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
 
-          const vms = filter(
-            sourceVms,
-            vm =>
-              !this._isVmInCooldown(vm) &&
-              hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
-              vm.tags.every(tag => !this._affinityTags.includes(tag))
-          )
+          // don't exclude VMs with meaningful tags entirely: only avoid a destination that would
+          // deteriorate the VM's affinity / vm-to-host affinity constraints
+          const vms = filter(sourceVms, vm => {
+            if (this._isVmInCooldown(vm) || hostsAverages[destinationHost.id].memoryFree < vmsAverages[vm.id].memory) {
+              return false
+            }
+
+            return (
+              !this._wouldDeteriorateAffinity({
+                vm,
+                countsByHostId: affinityCountsByHostId,
+                sourceHostId: sourceHost.id,
+                destinationHostId: destinationHost.id,
+              }) &&
+              !this._wouldDeteriorateVmToHostAffinity({
+                vm,
+                idToHost,
+                sourceHostId: sourceHost.id,
+                destinationHostId: destinationHost.id,
+              })
+            )
+          })
 
           debugAntiAffinity(
             `Tagged VM ("${tag}") candidates to migrate from host ${sourceHost.id}: ${inspect(mapToArray(vms, 'id'))}.`
@@ -673,37 +839,28 @@ export default class Plan {
 
         const source = idToHost[sourceHost.id]
         const destination = idToHost[destinationHost.id]
-        debugAntiAffinity(
-          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
-        )
 
-        // 3. Update tags and averages.
+        // 3. Update tags and averages, and migrate.
         // This update can change the source host for the next migration.
-        for (const tag of vm.tags) {
-          if (this._antiAffinityTags.includes(tag)) {
-            sourceHost.tags[tag]--
-            destinationHost.tags[tag]++
-          }
-        }
-
-        const destinationAverages = hostsAverages[destinationHost.id]
-        const vmAverages = vmsAverages[vm.id]
-
-        destinationAverages.cpu += vmAverages.cpu
-        destinationAverages.memoryFree -= vmAverages.memory
-
-        delete sourceHost.vms[vm.id]
-
-        // 4. Migrate.
         promises.push(
-          this._migrateVm({
+          this._migrateVmAndUpdateInfos({
+            destination,
+            source,
+            sourceHost,
+            destinationHost,
             vm,
-            xapiSrc: this.xo.getXapi(source),
-            xapiDest: this.xo.getXapi(destination),
-            srcHostId: source.id,
-            destHostId: destination._xapiId,
+            hostsAverages,
+            vmAverages: vmsAverages[vm.id],
             reason: `to satisfy anti-affinity of tag ${tag}`,
           })
+        )
+        // keep our local affinity counts in sync so later migrations in this loop aren't checked
+        // against stale data
+        this._adjustTagCounts(
+          affinityCountsByHostId,
+          intersection(vm.tags, this._affinityTags),
+          sourceHost.id,
+          destinationHost.id
         )
         emptyLoop = false
 
@@ -716,6 +873,18 @@ export default class Plan {
     }
   }
 
+  // Keep a per-host tag-count map (as returned by `_getTaggedHosts`) in sync with a migration decided
+  // within the same loop that computed it, so later iterations don't check against stale counts.
+  _adjustTagCounts(countsByHostId, tags, sourceHostId, destinationHostId) {
+    if (countsByHostId === undefined) {
+      return
+    }
+    for (const tag of tags) {
+      countsByHostId[sourceHostId].tagCounts[tag]--
+      countsByHostId[destinationHostId].tagCounts[tag]++
+    }
+  }
+
   _getTaggedHosts({ hosts, tagList, vms, includeUntaggedVms = false }) {
     const tagCount = {}
     for (const tag of tagList) {
@@ -724,15 +893,15 @@ export default class Plan {
 
     const taggedHosts = {}
     for (const host of hosts) {
-      const tags = {}
+      const tagCounts = {}
       for (const tag of tagList) {
-        tags[tag] = 0
+        tagCounts[tag] = 0
       }
 
       const taggedHost = (taggedHosts[host.id] = {
         id: host.id,
         poolId: host.$poolId,
-        tags,
+        tagCounts,
         vms: {},
       })
 
@@ -757,7 +926,7 @@ export default class Plan {
       for (const tag of vm.tags) {
         if (tagList.includes(tag)) {
           tagCount[tag]++
-          taggedHost.tags[tag]++
+          taggedHost.tagCounts[tag]++
           taggedHost.vms[vm.id] = vm
         }
       }
@@ -772,13 +941,13 @@ export default class Plan {
 
     const { hosts } = taggedHosts
     for (const tag in taggedHosts.tagCount) {
-      const k = hosts[0].tags[tag]
+      const k = hosts[0].tagCounts[tag]
 
       let ex = 0
       let ex2 = 0
 
       for (const host of hosts) {
-        const x = host.tags[tag]
+        const x = host.tagCounts[tag]
         const diff = x - k
         ex += diff
         ex2 += diff * diff
@@ -799,15 +968,15 @@ export default class Plan {
       const vmTags = filter(vm.tags, tag => this._antiAffinityTags.includes(tag))
 
       for (const tag of vmTags) {
-        sourceHost.tags[tag]--
-        destinationHost.tags[tag]++
+        sourceHost.tagCounts[tag]--
+        destinationHost.tagCounts[tag]++
       }
 
       const variance = this._computeAntiAffinityVariance(taggedHosts)
 
       for (const tag of vmTags) {
-        sourceHost.tags[tag]++
-        destinationHost.tags[tag]--
+        sourceHost.tagCounts[tag]++
+        destinationHost.tagCounts[tag]--
       }
 
       if (variance < bestVariance) {
@@ -832,10 +1001,26 @@ export default class Plan {
       return
     }
 
+    // process each pool independently: consolidating affinity-tagged VMs onto a single host must never
+    // cross pool boundaries, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
     const allHosts = this._getHosts()
-    if (allHosts.length <= 1) {
-      return
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length <= 1) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
     }
+    return Promise.allSettled(promises)
+  }
+
+  async _processAffinityForHosts(allHosts) {
     const idToHost = keyBy(allHosts, 'id')
 
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
@@ -850,7 +1035,7 @@ export default class Plan {
     const spreadTags = []
     for (const watchedTag of this._affinityTags) {
       const taggedHostCount = taggedHosts.hosts.reduce(
-        (accumulator, host) => accumulator + (host.tags[watchedTag] > 0),
+        (accumulator, host) => accumulator + (host.tagCounts[watchedTag] > 0),
         0
       )
       if (taggedHostCount > 1) {
@@ -858,7 +1043,7 @@ export default class Plan {
       }
     }
     if (spreadTags.length === 0) {
-      return
+      return []
     }
 
     // 2. Check for tag coalitions: when a VM has multiple affinity tags, these tags should be considered as the same tag
@@ -901,8 +1086,7 @@ export default class Plan {
 
     // 4. Done!
     debugAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}`)
-    // not returning Promise.all so we still wait for all migrations to end even if one fails
-    return Promise.allSettled(promises)
+    return promises
   }
 
   async _processAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost, coalition }) {
@@ -914,16 +1098,33 @@ export default class Plan {
     // computing the sum of number of VMs per coalition to avoid doing it multiple times while sorting
     // in case of coalitions, the sum is incorrect as VMs are counted twice, but it gives an approximation without parsing all the VMs again
     const taggedVmCountPerHost = {}
+    // number of coalition-tagged VMs on the host that also share a vm-to-host-affinity tag with their host:
+    // such a VM likely can't be migrated away without deteriorating its vm-to-host affinity, so its host
+    // should be preferred as the destination rather than as a source we could never actually migrate it from
+    const pinnedVmCountPerHost = {}
     for (const host of taggedHosts.hosts) {
-      taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tags[coalitionTag], 0)
+      taggedVmCountPerHost[host.id] = coalition.reduce((sum, coalitionTag) => sum + host.tagCounts[coalitionTag], 0)
+      pinnedVmCountPerHost[host.id] = Object.values(host.vms).reduce(
+        (sum, vm) =>
+          sum +
+          (intersection(vm.tags, coalition).length > 0 &&
+          intersection(vm.tags, this._vmToHostAffinityTags, idToHost[host.id].tags).length > 0
+            ? 1
+            : 0),
+        0
+      )
     }
 
     const sortedHosts = sortBy(
-      taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tags[coalitionTag] > 0)),
-      [host => taggedVmCountPerHost[host.id], host => -hostsAverages[host.id].memoryFree]
+      taggedHosts.hosts.filter(host => coalition.some(coalitionTag => host.tagCounts[coalitionTag] > 0)),
+      [
+        host => taggedVmCountPerHost[host.id],
+        host => pinnedVmCountPerHost[host.id],
+        host => -hostsAverages[host.id].memoryFree,
+      ]
     )
 
-    // hosts are sorted from having the less tagged VMs to the most, so we pick destinationHost from the end of the list
+    // hosts are sorted from having the least tagged VMs to the most, so we pick destinationHost from the end of the list
     let destinationHost = sortedHosts.pop()
 
     // Migrate tagged VMs from every other host
@@ -941,11 +1142,26 @@ export default class Plan {
       debugAffinity(`VMs to migrate: ${sourceVms.map(vm => vm.name_label)}`)
 
       for (const vm of sourceVms) {
+        if (
+          this._wouldDeteriorateVmToHostAffinity({
+            vm,
+            idToHost,
+            sourceHostId: sourceHost.id,
+            destinationHostId: destinationHost.id,
+          })
+        ) {
+          debug(
+            `affinity: VM (${vm.id} "${vm.name_label}") cannot be migrated to satisfy affinity tag ${tag}: would deteriorate its vm-to-host affinity.`
+          )
+          continue
+        }
+
         // if host can't receive all tagged VMs
         let loopCountdown = sortedHosts.length // a theoretically unnecessary safety against infinite while
         while (
           hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory <
-          this._thresholds.memoryFree.critical
+            this._thresholds.memoryFree.critical ||
+          hostsAverages[destinationHost.id].cpu + vmsAverages[vm.id].cpu > this._thresholds.cpu.critical
         ) {
           loopCountdown--
           debugAffinity(`Host ${sourceHost.id} is overcrowded`)
@@ -957,7 +1173,9 @@ export default class Plan {
             idToHost,
             taggedHosts,
             memoryNeeded: vmsAverages[vm.id].memory,
-            tag,
+            cpuNeeded: vmsAverages[vm.id].cpu,
+            reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
+            immovableTags: coalition,
           })
           promises.push(...otherMigrationPromises)
 
@@ -995,17 +1213,38 @@ export default class Plan {
     return promises
   }
 
-  async _migrateOtherVms({ crowdedHost, hostsAverages, vmsAverages, idToHost, taggedHosts, memoryNeeded, tag }) {
+  async _migrateOtherVms({
+    crowdedHost,
+    hostsAverages,
+    vmsAverages,
+    idToHost,
+    taggedHosts,
+    memoryNeeded,
+    cpuNeeded,
+    reason,
+    // prevents edge case back-and-forth migration when freeing up resources to migrate VM during VM-to-VM affinity
+    immovableTags = [],
+  }) {
     const promises = []
+
+    // per-host counts of affinity/anti-affinity tagged VMs, to check whether a candidate destination
+    // would deteriorate a VM's constraints, instead of blocking its migration entirely
+    const allHosts = Object.values(idToHost)
+    const allRunningVms = this._getAllRunningVms()
+    const affinityCountsByHostId = this._affinityTags.length
+      ? keyBy(this._getTaggedHosts({ hosts: allHosts, tagList: this._affinityTags, vms: allRunningVms }).hosts, 'id')
+      : undefined
+    const antiAffinityCountsByHostId = this._antiAffinityTags.length
+      ? keyBy(
+          this._getTaggedHosts({ hosts: allHosts, tagList: this._antiAffinityTags, vms: allRunningVms }).hosts,
+          'id'
+        )
+      : undefined
 
     const candidateVms = sortBy(
       filter(
         Object.values(crowdedHost.vms),
-        vm =>
-          vm.xenTools &&
-          !this._isVmInCooldown(vm) &&
-          intersection(vm.tags, this._affinityTags).length === 0 &&
-          intersection(vm.tags, this._antiAffinityTags).length === 0
+        vm => vm.xenTools && !this._isVmInCooldown(vm) && intersection(vm.tags, immovableTags).length === 0
       ),
       [vm => -vmsAverages[vm.id].memory] // try to migrate bigger VMs first to minimize the number of migrations
     )
@@ -1015,12 +1254,22 @@ export default class Plan {
       // try to migrate vm
 
       const vmAverages = vmsAverages[vm.id]
+      const affinityTags = intersection(vm.tags, this._affinityTags)
+      const antiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
 
       const destinationHost = sortBy(
         taggedHosts.hosts,
         [host => -hostsAverages[host.id].memoryFree, host => hostsAverages[host.id].cpu] // try to migrate to hosts with the most free space first
       ).find(host => {
         if (host.id === crowdedHost.id) {
+          return false
+        }
+        const params = { vm, sourceHostId: crowdedHost.id, destinationHostId: host.id }
+        if (
+          this._wouldDeteriorateAffinity({ ...params, countsByHostId: affinityCountsByHostId }) ||
+          this._wouldDeteriorateAntiAffinity({ ...params, countsByHostId: antiAffinityCountsByHostId }) ||
+          this._wouldDeteriorateVmToHostAffinity({ ...params, idToHost })
+        ) {
           return false
         }
         const destinationAverages = hostsAverages[host.id]
@@ -1046,17 +1295,28 @@ export default class Plan {
           vm,
           hostsAverages,
           vmAverages,
-          promises,
-          reason: `to free up resources on host to later migrate affinity-tagged VMs to it (${tag})`,
+          reason,
         })
       )
+      // keep our local counts in sync so later VMs in this loop aren't checked against stale data
+      this._adjustTagCounts(affinityCountsByHostId, affinityTags, crowdedHost.id, destinationHost.id)
+      this._adjustTagCounts(antiAffinityCountsByHostId, antiAffinityTags, crowdedHost.id, destinationHost.id)
 
-      if (hostsAverages[crowdedHost.id].memoryFree - memoryNeeded > this._thresholds.memoryFree.critical) {
-        return { promises, success: true }
+      if (
+        hostsAverages[crowdedHost.id].memoryFree - memoryNeeded >= this._thresholds.memoryFree.critical &&
+        hostsAverages[crowdedHost.id].cpu + cpuNeeded <= this._thresholds.cpu.critical
+      ) {
+        // wait for the freeing migrations to actually complete before reporting success: up to
+        // `maxConcurrentMigrations` migrations can run concurrently, so callers relying on `success`
+        // to migrate onto `crowdedHost` right away must not race the still-in-flight migrations
+        const results = await Promise.allSettled(promises)
+        const rejected = results.filter(result => result.status === 'rejected')
+        return { promises, success: rejected.length === 0 }
       }
     }
 
     // not enough VMs were migrated
+    await Promise.allSettled(promises)
     return { promises, success: false }
   }
 
@@ -1073,14 +1333,14 @@ export default class Plan {
     // TODO: add more checks with XAPI method assert_can_migrate
 
     // Update tags and averages
-    debugAffinity(
+    debug(
       `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${source.id} "${source.name_label}").`
     )
 
     for (const tag of vm.tags) {
-      if (this._affinityTags.includes(tag)) {
-        sourceHost.tags[tag]--
-        destinationHost.tags[tag]++
+      if (tag in sourceHost.tagCounts) {
+        sourceHost.tagCounts[tag]--
+        destinationHost.tagCounts[tag]++
       }
     }
 
@@ -1104,35 +1364,6 @@ export default class Plan {
       srcHostId: sourceHost.id,
       destHostId: destination._xapiId,
       reason,
-    })
-  }
-
-  // Check if VM was recently migrated and is in cooldown period
-  _isVmInCooldown(vm) {
-    const { migrationCooldown, migrationHistory } = this._globalOptions
-    if (migrationCooldown > 0) {
-      const lastMigration = migrationHistory.get(vm.id)
-      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
-        return true
-      }
-    }
-    return false
-  }
-
-  _migrateVm({ vm, xapiSrc, xapiDest, srcHostId, destHostId, reason }) {
-    const { migrationHistory } = this._globalOptions
-    return this._concurrentMigrationLimiter(() => {
-      const task = this.xo.tasks.create({
-        name: `Load balancer migrates VM ${vm.name_label} (${vm.id})`,
-        description: `Migrating VM ${vm.name_label} (${vm.id}) from host ${srcHostId} to host ${destHostId} ${reason}`,
-        objectId: vm.id,
-        type: 'xo:load-balancer:migration',
-      })
-      return task.run(async () =>
-        xapiSrc.migrateVm(vm._xapiId, xapiDest, destHostId).then(() => {
-          migrationHistory.set(vm.id, Date.now())
-        })
-      )
     })
   }
 
@@ -1175,5 +1406,237 @@ export default class Plan {
     })
 
     return coalitions
+  }
+
+  // ===================================================================
+  // VM-to-host affinity
+  // ===================================================================
+
+  async _processVmToHostAffinity() {
+    if (!this._vmToHostAffinityTags.length) {
+      return
+    }
+
+    // process each pool independently: a VM must never be migrated to a host in a different pool to
+    // satisfy vm-to-host affinity, since that would force a heavy storage-motion migration.
+    // No pool parallelization because we're limited by the concurrent migration limiter.
+    const allHosts = this._getHosts()
+    const promises = []
+    for (const poolId of this._poolIds) {
+      const poolHosts = filter(allHosts, host => host.$poolId === poolId)
+      if (poolHosts.length === 0) {
+        continue
+      }
+      try {
+        promises.push(...(await this._processVmToHostAffinityForHosts(poolHosts)))
+      } catch (error) {
+        warn(`vm-to-host affinity: failed to process pool ${poolId}`, { poolId, error })
+      }
+    }
+    return Promise.allSettled(promises)
+  }
+
+  async _processVmToHostAffinityForHosts(allHosts) {
+    const idToHost = keyBy(allHosts, 'id')
+
+    // 1 - Check that every tagged VM has a preferred host sharing the same tag, otherwise assign one.
+    // This will prevent VMs from booting on a host on which they're not supposed to be.
+    await this._updateVmPreferredHost(allHosts, idToHost)
+
+    // 2 - get list of VMs which have a tag and are not on the right hosts
+    const misplacedVms = filter(this._getAllRunningVms(), vm => {
+      if (!(vm.$container in idToHost)) {
+        return false
+      }
+
+      const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
+      if (vmTags.length === 0) {
+        return false
+      }
+
+      const currentHost = idToHost[vm.$container]
+      return !vmTags.some(tag => currentHost.tags.includes(tag))
+    })
+
+    if (misplacedVms.length === 0) {
+      return []
+    }
+
+    debugVmToHostAffinity(`Misplaced VMs: ${inspect(mapToArray(misplacedVms, 'id'), { depth: null })}`)
+
+    // 3 - Migrate misplaced VMs if possible.
+    const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
+    const vmsAverages = await this._getVmsAverages(allVms, idToHost)
+    const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
+
+    const taggedHosts = this._getTaggedHosts({
+      hosts: allHosts,
+      tagList: this._vmToHostAffinityTags,
+      vms: allVms,
+      includeUntaggedVms: true,
+    })
+    const hostStructById = keyBy(taggedHosts.hosts, 'id')
+
+    const promises = []
+    for (const vm of misplacedVms) {
+      promises.push(
+        ...(await this._vmToHostAffinityMigrateMisplacedVm(vm, {
+          allHosts,
+          hostStructById,
+          hostsAverages,
+          idToHost,
+          taggedHosts,
+          vmsAverages,
+        }))
+      )
+    }
+
+    return promises
+  }
+
+  async _updateVmPreferredHost(allHosts, idToHost) {
+    const taggedVms = filter(
+      this._getAllRunningVms(),
+      vm => vm.$container in idToHost && intersection(vm.tags, this._vmToHostAffinityTags).length > 0
+    )
+
+    const limitAffinityUpdate = limitConcurrency(MAX_CONCURRENT_AFFINITY_UPDATES)()
+    const affinityResults = await Promise.allSettled(
+      taggedVms.map(vm =>
+        limitAffinityUpdate(() => {
+          // preserve the admin's configured tag order, so ambiguous cases resolve deterministically
+          const vmTags = this._vmToHostAffinityTags.filter(tag => vm.tags.includes(tag))
+
+          const preferredHost = idToHost[vm.affinityHost]
+          if (preferredHost !== undefined && vmTags.some(tag => preferredHost.tags.includes(tag))) {
+            return // preferred host already shares one of the VM's tags
+          }
+
+          // prefer hosts sharing ALL of the VM's tags, otherwise fall back to the first tag (in configured
+          // order) that has a matching host: the VM's tags don't share a common host, so which host wins is
+          // an arbitrary choice, and this should be avoided by the admin
+          let candidateHosts = allHosts.filter(host => vmTags.every(tag => host.tags.includes(tag)))
+          if (candidateHosts.length === 0) {
+            if (vmTags.length > 1) {
+              warn(
+                `vm-to-host affinity: VM (${vm.id} "${vm.name_label}") has VM-to-host affinity tags (${vmTags}) with no host sharing all of them; this must be avoided.`
+              )
+            }
+            const fallbackTag = vmTags.find(tag => allHosts.some(host => host.tags.includes(tag)))
+            candidateHosts = fallbackTag === undefined ? [] : allHosts.filter(host => host.tags.includes(fallbackTag))
+          }
+
+          if (candidateHosts.length === 0) {
+            debugVmToHostAffinity(`No host found with tag(s) ${vmTags} for VM (${vm.id} "${vm.name_label}").`)
+            return
+          }
+
+          // pick randomly among candidates to avoid setting the same preferred host on all matching VMs
+          const candidateHost = candidateHosts[Math.floor(Math.random() * candidateHosts.length)]
+
+          debugVmToHostAffinity(
+            `Setting preferred Host (${candidateHost.id} "${candidateHost.name_label}") for VM (${vm.id} "${vm.name_label}").`
+          )
+          const xapi = this.xo.getXapi(vm)
+          return xapi.getObject(vm.id).set_affinity(xapi.getObject(candidateHost.id).$ref)
+        })
+      )
+    )
+    const failures = taggedVms
+      .map((vm, i) => ({ vm, result: affinityResults[i] }))
+      .filter(({ result }) => result.status === 'rejected')
+    if (failures.length > 0) {
+      warn('vm-to-host affinity: failed to set preferred host for some VMs', {
+        vmIds: failures.map(({ vm }) => vm.id),
+        errors: failures.map(({ result }) => result.reason),
+      })
+    }
+  }
+
+  async _vmToHostAffinityMigrateMisplacedVm(
+    vm,
+    { allHosts, hostStructById, hostsAverages, idToHost, taggedHosts, vmsAverages }
+  ) {
+    const promises = []
+
+    if (!vm.xenTools) {
+      debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") does not support pool migration.`)
+      return promises
+    }
+    if (this._isVmInCooldown(vm)) {
+      debugVmToHostAffinity(`VM (${vm.id} "${vm.name_label}") is in cooldown, skipping.`)
+      return promises
+    }
+
+    const vmTags = intersection(vm.tags, this._vmToHostAffinityTags)
+    let eligibleHosts = allHosts.filter(host => vmTags.some(tag => host.tags.includes(tag)))
+    // preferring hosts matching more tags, then hosts with more free resources
+    eligibleHosts = sortBy(eligibleHosts, [
+      host => -vmTags.filter(tag => host.tags.includes(tag)).length,
+      host => -hostsAverages[host.id].memoryFree,
+      host => hostsAverages[host.id].cpu,
+    ])
+    if (eligibleHosts.length === 0) {
+      debugVmToHostAffinity(`No eligible host found for misplaced VM (${vm.id} "${vm.name_label}").`)
+      return promises
+    }
+
+    const vmAverages = vmsAverages[vm.id]
+
+    // try to find an eligible host with enough free memory and CPU to receive the VM
+    let destinationHost = eligibleHosts.find(host => {
+      const destinationAverages = hostsAverages[host.id]
+      return (
+        destinationAverages.cpu + vmAverages.cpu <= this._thresholds.cpu.critical &&
+        destinationAverages.memoryFree - vmAverages.memory >= this._thresholds.memoryFree.critical
+      )
+    })
+
+    if (destinationHost === undefined) {
+      // no eligible host currently has enough room: try to free up space on the best candidate
+      const crowdedHost = eligibleHosts[0]
+      debugVmToHostAffinity(
+        `No eligible host has enough resources for VM (${vm.id} "${vm.name_label}"), trying to free up space on Host (${crowdedHost.id} "${crowdedHost.name_label}").`
+      )
+
+      const { promises: otherMigrationPromises, success } = await this._migrateOtherVms({
+        crowdedHost: hostStructById[crowdedHost.id],
+        hostsAverages,
+        vmsAverages,
+        idToHost,
+        taggedHosts,
+        memoryNeeded: vmAverages.memory,
+        cpuNeeded: vmAverages.cpu,
+        reason: `to free up resources on host to later migrate VM-to-host-affinity-tagged VMs to it (${vmTags.join(', ')})`,
+      })
+      promises.push(...otherMigrationPromises)
+
+      if (!success) {
+        debugVmToHostAffinity(
+          `Could not free enough resources for VM (${vm.id} "${vm.name_label}"), leaving it on its current host.`
+        )
+        return promises
+      }
+      // not a real race: destinationHost is a per-iteration local not touched by _migrateOtherVms or any concurrent call
+      // eslint-disable-next-line require-atomic-updates
+      destinationHost = crowdedHost
+    }
+
+    const matchingTags = vmTags.filter(tag => destinationHost.tags.includes(tag))
+
+    promises.push(
+      this._migrateVmAndUpdateInfos({
+        destination: idToHost[destinationHost.id],
+        source: idToHost[vm.$container],
+        sourceHost: hostStructById[vm.$container],
+        destinationHost: hostStructById[destinationHost.id],
+        vm,
+        hostsAverages,
+        vmAverages,
+        reason: `to satisfy VM-to-host affinity of tag(s) ${matchingTags.join(', ')}`,
+      })
+    )
+
+    return promises
   }
 }

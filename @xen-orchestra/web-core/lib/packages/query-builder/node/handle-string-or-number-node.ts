@@ -1,6 +1,6 @@
-import { createQueryBuilderFilter } from '@core/packages/query-builder/filter/create-query-builder-filter'
+import { createQueryBuilderFilter } from '@core/packages/query-builder/filter/create-query-builder-filter.ts'
 import { isFilterExpression } from '@core/packages/query-builder/filter/is-filter-expression.ts'
-import { handleNode } from '@core/packages/query-builder/node/handle-node'
+import { handleNode } from '@core/packages/query-builder/node/handle-node.ts'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import type { NumberOrStringNode, StringNode } from 'complex-matcher'
 import { parse } from 'complex-matcher'

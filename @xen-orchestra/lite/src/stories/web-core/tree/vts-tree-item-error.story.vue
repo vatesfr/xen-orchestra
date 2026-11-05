@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { setting, slot } from '@/libs/story/story-param'
+import { setting, slot } from '@/libs/story/story-param.ts'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 </script>

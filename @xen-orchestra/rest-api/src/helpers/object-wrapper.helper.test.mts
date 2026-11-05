@@ -3,9 +3,8 @@ import { describe, it } from 'node:test'
 import type { Request } from 'express'
 
 import { makeObjectMapper } from './object-wrapper.helper.mjs'
+import { BASE_URL } from './utils.helper.mjs'
 import type { XoRecord } from '@vates/types'
-
-const BASE_URL = '/rest/v0'
 
 function makeRequest(path: string, fields?: string | string[]): Request {
   return {

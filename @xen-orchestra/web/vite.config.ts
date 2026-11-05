@@ -7,13 +7,14 @@ import vueRouter from 'vue-router/vite'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const { VITE_XO_REST_HOST } = loadEnv(mode, process.cwd())
+  const isDevMode = mode === 'development'
 
   return {
     base: './',
     plugins: [
       vueRouter({
-        dts: './src/route-map.d.ts',
-        exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
+        dts: isDevMode ? './src/route-map.d.ts' : false,
+        exclude: isDevMode ? [] : ['src/pages/dev/**'],
       }),
       vue(),
       vueI18n({
@@ -38,7 +39,25 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['value-matcher', 'complex-matcher'],
+      include: ['value-matcher', 'complex-matcher', 'xo-remote-parser', '@xen-orchestra/cron'],
+    },
+    test: {
+      globals: true,
+      setupFiles: ['./src/test/setup.ts'],
+      alias: {
+        // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
+        'placement.js': fileURLToPath(new URL('../../node_modules/placement.js/dist/index.es.js', import.meta.url)),
+      },
+      projects: [
+        {
+          extends: true,
+          test: {
+            include: ['**/*.unit.{test,spec}.ts'],
+            name: 'unit',
+            environment: 'happy-dom',
+          },
+        },
+      ],
     },
   }
 })

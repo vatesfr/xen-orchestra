@@ -12,8 +12,9 @@ const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 const _escapeDot = id => id.replace('.', '\0')
 
 export default class DeleteBackupsModalBody extends Component {
+  state = { immediate: true }
   get value() {
-    return this._getSelectedBackups()
+    return { backups: this._getSelectedBackups(), immediate: this.state.immediate }
   }
 
   _selectAll = () => {
@@ -70,6 +71,10 @@ export default class DeleteBackupsModalBody extends Component {
         <div>
           <Toggle iconSize={1} onChange={this._selectAll} value={this._getAllSelected()} />{' '}
           {_('deleteVmBackupsSelectAll')}
+        </div>
+        <div>
+          <Toggle iconSize={1} onChange={this.toggleState('immediate')} value={this.state.immediate} />{' '}
+          {_('deleteVmBackupsImmediate')}
         </div>
       </div>
     )

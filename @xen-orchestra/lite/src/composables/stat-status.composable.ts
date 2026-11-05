@@ -1,5 +1,5 @@
-import type { Stat } from '@/composables/fetch-stats.composable'
-import type { StatData } from '@/types/stat'
+import type { Stat } from '@/composables/fetch-stats.composable.ts'
+import type { StatData } from '@/types/stat.ts'
 import { computed, type ComputedRef, type MaybeRef, toRef } from 'vue'
 
 export const useStatStatus = (

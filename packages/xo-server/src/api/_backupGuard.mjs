@@ -1,11 +1,37 @@
+import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-export default async function backupGuard(poolId) {
+const log = createLogger('xo:api:backup-guard')
+
+/**
+ * Refuses an operation on an object while a backup job runs, or may run, on its pool.
+ *
+ * Must be called with `this` set to the xo-server instance.
+ *
+ * @param {string} objectId - ID of the XO object targeted by the operation (host, SR, pool…)
+ * @param {object} [opts]
+ * @param {boolean} [opts.bypassBackupCheck=false] - Skip the check, the bypass is logged
+ * @param {string} opts.operation - Name of the calling operation, for the log
+ * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool of the object
+ */
+export default async function backupGuard(objectId, { bypassBackupCheck = false, operation } = {}) {
+  const { $pool: poolId } = this.getObject(objectId)
+
+  if (bypassBackupCheck) {
+    log.warn(`${operation} with "bypassBackupCheck" set to true, skipping the backup guard`, {
+      objectId,
+      poolId,
+      userId: this.apiContext?.user?.id,
+    })
+    return
+  }
+
   const jobs = await this.getAllJobs('backup')
   const guard = id => {
-    if (this.getObject(id).$poolId === poolId) {
+    // a VM deleted since the job was configured cannot be backed up on this pool
+    if (this.hasObject(id) && this.getObject(id).$pool === poolId) {
       throw forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
     }
   }

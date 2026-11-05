@@ -1,7 +1,19 @@
 export type ObjectType = 'vm' | 'host'
 
 export type VmActions = 'reboot' | 'shutdown' | 'force-reboot' | 'force-shutdown'
-export type HostActions = 'enable' | 'disable' | 'shutdown' | 'start'
+export type HostActions =
+  | 'enable'
+  | 'disable'
+  | 'shutdown'
+  | 'start'
+  | 'forget'
+  | 'disable-and-evacuate-vms'
+  | 'reboot'
+  | 'force-reboot'
+  | 'smart-reboot'
+  | 'restart-toolstack'
+  | 'detach'
+  | 'emergency-shutdown'
 
 export type VmBlockedOperations =
   | 'clean_shutdown'
@@ -11,6 +23,7 @@ export type VmBlockedOperations =
   | 'hard_reboot'
   | 'suspend'
   | 'destroy'
+  | 'migrate_send'
 
 export type ActionsByObject = {
   vm: VmActions

@@ -105,6 +105,7 @@ function getPrimaryIcon(sr: XenApiSr) {
 }
 
 const { HeadCells, BodyCells } = useSrColumns({
+  exclude: ['checkbox'],
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
@@ -178,6 +179,7 @@ const { HeadCells, BodyCells } = useSrColumns({
               busy: isDeletingSrs.value,
               disabled: !canDeleteSrs.value,
               hint: deleteSrsErrorMessage.value,
+              accent: 'danger',
             },
           ],
         }),

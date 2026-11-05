@@ -28,7 +28,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import NewTrafficRuleForm from '@/modules/traffic-rules/components/form/new/NewTrafficRuleForm.vue'
 import {
-  type NewTrafficRulePayload,
+  type TrafficRulePayload,
   useXoTrafficRuleCreateJob,
 } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -59,7 +59,7 @@ const vif = useGetVifById(() => vifId.value)
 
 const poolId = computed<FrontXoPool['id'] | undefined>(() => queryPoolId.value ?? vif.value?.$pool)
 
-const formPayload = ref<NewTrafficRulePayload>()
+const formPayload = ref<TrafficRulePayload>()
 
 const error = ref<ApiError | Error | undefined>()
 const hasTrafficRuleCreationError = computed(() => error.value !== undefined)
@@ -72,7 +72,7 @@ function handleGoBack() {
   error.value = undefined
 }
 
-async function createTrafficRule(newPayload: NewTrafficRulePayload) {
+async function createTrafficRule(newPayload: TrafficRulePayload) {
   formPayload.value = newPayload
 
   if (!canRun.value) {
@@ -96,7 +96,7 @@ function redirectAfterSuccess() {
   if (vifId.value) {
     router.push({ name: '/vif/[id]/traffic-rules', params: { id: vifId.value } })
   } else if (queryPoolId.value) {
-    router.push({ name: '/pool/[id]/security', params: { id: queryPoolId.value } })
+    router.push({ name: '/pool/[id]/traffic-rules', params: { id: queryPoolId.value } })
   }
 }
 
@@ -106,7 +106,7 @@ const cancelRoute = computed<RouteLocationRaw>(() => {
   }
 
   if (queryPoolId.value) {
-    return { name: '/pool/[id]/security', params: { id: queryPoolId.value } }
+    return { name: '/pool/[id]/traffic-rules', params: { id: queryPoolId.value } }
   }
 
   return { name: '/(site)/dashboard' }
