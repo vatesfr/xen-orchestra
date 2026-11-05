@@ -112,11 +112,21 @@ const { HeadCells, BodyCells } = useRoleColumns({
       () => [user]
     )
 
+    const firstGroup = role.inheritedFromGroups.at(0)
+
     return {
       checkbox: r =>
         role.isDirect ? r({ selected: isSelected(role.id), onToggle: () => toggleSelection(role.id) }) : r(),
       name: r => r(role.name),
-      group: r => r(role.inheritedFromGroups.map(group => group.name).join(', ')),
+      group: r =>
+        firstGroup === undefined
+          ? r({ label: '' })
+          : r({
+              label: firstGroup.name,
+              icon: 'table:group',
+              to: { name: '/admin/group/[id]/general', params: { id: firstGroup.id } },
+              extraCount: role.inheritedFromGroups.length - 1,
+            }),
       description: r => r(role.description),
       privileges: r => r(role.privilegesCount),
       actions: r =>
