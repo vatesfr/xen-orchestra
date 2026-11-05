@@ -54,7 +54,8 @@ export async function importStream(
     }
     Task.info(`got source stream for ${diskPath}`)
     await consumerCallback(stream)
-    return Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+    // bytes read from the source
+    return vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()
   } catch (err) {
     stream?.destroy(err)
     // a failure to start the server belongs in the report too, e.g. vectura not being installed
@@ -161,9 +162,10 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
       Task.info(`vbd created `, diskPath)
     }
 
-    const transfered = await importStream({ esxi, dataMap, disk: activeDisk, vmId, format }, async stream => {
+    const transferedBytes = await importStream({ esxi, dataMap, disk: activeDisk, vmId, format }, async stream => {
       await existingVdi.$importContent(stream, { format })
     })
+    const transfered = Math.round(transferedBytes / 1024 / 1024)
 
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
     const duration = Math.round((Date.now() - start) / 1000)
@@ -179,6 +181,10 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
       [VDI_DISK_PATH_KEY]: diskPath,
       [VDI_LEGACY_CID_KEY]: uid,
     })
+    // the progress follows the blocks read, a disk without any block to read never moves it
+    Task.set('progress', 100)
+    // same shape as the backup writers: becomes the result of the task
+    return { size: transferedBytes }
   } catch (err) {
     Task.warning(err)
     throw err

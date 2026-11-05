@@ -12,6 +12,7 @@ import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 import assert from 'node:assert'
+import { isCompressedBlock } from './compressedBlock.mjs'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -76,8 +77,20 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       let truncatedBlock = null
       await asyncEach(
         generator,
-        async ({ index, data }) => {
+        async block => {
           signal?.throwIfAborted()
+          const { index, data } = block
+          if (isCompressedBlock(block)) {
+            // writing it with another compression would produce an unreadable block
+            assert.strictEqual(
+              block.compression,
+              compression,
+              `can't write a ${block.compression} compressed block ${index} in ${dataPath}`
+            )
+            // the size of a compressed block is not related to the block size
+            await vhd.writeCompressedBlock(index, data)
+            return
+          }
           if (truncatedBlock !== null) {
             throw new Error(
               `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`

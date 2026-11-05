@@ -32,7 +32,7 @@ export function useDuplicateVmForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const vm = toComputed(rawVm)
 
-  const { getSrLocation } = useXoSrUtils()
+  const { getSrLocation, getSrSelectLabel } = useXoSrUtils()
 
   const formData = reactive<DuplicateVmFormData>({
     name: `${vm.value.name_label}_COPY`,
@@ -79,10 +79,7 @@ export function useDuplicateVmForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     required: () => isFullCopy.value,
     searchable: true,
     option: {
-      label: sr => {
-        const gbLeft = Math.floor((sr.size - sr.physical_usage) / 1024 ** 3)
-        return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
-      },
+      label: sr => getSrSelectLabel(sr),
       properties: sr => ({ icon: objectIcon('sr', getPbdsConnectionStatus(pbdsBySr.value.get(sr.id) ?? [])) }),
     },
   })

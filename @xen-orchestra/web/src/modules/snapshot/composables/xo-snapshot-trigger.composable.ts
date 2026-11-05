@@ -1,4 +1,4 @@
-import { useXoBackupJobCollection } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import {
   type FrontXoSchedule,
   useXoScheduleCollection,

@@ -1,7 +1,7 @@
 {
   "name": "@vates/types",
   "private": false,
-  "version": "2.3.0",
+  "version": "2.5.0",
   "main": "./dist/index.mjs",
   "exports": {
     ".": {
@@ -11,6 +11,10 @@
     "./xo": "./dist/xo.d.mts",
     "./xo-app": "./dist/xo-app.d.mts",
     "./xen-api": "./dist/xen-api.d.mts",
+    "./backup-expression-context": {
+      "default": "./dist/backup-expression-context.mjs",
+      "types": "./dist/backup-expression-context.d.mts"
+    },
     "./common": {
       "default": "./dist/common.mjs",
       "types": "./dist/common.d.mts"
@@ -34,7 +38,7 @@
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.61.0",
     "@types/express": "^5.0.0",
-    "@xen-orchestra/disk-transform": "^1.3.3"
+    "@xen-orchestra/disk-transform": "^1.3.4"
   },
   "scripts": {
     "build": "tsc",

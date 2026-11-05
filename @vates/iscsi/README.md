@@ -33,7 +33,7 @@ The target drives login negotiation onto a single, fixed code path:
 It implements SendTargets discovery, login (`AuthMethod=None` or one-way
 **CHAP** — see [Authentication](#authentication-chap)), the ~10 SCSI
 commands a Linux initiator issues to attach and use a block device
-(`INQUIRY` + VPD `0x00`/`0x80`/`0x83`, `REPORT LUNS`, `READ CAPACITY 10/16`,
+(`INQUIRY` + VPD `0x00`/`0x80`/`0x83`/`0xb0`, `REPORT LUNS`, `READ CAPACITY 10/16`,
 `READ`/`WRITE 10/16`, `TEST UNIT READY`, `REQUEST SENSE`, `MODE SENSE`,
 `SYNCHRONIZE CACHE`), the full R2T / Data-Out write path, NOP keepalive replies,
 and Logout. Commands may be outstanding concurrently (Data-Out PDUs are routed
@@ -45,6 +45,19 @@ The package also ships a userspace **initiator** (`IscsiInitiator`) and an
 
 Not implemented (yet): mutual (two-way) CHAP, Task Management (abort/reset),
 target-initiated NOP keepalives, multiple connections/LUNs.
+
+What a peer can make the target do is bounded:
+
+- connections that have not logged in yet are limited in time (`loginTimeoutMs`)
+  and number (`maxPendingConnections`), and `allowedInitiatorAddresses` (the
+  source addresses of the expected initiators) closes the other ones as soon as
+  they are accepted, reporting them to `onConnectionRefused`
+- a PDU data segment is at most 8 KiB during login, then the declared
+  `MaxRecvDataSegmentLength` (256 KiB), checked before it is read
+- a single `READ`/`WRITE` is at most `maxTransferLength` (8 MiB by default),
+  advertised in the block limits VPD page so that initiators split their I/O
+- a `BlockDevice` with `readOnly: true` is reported write-protected, and `WRITE`
+  is refused with `DATA PROTECT` before any data is solicited
 
 ### CLI
 
@@ -157,6 +170,8 @@ class RandomAccessDiskLun {
     }
     return out
   }
+  // reported write-protected: WRITE is refused before reaching write()
+  readOnly = true
   write() {
     throw new Error('read-only LUN')
   }

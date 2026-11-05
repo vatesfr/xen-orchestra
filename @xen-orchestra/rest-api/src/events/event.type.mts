@@ -11,6 +11,7 @@ export type NonXapiListenerType =
   | 'group'
   | 'acl-privilege'
   | 'acl-role'
+  | 'plugin'
   | 'proxy'
   | 'server'
   | 'backup-repository'

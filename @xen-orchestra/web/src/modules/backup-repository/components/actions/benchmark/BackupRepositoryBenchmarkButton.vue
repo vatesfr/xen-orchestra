@@ -1,28 +1,31 @@
 <template>
   <UiButtonIcon
-    v-tooltip="canBenchmark ? t('click-test-br-speed') : errorMessage"
-    :icon="isBenchmarking ? 'fa:spinner' : 'action:scan'"
-    :disabled="!canBenchmark"
+    v-tooltip="canBenchmarkBackupRepository ? t('click-test-br-speed') : benchmarkBackupRepositoryErrorMessage"
+    :icon="isBenchmarkingBackupRepository ? 'fa:spinner' : 'action:scan'"
+    :disabled="!canBenchmarkBackupRepository"
     accent="brand"
     size="small"
-    @click="emit('click')"
+    @click="benchmarkBackupRepository()"
   />
 </template>
 
 <script lang="ts" setup>
+import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  canBenchmark: boolean
-  isBenchmarking: boolean
-  errorMessage?: string
-}>()
-
-const emit = defineEmits<{
-  click: []
+const { br } = defineProps<{
+  br: FrontXoBackupRepository
 }>()
 
 const { t } = useI18n()
+
+const {
+  run: benchmarkBackupRepository,
+  canRun: canBenchmarkBackupRepository,
+  isRunning: isBenchmarkingBackupRepository,
+  errorMessage: benchmarkBackupRepositoryErrorMessage,
+} = useXoBackupRepositoryBenchmarkJob(() => [br])
 </script>
