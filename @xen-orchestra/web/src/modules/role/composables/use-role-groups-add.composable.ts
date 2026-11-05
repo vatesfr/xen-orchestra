@@ -29,16 +29,18 @@ export function useRoleGroupsAdd(rawRole: MaybeRefOrGetter<FrontXoRole>) {
     },
   })
 
-  async function addGroups() {
+  async function addGroups(): Promise<FrontXoGroup[]> {
     const response = await open({ props: { groups: selectableGroups.value, title: t('action:add-groups') } })
 
     if (response.event !== 'onConfirm') {
-      return
+      return []
     }
 
     groupsToAdd.value = response.payload
 
     run({ detached: true })
+
+    return response.payload
   }
 
   return { addGroups, canAddGroups, isAddingGroups }
