@@ -4,7 +4,8 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
-import { V2V_ERROR_CODE, V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
+import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
+import { V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
 
 function mountInventoryJob(connection?: XoV2vConnection) {
   return mountComposableWithI18n(() => useXoV2vInventoryJob(connection))
@@ -27,7 +28,7 @@ describe('run', () => {
   })
 
   it('rejects with the API error the server answered', async () => {
-    stubFetchResponse(422, { error: 'invalid credentials', data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS } })
+    stubV2vInvalidCredentialsResponse()
 
     await expect(mountInventoryJob(createV2vConnection()).run()).rejects.toBeInstanceOf(ApiError)
   })
