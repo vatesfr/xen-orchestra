@@ -6,6 +6,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { V2vDestinationDefaults, V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import { countBy } from 'lodash-es'
 
 export type V2vPoolResourceCounts = { hosts: number; srs: number; networks: number }
 
@@ -13,28 +14,16 @@ export type V2vDestinationPrefill = Partial<V2vDestinationDefaults>
 
 export type V2vPoolDestinationChoices = ReturnType<typeof getV2vPoolDestinationChoices>
 
-function countByPool(resources: { $pool: FrontXoPool['id'] }[]) {
-  const counts = new Map<FrontXoPool['id'], number>()
-
-  for (const { $pool } of resources) {
-    counts.set($pool, (counts.get($pool) ?? 0) + 1)
-  }
-
-  return counts
-}
-
 // SRs are counted the way they are offered: only writable ones can receive the migrated disks
 export function countV2vPoolResources(
   pools: FrontXoPool[],
   resources: { hosts: FrontXoHost[]; srs: FrontXoSr[]; networks: FrontXoNetwork[] }
 ): Map<FrontXoPool['id'], V2vPoolResourceCounts> {
-  const hosts = countByPool(resources.hosts)
-  const srs = countByPool(resources.srs.filter(isSrWritable))
-  const networks = countByPool(resources.networks)
+  const hosts = countBy(resources.hosts, '$pool')
+  const srs = countBy(resources.srs.filter(isSrWritable), '$pool')
+  const networks = countBy(resources.networks, '$pool')
 
-  return new Map(
-    pools.map(({ id }) => [id, { hosts: hosts.get(id) ?? 0, srs: srs.get(id) ?? 0, networks: networks.get(id) ?? 0 }])
-  )
+  return new Map(pools.map(({ id }) => [id, { hosts: hosts[id] ?? 0, srs: srs[id] ?? 0, networks: networks[id] ?? 0 }]))
 }
 
 // The SRs and networks of a migrated VM must belong to its destination pool (spec)
