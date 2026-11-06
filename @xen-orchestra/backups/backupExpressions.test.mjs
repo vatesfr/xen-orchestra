@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
-import { assertValidExpression, assertValidSettingsExpression } from './_backupExpressions.mjs'
+import { assertValidExpression, assertValidSettingsExpression } from './backupExpressions.mjs'
 
 const VALID = 'vm:tags:prod'
 const INVALID = 'vm:('

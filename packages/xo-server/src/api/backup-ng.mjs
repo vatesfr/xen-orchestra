@@ -5,7 +5,7 @@ import { pipeline } from 'readable-stream'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
-import { assertValidSettingsExpression, assertValidExpression } from './_backupExpressions.mjs'
+import { assertValidSettingsExpression, assertValidExpression } from '@xen-orchestra/backups/backupExpressions.mjs'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
