@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import BackupLogHeader from '@/modules/backup-log/components/BackupLogHeader.vue'
+import BackupLogHeader from '@/modules/backup-log/components/header/BackupLogHeader.vue'
 import {
   type FrontXoBackupLog,
   useXoBackupLogCollection,
