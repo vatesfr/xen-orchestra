@@ -61,7 +61,6 @@ import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { IconName } from '@core/icons'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,7 +77,6 @@ export type Task = {
   id: string
   infos?: { data: unknown; message: string }[]
   name?: string
-  icon?: IconName
   nameParts?: TaskObjectSegment[]
   to?: LinkOptions['to']
   progress?: number

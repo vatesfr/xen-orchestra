@@ -57,7 +57,7 @@ const startDate = computed(() => getBackupLogDate(backupLog.start))
 
 const endDate = computed(() => getBackupLogDate(backupLog.end))
 
-const duration = computed(() => getBackupLogDuration(backupLog))
+const duration = computed(() => getBackupLogDuration(backupLog.start, backupLog.end))
 
 const transferSize = computed(() => {
   const size = findTransferTaskSize(backupLog.tasks)

@@ -33,6 +33,7 @@
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files.:format` to get file(s) from a partition (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files.:format` to get file(s) from a bare disk (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [XO6/Backups] Add a detail page for backup logs (PR [#10718](https://github.com/vatesfr/xen-orchestra/pull/10718))
 
 ### Bug fixes
 
@@ -55,7 +56,8 @@
 > - major: if the change breaks compatibility
 >
 > Keep this list alphabetically ordered to avoid merge conflicts
-> yarn<!--packages-start-->
+
+<!--packages-start-->
 
 - @vates/types minor
 - @xen-orchestra/acl minor
