@@ -2,8 +2,9 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoTask } from '@vates/types'
+import type { RouteLocationAsRelative } from 'vue-router'
 
-function getBackupLogVmTasks(backupLog: FrontXoBackupLog) {
+export function getBackupLogVmTasks(backupLog: FrontXoBackupLog) {
   return (backupLog.tasks ?? []).filter(task => task.data?.type === 'VM')
 }
 
@@ -44,5 +45,12 @@ export function getBackupLogError(backupLog: FrontXoBackupLog): XoTask['result']
       return undefined
     default:
       return (backupLog.result as XoTask['result']) ?? findTaskErrorRecursively(backupLog.tasks ?? [])
+  }
+}
+
+export function getBackupLogRoute(backupLogId: FrontXoBackupLog['id']): RouteLocationAsRelative {
+  return {
+    name: '/admin/backup-log/[id]/general',
+    params: { id: backupLogId },
   }
 }

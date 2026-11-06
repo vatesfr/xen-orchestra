@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard>
-    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-run" />
+    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :to="logTo" icon="object:backup-run" />
     <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
@@ -94,7 +94,11 @@
 import { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogsUtils } from '@/modules/backup-log/composables/use-xo-backup-log-utils.composable.ts'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
+import {
+  getBackupLogRoute,
+  getBackupLogSrIds,
+  getBackupLogVmIds,
+} from '@/modules/backup-log/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
@@ -142,7 +146,7 @@ const job = useGetBackupJobById(() => backupLog.jobId)
 
 const jobHref = computed(() => buildXo5Route('/settings/remotes'))
 
-const logHref = computed(() => buildXo5Route('/settings/remotes'))
+const logTo = computed(() => getBackupLogRoute(backupLog.id))
 
 const vms = computed(() =>
   getBackupLogVmIds(backupLog).map(id => {
