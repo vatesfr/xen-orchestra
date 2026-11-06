@@ -1,6 +1,5 @@
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { useNetworkUtils } from '@/modules/network/composables/network-utils.composable.ts'
-import { useVlanSchema } from '@/modules/pif/composables/use-vlan-schema.composable.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import type { getConnectionStatus } from '@core/utils/connection.util.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -60,7 +59,7 @@ export function useNetworkQueryBuilder(
             [CONNECTION_STATUS.PARTIALLY_CONNECTED]: t('partially-connected'),
             [CONNECTION_STATUS.DISCONNECTED]: t('disconnected'),
           } satisfies Record<NetworkStatus, string>),
-          vlan: useVlanSchema(),
+          vlan: useNumberSchema(t('vlan')),
         }),
     MTU: useNumberSchema(t('mtu')),
     default_locking_mode: useStringSchema(t('default-locking-mode'), {

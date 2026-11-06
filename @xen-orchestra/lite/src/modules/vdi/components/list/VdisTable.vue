@@ -39,27 +39,35 @@ import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 const { vdis, vbds, busy, error } = defineProps<{
   vdis: XenApiVdi[]
   vbds: XenApiVbd[]
   busy?: boolean
   error?: boolean
 }>()
+
 const { t } = useI18n()
+
 const selectedVdiId = useRouteQuery('id')
+
 const { items: filteredVdis, filter, schema } = useVdiQueryBuilder('vdi', () => vdis)
+
 const state = useTableState({
   busy: () => busy,
   error: () => error,
   empty: () =>
     vdis.length === 0 ? t('no-vdi-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
+
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)
+
 const { HeadCells, BodyCells } = useVdiColumns({
   exclude: ['actions'],
   body: (vdi: VdiFilterableData) => {
     const vdiVbds = computed(() => vbds.filter(vbd => vbd.VDI === vdi.$ref))
     const size = computed(() => formatSizeRaw(vdi.virtual_size, 2))
+
     return {
       vdi: r =>
         r({

@@ -1,3 +1,4 @@
+import { percent } from '@/libs/utils.ts'
 import type { XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import { getVdiFormat } from '@/modules/vdi/utils/vdi.util.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -12,6 +13,7 @@ const ONE_GB = 1024 ** 3
 
 export type VdiFilterableData = XenApiVdi & {
   format: string
+  used_space: number
 }
 
 export function useVdiQueryBuilder(
@@ -24,7 +26,14 @@ export function useVdiQueryBuilder(
   const vdis = toComputed(rawVdis)
 
   const filterableVdis = computed(() =>
-    vdis.value.map(vdi => ({ ...vdi, format: getVdiFormat(vdi.sm_config['image-format']) }) satisfies VdiFilterableData)
+    vdis.value.map(
+      vdi =>
+        ({
+          ...vdi,
+          format: getVdiFormat(vdi.sm_config['image-format']),
+          used_space: vdi.virtual_size === 0 ? 0 : percent(vdi.physical_utilisation, vdi.virtual_size, 0),
+        }) satisfies VdiFilterableData
+    )
   )
 
   const { items, filter } = useQueryBuilderFilter(id, filterableVdis, options)
@@ -33,6 +42,10 @@ export function useVdiQueryBuilder(
     '': useStringSchema(t('any-property')),
     name_label: useStringSchema(t('name')),
     name_description: useStringSchema(t('description')),
+    used_space: useNumberSchema(
+      t('used-space'),
+      Object.fromEntries([10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(n => [n, t('n-percent', { n })]))
+    ),
     virtual_size: useNumberSchema(t('size'), {
       [ONE_GB]: t('n-gb', { n: 1 }),
       [2 * ONE_GB]: t('n-gb', { n: 2 }),

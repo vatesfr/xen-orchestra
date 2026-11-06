@@ -29,7 +29,6 @@ import {
 } from '@/modules/host/composables/use-host-query-builder.composable.ts'
 import { getHostIcon } from '@/modules/host/utils/host.util.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
-import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -55,7 +54,6 @@ const {
 
 const { t } = useI18n()
 
-const { isMasterHost } = usePoolStore().subscribe()
 const { isReady: arePifsReady, hasError: hasPifError } = usePifStore().subscribe()
 
 const isReady = logicAnd(() => !busy, arePifsReady)
@@ -84,8 +82,8 @@ const state = useTableState({
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
 
-function getMasterIcon(host: XenApiHost) {
-  if (!isMasterHost(host.$ref)) {
+function getMasterIcon(host: HostFilterableData) {
+  if (!host.is_master) {
     return undefined
   }
 

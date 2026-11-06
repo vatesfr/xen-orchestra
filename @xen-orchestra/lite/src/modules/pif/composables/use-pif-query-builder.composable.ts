@@ -1,10 +1,11 @@
 import type { XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
-import { useVlanSchema } from '@/modules/pif/composables/use-vlan-schema.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
+import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
+import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { IP_CONFIGURATION_MODE } from '@vates/types'
@@ -52,12 +53,16 @@ export function usePifQueryBuilder(
     '': useStringSchema(t('any-property')),
     network_name: useStringSchema(t('network')),
     device: useStringSchema(t('device')),
+    management: useBooleanSchema(t('management'), {
+      true: t('yes'),
+      false: t('no'),
+    }),
     status: useStringSchema(t('status'), {
       [CONNECTION_STATUS.CONNECTED]: t('connected'),
       [CONNECTION_STATUS.DISCONNECTED]: t('disconnected'),
       [CONNECTION_STATUS.DISCONNECTED_FROM_PHYSICAL_DEVICE]: t('disconnected-from-physical-device'),
     } satisfies Record<PifStatus, string>),
-    VLAN: useVlanSchema(),
+    VLAN: useNumberSchema(t('vlan')),
     ip_addresses: useStringSchema(t('ip-address')),
     MAC: useStringSchema(t('mac-address')),
     ip_configuration_mode: useStringSchema(t('mode'), {

@@ -2,8 +2,10 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/pif.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
+import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { HOST_POWER_STATE } from '@vates/types'
@@ -12,6 +14,7 @@ import { useI18n } from 'vue-i18n'
 
 export type HostFilterableData = XenApiHost & {
   power_state: HOST_POWER_STATE
+  is_master: boolean
   ip_addresses: string[]
 }
 
@@ -24,6 +27,7 @@ export function useHostQueryBuilder(
 
   const { getHostPowerState } = useHostMetricsStore().subscribe()
   const { pifsByHost } = usePifStore().subscribe()
+  const { isMasterHost } = usePoolStore().subscribe()
 
   const hosts = toComputed(rawHosts)
 
@@ -33,6 +37,7 @@ export function useHostQueryBuilder(
         ({
           ...host,
           power_state: getHostPowerState(host),
+          is_master: isMasterHost(host.$ref),
           ip_addresses: getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref)),
         }) satisfies HostFilterableData
     )
@@ -43,13 +48,17 @@ export function useHostQueryBuilder(
   const schema = useQueryBuilderSchema<HostFilterableData>({
     '': useStringSchema(t('any-property')),
     name_label: useStringSchema(t('name')),
-    name_description: useStringSchema(t('description')),
-    ip_addresses: useStringSchema(t('management-ip')),
     power_state: useStringSchema(t('power-state'), {
       [HOST_POWER_STATE.RUNNING]: t('status:running'),
       [HOST_POWER_STATE.HALTED]: t('status:halted'),
       [HOST_POWER_STATE.UNKNOWN]: t('status:unknown'),
     } satisfies Record<HOST_POWER_STATE, string>),
+    is_master: useBooleanSchema(t('master'), {
+      true: t('yes'),
+      false: t('no'),
+    }),
+    name_description: useStringSchema(t('description')),
+    ip_addresses: useStringSchema(t('management-ip')),
     tags: useStringSchema(t('tags')),
   })
 
