@@ -14,7 +14,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index.js'
 import { jsonHash } from '@vates/json-hash'
-import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { decorateClass } from '@vates/decorate-with'
 import { pipeline } from 'node:stream'
@@ -459,7 +459,8 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   computeCacheKey(...args) {
-    return jsonHash(args)
+    // `undefined` (an empty signal slot) cannot be hashed
+    return jsonHash(args.map(arg => (arg === undefined ? null : arg)))
   }
 
   // this should be used for instantaneous calls; otherwise, use `callAsync`
@@ -471,18 +472,18 @@ export class Xapi extends EventEmitter {
         : this._sessionCall(method, args)
   }
 
-  async callAsync($cancelToken, method, ...args) {
+  async callAsync(signal, method, ...args) {
     if (this._readOnly && !isReadOnlyCall(method, args)) {
       throw new Error(`cannot call ${method}() in read only mode`)
     }
 
+    signal?.throwIfAborted()
+
     const taskRef = await this._sessionCall(`Async.${method}`, args)
-    $cancelToken.promise.then(() =>
-      // TODO: do not trigger if the task is already over
-      ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
-    )
 
     const promise = this.watchTask(taskRef)
+
+    this._cancelTaskOnAbort(signal, taskRef, promise)
 
     const destroyTask = () => ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
     promise.then(destroyTask, destroyTask)
@@ -584,7 +585,43 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  async getResource($cancelToken, pathname, { host, query, task } = {}) {
+  // cancels the task when `signal` is aborted, until the task settles
+  //
+  // the signal may already be aborted when this is called (aborted while the task
+  // was being created): the task is then cancelled right away
+  _cancelTaskOnAbort(signal, taskRef, pTaskResult) {
+    if (signal === undefined) {
+      return
+    }
+    const onAbort = () => ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
+    signal.addEventListener('abort', onAbort, { once: true })
+    const removeListener = () => signal.removeEventListener('abort', onAbort)
+    pTaskResult.then(removeListener, removeListener)
+    if (signal.aborted) {
+      onAbort()
+    }
+  }
+
+  // rejects if `signal` is already aborted, before any task or request is created
+  //
+  // a task passed by the caller will never be driven by a request: it is marked as
+  // cancelled, because `task.cancel` on such a task leaves it pending forever
+  async _throwIfAbortedBeforeTransfer(signal, task) {
+    if (signal === undefined || !signal.aborted) {
+      return
+    }
+    if (task !== undefined && typeof task !== 'boolean') {
+      const taskRef = await Promise.resolve(task).catch(noop)
+      if (taskRef !== undefined) {
+        ignoreErrors.call(this._sessionCall('task.set_status', [taskRef, 'cancelled']))
+      }
+    }
+    signal.throwIfAborted()
+  }
+
+  async getResource(signal, pathname, { host, query, task } = {}) {
+    await this._throwIfAbortedBeforeTransfer(signal, task)
+
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
 
     query = { ...query, session_id: this.sessionId }
@@ -597,9 +634,7 @@ export class Xapi extends EventEmitter {
       // the promise will be used later
       pTaskResult.catch(noop)
 
-      if (typeof $cancelToken.addHandler === 'function') {
-        $cancelToken.addHandler(() => pTaskResult)
-      }
+      this._cancelTaskOnAbort(signal, taskRef, pTaskResult)
     }
 
     let url = new URL('http://localhost')
@@ -615,7 +650,7 @@ export class Xapi extends EventEmitter {
             method: 'GET',
             path: pathname,
             query,
-            signal: $cancelToken,
+            signal,
           }).then(response => {
             const { statusCode } = response
             if (((statusCode / 100) | 0) === 2) {
@@ -651,10 +686,12 @@ export class Xapi extends EventEmitter {
     return response
   }
 
-  async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
+  async putResource(signal, body, pathname, { host, query, task } = {}) {
     if (this._readOnly) {
       throw new Error('cannot put resource in read only mode')
     }
+
+    await this._throwIfAbortedBeforeTransfer(signal, task)
 
     const taskRef = await this._autoTask(task, `Xapi#putResource ${pathname}`)
 
@@ -668,9 +705,7 @@ export class Xapi extends EventEmitter {
       // the promise will be used later
       pTaskResult.catch(noop)
 
-      if (typeof $cancelToken.addHandler === 'function') {
-        $cancelToken.addHandler(() => pTaskResult)
-      }
+      this._cancelTaskOnAbort(signal, taskRef, pTaskResult)
     }
 
     const headers = {}
@@ -702,7 +737,7 @@ export class Xapi extends EventEmitter {
         headers,
         method: 'PUT',
         rejectUnauthorized: !this._allowUnauthorized,
-        signal: $cancelToken,
+        signal,
 
         // this is an inactivity timeout (unclear in Node doc)
         timeout: this._httpInactivityTimeout,
@@ -1782,6 +1817,22 @@ export class Xapi extends EventEmitter {
   }
 }
 
+// Removes the optional leading `AbortSignal` (or `undefined`, an empty slot) from
+// the arguments and passes it as the first parameter of `fn`
+//
+// A promise-toolbox `CancelToken` is no longer supported: it is rejected with a clear
+// error instead of being taken as the next argument
+function abortable(fn) {
+  return function (...args) {
+    const first = args[0]
+    if (first != null && typeof first.throwIfRequested === 'function') {
+      return Promise.reject(new TypeError('CancelToken is no longer supported, pass an AbortSignal instead'))
+    }
+    const signal = first === undefined || first instanceof AbortSignal ? args.shift() : undefined
+    return fn.call(this, signal, ...args)
+  }
+}
+
 function cachable(fn, getCache) {
   return async function (...args) {
     const cache = getCache(args)
@@ -1824,10 +1875,10 @@ decorateClass(Xapi, {
         }
       },
     ],
-    cancelable,
+    abortable,
   ]),
-  getResource: cancelable,
-  putResource: cancelable,
+  getResource: abortable,
+  putResource: abortable,
 })
 
 // ===================================================================

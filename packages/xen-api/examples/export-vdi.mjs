@@ -6,7 +6,6 @@ import createProgress from 'progress-stream'
 import createTop from 'process-top'
 import getopts from 'getopts'
 import { defer } from 'golike-defer'
-import { CancelToken } from 'promise-toolbox'
 
 import { createClient } from '../index.mjs'
 
@@ -42,13 +41,13 @@ defer(async ($defer, rawArgs) => {
   await xapi.connect()
   $defer(() => xapi.disconnect())
 
-  const { cancel, token } = CancelToken.source()
-  process.on('SIGINT', cancel)
+  const controller = new AbortController()
+  process.on('SIGINT', () => controller.abort())
 
   const vdi = await resolveRecord(xapi, 'VDI', args[1])
 
   // https://xapi-project.github.io/xen-api/snapshots.html#downloading-a-disk-or-snapshot
-  const response = await xapi.getResource(token, '/export_raw_vdi/', {
+  const response = await xapi.getResource(controller.signal, '/export_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
       vdi: vdi.$ref,
