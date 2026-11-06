@@ -137,6 +137,17 @@ describe('submit', () => {
     expect(result.rememberedConnections[0]).not.toHaveProperty('password')
   })
 
+  it('forgets the password of an already remembered connection when "remember" is unticked', async () => {
+    stubFetchResponse(200, createV2vInventory())
+    seedV2vRememberedConnections([createV2vRememberedConnection()])
+    const { result } = await mountSourceStep()
+
+    await submitConnection(result)
+
+    expect(result.rememberedConnections).toHaveLength(1)
+    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
+  })
+
   it('reports invalid credentials on the form and stays on the source step', async () => {
     stubFetchResponse(422, { error: 'invalid credentials', data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS } })
     const { result, router } = await mountSourceStep()
@@ -289,6 +300,17 @@ describe('editRemembered', () => {
 
     expect(result.rememberedConnections).toHaveLength(1)
     expect(result.rememberedConnections[0]).toMatchObject({ host: EDITED.host, password: 'new-secret' })
+  })
+
+  it('forgets the password of the edited connection when "remember" is unticked', async () => {
+    stubFetchResponse(200, createV2vInventory())
+    const result = await mountEditing(EDITED)
+    result.form.formData.remember = false
+
+    await submitConnection(result, createV2vConnection({ host: EDITED.host }))
+
+    expect(result.rememberedConnections).toHaveLength(1)
+    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
   })
 
   it('keeps the edited connection when the connection fails', async () => {

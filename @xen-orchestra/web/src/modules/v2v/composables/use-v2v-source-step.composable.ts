@@ -66,7 +66,7 @@ export function useV2vSourceStep() {
 
       editedKey.value = undefined
 
-      // An entry already remembered is refreshed even when "remember" is unticked, keeping its password choice
+      // An entry already remembered is refreshed even when "remember" is unticked, then without its password
       const shouldRemember = form.formData.remember || rememberedConnection !== undefined
 
       if (shouldRemember) {
@@ -78,9 +78,7 @@ export function useV2vSourceStep() {
           lastUsedAt: Date.now(),
         }
 
-        const withPassword = form.formData.remember || rememberedConnection?.password !== undefined
-
-        remember(createRememberedConnection(connection, details, { withPassword }))
+        remember(createRememberedConnection(connection, details, { withPassword: form.formData.remember }))
 
         const isRenamed = rememberedConnection !== undefined && previousKey !== key
 
