@@ -12,10 +12,11 @@ import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vRememberedConnections } from '@/test/v2v-remembered-connections-storage.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-import { V2V_ERROR_CODE, V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
+import { V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
@@ -150,7 +151,7 @@ describe('submit', () => {
   )
 
   it('reports invalid credentials on the form and stays on the source step', async () => {
-    stubFetchResponse(422, { error: 'invalid credentials', data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS } })
+    stubV2vInvalidCredentialsResponse()
     const { result, router } = await mountSourceStep()
 
     await submitConnection(result)
@@ -306,7 +307,7 @@ describe('editRemembered', () => {
   })
 
   it('keeps the edited connection when the connection fails', async () => {
-    stubFetchResponse(422, { error: 'invalid credentials', data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS } })
+    stubV2vInvalidCredentialsResponse()
 
     const result = await connectEdited(EDITED, createV2vConnection({ host: 'renamed.lab' }))
 
