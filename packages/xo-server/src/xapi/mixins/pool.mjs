@@ -1,5 +1,5 @@
 import { asyncEach } from '@vates/async-each'
-import { cancelable, timeout } from 'promise-toolbox'
+import { timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -29,8 +29,8 @@ const PINNED_VM_START_CONCURRENCY = 2
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
 const methods = {
-  exportPoolMetadata($cancelToken) {
-    return this.getResource($cancelToken, PATH_DB_DUMP, {
+  exportPoolMetadata({ signal } = {}) {
+    return this.getResource(signal, PATH_DB_DUMP, {
       task: this.task_create('Export pool metadata'),
     }).then(response => response.body)
   },
@@ -38,8 +38,8 @@ const methods = {
   // Restore the XAPI database from an XML backup
   //
   // See https://github.com/xapi-project/xen-api/blob/405b02e72f1ccc4f4b456fd52db30876faddcdd8/ocaml/xapi/pool_db_backup.ml#L170-L205
-  importPoolMetadata($cancelToken, stream, force = false) {
-    return this.putResource($cancelToken, stream, PATH_DB_DUMP, {
+  importPoolMetadata(stream, force = false, { signal } = {}) {
+    return this.putResource(signal, stream, PATH_DB_DUMP, {
       query: {
         dry_run: String(!force),
       },
@@ -524,7 +524,5 @@ const methods = {
 }
 
 export default decorateObject(methods, {
-  exportPoolMetadata: cancelable,
-  importPoolMetadata: cancelable,
   rollingPoolReboot: deferrable.onError(log.warn),
 })
