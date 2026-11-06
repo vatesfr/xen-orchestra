@@ -1,5 +1,5 @@
 import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
-import MigrationWizard from '@/modules/v2v/components/wizard/MigrationWizard.vue'
+import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { createV2vConnectionContext } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
@@ -21,7 +21,7 @@ async function mountWizard(step: string | undefined, { isConnected = false } = {
     context.setConnection(createV2vConnection({ host: 'vcenter-prod.lab' }), createV2vInventory())
   }
 
-  return mount(MigrationWizard, {
+  return mount(V2vMigrationWizard, {
     global: {
       ...createGlobalTestConfig({ router, provide: v2vConnectionProvide(context) }),
       stubs: { V2vSourceStep: true },
