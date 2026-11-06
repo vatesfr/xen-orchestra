@@ -124,6 +124,7 @@ describe('getV2vDestinationPrefill', () => {
   it.each([
     ['is not writable', createSr({ content_type: 'iso' })],
     ['is unknown', createSr({ id: 'sr-2' as FrontXoSr['id'] })],
+    ['is in another pool', createSr({ $pool: OTHER_POOL_ID })],
   ])('leaves the SR empty when the pool default SR %s', (_, sr) => {
     expect(getV2vDestinationPrefill(POOL, { srs: [sr], pifs: [] }, undefined).sr).toBeUndefined()
   })
