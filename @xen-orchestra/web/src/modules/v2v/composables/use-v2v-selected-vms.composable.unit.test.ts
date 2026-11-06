@@ -74,8 +74,8 @@ const IMPORT_VMS = [
 
 async function mountSelectedVms({
   list = LIST,
-  pool = POOL.id,
-}: { list?: V2vMigrationList | null; pool?: FrontXoPool['id'] | null } = {}) {
+  poolId = POOL.id,
+}: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null } = {}) {
   xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
   xoCollectionsMock.srs.value = [SR]
   xoCollectionsMock.networks.value = [NETWORK]
@@ -83,7 +83,7 @@ async function mountSelectedVms({
 
   return mountV2vVmsStep(
     () => ({ ...useV2vSelectedVms(useV2vVmsStep().selectedVmsContext), labels: useV2vVmLabels() }),
-    { list, query: { pool: pool ?? undefined } }
+    { list, query: { pool: poolId ?? undefined } }
   )
 }
 
@@ -282,7 +282,7 @@ describe('listPair', () => {
   })
 
   it('names no pool before one is chosen', async () => {
-    const { result } = await mountSelectedVms({ pool: null })
+    const { result } = await mountSelectedVms({ poolId: null })
 
     expect(result.listPair).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined })
   })
