@@ -352,7 +352,7 @@ export interface Xapi {
   ): Promise<void>
   VM_export(
     vmRef: XenApiVm['$ref'],
-    opts?: { cancelToken?: unknown; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
+    opts?: { signal?: AbortSignal; compress?: boolean | 'zstd' | 'gzip'; useSnapshot?: boolean }
   ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
@@ -455,12 +455,12 @@ export interface Xapi {
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
     vdiRef: XenApiVdi['$ref'],
-    opts: { baseRef?: string; cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
+    opts: { baseRef?: string; signal?: AbortSignal; format: SUPPORTED_VDI_FORMAT }
   ): Promise<Readable & { length?: number }>
   VDI_importContent(
     vdiRef: XenApiVdi['$ref'],
     stream: Readable | Buffer,
-    opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
+    opts: { signal?: AbortSignal; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
   VIF_create(
     options: {
