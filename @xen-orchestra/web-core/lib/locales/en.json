@@ -138,6 +138,7 @@
   "action:reset-all-networks": "Reset all networks",
   "action:reset-all-srs": "Reset all SRs",
   "action:reset-to-default": "Reset to default",
+  "action:resize": "Resize",
   "action:restart-toolstack": "Restart toolstack",
   "action:resume": "Resume",
   "action:revert-to-snapshot": "Revert to snapshot",

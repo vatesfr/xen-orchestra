@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))

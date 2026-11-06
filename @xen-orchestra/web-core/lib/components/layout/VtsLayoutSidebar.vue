@@ -1,11 +1,6 @@
 <template>
   <div :class="className" class="vts-layout-sidebar">
-    <div
-      v-if="!ui.isSmall"
-      :class="{ active: sidebar.isResizing }"
-      class="resize-handle"
-      @mousedown="sidebar.startResize"
-    />
+    <VtsResizeHandle v-if="showResizeHandle" :position="resizeHandlePosition" :resizable="sidebar" />
     <div v-if="slots.header || (showLock && !ui.isSmall)" class="header">
       <div v-if="slots.header" class="start">
         <slot name="header" />
@@ -36,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import VtsResizeHandle from '@core/components/resize-handle/VtsResizeHandle.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type SidebarSide, useLeftSidebarStore, useRightSidebarStore } from '@core/packages/sidebar'
@@ -65,6 +61,10 @@ const rightSidebar = useRightSidebarStore()
 const sidebar = computed(() => (side === 'right' ? rightSidebar : leftSidebar))
 
 const lockTooltipPosition = computed(() => (side === 'left' ? 'right' : 'left'))
+
+const showResizeHandle = computed(() => !ui.isSmall && sidebar.value.isExpanded)
+
+const resizeHandlePosition = computed(() => (side === 'left' ? 'end' : 'start'))
 
 const className = computed(() => [
   {
@@ -153,35 +153,6 @@ const className = computed(() => [
   .content {
     flex: 1;
     overflow: auto;
-  }
-
-  .resize-handle {
-    position: absolute;
-    inset-block: 0;
-    width: 0.8rem;
-    background-color: transparent;
-    cursor: col-resize;
-    transition: background-color 0.4s;
-    user-select: none;
-    z-index: 1;
-
-    &:hover,
-    &.active {
-      background-color: var(--color-neutral-border);
-      transition: background-color 0.05s;
-    }
-  }
-
-  &.side--left {
-    .resize-handle {
-      inset-inline-end: 0;
-    }
-  }
-
-  &.side--right {
-    .resize-handle {
-      inset-inline-start: 0;
-    }
   }
 }
 </style>
