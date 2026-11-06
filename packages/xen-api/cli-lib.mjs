@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { createPgTransport } from '@xen-orchestra/xapi-pg/src/xo-pg.mjs'
 import blocked from 'blocked'
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
@@ -12,6 +13,7 @@ import { configure } from '@xen-orchestra/log/configure'
 import { diff } from 'jest-diff'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
+import transports from './transports/index.mjs'
 
 // ===================================================================
 
@@ -45,7 +47,7 @@ const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 export async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
-    string: ['proxy', 'session-id', 'transport'],
+    string: ['proxy', 'session-id', 'transport', 'pg-saver-url'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -60,7 +62,8 @@ export async function main(createClient) {
   })
 
   if (opts.help) {
-    return usage
+    console.log(usage)
+    return
   }
 
   if (opts.verbose) {
@@ -88,6 +91,10 @@ export async function main(createClient) {
     blocked(ms => {
       debug(`blocked for ${ms | 0}ms`)
     })
+  }
+
+  if (opts['pg-saver-url']) {
+    opts.transport = await createPgTransport(opts['pg-saver-url'], transports['json-rpc'])
   }
 
   const xapi = createClient({
