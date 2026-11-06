@@ -134,6 +134,13 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/admin/patches': RouteRecordInfo<
+      '/admin/patches',
+      '/admin/patches',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/plugins': RouteRecordInfo<
       '/admin/plugins',
       '/admin/plugins',
@@ -630,6 +637,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/plugin/[id].vue': {
       routes:
         | '/admin/plugin/[id]'
+      views:
+        | never
+    }
+    'src/pages/admin/patches.vue': {
+      routes:
+        | '/admin/patches'
       views:
         | never
     }
