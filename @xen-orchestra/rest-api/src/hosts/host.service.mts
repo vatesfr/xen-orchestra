@@ -252,7 +252,14 @@ export class HostService {
     try {
       await xapi.callAsync('host.management_reconfigure', pif._xapiRef)
     } catch (error) {
-      await this.#removePifIp(xapi, pif)
+      try {
+        await this.#removePifIp(xapi, pif)
+      } catch (rollbackError) {
+        Task.warning('The target PIF still has the copied IP: please remove it manually', {
+          pifId: pif.id,
+          rollbackError,
+        })
+      }
       throw error
     }
 
