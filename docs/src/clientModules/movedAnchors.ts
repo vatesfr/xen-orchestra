@@ -22,24 +22,24 @@ const MOVED_TO_SOURCES = new Set([
 
 /**
  * The old /xo5/xoa page was split across three pages; its redirect
- * lands on /installation, and these anchors complete the trip for
+ * lands on /getting-started/installation, and these anchors complete the trip for
  * the sections that went elsewhere.
  */
 const MOVED_FROM_XOA: Record<string, string> = {
   firewall: '/getting-started/configuration#firewall',
-  timezone: '/configuration#timezone',
-  'setting-a-custom-ntp-server': '/configuration#setting-a-custom-ntp-server',
-  'restart-the-service': '/configuration#restart-the-service',
+  timezone: '/getting-started/configuration#timezone',
+  'setting-a-custom-ntp-server': '/getting-started/configuration#setting-a-custom-ntp-server',
+  'restart-the-service': '/getting-started/configuration#restart-the-service',
   'technical-support': '/getting-started/troubleshooting#still-stuck',
-  'xoa-check': '/troubleshooting#first-reflex-xoa-check',
-  'support-tunnel': '/troubleshooting#support-tunnel',
-  'ssh-pro-support': '/troubleshooting#support-tunnel',
+  'xoa-check': '/getting-started/troubleshooting#first-reflex-xoa-check',
+  'support-tunnel': '/getting-started/troubleshooting#support-tunnel',
+  'ssh-pro-support': '/getting-started/troubleshooting#support-tunnel',
   'migrate-from-an-older-xoa': '/getting-started/migrate_to_new_xoa',
 }
 
 /**
  * The old /xo6/purchase and /xo5/license_management pages moved to the
- * central Vates docs; their redirect lands on /support, and these
+ * central Vates docs; their redirect lands on /support-and-licencing/support, and these
  * anchors complete the trip to the right page over there.
  */
 const MOVED_TO_VATES_DOCS: Record<string, string> = {
@@ -60,7 +60,7 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   const path = location.pathname.replace(/\/+$/, '')
   const anchor = location.hash.replace(/^#/, '')
   if (path === '/getting-started/installation' && MOVED_TO_SOURCES.has(anchor)) {
-    window.location.replace(`/install-from-sources#${anchor}`)
+    window.location.replace(`/getting-started/install-from-sources#${anchor}`)
   }
   if (path === '/getting-started/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
