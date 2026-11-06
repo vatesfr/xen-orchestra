@@ -21,7 +21,6 @@ import type {
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
@@ -36,11 +35,7 @@ const { schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
   backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({
-    buildXo5Route: (path: string) => `https://xo5.example.com/#${path}`,
-  })) as unknown as typeof useXoRoutes,
-}))
+vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), async () => {
   const { computed: vueComputed, ref: vueRef } = await import('vue')

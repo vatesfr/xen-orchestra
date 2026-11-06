@@ -2,10 +2,13 @@ import {
   V2V_DISK_MODE,
   V2V_FIRMWARE,
   V2V_VM_POWER_STATE,
+  type XoV2vDatacenter,
   type XoV2vDatastore,
   type XoV2vDisk,
+  type XoV2vHost,
   type XoV2vInventory,
   type XoV2vNic,
+  type XoV2vPortGroup,
   type XoV2vVm,
 } from '@vates/types'
 
@@ -16,6 +19,29 @@ export const V2V_TEST_SOURCE = {
 } as const
 
 const DATASTORE_ID = 'datastore-1' as XoV2vDatastore['id']
+
+const VM_NAME = 'app-03'
+
+const DATACENTER_ID = 'datacenter-1' as XoV2vDatacenter['id']
+
+const HOST_ID = 'host-1' as XoV2vHost['id']
+
+export function createV2vDatacenter(overrides: Partial<XoV2vDatacenter> = {}): XoV2vDatacenter {
+  return {
+    id: DATACENTER_ID,
+    name: 'DC-Paris',
+    ...overrides,
+  }
+}
+
+export function createV2vHost(overrides: Partial<XoV2vHost> = {}): XoV2vHost {
+  return {
+    id: HOST_ID,
+    name: 'esx01.lab.local',
+    datacenterId: DATACENTER_ID,
+    ...overrides,
+  }
+}
 
 export function createV2vDatastore(overrides: Partial<XoV2vDatastore> = {}): XoV2vDatastore {
   return {
@@ -29,6 +55,15 @@ export function createV2vDatastore(overrides: Partial<XoV2vDatastore> = {}): XoV
   }
 }
 
+export function createV2vPortGroup(overrides: Partial<XoV2vPortGroup> = {}): XoV2vPortGroup {
+  return {
+    id: 'port-group-1' as XoV2vPortGroup['id'],
+    name: 'PG-Prod',
+    vlan: 10,
+    ...overrides,
+  }
+}
+
 export function createV2vDisk(overrides: Partial<XoV2vDisk> = {}): XoV2vDisk {
   return {
     key: 'scsi0:0' as XoV2vDisk['key'],
@@ -38,6 +73,7 @@ export function createV2vDisk(overrides: Partial<XoV2vDisk> = {}): XoV2vDisk {
     mode: V2V_DISK_MODE.PERSISTENT,
     isRdm: false,
     isEncrypted: false,
+    chainPaths: [`${VM_NAME}/${VM_NAME}.vmdk`],
     ...overrides,
   }
 }
@@ -55,10 +91,10 @@ export function createV2vVm(overrides: Partial<XoV2vVm> = {}): XoV2vVm {
   return {
     id: 'vm-1' as XoV2vVm['id'],
     instanceUuid: 'vm-instance-uuid-1',
-    name: 'app-03',
+    name: VM_NAME,
     description: '',
     powerState: V2V_VM_POWER_STATE.POWERED_ON,
-    hostId: 'host-1' as XoV2vVm['hostId'],
+    hostId: HOST_ID,
     nCpus: 4,
     memory: 16 * 1024 ** 3,
     firmware: V2V_FIRMWARE.UEFI,

@@ -12,6 +12,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vDestinationDefaults, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
+import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
@@ -303,7 +304,7 @@ describe('poolSelectBindings', () => {
     await openSelect(wrapper)
 
     expect(
-      wrapper.findAllComponents({ name: 'VtsOption' }).map(option => option.props('option').properties.counts)
+      findAllGenericComponents(wrapper, 'VtsOption').map(option => option.props('option').properties.counts)
     ).toEqual([
       { hosts: 1, srs: 1, networks: 1 },
       { hosts: 0, srs: 1, networks: 0 },

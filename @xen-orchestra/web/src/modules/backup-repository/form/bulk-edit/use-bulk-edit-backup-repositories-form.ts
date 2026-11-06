@@ -119,7 +119,8 @@ export function useBulkEditBackupRepositoriesForm(brs: FrontXoBackupRepository[]
       return undefined
     }
 
-    const detailsChanges = detailsForm === undefined ? undefined : omitMixedValues(detailsForm.formData, t('mixed-value'))
+    const detailsChanges =
+      detailsForm === undefined ? undefined : omitMixedValues(detailsForm.formData, t('mixed-value'))
 
     return new Map(initialBrs.map(initialBr => [initialBr.br.id, buildPayload(initialBr, detailsChanges)]))
   }
