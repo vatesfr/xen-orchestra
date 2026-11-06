@@ -29,7 +29,6 @@ function createController() {
       },
     },
     xoApp: {
-      getAclV2UserPrivileges: async () => [],
       getPlugins: async () => plugins,
       getPlugin: async (id: string) => {
         const plugin = plugins.find(plugin => plugin.id === id)
