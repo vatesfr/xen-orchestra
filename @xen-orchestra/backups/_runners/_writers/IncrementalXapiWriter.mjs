@@ -76,7 +76,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
           vdi =>
             vdi?.managed &&
             vdi?.is_a_snapshot &&
-            vdi.other_config[CONTENT_KEY] === contentKey && // &&
+            vdi.other_config[CONTENT_KEY] === contentKey &&
+            // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
+            vdi.$snapshot_of !== undefined &&
             // ensure we don't replicate on ourself or any of the vdi in the source  chain
             vdi.$snapshot_of.uuid !== srcVdiuid
         )
