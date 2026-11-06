@@ -7,7 +7,8 @@ export function resolveBackupSrs(job, srs, runContext) {
 
   const srUuids = []
   srs.forEach(sr => {
-    if (isSrWritable(sr) && predicate(buildSrContext(sr, runContext))) {
+    // the pool of a stale SR is disconnected: it cannot receive anything
+    if (sr.$lastSeen === undefined && isSrWritable(sr) && predicate(buildSrContext(sr, runContext))) {
       srUuids.push(sr.uuid)
     }
   })

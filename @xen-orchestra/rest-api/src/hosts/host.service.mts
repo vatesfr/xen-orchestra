@@ -75,9 +75,14 @@ export class HostService {
     let nHostsFailed = 0
 
     await asyncEach(hosts, async (host: XoHost) => {
-      const xapi = this.#restApi.xoApp.getXapi(host)
+      // its pool is disconnected: what it misses is unknown until it is back
+      if (host.$lastSeen !== undefined) {
+        nHostsFailed++
+        return
+      }
 
       try {
+        const xapi = this.#restApi.xoApp.getXapi(host)
         const patches = await xapi.listMissingPatches(host.id)
 
         if (patches.length > 0) {

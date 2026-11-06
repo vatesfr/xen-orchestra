@@ -197,7 +197,8 @@ export class XapiPerfmon extends MonitorStrategy {
    */
   async updateObjectsPerfmon(xoObjects) {
     return asyncEach(Object.values(xoObjects), xoObject => {
-      if (!['host', 'VM'].includes(xoObject.type)) {
+      // stale objects of a disconnected pool cannot be configured
+      if (!['host', 'VM'].includes(xoObject.type) || xoObject.$lastSeen !== undefined) {
         return
       }
       process.stdout.write('.')
