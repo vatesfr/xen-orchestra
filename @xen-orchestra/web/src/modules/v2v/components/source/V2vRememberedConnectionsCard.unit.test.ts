@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils'
 
 function mountCard() {
   return mount(V2vRememberedConnectionsCard, {
-    slots: { default: '<p class="slotted">Slotted content</p>' },
+    slots: { default: 'Slotted content' },
     global: createGlobalTestConfig(),
   })
 }
@@ -18,7 +18,7 @@ it('shows its title and where the connections are stored', () => {
 })
 
 it('shows the content it is given', () => {
-  expect(mountCard().get('.slotted').text()).toBe('Slotted content')
+  expect(mountCard().text()).toContain('Slotted content')
 })
 
 it('reminds that credentials are never stored by XO', () => {
