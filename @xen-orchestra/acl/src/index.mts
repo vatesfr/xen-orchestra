@@ -87,9 +87,13 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   }
 
   if (
-    Array.from(effectsByObject.values()).some(
-      effects => effects.length === 0 || effects.some(({ known, effect }) => effect === 'deny' && known)
-    )
+    Array.from(effectsByObject.values()).some(effects => {
+      const hasEffects = effects.length !== 0
+      const hasknownDeny = effects.some(({ known, effect }) => effect === 'deny' && known)
+      const hasOnlyUnknownDeny = effects.every(({ known, effect }) => effect === 'deny')
+
+      return !hasEffects || hasknownDeny || hasOnlyUnknownDeny
+    })
   ) {
     return false
   }

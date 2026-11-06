@@ -26,6 +26,10 @@ const isRawString = string => {
   return true
 }
 
+const isFieldKnown = (knownFields, value, name) => {
+  return knownFields !== undefined && typeof value === 'object' && !(name in value) && !knownFields.has(name)
+}
+
 // -------------------------------------------------------------------
 
 exports.UNKNOWN = UNKNOWN
@@ -36,12 +40,7 @@ class Node {
   }
 
   createResolver(knownFields) {
-    let set
-    if (knownFields === undefined) {
-      set = undefined
-    } else {
-      set = new Set(knownFields)
-    }
+    const set = knownFields === undefined ? undefined : new Set(knownFields)
 
     return value => this._resolveValue(value, set)
   }
@@ -88,25 +87,21 @@ class And extends Node {
   }
 
   _resolveValue(value, knownFields) {
-    if (this.children.length > 0) {
-      let unknowns = 0
-      for (const child of this.children) {
-        const result = child._resolveValue(value, knownFields)
+    let hasUnknown = false
+    for (const child of this.children) {
+      const result = child._resolveValue(value, knownFields)
 
-        if (result === false) {
-          return false
-        }
-
-        if (result === UNKNOWN) {
-          unknowns++
-        }
+      if (result === false) {
+        return false
       }
 
-      if (unknowns !== 0) {
-        return UNKNOWN
+      if (result === UNKNOWN) {
+        hasUnknown = true
       }
+    }
 
-      return true
+    if (hasUnknown) {
+      return UNKNOWN
     }
 
     return true
@@ -163,23 +158,21 @@ class Or extends Node {
   }
 
   _resolveValue(value, knownFields) {
-    if (this.children.length > 0) {
-      let unknowns = 0
-      for (const child of this.children) {
-        const result = child._resolveValue(value, knownFields)
+    let hasUnknown = false
+    for (const child of this.children) {
+      const result = child._resolveValue(value, knownFields)
 
-        if (result === true) {
-          return true
-        }
-
-        if (result === UNKNOWN) {
-          unknowns++
-        }
+      if (result === true) {
+        return true
       }
 
-      if (unknowns !== 0) {
-        return UNKNOWN
+      if (result === UNKNOWN) {
+        hasUnknown = true
       }
+    }
+
+    if (hasUnknown) {
+      return UNKNOWN
     }
 
     return false
@@ -275,7 +268,7 @@ class Property extends Node {
 
   _resolveValue(value, knownFields) {
     if (value != null) {
-      if (knownFields !== undefined && !Object.hasOwn(value, this.name) && !knownFields.has(this.name)) {
+      if (isFieldKnown(knownFields, value, this.name)) {
         return UNKNOWN
       } else {
         return this.child._resolveValue(value[this.name], undefined)
@@ -403,7 +396,7 @@ class TruthyProperty extends Node {
 
   _resolveValue(value, knownFields) {
     if (value != null) {
-      if (knownFields !== undefined && !Object.hasOwn(value, this.name) && !knownFields.has(this.name)) {
+      if (isFieldKnown(knownFields, value, this.name)) {
         return UNKNOWN
       } else {
         return this.match(value)
