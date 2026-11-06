@@ -58,6 +58,13 @@ async function submitConnection(result: SourceStep, connection: XoV2vConnection 
   await flushPromises()
 }
 
+function withAndWithoutPassword(connection: V2vRememberedConnection): [string, V2vRememberedConnection][] {
+  return [
+    ['one', connection],
+    ['none', omit(connection, 'password')],
+  ]
+}
+
 describe('submit', () => {
   it('does not connect while the form is invalid', async () => {
     const fetchMock = stubFetchResponse(200, createV2vInventory())
@@ -123,30 +130,21 @@ describe('submit', () => {
     expect(result.rememberedConnections).toEqual([])
   })
 
-  it('refreshes an already remembered connection, still without its password', async () => {
-    const inventory = createV2vInventory()
-    stubFetchResponse(200, inventory)
-    const connection = createV2vConnection()
-    seedV2vRememberedConnections([omit(createV2vRememberedConnection({ lastUsedAt: 1, vmCount: 1 }), 'password')])
-    const { result } = await mountSourceStep()
+  it.each(withAndWithoutPassword(createV2vRememberedConnection({ lastUsedAt: 1, vmCount: 1 })))(
+    'refreshes an already remembered connection without its password when "remember" is unticked (it had %s)',
+    async (_password, remembered) => {
+      const inventory = createV2vInventory()
+      stubFetchResponse(200, inventory)
+      seedV2vRememberedConnections([remembered])
+      const { result } = await mountSourceStep()
 
-    await submitConnection(result, connection)
+      await submitConnection(result)
 
-    expect(result.rememberedConnections).toHaveLength(1)
-    expect(result.rememberedConnections[0]).toMatchObject({ vmCount: inventory.vms.length, lastUsedAt: NOW })
-    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
-  })
-
-  it('forgets the password of an already remembered connection when "remember" is unticked', async () => {
-    stubFetchResponse(200, createV2vInventory())
-    seedV2vRememberedConnections([createV2vRememberedConnection()])
-    const { result } = await mountSourceStep()
-
-    await submitConnection(result)
-
-    expect(result.rememberedConnections).toHaveLength(1)
-    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
-  })
+      expect(result.rememberedConnections).toHaveLength(1)
+      expect(result.rememberedConnections[0]).toMatchObject({ vmCount: inventory.vms.length, lastUsedAt: NOW })
+      expect(result.rememberedConnections[0]).not.toHaveProperty('password')
+    }
+  )
 
   it('reports invalid credentials on the form and stays on the source step', async () => {
     stubFetchResponse(422, { error: 'invalid credentials', data: { code: V2V_ERROR_CODE.INVALID_CREDENTIALS } })
@@ -283,15 +281,20 @@ describe('editRemembered', () => {
     expect(result.rememberedConnections[0]).toMatchObject({ ...changes, password: EDITED.password })
   })
 
-  it('keeps the edited connection remembered, still without its password', async () => {
-    stubFetchResponse(200, createV2vInventory())
+  it.each(withAndWithoutPassword(EDITED))(
+    'keeps the edited connection remembered without its password when "remember" is unticked (it had %s)',
+    async (_password, edited) => {
+      stubFetchResponse(200, createV2vInventory())
+      const result = await mountEditing(edited)
+      result.form.formData.remember = false
 
-    const result = await connectEdited(omit(EDITED, 'password'), createV2vConnection({ host: 'renamed.lab' }))
+      await submitConnection(result, createV2vConnection({ host: 'renamed.lab' }))
 
-    expect(result.rememberedConnections).toHaveLength(1)
-    expect(result.rememberedConnections[0].host).toBe('renamed.lab')
-    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
-  })
+      expect(result.rememberedConnections).toHaveLength(1)
+      expect(result.rememberedConnections[0].host).toBe('renamed.lab')
+      expect(result.rememberedConnections[0]).not.toHaveProperty('password')
+    }
+  )
 
   it('updates the edited connection in place when its host, port and username did not change', async () => {
     stubFetchResponse(200, createV2vInventory())
@@ -300,17 +303,6 @@ describe('editRemembered', () => {
 
     expect(result.rememberedConnections).toHaveLength(1)
     expect(result.rememberedConnections[0]).toMatchObject({ host: EDITED.host, password: 'new-secret' })
-  })
-
-  it('forgets the password of the edited connection when "remember" is unticked', async () => {
-    stubFetchResponse(200, createV2vInventory())
-    const result = await mountEditing(EDITED)
-    result.form.formData.remember = false
-
-    await submitConnection(result, createV2vConnection({ host: EDITED.host }))
-
-    expect(result.rememberedConnections).toHaveLength(1)
-    expect(result.rememberedConnections[0]).not.toHaveProperty('password')
   })
 
   it('keeps the edited connection when the connection fails', async () => {
