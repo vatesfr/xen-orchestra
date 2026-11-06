@@ -14,6 +14,8 @@ const RAW_STRING_SYMBOLS = {
   $: true,
 }
 
+const UNKNOWN = Symbol('UNKNOWN')
+
 const isRawStringChar = c =>
   (c >= '0' && c <= '9') || c in RAW_STRING_SYMBOLS || !(c === c.toUpperCase() && c === c.toLowerCase())
 
@@ -26,14 +28,40 @@ const isRawString = string => {
 
 // -------------------------------------------------------------------
 
+exports.UNKNOWN = UNKNOWN
+
 class Node {
   createPredicate() {
     return value => this.match(value)
+  }
+
+  createResolver(knownFields) {
+    let set
+    if (knownFields === undefined) {
+      set = undefined
+    } else {
+      set = new Set(knownFields)
+    }
+
+    return value => this._resolveValue(value, set)
+  }
+
+  _resolveValue(value, knownFields) {
+    const result = this.match(value)
+    if (knownFields === undefined) {
+      return result
+    } else {
+      return result === true ? result : UNKNOWN
+    }
   }
 }
 
 class Null extends Node {
   match() {
+    return true
+  }
+
+  _resolveValue(value, knownFields) {
     return true
   }
 
@@ -57,6 +85,31 @@ class And extends Node {
 
   match(value) {
     return this.children.every(child => child.match(value))
+  }
+
+  _resolveValue(value, knownFields) {
+    if (this.children.length > 0) {
+      let unknowns = 0
+      for (const child of this.children) {
+        const result = child._resolveValue(value, knownFields)
+
+        if (result === false) {
+          return false
+        }
+
+        if (result === UNKNOWN) {
+          unknowns++
+        }
+      }
+
+      if (unknowns !== 0) {
+        return UNKNOWN
+      }
+
+      return true
+    }
+
+    return true
   }
 
   toString(isNested) {
@@ -109,6 +162,29 @@ class Or extends Node {
     return this.children.some(child => child.match(value))
   }
 
+  _resolveValue(value, knownFields) {
+    if (this.children.length > 0) {
+      let unknowns = 0
+      for (const child of this.children) {
+        const result = child._resolveValue(value, knownFields)
+
+        if (result === true) {
+          return true
+        }
+
+        if (result === UNKNOWN) {
+          unknowns++
+        }
+      }
+
+      if (unknowns !== 0) {
+        return UNKNOWN
+      }
+    }
+
+    return false
+  }
+
   toString() {
     return `|(${formatTerms(this.children)})`
   }
@@ -124,6 +200,11 @@ class Not extends Node {
 
   match(value) {
     return !this.child.match(value)
+  }
+
+  _resolveValue(value, knownFields) {
+    const result = this.child._resolveValue(value, knownFields)
+    return result === UNKNOWN ? UNKNOWN : !result
   }
 
   toString() {
@@ -190,6 +271,18 @@ class Property extends Node {
 
   match(value) {
     return value != null && this.child.match(value[this.name])
+  }
+
+  _resolveValue(value, knownFields) {
+    if (value != null) {
+      if (knownFields !== undefined && !Object.hasOwn(value, this.name) && !knownFields.has(this.name)) {
+        return UNKNOWN
+      } else {
+        return this.child._resolveValue(value[this.name], undefined)
+      }
+    }
+
+    return false
   }
 
   toString() {
@@ -306,6 +399,18 @@ class TruthyProperty extends Node {
 
   match(value) {
     return value != null && !!value[this.name]
+  }
+
+  _resolveValue(value, knownFields) {
+    if (value != null) {
+      if (knownFields !== undefined && !Object.hasOwn(value, this.name) && !knownFields.has(this.name)) {
+        return UNKNOWN
+      } else {
+        return this.match(value)
+      }
+    }
+
+    return false
   }
 
   toString() {
