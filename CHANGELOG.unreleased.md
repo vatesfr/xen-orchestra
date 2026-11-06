@@ -34,11 +34,13 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- complex-matcher minor
 - xo-server minor
 - xo-web minor
 
