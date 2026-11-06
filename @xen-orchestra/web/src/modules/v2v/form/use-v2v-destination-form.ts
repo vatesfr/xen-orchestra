@@ -65,7 +65,7 @@ export function useV2vDestinationForm({
     },
   })
 
-  const { pools } = useXoPoolCollection()
+  const { pools, useGetPoolById } = useXoPoolCollection()
   const { hosts } = useXoHostCollection()
   const { srs } = useXoSrCollection()
   const { networks } = useXoNetworkCollection()
@@ -73,7 +73,7 @@ export function useV2vDestinationForm({
   const { templates } = useXoVmTemplateCollection()
   const { getSrSelectLabel } = useXoSrUtils()
 
-  const selectedPool = computed(() => pools.value.find(pool => pool.id === formData.pool))
+  const selectedPool = useGetPoolById(() => formData.pool)
 
   const choices = computed(() =>
     getV2vPoolDestinationChoices(formData.pool, {
