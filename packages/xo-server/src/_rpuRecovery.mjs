@@ -723,11 +723,12 @@ export const noRpuResume = Object.freeze({
  * @param {object} params
  * @param {object} params.store - LevelDB sublevel, keyed by pool id
  * @param {string} params.poolId
+ * @param {boolean} [params.automatic] - Whether xo-server started this attempt after a restart, without the operator
  * @returns {Promise<{ recorder: object, record: object, plan: object }>} see planRpuResume for `plan`
  * @throws {Error} `noSuchObject` when the pool has no record
  * @throws {Error} `incorrectState` (property `status`) when the record is not failed nor interrupted
  */
-export async function resumeRpuRecoveryRun({ store, poolId }) {
+export async function resumeRpuRecoveryRun({ store, poolId, automatic = false }) {
   let record
   try {
     record = await store.get(poolId)
@@ -763,6 +764,8 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
   }
   record.status = 'resuming'
   record.attempt = (record.attempt ?? 1) + 1
+  // bounds the automatic resumes, see reconcileRpuRecoveryAtBoot
+  record.resumedAutomatically = automatic
   record.updatedAt = new Date().toISOString()
   delete record.finishedAt
   await store.put(poolId, record)
@@ -782,9 +785,12 @@ export async function resumeRpuRecoveryRun({ store, poolId }) {
  * processed.
  *
  * @param {object} store - LevelDB sublevel, keyed by pool id
- * @returns {Promise<void>}
+ * @returns {Promise<string[]>} the pools whose run this restart interrupted, to resume automatically. A run a
+ *   previous restart interrupted is not: its automatic resume was refused or never came, it waits for the operator.
+ *   Neither is an automatic resume interrupted in turn: at most one automatic attempt follows the operator's one
  */
 export async function reconcileRpuRecoveryAtBoot(store) {
+  const interruptedPoolIds = []
   try {
     // one read per key rather than createReadStream(): a value that fails to
     // decode would error the whole stream, here it only skips that record
@@ -805,6 +811,9 @@ export async function reconcileRpuRecoveryAtBoot(store) {
             startedAt,
             interruptedAt: record.interruptedAt,
           })
+          if (!record.resumedAutomatically) {
+            interruptedPoolIds.push(poolId)
+          }
         }
       } catch (error) {
         log.warn('could not reconcile an RPU recovery record, it will be reported as blocked', { error, poolId })
@@ -813,4 +822,5 @@ export async function reconcileRpuRecoveryAtBoot(store) {
   } catch (error) {
     log.warn('could not list the RPU recovery records for reconciliation', { error })
   }
+  return interruptedPoolIds
 }

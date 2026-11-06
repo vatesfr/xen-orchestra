@@ -860,6 +860,16 @@ describe('resumeRpuRecoveryRun()', () => {
     return { store, record }
   }
 
+  it('records whether the attempt was started automatically', async () => {
+    const { store } = await storeWith({ status: 'interrupted' })
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1', automatic: true })
+    assert.equal(store.data.get('pool1').resumedAutomatically, true)
+
+    await store.put('pool1', { ...store.data.get('pool1'), status: 'failed' })
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    assert.equal(store.data.get('pool1').resumedAutomatically, false)
+  })
+
   it('fails when the pool has no record', async () => {
     await assert.rejects(resumeRpuRecoveryRun({ store: makeFakeStore(), poolId: 'pool1' }), error =>
       noSuchObject.is(error, { id: 'pool1', type: 'rollingUpdateRecovery' })
@@ -999,7 +1009,34 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
         })()
       )
 
-    await reconcileRpuRecoveryAtBoot(store)
+    assert.deepEqual(await reconcileRpuRecoveryAtBoot(store), [])
+  })
+
+  it('returns the pools whose run this restart interrupted, to resume them automatically', async () => {
+    const store = makeFakeStore()
+    for (const [poolId, status, resumedAutomatically] of [
+      ['running', 'running'],
+      ['resumed-by-hand', 'resuming', false],
+      ['resumed-automatically', 'resuming', true],
+      ['interrupted', 'interrupted'],
+      ['failed', 'failed'],
+      ['succeeded', 'succeeded'],
+    ]) {
+      const record = createRpuRecoveryRecord({ poolId, options: OPTIONS })
+      record.status = status
+      if (resumedAutomatically !== undefined) {
+        record.resumedAutomatically = resumedAutomatically
+      }
+      await store.put(poolId, record)
+    }
+    await store.put('unknown-version', { schemaVersion: 42, status: 'running' })
+
+    const poolIds = await reconcileRpuRecoveryAtBoot(store)
+
+    // a run a previous restart interrupted waits for a manual resume, and an
+    // automatic resume interrupted in turn is not chained with another one
+    assert.deepEqual(poolIds.sort(), ['resumed-by-hand', 'running'])
+    assert.equal(store.data.get('resumed-automatically').status, 'interrupted')
   })
 })
 
