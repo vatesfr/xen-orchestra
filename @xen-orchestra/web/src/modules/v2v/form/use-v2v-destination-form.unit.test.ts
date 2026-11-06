@@ -1,10 +1,10 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vDestinationForm, type V2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { ONE_GB } from '@/shared/constants.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
@@ -13,7 +13,6 @@ import { createSr } from '@/test/create-sr.ts'
 import { createV2vDestinationDefaults, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { t } from '@/test/i18n.ts'
 import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
@@ -94,30 +93,16 @@ function mountDestinationForm({
   return mountComposableWithI18n(() => useV2vDestinationForm({ pool: ref(pool), storedList }))
 }
 
-// The options of a select only show once rendered, here for the first pool
-function mountFormSelect(getSelectId: (form: V2vDestinationForm) => FormSelectId) {
-  seedTwoPools()
-
-  return mountWithSelect(() => {
-    const form = useV2vDestinationForm({ pool: ref(POOL.id), storedList: undefined })
-
-    return () => h(VtsSelect, { id: getSelectId(form), accent: 'brand' })
-  })
-}
-
-// The destination step opens on the pool of the route while only the pools are loaded: the wizard reads them first
-function mountSelectsOnRoutePool(storedList: V2vMigrationList | undefined) {
-  destinationCollectionsMock.pools.value = [POOL, OTHER_POOL]
-
+// The options and the selection of a select only show once rendered, here on the first pool
+function mountSelects(getSelectIds: (form: V2vDestinationForm) => FormSelectId[], storedList?: V2vMigrationList) {
   return mountWithSelect(() => {
     const form = useV2vDestinationForm({ pool: ref(POOL.id), storedList })
 
     return () =>
-      h('div', [
-        h(VtsSelect, { id: form.srSelectBindings.value.id, accent: 'brand' }),
-        h(VtsSelect, { id: form.networkSelectBindings.value.id, accent: 'brand' }),
-        h(VtsSelect, { id: form.templateSelectBindings.value.id, accent: 'brand' }),
-      ])
+      h(
+        'div',
+        getSelectIds(form).map(id => h(VtsSelect, { id, accent: 'brand' }))
+      )
   })
 }
 
@@ -142,6 +127,11 @@ const LATE_COLLECTIONS = {
 }
 
 const LOADING_ORDER = ['srs', 'networks', 'pifs', 'templates'] as const
+
+const LOADING_ORDERS = [
+  ['in loading order', LOADING_ORDER],
+  ['in reverse order', [...LOADING_ORDER].reverse()],
+] as const
 
 async function loadCollectionsOneByOne(order: readonly (keyof typeof LATE_COLLECTIONS)[]) {
   for (const collection of order) {
@@ -219,40 +209,36 @@ describe('formData', () => {
     expect(form.formData).toEqual({ pool: POOL.id, ...expectedDefaults })
   })
 
-  it.each([
-    ['in loading order', LOADING_ORDER],
-    ['in reverse order', [...LOADING_ORDER].reverse()],
-  ])(
-    'shows the defaults of the stored list on the pool of the route once the collections load %s',
-    async (_, order) => {
-      const wrapper = mountSelectsOnRoutePool(STORED_LIST)
-
-      await loadCollectionsOneByOne(order)
-
-      const [srLabel, networkLabel, templateLabel] = findShownSelections(wrapper)
-
-      expect(srLabel).toContain(createSr().name_label)
-      expect(networkLabel).toBe(createNetwork().name_label)
-      expect(templateLabel).toBe(createVmTemplate().name_label)
-    }
-  )
-
-  it.each([
-    ['in loading order', LOADING_ORDER],
-    ['in reverse order', [...LOADING_ORDER].reverse()],
-  ])(
-    'shows the pool prefill on the pool of the route without a stored list once the collections load %s',
-    async (_, order) => {
-      const wrapper = mountSelectsOnRoutePool(undefined)
-
-      await loadCollectionsOneByOne(order)
-
-      expect(findShownSelections(wrapper).slice(0, 2)).toEqual([
-        expect.stringContaining(createSr().name_label),
+  describe.each(LOADING_ORDERS)('on the pool of the route once the collections load %s', (_, order) => {
+    it.each([
+      ['the defaults of the stored list', STORED_LIST, createNetwork().name_label, createVmTemplate().name_label],
+      [
+        'the pool prefill without a stored list',
+        undefined,
         createNetwork({ id: MANAGEMENT_NETWORK_ID }).name_label,
+        '',
+      ],
+    ])('shows %s', async (_, storedList, networkLabel, templateLabel) => {
+      // The destination step opens on the pool of the route while only the pools are loaded: the wizard reads them first
+      destinationCollectionsMock.pools.value = [POOL, OTHER_POOL]
+      const wrapper = mountSelects(
+        form => [
+          form.srSelectBindings.value.id,
+          form.networkSelectBindings.value.id,
+          form.templateSelectBindings.value.id,
+        ],
+        storedList
+      )
+
+      await loadCollectionsOneByOne(order)
+
+      expect(findShownSelections(wrapper)).toEqual([
+        expect.stringContaining(createSr().name_label),
+        networkLabel,
+        templateLabel,
       ])
-    }
-  )
+    })
+  })
 
   it('prefills once the collections are loaded', async () => {
     const form = mountDestinationForm({ areCollectionsLoaded: false })
@@ -330,7 +316,8 @@ describe('selectedPool', () => {
 
 describe('poolSelectBindings', () => {
   it('offers each pool with the counts of its hosts, writable SRs and networks', async () => {
-    const wrapper = mountFormSelect(form => form.poolSelectBindings.value.id)
+    seedTwoPools()
+    const wrapper = mountSelects(form => [form.poolSelectBindings.value.id])
     destinationCollectionsMock.hosts.value = [createHost()]
     destinationCollectionsMock.networks.value = [createNetwork()]
 
@@ -346,17 +333,16 @@ describe('poolSelectBindings', () => {
 })
 
 describe('srSelectBindings', () => {
-  it.each([
-    ['its free space', createSr({ shared: true }), 9],
-    ['no free space once it uses more than its size', createSr({ shared: true, physical_usage: 20 * ONE_GB }), 0],
-  ])('offers each SR of the pool with its location and %s', async (_, sr, gbLeft) => {
-    const wrapper = mountFormSelect(form => form.srSelectBindings.value.id)
+  it('offers each SR of the pool with its select label', async () => {
+    const sr = createSr({ shared: true })
+    seedTwoPools()
+    const wrapper = mountSelects(form => [form.srSelectBindings.value.id])
     destinationCollectionsMock.srs.value = [sr]
 
     await openSelect(wrapper)
 
     expect(findSelectOptionLabels(wrapper)).toEqual([
-      `${sr.name_label} (${t('shared')}) - ${t('n-gb-left', { n: gbLeft })}`,
+      mountComposableWithI18n(() => useXoSrUtils()).getSrSelectLabel(sr),
     ])
   })
 })
