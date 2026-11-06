@@ -17,7 +17,7 @@ import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, isEmpty, map, values } from 'lodash'
 import { SelectSr } from 'select-objects'
-import { Number, Text, XoSelect } from 'editable'
+import { Number as EditableNumber, Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
 import {
   createGetObject,
@@ -367,14 +367,22 @@ export default class TabAdvanced extends Component {
   _onChangeLiveVcpuScaling = enabled =>
     editPool(this.props.pool, { vcpusMaxHeadroom: enabled ? DEFAULT_VCPUS_MAX_HEADROOM : null })
 
-  _onChangeVcpusMaxHeadroom = vcpusMaxHeadroom => editPool(this.props.pool, { vcpusMaxHeadroom })
+  _onChangeVcpusMaxHeadroom = async vcpusMaxHeadroom => {
+    // the editable number gives NaN for a non-number, which would be sent as null and turn the feature off
+    if (!Number.isInteger(vcpusMaxHeadroom)) {
+      throw new Error(this.props.intl.formatMessage(messages.liveVcpuScalingInvalid))
+    }
+    return editPool(this.props.pool, { vcpusMaxHeadroom })
+  }
 
-  // XAPI refuses to start a VM with more vCPUs than its host has threads: the server caps the setting there
-  _getSmallestHostThreads = createSelector(
+  // same cap as getHostCores in xo-server/src/xapi/_vcpuHeadroom.mjs: physical cores of the smallest host
+  _getSmallestHostCores = createSelector(
     () => this.props.hosts,
     hosts => {
-      const threads = map(hosts, host => host.cpus.cores).filter(n => n > 0)
-      return threads.length === 0 ? undefined : Math.min(...threads)
+      const cores = map(hosts, ({ CPUs: { cpu_count: threads, threads_per_core: perCore } = {} }) =>
+        +perCore > 1 ? Math.floor(threads / perCore) : +threads
+      ).filter(n => n > 0)
+      return cores.length === 0 ? undefined : Math.min(...cores)
     }
   )
 
@@ -502,19 +510,15 @@ export default class TabAdvanced extends Component {
                       {pool.vcpusMaxHeadroom !== undefined && (
                         <span className='ml-1'>
                           {_('liveVcpuScalingMax')}{' '}
-                          <Number value={pool.vcpusMaxHeadroom} onChange={this._onChangeVcpusMaxHeadroom} />
+                          <EditableNumber value={pool.vcpusMaxHeadroom} onChange={this._onChangeVcpusMaxHeadroom} />
                         </span>
                       )}
                       <br />
                       <small className='text-muted'>
-                        {_('liveVcpuScalingInfo')}
-                        {pool.vcpusMaxHeadroom > this._getSmallestHostThreads() &&
-                          ' ' +
-                            this.props.intl.formatMessage(messages.liveVcpuScalingCapped, {
-                              n: this._getSmallestHostThreads(),
-                            })}
-                        {pool.vcpusMaxHeadroom > 32 &&
-                          ' ' + this.props.intl.formatMessage(messages.liveVcpuScalingMemory)}
+                        {_('liveVcpuScalingInfo')}{' '}
+                        {pool.vcpusMaxHeadroom > this._getSmallestHostCores() &&
+                          _('liveVcpuScalingCapped', { n: this._getSmallestHostCores() })}{' '}
+                        {_('liveVcpuScalingMemory')}
                       </small>
                     </td>
                   </tr>

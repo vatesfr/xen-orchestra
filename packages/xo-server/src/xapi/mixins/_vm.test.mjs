@@ -1,6 +1,7 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 
+import poolMethods from './pool.mjs'
 import vmMethods from './vm.mjs'
 
 const { describe, it } = test
@@ -9,7 +10,7 @@ const LINUX_PLATFORM = { 'cores-per-socket': '1', viridian: 'false' }
 const WINDOWS_PLATFORM = { 'cores-per-socket': '2', device_id: '0002', viridian: 'true' }
 
 // Fake XAPI modelling what the vCPU maximum and vCPU count depend on
-function fakeXapi({ setting, hostThreads = [32], vm: vmProps = {} } = {}) {
+function fakeXapi({ setting, hostThreads = [32], threadsPerCore = 1, vm: vmProps = {} } = {}) {
   const calls = []
   const fields = {}
   const xapi = {
@@ -18,7 +19,14 @@ function fakeXapi({ setting, hostThreads = [32], vm: vmProps = {} } = {}) {
     pool: { other_config: setting === undefined ? {} : { 'xo:vcpusMaxHeadroom': setting } },
     objects: {
       indexes: {
-        type: { host: Object.fromEntries(hostThreads.map((n, i) => [i, { cpu_info: { cpu_count: String(n) } }])) },
+        type: {
+          host: Object.fromEntries(
+            hostThreads.map((n, i) => [
+              i,
+              { cpu_info: { cpu_count: String(n), threads_per_core: String(threadsPerCore) } },
+            ])
+          ),
+        },
       },
     },
     vm: {
@@ -69,6 +77,12 @@ describe('_applyVcpusMaxHeadroom', () => {
     assert.deepEqual(xapi.calls, [['VM.set_VCPUs_max', 'OpaqueRef:vm', 4]])
   })
 
+  it('stays within the physical cores, so VMs still start with SMT off', async () => {
+    const xapi = fakeXapi({ setting: '16', hostThreads: [16], threadsPerCore: 2 })
+    await applyHeadroom(xapi)
+    assert.deepEqual(xapi.calls, [['VM.set_VCPUs_max', 'OpaqueRef:vm', 8]])
+  })
+
   it('leaves Windows VMs alone', async () => {
     const xapi = fakeXapi({ setting: '16', vm: { platform: WINDOWS_PLATFORM } })
     await applyHeadroom(xapi)
@@ -102,7 +116,16 @@ describe('editing the vCPUs of a VM', () => {
     assert.deepEqual(xapi.fields, {})
   })
 
-  it('adds vCPUs to a running Windows VM', async () => {
+  it('refuses before changing anything else in the same edit', async () => {
+    const xapi = fakeXapi({
+      vm: { platform: WINDOWS_PLATFORM, power_state: 'Running', VCPUs_at_startup: '4', VCPUs_max: '4' },
+    })
+    await assert.rejects(vmMethods._editVm.call(xapi, 'vm', { cpus: 2, cpuWeight: 512 }), /Windows cannot remove/)
+    assert.deepEqual(xapi.calls, [])
+    assert.deepEqual(xapi.fields, {})
+  })
+
+  it('still adds vCPUs to a running Windows VM (behavior unchanged)', async () => {
     const xapi = fakeXapi({
       vm: { platform: WINDOWS_PLATFORM, power_state: 'Running', VCPUs_at_startup: '2', VCPUs_max: '4' },
     })
@@ -123,5 +146,37 @@ describe('editing the vCPUs of a VM', () => {
     await editCpus(xapi, 2)
     assert.deepEqual(xapi.calls, [['VM.set_VCPUs_number_live', 'OpaqueRef:vm', '2']])
     assert.deepEqual(xapi.fields, { VCPUs_at_startup: 2 })
+  })
+})
+
+describe('setVcpusMaxHeadroom', () => {
+  const fakePoolXapi = () => {
+    const updates = []
+    return {
+      updates,
+      pool: {
+        async update_other_config(key, value) {
+          updates.push([key, value])
+        },
+      },
+    }
+  }
+
+  it('stores the setting on the pool, null turns it off', async () => {
+    const xapi = fakePoolXapi()
+    await poolMethods.setVcpusMaxHeadroom.call(xapi, 16)
+    await poolMethods.setVcpusMaxHeadroom.call(xapi, null)
+    assert.deepEqual(xapi.updates, [
+      ['xo:vcpusMaxHeadroom', '16'],
+      ['xo:vcpusMaxHeadroom', null],
+    ])
+  })
+
+  it('refuses values outside 2 to 128', async () => {
+    const xapi = fakePoolXapi()
+    for (const value of [0, 1, 129, 2.5, NaN, '16']) {
+      await assert.rejects(poolMethods.setVcpusMaxHeadroom.call(xapi, value), /integer from 2 to 128/, String(value))
+    }
+    assert.deepEqual(xapi.updates, [])
   })
 })

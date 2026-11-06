@@ -999,9 +999,10 @@ const messages = {
   liveVcpuScaling: 'Live vCPU scaling',
   liveVcpuScalingMax: 'up to',
   liveVcpuScalingInfo:
-    'New VMs created by XO can get vCPUs added while they run, up to this number. Not applied to Windows VMs. Existing VMs are not changed.',
-  liveVcpuScalingCapped: 'Limited to {n} on this pool: a VM cannot have more vCPUs than its host has threads.',
+    'VMs created from a template by XO get vCPUs that can be added while they run, up to this number. Not applied to Windows VMs or to existing VMs. Linux guests must bring added vCPUs online: most distributions do, Debian needs a udev rule.',
+  liveVcpuScalingCapped: 'Limited to {n} on this pool: the physical cores of its smallest host.',
   liveVcpuScalingMemory: 'Each possible vCPU reserves about 1 MiB of host memory per VM.',
+  liveVcpuScalingInvalid: 'The maximum must be a whole number from 2 to 128',
   migrationCompressionDisabled: 'Migration compression is not available on this pool',
   poolDisableHa: 'Disabling high availability',
   poolDisableHaConfirm: 'Are you sure you want to disable high availability on this pool?',

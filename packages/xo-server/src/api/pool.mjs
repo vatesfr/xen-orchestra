@@ -9,7 +9,7 @@ import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
 import { fromCallback } from 'promise-toolbox'
 import { moveFirst } from '../_moveFirst.mjs'
-import { HVM_MAX_VCPUS, POOL_KEY as VCPUS_MAX_POOL_KEY } from '../xapi/_vcpuHeadroom.mjs'
+import { HVM_MAX_VCPUS } from '../xapi/_vcpuHeadroom.mjs'
 
 /** @typedef {import('@vates/types').XoNetwork} XoNetwork */
 /** @typedef {import('@vates/types').XoPool} XoPool */
@@ -50,8 +50,7 @@ export async function set({
     suspendSr !== undefined && pool.$call('set_suspend_image_SR', suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef),
     crashDumpSr !== undefined &&
       pool.$call('set_crash_dump_SR', crashDumpSr === null ? Ref.EMPTY : crashDumpSr._xapiRef),
-    vcpusMaxHeadroom !== undefined &&
-      pool.update_other_config(VCPUS_MAX_POOL_KEY, vcpusMaxHeadroom === null ? null : String(vcpusMaxHeadroom)),
+    vcpusMaxHeadroom !== undefined && pool.$xapi.setVcpusMaxHeadroom(vcpusMaxHeadroom),
   ])
 }
 

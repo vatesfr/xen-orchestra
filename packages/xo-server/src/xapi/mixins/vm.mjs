@@ -21,6 +21,8 @@ import { parseSize } from '../../utils.mjs'
 import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
 import {
   computeVcpusMax,
+  getHostCores,
+  hasExplicitVcpusMax,
   isWindowsVm,
   parseVcpusMaxSetting,
   POOL_KEY as VCPUS_MAX_POOL_KEY,
@@ -116,8 +118,7 @@ const methods = {
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
 
-    // an explicit maximum wins over the pool setting
-    if (props.cpusMax === undefined && props.cpusStaticMax === undefined) {
+    if (!hasExplicitVcpusMax(props, template)) {
       await this._applyVcpusMaxHeadroom(vm.$ref)
     }
 
@@ -343,10 +344,9 @@ const methods = {
 
     try {
       // read from XAPI: the cached record may not have the values _editVm just set yet
-      const [currentMax, platform, domainType] = await Promise.all([
+      const [currentMax, platform] = await Promise.all([
         this.getField('VM', vmRef, 'VCPUs_max'),
         this.getField('VM', vmRef, 'platform'),
-        this.getField('VM', vmRef, 'domain_type'),
       ])
       if (isWindowsVm({ platform })) {
         return
@@ -354,12 +354,11 @@ const methods = {
 
       const target = computeVcpusMax({
         setting,
-        hostThreads: Object.values(this.objects.indexes.type.host ?? {})
-          .map(host => +host.cpu_info?.cpu_count)
+        hostCores: Object.values(this.objects.indexes.type.host ?? {})
+          .map(host => getHostCores(host.cpu_info))
           .filter(n => n > 0),
         coresPerSocket: +platform['cores-per-socket'] || 1,
         currentMax: +currentMax,
-        isHvm: domainType !== 'pv',
       })
       if (target !== undefined) {
         await this.call('VM.set_VCPUs_max', vmRef, target)
@@ -424,19 +423,17 @@ const methods = {
       },
 
       get: vm => +vm.VCPUs_at_startup,
-      set(value, vm) {
-        const running = isVmRunning(vm)
 
-        // XAPI accepts it, but Windows keeps running the vCPUs: the VM would then use more vCPUs than XAPI reports
-        if (running && value < +vm.VCPUs_at_startup && isWindowsVm(vm)) {
+      // XAPI accepts it, but Windows keeps running the vCPUs: the VM would then use more vCPUs than XAPI reports
+      validate(value, vm) {
+        if (isVmRunning(vm) && value < +vm.VCPUs_at_startup && isWindowsVm(vm)) {
           throw invalidParameters('Windows cannot remove vCPUs while it runs: shut the VM down to lower its vCPUs')
         }
-
-        return Promise.all([
-          this.setField('VM', vm.$ref, 'VCPUs_at_startup', value),
-          running && vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
-        ])
       },
+      set: [
+        'VCPUs_at_startup',
+        (value, vm) => isVmRunning(vm) && vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
+      ],
     },
 
     cpuCap: {
