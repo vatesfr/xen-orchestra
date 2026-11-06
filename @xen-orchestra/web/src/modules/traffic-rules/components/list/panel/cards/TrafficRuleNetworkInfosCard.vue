@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="traffic-rule-network-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('network')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('network') }}
@@ -82,7 +82,7 @@
           <VtsCopyButton :value="networkDefaultLockingMode" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -91,6 +91,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -124,13 +125,3 @@ const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
 const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
 </script>
-
-<style scoped lang="postcss">
-.traffic-rule-network-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-}
-</style>

@@ -12,7 +12,7 @@
       </VtsCardRowKeyValue>
       <template v-if="isSmartModeEnabled">
         <VtsDivider class="divider" type="stretch" />
-        <div class="content">
+        <VtsCardRowList class="content">
           <VtsCardRowKeyValue v-if="smartModePowerState !== undefined">
             <template #key>
               {{ t('power-state') }}
@@ -42,7 +42,7 @@
             <BackupJobSmartModeTagsItem :tags="smartModeTags.included" :label="t('vms-tags')" />
             <BackupJobSmartModeTagsItem :tags="smartModeTags.excluded" :label="t('excluded-vms-tags')" />
           </template>
-        </div>
+        </VtsCardRowList>
       </template>
       <template v-if="backedUpVmsCount > 0">
         <VtsDivider class="divider" type="stretch" />
@@ -68,6 +68,7 @@ import BackupJobSmartModeTagsItem from '@/modules/backup-job/components/list/pan
 import { useXoBackedUpVmsUtils } from '@/modules/backup-job/composables/use-xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -95,10 +96,6 @@ const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smar
   }
 
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-
     .smart-mode-power-state-value {
       display: flex;
       align-items: center;

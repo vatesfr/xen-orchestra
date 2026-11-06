@@ -63,12 +63,13 @@ Prefer this shape: one assertion covering every row a user sees, and it fails lo
 
 `src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
-| Helper                   | Reads                                                      |
-| ------------------------ | ---------------------------------------------------------- |
-| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
-| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
-| `findCopiedValues`       | what each copyable key/value row copies, keyed by label    |
-| `findCardCopiedValues`   | what each copyable `VtsCardRowKeyValue` copies, in order   |
+| Helper                       | Reads                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
+| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
+| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
+| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
@@ -80,13 +81,10 @@ A row offers a copy button through its `copy` prop (copies its `value`) or its `
 expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
 
-Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
+Both read one value per row. A `VtsCardRowKeyValue` given several `values` (an address list, report recipients) renders them all under a single label, so read it with `findCardLabelledValueLists` instead:
 
 ```typescript
-expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())).toEqual([
-  '10.0.0.1',
-  '10.0.0.2',
-])
+expect(findCardLabelledValueLists(wrapper)).toEqual({ [t('ip-addresses')]: ['10.0.0.1', '10.0.0.2'] })
 ```
 
 When a card mixes deterministic values with environment-derived ones (a relative start time, a formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.

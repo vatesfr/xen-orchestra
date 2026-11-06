@@ -1,4 +1,5 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { InfoSize } from '@core/components/ui/info/UiInfo.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
@@ -24,3 +25,5 @@ export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boo
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
 
 export const IK_OVERLAY_ACCENT = Symbol('IK_OVERLAY_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>
+
+export const IK_INFO_SIZE = Symbol('IK_INFO_SIZE') as InjectionKey<InfoSize>

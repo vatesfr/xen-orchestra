@@ -3,6 +3,7 @@
 ## **next**
 
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
+- [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 
 ## **0.27.0** (2026-10-29)
 
