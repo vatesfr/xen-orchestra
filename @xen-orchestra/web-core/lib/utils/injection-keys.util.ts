@@ -1,6 +1,7 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { InfoSize } from '@core/components/ui/info/UiInfo.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
+import type { TreeItemLabelSize } from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import type { ValueFormatter } from '@core/types/chart.ts'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 
@@ -13,6 +14,8 @@ export const IK_TREE_ITEM_TOGGLE = Symbol('IK_TREE_ITEM_TOGGLE') as InjectionKey
 export const IK_TREE_ITEM_EXPANDED = Symbol('IK_TREE_ITEM_EXPANDED') as InjectionKey<Ref<boolean>>
 
 export const IK_TREE_LIST_DEPTH = Symbol('IK_TREE_LIST_DEPTH') as InjectionKey<Ref<number>>
+
+export const IK_TREE_ITEM_LABEL_SIZE = Symbol('IK_TREE_ITEM_LABEL_SIZE') as InjectionKey<TreeItemLabelSize>
 
 export const IK_MENU_HORIZONTAL = Symbol('IK_MENU_HORIZONTAL') as InjectionKey<ComputedRef<boolean>>
 
