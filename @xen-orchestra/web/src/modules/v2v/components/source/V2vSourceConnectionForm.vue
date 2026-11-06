@@ -1,9 +1,6 @@
 <template>
   <UiCard class="v2v-source-connection-form">
-    <UiCardTitle>
-      {{ t('v2v:connect-new-vmware-source') }}
-      <template #description>{{ t('v2v:vcenter-or-esxi') }}</template>
-    </UiCardTitle>
+    <UiCardTitle>{{ t('v2v:connect-new-vmware-source') }}</UiCardTitle>
     <V2vPrerequisiteStatus :prerequisite />
     <VtsForm class="form" @submit="emit('submit')">
       <div class="fields">

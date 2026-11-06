@@ -1463,7 +1463,6 @@
   "v2v:prerequisite-error": "Prerequisite check: vectura cannot be used, VMs cannot be migrated until it is fixed",
   "v2v:prerequisite-error-detail": "Prerequisite check: vectura cannot be used ({error}), VMs cannot be migrated until it is fixed",
   "v2v:prerequisite-ok": "Prerequisite check: vectura OK",
-  "v2v:vcenter-or-esxi": "vCenter or ESXi. Other platforms will add a platform choice here.",
   "value-by-default": "{value} by default",
   "vcpu": "vCPU",
   "vcpu-at-startup": "vCPU at startup",
