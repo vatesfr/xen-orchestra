@@ -999,7 +999,7 @@ const messages = {
   liveVcpuScaling: 'Live vCPU scaling',
   liveVcpuScalingMax: 'up to',
   liveVcpuScalingInfo:
-    'VMs created from a template by XO get vCPUs that can be added while they run, up to this number. Not applied to Windows VMs or to existing VMs. Linux guests must bring added vCPUs online: most distributions do, Debian needs a udev rule.',
+    'VMs created from a template by XO get vCPUs that can be added while they run, up to this number. Not applied to Windows VMs or to existing VMs. Linux guests must bring added vCPUs online: Ubuntu, Rocky and AlmaLinux do, Debian needs a udev rule.',
   liveVcpuScalingCapped: 'Limited to {n} on this pool: the physical cores of its smallest host.',
   liveVcpuScalingMemory: 'Each possible vCPU reserves about 1 MiB of host memory per VM.',
   liveVcpuScalingInvalid: 'The maximum must be a whole number from 2 to 128',
