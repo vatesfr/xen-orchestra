@@ -147,6 +147,7 @@ const { HeadCells, BodyCells } = useServerColumns({
           label: server.primaryHostName,
           to: server.master ? `/host/${server.master}/dashboard` : undefined,
           icon: server.primaryHostIcon,
+          iconTooltip: server.primaryHostIconTooltip,
           rightIcon: server.primaryHostRightIcon
             ? {
                 icon: server.primaryHostRightIcon,

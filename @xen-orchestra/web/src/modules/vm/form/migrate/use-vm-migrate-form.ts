@@ -1,3 +1,4 @@
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import {
@@ -35,6 +36,7 @@ export type VmMigratePayload = {
 
 export function useVmMigrateForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { t } = useI18n()
+  const { getHostIconTooltip } = useXoHostOperationLabel()
 
   const vm = toComputed(rawVm)
 
@@ -175,7 +177,7 @@ export function useVmMigrateForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     option: {
       label: 'name_label',
       value: 'id',
-      properties: host => ({ icon: getHostIcon(host) }),
+      properties: host => ({ icon: getHostIcon(host), iconTooltip: getHostIconTooltip(host) }),
     },
   })
 

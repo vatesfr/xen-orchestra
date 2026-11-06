@@ -2,7 +2,7 @@
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
       <UiLink v-if="vm" :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-        <VtsObjectIcon type="vm" :state="vmPowerState" size="current" />
+        <VtsIcon :name="vmIcon" :tooltip="vmIconTooltip" size="current" />
         {{ vm.name_label }}
       </UiLink>
       <UiLink v-if="vm && network" :size :to="{ name: '/vm/[id]/networks', params: { id: vm.id } }">
@@ -34,16 +34,16 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -61,7 +61,10 @@ const { useGetNetworkById } = useXoNetworkCollection()
 const vm = useGetVmById(() => vif.$VM)
 const network = useGetNetworkById(() => vif.$network)
 
-const vmPowerState = computed(() => toLower(vm.value?.power_state))
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmIcon = computed(() => getVmIcon(vm.value))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm.value))
 </script>
 
 <style lang="postcss" scoped>

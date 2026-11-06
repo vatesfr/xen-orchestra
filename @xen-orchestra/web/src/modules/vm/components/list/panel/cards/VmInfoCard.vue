@@ -5,7 +5,8 @@
       size="medium"
       :label="vm.name_label"
       :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
-      :icon="`object:vm:${toLower(vm.power_state)}`"
+      :icon="vmIcon"
+      :icon-tooltip="iconTooltip"
     />
     <div class="content">
       <VtsCardRowKeyValue>
@@ -128,6 +129,7 @@ import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -138,7 +140,6 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -173,7 +174,9 @@ const pool = useGetPoolById(() => vm.$pool)
 
 const host = computed(() => getVmHost(vm))
 
-const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay, iconTooltip } = useXoVmUtils(() => vm)
+
+const vmIcon = computed(() => getVmIcon(vm))
 </script>
 
 <style scoped lang="postcss">

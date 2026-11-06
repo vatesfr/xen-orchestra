@@ -14,6 +14,7 @@ import {
 } from '@/modules/traffic-rules/form/use-traffic-rule-form-base.ts'
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { TrafficRule, TrafficRuleTargetType } from '@vates/types'
@@ -28,6 +29,7 @@ export type EditTrafficRuleFormData = BaseTrafficRuleFormData & {
 
 export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
   const { t } = useI18n()
+  const { getVmIconTooltip } = useXoVmOperationLabel()
 
   const rule = toComputed(rawRule)
 
@@ -66,7 +68,7 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
   const vmOptions = computed(() => {
     if (ruleVm.value) {
       const hasVifs = ruleVm.value.VIFs.length > 0
-      return [vmToTargetOption(ruleVm.value, hasVifs)]
+      return [vmToTargetOption(ruleVm.value, hasVifs, getVmIconTooltip(ruleVm.value))]
     }
     return []
   })
@@ -100,7 +102,11 @@ export function useEditTrafficRuleForm(rawRule: MaybeRefOrGetter<TrafficRule>) {
   const { id: vmSelectId } = useFormSelect('vmId', vmOptions, {
     required: () => isVifTarget.value,
     disabled: () => true,
-    option: { label: 'label', value: 'value', properties: source => ({ icon: source.icon }) },
+    option: {
+      label: 'label',
+      value: 'value',
+      properties: source => ({ icon: source.icon, iconTooltip: source.iconTooltip }),
+    },
   })
 
   const { id: targetSelectId } = useFormSelect('targetId', targetOptions, {
