@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Add `POST /rest/v0/vms/{id}/actions/eject_cd` to eject the CD from a VM (PR [#10660](https://github.com/vatesfr/xen-orchestra/pull/10660))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,9 +36,10 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor

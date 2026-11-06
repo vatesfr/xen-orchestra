@@ -638,6 +638,47 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * Eject the CD currently inserted in the VM's CD drive.
+   *
+   * Does nothing if the VM has no CD drive or if the drive is already empty.
+   *
+   * Required privilege:
+   * - resource: vm, action: eject-cd
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/eject_cd')
+  @Middlewares(acl({ resource: 'vm', action: 'eject-cd', objectId: 'params.id' }))
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async ejectCdVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapi(vmId)
+        .ejectCdFromVm(vmId)
+        .catch(error => {
+          if (error.code !== 'VBD_IS_EMPTY') {
+            throw error
+          }
+        })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'eject CD from VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
    * Required privilege:
    * - resource: vm, action: revert-snapshot
    * - resource: vm, action: snapshot (if `snapshotBefore: true`)
