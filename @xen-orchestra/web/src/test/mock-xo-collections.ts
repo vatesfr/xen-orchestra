@@ -27,11 +27,10 @@ import type {
   useXoVmTemplateCollection as realUseXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { groupBy } from '@/test/group-by.ts'
-import { computed, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-// Shared state of the mocked collections a destination is chosen from: a test sets the objects it needs,
-// reset it in `beforeEach`
-export const destinationCollectionsMock = {
+// Shared state of the mocked collections: a test sets the objects it needs, reset it in `beforeEach`
+export const xoCollectionsMock = {
   pools: ref<FrontXoPool[]>([]),
   arePoolsReady: ref(true),
   hosts: ref<FrontXoHost[]>([]),
@@ -52,35 +51,37 @@ export const destinationCollectionsMock = {
   },
 }
 
-// Use as `vi.mock(import('<collection module>'), () => import('@/test/mock-xo-destination-collections.ts'))`
+// Use as `vi.mock(import('<collection module>'), () => import('@/test/mock-xo-collections.ts'))`
 // for each collection below: every mocked module picks its own export
 export const useXoPoolCollection = (() => ({
-  pools: destinationCollectionsMock.pools,
-  arePoolsReady: destinationCollectionsMock.arePoolsReady,
-  hasPoolById: (id: FrontXoPool['id']) => destinationCollectionsMock.pools.value.some(pool => pool.id === id),
+  pools: xoCollectionsMock.pools,
+  arePoolsReady: xoCollectionsMock.arePoolsReady,
+  hasPoolById: (id: FrontXoPool['id']) => xoCollectionsMock.pools.value.some(pool => pool.id === id),
+  useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
+    computed(() => xoCollectionsMock.pools.value.find(pool => pool.id === toValue(id))),
 })) as unknown as typeof realUseXoPoolCollection
 
 export const useXoHostCollection = (() => ({
-  hosts: destinationCollectionsMock.hosts,
-  getHostById: (id: FrontXoHost['id']) => destinationCollectionsMock.hosts.value.find(host => host.id === id),
+  hosts: xoCollectionsMock.hosts,
+  getHostById: (id: FrontXoHost['id']) => xoCollectionsMock.hosts.value.find(host => host.id === id),
 })) as unknown as typeof realUseXoHostCollection
 
 export const useXoSrCollection = (() => ({
-  srs: destinationCollectionsMock.srs,
+  srs: xoCollectionsMock.srs,
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
-  networks: destinationCollectionsMock.networks,
+  networks: xoCollectionsMock.networks,
 })) as unknown as typeof realUseXoNetworkCollection
 
 export const useXoPbdCollection = (() => ({
-  pbdsBySr: computed(() => groupBy(destinationCollectionsMock.pbds.value, pbd => pbd.SR)),
+  pbdsBySr: computed(() => groupBy(xoCollectionsMock.pbds.value, pbd => pbd.SR)),
 })) as unknown as typeof realUseXoPbdCollection
 
 export const useXoPifCollection = (() => ({
-  pifs: destinationCollectionsMock.pifs,
+  pifs: xoCollectionsMock.pifs,
 })) as unknown as typeof realUseXoPifCollection
 
 export const useXoVmTemplateCollection = (() => ({
-  templates: destinationCollectionsMock.templates,
+  templates: xoCollectionsMock.templates,
 })) as unknown as typeof realUseXoVmTemplateCollection
