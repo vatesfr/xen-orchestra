@@ -1469,7 +1469,7 @@
   "v2v:choose-vmware-source": "Choose the VMware source",
   "v2v:connect-new-vmware-source": "Connect a new VMware source",
   "v2v:credentials-never-stored": "Credentials are never stored by XO: they stay in this browser and are sent with each request that needs VMware. Migration status is shared by everyone who connects to the same vCenter.",
-  "v2v:destination-pool-info": "A migration goes from one source to one pool. Both are fixed once VMs are selected.",
+  "v2v:destination-pool-info": "A migration goes from one source to one pool. Each source and pool pair has its own list.",
   "v2v:existing-list-info": "This browser already holds a migration list for {migration} ({vms}). Continuing reopens it, with the current migration state of every VM.",
   "v2v:global-defaults-info": "Applied to every VM, disk and network adapter. Each VM can override them in step 4 (Mapping). The SR and network are prefilled with the pool default SR and the management network of the pool master.",
   "v2v:prerequisite-checking": "Prerequisite check: checking vectura…",

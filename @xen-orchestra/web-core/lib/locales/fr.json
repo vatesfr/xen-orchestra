@@ -1469,7 +1469,7 @@
   "v2v:choose-vmware-source": "Choisir la source VMware",
   "v2v:connect-new-vmware-source": "Connecter une nouvelle source VMware",
   "v2v:credentials-never-stored": "Les identifiants ne sont jamais stockés par XO : ils restent dans ce navigateur et sont envoyés avec chaque requête qui nécessite VMware. L'état des migrations est partagé par tous ceux qui se connectent au même vCenter.",
-  "v2v:destination-pool-info": "Une migration va d’une source vers un pool. Les deux sont figés dès que des VMs sont sélectionnées.",
+  "v2v:destination-pool-info": "Une migration va d’une source vers un pool. Chaque couple source et pool a sa propre liste.",
   "v2v:existing-list-info": "Ce navigateur contient déjà une liste de migration pour {migration} ({vms}). Continuer la rouvre, avec l’état de migration actuel de chaque VM.",
   "v2v:global-defaults-info": "Appliquées à chaque VM, disque et carte réseau. Chaque VM peut les remplacer à l’étape 4 (Correspondance). Le SR et le réseau sont préremplis avec le SR par défaut du pool et le réseau de management du maître du pool.",
   "v2v:prerequisite-checking": "Vérification des prérequis : vérification de vectura…",
