@@ -1,6 +1,6 @@
 import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stats.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
+import { createV2vColdAndWarmImportVms, createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -21,8 +21,7 @@ function mountSourceStats(sourceId: MaybeRefOrGetter<string | undefined>) {
 
 it('counts the warm and cold imports of the source', () => {
   vmCollectionMock.vms.value = [
-    createV2vImportVm({ isWarm: false }, { id: 'xo-vm-1' as FrontXoVm['id'] }),
-    createV2vImportVm({ isWarm: true }, { id: 'xo-vm-2' as FrontXoVm['id'] }),
+    ...createV2vColdAndWarmImportVms(),
     createV2vImportVm({ sourceId: 'other-vcenter' }, { id: 'xo-vm-3' as FrontXoVm['id'] }),
   ]
 

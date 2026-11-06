@@ -24,6 +24,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createV2vConnection` / `createV2vRememberedConnection`   | `XoV2vConnection` / `V2vRememberedConnection`                |
 | `createV2vInventory`, `createV2vVm`, `createV2vDatastore` | `XoV2vInventory` and its VM / datastore                      |
 | `createV2vImportVm`                                       | `FrontXoVm` imported by V2V (its markers, then VM overrides) |
+| `createV2vColdAndWarmImportVms`                           | one cold and one warm V2V import of the test source          |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 
