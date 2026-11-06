@@ -13,7 +13,8 @@ import { extract } from '@xen-orchestra/xapi/xoData.mjs'
 import { finished } from 'node:stream'
 import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
 import { JsonRpcError } from 'json-rpc-protocol'
-import { Agent } from 'undici'
+// fetch from the same undici as the dispatcher: Node 26's global fetch rejects it
+import { Agent, fetch } from 'undici'
 import { Ref } from 'xen-api'
 
 import isDefaultTemplate from './isDefaultTemplate.mjs'

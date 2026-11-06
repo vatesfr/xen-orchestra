@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [Node 26] Fix ESXi import, imports from a URL, web hooks, proxies and patches failing with `Promise.withResolvers is not a function` or `fetch failed` (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Packages to release
 
@@ -35,10 +36,13 @@
 
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xo-cli patch
 - xo-server minor
 - xo-web minor
 
