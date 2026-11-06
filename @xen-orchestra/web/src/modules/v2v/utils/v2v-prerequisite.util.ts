@@ -23,3 +23,7 @@ export function getV2vPrerequisiteState({
 
   return { state: 'ok' }
 }
+
+export function isV2vPrerequisiteOk(prerequisite: V2vPrerequisiteState): boolean {
+  return prerequisite.state === 'ok'
+}

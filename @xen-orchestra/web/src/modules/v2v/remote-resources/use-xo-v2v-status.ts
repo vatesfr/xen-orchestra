@@ -1,4 +1,4 @@
-import { getV2vPrerequisiteState } from '@/modules/v2v/utils/v2v-prerequisite.util.ts'
+import { getV2vPrerequisiteState, isV2vPrerequisiteOk } from '@/modules/v2v/utils/v2v-prerequisite.util.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoV2vStatus } from '@vates/types'
@@ -18,7 +18,7 @@ export const useXoV2vStatus = defineRemoteResource({
 
     return {
       v2vPrerequisite,
-      canConnectV2vSource: computed(() => v2vPrerequisite.value.state === 'ok'),
+      canConnectV2vSource: computed(() => isV2vPrerequisiteOk(v2vPrerequisite.value)),
     }
   },
 })
