@@ -4,7 +4,7 @@
       <V2vRememberedConnectionList
         :connections="rememberedConnections"
         :disabled="!canConnect || isConnecting"
-        @connect="connection => connectRemembered(connection)"
+        @connect="connection => connectRememberedConnection(connection)"
         @edit="connection => editRemembered(connection)"
         @forget="connection => forgetRemembered(connection)"
         @forget-password="connection => forgetRememberedPassword(connection)"
@@ -28,6 +28,7 @@ import V2vRememberedConnectionList from '@/modules/v2v/components/source/V2vReme
 import V2vRememberedConnectionsCard from '@/modules/v2v/components/source/V2vRememberedConnectionsCard.vue'
 import V2vSourceConnectionForm from '@/modules/v2v/components/source/V2vSourceConnectionForm.vue'
 import { useV2vSourceStep } from '@/modules/v2v/composables/use-v2v-source-step.composable.ts'
+import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
 import { useTemplateRef } from 'vue'
 
 const connectionForm = useTemplateRef('connectionForm')
@@ -45,7 +46,15 @@ const {
   forgetRemembered,
   forgetRememberedPassword,
   cancel,
-} = useV2vSourceStep({ onPasswordRequired: () => connectionForm.value?.focusPassword() })
+} = useV2vSourceStep()
+
+async function connectRememberedConnection(connection: V2vRememberedConnection) {
+  const { isPasswordRequired } = await connectRemembered(connection)
+
+  if (isPasswordRequired) {
+    connectionForm.value?.focusPassword()
+  }
+}
 </script>
 
 <style lang="postcss" scoped>
