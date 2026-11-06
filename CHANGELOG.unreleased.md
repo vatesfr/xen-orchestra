@@ -28,8 +28,7 @@
 > - major: if the change breaks compatibility
 >
 > Keep this list alphabetically ordered to avoid merge conflicts
-
-<!--packages-start-->
+> yarn<!--packages-start-->
 
 - @vates/types minor
 - @xen-orchestra/backups minor

@@ -26,7 +26,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  task: FrontXoTask
+  task: Pick<FrontXoTask, 'infos'>
 }>()
 
 const { t } = useI18n()

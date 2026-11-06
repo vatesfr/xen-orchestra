@@ -1,12 +1,12 @@
 <template>
   <span v-if="task.nameParts || task.name" class="vts-task-name">
-    <UiLink v-if="task.to" :size display-inline :to="task.to">{{ fullName }}</UiLink>
+    <UiLink v-if="task.to" :size :display-inline="!task.icon" :to="task.to" :icon="task.icon">{{ fullName }}</UiLink>
     <template v-else-if="task.nameParts">
       <UiLink v-for="(part, index) in task.nameParts" :key="index" :size display-inline :to="part.to">{{
         part.text
       }}</UiLink>
     </template>
-    <UiLink v-else :size display-inline>{{ task.name }}</UiLink>
+    <UiLink v-else :size :display-inline="!task.icon" :icon="task.icon">{{ task.name }}</UiLink>
   </span>
 </template>
 
@@ -16,7 +16,7 @@ import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { computed } from 'vue'
 
 const { task, size } = defineProps<{
-  task: Pick<Task, 'name' | 'nameParts' | 'to'>
+  task: Pick<Task, 'name' | 'icon' | 'nameParts' | 'to'>
   size: 'small' | 'medium'
 }>()
 

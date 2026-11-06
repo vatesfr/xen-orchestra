@@ -113,6 +113,36 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/backup-log/[id]': RouteRecordInfo<
+      '/admin/backup-log/[id]',
+      '/admin/backup-log/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/backup-log/[id]/backed-up-vms'
+      | '/admin/backup-log/[id]/general'
+      | '/admin/backup-log/[id]/run'
+    >,
+    '/admin/backup-log/[id]/backed-up-vms': RouteRecordInfo<
+      '/admin/backup-log/[id]/backed-up-vms',
+      '/admin/backup-log/:id/backed-up-vms',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/general': RouteRecordInfo<
+      '/admin/backup-log/[id]/general',
+      '/admin/backup-log/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/run': RouteRecordInfo<
+      '/admin/backup-log/[id]/run',
+      '/admin/backup-log/:id/run',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/backup-repository/[id]': RouteRecordInfo<
       '/admin/backup-repository/[id]',
       '/admin/backup-repository/:id',
@@ -611,6 +641,33 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-and-replication/logs.vue': {
       routes:
         | '/admin/backup-and-replication/logs'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id].vue': {
+      routes:
+        | '/admin/backup-log/[id]'
+        | '/admin/backup-log/[id]/backed-up-vms'
+        | '/admin/backup-log/[id]/general'
+        | '/admin/backup-log/[id]/run'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-log/[id]/backed-up-vms.vue': {
+      routes:
+        | '/admin/backup-log/[id]/backed-up-vms'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/general.vue': {
+      routes:
+        | '/admin/backup-log/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/run.vue': {
+      routes:
+        | '/admin/backup-log/[id]/run'
       views:
         | never
     }
