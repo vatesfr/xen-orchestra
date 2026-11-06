@@ -1,7 +1,7 @@
 <template>
   <div class="tasks-list">
     <UiTitle>
-      {{ t('tasks') }}
+      {{ title ?? t('tasks') }}
     </UiTitle>
     <UiQuerySearchBar @search="value => (searchQuery = value)" />
     <div class="container">
@@ -41,10 +41,11 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { tasks } = defineProps<{
+const { tasks, title } = defineProps<{
   tasks: Task[]
   hasError: boolean
   busy: boolean
+  title?: string
 }>()
 
 const { t } = useI18n()
