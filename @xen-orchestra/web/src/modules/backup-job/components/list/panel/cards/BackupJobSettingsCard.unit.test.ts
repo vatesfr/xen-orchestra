@@ -2,7 +2,7 @@ import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/ca
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -46,16 +46,6 @@ function mountSettingsCard(backupJob: FrontAnyXoBackupJob) {
 
 function findLabels(wrapper: ReturnType<typeof mountSettingsCard>) {
   return Object.keys(findCardLabelledValues(wrapper))
-}
-
-function findRecipients(wrapper: ReturnType<typeof mountSettingsCard>) {
-  const rows = wrapper.findAll('.vts-card-row-key-value')
-  const firstRecipientIndex = rows.findIndex(row => row.get('.key').text() === t('report-recipients'))
-
-  return rows
-    .slice(firstRecipientIndex)
-    .filter((row, index) => index === 0 || row.get('.key').text() === '')
-    .map(row => row.get('.value').text())
 }
 
 describe('rows', () => {
@@ -163,7 +153,7 @@ describe('report recipients', () => {
   it('shows the first recipients, then all of them on demand', async () => {
     const wrapper = mountSettingsCard(createMetadataBackupJob({ settings: { '': { reportRecipients: recipients } } }))
 
-    expect(findRecipients(wrapper)).toEqual(recipients.slice(0, 5))
+    expect(findCardLabelledValueLists(wrapper)[t('report-recipients')]).toEqual(recipients.slice(0, 5))
 
     const seeMoreButton = wrapper.getComponent(UiButton)
 
@@ -171,7 +161,7 @@ describe('report recipients', () => {
 
     await seeMoreButton.trigger('click')
 
-    expect(findRecipients(wrapper)).toEqual(recipients)
+    expect(findCardLabelledValueLists(wrapper)[t('report-recipients')]).toEqual(recipients)
     expect(seeMoreButton.text()).toBe(t('action:see-less'))
   })
 

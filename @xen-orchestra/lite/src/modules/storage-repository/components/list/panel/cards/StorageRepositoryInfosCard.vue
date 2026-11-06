@@ -1,12 +1,12 @@
 <template>
-  <UiPanelCard class="storage-repository-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle
       :id="sr.uuid"
       size="medium"
       :label="sr.name_label"
       :icon="sr.name_label ? srStatusIcon : undefined"
     />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -56,7 +56,7 @@
         <template #key>{{ t('high-availability') }}</template>
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -66,6 +66,7 @@ import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.co
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -96,13 +97,3 @@ const allocationStrategy = computed(() => getAllocationStrategy(sr) ?? t('unknow
 
 const isHaSr = computed(() => isHaSrForPool(sr, pool))
 </script>
-
-<style scoped lang="postcss">
-.storage-repository-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

@@ -1,8 +1,8 @@
 <template>
   <UiPanelCard v-if="vmSnapshotVdiSnapshots.length > 0" class="snapshot-vdi-card">
     <UiPanelCardTitle size="medium" :label="t('vdis')" :counter="vmSnapshotVdiSnapshots.length" />
-    <div class="content">
-      <div v-for="(vmSnapshotVdi, index) in vmSnapshotVdiSnapshots" :key="vmSnapshotVdi.id" class="content">
+    <VtsCardRowList class="content">
+      <VtsCardRowList v-for="(vmSnapshotVdi, index) in vmSnapshotVdiSnapshots" :key="vmSnapshotVdi.id" class="content">
         <SnapshotVdiLinkCardItem :vdi="vmSnapshotVdi" />
         <!-- DESCRIPTION -->
         <VtsCardRowKeyValue truncate>
@@ -19,8 +19,8 @@
         <!-- FORMAT -->
         <VdiFormatCardItem :format="vmSnapshotVdi.image_format" />
         <VtsDivider v-if="index < vmSnapshotVdiSnapshots.length - 1" class="divider" type="stretch" />
-      </div>
-    </div>
+      </VtsCardRowList>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -31,6 +31,7 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import { useXoVmSnapshotVdiCollection } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-vdi-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -47,10 +48,6 @@ const { vmSnapshotVdiSnapshots } = useXoVmSnapshotVdiCollection({}, () => snapsh
 <style scoped lang="postcss">
 .snapshot-vdi-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .divider {
       margin-block: 1.6rem;
     }

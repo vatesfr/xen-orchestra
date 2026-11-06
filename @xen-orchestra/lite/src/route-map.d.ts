@@ -317,6 +317,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/card/vts-card-row-list': RouteRecordInfo<
+      '/story/web-core/card/vts-card-row-list',
+      '/story/web-core/card/vts-card-row-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/cell-object/vts-cell-object': RouteRecordInfo<
       '/story/web-core/cell-object/vts-cell-object',
       '/story/web-core/cell-object/vts-cell-object',
@@ -1382,6 +1389,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/card/vts-card-row-key-value.story.vue': {
       routes:
         | '/story/web-core/card/vts-card-row-key-value'
+      views:
+        | never
+    }
+    'src/stories/web-core/card/vts-card-row-list.story.vue': {
+      routes:
+        | '/story/web-core/card/vts-card-row-list'
       views:
         | never
     }

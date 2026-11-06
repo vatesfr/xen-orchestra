@@ -12,7 +12,7 @@
           icon="object:network"
           :href="networkHref"
         />
-        <div class="content">
+        <VtsCardRowList class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
@@ -56,7 +56,7 @@
             <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <NetworkPifsInfoCard :network />
     </template>
@@ -70,6 +70,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -116,10 +117,6 @@ const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('
 <style scoped lang="postcss">
 .network-side-panel {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value:empty::before {
       content: '-';
     }

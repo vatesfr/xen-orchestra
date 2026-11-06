@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-log-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-run" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
         <template #value>{{ formattedStartDate }}</template>
@@ -85,7 +85,7 @@
           <VtsStatus :status="backupLog.status" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -99,6 +99,7 @@ import { useXoSrCollection } from '@/modules/storage-repository/remote-resources
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -156,13 +157,3 @@ const srs = computed(() =>
   })
 )
 </script>
-
-<style scoped lang="postcss">
-.backup-log-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard class="traffic-rule-summary-card">
     <UiPanelCardTitle size="medium" :label="t('traffic-rule')" icon="fa:traffic-rule" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('rule-type') }}
@@ -44,7 +44,7 @@
           <VtsCopyButton :value="description" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -57,6 +57,7 @@ import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-co
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -127,12 +128,6 @@ const vifDevice = computed(() => `${t('vif')}${vif.value?.device}`)
 
 <style scoped lang="postcss">
 .traffic-rule-summary-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
   .value-content {
     display: inline-flex;
     flex-wrap: wrap;

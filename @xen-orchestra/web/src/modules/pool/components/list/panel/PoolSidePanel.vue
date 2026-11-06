@@ -1,5 +1,5 @@
 <template>
-  <VtsSidePanel :has-selection="!!server" class="pool-side-panel" @close="emit('close')">
+  <VtsSidePanel :has-selection="!!server" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
       <MenuList placement="bottom-end">
@@ -34,7 +34,7 @@
             :icon="poolInfo.icon"
             :disabled="!isConnected"
           />
-          <div class="content">
+          <VtsCardRowList>
             <!-- Description -->
             <VtsCardRowKeyValue truncate align-top>
               <template #key>{{ t('description') }}</template>
@@ -55,68 +55,70 @@
                 <VtsCopyButton :value="pool.tags.join(', ')" />
               </template>
             </VtsCardRowKeyValue>
-          </div>
+          </VtsCardRowList>
         </UiPanelCard>
         <UiPanelCard>
           <UiPanelCardTitle size="medium" :label="t('connection')" />
-          <!-- status -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('status') }}</template>
-            <template #value>
-              <UiInfo :accent="connectionStatus.accent">
-                {{ connectionStatus.text }}
-              </UiInfo>
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- primary-host -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('master') }}</template>
-            <template #value>
-              <HostLink v-if="primaryHost !== undefined" :host="primaryHost" size="small" />
-            </template>
-            <template v-if="primaryHost !== undefined" #addons>
-              <VtsCopyButton :value="primaryHost.id" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- ip-address -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('ip-address') }}</template>
-            <template #value>{{ server.host }}</template>
-            <template #addons>
-              <VtsCopyButton :value="server.host" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- proxy-url -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('proxy-url') }}</template>
-            <template #value>{{ server.httpProxy }}</template>
-            <template v-if="server.httpProxy !== undefined" #addons>
-              <VtsCopyButton :value="server.httpProxy" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- username -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('username') }}</template>
-            <template #value>{{ server.username }}</template>
-            <template #addons>
-              <VtsCopyButton :value="server.username" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- read-only -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('read-only') }}</template>
-            <template #value>
-              <VtsStatus :status="server.readOnly" />
-            </template>
-          </VtsCardRowKeyValue>
-          <!-- self-signed-certificates -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('self-signed-certificates') }}</template>
-            <template #value>
-              <!-- todo add information button. waiting modal -->
-              <VtsStatus :status="server.allowUnauthorized" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCardRowList>
+            <!-- status -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('status') }}</template>
+              <template #value>
+                <UiInfo :accent="connectionStatus.accent">
+                  {{ connectionStatus.text }}
+                </UiInfo>
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- primary-host -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('master') }}</template>
+              <template #value>
+                <HostLink v-if="primaryHost !== undefined" :host="primaryHost" size="small" />
+              </template>
+              <template v-if="primaryHost !== undefined" #addons>
+                <VtsCopyButton :value="primaryHost.id" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- ip-address -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('ip-address') }}</template>
+              <template #value>{{ server.host }}</template>
+              <template #addons>
+                <VtsCopyButton :value="server.host" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- proxy-url -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('proxy-url') }}</template>
+              <template #value>{{ server.httpProxy }}</template>
+              <template v-if="server.httpProxy !== undefined" #addons>
+                <VtsCopyButton :value="server.httpProxy" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- username -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('username') }}</template>
+              <template #value>{{ server.username }}</template>
+              <template #addons>
+                <VtsCopyButton :value="server.username" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- read-only -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('read-only') }}</template>
+              <template #value>
+                <VtsStatus :status="server.readOnly" />
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- self-signed-certificates -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('self-signed-certificates') }}</template>
+              <template #value>
+                <!-- todo add information button. waiting modal -->
+                <VtsStatus :status="server.allowUnauthorized" />
+              </template>
+            </VtsCardRowKeyValue>
+          </VtsCardRowList>
         </UiPanelCard>
         <UiPanelCard v-if="hosts !== undefined">
           <UiPanelCardTitle size="medium" :label="t('hosts')" :counter="hosts.length" />
@@ -146,6 +148,7 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
@@ -198,13 +201,3 @@ const connectionStatus = useMapper(
   'error'
 )
 </script>
-
-<style scoped lang="postcss">
-.pool-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>
