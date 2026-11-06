@@ -464,7 +464,7 @@ export class HostController extends XapiXoController<XoHost> {
    * Move the management IP configuration (IP, netmask, gateway, DNS) of the host
    * to the given PIF, then remove it from the previous management PIF.
    *
-   * The target PIF must be connected and must not have an IP address configured.
+   * The target PIF must be attached and must not have an IP address configured.
    * The current management PIF must use a static IP configuration.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
