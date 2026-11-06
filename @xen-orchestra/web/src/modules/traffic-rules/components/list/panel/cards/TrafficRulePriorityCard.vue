@@ -64,6 +64,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { FALLBACK_LOCALE } from '@core/i18n.ts'
 import { computed, ref, watch } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
@@ -79,15 +80,38 @@ const { t, te, locale } = useI18n()
 
 const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
-const networkRules = computed(() => getNetworkRules(rules, rule.networkId))
+const ordinalSuffix = computed(() => {
+  const suffixesKey = 'traffic-rules:rule-ordinal-suffixes'
 
-const isExpanded = ref(false)
+  let messageLocale = FALLBACK_LOCALE
+
+  if (te('traffic-rules:position-on-network', locale.value)) {
+    messageLocale = locale.value
+  }
+
+  if (!te(suffixesKey, messageLocale)) {
+    return undefined
+  }
+
+  return getOrdinalSuffix(t(suffixesKey, {}, { locale: messageLocale }), messageLocale, rule.rank)
+})
+
+const networkRules = computed(() => getNetworkRules(rules, rule.networkId))
 
 const networkRuleItems = computed(() =>
   networkRules.value.map(networkRule => ({
     networkRule,
     protocolLabel: getTrafficRuleProtocolLabel(networkRule),
   }))
+)
+
+const isExpanded = ref(false)
+
+watch(
+  () => rule.id,
+  () => {
+    isExpanded.value = false
+  }
 )
 
 const hasHiddenRules = computed(() => networkRules.value.length > VISIBLE_RULES_COUNT)
@@ -102,23 +126,6 @@ const visibleNetworkRuleItems = computed(() => {
   const start = Math.min(Math.max(centeredStart, 0), lastStart)
 
   return networkRuleItems.value.slice(start, start + VISIBLE_RULES_COUNT)
-})
-
-watch(
-  () => rule.id,
-  () => {
-    isExpanded.value = false
-  }
-)
-
-const ordinalSuffix = computed(() => {
-  const key = 'traffic-rules:rule-ordinal-suffixes'
-
-  if (!te(key, locale.value)) {
-    return undefined
-  }
-
-  return getOrdinalSuffix(t(key), locale.value, rule.rank)
 })
 </script>
 

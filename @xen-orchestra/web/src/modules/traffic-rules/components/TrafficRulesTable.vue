@@ -101,7 +101,7 @@ const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
 
-const { getNetworkById } = useXoNetworkCollection()
+const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 
 const showRulesFormatWarning = computed(() => {
   const ofMethod = pool?.otherConfig[SDN_CONTROLLER_OF_METHOD_KEY]
@@ -119,7 +119,6 @@ const enrichedRules = computed(() =>
     return {
       ...rule,
       networkLabel: network?.name_label ?? '',
-      networkTo: network ? getPoolNetworkRoute(network.$pool, network.id) : undefined,
       networkRuleCount: networkRules.length,
       directionA,
       directionB,
@@ -135,7 +134,7 @@ const { pageRecords: paginatedRules, paginationBindings } = usePagination('traff
 const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   '': useStringSchema(t('any-property')),
   networkLabel: useStringSchema(t('network')),
-  rank: useNumberSchema(t('priority')),
+  rank: showPriority ? useNumberSchema(t('priority')) : undefined,
   allow: useBooleanSchema(t('policy'), {
     true: t('allow'),
     false: t('drop'),
@@ -161,6 +160,12 @@ const state = useTableState({
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
   exclude: showPriority ? [] : ['priority'],
   body: (rule: EnrichedTrafficRule) => {
+    const network = useGetNetworkById(() => rule.networkId)
+
+    const networkTo = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
+
     const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
       useTrafficRuleDelete(() => [rule])
 
@@ -171,7 +176,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
         r({
           label: rule.networkLabel,
           icon: 'object:network',
-          to: rule.networkTo,
+          to: networkTo.value,
         }),
       priority: r => r(`${rule.rank}/${rule.networkRuleCount}`),
       policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
