@@ -171,6 +171,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/privilege/[id]': RouteRecordInfo<
+      '/admin/privilege/[id]',
+      '/admin/privilege/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/privilege/[id]/general'
+    >,
+    '/admin/privilege/[id]/general': RouteRecordInfo<
+      '/admin/privilege/[id]/general',
+      '/admin/privilege/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/role/[id]': RouteRecordInfo<
       '/admin/role/[id]',
       '/admin/role/:id',
@@ -784,6 +798,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/plugins.vue': {
       routes:
         | '/admin/plugins'
+      views:
+        | never
+    }
+    'src/pages/admin/privilege/[id].vue': {
+      routes:
+        | '/admin/privilege/[id]'
+        | '/admin/privilege/[id]/general'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/privilege/[id]/general.vue': {
+      routes:
+        | '/admin/privilege/[id]/general'
       views:
         | never
     }

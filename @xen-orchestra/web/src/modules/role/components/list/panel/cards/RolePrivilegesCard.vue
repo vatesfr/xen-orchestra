@@ -14,7 +14,7 @@
 
     <UiCollapsibleList v-else-if="privileges.length > 0" tag="div" :total-items="privileges.length">
       <div v-for="(privilege, index) of privileges" :key="privilege.id" class="privilege">
-        <UiPanelCardTitle size="small" :label="t('privilege-number', { n: index + 1 })" />
+        <UiPanelCardTitle :id="privilege.id" size="small" :label="t('privilege-number', { n: index + 1 })" />
         <PrivilegeDetailsRows :privilege />
       </div>
     </UiCollapsibleList>
