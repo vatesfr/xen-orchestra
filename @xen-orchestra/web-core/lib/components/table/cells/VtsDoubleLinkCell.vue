@@ -1,13 +1,14 @@
 <template>
   <UiTableCell>
     <div class="vts-double-link-cell">
-      <UiLink size="medium" :icon :to :href :target :disabled class="link">
+      <UiLink size="medium" :icon :icon-tooltip :to :href :target :disabled class="link">
         <slot />
       </UiLink>
       <UiLink
         v-if="suffix"
         size="medium"
         :icon="suffix.icon"
+        :icon-tooltip="suffix.iconTooltip"
         :to="suffix.to"
         :href="suffix.href"
         :target="suffix.target"
@@ -27,9 +28,11 @@ import type { IconName } from '@core/icons'
 
 export type VtsDoubleLinkCellProps = LinkOptions & {
   icon?: IconName
+  iconTooltip?: string
   suffix?: LinkOptions & {
     label: string
     icon?: IconName
+    iconTooltip?: string
   }
 }
 

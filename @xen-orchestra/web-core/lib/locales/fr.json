@@ -1026,6 +1026,7 @@
   "ok": "OK",
   "on": "Allumé",
   "on-object": "sur {object}",
+  "operation-in-progress": "{operation}…",
   "operation:clean-reboot": "Redémarrage",
   "operation:clean-shutdown": "Arrêt",
   "operation:destroy": "Suppression",

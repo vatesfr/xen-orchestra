@@ -30,7 +30,12 @@
               </UiLink>
               <div v-if="vm">
                 {{ t('in') }}
-                <UiLink size="small" :icon="vmPowerState" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+                <UiLink
+                  size="small"
+                  :icon="vmPowerState"
+                  :icon-tooltip="vmIconTooltip"
+                  :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+                >
                   {{ vm.name_label }}
                 </UiLink>
               </div>
@@ -54,7 +59,9 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -62,9 +69,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { objectIcon } from '@core/icons'
 import type { TrafficRule } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -96,7 +101,10 @@ const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
-const vmPowerState = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmPowerState = computed(() => getVmIcon(vm.value))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm.value))
 
 const ruleTypeLabel = computed(() => (rule.type === 'VIF' ? t('vif') : t('network')))
 
