@@ -1,0 +1,77 @@
+<template>
+  <div class="backup-job-form-snapshot-retention">
+    <BackupJobFormRow>
+      <div class="field">
+        <UiLabel :accent="hasError ? 'danger' : 'neutral'" required>{{ label }}</UiLabel>
+        <UiInput v-model.number="model" :accent="hasError ? 'danger' : 'brand'" type="number" required />
+      </div>
+    </BackupJobFormRow>
+
+    <div class="messages">
+      <UiInfo accent="info" wrap>{{ t('value-by-default', { value: 1 }) }}</UiInfo>
+      <div class="ephemeral typo-body-regular-small">
+        <span>{{ t('ephemeral-snapshot-mode:title') }}</span>
+        <ul>
+          <li>{{ t('ephemeral-snapshot-mode:incremental') }}</li>
+          <li>{{ t('ephemeral-snapshot-mode:full') }}</li>
+        </ul>
+      </div>
+      <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
+import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
+import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { error } = defineProps<{
+  label: string
+  error?: InputWrapperMessage
+}>()
+
+const model = defineModel<number | undefined>({ required: true })
+
+const { t } = useI18n()
+
+const errorMessage = computed(() => formatErrorMessage(error))
+
+const hasError = computed(() => errorMessage.value !== undefined)
+</script>
+
+<style lang="postcss" scoped>
+.backup-job-form-snapshot-retention {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-block-start: 0.8rem;
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .ephemeral {
+    padding-inline-start: 2.4rem;
+    color: var(--color-neutral-txt-secondary);
+
+    ul {
+      padding-inline-start: 2rem;
+      list-style: disc;
+    }
+  }
+}
+</style>
