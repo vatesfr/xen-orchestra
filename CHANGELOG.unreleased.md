@@ -11,6 +11,9 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Pool/Advanced] Live vCPU scaling: a pool can give the VMs XO creates a vCPU maximum (16 by default), so vCPUs can be added later while they run, without a shutdown. Opt-in, capped by the smallest host of the pool, not applied to Windows VMs
+- [VM] Lowering the vCPUs of a running Windows VM is now refused: Windows kept running the removed vCPUs while XAPI reported the lower count
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"

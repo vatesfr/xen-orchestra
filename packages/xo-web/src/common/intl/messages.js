@@ -996,6 +996,12 @@ const messages = {
   crashDumpSr: 'Crash dump SR',
   defaultMigrationNetwork: 'Default migration network',
   migrationCompression: 'Migration compression',
+  liveVcpuScaling: 'Live vCPU scaling',
+  liveVcpuScalingMax: 'up to',
+  liveVcpuScalingInfo:
+    'New VMs created by XO can get vCPUs added while they run, up to this number. Not applied to Windows VMs. Existing VMs are not changed.',
+  liveVcpuScalingCapped: 'Limited to {n} on this pool: a VM cannot have more vCPUs than its host has threads.',
+  liveVcpuScalingMemory: 'Each possible vCPU reserves about 1 MiB of host memory per VM.',
   migrationCompressionDisabled: 'Migration compression is not available on this pool',
   poolDisableHa: 'Disabling high availability',
   poolDisableHaConfirm: 'Are you sure you want to disable high availability on this pool?',

@@ -479,6 +479,8 @@ export type XoPool = BaseXapiXo & {
   suspendSr?: XoSr['id']
   tags: string[]
   type: 'pool'
+  /** vCPU maximum given to the VMs XO creates in this pool, undefined when the pool did not opt in */
+  vcpusMaxHeadroom?: number
   vtpmSupported: boolean
   zstdSupported: boolean
 }

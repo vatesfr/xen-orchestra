@@ -17,7 +17,7 @@ import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, isEmpty, map, values } from 'lodash'
 import { SelectSr } from 'select-objects'
-import { Text, XoSelect } from 'editable'
+import { Number, Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
 import {
   createGetObject,
@@ -54,6 +54,9 @@ import { error } from '../../common/notification'
 import { Host, Pool } from '../../common/render-xo-item'
 import { isAdmin } from '../../common/selectors'
 import { ENTERPRISE, SOURCES, getXoaPlan } from '../../common/xoa-plans'
+
+// matches DEFAULT_VCPUS_MAX in xo-server/src/xapi/_vcpuHeadroom.mjs
+const DEFAULT_VCPUS_MAX_HEADROOM = 16
 
 const BindLicensesButton = decorate([
   addSubscriptions({
@@ -361,6 +364,20 @@ export default class TabAdvanced extends Component {
 
   _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
 
+  _onChangeLiveVcpuScaling = enabled =>
+    editPool(this.props.pool, { vcpusMaxHeadroom: enabled ? DEFAULT_VCPUS_MAX_HEADROOM : null })
+
+  _onChangeVcpusMaxHeadroom = vcpusMaxHeadroom => editPool(this.props.pool, { vcpusMaxHeadroom })
+
+  // XAPI refuses to start a VM with more vCPUs than its host has threads: the server caps the setting there
+  _getSmallestHostThreads = createSelector(
+    () => this.props.hosts,
+    hosts => {
+      const threads = map(hosts, host => host.cpus.cores).filter(n => n > 0)
+      return threads.length === 0 ? undefined : Math.min(...threads)
+    }
+  )
+
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
@@ -476,6 +493,29 @@ export default class TabAdvanced extends Component {
                           disabled={!isMigrationCompressionAvailable}
                         />
                       </Tooltip>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('liveVcpuScaling')}</th>
+                    <td>
+                      <Toggle value={pool.vcpusMaxHeadroom !== undefined} onChange={this._onChangeLiveVcpuScaling} />
+                      {pool.vcpusMaxHeadroom !== undefined && (
+                        <span className='ml-1'>
+                          {_('liveVcpuScalingMax')}{' '}
+                          <Number value={pool.vcpusMaxHeadroom} onChange={this._onChangeVcpusMaxHeadroom} />
+                        </span>
+                      )}
+                      <br />
+                      <small className='text-muted'>
+                        {_('liveVcpuScalingInfo')}
+                        {pool.vcpusMaxHeadroom > this._getSmallestHostThreads() &&
+                          ' ' +
+                            this.props.intl.formatMessage(messages.liveVcpuScalingCapped, {
+                              n: this._getSmallestHostThreads(),
+                            })}
+                        {pool.vcpusMaxHeadroom > 32 &&
+                          ' ' + this.props.intl.formatMessage(messages.liveVcpuScalingMemory)}
+                      </small>
                     </td>
                   </tr>
                   <tr>
