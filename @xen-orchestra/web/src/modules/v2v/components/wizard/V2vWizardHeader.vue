@@ -2,9 +2,7 @@
   <div class="v2v-wizard-header">
     <UiHeadBar icon="fa:route">
       {{ t('migrate-vms') }}
-      <template v-if="summary !== undefined" #actions>
-        <span class="typo-body-regular-small summary">{{ summary }}</span>
-      </template>
+      <template v-if="summary !== undefined" #status>{{ summary }}</template>
     </UiHeadBar>
     <UiNumberedStepper :steps :current-step="currentStepIndex" class="stepper" />
   </div>
@@ -43,10 +41,6 @@ const currentStepIndex = computed(() => V2V_WIZARD_STEPS.indexOf(currentStep))
   flex-direction: column;
   background-color: var(--color-neutral-background-primary);
   border-block-end: 0.1rem solid var(--color-neutral-border);
-
-  .summary {
-    color: var(--color-neutral-txt-secondary);
-  }
 
   .stepper {
     padding: 1.2rem 1.6rem;

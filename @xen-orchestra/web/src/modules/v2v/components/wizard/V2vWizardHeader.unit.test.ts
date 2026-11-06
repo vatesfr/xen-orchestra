@@ -13,11 +13,11 @@ it('shows the wizard title and its summary', () => {
   const wrapper = mountHeader('source', 'vcenter-prod.lab')
 
   expect(wrapper.get('.ui-head-bar').text()).toContain(t('migrate-vms'))
-  expect(wrapper.get('.summary').text()).toBe('vcenter-prod.lab')
+  expect(wrapper.get('.ui-head-bar .status').text()).toBe('vcenter-prod.lab')
 })
 
 it('shows no summary when there is none', () => {
-  expect(mountHeader('source').find('.summary').exists()).toBe(false)
+  expect(mountHeader('source').find('.ui-head-bar .status').exists()).toBe(false)
 })
 
 it('lists the steps of the wizard in order', () => {
