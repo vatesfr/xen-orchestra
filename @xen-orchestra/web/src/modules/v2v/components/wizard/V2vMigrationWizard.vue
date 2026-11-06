@@ -1,5 +1,5 @@
 <template>
-  <div class="migration-wizard">
+  <div class="v2v-migration-wizard">
     <V2vWizardHeader :current-step :summary />
     <div class="content">
       <V2vSourceStep v-if="currentStep === 'source'" />
@@ -36,7 +36,7 @@ const summary = computed(() =>
 </script>
 
 <style lang="postcss" scoped>
-.migration-wizard {
+.v2v-migration-wizard {
   display: flex;
   flex-direction: column;
 
