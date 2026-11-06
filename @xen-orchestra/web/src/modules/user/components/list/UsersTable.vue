@@ -6,8 +6,9 @@
     </template>
   </UiTitle>
   <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+  <VtsTableBulkActions :actions="bulkActions" />
 
-  <VtsTable :state :pagination-bindings sticky="right">
+  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -22,10 +23,14 @@
 </template>
 
 <script setup lang="ts">
+import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
@@ -65,21 +70,69 @@ const xo5UsersHref = computed(() => buildXo5Route('/settings/users'))
 
 const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
 
+const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: () => users,
+  filteredItems: filteredUsers,
+  pageItems: paginatedUsers,
+  getItemId: user => user.id,
+})
+
+const selectedUsers = computed(() => users.filter(user => selectedIds.value.includes(user.id)))
+
+const {
+  deleteUsers: deleteSelectedUsers,
+  canDeleteUsers: canDeleteSelectedUsers,
+  isDeletingUsers: isDeletingSelectedUsers,
+  deleteUsersErrorMessage: deleteSelectedUsersErrorMessage,
+} = useUserDelete(selectedUsers)
+
+const bulkActions = computed<ActionItem[]>(() => [
+  {
+    label: t('action:delete'),
+    icon: 'action:delete',
+    accent: 'danger',
+    onClick: () => deleteSelectedUsers(),
+    disabled: !canDeleteSelectedUsers.value,
+    busy: isDeletingSelectedUsers.value,
+    hint: deleteSelectedUsersErrorMessage.value,
+  },
+])
+
 const state = useTableState({
   empty: () =>
     users.length === 0 ? t('no-user-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
+  }),
   body: (user: FrontXoUser) => {
+    const { deleteUsers, canDeleteUsers, isDeletingUsers, deleteUsersErrorMessage } = useUserDelete(() => [user])
+
     return {
+      checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
       username: r => r(user.name ?? '', { href: xo5UsersHref.value }),
       email: r => r(user.email),
       providers: r => {
         const providers = Object.keys(user.authProviders ?? {})
         return r(providers.length === 0 ? t('local') : providers.join(', '))
       },
-      selectItem: r => r(() => (selectedUserId.value = user.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedUserId.value = user.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              accent: 'danger',
+              onClick: () => deleteUsers(),
+              disabled: !canDeleteUsers.value,
+              busy: isDeletingUsers.value,
+              hint: deleteUsersErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })
