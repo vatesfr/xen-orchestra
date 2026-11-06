@@ -7,7 +7,7 @@
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/advanced#netbox).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/manage-your-infrastructure/advanced#netbox).
 
 ## Contributions
 
