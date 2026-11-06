@@ -54,6 +54,7 @@
 - [Backup/Live mount] Fix mounts failing when xo-server runs without root on a system using iptables-legacy, instead of leaving the firewall alone (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 - [Logs] Fix the syslog transport sending every log with the _informational_ severity, splitting a log with line breaks into several messages, keeping the previous connection open when the configuration changes, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
+- [V2V, Import, Web hooks, Proxy] Fix ESXi import, VM import from a URL, web hooks, XO Proxy calls and patches failing on Node 26 with a TypeError or a fetch error (PR [#10721](https://github.com/vatesfr/xen-orchestra/pull/10721))
 
 ### Packages to release
 
@@ -80,11 +81,14 @@
 - @xen-orchestra/log major
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xo-cli patch
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
