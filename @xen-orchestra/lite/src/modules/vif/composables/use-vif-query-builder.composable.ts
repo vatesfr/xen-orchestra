@@ -1,5 +1,4 @@
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { getVifRateLimit } from '@/modules/vif/utils/vif-rate-limit.util.ts'
 import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -39,18 +38,19 @@ export function useVifQueryBuilder(
   const guestNetworks = computed(() => getGuestMetricsByOpaqueRef(vm.value.guest_metrics)?.networks)
 
   const filterableVifs = computed(() =>
-    vifs.value.map(
-      vif =>
-        ({
-          ...vif,
-          network_name: getNetworkByOpaqueRef(vif.network)?.name_label ?? '',
-          ip_addresses: getUniqueIpAddressesForDevice(guestNetworks.value, vif.device),
-          device_label: t('vif-device', { device: vif.device }),
-          allowed_ips: [...vif.ipv4_allowed, ...vif.ipv6_allowed],
-          rate_limit: getVifRateLimit(vif),
-          tx_checksumming: isTxChecksummingEnabled(vif),
-        }) satisfies VifFilterableData
-    )
+    vifs.value.map(vif => {
+      const { kbps } = vif.qos_algorithm_params
+
+      return {
+        ...vif,
+        network_name: getNetworkByOpaqueRef(vif.network)?.name_label ?? '',
+        ip_addresses: getUniqueIpAddressesForDevice(guestNetworks.value, vif.device),
+        device_label: t('vif-device', { device: vif.device }),
+        allowed_ips: [...vif.ipv4_allowed, ...vif.ipv6_allowed],
+        rate_limit: vif.qos_algorithm_type === 'ratelimit' && kbps !== undefined ? Number(kbps) : undefined,
+        tx_checksumming: isTxChecksummingEnabled(vif),
+      } satisfies VifFilterableData
+    })
   )
 
   const { items, filter } = useQueryBuilderFilter(id, filterableVifs, filterOptions)
