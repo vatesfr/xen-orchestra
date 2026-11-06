@@ -1,10 +1,10 @@
 <template>
   <span class="v2v-pool-option">
     <span class="label">{{ label }}</span>
-    <span v-if="counts !== undefined" class="typo-body-regular-small counts">
-      <span class="part">{{ t('n-hosts', { n: counts.hosts }) }}</span>
-      <span class="part">{{ t('n-srs', { n: counts.srs }) }}</span>
-      <span class="part">{{ t('n-networks', { n: counts.networks }) }}</span>
+    <span v-if="counts !== undefined" class="typo-body-regular-small counts interpunct-list">
+      <span>{{ t('n-hosts', { n: counts.hosts }) }}</span>
+      <span>{{ t('n-srs', { n: counts.srs }) }}</span>
+      <span>{{ t('n-networks', { n: counts.networks }) }}</span>
     </span>
   </span>
 </template>
@@ -34,11 +34,6 @@ const { t } = useI18n()
 
   .counts {
     color: var(--color-neutral-txt-secondary);
-  }
-
-  .part:not(:first-child)::before {
-    content: '•' / '';
-    margin-inline: 0.8rem;
   }
 }
 </style>
