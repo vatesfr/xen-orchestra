@@ -1,4 +1,4 @@
-import { getV2vPrerequisiteState } from '@/modules/v2v/utils/v2v-prerequisite.util.ts'
+import { getV2vPrerequisiteState, isV2vPrerequisiteOk } from '@/modules/v2v/utils/v2v-prerequisite.util.ts'
 import type { XoV2vStatus } from '@vates/types'
 
 const VECTURA_OK: XoV2vStatus = { vectura: { status: 'success' } }
@@ -30,4 +30,17 @@ describe('getV2vPrerequisiteState', () => {
     expect(getState(VECTURA_OK, true)).toEqual({ state: 'ok' })
     expect(getState(VECTURA_ERROR, true)).toEqual({ state: 'error', error: 'vectura is not runnable' })
   })
+})
+
+describe('isV2vPrerequisiteOk', () => {
+  it('is true only once the prerequisite check is ok', () => {
+    expect(isV2vPrerequisiteOk({ state: 'ok' })).toBe(true)
+  })
+
+  it.each([{ state: 'checking' }, { state: 'error', error: undefined }] as const)(
+    'is false while the prerequisite is $state',
+    prerequisite => {
+      expect(isV2vPrerequisiteOk(prerequisite)).toBe(false)
+    }
+  )
 })
