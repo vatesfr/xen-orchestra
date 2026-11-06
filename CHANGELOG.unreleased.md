@@ -23,6 +23,7 @@
 - [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
 - [RPU] Resuming a rolling pool update restores the settings the failed or interrupted attempt left disabled: HA, auto power on, backup schedules, WLB and the load balancer (PR [#10562](https://github.com/vatesfr/xen-orchestra/pull/10562))
 - [RPU] A rolling pool update that could not move some VMs back to their original host keeps its recovery record, so a resume tries again. VMs stopped or deleted during the update are left alone, and listed with the VMs that could not be moved back on the pool's Patches tab until the update is finalized (PR [#10634](https://github.com/vatesfr/xen-orchestra/pull/10634))
+- [RPU] A rolling pool update interrupted by a restart of XO resumes on its own once the pool is connected again. This happens only once: if this automatic resume is refused or interrupted in turn, the update waits for a manual resume (PR [#10722](https://github.com/vatesfr/xen-orchestra/pull/10722))
 
 ### Bug fixes
 
