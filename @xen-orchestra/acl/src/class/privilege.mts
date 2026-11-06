@@ -10,7 +10,7 @@ export type TPrivilege<T extends SupportedResource> = XoAclPrivilege<SupportedAc
 
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
-  #selector?: (object: object) => boolean
+  #selector?: CM.Node
   #resource: TPrivilege<T>['resource']
   #effect: TPrivilege<T>['effect']
 
@@ -28,7 +28,7 @@ export class Privilege<T extends SupportedResource> {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector !== undefined ? CM.parse(selector).createPredicate() : undefined
+    this.#selector = selector !== undefined ? CM.parse(selector) : undefined
     this.#resource = resource
     this.#effect = effect
   }
@@ -67,12 +67,14 @@ export class Privilege<T extends SupportedResource> {
     throw new Error(`Unable to verify if ${this.#action} match ${action} `)
   }
 
-  #matchSelector(object: object) {
+  #matchSelector(object: object, knownFields?: string[]) {
     if (this.#selector === undefined) {
       return true
     }
 
-    return this.#selector(object)
+    const resolver = this.#selector.createResolver(knownFields)
+
+    return resolver(object)
   }
 
   #matchResource(resource: string): resource is SupportedResource {
@@ -83,11 +85,12 @@ export class Privilege<T extends SupportedResource> {
     action: SupportedActions<Resource>
     resource: Resource
     object: object
-  }): boolean {
+    knownFields?: string[]
+  }): boolean | typeof CM.UNKNOWN {
     return (
       this.#matchResource(constraint.resource) &&
       this.#matchAction(constraint.action) &&
-      this.#matchSelector(constraint.object)
+      this.#matchSelector(constraint.object, constraint.knownFields)
     )
   }
 
