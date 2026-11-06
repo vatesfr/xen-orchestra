@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Pool/Host/VM] Add query builder on networks, hosts, storage, PIFs, VIFs and VDIs tables (PR [#10692](https://github.com/vatesfr/xen-orchestra/pull/10692))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))

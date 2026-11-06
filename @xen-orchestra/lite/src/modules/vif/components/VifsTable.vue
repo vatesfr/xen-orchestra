@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <VtsQueryBuilder v-model="filter" :schema />
     <VtsTable :state :pagination-bindings sticky="right">
       <thead>
         <tr>
@@ -23,15 +23,17 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
 import { useVifEdit } from '@/modules/vif/composables/use-vif-edit.composable.ts'
-import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import {
+  type VifFilterableData,
+  useVifQueryBuilder,
+} from '@/modules/vif/composables/use-vif-query-builder.composable.ts'
 import { useVifStore } from '@/stores/xen-api/vif.store.ts'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -40,9 +42,7 @@ import { useMapper } from '@core/packages/mapper'
 import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
-import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs, vm } = defineProps<{
@@ -55,8 +55,6 @@ defineSlots<{
 }>()
 
 const { isReady, hasError } = useVifStore().subscribe()
-const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
-const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
 const { t } = useI18n()
 
@@ -64,29 +62,7 @@ const { goToVifEdit } = useVifEdit()
 
 const selectedVifId = useRouteQuery('id')
 
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getNetworkByOpaqueRef(networkRef)?.name_label ?? ''
-
-const getIpAddresses = (vif: XenApiVif) => {
-  const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
-
-  return getUniqueIpAddressesForDevice(networks, vif.device)
-}
-
-const searchQuery = ref('')
-
-const filteredVifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return vifs
-  }
-
-  return vifs.filter(vif =>
-    [...Object.values(vif), getNetworkName(vif.network)].some(value =>
-      String(value).toLocaleLowerCase().includes(searchTerm)
-    )
-  )
-})
+const { items: filteredVifs, filter, schema } = useVifQueryBuilder('vif', () => vifs, { vm: () => vm })
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -98,10 +74,7 @@ const state = useTableState({
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
 const { HeadCells, BodyCells } = useVifColumns({
-  body: (vif: XenApiVif) => {
-    const name = computed(() => getNetworkName(vif.network))
-    const ipAddresses = computed(() => getIpAddresses(vif))
-
+  body: (vif: VifFilterableData) => {
     const {
       connectVifs,
       disconnectVifs,
@@ -140,10 +113,10 @@ const { HeadCells, BodyCells } = useVifColumns({
     )
 
     return {
-      network: r => r({ label: name.value }),
-      device: r => r(t('vif-device', { device: vif.device })),
+      network: r => r({ label: vif.network_name }),
+      device: r => r(vif.device_label),
       status: r => r(vif.currently_attached ? 'connected' : 'disconnected'),
-      ipsAddresses: r => r(ipAddresses.value),
+      ipsAddresses: r => r(vif.ip_addresses),
       macAddresses: r => r(vif.MAC),
       mtu: r => r(vif.MTU),
       lockingMode: r => r(vif.locking_mode),

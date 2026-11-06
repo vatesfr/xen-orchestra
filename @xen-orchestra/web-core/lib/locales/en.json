@@ -969,6 +969,7 @@
   "next-run": "Next run",
   "nfs": "NFS",
   "nic-type": "NIC type",
+  "no": "No",
   "no-active-backup-jobs": "There are no active backup jobs on this site.",
   "no-alarm-detected": "No alarms detected",
   "no-alarm-triggered": "No alarm triggered",
@@ -1567,6 +1568,7 @@
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "xva": "XVA",
+  "yes": "Yes",
   "you-are-currently-on": "You are currently on: {0}",
   "your-default-network-is": "Your default network is {name}",
   "zstd": "ZSTD"

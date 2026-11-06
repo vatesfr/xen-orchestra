@@ -969,6 +969,7 @@
   "next-run": "Prochain run",
   "nfs": "NFS",
   "nic-type": "Type de carte réseau (NIC)",
+  "no": "Non",
   "no-active-backup-jobs": "Il n'y a aucune tâche de sauvegarde active sur ce site.",
   "no-alarm-detected": "Aucune alarme détectée",
   "no-alarm-triggered": "Aucune alarme déclenchée",
@@ -1567,6 +1568,7 @@
   "xoa-ssh-account": "Compte SSH de la XOA",
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "xva": "XVA",
+  "yes": "Oui",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
   "your-default-network-is": "Votre réseau par défaut est {name}",
   "zstd": "ZSTD"

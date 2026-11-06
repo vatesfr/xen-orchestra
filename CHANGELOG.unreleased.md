@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [Query builder] Remove "is empty" and "is not empty" operators from numeric filters, as they considered 0 as empty (PR [#10692](https://github.com/vatesfr/xen-orchestra/pull/10692))
 
 ### Packages to release
 

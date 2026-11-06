@@ -1,9 +1,7 @@
 import type { PropertyDefinition } from '@core/packages/query-builder/types.ts'
-import { useI18n } from 'vue-i18n'
 
+// No "is empty" / "is not empty": they test truthiness, so 0 would be considered empty
 export function useNumberSchema(label: string, values?: Record<string, string>): PropertyDefinition {
-  const { t } = useI18n()
-
   return {
     label,
     operators: {
@@ -13,8 +11,6 @@ export function useNumberSchema(label: string, values?: Record<string, string>):
       lessThanOrEqual: { label: '<=', values },
       is: { label: '=', values },
       isNot: { label: '!=', values },
-      isEmpty: { label: t('query-builder:operator:empty'), expectValue: false },
-      isNotEmpty: { label: t('query-builder:operator:not-empty'), expectValue: false },
     },
   }
 }
