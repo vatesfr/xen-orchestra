@@ -12,6 +12,8 @@ import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
+import { createPrivateNetworkRoute } from './private-network/rest-api'
+import { resolvePrivateNetworkPools } from './private-network/resolve-pools'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
@@ -451,7 +453,12 @@ class SDNController extends EventEmitter {
       },
     })
 
-    this._cleaners.push(this._xo.registerRestRoutes(createRestRoutes(this), '/plugins/sdn-controller'))
+    this._cleaners.push(
+      this._xo.registerRestRoutes(
+        [...createRestRoutes(this), createPrivateNetworkRoute(this)],
+        '/plugins/sdn-controller'
+      )
+    )
 
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
@@ -1036,44 +1043,6 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  _resolvePrivateNetworkPools({ poolIds, pifIds, preferredCenterId }) {
-    // Checked before the PrivateNetwork is constructed: its constructor registers it, and with no pool it would stay
-    // registered without any network
-    if (poolIds.length === 0) {
-      throw invalidParameters('at least one pool is required')
-    }
-    // A pool given twice would get two networks with the same private network uuid and VNI, and PrivateNetwork keeps
-    // only the last one it is given per pool: the first would get no tunnel and be invisible to the centre logic
-    if (new Set(poolIds).size !== poolIds.length) {
-      throw invalidParameters('each pool can only be given once')
-    }
-
-    const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
-    const pifs = pifIds.map(id => this._xo.getXapiObject(this._xo.getObject(id, 'PIF')))
-    const poolPifs = pools.map(pool => {
-      const pif = pifs.find(({ $pool }) => $pool.$ref === pool.$ref)
-      if (pif === undefined) {
-        throw invalidParameters(`no PIF of pool ${pool.uuid} in pifIds`)
-      }
-      return [pool, pif]
-    })
-
-    let preferredCenter
-    if (preferredCenterId !== undefined) {
-      preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
-
-      // Put pool of preferred center first: its network is created first, the others join it
-      const preferredCenterPoolUuid = preferredCenter.$pool.uuid
-      const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
-      if (i === -1) {
-        throw invalidParameters(`preferred center ${preferredCenterId} is not a host of the pools`)
-      }
-      ;[poolPifs[0], poolPifs[i]] = [poolPifs[i], poolPifs[0]]
-    }
-
-    return { poolPifs, preferredCenter }
-  }
-
   // The parameters are all checked before the first network is created: the networks of the pools before a failure
   // would stay
   async _createPrivateNetwork({
@@ -1086,7 +1055,7 @@ class SDNController extends EventEmitter {
     mtu = 0,
     preferredCenterId,
   }) {
-    const { poolPifs, preferredCenter } = this._resolvePrivateNetworkPools({ poolIds, pifIds, preferredCenterId })
+    const { poolPifs, preferredCenter } = resolvePrivateNetworkPools(this._xo, { poolIds, pifIds, preferredCenterId })
 
     const vni = ++this._prevVni
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
