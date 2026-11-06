@@ -138,6 +138,7 @@
   "action:reset-all-networks": "Réinitialiser tous les réseaux",
   "action:reset-all-srs": "Réinitialiser tous les SRs",
   "action:reset-to-default": "Rétablir la valeur par défaut",
+  "action:resize": "Redimensionner",
   "action:restart-toolstack": "Redémarrer le toolstack",
   "action:resume": "Reprendre",
   "action:revert-to-snapshot": "Revenir à l'instantané",
