@@ -9,6 +9,7 @@ import type { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { ref } from 'vue'
 
 const { post, monitorTask, backupJobs } = vi.hoisted(() => ({
@@ -68,7 +69,7 @@ describe('run', () => {
   })
 
   it('reports each repository result, without stopping at the first failure', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     const error = new Error('Backup repository unreachable')
     monitorTask.mockRejectedValueOnce(error)
 

@@ -7,6 +7,7 @@ import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jo
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { ref, toValue } from 'vue'
@@ -140,7 +141,7 @@ describe('on confirm', () => {
   })
 
   it('keeps the drawer open when the job fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     run.mockRejectedValue(new Error('Missing changes for a backup repository'))
     const { editDrawer } = mountBulkEdit([firstBr])
 

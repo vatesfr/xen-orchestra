@@ -12,6 +12,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API/V2V] `POST /rest/v0/v2v/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` imports a list of VMs into the pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [XO6/V2V] Add the _Migrate VMs_ wizard in Administration › V2V, with its first step: connect to a VMware source, new or remembered in the browser (PR [#10623](https://github.com/vatesfr/xen-orchestra/pull/10623))
 
 ### Bug fixes
 
@@ -38,6 +39,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 
