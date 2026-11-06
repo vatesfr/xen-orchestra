@@ -13,7 +13,7 @@
     <template v-if="user" #default>
       <UserInfosCard :user />
       <UserGroupsCard :user />
-      <UserRolesCard />
+      <UserRolesCard :user />
     </template>
   </VtsSidePanel>
 </template>

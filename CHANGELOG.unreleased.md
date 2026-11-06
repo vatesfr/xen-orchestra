@@ -37,6 +37,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [XO6/Users] Fix the side panel of a user always showing "No role applied": it now lists the roles of the user, grouped by the group they are inherited from, then its direct roles
 
 ### Packages to release
 
