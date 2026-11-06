@@ -39,10 +39,10 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-async function mountSourceStep(options: Parameters<typeof useV2vSourceStep>[0] = {}) {
+async function mountSourceStep() {
   const router = await createV2vWizardRouter('source')
 
-  const result = mountComposableWithI18n(() => ({ ...useV2vSourceStep(options), context: useV2vConnection() }), {
+  const result = mountComposableWithI18n(() => ({ ...useV2vSourceStep(), context: useV2vConnection() }), {
     router,
     provide: v2vConnectionProvide(),
   })
@@ -210,17 +210,23 @@ describe('connectRemembered', () => {
     expect(result.rememberedConnections[0].lastUsedAt).toBe(NOW)
   })
 
+  it('does not ask for the password when it was remembered', async () => {
+    stubFetchResponse(200, createV2vInventory())
+    const { result } = await mountSourceStep()
+
+    expect(await result.connectRemembered(createV2vRememberedConnection())).toEqual({ isPasswordRequired: false })
+  })
+
   it('fills the form and asks for the password when none was remembered', async () => {
     const fetchMock = stubFetchResponse(200, createV2vInventory())
-    const onPasswordRequired = vi.fn()
     const remembered = omit(createV2vRememberedConnection(), 'password')
-    const { result } = await mountSourceStep({ onPasswordRequired })
+    const { result } = await mountSourceStep()
 
-    await result.connectRemembered(remembered)
+    const outcome = await result.connectRemembered(remembered)
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(result.form.formData).toMatchObject({ host: remembered.host, username: remembered.username, password: '' })
-    expect(onPasswordRequired).toHaveBeenCalledOnce()
+    expect(outcome).toEqual({ isPasswordRequired: true })
   })
 })
 

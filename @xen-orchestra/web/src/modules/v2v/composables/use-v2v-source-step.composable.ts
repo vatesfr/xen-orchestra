@@ -24,7 +24,7 @@ import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: () => void } = {}) {
+export function useV2vSourceStep() {
   const { t } = useI18n()
 
   const router = useRouter()
@@ -121,13 +121,13 @@ export function useV2vSourceStep({ onPasswordRequired }: { onPasswordRequired?: 
     editedKey.value = undefined
     form.fill(rememberedConnection)
 
-    if (rememberedConnection.password === undefined) {
-      onPasswordRequired?.()
+    const isPasswordRequired = rememberedConnection.password === undefined
 
-      return
+    if (!isPasswordRequired) {
+      await submit()
     }
 
-    await submit()
+    return { isPasswordRequired }
   }
 
   function editRemembered(rememberedConnection: V2vRememberedConnection) {

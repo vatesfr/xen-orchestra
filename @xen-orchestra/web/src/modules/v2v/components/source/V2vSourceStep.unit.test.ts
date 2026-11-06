@@ -6,7 +6,8 @@ import type { useV2vSourceStep } from '@/modules/v2v/composables/use-v2v-source-
 import { createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { type Component, defineComponent } from 'vue'
 
 const { sourceStepMock } = await vi.hoisted(async () => {
   const vue = await import('vue')
@@ -18,7 +19,7 @@ const { sourceStepMock } = await vi.hoisted(async () => {
       canConnect: vue.ref(true),
       isConnecting: vue.ref(false),
       submit: vi.fn(),
-      connectRemembered: vi.fn(),
+      connectRemembered: vi.fn(async () => ({ isPasswordRequired: false })),
       editRemembered: vi.fn(),
       forgetRemembered: vi.fn(),
       forgetRememberedPassword: vi.fn(),
@@ -51,9 +52,9 @@ beforeEach(() => {
 })
 
 // The connection form renders its own fields from a real form, covered by its own test: here only its wiring matters
-function mountStep() {
+function mountStep(connectionFormStub: Component | true = true) {
   return mount(V2vSourceStep, {
-    global: { ...createGlobalTestConfig(), stubs: { V2vSourceConnectionForm: true } },
+    global: { ...createGlobalTestConfig(), stubs: { V2vSourceConnectionForm: connectionFormStub } },
   })
 }
 
@@ -93,6 +94,25 @@ it.each([
 
   expect(sourceStepMock[handler]).toHaveBeenCalledWith(REMEMBERED)
 })
+
+it.each([true, false])(
+  'focuses the password only when a remembered connection needs it (%s)',
+  async isPasswordRequired => {
+    sourceStepMock.connectRemembered.mockResolvedValue({ isPasswordRequired })
+    const focusPassword = vi.fn()
+    const wrapper = mountStep(
+      defineComponent({
+        setup: (_, { expose }) => expose({ focusPassword }),
+        render: () => null,
+      })
+    )
+
+    wrapper.getComponent(V2vRememberedConnectionList).vm.$emit('connect', REMEMBERED)
+    await flushPromises()
+
+    expect(focusPassword).toHaveBeenCalledTimes(isPasswordRequired ? 1 : 0)
+  }
+)
 
 it.each(['submit', 'cancel'] as const)('handles %s of the connection form', event => {
   mountStep().getComponent(V2vSourceConnectionForm).vm.$emit(event)
