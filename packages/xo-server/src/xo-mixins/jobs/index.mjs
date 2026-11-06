@@ -4,7 +4,7 @@ import groupBy from 'lodash/groupBy.js'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 
-import { CancelToken, ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -118,7 +118,7 @@ export default class Jobs {
   cancelJobRun(id) {
     const run = this._runs[id]
     if (run !== undefined) {
-      return run.cancel()
+      return run.abort()
     }
   }
 
@@ -332,10 +332,10 @@ export default class Jobs {
       $defer.call(connection, 'close')
       connection.set('user_id', job.userId)
 
-      const { cancel, token } = CancelToken.source()
+      const controller = new AbortController()
 
       const runs = this._runs
-      runs[runJobId] = { cancel }
+      runs[runJobId] = { abort: reason => controller.abort(reason) }
       $defer(() => delete runs[runJobId])
 
       // Links the job run to its backup log
@@ -359,7 +359,7 @@ export default class Jobs {
       }
       await executor({
         app,
-        cancelToken: token,
+        signal: controller.signal,
         connection,
         data: data_,
         job,
