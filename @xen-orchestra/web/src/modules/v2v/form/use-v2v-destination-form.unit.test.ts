@@ -83,21 +83,21 @@ function seedTwoPools() {
 }
 
 function mountDestinationForm({
-  pool,
+  poolId,
   storedList,
   areCollectionsLoaded = true,
-}: { pool?: FrontXoPool['id']; storedList?: V2vMigrationList; areCollectionsLoaded?: boolean } = {}) {
+}: { poolId?: FrontXoPool['id']; storedList?: V2vMigrationList; areCollectionsLoaded?: boolean } = {}) {
   if (areCollectionsLoaded) {
     seedTwoPools()
   }
 
-  return mountComposableWithI18n(() => useV2vDestinationForm({ pool: ref(pool), storedList }))
+  return mountComposableWithI18n(() => useV2vDestinationForm({ poolId: ref(poolId), storedList }))
 }
 
 // The options and the selection of a select only show once rendered, here on the first pool
 function mountSelects(getSelectIds: (form: V2vDestinationForm) => FormSelectId[], storedList?: V2vMigrationList) {
   return mountWithSelect(() => {
-    const form = useV2vDestinationForm({ pool: ref(POOL.id), storedList })
+    const form = useV2vDestinationForm({ poolId: ref(POOL.id), storedList })
 
     return () =>
       h(
@@ -195,7 +195,7 @@ describe('formData', () => {
       { sr: POOL.default_SR, network: MANAGEMENT_NETWORK_ID, template: undefined },
     ],
   ])('prefills %s when the pool is set and the collections are loaded at mount', (_, storedList, expectedDefaults) => {
-    const form = mountDestinationForm({ pool: POOL.id, storedList })
+    const form = mountDestinationForm({ poolId: POOL.id, storedList })
 
     expect(form.formData).toEqual({ pool: POOL.id, ...expectedDefaults })
   })
@@ -244,13 +244,13 @@ describe('formData', () => {
   it('keeps the SR the user chose when the collections update', async () => {
     const form = mountDestinationForm()
     await chooseV2vDestinationPool(form, POOL.id)
-    const chosenSr = 'sr-chosen' as FrontXoSr['id']
-    form.formData.sr = chosenSr
+    const chosenSrId = 'sr-chosen' as FrontXoSr['id']
+    form.formData.sr = chosenSrId
 
-    xoCollectionsMock.srs.value = [...xoCollectionsMock.srs.value, createSr({ id: chosenSr })]
+    xoCollectionsMock.srs.value = [...xoCollectionsMock.srs.value, createSr({ id: chosenSrId })]
     await nextTick()
 
-    expect(form.formData.sr).toBe(chosenSr)
+    expect(form.formData.sr).toBe(chosenSrId)
   })
 })
 
