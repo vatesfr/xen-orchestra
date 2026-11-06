@@ -28,6 +28,16 @@ try {
 // See: http://bluebirdjs.com/docs/api/promise.config.html#async-hooks
 Bluebird.config({ asyncHooks: true })
 
+// Node 26's global `fetch` calls `Promise.withResolvers()`, which Bluebird 3.7.2, its last release, lacks
+Bluebird.withResolvers = function withResolvers() {
+  let resolve, reject
+  const promise = new this((resolve_, reject_) => {
+    resolve = resolve_
+    reject = reject_
+  })
+  return { promise, resolve, reject }
+}
+
 // Use Bluebird for all promises as it provides better performance and
 // less memory usage.
 global.Promise = Bluebird
