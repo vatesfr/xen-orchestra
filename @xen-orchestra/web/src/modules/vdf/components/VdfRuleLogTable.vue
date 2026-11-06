@@ -56,6 +56,7 @@ import { allowFlowRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -74,7 +75,12 @@ import { computed, h, ref, useTemplateRef, watch, watchEffect, withDirectives } 
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { poolId, vmName, paused, chart = true } = defineProps<{
+const {
+  poolId,
+  vmName,
+  paused,
+  chart = true,
+} = defineProps<{
   poolId: string
   // only the entries of this VM's VIFs (as destination or source)
   vmName?: string
@@ -293,7 +299,9 @@ function rowActions(row: Row): ActionItem[] {
       : [{ label: t('firewall:trace:allow-flow'), icon: 'fa:plus' as const, onClick: () => router.push(allow) }]),
     ...(row.why === undefined
       ? []
-      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => openTrace(poolId, row.why!) }]),
+      : [
+          { label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => openTrace(poolId, row.why!) },
+        ]),
     ...(row.source.vm?.$pool === poolId ? [quarantineAction(row.source.vm, { named: true })] : []),
   ]
 }
@@ -319,6 +327,48 @@ function traceButton(row: Row) {
 // on a laptop (XO's tree open): 8 columns don't fit
 const isNarrow = useVdfNarrow(useTemplateRef('root'), 100)
 
+// One line, so that a row stays one line high: the time, with its date
+// only when not today, both on hover
+// Narrow: the outcome too, as an icon before it (the Outcome column
+// hidden), said on hover
+function timeCell(time: string, verdict: string) {
+  const date = new Date(time)
+  const isToday = date.toDateString() === new Date().toDateString()
+  const clock = d(date, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+
+  const isAllowed = verdict === 'ALLOW'
+  const outcome = t(`firewall:log:verdict:${isAllowed ? 'allow' : 'drop'}`)
+
+  return withDirectives(
+    h('time', { class: 'time typo-body-regular-small', datetime: time }, [
+      isNarrow.value
+        ? h(VtsIcon, {
+            class: isAllowed ? 'allowed' : 'dropped',
+            name: isAllowed ? 'fa:circle-check' : 'fa:ban',
+            size: 'medium',
+            'aria-label': outcome,
+          })
+        : null,
+      isToday ? null : h('span', { class: 'secondary' }, d(date, { month: 'short', day: 'numeric' })),
+      h('span', clock),
+    ]),
+    [
+      [
+        vTooltip,
+        (isNarrow.value ? `${outcome} · ` : '') +
+          d(date, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+      ],
+    ]
+  )
+}
+
 const useLogColumns = defineColumns(() => ({
   time: useLiteralColumn({ headerLabel: () => t('firewall:log:time') }),
   verdict: useTagColumn({ headerLabel: () => t('firewall:log:verdict') }),
@@ -333,14 +383,7 @@ const useLogColumns = defineColumns(() => ({
 
 const { HeadCells, BodyCells, toggle } = useLogColumns({
   body: (row: Row) => ({
-    time: r =>
-      r(
-        // the time over its date: a narrow column
-        h('time', { class: 'time typo-body-regular-small', datetime: row.entry.time }, [
-          h('span', d(new Date(row.entry.time), { hour: '2-digit', minute: '2-digit', second: '2-digit' })),
-          h('span', { class: 'secondary' }, d(new Date(row.entry.time), { month: 'short', day: 'numeric' })),
-        ])
-      ),
+    time: r => r(timeCell(row.entry.time, row.entry.verdict)),
     verdict: r =>
       r(
         t(`firewall:log:verdict:${row.entry.verdict === 'ALLOW' ? 'allow' : 'drop'}`),
@@ -354,6 +397,7 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
           vm: row.source.vm,
           name: row.source.vm === undefined && row.entry.egress ? row.entry.vm : undefined,
           groups: row.source.vm === undefined ? groupsOfIp(row.entry.src) : [],
+          compact: isNarrow.value,
         })
       ),
     destination: r =>
@@ -364,20 +408,26 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
           vm: row.destination,
           // the log names the VM whose policy decided: the destination, unless egress
           name: row.destination === undefined && !row.entry.egress ? row.entry.vm : undefined,
+          compact: isNarrow.value,
         })
       ),
     service: r => r(h(VdfService, { proto: row.entry.proto.split(' ')[0], port: row.entry.dport })),
     decidedBy: r => {
-      const cell = h(VdfDecisionCell, { decision: row.decision }, () => [
-        row.entry.egress ? h('span', { class: 'typo-body-regular-small secondary' }, t('firewall:log:egress')) : null,
-        row.entry.suppressed
-          ? h(
-              'span',
-              { class: 'typo-body-regular-small secondary' },
-              t('firewall:log:suppressed', { n: row.entry.suppressed })
-            )
-          : null,
-      ])
+      // outbound: the icon before the rule, and its tooltip. Narrow: the
+      // label in its tooltip, not a column of its own
+      const cell = h(
+        VdfDecisionCell,
+        { decision: row.decision, egress: row.entry.egress, note: isNarrow.value ? row.entry.label : undefined },
+        () => [
+          row.entry.suppressed
+            ? h(
+                'span',
+                { class: 'typo-body-regular-small secondary' },
+                t('firewall:log:suppressed', { n: row.entry.suppressed })
+              )
+            : null,
+        ]
+      )
 
       // narrow: the trace button beside what decided, not in a column of its own
       return r(
@@ -392,13 +442,12 @@ const { HeadCells, BodyCells, toggle } = useLogColumns({
 
 watchEffect(() => toggle('why', !isNarrow.value))
 
-// labels are optional: no column of "None"
-watchEffect(() =>
-  toggle(
-    'label',
-    rows.value.some(row => row.entry.label)
-  )
-)
+// narrow: the outcome as an icon in the time's cell
+watchEffect(() => toggle('verdict', !isNarrow.value))
+
+// labels are optional: no column of "None". Narrow: in what decided's
+// tooltip
+watchEffect(() => toggle('label', !isNarrow.value && rows.value.some(row => row.entry.label)))
 </script>
 
 <style lang="postcss" scoped>
@@ -474,10 +523,18 @@ watchEffect(() =>
 
   :deep(.time) {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
+    align-items: center;
+    gap: 0.6rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+
+    .allowed {
+      color: var(--color-success-item-base);
+    }
+
+    .dropped {
+      color: var(--color-danger-item-base);
+    }
   }
 
   :deep(.secondary) {

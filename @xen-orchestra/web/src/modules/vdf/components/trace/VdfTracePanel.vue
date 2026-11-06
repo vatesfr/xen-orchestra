@@ -1,7 +1,7 @@
 <template>
   <div class="vdf-trace-panel">
     <UiCard>
-      <UiTitle>{{ t('firewall:trace:title') }}</UiTitle>
+      <!-- the drawer's title says what this is -->
       <p class="description typo-body-regular-small">{{ t('firewall:trace:info') }}</p>
       <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
       <VtsStateHero v-if="!areVmsReady || !areInterfacesReady" format="card" type="busy" size="small" />
@@ -37,7 +37,6 @@ import type { VdfTraceRequest, VdfTraceResult as Result } from '@/modules/vdf/ty
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -120,7 +119,6 @@ async function runTrace(nextRequest: VdfTraceRequest, query: VdfTraceQuery) {
   gap: 0.8rem;
 
   .description {
-    margin-block-start: -1.6rem;
     color: var(--color-neutral-txt-secondary);
   }
 }

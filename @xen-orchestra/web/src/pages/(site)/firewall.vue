@@ -2,14 +2,18 @@
   <VdfGate>
     <div class="firewall">
       <VdfFirewallNav :scope />
-      <VdfDraftBar :scope />
-      <RouterView />
+      <div class="main">
+        <VdfFirewallBar :scope />
+        <VdfDraftBar :scope />
+        <RouterView />
+      </div>
     </div>
   </VdfGate>
 </template>
 
 <script lang="ts" setup>
 import VdfDraftBar from '@/modules/vdf/components/VdfDraftBar.vue'
+import VdfFirewallBar from '@/modules/vdf/components/VdfFirewallBar.vue'
 import VdfFirewallNav from '@/modules/vdf/components/VdfFirewallNav.vue'
 import VdfGate from '@/modules/vdf/components/VdfGate.vue'
 import type { VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
@@ -39,9 +43,18 @@ watch(
 </script>
 
 <style lang="postcss" scoped>
+/* the list of pages beside them, as vSphere's Configure */
 .firewall {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
+  flex-shrink: 0;
+  align-items: stretch;
+  min-height: 100%;
+
+  .main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
 }
 </style>

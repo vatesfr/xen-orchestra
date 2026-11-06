@@ -103,18 +103,8 @@
         </UiCard>
       </div>
 
-      <!-- what rules and policies that log recorded: each drop and allow, with its rule (vdf#139: in place of the dropped table) -->
-      <UiCard>
-        <UiTitle>
-          {{ t('firewall:logs') }}
-          <template #action>
-            <UiButton variant="tertiary" accent="brand" size="medium" left-icon="status:info-circle" @click="openLogInfo()">
-              {{ t('firewall:log:about') }}
-            </UiButton>
-          </template>
-        </UiTitle>
-        <VdfRuleLogTable :pool-id="pool.id" :paused="isPaused" :chart="false" />
-      </UiCard>
+      <!-- the flows dropped lately, each a trace away: the full rule log is a page of its own, as it runs long -->
+      <VdfRecentDropsCard :pool-id="pool.id" :document="publishedDocument" />
 
       <UiCard>
         <UiTitle>{{ t('firewall:live:open-connections') }}</UiTitle>
@@ -139,7 +129,7 @@ import VdfLiveIndicator from '@/modules/vdf/components/live/VdfLiveIndicator.vue
 import VdfProtectedVmsTable from '@/modules/vdf/components/live/VdfProtectedVmsTable.vue'
 import VdfRateChart from '@/modules/vdf/components/live/VdfRateChart.vue'
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
-import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
+import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDropsCard.vue'
 import { useVdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { useVdfIpNames } from '@/modules/vdf/composables/vdf-ip-names.composable.ts'
@@ -161,7 +151,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useNow } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
@@ -185,12 +174,6 @@ const isPaused = ref(false)
 const { ruleLog } = useVdfRuleLog({ isEnabled: computed(() => !isPaused.value) }, () => pool.id)
 
 const { logSeries, logCaption } = useVdfRuleLogSeries(() => ruleLog.value?.entries ?? [])
-
-const { open: openInfoModal } = useInfoModal()
-
-function openLogInfo() {
-  openInfoModal({ props: { title: t('firewall:log:about'), content: t('firewall:log:info'), icon: 'fa:list' } })
-}
 
 const isPolling = computed(() => !isPaused.value)
 
@@ -374,7 +357,7 @@ const chartCaption = computed(() =>
 
   .charts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 52rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 38rem), 1fr));
     gap: 0.8rem;
   }
 

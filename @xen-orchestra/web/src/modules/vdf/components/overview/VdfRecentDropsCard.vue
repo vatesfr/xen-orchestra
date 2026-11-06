@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('firewall:recent-drops') }}
       <template #action>
-        <UiLink :to="{ name: '/pool/[id]/firewall/traffic', params: { id: poolId } }" size="medium">
+        <UiLink :to="{ name: '/pool/[id]/firewall/rule-log', params: { id: poolId } }" size="medium">
           {{ t('firewall:recent-drops:open-log') }}
         </UiLink>
       </template>
@@ -18,12 +18,7 @@
     <VtsStateHero v-else-if="rows.length === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('firewall:recent-drops:none', { n: VDF_RECENT_DROPS_WINDOW_MINUTES }) }}
     </VtsStateHero>
-    <VdfDroppedTable
-      v-else
-      :scope-id="poolId"
-      :rows
-      :rate-label="t('firewall:recent-drops:count', { minutes: VDF_RECENT_DROPS_WINDOW_MINUTES })"
-    />
+    <VdfDroppedTable v-else :scope-id="poolId" :rows :rate-label="t('firewall:log:verdict:drop')" />
   </UiCard>
 </template>
 
@@ -93,8 +88,9 @@ const rows = computed<VdfDroppedRow[]>(() =>
       proto: drop.proto,
       port: drop.port,
       decision: decision({ tier: drop.tier, policy: drop.policy, rule: drop.rule }),
-      rate: t('firewall:recent-drops:count', { n: n(drop.count), minutes: VDF_RECENT_DROPS_WINDOW_MINUTES }),
-      trace: drop.traceRoute,
+      // the column says what it counts (rateLabel): the cell, how many
+      rate: n(drop.count),
+      trace: drop.traceQuery,
       traceLabel: t('firewall:recent-drops:why', { from, to }),
     }
   })

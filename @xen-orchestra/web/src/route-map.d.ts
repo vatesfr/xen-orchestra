@@ -328,6 +328,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/firewall/monitor'
       | '/pool/[id]/firewall/overview'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/rule-log'
       | '/pool/[id]/firewall/settings'
       | '/pool/[id]/firewall/trace'
       | '/pool/[id]/firewall/traffic'
@@ -356,6 +357,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/firewall/monitor'
       | '/pool/[id]/firewall/overview'
       | '/pool/[id]/firewall/policies'
+      | '/pool/[id]/firewall/rule-log'
       | '/pool/[id]/firewall/settings'
       | '/pool/[id]/firewall/trace'
       | '/pool/[id]/firewall/traffic'
@@ -391,6 +393,13 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/firewall/policies': RouteRecordInfo<
       '/pool/[id]/firewall/policies',
       '/pool/:id/firewall/policies',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/firewall/rule-log': RouteRecordInfo<
+      '/pool/[id]/firewall/rule-log',
+      '/pool/:id/firewall/rule-log',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -934,6 +943,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall/monitor'
         | '/pool/[id]/firewall/overview'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/rule-log'
         | '/pool/[id]/firewall/settings'
         | '/pool/[id]/firewall/trace'
         | '/pool/[id]/firewall/traffic'
@@ -961,6 +971,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/firewall/monitor'
         | '/pool/[id]/firewall/overview'
         | '/pool/[id]/firewall/policies'
+        | '/pool/[id]/firewall/rule-log'
         | '/pool/[id]/firewall/settings'
         | '/pool/[id]/firewall/trace'
         | '/pool/[id]/firewall/traffic'
@@ -994,6 +1005,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/firewall/policies.vue': {
       routes:
         | '/pool/[id]/firewall/policies'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/firewall/rule-log.vue': {
+      routes:
+        | '/pool/[id]/firewall/rule-log'
       views:
         | never
     }

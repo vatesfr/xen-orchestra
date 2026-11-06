@@ -1,5 +1,5 @@
 <template>
-  <div class="vdf-connections-table">
+  <div ref="root" class="vdf-connections-table">
     <div class="toolbar">
       <VdfSwitch v-model="isGrouped">{{ t('firewall:live:group-connections') }}</VdfSwitch>
       <UiQuerySearchBar class="search" @search="value => (search = value)" />
@@ -26,6 +26,7 @@ import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import type { VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
+import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -37,7 +38,7 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
-import { computed, h, ref, watchEffect } from 'vue'
+import { computed, h, ref, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 type Endpoint = { ip: string; vm?: FrontXoVm; name?: string; groups?: string[]; iface?: string }
@@ -158,6 +159,9 @@ const state = useTableState({
         : false,
 })
 
+// narrow (a laptop, XO's tree open): ends by their names, addresses on hover
+const isNarrow = useVdfNarrow(useTemplateRef('root'), 100)
+
 const useConnectionColumns = defineColumns(() => ({
   source: useLiteralColumn({ headerLabel: () => t('firewall:source') }),
   destination: useLiteralColumn({ headerLabel: () => t('firewall:destination') }),
@@ -172,8 +176,8 @@ const useConnectionColumns = defineColumns(() => ({
 
 const { HeadCells, BodyCells, toggle } = useConnectionColumns({
   body: (row: Row) => ({
-    source: r => r(h(VdfEndpoint, { scopeId, ...row.src })),
-    destination: r => r(h(VdfEndpoint, { scopeId, ...row.dst })),
+    source: r => r(h(VdfEndpoint, { scopeId, ...row.src, compact: isNarrow.value })),
+    destination: r => r(h(VdfEndpoint, { scopeId, ...row.dst, compact: isNarrow.value })),
     service: r => r(h(VdfService, { proto: row.proto, port: row.port })),
     // out by the source's egress, then in by the destination's ingress
     allowedBy: r =>
