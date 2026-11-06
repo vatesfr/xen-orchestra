@@ -4,16 +4,16 @@ import { ONE_GB } from '@/shared/constants.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
 vi.mock(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 
 const HOST = createHost({ name_label: 'Host A' })
@@ -21,8 +21,8 @@ const LOCAL_SR = createSr({ shared: false })
 const PBD_ON_UNKNOWN_HOST = createPbd({ SR: LOCAL_SR.id, host: 'unknown-host' as FrontXoHost['id'] })
 
 beforeEach(() => {
-  destinationCollectionsMock.reset()
-  destinationCollectionsMock.hosts.value = [HOST]
+  xoCollectionsMock.reset()
+  xoCollectionsMock.hosts.value = [HOST]
 })
 
 describe('getSrSelectLabel', () => {
@@ -42,7 +42,7 @@ describe('getSrSelectLabel', () => {
 
 describe('getSrLocation', () => {
   it('locates a local SR on the first known host of its PBDs', () => {
-    destinationCollectionsMock.pbds.value = [PBD_ON_UNKNOWN_HOST, createPbd({ SR: LOCAL_SR.id, host: HOST.id })]
+    xoCollectionsMock.pbds.value = [PBD_ON_UNKNOWN_HOST, createPbd({ SR: LOCAL_SR.id, host: HOST.id })]
 
     const { getSrLocation } = mountComposableWithI18n(() => useXoSrUtils())
 
@@ -53,7 +53,7 @@ describe('getSrLocation', () => {
     ['it has no PBD', []],
     ['the host of its PBD is unknown', [PBD_ON_UNKNOWN_HOST]],
   ])('reads unknown for a local SR when %s', (_, pbds) => {
-    destinationCollectionsMock.pbds.value = pbds
+    xoCollectionsMock.pbds.value = pbds
 
     const { getSrLocation, t } = mountComposableWithI18n(() => useXoSrUtils())
 

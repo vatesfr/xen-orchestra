@@ -232,7 +232,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 How `FormSelect` and `VtsSelect` render and open their options belongs to the web-core tests, never to an XO 6 one:
 
 - A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
-- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows.
 
 ## What `happy-dom` cannot do
 

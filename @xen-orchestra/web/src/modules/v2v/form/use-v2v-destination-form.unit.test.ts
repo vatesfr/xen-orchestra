@@ -5,6 +5,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { useV2vDestinationForm, type V2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/choose-v2v-destination.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
@@ -13,10 +14,10 @@ import { createSr } from '@/test/create-sr.ts'
 import { createV2vDestinationDefaults, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { destinationCollectionsMock } from '@/test/mock-xo-destination-collections.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect } from '@/test/select.ts'
+import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { flushPromises } from '@vue/test-utils'
@@ -24,31 +25,31 @@ import { h, nextTick, ref } from 'vue'
 
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-destination-collections.ts')
+  () => import('@/test/mock-xo-collections.ts')
 )
 
 const POOL = createPool()
@@ -67,18 +68,18 @@ const STORED_LIST = createV2vMigrationList()
 
 // A default is only prefilled once offered: each pool offers its SR, its management network and the stored defaults
 function seedTwoPools() {
-  destinationCollectionsMock.pools.value = [POOL, OTHER_POOL]
-  destinationCollectionsMock.srs.value = [createSr(), createSr({ id: OTHER_POOL.default_SR, $pool: OTHER_POOL.id })]
-  destinationCollectionsMock.networks.value = [
+  xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
+  xoCollectionsMock.srs.value = [createSr(), createSr({ id: OTHER_POOL.default_SR, $pool: OTHER_POOL.id })]
+  xoCollectionsMock.networks.value = [
     createNetwork(),
     createNetwork({ id: MANAGEMENT_NETWORK_ID }),
     createNetwork({ id: OTHER_MANAGEMENT_NETWORK_ID, $pool: OTHER_POOL.id }),
   ]
-  destinationCollectionsMock.pifs.value = [
+  xoCollectionsMock.pifs.value = [
     createManagementPif(POOL, MANAGEMENT_NETWORK_ID),
     createManagementPif(OTHER_POOL, OTHER_MANAGEMENT_NETWORK_ID),
   ]
-  destinationCollectionsMock.templates.value = [createVmTemplate()]
+  xoCollectionsMock.templates.value = [createVmTemplate()]
 }
 
 function mountDestinationForm({
@@ -106,23 +107,18 @@ function mountSelects(getSelectIds: (form: V2vDestinationForm) => FormSelectId[]
   })
 }
 
-// A select shows its selection as the text of its readonly input
-function findShownSelections(wrapper: ReturnType<typeof mountWithSelect>) {
-  return wrapper.findAll('.vts-select .ui-input').map(input => input.text())
-}
-
 const LATE_COLLECTIONS = {
   srs: () => {
-    destinationCollectionsMock.srs.value = [createSr({ shared: true })]
+    xoCollectionsMock.srs.value = [createSr({ shared: true })]
   },
   networks: () => {
-    destinationCollectionsMock.networks.value = [createNetwork(), createNetwork({ id: MANAGEMENT_NETWORK_ID })]
+    xoCollectionsMock.networks.value = [createNetwork(), createNetwork({ id: MANAGEMENT_NETWORK_ID })]
   },
   pifs: () => {
-    destinationCollectionsMock.pifs.value = [createManagementPif(POOL, MANAGEMENT_NETWORK_ID)]
+    xoCollectionsMock.pifs.value = [createManagementPif(POOL, MANAGEMENT_NETWORK_ID)]
   },
   templates: () => {
-    destinationCollectionsMock.templates.value = [createVmTemplate()]
+    xoCollectionsMock.templates.value = [createVmTemplate()]
   },
 }
 
@@ -140,13 +136,8 @@ async function loadCollectionsOneByOne(order: readonly (keyof typeof LATE_COLLEC
   }
 }
 
-async function choosePool(form: ReturnType<typeof mountDestinationForm>, poolId: FrontXoPool['id']) {
-  form.formData.pool = poolId
-  await nextTick()
-}
-
 beforeEach(() => {
-  destinationCollectionsMock.reset()
+  xoCollectionsMock.reset()
 })
 
 describe('formData', () => {
@@ -162,7 +153,7 @@ describe('formData', () => {
   it('prefills the pool default SR and the management network of its master once a pool is chosen', async () => {
     const form = mountDestinationForm()
 
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
 
     expect(form.formData).toEqual({
       pool: POOL.id,
@@ -174,10 +165,10 @@ describe('formData', () => {
 
   it('prefills again when another pool is chosen', async () => {
     const form = mountDestinationForm()
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
     form.formData.template = 'template-123' as FrontXoVmTemplate['id']
 
-    await choosePool(form, OTHER_POOL.id)
+    await chooseV2vDestinationPool(form, OTHER_POOL.id)
 
     expect(form.formData).toEqual({
       pool: OTHER_POOL.id,
@@ -191,7 +182,7 @@ describe('formData', () => {
     const storedList = createV2vMigrationList()
     const form = mountDestinationForm({ storedList })
 
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
 
     expect(form.formData).toEqual({ pool: POOL.id, ...storedList.defaults })
   })
@@ -220,7 +211,7 @@ describe('formData', () => {
       ],
     ])('shows %s', async (_, storedList, networkLabel, templateLabel) => {
       // The destination step opens on the pool of the route while only the pools are loaded: the wizard reads them first
-      destinationCollectionsMock.pools.value = [POOL, OTHER_POOL]
+      xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
       const wrapper = mountSelects(
         form => [
           form.srSelectBindings.value.id,
@@ -242,7 +233,7 @@ describe('formData', () => {
 
   it('prefills once the collections are loaded', async () => {
     const form = mountDestinationForm({ areCollectionsLoaded: false })
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
 
     seedTwoPools()
     await nextTick()
@@ -252,11 +243,11 @@ describe('formData', () => {
 
   it('keeps the SR the user chose when the collections update', async () => {
     const form = mountDestinationForm()
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
     const chosenSr = 'sr-chosen' as FrontXoSr['id']
     form.formData.sr = chosenSr
 
-    destinationCollectionsMock.srs.value = [...destinationCollectionsMock.srs.value, createSr({ id: chosenSr })]
+    xoCollectionsMock.srs.value = [...xoCollectionsMock.srs.value, createSr({ id: chosenSr })]
     await nextTick()
 
     expect(form.formData.sr).toBe(chosenSr)
@@ -267,7 +258,7 @@ describe('defaults', () => {
   it('is undefined while a default is missing', async () => {
     const form = mountDestinationForm()
 
-    await choosePool(form, POOL.id)
+    await chooseV2vDestinationPool(form, POOL.id)
 
     expect(form.defaults).toBeUndefined()
   })
@@ -275,9 +266,8 @@ describe('defaults', () => {
   it('is the chosen SR, network and template', async () => {
     const defaults = createV2vDestinationDefaults()
     const form = mountDestinationForm()
-    await choosePool(form, POOL.id)
 
-    form.formData.template = defaults.template
+    await chooseCompleteV2vDestination(form, POOL.id, defaults.template)
 
     expect(form.defaults).toEqual({ sr: POOL.default_SR, network: MANAGEMENT_NETWORK_ID, template: defaults.template })
   })
@@ -296,9 +286,8 @@ describe('validate', () => {
 
   it('accepts a complete destination', async () => {
     const form = mountDestinationForm()
-    await choosePool(form, POOL.id)
 
-    form.formData.template = createV2vDestinationDefaults().template
+    await chooseCompleteV2vDestination(form, POOL.id, createV2vDestinationDefaults().template)
 
     expect(await form.validate()).toBe(true)
   })
@@ -308,7 +297,7 @@ describe('selectedPool', () => {
   it('is the chosen pool', async () => {
     const form = mountDestinationForm()
 
-    await choosePool(form, OTHER_POOL.id)
+    await chooseV2vDestinationPool(form, OTHER_POOL.id)
 
     expect(form.selectedPool).toEqual(OTHER_POOL)
   })
@@ -318,8 +307,8 @@ describe('poolSelectBindings', () => {
   it('offers each pool with the counts of its hosts, writable SRs and networks', async () => {
     seedTwoPools()
     const wrapper = mountSelects(form => [form.poolSelectBindings.value.id])
-    destinationCollectionsMock.hosts.value = [createHost()]
-    destinationCollectionsMock.networks.value = [createNetwork()]
+    xoCollectionsMock.hosts.value = [createHost()]
+    xoCollectionsMock.networks.value = [createNetwork()]
 
     await openSelect(wrapper)
 
@@ -337,7 +326,7 @@ describe('srSelectBindings', () => {
     const sr = createSr({ shared: true })
     seedTwoPools()
     const wrapper = mountSelects(form => [form.srSelectBindings.value.id])
-    destinationCollectionsMock.srs.value = [sr]
+    xoCollectionsMock.srs.value = [sr]
 
     await openSelect(wrapper)
 
