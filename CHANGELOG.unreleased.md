@@ -97,7 +97,7 @@
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
-- @xen-orchestra/backups minor
+- @xen-orchestra/backups major
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
 - @xen-orchestra/mixins minor
@@ -107,6 +107,8 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi major
+- xen-api major
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
