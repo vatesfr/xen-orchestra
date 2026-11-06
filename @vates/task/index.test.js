@@ -175,6 +175,51 @@ describe('Task', function () {
     })
   })
 
+  describe('subtask of an aborted task', function () {
+    it('starts aborted when created after the abort', async function () {
+      const task = createTask()
+      const reason = {}
+
+      let subtask
+      await task
+        .run(async () => {
+          task.abort(reason)
+          subtask = new Task()
+          assert.equal(subtask.status, 'pending', 'it is not ended before it can run')
+          await subtask.run(() => {
+            assert.equal(Task.abortSignal.aborted, true)
+            assert.equal(Task.abortSignal.reason, reason)
+            Task.abortSignal.throwIfAborted()
+          })
+        })
+        .catch(noop)
+
+      assert.equal(subtask.status, 'failure')
+      assert.equal(task.status, 'failure')
+
+      const subtaskEvents = task.$events.filter(_ => _.id === subtask.id)
+      assert.deepEqual(
+        subtaskEvents.map(_ => _.type),
+        ['start', 'abortionRequested', 'end']
+      )
+      assert.equal(subtaskEvents[1].reason, reason)
+      assert.equal(subtaskEvents[2].result, reason)
+    })
+
+    it('can still succeed when its function does not honor the signal', async function () {
+      const task = createTask()
+
+      let subtask
+      await task.run(async () => {
+        task.abort()
+        subtask = new Task()
+        await subtask.run(noop)
+      })
+
+      assert.equal(subtask.status, 'success')
+    })
+  })
+
   describe('#failure()', function () {
     const error = new Error()
 

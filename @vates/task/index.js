@@ -103,6 +103,8 @@ class Task {
     define(this, 'id', value)
   }
 
+  #abortedAtCreation = false
+
   #startData
 
   #status = PENDING
@@ -119,9 +121,21 @@ class Task {
       const parent = getTask()
       if (parent !== undefined) {
         const { signal } = parent._abortController
-        signal.addEventListener('abort', () => {
+        if (signal.aborted) {
+          // the abort event has already been dispatched and will not be again:
+          // without this, a subtask created after its parent was aborted would
+          // never know about it.
+          //
+          // Done before the listener below is registered: the task is created
+          // to be run, it must not end before that, it starts already aborted
+          // and its function is expected to honor the signal
           this._abortController.abort(signal.reason)
-        })
+          this.#abortedAtCreation = true
+        } else {
+          signal.addEventListener('abort', () => {
+            this._abortController.abort(signal.reason)
+          })
+        }
 
         this._onProgress = parent._onProgress
         this.#startData.parentId = parent.id
@@ -199,6 +213,11 @@ class Task {
     this.#running = true
 
     this.#maybeStart()
+
+    if (this.#abortedAtCreation) {
+      this.#abortedAtCreation = false
+      this.#emit('abortionRequested', { reason: this._abortController.signal.reason })
+    }
 
     try {
       const result = await asyncStorage.run(this, fn, this)
