@@ -1204,7 +1204,6 @@
   "traffic-rules:error-plugin:check-doc": "dokumentace k řadiči SDN sítě",
   "traffic-rules:format-warning": "Chyba nastavení: Pravidla pro provoz nejsou v očekávaném formátu. {check-doc} ohledně toho, jak je převést.",
   "traffic-rules:format-warning:check-doc": "Podívejte se do neaktuálnější dokumentace",
-  "traffic-rules:info-message": "Implementování pořadí pravidel pro provoz teprve probíhá. Chování může být nebezpečné.",
   "traffic-rules:no-traffic-rules-detected": "Nezjištěna žádná pravidla pro provoz",
   "traffic-rules:xapi-plugin-required": "Vyžaduje režim XAPI zásuvného modulu",
   "translation-tool": "Nástroj pro překládání",
