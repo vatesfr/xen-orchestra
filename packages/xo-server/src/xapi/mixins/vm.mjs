@@ -19,6 +19,14 @@ import { Ref } from 'xen-api'
 import { parseSize } from '../../utils.mjs'
 
 import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
+import {
+  computeVcpusMax,
+  getHostCores,
+  hasExplicitVcpusMax,
+  isWindowsVm,
+  parseVcpusMaxSetting,
+  POOL_KEY as VCPUS_MAX_POOL_KEY,
+} from '../_vcpuHeadroom.mjs'
 import { resetVmOtherConfig } from '@xen-orchestra/backups/_otherConfig.mjs'
 
 const log = createLogger('xo:server:xapi:vm')
@@ -109,6 +117,10 @@ const methods = {
 
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
+
+    if (!hasExplicitVcpusMax(props, template)) {
+      await this._applyVcpusMaxHeadroom(vm.$ref)
+    }
 
     // Sets boot parameters.
     {
@@ -322,6 +334,40 @@ const methods = {
     return this.barrier(vm.$ref)
   },
 
+  // Raises the vCPU maximum of a VM being created to the pool setting (see _vcpuHeadroom.mjs). Best effort: a
+  // failure leaves the VM as the template made it.
+  async _applyVcpusMaxHeadroom(vmRef) {
+    const setting = parseVcpusMaxSetting(this.pool.other_config[VCPUS_MAX_POOL_KEY])
+    if (setting === undefined) {
+      return
+    }
+
+    try {
+      // read from XAPI: the cached record may not have the values _editVm just set yet
+      const [currentMax, platform] = await Promise.all([
+        this.getField('VM', vmRef, 'VCPUs_max'),
+        this.getField('VM', vmRef, 'platform'),
+      ])
+      if (isWindowsVm({ platform })) {
+        return
+      }
+
+      const target = computeVcpusMax({
+        setting,
+        hostCores: Object.values(this.objects.indexes.type.host ?? {})
+          .map(host => getHostCores(host.cpu_info))
+          .filter(n => n > 0),
+        coresPerSocket: +platform['cores-per-socket'] || 1,
+        currentMax: +currentMax,
+      })
+      if (target !== undefined) {
+        await this.call('VM.set_VCPUs_max', vmRef, target)
+      }
+    } catch (error) {
+      log.warn('could not raise the vCPU maximum of a new VM', { vmRef, error })
+    }
+  },
+
   // High level method to edit a VM.
   //
   // Params do not correspond directly to XAPI props.
@@ -377,6 +423,13 @@ const methods = {
       },
 
       get: vm => +vm.VCPUs_at_startup,
+
+      // XAPI accepts it, but Windows keeps running the vCPUs: the VM would then use more vCPUs than XAPI reports
+      validate(value, vm) {
+        if (isVmRunning(vm) && value < +vm.VCPUs_at_startup && isWindowsVm(vm)) {
+          throw invalidParameters('Windows cannot remove vCPUs while it runs: shut the VM down to lower its vCPUs')
+        }
+      },
       set: [
         'VCPUs_at_startup',
         (value, vm) => isVmRunning(vm) && vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),

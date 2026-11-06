@@ -29,6 +29,8 @@ const vmTemplateFields = [
   'bios_strings',
   'secureBoot',
   'high_availability',
+  'viridian',
+  'coresPerSocket',
 ] as const satisfies readonly (keyof XoVmTemplate)[]
 
 export const useXoVmTemplateCollection = defineRemoteResource({

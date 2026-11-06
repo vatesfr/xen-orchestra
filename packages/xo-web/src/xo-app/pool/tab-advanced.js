@@ -17,7 +17,7 @@ import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
 import { forEach, isEmpty, map, values } from 'lodash'
 import { SelectSr } from 'select-objects'
-import { Text, XoSelect } from 'editable'
+import { Number as EditableNumber, Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
 import {
   createGetObject,
@@ -54,6 +54,9 @@ import { error } from '../../common/notification'
 import { Host, Pool } from '../../common/render-xo-item'
 import { isAdmin } from '../../common/selectors'
 import { ENTERPRISE, SOURCES, getXoaPlan } from '../../common/xoa-plans'
+
+// matches DEFAULT_VCPUS_MAX in xo-server/src/xapi/_vcpuHeadroom.mjs
+const DEFAULT_VCPUS_MAX_HEADROOM = 16
 
 const BindLicensesButton = decorate([
   addSubscriptions({
@@ -361,6 +364,28 @@ export default class TabAdvanced extends Component {
 
   _onChangeMigrationCompression = value => editPool(this.props.pool, { migrationCompression: value })
 
+  _onChangeLiveVcpuScaling = enabled =>
+    editPool(this.props.pool, { vcpusMaxHeadroom: enabled ? DEFAULT_VCPUS_MAX_HEADROOM : null })
+
+  _onChangeVcpusMaxHeadroom = async vcpusMaxHeadroom => {
+    // the editable number gives NaN for a non-number, which would be sent as null and turn the feature off
+    if (!Number.isInteger(vcpusMaxHeadroom)) {
+      throw new Error(this.props.intl.formatMessage(messages.liveVcpuScalingInvalid))
+    }
+    return editPool(this.props.pool, { vcpusMaxHeadroom })
+  }
+
+  // same cap as getHostCores in xo-server/src/xapi/_vcpuHeadroom.mjs: physical cores of the smallest host
+  _getSmallestHostCores = createSelector(
+    () => this.props.hosts,
+    hosts => {
+      const cores = map(hosts, ({ CPUs: { cpu_count: threads, threads_per_core: perCore } = {} }) =>
+        +perCore > 1 ? Math.floor(threads / perCore) : +threads
+      ).filter(n => n > 0)
+      return cores.length === 0 ? undefined : Math.min(...cores)
+    }
+  )
+
   _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
 
   _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
@@ -476,6 +501,25 @@ export default class TabAdvanced extends Component {
                           disabled={!isMigrationCompressionAvailable}
                         />
                       </Tooltip>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('liveVcpuScaling')}</th>
+                    <td>
+                      <Toggle value={pool.vcpusMaxHeadroom !== undefined} onChange={this._onChangeLiveVcpuScaling} />
+                      {pool.vcpusMaxHeadroom !== undefined && (
+                        <span className='ml-1'>
+                          {_('liveVcpuScalingMax')}{' '}
+                          <EditableNumber value={pool.vcpusMaxHeadroom} onChange={this._onChangeVcpusMaxHeadroom} />
+                        </span>
+                      )}
+                      <br />
+                      <small className='text-muted'>
+                        {_('liveVcpuScalingInfo')}{' '}
+                        {pool.vcpusMaxHeadroom > this._getSmallestHostCores() &&
+                          _('liveVcpuScalingCapped', { n: this._getSmallestHostCores() })}{' '}
+                        {_('liveVcpuScalingMemory')}
+                      </small>
                     </td>
                   </tr>
                   <tr>

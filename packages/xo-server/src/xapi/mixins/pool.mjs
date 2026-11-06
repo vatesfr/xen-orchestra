@@ -3,9 +3,10 @@ import { cancelable, timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
 import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
+import { parseVcpusMaxSetting, POOL_KEY as VCPUS_MAX_POOL_KEY } from '../_vcpuHeadroom.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
@@ -29,6 +30,14 @@ const PINNED_VM_START_CONCURRENCY = 2
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
 const methods = {
+  // vCPU maximum given to the VMs XO creates in this pool (see _vcpuHeadroom.mjs), null turns it off
+  async setVcpusMaxHeadroom(value) {
+    if (value !== null && parseVcpusMaxSetting(value) !== value) {
+      throw invalidParameters(`the vCPU maximum must be an integer from 2 to 128, got ${value}`)
+    }
+    await this.pool.update_other_config(VCPUS_MAX_POOL_KEY, value === null ? null : String(value))
+  },
+
   exportPoolMetadata($cancelToken) {
     return this.getResource($cancelToken, PATH_DB_DUMP, {
       task: this.task_create('Export pool metadata'),

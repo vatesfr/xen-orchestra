@@ -165,3 +165,14 @@ export type RollingPoolUpdateBody = RollingPoolActionBody & {
    */
   acceptCurrentStateAsBaseline?: boolean
 }
+
+export interface UpdatePoolRequestBody {
+  /**
+   * vCPU maximum given to the VMs XO creates in this pool, `null` turns it off
+   *
+   * @isInt
+   * @minimum 2
+   * @maximum 128
+   */
+  vcpusMaxHeadroom?: number | null
+}

@@ -25,6 +25,7 @@ const poolFields = [
   'name_description',
   'haRebootVmOnInternalShutdown',
   'current_operations',
+  'vcpusMaxHeadroom',
 ] as const satisfies readonly (keyof XoPool)[]
 
 export const useXoPoolCollection = defineRemoteResource({

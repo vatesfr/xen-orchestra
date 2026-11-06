@@ -168,7 +168,7 @@
             <!-- RESOURCE MANAGEMENT SECTION -->
             <UiTitle>{{ t('resource-management') }}</UiTitle>
             <div class="resource-management-container">
-              <VtsInputWrapper :label="t('vcpus')">
+              <VtsInputWrapper :label="t('vcpus')" :message="liveVcpuScalingMessage" wrap-message>
                 <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
@@ -256,6 +256,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { getEffectiveVcpusMax } from '@/modules/pool/utils/xo-pool-live-vcpu-scaling.util.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
@@ -432,6 +433,27 @@ const hosts = computed(() => {
   }
 
   return hostsByPool.value.get(vmState.pool.id) ?? []
+})
+
+// Only shown when the pool opted in to live vCPU scaling, mirrors what xo-server does at creation
+const liveVcpuScalingMessage = computed(() => {
+  const template = vmState.new_vm_template
+  if (vmState.pool === undefined || template === undefined) {
+    return undefined
+  }
+
+  const effectiveMax = getEffectiveVcpusMax(vmState.pool.vcpusMaxHeadroom, hosts.value, template.coresPerSocket)
+  if (effectiveMax === undefined) {
+    return undefined
+  }
+
+  if (template.viridian) {
+    return t('new-vm:vcpus-windows-halted')
+  }
+
+  // the server never lowers the template maximum
+  const max = Math.max(effectiveMax, template.CPUs.max)
+  return vmState.vCPU >= max ? t('new-vm:vcpus-at-max', { n: max }) : t('new-vm:vcpus-live-up-to', { n: max })
 })
 
 const vmsTemplates = computed(() => {

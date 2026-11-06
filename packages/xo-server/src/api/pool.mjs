@@ -9,6 +9,7 @@ import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
 import { fromCallback } from 'promise-toolbox'
 import { moveFirst } from '../_moveFirst.mjs'
+import { HVM_MAX_VCPUS } from '../xapi/_vcpuHeadroom.mjs'
 
 /** @typedef {import('@vates/types').XoNetwork} XoNetwork */
 /** @typedef {import('@vates/types').XoPool} XoPool */
@@ -34,6 +35,7 @@ export async function set({
   rpuMigrateVmsBack,
   suspendSr,
   crashDumpSr,
+  vcpusMaxHeadroom,
 }) {
   pool = this.getXapiObject(pool)
 
@@ -48,6 +50,7 @@ export async function set({
     suspendSr !== undefined && pool.$call('set_suspend_image_SR', suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef),
     crashDumpSr !== undefined &&
       pool.$call('set_crash_dump_SR', crashDumpSr === null ? Ref.EMPTY : crashDumpSr._xapiRef),
+    vcpusMaxHeadroom !== undefined && pool.$xapi.setVcpusMaxHeadroom(vcpusMaxHeadroom),
   ])
 }
 
@@ -93,6 +96,14 @@ set.params = {
   },
   crashDumpSr: {
     type: ['string', 'null'],
+    optional: true,
+  },
+
+  // vCPU maximum given to the VMs XO creates in this pool, so vCPUs can be added while they run (null: off)
+  vcpusMaxHeadroom: {
+    type: ['integer', 'null'],
+    minimum: 2,
+    maximum: HVM_MAX_VCPUS,
     optional: true,
   },
 }

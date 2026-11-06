@@ -16,7 +16,7 @@ import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import type { PoolDashboard } from './pool.type.mjs'
+import type { PoolDashboard, UpdatePoolRequestBody } from './pool.type.mjs'
 import { MissingPatchesInfo } from '../hosts/host.type.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
@@ -44,6 +44,14 @@ export class PoolService {
     this.#dashboardCacheOpts = {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
+    }
+  }
+  async updatePool(id: XoPool['id'], { vcpusMaxHeadroom }: UpdatePoolRequestBody): Promise<void> {
+    // Touch the object so 404 is raised before any side effect.
+    void this.#restApi.getObject<XoPool>(id, 'pool')
+
+    if (vcpusMaxHeadroom !== undefined) {
+      await this.#restApi.xoApp.getXapi(id).setVcpusMaxHeadroom(vcpusMaxHeadroom)
     }
   }
 

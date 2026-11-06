@@ -222,6 +222,12 @@ export const makeEditObject = specs => {
         value = preprocess(value)
       }
 
+      // runs before any setter, so a refused value leaves the object untouched
+      const { validate } = spec
+      if (validate) {
+        validate(value, object)
+      }
+
       const { get } = spec
       if (get) {
         const current = get(object)

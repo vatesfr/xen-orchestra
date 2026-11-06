@@ -11,6 +11,12 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Pool/Advanced] Live vCPU scaling (opt-in): VMs created from a template in the pool get a vCPU maximum (16 by default), so vCPUs can be added later while they run, without a shutdown. Capped at creation by the physical cores of the smallest host, so the VMs can start anywhere in the pool even with SMT turned off. Not applied to Windows VMs or to existing VMs. Linux guests must bring added vCPUs online: Ubuntu, Rocky and AlmaLinux do, Debian needs a udev rule. A replica or restore on a pool with smaller hosts keeps the maximum and may not start there (PR [#10729](https://github.com/vatesfr/xen-orchestra/pull/10729))
+- [VM] Lowering the vCPUs of a running Windows VM is now refused: Windows kept running the removed vCPUs while XAPI reported the lower count (PR [#10729](https://github.com/vatesfr/xen-orchestra/pull/10729))
+- [REST API] `PATCH /pools/{id}` with `vcpusMaxHeadroom` to set live vCPU scaling (PR [#10729](https://github.com/vatesfr/xen-orchestra/pull/10729))
+- [XO6/Pool/System] Live vCPU scaling can be viewed and edited, showing the maximum new VMs actually get on this pool (PR [#10729](https://github.com/vatesfr/xen-orchestra/pull/10729))
+- [XO6/New VM] The vCPUs field says up to how many vCPUs the VM will be able to add while it runs (PR [#10729](https://github.com/vatesfr/xen-orchestra/pull/10729))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -34,10 +40,11 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
-- @xen-orchestra/rest-api patch
-- @xen-orchestra/web patch
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor

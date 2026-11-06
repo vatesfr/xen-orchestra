@@ -11,6 +11,7 @@ import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
 import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
+import { parseVcpusMaxSetting, POOL_KEY as VCPUS_MAX_POOL_KEY } from './xapi/_vcpuHeadroom.mjs'
 
 const { debug, warn } = createLogger('xo:server:xapi-objects-to-xo')
 
@@ -220,6 +221,7 @@ const TRANSFORMS = {
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
       suspendSr: link(obj, 'suspend_image_SR'),
+      vcpusMaxHeadroom: parseVcpusMaxSetting(obj.other_config[VCPUS_MAX_POOL_KEY]),
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
       vtpmSupported: obj.restrictions.restrict_vtpm === 'false',
       platform_version: obj.$master.software_version.platform_version,
