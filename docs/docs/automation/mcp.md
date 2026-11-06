@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Model Context Protocol (MCP)
 
 ## What is MCP?
