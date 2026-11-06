@@ -16,6 +16,7 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [XO6/Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
+- [REST API/SDN Controller] A traffic rule can no longer be given the priority 0, which XAPI reserves, in `add_traffic_rule`, `update_traffic_rule` and the JSON-RPC methods `sdnController.addRule` and `sdnController.addNetworkRule`; a rule that already has it can still be updated and deleted (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Packages to release
 
@@ -40,6 +41,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->

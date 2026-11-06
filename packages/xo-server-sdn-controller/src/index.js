@@ -396,7 +396,7 @@ class SDNController extends EventEmitter {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
+      priority: { type: 'integer', minimum: 1, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
@@ -424,7 +424,7 @@ class SDNController extends EventEmitter {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
+      priority: { type: 'integer', minimum: 1, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
@@ -720,6 +720,9 @@ class SDNController extends EventEmitter {
   // ===========================================================================
 
   // Run before anything is written, as the rule methods log their errors instead of throwing them
+  //
+  // 0 is refused, as XAPI reserves it. The delete methods still take it: a rule may have been given it
+  // before it was refused
   _checkTrafficRulePriority({ networkId, vifId }, priority) {
     if (this.#staticConfig.useDirectChannel) {
       if (priority !== undefined) {
@@ -733,8 +736,8 @@ class SDNController extends EventEmitter {
     if (priority === undefined) {
       return
     }
-    if (!Number.isInteger(priority) || priority < 0 || priority > 65535) {
-      throw invalidParameters(`traffic rule priority must be an integer from 0 to 65535, not ${priority}`)
+    if (!Number.isInteger(priority) || priority < 1 || priority > 65535) {
+      throw invalidParameters(`traffic rule priority must be an integer from 1 to 65535, not ${priority}`)
     }
     networkId ??= this._xo.getObject(vifId, 'VIF').$network
     const ruleWithPriority = listNetworkRules(this._xo, networkId).find(rule => rule.priority === priority)

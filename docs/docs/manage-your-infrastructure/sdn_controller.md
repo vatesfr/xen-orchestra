@@ -212,7 +212,7 @@ Parameters:
 - _protocol_: IP, TCP, UDP, ICMP or ARP (case-insensitive).
 - _port_: required for TCP/UDP protocol. Use `json:22` so the number is passed as an integer.
 - _allow_: true or false. If set to false the packets are dropped.
-- _priority_ (optional): the OpenFlow priority of the rule, an integer from 0 to 65535, refused when `useDirectChannel` is enabled. A rule without one has the OpenFlow default, 32768. When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the **highest** priority applies: a rule of priority 30 applies before a rule of priority 20. Two rules of a network can't be given the same priority. To delete a rule that has one, give it too.
+- _priority_ (optional): the OpenFlow priority of the rule, an integer from 1 to 65535 (XAPI reserves 0), refused when `useDirectChannel` is enabled. A rule without one has the OpenFlow default, 32768. When several rules of a network match a packet, network-wide and per-VIF rules alike, the one with the **highest** priority applies: a rule of priority 30 applies before a rule of priority 20. Two rules of a network can't be given the same priority. To delete a rule that has one, give it too.
 
 :::tip
 Leave room between the priorities of your rules (for example 100, 110, 120…) rather than numbering them one after the other (101, 102, 103…): a new rule can then go between two existing ones without renumbering them.

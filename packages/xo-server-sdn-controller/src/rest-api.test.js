@@ -93,8 +93,9 @@ describe('a rule', () => {
 })
 
 describe('the priority of a rule', () => {
-  it('is an integer from 0 to 65535', async () => {
-    for (const priority of [-1, 1.5, 65536]) {
+  // XAPI reserves 0
+  it('is an integer from 1 to 65535', async () => {
+    for (const priority of [0, 1.5, 65536]) {
       await rejectsInTheTask(createController(), ADD, 'net', { ...WEB, priority }, invalidParameters)
       await rejectsInTheTask(
         createController(),
