@@ -1,8 +1,20 @@
+// @ts-check
+
 import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { QUERY_SYNC } from '../rest-api'
 
+// TypeScript reads this Babel package as CommonJS, and @vates/types is ESM: hence the resolution-mode
+/**
+ * @import { PluginRestRouteDefinition } from '@vates/types' with { 'resolution-mode': 'import' }
+ * @typedef {ReturnType<typeof import('../index.js').default>} SdnController
+ */
+
 // No ACL middleware: admins only, like the `sdnController.createPrivateNetwork` JSON-RPC method
+/**
+ * @param {SdnController} controller
+ * @returns {PluginRestRouteDefinition}
+ */
 export function createPrivateNetworkRoute(controller) {
   return {
     endpoint: '/private_networks',
@@ -43,7 +55,8 @@ export function createPrivateNetworkRoute(controller) {
           return { ids: await controller._createPrivateNetwork(req.body) }
         },
         {
-          sync: req.query.sync ?? false,
+          // coerceQueryParams has made `sync` a boolean, which the express Request type cannot know
+          sync: /** @type {boolean | undefined} */ (req.query.sync) ?? false,
           statusCode: 201,
           // The route creates one network per pool, across several pools: there is no single
           // object to attach the task to, so objectId is left unset
