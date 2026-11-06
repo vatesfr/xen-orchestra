@@ -1,11 +1,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
-import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/choose-v2v-destination.ts'
-import { createNetwork } from '@/test/create-network.ts'
-import { createManagementPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { createSr } from '@/test/create-sr.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
   createV2vDestinationDefaults,
@@ -13,9 +9,9 @@ import {
   createV2vMigrationListVms,
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
-import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { seedV2vDestinationPools } from '@/test/seed-v2v-destination-pools.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { flushPromises } from '@vue/test-utils'
@@ -58,15 +54,8 @@ const UNKNOWN_POOL_ID = 'pool-unknown' as FrontXoPool['id']
 
 const DEFAULTS = createV2vDestinationDefaults({ sr: POOL.default_SR })
 
-const STORED_TEMPLATE_ID = 'template-stored' as V2vMigrationList['defaults']['template']
-
 async function mountDestinationStep(query: Record<string, string> = {}) {
-  xoCollectionsMock.pools.value = [POOL]
-  xoCollectionsMock.srs.value = [createSr()]
-  xoCollectionsMock.networks.value = [createNetwork({ id: DEFAULTS.network })]
-  xoCollectionsMock.pifs.value = [createManagementPif(POOL, DEFAULTS.network)]
-  // The stored defaults are only prefilled once the pool offers them
-  xoCollectionsMock.templates.value = [createVmTemplate({ id: STORED_TEMPLATE_ID })]
+  seedV2vDestinationPools([{ pool: POOL, managementNetworkId: DEFAULTS.network }])
   const router = await createV2vWizardRouter('destination', query)
 
   const result = mountComposable(() => useV2vDestinationStep(), {
@@ -128,9 +117,7 @@ describe('form', () => {
   })
 
   it('prefills the defaults of the list stored for the chosen pool', async () => {
-    const storedList = createV2vMigrationList({
-      defaults: createV2vDestinationDefaults({ template: STORED_TEMPLATE_ID }),
-    })
+    const storedList = createV2vMigrationList()
     seedV2vMigrationList(storedList)
     const { result } = await mountDestinationStep()
 

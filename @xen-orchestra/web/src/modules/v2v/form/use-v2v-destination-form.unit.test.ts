@@ -4,7 +4,6 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vDestinationForm, type V2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/choose-v2v-destination.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
@@ -17,6 +16,7 @@ import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
+import { seedV2vDestinationPools } from '@/test/seed-v2v-destination-pools.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -66,20 +66,11 @@ const OTHER_MANAGEMENT_NETWORK_ID = 'network-mgmt-2' as FrontXoNetwork['id']
 
 const STORED_LIST = createV2vMigrationList()
 
-// A default is only prefilled once offered: each pool offers its SR, its management network and the stored defaults
 function seedTwoPools() {
-  xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
-  xoCollectionsMock.srs.value = [createSr(), createSr({ id: OTHER_POOL.default_SR, $pool: OTHER_POOL.id })]
-  xoCollectionsMock.networks.value = [
-    createNetwork(),
-    createNetwork({ id: MANAGEMENT_NETWORK_ID }),
-    createNetwork({ id: OTHER_MANAGEMENT_NETWORK_ID, $pool: OTHER_POOL.id }),
-  ]
-  xoCollectionsMock.pifs.value = [
-    createManagementPif(POOL, MANAGEMENT_NETWORK_ID),
-    createManagementPif(OTHER_POOL, OTHER_MANAGEMENT_NETWORK_ID),
-  ]
-  xoCollectionsMock.templates.value = [createVmTemplate()]
+  seedV2vDestinationPools([
+    { pool: POOL, managementNetworkId: MANAGEMENT_NETWORK_ID },
+    { pool: OTHER_POOL, managementNetworkId: OTHER_MANAGEMENT_NETWORK_ID },
+  ])
 }
 
 function mountDestinationForm({
@@ -166,7 +157,7 @@ describe('formData', () => {
   it('prefills again when another pool is chosen', async () => {
     const form = mountDestinationForm()
     await chooseV2vDestinationPool(form, POOL.id)
-    form.formData.template = 'template-123' as FrontXoVmTemplate['id']
+    form.formData.template = createVmTemplate().id
 
     await chooseV2vDestinationPool(form, OTHER_POOL.id)
 
@@ -179,12 +170,11 @@ describe('formData', () => {
   })
 
   it('prefills the defaults of the list stored for the pool', async () => {
-    const storedList = createV2vMigrationList()
-    const form = mountDestinationForm({ storedList })
+    const form = mountDestinationForm({ storedList: STORED_LIST })
 
     await chooseV2vDestinationPool(form, POOL.id)
 
-    expect(form.formData).toEqual({ pool: POOL.id, ...storedList.defaults })
+    expect(form.formData).toEqual({ pool: POOL.id, ...STORED_LIST.defaults })
   })
 
   it.each([
