@@ -6,7 +6,10 @@ import type {
   FrontXoNetwork,
   useXoNetworkCollection as realUseXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { useXoPbdCollection as realUseXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type {
+  FrontXoPbd,
+  useXoPbdCollection as realUseXoPbdCollection,
+} from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type {
   FrontXoPif,
   useXoPifCollection as realUseXoPifCollection,
@@ -23,7 +26,8 @@ import type {
   FrontXoVmTemplate,
   useXoVmTemplateCollection as realUseXoVmTemplateCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import { ref } from 'vue'
+import { groupBy } from '@/test/group-by.ts'
+import { computed, ref } from 'vue'
 
 // Shared state of the mocked collections a destination is chosen from: a test sets the objects it needs,
 // reset it in `beforeEach`
@@ -32,6 +36,7 @@ export const destinationCollectionsMock = {
   arePoolsReady: ref(true),
   hosts: ref<FrontXoHost[]>([]),
   srs: ref<FrontXoSr[]>([]),
+  pbds: ref<FrontXoPbd[]>([]),
   networks: ref<FrontXoNetwork[]>([]),
   pifs: ref<FrontXoPif[]>([]),
   templates: ref<FrontXoVmTemplate[]>([]),
@@ -40,6 +45,7 @@ export const destinationCollectionsMock = {
     this.arePoolsReady.value = true
     this.hosts.value = []
     this.srs.value = []
+    this.pbds.value = []
     this.networks.value = []
     this.pifs.value = []
     this.templates.value = []
@@ -56,6 +62,7 @@ export const useXoPoolCollection = (() => ({
 
 export const useXoHostCollection = (() => ({
   hosts: destinationCollectionsMock.hosts,
+  getHostById: (id: FrontXoHost['id']) => destinationCollectionsMock.hosts.value.find(host => host.id === id),
 })) as unknown as typeof realUseXoHostCollection
 
 export const useXoSrCollection = (() => ({
@@ -66,9 +73,8 @@ export const useXoNetworkCollection = (() => ({
   networks: destinationCollectionsMock.networks,
 })) as unknown as typeof realUseXoNetworkCollection
 
-// No PBD: the tests offer shared SRs, whose location needs none
 export const useXoPbdCollection = (() => ({
-  pbdsBySr: ref(new Map()),
+  pbdsBySr: computed(() => groupBy(destinationCollectionsMock.pbds.value, pbd => pbd.SR)),
 })) as unknown as typeof realUseXoPbdCollection
 
 export const useXoPifCollection = (() => ({
