@@ -1,11 +1,15 @@
 import {
   createV2vConnectionContext,
+  provideV2vConnection,
   useV2vConnection,
 } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 
 describe('createV2vConnectionContext', () => {
   it('is not connected at first', () => {
@@ -49,6 +53,34 @@ describe('sourceId', () => {
     )
 
     expect(context.sourceId.value).toBe('esxi.lab:443')
+  })
+})
+
+describe('provideV2vConnection', () => {
+  function mountProvidedContext() {
+    const Step = defineComponent({ setup: () => ({ context: useV2vConnection() }), render: () => null })
+
+    const wrapper = mount(
+      defineComponent(() => {
+        provideV2vConnection()
+
+        return () => h(Step)
+      }),
+      { global: createGlobalTestConfig() }
+    )
+
+    return wrapper.getComponent(Step).vm.context
+  }
+
+  it('gives each wizard a new context, without the connection of the previous one', () => {
+    const previousContext = mountProvidedContext()
+    previousContext.setConnection(createV2vConnection(), createV2vInventory())
+
+    const context = mountProvidedContext()
+
+    expect(context).not.toBe(previousContext)
+    expect(context.connection.value).toBeUndefined()
+    expect(context.inventory.value).toBeUndefined()
   })
 })
 
