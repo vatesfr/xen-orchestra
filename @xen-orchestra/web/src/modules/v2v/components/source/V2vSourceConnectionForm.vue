@@ -14,7 +14,7 @@
         <span class="typo-body-regular-small hint">{{ t('skip-ssl-check-info') }}</span>
       </div>
       <FormCheckbox v-bind="form.rememberCheckboxBindings" />
-      <UiInfo v-if="form.formData.remember" accent="warning" wrap class="remember-warning">
+      <UiInfo v-if="form.formData.remember" accent="warning" wrap>
         {{ t('remember-credentials-warning') }}
       </UiInfo>
       <UiAlert v-if="connectionError !== undefined" accent="danger">
