@@ -1,7 +1,10 @@
 export type ComparisonOperator = '>' | '>=' | '<' | '<='
 
+export const UNKNOWN: unique symbol
+
 declare class BaseNode {
   createPredicate(): (value: any) => boolean
+  createResolver(knownFields?: string[]): (value: any) => boolean | typeof UNKNOWN
   match(value: any): boolean
   toString(isNested?: boolean): string
 }

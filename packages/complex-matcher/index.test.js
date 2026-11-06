@@ -15,6 +15,7 @@ const {
   Property,
   setPropertyClause,
   StringNode,
+  UNKNOWN,
 } = require('./')
 
 it('getPropertyClausesStrings', () => {
@@ -127,4 +128,113 @@ describe('setPropertyClause', () => {
 
 it('toString', () => {
   assert.equal(ast.toString(), pattern)
+})
+
+describe('createResolver', () => {
+  const resolve = (pattern, value, knownFields) => parse(pattern).createResolver(knownFields)(value)
+
+  describe('without known fields', () => {
+    it('behaves like createPredicate', () => {
+      assert.equal(resolve('name_label:foo', { name_label: 'foo' }), true)
+      assert.equal(resolve('name_label:foo', { name_label: 'bar' }), false)
+      assert.equal(resolve('name_label:foo', {}), false)
+      assert.equal(resolve('!name_label:foo', {}), true)
+      assert.equal(resolve('foo', { name_label: 'bar' }), false)
+    })
+  })
+
+  describe('with known fields', () => {
+    it('resolves a known and present property', () => {
+      assert.equal(resolve('name_label:foo', { name_label: 'foo' }, ['name_label']), true)
+      assert.equal(resolve('name_label:foo', { name_label: 'bar' }, ['name_label']), false)
+      assert.equal(resolve('!name_label:foo', { name_label: 'bar' }, ['name_label']), true)
+    })
+
+    it('resolves a known but absent property as not matching', () => {
+      assert.equal(resolve('creation:creator:1', { id: 'vm' }, ['id', 'creation']), false)
+      assert.equal(resolve('!creation:creator:1', { id: 'vm' }, ['id', 'creation']), true)
+    })
+
+    it('returns UNKNOWN on an unknown property', () => {
+      assert.equal(resolve('creation:creator:1', { id: 'vm' }, ['id']), UNKNOWN)
+      assert.equal(resolve('!creation:creator:1', { id: 'vm' }, ['id']), UNKNOWN)
+    })
+
+    it('treats a present property as known even if not listed', () => {
+      assert.equal(resolve('$pool:1', { $pool: '1' }, []), true)
+      assert.equal(resolve('$pool:1', { $pool: '2' }, []), false)
+    })
+
+    it('treats everything below a known property as known', () => {
+      assert.equal(resolve('creation:creator:1', { creation: {} }, ['creation']), false)
+      assert.equal(resolve('creation:creator:1', { creation: { creator: '1' } }, ['creation']), true)
+      assert.equal(resolve('tags:prod', { tags: ['test'] }, ['tags']), false)
+    })
+
+    it('resolves a known truthy property', () => {
+      assert.equal(resolve('is_a_template?', { is_a_template: true }, ['is_a_template']), true)
+      assert.equal(resolve('is_a_template?', { is_a_template: false }, ['is_a_template']), false)
+      assert.equal(resolve('is_a_template?', {}, ['is_a_template']), false)
+    })
+
+    it('returns UNKNOWN on an unknown truthy property', () => {
+      assert.equal(resolve('is_a_template?', {}, []), UNKNOWN)
+    })
+
+    it('resolves a bare term matching a known value', () => {
+      assert.equal(resolve('foo', { name_label: 'foo' }, ['name_label']), true)
+    })
+
+    it('returns UNKNOWN on a bare term not matching any known value', () => {
+      assert.equal(resolve('foo', { name_label: 'bar' }, ['name_label']), UNKNOWN)
+    })
+
+    it('resolves an empty pattern', () => {
+      assert.equal(resolve('', {}, []), true)
+    })
+  })
+
+  describe('and', () => {
+    const known = { name_label: 'foo' }
+    const knownFields = ['name_label']
+
+    it('is false if a term is false', () => {
+      assert.equal(resolve('name_label:bar $pool:1', known, knownFields), false)
+      assert.equal(resolve('$pool:1 name_label:bar', known, knownFields), false)
+    })
+
+    it('returns UNKNOWN if other terms are true', () => {
+      assert.equal(resolve('name_label:foo $pool:1', known, knownFields), UNKNOWN)
+      assert.equal(resolve('$pool:1 name_label:foo', known, knownFields), UNKNOWN)
+    })
+  })
+
+  describe('or', () => {
+    const known = { name_label: 'foo' }
+    const knownFields = ['name_label']
+
+    it('is true if a term is true', () => {
+      assert.equal(resolve('|(name_label:foo $pool:1)', known, knownFields), true)
+      assert.equal(resolve('|($pool:1 name_label:foo)', known, knownFields), true)
+    })
+
+    it('returns UNKNOWN if other terms are false', () => {
+      assert.equal(resolve('|(name_label:bar $pool:1)', known, knownFields), UNKNOWN)
+      assert.equal(resolve('|($pool:1 name_label:bar)', known, knownFields), UNKNOWN)
+    })
+  })
+
+  describe('not', () => {
+    const known = { name_label: 'foo' }
+    const knownFields = ['name_label']
+
+    it('negates a resolved group containing an unknown term', () => {
+      assert.equal(resolve('!(name_label:bar $pool:1)', known, knownFields), true)
+      assert.equal(resolve('!|(name_label:foo $pool:1)', known, knownFields), false)
+    })
+
+    it('returns UNKNOWN on an unresolved group', () => {
+      assert.equal(resolve('!(name_label:foo $pool:1)', known, knownFields), UNKNOWN)
+    })
+  })
 })
