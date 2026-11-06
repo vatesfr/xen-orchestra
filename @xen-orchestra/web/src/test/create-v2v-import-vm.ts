@@ -39,3 +39,11 @@ export function createV2vImportVm(
     ...overrides,
   })
 }
+
+// One cold and one warm import of the test source, each with its own id
+export function createV2vColdAndWarmImportVms(): FrontXoVm[] {
+  return [
+    createV2vImportVm({ isWarm: false }, { id: 'xo-vm-1' as FrontXoVm['id'] }),
+    createV2vImportVm({ isWarm: true }, { id: 'xo-vm-2' as FrontXoVm['id'] }),
+  ]
+}
