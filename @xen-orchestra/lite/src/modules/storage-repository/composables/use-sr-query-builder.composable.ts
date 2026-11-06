@@ -103,8 +103,8 @@ export function useSrQueryBuilder(
     tags: useStringSchema(t('tags')),
     // "thin" and "thick" are technical names, not translated
     provisioning: useStringSchema(t('provisioning'), {
-      thin: 'thin',
-      thick: 'thick',
+      thin: 'Thin',
+      thick: 'Thick',
       unknown: t('unknown'),
     } satisfies Record<SrAllocationStrategy, string>),
     is_ha: useBooleanSchema(t('high-availability'), {
