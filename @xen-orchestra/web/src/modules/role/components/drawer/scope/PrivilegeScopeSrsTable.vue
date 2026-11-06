@@ -1,7 +1,7 @@
 <template>
   <div class="privilege-scope-srs-table">
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
-    <VtsTable :state :pagination-bindings :selection-bindings>
+    <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
           <HeadCells />
@@ -37,7 +37,12 @@ import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const selectedIds = defineModel<string[]>('selectedIds', { required: true })
+const { visibleIds, readonly = false } = defineProps<{
+  visibleIds?: string[]
+  readonly?: boolean
+}>()
+
+const selectedIds = defineModel<string[]>('selectedIds', { default: () => [] })
 
 const SCOPE: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
@@ -45,11 +50,15 @@ const { t } = useI18n()
 
 const { srs, areSrsReady, hasSrFetchError, isDefaultSr } = useXoSrCollection()
 
+const visibleSrs = computed(() =>
+  visibleIds === undefined ? srs.value : srs.value.filter(sr => visibleIds.includes(sr.id))
+)
+
 const {
   items: filteredSrs,
   filter,
   schema,
-} = useSrQueryBuilder('privilege-scope-srs', srs, {
+} = useSrQueryBuilder('privilege-scope-srs', visibleSrs, {
   ignoreRoute: true,
 })
 
@@ -57,7 +66,7 @@ const state = useTableState({
   busy: logicNot(areSrsReady),
   error: hasSrFetchError,
   empty: () =>
-    srs.value.length === 0
+    visibleSrs.value.length === 0
       ? t('no-storage-repository-detected')
       : filteredSrs.value.length === 0
         ? { type: 'no-result' }
@@ -70,7 +79,7 @@ const { pageRecords: paginatedSrs, paginationBindings } = usePagination('privile
 
 const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
   selectedIds,
-  items: srs,
+  items: visibleSrs,
   filteredItems: filteredSrs,
   pageItems: paginatedSrs,
   isReady: areSrsReady,
@@ -90,7 +99,7 @@ function getPrimaryIcon(sr: FrontXoSr) {
 const { HeadCells, BodyCells } = useSrColumns({
   exclude: ['actions'],
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => (readonly ? r() : r(pageSelectionModel)),
   }),
   body: (sr: FrontXoSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
@@ -98,7 +107,7 @@ const { HeadCells, BodyCells } = useSrColumns({
     const { srStatusIcon, getSrAccessModeLabel } = useXoSrUtils(sr, () => SCOPE)
 
     return {
-      checkbox: r => r({ selected: isSelected(sr.id), onToggle: () => toggleSelection(sr.id) }),
+      checkbox: r => (readonly ? r() : r({ selected: isSelected(sr.id), onToggle: () => toggleSelection(sr.id) })),
       storageRepository: r =>
         r({
           label: sr.name_label,

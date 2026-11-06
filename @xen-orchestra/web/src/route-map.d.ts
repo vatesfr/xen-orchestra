@@ -177,10 +177,18 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | '/admin/privilege/[id]/general'
+      | '/admin/privilege/[id]/scope'
     >,
     '/admin/privilege/[id]/general': RouteRecordInfo<
       '/admin/privilege/[id]/general',
       '/admin/privilege/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/privilege/[id]/scope': RouteRecordInfo<
+      '/admin/privilege/[id]/scope',
+      '/admin/privilege/:id/scope',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -805,12 +813,19 @@ declare module 'vue-router/auto-routes' {
       routes:
         | '/admin/privilege/[id]'
         | '/admin/privilege/[id]/general'
+        | '/admin/privilege/[id]/scope'
       views:
         | 'default'
     }
     'src/pages/admin/privilege/[id]/general.vue': {
       routes:
         | '/admin/privilege/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/admin/privilege/[id]/scope.vue': {
+      routes:
+        | '/admin/privilege/[id]/scope'
       views:
         | never
     }

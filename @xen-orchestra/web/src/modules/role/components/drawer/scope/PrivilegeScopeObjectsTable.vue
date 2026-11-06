@@ -1,7 +1,7 @@
 <template>
   <div class="privilege-scope-objects-table">
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
-    <VtsTable :state :pagination-bindings :selection-bindings>
+    <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
           <HeadCells />
@@ -30,15 +30,23 @@ import { usePrivilegeScopeObjectColumns } from '@core/tables/column-sets/privile
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { useI18n } from 'vue-i18n'
 
-const { tableId, objects, isReady, hasError, emptyMessage } = defineProps<{
+const {
+  tableId,
+  objects,
+  isReady,
+  hasError,
+  emptyMessage,
+  readonly = false,
+} = defineProps<{
   tableId: string
   objects: PrivilegeScopeObject[]
   isReady: boolean
   hasError: boolean
   emptyMessage: string
+  readonly?: boolean
 }>()
 
-const selectedIds = defineModel<string[]>('selectedIds', { required: true })
+const selectedIds = defineModel<string[]>('selectedIds', { default: () => [] })
 
 const { t } = useI18n()
 
@@ -70,10 +78,11 @@ const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = u
 
 const { HeadCells, BodyCells } = usePrivilegeScopeObjectColumns({
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => (readonly ? r() : r(pageSelectionModel)),
   }),
   body: (object: PrivilegeScopeObject) => ({
-    checkbox: r => r({ selected: isSelected(object.id), onToggle: () => toggleSelection(object.id) }),
+    checkbox: r =>
+      readonly ? r() : r({ selected: isSelected(object.id), onToggle: () => toggleSelection(object.id) }),
     object: r => r({ label: object.label, to: object.to, icon: object.icon }),
   }),
 })

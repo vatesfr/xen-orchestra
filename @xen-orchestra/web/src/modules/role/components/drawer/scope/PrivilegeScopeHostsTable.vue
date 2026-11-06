@@ -1,7 +1,7 @@
 <template>
   <div class="privilege-scope-hosts-table">
     <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
-    <VtsTable :state :pagination-bindings :selection-bindings>
+    <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
           <HeadCells />
@@ -34,11 +34,20 @@ import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const selectedIds = defineModel<string[]>('selectedIds', { required: true })
+const { visibleIds, readonly = false } = defineProps<{
+  visibleIds?: string[]
+  readonly?: boolean
+}>()
+
+const selectedIds = defineModel<string[]>('selectedIds', { default: () => [] })
 
 const { t } = useI18n()
 
 const { hosts, areHostsReady, hasHostFetchError, isMasterHost } = useXoHostCollection()
+
+const visibleHosts = computed(() =>
+  visibleIds === undefined ? hosts.value : hosts.value.filter(host => visibleIds.includes(host.id))
+)
 
 const { pifsByHost, arePifsReady, hasPifFetchError } = useXoPifCollection()
 
@@ -48,7 +57,7 @@ const {
   items: filteredHosts,
   filter,
   schema,
-} = useHostQueryBuilder('privilege-scope-hosts', hosts, {
+} = useHostQueryBuilder('privilege-scope-hosts', visibleHosts, {
   ignoreRoute: true,
 })
 
@@ -56,7 +65,11 @@ const state = useTableState({
   busy: logicNot(isReady),
   error: logicOr(hasHostFetchError, hasPifFetchError),
   empty: () =>
-    hosts.value.length === 0 ? t('no-host-detected') : filteredHosts.value.length === 0 ? { type: 'no-result' } : false,
+    visibleHosts.value.length === 0
+      ? t('no-host-detected')
+      : filteredHosts.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('privilege-scope-hosts', filteredHosts, {
@@ -65,7 +78,7 @@ const { pageRecords: paginatedHosts, paginationBindings } = usePagination('privi
 
 const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
   selectedIds,
-  items: hosts,
+  items: visibleHosts,
   filteredItems: filteredHosts,
   pageItems: paginatedHosts,
   isReady,
@@ -85,7 +98,7 @@ function getMasterIcon(host: FrontXoHost) {
 const { HeadCells, BodyCells } = useHostColumns({
   exclude: ['srStatus', 'selectItem'],
   head: () => ({
-    checkbox: r => r(pageSelectionModel),
+    checkbox: r => (readonly ? r() : r(pageSelectionModel)),
   }),
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
@@ -93,7 +106,7 @@ const { HeadCells, BodyCells } = useHostColumns({
     const rightIcon = computed(() => getMasterIcon(host))
 
     return {
-      checkbox: r => r({ selected: isSelected(host.id), onToggle: () => toggleSelection(host.id) }),
+      checkbox: r => (readonly ? r() : r({ selected: isSelected(host.id), onToggle: () => toggleSelection(host.id) })),
       host: r =>
         r({
           label: host.name_label,

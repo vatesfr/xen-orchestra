@@ -1,16 +1,17 @@
 <template>
-  <PrivilegeScopeVmsTable v-if="resource === 'vm'" v-model:selected-ids="selectedIds" />
-  <PrivilegeScopeHostsTable v-else-if="resource === 'host'" v-model:selected-ids="selectedIds" />
-  <PrivilegeScopeSrsTable v-else-if="resource === 'sr'" v-model:selected-ids="selectedIds" />
+  <PrivilegeScopeVmsTable v-if="resource === 'vm'" v-model:selected-ids="selectedIds" :visible-ids :readonly />
+  <PrivilegeScopeHostsTable v-else-if="resource === 'host'" v-model:selected-ids="selectedIds" :visible-ids :readonly />
+  <PrivilegeScopeSrsTable v-else-if="resource === 'sr'" v-model:selected-ids="selectedIds" :visible-ids :readonly />
   <PrivilegeScopeObjectsTable
     v-else
     :key="resource"
     v-model:selected-ids="selectedIds"
     :table-id="`privilege-scope-${resource}`"
-    :objects
+    :objects="visibleObjects"
     :is-ready
     :has-error
     :empty-message
+    :readonly
   />
 </template>
 
@@ -24,15 +25,25 @@ import type { SelectablePrivilegeResource } from '@/modules/role/utils/privilege
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { resource } = defineProps<{
+const {
+  resource,
+  visibleIds,
+  readonly = false,
+} = defineProps<{
   resource: SelectablePrivilegeResource
+  visibleIds?: string[]
+  readonly?: boolean
 }>()
 
-const selectedIds = defineModel<string[]>('selectedIds', { required: true })
+const selectedIds = defineModel<string[]>('selectedIds', { default: () => [] })
 
 const { t } = useI18n()
 
 const { objects, isReady, hasError } = usePrivilegeScopeObjects(() => resource)
+
+const visibleObjects = computed(() =>
+  visibleIds === undefined ? objects.value : objects.value.filter(object => visibleIds.includes(object.id))
+)
 
 const emptyMessage = computed(() => {
   if (resource === 'pool') {
