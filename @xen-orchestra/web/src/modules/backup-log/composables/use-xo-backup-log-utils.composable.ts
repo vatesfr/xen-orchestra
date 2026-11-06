@@ -19,12 +19,12 @@ export function useXoBackupLogsUtils() {
     return formatDateTime(value)
   }
 
-  function getBackupLogDuration(backupLog: Pick<FrontXoBackupLog, 'start' | 'end'>) {
-    if (backupLog.end === undefined || backupLog.start === undefined) {
+  function getBackupLogDuration(start: number | undefined, end: number | undefined) {
+    if (end === undefined || start === undefined) {
       return undefined
     }
 
-    const durationMs = new Date(backupLog.end).getTime() - new Date(backupLog.start).getTime()
+    const durationMs = new Date(end).getTime() - new Date(start).getTime()
 
     if (durationMs < 0) {
       return undefined

@@ -5,7 +5,7 @@
       size="medium"
       :label="taskName.name"
       :to="taskName.to"
-      :icon="taskName.icon ?? 'fa:bars-progress'"
+      icon="fa:bars-progress"
     />
     <div class="content">
       <VtsCardRowKeyValue v-if="type !== undefined">
@@ -94,8 +94,12 @@ const { getBackupLogDate, getBackupLogDuration, findVmTransfer } = useXoBackupLo
 const taskName = computed(() => getTaskName(task))
 
 const type = computed(() => {
-  const exportTask = task.data?.type === 'VM' ? task.tasks?.find(subTask => subTask.data?.isFull !== undefined) : task
-  const isFull: unknown = exportTask?.data?.isFull
+  let isFull: unknown = task.data?.isFull
+
+  if (task.data?.type === 'VM') {
+    const exportTask = task.tasks?.find(subTask => subTask.data?.isFull !== undefined)
+    isFull = exportTask?.data?.isFull
+  }
 
   if (isFull === undefined) {
     return undefined
@@ -104,7 +108,7 @@ const type = computed(() => {
   return isFull ? t('full') : t('incremental')
 })
 
-const duration = computed(() => getBackupLogDuration(task))
+const duration = computed(() => getBackupLogDuration(task.start, task.end))
 
 const transfer = computed(() => {
   if (task.data?.type === 'VM') {
