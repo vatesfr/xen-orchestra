@@ -1,6 +1,6 @@
-# Assert behaviour, not implementation
+# Assert behavior, not implementation
 
-**This is the rule the rest of the guide serves.** A test earns its place by failing when behaviour breaks, and staying green through any refactor that preserves it.
+**This is the rule the rest of the guide serves.** A test earns its place by failing when behavior breaks, and staying green through any refactor that preserves it.
 
 - Assert concrete outputs and contracts (`input → output`). Never assert _how_ the result was reached — which helper ran, in which order, how many times.
 - Every test must assert something meaningful. Never re-assert a mock's own return value: `getHostById.mockReturnValue(host)` followed by `expect(…).toBe(host)` tests the mock, not the code.
@@ -8,7 +8,7 @@
 
 ```typescript
 // ✗ pins a format the code under test does not own — renaming the icon scheme or rewording a
-//   translation then breaks the test even though the behaviour is unchanged
+//   translation then breaks the test even though the behavior is unchanged
 expect(displayData.vmIcon).toBe('object:vm:running')
 expect(wrapper.vm.powerState.text).toBe('Running')
 

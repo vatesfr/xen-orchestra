@@ -23,7 +23,7 @@ it('shows VGA as enabled when the VM uses the "std" adapter', () => {
 })
 ```
 
-The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviours to separate; a small component reads better as flat `it`s.
+The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviors to separate; a small component reads better as flat `it`s.
 
 ## Keep components thin
 
@@ -40,7 +40,7 @@ The extraction is a refactor, so the tests come **first** and are what proves it
 3. Re-run those tests **unchanged**.
 4. Move the ones the extraction made redundant down next to the new util/composable, and delete them from the component test.
 
-Step 3 is the gate. A test that has to be edited to pass is reporting a behaviour change — say so, do not absorb it into the diff. Tests written only _after_ an extraction describe the new code and cannot catch what the extraction broke, which is the whole risk being taken.
+Step 3 is the gate. A test that has to be edited to pass is reporting a behavior change — say so, do not absorb it into the diff. Tests written only _after_ an extraction describe the new code and cannot catch what the extraction broke, which is the whole risk being taken.
 
 Step 4 is selective. A test that only exercised the logic now living in the util moves; a test asserting something the component alone does — rendering, conditional rows, empty states, feeding the util's output into the template — stays.
 
@@ -109,7 +109,7 @@ expect(findTableRows(wrapper)).toEqual([
 
 ### Never spell out a translation
 
-A rendered label or a translated value is wording the component does not own, so [asserting behaviour](./assert-behaviour.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` of the very instance `createGlobalTestConfig()` installs:
+A rendered label or a translated value is wording the component does not own, so [asserting behavior](./assert-behavior.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` of the very instance `createGlobalTestConfig()` installs:
 
 ```typescript
 // ✗ rewording the translation breaks the test although the component still picks the same key
@@ -230,7 +230,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 There is no layout engine, and Vitest's `css` option is off, so component styles are never loaded. Out of reach:
 
 - `toBeVisible()` and anything depending on real visibility — assert presence/absence instead (`expect(wrapper.find('.foo').exists()).toBe(false)`)
-- `getComputedStyle` assertions on design tokens (colour, padding, `flex-direction`)
+- `getComputedStyle` assertions on design tokens (color, padding, `flex-direction`)
 - real event dispatch — `trigger()` simulates events
 - canvas (ECharts), `ResizeObserver`, `IntersectionObserver` — for a chart card, stub the chart (see [Chart cards](#chart-cards))
 

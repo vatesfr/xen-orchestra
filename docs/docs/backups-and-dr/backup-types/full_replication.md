@@ -62,7 +62,7 @@ You don't have to test replicas by hand: the backup health check feature can aut
 
 ## Schedule a full replication job {#schedule-a-dr-task}
 
-Planning a full replication job is very similar to planning a backup or a snapshot: create a new backup job, select the **Full replication** mode (still labelled **Disaster Recovery** in the XO 5 interface), pick the VMs, set a schedule, and choose the destination storage repository (any SR that XO can reach, on any connected pool).
+Planning a full replication job is very similar to planning a backup or a snapshot: create a new backup job, select the **Full replication** mode (still labeled **Disaster Recovery** in the XO 5 interface), pick the VMs, set a schedule, and choose the destination storage repository (any SR that XO can reach, on any connected pool).
 
 Your replicated VMs will be visible "on the other side" as soon as the first run is done, named after the original VM, the job and the run date, for example: `web01 - DR job - (20260801T040000Z)`.
 
