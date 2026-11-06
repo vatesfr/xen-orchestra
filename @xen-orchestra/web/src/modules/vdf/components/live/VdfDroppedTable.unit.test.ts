@@ -33,7 +33,7 @@ it("offers to allow a dropped flow and to trace it, from the row's menu", async 
     row({
       proto: 'tcp',
       port: '5432',
-      trace: { name: '/pool/[id]/firewall/trace', params: { id: 'pool-1' } },
+      trace: { to: 'vm-db', proto: 'tcp', port: '5432', run: '1' },
       decision: { label: 'db', name: 'db', tier: 'Application', isGlobal: false, route: '/', policy: 'db' },
     }),
   ])

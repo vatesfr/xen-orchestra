@@ -1,75 +1,34 @@
 <template>
-  <div class="firewall-trace">
-    <VdfTracePanel
-      :key="formKey"
-      v-model:active="isActive"
-      :pool
-      :initial="initialQuery"
-      @traced="query => writeQuery(query)"
-    />
-    <VdfRecentDropsCard v-if="!isActive" :pool-id="pool.id" :document="publishedDocument" />
-  </div>
+  <VtsStateHero format="page" type="busy" size="large" />
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import VdfRecentDropsCard from '@/modules/vdf/components/overview/VdfRecentDropsCard.vue'
 import type { VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
-import VdfTracePanel from '@/modules/vdf/components/trace/VdfTracePanel.vue'
-import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
-import { isEqual } from 'lodash-es'
-import { ref, watch } from 'vue'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
 
+// Trace is no tab any more, but a drawer over any of them. This route stays
+// for the links and bookmarks made before (a trace's query, run=1 runs it):
+// the Overview, with the drawer open on that query. Opened once there, as
+// XO closes overlays on every navigation.
+
 const route = useRoute()
 
 const router = useRouter()
 
-const { publishedDocument } = useVdfPolicy(() => pool)
+const { openTrace } = useVdfTraceDrawer()
 
-// a trace running or shown: the recent drops (quick picks) give way
-const isActive = ref(false)
+const query = { ...route.query } as VdfTraceQuery
 
-// QUERY: the form starts from the route query, and writes it back on each
-// trace. A link that changes the query from outside the form (a quick pick)
-// starts a new form.
-
-const readQuery = () => ({ ...route.query }) as VdfTraceQuery
-
-const initialQuery = ref(readQuery())
-
-const formKey = ref(0)
-
-let ownQuery: VdfTraceQuery | undefined
-
-watch(
-  () => route.query,
-  () => {
-    const query = readQuery()
-
-    if (!isEqual(query, ownQuery)) {
-      initialQuery.value = query
-      formKey.value++
-      isActive.value = false
-    }
+void router.replace({ name: '/pool/[id]/firewall/overview', params: { id: pool.id } }).then(failure => {
+  if (failure === undefined) {
+    void openTrace(pool.id, query)
   }
-)
-
-function writeQuery(query: VdfTraceQuery) {
-  ownQuery = query
-  void router.replace({ query })
-}
+})
 </script>
-
-<style lang="postcss" scoped>
-.firewall-trace {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin: 0.8rem;
-}
-</style>

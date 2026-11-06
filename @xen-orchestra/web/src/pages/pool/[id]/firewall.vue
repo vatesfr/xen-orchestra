@@ -2,10 +2,13 @@
   <VdfGate :pool-id="pool.id">
     <div class="firewall">
       <VdfFirewallNav :scope="{ kind: 'pool', pool }" />
-      <VdfDraftBar :scope="{ kind: 'pool', pool }" />
-      <RouterView v-slot="{ Component }">
-        <component :is="Component" :pool />
-      </RouterView>
+      <div class="main">
+        <VdfFirewallBar :scope="{ kind: 'pool', pool }" />
+        <VdfDraftBar :scope="{ kind: 'pool', pool }" />
+        <RouterView v-slot="{ Component }">
+          <component :is="Component" :pool />
+        </RouterView>
+      </div>
     </div>
   </VdfGate>
 </template>
@@ -13,6 +16,7 @@
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VdfDraftBar from '@/modules/vdf/components/VdfDraftBar.vue'
+import VdfFirewallBar from '@/modules/vdf/components/VdfFirewallBar.vue'
 import VdfFirewallNav from '@/modules/vdf/components/VdfFirewallNav.vue'
 import VdfGate from '@/modules/vdf/components/VdfGate.vue'
 import { watch } from 'vue'
@@ -42,9 +46,18 @@ watch(
 </script>
 
 <style lang="postcss" scoped>
+/* the list of pages beside them, as vSphere's Configure */
 .firewall {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
+  flex-shrink: 0;
+  align-items: stretch;
+  min-height: 100%;
+
+  .main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
 }
 </style>

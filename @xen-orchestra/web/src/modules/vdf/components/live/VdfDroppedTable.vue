@@ -25,9 +25,11 @@ import { useEndColumn } from '@/modules/vdf/components/live/vdf-end-column.ts'
 import VdfDecisionCell from '@/modules/vdf/components/live/VdfDecisionCell.vue'
 import VdfEndpoint from '@/modules/vdf/components/live/VdfEndpoint.vue'
 import VdfService from '@/modules/vdf/components/live/VdfService.vue'
+import type { VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
 import type { VdfDecision } from '@/modules/vdf/composables/vdf-decision.composable.ts'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import type { VdfScopeId } from '@/modules/vdf/types.ts'
 import { allowFlowRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -43,7 +45,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useLiteralColumn } from '@core/tables/column-definitions/literal-column.ts'
 import { h, useTemplateRef, watchEffect, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { type RouteLocationRaw, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 export type VdfDroppedRow = {
   key: string
@@ -61,7 +63,8 @@ export type VdfDroppedRow = {
   rate: string
   // what the rate is made of, on hover
   rateDetail?: string
-  trace?: RouteLocationRaw
+  // a trace of the same packet, in the trace drawer
+  trace?: VdfTraceQuery
   traceLabel: string
 }
 
@@ -77,6 +80,8 @@ const { t } = useI18n()
 const router = useRouter()
 
 const { quarantineAction } = useVdfQuarantine()
+
+const { openTrace } = useVdfTraceDrawer()
 
 const { pageRecords: pageRows, paginationBindings } = usePagination('vdf-live-dropped', () => rows, {
   ignoreRoute: true,
@@ -95,7 +100,7 @@ function traceButton(row: VdfDroppedRow) {
       size: 'small',
       accent: 'brand',
       'aria-label': row.traceLabel,
-      onClick: () => router.push(row.trace!),
+      onClick: () => openTrace(String(scopeId), row.trace),
     }),
     [[vTooltip, row.traceLabel]]
   )
@@ -123,7 +128,13 @@ function rowActions(row: VdfDroppedRow): ActionItem[] {
       : [{ label: t('firewall:trace:allow-flow'), icon: 'fa:plus' as const, onClick: () => router.push(allow) }]),
     ...(row.trace === undefined
       ? []
-      : [{ label: t('firewall:monitor:trace'), icon: 'fa:route' as const, onClick: () => router.push(row.trace!) }]),
+      : [
+          {
+            label: t('firewall:monitor:trace'),
+            icon: 'fa:route' as const,
+            onClick: () => openTrace(String(scopeId), row.trace),
+          },
+        ]),
     ...(row.src.vm?.$pool === scopeId ? [quarantineAction(row.src.vm, { named: true })] : []),
   ]
 }
@@ -143,11 +154,11 @@ const useDroppedColumns = defineColumns(() => ({
 
 const { HeadCells, BodyCells, toggle } = useDroppedColumns({
   body: (row: VdfDroppedRow) => ({
-    source: r => r(h(VdfEndpoint, { scopeId, ...row.src })),
+    source: r => r(h(VdfEndpoint, { scopeId, ...row.src, compact: isNarrow.value })),
     destination: r =>
       r(
         h('span', { class: 'cell' }, [
-          h(VdfEndpoint, { scopeId, ...row.dst }),
+          h(VdfEndpoint, { scopeId, ...row.dst, compact: isNarrow.value }),
           row.revoked ? h(UiTag, { accent: 'warning', variant: 'secondary' }, () => t('firewall:live:revoked')) : null,
         ])
       ),

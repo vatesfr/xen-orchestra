@@ -3,7 +3,7 @@
     <template #title>{{ t('firewall:trace:title') }}</template>
     <template #content>
       <VtsStateHero v-if="pool === undefined" format="card" type="busy" size="small" />
-      <VdfTracePanel v-else :pool :initial="query" />
+      <VdfTraceDrawerContent v-else :pool :query />
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:close') }}</VtsOverlayCancelButton>
@@ -13,15 +13,16 @@
 
 <script lang="ts" setup>
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import VdfTraceDrawerContent from '@/modules/vdf/components/trace/VdfTraceDrawerContent.vue'
 import type { VdfTraceQuery } from '@/modules/vdf/components/trace/VdfTraceForm.vue'
-import VdfTracePanel from '@/modules/vdf/components/trace/VdfTracePanel.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import { useI18n } from 'vue-i18n'
 
-// A trace from where the question came up (a row's "Why?", a VM's page),
-// without leaving it. It never writes the URL: XO closes overlays on any
+// A trace from where the question came up (a row's "Why?", a VM's page,
+// the Firewall's "Trace a connection"), without leaving it: Trace is no
+// page of its own. It never writes the URL: XO closes overlays on any
 // navigation
 const { poolId, query = {} } = defineProps<{
   poolId: string
