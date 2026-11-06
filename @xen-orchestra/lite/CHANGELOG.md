@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [XOA deploy] Fix success and error screens not displayed at the end of the deployment (PR [#10715](https://github.com/vatesfr/xen-orchestra/pull/10715))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
