@@ -11,6 +11,7 @@
             content: sidebar.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock'),
             placement: lockTooltipPosition,
           }"
+          :aria-label="sidebar.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock')"
           accent="brand"
           size="small"
           :icon="sidebar.isLocked ? 'fa:thumb-tack-slash' : 'fa:thumb-tack'"

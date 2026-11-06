@@ -25,6 +25,7 @@
                 placement: 'top',
                 content: t('quick-actions'),
               }"
+              :aria-label="t('quick-actions')"
               icon="action:more-actions"
               accent="brand"
               size="small"
