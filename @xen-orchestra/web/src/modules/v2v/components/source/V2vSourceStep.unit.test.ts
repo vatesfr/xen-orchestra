@@ -44,7 +44,7 @@ vi.mock(
 const REMEMBERED = createV2vRememberedConnection({ host: 'remembered.lab' })
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
   vmCollectionMock.reset()
   sourceStepMock.rememberedConnections.value = [REMEMBERED]
   sourceStepMock.canConnect.value = true
