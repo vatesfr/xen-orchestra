@@ -40,6 +40,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-load-balancer patch
 - xo-web minor
 
 <!--packages-end-->
