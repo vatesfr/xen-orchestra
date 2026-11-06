@@ -5,7 +5,7 @@ import { mount } from '@vue/test-utils'
 
 it('renders the migration wizard with a new V2V connection', () => {
   const wrapper = mount(MigratePage, {
-    global: { ...createGlobalTestConfig(), stubs: { V2vMigrationWizard: V2vConnectionReader } },
+    global: createGlobalTestConfig({ stubs: { V2vMigrationWizard: V2vConnectionReader } }),
   })
 
   expect(wrapper.getComponent(V2vConnectionReader).vm.context.connection.value).toBeUndefined()
