@@ -45,7 +45,7 @@ export const COLLECTION_PATHS = {
 
 export type SelectablePrivilegeResource = keyof typeof COLLECTION_PATHS
 
-export function isSelectablePrivilegeResource(resource: PrivilegeResource): resource is SelectablePrivilegeResource {
+export function isSelectablePrivilegeResource(resource: string): resource is SelectablePrivilegeResource {
   return Object.hasOwn(COLLECTION_PATHS, resource)
 }
 
