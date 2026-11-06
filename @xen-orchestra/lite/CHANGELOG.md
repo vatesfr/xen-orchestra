@@ -1,8 +1,8 @@
 # ChangeLog
 
-## next
+## **next**
 
-- [VM/Network] Add possibility to delete a VIF (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [VM/Network] Add possibility to delete a VIF (PR [#10726](https://github.com/vatesfr/xen-orchestra/pull/10726))
 
 ## **0.27.0** (2026-10-29)
 
