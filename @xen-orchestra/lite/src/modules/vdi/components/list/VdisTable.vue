@@ -51,7 +51,7 @@ const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
 
-const { items: filteredVdis, filter, schema } = useVdiQueryBuilder('vdi', () => vdis)
+const { items: filteredVdis, filter, schema } = useVdiQueryBuilder('vdi', () => vdis, { vbds: () => vbds })
 
 const state = useTableState({
   busy: () => busy,
