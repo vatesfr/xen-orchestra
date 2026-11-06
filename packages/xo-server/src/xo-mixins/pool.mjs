@@ -85,10 +85,43 @@ export default class Pools {
 
     // a recovery record left in a live status belongs to a run killed by the
     // restart: flip it to `interrupted` before serving any client
-    app.hooks.on('start', async () => {
-      this._rpuRecoveryStore = await app.getStore('rpuRecovery')
-      await reconcileRpuRecoveryAtBoot(this._rpuRecoveryStore)
+    let resolveAutoResumePoolIds
+    const autoResumePoolIdsLoaded = new Promise(resolve => {
+      resolveAutoResumePoolIds = resolve
     })
+    app.hooks.on('start', async () => {
+      let autoResumePoolIds = []
+      try {
+        this._rpuRecoveryStore = await app.getStore('rpuRecovery')
+        autoResumePoolIds = await reconcileRpuRecoveryAtBoot(this._rpuRecoveryStore)
+      } finally {
+        // a failed start resumes nothing, it must not hold the connections
+        resolveAutoResumePoolIds(new Set(autoResumePoolIds))
+      }
+    })
+
+    // a run this restart interrupted resumes once its pool is connected again,
+    // a single time: the pool is dropped from the set before the resume starts.
+    // A connection may come before the records are loaded, the start hooks run
+    // concurrently: it waits for them
+    app.on('server:connected', async ({ xapi }) => {
+      const poolId = xapi.pool.$id
+      if ((await autoResumePoolIdsLoaded).delete(poolId)) {
+        await this._autoResumeRollingPoolUpdate(poolId)
+      }
+    })
+  }
+
+  // never throws: called from an event listener
+  async _autoResumeRollingPoolUpdate(poolId) {
+    const app = this._app
+    log.info('resuming the rolling pool update interrupted by the restart of xo-server', { poolId })
+    try {
+      await app.resumeRollingPoolUpdate(app.getObject(poolId, 'pool'), { automatic: true })
+    } catch (error) {
+      // a refusal (license, backup, missing pool...) leaves the run interrupted
+      log.warn('automatic resume of the rolling pool update failed, it waits for a manual resume', { error, poolId })
+    }
   }
 
   startRpuRecoveryRun(poolId, options) {
@@ -99,13 +132,16 @@ export default class Pools {
    * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
    *
    * @param {object} pool - XO pool object
+   * @param {object} [opts]
+   * @param {boolean} [opts.automatic] - Whether xo-server started this attempt after a restart, without the operator
    * @returns {Promise<object>} the recorder, the options of the run, and what the previous attempts did, the
    *   settings they left changed included (see `planRpuResume`)
    */
-  async resumeRpuRecoveryRun(pool) {
+  async resumeRpuRecoveryRun(pool, { automatic = false } = {}) {
     const { recorder, record, plan } = await resumeRpuRecoveryRunInStore({
       store: this._rpuRecoveryStore,
       poolId: pool.id,
+      automatic,
     })
     return { recorder, options: record.options, resume: plan }
   }

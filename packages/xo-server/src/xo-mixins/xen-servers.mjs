@@ -1076,13 +1076,14 @@ export default class XenServers {
    * @param {object} [opts]
    * @param {boolean} [opts.bypassBackupCheck] - Skip the backup guard, the bypass is logged. Not taken from the
    *   previous attempts: asked again on each resume
+   * @param {boolean} [opts.automatic] - Started by xo-server after a restart, not by the operator
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
    * @throws {Error} `noSuchObject` if the pool has no recovery record
    * @throws {Error} `incorrectState` (property `status`) if the run is neither failed nor interrupted
    */
-  async resumeRollingPoolUpdate($defer, pool, { bypassBackupCheck = false, parentTask } = {}) {
+  async resumeRollingPoolUpdate($defer, pool, { automatic = false, bypassBackupCheck = false, parentTask } = {}) {
     const app = this._app
     const poolId = pool.id
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
@@ -1091,7 +1092,7 @@ export default class XenServers {
 
     $defer(acquireRpuGuard(poolId, 'resumeRollingPoolUpdate'))
 
-    const { recorder, options, resume } = await app.resumeRpuRecoveryRun(pool)
+    const { recorder, options, resume } = await app.resumeRpuRecoveryRun(pool, { automatic })
     return this._runRollingPoolUpdate($defer, pool, {
       jobs,
       // a resume is the explicit acceptance of the state its run left
@@ -1217,7 +1218,8 @@ export default class XenServers {
       recorder.setTaskId(task.id)
       await task.run(async () =>
         this.getXapi(pool).rollingPoolUpdate(task, {
-          xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          // no API context in the automatic resume after a restart
+          xsCredentials: app.apiContext?.user.preferences.xsCredentials,
           acceptCurrentStateAsBaseline,
           rebootVm,
           shutdownPinnedVms,
