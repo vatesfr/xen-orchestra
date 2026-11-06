@@ -61,6 +61,8 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
+Only the classes the markup already carries count: a web-core component's own (`.ui-head-bar .status`) or one a style rule of the component uses. Never add a class only for a test to find an element; query the component (`getComponent`) or the web-core class around it instead.
+
 `src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
 | Helper                   | Reads                                                      |
