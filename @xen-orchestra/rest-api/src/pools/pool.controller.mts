@@ -5,6 +5,7 @@ import {
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -23,7 +24,7 @@ import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   asynchronousActionResp,
@@ -86,6 +87,7 @@ import type {
   PoolDashboard,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
+  UpdatePoolRequestBody,
 } from './pool.type.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
@@ -824,6 +826,37 @@ export class PoolController extends XapiXoController<XoPool> {
       limit,
       privilege: { action: 'read', resource: 'message' },
     })
+  }
+
+  /**
+   * Partial update of a pool. Only the fields present in the body are modified.
+   *
+   * Required privilege per field provided in the body:
+   * - resource: pool, action: update:&lt;field&gt; (e.g. update:vcpusMaxHeadroom)
+   *
+   * `vcpusMaxHeadroom`: vCPU maximum given to the VMs XO creates in this pool, so vCPUs can be added while they
+   * run (`null` turns it off). Capped at creation by the thread count of the smallest host; not applied to
+   * Windows VMs.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "vcpusMaxHeadroom": 16 }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'pool',
+      actions: actionsFromBody(['update:vcpusMaxHeadroom']),
+      objectId: 'params.id',
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  async updatePool(@Path() id: string, @Body() body: UpdatePoolRequestBody): Promise<void> {
+    await this.#poolService.updatePool(id as XoPool['id'], body)
   }
 
   /**

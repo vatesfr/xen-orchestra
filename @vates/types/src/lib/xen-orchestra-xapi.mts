@@ -335,6 +335,8 @@ export interface Xapi {
     checkLimits?: (limits: Record<string, number>, vm: XenApiVmWrapped) => Promise<void>
   ): Promise<void>
   editVif(id: XoVif['id'], props: EditVifProps): Promise<void>
+  /** vCPU maximum given to the VMs XO creates in this pool (2 to 128), null turns it off */
+  setVcpusMaxHeadroom(value: number | null): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {

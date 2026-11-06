@@ -10,5 +10,6 @@ export default {
   'rolling-update': true,
   update: {
     tags: true,
+    vcpusMaxHeadroom: true,
   },
 }
