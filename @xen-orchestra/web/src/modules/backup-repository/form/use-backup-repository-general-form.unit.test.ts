@@ -259,7 +259,7 @@ describe('multi-edit mode', () => {
   }
 
   // The selects display the label of their selected option
-  function findSelectedLabels(
+  function findShownSelections(
     formData: Partial<BackupRepositoryGeneralFormData>,
     mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
   ) {
@@ -280,7 +280,7 @@ describe('multi-edit mode', () => {
   }
 
   it('shows the mixed value on the type, the format and the proxy which differ between the repositories', () => {
-    expect(findSelectedLabels({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
+    expect(findShownSelections({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
       [t('type')]: t('mixed-value'),
       [t('backup-format')]: t('mixed-value'),
       [t('proxy')]: t('mixed-value'),
@@ -288,7 +288,7 @@ describe('multi-edit mode', () => {
   })
 
   it('shows the values shared by all the repositories', () => {
-    const selectedLabels = findSelectedLabels({
+    const selectedLabels = findShownSelections({
       name: 'My repository',
       type: 'nfs',
       backupFormat: 'block',
@@ -300,7 +300,7 @@ describe('multi-edit mode', () => {
   })
 
   it('removes the proxy of all the repositories with "None"', () => {
-    expect(findSelectedLabels({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
+    expect(findShownSelections({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
   })
 
   it('accepts a type and a format left mixed', async () => {

@@ -1,0 +1,66 @@
+<template>
+  <UiCard class="v2v-launch-options-card">
+    <UiCardTitle>
+      {{ t('default-options') }}
+      <template #description>{{ t('v2v:default-options-info') }}</template>
+    </UiCardTitle>
+    <div class="vm-options">
+      <FormCheckbox v-bind="stopSourceCheckboxBindings" />
+      <FormCheckbox :label="t('v2v:start-vm-on-xcp-ng')" :model-value="false" :info="t('not-supported-yet')" disabled />
+      <div class="preview-option">
+        <FormCheckbox :label="t('v2v:clean-up-vm')" :model-value="false" :info="t('not-supported-yet')" disabled />
+        <UiTag accent="warning" variant="secondary" class="preview-tag">{{ t('preview') }}</UiTag>
+      </div>
+    </div>
+    <div class="launch-options">
+      <FormCheckbox v-bind="stopOnErrorCheckboxBindings" />
+      <VtsNumberInput v-bind="concurrencyInputBindings" />
+    </div>
+    <UiInfo accent="info" wrap>{{ t('v2v:tags-mac-not-applied') }}</UiInfo>
+  </UiCard>
+</template>
+
+<script lang="ts" setup>
+import type { V2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { useI18n } from 'vue-i18n'
+
+defineProps<{
+  stopSourceCheckboxBindings: V2vLaunchForm['stopSourceCheckboxBindings']['value']
+  stopOnErrorCheckboxBindings: V2vLaunchForm['stopOnErrorCheckboxBindings']['value']
+  concurrencyInputBindings: V2vLaunchForm['concurrencyInputBindings']['value']
+}>()
+
+const { t } = useI18n()
+</script>
+
+<style lang="postcss" scoped>
+.v2v-launch-options-card {
+  .vm-options,
+  .launch-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+    gap: 1.6rem;
+  }
+
+  .launch-options {
+    padding-block-start: 1.6rem;
+    border-block-start: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .preview-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .preview-tag {
+    flex-shrink: 0;
+  }
+}
+</style>

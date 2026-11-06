@@ -177,6 +177,10 @@ describe('getV2vTargetName', () => {
   it('names a target without a name found, gone or still loading, by its id', () => {
     expect(getV2vTargetName(V2V_SSD_SR.id, () => undefined)).toBe(V2V_SSD_SR.id)
   })
+
+  it('has no name without target', () => {
+    expect(getV2vTargetName(undefined, () => V2V_SSD_SR.name_label)).toBeUndefined()
+  })
 })
 
 describe('getV2vTargetOptionLabel', () => {

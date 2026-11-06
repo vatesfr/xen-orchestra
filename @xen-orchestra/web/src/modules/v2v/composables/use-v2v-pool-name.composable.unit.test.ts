@@ -28,3 +28,9 @@ it('names the pool', () => {
 it('names the pool by its id while the pools load', () => {
   expect(mountPoolName().poolName).toBe(POOL.id)
 })
+
+it('names no pool without a pool id', () => {
+  xoCollectionsMock.pools.value = [POOL]
+
+  expect(mountComposable(() => ({ poolName: useV2vPoolName(undefined) })).wrapper.vm.poolName).toBeUndefined()
+})
