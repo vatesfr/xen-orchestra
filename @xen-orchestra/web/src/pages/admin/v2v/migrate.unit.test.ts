@@ -1,10 +1,12 @@
-import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
 import MigratePage from '@/pages/admin/v2v/migrate.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { V2vConnectionReader } from '@/test/v2v-connection-reader.ts'
 import { mount } from '@vue/test-utils'
 
-it('renders the migration wizard', () => {
-  const wrapper = mount(MigratePage, { global: { ...createGlobalTestConfig(), stubs: { V2vMigrationWizard: true } } })
+it('renders the migration wizard with a new V2V connection', () => {
+  const wrapper = mount(MigratePage, {
+    global: { ...createGlobalTestConfig(), stubs: { V2vMigrationWizard: V2vConnectionReader } },
+  })
 
-  expect(wrapper.findComponent(V2vMigrationWizard).exists()).toBe(true)
+  expect(wrapper.getComponent(V2vConnectionReader).vm.context.connection.value).toBeUndefined()
 })
