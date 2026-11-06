@@ -135,7 +135,7 @@ const { pageRecords: paginatedRules, paginationBindings } = usePagination('traff
 const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   '': useStringSchema(t('any-property')),
   networkLabel: useStringSchema(t('network')),
-  rank: useNumberSchema(t('priority')),
+  rank: showPriority ? useNumberSchema(t('priority')) : undefined,
   allow: useBooleanSchema(t('policy'), {
     true: t('allow'),
     false: t('drop'),

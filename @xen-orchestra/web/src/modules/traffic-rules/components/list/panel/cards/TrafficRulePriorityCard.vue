@@ -64,6 +64,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { FALLBACK_LOCALE } from '@core/i18n.ts'
 import { computed, ref, watch } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
@@ -112,13 +113,19 @@ watch(
 )
 
 const ordinalSuffix = computed(() => {
-  const key = 'traffic-rules:rule-ordinal-suffixes'
+  const suffixesKey = 'traffic-rules:rule-ordinal-suffixes'
 
-  if (!te(key, locale.value)) {
+  let messageLocale = FALLBACK_LOCALE
+
+  if (te('traffic-rules:position-on-network', locale.value)) {
+    messageLocale = locale.value
+  }
+
+  if (!te(suffixesKey, messageLocale)) {
     return undefined
   }
 
-  return getOrdinalSuffix(t(key), locale.value, rule.rank)
+  return getOrdinalSuffix(t(suffixesKey, {}, { locale: messageLocale }), messageLocale, rule.rank)
 })
 </script>
 

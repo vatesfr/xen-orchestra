@@ -3,11 +3,11 @@ import {
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
-import { getTrafficRulePriority } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
+import { rankTrafficRules } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule, type XoNetwork } from '@vates/types'
+import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRule } from '@vates/types'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 function parseRules(raw: string | undefined) {
@@ -30,7 +30,19 @@ export function useTrafficRules(
   const { getNetworkById } = useXoNetworkCollection()
 
   const trafficRules = computed<RankedTrafficRule[]>(() => {
-    const filteredVifs = vifs.value.filter(vif => getVmById(vif.$VM))
+    const sortedVifs = vifs.value
+      .filter(vif => getVmById(vif.$VM))
+      .sort((vifA, vifB) => {
+        const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
+        const vmNameLabelB = getVmById(vifB.$VM)?.name_label ?? ''
+        const vmComparison = vmNameLabelA.localeCompare(vmNameLabelB)
+
+        if (vmComparison !== 0) {
+          return vmComparison
+        }
+
+        return Number(vifA.device) - Number(vifB.device)
+      })
 
     const rules: TrafficRule[] = [
       ...networks.value.flatMap(network =>
@@ -42,7 +54,7 @@ export function useTrafficRules(
           networkId: network.id,
         }))
       ),
-      ...filteredVifs.flatMap(vif =>
+      ...sortedVifs.flatMap(vif =>
         parseRules(vif.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `VIF:${vif.id}:${index}`,
@@ -53,33 +65,7 @@ export function useTrafficRules(
       ),
     ]
 
-    const sortedRules = rules.sort((ruleA, ruleB) => {
-      const networkLabelA = getNetworkById(ruleA.networkId)?.name_label ?? ''
-      const networkLabelB = getNetworkById(ruleB.networkId)?.name_label ?? ''
-      const networkComparison = networkLabelA.localeCompare(networkLabelB)
-
-      if (networkComparison !== 0) {
-        return networkComparison
-      }
-
-      return getTrafficRulePriority(ruleB) - getTrafficRulePriority(ruleA)
-    })
-
-    const lastRankByNetworkId = new Map<XoNetwork['id'], number>()
-
-    return sortedRules.map(rule => {
-      const lastRank = lastRankByNetworkId.get(rule.networkId)
-
-      let rank = 1
-
-      if (lastRank !== undefined) {
-        rank = lastRank + 1
-      }
-
-      lastRankByNetworkId.set(rule.networkId, rank)
-
-      return { ...rule, rank }
-    })
+    return rankTrafficRules(rules, networkId => getNetworkById(networkId)?.name_label ?? '')
   })
 
   return { trafficRules }
