@@ -1,4 +1,6 @@
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { getVifRateLimit } from '@/modules/vif/utils/vif-rate-limit.util.ts'
+import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -16,6 +18,9 @@ export type VifFilterableData = XenApiVif & {
   network_name: string
   ip_addresses: string[]
   device_label: string
+  allowed_ips: string[]
+  rate_limit: number | undefined
+  tx_checksumming: boolean
 }
 
 export function useVifQueryBuilder(
@@ -41,6 +46,9 @@ export function useVifQueryBuilder(
           network_name: getNetworkByOpaqueRef(vif.network)?.name_label ?? '',
           ip_addresses: getUniqueIpAddressesForDevice(guestNetworks.value, vif.device),
           device_label: t('vif-device', { device: vif.device }),
+          allowed_ips: [...vif.ipv4_allowed, ...vif.ipv6_allowed],
+          rate_limit: getVifRateLimit(vif),
+          tx_checksumming: isTxChecksummingEnabled(vif),
         }) satisfies VifFilterableData
     )
   )
@@ -64,6 +72,13 @@ export function useVifQueryBuilder(
       [VIF_LOCKING_MODE.UNLOCKED]: t('unlocked'),
       [VIF_LOCKING_MODE.DISABLED]: t('disabled'),
     } satisfies Record<VIF_LOCKING_MODE, string>),
+    allowed_ips: useStringSchema(t('allowed-ips')),
+    rate_limit: useNumberSchema(t('rate-limit')),
+    tx_checksumming: useBooleanSchema(t('check-summing'), {
+      true: t('enabled'),
+      false: t('disabled'),
+    }),
+    uuid: useStringSchema(t('uuid')),
   })
 
   return { items, filter, schema }

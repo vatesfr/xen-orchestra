@@ -26,7 +26,6 @@
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
 import { useVifEdit } from '@/modules/vif/composables/use-vif-edit.composable.ts'
-import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import {
   type VifFilterableData,
   useVifQueryBuilder,

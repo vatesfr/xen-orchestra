@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Pool/Host/VM] Add query builder on networks, hosts, storage, PIFs, VIFs and VDIs tables (PR [#10692](https://github.com/vatesfr/xen-orchestra/pull/10692))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
@@ -20,7 +24,6 @@
 - [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
 - [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
 - [VM/Network] Add the possibility to edit a VIF (PR [#10505](https://github.com/vatesfr/xen-orchestra/pull/10505))
-- [Pool/Host/VM] Add query builder on networks, hosts, storage, PIFs, VIFs and VDIs tables (PR [#10692](https://github.com/vatesfr/xen-orchestra/pull/10692))
 
 ## **0.26.0** (2026-10-01)
 
