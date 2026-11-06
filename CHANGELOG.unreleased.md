@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/private_networks`, which answers the ids of their networks (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -40,6 +42,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-sdn-controller minor
 - xo-web minor
 
 <!--packages-end-->
