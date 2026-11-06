@@ -2,26 +2,19 @@ import FormSelect from '@/shared/components/form/FormSelect.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { mountWithSelect } from '@/test/mount-with-select.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { h } from 'vue'
 
 const WARNING = { content: 'Slow storage', accent: 'warning' } as const
 
-// A select only renders inside the component that defines it: the test mounts both together
 function mountSelect(messages: { error?: InputWrapperMessage; warning?: InputWrapperMessage } = {}) {
-  return mount(
-    defineComponent({
-      setup() {
-        const { id } = useFormSelect([{ id: 'sr-1', label: 'Local storage' }], { option: { label: 'label' } })
+  return mountWithSelect(() => {
+    const { id } = useFormSelect([{ id: 'sr-1', label: 'Local storage' }], { option: { label: 'label' } })
 
-        return () => h(FormSelect, { id, label: 'Storage', ...messages })
-      },
-    }),
-    { global: createGlobalTestConfig() }
-  )
+    return () => h(FormSelect, { id, label: 'Storage', ...messages })
+  })
 }
 
 it('renders its label', () => {
