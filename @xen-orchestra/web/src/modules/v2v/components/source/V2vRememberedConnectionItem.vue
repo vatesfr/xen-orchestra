@@ -63,7 +63,7 @@
 <script lang="ts" setup>
 import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stats.composable.ts'
 import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
-import { getV2vSourceKind } from '@/modules/v2v/utils/v2v-source.util.ts'
+import { isV2vVcenter } from '@/modules/v2v/utils/v2v-source.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -91,7 +91,7 @@ const { t } = useI18n()
 
 const stats = useV2vSourceStats(() => connection.sourceId)
 
-const icon = computed(() => (getV2vSourceKind(connection.product) === 'vcenter' ? 'fa:building' : 'fa:server'))
+const icon = computed(() => (isV2vVcenter(connection.product) ? 'fa:building' : 'fa:server'))
 </script>
 
 <style lang="postcss" scoped>

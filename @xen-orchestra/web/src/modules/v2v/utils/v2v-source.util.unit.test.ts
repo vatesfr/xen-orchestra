@@ -1,9 +1,4 @@
-import {
-  getV2vAddress,
-  getV2vSourceId,
-  getV2vSourceKind,
-  normalizeV2vHost,
-} from '@/modules/v2v/utils/v2v-source.util.ts'
+import { getV2vAddress, getV2vSourceId, isV2vVcenter, normalizeV2vHost } from '@/modules/v2v/utils/v2v-source.util.ts'
 
 describe('normalizeV2vHost', () => {
   it('trims and lowercases the host', () => {
@@ -17,16 +12,13 @@ describe('getV2vAddress', () => {
   })
 })
 
-describe('getV2vSourceKind', () => {
-  it.each([
-    ['VMware vCenter Server', 'vcenter'],
-    ['VMware ESXi', 'esxi'],
-  ])('reads %s as %s', (product, kind) => {
-    expect(getV2vSourceKind(product)).toBe(kind)
+describe('isV2vVcenter', () => {
+  it('recognizes a vCenter product', () => {
+    expect(isV2vVcenter('VMware vCenter Server')).toBe(true)
   })
 
-  it.each([undefined, '', 'Hyper-V'])('returns nothing for an unknown product (%j)', product => {
-    expect(getV2vSourceKind(product)).toBeUndefined()
+  it.each(['VMware ESXi', undefined, '', 'Hyper-V'])('is false for any other product (%j)', product => {
+    expect(isV2vVcenter(product)).toBe(false)
   })
 })
 
