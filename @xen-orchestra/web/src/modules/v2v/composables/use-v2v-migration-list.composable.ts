@@ -1,11 +1,17 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { V2vDestinationDefaults, V2vMigrationListKey } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type {
+  V2vDestinationDefaults,
+  V2vMigrationListKey,
+  V2vMigrationListVm,
+} from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   buildV2vMigrationList,
   getV2vMigrationListStorageKey,
   parseV2vMigrationList,
 } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
+import type { XoV2vVm } from '@vates/types'
 import { useLocalStorage } from '@vueuse/core'
+import { difference, isEqual, uniq } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 // Never read: a storage key is needed while the source or the pool is still unknown
@@ -53,6 +59,14 @@ export function useV2vMigrationList(
     }
   })
 
+  const vmCount = computed(() => list.value?.vms.length ?? 0)
+
+  const hasVms = computed(() => vmCount.value > 0)
+
+  function write(key: V2vMigrationListKey, defaults: V2vDestinationDefaults, vms: V2vMigrationListVm[]) {
+    rawList.value = JSON.stringify(buildV2vMigrationList(key, defaults, vms))
+  }
+
   function saveDefaults(defaults: V2vDestinationDefaults) {
     const key = listKey.value
 
@@ -60,10 +74,46 @@ export function useV2vMigrationList(
       return
     }
 
-    const vms = list.value?.vms ?? []
-
-    rawList.value = JSON.stringify(buildV2vMigrationList(key, defaults, vms))
+    write(key, defaults, list.value?.vms ?? [])
   }
 
-  return { list, saveDefaults }
+  // No stored list means no destination defaults yet: the VMs cannot invent them
+  function updateVms(getNextVms: (vms: V2vMigrationListVm[]) => V2vMigrationListVm[]) {
+    const currentList = list.value
+
+    if (currentList === undefined) {
+      return
+    }
+
+    const nextVms = getNextVms(currentList.vms)
+
+    const isUnchanged = isEqual(nextVms, currentList.vms)
+
+    if (isUnchanged) {
+      return
+    }
+
+    const { sourceId, poolId, defaults } = currentList
+
+    write({ sourceId, poolId }, defaults, nextVms)
+  }
+
+  function addVms(ids: XoV2vVm['id'][]) {
+    updateVms(vms => {
+      const listedIds = vms.map(vm => vm.id)
+      const newIds = difference(uniq(ids), listedIds)
+
+      return [...vms, ...newIds.map(id => ({ id }))]
+    })
+  }
+
+  function removeVm(id: XoV2vVm['id']) {
+    updateVms(vms => vms.filter(vm => vm.id !== id))
+  }
+
+  function clearVms() {
+    updateVms(() => [])
+  }
+
+  return { list, vmCount, hasVms, saveDefaults, addVms, removeVm, clearVms }
 }

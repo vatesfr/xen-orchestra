@@ -30,6 +30,7 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 - "Select all" selects every item matching the filter
 - "Clear selection" unselects every item, including the ones hidden by the filter
 - IDs of items that are no longer in `items` are not part of `selectedIds`
+- A row checkbox can be disabled with the optional `disabled` binding of the `checkbox` body cell; the header checkbox and "Select all" still include that row, so keep it out of `items` if it must never be selected
 
 ## Usage
 
