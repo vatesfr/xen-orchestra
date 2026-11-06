@@ -39,7 +39,11 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-async function mountSourceStep() {
+async function mountSourceStep(rememberedConnections?: V2vRememberedConnection[]) {
+  if (rememberedConnections !== undefined) {
+    seedV2vRememberedConnections(rememberedConnections)
+  }
+
   const router = await createV2vWizardRouter('source')
 
   const result = mountComposableWithI18n(() => ({ ...useV2vSourceStep(), context: useV2vConnection() }), {
@@ -135,8 +139,7 @@ describe('submit', () => {
     async (_password, remembered) => {
       const inventory = createV2vInventory()
       stubFetchResponse(200, inventory)
-      seedV2vRememberedConnections([remembered])
-      const { result } = await mountSourceStep()
+      const { result } = await mountSourceStep([remembered])
 
       await submitConnection(result)
 
@@ -197,8 +200,7 @@ describe('connectRemembered', () => {
     const inventory = createV2vInventory()
     stubFetchResponse(200, inventory)
     const remembered = createV2vRememberedConnection()
-    seedV2vRememberedConnections([remembered])
-    const { result, router } = await mountSourceStep()
+    const { result, router } = await mountSourceStep([remembered])
 
     await result.connectRemembered(remembered)
     await flushPromises()
@@ -210,8 +212,7 @@ describe('connectRemembered', () => {
   it('marks the remembered connection as just used', async () => {
     stubFetchResponse(200, createV2vInventory())
     const remembered = createV2vRememberedConnection({ lastUsedAt: 1 })
-    seedV2vRememberedConnections([remembered])
-    const { result } = await mountSourceStep()
+    const { result } = await mountSourceStep([remembered])
 
     await result.connectRemembered(remembered)
     await flushPromises()
@@ -254,8 +255,7 @@ describe('editRemembered', () => {
   const EDITED = createV2vRememberedConnection({ host: 'edited.lab' })
 
   async function mountEditing(edited: V2vRememberedConnection, otherConnections: V2vRememberedConnection[] = []) {
-    seedV2vRememberedConnections([edited, ...otherConnections])
-    const { result } = await mountSourceStep()
+    const { result } = await mountSourceStep([edited, ...otherConnections])
     result.editRemembered(edited)
 
     return result
@@ -360,8 +360,7 @@ describe('forgetRemembered', () => {
   it('forgets the connection once confirmed', async () => {
     openDeleteModal.mockResolvedValue({ event: 'onConfirm' })
     const remembered = createV2vRememberedConnection()
-    seedV2vRememberedConnections([remembered])
-    const { result } = await mountSourceStep()
+    const { result } = await mountSourceStep([remembered])
 
     await result.forgetRemembered(remembered)
 
@@ -374,8 +373,7 @@ describe('forgetRemembered', () => {
   it('keeps the connection when cancelled', async () => {
     openDeleteModal.mockResolvedValue({ event: 'onCancel' })
     const remembered = createV2vRememberedConnection()
-    seedV2vRememberedConnections([remembered])
-    const { result } = await mountSourceStep()
+    const { result } = await mountSourceStep([remembered])
 
     await result.forgetRemembered(remembered)
 
@@ -386,8 +384,7 @@ describe('forgetRemembered', () => {
 describe('forgetRememberedPassword', () => {
   it('forgets only the password of the connection', async () => {
     const remembered = createV2vRememberedConnection()
-    seedV2vRememberedConnections([remembered])
-    const { result } = await mountSourceStep()
+    const { result } = await mountSourceStep([remembered])
 
     result.forgetRememberedPassword(remembered)
 
