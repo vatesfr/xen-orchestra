@@ -5,7 +5,7 @@
         <span class="name">
           <UiUserLogo size="small" />
           <UiLink :to="{ name: '/admin/user/[id]/general', params: { id: user.id } }" size="medium">
-            {{ user.name }}
+            {{ getUserDisplayName(user) }}
           </UiLink>
         </span>
       </template>
@@ -26,6 +26,20 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
+        <template #key>{{ t('first-name') }}</template>
+        <template #value>{{ user.firstname }}</template>
+        <template v-if="user.firstname" #addons>
+          <VtsCopyButton :value="user.firstname" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
+        <template #key>{{ t('last-name') }}</template>
+        <template #value>{{ user.lastname }}</template>
+        <template v-if="user.lastname" #addons>
+          <VtsCopyButton :value="user.lastname" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('email') }}</template>
         <template #value>{{ user.email }}</template>
         <template #addons>
@@ -43,6 +57,7 @@
 <script lang="ts" setup>
 import { useXoUserUtils } from '@/modules/user/composables/use-xo-user-utils.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

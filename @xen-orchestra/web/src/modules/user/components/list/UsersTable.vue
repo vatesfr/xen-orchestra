@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { useUserDelete } from '@/modules/user/composables/use-user-delete.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import { getUserProvidersLabel } from '@/modules/user/utils/xo-user.util.ts'
+import { getUserDisplayName, getUserProvidersLabel } from '@/modules/user/utils/xo-user.util.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -100,7 +100,6 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useUserColumns({
-  exclude: ['firstName', 'lastName'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
@@ -109,7 +108,9 @@ const { HeadCells, BodyCells } = useUserColumns({
 
     return {
       checkbox: r => r({ selected: isSelected(user.id), onToggle: () => toggleSelection(user.id) }),
-      username: r => r(user.name ?? '', { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
+      username: r => r(getUserDisplayName(user), { to: { name: '/admin/user/[id]/general', params: { id: user.id } } }),
+      firstName: r => r(user.firstname ?? ''),
+      lastName: r => r(user.lastname ?? ''),
       email: r => r(user.email),
       providers: r => r(getUserProvidersLabel(user, t('local'))),
       actions: r =>
