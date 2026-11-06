@@ -1,5 +1,25 @@
+// @ts-check
+
 import { invalidParameters } from 'xo-common/api-errors.js'
 
+// TypeScript reads this Babel package as CommonJS, and @vates/types is ESM: hence the resolution-mode
+/**
+ * @import {
+ *   XenApiHostWrapped,
+ *   XenApiPifWrapped,
+ *   XenApiPoolWrapped,
+ *   XoApp,
+ *   XoHost,
+ *   XoPif,
+ *   XoPool,
+ * } from '@vates/types' with { 'resolution-mode': 'import' }
+ */
+
+/**
+ * @param {XoApp} xo
+ * @param {{ poolIds: XoPool['id'][], pifIds: XoPif['id'][], preferredCenterId?: XoHost['id'] }} params
+ * @returns {{ poolPifs: [XenApiPoolWrapped, XenApiPifWrapped][], preferredCenter: XenApiHostWrapped | undefined }}
+ */
 export function resolvePrivateNetworkPools(xo, { poolIds, pifIds, preferredCenterId }) {
   // Checked before the PrivateNetwork is constructed: its constructor registers it, and with no pool it would stay
   // registered without any network
@@ -12,8 +32,10 @@ export function resolvePrivateNetworkPools(xo, { poolIds, pifIds, preferredCente
     throw invalidParameters('each pool can only be given once')
   }
 
-  const pools = poolIds.map(id => xo.getXapiObject(id, 'pool'))
-  const pifs = pifIds.map(id => xo.getXapiObject(xo.getObject(id, 'PIF')))
+  // The record type getXapiObject returns comes from its type argument, which JS cannot pass: it is cast instead
+  const pools = poolIds.map(id => /** @type {XenApiPoolWrapped} */ (xo.getXapiObject(id, 'pool')))
+  const pifs = pifIds.map(id => /** @type {XenApiPifWrapped} */ (xo.getXapiObject(id, 'PIF')))
+  /** @type {[XenApiPoolWrapped, XenApiPifWrapped][]} */
   const poolPifs = pools.map(pool => {
     const pif = pifs.find(({ $pool }) => $pool.$ref === pool.$ref)
     if (pif === undefined) {
@@ -24,7 +46,7 @@ export function resolvePrivateNetworkPools(xo, { poolIds, pifIds, preferredCente
 
   let preferredCenter
   if (preferredCenterId !== undefined) {
-    preferredCenter = xo.getXapiObject(xo.getObject(preferredCenterId, 'host'))
+    preferredCenter = /** @type {XenApiHostWrapped} */ (xo.getXapiObject(preferredCenterId, 'host'))
 
     // Put pool of preferred center first: its network is created first, the others join it
     const preferredCenterPoolUuid = preferredCenter.$pool.uuid
