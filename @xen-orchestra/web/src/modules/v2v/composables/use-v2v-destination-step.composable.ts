@@ -1,7 +1,7 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import { useV2vPoolQuery } from '@/modules/v2v/composables/use-v2v-pool-query.composable.ts'
+import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
 import { useV2vDestinationForm } from '@/modules/v2v/form/use-v2v-destination-form.ts'
 import type { V2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
 import { whenever } from '@vueuse/core'
@@ -17,26 +17,26 @@ export function useV2vDestinationStep() {
 
   const { arePoolsReady, hasPoolById } = useXoPoolCollection()
 
-  const poolQuery = useV2vPoolQuery()
+  const poolIdQuery = useV2vPoolIdQuery()
 
-  const pool = ref(poolQuery.value)
+  const poolId = ref(poolIdQuery.value)
 
-  const migrationList = useV2vMigrationList(sourceId, pool)
+  const migrationList = useV2vMigrationList(sourceId, poolId)
 
-  const form = useV2vDestinationForm({ pool, storedList: migrationList.list })
+  const form = useV2vDestinationForm({ poolId, storedList: migrationList.list })
 
-  watch(pool, newPool => {
-    poolQuery.value = newPool
+  watch(poolId, newPoolId => {
+    poolIdQuery.value = newPoolId
   })
 
   // A reload or a shared link may name a pool this XO does not know (removed, other XO): start without it
   whenever(
     arePoolsReady,
     () => {
-      const isUnknownPool = pool.value !== undefined && !hasPoolById(pool.value)
+      const isUnknownPool = poolId.value !== undefined && !hasPoolById(poolId.value)
 
       if (isUnknownPool) {
-        pool.value = undefined
+        poolId.value = undefined
       }
     },
     { immediate: true }
@@ -55,7 +55,7 @@ export function useV2vDestinationStep() {
 
   // The route may not hold the chosen pool yet: its update is still pending right after a choice
   function goTo(step: V2vWizardStep) {
-    return router.push({ query: { ...route.query, pool: pool.value, step } })
+    return router.push({ query: { ...route.query, pool: poolId.value, step } })
   }
 
   async function submit() {

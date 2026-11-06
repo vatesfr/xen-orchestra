@@ -39,16 +39,16 @@ export type V2vDestinationForm = ReturnType<typeof useV2vDestinationForm>
 
 // The pool is owned by the caller: the stored list it reads the defaults from is keyed by it
 export function useV2vDestinationForm({
-  pool,
+  poolId,
   storedList,
 }: {
-  pool: Ref<V2vDestinationFormData['pool']>
+  poolId: Ref<V2vDestinationFormData['pool']>
   storedList: MaybeRefOrGetter<V2vMigrationList | undefined>
 }) {
   const { t } = useI18n()
 
   const formData = reactive({
-    pool,
+    pool: poolId,
     sr: undefined as V2vDestinationFormData['sr'],
     network: undefined as V2vDestinationFormData['network'],
     template: undefined as V2vDestinationFormData['template'],
@@ -122,15 +122,15 @@ export function useV2vDestinationForm({
   )
 
   const defaults = computed<V2vDestinationDefaults | undefined>(() => {
-    const { sr, network, template } = formData
+    const { sr: srId, network: networkId, template: templateId } = formData
 
-    const isComplete = sr !== undefined && network !== undefined && template !== undefined
+    const isComplete = srId !== undefined && networkId !== undefined && templateId !== undefined
 
     if (!isComplete) {
       return undefined
     }
 
-    return { sr, network, template }
+    return { sr: srId, network: networkId, template: templateId }
   })
 
   const { id: poolSelectId } = useFormSelect('pool', pools, {
