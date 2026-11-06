@@ -201,17 +201,17 @@ describe('guestToolsDisplay', () => {
   })
 })
 
-describe('isChangingState', () => {
-  it('is false when no state-changing operation is pending', () => {
+describe('hasPendingOperation', () => {
+  it('is false when no tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: {} })
 
-    expect(result.isChangingState).toBe(false)
+    expect(result.hasPendingOperation).toBe(false)
   })
 
-  it('is true while a state-changing operation is pending', () => {
+  it('is true while a tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
 
-    expect(result.isChangingState).toBe(true)
+    expect(result.hasPendingOperation).toBe(true)
   })
 })
 
@@ -219,7 +219,9 @@ describe('currentOperation', () => {
   it('maps the pending operation to a translated label', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
 
-    expect(result.currentOperation).toBe(result.t('operation:snapshot'))
+    expect(result.currentOperation).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:snapshot') })
+    )
   })
 
   it('falls back to an empty label for an unknown operation', () => {
@@ -232,6 +234,22 @@ describe('currentOperation', () => {
     const result = mountVmUtils({ current_operations: {} })
 
     expect(result.currentOperation).toBe('')
+  })
+})
+
+describe('iconTooltip', () => {
+  it('shows the operation changing the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
+
+    expect(result.iconTooltip).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:clean-reboot') })
+    )
+  })
+
+  it('is empty while no operation changes the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
+
+    expect(result.iconTooltip).toBe('')
   })
 })
 

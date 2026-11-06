@@ -4,7 +4,12 @@
       <template #default="{ option }">
         <VtsOption :option>
           <span class="select-option">
-            <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+            <VtsIcon
+              v-if="option.properties.icon"
+              :name="option.properties.icon"
+              :tooltip="option.properties.iconTooltip"
+              size="medium"
+            />
             {{ option.properties.label }}
           </span>
         </VtsOption>
@@ -25,7 +30,7 @@ import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { computed } from 'vue'
 
 const { error, info } = defineProps<{
-  id: FormSelectId<{ icon?: IconName; accent?: DropdownAccent }>
+  id: FormSelectId<{ icon?: IconName; iconTooltip?: string; accent?: DropdownAccent }>
   label: string
   error?: InputWrapperMessage
   info?: InputWrapperMessage

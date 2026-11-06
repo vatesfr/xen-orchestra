@@ -3,11 +3,11 @@
   <div class="ui-panel-card-title">
     <div class="header">
       <div class="title" :class="typoClasses[size]">
-        <UiLink v-if="isLink" :size :icon :to :href :target :disabled>
+        <UiLink v-if="isLink" :size :icon :icon-tooltip :to :href :target :disabled>
           <slot name="label">{{ label }}</slot>
         </UiLink>
         <template v-else>
-          <VtsIcon v-if="icon !== undefined" :name="icon" size="medium" class="icon" />
+          <VtsIcon v-if="icon !== undefined" :name="icon" :tooltip="iconTooltip" size="medium" class="icon" />
           <slot name="label">{{ label }}</slot>
         </template>
         <UiCounter
@@ -40,11 +40,12 @@ import { computed } from 'vue'
 
 type PanelCardTitleSize = 'small' | 'medium'
 
-const { label, size, icon, id, counter, to, href, target, disabled } = defineProps<
+const { label, size, icon, iconTooltip, id, counter, to, href, target, disabled } = defineProps<
   LinkOptions & {
     size: PanelCardTitleSize
     label?: string
     icon?: IconName
+    iconTooltip?: string
     id?: string
     counter?: CounterValue | { value: CounterValue; accent: CounterAccent }
   }
