@@ -25,6 +25,7 @@
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
+import { useVifDelete } from '@/modules/vif/composables/use-vif-delete.composable.ts'
 import { useVifEdit } from '@/modules/vif/composables/use-vif-edit.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVifStore } from '@/stores/xen-api/vif.store.ts'
@@ -116,6 +117,8 @@ const { HeadCells, BodyCells } = useVifColumns({
       vm: () => vm,
     })
 
+    const { deleteVif, canDeleteVif, isDeletingVif, deleteVifErrorMessage } = useVifDelete(() => vif)
+
     const connectionAction = useMapper(
       () => (vif.currently_attached ? CONNECTION_ACTION.DISCONNECT : CONNECTION_ACTION.CONNECT),
       () => ({
@@ -153,6 +156,14 @@ const { HeadCells, BodyCells } = useVifColumns({
           actions: [
             { label: t('action:edit'), icon: 'action:edit', onClick: () => goToVifEdit(vif) } satisfies ActionItem,
             connectionAction.value,
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteVif(),
+              disabled: !canDeleteVif.value,
+              busy: isDeletingVif.value,
+              hint: canDeleteVif.value ? undefined : deleteVifErrorMessage.value,
+            } satisfies ActionItem,
           ],
         }),
     }

@@ -4,6 +4,9 @@
       <VifEditButton :vif />
       <VifConnectionToggleButton v-if="vm" :vif :vm />
     </template>
+    <template v-if="vif" #more-actions>
+      <VifDeleteButton :vif />
+    </template>
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
@@ -127,6 +130,7 @@
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
+import VifDeleteButton from '@/modules/vif/components/actions/delete/VifDeleteButton.vue'
 import VifEditButton from '@/modules/vif/components/actions/edit/VifEditButton.vue'
 import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
