@@ -1,5 +1,6 @@
 #!/bin/sh
-# Builds the vectura binary into the directory given as the only argument.
+# Builds the vectura binary into the directory given as first argument, for the
+# architecture given as optional second argument (x86_64 by default, or aarch64).
 #
 # zig links the binary against glibc 2.31 whatever the glibc of the build
 # machine, so it runs on Debian 11 and Ubuntu 20.04 wherever it is built:
@@ -13,6 +14,8 @@
 set -eu
 
 out=$(mkdir -p "$1" && cd "$1" && pwd)
+# x86_64 (default) or aarch64
+arch=${2:-x86_64}
 cd "$(dirname "$0")/.."
 
 # the versions the Vectura workflow installs: another one may build another
@@ -39,6 +42,6 @@ RUSTFLAGS="--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo --remap-path-p
 export RUSTFLAGS
 unset CARGO_ENCODED_RUSTFLAGS
 
-cargo zigbuild --locked --release --target x86_64-unknown-linux-gnu.2.31
+cargo zigbuild --locked --release --target "$arch-unknown-linux-gnu.2.31"
 # the glibc suffix is for zig only: the binary lands under the plain triple
-install -m 755 target/x86_64-unknown-linux-gnu/release/vectura "$out"
+install -m 755 "target/$arch-unknown-linux-gnu/release/vectura" "$out"

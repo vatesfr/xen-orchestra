@@ -2,7 +2,9 @@ import { fileURLToPath } from 'node:url'
 
 // the vectura binary is small and redistributable: it ships with this package, next to its sources
 // and its build process, so the binary xo-server runs is always the one it was tested against
-export const VECTURA_BIN = fileURLToPath(new URL('vectura/vectura', import.meta.url))
+export const VECTURA_BIN = fileURLToPath(
+  new URL(process.arch === 'arm64' ? 'vectura/vectura-aarch64' : 'vectura/vectura', import.meta.url)
+)
 
 /**
  * Command line of a vectura server exporting one disk of a VM as NBD on its own standard streams.

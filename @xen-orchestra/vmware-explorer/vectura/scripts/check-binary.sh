@@ -16,7 +16,7 @@ test -x "$binary"
 
 readelf --dynamic "$binary" | sed -n 's/.*(NEEDED).*\[\(.*\)\]$/\1/p' | while read -r library; do
   case $library in
-    libc.so.6 | libm.so.6 | libpthread.so.0 | libdl.so.2 | ld-linux-x86-64.so.2) ;;
+    libc.so.6 | libm.so.6 | libpthread.so.0 | libdl.so.2 | ld-linux-x86-64.so.2 | ld-linux-aarch64.so.1) ;;
     *)
       echo "$binary needs $library" >&2
       exit 1
@@ -30,6 +30,16 @@ if [ "$(printf '%s\n' "$newest" GLIBC_2.31 | sort -V | tail -n 1)" != GLIBC_2.31
   exit 1
 fi
 
+# a binary of another architecture than this machine's cannot run here: the
+# static checks above are all that can be done
+case $(readelf --file-header "$binary" | sed -n 's/^ *Machine: *//p') in
+  *X86-64*) arch=x86_64 ;;
+  *AArch64*) arch=aarch64 ;;
+  *) arch= ;;
+esac
+if [ "$arch" != "$(uname -m)" ]; then
+  exit 0
+fi
 tmp=$(mktemp -d)
 code=0
 "$binary" > "$tmp/out" 2> "$tmp/err" || code=$?

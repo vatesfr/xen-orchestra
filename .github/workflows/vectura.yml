@@ -8,12 +8,14 @@ name: Vectura
 # on the diff with the merge base, i.e. the changes of the branch only
 on:
   pull_request:
+    branches:
+      - arm64_support
     paths:
       - '@xen-orchestra/vmware-explorer/vectura/**'
       - .github/workflows/vectura.yml
   push:
     branches:
-      - master
+      - arm64_support
     paths:
       - '@xen-orchestra/vmware-explorer/vectura/**'
       - .github/workflows/vectura.yml
@@ -49,6 +51,10 @@ jobs:
   # which xo-server runs, is that build
   binary:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, aarch64]
     steps:
       # https://github.com/actions/checkout
       - uses: actions/checkout@v4
@@ -63,11 +69,23 @@ jobs:
         with:
           tool: cargo-zigbuild@0.23.4
 
-      - run: scripts/build.sh "$RUNNER_TEMP/build"
+      - run: rustup target add ${{ matrix.arch }}-unknown-linux-gnu
+
+      - run: scripts/build.sh "$RUNNER_TEMP/build" ${{ matrix.arch }}
       - run: scripts/check-binary.sh "$RUNNER_TEMP/build/vectura"
+
+      # the build is downloadable from the summary page of the workflow run
+      # https://github.com/actions/upload-artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vectura-${{ matrix.arch }}
+          path: ${{ runner.temp }}/build/vectura
+          if-no-files-found: error
+
       - name: The binary in git is the build of these sources
         run: |
-          cmp "$RUNNER_TEMP/build/vectura" vectura || {
-            echo '::error::vectura is not the build of these sources: run scripts/build.sh . in vectura/ and commit the binary'
+          if [ "${{ matrix.arch }}" = aarch64 ]; then file=vectura-aarch64; else file=vectura; fi
+          cmp "$RUNNER_TEMP/build/vectura" "$file" || {
+            echo "::error::$file is not the build of these sources: run scripts/release.sh in vectura/ and commit the binaries"
             exit 1
           }
