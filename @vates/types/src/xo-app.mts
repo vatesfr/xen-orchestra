@@ -204,6 +204,8 @@ type XoStoreRangeOptions = {
 
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
+  /** version of xo-server */
+  version: string
   _redis: {
     get(key: string): Promise<string | null>
     mSet(args: string[]): Promise<unknown>
@@ -347,6 +349,8 @@ export type XoApp = EventEmitter & {
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
   enablePluginAutoload(id: XoPlugin['id']): Promise<void>
+  /** encrypted with OpenPGP when `passphrase` is provided */
+  exportConfig(opts: { compress?: boolean; entries?: string[]; passphrase: string }): Promise<Buffer>
   findEnabledScheduleSequenceFromSchedule(id: XoSchedule['id']): Promise<XoSchedule | undefined>
   getAclV2Privilege(id: XoAclBasePrivilege['id']): Promise<XoAclBasePrivilege>
   getAclV2Privileges(): Promise<XoAclBasePrivilege[]>
