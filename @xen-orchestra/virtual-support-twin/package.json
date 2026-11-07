@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/virtual-support-twin",
+  "version": "0.0.0",
+  "description": "Throwaway Xen Orchestra container loaded with a support bundle",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/virtual-support-twin",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/virtual-support-twin",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@xen-orchestra/log": "^0.7.2",
+    "openpgp": "^5.0.0"
+  },
+  "devDependencies": {
+    "xen-api": "^5.1.0"
+  },
+  "scripts": {
+    "test": "node --test *.test.mjs",
+    "test-integration": "node --test *.integ.mjs"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}
