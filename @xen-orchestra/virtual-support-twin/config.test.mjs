@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { neutralizeConfig } from './config.mjs'
+import { ENABLED_AT_CUSTOMER, neutralizeConfig } from './config.mjs'
 
 describe('neutralizeConfig()', () => {
   const currentUser = { id: 'admin-id', email: 'admin@admin.net' }
@@ -9,10 +9,16 @@ describe('neutralizeConfig()', () => {
   const neutralize = config => neutralizeConfig(config, { currentUser, urlsByPool })
 
   it('disables schedules and backup repositories', () => {
-    assert.deepEqual(neutralize({ schedules: [{ id: 's', enabled: true }], remotes: [{ id: 'r', enabled: true }] }), {
+    assert.deepEqual(neutralize({ schedules: [{ id: 's', enabled: false }], remotes: [{ id: 'r', enabled: true }] }), {
       schedules: [{ id: 's', enabled: false }],
       remotes: [{ id: 'r', enabled: false }],
     })
+  })
+
+  it('marks the names of the schedules enabled by the customer', () => {
+    assert.deepEqual(neutralize({ schedules: [{ id: 's', name: 'daily', enabled: true }] }).schedules, [
+      { id: 's', name: ENABLED_AT_CUSTOMER + 'daily', enabled: false },
+    ])
   })
 
   it('drops proxies and plugin configurations', () => {

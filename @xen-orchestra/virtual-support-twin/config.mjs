@@ -1,7 +1,10 @@
+export const ENABLED_AT_CUSTOMER = '[enabled at customer] '
+
 /**
  * Prevents the configuration of a support bundle from acting on the customer infrastructure once imported
  *
- * - backup repositories and schedules are disabled: no mounts, no backup runs
+ * - backup repositories and schedules are disabled: no mounts, no backup runs, the names of the schedules
+ *   enabled by the customer are prefixed by ENABLED_AT_CUSTOMER to keep this information visible
  * - proxies and plugin configurations (placeholders which would fail the validation) are dropped
  * - servers point to the fake XAPIs and never learn the addresses of the original pool members,
  *   those without fake XAPI are disabled
@@ -34,8 +37,11 @@ function neutralizeItem(entry, item, urlsByPool) {
       return plugin
     }
     case 'remotes':
-    case 'schedules':
       return { ...item, enabled: false }
+    case 'schedules':
+      return item.enabled
+        ? { ...item, enabled: false, name: ENABLED_AT_CUSTOMER + (item.name ?? '') }
+        : { ...item, enabled: false }
     case 'xenServers': {
       const { poolMembersAddresses: _, ...server } = item
       const url = urlsByPool.get(server.poolId)

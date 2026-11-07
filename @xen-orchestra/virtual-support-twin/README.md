@@ -34,7 +34,7 @@ Then open http://localhost:8080 and sign in with `admin@admin.net` / `admin`. Th
 
 The configuration is imported with the `xo.importConfig` JSON-RPC method, the tasks are written in the database with the modules of xo-server. Each pool is served by a read-only fake XAPI inside the container. To avoid acting on the original infrastructure:
 
-- imported backup repositories and schedules are disabled, proxies and plugin configurations are not imported
+- imported backup repositories and schedules are disabled, proxies and plugin configurations are not imported; the schedules enabled by the customer are named `[enabled at customer] <name>`
 - the XO never learns the addresses of the original hosts
 - the fake XAPIs reject every call which is not a read (`MESSAGE_METHOD_UNKNOWN`)
 
