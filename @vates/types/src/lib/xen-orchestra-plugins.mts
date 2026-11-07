@@ -1177,6 +1177,23 @@ export type XoUsageReportPlugin = BaseXoPlugin<
 >
 
 // ===================================================================
+// vdf
+
+type XoVdfPluginConfiguration = {
+  enableTechPreview: true
+}
+
+type XoVdfPluginConfigurationSchema = {
+  properties: {
+    enableTechPreview: { description: string; enum: true[]; title: string; type: 'boolean' }
+  }
+  required: 'enableTechPreview'[]
+  type: 'object'
+}
+
+export type XoVdfPlugin = BaseXoPlugin<'vdf', XoVdfPluginConfiguration, XoVdfPluginConfigurationSchema>
+
+// ===================================================================
 // web-hooks
 
 type XoWebHooksPluginConfiguration = {
@@ -1251,6 +1268,7 @@ export type XoPluginConfiguration =
   | XoTransportSlackPluginConfiguration
   | XoTransportXmppPluginConfiguration
   | XoUsageReportPluginConfiguration
+  | XoVdfPluginConfiguration
   | XoWebHooksPluginConfiguration
 
 export type XoPluginTestData =

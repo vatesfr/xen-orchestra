@@ -42,6 +42,7 @@ import type {
   XoTransportSlackPlugin,
   XoTransportXmppPlugin,
   XoUsageReportPlugin,
+  XoVdfPlugin,
   XoWebHooksPlugin,
 } from './lib/xen-orchestra-plugins.mjs'
 
@@ -513,6 +514,7 @@ export type XoPlugin =
   | XoTransportSlackPlugin
   | XoTransportXmppPlugin
   | XoUsageReportPlugin
+  | XoVdfPlugin
   | XoWebHooksPlugin
 
 export type XoProxy = {
