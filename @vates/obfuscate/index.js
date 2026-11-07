@@ -128,3 +128,29 @@ function redact(value, isSensitive = isExportSensitiveParam, { replacement = OBF
   return helper(value)
 }
 exports.redact = redact
+
+// returns the paths of the keys and string values containing one of the secrets
+function findLeaks(value, secrets) {
+  const knownSecrets = Array.from(secrets).filter(secret => typeof secret === 'string' && secret !== '')
+  const containsSecret = string => knownSecrets.some(secret => string.includes(secret))
+
+  const leaks = []
+  function helper(value, path) {
+    if (typeof value === 'string') {
+      if (containsSecret(value)) {
+        leaks.push(path)
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      for (const key of Object.keys(value)) {
+        const keyPath = path === '' ? key : path + '.' + key
+        if (containsSecret(key)) {
+          leaks.push(keyPath)
+        }
+        helper(value[key], keyPath)
+      }
+    }
+  }
+  helper(value, '')
+  return leaks
+}
+exports.findLeaks = findLeaks

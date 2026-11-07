@@ -3,7 +3,7 @@
 const { describe, it } = require('node:test')
 const assert = require('node:assert/strict')
 
-const { obfuscate, OBFUSCATED_VALUE, redact, redactUrls } = require('./')
+const { findLeaks, obfuscate, OBFUSCATED_VALUE, redact, redactUrls } = require('./')
 
 describe('redact()', () => {
   it('replaces sensitive entries at any depth, whatever their type, and keeps the keys', () => {
@@ -90,5 +90,36 @@ describe('redactUrls()', () => {
 
   it('returns strings without URLs as is', () => {
     assert.equal(redactUrls('user:pass@host'), 'user:pass@host')
+  })
+})
+
+describe('findLeaks()', () => {
+  it('returns paths of values containing a secret', () => {
+    const taskLog = {
+      result: {
+        message: 'mount failed: smb://admin:hunter2@nas/share',
+        call: { params: ['* session id *', { device_config: { chappassword: 'chap-secret' } }] },
+      },
+      status: 'failure',
+    }
+
+    assert.deepEqual(findLeaks(taskLog, ['hunter2', 'chap-secret', 'unused']), [
+      'result.message',
+      'result.call.params.1.device_config.chappassword',
+    ])
+  })
+
+  it('checks keys too', () => {
+    assert.deepEqual(findLeaks({ other_config: { 'hunter2-key': 'x' } }, ['hunter2']), ['other_config.hunter2-key'])
+  })
+
+  it('ignores empty secrets, which would match everything', () => {
+    assert.deepEqual(findLeaks({ a: 'b' }, ['', undefined]), [])
+  })
+
+  it('finds nothing in redacted data', () => {
+    const server = { host: '10.0.0.1', username: 'root', password: 'hunter2' }
+
+    assert.deepEqual(findLeaks(redact(server), ['hunter2']), [])
   })
 })
