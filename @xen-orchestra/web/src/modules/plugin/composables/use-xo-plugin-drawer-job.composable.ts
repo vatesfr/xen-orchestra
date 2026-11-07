@@ -25,16 +25,22 @@ export function useXoPluginDrawerJob(
 
   const { run, canRun, isRunning, errorMessage } = useJob(plugin, payload)
 
+  // the error of the last run, shown in the drawer, which stays open
+  const runError = ref<Error>()
+
   const { open } = useOverlay({
     component: drawer,
     events: {
       onConfirm: async (newPayload: unknown) => {
         payload.value = newPayload
+        runError.value = undefined
 
         try {
           await run()
         } catch (error) {
           console.error(`Error when running a job on the plugin ${plugin.value.name}`, error)
+
+          runError.value = error instanceof Error ? error : new Error(String(error))
 
           return KEEP_OVERLAY_OPEN
         }
@@ -45,9 +51,12 @@ export function useXoPluginDrawerJob(
 
   const props = reactiveComputed(() => ({
     plugin: plugin.value,
+    error: runError.value,
   }))
 
   function openDrawer() {
+    runError.value = undefined
+
     return open({ props })
   }
 

@@ -1,3 +1,4 @@
+import PluginRunError from '@/modules/plugin/components/drawer/PluginRunError.vue'
 import PluginTestDrawer from '@/modules/plugin/components/drawer/PluginTestDrawer.vue'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
@@ -20,9 +21,9 @@ const REQUIRED_TEST_SCHEMA = {
   required: ['to'],
 } satisfies JsonSchema
 
-function mountDrawer(plugin: FrontXoPlugin = createPlugin({ testable: true, testSchema: TEST_SCHEMA })) {
+function mountDrawer(plugin: FrontXoPlugin = createPlugin({ testable: true, testSchema: TEST_SCHEMA }), error?: Error) {
   return mount(PluginTestDrawer, {
-    props: { plugin },
+    props: { plugin, error },
     global: createGlobalTestConfig(),
     attachTo: document.body,
   })
@@ -83,4 +84,17 @@ it('lists the missing fields instead of confirming', async () => {
 
   expect(wrapper.emitted('confirm')).toBeUndefined()
   expect(wrapper.getComponent(VtsFormErrorSummary).props('errors')).toHaveLength(1)
+})
+
+it('shows no run error before a run failed', () => {
+  expect(mountDrawer().findComponent(PluginRunError).exists()).toBe(false)
+})
+
+it('shows the error of the failed run', () => {
+  const error = new Error('SMTP connection refused')
+
+  expect(mountDrawer(undefined, error).getComponent(PluginRunError).props()).toEqual({
+    title: t('plugin:test-error'),
+    error,
+  })
 })

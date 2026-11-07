@@ -17,6 +17,7 @@
           </UiButton>
         </div>
       </VtsInputWrapper>
+      <PluginRunError v-if="error !== undefined" :title="t('plugin:configure-error')" :error />
       <VtsFormErrorSummary :errors="summaryErrors" />
       <JsonSchemaField v-if="schema !== undefined" v-model="formValue" :schema :label="t('configuration')" required />
     </template>
@@ -31,6 +32,7 @@
 </template>
 
 <script lang="ts" setup>
+import PluginRunError from '@/modules/plugin/components/drawer/PluginRunError.vue'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import { useXoPluginConfigurationForm } from '@/modules/plugin/composables/use-xo-plugin-configuration-form.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
@@ -45,6 +47,7 @@ import { useI18n } from 'vue-i18n'
 
 const { plugin } = defineProps<{
   plugin: FrontXoPlugin
+  error?: Error
 }>()
 
 const emit = defineEmits<{
