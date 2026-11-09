@@ -1,12 +1,12 @@
-import VtsUserNameCell from '@core/components/table/cells/VtsUserNameCell.vue'
+import VtsUsernameCell from '@core/components/table/cells/VtsUsernameCell.vue'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { defineColumn } from '@core/packages/table/define-column.ts'
 import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { FlexibleColumnConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
-export const useUserNameColumn = defineColumn((config?: FlexibleColumnConfig) => ({
+export const useUsernameColumn = defineColumn((config?: FlexibleColumnConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (content: string, link?: Pick<LinkOptions, 'to' | 'href'>) =>
-    h(VtsUserNameCell, { content, ...link, flexible: config?.flexible }),
+    h(VtsUsernameCell, { content, ...link, flexible: config?.flexible }),
 }))

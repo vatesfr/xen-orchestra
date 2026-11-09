@@ -10,12 +10,12 @@
       </UiLink>
       <span class="name">
         <UiUserLogo size="extra-small" />
-        {{ user.name }}
+        {{ getUserDisplayName(user) }}
       </span>
     </UiBreadcrumb>
   </div>
   <UiHeadBar>
-    {{ user.name }}
+    {{ getUserDisplayName(user) }}
     <template #icon>
       <UiUserLogo size="small" />
     </template>
@@ -24,6 +24,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { getUserDisplayName } from '@/modules/user/utils/xo-user.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
