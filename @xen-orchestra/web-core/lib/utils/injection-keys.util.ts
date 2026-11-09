@@ -23,6 +23,8 @@ export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 
 export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<boolean>
 
+export const IK_MENU_PLACEMENT_SIDE = Symbol('IK_MENU_PLACEMENT_SIDE') as InjectionKey<Ref<string | undefined>>
+
 export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boolean>>
 
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>

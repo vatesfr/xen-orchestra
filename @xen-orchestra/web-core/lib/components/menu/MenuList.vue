@@ -16,9 +16,15 @@
 
 <script lang="ts" setup>
 import { useDisabled } from '@core/composables/disabled.composable.ts'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MENU_TELEPORTED } from '@core/utils/injection-keys.util.ts'
+import {
+  IK_CLOSE_MENU,
+  IK_MENU_HORIZONTAL,
+  IK_MENU_PLACEMENT_SIDE,
+  IK_MENU_TELEPORTED,
+} from '@core/utils/injection-keys.util.ts'
+import { placeOverlay } from '@core/utils/placement.util.ts'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
-import placementJs, { type Options } from 'placement.js'
+import type { Options } from 'placement.js'
 import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
 
 defineOptions({
@@ -45,6 +51,18 @@ provide(
 )
 
 useDisabled(() => props.disabled)
+
+const parentPlacementSide = inject(IK_MENU_PLACEMENT_SIDE, undefined)
+const placementSide = ref<string>()
+provide(IK_MENU_PLACEMENT_SIDE, placementSide)
+
+const defaultPlacement = computed<Options['placement']>(() => {
+  if (isParentHorizontal.value) {
+    return 'bottom-start'
+  }
+
+  return parentPlacementSide?.value === 'left' ? 'left-start' : 'right-start'
+})
 
 let clearClickOutsideEvent: (() => void) | undefined
 
@@ -77,9 +95,13 @@ const open = (event: MouseEvent) => {
       controls: false,
     })
 
-    placementJs(trigger, unrefElement(menu), {
-      placement: props.placement ?? (isParentHorizontal.value ? 'bottom-start' : 'right-start'),
+    const menuElement = unrefElement(menu)
+
+    placeOverlay(trigger, menuElement, {
+      placement: props.placement ?? defaultPlacement.value,
     })
+
+    placementSide.value = menuElement.dataset.placement?.split('-')[0]
   })
 }
 </script>
