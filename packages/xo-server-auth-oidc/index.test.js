@@ -123,8 +123,8 @@ describe('the username', () => {
     assert.equal(hasUsername('username', { sub: 's', preferred_username: 'alice' }), true)
     assert.equal(hasUsername('email', { sub: 's', email: 'alice@example.org' }), true)
     assert.equal(hasUsername('displayName', { sub: 's', name: 'Alice' }), true)
-    // a claim the profile does not map
-    assert.equal(hasUsername('upn', { sub: 's', upn: 'alice@corp' }), true)
+    // only the claim the profile field comes from
+    assert.equal(hasUsername('username', { sub: 's', username: 'alice' }), false)
   })
 
   it('is missing from a thin ID token, which only has the minimal claims', () => {
@@ -141,14 +141,15 @@ describe('the username', () => {
     assert.equal(resolveUsername('username', { claims, idProfile }), 'from-token')
   })
 
-  it('reads emails and unmapped claims', () => {
-    const uiProfile = { id: 's', emails: [{ value: 'alice@example.org' }], _json: { upn: 'alice@corp' } }
-    assert.equal(
-      resolveUsername('email', { claims: { sub: 's' }, idProfile: { id: 's' }, uiProfile }),
-      'alice@example.org'
-    )
-    assert.equal(resolveUsername('upn', { claims: { sub: 's' }, idProfile: { id: 's' }, uiProfile }), 'alice@corp')
-    assert.equal(resolveUsername('upn', { claims: { sub: 's', upn: 'bob@corp' }, idProfile: { id: 's' } }), 'bob@corp')
+  it('reads emails', () => {
+    const uiProfile = { id: 's', emails: [{ value: 'alice@example.org' }], _json: {} }
+    assert.equal(resolveUsername('email', { idProfile: { id: 's' }, uiProfile }), 'alice@example.org')
+  })
+
+  it('is only read from the fields of the profile, not from raw claims', () => {
+    const uiProfile = { id: 's', _json: { username: 'alice', upn: 'alice@corp' } }
+    assert.equal(resolveUsername('username', { idProfile: { id: 's' }, uiProfile }), undefined)
+    assert.equal(resolveUsername('upn', { idProfile: { id: 's' }, uiProfile }), undefined)
   })
 
   it('is undefined when neither source has it', () => {
@@ -331,6 +332,24 @@ describe('a sign in', () => {
         const registered = await signIn(issuer)
         assert.deepEqual(userInfoCalls, [])
         assert.deepEqual(registered, [{ provider: 'oidc:' + issuer, id: 'subject', name: 'bob' }])
+      }
+    )
+  })
+
+  it('rejects a userinfo response about another user', async () => {
+    await withProvider(
+      { idTokenClaims: { sub: 'subject' }, userInfo: { sub: 'other', preferred_username: 'alice' } },
+      async ({ issuer }) => {
+        await assert.rejects(signIn(issuer), error => String(error).includes('does not match'))
+      }
+    )
+  })
+
+  it('rejects a userinfo response without sub', async () => {
+    await withProvider(
+      { idTokenClaims: { sub: 'subject' }, userInfo: { preferred_username: 'alice' } },
+      async ({ issuer }) => {
+        await assert.rejects(signIn(issuer), error => String(error).includes('does not match'))
       }
     )
   })
