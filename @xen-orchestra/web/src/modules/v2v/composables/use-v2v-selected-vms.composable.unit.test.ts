@@ -12,7 +12,8 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
-import { V2V_DEFAULT_OFFERS, V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
@@ -75,8 +76,8 @@ async function mountSelectedVms({
   poolId = V2V_LIST_POOL.id,
   selectedVmId,
 }: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null; selectedVmId?: XoV2vVm['id'] } = {}) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_OTHER_POOL]
-  xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
+  seedV2vListPool()
+  xoCollectionsMock.pools.value.push(V2V_OTHER_POOL)
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
   return mountV2vVmsStep(

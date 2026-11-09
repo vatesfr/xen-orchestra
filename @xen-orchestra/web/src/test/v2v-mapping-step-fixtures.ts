@@ -1,9 +1,8 @@
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
 import { createV2vDatacenter, createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { V2V_DEFAULT_OFFERS } from '@/test/v2v-mapping-fixtures.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { V2V_DB_VM, V2V_VMS_INVENTORY, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -34,8 +33,7 @@ export const V2V_DB_SYNC_SNAPSHOT = createV2vPartialImportSnapshot()
 
 // The pool of the list offers its defaults; the DB VM was synced once to it
 export function seedV2vMappingStepCollections() {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
-  xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
+  seedV2vListPool()
   v2vVmRowsCollectionsMock.vms.value = [V2V_DB_IMPORT_VM]
   v2vVmRowsCollectionsMock.snapshots.value = [V2V_DB_SYNC_SNAPSHOT]
 }

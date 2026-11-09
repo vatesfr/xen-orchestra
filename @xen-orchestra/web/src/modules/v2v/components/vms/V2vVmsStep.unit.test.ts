@@ -19,7 +19,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
-import { V2V_DEFAULT_OFFERS } from '@/test/v2v-mapping-fixtures.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
@@ -29,7 +29,7 @@ import {
   V2V_VMS_INVENTORY,
   V2V_WEB_VM,
 } from '@/test/v2v-vms-fixtures.ts'
-import { V2V_EMPTY_LIST, V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
+import { V2V_EMPTY_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -73,8 +73,7 @@ async function mountStep({
   list = V2V_LIST_WITH_LISTED_VM,
   filter,
 }: { list?: V2vMigrationList; filter?: string } = {}) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
-  xoCollectionsMock.seedChoices(V2V_DEFAULT_OFFERS)
+  seedV2vListPool()
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
     (router, provide) =>
