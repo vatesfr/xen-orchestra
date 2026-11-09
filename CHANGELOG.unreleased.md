@@ -52,7 +52,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backups minor
-- @xen-orchestra/qa-test patch
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
