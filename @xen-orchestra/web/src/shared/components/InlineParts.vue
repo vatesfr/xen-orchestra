@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-parts interpunct-list">
+  <span class="interpunct-list">
     <slot />
   </span>
 </template>

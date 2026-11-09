@@ -21,7 +21,7 @@ function mountHeader(props: { sourceHost?: string; datastoreSummary?: V2vDatasto
 
 // Each title describes its VMs with one `InlineParts`
 function findDescriptionParts(wrapper: ReturnType<typeof mountHeader>) {
-  return findParts(wrapper, '.inline-parts')
+  return findParts(wrapper, '.interpunct-list')
 }
 
 function mountDatastoreHeader() {
