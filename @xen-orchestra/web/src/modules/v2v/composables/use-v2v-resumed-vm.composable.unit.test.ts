@@ -4,8 +4,8 @@ import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { v2vMappingConnectionProvide } from '@/test/mount-v2v-vm-mapping.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
+import { v2vMappingConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_ACTIVE_DISK_ROWS,
   V2V_ACTIVE_NIC_ROWS,
