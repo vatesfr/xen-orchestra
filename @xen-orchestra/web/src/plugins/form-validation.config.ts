@@ -2,6 +2,7 @@ import {
   defineFormValidationConfig,
   integer,
   outOfRange,
+  queryFilter,
   required,
   requiredIf,
   withMessage,
@@ -15,6 +16,7 @@ export const formValidationConfig = defineFormValidationConfig({
     return {
       integer: withMessage(integer, () => t('form:error:integer')),
       outOfRange: withMessage(outOfRange, ({ $params: [min, max] }) => t('form:warning:out-of-range', { min, max })),
+      queryFilter: withMessage(queryFilter, () => t('form:error:invalid-query')),
       required: withMessage(required, () => t('form:error:required')),
       requiredIf: withMessage(requiredIf, () => t('form:error:required')),
     }
