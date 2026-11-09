@@ -6,6 +6,7 @@
       :closable="hasSelection"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="vts-side-panel"
+      :style="{ transform }"
       :class="{
         locked: panelStore.isLocked && !uiStore.isSmall,
         mobile: uiStore.isSmall,
@@ -75,6 +76,8 @@ const { t } = useI18n()
 
 const showResizeHandle = computed(() => !uiStore.isSmall && panelStore.isExpanded)
 
+const transform = computed(() => `translateX(${panelStore.cssHorizontalOffset})`)
+
 const transformTransition = `transform ${PANEL_TRANSITION_DURATION}ms`
 
 provide(IK_INFO_SIZE, 'small')
@@ -118,7 +121,6 @@ function handleClose() {
     min-height: var(--panel-min-height);
     max-height: var(--panel-viewport-height);
     overflow: hidden;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(> .content) {
       flex: 1 1 auto;
@@ -133,7 +135,6 @@ function handleClose() {
     width: 100dvw;
     height: 100dvh;
     inset: 0;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(.corner-actions) {
       margin-inline-start: 0;
