@@ -1161,7 +1161,6 @@
   "traffic-rules:error-plugin:check-doc": "SDN denetleyicisi belgelerine",
   "traffic-rules:format-warning": "Yapılandırma hatası: Trafik kuralları beklenen biçimde değil. Bunları nasıl taşıyacağınızı öğrenmek için lütfen {check-doc}.",
   "traffic-rules:format-warning:check-doc": "en son belgelere bakın",
-  "traffic-rules:info-message": "Trafik kurallarının sırası henüz uygulanıyor. Davranış riskli olabilir.",
   "traffic-rules:no-traffic-rules-detected": "Trafik kuralı bulunamadı",
   "traffic-rules:xapi-plugin-required": "XAPI eklenti modu gerekir",
   "translation-tool": "Çeviri aracı",

@@ -1241,7 +1241,6 @@
   "traffic-rules:error-plugin:check-doc": "مستندات کنترلر SDN",
   "traffic-rules:format-warning": "خطای پیکربندی: قوانین ترافیک در قالب مورد انتظار نیستند. لطفاً برای نحوه مهاجرت آن‌ها {check-doc}.",
   "traffic-rules:format-warning:check-doc": "آخرین مستندات را بررسی کنید",
-  "traffic-rules:info-message": "ترتیب قوانین ترافیک در حال پیاده‌سازی است. رفتار ممکن است مخاطره‌آمیز باشد.",
   "traffic-rules:no-traffic-rules-detected": "هیچ قانون ترافیکی شناسایی نشد",
   "traffic-rules:target-on": "@.capitalize:direction-on",
   "traffic-rules:xapi-plugin-required": "نیازمند حالت افزونه XAPI",
