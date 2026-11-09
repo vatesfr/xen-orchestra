@@ -1,8 +1,7 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
+import { DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
@@ -136,8 +135,6 @@ describe('getKindTag', () => {
 })
 
 describe('getCheckInfo', () => {
-  const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
-
   it.each([
     ['a ready', { type: 'ready', level: 'ready' }, 'ready', 'success'],
     ['a missing', { type: 'not-found', level: 'blocking' }, 'v2v:not-found-in-source', 'danger'],
