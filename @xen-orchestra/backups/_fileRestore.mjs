@@ -468,7 +468,7 @@ export const fileRestoreMethods = {
           // handle potential raw LVM physical volume
           return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
         } catch (error) {
-          warn('LVM liting of this volume failed ', error)
+          warn('LVM listing of this volume failed ', error)
           return []
         }
       }
