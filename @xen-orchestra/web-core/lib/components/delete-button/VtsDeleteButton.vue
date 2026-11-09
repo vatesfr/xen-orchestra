@@ -1,13 +1,5 @@
 <template>
-  <VtsActionButton
-    variant="tertiary"
-    accent="danger"
-    icon="action:delete"
-    :hint="tooltip || undefined"
-    :disabled
-    :busy
-    :on-click
-  >
+  <VtsActionButton variant="tertiary" accent="danger" icon="action:delete" :hint :disabled :busy :on-click>
     {{ t('action:delete') }}
   </VtsActionButton>
 </template>
@@ -19,7 +11,7 @@ import { useI18n } from 'vue-i18n'
 defineProps<{
   busy?: boolean
   disabled?: boolean
-  tooltip?: string | false
+  hint?: string
   onClick?: () => unknown
 }>()
 
