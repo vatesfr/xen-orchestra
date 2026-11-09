@@ -1,4 +1,10 @@
-import type { XoAuthenticationToken } from '@vates/types'
+import type { XoAuthenticationToken, XoUser } from '@vates/types'
+
+export function getUserProvidersLabel(user: Pick<XoUser, 'authProviders'>, localLabel: string) {
+  const providerNames = Object.keys(user.authProviders ?? {})
+
+  return providerNames.length === 0 ? localLabel : providerNames.join(', ')
+}
 
 export function getUserLastLoginTimestamp(tokens: XoAuthenticationToken[]) {
   let mostRecentTimestamp: number | undefined

@@ -1,12 +1,14 @@
 <template>
   <VtsSidePanel :has-selection="!!user" @close="emit('close')">
     <template v-if="user" #actions>
-      <VtsDeleteButton
-        :disabled="!canDeleteUsers"
-        :busy="isDeletingUsers"
-        :tooltip="deleteUsersErrorMessage ?? false"
-        @click="deleteUsers()"
-      />
+      <slot name="actions">
+        <VtsDeleteButton
+          :disabled="!canDeleteUsers"
+          :busy="isDeletingUsers"
+          :tooltip="deleteUsersErrorMessage ?? false"
+          @click="deleteUsers()"
+        />
+      </slot>
     </template>
     <template v-if="user" #default>
       <UserInfosCard :user />
@@ -31,6 +33,10 @@ const { user } = defineProps<{
 
 const emit = defineEmits<{
   close: []
+}>()
+
+defineSlots<{
+  actions?(): any
 }>()
 
 const { deleteUsers, canDeleteUsers, isDeletingUsers, deleteUsersErrorMessage } = useUserDelete(() =>
