@@ -142,6 +142,8 @@ export default {
               '/xo6/support',
               '/support',
               '/support-and-licencing/support',
+              '/category/support-and-licensing',
+              '/category/support-and-licencing',
             ],
           },
           {
@@ -149,8 +151,12 @@ export default {
             from: '/support-and-licencing/useful-links',
           },
           {
-            to: '/category/support-and-licensing',
-            from: '/category/support-and-licencing',
+            to: '/backups-and-dr/backup',
+            from: '/category/backups-and-dr',
+          },
+          {
+            to: '/project/project',
+            from: '/category/project',
           },
           {
             to: '/manage-your-infrastructure/load_balancing',
