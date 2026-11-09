@@ -13,7 +13,7 @@ import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import { V2V_DEFAULT_OFFERS, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import {
   seedV2vMappingStepCollections,
   V2V_DB_IMPORT_VM,
@@ -73,8 +73,8 @@ export const V2V_CUTOVER_SNAPSHOT = createV2vCompleteImportSnapshot({ $snapshot_
 // disks of both imports
 export function seedV2vReviewStepCollections() {
   seedV2vMappingStepCollections()
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_MIGRATED_VM_POOL]
-  xoCollectionsMock.srs.value = [...V2V_DEFAULT_OFFERS.srs, V2V_SSD_SR, V2V_MIGRATED_VM_SR]
+  xoCollectionsMock.pools.value = [...xoCollectionsMock.pools.value, V2V_MIGRATED_VM_POOL]
+  xoCollectionsMock.srs.value = [...xoCollectionsMock.srs.value, V2V_SSD_SR, V2V_MIGRATED_VM_SR]
   v2vVmRowsCollectionsMock.vms.value = [V2V_REVIEW_DB_IMPORT_VM, V2V_MIGRATED_IMPORT_VM]
   v2vVmRowsCollectionsMock.snapshots.value = [V2V_DB_SYNC_SNAPSHOT, V2V_CUTOVER_SNAPSHOT]
   vmDeviceCollectionsMock.vbds.value = [RESUMED_DISK.vbd, MIGRATED_DISK.vbd]
