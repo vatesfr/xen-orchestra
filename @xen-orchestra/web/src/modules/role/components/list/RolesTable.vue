@@ -5,7 +5,8 @@
     </UiTitle>
     <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
+      <VtsTableBulkActions :actions="bulkActions" />
+      <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -23,14 +24,18 @@
 
 <script setup lang="ts">
 import { useXoGroupCollection } from '@/modules/group/remote-resources/use-xo-group-collection.ts'
+import { useRoleDelete } from '@/modules/role/composables/use-role-delete.composable.ts'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
 import { getRoleUserIds } from '@/modules/role/utils/xo-role.util.ts'
+import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -98,15 +103,65 @@ const state = useTableState({
 
 const { pageRecords: paginatedRoles, paginationBindings } = usePagination('roles', filteredRoles)
 
+const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: filterableRoles,
+  filteredItems: filteredRoles,
+  pageItems: paginatedRoles,
+  getItemId: role => role.id,
+})
+
+const selectedRoles = computed(() => rawRoles.filter(role => selectedIds.value.includes(role.id)))
+
+const {
+  deleteRoles: deleteSelectedRoles,
+  canDeleteRoles: canDeleteSelectedRoles,
+  isDeletingRoles: isDeletingSelectedRoles,
+  deleteRolesErrorMessage: deleteSelectedRolesErrorMessage,
+} = useRoleDelete(selectedRoles)
+
+const bulkActions = computed<ActionItem[]>(() => [
+  {
+    label: t('action:delete'),
+    icon: 'action:delete',
+    accent: 'danger',
+    onClick: () => deleteSelectedRoles(),
+    disabled: !canDeleteSelectedRoles.value,
+    busy: isDeletingSelectedRoles.value,
+    hint: deleteSelectedRolesErrorMessage.value,
+  },
+])
+
 const { HeadCells, BodyCells } = useRoleColumns({
-  body: (role: FilterableRole) => ({
-    name: r => r(role.name),
-    description: r => r(role.description),
-    users: r => r(role.usersCount),
-    groups: r => r(role.groupsCount),
-    privileges: r => r(role.privilegesCount),
-    selectItem: r => r(() => (selectedRoleId.value = role.id)),
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
   }),
+  body: (role: FilterableRole) => {
+    const { deleteRoles, canDeleteRoles, isDeletingRoles, deleteRolesErrorMessage } = useRoleDelete(() => [role])
+
+    return {
+      checkbox: r => r({ selected: isSelected(role.id), onToggle: () => toggleSelection(role.id) }),
+      name: r => r(role.name),
+      description: r => r(role.description),
+      users: r => r(role.usersCount),
+      groups: r => r(role.groupsCount),
+      privileges: r => r(role.privilegesCount),
+      actions: r =>
+        r({
+          onClick: () => (selectedRoleId.value = role.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              accent: 'danger',
+              onClick: () => deleteRoles(),
+              disabled: !canDeleteRoles.value,
+              busy: isDeletingRoles.value,
+              hint: deleteRolesErrorMessage.value,
+            },
+          ],
+        }),
+    }
+  },
 })
 </script>
 
