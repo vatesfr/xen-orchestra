@@ -1,13 +1,6 @@
 <template>
   <div class="privilege-details-rows">
     <VtsCardRowKeyValue>
-      <template #key>{{ t('privilege') }}</template>
-      <template #value>{{ privilege.id }}</template>
-      <template #addons>
-        <VtsCopyButton :value="privilege.id" />
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
       <template #key>{{ t('privilege:resource') }}</template>
       <template #value>{{ privilege.resource }}</template>
       <template #addons>
