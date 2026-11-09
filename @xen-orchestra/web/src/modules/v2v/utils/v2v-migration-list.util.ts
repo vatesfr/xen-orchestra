@@ -26,7 +26,7 @@ export function getV2vMigrationListStorageKey({ sourceId, poolId }: V2vMigration
 export function buildV2vMigrationList(
   { sourceId, poolId }: V2vMigrationListKey,
   defaults: V2vDestinationDefaults,
-  vms: V2vMigrationListVm[] = []
+  vms: V2vMigrationListVm[]
 ): V2vMigrationList {
   return { version: 1, sourceId, poolId, defaults, vms }
 }

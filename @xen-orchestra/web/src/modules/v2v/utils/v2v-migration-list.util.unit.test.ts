@@ -3,11 +3,7 @@ import {
   getV2vMigrationListStorageKey,
   parseV2vMigrationList,
 } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
-import {
-  createV2vDestinationDefaults,
-  createV2vMigrationList,
-  createV2vMigrationListVms,
-} from '@/test/create-v2v-migration-list.ts'
+import { createV2vMigrationList, createV2vMigrationListVms } from '@/test/create-v2v-migration-list.ts'
 
 const STORED_LIST = createV2vMigrationList({ vms: createV2vMigrationListVms(2) })
 
@@ -24,10 +20,8 @@ describe('getV2vMigrationListStorageKey', () => {
 })
 
 describe('buildV2vMigrationList', () => {
-  it('creates a list with the defaults and no VM', () => {
-    const defaults = createV2vDestinationDefaults()
-
-    expect(buildV2vMigrationList(KEY, defaults)).toEqual({ version: 1, ...KEY, defaults, vms: [] })
+  it('creates a list with the defaults and the VMs', () => {
+    expect(buildV2vMigrationList(KEY, STORED_LIST.defaults, STORED_LIST.vms)).toEqual(STORED_LIST)
   })
 })
 
