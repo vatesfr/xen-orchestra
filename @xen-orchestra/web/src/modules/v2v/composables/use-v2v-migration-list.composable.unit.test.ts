@@ -16,7 +16,9 @@ import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-mi
 import { V2V_EMPTY_LIST, V2V_LIST_WITH_VMS } from '@/test/v2v-wizard-fixtures.ts'
 import { nextTick, type Ref, ref } from 'vue'
 
-const [FIRST_VM, SECOND_VM, THIRD_VM, FOURTH_VM] = createV2vMigrationListVms(4)
+const [FIRST_VM, SECOND_VM] = V2V_LIST_WITH_VMS.vms
+
+const [THIRD_VM, FOURTH_VM] = createV2vMigrationListVms(4).slice(V2V_LIST_WITH_VMS.vms.length)
 
 // Every write rebuilds the list without this field: finding it again proves nothing was written
 const UNWRITTEN_LIST = { ...V2V_LIST_WITH_VMS, unknownField: true }
