@@ -22,9 +22,9 @@ const STORED_LIST = createV2vMigrationList()
 
 async function mountWizard(
   step: string | undefined,
-  { isConnected = false, pool }: { isConnected?: boolean; pool?: string } = {}
+  { isConnected = false, poolId }: { isConnected?: boolean; poolId?: string } = {}
 ) {
-  const router = await createV2vWizardRouter(step, { pool })
+  const router = await createV2vWizardRouter(step, { pool: poolId })
 
   const context = isConnected
     ? createConnectedV2vContext({ connection: createV2vConnection({ host: 'vcenter-prod.lab' }) })
@@ -67,7 +67,7 @@ it('opens the requested step once connected, with the source as summary', async 
 })
 
 it('stays on the destination step until a migration list is saved for the pool', async () => {
-  const wrapper = await mountWizard('vms', { isConnected: true, pool: STORED_LIST.poolId })
+  const wrapper = await mountWizard('vms', { isConnected: true, poolId: STORED_LIST.poolId })
 
   expect(wrapper.findComponent(V2vDestinationStep).exists()).toBe(true)
 })
@@ -75,7 +75,7 @@ it('stays on the destination step until a migration list is saved for the pool',
 it('opens the VMs step once a migration list is saved for the pool', async () => {
   seedV2vMigrationList(STORED_LIST)
 
-  const wrapper = await mountWizard('vms', { isConnected: true, pool: STORED_LIST.poolId })
+  const wrapper = await mountWizard('vms', { isConnected: true, poolId: STORED_LIST.poolId })
 
   expect(wrapper.getComponent(VtsStateHero).text()).toContain(t('coming-soon!'))
 })

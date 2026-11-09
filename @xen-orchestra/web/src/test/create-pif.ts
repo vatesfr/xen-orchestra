@@ -36,6 +36,6 @@ export function createPif(overrides: Partial<FrontXoPif> = {}): FrontXoPif {
   }
 }
 
-export function createManagementPif(pool: FrontXoPool, network: FrontXoPif['$network']): FrontXoPif {
-  return createPif({ $host: pool.master, $pool: pool.id, $network: network, management: true })
+export function createManagementPif(pool: FrontXoPool, networkId: FrontXoPif['$network']): FrontXoPif {
+  return createPif({ $host: pool.master, $pool: pool.id, $network: networkId, management: true })
 }
