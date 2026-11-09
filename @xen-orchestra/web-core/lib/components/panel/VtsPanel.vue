@@ -9,7 +9,12 @@
         :class="{ 'menu-only': isMenuAlone }"
         class="action-buttons"
       >
-        <PanelActions v-if="slots.actions" v-model:count="actionsCount" :start="0" :end="inlineActionsCount">
+        <PanelActions
+          v-if="slots.actions"
+          :start="0"
+          :end="inlineActionsCount"
+          @change="count => updateActionsCount(count)"
+        >
           <slot name="actions" />
         </PanelActions>
         <VtsActionsMenu
@@ -82,7 +87,9 @@ const header = computed(() => actionButtons.value?.parentElement)
 
 const actionsCount = ref(0)
 
-const collapsedCount = useCollapseOnOverflow(header, actionButtons, () => Math.max(actionsCount.value, 1))
+const { collapsedCount, reset: resetCollapsedCount } = useCollapseOnOverflow(header, actionButtons, () =>
+  Math.max(actionsCount.value, 1)
+)
 
 const collapsedActionsCount = computed(() => Math.min(collapsedCount.value, actionsCount.value))
 
@@ -93,6 +100,11 @@ const areActionsCompact = computed(() => collapsedCount.value > 0)
 const isMenuAlone = computed(() => areActionsCompact.value && inlineActionsCount.value === 0)
 
 provide(IK_PANEL_ACTIONS_COMPACT, areActionsCompact)
+
+function updateActionsCount(count: number) {
+  actionsCount.value = count
+  resetCollapsedCount()
+}
 </script>
 
 <style scoped lang="postcss">

@@ -31,6 +31,11 @@ export function useCollapseOnOverflow(
     }
   }
 
+  function reset() {
+    requiredWidths.length = 0
+    collapsedCount.value = 0
+  }
+
   useResizeObserver([container, content], () => update())
 
   watch(
@@ -42,5 +47,5 @@ export function useCollapseOnOverflow(
     }
   )
 
-  return collapsedCount
+  return { collapsedCount, reset }
 }

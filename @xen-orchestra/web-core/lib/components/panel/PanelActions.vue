@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import { IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
 import { type MaybeElementRef, unrefElement } from '@vueuse/core'
-import { computed, type ComputedRef, onScopeDispose, provide, shallowRef, watchEffect } from 'vue'
+import { computed, type ComputedRef, onScopeDispose, provide, shallowRef, watch } from 'vue'
 
 export type PanelActionsGroup = {
   register: (element: MaybeElementRef) => ComputedRef<boolean>
@@ -16,7 +16,9 @@ const { start, end = Infinity } = defineProps<{
   end?: number
 }>()
 
-const count = defineModel<number>('count')
+const emit = defineEmits<{
+  change: [count: number]
+}>()
 
 defineSlots<{
   default(): any
@@ -37,9 +39,7 @@ const orderedElements = computed(() =>
   })
 )
 
-watchEffect(() => {
-  count.value = elements.value.length
-})
+watch(elements, registeredElements => emit('change', registeredElements.length))
 
 function register(element: MaybeElementRef) {
   elements.value = [...elements.value, element]
