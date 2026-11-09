@@ -12,9 +12,14 @@ export type CheckboxCellBindings = {
   onToggle: () => void
 }
 
-function renderHeadCheckbox(model: Ref<boolean | undefined>) {
+export type CheckboxHeadCellOptions = {
+  disabled?: boolean
+}
+
+function renderHeadCheckbox(model: Ref<boolean | undefined>, options?: CheckboxHeadCellOptions) {
   return h(UiCheckbox, {
     accent: 'brand',
+    disabled: options?.disabled,
     modelValue: model.value,
     'onUpdate:modelValue': (value: boolean | undefined | string[]) => {
       model.value = value === true
@@ -32,8 +37,10 @@ function renderBodyCheckbox({ selected, disabled, onToggle }: CheckboxCellBindin
 }
 
 export const useCheckboxColumn = defineColumn(() => ({
-  renderHead: (model: Ref<boolean | undefined>) =>
-    h(VtsHeaderCell, { style: { width: COLUMN_WIDTH } }, () => renderHeadCheckbox(model)),
-  renderBody: (bindings: CheckboxCellBindings) =>
-    h(UiTableCell, { style: { width: COLUMN_WIDTH } }, () => renderBodyCheckbox(bindings)),
+  renderHead: (model: Ref<boolean | undefined>, options?: CheckboxHeadCellOptions) =>
+    h(VtsHeaderCell, { style: { width: COLUMN_WIDTH } }, () => renderHeadCheckbox(model, options)),
+  renderBody: (bindings?: CheckboxCellBindings) =>
+    h(UiTableCell, { style: { width: COLUMN_WIDTH } }, () =>
+      bindings === undefined ? undefined : renderBodyCheckbox(bindings)
+    ),
 }))

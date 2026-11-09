@@ -1,12 +1,14 @@
 <template>
   <VtsSidePanel :has-selection="role !== undefined" @close="emit('close')">
     <template v-if="role" #actions>
-      <VtsDeleteButton
-        :disabled="!canDeleteRoles"
-        :busy="isDeletingRoles"
-        :tooltip="deleteRolesErrorMessage ?? false"
-        @click="deleteRoles()"
-      />
+      <slot name="actions">
+        <VtsDeleteButton
+          :disabled="!canDeleteRoles"
+          :busy="isDeletingRoles"
+          :tooltip="deleteRolesErrorMessage ?? false"
+          @click="deleteRoles()"
+        />
+      </slot>
     </template>
     <template v-if="role" #default>
       <RoleInfosCard :role />
@@ -33,6 +35,10 @@ const { role } = defineProps<{
 
 const emit = defineEmits<{
   close: []
+}>()
+
+defineSlots<{
+  actions?(): any
 }>()
 
 const { deleteRoles, canDeleteRoles, isDeletingRoles, deleteRolesErrorMessage } = useRoleDelete(() =>
