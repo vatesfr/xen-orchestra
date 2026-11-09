@@ -7,7 +7,7 @@ import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composa
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { v2vMappingConnectionProvide } from '@/test/mount-v2v-vm-mapping.ts'
+import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { ref, toValue } from 'vue'
 
 const { useDelete, deleteVm } = vi.hoisted(() => ({
@@ -40,7 +40,7 @@ function mountNewVmActions() {
 
   // The drawer is opened from the mapping step, under the connection of the wizard
   const actions = mountComposableWithI18n(() => useV2vNewVmActions(V2V_NEW_STEP_VM, { updateVm: vi.fn(), remove }), {
-    provide: v2vMappingConnectionProvide(),
+    provide: v2vConnectionProvide(),
   })
 
   return { actions, remove }

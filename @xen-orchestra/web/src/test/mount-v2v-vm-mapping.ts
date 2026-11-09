@@ -11,7 +11,7 @@ import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { v2vConnectionProvide, v2vMappingConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
   V2V_DISK_OVERRIDES,
@@ -66,11 +66,6 @@ function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
   seedV2vMigrationList(list)
 
   return list
-}
-
-/** The connection of the wizard, its source connected on the mapping inventory. */
-export function v2vMappingConnectionProvide() {
-  return v2vConnectionProvide(createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY }))
 }
 
 export type MountV2vVmMappingOptions = {
