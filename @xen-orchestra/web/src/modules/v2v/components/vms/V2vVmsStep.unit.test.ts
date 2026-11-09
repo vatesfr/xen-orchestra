@@ -7,7 +7,6 @@ import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.compos
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { applyV2vPreset, V2V_VM_PRESETS } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
@@ -24,6 +23,7 @@ import {
   V2V_DATASTORE_B,
   V2V_DATASTORE_B_FILTER,
   V2V_LISTED_VM,
+  V2V_LIST_WITH_LISTED_VM,
   V2V_VMS_INVENTORY,
   V2V_WEB_VM,
 } from '@/test/v2v-vms-fixtures.ts'
@@ -59,16 +59,17 @@ vi.mock(
 )
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
-const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
-
 const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
 
 const SOURCE_HOST = createV2vConnection().host
 
-const SHOW_PANEL_LABEL = t('selected-vms-n', { n: LIST.vms.length })
+const SHOW_PANEL_LABEL = t('selected-vms-n', { n: V2V_LIST_WITH_LISTED_VM.vms.length })
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
-async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; filter?: string } = {}) {
+async function mountStep({
+  list = V2V_LIST_WITH_LISTED_VM,
+  filter,
+}: { list?: V2vMigrationList; filter?: string } = {}) {
   xoCollectionsMock.pools.value = [V2V_LIST_POOL]
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
@@ -86,7 +87,12 @@ async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; fil
           },
         }),
       }),
-    { step: 'vms', query: getV2vVmsQuery(LIST.poolId, filter), list, source: { inventory: V2V_VMS_INVENTORY } }
+    {
+      step: 'vms',
+      query: getV2vVmsQuery(V2V_LIST_WITH_LISTED_VM.poolId, filter),
+      list,
+      source: { inventory: V2V_VMS_INVENTORY },
+    }
   )
 
   return { wrapper, router }
@@ -153,8 +159,8 @@ describe('VMs', () => {
   it('offers the query builder of the VM properties', async () => {
     const { wrapper } = await mountStep()
     const { result: vmsStep } = await mountV2vVmsStep(() => useV2vVmsStep(), {
-      list: LIST,
-      query: getV2vVmsQuery(LIST.poolId),
+      list: V2V_LIST_WITH_LISTED_VM,
+      query: getV2vVmsQuery(V2V_LIST_WITH_LISTED_VM.poolId),
     })
 
     expect(getQueryBuilder(wrapper).props('schema')).toEqual(vmsStep.schema)

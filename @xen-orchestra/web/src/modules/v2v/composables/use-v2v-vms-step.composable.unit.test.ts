@@ -5,7 +5,6 @@ import { ONE_GB } from '@/shared/constants.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
@@ -18,10 +17,12 @@ import {
   V2V_DATASTORE_B_FILTER,
   V2V_DB_VM,
   V2V_LISTED_VM,
+  V2V_LIST_WITH_LISTED_VM,
   V2V_RDM_VM,
   V2V_VMS_INVENTORY,
   V2V_WEB_VM,
 } from '@/test/v2v-vms-fixtures.ts'
+import { V2V_EMPTY_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { toValue } from 'vue'
@@ -43,19 +44,17 @@ vi.mock(
   () => import('@/test/mock-xo-collections.ts')
 )
 
-const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
-
 async function mountVmsStep({
   filter,
   inventory = V2V_VMS_INVENTORY,
-  list = LIST,
+  list = V2V_LIST_WITH_LISTED_VM,
 }: { filter?: string; inventory?: XoV2vInventory | null; list?: V2vMigrationList | null } = {}) {
   v2vVmRowsCollectionsMock.vms.value = [createV2vImportVm({ isWarm: true, sourceVmId: V2V_DB_VM.id })]
 
   return mountV2vVmsStep(() => useV2vVmsStep(), {
     list,
     inventory,
-    query: getV2vVmsQuery(LIST.poolId, filter),
+    query: getV2vVmsQuery(V2V_LIST_WITH_LISTED_VM.poolId, filter),
   })
 }
 
@@ -257,7 +256,10 @@ describe('addSelected', () => {
 
     result.selection.toggle(V2V_WEB_VM.id)
     result.addSelected()
-    await writeLocalStorageFromAnotherTab(getV2vMigrationListStorageKey(LIST), JSON.stringify(LIST))
+    await writeLocalStorageFromAnotherTab(
+      getV2vMigrationListStorageKey(V2V_LIST_WITH_LISTED_VM),
+      JSON.stringify(V2V_LIST_WITH_LISTED_VM)
+    )
 
     expect(findPageRow(result, V2V_WEB_VM.id)).toMatchObject({ isSelectable: true, isSelected: false })
   })
@@ -377,10 +379,10 @@ describe('selectedVmsContext', () => {
 
     const { migrationList, rows, areRowsReady, poolId } = result.selectedVmsContext
 
-    expect(migrationList.list.value?.vms).toEqual(LIST.vms)
+    expect(migrationList.list.value?.vms).toEqual(V2V_LIST_WITH_LISTED_VM.vms)
     expect(getV2vVmNames(toValue(rows))).toEqual(getV2vVmNames(V2V_VMS_INVENTORY.vms))
     expect(toValue(areRowsReady)).toBe(false)
-    expect(toValue(poolId)).toBe(LIST.poolId)
+    expect(toValue(poolId)).toBe(V2V_LIST_WITH_LISTED_VM.poolId)
   })
 })
 
@@ -390,7 +392,7 @@ describe('navigation', () => {
 
     await result.back()
 
-    expect(router.currentRoute.value.query).toMatchObject({ step: 'destination', pool: LIST.poolId })
+    expect(router.currentRoute.value.query).toMatchObject({ step: 'destination', pool: V2V_LIST_WITH_LISTED_VM.poolId })
   })
 
   it('goes on to the mapping, keeping the pool and the filter', async () => {
@@ -400,7 +402,7 @@ describe('navigation', () => {
 
     expect(router.currentRoute.value.query).toMatchObject({
       step: 'mapping',
-      pool: LIST.poolId,
+      pool: V2V_LIST_WITH_LISTED_VM.poolId,
       [V2V_VMS_FILTER_QUERY_KEY]: V2V_DATASTORE_B_FILTER,
     })
   })
@@ -412,7 +414,7 @@ describe('navigation', () => {
   })
 
   it.each([
-    ['an empty list', createV2vMigrationList({ vms: [] })],
+    ['an empty list', V2V_EMPTY_LIST],
     ['no stored list', null],
   ])('cannot go on with %s', async (_, list) => {
     const { result } = await mountVmsStep({ list })
@@ -421,7 +423,7 @@ describe('navigation', () => {
   })
 
   it('can go on once a VM is added', async () => {
-    const { result } = await mountVmsStep({ list: createV2vMigrationList({ vms: [] }) })
+    const { result } = await mountVmsStep({ list: V2V_EMPTY_LIST })
 
     result.selection.toggle(V2V_WEB_VM.id)
     result.addSelected()
