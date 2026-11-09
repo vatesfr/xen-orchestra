@@ -476,21 +476,28 @@ export class HostController extends XapiXoController<XoHost> {
   @Post('{id}/actions/move_management_ip')
   @Middlewares([
     json(),
-    acl({
-      resource: 'pif',
-      action: 'update:management',
-      objectIds: ({ req, restApi }) => {
-        const host = restApi.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
-        const managementPif = host.$PIFs
-          .map(id => restApi.getObject<XoPif>(id as XoPif['id'], 'PIF'))
-          .find(hostPif => hostPif.management)
-        if (managementPif) {
-          return [req.body.pif as XoPif['id'], managementPif.id]
-        } else {
-          return [req.body.pif as XoPif['id']]
-        }
+    acl([
+      {
+        resource: 'pif',
+        action: 'update:management',
+        objectId: 'body.pif',
       },
-    }),
+      {
+        resource: 'pif',
+        action: 'update:management',
+        objectIds: ({ req, restApi }) => {
+          const host = restApi.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
+          const managementPif = host.$PIFs
+            .map(id => restApi.getObject<XoPif>(id as XoPif['id'], 'PIF'))
+            .find(hostPif => hostPif.management)
+          if (managementPif) {
+            return [managementPif.id]
+          } else {
+            return []
+          }
+        },
+      },
+    ]),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
