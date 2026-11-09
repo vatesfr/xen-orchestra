@@ -33,6 +33,7 @@
 - [Backups] The backup journal of a remote (`xo-backup-log/`) no longer grows forever: its entries are deleted after 30 days, configurable with `backups.journalRetention` (PR [#10703](https://github.com/vatesfr/xen-orchestra/pull/10703))
 - [XO6/Backups] Add a detail page for backup logs (PR [#10718](https://github.com/vatesfr/xen-orchestra/pull/10718))
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
+- [REST API] `PATCH /rest/v0/vifs/{id}` can now move a VIF to another network with `networkId` (requires the new `allow-vif` privilege on the target network), and `POST /rest/v0/vifs/{id}/actions/change_mac` changes the MAC address of a VIF (PR [#10743](https://github.com/vatesfr/xen-orchestra/pull/10743))
 
 ### Bug fixes
 

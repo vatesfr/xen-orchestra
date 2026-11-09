@@ -31,6 +31,7 @@ import type {
   XoVif,
   XoVm,
 } from '@vates/types'
+import { VIF_LOCKING_MODE } from '@vates/types'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
 
@@ -56,6 +57,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifId, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { assertUnicastMacAddress, getAllowedIpAddresses, VifService } from './vif.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
@@ -73,6 +75,7 @@ type CreateVifBody = Omit<CreateVifParams[0], 'network' | 'VM' | 'other_config' 
 type UpdateVifRequestBody = Omit<EditVifProps, 'ipv4Allowed' | 'ipv6Allowed'> & {
   allowedIpv4Addresses?: EditVifProps['ipv4Allowed']
   allowedIpv6Addresses?: EditVifProps['ipv6Allowed']
+  networkId?: string
 }
 
 const UPDATE_VIF_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vif.update).map(
@@ -87,9 +90,24 @@ const UPDATE_VIF_ACTIONS = Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE.vif.update)
 @provide(VifController)
 export class VifController extends XapiXoController<XoVif> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #vifService: VifService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(VifService) vifService: VifService
+  ) {
     super('VIF', restApi)
     this.#alarmService = alarmService
+    this.#vifService = vifService
+  }
+
+  #getNetworkInPool(networkId: string, poolId: XoVif['$pool']): XoNetwork {
+    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
+
+    if (network.$pool !== poolId) {
+      throw invalidParameters(`the network ${networkId} does not belong to the pool ${poolId}`)
+    }
+    return network
   }
 
   /**
@@ -136,25 +154,31 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
-   * Partial update of a VIF: only the fields present in the body are modified.
+   * Partial update of a VIF: only the fields present in the body are modified, except when moving it to another network.
    * Setting the allowed IPs to a non-empty list switches the locking mode to `locked`.
    * `rateLimit` is expressed in kB/s (kilobytes per second).
+   * Changing `networkId` moves the VIF to another network of the same pool, without changing its ID.
+   * Unless provided in the body, its allowed IPs are then cleared and its locking mode is reset to `network_default`.
    *
    * Required privilege per field provided in the body:
    * - resource: vif, action: update:&lt;field&gt;
+   * - resource: network, action: allow-vif (on the target network, if a networkId is specified)
    *
    * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
-   * @example body { "lockingMode": "locked", "allowedIpv4Addresses": ["192.168.0.42"], "rateLimit": 1000 }
+   * @example body { "lockingMode": "locked", "allowedIpv4Addresses": ["192.168.0.42"], "networkId": "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f", "rateLimit": 1000 }
    */
   @Extension('x-mcp-exposure', 'confirm')
   @Patch('{id}')
   @Middlewares([
     json(),
-    acl({
-      resource: 'vif',
-      actions: actionsFromBody(UPDATE_VIF_ACTIONS),
-      objectId: 'params.id',
-    }),
+    acl([
+      {
+        resource: 'vif',
+        actions: actionsFromBody(UPDATE_VIF_ACTIONS),
+        objectId: 'params.id',
+      },
+      { resource: 'network', action: 'allow-vif', objectId: 'body.networkId' },
+    ]),
   ])
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -163,7 +187,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async updateVif(@Path() id: string, @Body() body: UpdateVifRequestBody): Promise<void> {
     const vifId = id as XoVif['id']
-    const { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, rateLimit, txChecksumming } = body
+    const { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, networkId, rateLimit, txChecksumming } = body
 
     // resolve first so a missing VIF 404s before any side effect
     const vif = this.getObject(vifId)
@@ -171,12 +195,18 @@ export class VifController extends XapiXoController<XoVif> {
       return
     }
 
-    // keep XO's IP-pool accounting in sync when the allowed IPs change
-    if (allowedIpv4Addresses !== undefined || allowedIpv6Addresses !== undefined) {
-      const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
-      const newIpAddresses = (allowedIpv4Addresses ?? vif.allowedIpv4Addresses).concat(
-        allowedIpv6Addresses ?? vif.allowedIpv6Addresses
-      )
+    const network =
+      networkId !== undefined && networkId !== vif.$network ? this.#getNetworkInPool(networkId, vif.$pool) : undefined
+
+    const isMoving = network !== undefined
+    const ipv4Allowed = allowedIpv4Addresses ?? (isMoving ? [] : undefined)
+    const ipv6Allowed = allowedIpv6Addresses ?? (isMoving ? [] : undefined)
+    const oldIpAddresses = getAllowedIpAddresses(vif)
+    const newIpAddresses = (ipv4Allowed ?? vif.allowedIpv4Addresses).concat(ipv6Allowed ?? vif.allowedIpv6Addresses)
+
+    if (isMoving) {
+      await this.#vifService.moveToNetwork(vifId, network, newIpAddresses)
+    } else if (ipv4Allowed !== undefined || ipv6Allowed !== undefined) {
       await this.restApi.xoApp.allocIpAddresses(
         vifId,
         newIpAddresses.filter(address => !oldIpAddresses.includes(address)),
@@ -185,9 +215,10 @@ export class VifController extends XapiXoController<XoVif> {
     }
 
     await this.getXapi(vifId).editVif(vifId, {
-      ipv4Allowed: allowedIpv4Addresses,
-      ipv6Allowed: allowedIpv6Addresses,
-      lockingMode,
+      ipv4Allowed,
+      ipv6Allowed,
+      lockingMode:
+        lockingMode ?? (isMoving && newIpAddresses.length === 0 ? VIF_LOCKING_MODE.NETWORK_DEFAULT : undefined),
       rateLimit,
       txChecksumming,
     })
@@ -329,11 +360,7 @@ export class VifController extends XapiXoController<XoVif> {
     const { MAC, vmId, networkId, ...rest } = body
 
     const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
-    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
-
-    if (vm.$pool !== network.$pool) {
-      throw invalidParameters(`the VM ${vmId} and network ${networkId} do not belong to the same pool`)
-    }
+    const network = this.#getNetworkInPool(networkId, vm.$pool)
 
     const xapi = this.getXapi(vmId as XoVm['id'])
     const vifRef = await xapi.VIF_create(
@@ -439,5 +466,56 @@ export class VifController extends XapiXoController<XoVif> {
         objectId: vifId,
       },
     })
+  }
+
+  /**
+   * Change the MAC address of a VIF.
+   * XAPI cannot modify a MAC address: the VIF is destroyed and recreated with the same settings,
+   * which briefly cuts the VM connection on this interface.
+   *
+   * Required privilege:
+   * - resource: vif, action: change-mac
+   *
+   * Note: The recreated VIF has a new ID. The new ID is returned in the response.
+   * If the change fails, the VIF is restored with its original MAC address, under a new ID.
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "MAC": "aa:bb:cc:dd:ee:ff" }
+   */
+  @Example(taskLocation)
+  @Example(vifId)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/change_mac')
+  @Middlewares([json(), acl({ resource: 'vif', action: 'change-mac', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'Ok')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async changeVifMac(
+    @Path() id: string,
+    @Body() body: { MAC: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoVif>['id'] }> {
+    const vifId = id as XoVif['id']
+    const { MAC } = body
+
+    // validated before the task is created, to answer 422 instead of a failed task
+    assertUnicastMacAddress(MAC)
+    // resolve first so a missing VIF 404s before the task is created
+    this.getObject(vifId)
+
+    return this.createAction(
+      async () => ({ id: (await this.#vifService.changeMac(vifId, MAC)) as Unbrand<XoVif>['id'] }),
+      {
+        sync,
+        taskProperties: {
+          name: 'change VIF MAC',
+          objectId: vifId,
+          params: { MAC },
+        },
+      }
+    )
   }
 }
