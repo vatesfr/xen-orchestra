@@ -1,12 +1,13 @@
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
-import { clamp, onClickOutside, useEventListener, useFocusWithin, whenever } from '@vueuse/core'
-import { logicOr } from '@vueuse/math'
+import { clamp, onClickOutside, useEventListener, whenever } from '@vueuse/core'
 import { computed, provide, reactive, ref, watch } from 'vue'
 import { type FormOptionIndex, type FormSelect, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 import { useFormSelectKeyboardNavigation } from './use-form-select-keyboard-navigation.ts'
 
 export function useFormSelectController(select: FormSelect) {
+  const rootRef = ref<HTMLElement>()
+
   const activeOption = computed(() => select.options.value.find(option => option.flags.active))
 
   const isOpen = ref(false)
@@ -14,10 +15,6 @@ export function useFormSelectController(select: FormSelect) {
   /* TRIGGER */
 
   const triggerRef = ref<HTMLElement>()
-
-  const { focused: isTriggerFocused } = useFocusWithin(triggerRef)
-
-  const isActive = logicOr(isTriggerFocused, isOpen)
 
   useEventListener(triggerRef, 'click', () => openDropdown())
 
@@ -28,7 +25,7 @@ export function useFormSelectController(select: FormSelect) {
   /* KEYBOARD NAVIGATION */
 
   const { isNavigatingWithKeyboard, stopKeyboardNavigation } = useFormSelectKeyboardNavigation({
-    isActive,
+    target: rootRef,
     isMultiple: select.isMultiple,
     isOpen,
     onSelect: () => activeOption.value?.toggleFlag('selected', true),
@@ -45,6 +42,14 @@ export function useFormSelectController(select: FormSelect) {
   onClickOutside(dropdownRef, () => closeDropdown(true), { ignore: [triggerRef] })
 
   useEventListener(dropdownRef, 'mousemove', () => stopKeyboardNavigation())
+
+  useEventListener(dropdownRef, 'mousedown', event => {
+    if (event.target instanceof HTMLInputElement) {
+      return
+    }
+
+    event.preventDefault()
+  })
 
   /* DROPDOWN PLACEMENT */
 
@@ -80,7 +85,7 @@ export function useFormSelectController(select: FormSelect) {
     return true
   }
 
-  whenever(isOpen, () => focusSearch(), { flush: 'post' })
+  whenever(isOpen, () => focusSearchOrTrigger(), { flush: 'post' })
 
   const currentIndex = computed(() => select.options.value.findIndex(option => option.flags.active))
 
@@ -215,6 +220,7 @@ export function useFormSelectController(select: FormSelect) {
   )
 
   return {
+    rootRef,
     triggerRef,
     dropdownRef,
     searchRef,

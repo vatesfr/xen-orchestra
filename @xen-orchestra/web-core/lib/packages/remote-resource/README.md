@@ -146,15 +146,17 @@ const { data } = useMyResource(() => id)
 
 By default, the resource will poll for updates every 30 seconds and cache the result for 10 seconds.
 
-This can be customized by passing the `pollingIntervalMs` and `cacheDurationMs` properties:
+This can be customized by passing the `pollingIntervalMs` and `cacheExpirationMs` properties:
 
 ```typescript
 const useMyResource = defineRemoteResource({
   url: '/api/path/to/resource',
   pollingIntervalMs: 60_000, // Poll every 60 seconds
-  cacheDurationMs: 5 * 60_000, // Cache for 5 minutes
+  cacheExpirationMs: 5 * 60_000, // Cache for 5 minutes
 })
 ```
+
+Set `cacheExpirationMs` to `false` to drop the cached data as soon as the last Component releases the resource.
 
 ## Watching a collection
 

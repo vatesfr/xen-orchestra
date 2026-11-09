@@ -7,7 +7,7 @@
       :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
       :icon="`object:vm:${toLower(vm.power_state)}`"
     />
-    <div class="content">
+    <VtsCardRowList class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -116,7 +116,7 @@
           <VtsCopyButton :value="relativeStartTime" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -130,6 +130,7 @@ import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -179,10 +180,6 @@ const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay }
 <style scoped lang="postcss">
 .vm-info-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value {
       display: flex;
       align-items: center;

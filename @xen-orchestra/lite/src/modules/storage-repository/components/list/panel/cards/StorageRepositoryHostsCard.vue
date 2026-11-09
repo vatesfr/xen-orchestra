@@ -5,7 +5,7 @@
       <li v-for="host in hosts" :key="host.uuid" v-tooltip class="text-ellipsis">
         <UiLink
           size="small"
-          :icon="`object:host:${getHostPowerState(host)}`"
+          :icon="getHostIcon(host, getHostPowerState(host))"
           :to="{ name: '/host/[uuid]/dashboard', params: { uuid: host.uuid } }"
         >
           {{ host.name_label }}
@@ -20,6 +20,7 @@
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { getHostIcon } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
@@ -35,9 +36,5 @@ defineProps<{
 
 const { t } = useI18n()
 
-const { isHostRunning } = useHostMetricsStore().subscribe()
-
-function getHostPowerState(host: XenApiHost) {
-  return isHostRunning(host) ? 'running' : 'halted'
-}
+const { getHostPowerState } = useHostMetricsStore().subscribe()
 </script>

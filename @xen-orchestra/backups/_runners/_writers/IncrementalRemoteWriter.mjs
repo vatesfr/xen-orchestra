@@ -25,6 +25,14 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   #parentVdiPaths
   #parentUuids
+
+  /**
+   * @returns {string | undefined} see RemoteAdapter#getVhdDirectoryCompression
+   */
+  getVhdDirectoryCompression() {
+    return this._adapter.getVhdDirectoryCompression()
+  }
+
   async checkBaseVdis(baseUuidToSrcVdi) {
     this.#parentVdiPaths = {}
     this.#parentUuids = {}

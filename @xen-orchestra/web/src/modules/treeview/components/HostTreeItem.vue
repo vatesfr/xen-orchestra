@@ -24,6 +24,7 @@
         <MenuList placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
+              :aria-label="t('quick-actions')"
               accent="brand"
               icon="action:more-actions"
               size="small"

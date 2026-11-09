@@ -1,5 +1,15 @@
 import { AbstractAggregatedRemoteWriter } from './_AbstractAggregatedRemoteWriter.mjs'
 export class AggregatedIncrementalRemoteWriter extends AbstractAggregatedRemoteWriter {
+  /**
+   * the backup can land on any of the adapters, the compression is only known if they all use the same one
+   * (based on the adapters since the child writers are only created in beforeBackup())
+   * @returns {string | undefined} see RemoteAdapter#getVhdDirectoryCompression
+   */
+  getVhdDirectoryCompression() {
+    const compressions = new Set(Object.values(this.adapters).map(adapter => adapter.getVhdDirectoryCompression()))
+    return compressions.size === 1 ? [...compressions][0] : undefined
+  }
+
   async deleteOldBackupsOnAdapter(adapter, backups) {
     await adapter.deleteDeltaVmBackups(backups)
   }

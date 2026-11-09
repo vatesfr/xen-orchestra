@@ -637,6 +637,7 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
+  editJobUsesExpressions: 'This job uses expressions which are not supported in XO 5, edit it in XO 6',
   preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
   distributeBackups: 'Distribute backups across backup repositories',
@@ -1046,7 +1047,10 @@ const messages = {
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   noNbdConnection: 'No NBD Connection',
   nbdConnection: 'NBD Connection',
-  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
+  insecureNbdConnection: 'Insecure NBD Connection (not encrypted)',
+  insecureNbdConfirmTitle: 'Enable insecure NBD?',
+  insecureNbdConfirmBody:
+    'The disk data of the backups will travel unencrypted on this network. Only enable it on a network dedicated to backups and isolated from the VMs and the users (dedicated VLAN or physical network).',
   // ----- Pool patches tab -----
   multiHostPoolUpdate: "Rolling pool update can only work when there's multiple hosts in a pool with a shared storage",
   nVmsRunningOnLocalStorage:
@@ -1148,9 +1152,9 @@ const messages = {
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths: '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
-    'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
+    'This action will not be fulfilled if a VM is in a running state on shared SRs. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
-    'The host{nHosts, plural, one {} other {s}} will lose their connection to the SRs. Do you want to continue?',
+    'The host{nHosts, plural, one {} other {s}} will lose their connection to the shared SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
@@ -1253,6 +1257,10 @@ const messages = {
   installAllPatchesRedirect: 'Go to pool',
   installAllPatchesOnHostContent:
     'The pool master must always be updated FIRST. Updating will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
+  installAllPatchesOnHostMasterNotUpToDate:
+    'The pool master is not up to date. Installing patches on a host before its pool master can lead to severe issues. Update the pool master first, or use a rolling pool update.',
+  installAllPatchesOnHostMasterUnknown:
+    'Unable to check whether the pool master is up to date. Installing patches on a host before its pool master can lead to severe issues. Make sure the pool master is updated first, or use a rolling pool update.',
   installAllPatchesXostorWarning:
     'If you are using XOSTOR storage it is absolutely crucial that you update the XOSTOR services before patching your pool. Please refer to this documentation to update your XOSTOR services:',
   patchRelease: 'Release',
@@ -2193,10 +2201,14 @@ const messages = {
   vdiTargetDestinationLabel: 'Destination',
   vdiTargetRestore: 'Restore',
   vdiTargetLiveMount: 'Live mount (read only)',
+  vdiTargetLiveRestore: 'Live restore (read/write)',
+  vdiTargetLiveRestoreUnavailable: 'Live restore (read/write): unavailable, the VM running XO or the proxy is unknown',
+  vdiTargetCacheSr: 'SR holding the written data…',
   vdiTargetIgnore: 'Do not restore',
   vdiTargetUseMainSr: 'Use main SR',
   vdiTargetSrRequired: 'Select an SR for this disk or a main SR',
   vdiTargetHostRequired: 'Select a host to live mount this disk on',
+  vdiTargetLiveRestoreIncomplete: 'Select a host to live restore this disk on, and an SR to hold its data',
   vdiTargetIncompleteDestinations: 'Some disks have no destination yet',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
@@ -2235,6 +2247,8 @@ const messages = {
   importBackupModalSelectBackup: 'Select your backup…',
   importBackupModalSelectSr: 'Select a destination SR…',
   deleteOrphanedVdisModalTitle: 'Delete orphaned snapshot VDIs',
+  failedToDeleteVdisTitle: 'Delete VDI{nVdis, plural, one {} other {s}} failed',
+  failedToDeleteVdisMessage: 'Failed to delete {nVdis, number} VDI{nVdis, plural, one {} other {s}}.',
   deleteOrphanedVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} orphaned snapshot VDI{nVdis, plural, one {} other {s}}?',
   definitiveMessageModal: 'This operation is definitive.',

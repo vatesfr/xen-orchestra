@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="traffic-rule-vif-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('vif')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('name') }}
@@ -115,7 +115,7 @@
           {{ vif.txChecksumming }}
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -127,6 +127,7 @@ import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -176,13 +177,3 @@ const networkVlan = computed(() => {
 
 const vifDevice = computed(() => `${t('vif')}${vif.device}`)
 </script>
-
-<style scoped lang="postcss">
-.traffic-rule-vif-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

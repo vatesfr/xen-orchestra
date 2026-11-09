@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { Readable } from 'node:stream'
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
-import { SUPPORTED_VDI_FORMAT } from '@vates/types'
+import { SUPPORTED_VDI_EXPORT_FORMAT, SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 
@@ -92,7 +92,7 @@ function createRestApi() {
 }
 
 describe('VdiService.exportContent', () => {
-  for (const format of Object.values(SUPPORTED_VDI_FORMAT)) {
+  for (const format of Object.values(SUPPORTED_VDI_EXPORT_FORMAT)) {
     it(`announces, for the ${format} format, a length equal to the number of streamed bytes`, async () => {
       const { restApi } = createRestApi()
 

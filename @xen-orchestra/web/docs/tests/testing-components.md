@@ -23,7 +23,7 @@ it('shows VGA as enabled when the VM uses the "std" adapter', () => {
 })
 ```
 
-The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviours to separate; a small component reads better as flat `it`s.
+The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviors to separate; a small component reads better as flat `it`s.
 
 ## Keep components thin
 
@@ -40,7 +40,7 @@ The extraction is a refactor, so the tests come **first** and are what proves it
 3. Re-run those tests **unchanged**.
 4. Move the ones the extraction made redundant down next to the new util/composable, and delete them from the component test.
 
-Step 3 is the gate. A test that has to be edited to pass is reporting a behaviour change — say so, do not absorb it into the diff. Tests written only _after_ an extraction describe the new code and cannot catch what the extraction broke, which is the whole risk being taken.
+Step 3 is the gate. A test that has to be edited to pass is reporting a behavior change — say so, do not absorb it into the diff. Tests written only _after_ an extraction describe the new code and cannot catch what the extraction broke, which is the whole risk being taken.
 
 Step 4 is selective. A test that only exercised the logic now living in the util moves; a test asserting something the component alone does — rendering, conditional rows, empty states, feeding the util's output into the template — stays.
 
@@ -61,31 +61,53 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
-`src/test/find-labelled-values.ts` does exactly that reduction, so a card test does not re-roll it:
+`src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
-| Helper                   | Reads                                                      |
-| ------------------------ | ---------------------------------------------------------- |
-| `findLabelledValues`     | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card |
-| `findCardLabelledValues` | every `VtsCardRowKeyValue` of a side-panel card            |
+| Helper                       | Reads                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
+| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
+| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
+| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
 ```
 
-Both collapse rows that share a label into one entry — a list repeating the same label (an address list labelling only its first row) is queried directly instead:
+A row offers a copy button through its `copy` prop (copies its `value`) or its `copy-value` prop (copies that string). `findCopiedValues` leaves rows without one out, so a `toEqual` pins both which rows are copyable and what they copy — including a row that must offer no copy because its value is empty:
 
 ```typescript
-expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())).toEqual([
-  '10.0.0.1',
-  '10.0.0.2',
+expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
+```
+
+Both read one value per row. A `VtsCardRowKeyValue` given several `values` (an address list, report recipients) renders them all under a single label, so read it with `findCardLabelledValueLists` instead:
+
+```typescript
+expect(findCardLabelledValueLists(wrapper)).toEqual({ [t('ip-addresses')]: ['10.0.0.1', '10.0.0.2'] })
+```
+
+When a card mixes deterministic values with environment-derived ones (a relative start time, a formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
+
+Two more readers live in the same file, for output that is not a label/value pair:
+
+| Helper          | Reads                                                             |
+| --------------- | ----------------------------------------------------------------- |
+| `findTableRows` | the `tbody` of a table, as one array of **cell** texts per row    |
+| `findTags`      | every `UiTag`, as its text, in the order the component lists them |
+
+```typescript
+expect(findTableRows(wrapper)).toEqual([
+  ['XSAPATCH-1', '1.0'],
+  ['XSAPATCH-2', '2.0'],
 ])
 ```
 
-When a card mixes deterministic values with environment-derived ones (a relative start time, a locale-formatted date), pin the deterministic rows with `toMatchObject` and cover the composition separately by asserting the **list of labels, in order** — the formatted values themselves belong in the test of the composable that derives them.
+`findTableRows` reads cells rather than each row's whole text for the same reason the helpers above split label from value: `row.text()` concatenates the columns, so a patch named `XSAPATCH-1` at version `1.0` and one named `XSAPATCH-11` at version `.0` read identically.
 
 ### Never spell out a translation
 
-A rendered label or a translated value is wording the component does not own, so [asserting behaviour](./assert-behaviour.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` and `d` of the very instance `createGlobalTestConfig()` installs:
+A rendered label or a translated value is wording the component does not own, so [asserting behavior](./assert-behavior.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` of the very instance `createGlobalTestConfig()` installs:
 
 ```typescript
 // ✗ rewording the translation breaks the test although the component still picks the same key
@@ -99,13 +121,13 @@ A mistyped key does not pass quietly — `t` returns a `⟨key⟩` marker for a 
 
 Where the line falls:
 
-| Value                                                      | Assert as                                          |
-| ---------------------------------------------------------- | -------------------------------------------------- |
-| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)` |
-| a locale-formatted date                                    | `d(timestamp, { …the component's options })`       |
-| a string the component composes from several translations  | a template literal of those `t(…)` calls           |
-| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input           |
-| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template  |
+| Value                                                      | Assert as                                                                          |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)`                                 |
+| a formatted date                                           | `formatDateTime(timestamp)` from `@core/utils/time.util.ts`, as the component does |
+| a string the component composes from several translations  | a template literal of those `t(…)` calls                                           |
+| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input                                           |
+| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template                                  |
 
 ## Chart cards
 
@@ -151,25 +173,27 @@ Keep it to one representative value: how the formatter handles the whole range, 
 
 ## Legend cards
 
-A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable:
+A donut card and a progress-bar card both render their values through `UiLegend`, which keeps the label and the value addressable. `src/test/find-rendered-values.ts` reads them, so a card test does not re-roll the query:
+
+| Helper                        | Reads                                                  |
+| ----------------------------- | ------------------------------------------------------ |
+| `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
+| `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
+| `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
 
 ```typescript
-function findLegends(wrapper: VueWrapper) {
-  return wrapper
-    .findAll('.ui-legend')
-    .map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()])
-}
-
 expect(findLegends(wrapper)).toEqual([
   [t('vm:status:running', 2), '2'],
   [t('vm:status:halted', 2), '1'],
 ])
 ```
 
+Pairs rather than a record: a card may legend the same label twice, and the order it lists them in is part of what a user reads.
+
 Three things shape those assertions:
 
 - `VtsProgressBarGroup` sorts **descending by default**, so the expected order is the busiest first, not the order the payload listed.
-- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group (`wrapper.findAll('.vts-donut-chart-with-legend')`, then the legends inside each). A flat `findAll('.ui-legend')` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
+- A card holding several legend groups — `PoolDashboardStatus` shows one for its hosts and one for its VMs — is queried per group: `findProgressBarGroupLegends` does that for progress-bar groups, while a donut card goes through `wrapper.findAll('.vts-donut-chart-with-legend')` and the legends inside each. A flat `findLegends` collapses the groups into one list, and an assertion on it no longer says which group a value landed in.
 - `VtsStateHero` renders its own wording ahead of the slot: an `all-done` hero reads `'All good!Patches up to date'`. Assert the part the component owns with `toContain`.
 
 ## Routing
@@ -204,7 +228,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 There is no layout engine, and Vitest's `css` option is off, so component styles are never loaded. Out of reach:
 
 - `toBeVisible()` and anything depending on real visibility — assert presence/absence instead (`expect(wrapper.find('.foo').exists()).toBe(false)`)
-- `getComputedStyle` assertions on design tokens (colour, padding, `flex-direction`)
+- `getComputedStyle` assertions on design tokens (color, padding, `flex-direction`)
 - real event dispatch — `trigger()` simulates events
 - canvas (ECharts), `ResizeObserver`, `IntersectionObserver` — for a chart card, stub the chart (see [Chart cards](#chart-cards))
 

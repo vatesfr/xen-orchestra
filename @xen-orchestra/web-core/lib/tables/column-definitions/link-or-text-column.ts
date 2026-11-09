@@ -11,7 +11,14 @@ export const useLinkOrTextColumn = defineColumn((config?: HeaderConfig) => ({
     const { label, suffix, ...linkCellProps } = link
 
     if (!linkCellProps.href && !linkCellProps.to) {
-      return h(VtsTextCell, () => label)
+      return h(
+        VtsTextCell,
+        {
+          leftIcon: linkCellProps.icon ? { icon: linkCellProps.icon } : undefined,
+          extraCount: linkCellProps.extraCount,
+        },
+        () => label
+      )
     }
 
     return h(VtsLinkCell, linkCellProps, {

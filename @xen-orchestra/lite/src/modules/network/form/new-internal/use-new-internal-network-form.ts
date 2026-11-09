@@ -7,7 +7,7 @@ export function useNewInternalNetworkForm() {
     name: '',
     description: '',
     mtu: undefined,
-    nbd: false,
+    nbd: 'none',
   })
 
   const {
@@ -17,7 +17,7 @@ export function useNewInternalNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(formData)
 
   async function validateAndBuildPayload(): Promise<NewInternalNetworkPayload | undefined> {
@@ -35,7 +35,7 @@ export function useNewInternalNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     validateAndBuildPayload,
   }
 }

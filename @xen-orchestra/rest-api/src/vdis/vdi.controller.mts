@@ -21,7 +21,16 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest } from 'express'
-import type { SUPPORTED_VDI_FORMAT, Xapi, XoAlarm, XoMessage, XoSr, XoTask, XoVdi } from '@vates/types'
+import type {
+  SUPPORTED_VDI_EXPORT_FORMAT,
+  SUPPORTED_VDI_FORMAT,
+  Xapi,
+  XoAlarm,
+  XoMessage,
+  XoSr,
+  XoTask,
+  XoVdi,
+} from '@vates/types'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
 import { invalidParameters } from 'xo-common/api-errors.js'
@@ -132,7 +141,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: SUPPORTED_VDI_FORMAT
+    @Path() format: SUPPORTED_VDI_EXPORT_FORMAT
   ): Promise<Readable> {
     const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format })
 

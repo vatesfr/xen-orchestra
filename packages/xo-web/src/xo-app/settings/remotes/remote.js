@@ -8,7 +8,7 @@ import { addSubscriptions, resolveId } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
-import { format } from 'xo-remote-parser'
+import { format, parse } from 'xo-remote-parser'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { map, some, trimStart } from 'lodash'
@@ -116,6 +116,8 @@ export default decorate([
               allowUnauthorized,
               useVhdDirectory,
               encryptionKey: encryptionKey?.trim() !== '' ? encryptionKey : undefined,
+              // no field of this form sets it: kept as is, as the XO 6 repository form does
+              fullListingInterval: parse(remote.url).fullListingInterval,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,

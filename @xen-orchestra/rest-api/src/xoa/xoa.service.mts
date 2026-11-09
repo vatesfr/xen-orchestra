@@ -86,18 +86,16 @@ export class XoaService {
           return { isEmpty: true }
         }
 
-        const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
         for (const backupRepository of backupRepositories) {
           const { type } = parse(backupRepository.url)
-          const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
 
-          if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
+          if (!backupRepository.enabled) {
             continue
           }
 
           const totalBackupSize = await xoApp.getTotalBackupSizeOnRemote(backupRepository.id)
 
-          const { available, size, used } = backupRepositoryInfo
+          const { available, size, used } = backupRepository
 
           const isS3 = type === 's3'
 

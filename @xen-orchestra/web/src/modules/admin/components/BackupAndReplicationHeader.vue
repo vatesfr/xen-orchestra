@@ -3,6 +3,11 @@
     {{ t('backup-and-replication') }}
   </UiHeadBar>
   <TabList>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/backup-and-replication/jobs' }" custom>
+      <UiTabItem :active="isExactActive" :href tag="a">
+        {{ t('jobs') }}
+      </UiTabItem>
+    </RouterLink>
     <RouterLink
       v-slot="{ isExactActive, href }"
       :to="{ name: '/admin/backup-and-replication/backup-repositories' }"
@@ -10,6 +15,11 @@
     >
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('backup-repositories') }}
+      </UiTabItem>
+    </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/backup-and-replication/logs' }" custom>
+      <UiTabItem :active="isExactActive" :href tag="a">
+        {{ t('logs') }}
       </UiTabItem>
     </RouterLink>
   </TabList>

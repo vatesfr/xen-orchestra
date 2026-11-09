@@ -1,63 +1,68 @@
-import type { XoBackupFormat } from '@/modules/backup/types/xo-backup.ts'
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import type { XoBackupFormat } from '@/modules/backup-repository/types/xo-backup-repository.type.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { regex, required, requiredIf, withMessage } from '@core/packages/form-validation'
+import type { InputType } from '@core/components/ui/input/UiInput.vue'
+import { type FormValidationConfig, mergeValidationConfigs, required, requiredIf } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType, type BackupRepositoryUrlOptions } from 'xo-remote-parser'
 
-type BackupRepositoryGeneralFormData = {
+export type BackupRepositoryGeneralFormData = {
   name: string
   type: BackupRepositoryType | undefined
   backupFormat: XoBackupFormat | undefined
-  proxy: FrontXoProxy['id'] | undefined
+  proxy: FrontXoProxy['id'] | null | undefined
   encrypted: boolean
   encryptionKey: string
 }
 
-const ENCRYPTION_KEY_LENGTH = 32
-const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
+export type BackupRepositoryGeneralFormOptions = {
+  isEditing?: boolean
+  isMultiEdit?: boolean
+  // Fields whose values differ between the edited BRs (multi-edition)
+  mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
+  extraConfig?: FormValidationConfig<BackupRepositoryGeneralFormData>
+}
+
+export const ENCRYPTION_KEY_LENGTH = 32
+export const ENCRYPTION_KEY_REGEX = new RegExp(`^[0-9a-f]{${ENCRYPTION_KEY_LENGTH}}$`, 'i')
 
 const BACKUP_FORMAT_DOC_URL = 'https://docs.xen-orchestra.com/xo5/incremental_backups'
+
+const MIXED_OPTION_ID = '__MIXED__'
 
 const BLOCK_ONLY_TYPES: BackupRepositoryType[] = ['azure', 'azurite', 's3']
 
 export type BackupRepositoryGeneralForm = ReturnType<typeof useBackupRepositoryGeneralForm>
 
-export function useBackupRepositoryGeneralForm() {
+export function useBackupRepositoryGeneralForm(
+  formData: BackupRepositoryGeneralFormData,
+  { isEditing = false, isMultiEdit = false, mixedFields = [], extraConfig }: BackupRepositoryGeneralFormOptions = {}
+) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
 
-  const formData = reactive<BackupRepositoryGeneralFormData>({
-    name: '',
-    type: undefined,
-    backupFormat: undefined,
-    proxy: undefined,
-    encrypted: false,
-    encryptionKey: '',
-  })
-
-  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
+  const baseConfig: FormValidationConfig<BackupRepositoryGeneralFormData> = {
     errors: {
-      onBlur: () => ({
-        encryptionKey: {
-          regex: withMessage(regex(ENCRYPTION_KEY_REGEX), () =>
-            t('encryption-key-invalid', { n: ENCRYPTION_KEY_LENGTH })
-          ),
-        },
-      }),
       onSubmit: () => ({
         name: { required },
-        type: { required },
-        backupFormat: { required },
+        type: isMultiEdit ? {} : { required },
+        backupFormat: isMultiEdit ? {} : { required },
         encryptionKey: {
           requiredIf: requiredIf(() => formData.encrypted),
         },
       }),
     },
-  })
+  }
+
+  const { useField, useFormSelect, useSelect, validate } = useValidatedForm(
+    formData,
+    mergeValidationConfigs(baseConfig, extraConfig)
+  )
+
+  const encryptionKeyInputType: InputType = isEditing ? 'password' : 'text'
 
   const isBackupFormatLocked = computed(() => formData.type !== undefined && BLOCK_ONLY_TYPES.includes(formData.type))
 
@@ -82,14 +87,26 @@ export function useBackupRepositoryGeneralForm() {
     }
   )
 
-  const typeOptions = Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
-    id: type,
-    label: useXoBackupRepositoryTypeLabel(type).value,
-    value: type,
-  }))
+  // In multi-edition, a select whose value differs between the BRs shows a "[Mixed]" option (undefined value),
+  // which keeps the value of each BR
+  function isMixed(field: keyof BackupRepositoryGeneralFormData) {
+    return isMultiEdit && mixedFields.includes(field)
+  }
+
+  const mixedOption = { id: MIXED_OPTION_ID, label: t('mixed-value'), value: undefined }
+
+  const typeOptions = [
+    ...(isMixed('type') ? [mixedOption] : []),
+    ...Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
+      id: type,
+      label: useXoBackupRepositoryTypeLabel(type).value,
+      value: type,
+    })),
+  ]
 
   const { id: typeSelectId } = useFormSelect('type', typeOptions, {
     required: true,
+    disabled: () => isEditing,
     option: { label: 'label', value: 'value' },
   })
 
@@ -103,20 +120,26 @@ export function useBackupRepositoryGeneralForm() {
   }
 
   const backupFormatOptions = computed(() => [
+    ...(isMixed('backupFormat') ? [{ ...mixedOption, hint: undefined }] : []),
     { id: 'block', label: backupFormatLabels.value.block, value: 'block', hint: t('block-based-hint') },
     { id: 'vhd', label: backupFormatLabels.value.vhd, value: 'vhd', hint: t('vhd-file-hint') },
   ])
 
   const { id: backupFormatSelectId } = useFormSelect('backupFormat', backupFormatOptions, {
     required: true,
-    disabled: () => formData.type === undefined || isBackupFormatLocked.value,
+    // The format can't be changed in edit mode
+    disabled: () => isEditing || formData.type === undefined || isBackupFormatLocked.value,
     option: { label: 'label', value: 'value', properties: source => ({ hint: source.hint }) },
   })
 
-  const { id: proxySelectId } = useFormSelect('proxy', proxies, {
+  const mixedProxyOption = { id: MIXED_OPTION_ID, name: t('mixed-value') }
+
+  const proxyOptions = computed(() => [...(isMixed('proxy') ? [mixedProxyOption] : []), ...proxies.value])
+
+  const { id: proxySelectId } = useFormSelect('proxy', proxyOptions, {
     searchable: true,
-    emptyOption: { label: t('none'), value: undefined },
-    option: { label: 'name', value: 'id' },
+    emptyOption: { label: t('none'), value: isMultiEdit ? null : undefined },
+    option: { label: 'name', value: source => (source === mixedProxyOption ? undefined : source.id) },
   })
 
   const bindings = reactive({
@@ -130,11 +153,13 @@ export function useBackupRepositoryGeneralForm() {
     encrypted: useField('encrypted', () => ({
       label: t('encrypted'),
       warning: t('encryption-key-loss-warning'),
-      disabled: !isEncryptionAvailable.value,
+      disabled: isEditing || !isEncryptionAvailable.value,
     })),
     encryptionKey: useField('encryptionKey', () => ({
       label: t('key'),
       required: true,
+      type: encryptionKeyInputType,
+      disabled: isEditing,
       info: t('n-hexadecimal-characters', { n: ENCRYPTION_KEY_LENGTH }),
     })),
   })

@@ -3,6 +3,7 @@ import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
+import assert from 'node:assert'
 import { basename, dirname, join, resolve } from 'node:path'
 import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
@@ -315,6 +316,14 @@ export class RemoteAdapter {
 
   useVhdDirectory() {
     return this.handler.getConfig('useVhdDirectory')
+  }
+
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote ('none' if not
+   *   compressed), undefined if this remote writes plain VHD files
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
   }
 
   #useAlias() {
@@ -676,7 +685,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+          compression: this.getVhdDirectoryCompression(),
           uuid,
           parentUuid,
           parentPath,
@@ -702,7 +711,8 @@ export class RemoteAdapter {
   ) {
     const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
-      checksum,
+      // a known checksum is the one of unencrypted data: an encrypted remote stores no checksum
+      checksum: typeof checksum === 'string' && this._handler.isEncrypted ? false : checksum,
       dirMode: this._dirMode,
       maxStreamLength,
       streamLength,
@@ -715,19 +725,24 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
+      assert.strictEqual(rawBlocksCompression, undefined, `can't read raw blocks of a disk chain`)
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhdDisk({ handler, path })
+      disk = new RemoteVhdDisk({ handler, path, rawBlocksCompression })
       await disk.init()
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * `rawBlocksCompression`: the blocks of the VHD directories using this compression are read as stored (see
+   * RemoteVhdDisk), to be written as is in a remote using the same compression
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -735,7 +750,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {
@@ -751,6 +766,28 @@ export class RemoteAdapter {
 
   readFullVmBackup(metadata) {
     return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
+  }
+
+  /**
+   * @returns {Promise<string | undefined>} the checksum of the XVA as stored, undefined if it is unknown (no checksum
+   *   file, or encrypted remote: the stored data are not the data read)
+   */
+  async readFullVmBackupChecksum(metadata) {
+    if (this._handler.isEncrypted) {
+      return
+    }
+    try {
+      const checksum = String(
+        await this._handler.readFile(resolve('/', dirname(metadata._filename), metadata.xva) + '.checksum')
+      ).trim()
+      // $<algorithm id>$<salt>$<hash>
+      return checksum.startsWith('$') ? checksum : undefined
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
   }
 
   async readVmBackupMetadata(path) {

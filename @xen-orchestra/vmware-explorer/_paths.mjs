@@ -13,6 +13,23 @@ export function normalizeDatastorePath(path) {
   return path.replace(/^ds:\/\//, '').replace(/\/+$/, '')
 }
 
+// `[datastore1] vm/vm.vmdk`, the space after the datastore name is optional. A `]` in the name of the
+// datastore is not supported: the path cannot start with one, else `[ds [1]] vm.vmdk` would be read as
+// the datastore `ds [1`
+const DATASTORE_PATH_RE = /^\[([^\]]+)\] ?([^\s\]].*)$/
+
+/**
+ * Splits a datastore path, as found in the inventory, e.g. `[datastore1] vm/vm.vmdk`.
+ *
+ * @param {string} fileName
+ * @returns {{ datastoreName: string, path: string } | undefined} undefined when it is not a
+ * datastore path
+ */
+export function parseDatastorePath(fileName) {
+  const match = DATASTORE_PATH_RE.exec(fileName)
+  return match === null ? undefined : { datastoreName: match[1], path: match[2] }
+}
+
 /**
  * Resolves the datastore and the path of a disk referenced by a vmx or a vmsd.
  *

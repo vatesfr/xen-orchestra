@@ -17,7 +17,7 @@ export interface PoolFilterableData extends FrontXoServer {
 
 export interface PoolDisplayData extends PoolFilterableData {
   // Formatted values for UI display
-  poolIcon: ReturnType<typeof icon>
+  poolIcon: ReturnType<typeof icon> | undefined
   hostIcon: ReturnType<typeof objectIcon> | undefined
   primaryHostIcon: ReturnType<typeof objectIcon> | undefined
   primaryHostRightIcon: ReturnType<typeof icon> | undefined
@@ -66,7 +66,7 @@ export function usePoolEnhancedData(rawServers: MaybeRefOrGetter<FrontXoServer[]
 
     return {
       ...pool,
-      poolIcon: icon('object:pool'),
+      poolIcon: getPoolInfo(pool).icon,
       hostIcon,
       primaryHostIcon: hostIcon,
       primaryHostRightIcon,
