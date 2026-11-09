@@ -114,7 +114,7 @@ const { HeadCells, BodyCells } = useRoleColumns({
   }),
   body: (role: FilterableRole) => ({
     checkbox: r => r({ selected: isSelected(role.id), onToggle: () => toggleSelection(role.id) }),
-    name: r => r(role.name),
+    name: r => r({ label: role.name, icon: 'fa:key' }),
     description: r => r(role.description),
     users: r => r(role.usersCount),
     groups: r => r(role.groupsCount),
