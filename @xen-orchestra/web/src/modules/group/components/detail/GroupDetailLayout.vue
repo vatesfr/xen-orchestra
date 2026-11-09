@@ -11,6 +11,13 @@
       >
         {{ t('general') }}
       </UiMenuItem>
+      <UiMenuItem
+        :size
+        :to="{ name: '/admin/group/[id]/roles', params: { id: group.id } }"
+        :selected="route.name === '/admin/group/[id]/roles'"
+      >
+        {{ t('roles') }}
+      </UiMenuItem>
     </template>
     <slot />
     <template v-if="slots.panel" #panel>
