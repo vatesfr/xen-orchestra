@@ -39,6 +39,20 @@
           </template>
         </template>
       </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('storages')">
+        <template #value>
+          <ul v-if="srs.length > 0" class="storages">
+            <li v-for="sr in srs" :key="sr.id">
+              <UiLink :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" size="medium" icon="object:sr">
+                {{ sr.name_label }}
+              </UiLink>
+            </li>
+          </ul>
+          <template v-else>
+            {{ t('none') }}
+          </template>
+        </template>
+      </VtsKeyValueRow>
     </VtsKeyValueList>
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('description')" :value="vm.name_description" />
@@ -67,9 +81,12 @@
 <script lang="ts" setup>
 import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
@@ -107,10 +124,30 @@ const virtualizationType = computed(() =>
 )
 
 const host = computed(() => getVmHost(vm))
+
+const { useGetVdisByIds } = useXoVdiCollection()
+const { useGetSrsByIds } = useXoSrCollection()
+
+// CD drives only hold an ISO mounted from a SR: they are not files of the VM
+const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
+
+const vdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
+
+const vdis = useGetVdisByIds(vdiIds)
+
+const srIds = computed(() => [...new Set(vdis.value.map(vdi => vdi.$SR))])
+
+const srs = useGetSrsByIds(srIds)
 </script>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
+  .storages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
   .value {
     display: flex;
     align-items: center;
