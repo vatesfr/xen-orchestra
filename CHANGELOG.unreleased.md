@@ -41,6 +41,8 @@
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [REST API] `GET /rest/v0/tasks/{id}?wait=true` now returns when a backup, metadata backup or restore ends, instead of waiting until the task is interrupted
+- [Backups] A backup job that fails as a whole is now marked as failed in its task, instead of staying pending until XO restarts
 
 ### Packages to release
 
@@ -62,6 +64,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor

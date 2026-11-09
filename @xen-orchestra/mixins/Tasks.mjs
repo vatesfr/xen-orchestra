@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'node:events'
 import { makeOnProgress } from '@vates/task/combineEvents'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { forbiddenOperation, noSuchObject } from 'xo-common/api-errors.js'
 import { Task, serializeError } from '@vates/task'
 import iteratee from 'lodash/iteratee.js'
 import stubTrue from 'lodash/stubTrue.js'
@@ -38,33 +38,70 @@ export default class Tasks extends EventEmitter {
 
   #onProgressBuffer = new Map()
   #handleOnProgressScheduled = false
+
+  // root logs of live tasks (internal and external), from their first event until their final state is persisted
+  #liveLogs = new Map()
+
+  // a watcher must not prevent the other watchers from being notified, nor the persistence of the other updates
+  #emitSafely(event, taskLog) {
+    for (const listener of this.rawListeners(event)) {
+      try {
+        listener.call(this, taskLog)
+      } catch (error) {
+        warn('failure in task watcher', { error, event, taskLog })
+      }
+    }
+  }
+
   #handleOnProgressBuffer = async () => {
     const buf = this.#onProgressBuffer
+    const liveLogs = this.#liveLogs
     const store = this.#store
 
-    do {
-      for (const [id, taskLog] of buf) {
-        buf.delete(id)
-        if (taskLog === null) {
-          try {
-            await this.deleteLog(id)
-          } catch (error) {
-            warn('failure on deleting task log from store', { error, taskLog })
-          }
-        } else {
-          this.emit(id, taskLog)
-          this.emit('update', taskLog)
+    try {
+      do {
+        for (const [id, taskLog] of buf) {
+          buf.delete(id)
 
-          try {
-            await store.put(id, taskLog)
-          } catch (error) {
-            warn('failure on saving task log in store', { error, taskLog })
+          // read before the write: an event arriving during the write changes the log and buffers the id again
+          const { status } = taskLog
+          const isFinal = status !== 'pending'
+          const deleteAfterNotify = isFinal && this.#logsToClearOnSuccess.delete(id) && status === 'success'
+
+          // the final state of a clear-on-success task is notified on its id, then its log is deleted
+          let written = false
+          this.#emitSafely(id, taskLog)
+          if (deleteAfterNotify) {
+            try {
+              await this.deleteLog(id)
+              written = true
+            } catch (error) {
+              warn('failure on deleting task log from store', { error, taskLog })
+            }
+          } else {
+            this.#emitSafely('update', taskLog)
+
+            try {
+              await store.put(id, taskLog)
+              written = true
+            } catch (error) {
+              warn('failure on saving task log in store', { error, taskLog })
+            }
+          }
+
+          // keep the live entry until the final state is persisted: a newer state of the same task may be buffered,
+          // and if the write failed the store still holds an older state, which watchers must not get
+          // (the entry then stays until restart, which marks the stored log interrupted)
+          if (isFinal && written && !buf.has(id)) {
+            liveLogs.delete(id)
           }
         }
-      }
-    } while (buf.size !== 0) // new events may have been added during iteration
-
-    this.#handleOnProgressScheduled = false
+      } while (buf.size !== 0) // new events may have been added during iteration
+    } finally {
+      // re-armed right after the last check of the buffer, with no await in between: an event buffered after it
+      // schedules a new flush. Also re-armed if the flush failed, otherwise nothing is persisted until restart.
+      this.#handleOnProgressScheduled = false
+    }
   }
 
   #bufferTaskUpdate = taskLog => {
@@ -85,16 +122,8 @@ export default class Tasks extends EventEmitter {
     }
 
     const { $root } = taskLog
-    const { status, id } = $root
-    if (status !== 'pending') {
-      if (this.#logsToClearOnSuccess.has(id)) {
-        this.#logsToClearOnSuccess.delete(id)
-
-        if (status === 'success') {
-          return buf.set(id, null)
-        }
-      }
-    }
+    const { id } = $root
+    this.#liveLogs.set(id, $root)
 
     $root.updatedAt = Date.now()
     buf.set(id, $root)
@@ -193,26 +222,136 @@ export default class Tasks extends EventEmitter {
    * Each call returns an independent makeOnProgress context (isolated taskLogs
    * Map), so concurrent backup jobs don't interfere with each other.
    *
-   * Abort support for external tasks is not implemented — the external process
-   * controls its own lifecycle.
+   * Options:
+   * - abort: `(reason) => …` called by `tasks.abort(rootId, reason)` while the
+   *   root task runs. Without it, aborting the task fails with `forbiddenOperation`.
+   *
+   * The returned handler has an `end(status = 'interrupted', reason)` method for
+   * a source that disappeared without ending its root task. It ends the open
+   * tasks, innermost first, through the same path as the events of the source,
+   * so the caller's hooks run and may change the status (for backups,
+   * `handleBackupLog` recomputes it). Hook errors are rethrown once every open
+   * task is ended. Once `end()` has ended the open tasks, later events are
+   * dropped with a warning; called before the first event or after the root
+   * task ended, it does nothing.
    */
-  createExternalProgressHandler({ onRootTaskEnd, onRootTaskStart, onTaskUpdate } = {}) {
-    return makeOnProgress({
-      onRootTaskEnd,
-      onRootTaskStart,
+  createExternalProgressHandler({ abort, onRootTaskEnd, onRootTaskStart, onTaskUpdate } = {}) {
+    // error thrown by the caller's onRootTaskEnd: the final state must still be buffered (see onTaskUpdate below)
+    let rootEndError
+    // ids of the tasks accepted by makeOnProgress and not yet ended, in start order
+    const openIds = new Set()
+    let closed = false
+
+    const onProgress = makeOnProgress({
+      onRootTaskEnd: (taskLog, event) => {
+        // the task can no longer be aborted once it ended
+        this.#tasks.delete(taskLog.id)
+        // subtasks the source left open are ended with their root: end() must not end them again
+        openIds.clear()
+
+        try {
+          onRootTaskEnd?.(taskLog, event)
+        } catch (error) {
+          rootEndError = { error }
+        }
+      },
+      onRootTaskStart: (taskLog, event) => {
+        // tracked here, once makeOnProgress has registered it, in case the caller's hook throws
+        openIds.add(taskLog.id)
+        if (abort !== undefined) {
+          this.#tasks.set(taskLog.id, { abort })
+        }
+        onRootTaskStart?.(taskLog, event)
+      },
       onTaskUpdate: (taskLog, event) => {
+        // a subtask whose start had an unknown parent is registered by makeOnProgress, which then throws before
+        // calling this hook: it has no root, so its later events are ignored
+        if (taskLog.$root === undefined) {
+          warn('event of a task without root task ignored', { event })
+          return
+        }
+        if (event.type === 'start') {
+          openIds.add(taskLog.id)
+        }
         this.#bufferTaskUpdate(taskLog)
         onTaskUpdate?.(taskLog, event)
       },
     })
+
+    // feeds one event, then rethrows the error of the root end hook, if any
+    const feed = event => {
+      try {
+        onProgress(event)
+      } catch (error) {
+        // the root end error carries the result of the task: it wins over a later hook error (onTaskUpdate),
+        // and must not be thrown on a later, unrelated event
+        if (rootEndError !== undefined) {
+          const rootError = rootEndError.error
+          rootEndError = undefined
+          warn('failure in task update hook after the root task end hook failed', { error, event })
+          throw rootError
+        }
+        throw error
+      } finally {
+        if (event.type === 'end') {
+          openIds.delete(event.id)
+        }
+      }
+
+      if (rootEndError !== undefined) {
+        const { error } = rootEndError
+        rootEndError = undefined
+        throw error
+      }
+    }
+
+    function handler(event) {
+      if (closed) {
+        warn('event received after the external task was ended', { event })
+        return
+      }
+      feed(event)
+    }
+
+    function end(status = 'interrupted', reason) {
+      // nothing to end: not started yet, or already ended
+      if (openIds.size === 0) {
+        return
+      }
+      closed = true
+
+      let firstError
+      // children were started after their parents: end them first
+      for (const id of [...openIds].reverse()) {
+        try {
+          feed({ type: 'end', id, timestamp: Date.now(), status, result: reason })
+        } catch (error) {
+          firstError ??= { error }
+        }
+        openIds.delete(id)
+      }
+
+      if (firstError !== undefined) {
+        throw firstError.error
+      }
+    }
+
+    return Object.assign(handler, { end })
   }
 
   async abort(id, reason) {
     const task = this.#tasks.get(id)
-    if (task === undefined) {
-      throw noSuchObject(id, 'task')
+    if (task !== undefined) {
+      return task.abort(reason)
     }
-    return task.abort(reason)
+
+    // running external task without abort option
+    const liveLog = this.#liveLogs.get(id)
+    if (liveLog !== undefined && liveLog.status === 'pending') {
+      throw forbiddenOperation('abort', 'this task cannot be aborted')
+    }
+
+    throw noSuchObject(id, 'task')
   }
 
   async clearLogs() {
@@ -246,7 +385,7 @@ export default class Tasks extends EventEmitter {
   }
 
   async deleteLog(id, cb) {
-    const log = await this.get(id).catch(noop)
+    const log = await this.#getStored(id).catch(noop)
 
     if (log !== undefined) {
       await this.#store.del(id, cb)
@@ -254,7 +393,20 @@ export default class Tasks extends EventEmitter {
     }
   }
 
+  /**
+   * Returns the log of a task: its latest state if it is live, even if not yet persisted (e.g. an external task
+   * between its first event and its first write), its stored state otherwise.
+   */
   async get(id) {
+    const liveLog = this.#liveLogs.get(id)
+    if (liveLog !== undefined) {
+      // a copy, as the store returns: the live log keeps changing, and must not be changed by the caller
+      return JSON.parse(JSON.stringify(liveLog))
+    }
+    return this.#getStored(id)
+  }
+
+  async #getStored(id) {
     try {
       return await this.#store.get(id)
     } catch (error) {
@@ -280,22 +432,44 @@ export default class Tasks extends EventEmitter {
   }
 
   async watch(id, cb) {
-    // live task
-    if (this.#tasks.has(id)) {
-      this.on(id, cb)
+    // always called later: the caller may use the value returned by watch() in cb (e.g. to stop watching), and an
+    // error of cb must not escape as an uncaught exception
+    let stopped = false
+    const callLater = taskLog =>
+      setImmediate(() => {
+        if (stopped) {
+          return
+        }
+        try {
+          cb(taskLog)
+        } catch (error) {
+          warn('failure in task watcher', { error, id, taskLog })
+        }
+      })
 
-      let stopWatch = () => {
-        this.off(id, cb)
-        stopWatch = noop
+    // live task whose final state is already known, even if not yet persisted
+    const liveLog = this.#liveLogs.get(id)
+    if (liveLog !== undefined && liveLog.status !== 'pending') {
+      callLater(liveLog)
+      return noop
+    }
+
+    // live task
+    if (liveLog !== undefined || this.#tasks.has(id)) {
+      // the flush of updates may run before the caller gets the return value of watch()
+      this.on(id, callLater)
+
+      return () => {
+        stopped = true
+        this.off(id, callLater)
       }
-      return () => stopWatch()
     }
 
     // unknown task will throw noSuchObject
     const taskLog = await this.get(id)
 
     // finished task
-    setImmediate(cb, taskLog)
+    callLater(taskLog)
     return noop
   }
 }
