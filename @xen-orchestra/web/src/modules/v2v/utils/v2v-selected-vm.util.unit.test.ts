@@ -1,13 +1,12 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vMappingSummary, getV2vSelectedVmState } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
+import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vDisk, createV2vNic, createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vVmRow } from '@/test/create-v2v-vm-row.ts'
 
 const LIST_POOL_ID = 'pool-list' as FrontXoPool['id']
-
-const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 
 const TARGET_NAMES = { srName: 'sr-nvme-01', networkName: 'VLAN 10' }
 

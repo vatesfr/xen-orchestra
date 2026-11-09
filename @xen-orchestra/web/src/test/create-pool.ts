@@ -6,13 +6,13 @@ export const DISKOR_POOL_NAME = 'pool diskor'
 // A pool id no pool collection knows: removed, or of another XO
 export const UNKNOWN_POOL_ID = 'pool-unknown' as FrontXoPool['id']
 
+// A pool id distinct from the `createPool()` one, for the resources of another pool
+export const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
+
 /**
  * Builds a fully-populated `FrontXoPool` for use in tests. Pass `overrides` to
  * tweak only the fields relevant to the case under test.
  */
-// A pool id distinct from the `createPool()` one, for the resources of another pool
-export const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
-
 export function createPool(overrides: Partial<FrontXoPool> = {}): FrontXoPool {
   return {
     id: 'pool-789' as FrontXoPool['id'],

@@ -5,7 +5,7 @@ import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.compos
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
-import { createPool, DISKOR_POOL_NAME } from '@/test/create-pool.ts'
+import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
@@ -53,7 +53,7 @@ const LIST_IDS = getV2vVmIds(LIST.vms)
 
 const POOL = createPool({ id: LIST.poolId, name_label: DISKOR_POOL_NAME })
 
-const OTHER_POOL = createPool({ id: 'pool-other' as FrontXoPool['id'], name_label: 'pool other' })
+const OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
 
 const SR = createSr({ id: LIST.defaults.sr, name_label: 'sr-nvme-01' })
 

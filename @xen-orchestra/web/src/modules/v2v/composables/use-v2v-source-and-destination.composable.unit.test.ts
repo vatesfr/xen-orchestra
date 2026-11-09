@@ -1,6 +1,6 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
-import { createPool, DISKOR_POOL_NAME, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
+import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -14,7 +14,7 @@ vi.mock(
 
 const POOL = createPool({ name_label: DISKOR_POOL_NAME })
 
-const OTHER_POOL = createPool({ id: 'pool-other' as FrontXoPool['id'], name_label: 'pool other' })
+const OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
 
 const CONNECTION = createV2vConnection()
 
