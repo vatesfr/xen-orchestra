@@ -1,4 +1,11 @@
-import { defineFormValidationConfig, integer, outOfRange, required, withMessage } from '@core/packages/form-validation'
+import {
+  defineFormValidationConfig,
+  integer,
+  outOfRange,
+  queryFilter,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
 import { useI18n } from 'vue-i18n'
 
 export const formValidationConfig = defineFormValidationConfig({
@@ -9,6 +16,7 @@ export const formValidationConfig = defineFormValidationConfig({
       required: withMessage(required, () => t('form:error:required')),
       integer: withMessage(integer, () => t('form:error:integer')),
       outOfRange: withMessage(outOfRange, ({ $params: [min, max] }) => t('form:warning:out-of-range', { min, max })),
+      queryFilter: withMessage(queryFilter, () => t('form:error:invalid-query')),
     }
   },
 })

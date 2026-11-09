@@ -8,7 +8,13 @@
         </template>
       </UiAlert>
       <UiCard class="container">
-        <RolesTable :roles :busy="!areRolesReady" :error="hasRoleFetchError" />
+        <RolesTable :roles :busy="!areRolesReady" :error="hasRoleFetchError">
+          <template #title-action>
+            <UiLink :to="{ name: '/admin/role/new' }" icon="fa:plus" size="medium">
+              {{ t('new') }}
+            </UiLink>
+          </template>
+        </RolesTable>
       </UiCard>
     </div>
 
@@ -23,6 +29,7 @@ import { type FrontXoRole, useXoRoleCollection } from '@/modules/role/remote-res
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useHidePermanently } from '@core/packages/hide-permanently/use-hide-permanently.ts'
 import { useI18n } from 'vue-i18n'
