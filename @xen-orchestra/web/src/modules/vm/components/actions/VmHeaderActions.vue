@@ -33,7 +33,8 @@ import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { computed } from 'vue'
+import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -45,7 +46,9 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const isCompact = computed(() => uiStore.isSmall)
+const arePanelActionsCompact = inject(IK_PANEL_ACTIONS_COMPACT, ref(false))
+
+const isCompact = computed(() => uiStore.isSmall || arePanelActionsCompact.value)
 
 const { buildXo5Route } = useXoRoutes()
 

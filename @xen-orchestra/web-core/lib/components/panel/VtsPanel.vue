@@ -3,11 +3,23 @@
   <UiPanel :error>
     <template v-if="needsHeader" #header>
       <slot v-if="slots.header" name="header" />
-      <div v-if="slots.actions || slots['more-actions']" class="action-buttons">
-        <template v-if="slots.actions">
+      <div
+        v-if="slots.actions || slots['more-actions']"
+        ref="action-buttons"
+        :class="{ 'menu-only': isMenuAlone }"
+        class="action-buttons"
+      >
+        <PanelActions v-if="slots.actions" v-model:count="actionsCount" :start="0" :end="inlineActionsCount">
           <slot name="actions" />
-        </template>
-        <VtsActionsMenu v-if="slots['more-actions']" :label="t('more-actions')" size="medium">
+        </PanelActions>
+        <VtsActionsMenu
+          v-if="slots['more-actions'] || collapsedActionsCount > 0"
+          :label="t('more-actions')"
+          size="medium"
+        >
+          <PanelActions v-if="collapsedActionsCount > 0" :start="inlineActionsCount">
+            <slot name="actions" />
+          </PanelActions>
           <slot name="more-actions" />
         </VtsActionsMenu>
       </div>
@@ -30,11 +42,14 @@
 
 <script setup lang="ts">
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
+import PanelActions from '@core/components/panel/PanelActions.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { useCollapseOnOverflow } from '@core/composables/collapse-on-overflow.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
-import { computed } from 'vue'
+import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
+import { computed, provide, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { closable, closeIcon = 'action:close-cancel-clear' } = defineProps<{
@@ -60,6 +75,24 @@ const { t } = useI18n()
 const needsHeader = computed(
   () => slots.header || slots.actions || slots['more-actions'] || slots['corner-actions'] || closable
 )
+
+const actionButtons = useTemplateRef('action-buttons')
+
+const header = computed(() => actionButtons.value?.parentElement)
+
+const actionsCount = ref(0)
+
+const collapsedCount = useCollapseOnOverflow(header, actionButtons, () => Math.max(actionsCount.value, 1))
+
+const collapsedActionsCount = computed(() => Math.min(collapsedCount.value, actionsCount.value))
+
+const inlineActionsCount = computed(() => actionsCount.value - collapsedActionsCount.value)
+
+const areActionsCompact = computed(() => collapsedCount.value > 0)
+
+const isMenuAlone = computed(() => areActionsCompact.value && inlineActionsCount.value === 0)
+
+provide(IK_PANEL_ACTIONS_COMPACT, areActionsCompact)
 </script>
 
 <style scoped lang="postcss">
@@ -67,6 +100,15 @@ const needsHeader = computed(
   display: flex;
   align-items: center;
   gap: 1.6rem;
+  white-space: nowrap;
+
+  &.menu-only {
+    margin-inline-start: auto;
+
+    + .corner-actions {
+      margin-inline-start: 0;
+    }
+  }
 }
 .corner-actions {
   display: flex;

@@ -26,7 +26,7 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { PANEL_TRANSITION_DURATION } from '@core/stores/panel.store.ts'
-import { IK_CLOSE_MENU, IK_MOBILE_MENU } from '@core/utils/injection-keys.util.ts'
+import { IK_CLOSE_MENU, IK_MENU_TELEPORTED, IK_MOBILE_MENU } from '@core/utils/injection-keys.util.ts'
 import { computed, provide, ref, shallowRef, type Slot } from 'vue'
 
 export type MobileSubmenu = {
@@ -92,6 +92,7 @@ function openSubmenu(submenu: MobileSubmenu) {
 
 provide(IK_CLOSE_MENU, closeAfterAction)
 provide(IK_MOBILE_MENU, { openSubmenu })
+provide(IK_MENU_TELEPORTED, true)
 </script>
 
 <style lang="postcss" scoped>

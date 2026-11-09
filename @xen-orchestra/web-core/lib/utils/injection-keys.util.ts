@@ -1,5 +1,6 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { MobileMenuController } from '@core/components/menu/VtsMobileMenu.vue'
+import type { PanelActionsGroup } from '@core/components/panel/PanelActions.vue'
 import type { InfoSize } from '@core/components/ui/info/UiInfo.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { TreeItemLabelSize } from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
@@ -29,6 +30,10 @@ export const IK_MENU_PLACEMENT_SIDE = Symbol('IK_MENU_PLACEMENT_SIDE') as Inject
 export const IK_MOBILE_MENU = Symbol('IK_MOBILE_MENU') as InjectionKey<MobileMenuController>
 
 export const IK_MENU_ACTION_HANDLER = Symbol('IK_MENU_ACTION_HANDLER') as InjectionKey<() => void>
+
+export const IK_PANEL_ACTIONS_COMPACT = Symbol('IK_PANEL_ACTIONS_COMPACT') as InjectionKey<Ref<boolean>>
+
+export const IK_PANEL_ACTIONS = Symbol('IK_PANEL_ACTIONS') as InjectionKey<PanelActionsGroup>
 
 export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boolean>>
 
