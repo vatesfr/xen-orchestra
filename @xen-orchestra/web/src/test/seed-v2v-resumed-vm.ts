@@ -12,7 +12,7 @@ import {
 // The pool of the list, the targets and the devices the first sync of the resumed VM left in XO, read through the
 // mocked destination and VM device collections
 export function seedV2vResumedVmCollections() {
-  seedV2vListPool({ srs: [V2V_SSD_SR], networks: [V2V_DEFAULT_NETWORK, V2V_VLAN_NETWORK], templates: [] })
+  seedV2vListPool({ offers: { srs: [V2V_SSD_SR], networks: [V2V_DEFAULT_NETWORK, V2V_VLAN_NETWORK] } })
   vmDeviceCollectionsMock.vbds.value = [V2V_SYNCED_VBD]
   vmDeviceCollectionsMock.vdis.value = [V2V_SYNCED_VDI]
   vmDeviceCollectionsMock.vifs.value = V2V_SYNCED_VIFS
