@@ -52,8 +52,8 @@ vi.mock(
 
 function mountVmMappingDraft(options?: MountV2vVmMappingOptions) {
   return mountV2vVmMapping(
-    (migrationList, list) => ({
-      ...useV2vVmMappingDraft(V2V_MAPPED_VM, { list }),
+    (migrationList, list, inventory) => ({
+      ...useV2vVmMappingDraft(V2V_MAPPED_VM, { list, inventory }),
       updateStoredVm: migrationList.updateVm,
     }),
     options

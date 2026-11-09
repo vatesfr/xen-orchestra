@@ -1,7 +1,6 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
@@ -21,33 +20,40 @@ import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
+import type { XoV2vDisk, XoV2vInventory, XoV2vNic, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-// The issue of the VM in the list, if any, is told with the checks of its source.
-// `listVm` is where the overrides are read from, the VM of the list by default: the `updateVm` of the setters must
-// write to it
 export type V2vVmMappingContext = {
   list: MaybeRefOrGetter<V2vMigrationList>
   updateVm: ReturnType<typeof useV2vMigrationList>['updateVm']
-  listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
-  listVm?: MaybeRefOrGetter<V2vMigrationListVm>
 }
 
 export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
+
+// The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard.
+// `listVm` is where the overrides are read from, the VM of the list by default: a draft hands its copy, which the
+// `updateVm` of its setters must write to
+type V2vVmTargetsOptions = Pick<V2vVmMappingContext, 'list'> & {
+  listVm?: MaybeRefOrGetter<V2vMigrationListVm>
+  inventory: MaybeRefOrGetter<XoV2vInventory | undefined>
+}
+
+// The issue of the VM in the list, if any, is told with the checks of its source
+export type V2vVmMappingOptions = Omit<V2vVmTargetsOptions, 'listVm'> & {
+  listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
+}
 
 function toTargetOption<TId>({ id, name_label }: { id: TId; name_label: string }): V2vTargetOption<TId> {
   return { id, label: name_label }
 }
 
-// A new VM is mapped on the pool of its list, its overrides on top of the list defaults
-export function useV2vVmMapping(
+// The targets and options of a new VM on the pool of its list, its overrides on top of the list defaults: what its
+// settings drawer edits, so nothing here reads the wizard
+export function useV2vVmTargets(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, listIssue, listVm: rawListVm }: Omit<V2vVmMappingContext, 'updateVm'>
+  { list: rawList, listVm: rawListVm, inventory: rawInventory }: V2vVmTargetsOptions
 ) {
-  const { inventory } = useV2vConnection()
-
-  const { getCheckInfo, getPortGroupParts } = useV2vVmLabels()
+  const { getPortGroupParts } = useV2vVmLabels()
 
   const { getSrSelectLabel } = useXoSrUtils()
 
@@ -55,17 +61,13 @@ export function useV2vVmMapping(
 
   const list = toComputed(rawList)
 
-  const poolId = computed(() => list.value.poolId)
+  const inventory = toComputed(rawInventory)
 
-  const { choices: offers, areChoicesReady: areOffersReady } = useV2vPoolDestinationChoices(poolId)
-
-  const poolName = useV2vPoolName(poolId)
+  const { choices: offers, areChoicesReady: areOffersReady } = useV2vPoolDestinationChoices(() => list.value.poolId)
 
   const listVm = computed(() => toValue(rawListVm) ?? findV2vMigrationListVm(list.value, vm.value.id))
 
   const mapping = computed(() => getV2vVmMapping(vm.value, listVm.value, list.value.defaults, offers.value))
-
-  const hostName = computed(() => findV2vVmHost(inventory.value, vm.value)?.name)
 
   const diskRows = computed(() =>
     mapping.value.disks.map(
@@ -93,13 +95,6 @@ export function useV2vVmMapping(
 
   const template = computed(() => mapping.value.template)
 
-  const checks = computed(() => {
-    const vmChecks = getV2vVmChecks(vm.value).map(check => getCheckInfo(check))
-    const issue = toValue(listIssue)
-
-    return issue === undefined ? vmChecks : [...vmChecks, issue]
-  })
-
   const srOptions = computed(() =>
     offers.value.srs.map((sr): V2vTargetOption<FrontXoSr['id']> => ({ id: sr.id, label: getSrSelectLabel(sr) }))
   )
@@ -113,9 +108,6 @@ export function useV2vVmMapping(
   const tags = computed(() => listVm.value.tags ?? V2V_DEFAULT_TAGS)
 
   return {
-    poolName,
-    hostName,
-    checks,
     diskRows,
     nicRows,
     template,
@@ -128,10 +120,32 @@ export function useV2vVmMapping(
   }
 }
 
+// What the side panel of a new VM shows: its targets and options, plus the pool, the source host and the checks
+export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, options: V2vVmMappingOptions) {
+  const { getCheckInfo } = useV2vVmLabels()
+
+  const vm = toComputed(rawVm)
+
+  const list = toComputed(options.list)
+
+  const poolName = useV2vPoolName(() => list.value.poolId)
+
+  const hostName = computed(() => findV2vVmHost(toValue(options.inventory), vm.value)?.name)
+
+  const checks = computed(() => {
+    const vmChecks = getV2vVmChecks(vm.value).map(check => getCheckInfo(check))
+    const issue = toValue(options.listIssue)
+
+    return issue === undefined ? vmChecks : [...vmChecks, issue]
+  })
+
+  return { poolName, hostName, checks, ...useV2vVmTargets(rawVm, options) }
+}
+
 // Each change goes through `updateVm`, as an override of the list defaults
 export function useV2vVmMappingSetters(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, updateVm }: Pick<V2vVmMappingContext, 'list' | 'updateVm'>
+  { list: rawList, updateVm }: V2vVmMappingContext
 ) {
   const vm = toComputed(rawVm)
 

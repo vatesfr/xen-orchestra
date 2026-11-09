@@ -20,6 +20,7 @@ import {
   V2V_DISK_ROWS,
   V2V_LAN_NIC,
   V2V_MAPPED_VM,
+  V2V_MAPPING_INVENTORY,
   V2V_NIC_OVERRIDES,
   V2V_NIC_ROWS,
   V2V_POOL_OFFERS,
@@ -60,15 +61,14 @@ vi.mock(
 )
 
 // The tables and the fields render what the drawer hands them, each covered by its own test: here only the wiring
-// matters
+// matters. As an overlay, the drawer renders outside the wizard: it is handed the inventory, never its connection
 function mountDrawer({ vm = V2V_MAPPED_VM, listVm }: { vm?: XoV2vVm; listVm?: V2vMigrationListVm } = {}) {
   return mountV2vVmMappingComponent(
-    (list, router, provide) =>
+    (list, router) =>
       mount(V2vVmSettingsDrawer, {
-        props: { vm, list },
+        props: { vm, list, inventory: V2V_MAPPING_INVENTORY },
         global: createGlobalTestConfig({
           router,
-          provide,
           stubs: { V2vDiskMappingTable: true, V2vNicMappingTable: true, V2vVmOptionsFields: true },
         }),
         attachTo: document.body,

@@ -22,7 +22,7 @@ import {
 } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
-import type { XoV2vVm } from '@vates/types'
+import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import type { Router } from 'vue-router'
 
 /** The overrides of the mapped VM in the list: on its data disk and on its VLAN NIC. */
@@ -68,6 +68,11 @@ function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
   return list
 }
 
+/** The connection of the wizard, its source connected on the mapping inventory. */
+export function v2vMappingConnectionProvide() {
+  return v2vConnectionProvide(createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY }))
+}
+
 export type MountV2vVmMappingOptions = {
   listVm?: V2vMigrationListVm
   isSourceConnected?: boolean
@@ -75,11 +80,16 @@ export type MountV2vVmMappingOptions = {
 
 /**
  * Stores a list holding `listVm` on a pool offering the mapping fixtures (another pool offers one target of each
- * kind), then mounts `useMapping` with the migration list of that pool and the mapping inventory as connected source.
+ * kind), then mounts `useMapping` with the migration list of that pool and the mapping inventory as connected source,
+ * also handed to `useMapping` (`undefined` without a connected source).
  * Needs the destination collections mocked with `mock-xo-collections.ts`.
  */
 export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
-  useMapping: (migrationList: ReturnType<typeof useV2vMigrationList>, list: () => V2vMigrationList) => TResult,
+  useMapping: (
+    migrationList: ReturnType<typeof useV2vMigrationList>,
+    list: () => V2vMigrationList,
+    inventory: XoV2vInventory | undefined
+  ) => TResult,
   { listVm = V2V_OVERRIDDEN_LIST_VM, isSourceConnected = true }: MountV2vVmMappingOptions = {}
 ) {
   const storedList = seedV2vVmMappingList(listVm)
@@ -88,13 +98,13 @@ export function mountV2vVmMapping<TResult extends Record<string, unknown>>(
     () => {
       const migrationList = useV2vMigrationList(storedList.sourceId, storedList.poolId)
 
-      return useMapping(migrationList, () => migrationList.list.value as V2vMigrationList)
+      return useMapping(
+        migrationList,
+        () => migrationList.list.value as V2vMigrationList,
+        isSourceConnected ? V2V_MAPPING_INVENTORY : undefined
+      )
     },
-    {
-      provide: v2vConnectionProvide(
-        isSourceConnected ? createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY }) : undefined
-      ),
-    }
+    { provide: isSourceConnected ? v2vMappingConnectionProvide() : v2vConnectionProvide() }
   )
 }
 

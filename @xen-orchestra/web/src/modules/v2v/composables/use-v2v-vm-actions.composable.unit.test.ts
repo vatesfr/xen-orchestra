@@ -7,6 +7,7 @@ import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composa
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { v2vMappingConnectionProvide } from '@/test/mount-v2v-vm-mapping.ts'
 import { ref, toValue } from 'vue'
 
 const { useDelete, deleteVm } = vi.hoisted(() => ({
@@ -37,7 +38,10 @@ function mockDelete(isDeletingVm = false) {
 function mountNewVmActions() {
   const remove = vi.fn()
 
-  const actions = mountComposableWithI18n(() => useV2vNewVmActions(V2V_NEW_STEP_VM, { updateVm: vi.fn(), remove }))
+  // The drawer is opened from the mapping step, under the connection of the wizard
+  const actions = mountComposableWithI18n(() => useV2vNewVmActions(V2V_NEW_STEP_VM, { updateVm: vi.fn(), remove }), {
+    provide: v2vMappingConnectionProvide(),
+  })
 
   return { actions, remove }
 }
@@ -61,14 +65,13 @@ describe('useV2vNewVmActions', () => {
     expect(actions.editAction).toMatchObject({ label: actions.t('action:edit-settings'), icon: 'action:edit' })
   })
 
-  it('opens the settings drawer of the VM and its list', () => {
+  // What the drawer is opened with is told by the settings edit composable
+  it('opens the settings drawer', () => {
     const { actions } = mountNewVmActions()
 
     actions.editAction.onClick()
 
-    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({
-      props: { vm: V2V_NEW_STEP_VM.vm, list: V2V_NEW_STEP_VM.list },
-    })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledOnce()
   })
 })
 
