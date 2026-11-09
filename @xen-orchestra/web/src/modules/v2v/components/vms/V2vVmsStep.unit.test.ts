@@ -6,9 +6,9 @@ import V2vVmsTable from '@/modules/v2v/components/vms/V2vVmsTable.vue'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { applyV2vPreset, V2V_VM_PRESETS } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
-import { createPool } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findButton, getButton, getUiButton } from '@/test/get-button.ts'
@@ -27,6 +27,7 @@ import {
   V2V_VMS_INVENTORY,
   V2V_WEB_VM,
 } from '@/test/v2v-vms-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import { usePanelStore } from '@core/stores/panel.store.ts'
@@ -62,8 +63,6 @@ const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
 
 const EMPTY_LIST = createV2vMigrationList()
 
-const POOL = createPool({ id: LIST.poolId })
-
 const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
 
 const SOURCE_HOST = createV2vConnection().host
@@ -72,7 +71,7 @@ const SHOW_PANEL_LABEL = t('selected-vms-n', { n: LIST.vms.length })
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep({ list = LIST, filter }: { list?: V2vMigrationList; filter?: string } = {}) {
-  xoCollectionsMock.pools.value = [POOL]
+  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
 
   const { mounted: wrapper, router } = await mountOnV2vWizard(
     (router, provide) =>
@@ -257,7 +256,7 @@ describe('selected VMs', () => {
       isEmpty: false,
       isBusy: false,
       readinessTags: [{ label: t('n-ready', { n: 1 }), accent: 'success' }],
-      listPair: { sourceHost: SOURCE_HOST, poolName: POOL.name_label },
+      listPair: createV2vListPair(),
     })
     expect(findPanelItemIds(wrapper)).toEqual([V2V_LISTED_VM.id])
   })

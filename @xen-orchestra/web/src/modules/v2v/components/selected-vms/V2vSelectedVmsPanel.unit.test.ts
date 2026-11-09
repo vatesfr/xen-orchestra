@@ -35,7 +35,7 @@ const EMPTY = {
   count: 0,
   isEmpty: true,
   readinessTags: [],
-  listPair: createV2vListPair(),
+  listPair: LIST_PAIR,
 }
 
 function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> = {}) {
