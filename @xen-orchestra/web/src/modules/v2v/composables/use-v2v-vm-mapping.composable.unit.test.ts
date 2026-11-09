@@ -8,7 +8,6 @@ import {
   mountV2vVmMapping,
   type MountV2vVmMappingOptions,
   readV2vStoredListVm,
-  V2V_VM_MAPPING_POOL,
   V2V_OTHER_LIST_VM,
 } from '@/test/mount-v2v-vm-mapping.ts'
 import {
@@ -32,6 +31,7 @@ import {
   V2V_VLAN_NIC,
   createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDatastore, XoV2vHost, XoV2vVm } from '@vates/types'
 
@@ -116,7 +116,7 @@ describe('areOffersReady', () => {
 
 describe('poolName', () => {
   it('names the pool of the list', () => {
-    expect(mountVmMapping().poolName).toBe(V2V_VM_MAPPING_POOL.name_label)
+    expect(mountVmMapping().poolName).toBe(V2V_LIST_POOL.name_label)
   })
 })
 
