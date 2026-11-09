@@ -1,14 +1,16 @@
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
@@ -45,11 +47,16 @@ export const V2V_OTHER_LIST_VM = createV2vMigrationListVm({
 
 // Stores the list holding `listVm`, on a pool offering the mapping fixtures (another pool offers one target of each kind)
 function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
-  xoCollectionsMock.seedChoices({
+  seedV2vListPool({
     srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
-    networks: [...V2V_POOL_OFFERS.networks, createNetwork({ $pool: OTHER_POOL_ID })],
-    templates: [...V2V_POOL_OFFERS.templates, createVmTemplate({ $pool: OTHER_POOL_ID })],
+    networks: [
+      ...V2V_POOL_OFFERS.networks,
+      createNetwork({ id: 'network-other' as FrontXoNetwork['id'], $pool: OTHER_POOL_ID }),
+    ],
+    templates: [
+      ...V2V_POOL_OFFERS.templates,
+      createVmTemplate({ id: 'template-other' as FrontXoVmTemplate['id'], $pool: OTHER_POOL_ID }),
+    ],
   })
 
   const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [listVm] })

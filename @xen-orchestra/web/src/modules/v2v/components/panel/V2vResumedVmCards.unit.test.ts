@@ -7,13 +7,14 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
+import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
 import {
   V2V_ACTIVE_DISK_ROWS,
   V2V_ACTIVE_NIC_ROWS,
   V2V_MAPPING_INVENTORY,
   V2V_RESUMED_IMPORT_VM,
 } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
 vi.mock(
@@ -71,10 +72,7 @@ beforeEach(() => {
 it('shows the import VM on the pool it was synced to', async () => {
   const card = (await mountCards()).getComponent(V2vDestinationVmCard)
 
-  expect([card.props('vm').id, card.props('poolName')]).toEqual([
-    V2V_RESUMED_IMPORT_VM.id,
-    V2V_RESUMED_VM_POOL.name_label,
-  ])
+  expect([card.props('vm').id, card.props('poolName')]).toEqual([V2V_RESUMED_IMPORT_VM.id, V2V_LIST_POOL.name_label])
 })
 
 it('tells the next run, since the last sync', async () => {
@@ -87,7 +85,7 @@ it('shows the mapping of the first sync, locked on the pool', async () => {
   const card = (await mountCards()).getComponent(V2vActiveMappingCard)
 
   expect(card.props()).toEqual({
-    poolName: V2V_RESUMED_VM_POOL.name_label,
+    poolName: V2V_LIST_POOL.name_label,
     diskRows: V2V_ACTIVE_DISK_ROWS,
     nicRows: V2V_ACTIVE_NIC_ROWS,
     loading: false,

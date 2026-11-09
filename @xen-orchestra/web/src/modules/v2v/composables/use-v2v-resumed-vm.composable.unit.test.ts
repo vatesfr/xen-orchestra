@@ -4,7 +4,7 @@ import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { seedV2vResumedVmCollections, V2V_RESUMED_VM_POOL } from '@/test/seed-v2v-resumed-vm.ts'
+import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_ACTIVE_DISK_ROWS,
@@ -17,6 +17,7 @@ import {
   V2V_SYNCED_VM,
   V2V_VLAN_NETWORK,
 } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { objectIcon } from '@core/icons'
 import type { XoV2vVm } from '@vates/types'
 
@@ -73,7 +74,7 @@ describe('destinationVm', () => {
 
 describe('poolName', () => {
   it('names the pool of the import VM', () => {
-    expect(mountResumedVm().poolName).toBe(V2V_RESUMED_VM_POOL.name_label)
+    expect(mountResumedVm().poolName).toBe(V2V_LIST_POOL.name_label)
   })
 })
 

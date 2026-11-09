@@ -30,6 +30,7 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { t } from '@/test/i18n.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { V2V_VDI_OTHER_CONFIG, V2V_VM_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
 
 const DEFAULTS = createV2vDestinationDefaults()
@@ -186,6 +187,7 @@ export const V2V_RESUMED_IMPORT_VM = createV2vImportVm(
   {
     name_label: 'app-03',
     power_state: VM_POWER_STATE.HALTED,
+    $pool: V2V_LIST_POOL.id,
     $VBDs: [V2V_SYNCED_VBD.id],
     VIFs: V2V_SYNCED_VIFS.map(vif => vif.id),
   }

@@ -1,9 +1,7 @@
-import { createPool } from '@/test/create-pool.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import {
   V2V_DEFAULT_NETWORK,
-  V2V_RESUMED_IMPORT_VM,
   V2V_SSD_SR,
   V2V_SYNCED_VBD,
   V2V_SYNCED_VDI,
@@ -11,14 +9,10 @@ import {
   V2V_VLAN_NETWORK,
 } from '@/test/v2v-mapping-fixtures.ts'
 
-export const V2V_RESUMED_VM_POOL = createPool({ id: V2V_RESUMED_IMPORT_VM.$pool })
-
-// The pool, the targets and the devices the first sync of the resumed VM left in XO, read through the mocked
-// destination and VM device collections
+// The pool of the list, the targets and the devices the first sync of the resumed VM left in XO, read through the
+// mocked destination and VM device collections
 export function seedV2vResumedVmCollections() {
-  xoCollectionsMock.pools.value = [V2V_RESUMED_VM_POOL]
-  xoCollectionsMock.srs.value = [V2V_SSD_SR]
-  xoCollectionsMock.networks.value = [V2V_DEFAULT_NETWORK, V2V_VLAN_NETWORK]
+  seedV2vListPool({ srs: [V2V_SSD_SR], networks: [V2V_DEFAULT_NETWORK, V2V_VLAN_NETWORK], templates: [] })
   vmDeviceCollectionsMock.vbds.value = [V2V_SYNCED_VBD]
   vmDeviceCollectionsMock.vdis.value = [V2V_SYNCED_VDI]
   vmDeviceCollectionsMock.vifs.value = V2V_SYNCED_VIFS
