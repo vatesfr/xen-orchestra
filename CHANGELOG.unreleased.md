@@ -36,6 +36,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web-core minor

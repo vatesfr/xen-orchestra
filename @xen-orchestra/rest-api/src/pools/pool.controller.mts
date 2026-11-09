@@ -651,6 +651,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Tags('v2v')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
