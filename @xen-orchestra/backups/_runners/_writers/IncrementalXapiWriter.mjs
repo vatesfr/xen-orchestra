@@ -93,7 +93,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
             vdi?.is_a_snapshot &&
             vdi.other_config[JOB_ID] === this._job.id &&
             vdi.other_config[VM_UUID] === this._vmUuid &&
-            vdi?.other_config[COPY_OF] === baseUuid
+            vdi?.other_config[COPY_OF] === baseUuid &&
+            // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
+            vdi.$snapshot_of !== undefined
         )
       }
       if (target !== undefined) {
