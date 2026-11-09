@@ -27,7 +27,7 @@ import {
   V2V_VMS_INVENTORY,
   V2V_WEB_VM,
 } from '@/test/v2v-vms-fixtures.ts'
-import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
+import { V2V_EMPTY_LIST, V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import { usePanelStore } from '@core/stores/panel.store.ts'
@@ -60,8 +60,6 @@ vi.mock(
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
-
-const EMPTY_LIST = createV2vMigrationList()
 
 const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
 
@@ -309,7 +307,7 @@ describe('selected VMs', () => {
   })
 
   it('has no button to show the panel of an empty list', async () => {
-    const { wrapper } = await mountStep({ list: EMPTY_LIST })
+    const { wrapper } = await mountStep({ list: V2V_EMPTY_LIST })
 
     usePanelStore().collapse()
     await flushPromises()
@@ -320,7 +318,7 @@ describe('selected VMs', () => {
 
 describe('navigation', () => {
   it('cannot go on with an empty list', async () => {
-    const { wrapper } = await mountStep({ list: EMPTY_LIST })
+    const { wrapper } = await mountStep({ list: V2V_EMPTY_LIST })
 
     expect(getNextButton(wrapper).props('disabled')).toBe(true)
   })

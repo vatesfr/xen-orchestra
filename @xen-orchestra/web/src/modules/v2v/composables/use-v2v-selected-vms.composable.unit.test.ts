@@ -5,7 +5,6 @@ import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.compos
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
-import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
@@ -17,7 +16,7 @@ import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
-import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
+import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 
 vi.mock(
@@ -48,11 +47,7 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 const LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }, { id: V2V_RDM_VM.id }] })
 
-const EMPTY_LIST = createV2vMigrationList()
-
 const LIST_IDS = getV2vVmIds(LIST.vms)
-
-const OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
 
 const SR = createSr({ id: LIST.defaults.sr, name_label: 'sr-nvme-01' })
 
@@ -78,7 +73,7 @@ async function mountSelectedVms({
   list = LIST,
   poolId = V2V_LIST_POOL.id,
 }: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null } = {}) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL, OTHER_POOL]
+  xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_OTHER_POOL]
   xoCollectionsMock.srs.value = [SR]
   xoCollectionsMock.networks.value = [NETWORK]
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
@@ -168,10 +163,12 @@ describe('items', () => {
     const { result } = await mountSelectedVms({ list: WEB_LIST })
 
     v2vVmRowsCollectionsMock.vms.value = [
-      createV2vImportVm({ isWarm: true, sourceVmId: V2V_WEB_VM.id }, { $pool: OTHER_POOL.id }),
+      createV2vImportVm({ isWarm: true, sourceVmId: V2V_WEB_VM.id }, { $pool: V2V_OTHER_POOL.id }),
     ]
 
-    expect(result.items[0].check.label).toBe(result.t('v2v:partial-import-on-pool', { pool: OTHER_POOL.name_label }))
+    expect(result.items[0].check.label).toBe(
+      result.t('v2v:partial-import-on-pool', { pool: V2V_OTHER_POOL.name_label })
+    )
   })
 
   it('links each VM to its mapping, keeping the route', async () => {
@@ -185,7 +182,7 @@ describe('items', () => {
   })
 
   it.each([
-    ['an empty list', EMPTY_LIST],
+    ['an empty list', V2V_EMPTY_LIST],
     ['no stored list', null],
   ])('lists no VM for %s', async (_, list) => {
     const { result } = await mountSelectedVms({ list })
@@ -202,7 +199,7 @@ describe('count', () => {
   })
 
   it.each([
-    ['an empty list', EMPTY_LIST],
+    ['an empty list', V2V_EMPTY_LIST],
     ['no stored list', null],
   ])('is zero for %s', async (_, list) => {
     const { result } = await mountSelectedVms({ list })
@@ -219,7 +216,7 @@ describe('isEmpty', () => {
   })
 
   it.each([
-    ['an empty list', EMPTY_LIST],
+    ['an empty list', V2V_EMPTY_LIST],
     ['no stored list', null],
   ])('is true for %s', async (_, list) => {
     const { result } = await mountSelectedVms({ list })
@@ -260,7 +257,7 @@ describe('readinessTags', () => {
   })
 
   it('has no tag for an empty list', async () => {
-    const { result } = await mountSelectedVms({ list: EMPTY_LIST })
+    const { result } = await mountSelectedVms({ list: V2V_EMPTY_LIST })
 
     expect(result.readinessTags).toEqual([])
   })

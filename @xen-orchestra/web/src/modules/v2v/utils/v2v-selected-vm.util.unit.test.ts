@@ -4,10 +4,8 @@ import { getV2vMappingSummary, getV2vSelectedVmState } from '@/modules/v2v/utils
 import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vDisk, createV2vNic, createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createV2vVmRow } from '@/test/create-v2v-vm-row.ts'
-
-const LIST_POOL_ID = createV2vMigrationList().poolId
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 
 const TARGET_NAMES = { srName: 'sr-nvme-01', networkName: 'VLAN 10' }
 
@@ -28,22 +26,25 @@ describe('getV2vSelectedVmState', () => {
   const READY = { type: 'ready', level: 'ready' }
 
   it('resumes a VM warm synced on the pool of the list, ready', () => {
-    expect(getV2vSelectedVmState(createWarmRow(LIST_POOL_ID), LIST_POOL_ID)).toEqual({ kind: 'resume', check: READY })
+    expect(getV2vSelectedVmState(createWarmRow(V2V_LIST_POOL.id), V2V_LIST_POOL.id)).toEqual({
+      kind: 'resume',
+      check: READY,
+    })
   })
 
   it('imports a supported VM not migrated as new, ready', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow(), LIST_POOL_ID)).toEqual({ kind: 'new', check: READY })
+    expect(getV2vSelectedVmState(createV2vVmRow(), V2V_LIST_POOL.id)).toEqual({ kind: 'new', check: READY })
   })
 
   it('imports a VM warm without its import VM as new, ready', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'warm' }), LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'warm' }), V2V_LIST_POOL.id)).toEqual({
       kind: 'new',
       check: READY,
     })
   })
 
   it('imports a VM warm synced on another pool as new, blocked by that pool', () => {
-    expect(getV2vSelectedVmState(createWarmRow(OTHER_POOL_ID), LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(createWarmRow(OTHER_POOL_ID), V2V_LIST_POOL.id)).toEqual({
       kind: 'new',
       check: { type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID },
     })
@@ -56,17 +57,17 @@ describe('getV2vSelectedVmState', () => {
   it('imports a migrated VM as new, with a warning', () => {
     const row = createV2vVmRow({
       migration: 'cold',
-      importVm: createV2vImportVm({ isWarm: false }, { $pool: LIST_POOL_ID }),
+      importVm: createV2vImportVm({ isWarm: false }, { $pool: V2V_LIST_POOL.id }),
     })
 
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(row, V2V_LIST_POOL.id)).toEqual({
       kind: 'new',
       check: { type: 'already-migrated', level: 'warning' },
     })
   })
 
   it('blocks a VM missing from the inventory, imported as new', () => {
-    expect(getV2vSelectedVmState(undefined, LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(undefined, V2V_LIST_POOL.id)).toEqual({
       kind: 'new',
       check: { type: 'not-found', level: 'blocking' },
     })
@@ -75,7 +76,7 @@ describe('getV2vSelectedVmState', () => {
   it('blocks an unsupported VM, with its reason', () => {
     const row = createV2vVmRow({ supported: false, unsupportedReason: 'encrypted' })
 
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID).check).toEqual({
+    expect(getV2vSelectedVmState(row, V2V_LIST_POOL.id).check).toEqual({
       type: 'unsupported',
       level: 'blocking',
       reason: 'encrypted',
@@ -83,16 +84,16 @@ describe('getV2vSelectedVmState', () => {
   })
 
   it('blocks a VM being imported', () => {
-    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'running' }), LIST_POOL_ID).check).toEqual({
+    expect(getV2vSelectedVmState(createV2vVmRow({ migration: 'running' }), V2V_LIST_POOL.id).check).toEqual({
       type: 'running',
       level: 'blocking',
     })
   })
 
   it('tells an unsupported VM unsupported whatever its migration, still resumed on the pool of the list', () => {
-    const row = createWarmRow(LIST_POOL_ID, { supported: false, unsupportedReason: 'rdm' })
+    const row = createWarmRow(V2V_LIST_POOL.id, { supported: false, unsupportedReason: 'rdm' })
 
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID)).toEqual({
+    expect(getV2vSelectedVmState(row, V2V_LIST_POOL.id)).toEqual({
       kind: 'resume',
       check: { type: 'unsupported', level: 'blocking', reason: 'rdm' },
     })
@@ -101,7 +102,7 @@ describe('getV2vSelectedVmState', () => {
   it('tells a VM being imported on another pool running', () => {
     const row = createWarmRow(OTHER_POOL_ID, { migration: 'running' })
 
-    expect(getV2vSelectedVmState(row, LIST_POOL_ID).check.type).toBe('running')
+    expect(getV2vSelectedVmState(row, V2V_LIST_POOL.id).check.type).toBe('running')
   })
 })
 
@@ -134,7 +135,7 @@ describe('getV2vMappingSummary', () => {
   })
 
   it('locks the mapping of a resumed VM', () => {
-    expect(getV2vMappingSummary(createWarmRow(LIST_POOL_ID), 'resume', TARGET_NAMES)).toEqual({
+    expect(getV2vMappingSummary(createWarmRow(V2V_LIST_POOL.id), 'resume', TARGET_NAMES)).toEqual({
       type: 'locked',
     })
   })
