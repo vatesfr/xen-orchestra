@@ -1,5 +1,6 @@
 <template>
   <UiLoader v-if="busy" v-tooltip="busyTooltip ?? false" />
+  <DisplayIcon v-else-if="icon && tooltip" v-tooltip="tooltip" class="vts-icon" :class="className" :icon />
   <DisplayIcon v-else-if="icon" class="vts-icon" :class="className" :icon />
 </template>
 
@@ -18,6 +19,7 @@ const { size, name } = defineProps<{
   name: IconName | undefined
   busy?: boolean
   busyTooltip?: string
+  tooltip?: string
 }>()
 
 const className = computed(() =>

@@ -3,6 +3,7 @@
     <UiPanelCardTitle
       :id="host.id"
       :icon="hostIcon"
+      :icon-tooltip="iconTooltip"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
       size="medium"
@@ -120,7 +121,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostStateDisplay, relativeStartTime } = useXoHostUtils(() => host)
+const { getHostStateDisplay, relativeStartTime, iconTooltip } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
