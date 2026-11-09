@@ -4,6 +4,9 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
  * Builds a fully-populated `FrontXoPool` for use in tests. Pass `overrides` to
  * tweak only the fields relevant to the case under test.
  */
+// A pool id distinct from the `createPool()` one, for the resources of another pool
+export const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
+
 export function createPool(overrides: Partial<FrontXoPool> = {}): FrontXoPool {
   return {
     id: 'pool-789' as FrontXoPool['id'],

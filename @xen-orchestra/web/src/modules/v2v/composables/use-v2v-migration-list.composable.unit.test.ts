@@ -2,6 +2,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { getV2vMigrationListStorageKey } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
+import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import {
   createV2vDestinationDefaults,
   createV2vMigrationList,
@@ -16,8 +17,6 @@ import { nextTick, type Ref, ref } from 'vue'
 const STORED_LIST = createV2vMigrationList({ vms: createV2vMigrationListVms(2) })
 
 const { sourceId: SOURCE_ID, poolId: POOL_ID } = STORED_LIST
-
-const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
 
 const NEW_DEFAULTS = createV2vDestinationDefaults({
   template: 'template-2' as V2vMigrationList['defaults']['template'],

@@ -7,7 +7,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createVm`                                                                            | `FrontXoVm`                                                  |
 | `createHost`                                                                          | `FrontXoHost`                                                |
 | `createServer`                                                                        | `FrontXoServer`                                              |
-| `createPool`                                                                          | `FrontXoPool`                                                |
+| `createPool`, `OTHER_POOL_ID`                                                         | `FrontXoPool`, the id of a pool other than `createPool()`'s  |
 | `createSr`                                                                            | `FrontXoSr`                                                  |
 | `createVbd`                                                                           | `FrontXoVbd`                                                 |
 | `createVdi`                                                                           | `FrontXoVdi`                                                 |

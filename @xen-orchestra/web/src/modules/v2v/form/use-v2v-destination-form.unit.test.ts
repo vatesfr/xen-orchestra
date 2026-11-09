@@ -8,7 +8,7 @@ import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/c
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif } from '@/test/create-pif.ts'
-import { createPool } from '@/test/create-pool.ts'
+import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vDestinationDefaults, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
@@ -55,7 +55,7 @@ vi.mock(
 const POOL = createPool()
 
 const OTHER_POOL = createPool({
-  id: 'pool-2' as FrontXoPool['id'],
+  id: OTHER_POOL_ID,
   master: 'host-2' as FrontXoPool['master'],
   default_SR: 'sr-2' as FrontXoPool['default_SR'],
 })

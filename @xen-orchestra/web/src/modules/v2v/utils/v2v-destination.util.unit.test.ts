@@ -1,6 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import {
   countV2vPoolResources,
@@ -12,14 +11,12 @@ import {
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createManagementPif, createPif } from '@/test/create-pif.ts'
-import { createPool } from '@/test/create-pool.ts'
+import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 
 const POOL = createPool()
-
-const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
 
 const MANAGEMENT_NETWORK_ID = 'network-mgmt' as FrontXoNetwork['id']
 
