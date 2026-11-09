@@ -545,6 +545,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // The lock is an object rewritten with plain writes, which every S3 provider supports: it is held while it is
   // fresher than STALE_AFTER. It is not atomic: two contenders which find it free at the same time both take it, and
   // a holder whose refreshes failed for STALE_AFTER keeps writing in a folder someone else took over.
+  //
+  // Its age is read on the provider's clock alone, `Last-Modified` against the `Date` of the response: XO's clock may
+  // not agree with the provider's, and one more than 2.5 minutes ahead would take over a lock its holder keeps
+  // refreshing (the SDK corrects its own clock only from 5 minutes off).
   async _lock(path) {
     if (this.isImmutable() || this.#objectLockUnknown) {
       return super._lock(path)
@@ -557,17 +561,29 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale
     const write = () => this.#s3.send(new PutObjectCommand({ ...params, Body: '' }))
 
+    // the output of a HEAD has no `Date`: it is read from the response
+    let date
+    const head = new HeadObjectCommand(params)
+    head.middlewareStack.add(
+      next => async args => {
+        const result = await next(args)
+        date = result.response.headers.date
+        return result
+      },
+      { step: 'deserialize' }
+    )
+
     let current
     try {
-      current = await this.#s3.send(new HeadObjectCommand(params))
+      current = await this.#s3.send(head)
     } catch (error) {
       if (error.name !== 'NotFound') {
         throw error
       }
     }
-    // a provider which omits `Last-Modified` never lets a lock be taken over: it stays held until released
-    const lastModified = current?.LastModified
-    if (current !== undefined && (lastModified === undefined || Date.now() - lastModified.getTime() <= STALE_AFTER)) {
+    // a provider which omits `Last-Modified` or `Date` never lets a lock be taken over: it stays held until released
+    const age = Date.parse(date) - current?.LastModified?.getTime()
+    if (current !== undefined && (Number.isNaN(age) || age <= STALE_AFTER)) {
       throw lockedError(path)
     }
 

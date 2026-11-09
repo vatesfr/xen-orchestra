@@ -59,12 +59,17 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
   let objects
   // what the provider does wrong, which each test sets
   let faults
+  // how far the provider's clock is ahead of XO's
+  let clockOffset
   let send
+
+  const providerDate = () => new Date(Date.now() + clockOffset)
 
   beforeEach(() => {
     mock.timers.enable({ apis: ['setInterval', 'Date'] })
     objects = new Map()
     faults = {}
+    clockOffset = 0
 
     send = sinon.stub(S3Client.prototype, 'send').callsFake(async command => {
       const { Key } = command.input
@@ -78,7 +83,7 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
         if (faults.pendingPut !== undefined) {
           await faults.pendingPut
         }
-        objects.set(Key, { lastModified: new Date() })
+        objects.set(Key, { lastModified: providerDate() })
         return {}
       }
 
@@ -86,6 +91,12 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
         if (current === undefined) {
           throw s3Error('NotFound', 404)
         }
+        // the lock reads the `Date` of the response in a middleware of the command, which this stub bypasses: run it
+        // on a response of its own
+        await command.middlewareStack.resolve(
+          async () => ({ response: { headers: { date: providerDate().toUTCString() } } }),
+          {}
+        )({ input: command.input })
         return { LastModified: current.lastModified }
       }
 
@@ -153,15 +164,18 @@ describe('S3Handler#_lock() with a stubbed S3Client', () => {
     }
   })
 
-  it('takes over a stale lock, not a fresh one', async () => {
-    objects.set(KEY, { lastModified: new Date() })
+  it("takes over a stale lock, not a fresh one, on the provider's clock", async () => {
+    // XO's clock 2 minutes ahead: on it, the lock would look stale after 1 minute
+    clockOffset = -120e3
+    objects.set(KEY, { lastModified: providerDate() })
 
     mock.timers.tick(STALE_AFTER)
     await assert.rejects(createHandler()._lock('vm'), { code: 'ELOCKED' })
 
-    mock.timers.tick(1)
+    // the resolution of `Date`
+    mock.timers.tick(1e3)
     const release = await createHandler()._lock('vm')
-    assert.equal(objects.get(KEY).lastModified.getTime(), Date.now())
+    assert.equal(objects.get(KEY).lastModified.getTime(), providerDate().getTime())
     await release()
   })
 
