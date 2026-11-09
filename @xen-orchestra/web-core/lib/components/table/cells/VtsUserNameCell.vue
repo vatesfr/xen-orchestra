@@ -2,7 +2,7 @@
   <UiTableCell :flexible>
     <div class="user-name">
       <UiUserLogo size="small" />
-      <UiLink :href size="medium" class="link">
+      <UiLink :to :href size="medium" class="link">
         <VtsMiddleEllipsis v-if="flexible" :text="content" />
         <span v-else v-tooltip class="text-ellipsis">{{ content }}</span>
       </UiLink>
@@ -15,13 +15,15 @@ import VtsMiddleEllipsis from '@core/components/middle-ellipsis/VtsMiddleEllipsi
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 
-defineProps<{
-  content: string
-  href?: string
-  flexible?: boolean
-}>()
+defineProps<
+  Pick<LinkOptions, 'to' | 'href'> & {
+    content: string
+    flexible?: boolean
+  }
+>()
 </script>
 
 <style scoped lang="postcss">

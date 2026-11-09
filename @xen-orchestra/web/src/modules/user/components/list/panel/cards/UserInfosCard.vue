@@ -4,7 +4,7 @@
       <template #label>
         <span class="name">
           <UiUserLogo size="small" />
-          <UiLink :href="xo5UsersHref" size="small">
+          <UiLink :to="{ name: '/admin/user/[id]/general', params: { id: user.id } }" size="small">
             {{ user.name }}
           </UiLink>
         </span>
@@ -20,9 +20,9 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('last-login') }}</template>
-        <template #value>{{ lastLoginTimestamp }}</template>
-        <template v-if="lastLoginTimestamp" #addons>
-          <VtsCopyButton :value="lastLoginTimestamp" />
+        <template #value>{{ lastLogin }}</template>
+        <template v-if="lastLogin" #addons>
+          <VtsCopyButton :value="lastLogin" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue truncate align-top>
@@ -41,9 +41,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoUserAuthenticationTokensCollection } from '@/modules/user/remote-resources/use-xo-user-authentication-tokens-collection.ts'
+import { useXoUserUtils } from '@/modules/user/composables/use-xo-user-utils.composable.ts'
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -51,7 +50,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
-import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -61,34 +59,7 @@ const { user } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
-const xo5UsersHref = computed(() => buildXo5Route('/settings/users'))
-
-const { userAuthenticationTokens } = useXoUserAuthenticationTokensCollection({}, () => user.id)
-
-const lastLoginTimestamp = computed(() => {
-  let mostRecentTimestamp: number | undefined
-
-  for (const token of userAuthenticationTokens.value ?? []) {
-    for (const usage of Object.values(token.last_uses ?? {})) {
-      if (mostRecentTimestamp === undefined || usage.timestamp > mostRecentTimestamp) {
-        mostRecentTimestamp = usage.timestamp
-      }
-    }
-  }
-
-  if (mostRecentTimestamp === undefined) {
-    return undefined
-  }
-
-  return formatDateTime(mostRecentTimestamp)
-})
-
-const providers = computed(() => {
-  const providerList = Object.keys(user.authProviders ?? {})
-  return providerList.length === 0 ? t('local') : providerList.join(', ')
-})
+const { lastLogin, providers } = useXoUserUtils(() => user)
 
 const userPermission = computed(() => {
   if (user.permission === 'none') {
