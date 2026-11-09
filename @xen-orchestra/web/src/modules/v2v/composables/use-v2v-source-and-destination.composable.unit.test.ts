@@ -5,6 +5,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { ref } from 'vue'
 
 vi.mock(
@@ -12,17 +13,15 @@ vi.mock(
   () => import('@/test/mock-xo-collections.ts')
 )
 
-const POOL = createPool({ name_label: DISKOR_POOL_NAME })
-
 const OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
 
 const CONNECTION = createV2vConnection()
 
 function mountSourceAndDestination(
-  poolId = ref<FrontXoPool['id'] | undefined>(POOL.id),
+  poolId = ref<FrontXoPool['id'] | undefined>(V2V_LIST_POOL.id),
   { isConnected = true }: { isConnected?: boolean } = {}
 ) {
-  xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
+  xoCollectionsMock.pools.value = [V2V_LIST_POOL, OTHER_POOL]
 
   return mountComposable(() => useV2vSourceAndDestination(poolId), {
     provide: v2vConnectionProvide(isConnected ? createConnectedV2vContext({ connection: CONNECTION }) : undefined),
@@ -49,7 +48,7 @@ describe('poolName', () => {
   })
 
   it('follows the pool', () => {
-    const poolId = ref<FrontXoPool['id'] | undefined>(POOL.id)
+    const poolId = ref<FrontXoPool['id'] | undefined>(V2V_LIST_POOL.id)
     const result = mountSourceAndDestination(poolId)
 
     poolId.value = OTHER_POOL.id

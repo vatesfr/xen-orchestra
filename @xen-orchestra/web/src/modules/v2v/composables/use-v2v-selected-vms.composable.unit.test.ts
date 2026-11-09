@@ -5,11 +5,11 @@ import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.compos
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
-import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
+import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -17,6 +17,7 @@ import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 
 vi.mock(
@@ -51,8 +52,6 @@ const EMPTY_LIST = createV2vMigrationList()
 
 const LIST_IDS = getV2vVmIds(LIST.vms)
 
-const POOL = createPool({ id: LIST.poolId, name_label: DISKOR_POOL_NAME })
-
 const OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
 
 const SR = createSr({ id: LIST.defaults.sr, name_label: 'sr-nvme-01' })
@@ -68,15 +67,18 @@ const WEB_AND_DB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { 
 
 // The DB VM is warm synced on the pool of the list, the listed one migrated
 const IMPORT_VMS = [
-  createV2vImportVm({ isWarm: true, sourceVmId: V2V_DB_VM.id }, { id: 'xo-vm-db' as FrontXoVm['id'], $pool: POOL.id }),
+  createV2vImportVm(
+    { isWarm: true, sourceVmId: V2V_DB_VM.id },
+    { id: 'xo-vm-db' as FrontXoVm['id'], $pool: V2V_LIST_POOL.id }
+  ),
   createV2vImportVm({ isWarm: false, sourceVmId: V2V_LISTED_VM.id }, { id: 'xo-vm-listed' as FrontXoVm['id'] }),
 ]
 
 async function mountSelectedVms({
   list = LIST,
-  poolId = POOL.id,
+  poolId = V2V_LIST_POOL.id,
 }: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null } = {}) {
-  xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
+  xoCollectionsMock.pools.value = [V2V_LIST_POOL, OTHER_POOL]
   xoCollectionsMock.srs.value = [SR]
   xoCollectionsMock.networks.value = [NETWORK]
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
@@ -177,7 +179,7 @@ describe('items', () => {
 
     expect(router.resolve(result.items[0].mappingRoute).query).toEqual({
       step: 'mapping',
-      pool: POOL.id,
+      pool: V2V_LIST_POOL.id,
       vm: V2V_WEB_VM.id,
     })
   })
@@ -268,7 +270,7 @@ describe('listPair', () => {
   it('names the source and the pool of the list', async () => {
     const { result } = await mountSelectedVms()
 
-    expect(result.listPair).toEqual({ sourceHost: createV2vConnection().host, poolName: POOL.name_label })
+    expect(result.listPair).toEqual(createV2vListPair())
   })
 
   it('names no pool while the pools load', async () => {
@@ -284,7 +286,7 @@ describe('listPair', () => {
   it('names no pool before one is chosen', async () => {
     const { result } = await mountSelectedVms({ poolId: null })
 
-    expect(result.listPair).toEqual({ sourceHost: createV2vConnection().host, poolName: undefined })
+    expect(result.listPair).toEqual(createV2vListPair({ poolName: undefined }))
   })
 })
 
