@@ -1,4 +1,4 @@
-import { isExpression, compileExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { isExpression, compileExpression } from './_expressionPredicate.mjs'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
 export function assertValidSettingsExpression(settings, keys) {
