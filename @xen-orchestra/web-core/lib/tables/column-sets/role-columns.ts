@@ -11,6 +11,7 @@ export const useRoleColumns = defineColumns(() => {
   return {
     checkbox: useCheckboxColumn(),
     name: useTextColumn({ headerLabel: () => t('name') }),
+    group: useTextColumn({ headerLabel: () => t('group') }),
     description: useTextColumn({ headerLabel: () => t('description') }),
     users: useNumberColumn({ headerLabel: () => t('users') }),
     groups: useNumberColumn({ headerLabel: () => t('groups') }),
