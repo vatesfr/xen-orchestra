@@ -1,9 +1,8 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createNetwork } from '@/test/create-network.ts'
-import { createPool } from '@/test/create-pool.ts'
+import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
@@ -25,8 +24,6 @@ import type { Router } from 'vue-router'
 
 /** The pool of the stored list, offering the mapping fixtures. */
 export const V2V_VM_MAPPING_POOL = createPool()
-
-const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 
 /** The overrides of the mapped VM in the list: on its data disk and on its VLAN NIC. */
 export const V2V_LIST_VM_OVERRIDES = { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES }
