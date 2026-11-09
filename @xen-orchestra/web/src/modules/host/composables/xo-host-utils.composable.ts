@@ -19,12 +19,12 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const { vmsByHost } = useXoVmCollection()
 
   const getHostStateDisplay = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
-    {
+    () => ({
       running: { text: t('host:status:running'), icon: 'status:running-circle' },
       halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
       disabled: { text: t('host:status:disabled'), icon: 'status:host-disabled-circle' },
       unknown: { text: t('host:status:unknown'), icon: undefined },
-    },
+    }),
     'unknown'
   )
 
