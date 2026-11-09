@@ -67,8 +67,8 @@ type MountOptions = MountV2vVmMappingOptions & {
 
 function mountVmMapping({ vm = V2V_MAPPED_VM, listIssue, ...options }: MountOptions = {}) {
   return mountV2vVmMapping(
-    (migrationList, list) => ({
-      ...useV2vVmMapping(vm, { list, listIssue }),
+    (migrationList, list, inventory) => ({
+      ...useV2vVmMapping(vm, { list, listIssue, inventory }),
       ...useV2vVmMappingSetters(vm, { list, updateVm: migrationList.updateVm }),
       getSrSelectLabel: useXoSrUtils().getSrSelectLabel,
     }),

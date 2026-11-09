@@ -2,7 +2,12 @@ import type { V2vVmOverrides } from '@/modules/v2v/composables/use-v2v-vm-mappin
 import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountV2vVmMapping, readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
-import { V2V_DEBIAN_TEMPLATE, V2V_DISK_OVERRIDES, V2V_MAPPED_VM } from '@/test/v2v-mapping-fixtures.ts'
+import {
+  V2V_DEBIAN_TEMPLATE,
+  V2V_DISK_OVERRIDES,
+  V2V_MAPPED_VM,
+  V2V_MAPPING_INVENTORY,
+} from '@/test/v2v-mapping-fixtures.ts'
 
 type OverlayOptions = {
   events: {
@@ -34,12 +39,14 @@ function getOverlayOptions(): OverlayOptions {
 }
 
 describe('editVmSettings', () => {
-  it('opens the drawer with the VM and its list', () => {
+  it('opens the drawer with the VM, its list and the inventory of the connected source', () => {
     const { result } = mountVmSettingsEdit()
 
     result.editVmSettings()
 
-    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: { vm: V2V_MAPPED_VM, list: result.list } })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({
+      props: { vm: V2V_MAPPED_VM, list: result.list, inventory: V2V_MAPPING_INVENTORY },
+    })
   })
 
   it('closes the drawer when it is cancelled', () => {

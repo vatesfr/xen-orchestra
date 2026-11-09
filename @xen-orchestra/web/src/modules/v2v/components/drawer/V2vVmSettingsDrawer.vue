@@ -60,12 +60,13 @@ import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelBut
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import type { XoV2vVm } from '@vates/types'
+import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { vm, list } = defineProps<{
+const { vm, list, inventory } = defineProps<{
   vm: XoV2vVm
   list: V2vMigrationList
+  inventory: XoV2vInventory | undefined
 }>()
 
 const emit = defineEmits<{
@@ -91,7 +92,7 @@ const {
   setKeepMac,
   setTags,
   toOverrides,
-} = useV2vVmMappingDraft(() => vm, { list: () => list })
+} = useV2vVmMappingDraft(() => vm, { list: () => list, inventory: () => inventory })
 </script>
 
 <style lang="postcss" scoped>
