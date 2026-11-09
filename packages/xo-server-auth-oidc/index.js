@@ -93,9 +93,8 @@ function profileField(profile, usernameField) {
  * @returns {boolean}
  */
 function hasUsername(usernameField, claims) {
-  return (
-    claims[CLAIM_OF_PROFILE_FIELD[usernameField] ?? usernameField] !== undefined || claims[usernameField] !== undefined
-  )
+  const claim = CLAIM_OF_PROFILE_FIELD[usernameField]
+  return claim !== undefined && claims[claim] !== undefined
 }
 exports.hasUsername = hasUsername
 
@@ -103,17 +102,11 @@ exports.hasUsername = hasUsername
  * The username, from the userinfo response when it was fetched, then from the ID token.
  *
  * @param {string} usernameField
- * @param {{ claims: object, idProfile?: object, uiProfile?: object }} sources
+ * @param {{ idProfile?: object, uiProfile?: object }} sources
  * @returns {string | undefined}
  */
-function resolveUsername(usernameField, { claims, idProfile, uiProfile }) {
-  return (
-    profileField(uiProfile, usernameField) ??
-    profileField(idProfile, usernameField) ??
-    // a field the profile does not map
-    uiProfile?._json?.[usernameField] ??
-    claims[usernameField]
-  )
+function resolveUsername(usernameField, { idProfile, uiProfile }) {
+  return profileField(uiProfile, usernameField) ?? profileField(idProfile, usernameField)
 }
 exports.resolveUsername = resolveUsername
 
@@ -194,6 +187,13 @@ class AuthOidc {
         async (issuer, uiProfile, idProfile, context, idToken, accessToken, refreshToken, params, done) => {
           try {
             const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
+
+            // the userinfo response must describe the user of the ID token, else it must not be used
+            // (https://openid.net/specs/openid-connect-core-1_0.html#UserInfoResponse)
+            if (uiProfile !== undefined && uiProfile.id !== idProfile.id) {
+              throw new Error('the sub of the userinfo response does not match the one of the ID token')
+            }
+
             const sources = { claims, idProfile, uiProfile }
 
             const name = resolveUsername(usernameField, sources)
