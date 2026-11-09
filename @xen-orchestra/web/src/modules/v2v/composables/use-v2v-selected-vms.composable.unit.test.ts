@@ -55,6 +55,8 @@ const NETWORK = createNetwork({ id: LIST.defaults.network, name_label: 'VLAN 10'
 
 const GONE_VM_ID = 'vm-gone' as XoV2vVm['id']
 
+const GONE_VM_LIST = createV2vMigrationList({ vms: [{ id: GONE_VM_ID }] })
+
 const WEB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }] })
 
 // The web VM is new, the DB one resumed
@@ -109,7 +111,7 @@ describe('items', () => {
   })
 
   it('names a VM gone from the inventory by its id', async () => {
-    const { result } = await mountSelectedVms({ list: createV2vMigrationList({ vms: [{ id: GONE_VM_ID }] }) })
+    const { result } = await mountSelectedVms({ list: GONE_VM_LIST })
 
     expect(result.items.map(item => item.name)).toEqual([GONE_VM_ID])
   })
@@ -124,7 +126,7 @@ describe('items', () => {
   })
 
   it('leaves a VM gone from the inventory without a kind tag', async () => {
-    const { result } = await mountSelectedVms({ list: createV2vMigrationList({ vms: [{ id: GONE_VM_ID }] }) })
+    const { result } = await mountSelectedVms({ list: GONE_VM_LIST })
 
     expect(result.items.map(item => item.kind)).toEqual([undefined])
   })

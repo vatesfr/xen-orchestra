@@ -13,22 +13,23 @@ import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_EMPTY_LIST, V2V_LIST_WITH_VMS } from '@/test/v2v-wizard-fixtures.ts'
 import { nextTick, type Ref, ref } from 'vue'
 
 const [FIRST_VM, SECOND_VM, THIRD_VM, FOURTH_VM] = createV2vMigrationListVms(4)
 
-const STORED_LIST = createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM] })
-
 // Every write rebuilds the list without this field: finding it again proves nothing was written
-const UNWRITTEN_LIST = { ...STORED_LIST, unknownField: true }
+const UNWRITTEN_LIST = { ...V2V_LIST_WITH_VMS, unknownField: true }
 
-const { sourceId: SOURCE_ID, poolId: POOL_ID } = STORED_LIST
+const { sourceId: SOURCE_ID, poolId: POOL_ID } = V2V_LIST_WITH_VMS
 
 const NEW_DEFAULTS = createV2vDestinationDefaults({
   template: 'template-2' as V2vMigrationList['defaults']['template'],
 })
 
-const STORAGE_KEY = getV2vMigrationListStorageKey(STORED_LIST)
+const NEW_DEFAULTS_LIST = createV2vMigrationList({ defaults: NEW_DEFAULTS })
+
+const STORAGE_KEY = getV2vMigrationListStorageKey(V2V_LIST_WITH_VMS)
 
 const NEWER_LIST = createNewerV2vMigrationList()
 
@@ -75,7 +76,7 @@ function readStorageAfter(
 // A list is only written for a known source and pool, whichever function writes it
 function itStoresNothingWithoutSourceOrPool(write: ListWrite) {
   it.each(WITHOUT_SOURCE_OR_POOL)('leaves the stored list untouched without a %s', (_, options) => {
-    expect(readStorageAfter(STORED_LIST, write, options)).toEqual(STORED_LIST)
+    expect(readStorageAfter(V2V_LIST_WITH_VMS, write, options)).toEqual(V2V_LIST_WITH_VMS)
     expect(localStorage.length).toBe(1)
   })
 }
@@ -101,9 +102,9 @@ function itStoresNoVmWithoutList(write: ListWrite) {
 
 describe('list', () => {
   it('is the list stored for the source and the pool', () => {
-    seedV2vMigrationList(STORED_LIST)
+    seedV2vMigrationList(V2V_LIST_WITH_VMS)
 
-    expect(mountMigrationList().list).toEqual(STORED_LIST)
+    expect(mountMigrationList().list).toEqual(V2V_LIST_WITH_VMS)
   })
 
   it('is undefined when no list is stored', () => {
@@ -120,14 +121,14 @@ describe('list', () => {
   })
 
   it.each(WITHOUT_SOURCE_OR_POOL)('is undefined without a %s', (_, options) => {
-    seedV2vMigrationList(STORED_LIST)
+    seedV2vMigrationList(V2V_LIST_WITH_VMS)
 
     expect(mountMigrationList(options).list).toBeUndefined()
   })
 
   it('reads the list of the newly chosen pool', async () => {
     const otherList = createV2vMigrationList({ poolId: OTHER_POOL_ID })
-    seedV2vMigrationList(STORED_LIST)
+    seedV2vMigrationList(V2V_LIST_WITH_VMS)
     seedV2vMigrationList(otherList)
     const poolId = ref<FrontXoPool['id'] | undefined>(POOL_ID)
     const result = mountMigrationList({ poolId })
@@ -141,9 +142,9 @@ describe('list', () => {
   it('follows the changes made in another tab', async () => {
     const result = mountMigrationList()
 
-    await writeLocalStorageFromAnotherTab(STORAGE_KEY, JSON.stringify(STORED_LIST))
+    await writeLocalStorageFromAnotherTab(STORAGE_KEY, JSON.stringify(V2V_LIST_WITH_VMS))
 
-    expect(result.list).toEqual(STORED_LIST)
+    expect(result.list).toEqual(V2V_LIST_WITH_VMS)
   })
 })
 
@@ -154,7 +155,7 @@ describe('isStoredByNewerVersion', () => {
     expect(mountMigrationList().isStoredByNewerVersion).toBe(true)
   })
 
-  it.each([...NO_LIST_OR_NO_JSON, ['a list of this version is stored', JSON.stringify(STORED_LIST)]])(
+  it.each([...NO_LIST_OR_NO_JSON, ['a list of this version is stored', JSON.stringify(V2V_LIST_WITH_VMS)]])(
     'is false when %s',
     (_, storedValue) => {
       storeValue(storedValue)
@@ -166,7 +167,7 @@ describe('isStoredByNewerVersion', () => {
 
 describe('vmCount', () => {
   it('counts the VMs of the stored list', () => {
-    seedV2vMigrationList(STORED_LIST)
+    seedV2vMigrationList(V2V_LIST_WITH_VMS)
 
     expect(mountMigrationList().vmCount).toBe(2)
   })
@@ -178,13 +179,13 @@ describe('vmCount', () => {
 
 describe('hasVms', () => {
   it('is true once the stored list holds VMs', () => {
-    seedV2vMigrationList(STORED_LIST)
+    seedV2vMigrationList(V2V_LIST_WITH_VMS)
 
     expect(mountMigrationList().hasVms).toBe(true)
   })
 
   it.each([
-    ['the stored list holds no VM', createV2vMigrationList()],
+    ['the stored list holds no VM', V2V_EMPTY_LIST],
     ['no list is stored', undefined],
   ])('is false when %s', (_, list) => {
     if (list !== undefined) {
@@ -201,13 +202,13 @@ describe('saveDefaults', () => {
 
     mountMigrationList().saveDefaults(NEW_DEFAULTS)
 
-    expect(readV2vMigrationListStorage()).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
+    expect(readV2vMigrationListStorage()).toEqual(NEW_DEFAULTS_LIST)
   })
 
   it('keeps the VMs of the stored list', () => {
-    const storedList = readStorageAfter(STORED_LIST, result => result.saveDefaults(NEW_DEFAULTS))
+    const storedList = readStorageAfter(V2V_LIST_WITH_VMS, result => result.saveDefaults(NEW_DEFAULTS))
 
-    expect(storedList).toEqual({ ...STORED_LIST, defaults: NEW_DEFAULTS })
+    expect(storedList).toEqual({ ...V2V_LIST_WITH_VMS, defaults: NEW_DEFAULTS })
   })
 
   itStoresNothingWithoutSourceOrPool(result => result.saveDefaults(NEW_DEFAULTS))
@@ -224,32 +225,29 @@ describe('saveDefaults', () => {
 
     result.saveDefaults(NEW_DEFAULTS)
 
-    expect(result.list).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
+    expect(result.list).toEqual(NEW_DEFAULTS_LIST)
     expect(consoleError).toHaveBeenCalled()
   })
 })
 
 describe('addVms', () => {
   it('persists the VMs', () => {
-    const storedList = readStorageAfter(createV2vMigrationList(), result => result.addVms([FIRST_VM.id, SECOND_VM.id]))
+    const storedList = readStorageAfter(V2V_EMPTY_LIST, result => result.addVms([FIRST_VM.id, SECOND_VM.id]))
 
-    expect(storedList).toEqual(STORED_LIST)
+    expect(storedList).toEqual(V2V_LIST_WITH_VMS)
   })
 
   it('keeps the existing VMs first', () => {
-    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([FOURTH_VM.id, THIRD_VM.id]))
+    const storedList = readStorageAfter(V2V_LIST_WITH_VMS, result => result.addVms([FOURTH_VM.id, THIRD_VM.id]))
 
     expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, FOURTH_VM, THIRD_VM] }))
   })
 
-  it('skips an id already in the list', () => {
-    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([SECOND_VM.id, THIRD_VM.id]))
-
-    expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] }))
-  })
-
-  it('skips an id duplicated in its argument', () => {
-    const storedList = readStorageAfter(STORED_LIST, result => result.addVms([THIRD_VM.id, THIRD_VM.id]))
+  it.each([
+    ['already in the list', [SECOND_VM.id, THIRD_VM.id]],
+    ['duplicated in its argument', [THIRD_VM.id, THIRD_VM.id]],
+  ])('skips an id %s', (_, vmIds) => {
+    const storedList = readStorageAfter(V2V_LIST_WITH_VMS, result => result.addVms(vmIds))
 
     expect(storedList).toEqual(createV2vMigrationList({ vms: [FIRST_VM, SECOND_VM, THIRD_VM] }))
   })
@@ -263,7 +261,7 @@ describe('addVms', () => {
 
 describe('removeVm', () => {
   it('deletes the VM and keeps the others', () => {
-    const storedList = readStorageAfter(STORED_LIST, result => result.removeVm(FIRST_VM.id))
+    const storedList = readStorageAfter(V2V_LIST_WITH_VMS, result => result.removeVm(FIRST_VM.id))
 
     expect(storedList).toEqual(createV2vMigrationList({ vms: [SECOND_VM] }))
   })
@@ -281,7 +279,7 @@ describe('clearVms', () => {
 
     const storedList = readStorageAfter(listWithNewDefaults, result => result.clearVms())
 
-    expect(storedList).toEqual(createV2vMigrationList({ defaults: NEW_DEFAULTS }))
+    expect(storedList).toEqual(NEW_DEFAULTS_LIST)
   })
 
   itStoresNoVmWithoutList(result => result.clearVms())

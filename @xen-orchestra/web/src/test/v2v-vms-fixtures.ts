@@ -1,5 +1,6 @@
 import { ONE_GB } from '@/shared/constants.ts'
 import { createV2vDatastore, createV2vInventory, createV2vVmWithDisks } from '@/test/create-v2v-inventory.ts'
+import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { V2V_VM_POWER_STATE, type XoV2vDatastore, type XoV2vVm } from '@vates/types'
 
 export const V2V_DATASTORE_A = createV2vDatastore({ id: 'datastore-a' as XoV2vDatastore['id'], name: 'ds-a' })
@@ -41,6 +42,8 @@ export const V2V_LISTED_VM = createV2vVmWithDisks([{ datastoreId: V2V_DATASTORE_
   powerState: V2V_VM_POWER_STATE.SUSPENDED,
   datastoreIds: [V2V_DATASTORE_B.id],
 })
+
+export const V2V_LIST_WITH_LISTED_VM = createV2vMigrationList({ vms: [{ id: V2V_LISTED_VM.id }] })
 
 export const V2V_VMS_INVENTORY = createV2vInventory({
   datastores: [V2V_DATASTORE_A, V2V_DATASTORE_B],
