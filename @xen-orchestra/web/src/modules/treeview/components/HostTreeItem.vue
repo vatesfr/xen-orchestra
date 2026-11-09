@@ -1,6 +1,6 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
-    <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :has-children="branch.hasChildren" :node-id="branch.data.id">
+    <UiTreeItemLabel :route="`/host/${branch.data.id}`" icon="object:host" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
         <VtsIcon :name="hostIcon" :tooltip="hostIconTooltip" size="medium" />
@@ -18,13 +18,14 @@
           v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="brand"
-          variant="secondary"
           size="small"
+          variant="secondary"
         />
         <MenuList placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
               :aria-label="t('quick-actions')"
+              :selected="isOpen"
               accent="brand"
               icon="action:more-actions"
               size="small"
