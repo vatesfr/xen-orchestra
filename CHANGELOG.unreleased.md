@@ -14,6 +14,9 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Header] On mobile, the XO 5 link and third party apps are grouped in a "More actions" menu (PR [#10744](https://github.com/vatesfr/xen-orchestra/pull/10744))
+- [Mobile] Menus open in full page, "Change state" and "Manage in XO-5" move into the "More actions" menu of VMs and hosts, and an action closes the side panel or the treeview (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [Side panels] When the actions don't fit anymore, they move one by one into a "More actions" menu (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [VMs/Hosts] Lighter "Change state" button, and "Manage VM lifecycle in XO-5" is renamed "Manage in XO-5" (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
 - [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, report recipients…) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 - [Treeview] A more compact tree, so that names get more room: lower rows running edge to edge and a smaller indent per level; hovering a quick actions button no longer highlights its whole row (PR [#10727](https://github.com/vatesfr/xen-orchestra/pull/10727))
@@ -28,6 +31,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Side panels] Fix the side panel showing up for a moment when switching tabs (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [Menus] Fix menus being shifted from their button and submenus opening on top of their parent menu (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 
