@@ -1,4 +1,5 @@
 import PluginConfigurationDrawer from '@/modules/plugin/components/drawer/PluginConfigurationDrawer.vue'
+import PluginRunError from '@/modules/plugin/components/drawer/PluginRunError.vue'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
@@ -28,9 +29,9 @@ const GMAIL_PRESET = { from: { address: 'xo@gmail.com' }, transport: { host: 'sm
 
 const configuredPlugin = createPlugin({ configurationSchema: SCHEMA, configuration: SAVED_CONFIGURATION })
 
-function mountDrawer(plugin: FrontXoPlugin = configuredPlugin) {
+function mountDrawer(plugin: FrontXoPlugin = configuredPlugin, error?: Error) {
   return mount(PluginConfigurationDrawer, {
-    props: { plugin },
+    props: { plugin, error },
     global: createGlobalTestConfig(),
     attachTo: document.body,
   })
@@ -98,4 +99,17 @@ it('lists the missing fields instead of confirming', async () => {
 
   expect(wrapper.emitted('confirm')).toBeUndefined()
   expect(wrapper.getComponent(VtsFormErrorSummary).props('errors')).toHaveLength(2)
+})
+
+it('shows no run error before a run failed', () => {
+  expect(mountDrawer().findComponent(PluginRunError).exists()).toBe(false)
+})
+
+it('shows the error of the failed run', () => {
+  const error = new Error('SMTP connection refused')
+
+  expect(mountDrawer(undefined, error).getComponent(PluginRunError).props()).toEqual({
+    title: t('plugin:configure-error'),
+    error,
+  })
 })

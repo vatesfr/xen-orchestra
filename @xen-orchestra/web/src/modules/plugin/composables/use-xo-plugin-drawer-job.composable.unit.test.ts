@@ -52,6 +52,10 @@ function getOverlayOptions(): OverlayOptions {
   return useOverlayMock.mock.calls[0][0]
 }
 
+function getDrawerProps(): { plugin: FrontXoPlugin; error?: Error } {
+  return open.mock.lastCall![0].props
+}
+
 function getJobArgs() {
   const [plugin, payload] = useJob.mock.calls[0] as [Ref<FrontXoPlugin>, Ref<unknown>]
 
@@ -114,5 +118,37 @@ describe('onConfirm', () => {
     const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
 
     expect(response).toBe(KEEP_OVERLAY_OPEN)
+  })
+
+  it('gives the error of the failed job to the drawer', async () => {
+    const error = new Error('SMTP connection refused')
+    run.mockRejectedValue(error)
+    mountDrawerJob().openDrawer()
+
+    await getOverlayOptions().events.onConfirm(PAYLOAD)
+
+    expect(getDrawerProps().error).toBe(error)
+  })
+
+  it('clears the error when the job is run again', async () => {
+    run.mockRejectedValueOnce(new Error('SMTP connection refused'))
+    mountDrawerJob().openDrawer()
+    await getOverlayOptions().events.onConfirm(PAYLOAD)
+
+    run.mockImplementationOnce(async () => expect(getDrawerProps().error).toBeUndefined())
+    await getOverlayOptions().events.onConfirm(PAYLOAD)
+
+    expect(run).toHaveBeenCalledTimes(2)
+  })
+
+  it('clears the error when the drawer is opened again', async () => {
+    run.mockRejectedValue(new Error('SMTP connection refused'))
+    const drawerJob = mountDrawerJob()
+    drawerJob.openDrawer()
+    await getOverlayOptions().events.onConfirm(PAYLOAD)
+
+    drawerJob.openDrawer()
+
+    expect(getDrawerProps().error).toBeUndefined()
   })
 })
