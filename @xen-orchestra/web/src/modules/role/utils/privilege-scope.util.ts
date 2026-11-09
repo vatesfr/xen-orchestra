@@ -52,7 +52,7 @@ const RESOURCES_WITHOUT_MANUAL_SELECTION: PrivilegeResource[] = [
   'vif',
 ]
 
-export function getAvailablePrivilegeScopeTypes(resource: PrivilegeResource | undefined): PrivilegeScopeType[] {
+export function getAvailablePrivilegeScopeTypes(resource: string | undefined): PrivilegeScopeType[] {
   if (resource === undefined || !isSelectablePrivilegeResource(resource)) {
     return ['all-objects']
   }
@@ -64,10 +64,7 @@ export function getAvailablePrivilegeScopeTypes(resource: PrivilegeResource | un
   return [...PRIVILEGE_SCOPE_TYPES]
 }
 
-export function getPrivilegeScopeType(
-  resource: PrivilegeResource | undefined,
-  selector: string | undefined
-): PrivilegeScopeType {
+export function getPrivilegeScopeType(resource: string | undefined, selector: string | undefined): PrivilegeScopeType {
   if (selector === undefined) {
     return 'all-objects'
   }
