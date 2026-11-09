@@ -54,6 +54,8 @@ const UNKNOWN_POOL_ID = 'pool-unknown' as FrontXoPool['id']
 
 const DEFAULTS = createV2vDestinationDefaults({ sr: POOL.default_SR })
 
+const LIST_WITH_VMS = createV2vMigrationList({ vms: createV2vMigrationListVms(4) })
+
 async function mountDestinationStep(query: Record<string, string> = {}) {
   seedV2vDestinationPools([{ pool: POOL, managementNetworkId: DEFAULTS.network }])
   const router = await createV2vWizardRouter('destination', query)
@@ -129,11 +131,15 @@ describe('form', () => {
 
 describe('existingList', () => {
   it('is the source, the pool and the VM count of the list stored for the chosen pool', async () => {
-    seedV2vMigrationList(createV2vMigrationList({ vms: createV2vMigrationListVms(4) }))
+    seedV2vMigrationList(LIST_WITH_VMS)
 
     const { result } = await mountDestinationStep({ pool: POOL.id })
 
-    expect(result.existingList).toEqual({ sourceHost: CONNECTION.host, poolName: POOL.name_label, vmCount: 4 })
+    expect(result.existingList).toEqual({
+      sourceHost: CONNECTION.host,
+      poolName: POOL.name_label,
+      vmCount: LIST_WITH_VMS.vms.length,
+    })
   })
 
   it.each([
@@ -150,7 +156,7 @@ describe('existingList', () => {
   })
 
   it('is undefined while the chosen pool is missing from the pools', async () => {
-    seedV2vMigrationList(createV2vMigrationList({ vms: createV2vMigrationListVms(4) }))
+    seedV2vMigrationList(LIST_WITH_VMS)
     const { result } = await mountDestinationStep({ pool: POOL.id })
 
     xoCollectionsMock.pools.value = []
@@ -160,7 +166,7 @@ describe('existingList', () => {
   })
 
   it('is undefined until a pool is chosen', async () => {
-    seedV2vMigrationList(createV2vMigrationList({ vms: createV2vMigrationListVms(4) }))
+    seedV2vMigrationList(LIST_WITH_VMS)
 
     const { result } = await mountDestinationStep()
 
