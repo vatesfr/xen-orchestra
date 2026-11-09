@@ -3,7 +3,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { isSrWritable, isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { V2vDestinationDefaults, V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { countBy } from 'lodash-es'
@@ -34,7 +34,7 @@ export function getV2vPoolDestinationChoices(
   const isInPool = ({ $pool }: { $pool: FrontXoPool['id'] }) => poolId !== undefined && $pool === poolId
 
   return {
-    srs: resources.srs.filter(sr => isInPool(sr) && isSrWritable(sr)),
+    srs: resources.srs.filter(sr => isWritableSrOfPool(sr, poolId)),
     networks: resources.networks.filter(isInPool),
     templates: resources.templates.filter(isInPool),
   }
@@ -72,10 +72,10 @@ export function getV2vDestinationPrefill(
     return storedList.defaults
   }
 
-  const defaultSr = srs.find(sr => sr.id === pool.default_SR && sr.$pool === pool.id)
+  const defaultSr = srs.find(sr => sr.id === pool.default_SR && isWritableSrOfPool(sr, pool.id))
 
   return {
-    sr: defaultSr !== undefined && isSrWritable(defaultSr) ? defaultSr.id : undefined,
+    sr: defaultSr?.id,
     network: getV2vPoolManagementNetworkId(pool, pifs),
     template: undefined,
   }

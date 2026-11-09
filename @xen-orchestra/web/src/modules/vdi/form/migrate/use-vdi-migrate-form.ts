@@ -5,7 +5,7 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { objectIcon } from '@core/icons'
@@ -46,7 +46,7 @@ export function useVdiMigrateForm(rawVdi: MaybeRefOrGetter<FrontXoVdi>) {
   const { pbdsBySr } = useXoPbdCollection()
 
   const availableSrs = computed(() =>
-    srs.value.filter(sr => sr.$pool === vdi.value.$pool && sr.id !== vdi.value.$SR && isSrWritable(sr))
+    srs.value.filter(sr => sr.id !== vdi.value.$SR && isWritableSrOfPool(sr, vdi.value.$pool))
   )
 
   const currentSr = useGetSrById(() => vdi.value.$SR)

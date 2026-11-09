@@ -10,7 +10,7 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
@@ -61,7 +61,7 @@ export function useVmMigrateMappingForm(
   }
 
   const availableSrs = computed(() =>
-    srs.value.filter(sr => sr.$pool === targetPoolId.value && isSrWritable(sr) && isSrConnectedToTargetHost(sr.id))
+    srs.value.filter(sr => isWritableSrOfPool(sr, targetPoolId.value) && isSrConnectedToTargetHost(sr.id))
   )
 
   const targetHostNetworkIds = computed(() => {
