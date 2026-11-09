@@ -252,6 +252,28 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
+    '/network/[id]': RouteRecordInfo<
+      '/network/[id]',
+      '/network/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/network/[id]/general'
+      | '/network/[id]/pifs'
+    >,
+    '/network/[id]/general': RouteRecordInfo<
+      '/network/[id]/general',
+      '/network/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/network/[id]/pifs': RouteRecordInfo<
+      '/network/[id]/pifs',
+      '/network/:id/pifs',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/network/new': RouteRecordInfo<
       '/network/new',
       '/network/new',
@@ -734,6 +756,26 @@ declare module 'vue-router/auto-routes' {
     'src/pages/host/[id]/vms.vue': {
       routes:
         | '/host/[id]/vms'
+      views:
+        | never
+    }
+    'src/pages/network/[id].vue': {
+      routes:
+        | '/network/[id]'
+        | '/network/[id]/general'
+        | '/network/[id]/pifs'
+      views:
+        | 'default'
+    }
+    'src/pages/network/[id]/general.vue': {
+      routes:
+        | '/network/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/network/[id]/pifs.vue': {
+      routes:
+        | '/network/[id]/pifs'
       views:
         | never
     }
