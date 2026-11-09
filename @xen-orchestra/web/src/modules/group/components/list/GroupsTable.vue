@@ -65,7 +65,12 @@ const { pageRecords: paginatedGroups, paginationBindings } = usePagination('grou
 const { HeadCells, BodyCells } = useGroupColumns({
   exclude: ['checkbox', 'actions'],
   body: (group: FilterableGroup) => ({
-    name: r => r(group.name),
+    name: r =>
+      r({
+        label: group.name,
+        icon: 'table:group',
+        to: { name: '/admin/group/[id]/general', params: { id: group.id } },
+      }),
     provider: r => r(group.provider),
     users: r => r(group.usersCount),
     roles: r => r(group.rolesCount),
