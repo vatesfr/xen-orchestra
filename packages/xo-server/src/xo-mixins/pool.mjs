@@ -99,14 +99,15 @@ export default class Pools {
    * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
    *
    * @param {object} pool - XO pool object
+   * @param {object[]} schedules - all the backup schedules (`getAllSchedules`), the caller already reads them
    * @param {object} [opts]
    * @param {boolean} [opts.acceptOperatorChanges] - take what an operator changed since the run as the new baseline
    * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did, the
    *   settings they left changed included (see `planRpuResume`), and the operator changes accepted
    */
-  async resumeRpuRecoveryRun(pool, { acceptOperatorChanges = false } = {}) {
+  async resumeRpuRecoveryRun(pool, schedules, { acceptOperatorChanges = false } = {}) {
     const xapi = this._app.getXapi(pool)
-    const scheduleById = keyBy(await this._app.getAllSchedules(), 'id')
+    const scheduleById = keyBy(schedules, 'id')
     const { recorder, record, plan, acceptedOperatorChanges } = await resumeRpuRecoveryRunInStore({
       store: this._rpuRecoveryStore,
       poolId: pool.id,

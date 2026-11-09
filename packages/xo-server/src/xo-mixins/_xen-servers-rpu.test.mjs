@@ -119,8 +119,8 @@ function createXenServers({
       }
       return makeRecorder()
     },
-    async resumeRpuRecoveryRun({ id }, opts) {
-      calls.push(['resumeRpuRecoveryRun', id, opts])
+    async resumeRpuRecoveryRun({ id }, schedules, opts) {
+      calls.push(['resumeRpuRecoveryRun', id, schedules, opts])
       if (operatorChanges !== undefined) {
         throw incorrectState({ actual: operatorChanges, expected: [], object: id, property: 'operatorChanges' })
       }
@@ -381,7 +381,7 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
       ['getAllJobs'],
-      ['resumeRpuRecoveryRun', 'pool-1', { acceptOperatorChanges: false }],
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false }],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
       [
         'xapi.rollingPoolUpdate resume',
@@ -413,7 +413,7 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     await xenServers.resumeRollingPoolUpdate(pool, { acceptOperatorChanges: true })
     assert.deepEqual(
       calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
-      ['resumeRpuRecoveryRun', 'pool-1', { acceptOperatorChanges: true }]
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: true }]
     )
     assert.deepEqual(taskProperties[0].acceptedOperatorChanges, changes)
   })

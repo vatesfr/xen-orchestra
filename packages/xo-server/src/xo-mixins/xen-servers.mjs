@@ -1103,7 +1103,7 @@ export default class XenServers {
 
     let resumed
     try {
-      resumed = await app.resumeRpuRecoveryRun(pool, { acceptOperatorChanges })
+      resumed = await app.resumeRpuRecoveryRun(pool, schedules, { acceptOperatorChanges })
     } catch (error) {
       if (incorrectState.is(error, { property: 'operatorChanges' })) {
         // the caller needs this error to offer the acknowledgement
