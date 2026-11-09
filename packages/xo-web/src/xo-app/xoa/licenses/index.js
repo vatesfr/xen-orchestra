@@ -313,6 +313,8 @@ export default class Licenses extends Component {
 
   render() {
     const { isAirgap } = this.state
+    // always displayed, whatever the registration and airgap
+    // states so that a data pack can always be imported.
     const airgapDataPack = (
       <Row className='mt-3'>
         <Col>
@@ -344,7 +346,7 @@ export default class Licenses extends Component {
       return (
         <Container>
           <span className='text-danger'>{_('getLicensesError')}</span>
-          {isAirgap && airgapDataPack}
+          {airgapDataPack}
         </Container>
       )
     }
@@ -403,7 +405,7 @@ export default class Licenses extends Component {
             </Link>
           </Col>
         </Row>
-        {isAirgap && airgapDataPack}
+        {airgapDataPack}
       </Container>
     )
   }
