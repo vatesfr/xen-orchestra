@@ -203,6 +203,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
   @Response(invalidParameters.status, invalidParameters.description)
   async updateBackupJob(@Path() id: string, @Body() body: UpdateBackupJobBody): Promise<void> {
     const job = await this.getObject(id as AnyXoBackupJob['id'])
+    this.#backupJobService.assertJobHasValidExpressions(job.type, body)
     await this.restApi.xoApp.updateJob({ ...body, id: job.id })
   }
 
