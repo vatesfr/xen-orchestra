@@ -706,7 +706,6 @@
   "mac-address": "عنوان MAC",
   "mac-addresses": "عناوين MAC",
   "manage-citrix-pv-drivers-via-windows-update": "إدارة برامج تشغيل citrix PV عبر Windows Update",
-  "manage-vm-lifecycle-in-xo-5": "إدارة دورة حياة VM في XO-5",
   "management": "الإدارة",
   "management-agent-not-detected": "لم يتم اكتشاف وكيل الإدارة",
   "management-agent-version": "إصدار وكيل الإدارة",

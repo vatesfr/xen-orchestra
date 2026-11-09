@@ -20,28 +20,15 @@
       </UiLink>
       <MenuList v-if="!uiStore.isSmall" placement="bottom-end">
         <template #trigger="{ open }">
-          <UiDropdownButton size="medium" variant="primary" @click="open($event)">
+          <UiDropdownButton variant="secondary" size="medium" icon="action:change-state" @click="open($event)">
             {{ t('action:change-state') }}
           </UiDropdownButton>
         </template>
         <HostPowerStateActions :host />
       </MenuList>
-
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: t('more-actions'),
-            }"
-            icon="action:more-actions"
-            accent="brand"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
-        <HostMoreActions :host />
-      </MenuList>
+      <VtsActionsMenu :label="t('more-actions')" size="medium">
+        <HostMoreActions :host :show-change-state-button="uiStore.isSmall" />
+      </VtsActionsMenu>
     </template>
   </UiHeadBar>
   <TabList>
@@ -97,8 +84,8 @@ import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

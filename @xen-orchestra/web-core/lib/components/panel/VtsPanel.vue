@@ -7,12 +7,9 @@
         <template v-if="slots.actions">
           <slot name="actions" />
         </template>
-        <MenuList v-if="slots['more-actions']" placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon icon="action:more-actions" accent="brand" size="medium" @click="open($event)" />
-          </template>
+        <VtsActionsMenu v-if="slots['more-actions']" :label="t('more-actions')" size="medium">
           <slot name="more-actions" />
-        </MenuList>
+        </VtsActionsMenu>
       </div>
       <div v-if="slots['corner-actions'] || closable" class="corner-actions">
         <slot v-if="slots['corner-actions']" name="corner-actions" />
@@ -32,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

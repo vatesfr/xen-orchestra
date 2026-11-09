@@ -1,7 +1,7 @@
 <template>
   <UiTableActions :title="t('table-actions')">
     <template v-for="(action, index) of resolvedActions" :key="index">
-      <MenuList v-if="action.children" placement="bottom-start">
+      <VtsResponsiveMenu v-if="action.children" :title="action.label" placement="bottom-start">
         <template #trigger="{ open }">
           <UiButton
             v-tooltip="action.hint"
@@ -28,7 +28,7 @@
           {{ child.label }}
           <i v-if="child.hint" class="em-dash-prefix">{{ child.hint }}</i>
         </MenuItem>
-      </MenuList>
+      </VtsResponsiveMenu>
       <UiButton
         v-else
         v-tooltip="action.hint"
@@ -48,8 +48,8 @@
 
 <script setup lang="ts">
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiButton, { type ButtonAccent } from '@core/components/ui/button/UiButton.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

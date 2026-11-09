@@ -50,7 +50,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { PANEL_TRANSITION_DURATION, usePanelStore } from '@core/stores/panel.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { IK_INFO_SIZE } from '@core/utils/injection-keys.util.ts'
+import { IK_INFO_SIZE, IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys.util.ts'
 import { computed, provide, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,6 +81,12 @@ const transform = computed(() => `translateX(${panelStore.cssHorizontalOffset})`
 const transformTransition = `transform ${PANEL_TRANSITION_DURATION}ms`
 
 provide(IK_INFO_SIZE, 'small')
+
+provide(IK_MENU_ACTION_HANDLER, () => {
+  if (uiStore.isSmall) {
+    handleClose()
+  }
+})
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
