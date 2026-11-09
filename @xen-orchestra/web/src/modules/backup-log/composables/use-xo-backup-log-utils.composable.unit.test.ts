@@ -33,22 +33,22 @@ describe('getBackupLogDate', () => {
 })
 
 describe('getBackupLogDuration', () => {
-  it('formats the time between the start and the end of the log as hours, minutes and seconds', () => {
+  it('formats the time between the start and the end as hours, minutes and seconds', () => {
     const { getBackupLogDuration } = mountBackupLogsUtils()
 
-    expect(getBackupLogDuration(createBackupLog({ start: 0, end: 3_723_000 }))).toBe('01:02:03')
+    expect(getBackupLogDuration(0, 3_723_000)).toBe('01:02:03')
   })
 
-  it('returns undefined for a log that has not ended', () => {
+  it('returns undefined without an end', () => {
     const { getBackupLogDuration } = mountBackupLogsUtils()
 
-    expect(getBackupLogDuration(createBackupLog({ end: undefined }))).toBeUndefined()
+    expect(getBackupLogDuration(0, undefined)).toBeUndefined()
   })
 
-  it('returns undefined for a log ending before it starts', () => {
+  it('returns undefined for an end before the start', () => {
     const { getBackupLogDuration } = mountBackupLogsUtils()
 
-    expect(getBackupLogDuration(createBackupLog({ start: 2_000, end: 1_000 }))).toBeUndefined()
+    expect(getBackupLogDuration(2_000, 1_000)).toBeUndefined()
   })
 })
 
