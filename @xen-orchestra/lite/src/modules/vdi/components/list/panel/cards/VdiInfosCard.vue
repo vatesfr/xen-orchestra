@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard>
     <UiPanelCardTitle :id="vdi.uuid" size="medium" :label="vdi.name_label" :icon="vdiIcon" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
@@ -36,7 +36,7 @@
           <VtsCopyButton :value="vbd.device" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -45,6 +45,7 @@ import type { XenApiVbd, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -79,13 +80,3 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 </script>
-
-<style scoped lang="postcss">
-.card-container {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

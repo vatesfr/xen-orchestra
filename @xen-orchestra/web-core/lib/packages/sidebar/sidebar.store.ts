@@ -1,5 +1,5 @@
+import { useResizableWidth } from '@core/composables/resizable-width.composable.ts'
 import { SIDEBAR_DEFAULTS, type SidebarSide } from '@core/packages/sidebar/types.ts'
-import { useSidebarResize } from '@core/packages/sidebar/use-sidebar-resize.ts'
 import { useSidebarResponsiveExpand } from '@core/packages/sidebar/use-sidebar-responsive-expand.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useLocalStorage, useToggle } from '@vueuse/core'
@@ -13,15 +13,14 @@ function createSidebar(side: SidebarSide) {
 
   const isExpanded = useLocalStorage(`${prefix}.expanded`, defaults.isExpanded)
   const isLocked = useLocalStorage(`${prefix}.locked`, defaults.isLocked)
-  const width = useLocalStorage(`${prefix}.width`, defaults.width)
 
   const toggleExpand = useToggle(isExpanded)
   const toggleLock = useToggle(isLocked)
-  const { startResize, isResizing } = useSidebarResize(side, width)
+  const resizableWidth = useResizableWidth(side, `${prefix}.custom-width`)
 
   useSidebarResponsiveExpand(isExpanded)
 
-  const cssWidth = computed(() => (uiStore.isSmall ? '100%' : `${width.value}px`))
+  const cssWidth = computed(() => (uiStore.isSmall ? '100%' : `${resizableWidth.width.value}px`))
 
   const cssLockedOffset = computed(() => (isExpanded.value ? '0' : `-${cssWidth.value}`))
 
@@ -36,14 +35,12 @@ function createSidebar(side: SidebarSide) {
   return {
     isExpanded,
     isLocked,
-    width,
     toggleExpand,
     toggleLock,
-    startResize,
-    isResizing,
     cssWidth,
     cssLockedOffset,
     cssUnlockedOffset,
+    ...resizableWidth,
   }
 }
 

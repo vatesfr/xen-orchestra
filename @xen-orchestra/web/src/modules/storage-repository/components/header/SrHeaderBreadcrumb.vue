@@ -1,7 +1,7 @@
 <template>
   <div v-if="parent" class="sr-header-breadcrumb">
     <UiBreadcrumb :size>
-      <UiLink :size :to="parent.dashboardTo" :icon="parent.icon">
+      <UiLink :size :to="parent.dashboardTo" :icon="parent.icon" :icon-tooltip="parent.iconTooltip">
         {{ parent.label }}
       </UiLink>
       <UiLink :size :to="parent.storageTo">
@@ -16,6 +16,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
@@ -34,6 +35,7 @@ import type { RouteLocationRaw } from 'vue-router'
 
 type SrBreadcrumbParent = {
   icon: IconName
+  iconTooltip?: string
   label: string
   dashboardTo: RouteLocationRaw
   storageTo: RouteLocationRaw
@@ -46,6 +48,7 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { useGetHostById } = useXoHostCollection()
+const { getHostIconTooltip } = useXoHostOperationLabel()
 const { useGetPoolById } = useXoPoolCollection()
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
@@ -66,6 +69,7 @@ const parent = computed<SrBreadcrumbParent | undefined>(() => {
 
     return {
       icon: getHostIcon(scopedHost),
+      iconTooltip: getHostIconTooltip(scopedHost),
       label: scopedHost.name_label,
       dashboardTo: { name: '/host/[id]/dashboard', params: { id: scopedHost.id } },
       storageTo: { name: '/host/[id]/storage', params: { id: scopedHost.id } },

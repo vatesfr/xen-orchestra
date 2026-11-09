@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="host-network-card">
+  <UiPanelCard>
     <UiPanelCardTitle :label="t('network')" size="medium" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('management-ip') }}</template>
         <template #value>{{ host.address }}</template>
@@ -9,37 +9,13 @@
           <VtsCopyButton :value="host.address" />
         </template>
       </VtsCardRowKeyValue>
-      <template v-if="ipV4Addresses.length > 0">
-        <VtsCardRowKeyValue v-for="(ip, index) in ipV4Addresses" :key="ip">
-          <template #key>
-            <div v-if="index === 0">{{ t('ipv4-addresses') }}</div>
-          </template>
-          <template #value>{{ ip }}</template>
-          <template #addons>
-            <VtsCopyButton :value="ip" />
-            <VtsCopyAllMenuItem v-if="index === 0 && ipV4Addresses.length > 1" :values="ipV4Addresses" />
-          </template>
-        </VtsCardRowKeyValue>
-      </template>
-      <VtsCardRowKeyValue v-else>
+      <VtsCardRowKeyValue :values="ipV4Addresses">
         <template #key>{{ t('ipv4-addresses') }}</template>
       </VtsCardRowKeyValue>
-      <template v-if="ipV6Addresses.length > 0">
-        <VtsCardRowKeyValue v-for="(ip, index) in ipV6Addresses" :key="ip">
-          <template #key>
-            <div v-if="index === 0">{{ t('ipv6-addresses') }}</div>
-          </template>
-          <template #value>{{ ip }}</template>
-          <template #addons>
-            <VtsCopyButton :value="ip" />
-            <VtsCopyAllMenuItem v-if="index === 0 && ipV6Addresses.length > 1" :values="ipV6Addresses" />
-          </template>
-        </VtsCardRowKeyValue>
-      </template>
-      <VtsCardRowKeyValue v-else>
+      <VtsCardRowKeyValue :values="ipV6Addresses">
         <template #key>{{ t('ipv6-addresses') }}</template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -47,7 +23,7 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -66,13 +42,3 @@ const pifs = computed(() => pifsByHost.value.get(host.$ref))
 const ipV4Addresses = computed(() => pifs.value?.map(pif => pif.IP).filter(ip => ip) ?? [])
 const ipV6Addresses = computed(() => pifs.value?.flatMap(pif => pif.IPv6.filter(ip => ip)) ?? [])
 </script>
-
-<style lang="postcss" scoped>
-.host-network-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

@@ -2,7 +2,7 @@
   <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
       <div v-if="pifHost" class="host">
-        <VtsObjectIcon :state="pifHost.state" type="host" size="small" />
+        <VtsIcon :name="pifHost.icon" :tooltip="pifHost.iconTooltip" size="medium" />
         <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
@@ -22,11 +22,12 @@
 </template>
 
 <script setup lang="ts">
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -42,6 +43,8 @@ const { t } = useI18n()
 
 const { getHostById } = useXoHostCollection()
 
+const { getHostIconTooltip } = useXoHostOperationLabel()
+
 const router = useRouter()
 
 const status = computed(() => getPifStatus(pif))
@@ -55,7 +58,8 @@ const pifHost = computed(() => {
 
   return {
     label: host.name_label,
-    state: getHostState(host),
+    icon: getHostIcon(host),
+    iconTooltip: getHostIconTooltip(host),
     redirect() {
       router.push({
         name: '/host/[id]/networks',

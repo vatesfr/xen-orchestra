@@ -12,6 +12,8 @@ export type Identifiable = { id: TreeNodeId }
 
 export type Labeled = { label: string }
 
+export const TREE_ITEM_SMALL_HEIGHT = 32
+
 type AcceptableKeys<TData, TAccepted> = {
   [K in keyof TData]: TData[K] extends TAccepted ? K : never
 }[keyof TData]

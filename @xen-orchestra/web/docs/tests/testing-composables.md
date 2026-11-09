@@ -17,7 +17,7 @@ expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:running'))
 
 The composable result becomes the component state, so `wrapper.vm` exposes it with refs **already unwrapped** — no `.value`. Read through `wrapper.vm` rather than destructuring it: a destructured value is a snapshot and stops following updates.
 
-Because the real i18n instance is installed, translations resolve to actual strings. Return `t` from the `setup` callback so the assertion can build its expected label with it instead of hard-coding the wording — see [Assert behaviour](./assert-behaviour.md).
+Because the real i18n instance is installed, translations resolve to actual strings. Return `t` from the `setup` callback so the assertion can build its expected label with it instead of hard-coding the wording — see [Assert behavior](./assert-behavior.md).
 
 The wrapper is unmounted after the test, so `onUnmounted` and `onScopeDispose` cleanup runs and no watcher of a previous test can re-fire in the next one.
 
@@ -57,6 +57,6 @@ expect(wrapper.vm.relativeStartTime).toBe(wrapper.vm.expectedRelativeTime)
 
 Note the object literal: `setup()` returns the component **bindings**, so the callback must hand back an object. A lone ref is not component state and would not surface on `wrapper.vm`. Anything the assertion needs — the `t`, a `locale`, an expected value — is returned alongside, which is why the callback body is a block rather than a bare object.
 
-The expected value is **derived the way production derives it** ([Assert behaviour](./assert-behaviour.md)): `getRelativeTime` owns the wording, and what the composable decides is which date to hand it. `expect(typeof …).toBe('string')` would pass for any string, including one built from a start time read as milliseconds instead of seconds — it asserts the type, not the behaviour. Where a value is environment-dependent, name the helper production uses and call it with the same input; never assert merely that the value is non-empty or differs from some other label.
+The expected value is **derived the way production derives it** ([Assert behavior](./assert-behavior.md)): `getRelativeTime` owns the wording, and what the composable decides is which date to hand it. `expect(typeof …).toBe('string')` would pass for any string, including one built from a start time read as milliseconds instead of seconds — it asserts the type, not the behavior. Where a value is environment-dependent, name the helper production uses and call it with the same input; never assert merely that the value is non-empty or differs from some other label.
 
 Functions that only touch refs/computed (e.g. `getPowerState`) can be called on the returned object as usual.

@@ -1,7 +1,7 @@
 <!-- v6 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" :busy :busy-tooltip size="medium" />
+    <VtsIcon :name="icon" :tooltip="iconTooltip" :busy :busy-tooltip size="medium" />
     <slot />
     <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" class="external-icon" />
     <VtsIcon v-if="isPrimary" v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
@@ -19,6 +19,7 @@ const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
     icon?: IconName
+    iconTooltip?: string
     busy?: boolean
     busyTooltip?: string
     isPrimary?: boolean

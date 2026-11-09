@@ -1,9 +1,9 @@
 <template>
-  <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id" :has-children="branch.hasChildren">
-    <UiTreeItemLabel icon="object:host" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
+  <VtsTreeItem :expanded="!branch.isCollapsed" :has-children="branch.hasChildren" :node-id="branch.data.id">
+    <UiTreeItemLabel :route="`/host/${branch.data.id}`" icon="object:host" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
-        <VtsObjectIcon v-tooltip="hostState" type="host" size="medium" :state="hostState" />
+        <VtsIcon :name="hostIcon" :tooltip="hostIconTooltip" size="medium" />
       </template>
       <template #addons>
         <UiLoader
@@ -18,16 +18,17 @@
           v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="brand"
-          variant="secondary"
           size="small"
+          variant="secondary"
         />
         <MenuList placement="bottom-start">
           <template #trigger="{ open, isOpen }">
             <UiButtonIcon
+              :aria-label="t('quick-actions')"
+              :selected="isOpen"
               accent="brand"
               icon="action:more-actions"
               size="small"
-              :selected="isOpen"
               @click="open($event)"
             />
           </template>
@@ -42,12 +43,11 @@
 import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
+import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -66,10 +66,12 @@ const { t } = useI18n()
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
 
-const { isChangingState, currentOperation } = useXoHostUtils(() => branch.data)
+const { getHostStateDisplay, isChangingState, currentOperation, iconTooltip } = useXoHostUtils(() => branch.data)
 
 const isMaster = computed(() => isMasterHost(branch.data.id))
-const hostState = computed(() => getHostState(branch.data))
+const hostIcon = computed(() => getHostIcon(branch.data))
+
+const hostIconTooltip = computed(() => iconTooltip.value || getHostStateDisplay(getHostState(branch.data)).text)
 
 const runningVmsCount = computed(() => runningVmsCountByContainer.value.get(branch.data.id) ?? 0)
 </script>

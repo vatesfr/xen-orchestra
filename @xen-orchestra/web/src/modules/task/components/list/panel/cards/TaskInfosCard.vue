@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard class="task-infos-card">
     <UiPanelCardTitle size="medium" :label="t('info')" :counter="{ value: task.infos?.length ?? 0, accent: 'info' }" />
-    <div class="content">
+    <VtsCardRowList class="content">
       <template v-for="(info, index) in task.infos" :key="index">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
@@ -12,13 +12,14 @@
           </template>
         </VtsCardRowKeyValue>
       </template>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -35,10 +36,6 @@ const { t } = useI18n()
 <style scoped lang="postcss">
 .task-infos-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .divider {
       margin-block: 1.6rem;
     }

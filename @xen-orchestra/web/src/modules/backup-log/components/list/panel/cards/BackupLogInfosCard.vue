@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-log-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-run" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
         <template #value>{{ formattedStartDate }}</template>
@@ -17,7 +17,7 @@
         </template>
       </VtsCardRowKeyValue>
       <template v-if="vms.length > 0">
-        <VtsCardRowKeyValue v-for="({ id, vm, icon }, index) in vms" :key="id">
+        <VtsCardRowKeyValue v-for="({ id, vm, icon, iconTooltip }, index) in vms" :key="id">
           <template #key>
             <template v-if="index === 0">{{ t('vm') }}</template>
           </template>
@@ -26,6 +26,7 @@
               v-if="vm !== undefined"
               size="small"
               :icon
+              :icon-tooltip
               :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
             >
               {{ vm.name_label }}
@@ -85,7 +86,7 @@
           <VtsStatus :status="backupLog.status" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -96,17 +97,18 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { objectIcon } from '@core/icons'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -121,6 +123,8 @@ const { buildXo5Route } = useXoRoutes()
 const { useGetBackupJobById } = useXoBackupJobCollection()
 
 const { getVmById } = useXoVmCollection()
+
+const { getVmIconTooltip } = useXoVmOperationLabel()
 
 const { getSrById } = useXoSrCollection()
 
@@ -144,7 +148,7 @@ const vms = computed(() =>
   getBackupLogVmIds(backupLog).map(id => {
     const vm = getVmById(id)
 
-    return { id, vm, icon: vm !== undefined ? objectIcon('vm', toLower(vm.power_state)) : undefined }
+    return { id, vm, icon: vm !== undefined ? getVmIcon(vm) : undefined, iconTooltip: getVmIconTooltip(vm) }
   })
 )
 
@@ -156,13 +160,3 @@ const srs = computed(() =>
   })
 )
 </script>
-
-<style scoped lang="postcss">
-.backup-log-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

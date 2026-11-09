@@ -9,13 +9,13 @@
       <template v-if="nameParts" #label>
         <span>
           <template v-for="(part, index) in nameParts" :key="index">
-            <UiLink v-if="part.to !== undefined" size="medium" :to="part.to">{{ part.text }}</UiLink>
+            <UiLink v-if="part.to !== undefined" size="small" :to="part.to">{{ part.text }}</UiLink>
             <template v-else>{{ part.text }}</template>
           </template>
         </span>
       </template>
     </UiPanelCardTitle>
-    <div class="content">
+    <VtsCardRowList class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('task-type') }}</template>
         <template #value>
@@ -66,7 +66,7 @@
           <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -76,6 +76,7 @@ import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-co
 import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
@@ -146,10 +147,6 @@ const formattedEndDate = computed(() => {
 <style scoped lang="postcss">
 .task-quick-infos-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .user {
       display: flex;
       align-items: center;
