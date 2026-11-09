@@ -30,7 +30,7 @@
             v-if="formData.scope.scopeType === 'manual-selection' && selectableResource !== undefined"
             class="selector"
           >
-            <PrivilegeScopeManualSelection
+            <PrivilegeScopeResourceTable
               v-model:selected-ids="formData.scope.selectedIds"
               :resource="selectableResource"
             />
@@ -132,9 +132,9 @@
 </template>
 
 <script lang="ts" setup>
-import PrivilegeScopeManualSelection from '@/modules/role/components/drawer/scope/PrivilegeScopeManualSelection.vue'
 import PrivilegeScopeObjectsList from '@/modules/role/components/drawer/scope/PrivilegeScopeObjectsList.vue'
 import PrivilegeScopePreviewTable from '@/modules/role/components/drawer/scope/PrivilegeScopePreviewTable.vue'
+import PrivilegeScopeResourceTable from '@/modules/role/components/drawer/scope/PrivilegeScopeResourceTable.vue'
 import RoleFormSelect from '@/modules/role/components/form/inputs/RoleFormSelect.vue'
 import { usePrivilegeScopeTypeLabels } from '@/modules/role/composables/use-privilege-scope-type-labels.composable.ts'
 import { useNewPrivilegeForm } from '@/modules/role/form/new-privilege/use-new-privilege-form.ts'
