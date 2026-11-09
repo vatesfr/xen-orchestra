@@ -2,7 +2,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createNetwork } from '@/test/create-network.ts'
-import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
+import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
@@ -19,11 +19,9 @@ import {
   V2V_POOL_OFFERS,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 import type { Router } from 'vue-router'
-
-/** The pool of the stored list, offering the mapping fixtures. */
-export const V2V_VM_MAPPING_POOL = createPool()
 
 /** The overrides of the mapped VM in the list: on its data disk and on its VLAN NIC. */
 export const V2V_LIST_VM_OVERRIDES = { disks: V2V_DISK_OVERRIDES, nics: V2V_NIC_OVERRIDES }
@@ -47,14 +45,14 @@ export const V2V_OTHER_LIST_VM = createV2vMigrationListVm({
 
 // Stores the list holding `listVm`, on a pool offering the mapping fixtures (another pool offers one target of each kind)
 function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
-  xoCollectionsMock.pools.value = [V2V_VM_MAPPING_POOL]
+  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
   xoCollectionsMock.seedChoices({
     srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
     networks: [...V2V_POOL_OFFERS.networks, createNetwork({ $pool: OTHER_POOL_ID })],
     templates: [...V2V_POOL_OFFERS.templates, createVmTemplate({ $pool: OTHER_POOL_ID })],
   })
 
-  const list = createV2vMigrationList({ poolId: V2V_VM_MAPPING_POOL.id, vms: [listVm] })
+  const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [listVm] })
 
   seedV2vMigrationList(list)
 

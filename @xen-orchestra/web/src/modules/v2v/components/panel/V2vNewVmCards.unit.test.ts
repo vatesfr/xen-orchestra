@@ -7,7 +7,7 @@ import { createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountV2vVmMappingComponent, V2V_VM_MAPPING_POOL } from '@/test/mount-v2v-vm-mapping.ts'
+import { mountV2vVmMappingComponent } from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DEFAULT_TEMPLATE,
   V2V_DISK_ROWS,
@@ -17,6 +17,7 @@ import {
   V2V_TARGET_OPTIONS,
   createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
 vi.mock(
@@ -92,7 +93,7 @@ it('shows the mapping of the disks and the NICs on the pool of the list, read on
   const card = wrapper.getComponent(V2vDestinationMappingCard)
 
   expect(card.props()).toMatchObject({
-    poolName: V2V_VM_MAPPING_POOL.name_label,
+    poolName: V2V_LIST_POOL.name_label,
     diskRows: V2V_DISK_ROWS,
     nicRows: V2V_NIC_ROWS,
     networkOptions: V2V_TARGET_OPTIONS.networks,
