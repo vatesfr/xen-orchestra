@@ -1,7 +1,7 @@
 <template>
   <VtsContentSidePanel class="run">
     <UiCard class="container">
-      <TasksList :tasks="convertedTasks" :title="t('run')" :has-error="false" :busy="false" />
+      <TasksList :tasks="convertedTasks" :title="t('run')" :has-error="false" :busy="false" auto-collapse-toggle />
     </UiCard>
     <BackupLogTaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
   </VtsContentSidePanel>

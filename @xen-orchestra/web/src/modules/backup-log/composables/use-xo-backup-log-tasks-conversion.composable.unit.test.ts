@@ -35,6 +35,7 @@ describe('useXoBackupLogTasksConversion', () => {
         id: 'task-1',
         status: 'success',
         name: 'name of backup VM',
+        progress: 0,
         start: 1_000,
         end: 2_000,
         infos,
@@ -58,6 +59,16 @@ describe('useXoBackupLogTasksConversion', () => {
 
     expect(vmTask.subtasks?.[0].name).toBe('name of export')
     expect(vmTask.subtasks?.[0].subtasks?.[0].name).toBe('name of transfer')
+  })
+
+  it('gives the progress the backup sets in the task data', () => {
+    const data = { progress: 42 } as unknown as BackupLogTask['data']
+
+    const backupLog = createBackupLog({
+      tasks: [createBackupLogTask({ message: 'read disk', status: 'pending', data })],
+    })
+
+    expect(mountTasksConversion(backupLog).convertedTasks[0].progress).toBe(42)
   })
 
   it('shows an interrupted task as failed', () => {

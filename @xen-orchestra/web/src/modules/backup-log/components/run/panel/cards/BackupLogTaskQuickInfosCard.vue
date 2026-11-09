@@ -1,12 +1,6 @@
 <template>
   <UiPanelCard class="backup-log-task-quick-infos-card">
-    <UiPanelCardTitle
-      :id="task.id"
-      size="medium"
-      :label="taskName.name"
-      :to="taskName.to"
-      icon="fa:bars-progress"
-    />
+    <UiPanelCardTitle :id="task.id" size="medium" :label="taskName.name" :to="taskName.to" icon="fa:bars-progress" />
     <div class="content">
       <VtsCardRowKeyValue v-if="type !== undefined">
         <template #key>{{ t('type') }}</template>
@@ -143,11 +137,13 @@ const taskAccent = computed(() => getTaskAccents(task.status).statusAccent)
 const progressAccent = computed(() => getTaskAccents(task.status).progressAccent)
 
 const progress = computed(() => {
+  const dataProgress = typeof task.data?.progress === 'number' ? task.data.progress : undefined
+
   if (task.status === 'pending' && !task.end) {
-    return task.progress ?? 0
+    return dataProgress ?? 0
   }
 
-  return task.progress ?? 100
+  return dataProgress ?? 100
 })
 </script>
 

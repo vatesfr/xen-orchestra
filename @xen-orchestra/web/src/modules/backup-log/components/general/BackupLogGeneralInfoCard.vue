@@ -20,7 +20,7 @@
       <VtsTabularKeyValueRow :label="t('transfer-size')" :value="transferSize" />
       <VtsTabularKeyValueRow :label="t('task')">
         <template v-if="task !== undefined" #value>
-          <UiLink size="medium" :to="getTaskRoute(task.id)" icon="fa:bars-progress">
+          <UiLink size="medium" :to="taskRoute" icon="fa:bars-progress">
             {{ task.properties.name ?? task.id }}
           </UiLink>
         </template>
@@ -66,4 +66,6 @@ const transferSize = computed(() => {
 })
 
 const task = computed(() => tasks.value.find(task => task.properties.runJobId === backupLog.id))
+
+const taskRoute = computed(() => (task.value !== undefined ? getTaskRoute(task.value.id) : undefined))
 </script>

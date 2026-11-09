@@ -15,6 +15,7 @@ export function useXoBackupLogTasksConversion(rawBackupLog: MaybeRefOrGetter<Fro
       id: task.id,
       status: task.status === 'interrupted' ? 'failure' : task.status,
       ...getTaskName(task),
+      progress: typeof task.data?.progress === 'number' ? task.data.progress : 0,
       start: task.start,
       end: task.end,
       infos: task.infos,
