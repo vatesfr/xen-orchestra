@@ -8,6 +8,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { mount } from '@vue/test-utils'
@@ -19,7 +20,7 @@ vi.mock(
 
 // Which step shows, and what it is summarized with, belongs to useV2vWizard: here only the composition matters
 async function mountWizard(setup: V2vWizardSetup = {}) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL]
+  seedV2vListPool()
 
   const { mounted: wrapper } = await mountOnV2vWizard(
     (router, provide) =>

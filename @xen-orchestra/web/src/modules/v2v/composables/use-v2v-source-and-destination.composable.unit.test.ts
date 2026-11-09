@@ -4,6 +4,7 @@ import { DISKOR_POOL_NAME, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { ref } from 'vue'
@@ -19,7 +20,7 @@ function mountSourceAndDestination(
   poolId = ref<FrontXoPool['id'] | undefined>(V2V_LIST_POOL.id),
   { isConnected = true }: { isConnected?: boolean } = {}
 ) {
-  xoCollectionsMock.pools.value = [V2V_LIST_POOL, V2V_OTHER_POOL]
+  seedV2vListPool({ withOtherPool: true })
 
   return mountComposable(() => useV2vSourceAndDestination(poolId), {
     provide: v2vConnectionProvide(isConnected ? createConnectedV2vContext({ connection: CONNECTION }) : undefined),

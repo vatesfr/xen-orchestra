@@ -48,15 +48,17 @@ export const V2V_OTHER_LIST_VM = createV2vMigrationListVm({
 // Stores the list holding `listVm`, on a pool offering the mapping fixtures (another pool offers one target of each kind)
 function seedV2vVmMappingList(listVm: V2vMigrationListVm) {
   seedV2vListPool({
-    srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
-    networks: [
-      ...V2V_POOL_OFFERS.networks,
-      createNetwork({ id: 'network-other' as FrontXoNetwork['id'], $pool: OTHER_POOL_ID }),
-    ],
-    templates: [
-      ...V2V_POOL_OFFERS.templates,
-      createVmTemplate({ id: 'template-other' as FrontXoVmTemplate['id'], $pool: OTHER_POOL_ID }),
-    ],
+    offers: {
+      srs: [...V2V_POOL_OFFERS.srs, createSr({ id: 'sr-other' as FrontXoSr['id'], $pool: OTHER_POOL_ID })],
+      networks: [
+        ...V2V_POOL_OFFERS.networks,
+        createNetwork({ id: 'network-other' as FrontXoNetwork['id'], $pool: OTHER_POOL_ID }),
+      ],
+      templates: [
+        ...V2V_POOL_OFFERS.templates,
+        createVmTemplate({ id: 'template-other' as FrontXoVmTemplate['id'], $pool: OTHER_POOL_ID }),
+      ],
+    },
   })
 
   const list = createV2vMigrationList({ poolId: V2V_LIST_POOL.id, vms: [listVm] })

@@ -38,8 +38,10 @@ export function createV2vMigrationListVm(overrides: Partial<V2vMigrationListVm> 
   }
 }
 
+export function createV2vMigrationListVmsOf(ids: XoV2vVm['id'][]): V2vMigrationList['vms'] {
+  return ids.map(id => createV2vMigrationListVm({ id }))
+}
+
 export function createV2vMigrationListVms(count: number): V2vMigrationList['vms'] {
-  return Array.from({ length: count }, (_, index) =>
-    createV2vMigrationListVm({ id: `vm-${index + 1}` as XoV2vVm['id'] })
-  )
+  return createV2vMigrationListVmsOf(Array.from({ length: count }, (_, index) => `vm-${index + 1}` as XoV2vVm['id']))
 }

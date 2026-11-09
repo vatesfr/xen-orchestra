@@ -1,7 +1,7 @@
 import { useV2vMappingStep } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { createV2vMigrationListVmsOf, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -262,7 +262,7 @@ describe('remove', () => {
   it('goes back to the VMs step once the list is empty', async () => {
     const step = await mountMappingStep({
       vm: V2V_WEB_VM.id,
-      list: createV2vMigrationList({ ...V2V_MAPPING_STEP_LIST, vms: [{ id: V2V_WEB_VM.id }] }),
+      list: createV2vMigrationList({ ...V2V_MAPPING_STEP_LIST, vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id]) }),
     })
 
     await removeOnceConfirmed(step, V2V_WEB_VM.id)

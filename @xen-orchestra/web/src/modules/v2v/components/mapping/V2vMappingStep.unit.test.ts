@@ -10,8 +10,9 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
+import { readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
-import { readV2vMigrationListStorage, readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
+import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -160,7 +161,7 @@ describe('list changes', () => {
 
     getUpdateVm(wrapper)(V2V_WEB_VM.id, vm => ({ ...vm, keepMac: false }))
 
-    expect(readV2vMigrationListStorage().vms[0]).toEqual({ id: V2V_WEB_VM.id, keepMac: false })
+    expect(readV2vStoredListVm()).toEqual({ id: V2V_WEB_VM.id, keepMac: false })
   })
 
   it.each([

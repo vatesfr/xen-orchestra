@@ -5,7 +5,11 @@ import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.comp
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
-import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
+import {
+  createV2vMigrationListVmsOf,
+  createV2vMigrationList,
+  createV2vMigrationListVm,
+} from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -49,18 +53,18 @@ vi.mock(
 )
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
-const LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }, { id: V2V_RDM_VM.id }] })
+const LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id, V2V_RDM_VM.id]) })
 
 const LIST_IDS = getV2vVmIds(LIST.vms)
 
 const GONE_VM_ID = 'vm-gone' as XoV2vVm['id']
 
-const GONE_VM_LIST = createV2vMigrationList({ vms: [{ id: GONE_VM_ID }] })
+const GONE_VM_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([GONE_VM_ID]) })
 
-const WEB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }] })
+const WEB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id]) })
 
 // The web VM is new, the DB one resumed
-const WEB_AND_DB_LIST = createV2vMigrationList({ vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }] })
+const WEB_AND_DB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id]) })
 
 // The DB VM is warm synced on the pool of the list, the listed one migrated
 const IMPORT_VMS = [
@@ -76,8 +80,7 @@ async function mountSelectedVms({
   poolId = V2V_LIST_POOL.id,
   selectedVmId,
 }: { list?: V2vMigrationList | null; poolId?: FrontXoPool['id'] | null; selectedVmId?: XoV2vVm['id'] } = {}) {
-  seedV2vListPool()
-  xoCollectionsMock.pools.value.push(V2V_OTHER_POOL)
+  seedV2vListPool({ withOtherPool: true })
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
   return mountV2vVmsStep(
@@ -115,7 +118,7 @@ beforeEach(() => {
 describe('items', () => {
   it('lists the VMs in the list order, named after the inventory', async () => {
     const { result } = await mountSelectedVms({
-      list: createV2vMigrationList({ vms: [{ id: V2V_DB_VM.id }, { id: V2V_WEB_VM.id }] }),
+      list: createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_DB_VM.id, V2V_WEB_VM.id]) }),
     })
 
     expect(result.items.map(({ id, name }) => ({ id, name }))).toEqual([
@@ -176,7 +179,7 @@ describe('items', () => {
   it('tells the check of each VM', async () => {
     const { result } = await mountSelectedVms({
       list: createV2vMigrationList({
-        vms: [{ id: V2V_WEB_VM.id }, { id: V2V_RDM_VM.id }, { id: V2V_LISTED_VM.id }, { id: GONE_VM_ID }],
+        vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_RDM_VM.id, V2V_LISTED_VM.id, GONE_VM_ID]),
       }),
     })
 
@@ -340,7 +343,7 @@ describe('readinessTags', () => {
   it('counts the VMs of each readiness level', async () => {
     const { result } = await mountSelectedVms({
       list: createV2vMigrationList({
-        vms: [{ id: V2V_WEB_VM.id }, { id: V2V_DB_VM.id }, { id: V2V_LISTED_VM.id }, { id: V2V_RDM_VM.id }],
+        vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id, V2V_LISTED_VM.id, V2V_RDM_VM.id]),
       }),
     })
 
