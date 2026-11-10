@@ -7,6 +7,6 @@ export type SupportBundleParams = {
   groups?: SupportBundleGroup[]
   /** applies to `pools`, `vms` and `xapiMessages` groups, all pools when omitted */
   pools?: string[]
-  /** timestamp in milliseconds, only exports tasks started after it */
+  /** timestamp in milliseconds, only exports tasks started after it and RPU/RPR traces modified after it */
   tasksSince?: number
 }
