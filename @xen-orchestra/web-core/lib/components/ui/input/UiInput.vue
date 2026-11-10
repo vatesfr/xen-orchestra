@@ -58,7 +58,7 @@ defineOptions({
   inheritAttrs: false,
 })
 const {
-  accent: _accent,
+  accent: rawAccent,
   required,
   disabled,
   id,
@@ -103,7 +103,7 @@ const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROL
 const accent = useMapper<LabelAccent, InputAccent>(
   () => wrapperController?.labelAccent,
   () => ({
-    neutral: _accent,
+    neutral: rawAccent,
     warning: 'warning',
     danger: 'danger',
   }),
