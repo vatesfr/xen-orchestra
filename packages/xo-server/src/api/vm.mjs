@@ -1438,21 +1438,12 @@ import_.resolve = {
 
 export { import_ as import }
 
-// off by default. A failed repair does not fail the import
-const ESXI_REPAIR_PARAM = {
-  type: 'boolean',
-  optional: true,
-  description: 'once the import is complete, prepare the guest to boot on XCP-ng with the repair ISO of the pool',
-}
-
 export async function importFromEsxi({
   host,
   network,
   password,
-  repair,
   sr,
   sslVerify = true,
-  startVm,
   stopSource = false,
   template,
   user,
@@ -1463,10 +1454,8 @@ export async function importFromEsxi({
     host,
     network,
     password,
-    repair,
     sr,
     sslVerify,
-    startVm,
     stopSource,
     template,
     user,
@@ -1478,12 +1467,6 @@ importFromEsxi.params = {
   host: { type: 'string' },
   network: { type: 'string' },
   password: { type: 'string' },
-  repair: ESXI_REPAIR_PARAM,
-  startVm: {
-    type: 'boolean',
-    optional: true,
-    description: 'start the VM once the import is complete, and follow the first boot of a repaired guest',
-  },
   sr: { type: 'string' },
   sslVerify: { type: 'boolean', optional: true },
   stopSource: { type: 'boolean', optional: true },
@@ -1509,10 +1492,8 @@ export async function importMultipleFromEsxi({
   host,
   network,
   password,
-  repair,
   sr,
   sslVerify,
-  startVm,
   stopSource,
   stopOnError,
   template,
@@ -1542,8 +1523,6 @@ export async function importMultipleFromEsxi({
                 network,
                 stopSource,
                 template,
-                repair,
-                startVm,
               })
               result[vm] = vmUuid
             } finally {
@@ -1582,12 +1561,6 @@ importMultipleFromEsxi.params = {
   host: { type: 'string' },
   network: { type: 'string' },
   password: { type: 'string' },
-  repair: ESXI_REPAIR_PARAM,
-  startVm: {
-    type: 'boolean',
-    optional: true,
-    description: 'start the VM once the import is complete, and follow the first boot of a repaired guest',
-  },
   sr: { type: 'string' },
   sslVerify: { type: 'boolean', optional: true, default: true },
   stopSource: { type: 'boolean', optional: true, default: false },

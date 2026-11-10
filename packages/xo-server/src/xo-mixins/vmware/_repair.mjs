@@ -30,17 +30,22 @@ const OUTPUT_SYNC_TIMEOUT = 30e3
 // the disks of the VM when it is free, the ISO recognizes the disk by its content anyway
 const TOOLS_USERDEVICE = '25'
 
-// the repair ISO, deployed on the pool as an ISO SR VDI
+/**
+ * The most recent repair ISO deployed on the pool as an ISO SR VDI: its name starts with the date of its build,
+ * `xo-repair-<YYYYMMDD>-<commit>.iso`, the last one by name is the most recent.
+ */
 function findRepairIso(xapi, context) {
-  const iso = Object.values(xapi.objects.indexes.type.VDI ?? {}).find(
+  const isos = Object.values(xapi.objects.indexes.type.VDI ?? {}).filter(
     vdi => isRepairIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
   )
-  if (iso === undefined) {
+  if (isos.length === 0) {
     const error = new Error('no repair ISO xo-repair-*.iso in the pool')
     error.code = 'REPAIR_ISO_NOT_FOUND'
     Object.assign(error, context)
     throw error
   }
+  const iso = isos.reduce((latest, vdi) => (vdi.name_label > latest.name_label ? vdi : latest))
+  Task.info(`repair ISO: ${iso.name_label}`)
   return iso
 }
 
