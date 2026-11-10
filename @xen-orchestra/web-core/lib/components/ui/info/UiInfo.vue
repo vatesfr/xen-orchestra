@@ -66,5 +66,9 @@ const textSize = useMapper<InfoSize, any>(
   .label:empty {
     display: none;
   }
+
+  &:has(.label:empty) .icon {
+    transform: none;
+  }
 }
 </style>
