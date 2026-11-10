@@ -366,7 +366,7 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['@vates/fatfs/', '@xen-orchestra/web-core/stories/'],
+  ignorePatterns: ['@vates/fatfs/'],
 
   parserOptions: {
     ecmaVersion: 13,

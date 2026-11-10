@@ -1,4 +1,4 @@
-import i18n from '@core/i18n'
+import i18n from '@core/i18n.ts'
 import { setup } from '@storybook/vue3-vite'
 import type { Preview } from '@storybook/vue3-vite'
 import { createPinia } from 'pinia'
