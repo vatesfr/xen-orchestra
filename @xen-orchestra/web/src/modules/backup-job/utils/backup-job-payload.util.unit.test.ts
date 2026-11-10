@@ -5,12 +5,17 @@ import type { BackupJobPlanningFormData } from '@/modules/backup-job/form/use-ba
 import type { BackupJobSourceFormData } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import { type BackupJobFormDataSet, toBackupJobPayload } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
+import {
+  type BackupJobFormDataSet,
+  toBackupJobPayload,
+  toRunExpression,
+} from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { parse } from 'complex-matcher'
 
 const VM_ID = 'vm-1' as FrontXoVm['id']
 const POOL_ID = 'pool-1' as FrontXoPool['id']
@@ -129,6 +134,7 @@ function createFormDataSet({
       healthCheck: { ...HEALTH_CHECK, ...healthCheck },
     },
     planning: { ...PLANNING, ...planning },
+    allIds: { backupRepositories: [BR_ID], pools: [POOL_ID] },
   }
 }
 
@@ -140,17 +146,11 @@ describe('toBackupJobPayload', () => {
         name: 'Daily backup',
         mode: 'delta',
         vms: {},
-        remotes: {},
+        remotes: '*',
         schedules: { schedule: { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: true } },
         settings: {
-          '': { concurrency: 2, preferNbd: true, nbdConcurrency: 1, reportWhen: 'failure' },
+          '': { concurrency: 2, preferNbd: true, nbdConcurrency: 1, timezone: 'Europe/Paris', reportWhen: 'failure' },
           schedule: { exportRetention: 3, snapshotRetention: 1 },
-        },
-        pending: {
-          keyBackup: 'never',
-          backupDistribution: 'every',
-          longTermRetentionKeep: {},
-          strictGfs: false,
         },
       })
     })
@@ -175,7 +175,23 @@ describe('toBackupJobPayload', () => {
       expect(payload).toMatchObject({ mode: 'full', compression: 'zstd' })
       expect(payload.settings['']).not.toHaveProperty('preferNbd', expect.anything())
       expect(payload.settings['']).not.toHaveProperty('nbdConcurrency', expect.anything())
-      expect(payload.pending.keyBackup).toBeUndefined()
+      expect(payload.settings.schedule).not.toHaveProperty('fullInterval', expect.anything())
+    })
+
+    it('makes a key backup on every run', () => {
+      const payload = toBackupJobPayload(createFormDataSet({ transfer: { keyBackup: 'always' } }))
+
+      expect(payload.settings.schedule).toMatchObject({ fullInterval: 1 })
+    })
+
+    it('makes a key backup on the selected days and hours', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          transfer: { keyBackup: 'dynamic', keyBackupMonthDays: [1], keyBackupWeekDays: [1], keyBackupHours: [2] },
+        })
+      )
+
+      expect(payload.settings.schedule).toMatchObject({ fullInterval: 'run:(|(dayOfMonth:1 dayOfWeek:1) hour:2)' })
     })
 
     it('converts the timeout to milliseconds and the speed limit to bytes', () => {
@@ -201,8 +217,22 @@ describe('toBackupJobPayload', () => {
 
       expect(payload.settings['']).toMatchObject({ offlineBackup: true })
       expect(payload.settings['']).not.toHaveProperty('checkpointSnapshot', expect.anything())
+      expect(payload.settings['']).not.toHaveProperty('synchronizedSnapshot', expect.anything())
       expect(payload.settings.schedule).toMatchObject({ snapshotRetention: 0 })
-      expect(payload.pending.snapshotSync).toBeUndefined()
+    })
+
+    it('synchronises the snapshots of every VM', () => {
+      const payload = toBackupJobPayload(createFormDataSet({ transfer: { snapshotSync: 'all' } }))
+
+      expect(payload.settings['']).toMatchObject({ synchronizedSnapshot: true })
+    })
+
+    it('synchronises the snapshots of the VMs with a tag', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({ transfer: { snapshotSync: 'smart', snapshotSyncTag: 'prod' } })
+      )
+
+      expect(payload.settings['']).toMatchObject({ synchronizedSnapshot: 'prod' })
     })
 
     it('snapshots the VM memory', () => {
@@ -217,31 +247,38 @@ describe('toBackupJobPayload', () => {
       expect(payload.settings['']).toMatchObject({ offlineSnapshot: true })
     })
 
-    it('synchronises the snapshots of the VMs with a tag', () => {
-      const payload = toBackupJobPayload(
-        createFormDataSet({ transfer: { snapshotSync: 'smart', snapshotSyncTag: 'prod' } })
-      )
-
-      expect(payload.pending.snapshotSync).toEqual({ mode: 'smart', tag: 'prod' })
-    })
-
-    it('makes a key backup on the selected days and hours', () => {
-      const payload = toBackupJobPayload(
-        createFormDataSet({
-          transfer: { keyBackup: 'dynamic', keyBackupMonthDays: [1], keyBackupWeekDays: [0], keyBackupHours: [2] },
-        })
-      )
-
-      expect(payload.pending.keyBackup).toEqual({ monthDays: [1], weekDays: [0], hours: [2] })
-    })
-
     it('keeps the long term retentions above 0', () => {
       const payload = toBackupJobPayload(
-        createFormDataSet({ backupRepository: { ltrDailyRetention: 7, ltrMonthlyRetention: 0, ltrDailyKeep: 2 } })
+        createFormDataSet({ backupRepository: { ltrDailyRetention: 7, ltrMonthlyRetention: 0 } })
       )
 
       expect(payload.settings['']).toMatchObject({ longTermRetention: { daily: { retention: 7, settings: {} } } })
-      expect(payload.pending).toMatchObject({ longTermRetentionKeep: { daily: 2 } })
+    })
+
+    it('starts each long term retention period on the backup to keep', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          backupRepository: {
+            ltrDailyRetention: 7,
+            ltrDailyKeep: 7,
+            ltrWeeklyRetention: 4,
+            ltrWeeklyKeep: 1,
+            ltrMonthlyRetention: 12,
+            ltrMonthlyKeep: 5,
+            ltrYearlyRetention: 2,
+            ltrYearlyKeep: 2,
+          },
+        })
+      )
+
+      expect(payload.settings['']).toMatchObject({
+        longTermRetention: {
+          daily: { retention: 7, settings: { firstHourOfTheDay: 7 } },
+          weekly: { retention: 4, settings: { firstDayOfWeek: 1 } },
+          monthly: { retention: 12, settings: { firstDayOfMonth: 4 } },
+          yearly: { retention: 2, settings: { firstDayOfYear: 59 } },
+        },
+      })
     })
 
     it('stores the backups on the selected backup repositories through the target proxy', () => {
@@ -271,7 +308,45 @@ describe('toBackupJobPayload', () => {
       expect(payload).not.toHaveProperty('proxy', expect.anything())
       expect(payload).not.toHaveProperty('remotes', expect.anything())
       expect(payload.settings.schedule).toEqual({ copyRetention: 2, snapshotRetention: 1 })
-      expect(payload.pending).toEqual({ keyBackup: 'never', replicaDistribution: 'every' })
+    })
+
+    it('replicates on every storage repository', () => {
+      const payload = toBackupJobPayload(createFormDataSet({ target: { storageTargets: ['storage-repository'] } }))
+
+      expect(payload).toMatchObject({ srs: '*' })
+    })
+
+    it('distributes the backups and the replicas', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          target: { storageTargets: ['backup-repository', 'storage-repository'] },
+          backupRepository: { backupDistribution: 'distribute' },
+          storageRepository: { replicaDistribution: 'distribute' },
+        })
+      )
+
+      expect(payload.settings['']).toMatchObject({ distributeBackups: true, distributeReplications: true })
+    })
+
+    it('distributes nothing when the backups and the replicas go to every target', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({ target: { storageTargets: ['backup-repository', 'storage-repository'] } })
+      )
+
+      expect(payload.settings['']).not.toHaveProperty('distributeBackups', expect.anything())
+      expect(payload.settings['']).not.toHaveProperty('distributeReplications', expect.anything())
+    })
+
+    it('scopes the dynamic selection queries of the targets to their expression context', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          target: { storageTargets: ['backup-repository', 'storage-repository'] },
+          backupRepository: { backupRepositoryScopeType: 'smart', backupRepositoryFilter: 'name:test' },
+          storageRepository: { storageRepositoryScopeType: 'smart', storageRepositoryFilter: 'name_label:nfs' },
+        })
+      )
+
+      expect(payload).toMatchObject({ remotes: 'backupRepository:(name:test)', srs: 'sr:(name_label:nfs)' })
     })
 
     it('checks the health of the backups', () => {
@@ -281,16 +356,52 @@ describe('toBackupJobPayload', () => {
             healthCheckEnabled: true,
             healthCheckSr: SR_ID,
             healthCheckVmTags: ['prod'],
-            healthCheckSchedule: 'dynamic',
-            healthCheckWeekDays: [1],
-            healthCheckHours: [3],
           },
         })
       )
 
       expect(payload.settings['']).toMatchObject({ healthCheckVmsWithTags: ['prod'], healthCheckTimeout: '10m' })
       expect(payload.settings.schedule).toMatchObject({ healthCheckSr: SR_ID })
-      expect(payload.pending.healthCheckSchedule).toEqual({ monthDays: [], weekDays: [1], hours: [3] })
+    })
+
+    it('checks the health of every VM on the selected days and hours', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          healthCheck: {
+            healthCheckEnabled: true,
+            healthCheckSr: SR_ID,
+            healthCheckSchedule: 'dynamic',
+            healthCheckWeekDays: [1],
+            healthCheckHours: [2],
+          },
+        })
+      )
+
+      expect(payload.settings['']).toMatchObject({ healthCheckVmsWithTags: 'run:(dayOfWeek:1 hour:2)' })
+    })
+
+    it('checks the health of the VMs with exactly one of the tags, on the selected days and hours', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({
+          healthCheck: {
+            healthCheckEnabled: true,
+            healthCheckSr: SR_ID,
+            healthCheckVmTags: ['prod', 'team/a'],
+            healthCheckSchedule: 'dynamic',
+            healthCheckWeekDays: [1],
+            healthCheckHours: [2],
+          },
+        })
+      )
+      const expression = payload.settings['']?.healthCheckVmsWithTags as string
+      const isChecked = (tags: string[], dayOfWeek: number) =>
+        parse(expression).createPredicate()({ vm: { tags }, run: { dayOfMonth: 10, dayOfWeek, hour: 2 } })
+
+      expect(expression).toBe('vm:tags:|(/^prod$/ /^team\\/a$/) run:(dayOfWeek:1 hour:2)')
+      expect(isChecked(['prod'], 1)).toBe(true)
+      expect(isChecked(['team/a'], 1)).toBe(true)
+      expect(isChecked(['production'], 1)).toBe(false)
+      expect(isChecked(['prod'], 2)).toBe(false)
     })
 
     it('sends the reports to the recipients, hiding the successful items', () => {
@@ -328,11 +439,23 @@ describe('toBackupJobPayload', () => {
         mode: 'delta',
         proxy: SOURCE_PROXY_ID,
         sourceRemote: SOURCE_BR_ID,
-        remotes: {},
+        remotes: { id: { __or: [BR_ID] } },
       })
       expect(payload).not.toHaveProperty('filter', expect.anything())
-      expect(payload.pending).toMatchObject({ targetProxy: PROXY_ID })
-      expect(payload.pending).not.toHaveProperty('strictGfs', expect.anything())
+    })
+
+    it('runs in the timezone of the schedule', () => {
+      const payload = toBackupJobPayload(createFormDataSet({ source: MIRROR_SOURCE }))
+
+      expect(payload.settings['']).toMatchObject({ timezone: 'Europe/Paris' })
+    })
+
+    it('distributes the backups', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({ source: MIRROR_SOURCE, backupRepository: { backupDistribution: 'distribute' } })
+      )
+
+      expect(payload.settings['']).toMatchObject({ distributeBackups: true })
     })
 
     it('copies the backups of the manually selected VMs', () => {
@@ -366,14 +489,13 @@ describe('toBackupJobPayload', () => {
         name: 'Daily backup',
         proxy: PROXY_ID,
         xoMetadata: true,
-        pools: {},
-        remotes: {},
+        pools: { id: { __or: [POOL_ID] } },
+        remotes: { id: { __or: [BR_ID] } },
         schedules: { schedule: { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: true } },
         settings: {
           '': { reportWhen: 'failure' },
           schedule: { retentionXoMetadata: 3, retentionPoolMetadata: 3 },
         },
-        pending: {},
       })
     })
 
@@ -393,5 +515,23 @@ describe('toBackupJobPayload', () => {
       expect(payload).not.toHaveProperty('pools', expect.anything())
       expect(payload.settings.schedule).toEqual({ retentionXoMetadata: 3 })
     })
+  })
+})
+
+describe('toRunExpression', () => {
+  const MONDAY = 1
+  const TUESDAY = 2
+
+  function matchesRun(expression: string, run: { dayOfMonth: number; dayOfWeek: number; hour: number }) {
+    return parse(expression).createPredicate()({ run })
+  }
+
+  it('matches any of the selected days, at one of the selected hours', () => {
+    const expression = toRunExpression([1], [MONDAY], [2])
+
+    expect(matchesRun(expression, { dayOfMonth: 10, dayOfWeek: MONDAY, hour: 2 })).toBe(true)
+    expect(matchesRun(expression, { dayOfMonth: 1, dayOfWeek: TUESDAY, hour: 2 })).toBe(true)
+    expect(matchesRun(expression, { dayOfMonth: 10, dayOfWeek: TUESDAY, hour: 2 })).toBe(false)
+    expect(matchesRun(expression, { dayOfMonth: 10, dayOfWeek: MONDAY, hour: 4 })).toBe(false)
   })
 })

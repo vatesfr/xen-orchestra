@@ -5,7 +5,10 @@ import type { BackupJobSourceFormData } from '@/modules/backup-job/form/use-back
 import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import type { BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
-import { LONG_TERM_RETENTION_FIELDS } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
+import {
+  LONG_TERM_RETENTION_FIELDS,
+  type LongTermRetentionPeriod,
+} from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 
 const SCHEDULE_KEY = 'schedule'
 
@@ -25,7 +28,6 @@ type BackupJobBasePayload = {
   remotes: BackupJobPattern | undefined
   schedules: Record<string, BackupJobSchedule>
   settings: Record<string, BackupJobSettings>
-  pending: Record<string, unknown>
 }
 
 export type VmBackupJobPayload = BackupJobBasePayload & {
@@ -56,16 +58,39 @@ export type BackupJobFormDataSet = {
   transfer: BackupJobTransferFormData
   target: BackupJobTargetFormData
   planning: BackupJobPlanningFormData
+  allIds: {
+    backupRepositories: string[]
+    pools: string[]
+  }
 }
 
-function toPattern(scopeType: BackupJobScopeType, ids: string[], filter: string): BackupJobPattern {
+export const ALL_EXPRESSION = '*'
+
+export const BACKUP_REPOSITORY_EXPRESSION_KEY = 'backupRepository'
+
+export const STORAGE_REPOSITORY_EXPRESSION_KEY = 'sr'
+
+function toContextExpression(key: string, query: string): string {
+  return `${key}:(${query})`
+}
+
+function toIdsPattern(ids: string[]): BackupJobPattern {
+  return { id: { __or: ids } }
+}
+
+function toPattern(
+  scopeType: BackupJobScopeType,
+  ids: string[],
+  filter: string,
+  allPattern: BackupJobPattern = {}
+): BackupJobPattern {
   switch (scopeType) {
     case 'manual':
-      return { id: { __or: ids } }
+      return toIdsPattern(ids)
     case 'smart':
       return filter
     default:
-      return {}
+      return allPattern
   }
 }
 
@@ -91,67 +116,115 @@ function getTransferSettings(transfer: BackupJobTransferFormData): BackupJobSett
   }
 }
 
+function toAnyOfExpression(expressions: string[]): string {
+  return expressions.length === 1 ? expressions[0] : `|(${expressions.join(' ')})`
+}
+
+export function toRunExpression(monthDays: number[], weekDays: number[], hours: number[]): string {
+  const days = toAnyOfExpression([
+    ...monthDays.map(monthDay => `dayOfMonth:${monthDay}`),
+    ...weekDays.map(weekDay => `dayOfWeek:${weekDay}`),
+  ])
+
+  return `run:(${days} ${toAnyOfExpression(hours.map(hour => `hour:${hour}`))})`
+}
+
+function getFullInterval(source: BackupJobSourceFormData, transfer: BackupJobTransferFormData) {
+  if (source.mode !== 'delta' || transfer.keyBackup === 'never') {
+    return undefined
+  }
+
+  if (transfer.keyBackup === 'always') {
+    return 1
+  }
+
+  return toRunExpression(transfer.keyBackupMonthDays, transfer.keyBackupWeekDays, transfer.keyBackupHours)
+}
+
+function getSynchronizedSnapshot(transfer: BackupJobTransferFormData): boolean | string | undefined {
+  if (transfer.offlineBackup || transfer.snapshotSync === 'none') {
+    return undefined
+  }
+
+  return transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : true
+}
+
+const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+
+const LONG_TERM_RETENTION_KEEP_SETTINGS: Record<LongTermRetentionPeriod, (keep: number) => BackupJobSettings> = {
+  daily: hour => ({ firstHourOfTheDay: hour }),
+  weekly: weekDay => ({ firstDayOfWeek: weekDay }),
+  monthly: monthDay => ({ firstDayOfMonth: monthDay - 1 }),
+  yearly: month => ({ firstDayOfYear: DAYS_BEFORE_MONTH[month] }),
+}
+
 function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobSettings {
   const longTermRetention = Object.fromEntries(
-    LONG_TERM_RETENTION_FIELDS.map(({ period, retention }) => [period, backupRepository[retention]] as const)
+    LONG_TERM_RETENTION_FIELDS.map(
+      ({ period, retention, keep }) => [period, backupRepository[retention], backupRepository[keep]] as const
+    )
       .filter(([, retention]) => retention !== undefined && retention > 0)
-      .map(([period, retention]) => [period, { retention, settings: {} }])
+      .map(([period, retention, keep]) => [
+        period,
+        { retention, settings: keep === undefined ? {} : LONG_TERM_RETENTION_KEEP_SETTINGS[period](keep) },
+      ])
   )
 
   return {
     longTermRetention: Object.keys(longTermRetention).length > 0 ? longTermRetention : undefined,
     mergeBackupsSynchronously: backupRepository.mergeBackupsSynchronously || undefined,
+    distributeBackups: backupRepository.backupDistribution === 'distribute' || undefined,
   }
 }
 
-function getRetentionPending(
-  backupRepository: BackupJobTargetBackupRepositoryFormData,
-  withStrictGfs: boolean
-): Record<string, unknown> {
-  return {
-    backupDistribution: backupRepository.backupDistribution,
-    longTermRetentionKeep: {
-      daily: backupRepository.ltrDailyKeep,
-      weekly: backupRepository.ltrWeeklyKeep,
-      monthly: backupRepository.ltrMonthlyKeep,
-      yearly: backupRepository.ltrYearlyKeep,
-    },
-    strictGfs: withStrictGfs ? backupRepository.strictGfs : undefined,
+function toExactTagExpression(tag: string): string {
+  return `/^${tag.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$/`
+}
+
+function getHealthCheckVmsWithTags(healthCheck: BackupJobTargetHealthCheckFormData): string[] | string {
+  if (healthCheck.healthCheckSchedule !== 'dynamic') {
+    return healthCheck.healthCheckVmTags
   }
+
+  const run = toRunExpression(
+    healthCheck.healthCheckMonthDays,
+    healthCheck.healthCheckWeekDays,
+    healthCheck.healthCheckHours
+  )
+
+  if (healthCheck.healthCheckVmTags.length === 0) {
+    return run
+  }
+
+  return `vm:tags:${toAnyOfExpression(healthCheck.healthCheckVmTags.map(toExactTagExpression))} ${run}`
 }
 
 function getHealthCheck(healthCheck: BackupJobTargetHealthCheckFormData) {
   if (!healthCheck.healthCheckEnabled) {
-    return { global: {}, schedule: {}, pending: {} }
+    return { global: {}, schedule: {} }
   }
 
   return {
     global: {
-      healthCheckVmsWithTags: healthCheck.healthCheckVmTags,
+      healthCheckVmsWithTags: getHealthCheckVmsWithTags(healthCheck),
       healthCheckTimeout:
         healthCheck.healthCheckTimeout === undefined ? undefined : `${healthCheck.healthCheckTimeout}m`,
     },
     schedule: {
       healthCheckSr: healthCheck.healthCheckSr,
     },
-    pending: {
-      healthCheckSchedule:
-        healthCheck.healthCheckSchedule === 'dynamic'
-          ? {
-              monthDays: healthCheck.healthCheckMonthDays,
-              weekDays: healthCheck.healthCheckWeekDays,
-              hours: healthCheck.healthCheckHours,
-            }
-          : 'always',
-    },
   }
 }
 
-function getBackupRepositoryPattern(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobPattern {
+function getBackupRepositoryPattern(
+  backupRepository: BackupJobTargetBackupRepositoryFormData,
+  allPattern: BackupJobPattern
+): BackupJobPattern {
   return toPattern(
     backupRepository.backupRepositoryScopeType,
     backupRepository.backupRepositoryIds,
-    backupRepository.backupRepositoryFilter
+    toContextExpression(BACKUP_REPOSITORY_EXPRESSION_KEY, backupRepository.backupRepositoryFilter),
+    allPattern
   )
 }
 
@@ -165,22 +238,6 @@ function getSchedules(
       timezone: planning.timezone,
       enabled: source.enabled,
     },
-  }
-}
-
-function getKeyBackupPending(source: BackupJobSourceFormData, transfer: BackupJobTransferFormData) {
-  if (source.mode !== 'delta') {
-    return undefined
-  }
-
-  if (transfer.keyBackup !== 'dynamic') {
-    return transfer.keyBackup
-  }
-
-  return {
-    monthDays: transfer.keyBackupMonthDays,
-    weekDays: transfer.keyBackupWeekDays,
-    hours: transfer.keyBackupHours,
   }
 }
 
@@ -210,12 +267,13 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
     compression: isIncremental ? undefined : transfer.compression,
     proxy: hasBackupRepository ? target.backupRepository.targetProxy : undefined,
     vms: toPattern(source.scopeType, source.vmIds, source.vmFilter),
-    remotes: hasBackupRepository ? getBackupRepositoryPattern(target.backupRepository) : undefined,
+    remotes: hasBackupRepository ? getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION) : undefined,
     srs: hasStorageRepository
       ? toPattern(
           target.storageRepository.storageRepositoryScopeType,
           target.storageRepository.storageRepositoryIds,
-          target.storageRepository.storageRepositoryFilter
+          toContextExpression(STORAGE_REPOSITORY_EXPRESSION_KEY, target.storageRepository.storageRepositoryFilter),
+          ALL_EXPRESSION
         )
       : undefined,
     schedules: getSchedules(source, planning),
@@ -228,7 +286,11 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
         offlineBackup: transfer.offlineBackup || undefined,
         checkpointSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'with-memory' ? true : undefined,
         offlineSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'offline' ? true : undefined,
+        synchronizedSnapshot: getSynchronizedSnapshot(transfer),
         ...(hasBackupRepository ? getRetentionSettings(target.backupRepository) : {}),
+        distributeReplications:
+          hasStorageRepository && target.storageRepository.replicaDistribution === 'distribute' ? true : undefined,
+        timezone: planning.timezone,
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
@@ -237,21 +299,9 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
         exportRetention: hasBackupRepository ? target.backupRepository.exportRetention : undefined,
         copyRetention: hasStorageRepository ? target.storageRepository.copyRetention : undefined,
         snapshotRetention,
+        fullInterval: getFullInterval(source, transfer),
         ...healthCheck.schedule,
       },
-    },
-    pending: {
-      keyBackup: getKeyBackupPending(source, transfer),
-      snapshotSync:
-        transfer.offlineBackup || transfer.snapshotSync === 'none'
-          ? undefined
-          : {
-              mode: transfer.snapshotSync,
-              tag: transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : undefined,
-            },
-      replicaDistribution: hasStorageRepository ? target.storageRepository.replicaDistribution : undefined,
-      ...(hasBackupRepository ? getRetentionPending(target.backupRepository, true) : {}),
-      ...healthCheck.pending,
     },
   }
 }
@@ -261,6 +311,7 @@ function toMirrorBackupJobPayload({
   transfer,
   target,
   planning,
+  allIds,
 }: BackupJobFormDataSet): MirrorBackupJobPayload {
   const healthCheck = getHealthCheck(target.healthCheck)
 
@@ -271,12 +322,13 @@ function toMirrorBackupJobPayload({
     proxy: source.proxy,
     sourceRemote: source.sourceBackupRepository,
     filter: getMirrorFilter(source),
-    remotes: getBackupRepositoryPattern(target.backupRepository),
+    remotes: getBackupRepositoryPattern(target.backupRepository, toIdsPattern(allIds.backupRepositories)),
     schedules: getSchedules(source, planning),
     settings: {
       '': {
         ...getTransferSettings(transfer),
         ...getRetentionSettings(target.backupRepository),
+        timezone: planning.timezone,
         ...getFailureSettings(planning),
         ...getReportSettings(planning),
         ...healthCheck.global,
@@ -286,22 +338,24 @@ function toMirrorBackupJobPayload({
         ...healthCheck.schedule,
       },
     },
-    pending: {
-      targetProxy: target.backupRepository.targetProxy,
-      ...getRetentionPending(target.backupRepository, false),
-      ...healthCheck.pending,
-    },
   }
 }
 
-function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormDataSet): MetadataBackupJobPayload {
+function toMetadataBackupJobPayload({
+  source,
+  target,
+  planning,
+  allIds,
+}: BackupJobFormDataSet): MetadataBackupJobPayload {
   return {
     type: 'metadataBackup',
     name: source.name,
     proxy: target.backupRepository.targetProxy,
     xoMetadata: source.saveXoConfig,
-    pools: source.savePoolsMetadata ? toPattern(source.scopeType, source.poolIds, source.poolFilter) : undefined,
-    remotes: getBackupRepositoryPattern(target.backupRepository),
+    pools: source.savePoolsMetadata
+      ? toPattern(source.scopeType, source.poolIds, source.poolFilter, toIdsPattern(allIds.pools))
+      : undefined,
+    remotes: getBackupRepositoryPattern(target.backupRepository, toIdsPattern(allIds.backupRepositories)),
     schedules: getSchedules(source, planning),
     settings: {
       '': getReportSettings(planning),
@@ -310,7 +364,6 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
         retentionPoolMetadata: source.savePoolsMetadata ? target.backupRepository.exportRetention : undefined,
       },
     },
-    pending: {},
   }
 }
 

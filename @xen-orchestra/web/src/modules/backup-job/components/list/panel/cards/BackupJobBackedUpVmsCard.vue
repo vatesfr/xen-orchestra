@@ -2,7 +2,11 @@
   <UiPanelCard class="backup-job-backed-up-vms-card">
     <UiPanelCardTitle size="medium" :label="t('backed-up-vms')" :counter="backedUpVmsCount" />
     <div>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="backedUpVmsExpression !== undefined">
+        <template #key>{{ t('dynamic-selection-query') }}</template>
+        <template #value>{{ backedUpVmsExpression }}</template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-else>
         <template #key>
           {{ t('smart-mode') }}
         </template>
@@ -13,6 +17,7 @@
       <template v-if="isSmartModeEnabled">
         <VtsDivider class="divider" type="stretch" />
         <VtsCardRowList class="content">
+          <span v-if="!hasSmartModeCriteria" class="typo-body-regular-small">{{ t('all-objects-vms') }}</span>
           <VtsCardRowKeyValue v-if="smartModePowerState !== undefined">
             <template #key>
               {{ t('power-state') }}
@@ -84,13 +89,25 @@ const { backedUpVms: rawBackedUpVms } = defineProps<{
 
 const { t } = useI18n()
 
-const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smartModeTags, isSmartModeEnabled } =
-  useXoBackedUpVmsUtils(() => rawBackedUpVms)
+const {
+  backedUpVms,
+  backedUpVmsCount,
+  backedUpVmsExpression,
+  smartModePools,
+  smartModePowerState,
+  smartModeTags,
+  isSmartModeEnabled,
+} = useXoBackedUpVmsUtils(() => rawBackedUpVms)
 
 const { getVmIconTooltip } = useXoVmOperationLabel()
 
 const backedUpVmLinks = computed(() =>
   backedUpVms.value.map(vm => ({ vm, icon: getVmIcon(vm), iconTooltip: getVmIconTooltip(vm) }))
+)
+
+const hasSmartModeCriteria = computed(
+  () =>
+    smartModePowerState.value !== undefined || smartModePools.value !== undefined || smartModeTags.value !== undefined
 )
 </script>
 

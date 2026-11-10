@@ -1,12 +1,18 @@
 import { parse } from 'complex-matcher'
 
-export function filterByQuery<TItem>(items: TItem[], query: string): TItem[] {
+export function filterByQuery<TItem>(
+  items: TItem[],
+  query: string,
+  toContext: (item: TItem) => unknown = item => item
+): TItem[] {
   if (query.trim() === '') {
     return []
   }
 
   try {
-    return items.filter(parse(query).createPredicate())
+    const predicate = parse(query).createPredicate()
+
+    return items.filter(item => predicate(toContext(item)))
   } catch {
     return []
   }

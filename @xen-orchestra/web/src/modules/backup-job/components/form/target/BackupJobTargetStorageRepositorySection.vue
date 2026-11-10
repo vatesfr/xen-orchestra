@@ -6,21 +6,17 @@
       <span class="typo-body-bold">{{ t('general-information') }}</span>
       <BackupJobFormRadio v-bind="bindings.storageRepositoryScopeType" />
       <BackupJobTargetStorageRepositoryTable
-        v-if="bindings.storageRepositoryScopeType.modelValue !== 'all'"
-        :key="bindings.storageRepositoryScopeType.modelValue"
-        :selected-ids="bindings.storageRepositoryIds.modelValue"
-        :filter="bindings.storageRepositoryFilter.modelValue"
-        :mode="bindings.storageRepositoryScopeType.modelValue"
+        v-if="bindings.storageRepositoryScopeType.modelValue === 'manual'"
+        v-bind="bindings.storageRepositoryIds"
         :srs
-        :matched-srs="matchedSrs"
         :busy
-        :error="
-          bindings.storageRepositoryScopeType.modelValue === 'manual'
-            ? bindings.storageRepositoryIds.error
-            : bindings.storageRepositoryFilter.error
-        "
-        @update:selected-ids="bindings.storageRepositoryIds['onUpdate:modelValue']($event)"
-        @update:filter="bindings.storageRepositoryFilter['onUpdate:modelValue']($event)"
+      />
+      <BackupJobFormDynamicSelection
+        v-else-if="bindings.storageRepositoryScopeType.modelValue === 'smart'"
+        v-bind="bindings.storageRepositoryFilter"
+        :schema
+        :items="matchedSrItems"
+        :count-label="t('n-srs', { n: matchedSrItems.length })"
       />
     </div>
 
@@ -37,18 +33,22 @@
 
 <script lang="ts" setup>
 import BackupJobFormRow from '@/modules/backup-job/components/form/BackupJobFormRow.vue'
+import BackupJobFormDynamicSelection from '@/modules/backup-job/components/form/inputs/BackupJobFormDynamicSelection.vue'
 import BackupJobFormNumberInput from '@/modules/backup-job/components/form/inputs/BackupJobFormNumberInput.vue'
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobTargetStorageRepositoryTable from '@/modules/backup-job/components/form/target/BackupJobTargetStorageRepositoryTable.vue'
 import type { BackupJobTargetStorageRepositoryForm } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   bindings: BackupJobTargetStorageRepositoryForm['bindings']
   srs: FrontXoSr[]
-  matchedSrs: FrontXoSr[]
+  matchedSrItems: QueryBuilderPreviewItem[]
+  schema: QueryBuilderSchema
   busy: boolean
 }>()
 

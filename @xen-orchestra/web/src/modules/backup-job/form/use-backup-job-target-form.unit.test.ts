@@ -5,6 +5,8 @@ import {
   useBackupJobTargetForm,
 } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
@@ -22,6 +24,17 @@ vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repos
     backupRepositories: ref([]),
     areBackupRepositoriesReady: ref(true),
   })) as unknown as typeof useXoBackupRepositoryCollection,
+}))
+
+vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+  useXoPbdCollection: (() => ({
+    getPbdsByIds: () => [],
+    pbdsBySr: ref(new Map()),
+  })) as unknown as typeof useXoPbdCollection,
+}))
+
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({

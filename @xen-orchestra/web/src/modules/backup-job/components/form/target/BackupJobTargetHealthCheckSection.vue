@@ -6,7 +6,16 @@
 
     <template v-if="bindings.healthCheckEnabled.modelValue">
       <BackupJobFormRow>
-        <BackupJobFormSelect v-bind="bindings.healthCheckSr" />
+        <BackupJobFormSelect v-bind="bindings.healthCheckSr">
+          <template #option="{ option }">
+            <VtsOption :option>
+              <span class="option-content">
+                <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+                {{ option.properties.label }}
+              </span>
+            </VtsOption>
+          </template>
+        </BackupJobFormSelect>
         <BackupJobFormNumberInput v-bind="bindings.healthCheckTimeout" />
       </BackupJobFormRow>
 
@@ -17,12 +26,15 @@
       <div class="block">
         <BackupJobFormRadio v-bind="bindings.healthCheckSchedule" />
 
-        <BackupJobFormCalendarCards
-          v-if="bindings.healthCheckSchedule.modelValue === 'dynamic'"
-          :month-days="bindings.healthCheckMonthDays"
-          :week-days="bindings.healthCheckWeekDays"
-          :hours="bindings.healthCheckHours"
-        />
+        <template v-if="bindings.healthCheckSchedule.modelValue === 'dynamic'">
+          <UiInfo accent="warning" wrap>{{ t('health-check-dynamic-info') }}</UiInfo>
+
+          <BackupJobFormCalendarCards
+            :month-days="bindings.healthCheckMonthDays"
+            :week-days="bindings.healthCheckWeekDays"
+            :hours="bindings.healthCheckHours"
+          />
+        </template>
       </div>
     </template>
   </div>
@@ -36,6 +48,9 @@ import BackupJobFormNumberInput from '@/modules/backup-job/components/form/input
 import BackupJobFormRadio from '@/modules/backup-job/components/form/inputs/BackupJobFormRadio.vue'
 import BackupJobFormSelect from '@/modules/backup-job/components/form/inputs/BackupJobFormSelect.vue'
 import type { BackupJobTargetHealthCheckForm } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsOption from '@core/components/select/VtsOption.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -56,6 +71,12 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+  }
+
+  .option-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
   }
 }
 </style>

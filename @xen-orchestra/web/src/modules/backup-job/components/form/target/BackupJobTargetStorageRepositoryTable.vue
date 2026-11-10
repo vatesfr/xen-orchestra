@@ -1,9 +1,8 @@
 <template>
   <div class="backup-job-target-storage-repository-table">
-    <VtsQueryBuilder v-if="isManual" :model-value="searchFilter" :schema @search="searchFilter = $event" />
-    <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
 
-    <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
+    <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
         <tr>
           <HeadCells />
@@ -16,12 +15,11 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-if="isManual && errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import { useSrWithPoolQueryBuilder } from '@/modules/storage-repository/composables/use-sr-with-pool-query-builder.composable.ts'
@@ -40,29 +38,21 @@ import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { mode, srs, matchedSrs, busy, error } = defineProps<{
-  mode: 'manual' | 'smart'
+const { srs, busy, error } = defineProps<{
   srs: FrontXoSr[]
-  matchedSrs: FrontXoSr[]
   busy: boolean
   error?: InputWrapperMessage
 }>()
 
-const selectedIds = defineModel<FrontXoSr['id'][]>('selectedIds', { required: true })
-
-const filter = defineModel<string>('filter', { required: true })
+const selectedIds = defineModel<FrontXoSr['id'][]>({ required: true })
 
 const { t } = useI18n()
 
-const isManual = computed(() => mode === 'manual')
-
 const {
-  items: searchedSrs,
-  filter: searchFilter,
+  items: displayedSrs,
+  filter,
   schema,
 } = useSrWithPoolQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
-
-const displayedSrs = computed(() => (isManual.value ? searchedSrs.value : matchedSrs))
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('backup-job-target-srs', displayedSrs, {
   ignoreRoute: true,
@@ -87,7 +77,7 @@ const state = useTableState({
 
 const errorMessage = computed(() => formatErrorMessage(error))
 
-const { HeadCells, BodyCells, toggle } = useSrColumns({
+const { HeadCells, BodyCells } = useSrColumns({
   exclude: ['description', 'accessMode', 'actions'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
@@ -108,10 +98,6 @@ const { HeadCells, BodyCells, toggle } = useSrColumns({
     }
   },
 })
-
-if (mode === 'smart') {
-  toggle('checkbox', false)
-}
 </script>
 
 <style lang="postcss" scoped>

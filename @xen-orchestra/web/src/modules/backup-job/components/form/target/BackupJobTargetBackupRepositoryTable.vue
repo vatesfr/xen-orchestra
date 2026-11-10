@@ -1,9 +1,8 @@
 <template>
   <div class="backup-job-target-backup-repository-table">
-    <VtsQueryBuilder v-if="isManual" :model-value="searchFilter" :schema @search="searchFilter = $event" />
-    <BackupJobFormQueryInput v-else v-model="filter" :label="t('dynamic-selection-query')" :schema :error required />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
 
-    <VtsTable :state :pagination-bindings :selection-bindings="isManual ? selectionBindings : undefined">
+    <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
         <tr>
           <HeadCells />
@@ -16,12 +15,11 @@
       </tbody>
     </VtsTable>
 
-    <UiInfo v-if="isManual && errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
+    <UiInfo v-if="errorMessage !== undefined" accent="danger" wrap>{{ errorMessage }}</UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
-import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs/BackupJobFormQueryInput.vue'
 import { useBackupJobIdSelection } from '@/modules/backup-job/composables/use-backup-job-id-selection.composable.ts'
 import { formatErrorMessage } from '@/modules/backup-job/utils/backup-job-error-message.util.ts'
 import { useBackupRepositoryQueryBuilder } from '@/modules/backup-repository/composables/use-backup-repository-query-builder.composable.ts'
@@ -43,30 +41,22 @@ import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repo
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { mode, brs, compatibleBrs, matchedBrs, busy, error } = defineProps<{
-  mode: 'manual' | 'smart'
+const { brs, compatibleBrs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
   compatibleBrs: FrontXoBackupRepository[]
-  matchedBrs: FrontXoBackupRepository[]
   busy: boolean
   error?: InputWrapperMessage
 }>()
 
-const selectedIds = defineModel<FrontXoBackupRepository['id'][]>('selectedIds', { required: true })
-
-const filter = defineModel<string>('filter', { required: true })
+const selectedIds = defineModel<FrontXoBackupRepository['id'][]>({ required: true })
 
 const { t } = useI18n()
 
-const isManual = computed(() => mode === 'manual')
-
 const {
-  items: searchedBrs,
-  filter: searchFilter,
+  items: displayedBrs,
+  filter,
   schema,
 } = useBackupRepositoryQueryBuilder('backup-job-target-brs', () => brs, { ignoreRoute: true })
-
-const displayedBrs = computed(() => (isManual.value ? searchedBrs.value : matchedBrs))
 
 const compatibleBrIds = computed(() => new Set(compatibleBrs.map(br => br.id)))
 
@@ -97,7 +87,7 @@ const state = useTableState({
 
 const errorMessage = computed(() => formatErrorMessage(error))
 
-const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
+const { HeadCells, BodyCells } = useBackupRepositoryColumns({
   exclude: ['proxy', 'actions'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
@@ -120,10 +110,6 @@ const { HeadCells, BodyCells, toggle } = useBackupRepositoryColumns({
     }
   },
 })
-
-if (mode === 'smart') {
-  toggle('checkbox', false)
-}
 </script>
 
 <style lang="postcss" scoped>

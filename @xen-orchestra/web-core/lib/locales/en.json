@@ -542,6 +542,7 @@
   "hardware": "Hardware",
   "hardware-specifications": "Hardware specifications",
   "health-check": "Health check",
+  "health-check-dynamic-info": "The @.lower:health-check only runs when a run of the job falls on one of the selected days (of the month or of the week), at one of the selected hours.",
   "health-check-frequency": "@:health-check frequency",
   "health-check-info": "After each backup, the VM is restored on the selected SR, started to check that it boots, then deleted.",
   "health-check-sr": "@:health-check SR",

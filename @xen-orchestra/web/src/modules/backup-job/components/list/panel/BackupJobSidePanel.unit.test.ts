@@ -20,6 +20,8 @@ import type {
   useXoScheduleCollection,
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
@@ -61,6 +63,7 @@ vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collecti
 
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
+    srs: ref([]),
     getSrsByIds: () => [],
     getSrById: () => undefined,
   })) as unknown as typeof useXoSrCollection,
@@ -68,6 +71,7 @@ vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collecti
 
 vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
+    backupRepositories: ref([]),
     getBackupRepositoriesByIds: () => [],
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
@@ -92,6 +96,14 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async (
     })) as unknown as typeof useXoVmCollection,
   }
 })
+
+vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+  useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
+}))
+
+vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+  useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
+}))
 
 vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ getPoolsByIds: () => [] })) as unknown as typeof useXoPoolCollection,

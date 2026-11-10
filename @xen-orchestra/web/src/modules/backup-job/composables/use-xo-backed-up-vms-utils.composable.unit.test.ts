@@ -1,6 +1,8 @@
 import { useXoBackedUpVmsUtils } from '@/modules/backup-job/composables/use-xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
@@ -27,6 +29,14 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
   useXoPoolCollection: (() => ({
     getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
   })) as unknown as typeof useXoPoolCollection,
+}))
+
+vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+  useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
+}))
+
+vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+  useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
 }))
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
@@ -93,6 +103,16 @@ describe('useXoBackedUpVmsUtils', () => {
 
     it('reads the power state of the VMs', () => {
       expect(mountBackedUpVms({ type: 'VM', power_state: 'Running' }).smartModePowerState).toBe('Running')
+    })
+  })
+
+  describe('dynamic selection query', () => {
+    it('lists the VMs matching the query, except the ones tagged xo:no-bak', () => {
+      const result = mountBackedUpVms('tags:test' as unknown as FrontXoVmBackupJob['vms'])
+
+      expect(result.backedUpVmsExpression).toBe('tags:test')
+      expect(result.isSmartModeEnabled).toBe(false)
+      expect(result.backedUpVms.map(vm => vm.id)).toEqual([taggedVm.id])
     })
   })
 })

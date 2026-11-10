@@ -1,20 +1,28 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
 import { useBackupJobScopeTypeOptions } from '@/modules/backup-job/composables/use-backup-job-scope-type-options.composable.ts'
 import type { BackupJobFormOption, BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import {
+  type BackupRepositoryExpressionContext,
+  toBackupRepositoryExpressionContext,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import type { LongTermRetentionPeriod } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
-import { useBackupRepositoryEnhancedData } from '@/modules/backup-repository/composables/use-backup-repository-enhanced-data.composable.ts'
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { toBackupRepositoryQueryPreviewItem } from '@/modules/backup-repository/utils/xo-backup-repository-query-preview-item.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
 import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { BACKUP_REPOSITORY_TYPE } from 'xo-remote-parser'
 
 export type BackupJobBackupDistribution = 'every' | 'distribute'
 
@@ -65,10 +73,32 @@ export function useBackupJobTargetBackupRepositoryForm(
     availableBackupRepositories.value.filter(br => br.proxy === formData.targetProxy)
   )
 
-  const { filterableBrs: filterableBackupRepositories } = useBackupRepositoryEnhancedData(compatibleBackupRepositories)
-
   const matchedBackupRepositories = computed(() =>
-    filterByQuery(filterableBackupRepositories.value, formData.backupRepositoryFilter)
+    filterByQuery(
+      compatibleBackupRepositories.value.filter(br => br.enabled),
+      formData.backupRepositoryFilter,
+      toBackupRepositoryExpressionContext
+    )
+  )
+
+  const backupRepositoryTypeLabels = Object.fromEntries(
+    Object.values(BACKUP_REPOSITORY_TYPE).map(type => [type, useXoBackupRepositoryTypeLabel(type).value])
+  )
+
+  const backupRepositorySchema = useQueryBuilderSchema<BackupRepositoryExpressionContext>({
+    '': useStringSchema(t('any-property')),
+    name: useStringSchema(t('name')),
+    type: useStringSchema(t('type'), backupRepositoryTypeLabels),
+  })
+
+  const matchedBackupRepositoryItems = computed(() =>
+    matchedBackupRepositories.value.map(toBackupRepositoryQueryPreviewItem)
+  )
+
+  const selectedBackupRepositoryItems = computed(() =>
+    compatibleBackupRepositories.value
+      .filter(br => formData.backupRepositoryIds.includes(br.id))
+      .map(toBackupRepositoryQueryPreviewItem)
   )
 
   watch(compatibleBackupRepositories, brs => {
@@ -225,6 +255,9 @@ export function useBackupJobTargetBackupRepositoryForm(
     availableBackupRepositories,
     compatibleBackupRepositories,
     matchedBackupRepositories,
+    matchedBackupRepositoryItems,
+    selectedBackupRepositoryItems,
+    backupRepositorySchema,
     areBackupRepositoriesReady,
     getScopeTypeLabel,
     getDistributionLabel,

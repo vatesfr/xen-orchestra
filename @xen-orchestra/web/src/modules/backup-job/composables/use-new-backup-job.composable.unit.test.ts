@@ -39,7 +39,6 @@ const PAYLOAD: NewBackupJobPayload = {
   remotes: {},
   schedules: { schedule: { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: true } },
   settings: {},
-  pending: {},
 }
 
 beforeEach(() => {

@@ -2,6 +2,8 @@ import {
   type BackupJobTargetHealthCheckFormData,
   useBackupJobTargetHealthCheckForm,
 } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type {
   FrontXoSr,
   useXoSrCollection,
@@ -20,6 +22,17 @@ vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collecti
 
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vms: ref([]) })) as unknown as typeof useXoVmCollection,
+}))
+
+vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+  useXoPbdCollection: (() => ({
+    getPbdsByIds: () => [],
+    pbdsBySr: ref(new Map()),
+  })) as unknown as typeof useXoPbdCollection,
+}))
+
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
 function createHealthCheckFormData(): BackupJobTargetHealthCheckFormData {
