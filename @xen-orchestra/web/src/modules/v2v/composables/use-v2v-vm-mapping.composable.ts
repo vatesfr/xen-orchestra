@@ -30,16 +30,14 @@ export type V2vVmMappingContext = {
 
 export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
 
-// The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard.
-// `listVm` is where the overrides are read from, the VM of the list by default: a draft hands its copy, which the
-// `updateVm` of its setters must write to
-type V2vVmTargetsOptions = Pick<V2vVmMappingContext, 'list'> & {
-  listVm?: MaybeRefOrGetter<V2vMigrationListVm>
+// The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard
+export type V2vVmTargetsOptions = {
+  list: V2vVmMappingContext['list']
   inventory: MaybeRefOrGetter<XoV2vInventory | undefined>
 }
 
 // The issue of the VM in the list, if any, is told with the checks of its source
-export type V2vVmMappingOptions = Omit<V2vVmTargetsOptions, 'listVm'> & {
+export type V2vVmMappingOptions = V2vVmTargetsOptions & {
   listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
 }
 
@@ -51,7 +49,14 @@ function toTargetOption<TId>({ id, name_label }: { id: TId; name_label: string }
 // settings drawer edits, so nothing here reads the wizard
 export function useV2vVmTargets(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, listVm: rawListVm, inventory: rawInventory }: V2vVmTargetsOptions
+  {
+    list: rawList,
+    listVm: rawListVm,
+    inventory: rawInventory,
+  }: V2vVmTargetsOptions & {
+    // Where the overrides are read from, the VM of the list by default: a draft hands its copy
+    listVm?: MaybeRefOrGetter<V2vMigrationListVm>
+  }
 ) {
   const { getPortGroupParts } = useV2vVmLabels()
 
