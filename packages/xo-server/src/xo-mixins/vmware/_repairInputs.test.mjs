@@ -12,7 +12,6 @@ import {
   isFirstBootOver,
   isRepairDone,
   isRepairIsoName,
-  isRepairIsoVersion,
   readFirstBootState,
   readRepairOutput,
   REPAIR_DESCRIPTION_MARKER,
@@ -137,8 +136,6 @@ test('buildRepairXenstoreData', async t => {
         {
           mode: 'repair',
           nics: 'ens192=00:0c:29:d4:bf:19',
-          windowsCleanup: 'full',
-          windowsMsiPatterns: 'xen-*.msi;managementagent-*.msi',
           windowsNics: '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
           windowsReboot: 'xo',
         }
@@ -146,8 +143,6 @@ test('buildRepairXenstoreData', async t => {
       {
         'vm-data/xo-repair/mode': 'repair',
         'vm-data/xo-repair/nics': 'ens192=00:0c:29:d4:bf:19',
-        'vm-data/xo-repair/windows-cleanup': 'full',
-        'vm-data/xo-repair/windows-msi-patterns': 'xen-*.msi;managementagent-*.msi',
         'vm-data/xo-repair/windows-nics': '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
         'vm-data/xo-repair/windows-reboot': 'xo',
       }
@@ -209,19 +204,10 @@ test('readRepairOutput', async t => {
   })
 })
 
-test('repair ISO build', () => {
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.iso', '20261018'), true)
-  assert.equal(isRepairIsoName('xo-repair-1.0.0.iso', '1.0.0'), true)
-  assert.equal(isRepairIsoName('xo-repair-20261019-0d5f013b.iso', '20261018'), false)
-  // a build whose date only starts like the one asked for
-  assert.equal(isRepairIsoName('xo-repair-202610180-0d5f013b.iso', '20261018'), false)
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.img', '20261018'), false)
-
-  assert.equal(isRepairIsoVersion('20261018-0d5f013b', '20261018'), true)
-  assert.equal(isRepairIsoVersion('20261018-xotest-0d5f013b-dirty', '20261018'), true)
-  assert.equal(isRepairIsoVersion('1.0.0', '1.0.0'), true)
-  assert.equal(isRepairIsoVersion('20261017-0d5f013b', '20261018'), false)
-  assert.equal(isRepairIsoVersion(undefined, '20261018'), false)
+test('isRepairIsoName', () => {
+  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.iso'), true)
+  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.img'), false)
+  assert.equal(isRepairIsoName('guest-tools.iso'), false)
 })
 
 test('first boot state', () => {
@@ -297,10 +283,9 @@ test('describeRepair', async t => {
       ],
     })
     assert.equal(
-      describeRepair({ reports: { diagnose: report(), repair }, isoVersion: '20261018' }),
+      describeRepair({ reports: { diagnose: report(), repair } }),
       [
         REPAIR_DESCRIPTION_MARKER,
-        'ISO: 20261018',
         'repair: warning',
         'OS: Windows Server 2019 (uefi)',
         'actions:',
@@ -323,11 +308,9 @@ test('describeRepair', async t => {
       describeRepair({
         reports: { diagnose },
         error: { message: 'the guest cannot be repaired: dynamic_disk' },
-        isoVersion: '20261018',
       }),
       [
         REPAIR_DESCRIPTION_MARKER,
-        'ISO: 20261018',
         'repair failed: the guest cannot be repaired: dynamic_disk',
         'OS: linux',
         'the guest was only diagnosed, nothing was changed in it',
@@ -339,23 +322,17 @@ test('describeRepair', async t => {
 
   await t.test('keeps the error of a failure without any report', () => {
     assert.equal(
-      describeRepair({ error: { message: 'the repair ISO did not report its result in time' }, isoVersion: '1' }),
-      [REPAIR_DESCRIPTION_MARKER, 'ISO: 1', 'repair failed: the repair ISO did not report its result in time'].join(
-        '\n'
-      )
+      describeRepair({ error: { message: 'the repair ISO did not report its result in time' } }),
+      [REPAIR_DESCRIPTION_MARKER, 'repair failed: the repair ISO did not report its result in time'].join('\n')
     )
   })
 
   await t.test('follows the first boot: the restarts done by XO, then its end or its failure', () => {
     const reports = { diagnose: report(), repair: report() }
-    const restarted = { restartedAfter: ['drivers', 'cleanup'], done: false }
+    const restarted = { restartedAfter: ['drivers'], done: false }
     assert.ok(
-      describeRepair({ reports, firstBoot: { ...restarted, done: true }, isoVersion: '1' }).endsWith(
-        [
-          'first boot: drivers phase done, VM restarted by XO',
-          'first boot: cleanup phase done, VM restarted by XO',
-          'first boot: done',
-        ].join('\n')
+      describeRepair({ reports, firstBoot: { ...restarted, done: true } }).endsWith(
+        ['first boot: drivers phase done, VM restarted by XO', 'first boot: done'].join('\n')
       )
     )
     assert.ok(
@@ -363,8 +340,7 @@ test('describeRepair', async t => {
         reports,
         firstBoot: restarted,
         firstBootError: { message: 'the Windows first boot did not complete' },
-        isoVersion: '1',
-      }).endsWith('cleanup phase done, VM restarted by XO\nfirst boot failed: the Windows first boot did not complete')
+      }).endsWith('drivers phase done, VM restarted by XO\nfirst boot failed: the Windows first boot did not complete')
     )
   })
 
@@ -372,7 +348,6 @@ test('describeRepair', async t => {
     const summary = describeRepair({
       reports: { diagnose: report(), repair: report({ truncated: true }) },
       firstBootError: { message: 'the guest agent did not report in time' },
-      isoVersion: '1',
     })
     assert.ok(
       summary.endsWith(
@@ -383,7 +358,7 @@ test('describeRepair', async t => {
 })
 
 test('replaceRepairDescription', async t => {
-  const summary = `${REPAIR_DESCRIPTION_MARKER}\nISO: 2`
+  const summary = `${REPAIR_DESCRIPTION_MARKER}\nrepair: warning`
 
   await t.test('appends the summary to the description', () => {
     assert.equal(replaceRepairDescription('from esxi', summary), `from esxi\n\n${summary}`)
@@ -391,7 +366,7 @@ test('replaceRepairDescription', async t => {
   })
 
   await t.test('replaces the summary of a previous write', () => {
-    const previous = replaceRepairDescription('from esxi', `${REPAIR_DESCRIPTION_MARKER}\nISO: 1\nrepair: ok`)
+    const previous = replaceRepairDescription('from esxi', `${REPAIR_DESCRIPTION_MARKER}\nrepair: ok`)
     assert.equal(replaceRepairDescription(previous, summary), `from esxi\n\n${summary}`)
   })
 })

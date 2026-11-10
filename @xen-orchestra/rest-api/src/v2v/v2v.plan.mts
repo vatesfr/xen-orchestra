@@ -1,6 +1,6 @@
 import type { VmwareVm, XoNetwork, XoSr, XoVmTemplate } from '@vates/types'
 
-import type { V2vRepairOptions, V2vStartBody, V2vStartVm } from './v2v.type.mjs'
+import type { V2vStartBody, V2vStartVm } from './v2v.type.mjs'
 
 /** what the import of one VM will be given */
 export type V2vVmPlan = {
@@ -14,7 +14,7 @@ export type V2vVmPlan = {
   nics: Record<string, XoNetwork['id']>
   template: XoVmTemplate['id']
   stopSource: boolean
-  repair: false | V2vRepairOptions
+  repair: boolean
   startVm: boolean
 }
 
@@ -86,7 +86,7 @@ export function planMigration(
     const startVm = vm.startVm ?? defaults.startVm ?? false
     // the guest is only repaired, and the VM only started, once its import is complete: it would silently not be
     const isPartial = !stopSource && sourceVm.powerState !== 'poweredOff'
-    if (repair !== false && isPartial) {
+    if (repair && isPartial) {
       report('the guest can only be repaired by a complete import: stop the source, or use stopSource', 'repair')
     }
     if (startVm && isPartial) {
@@ -111,7 +111,7 @@ export function planMigration(
       nics: (vm.nics ?? {}) as Record<string, XoNetwork['id']>,
       template: (vm.template ?? defaults.template) as XoVmTemplate['id'],
       stopSource,
-      repair: repair === true ? {} : repair,
+      repair,
       startVm,
     }
   }

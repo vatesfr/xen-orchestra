@@ -14,7 +14,7 @@ import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
 import { repairImportedVm } from './_repair.mjs'
-import { describeRepair, REPAIR_ISO_VERSION, replaceRepairDescription } from './_repairInputs.mjs'
+import { describeRepair, replaceRepairDescription } from './_repairInputs.mjs'
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
@@ -248,7 +248,7 @@ export default class MigrateVm {
   // before the lock on start is removed: the VM cannot be started by somebody else between two runs of the ISO.
   // A failed repair does not fail the import: the data is there, the snapshot of the import is the rollback.
   // Returns the reports of the ISO, undefined when the guest has not been repaired
-  async #repairVm({ isComplete, isoVersion, metadata, options, vm }) {
+  async #repairVm({ followFirstBoot, isComplete, metadata, vm }) {
     if (!isComplete) {
       Task.info('the import is partial, the guest will be repaired once it is complete')
       return
@@ -256,21 +256,14 @@ export default class MigrateVm {
     const xapi = vm.$xapi
     try {
       const reports = await Task.run({ properties: { name: 'repairing the guest for XCP-ng' } }, () =>
-        repairImportedVm({ xapi, vmRef: vm.$ref, metadata, options, isoVersion })
+        repairImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
       )
-      await xapi.setFieldEntries('VM', vm.$ref, 'other_config', { 'xo:v2v:repair': JSON.stringify(reports) })
-      await this.#writeRepairDescription(vm, describeRepair({ reports, isoVersion }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports }))
       return reports
     } catch (error) {
       warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(`the guest could not be repaired: ${error.message}`)
-      // the outputs of the ISO are gone from `xenstore_data`: the reports are all that is left to understand
-      await xapi
-        .setFieldEntries('VM', vm.$ref, 'other_config', {
-          'xo:v2v:repair': JSON.stringify({ error: { code: error.code, message: error.message }, ...error.reports }),
-        })
-        .catch(storeError => warn('failed to store the repair report', { error: storeError, vmId: vm.uuid }))
-      await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error, isoVersion }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error }))
     }
   }
 
@@ -287,7 +280,7 @@ export default class MigrateVm {
 
   // once the import is complete and the lock on start removed. A repaired guest is followed through its first
   // boot, which does not fail the import either
-  async #startVm({ isoVersion, metadata, reports, vm }) {
+  async #startVm({ metadata, reports, vm }) {
     const xapi = vm.$xapi
     if (reports === undefined) {
       await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
@@ -302,25 +295,16 @@ export default class MigrateVm {
           vmRef: vm.$ref,
           metadata,
           reports,
-          isoVersion,
           onProgress: progress => {
             firstBoot = progress
-            return this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, isoVersion }))
+            return this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot }))
           },
         })
       )
     } catch (error) {
       warn('the first boot of the repaired guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(`the first boot on XCP-ng failed: ${error.message}`)
-      await xapi
-        .setFieldEntries('VM', vm.$ref, 'other_config', {
-          'xo:v2v:first-boot': JSON.stringify({
-            error: { code: error.code, message: error.message },
-            report: error.report,
-          }),
-        })
-        .catch(storeError => warn('failed to store the first boot report', { error: storeError, vmId: vm.uuid }))
-      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, firstBootError: error, isoVersion }))
+      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, firstBootError: error }))
     }
   }
 
@@ -455,19 +439,10 @@ export default class MigrateVm {
     await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     const isComplete = stopSource || metadata.powerState === 'poweredOff'
-    const repairOptions = typeof repair === 'object' ? repair : {}
-    // the build XO is tested with, unless another one is asked for, e.g. by a test of a specific build
-    const isoVersion = repairOptions.isoVersion ?? REPAIR_ISO_VERSION
     let reports
     if (repair) {
-      reports = await this.#repairVm({
-        isComplete,
-        isoVersion,
-        metadata,
-        // the VM is started once repaired, XO follows its first boot and does its reboots
-        options: { ...repairOptions, followFirstBoot: startVm },
-        vm,
-      })
+      // the VM is started once repaired, XO follows its first boot and does its reboots
+      reports = await this.#repairVm({ followFirstBoot: startVm, isComplete, metadata, vm })
     }
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
@@ -486,7 +461,7 @@ export default class MigrateVm {
       } else if (repair && reports === undefined) {
         Task.warning('the VM is not started: its guest could not be repaired')
       } else {
-        await this.#startVm({ isoVersion, metadata, reports, vm })
+        await this.#startVm({ metadata, reports, vm })
       }
     } else if (reports !== undefined && metadata.firmware === 'uefi' && metadata.secureBoot) {
       // the repair disabled it, the first boot would have enabled it again
