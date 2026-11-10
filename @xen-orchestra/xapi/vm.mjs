@@ -1,4 +1,3 @@
-import CancelToken from 'promise-toolbox/CancelToken'
 import groupBy from 'lodash/groupBy.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pRetry from 'promise-toolbox/retry'
@@ -224,7 +223,7 @@ class Vm {
 
   // does not support NOBAK VDIs because unplugging or destroying VBDs/VDIs on
   // a suspended VM is not supported
-  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
+  async checkpoint($defer, vmRef, { signal, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
     await this._httpHook(vm, '/sync')
@@ -233,7 +232,7 @@ class Vm {
       name_label = vm.name_label
     }
     try {
-      const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label)
+      const ref = await this.callAsync(signal, 'VM.checkpoint', vmRef, name_label)
 
       // detached async
       this._httpHook(vm, '/post-sync').catch(noop)
@@ -253,7 +252,7 @@ class Vm {
       return ref
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
-        return this.VM_snapshot(vmRef, { cancelToken, name_label })
+        return this.VM_snapshot(vmRef, { signal, name_label })
       }
       throw error
     }
@@ -530,7 +529,7 @@ class Vm {
     ])
   }
 
-  async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
+  async export($defer, vmRef, { signal, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
     $defer.onFailure.call(this, 'task_destroy', taskRef)
@@ -539,7 +538,7 @@ class Vm {
     }
     let exportedVmRef, destroySnapshot
     if (useSnapshot) {
-      exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
+      exportedVmRef = await this.VM_snapshot(vmRef, { signal, name_label: `[XO Export] ${vm.name_label}` })
       destroySnapshot = () =>
         this.VM_destroy(exportedVmRef).catch(error => {
           warn('VM_export: failed to destroy snapshot', {
@@ -553,7 +552,7 @@ class Vm {
       exportedVmRef = vmRef
     }
     try {
-      const response = await this.getResource(cancelToken, '/export/', {
+      const response = await this.getResource(signal, '/export/', {
         query: {
           ref: exportedVmRef,
           use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
@@ -716,7 +715,7 @@ class Vm {
   async snapshot(
     $defer,
     vmRef,
-    { cancelToken = CancelToken.none, ignoredVdisTag, name_label, unplugVusbs = false } = {}
+    { signal, ignoredVdisTag, name_label, unplugVusbs = false } = {}
   ) {
     const vm = await this.getRecord('VM', vmRef)
 
@@ -745,7 +744,7 @@ class Vm {
       }
     }
 
-    const params = [cancelToken, 'VM.snapshot', vmRef, name_label ?? vm.name_label]
+    const params = [signal, 'VM.snapshot', vmRef, name_label ?? vm.name_label]
     if (ignoredVbds !== undefined) {
       params.push(ignoredVbds.map(_ => _.VDI))
     }

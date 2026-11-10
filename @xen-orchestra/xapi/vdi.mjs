@@ -1,4 +1,3 @@
-import CancelToken from 'promise-toolbox/CancelToken'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
@@ -220,7 +219,7 @@ class Vdi {
     )
   }
 
-  async exportContent($defer, ref, { baseRef, cancelToken = CancelToken.none, format }) {
+  async exportContent($defer, ref, { baseRef, signal, format }) {
     const query = {
       format,
       vdi: ref,
@@ -236,7 +235,7 @@ class Vdi {
     if (format === VDI_FORMAT_RAW) {
       // RAW export do not use NBD to simplify code
       assert.equal(baseRef, undefined)
-      const { body } = await this.getResource(cancelToken, '/export_raw_vdi/', {
+      const { body } = await this.getResource(signal, '/export_raw_vdi/', {
         query,
         task: await this.task_create(`Exporting content of VDI as raw stream`),
       })
@@ -250,7 +249,7 @@ class Vdi {
       query.base = baseRef
     }
     const stream = (
-      await this.getResource(cancelToken, '/export_raw_vdi/', {
+      await this.getResource(signal, '/export_raw_vdi/', {
         query,
         task: await this.task_create(`Exporting content of VDI  ${label} as ${format} stream`),
       })
@@ -278,12 +277,12 @@ class Vdi {
    * `length` (in bytes) must be known: a stream must carry it as a property, a
    * Buffer (e.g. the cloud config drive) has it natively
    * @param {object} opts
-   * @param {import('promise-toolbox').CancelToken} [opts.cancelToken]
+   * @param {AbortSignal} [opts.signal]
    * @param {'raw' | 'vhd' | 'qcow2'} opts.format - format of `content`, must be
    * one of `SUPPORTED_VDI_FORMAT`
    * @returns {Promise<void>}
    */
-  async importContent(ref, content, { cancelToken = CancelToken.none, format }) {
+  async importContent(ref, content, { signal, format }) {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export
     if (!SUPPORTED_VDI_FORMAT.includes(format)) {
@@ -312,7 +311,7 @@ class Vdi {
         })
       }
 
-      await this.putResource(cancelToken, content, '/import_raw_vdi/', {
+      await this.putResource(signal, content, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,

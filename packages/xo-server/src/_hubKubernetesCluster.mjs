@@ -4,7 +4,6 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 import assert from 'node:assert'
 import { createHash } from 'node:crypto'
 import { Readable, Transform } from 'node:stream'
-import { CancelToken } from 'promise-toolbox'
 import YAML from 'yaml'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
@@ -780,7 +779,6 @@ async function _downloadBaseVDI(xapi, sr, vdiName) {
   const vdiSize = 5 * 1024 * 1024 * 1024 // 5 GB
   let vdi
   const downloadController = new AbortController()
-  const cancelTokenSource = CancelToken.source()
   let baseDiskResponse
   let nodeStream
 
@@ -796,15 +794,10 @@ async function _downloadBaseVDI(xapi, sr, vdiName) {
     throw new Error('Failed to create VDI: ' + error.message)
   }
 
-  downloadController.signal.addEventListener('abort', () => {
-    cancelTokenSource.cancel()
-  })
-
   try {
     await _withTimeout(
       _downloadAndImportBaseDisk({
         baseDiskUrl,
-        cancelToken: cancelTokenSource.token,
         hash,
         signal: downloadController.signal,
         vdi,
@@ -857,22 +850,13 @@ async function _downloadBaseVDI(xapi, sr, vdiName) {
  * Download the base disk and import it into the given VDI.
  * @param {*} options - The options for the download and import process.
  * @param {string} options.baseDiskUrl - The URL of the base disk to download.
- * @param {CancelToken} options.cancelToken - The cancel token to use for the import process.
  * @param {Hash} options.hash - The hash object to update with the downloaded data for checksum calculation.
- * @param {AbortSignal} options.signal - The signal to use for aborting the download.
+ * @param {AbortSignal} options.signal - The signal to use for aborting the download and the import.
  * @param {*} options.vdi - The VDI object to import the disk into.
  * @param {function} options.onResponse - A callback function that will be called with the response of the fetch request.
  * @param {function} options.onStreamCreated - A callback function that will be called with the Node.js Readable stream created from the response body.
  */
-async function _downloadAndImportBaseDisk({
-  baseDiskUrl,
-  cancelToken,
-  hash,
-  signal,
-  vdi,
-  onResponse,
-  onStreamCreated,
-}) {
+async function _downloadAndImportBaseDisk({ baseDiskUrl, hash, signal, vdi, onResponse, onStreamCreated }) {
   const response = await fetch(baseDiskUrl, {
     signal,
   })
@@ -902,7 +886,7 @@ async function _downloadAndImportBaseDisk({
 
   await vdi.$importContent(nodeStream, {
     format: 'raw',
-    cancelToken,
+    signal,
   })
 }
 

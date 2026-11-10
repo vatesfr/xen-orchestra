@@ -180,7 +180,7 @@ export default class BackupNg {
 
     app.hooks.on('start', async () => {
       const executor = async ({
-        cancelToken,
+        signal,
         data,
         job,
         jobData,

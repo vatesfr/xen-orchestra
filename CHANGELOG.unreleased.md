@@ -45,11 +45,13 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backups minor
+- @xen-orchestra/backups major
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi major
+- xen-api major
 - xo-server minor
 - xo-server-load-balancer patch
 - xo-web minor
