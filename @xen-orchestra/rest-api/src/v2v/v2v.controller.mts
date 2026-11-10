@@ -54,6 +54,7 @@ export class V2vController extends Controller {
    * Checked before connecting to a source, which needs no credentials.
    */
   @Example(v2vStatus)
+  @Extension('x-mcp-exposure', 'allow')
   @Get('status')
   @SuccessResponse(200, 'OK')
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)

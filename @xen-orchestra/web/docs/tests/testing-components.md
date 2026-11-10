@@ -1,6 +1,6 @@
 # Testing components
 
-Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
+Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
 
 ```typescript
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
@@ -60,6 +60,8 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 ```
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
+
+Only the classes the markup already carries count: a web-core component's own (`.ui-head-bar .status`) or one a style rule of the component uses. Never add a class only for a test to find an element; query the component (`getComponent`) or the web-core class around it instead.
 
 `src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 

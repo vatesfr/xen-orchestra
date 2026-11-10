@@ -1,8 +1,8 @@
 import { useNfsBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-nfs-backup-repository-details-form.ts'
 import { NFS_DEFAULT_PORT } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 type NfsFormData = ReturnType<typeof useNfsBackupRepositoryDetailsForm>['formData']
 
@@ -12,11 +12,7 @@ const VALID_FORM_DATA = {
 } satisfies Partial<NfsFormData>
 
 function mountNfsForm(formData: Partial<NfsFormData> = {}) {
-  const result = mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useNfsBackupRepositoryDetailsForm(), t }
-  }).wrapper.vm
+  const result = mountComposableWithI18n(() => useNfsBackupRepositoryDetailsForm())
 
   Object.assign(result.formData, formData)
 
@@ -28,8 +24,8 @@ describe('validate', () => {
     const result = mountNfsForm()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.host.error).toBeDefined()
-    expect(result.bindings.path.error).toBeDefined()
+    expect(result.bindings.host.error).toEqual(requiredMessage())
+    expect(result.bindings.path.error).toEqual(requiredMessage())
   })
 
   it('accepts a host and a path without a port', async () => {
@@ -42,7 +38,7 @@ describe('validate', () => {
     const result = mountNfsForm({ ...VALID_FORM_DATA, port })
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.port.error).toMatchObject({ content: result.t('invalid-port') })
+    expect(result.bindings.port.error).toEqual(dangerMessage(result.t('invalid-port')))
   })
 
   it.each(['1', '2049', '65535'])('accepts the valid port %s', async port => {

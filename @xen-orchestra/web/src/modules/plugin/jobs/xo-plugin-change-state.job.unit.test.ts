@@ -5,6 +5,7 @@ import type { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 
 const { post, patch, monitorTask } = vi.hoisted(() => ({
   post: vi.fn(),
@@ -54,7 +55,7 @@ describe('run', () => {
   })
 
   it('succeeds when only the autoload update fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     patch.mockRejectedValue(new Error('autoload update failed'))
 
     await expect(mountChangeStateJob(unloadedPlugin, true).run()).resolves.toBeUndefined()

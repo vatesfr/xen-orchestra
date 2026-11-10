@@ -2,10 +2,9 @@ import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composab
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { XoProxy } from '@vates/types'
 import { computed, ref, toValue } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { useGetProxyById } = vi.hoisted(() => ({
@@ -23,11 +22,7 @@ beforeEach(() => {
 })
 
 function mountUtils(br: FrontXoBackupRepository = createBr()) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useXoBackupRepositoryUtils(br, parseBackupRepositoryUrl(br.url)), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => useXoBackupRepositoryUtils(br, parseBackupRepositoryUrl(br.url)))
 }
 
 describe('useXoBackupRepositoryUtils', () => {
@@ -79,18 +74,13 @@ describe('useXoBackupRepositoryUtils', () => {
 
   it('reacts to changes of the source repository', () => {
     const br = ref(createBr({ url: 'nfs://192.168.100.225:/media/nfs' }))
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
-
-      return {
-        ...useXoBackupRepositoryUtils(br, () => parseBackupRepositoryUrl(br.value.url)),
-        t,
-      }
-    })
+    const result = mountComposableWithI18n(() =>
+      useXoBackupRepositoryUtils(br, () => parseBackupRepositoryUrl(br.value.url))
+    )
 
     br.value = createBr({ enabled: false, url: 's3://key:secret@s3.us-west-1.amazonaws.com/my-bucket/backups' })
 
-    expect(wrapper.vm.brStatus).toBe('disabled')
-    expect(wrapper.vm.brType).toBe(wrapper.vm.t('s3'))
+    expect(result.brStatus).toBe('disabled')
+    expect(result.brType).toBe(result.t('s3'))
   })
 })
