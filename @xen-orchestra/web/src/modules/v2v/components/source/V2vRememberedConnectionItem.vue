@@ -6,26 +6,20 @@
         {{ connection.host }}
         <UiTag accent="neutral" variant="secondary">{{ t('vmware') }}</UiTag>
       </div>
-      <div class="description typo-body-regular-small">
-        <span v-if="connection.product" class="part">{{ connection.product }} {{ connection.version }}</span>
-        <span class="part">{{ connection.username }}</span>
-        <I18nT
-          v-if="connection.lastUsedAt !== undefined"
-          keypath="used-relative-time"
-          tag="span"
-          class="part"
-          scope="global"
-        >
+      <div class="description typo-body-regular-small interpunct-list">
+        <span v-if="connection.product">{{ connection.product }} {{ connection.version }}</span>
+        <span>{{ connection.username }}</span>
+        <I18nT v-if="connection.lastUsedAt !== undefined" keypath="used-relative-time" tag="span" scope="global">
           <template #time>
             <VtsRelativeTime :date="connection.lastUsedAt" />
           </template>
         </I18nT>
-        <span v-if="connection.skipSslCheck" class="part">{{ t('ssl-check-skipped') }}</span>
+        <span v-if="connection.skipSslCheck">{{ t('ssl-check-skipped') }}</span>
       </div>
-      <div v-if="stats !== undefined" class="stats typo-body-regular-small">
-        <span v-if="connection.vmCount !== undefined" class="part">{{ t('n-vms', { n: connection.vmCount }) }}</span>
-        <span class="part">{{ t('n-migrated', { n: stats.cold }) }}</span>
-        <span class="part">{{ t('n-partially-migrated', { n: stats.warm }) }}</span>
+      <div v-if="stats !== undefined" class="stats typo-body-regular-small interpunct-list">
+        <span v-if="connection.vmCount !== undefined">{{ t('n-vms', { n: connection.vmCount }) }}</span>
+        <span>{{ t('n-migrated', { n: stats.cold }) }}</span>
+        <span>{{ t('n-partially-migrated', { n: stats.warm }) }}</span>
       </div>
     </div>
     <UiButton accent="brand" variant="primary" size="medium" :disabled @click="emit('connect', connection)">
@@ -128,11 +122,6 @@ const icon = computed(() => (isV2vVcenter(connection.product) ? 'fa:building' : 
 
   .stats {
     color: var(--color-success-txt-base);
-  }
-
-  .part:not(:first-child)::before {
-    content: '•' / '';
-    margin-inline: 0.8rem;
   }
 }
 </style>

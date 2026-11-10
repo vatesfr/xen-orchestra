@@ -11,6 +11,7 @@ import {
   createOldAndRecentV2vRememberedConnections,
   createV2vRememberedConnection,
 } from '@/test/create-v2v-connection.ts'
+import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import {
@@ -66,13 +67,11 @@ describe('connections', () => {
     seedV2vRememberedConnections([])
     const result = mountRememberedConnections()
     const fromOtherTab = createV2vRememberedConnection({ host: 'other-tab.lab' })
-    const newValue = serializeV2vRememberedConnections([fromOtherTab])
 
-    localStorage.setItem(V2V_REMEMBERED_CONNECTIONS_STORAGE_KEY, newValue)
-    window.dispatchEvent(
-      new StorageEvent('storage', { key: V2V_REMEMBERED_CONNECTIONS_STORAGE_KEY, newValue, storageArea: localStorage })
+    await writeLocalStorageFromAnotherTab(
+      V2V_REMEMBERED_CONNECTIONS_STORAGE_KEY,
+      serializeV2vRememberedConnections([fromOtherTab])
     )
-    await nextTick()
 
     expect(result.connections).toEqual([fromOtherTab])
   })

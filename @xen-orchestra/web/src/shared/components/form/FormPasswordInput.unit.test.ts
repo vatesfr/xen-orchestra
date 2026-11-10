@@ -1,8 +1,8 @@
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
+import { findInputLabels } from '@/test/find-input-labels.ts'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { mount } from '@vue/test-utils'
 import type { ComponentProps } from 'vue-component-type-helpers'
@@ -17,7 +17,7 @@ function mountPasswordInput(props: Partial<PasswordInputProps> = {}) {
 }
 
 it('renders its label', () => {
-  expect(mountPasswordInput().getComponent(VtsInputWrapper).props('label')).toBe('Password')
+  expect(findInputLabels(mountPasswordInput())).toEqual(['Password'])
 })
 
 it('hides the typed password', () => {

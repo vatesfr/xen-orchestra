@@ -54,7 +54,7 @@ beforeEach(() => {
 // The connection form renders its own fields from a real form, covered by its own test: here only its wiring matters
 function mountStep(connectionFormStub: Component | true = true) {
   return mount(V2vSourceStep, {
-    global: { ...createGlobalTestConfig(), stubs: { V2vSourceConnectionForm: connectionFormStub } },
+    global: createGlobalTestConfig({ stubs: { V2vSourceConnectionForm: connectionFormStub } }),
   })
 }
 

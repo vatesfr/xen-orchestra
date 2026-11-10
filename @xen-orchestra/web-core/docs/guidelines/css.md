@@ -211,3 +211,14 @@ So, a small utility can be used to add this style on the element that needs it:
 ```
 
 Then, you can tweak the `inset` property to get the desired result.
+
+## `•` separator utility
+
+To separate inline parts with an interpunct (`•`), put the global `interpunct-list` class on their container: each rendered child after the first gets the separator, so a child hidden by `v-if` leaves no stray one.
+
+```html
+<span class="interpunct-list">
+  <span>{{ t('n-hosts', { n: hostCount }) }}</span>
+  <span v-if="srCount !== undefined">{{ t('n-srs', { n: srCount }) }}</span>
+</span>
+```
