@@ -69,7 +69,6 @@ const { wrapperController, accent } = useInputWrapperController({
 })
 
 const isDisabled = useDisabled(() => disabled)
-const isMultiple = computed(() => multiple)
 
 const className = computed(() => toVariants({ accent: accent.value, disabled: isDisabled.value }))
 
@@ -106,7 +105,7 @@ const hint = computed(() => {
 // Handle File Dialog on click
 const { open, onChange } = useFileDialog({
   accept: computed(() => acceptedTypes.value.join(',')),
-  multiple: isMultiple,
+  multiple: computed(() => multiple),
   // without it, re-picking the same file does not fire `change` and no event is emitted
   reset: true,
 })
@@ -170,7 +169,7 @@ function handleFiles(files: File[] | FileList | null) {
   }
 
   if (selectedFiles.length > 0) {
-    emit('select', isMultiple.value ? selectedFiles : selectedFiles.slice(0, 1))
+    emit('select', multiple ? selectedFiles : selectedFiles.slice(0, 1))
   }
 
   if (rejections.length > 0) {
