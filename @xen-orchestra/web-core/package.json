@@ -20,6 +20,7 @@
     "@regle/rules": "^1.26.0",
     "@regle/schemas": "^1.20.2",
     "@types/d3-time-format": "^4.0.3",
+    "@vates/types": "^2.5.0",
     "@vueuse/core": "^14.0.0",
     "@vueuse/math": "^14.0.0",
     "@vueuse/router": "^14.0.0",

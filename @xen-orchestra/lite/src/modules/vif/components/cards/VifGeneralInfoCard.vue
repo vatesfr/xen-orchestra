@@ -55,8 +55,8 @@ import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTab
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useVifLockingModeLabel } from '@core/composables/vif-locking-mode-label.composable.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
-import { useVifLockingModeLabel } from '@core/utils/vif.util.ts'
 import { VIF_LOCKING_MODE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -91,7 +91,7 @@ const vifStatus = computed(() =>
   vif.currently_attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED
 )
 
-const vifDevice = computed(() => `${t('vif')}${vif.device}`)
+const vifDevice = computed(() => t('vif-device', { device: vif.device }))
 
 const rateLimit = computed(() => {
   const kbps = getVifRateLimit(vif)

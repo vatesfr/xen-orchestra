@@ -1,5 +1,5 @@
 import { useMapper } from '@core/packages/mapper'
-import type { VIF_LOCKING_MODE } from '@vates/types/'
+import { VIF_LOCKING_MODE } from '@vates/types'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -9,11 +9,11 @@ export function useVifLockingModeLabel(lockingMode: MaybeRefOrGetter<VIF_LOCKING
   return useMapper<VIF_LOCKING_MODE, string>(
     lockingMode,
     {
-      disabled: t('disabled'),
-      locked: t('locked'),
-      network_default: t('network-default'),
-      unlocked: t('unlocked'),
+      [VIF_LOCKING_MODE.DISABLED]: t('disabled'),
+      [VIF_LOCKING_MODE.LOCKED]: t('locked'),
+      [VIF_LOCKING_MODE.NETWORK_DEFAULT]: t('network-default'),
+      [VIF_LOCKING_MODE.UNLOCKED]: t('unlocked'),
     },
-    'network_default'
+    VIF_LOCKING_MODE.NETWORK_DEFAULT
   )
 }

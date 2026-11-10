@@ -84,7 +84,7 @@ const networkVlan = computed(() => {
 
 const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 
-const vifDevice = computed(() => `${t('vif')}${vif.device}`)
+const vifDevice = computed(() => t('vif-device', { device: vif.device }))
 
 const rateLimit = computed(() => (vif.rateLimit !== undefined ? `${vif.rateLimit} kB/s` : undefined))
 </script>

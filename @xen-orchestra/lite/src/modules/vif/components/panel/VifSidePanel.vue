@@ -147,8 +147,8 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { useVifLockingModeLabel } from '@core/composables/vif-locking-mode-label.composable.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
-import { useVifLockingModeLabel } from '@core/utils/vif.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -165,6 +165,8 @@ const { t } = useI18n()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
+const { pool } = usePoolStore().subscribe()
+
 const vm = computed(() => (vif !== undefined ? getVmByOpaqueRef(vif.VM) : undefined))
 
 const vifTo = computed(() => (vif !== undefined ? getVifRoute(vif.uuid) : undefined))
@@ -186,8 +188,6 @@ const ipAddresses = computed(() => {
 })
 
 const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
-
-const { pool } = usePoolStore().subscribe()
 
 const networkTo = computed(() =>
   pool.value && network.value ? getPoolNetworkRoute(pool.value.uuid, network.value.uuid) : undefined
