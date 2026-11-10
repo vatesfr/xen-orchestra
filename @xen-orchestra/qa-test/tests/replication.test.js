@@ -9,6 +9,7 @@ import {
   generateBackupJobName,
   getBackupTransferredBytes,
   getDefaultSchedule,
+  TEMPORARY_SCHEDULE_ID,
   getScheduleKey,
 } from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
@@ -95,9 +96,9 @@ describe('Incremental Replication', () => {
     const config = {
       name,
       mode: 'delta',
-      schedules: { '': schedule },
+      schedules: { [TEMPORARY_SCHEDULE_ID]: schedule },
       settings: {
-        '': {
+        [TEMPORARY_SCHEDULE_ID]: {
           timezone: 'Europe/Paris',
           copyRetention: 3,
           preferNbd: true,
@@ -169,7 +170,7 @@ describe('Incremental Replication', () => {
     )
     return scheduleIds.filter(id => id === scheduleId).length
   }
-  
+
   /**
    * @param {Error} error
    * @returns {boolean} Whether the error looks like a "not found" response rather than a transient failure.

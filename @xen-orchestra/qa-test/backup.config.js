@@ -1,3 +1,5 @@
+import { TEMPORARY_SCHEDULE_ID } from './utils/index.js'
+
 /**
  * Generates backup job configuration with optional health check and NBD support.
  *
@@ -16,10 +18,10 @@ export function backupConfig(name, schedule, vms, backupRepository, options = {}
     name,
     mode: 'delta', // Will be overridden by tests
     schedules: {
-      '': schedule, // Default schedule slot
+      [TEMPORARY_SCHEDULE_ID]: schedule, // Default schedule slot
     },
     settings: {
-      '': {
+      [TEMPORARY_SCHEDULE_ID]: {
         timezone: 'Europe/Paris',
         exportRetention: 2,
         mergeBackupsSynchronously: true,
@@ -34,24 +36,24 @@ export function backupConfig(name, schedule, vms, backupRepository, options = {}
 
   // Add health check SR if provided
   if (options.healthCheckSr) {
-    config.settings[''].healthCheckSr = options.healthCheckSr
+    config.settings[TEMPORARY_SCHEDULE_ID].healthCheckSr = options.healthCheckSr
   }
 
   // Add NBD settings if provided
   if (options.preferNbd !== undefined) {
-    config.settings[''].preferNbd = options.preferNbd
+    config.settings[TEMPORARY_SCHEDULE_ID].preferNbd = options.preferNbd
   }
 
   if (options.nbdConcurrency !== undefined) {
-    config.settings[''].nbdConcurrency = options.nbdConcurrency
+    config.settings[TEMPORARY_SCHEDULE_ID].nbdConcurrency = options.nbdConcurrency
   }
 
   if (options.snapshotConcurrency !== undefined) {
-    config.settings[''].snapshotConcurrency = options.snapshotConcurrency
+    config.settings[TEMPORARY_SCHEDULE_ID].snapshotConcurrency = options.snapshotConcurrency
   }
 
   if (options.synchronizedSnapshot !== undefined) {
-    config.settings[''].synchronizedSnapshot = options.synchronizedSnapshot
+    config.settings[TEMPORARY_SCHEDULE_ID].synchronizedSnapshot = options.synchronizedSnapshot
   }
 
   return config
@@ -67,10 +69,10 @@ export function fleetDeltaBackupConfig(name, schedule, vmIds, backupRepositoryId
     name,
     mode: 'delta',
     schedules: {
-      '': schedule,
+      [TEMPORARY_SCHEDULE_ID]: schedule,
     },
     settings: {
-      '': {
+      [TEMPORARY_SCHEDULE_ID]: {
         timezone: 'Europe/Paris',
         concurrency,
         exportRetention,

@@ -12,6 +12,7 @@ import {
   generateBackupJobName,
   getBackupTransferredBytes,
   getDefaultSchedule,
+  TEMPORARY_SCHEDULE_ID,
   getScheduleKey,
   getRequiredEnv,
 } from '../utils/index.js'
@@ -469,9 +470,9 @@ describe('Backup + Replication Combined Tests', () => {
       const config = {
         name,
         mode: 'delta',
-        schedules: { '': schedule },
+        schedules: { [TEMPORARY_SCHEDULE_ID]: schedule },
         settings: {
-          '': {
+          [TEMPORARY_SCHEDULE_ID]: {
             timezone: 'Europe/Paris',
             copyRetention: 3,
             bypassVdiChainsCheck: true,

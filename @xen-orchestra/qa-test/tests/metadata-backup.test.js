@@ -5,7 +5,14 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
-import { delay, generateBackupJobName, getDefaultSchedule, getRequiredEnv, getScheduleKey } from '../utils/index.js'
+import {
+  delay,
+  generateBackupJobName,
+  getDefaultSchedule,
+  getRequiredEnv,
+  getScheduleKey,
+  TEMPORARY_SCHEDULE_ID,
+} from '../utils/index.js'
 import { assertBackupSuccess } from '../utils/backupUtils.js'
 
 const log = createLogger('qa:backup:metadata')
@@ -105,8 +112,8 @@ describe('Metadata backup tests', () => {
         name,
         pools: { [poolId]: true },
         remotes: { [backupRepository.id]: true },
-        schedules: { '': getDefaultSchedule() },
-        settings: { '': { retentionPoolMetadata: 2, retentionXoMetadata: 2 } },
+        schedules: { [TEMPORARY_SCHEDULE_ID]: getDefaultSchedule() },
+        settings: { [TEMPORARY_SCHEDULE_ID]: { retentionPoolMetadata: 2, retentionXoMetadata: 2 } },
         xoMetadata: true,
       })
 
@@ -141,8 +148,8 @@ describe('Metadata backup tests', () => {
         name,
         pools: { [poolId]: true },
         remotes: { [backupRepository.id]: true },
-        schedules: { '': getDefaultSchedule() },
-        settings: { '': { retentionPoolMetadata: 2, retentionXoMetadata: 2 } },
+        schedules: { [TEMPORARY_SCHEDULE_ID]: getDefaultSchedule() },
+        settings: { [TEMPORARY_SCHEDULE_ID]: { retentionPoolMetadata: 2, retentionXoMetadata: 2 } },
         xoMetadata: true,
       })
 

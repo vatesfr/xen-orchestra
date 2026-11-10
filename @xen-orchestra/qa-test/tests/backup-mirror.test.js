@@ -9,6 +9,7 @@ import {
   generateBackupJobName,
   getBackupTransferredBytes,
   getDefaultSchedule,
+  TEMPORARY_SCHEDULE_ID,
   getScheduleKey,
   getRequiredEnv,
 } from '../utils/index.js'
@@ -115,9 +116,9 @@ describe('Mirror Backup - Full Remote', () => {
       mode: 'full',
       sourceRemote: sourceRepository.id,
       remotes: { [destRepository.id]: {} },
-      schedules: { '': schedule },
+      schedules: { [TEMPORARY_SCHEDULE_ID]: schedule },
       settings: {
-        '': {
+        [TEMPORARY_SCHEDULE_ID]: {
           exportRetention: 3,
           mergeBackupsSynchronously: true,
           bypassVdiChainsCheck: true,
