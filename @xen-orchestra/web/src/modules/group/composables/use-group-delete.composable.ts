@@ -50,6 +50,7 @@ export function useGroupDelete(rawGroups: MaybeRefOrGetter<FrontXoGroup[]>) {
         subject: t('n-groups', { n: count }),
         description: t('group:delete-warning', { n: count }),
         confirmLabel: t('action:delete-n-groups', { n: count }),
+        accent: 'danger',
       },
     })
   }
