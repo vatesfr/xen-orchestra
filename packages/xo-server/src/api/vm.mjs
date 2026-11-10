@@ -1440,15 +1440,9 @@ export { import_ as import }
 
 // off by default. A failed repair does not fail the import
 const ESXI_REPAIR_PARAM = {
-  type: ['boolean', 'object'],
+  type: 'boolean',
   optional: true,
-  description:
-    'once the import is complete, prepare the guest to boot on XCP-ng with the repair ISO of the pool. Options: windowsCleanup (standard or full), windowsMsiPatterns, isoVersion (build of the repair ISO, to use another one than the build this XO is tested with)',
-  properties: {
-    windowsCleanup: { enum: ['standard', 'full'], optional: true },
-    windowsMsiPatterns: { type: 'string', optional: true },
-    isoVersion: { type: 'string', optional: true },
-  },
+  description: 'once the import is complete, prepare the guest to boot on XCP-ng with the repair ISO of the pool',
 }
 
 export async function importFromEsxi({

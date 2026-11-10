@@ -182,7 +182,7 @@ class EsxiImport extends Component {
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
-      repair: repair ? { windowsCleanup: 'standard' } : false,
+      repair,
       sr: resolveId(sr),
       sslVerify: !skipSslVerify,
       // a repaired guest is started once its repair is done, its first boot is followed by the import

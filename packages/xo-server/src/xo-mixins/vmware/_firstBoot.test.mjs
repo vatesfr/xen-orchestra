@@ -48,24 +48,23 @@ function fakeXapi(states) {
   }
 }
 
-const windowsReports = cleanup => ({
+const WINDOWS_REPORTS = {
   diagnose: {},
   repair: {
-    os: { kind: 'windows', cleanup },
+    os: { kind: 'windows' },
     findings: [],
     actions: [{ code: 'install_firstboot', status: 'applied' }],
   },
-})
+}
 
-async function followFirstBoot({ cleanup = 'standard', states }) {
+async function followFirstBoot({ states }) {
   const xapi = fakeXapi(states)
   const progresses = []
   await firstBootOfRepairedVm({
     xapi,
     vmRef: VM_REF,
     metadata: { vmId: '54', secureBoot: false },
-    reports: windowsReports(cleanup),
-    isoVersion: '1',
+    reports: WINDOWS_REPORTS,
     onProgress: async progress => {
       progresses.push(structuredClone(progress))
     },
@@ -85,15 +84,6 @@ test('firstBootOfRepairedVm, Windows', async t => {
     ])
   })
 
-  await t.test('restarts it after each phase of a full cleanup', async () => {
-    const { calls, progresses } = await followFirstBoot({
-      cleanup: 'full',
-      states: [{ power_state: 'Halted' }, { power_state: 'Halted' }, { power_state: 'Running', firstboot: 'done' }],
-    })
-    assert.deepEqual(calls, ['VM.start', 'VM.start', 'VM.start'])
-    assert.deepEqual(progresses.at(-1), { restartedAfter: ['drivers', 'cleanup'], done: true })
-  })
-
   await t.test('follows a guest which reboots itself, as with an older ISO', async () => {
     const { calls, progresses } = await followFirstBoot({
       states: [{ power_state: 'Running', firstboot: 'done' }],
@@ -110,8 +100,7 @@ test('firstBootOfRepairedVm, Windows', async t => {
         xapi,
         vmRef: VM_REF,
         metadata: { vmId: '54', secureBoot: false },
-        reports: windowsReports('standard'),
-        isoVersion: '1',
+        reports: WINDOWS_REPORTS,
         onProgress: async () => {},
       })
     )

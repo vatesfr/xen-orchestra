@@ -3,29 +3,11 @@
 // `VM.xenstore_data`, where they stay after the VM halts.
 
 /**
- * Build of the repair ISO this version of XO is tested with: its date (`YYYYMMDD`), or a release tag.
- * Several builds can be deployed side by side, the CI names each one `xo-repair-<date>-<commit>.iso`
- */
-export const REPAIR_ISO_VERSION = '20261021'
-
-/**
- * Whether a VDI is the repair ISO of this build: `xo-repair-20261018-0d5f013b.iso`, or `xo-repair-1.0.0.iso` for
- * a release tag.
+ * Whether a VDI is the repair ISO: `xo-repair-20261018-0d5f013b.iso`, as the CI names its builds.
  *
  * @param {string} name - `name_label` of the VDI
- * @param {string} version
  */
-export const isRepairIsoName = (name, version) =>
-  name === `xo-repair-${version}.iso` || (name.startsWith(`xo-repair-${version}-`) && name.endsWith('.iso'))
-
-/**
- * Whether the version an ISO reports (`out/version`, e.g. `20261018-0d5f013b`) is of this build.
- *
- * @param {string | undefined} reported
- * @param {string} version
- */
-export const isRepairIsoVersion = (reported, version) =>
-  reported !== undefined && (reported === version || reported.startsWith(`${version}-`))
+export const isRepairIsoName = name => name.startsWith('xo-repair-') && name.endsWith('.iso')
 
 const PREFIX = 'vm-data/xo-repair/'
 const OUTPUT_PREFIX = PREFIX + 'out/'
@@ -122,23 +104,16 @@ export const clearRepairXenstoreData = current =>
  * @param {object} inputs - unset inputs use the default of the ISO
  * @param {'diagnose' | 'repair'} inputs.mode
  * @param {string} [inputs.nics]
- * @param {'standard' | 'full'} [inputs.windowsCleanup]
- * @param {string} [inputs.windowsMsiPatterns]
  * @param {string} [inputs.windowsNics]
  * @param {'guest' | 'xo'} [inputs.windowsReboot] - `xo`: the first boot stops the VM between its phases, for XO
  * to start it again
  * @returns {Record<string, string>}
  */
-export function buildRepairXenstoreData(
-  current,
-  { mode, nics, windowsCleanup, windowsMsiPatterns, windowsNics, windowsReboot }
-) {
+export function buildRepairXenstoreData(current, { mode, nics, windowsNics, windowsReboot }) {
   const xenstoreData = clearRepairXenstoreData(current)
   const inputs = {
     mode,
     nics,
-    'windows-cleanup': windowsCleanup,
-    'windows-msi-patterns': windowsMsiPatterns,
     'windows-nics': windowsNics,
     'windows-reboot': windowsReboot,
   }
@@ -283,11 +258,10 @@ const describeFinding = ({ level, code, message }) =>
  * @param {{ message: string }} [params.error] - why the repair failed
  * @param {FirstBootProgress} [params.firstBoot] - how far the first boot of a repaired guest went
  * @param {{ message: string }} [params.firstBootError] - why the first boot of a repaired guest failed
- * @param {string} params.isoVersion
  * @returns {string}
  */
-export function describeRepair({ reports = {}, error, firstBoot, firstBootError, isoVersion }) {
-  const lines = [REPAIR_DESCRIPTION_MARKER, `ISO: ${isoVersion}`]
+export function describeRepair({ reports = {}, error, firstBoot, firstBootError }) {
+  const lines = [REPAIR_DESCRIPTION_MARKER]
   // the repair run is the one which changed the guest, a diagnose alone did not change anything
   const report = reports.repair ?? reports.diagnose
   if (error !== undefined) {

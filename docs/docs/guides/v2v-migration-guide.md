@@ -295,7 +295,7 @@ Once the import is complete, XO:
 
 The import snapshot taken before the repair is the rollback path. A failed repair does not fail the import: the task reports it as a warning, with the reason.
 
-The repair is off by default. It is available through the API: the `repair` parameter of `vm.importFromEsxi` and `vm.importMultipleFromEsxi`, and the `repair` option of `POST /rest/v0/v2v/actions/start`. It is not exposed in the XO 5 import form yet.
+The repair is off by default. It is available in the XO 5 import form, which also starts the VM, and through the API: the `repair` parameter of `vm.importFromEsxi` and `vm.importMultipleFromEsxi`, and the `repair` option of `POST /rest/v0/pools/:id/actions/import_vms_from_vmware`.
 
 With the `startVm` option as well, XO then starts the VM and follows its first boot on XCP-ng:
 
@@ -305,7 +305,7 @@ With the `startVm` option as well, XO then starts the VM and follows its first b
 
 ### Requirements
 
-- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `xo-repair-<date>-<commit>.iso`. Each version of Xen Orchestra uses the build it was tested with, and checks the version the ISO reports before modifying anything. Several builds can be deployed side by side; the `isoVersion` repair option selects another build (its date, `YYYYMMDD`).
+- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `xo-repair-<date>-<commit>.iso`. Deploy a single one: when several are present, any of them may be used.
 - **A complete import**: the source VM is powered off before the migration, or the `Stop source` option is enabled. A partial import of a running VM is not repaired. The REST API refuses this combination.
 - **A clean shutdown of Windows**: a Windows VM that was powered off, rather than shut down from the guest, cannot be repaired (`ntfs_unclean`): its volumes are left in a state that cannot be written offline. Keep the VMware Tools running so that `Stop source` shuts it down cleanly, or shut it down from Windows before the migration. Hibernation and Fast Startup are blocking too.
 - **A running source for Windows with several network cards in static addressing**: the static configuration of each old adapter is moved to the network card with the same MAC address, matched through the IP addresses that the VMware Tools report while the VM runs. Start the migration with the source VM running, its VMware Tools up, and the `Stop source` option enabled. Otherwise these adapters fall back to DHCP, and the task reports it. A single network card, or DHCP, does not need it, and neither does Linux.
@@ -359,7 +359,7 @@ Also validated: BIOS and UEFI, SELinux enforcing, btrfs with snapper, LVM over s
 - **Without `startVm`, the VM is left powered off.** Start it: Linux boots directly. Windows runs its first-boot phases, installs the PV drivers and the management agent, and restarts on its own once.
 - **Secure Boot** is disabled during the repair, since the repair ISO is not signed. Without `startVm`, if the source VM had Secure Boot enabled, enable it again once the VM has booted, with the pool certificates installed.
 - **The VMware Tools** stay installed on the migrated VM, disabled. Remove them when convenient.
-- **The reports** of both runs are stored on the VM, in `other_config['xo:v2v:repair']`. The full report and log of the repair are in the guest: `/var/log/xo-repair/` on Linux, `C:\xo-repair\` on Windows (with the first-boot and installation logs).
+- **A summary** of the repair, and of the first boot with `startVm`, is written in the description of the VM. The full report and log of the repair are in the guest: `/var/log/xo-repair/` on Linux, `C:\xo-repair\` on Windows (with the first-boot and installation logs).
 
 ## Troubleshooting migration issues {#-troubleshooting-migration-issues}
 

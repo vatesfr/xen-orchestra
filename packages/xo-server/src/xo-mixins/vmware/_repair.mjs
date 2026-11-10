@@ -11,7 +11,6 @@ import {
   getBlockingFindings,
   guestLogsOf,
   isRepairIsoName,
-  isRepairIsoVersion,
   isRepairDone,
   readRepairOutput,
   userdeviceOfXvd,
@@ -31,39 +30,18 @@ const OUTPUT_SYNC_TIMEOUT = 30e3
 // the disks of the VM when it is free, the ISO recognizes the disk by its content anyway
 const TOOLS_USERDEVICE = '25'
 
-/**
- * The repair ISO of a build, deployed on the pool as an ISO SR VDI. A shared SR is preferred: it does not pin
- * the VM to a host. Two commits of the same day: the last one by name, the commits are not ordered otherwise.
- */
-function findRepairIso(xapi, isoVersion, context) {
-  const candidates = Object.values(xapi.objects.indexes.type.VDI ?? {}).filter(
-    vdi => isRepairIsoName(vdi.name_label, isoVersion) && !vdi.missing && vdi.$SR?.content_type === 'iso'
+// the repair ISO, deployed on the pool as an ISO SR VDI
+function findRepairIso(xapi, context) {
+  const iso = Object.values(xapi.objects.indexes.type.VDI ?? {}).find(
+    vdi => isRepairIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
   )
-  if (candidates.length === 0) {
-    const error = new Error(`no repair ISO xo-repair-${isoVersion}-*.iso in the pool`)
+  if (iso === undefined) {
+    const error = new Error('no repair ISO xo-repair-*.iso in the pool')
     error.code = 'REPAIR_ISO_NOT_FOUND'
-    Object.assign(error, context, { isoVersion })
+    Object.assign(error, context)
     throw error
   }
-  const names = new Set(candidates.map(vdi => vdi.name_label))
-  if (names.size > 1) {
-    Task.warning(`several repair ISOs of the build ${isoVersion}: ${[...names].join(', ')}`)
-  }
-  const byName = (a, b) => (a.name_label < b.name_label ? -1 : a.name_label > b.name_label ? 1 : 0)
-  const lastName = candidates.sort(byName).at(-1).name_label
-  const lastBuilds = candidates.filter(vdi => vdi.name_label === lastName)
-  return lastBuilds.find(vdi => vdi.$SR.shared) ?? lastBuilds[0]
-}
-
-// an ISO deployed under the name of another build would be used without notice. Every use of the ISO starts with
-// a diagnose run, which writes nothing: a mismatch is found before the guest is modified
-function assertIsoVersion(reported, isoVersion, context) {
-  if (!isRepairIsoVersion(reported, isoVersion)) {
-    const error = new Error(`the repair ISO reports the version ${reported}, the build ${isoVersion} was expected`)
-    error.code = 'REPAIR_ISO_VERSION_MISMATCH'
-    Object.assign(error, context, { isoVersion, reported })
-    throw error
-  }
+  return iso
 }
 
 const findToolsIso = xapi =>
@@ -86,8 +64,8 @@ async function insertCd(xapi, vm, iso) {
  * The repair ISO in the CD drive and the guest tools ISO as a read-only disk, both released on dispose:
  * neither SR supports snapshots.
  */
-async function attachRepairDisks(xapi, vmRef, isoVersion, context) {
-  const iso = findRepairIso(xapi, isoVersion, context)
+async function attachRepairDisks(xapi, vmRef, context) {
+  const iso = findRepairIso(xapi, context)
   const vm = xapi.getObject(vmRef)
 
   const cdDriveRef = await insertCd(xapi, vm, iso)
@@ -240,18 +218,14 @@ function assertNotBlocked(report, context) {
  * Secure Boot stays disabled: the ISO is not signed, and it is enabled again only once the guest has
  * booted on XCP-ng.
  */
-async function withRepairIso(xapi, vmRef, { context, isoVersion }, fn) {
+async function withRepairIso(xapi, vmRef, context, fn) {
   const vm = xapi.getObject(vmRef)
   const { order } = vm.HVM_boot_params
   const { start, start_on } = vm.blocked_operations
 
-  const run = async inputs => {
-    const output = await runRepairIso(xapi, vmRef, inputs, context)
-    assertIsoVersion(output.version, isoVersion, context)
-    return output
-  }
+  const run = inputs => runRepairIso(xapi, vmRef, inputs, context)
 
-  return Disposable.use(attachRepairDisks(xapi, vmRef, isoVersion, context), async () => {
+  return Disposable.use(attachRepairDisks(xapi, vmRef, context), async () => {
     try {
       await vm.update_blocked_operations({ start: null, start_on: null })
       await vm.update_HVM_boot_params('order', 'dc')
@@ -274,8 +248,8 @@ async function withRepairIso(xapi, vmRef, { context, isoVersion }, fn) {
  *
  * @returns {Promise<import('./_repairInputs.mjs').RepairReport>}
  */
-export async function diagnoseOffline({ xapi, vmRef, context, isoVersion }) {
-  const { report } = await withRepairIso(xapi, vmRef, { context, isoVersion }, run => run({ mode: 'diagnose' }))
+export async function diagnoseOffline({ xapi, vmRef, context }) {
+  const { report } = await withRepairIso(xapi, vmRef, context, run => run({ mode: 'diagnose' }))
   return report
 }
 
@@ -287,19 +261,15 @@ export async function diagnoseOffline({ xapi, vmRef, context, isoVersion }) {
  * @param {import('xen-api').Xapi} params.xapi
  * @param {string} params.vmRef
  * @param {object} params.metadata - from `getTransferableVmMetadata`
- * @param {object} [params.options]
- * @param {'standard' | 'full'} [params.options.windowsCleanup]
- * @param {string} [params.options.windowsMsiPatterns]
- * @param {boolean} [params.options.followFirstBoot] - whether XO starts the VM and follows its first boot: the
+ * @param {boolean} [params.followFirstBoot] - whether XO starts the VM and follows its first boot: the
  * Windows first boot then leaves its reboots to XO
- * @param {string} params.isoVersion - build of the repair ISO to use
  * @returns {Promise<{ diagnose: object, repair: object }>} the reports of both runs
  */
-export async function repairImportedVm({ xapi, vmRef, metadata, options = {}, isoVersion }) {
+export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot = false }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
 
-  return withRepairIso(xapi, vmRef, { context, isoVersion }, async run => {
+  return withRepairIso(xapi, vmRef, context, async run => {
     let diagnose = await run({ mode: 'diagnose' })
     if (isBlockedOnBootDisk(diagnose.report)) {
       const osDisk = diagnose.report.findings.find(finding => finding.code === 'boot_disk_not_first').data?.os_disk
@@ -330,8 +300,6 @@ export async function repairImportedVm({ xapi, vmRef, metadata, options = {}, is
       isWindows
         ? {
             mode: 'repair',
-            windowsCleanup: options.windowsCleanup,
-            windowsMsiPatterns: options.windowsMsiPatterns,
             windowsNics: buildWindowsNics({
               guestNics: metadata.guestNics,
               networks: metadata.networks,
@@ -339,7 +307,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, options = {}, is
             }),
             // without PV drivers the first boot cannot report its end: XO does not follow it, and a VM stopped
             // between two phases would stay stopped
-            windowsReboot: options.followFirstBoot && hasPvDrivers ? 'xo' : 'guest',
+            windowsReboot: followFirstBoot && hasPvDrivers ? 'xo' : 'guest',
           }
         : { mode: 'repair', nics: buildLinuxNics(metadata.networks) }
     )

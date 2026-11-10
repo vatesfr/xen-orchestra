@@ -84,20 +84,20 @@ describe('planMigration', function () {
     })
   })
 
-  it('repairs the guest when asked, with the options of the VM over the defaults', function () {
+  it('repairs the guest when asked, with the value of the VM over the defaults', function () {
     const stoppedVm = { ...sourceVm('vm-1'), powerState: 'poweredOff' as const }
     const result = planMigration(
       makeBody({
         defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1', repair: true },
-        vms: [{ id: 'vm-1' }, { id: 'vm-2', repair: { windowsCleanup: 'full' } }, { id: 'vm-3', repair: false }],
+        vms: [{ id: 'vm-1' }, { id: 'vm-2', repair: false }],
       }),
-      makeContext({ vms: [stoppedVm, { ...stoppedVm, id: 'vm-2' }, sourceVm('vm-3')] })
+      makeContext({ vms: [stoppedVm, sourceVm('vm-2')] })
     )
 
     assert.deepEqual(result.problems, [])
     assert.deepEqual(
       result.plans.map(({ repair }) => repair),
-      [{}, { windowsCleanup: 'full' }, false]
+      [true, false]
     )
   })
 
