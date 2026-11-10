@@ -65,6 +65,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     const snapshotCandidates = new Map()
 
+    // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
+    const replicaSnapshots = sr.$VDIs.filter(
+      vdi => vdi?.managed && vdi?.is_a_snapshot && vdi.$snapshot_of !== undefined
+    )
+
     for (const [baseUuid, srcVdiuid] of baseUuidToSrcVdi) {
       let target
 
@@ -72,13 +77,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
       if (contentKey !== undefined) {
         debug('got one content key, look for a candidate')
-        target = sr.$VDIs.find(
+        target = replicaSnapshots.find(
           vdi =>
-            vdi?.managed &&
-            vdi?.is_a_snapshot &&
             vdi.other_config[CONTENT_KEY] === contentKey &&
-            // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
-            vdi.$snapshot_of !== undefined &&
             // ensure we don't replicate on ourself or any of the vdi in the source  chain
             vdi.$snapshot_of.uuid !== srcVdiuid
         )
@@ -87,15 +88,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       // fall back for older snapshots
       if (target === undefined) {
         debug('content key not here or not found , look by jobid ')
-        target = sr.$VDIs.find(
+        target = replicaSnapshots.find(
           vdi =>
-            vdi?.managed &&
-            vdi?.is_a_snapshot &&
             vdi.other_config[JOB_ID] === this._job.id &&
             vdi.other_config[VM_UUID] === this._vmUuid &&
-            vdi?.other_config[COPY_OF] === baseUuid &&
-            // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
-            vdi.$snapshot_of !== undefined
+            vdi.other_config[COPY_OF] === baseUuid
         )
       }
       if (target !== undefined) {
