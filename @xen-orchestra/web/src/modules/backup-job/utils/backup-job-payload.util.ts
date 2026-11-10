@@ -6,6 +6,12 @@ import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-back
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import type { BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import {
+  ALL_EXPRESSION,
+  BACKUP_REPOSITORY_EXPRESSION_KEY,
+  STORAGE_REPOSITORY_EXPRESSION_KEY,
+  toContextExpression,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
+import {
   LONG_TERM_RETENTION_FIELDS,
   type LongTermRetentionPeriod,
 } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
@@ -62,26 +68,6 @@ export type BackupJobFormDataSet = {
     backupRepositories: string[]
     pools: string[]
   }
-}
-
-export const ALL_EXPRESSION = '*'
-
-export const BACKUP_REPOSITORY_EXPRESSION_KEY = 'backupRepository'
-
-export const STORAGE_REPOSITORY_EXPRESSION_KEY = 'sr'
-
-function toContextExpression(key: string, query: string): string {
-  return `${key}:(${query})`
-}
-
-export function formatContextExpressionQuery(key: string, expression: string): string {
-  const prefix = `${key}:(`
-
-  if (!expression.startsWith(prefix) || !expression.endsWith(')')) {
-    return expression
-  }
-
-  return expression.slice(prefix.length, -1)
 }
 
 function toIdsPattern(ids: string[]): BackupJobPattern {

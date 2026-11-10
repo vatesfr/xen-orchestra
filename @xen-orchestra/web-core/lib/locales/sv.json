@@ -647,7 +647,6 @@
   "mac-address": "MAC-adress",
   "mac-addresses": "MAC-adresser",
   "manage-citrix-pv-drivers-via-windows-update": "Hantera Citrix PV-drivrutiner genom Windows Update",
-  "manage-vm-lifecycle-in-xo-5": "Hantera VM-livscykel i XO-5",
   "management": "Hantering",
   "management-agent-not-detected": "Hanteringsagent inte upptäckt",
   "management-agent-version": "Hantera agentversion",

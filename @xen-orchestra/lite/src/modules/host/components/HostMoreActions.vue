@@ -1,10 +1,7 @@
 <template>
-  <MenuItem v-if="showChangeStateButton" icon="action:change-state" accent="brand">
-    {{ t('action:change-state') }}
-    <template #submenu>
-      <HostPowerStateActions :host />
-    </template>
-  </MenuItem>
+  <VtsChangeStateMenuItem v-if="showChangeState">
+    <HostPowerStateActions :host />
+  </VtsChangeStateMenuItem>
   <HostRestartToolstackButton :host />
   <HostDisableButton v-if="displayDisableButton" :host />
   <HostEnableButton v-else :host />
@@ -25,17 +22,14 @@ import HostPowerStateActions from '@/modules/host/components/actions/HostPowerSt
 import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XenApiHost
-  showChangeStateButton?: boolean
+  showChangeState?: boolean
 }>()
-
-const { t } = useI18n()
 
 const { getHostPowerState } = useHostMetricsStore().subscribe()
 

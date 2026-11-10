@@ -31,8 +31,10 @@
         <UiTag :accent="networkRule.allow ? 'success' : 'danger'" variant="secondary">
           {{ networkRule.allow ? t('allow') : t('drop') }}
         </UiTag>
-        <span class="typo-body-bold-small">{{ protocolLabel }}</span>
-        <span>{{ networkRule.ipRange }}</span>
+        <span class="details">
+          <span class="typo-body-bold-small">{{ protocolLabel }}</span>
+          <span>{{ networkRule.ipRange }}</span>
+        </span>
         <span v-if="networkRule.id === rule.id" class="this-rule typo-body-bold-small">{{ t('this-rule') }}</span>
       </li>
     </ul>
@@ -133,8 +135,9 @@ const visibleNetworkRuleItems = computed(() => {
 .traffic-rule-priority-card {
   .title {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1.6rem;
+    gap: 0.4rem 1.6rem;
   }
 
   .position {
@@ -142,6 +145,8 @@ const visibleNetworkRuleItems = computed(() => {
   }
 
   .rules {
+    container-type: inline-size;
+    container-name: traffic-rule-priority-rules;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
@@ -158,6 +163,31 @@ const visibleNetworkRuleItems = computed(() => {
     &.current {
       background-color: var(--color-brand-background-selected);
     }
+
+    @container traffic-rule-priority-rules (max-width: 30rem) {
+      &.current {
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        grid-template-areas:
+          'index tag this-rule'
+          '. details details';
+        gap: 0.8rem 1.2rem;
+
+        .details {
+          grid-area: details;
+        }
+
+        .this-rule {
+          grid-area: this-rule;
+        }
+      }
+    }
+  }
+
+  .details {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
   }
 
   .index {

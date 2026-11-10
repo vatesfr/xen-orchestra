@@ -19,18 +19,9 @@
           size="small"
           variant="secondary"
         />
-        <MenuList placement="bottom-start">
-          <template #trigger="{ open, isOpen }">
-            <UiButtonIcon
-              accent="brand"
-              icon="action:more-actions"
-              size="small"
-              :selected="isOpen"
-              @click="open($event)"
-            />
-          </template>
-          <HostMoreActions :host="branch.data" show-change-state-button />
-        </MenuList>
+        <VtsActionsMenu placement="bottom-start">
+          <HostMoreActions :host="branch.data" show-change-state />
+        </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -43,10 +34,9 @@ import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'

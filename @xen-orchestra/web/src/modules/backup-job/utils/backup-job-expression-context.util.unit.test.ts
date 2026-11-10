@@ -7,9 +7,11 @@ import { createSr } from '@/test/create-sr.ts'
 
 describe('toBackupRepositoryExpressionContext', () => {
   it('exposes the name and the type of the backup repository', () => {
-    expect(toBackupRepositoryExpressionContext(createBr({ name: 'NFS', url: 'nfs://192.168.1.10:/exports' }))).toEqual(
-      { name: 'NFS', type: 'nfs', tags: [] }
-    )
+    expect(toBackupRepositoryExpressionContext(createBr({ name: 'NFS', url: 'nfs://192.168.1.10:/exports' }))).toEqual({
+      name: 'NFS',
+      type: 'nfs',
+      tags: [],
+    })
   })
 
   it('has no type for an invalid URL', () => {

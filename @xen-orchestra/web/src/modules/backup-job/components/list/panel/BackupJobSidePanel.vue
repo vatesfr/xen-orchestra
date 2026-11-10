@@ -36,7 +36,7 @@ import {
   BACKUP_REPOSITORY_EXPRESSION_KEY,
   formatContextExpressionQuery,
   STORAGE_REPOSITORY_EXPRESSION_KEY,
-} from '@/modules/backup-job/utils/backup-job-payload.util.ts'
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import { BACKUP_JOB_LAST_RUNS_COUNT, getTargetIds } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {

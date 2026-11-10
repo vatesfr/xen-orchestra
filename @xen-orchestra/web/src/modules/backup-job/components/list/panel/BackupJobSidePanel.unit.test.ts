@@ -25,7 +25,10 @@ import type {
   FrontXoSchedule,
   useXoScheduleCollection,
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type {
+  FrontXoSr,
+  useXoSrCollection,
+} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

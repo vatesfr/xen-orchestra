@@ -8,9 +8,9 @@
       <h4 v-tooltip class="typo-h4 label text-ellipsis">
         <slot />
       </h4>
-    </div>
-    <div v-if="slots.status" class="status typo-caption-small">
-      <slot name="status" />
+      <div v-if="slots.status" class="status typo-caption-small">
+        <slot name="status" />
+      </div>
     </div>
     <div v-if="slots.actions" class="actions">
       <slot name="actions" />
@@ -40,12 +40,14 @@ const slots = defineSlots<{
   min-height: 6rem;
   padding: 0.8rem 1.6rem;
   display: flex;
-  gap: 1.6rem;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.6rem;
   align-items: center;
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
 
   .label-wrapper {
+    flex: 1 1 20rem;
     display: flex;
     gap: 1.6rem;
     align-items: center;
@@ -57,6 +59,7 @@ const slots = defineSlots<{
   }
 
   .status {
+    flex-shrink: 0;
     color: var(--color-neutral-txt-secondary);
     display: flex;
     align-items: center;

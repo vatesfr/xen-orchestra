@@ -37,7 +37,7 @@
 
 <script lang="ts" setup>
 import BackupJobTargetsBrItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobTargetsBrItem.vue'
-import { ALL_EXPRESSION } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
+import { ALL_EXPRESSION } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
