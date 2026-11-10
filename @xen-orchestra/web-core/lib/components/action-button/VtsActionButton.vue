@@ -1,12 +1,12 @@
 <template>
-  <MenuItem v-if="isInMenu" v-show="isVisible" ref="root" :accent="menuItemAccent" :icon :disabled :busy :on-click>
-    <slot />
-    <i v-if="disabled && hint" class="em-dash-prefix">{{ hint }}</i>
-  </MenuItem>
+  <Teleport v-if="isInMenu || collapsedMenu" :to="collapsedMenu?.target" :disabled="isInMenu">
+    <MenuItem :accent="menuItemAccent" :icon :disabled :busy :on-click="handleMenuItemClick">
+      <slot />
+      <i v-if="disabled && hint" class="em-dash-prefix">{{ hint }}</i>
+    </MenuItem>
+  </Teleport>
   <UiButton
-    v-else
-    v-show="isVisible"
-    ref="root"
+    v-else-if="!isCollapsed"
     v-tooltip="disabled && hint ? hint : false"
     size="medium"
     :variant
@@ -26,8 +26,9 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiButton, { type ButtonAccent, type ButtonVariant } from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
-import { IK_MENU_TELEPORTED, IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
-import { computed, inject, useTemplateRef } from 'vue'
+import { IK_IN_MENU, IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
+import { useCurrentElement } from '@vueuse/core'
+import { computed, inject, toValue } from 'vue'
 
 const { accent, onClick } = defineProps<{
   variant: ButtonVariant
@@ -43,11 +44,19 @@ defineSlots<{
   default(): any
 }>()
 
-const isInMenu = inject(IK_MENU_TELEPORTED, false)
+const isInMenu = inject(IK_IN_MENU, false)
 
-const root = useTemplateRef('root')
+const panelActions = isInMenu ? undefined : inject(IK_PANEL_ACTIONS, undefined)
 
-const isVisible = inject(IK_PANEL_ACTIONS, undefined)?.register(root) ?? true
+const isCollapsed = panelActions?.register(useCurrentElement()) ?? false
+
+const collapsedMenu = computed(() => (toValue(isCollapsed) ? panelActions?.menu.value : undefined))
 
 const menuItemAccent = computed<MenuItemAccent>(() => (accent === 'brand' ? 'neutral' : accent))
+
+async function handleMenuItemClick() {
+  await onClick?.()
+
+  collapsedMenu.value?.close()
+}
 </script>

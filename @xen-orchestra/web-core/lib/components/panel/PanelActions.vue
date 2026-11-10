@@ -5,15 +5,20 @@
 <script lang="ts" setup>
 import { IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
 import { type MaybeElementRef, unrefElement } from '@vueuse/core'
-import { computed, type ComputedRef, onScopeDispose, provide, shallowRef, watch } from 'vue'
+import { computed, type ComputedRef, onScopeDispose, provide, type ShallowRef, shallowRef, watch } from 'vue'
+
+export type PanelActionsMenu = {
+  target: HTMLElement
+  close: () => void
+}
 
 export type PanelActionsGroup = {
   register: (element: MaybeElementRef) => ComputedRef<boolean>
+  menu: ShallowRef<PanelActionsMenu | undefined>
 }
 
-const { start, end = Infinity } = defineProps<{
-  start: number
-  end?: number
+const { inlineCount } = defineProps<{
+  inlineCount: number
 }>()
 
 const emit = defineEmits<{
@@ -25,6 +30,8 @@ defineSlots<{
 }>()
 
 const elements = shallowRef<MaybeElementRef[]>([])
+
+const menu = shallowRef<PanelActionsMenu>()
 
 const orderedElements = computed(() =>
   [...elements.value].sort((elementA, elementB) => {
@@ -48,12 +55,8 @@ function register(element: MaybeElementRef) {
     elements.value = elements.value.filter(registeredElement => registeredElement !== element)
   })
 
-  return computed(() => {
-    const index = orderedElements.value.indexOf(element)
-
-    return index >= start && index < end
-  })
+  return computed(() => orderedElements.value.indexOf(element) >= inlineCount)
 }
 
-provide(IK_PANEL_ACTIONS, { register })
+provide(IK_PANEL_ACTIONS, { register, menu })
 </script>

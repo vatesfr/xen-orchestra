@@ -9,24 +9,17 @@
         :class="{ 'menu-only': isMenuAlone }"
         class="action-buttons"
       >
-        <PanelActions
-          v-if="slots.actions"
-          :start="0"
-          :end="inlineActionsCount"
-          @change="count => updateActionsCount(count)"
-        >
+        <PanelActions :inline-count="inlineActionsCount" @change="count => updateActionsCount(count)">
           <slot name="actions" />
+          <VtsActionsMenu
+            v-if="slots['more-actions'] || collapsedActionsCount > 0"
+            :label="t('more-actions')"
+            size="medium"
+          >
+            <PanelCollapsedActions v-if="collapsedActionsCount > 0" />
+            <slot name="more-actions" />
+          </VtsActionsMenu>
         </PanelActions>
-        <VtsActionsMenu
-          v-if="slots['more-actions'] || collapsedActionsCount > 0"
-          :label="t('more-actions')"
-          size="medium"
-        >
-          <PanelActions v-if="collapsedActionsCount > 0" :start="inlineActionsCount">
-            <slot name="actions" />
-          </PanelActions>
-          <slot name="more-actions" />
-        </VtsActionsMenu>
       </div>
       <div v-if="slots['corner-actions'] || closable" class="corner-actions">
         <slot v-if="slots['corner-actions']" name="corner-actions" />
@@ -48,6 +41,7 @@
 <script setup lang="ts">
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import PanelActions from '@core/components/panel/PanelActions.vue'
+import PanelCollapsedActions from '@core/components/panel/PanelCollapsedActions.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useCollapseOnOverflow } from '@core/composables/collapse-on-overflow.composable.ts'

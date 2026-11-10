@@ -2,8 +2,6 @@
   <VtsSidePanel :has-selection="!!server" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
-    </template>
-    <template v-if="server" #more-actions>
       <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
       <PoolForgetButton :server />
     </template>

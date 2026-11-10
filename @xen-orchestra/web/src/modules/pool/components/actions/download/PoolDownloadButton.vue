@@ -1,20 +1,20 @@
 <template>
-  <MenuItem
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     icon="action:download"
-    class="typo-body-bold-small"
     :busy="isBusy"
     :disabled="isDisabled"
-    @click="download"
+    @click="download()"
   >
     {{ t('action:download-bugtools-archive') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { usePoolBugToolsDownload } from '@/modules/pool/composables/use-pool-bugtools-download.composable.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useI18n } from 'vue-i18n'
 
 const { poolId } = defineProps<{ poolId: FrontXoPool['id'] }>()

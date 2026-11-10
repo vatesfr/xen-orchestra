@@ -2,8 +2,6 @@
   <VtsSidePanel :key="panelSignature" :has-selection="!!sr" @close="emit('close')">
     <template v-if="sr" #actions>
       <SrConnectButton :scope :sr />
-    </template>
-    <template v-if="sr" #more-actions>
       <SrDisconnectButton :scope :sr />
       <SrDeleteButton :sr />
     </template>
