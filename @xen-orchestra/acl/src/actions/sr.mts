@@ -4,6 +4,7 @@ export default {
   forget: true,
   import: {
     vdi: true,
+    'vdi-from-url': true,
     vm: true,
   },
   'migrate-receive': true,

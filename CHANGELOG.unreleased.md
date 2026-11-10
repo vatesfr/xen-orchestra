@@ -15,6 +15,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+<<<<<<< HEAD
 - [Header] On mobile, the XO 5 link and third party apps are grouped in a "More actions" menu (PR [#10744](https://github.com/vatesfr/xen-orchestra/pull/10744))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" and "Manage in XO-5" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
@@ -57,6 +58,9 @@
 - [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/pools/actions/create_private_network`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
 - [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
 - [Pool/Network] Add the possibility to create private networks (PR [#10820](https://github.com/vatesfr/xen-orchestra/pull/10820))
+=======
+- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR, requires the new `import:vdi-from-url` privilege on the SR
+>>>>>>> 195aff0b53 (feat(rest-api): import VDI from URL)
 
 ### Bug fixes
 
@@ -99,6 +103,7 @@
 
 <!--packages-start-->
 
+<<<<<<< HEAD
 - @vates/obfuscate minor
 - @vates/syslog minor
 - @vates/types major
@@ -113,6 +118,14 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
+=======
+- @vates/types minor
+- @xen-orchestra/acl minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/qa-test patch
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
+>>>>>>> 195aff0b53 (feat(rest-api): import VDI from URL)
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
 - xen-api major
