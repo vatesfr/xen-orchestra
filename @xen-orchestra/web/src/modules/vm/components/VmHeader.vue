@@ -13,7 +13,7 @@
       />
     </template>
     <template #actions>
-      <VmHeaderActions :vm show-xo5-link />
+      <VmMainActions :vm show-xo5-link />
     </template>
   </UiHeadBar>
   <TabList>
@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmHeaderActions from '@/modules/vm/components/actions/VmHeaderActions.vue'
+import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'

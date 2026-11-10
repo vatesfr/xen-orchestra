@@ -443,6 +443,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/menu/vts-change-state-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu',
+      '/story/web-core/menu/vts-change-state-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-change-state-menu-item': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu-item',
+      '/story/web-core/menu/vts-change-state-menu-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/menu/vts-mobile-menu': RouteRecordInfo<
       '/story/web-core/menu/vts-mobile-menu',
       '/story/web-core/menu/vts-mobile-menu',
@@ -1546,6 +1560,18 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/menu/vts-action-items.story.vue': {
       routes:
         | '/story/web-core/menu/vts-action-items'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-change-state-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-change-state-menu-item.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu-item'
       views:
         | never
     }

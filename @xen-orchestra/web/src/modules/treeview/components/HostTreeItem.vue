@@ -22,7 +22,7 @@
           variant="secondary"
         />
         <VtsActionsMenu placement="bottom-start">
-          <HostMoreActions :host="branch.data" show-change-state-button />
+          <HostMoreActions :host="branch.data" show-change-state />
         </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>

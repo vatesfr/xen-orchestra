@@ -1,10 +1,7 @@
 <template>
-  <MenuItem v-if="showChangeStateButton" accent="brand" icon="action:change-state">
-    {{ t('action:change-state') }}
-    <template #submenu>
-      <HostPowerStateActions :host />
-    </template>
-  </MenuItem>
+  <VtsChangeStateMenuItem v-if="showChangeState">
+    <HostPowerStateActions :host />
+  </VtsChangeStateMenuItem>
   <HostRestartToolstackButton :host />
   <template v-if="displayDisableButton">
     <HostDisableButton :host />
@@ -28,17 +25,14 @@ import HostPowerStateActions from '@/modules/host/components/actions/HostPowerSt
 import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: FrontXoHost
-  showChangeStateButton?: boolean
+  showChangeState?: boolean
 }>()
-
-const { t } = useI18n()
 
 const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 

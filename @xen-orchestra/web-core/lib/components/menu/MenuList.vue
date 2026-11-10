@@ -18,9 +18,9 @@
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import {
   IK_CLOSE_MENU,
+  IK_IN_MENU,
   IK_MENU_HORIZONTAL,
   IK_MENU_PLACEMENT_SIDE,
-  IK_MENU_TELEPORTED,
 } from '@core/utils/injection-keys.util.ts'
 import { placeOverlay } from '@core/utils/placement.util.ts'
 import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
@@ -68,9 +68,7 @@ let clearClickOutsideEvent: (() => void) | undefined
 
 const hasTrigger = useSlots().trigger !== undefined
 
-if (hasTrigger) {
-  provide(IK_MENU_TELEPORTED, true)
-}
+provide(IK_IN_MENU, true)
 
 whenever(
   () => !isOpen.value,

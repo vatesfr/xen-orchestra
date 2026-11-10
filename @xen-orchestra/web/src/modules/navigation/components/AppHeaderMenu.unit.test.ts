@@ -4,7 +4,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { computed, nextTick } from 'vue'
 
 const { buildXo5Route } = vi.hoisted(() => ({
@@ -33,26 +33,35 @@ async function mountOpenedMenu() {
   return wrapper
 }
 
-function findPanel(wrapper: Awaited<ReturnType<typeof mountOpenedMenu>>) {
+function findPanel(wrapper: VueWrapper) {
   return wrapper.findComponent(UiPanel)
 }
 
-function findTitle(wrapper: Awaited<ReturnType<typeof mountOpenedMenu>>) {
+function findTitle(wrapper: VueWrapper) {
   return findPanel(wrapper).get('.header .typo-h6').text()
 }
 
-function findLinks(wrapper: Awaited<ReturnType<typeof mountOpenedMenu>>) {
+function findLinks(wrapper: VueWrapper) {
   return findPanel(wrapper)
     .findAll('.menu-item a')
     .map(link => [link.text(), link.attributes('href')])
 }
 
-async function goBack(wrapper: Awaited<ReturnType<typeof mountOpenedMenu>>) {
-  await findPanel(wrapper).get('.header button.ui-button-icon').trigger('click')
+function findBackButton(wrapper: VueWrapper) {
+  return findPanel(wrapper).get('.header button.ui-button-icon')
+}
+
+async function goBack(wrapper: VueWrapper) {
+  await findBackButton(wrapper).trigger('click')
   await nextTick()
 }
 
-async function openThirdParties(wrapper: Awaited<ReturnType<typeof mountOpenedMenu>>) {
+async function pressEscape() {
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+  await nextTick()
+}
+
+async function openThirdParties(wrapper: VueWrapper) {
   const thirdPartiesItem = findPanel(wrapper)
     .findAll('.menu-trigger')
     .find(trigger => trigger.text() === t('third-parties'))
@@ -98,4 +107,35 @@ it('goes back from the third party apps to the menu, then closes', async () => {
   await goBack(wrapper)
 
   expect(wrapper.findComponent(UiPanel).exists()).toBe(false)
+})
+
+it('goes back from the third party apps to the menu, then closes, on Escape', async () => {
+  const wrapper = await mountOpenedMenu()
+
+  await openThirdParties(wrapper)
+  await pressEscape()
+
+  expect(findTitle(wrapper)).toBe(t('more-actions'))
+
+  await pressEscape()
+
+  expect(wrapper.findComponent(UiPanel).exists()).toBe(false)
+})
+
+it('names the back button after what it does', async () => {
+  const wrapper = await mountOpenedMenu()
+
+  expect(findBackButton(wrapper).attributes('aria-label')).toBe(t('action:close'))
+
+  await openThirdParties(wrapper)
+
+  expect(findBackButton(wrapper).attributes('aria-label')).toBe(t('action:go-back'))
+})
+
+it('is a dialog named after its title', async () => {
+  const wrapper = await mountOpenedMenu()
+  const panel = findPanel(wrapper)
+
+  expect(panel.attributes('role')).toBe('dialog')
+  expect(panel.get(`#${panel.attributes('aria-labelledby')}`).text()).toBe(t('more-actions'))
 })

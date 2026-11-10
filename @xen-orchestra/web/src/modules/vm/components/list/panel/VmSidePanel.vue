@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vm" @close="emit('close')">
     <template v-if="vm" #actions>
-      <VmHeaderActions :vm />
+      <VmMainActions :vm />
     </template>
     <template v-if="vm" #default>
       <VmInfoCard :vm />
@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import VmHeaderActions from '@/modules/vm/components/actions/VmHeaderActions.vue'
+import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'

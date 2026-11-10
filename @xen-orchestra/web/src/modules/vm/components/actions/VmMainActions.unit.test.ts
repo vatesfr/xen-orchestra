@@ -1,15 +1,17 @@
-import VmHeaderActions from '@/modules/vm/components/actions/VmHeaderActions.vue'
-import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { computed, nextTick } from 'vue'
 
 const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
@@ -19,18 +21,25 @@ vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
+}))
+
+vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
+}))
+
 beforeEach(() => {
   buildXo5Route.mockReset()
   buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
 })
 
 function mountActions({ showXo5Link = false, isPanelCompact = false } = {}) {
-  return mount(VmHeaderActions, {
+  return mount(VmMainActions, {
     props: { vm: createVm({ id: 'vm-42' as FrontXoVm['id'] }), showXo5Link },
     global: {
       ...createGlobalTestConfig(),
-      stubs: { VmMoreActions: true },
-      provide: { [IK_PANEL_ACTIONS_COMPACT as symbol]: ref(isPanelCompact) },
+      provide: { [IK_PANEL_ACTIONS_COMPACT as symbol]: computed(() => isPanelCompact) },
     },
   })
 }
@@ -45,6 +54,10 @@ function findXo5Links(wrapper: ReturnType<typeof mountActions>) {
     .findAllComponents(UiLink)
     .filter(link => link.text() === t('action:manage-in-xo-5'))
     .map(link => link.attributes('href'))
+}
+
+function findMenuItemLabels(wrapper: ReturnType<typeof mountActions>) {
+  return wrapper.findAllComponents(MenuItem).map(item => item.text())
 }
 
 describe('when the actions fit', () => {
@@ -66,7 +79,7 @@ describe('when the actions fit', () => {
 
     await openMoreActions(wrapper)
 
-    expect(wrapper.getComponent(VmMoreActions).props('showChangeState')).toBe(false)
+    expect(findMenuItemLabels(wrapper)).not.toContain(t('action:change-state'))
   })
 })
 
@@ -85,6 +98,6 @@ describe('when the panel is too narrow', () => {
     await openMoreActions(wrapper)
 
     expect(findXo5Links(wrapper)).toEqual(['https://xo5.example.com/#/vms/vm-42/general'])
-    expect(wrapper.getComponent(VmMoreActions).props('showChangeState')).toBe(true)
+    expect(findMenuItemLabels(wrapper)).toContain(t('action:change-state'))
   })
 })

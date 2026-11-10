@@ -3,14 +3,9 @@
     <UiLink v-if="showXo5Link" :href="xo5VmGeneralHref" size="medium">
       {{ t('action:manage-in-xo-5') }}
     </UiLink>
-    <MenuList placement="bottom-start">
-      <template #trigger="{ open }">
-        <UiDropdownButton variant="secondary" size="medium" icon="action:change-state" @click="open($event)">
-          {{ t('action:change-state') }}
-        </UiDropdownButton>
-      </template>
+    <VtsChangeStateMenu placement="bottom-start">
       <VmPowerStateActions :vm />
-    </MenuList>
+    </VtsChangeStateMenu>
   </template>
   <VtsActionsMenu :label="t('more-actions')" size="medium">
     <MenuItem v-if="showXo5Link && isCompact" accent="brand">
@@ -28,13 +23,12 @@ import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateAct
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import VtsChangeStateMenu from '@core/components/menu/VtsChangeStateMenu.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
-import { computed, inject, ref } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -46,7 +40,10 @@ const { t } = useI18n()
 
 const uiStore = useUiStore()
 
-const arePanelActionsCompact = inject(IK_PANEL_ACTIONS_COMPACT, ref(false))
+const arePanelActionsCompact = inject(
+  IK_PANEL_ACTIONS_COMPACT,
+  computed(() => false)
+)
 
 const isCompact = computed(() => uiStore.isSmall || arePanelActionsCompact.value)
 

@@ -2,28 +2,17 @@
 <template>
   <li class="menu-item">
     <MenuTrigger
-      v-if="!slots.submenu"
+      v-if="!slots.submenu || mobileMenu"
       :accent
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
       :icon
       class="typo-body-bold-small"
-      @click="handleClick"
+      @click="handleClick()"
     >
       <slot />
-    </MenuTrigger>
-    <MenuTrigger
-      v-else-if="mobileMenu"
-      :accent
-      :busy="isBusy"
-      :disabled="isDisabled"
-      :icon
-      class="typo-body-bold-small"
-      @click="openMobileSubmenu()"
-    >
-      <slot />
-      <VtsIcon name="fa:angle-right" size="medium" />
+      <VtsIcon v-if="slots.submenu" name="fa:angle-right" size="medium" />
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
@@ -82,16 +71,13 @@ const isBusy = computed(() => isHandlingClick.value || busy === true)
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
 const mobileMenu = inject(IK_MOBILE_MENU, undefined)
 
-function openMobileSubmenu() {
-  if (isDisabled.value || slots.submenu === undefined) {
+const handleClick = async () => {
+  if (isDisabled.value || isBusy.value) {
     return
   }
 
-  mobileMenu?.openSubmenu({ title: slots.default, content: slots.submenu })
-}
-
-const handleClick = async () => {
-  if (isDisabled.value || isBusy.value) {
+  if (slots.submenu !== undefined) {
+    mobileMenu?.openSubmenu({ title: slots.default, content: slots.submenu })
     return
   }
 

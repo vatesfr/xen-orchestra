@@ -23,7 +23,7 @@ export const IK_MENU_HORIZONTAL = Symbol('IK_MENU_HORIZONTAL') as InjectionKey<C
 
 export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 
-export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<boolean>
+export const IK_IN_MENU = Symbol('IK_IN_MENU') as InjectionKey<boolean>
 
 export const IK_MENU_PLACEMENT_SIDE = Symbol('IK_MENU_PLACEMENT_SIDE') as InjectionKey<Ref<string | undefined>>
 
@@ -31,7 +31,7 @@ export const IK_MOBILE_MENU = Symbol('IK_MOBILE_MENU') as InjectionKey<MobileMen
 
 export const IK_MENU_ACTION_HANDLER = Symbol('IK_MENU_ACTION_HANDLER') as InjectionKey<() => void>
 
-export const IK_PANEL_ACTIONS_COMPACT = Symbol('IK_PANEL_ACTIONS_COMPACT') as InjectionKey<Ref<boolean>>
+export const IK_PANEL_ACTIONS_COMPACT = Symbol('IK_PANEL_ACTIONS_COMPACT') as InjectionKey<ComputedRef<boolean>>
 
 export const IK_PANEL_ACTIONS = Symbol('IK_PANEL_ACTIONS') as InjectionKey<PanelActionsGroup>
 
