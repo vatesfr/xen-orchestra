@@ -485,7 +485,7 @@ describe('SDN Controller REST API', { skip: !process.env.SDN_CONTROLLER_VM_ID },
     // XAPI reserves 0
     itSdn('should reject a priority that is not an integer from 1 to 65535', async () => {
       const rule = { ...NET_RULE, port: 1443 }
-      for (const priority of [0, 1.5, 65536, '1']) {
+      for (const priority of [-1, 0, 1.5, 65536, '1']) {
         await rejectsWithStatus(addRule('networks', networkId, { ...rule, priority }), 422)
       }
       assert.strictEqual(findRule(await rulesOf('networks', networkId), rule), undefined)
