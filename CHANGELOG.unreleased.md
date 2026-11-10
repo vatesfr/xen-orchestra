@@ -5,6 +5,8 @@
 
 ### Security
 
+- Fix authentication token validation
+
 > Security fixes and new features should go in this section
 
 ### Enhancements
