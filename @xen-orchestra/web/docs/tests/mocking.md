@@ -22,6 +22,19 @@ beforeEach(() => {
 
 Note the cast: the typed form checks the factory return against the **whole** module, so a partial mock of a large export needs `as unknown as typeof useX` (with an `import type { useX }`).
 
+When several test files mock the same remote resource (a collection or a single resource) with the same shape, the mock lives once in `src/test/` and the test file only points `vi.mock` to it; its exported state is read and changed by the tests, and reset in `beforeEach`:
+
+```typescript
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
+
+beforeEach(() => {
+  vmCollectionMock.reset()
+})
+```
+
 ## Network
 
-`src/test/setup.ts` stubs the global `fetch` with a never-settling promise, so composables that trigger remote requests on use never hit the network in unit tests. Override it locally with `vi.stubGlobal('fetch', …)` when a test needs a real response.
+`src/test/setup.ts` stubs the global `fetch` with a never-settling promise before each test, so composables that trigger remote requests on use never hit the network in unit tests. When a test needs a real response, `stubFetchResponse(status, body)` from `src/test/stub-fetch-response.ts` overrides it for that test only and returns the mock, to assert the request when the request is the contract (a job).

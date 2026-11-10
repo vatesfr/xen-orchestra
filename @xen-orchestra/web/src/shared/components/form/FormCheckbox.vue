@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-repository-form-checkbox">
+  <div class="form-checkbox">
     <UiCheckbox
       :model-value
       accent="brand"
@@ -21,6 +21,8 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import { computed } from 'vue'
 
+defineOptions({ inheritAttrs: false })
+
 const { warning } = defineProps<{
   label: string
   modelValue: boolean | undefined
@@ -38,7 +40,7 @@ const warningMessages = computed(() =>
 </script>
 
 <style lang="postcss" scoped>
-.backup-repository-form-checkbox {
+.form-checkbox {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;

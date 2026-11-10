@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="messages">
+  <VtsInputWrapper :label :message="messages" wrap-message>
     <UiInput v-model.trim="model" accent="brand" :type :required :disabled :placeholder :prefix @blur="emit('blur')" />
   </VtsInputWrapper>
 </template>
@@ -26,5 +26,7 @@ const emit = defineEmits<{ blur: [] }>()
 
 const model = defineModel<string>({ required: true })
 
-const messages = computed<InputWrapperMessage>(() => error ?? info ?? [])
+const messages = computed<InputWrapperMessage>(
+  () => [info, error].filter(message => message !== undefined) as InputWrapperMessage
+)
 </script>
