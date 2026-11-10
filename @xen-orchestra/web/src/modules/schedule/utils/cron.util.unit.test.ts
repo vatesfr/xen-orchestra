@@ -6,6 +6,7 @@ import {
   getNextRunDates,
   getRangeValues,
   getSelectedValues,
+  getStepValues,
   joinCron,
   parseCronField,
   splitCron,
@@ -23,6 +24,16 @@ describe('getMaxStep', () => {
   it('allows a step up to half of the range', () => {
     expect(getMaxStep(CRON_FIELD_RANGES.hour)).toBe(12)
     expect(getMaxStep(CRON_FIELD_RANGES.monthDay)).toBe(15)
+  })
+})
+
+describe('getStepValues', () => {
+  it('keeps one value every step, starting with the first one', () => {
+    expect(getStepValues([1, 2, 3, 4, 5, 6, 7], 3)).toEqual([1, 4, 7])
+  })
+
+  it('keeps every value with a step of 1', () => {
+    expect(getStepValues([0, 6, 12], 1)).toEqual([0, 6, 12])
   })
 })
 

@@ -6,7 +6,7 @@
       <span v-if="storageRepositoryExpression === ALL_EXPRESSION" class="typo-body-regular-small">
         {{ t('all-objects-srs') }}
       </span>
-      <VtsCardRowKeyValue v-else-if="storageRepositoryExpression !== undefined" class="query">
+      <VtsCardRowKeyValue v-else-if="storageRepositoryExpression !== undefined" class="query" truncate align-top>
         <template #key>{{ t('dynamic-selection-query') }}</template>
         <template #value>{{ storageRepositoryExpression }}</template>
       </VtsCardRowKeyValue>
@@ -24,7 +24,7 @@
       <span v-if="backupRepositoryExpression === ALL_EXPRESSION" class="typo-body-regular-small">
         {{ t('all-objects-brs') }}
       </span>
-      <VtsCardRowKeyValue v-else-if="backupRepositoryExpression !== undefined" class="query">
+      <VtsCardRowKeyValue v-else-if="backupRepositoryExpression !== undefined" class="query" truncate align-top>
         <template #key>{{ t('dynamic-selection-query') }}</template>
         <template #value>{{ backupRepositoryExpression }}</template>
       </VtsCardRowKeyValue>

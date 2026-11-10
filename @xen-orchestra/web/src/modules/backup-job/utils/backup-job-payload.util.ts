@@ -74,6 +74,16 @@ function toContextExpression(key: string, query: string): string {
   return `${key}:(${query})`
 }
 
+export function formatContextExpressionQuery(key: string, expression: string): string {
+  const prefix = `${key}:(`
+
+  if (!expression.startsWith(prefix) || !expression.endsWith(')')) {
+    return expression
+  }
+
+  return expression.slice(prefix.length, -1)
+}
+
 function toIdsPattern(ids: string[]): BackupJobPattern {
   return { id: { __or: ids } }
 }

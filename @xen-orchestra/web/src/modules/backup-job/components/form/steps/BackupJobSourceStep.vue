@@ -6,7 +6,7 @@
       </BackupJobFormRow>
       <UiToggle
         :model-value="bindings.enabled.modelValue"
-        @update:model-value="bindings.enabled['onUpdate:modelValue']($event ?? false)"
+        @update:model-value="value => bindings.enabled['onUpdate:modelValue'](value ?? false)"
       >
         {{ t('action:enable') }}
       </UiToggle>

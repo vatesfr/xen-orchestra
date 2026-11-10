@@ -2,7 +2,7 @@
   <UiPanelCard class="backup-job-backed-up-vms-card">
     <UiPanelCardTitle size="medium" :label="t('backed-up-vms')" :counter="backedUpVmsCount" />
     <div>
-      <VtsCardRowKeyValue v-if="backedUpVmsExpression !== undefined">
+      <VtsCardRowKeyValue v-if="backedUpVmsExpression !== undefined" truncate align-top>
         <template #key>{{ t('dynamic-selection-query') }}</template>
         <template #value>{{ backedUpVmsExpression }}</template>
       </VtsCardRowKeyValue>

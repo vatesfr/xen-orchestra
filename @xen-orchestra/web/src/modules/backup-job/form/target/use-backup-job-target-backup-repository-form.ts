@@ -7,7 +7,7 @@ import {
 } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import type { LongTermRetentionPeriod } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryTypeLabels } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-labels.composable.ts'
 import {
   type FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
@@ -15,14 +15,13 @@ import {
 import { toBackupRepositoryQueryPreviewItem } from '@/modules/backup-repository/utils/xo-backup-repository-query-preview-item.util.ts'
 import { type FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
-import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
+import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { BACKUP_REPOSITORY_TYPE } from 'xo-remote-parser'
 
 export type BackupJobBackupDistribution = 'every' | 'distribute'
 
@@ -81,9 +80,7 @@ export function useBackupJobTargetBackupRepositoryForm(
     )
   )
 
-  const backupRepositoryTypeLabels = Object.fromEntries(
-    Object.values(BACKUP_REPOSITORY_TYPE).map(type => [type, useXoBackupRepositoryTypeLabel(type).value])
-  )
+  const backupRepositoryTypeLabels = useXoBackupRepositoryTypeLabels()
 
   const backupRepositorySchema = useQueryBuilderSchema<BackupRepositoryExpressionContext>({
     '': useStringSchema(t('any-property')),
@@ -109,7 +106,7 @@ export function useBackupJobTargetBackupRepositoryForm(
     }
   })
 
-  const { atLeast } = useBackupJobFormRules()
+  const { atLeast, dynamicSelectionRules } = useBackupJobFormRules()
 
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
@@ -130,16 +127,13 @@ export function useBackupJobTargetBackupRepositoryForm(
             () => t('select-at-least-one-backup-repository')
           ),
         },
-        backupRepositoryFilter: {
-          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
-          atLeastOneMatch: withMessage(
-            () =>
-              !isActive.value ||
-              formData.backupRepositoryScopeType !== 'smart' ||
-              matchedBackupRepositories.value.length > 0,
-            () => t('query-matches-no-backup-repository')
-          ),
-        },
+        backupRepositoryFilter: dynamicSelectionRules(
+          () => isActive.value && formData.backupRepositoryScopeType === 'smart',
+          {
+            isEmpty: () => matchedBackupRepositories.value.length === 0,
+            message: () => t('query-matches-no-backup-repository'),
+          }
+        ),
         ltrDailyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
         ltrWeeklyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },
         ltrMonthlyRetention: { minValue: atLeast(0, () => hasRetentionStrategy.value) },

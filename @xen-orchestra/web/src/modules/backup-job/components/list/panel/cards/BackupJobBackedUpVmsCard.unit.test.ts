@@ -112,7 +112,7 @@ it('shows the query of a dynamic selection with the VMs it matches', () => {
 
   expect(wrapper.text()).toContain(t('dynamic-selection-query'))
   expect(wrapper.text()).toContain('name_label:"VM 1"')
-  expect(findVmLinks(wrapper)).toEqual([['VM 1', '/vm/vm-1/dashboard']])
+  expect(findVmLinks(wrapper).map(link => link.text())).toEqual(['VM 1'])
 })
 
 it('says that every VM is backed up by a smart mode without criteria', () => {

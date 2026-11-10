@@ -10,7 +10,7 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { type FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { toSrQueryPreviewItem } from '@/modules/storage-repository/utils/xo-sr-query-preview-item.util.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
-import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
+import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
@@ -66,7 +66,7 @@ export function useBackupJobTargetStorageRepositoryForm(
       .map(sr => toSrQueryPreviewItem(sr, getSrStatusIcon(sr)))
   )
 
-  const { atLeast } = useBackupJobFormRules()
+  const { atLeast, dynamicSelectionRules } = useBackupJobFormRules()
 
   const { useField, validate, reset } = useValidatedForm(formData, {
     errors: {
@@ -80,16 +80,13 @@ export function useBackupJobTargetStorageRepositoryForm(
             () => t('select-at-least-one-storage-repository')
           ),
         },
-        storageRepositoryFilter: {
-          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
-          atLeastOneMatch: withMessage(
-            () =>
-              !isActive.value ||
-              formData.storageRepositoryScopeType !== 'smart' ||
-              matchedStorageRepositories.value.length > 0,
-            () => t('query-matches-no-storage-repository')
-          ),
-        },
+        storageRepositoryFilter: dynamicSelectionRules(
+          () => isActive.value && formData.storageRepositoryScopeType === 'smart',
+          {
+            isEmpty: () => matchedStorageRepositories.value.length === 0,
+            message: () => t('query-matches-no-storage-repository'),
+          }
+        ),
         copyRetention: {
           requiredIf: withMessage(
             requiredIf(() => isActive.value),

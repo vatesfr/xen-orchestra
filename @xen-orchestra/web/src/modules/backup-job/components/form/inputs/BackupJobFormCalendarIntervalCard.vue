@@ -1,12 +1,13 @@
 <template>
   <UiCard class="backup-job-form-calendar-interval-card">
-    <ScheduleStepInput :step :max-step :unit @update:step="model = getStepValues($event)" />
+    <ScheduleStepInput :step :max-step :unit @update:step="newStep => (model = getStepValues(optionValues, newStep))" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import ScheduleStepInput from '@/modules/schedule/components/ScheduleStepInput.vue'
+import { getMaxStep, getStepValues } from '@/modules/schedule/utils/cron.util.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { computed } from 'vue'
 
@@ -17,15 +18,13 @@ const { options } = defineProps<{
 
 const model = defineModel<number[]>({ required: true })
 
-const maxStep = computed(() => Math.floor(options.length / 2))
+const optionValues = computed(() => options.map(option => option.value))
 
-function getStepValues(step: number): number[] {
-  return options.filter((_, index) => index % step === 0).map(option => option.value)
-}
+const maxStep = computed(() => getMaxStep({ min: 0, max: options.length - 1 }))
 
 const step = computed(() => {
   for (let candidate = 1; candidate <= maxStep.value; candidate++) {
-    const values = getStepValues(candidate)
+    const values = getStepValues(optionValues.value, candidate)
 
     if (values.length === model.value.length && values.every((value, index) => value === model.value[index])) {
       return candidate
