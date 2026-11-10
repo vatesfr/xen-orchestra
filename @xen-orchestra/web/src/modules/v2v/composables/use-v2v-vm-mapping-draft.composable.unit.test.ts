@@ -99,11 +99,6 @@ describe('draft', () => {
   })
 })
 
-const CLEARING_TARGETS = [
-  ['its default', 'default'],
-  ['undefined, a reset', 'reset'],
-] as const
-
 describe('setDiskSr', () => {
   it('overrides the SR of a disk, keeping the other overrides', () => {
     const draft = mountVmMappingDraft()
@@ -119,15 +114,6 @@ describe('setDiskSr', () => {
       [V2V_DATA_DISK.key]: V2V_SSD_SR.id,
     })
   })
-
-  it.each(CLEARING_TARGETS)('clears the override of a disk set to %s', (_, clearing) => {
-    const draft = mountVmMappingDraft()
-
-    draft.setDiskSr(V2V_DATA_DISK.key, clearing === 'default' ? V2V_DEFAULT_SR.id : undefined)
-
-    expect(draft.diskRows[1].sr).toEqual(createV2vOfferedTarget(V2V_DEFAULT_SR.id))
-    expect(draft.toOverrides()).toStrictEqual({ nics: V2V_NIC_OVERRIDES })
-  })
 })
 
 describe('setNicNetwork', () => {
@@ -142,15 +128,6 @@ describe('setNicNetwork', () => {
       [V2V_VLAN_NIC.key]: V2V_VLAN_NETWORK.id,
     })
   })
-
-  it.each(CLEARING_TARGETS)('clears the override of a NIC set to %s', (_, clearing) => {
-    const draft = mountVmMappingDraft()
-
-    draft.setNicNetwork(V2V_VLAN_NIC.key, clearing === 'default' ? V2V_DEFAULT_NETWORK.id : undefined)
-
-    expect(draft.nicRows[1].network).toEqual(createV2vOfferedTarget(V2V_DEFAULT_NETWORK.id))
-    expect(draft.toOverrides()).toStrictEqual({ disks: V2V_DISK_OVERRIDES })
-  })
 })
 
 describe('setTemplate', () => {
@@ -162,18 +139,54 @@ describe('setTemplate', () => {
     expect(draft.template).toEqual(createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden'))
     expect(draft.toOverrides().template).toBe(V2V_DEBIAN_TEMPLATE.id)
   })
-
-  it.each(CLEARING_TARGETS)('clears the template override set to %s', (_, clearing) => {
-    const draft = mountVmMappingDraft({
-      listVm: createV2vMigrationListVm({ id: V2V_MAPPED_VM.id, template: V2V_DEBIAN_TEMPLATE.id }),
-    })
-
-    draft.setTemplate(clearing === 'default' ? V2V_DEFAULT_TEMPLATE.id : undefined)
-
-    expect(draft.template.origin).toBe('default')
-    expect(draft.toOverrides()).toStrictEqual({})
-  })
 })
+
+type VmMappingDraft = ReturnType<typeof mountVmMappingDraft>
+
+const CLEARABLE_OVERRIDES = [
+  {
+    target: 'a disk',
+    setDefault: (draft: VmMappingDraft) => draft.setDiskSr(V2V_DATA_DISK.key, V2V_DEFAULT_SR.id),
+    reset: (draft: VmMappingDraft) => draft.setDiskSr(V2V_DATA_DISK.key, undefined),
+    read: (draft: VmMappingDraft) => draft.diskRows[1].sr,
+    defaultTarget: createV2vOfferedTarget(V2V_DEFAULT_SR.id),
+    otherOverrides: { nics: V2V_NIC_OVERRIDES },
+  },
+  {
+    target: 'a NIC',
+    setDefault: (draft: VmMappingDraft) => draft.setNicNetwork(V2V_VLAN_NIC.key, V2V_DEFAULT_NETWORK.id),
+    reset: (draft: VmMappingDraft) => draft.setNicNetwork(V2V_VLAN_NIC.key, undefined),
+    read: (draft: VmMappingDraft) => draft.nicRows[1].network,
+    defaultTarget: createV2vOfferedTarget(V2V_DEFAULT_NETWORK.id),
+    otherOverrides: { disks: V2V_DISK_OVERRIDES },
+  },
+  {
+    target: 'the template',
+    listVm: createV2vMigrationListVm({ id: V2V_MAPPED_VM.id, template: V2V_DEBIAN_TEMPLATE.id }),
+    setDefault: (draft: VmMappingDraft) => draft.setTemplate(V2V_DEFAULT_TEMPLATE.id),
+    reset: (draft: VmMappingDraft) => draft.setTemplate(undefined),
+    read: (draft: VmMappingDraft) => draft.template,
+    defaultTarget: createV2vOfferedTarget(V2V_DEFAULT_TEMPLATE.id),
+    otherOverrides: {},
+  },
+]
+
+describe.each(CLEARABLE_OVERRIDES)(
+  'the override of $target',
+  ({ listVm, read, defaultTarget, otherOverrides, ...clear }) => {
+    it.each([
+      ['its default', 'setDefault'],
+      ['undefined, a reset', 'reset'],
+    ] as const)('is cleared once set to %s, keeping the other overrides', (_, clearing) => {
+      const draft = mountVmMappingDraft({ listVm })
+
+      clear[clearing](draft)
+
+      expect(read(draft)).toEqual(defaultTarget)
+      expect(draft.toOverrides()).toStrictEqual(otherOverrides)
+    })
+  }
+)
 
 describe('setters', () => {
   it('write nothing to the stored list', () => {
