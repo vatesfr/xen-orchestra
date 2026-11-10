@@ -26,9 +26,6 @@ const { warn } = createLogger('xo:mixins:vmware')
 const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
 
-// VMware guest ids of Windows: `windows2019srv_64Guest`, `winNetStandardGuest`…
-const isWindowsGuest = guestId => /^win/i.test(guestId ?? '')
-
 export default class MigrateVm {
   constructor(app) {
     this._app = app
@@ -105,7 +102,7 @@ export default class MigrateVm {
   }
 
   async #createVmAndNetworks($defer, { metadata, network: defaultNetwork, networksByNic, template, xapi }) {
-    const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
+    const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
@@ -125,8 +122,7 @@ export default class MigrateVm {
           memory_static_min: Math.min(template.memory_static_min, memory),
           name_description: `from esxi -- source guest id :${guestId} -- template used:${template.name_label}`,
           name_label,
-          // Windows needs the Hyper-V enlightenments to run the XCP-ng PV drivers
-          platform: isWindowsGuest(guestId) ? { ...template.platform, viridian: 'true' } : { ...template.platform },
+          platform: { ...template.platform },
           VCPUs_at_startup: nCpus,
           VCPUs_max: nCpus,
         })
@@ -159,9 +155,10 @@ export default class MigrateVm {
         })
       )
 
-      // even when the source has none: the repair ISO, and later the guest tools ISO, are inserted there
-      const cdDriveRef = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
-      $defer.onFailure(() => xapi.call('VBD.destroy', cdDriveRef))
+      if (cdrom) {
+        const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
+        $defer.onFailure(() => xapi.call('VBD.destroy', ref))
+      }
 
       return vm
     })
