@@ -902,6 +902,12 @@ export type XoVif = BaseXapiXo & {
    * In kB/s
    */
   rateLimit?: number
+  /**
+   * VLANs this VIF is restricted to, every VLAN when empty
+   *
+   * Missing when the host has no VLAN filtering (xapi < 26.1.16)
+   */
+  trunks?: number[]
   txChecksumming: boolean
   type: 'VIF'
 }

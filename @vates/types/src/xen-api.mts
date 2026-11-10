@@ -652,6 +652,12 @@ export interface XenApiNetwork {
   VIFs: XenApiVif['$ref'][]
 }
 export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> {}
+
+type XenApiVifCallMethods = {
+  (method: 'add_trunks', vlan: number): Promise<void>
+  (method: 'remove_trunks', vlan: number): Promise<void>
+}
+
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   allowed_operations: VIF_OPERATIONS[]
@@ -680,10 +686,12 @@ export interface XenApiVif {
   runtime_properties: Record<string, string>
   status_code: number
   status_detail: string
+  /** missing before xapi 26.1.16 */
+  trunks?: number[]
   uuid: string
   VM: XenApiVm['$ref']
 }
-export type XenApiVifWrapped = WrapperXenApi<XenApiVif, 'VIF'>
+export type XenApiVifWrapped = WrapperXenApi<XenApiVif, 'VIF', XenApiVifCallMethods>
 
 /** @deprecated */
 export interface XenApiVifMetrics {

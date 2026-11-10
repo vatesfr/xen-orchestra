@@ -48,6 +48,7 @@
     "qa:export:restore": "node --env-file-if-exists=.env --test tests/export.vhd.test.js --test-name-pattern='Restoration'",
     "qa:backup:metadata": "node --env-file-if-exists=.env --test tests/metadata-backup.test.js",
     "qa:sdn-controller": "node --env-file-if-exists=.env --test tests/sdn-controller.test.js",
+    "qa:vif-trunks": "node --env-file-if-exists=.env --test tests/vif-trunks.test.js",
     "demo": "node --env-file-if-exists=.env index.js",
     "report": "node --env-file-if-exists=.env scripts/run-and-report.mjs",
     "report:smtp-test": "node --env-file-if-exists=.env scripts/run-and-report.mjs --smtp-test",

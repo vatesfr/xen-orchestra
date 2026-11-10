@@ -9,6 +9,7 @@ export default {
     allowedIpv6Addresses: true,
     lockingMode: true,
     rateLimit: true,
+    trunks: true,
     txChecksumming: true,
     other_config: true,
   },
