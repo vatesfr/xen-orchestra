@@ -16,7 +16,7 @@ export function useNewNetworkForm() {
     name: '',
     description: '',
     mtu: undefined,
-    nbd: false,
+    nbd: 'none',
     pifRef: undefined,
     vlan: undefined,
   })
@@ -52,7 +52,7 @@ export function useNewNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(formData, extraConfig)
 
   const { interfacesSelectId } = useNetworkPifSelect(toRef(formData, 'pifRef'), { value: '$ref' })
@@ -81,7 +81,7 @@ export function useNewNetworkForm() {
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, 'pifRef', () => ({ label: t('interface') })),
     vlanInputBindings: useField('vlan', () => ({ label: t('vlan') })),
     validateAndBuildPayload,

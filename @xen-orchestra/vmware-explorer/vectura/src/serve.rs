@@ -151,11 +151,14 @@ fn export<R: Read + Send + 'static, W: Write>(
             return Err(Error::Data(error));
         }
     };
+    let depth = connection
+        .depth_limit()
+        .map_or(target.depth, |limit| target.depth.min(limit));
     let outcome = transmit(
         input,
         output,
         disk,
-        target.depth,
+        depth,
         target.compression,
         target.transcript,
         &mut connection,

@@ -1,71 +1,41 @@
 <template>
-  <UiCard class="pool-hosts-view">
-    <UiTitle>
-      {{ t('hosts') }}
-    </UiTitle>
-    <VtsTable :state :pagination-bindings>
-      <thead>
-        <tr>
-          <HeadCells />
-        </tr>
-      </thead>
-      <tbody>
-        <VtsRow v-for="host of paginatedHosts" :key="host.$ref">
-          <BodyCells :item="host" />
-        </VtsRow>
-      </tbody>
-    </VtsTable>
-  </UiCard>
+  <VtsContentSidePanel class="pool-hosts-view">
+    <UiCard class="container">
+      <HostsTable :hosts :busy="!isReady" :error="hasError" />
+    </UiCard>
+    <HostSidePanel :host="selectedHost" @close="selectedHost = undefined" />
+  </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import HostsTable from '@/modules/host/components/list/HostsTable.vue'
+import HostSidePanel from '@/modules/host/components/list/panel/HostSidePanel.vue'
 import { usePageTitleStore } from '@/stores/page-title.store.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
-import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
+import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable.ts'
-import { useTableState } from '@core/composables/table-state.composable.ts'
-import { objectIcon } from '@core/icons'
-import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
-import { logicNot } from '@vueuse/math'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
 const { isReady, hasError, records: hosts } = useHostStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
 
 usePageTitleStore().setTitle(() => t('hosts'))
 
-const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', hosts)
-
-const state = useTableState({
-  busy: logicNot(isReady),
-  error: hasError,
-  empty: () => (hosts.value.length === 0 ? t('no-host-detected') : false),
-})
-
-const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['checkbox', 'selectItem', 'srStatus'],
-  body: (host: XenApiHost) => {
-    const state = isHostRunning(host) ? 'running' : 'halted'
-
-    return {
-      host: r => r({ label: host.name_label, to: `/host/${host.uuid}/dashboard`, icon: objectIcon('host', state) }),
-      description: r => r(host.name_description),
-      tags: r => r(host.tags),
-      ipAddresses: r => r(host.address),
-    }
-  },
+const selectedHost = useRouteQuery<XenApiHost | undefined>('id', {
+  toData: id => hosts.value.find(host => host.uuid === id),
+  toQuery: host => host?.uuid ?? '',
 })
 </script>
 
 <style lang="postcss" scoped>
 .pool-hosts-view {
-  margin: 0.8rem;
+  .container {
+    height: fit-content;
+    margin: 0.8rem;
+    gap: 4rem;
+  }
 }
 </style>

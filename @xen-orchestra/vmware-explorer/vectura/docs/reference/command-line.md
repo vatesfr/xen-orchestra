@@ -39,23 +39,26 @@ reached or did not complete a handshake, 2 for a usage error.
 Exports one virtual disk, read-only, as a fixed-newstyle NBD server on
 standard input and output. The password is read from `VECTURA_PASSWORD`.
 
-| Flag            | Value                       | Default            | Meaning                                                                                                                      |
-| --------------- | --------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--host`        | `<name>` or `<name>:<port>` | required, port 443 | The ESXi host and its management port. With `--ca-file` or the system roots, the name is checked against the certificate.    |
-| `--user`        | user name                   | required           | The account to log in with.                                                                                                  |
-| `--vm-id`       | managed object reference    | required           | The virtual machine that owns the disk, such as `3` or `vm-42`.                                                              |
-| `--disk`        | datastore path              | required           | The disk to export, such as `[datastore1] vm/vm.vmdk`. Quote it: the path holds a space.                                     |
-| `--thumbprint`  | `sha256:<64 hex digits>`    | none               | Pin the management port's certificate to this hash. Colons between pairs and either case are accepted. Excludes `--ca-file`. |
-| `--ca-file`     | path to a PEM bundle        | none               | Verify the management port's certificate against this bundle instead of the system roots. Excludes `--thumbprint`.           |
-| `--depth`       | 1 to 32                     | 16                 | Host reads kept in flight at once. The limit is per host: lower it when several processes read from the same host.           |
-| `--compression` | `skipz`, `zlib`, `none`     | `skipz`            | How the host packs each chunk: runs of zeros left out, deflated, or as stored.                                               |
-| `--transport`   | `nfcssl`, `nfc`             | `nfcssl`           | Whether the disk session runs inside a second TLS session on the data connection, or in clear. `nfc` prints a warning.       |
-| `--verbose`     |                             | off                | Write the session transcript to standard error.                                                                              |
+| Flag            | Value                       | Default            | Meaning                                                                                                                                                         |
+| --------------- | --------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--host`        | `<name>` or `<name>:<port>` | required, port 443 | The ESXi host and its management port. With `--ca-file` or the system roots, the name is checked against the certificate.                                       |
+| `--user`        | user name                   | required           | The account to log in with.                                                                                                                                     |
+| `--vm-id`       | managed object reference    | required           | The virtual machine that owns the disk, such as `3` or `vm-42`.                                                                                                 |
+| `--disk`        | datastore path              | required           | The disk to export, such as `[datastore1] vm/vm.vmdk`. Quote it: the path holds a space.                                                                        |
+| `--thumbprint`  | `sha256:<64 hex digits>`    | none               | Pin the management port's certificate to this hash. Colons between pairs and either case are accepted. Excludes `--ca-file`.                                    |
+| `--ca-file`     | path to a PEM bundle        | none               | Verify the management port's certificate against this bundle instead of the system roots. Excludes `--thumbprint`.                                              |
+| `--depth`       | 1 to 32                     | 16                 | Host reads kept in flight at once. The limit is per host: lower it when several processes read from the same host. An ESXi 6.x host takes 1, whatever is given. |
+| `--compression` | `skipz`, `zlib`, `none`     | `skipz`            | How the host packs each chunk: runs of zeros left out, deflated, or as stored. An ESXi 6.x host sends every read as stored.                                     |
+| `--transport`   | `nfcssl`, `nfc`             | `nfcssl`           | Whether the disk session runs inside a second TLS session on the data connection, or in clear. `nfc` prints a warning.                                          |
+| `--verbose`     |                             | off                | Write the session transcript to standard error.                                                                                                                 |
 
 Without `--thumbprint` or `--ca-file`, the management port's certificate
 is verified against the system's root store. There is no flag that skips
 verification. The data port is verified against the thumbprint carried by
 the ticket and confirmed in the ticket dialogue, with no flag involved.
+The confirmation, by SHA-256, exists from ESXi 7 on; on an ESXi 6.x host
+the data port is verified by the ticket's SHA-1 and by both TLS sessions
+presenting the same certificate.
 
 ### Environment
 

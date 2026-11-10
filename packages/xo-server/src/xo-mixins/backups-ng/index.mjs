@@ -6,7 +6,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
+import { hasCachedLiveMountTarget, hasLiveMountTarget } from '@xen-orchestra/backups/_vdiRestoreTargets.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
@@ -16,11 +16,15 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
+import { getProxyCacheParams, rejectsUnknownParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -39,6 +43,18 @@ const logger = createLogger('xo:xo-mixins:backups-ng')
 const LISTING_RETRY_DELAY = 30e3
 const LISTING_TIMEOUT = 30e3
 const LISTING_RETRY_MAX_DELAY = 60 * 60 * 1e3 // cap at 1h
+
+// how often `#pollVmBackupArchives()` reads the repositories: not `backups.listingDebounce`, which a
+// user can set to 0, but that debounce still applies, and is the actual delay when it is longer
+const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
+
+// the same for the repositories whose journal cannot be read: each read lists them in full
+const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
+
+// how many repositories `#pollVmBackupArchives()` reads at once: reading all of them together would
+// put the load of every repository on the same instant
+const VM_BACKUP_ARCHIVES_POLL_CONCURRENCY = 2
+
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
  * @returns {number} delay in ms before the next attempt is allowed
@@ -101,10 +117,11 @@ export default class BackupNg {
   }
 
   /**
-   * the VM backup archives of the backup repositories, as a collection: `add`, `update` and
-   * `remove` events carrying the archive and its previous value
+   * the VM backup archives of the backup repositories, for the other mixins: clients reach them
+   * through the `backup-archive` collection, which is only registered once its initial load is done,
+   * after the `start` hooks have begun
    *
-   * @returns {import('node:events').EventEmitter}
+   * @returns {import('./_vmBackupsCache.mjs').Archives}
    */
   get vmBackupArchives() {
     return this.#vmBackupsCache.archives
@@ -126,6 +143,41 @@ export default class BackupNg {
     /** @type {Record<XoBackupRepository['id'], Set<XoVm['id'] | undefined>>} */
     this._trackedVmIdsByRemote = { __proto__: null }
 
+    app.hooks.on('core started', () => {
+      app.hooks.emit('registerCollection', { collection: this.#vmBackupsCache.archives, type: 'backup-archive' })
+    })
+
+    /** @type {(() => void) | undefined} */
+    let stopVmBackupArchivesPoll
+    /** @type {(() => void) | undefined} */
+    let stopVmBackupArchivesFullPoll
+    /** @type {AbortController | undefined} */
+    let initialVmBackupArchivesListing
+    app.hooks.on('start', () => {
+      stopVmBackupArchivesPoll = this.#pollVmBackupArchives(
+        () => this.#vmBackupsCache.replayableRepositoryIds(),
+        VM_BACKUP_ARCHIVES_POLL_INTERVAL
+      )
+      stopVmBackupArchivesFullPoll = this.#pollVmBackupArchives(
+        () => this.#vmBackupsCache.unreplayableRepositoryIds(),
+        VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL
+      )
+    })
+    // once every start hook has run: the one of the remotes mixin invalidates the listing of every
+    // repository, which would drop what a listing started before it has read instead of announcing it
+    app.hooks.on('started', () => {
+      initialVmBackupArchivesListing = new AbortController()
+      this.#listAllVmBackupArchives(initialVmBackupArchivesListing.signal).catch(error => {
+        logger.warn('failed to list the backup repositories', { error })
+      })
+    })
+    app.hooks.on('stop', () => {
+      stopVmBackupArchivesPoll?.()
+      stopVmBackupArchivesFullPoll?.()
+      initialVmBackupArchivesListing?.abort()
+      this.#vmBackupsCache.removeArchivesListeners()
+    })
+
     app.hooks.on('start', async () => {
       const executor = async ({
         cancelToken,
@@ -141,7 +193,68 @@ export default class BackupNg {
 
         let vmIds
 
+        const timezone = job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+        const runContext = buildRunContext(new Date(), timezone)
+
+        job = { ...job, runContext }
+
         if (job.type === 'backup') {
+          const srsExpression = isExpression(job.srs) ? job.srs : undefined
+          const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
+
+          if (isExpression(job.srs)) {
+            const srUuids = resolveBackupSrs(job, Object.values(app.getObjectsByType('SR')), runContext)
+
+            job.srs = { id: { __or: srUuids } }
+          }
+
+          if (isExpression(job.remotes)) {
+            const {
+              backupRepositoryIds: remoteIds,
+              proxySkippedIds,
+              invalidUrlIds,
+            } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+            if (proxySkippedIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+                }
+              )
+            }
+
+            if (invalidUrlIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but have an invalid URL, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { backupRepositories: invalidUrlIds },
+                }
+              )
+            }
+
+            job.remotes = { id: { __or: remoteIds } }
+          }
+
+          if (
+            (srsExpression !== undefined || remotesExpression !== undefined) &&
+            unboxIdsFromPattern(job.srs).length === 0 &&
+            unboxIdsFromPattern(job.remotes).length === 0
+          ) {
+            jobsLogger.warning(
+              'no SR or backup repository matched the expressions, nothing will be backed up or replicated',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { srs: srsExpression, remotes: remotesExpression },
+              }
+            )
+          }
+
           const vmsPattern = job.vms
 
           // Make sure we are passing only the VM to run which can be
@@ -206,7 +319,6 @@ export default class BackupNg {
 
           job = {
             ...job,
-
             vms: { id: { __or: vmIds } },
             settings: merge(job.settings, data?.settings),
           }
@@ -215,15 +327,23 @@ export default class BackupNg {
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
+
+        const onTaskUpdate = (log, event) => {
+          // a VM has been backed up on this repository, retention and clean-vm included: its archives
+          // are updated now rather than at the end of the job
+          if (event.type === 'end' && log.properties?.name === 'export' && log.properties.type === 'remote') {
+            this._refreshVmBackupsCache(log.properties.id)
+          }
+          handleBackupLog(log, event, { app: this._app, jobName: job.name })
+        }
+
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const onLogFct = app.tasks.createExternalProgressHandler({
               onRootTaskStart: log => {
                 jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
             return await Task.run(
               {
@@ -371,9 +491,7 @@ export default class BackupNg {
                 onRootTaskEnd: log => {
                   result = forwardResult(log)
                 },
-                onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name })
-                },
+                onTaskUpdate,
               })
 
               for await (const log of logsStream) {
@@ -396,9 +514,7 @@ export default class BackupNg {
               onRootTaskEnd: log => {
                 result = forwardResult(log)
               },
-              onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name })
-              },
+              onTaskUpdate,
             })
 
             await runBackupWorker(
@@ -420,10 +536,6 @@ export default class BackupNg {
       }
       app.registerJobExecutor('backup', executor)
       app.registerJobExecutor('mirrorBackup', executor)
-    })
-
-    app.hooks.on('stop', () => {
-      this.#vmBackupsCache.archives.removeAllListeners()
     })
   }
 
@@ -572,6 +684,10 @@ export default class BackupNg {
         )
 
         const params = {
+          // a cached live mount plugs its cache VDI onto the proxy's own VM, in the pool running it.
+          // Only sent when needed: an older proxy rejects them, rather than silently mounting the
+          // disk read only
+          ...(hasCachedLiveMountTarget(settings?.mapVdisSrs) ? await getProxyCacheParams(app, remote.proxy) : {}),
           backupId: metadataFilename,
           remote: {
             url: remote.url,
@@ -612,7 +728,14 @@ export default class BackupNg {
             onLogFct(log)
           }
         } catch (error) {
-          if (invalidParameters.is(error)) {
+          // checked first: a proxy too old for both rejects them along with `streamLogs`, and retrying
+          // without the logs would then fail all the same
+          if (params.vm !== undefined && rejectsUnknownParams(error, ['cacheXapi', 'vm'])) {
+            throw new Error(`the proxy ${remote.proxy} is too old to cache a live mounted disk, upgrade it`, {
+              cause: error,
+            })
+          }
+          if (rejectsUnknownParams(error, ['streamLogs'])) {
             // this proxy cannot stream the logs, and is therefore too old to live mount a disk:
             // nothing to register below
             delete params.streamLogs
@@ -656,8 +779,8 @@ export default class BackupNg {
                 // lifecycle: `mountBackupArchiveDisk` already owns both, and validates the disk
                 // path against the archive
                 liveMount: {
-                  mountDisk: ({ diskPath, hostId }) =>
-                    app.mountBackupArchiveDisk({ archiveId: id, diskId: diskPath, hostId }),
+                  mountDisk: ({ cacheSrUuid, diskPath, hostId }) =>
+                    app.mountBackupArchiveDisk({ archiveId: id, cacheSrId: cacheSrUuid, diskId: diskPath, hostId }),
                   unmountDisk: mountId => app.unmountBackupArchiveDisk(mountId),
                 },
                 metadata,
@@ -668,6 +791,10 @@ export default class BackupNg {
           )
         })
       }
+
+      // without a transfer to wait for, as when every disk is live mounted, the restore ends before
+      // XO has seen the VM: a call right after, like starting it, would not find it
+      await xapi.barrier()
       return result.id
     } finally {
       this._runningRestores.delete(rootTaskId)
@@ -698,13 +825,102 @@ export default class BackupNg {
     return timeout.call(this._listVmBackupsOnRemoteUncached(remoteId, opts), LISTING_TIMEOUT)
   }
 
-  // the next listing of this repository will replay its journal instead of waiting for the end of the
-  // current refresh window
-  //
-  // to call after a mutation triggered by this process, so that its effect is visible at once
+  /**
+   * the next listing of this repository will replay its journal instead of waiting for the end of the
+   * current refresh window
+   *
+   * to call after a mutation triggered by this process, so that its effect is visible at once
+   *
+   * also replays its journal at once for the consumers of the archives, unless that means a full listing
+   *
+   * @param {XoBackupRepository['id']} remoteId
+   * @returns {void}
+   */
   _refreshVmBackupsCache(remoteId) {
     this.#vmBackupsCache.refresh(remoteId)
     this.#resetVmBackupsListingState(remoteId)
+
+    if (this.#vmBackupsCache.isReplayable(remoteId)) {
+      // never rejects
+      this._listVmBackupsWithBackoff(remoteId)
+    }
+  }
+
+  /**
+   * lists every enabled repository, so that the collection, and the timers which read its
+   * repositories, cover all of them rather than only those a client has listed since the app started
+   *
+   * one after another: each listing reads the metadata of every VM of the repository, and listing
+   * them in sequence also staggers their periodic rebuilds, which count from the listing
+   *
+   * through `_listVmBackupsWithBackoff()`, which never rejects: a repository which cannot be read is
+   * left out until a client lists it
+   *
+   * @param {AbortSignal} signal stops the listing before the next repository
+   * @returns {Promise<void>}
+   */
+  async #listAllVmBackupArchives(signal) {
+    for (const remote of await this._app.getAllRemotes()) {
+      if (signal.aborted) {
+        return
+      }
+      if (remote.enabled) {
+        await this._listVmBackupsWithBackoff(remote.id)
+      }
+    }
+  }
+
+  /**
+   * reads, every `interval`, the repositories `getRemoteIds()` returns, for the changes this process
+   * did not make: the size the merge worker rewrites after the job, or another XO sharing the
+   * repository
+   *
+   * `VM_BACKUP_ARCHIVES_POLL_CONCURRENCY` at a time, and a tick which comes before the reads of the
+   * previous one are done is skipped rather than adding its reads to theirs
+   *
+   * without resetting the listing state, unlike `_refreshVmBackupsCache()`: an unreachable repository
+   * keeps its retry delay instead of being read on every tick
+   *
+   * @param {() => Array<XoBackupRepository['id']>} getRemoteIds called on each tick, and again before
+   * each read, so that a repository which has left the collection since the tick is not read
+   * @param {number} interval in milliseconds
+   * @returns {() => void} stops it, the reads still waiting for their turn included
+   */
+  #pollVmBackupArchives(getRemoteIds, interval) {
+    let running = false
+    let stopped = false
+    const timer = setInterval(async () => {
+      if (running) {
+        return
+      }
+      running = true
+      try {
+        await asyncEach(
+          getRemoteIds(),
+          async remoteId => {
+            // e.g. it has been removed or disabled while it was waiting for its turn: reading it would put
+            // its archives back in the collection
+            if (stopped || !getRemoteIds().includes(remoteId)) {
+              return
+            }
+
+            // once the debounce of the previous listing is over, the refresh window of the cache, as long
+            // but started a bit later, would still skip the read
+            this.#vmBackupsCache.refresh(remoteId)
+            // never rejects
+            await this._listVmBackupsWithBackoff(remoteId)
+          },
+          { concurrency: VM_BACKUP_ARCHIVES_POLL_CONCURRENCY }
+        )
+      } finally {
+        running = false
+      }
+    }, interval)
+
+    return () => {
+      clearInterval(timer)
+      stopped = true
+    }
   }
 
   /**

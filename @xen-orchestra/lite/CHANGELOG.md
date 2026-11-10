@@ -2,6 +2,15 @@
 
 ## **next**
 
+- [Mobile/Side panels] Full-page menus on mobile with "Change state" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
+- [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
+- [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
+- [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+
+## **0.27.0** (2026-10-29)
+
+- [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))
 - [VM/System] Fix video RAM displayed in bytes instead of MiB (PR [#10486](https://github.com/vatesfr/xen-orchestra/pull/10486))
 - [Treeview] Add a search bar and virtualize the tree (PR [#10414](https://github.com/vatesfr/xen-orchestra/pull/10414))
 - [New/VM] Hide guest tools ISO SR in new VM ISO selector (PR [#10430](https://github.com/vatesfr/xen-orchestra/pull/10430))
@@ -13,6 +22,12 @@
 - [Treeview] Press Ctrl+K (Cmd+K on macOS) to focus the treeview search (PR [#10492](https://github.com/vatesfr/xen-orchestra/pull/10492))
 - [Pool] Fix connection, stats and consoles when overriding the pool master with `?master=`: use HTTPS by default instead of the protocol and port of the page (PR [#9955](https://github.com/vatesfr/xen-orchestra/pull/9955))
 - [Pool/Host/VM] Add copy button for multiple information on Host/VM Dashboard and Pool/Host/VM System tabs (PR [#9976](https://github.com/vatesfr/xen-orchestra/pull/9976))
+- [New/VM] Fix `MAP_DUPLICATE_KEY` error that could randomly prevent the VM creation (PR [#10552](https://github.com/vatesfr/xen-orchestra/pull/10552))
+- [Host/Network] Add the possibility to forget a PIF (PR [#10239](https://github.com/vatesfr/xen-orchestra/pull/10239))
+- [Lite] Display dates and times as `YYYY-MM-DD HH:mm:ss` (PR [#10547](https://github.com/vatesfr/xen-orchestra/pull/10547))
+- [Pool/Hosts] Add a side panel displaying the selected host's details, and a search bar to filter the hosts table (PR [#10580](https://github.com/vatesfr/xen-orchestra/pull/10580))
+- [VM/Host] Add console clipboard management (PR [#10625](https://github.com/vatesfr/xen-orchestra/pull/10625))
+- [VM/Network] Add the possibility to edit a VIF (PR [#10505](https://github.com/vatesfr/xen-orchestra/pull/10505))
 
 ## **0.26.0** (2026-10-01)
 

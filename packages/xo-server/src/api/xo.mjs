@@ -6,7 +6,9 @@ import { parseDateTime } from '@xen-orchestra/xapi'
 import { pipeline } from 'readable-stream'
 import { safeDateFormat } from '../utils.mjs'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
-import { getCurrentVmUuid } from '../_XenStore.mjs'
+import { getCurrentVmUuid as getCurrentVmUuidFromXenStore, isNotInXenVm } from '../_XenStore.mjs'
+import iteratee from 'lodash/iteratee.js'
+import { ALL_VISIBLE } from '../_objectVisibility.mjs'
 
 // ===================================================================
 
@@ -59,10 +61,25 @@ function handleGetAllObjects(req, res, { filter, limit }) {
   return fromCallback(pipeline, createNdJsonStream(objects), res)
 }
 
-export function getAllObjects({ filter, limit, ndjson = false }) {
+function composeFilter(filter, isObjectVisible) {
+  const predicate = filter === undefined ? undefined : iteratee(filter)
+
+  if (isObjectVisible === ALL_VISIBLE) {
+    return predicate
+  } else if (predicate === undefined) {
+    return (object, id) => isObjectVisible(id)
+  } else {
+    return (object, id, objects) => isObjectVisible(id) && predicate(object, id, objects)
+  }
+}
+
+export async function getAllObjects({ filter, limit, ndjson = false }) {
   if (typeof filter === 'string') {
     filter = CM.parse(filter).createPredicate()
   }
+
+  const isObjectVisible = await this.getObjectFilterForUser(this.apiContext.user.id)
+  filter = composeFilter(filter, isObjectVisible)
 
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, {
@@ -107,7 +124,7 @@ export async function snapshotBeforeUpgrade() {
   // Defaults to 1 (keep only the latest) when the config entry is missing.
   const maxSnapshots = Math.max(1, this.config.getOptional('xoa.numberOfUpgradeSnapshots') ?? 1)
 
-  const vmUuid = await getCurrentVmUuid()
+  const vmUuid = await getCurrentVmUuidFromXenStore()
   let vm, xapi
   try {
     vm = this.getXapiObject(vmUuid, 'VM')
@@ -132,3 +149,23 @@ export async function snapshotBeforeUpgrade() {
 snapshotBeforeUpgrade.permission = 'admin'
 
 snapshotBeforeUpgrade.params = {}
+
+// lets a client tell which SRs can hold a VDI plugged onto this VM, e.g. the cache of a live restore
+export async function getCurrentVmUuid() {
+  try {
+    return await getCurrentVmUuidFromXenStore()
+  } catch (error) {
+    // any other failure, e.g. not being allowed to read the XenStore, is reported rather than
+    // turned into a missing VM, which would silently disable what depends on it
+    if (!isNotInXenVm(error)) {
+      throw error
+    }
+    return null
+  }
+}
+
+getCurrentVmUuid.description = 'UUID of the VM running XO, null when XO does not run in a Xen VM'
+
+getCurrentVmUuid.permission = 'admin'
+
+getCurrentVmUuid.params = {}

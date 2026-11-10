@@ -1,31 +1,29 @@
 <template>
   <template v-if="server">
-    <UiButton
+    <VtsActionButton
       v-if="server.status === 'connected' || server.status === 'connecting'"
-      v-tooltip="!canDisconnectServer ? disconnectServerErrorMessage : undefined"
-      left-icon="action:disconnect"
+      :hint="disconnectServerErrorMessage"
+      icon="action:disconnect"
       variant="tertiary"
       accent="danger"
-      size="medium"
       :disabled="!canDisconnectServer"
       :busy="isDisconnectingServer"
       @click="disconnectServer()"
     >
       {{ t('action:disconnect-pool') }}
-    </UiButton>
-    <UiButton
+    </VtsActionButton>
+    <VtsActionButton
       v-else
-      v-tooltip="!canConnectServer ? connectServerErrorMessage : undefined"
-      left-icon="action:connect"
+      :hint="connectServerErrorMessage"
+      icon="action:connect"
       variant="tertiary"
       accent="brand"
-      size="medium"
       :disabled="!canConnectServer"
       :busy="isConnectingServer"
       @click="handleConnect()"
     >
       {{ t('action:connect-pool') }}
-    </UiButton>
+    </VtsActionButton>
   </template>
 </template>
 
@@ -36,8 +34,7 @@ import {
   type FrontXoServer,
   useXoServerCollection,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

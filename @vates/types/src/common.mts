@@ -663,6 +663,19 @@ export const SUPPORTED_VDI_FORMAT = {
 
 export type SUPPORTED_VDI_FORMAT = (typeof SUPPORTED_VDI_FORMAT)[keyof typeof SUPPORTED_VDI_FORMAT]
 
+/**
+ * Formats a VDI can be exported to by XO: the XAPI ones, plus the ones XO generates
+ * itself from the blocks of the disk.
+ */
+export const SUPPORTED_VDI_EXPORT_FORMAT = {
+  raw: 'raw',
+  vhd: 'vhd',
+  qcow2: 'qcow2',
+  vmdk: 'vmdk',
+} as const
+
+export type SUPPORTED_VDI_EXPORT_FORMAT = (typeof SUPPORTED_VDI_EXPORT_FORMAT)[keyof typeof SUPPORTED_VDI_EXPORT_FORMAT]
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {
@@ -759,6 +772,7 @@ export type RawTrafficRule = {
   ipRange: string
   direction: TrafficRuleDirection
   port?: string
+  priority?: number
 }
 
 type BaseTrafficRule = RawTrafficRule & {

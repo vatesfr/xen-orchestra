@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="task-errors-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('errors')" :counter="{ value: 1, accent: 'danger' }" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('message') }}</template>
         <template #value>{{ task.result?.message }}</template>
@@ -9,7 +9,7 @@
           <VtsCopyButton :value="String(task.result.message)" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
     <UiLogEntryViewer
       v-if="task.result?.stack"
       :content="task.result.stack"
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -35,13 +36,3 @@ defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style scoped lang="postcss">
-.task-errors-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

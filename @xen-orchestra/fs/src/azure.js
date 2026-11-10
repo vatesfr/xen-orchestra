@@ -249,8 +249,19 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
     file = this.#makeFullPath(file)
     const blobClient = this.#containerClient.getBlobClient(file)
-    const properties = await blobClient.getProperties()
-    return properties.contentLength
+    try {
+      const properties = await blobClient.getProperties()
+      return properties.contentLength
+    } catch (e) {
+      // a HEAD response has no body, so there is no BlobNotFound code to match
+      if (e.name === 'RestError' && e.statusCode === 404) {
+        const error = new Error(`ENOENT: no such file '${file}'`, { cause: e })
+        error.code = 'ENOENT'
+        error.path = file
+        throw error
+      }
+      throw e
+    }
   }
 
   async _read(file, buffer, position = 0) {

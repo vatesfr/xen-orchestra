@@ -83,7 +83,7 @@ function adaptTask(task) {
   task.tasks?.forEach(adaptTask)
 }
 
-function taskFormatAdapter(log) {
+export function taskFormatAdapter(log) {
   const isXoTask = log.tasks?.length > 0 && !!log.tasks[0].properties
   if (isXoTask) {
     adaptTask(log.tasks[0])

@@ -1,14 +1,16 @@
 import {
   formatMountOptions,
+  formatSmbPathOnShare,
   getBackupRepositoryIcon,
   getBackupRepositoryStatus,
-  getSmbPathOnShare,
+  isBackupRepositoryEncrypted,
   MASKED_SECRET,
   maskSecret,
   splitBackupRepositoryPath,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { objectIcon } from '@core/icons'
+import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 describe('getBackupRepositoryStatus', () => {
   it('reports a disabled repository as disabled', () => {
@@ -91,14 +93,30 @@ describe('maskSecret', () => {
   })
 })
 
-describe('getSmbPathOnShare', () => {
+describe('formatSmbPathOnShare', () => {
   it('builds the UNC path from the host and the subfolder', () => {
-    expect(getSmbPathOnShare({ host: '192.168.100.10\\share', path: 'backups' })).toBe(
-      '\\\\192.168.100.10\\share\\backups'
-    )
+    expect(formatSmbPathOnShare('192.168.100.10\\share', 'backups')).toBe('\\\\192.168.100.10\\share\\backups')
   })
 
   it('does not add a trailing separator when there is no subfolder', () => {
-    expect(getSmbPathOnShare({ host: '192.168.100.10\\share', path: '' })).toBe('\\\\192.168.100.10\\share')
+    expect(formatSmbPathOnShare('192.168.100.10\\share', '')).toBe('\\\\192.168.100.10\\share')
+  })
+})
+
+describe('isBackupRepositoryEncrypted', () => {
+  it('is true when the url holds an encryption key', () => {
+    expect(
+      isBackupRepositoryEncrypted(
+        parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups?useVhdDirectory=true&encryptionKey=%22key%22')
+      )
+    ).toBe(true)
+  })
+
+  it('is false when the url holds no encryption key', () => {
+    expect(isBackupRepositoryEncrypted(parseBackupRepositoryUrl('nfs://192.168.1.10:/exports/backups'))).toBe(false)
+  })
+
+  it('is false while the url is not parsed', () => {
+    expect(isBackupRepositoryEncrypted(undefined)).toBe(false)
   })
 })

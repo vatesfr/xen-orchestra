@@ -4,10 +4,14 @@
     <template #icon>
       <VtsIcon size="medium" :name="icon" />
     </template>
+    <template #actions>
+      <BackupRepositoryActions :br />
+    </template>
   </UiHeadBar>
 </template>
 
 <script setup lang="ts">
+import BackupRepositoryActions from '@/modules/backup-repository/components/actions/BackupRepositoryActions.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'

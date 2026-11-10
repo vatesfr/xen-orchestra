@@ -6,13 +6,13 @@
     <div class="input-container">
       <UiInput
         :id
-        v-model="localFilter"
+        v-model="filter"
         :accent="isUsable ? 'brand' : 'danger'"
         :aria-label="uiStore.isSmall ? t('query-builder:label') : undefined"
         :placeholder="t('query-builder:placeholder')"
         enterkeyhint="search"
         clearable
-        @clear="search()"
+        @clear="emit('search', '')"
         @keydown.enter="handleEnterKey($event)"
       />
     </div>
@@ -36,7 +36,7 @@
       v-model="rootGroup"
       :small="uiStore.isSmallOrMedium"
       :disabled="!isUsable"
-      @confirm="updateFilter()"
+      @confirm="confirmQueryBuilder()"
       @cancel="resetFilter()"
     />
   </div>
@@ -51,19 +51,18 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { syncRef } from '@vueuse/core'
-import { ref, useId } from 'vue'
+import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { schema } = defineProps<{
   schema: QueryBuilderSchema
 }>()
 
+const emit = defineEmits<{
+  search: [filter: string]
+}>()
+
 const filter = defineModel<string>({ required: true })
-
-const localFilter = ref('')
-
-syncRef(filter, localFilter, { direction: 'ltr' })
 
 const { t } = useI18n()
 
@@ -74,7 +73,12 @@ const id = useId()
 const { rootGroup, isUsable, updateFilter, resetFilter } = useQueryBuilder(filter, () => schema)
 
 function search() {
-  filter.value = localFilter.value
+  emit('search', filter.value)
+}
+
+function confirmQueryBuilder() {
+  updateFilter()
+  emit('search', rootGroup.value.rawFilter)
 }
 
 function handleEnterKey(event: KeyboardEvent) {

@@ -1,5 +1,6 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import { buildLocalBackupRepositoryDetailsPayload } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { required } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -12,17 +13,25 @@ const INITIAL_FORM_DATA = {
   path: '',
 }
 
-export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) {
+export type LocalBackupRepositoryDetailsFormData = typeof INITIAL_FORM_DATA
+
+export function useLocalBackupRepositoryDetailsForm(
+  rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>,
+  initialData?: Partial<LocalBackupRepositoryDetailsFormData>
+) {
   const proxy = toComputed(rawProxy)
   const { t } = useI18n()
 
-  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(INITIAL_FORM_DATA, {
-    errors: {
-      onSubmit: () => ({
-        path: { required },
-      }),
-    },
-  })
+  const { formData, useField, validate, reset } = useBackupRepositoryDetailsForm(
+    { ...INITIAL_FORM_DATA, ...initialData },
+    {
+      errors: {
+        onSubmit: () => ({
+          path: { required },
+        }),
+      },
+    }
+  )
 
   const bindings = reactive({
     path: useField('path', () => ({
@@ -33,12 +42,7 @@ export function useLocalBackupRepositoryDetailsForm(rawProxy: MaybeRefOrGetter<F
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: 'file',
-        path: formData.path,
-      },
-    }
+    return buildLocalBackupRepositoryDetailsPayload(formData)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

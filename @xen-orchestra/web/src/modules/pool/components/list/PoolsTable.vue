@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pools') }}
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -147,6 +147,7 @@ const { HeadCells, BodyCells } = useServerColumns({
           label: server.primaryHostName,
           to: server.master ? `/host/${server.master}/dashboard` : undefined,
           icon: server.primaryHostIcon,
+          iconTooltip: server.primaryHostIconTooltip,
           rightIcon: server.primaryHostRightIcon
             ? {
                 icon: server.primaryHostRightIcon,

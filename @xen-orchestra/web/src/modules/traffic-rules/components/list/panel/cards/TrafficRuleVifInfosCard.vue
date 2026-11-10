@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="traffic-rule-vif-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('vif')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('name') }}
@@ -33,7 +33,12 @@
           {{ t('vm') }}
         </template>
         <template v-if="vm" #value>
-          <UiLink size="small" :icon="vmStatus" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+          <UiLink
+            size="small"
+            :icon="vmStatus"
+            :icon-tooltip="vmIconTooltip"
+            :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+          >
             {{ vm.name_label }}
           </UiLink>
         </template>
@@ -115,7 +120,7 @@
           {{ vif.txChecksumming }}
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -125,18 +130,19 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import type { TrafficRule } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -156,7 +162,10 @@ const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : C
 
 const vm = useGetVmById(() => vif.$VM)
 
-const vmStatus = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmStatus = computed(() => getVmIcon(vm.value))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm.value))
 
 const network = useGetNetworkById(() => vif.$network)
 
@@ -176,13 +185,3 @@ const networkVlan = computed(() => {
 
 const vifDevice = computed(() => `${t('vif')}${vif.device}`)
 </script>
-
-<style scoped lang="postcss">
-.traffic-rule-vif-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

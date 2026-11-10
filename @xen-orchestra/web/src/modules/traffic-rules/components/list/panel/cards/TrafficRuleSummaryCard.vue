@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard class="traffic-rule-summary-card">
     <UiPanelCardTitle size="medium" :label="t('traffic-rule')" icon="fa:traffic-rule" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>
           {{ t('rule-type') }}
@@ -16,35 +16,46 @@
         </template>
         <template #value>
           <div class="value-content">
-            <VtsStatus :status="policy" icon-only />
-            {{ rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol }}
-            {{ direction.labelA }} {{ rule.ipRange }} {{ direction.labelB }}
-            <template v-if="vif">
-              <UiLink
-                size="small"
-                icon="object:vif"
-                :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
-                :disabled="!vm"
-              >
-                {{ vifDevice }}
-              </UiLink>
-              <div v-if="vm">
-                {{ t('in') }}
-                <UiLink size="small" :icon="vmPowerState" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-                  {{ vm.name_label }}
+            <span class="status">
+              <VtsStatus :status="policy" icon-only />
+            </span>
+            <div class="sentence">
+              <span>
+                {{ protocolLabel }}
+                {{ direction.labelA }} {{ rule.ipRange }} {{ direction.labelB }}
+              </span>
+              <template v-if="vif">
+                <UiLink
+                  size="small"
+                  icon="object:vif"
+                  :to="{ name: '/vif/[id]/general', params: { id: vif.id } }"
+                  :disabled="!vm"
+                >
+                  {{ vifDevice }}
                 </UiLink>
-              </div>
-            </template>
-            <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
-              {{ network.name_label }}
-            </UiLink>
+                <template v-if="vm">
+                  <span>{{ t('in') }}</span>
+                  <UiLink
+                    size="small"
+                    :icon="vmPowerState"
+                    :icon-tooltip="vmIconTooltip"
+                    :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+                  >
+                    {{ vm.name_label }}
+                  </UiLink>
+                </template>
+              </template>
+              <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
+                {{ network.name_label }}
+              </UiLink>
+            </div>
           </div>
         </template>
         <template #addons>
           <VtsCopyButton :value="description" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -53,18 +64,20 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
+import { getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { RULE_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { objectIcon } from '@core/icons'
 import type { TrafficRule } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -96,7 +109,10 @@ const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
-const vmPowerState = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmPowerState = computed(() => getVmIcon(vm.value))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm.value))
 
 const ruleTypeLabel = computed(() => (rule.type === 'VIF' ? t('vif') : t('network')))
 
@@ -106,11 +122,18 @@ const direction = computed(() => {
   return { labelA, labelB }
 })
 
+const protocolLabel = computed(() => getTrafficRuleProtocolLabel(rule))
+
 const description = computed(() => {
   const policyLabel = rule.allow ? t('allow') : t('drop')
-  const protocol = rule.port ? `${rule.protocol}:${rule.port}` : rule.protocol
   const { label, suffix } = target.value
-  const descriptionParts = [policyLabel, protocol, direction.value.labelA, rule.ipRange, direction.value.labelB]
+  const descriptionParts = [
+    policyLabel,
+    protocolLabel.value,
+    direction.value.labelA,
+    rule.ipRange,
+    direction.value.labelB,
+  ]
 
   if (label) {
     descriptionParts.push(label)
@@ -127,17 +150,23 @@ const vifDevice = computed(() => `${t('vif')}${vif.value?.device}`)
 
 <style scoped lang="postcss">
 .traffic-rule-summary-card {
-  .content {
+  .value-content {
     display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    align-items: flex-start;
+    gap: 0.8rem;
   }
 
-  .value-content {
-    display: inline-flex;
-    flex-wrap: wrap;
+  .status {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
+    height: 1lh;
+  }
+
+  .sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.8rem;
   }
 }
 </style>

@@ -3,9 +3,11 @@
     <UiCard class="container">
       <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
         <template #title-actions>
-          <MenuList placement="bottom-end">
+          <VtsResponsiveMenu :title="t('action:add')" placement="bottom-end">
             <template #trigger="{ open }">
-              <UiDropdownButton icon="action:add" @click="open($event)">{{ t('action:add') }}</UiDropdownButton>
+              <UiDropdownButton variant="primary" size="medium" icon="action:add" @click="open($event)">
+                {{ t('action:add') }}
+              </UiDropdownButton>
             </template>
             <MenuItem accent="neutral">
               <UiLink
@@ -27,7 +29,7 @@
                 {{ t('action:attach-vdi') }}
               </UiLink>
             </MenuItem>
-          </MenuList>
+          </VtsResponsiveMenu>
         </template>
       </VdisTable>
     </UiCard>
@@ -44,7 +46,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

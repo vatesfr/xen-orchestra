@@ -36,6 +36,13 @@ impl Transcript {
         self.line(&format!("greeting: {}", capabilities.join(", ")));
     }
 
+    /// That the host speaks the legacy dialect, and what it gives up.
+    pub fn legacy(&self) {
+        self.line(
+            "legacy dialect: no in-band thumbprint check, one read in flight, no compression",
+        );
+    }
+
     /// The protocol version and cipher suite the TLS session at `place` negotiated.
     pub fn tls(&self, place: &str, version: ProtocolVersion, suite: CipherSuite) {
         self.line(&format!("{place} tls {version:?} {suite:?}"));
@@ -65,6 +72,13 @@ impl Transcript {
     pub fn opened(&self, capacity: u64, sector_size: u32) {
         self.line(&format!(
             "open: {capacity} bytes, sector size {sector_size}"
+        ));
+    }
+
+    /// A legacy disk's capacity search: the size its geometry gives, and the reads it took.
+    pub fn searched(&self, estimate: u64, probes: u32) {
+        self.line(&format!(
+            "capacity search: {probes} reads from the {estimate} bytes the geometry gives"
         ));
     }
 

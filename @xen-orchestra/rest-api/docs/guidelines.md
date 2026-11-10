@@ -41,6 +41,21 @@ PATCH /vms/:id
 }
 ```
 
+## Naming
+
+Always use the full name of a concept, never a shortened one, even if the context seems to make it obvious. This applies everywhere, not only to endpoints: route paths, RBAC resources, identifiers (variables, functions, types, files), JSDoc, OpenAPI descriptions, role descriptions, etc.
+
+```
+GET /backup-repositories/:id // OK ✅
+GET /repositories/:id        // Not OK ❌
+
+const backupRepository = ... // OK ✅
+const repository = ...       // Not OK ❌
+
+description: 'Full control over backup repositories' // OK ✅
+description: 'Full control over repositories'        // Not OK ❌
+```
+
 ## Code organisation
 
 - the service must handle the domain/functional logic of one or multiple REST API routes
@@ -252,6 +267,8 @@ Throw `noSuchObject(id, type)` to get an automatic 404 when the routing doesn't 
 
 ## Streaming & file-download routes
 
-- Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
+- Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labeled as a download
 - Set `content-disposition: attachment; filename="…"` with a meaningful name built from domain labels (VM / disk / partition). Fold accents to ASCII and collapse anything outside `[\w.-]` so the header and the on-disk filename stay safe (also blocks header injection)
 - Tie the stream to the request lifetime (`req.on('close', () => stream.destroy())`) so a client disconnect doesn't leak the export
+- Export: return the stream (`Promise<Readable>`) and let the REST API pipe it to the response. Don't pipe it manually (`pipeline(stream, res)` + `Promise<void>`)
+- Import: tsoa has no decorator for a binary request body, so declare the `requestBody` manually in `tsoa.json` (`application/octet-stream`, `type: string`, `format: binary`) and leave a comment above the route (see `POST /pools/{id}/vms`)

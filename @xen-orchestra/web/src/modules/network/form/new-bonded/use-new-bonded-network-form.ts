@@ -23,7 +23,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     name: '',
     description: '',
     mtu: undefined,
-    nbd: false,
+    nbd: 'none',
     bondMode: undefined,
   })
 
@@ -38,7 +38,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
   } = useNetworkFormBase(_poolId, formData)
 
   const { interfacesSelectId } = useNetworkPifSelect(selectedPool, toRef(formData, 'pifs'), {
@@ -66,7 +66,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
     nameInputBindings,
     descriptionInputBindings,
     mtuInputBindings,
-    nbdCheckboxBindings,
+    nbdRadioBindings,
     interfaceSelectBindings: useSelect(interfacesSelectId, () => ({ label: t('interfaces') })),
     bondModeSelectBindings: useSelect(bondModeSelectId, () => ({ label: t('bond-mode') })),
     validateAndBuildPayload,

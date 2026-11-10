@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('vms') }}
     </UiTitle>
-    <VtsQueryBuilder v-model="filter" :schema />
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -66,7 +66,8 @@ const { HeadCells, BodyCells } = useVmColumns({
   exclude: ['checkbox'],
   body: (vm: VmDisplayData) => {
     return {
-      vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon }),
+      vm: r =>
+        r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon, iconTooltip: vm.vmIconTooltip }),
       ipAddresses: r => r(vm.ipAddresses),
       vcpus: r => r(vm.CPUs.number),
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),

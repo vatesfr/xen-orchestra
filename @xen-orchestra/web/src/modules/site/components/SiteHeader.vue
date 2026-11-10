@@ -13,11 +13,6 @@
         {{ t('dashboard') }}
       </UiTabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/backups' }" custom>
-      <UiTabItem :active="isExactActive" :href tag="a">
-        {{ t('backups') }}
-      </UiTabItem>
-    </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/tasks' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('tasks') }}

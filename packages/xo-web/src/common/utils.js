@@ -233,20 +233,23 @@ export const formatLogs = logs =>
       //  value can be: float, Infinity, -Infinity and NaN
       const matches = /^value:\s*(Infinity|NaN|-Infinity|[0-9.]+)\s+config:\s*([^]*)$/.exec(body)
       if (matches === null) {
-        return
+        return { id }
       }
 
       const [, value, xml] = matches
-      return fromCallback(xml2js.parseString, xml).then((result = {}) => {
-        const object = mapValues(result.variable, value => get(value, '[0].$.value'))
-        if (object.name === undefined) {
-          return
-        }
+      return fromCallback(xml2js.parseString, xml).then(
+        (result = {}) => {
+          const object = mapValues(result.variable, value => get(value, '[0].$.value'))
+          if (object.name === undefined) {
+            return { id }
+          }
 
-        const { name, ...alarmAttributes } = object
+          const { name, ...alarmAttributes } = object
 
-        return { name, value, alarmAttributes, id }
-      }, noop)
+          return { name, value, alarmAttributes, id }
+        },
+        () => ({ id })
+      )
     })
   )
 

@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isReady">
+  <VtsQuickInfoCard :loading="!isReady" class="vm-dashboard-quick-info">
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
@@ -19,11 +19,11 @@
         <template #value>
           <UiLink
             v-if="host"
-            :to="`/host/${host.uuid}`"
-            size="medium"
-            :icon="`object:host:${hostPowerState}`"
+            :icon="hostIcon"
             :is-primary="isPoolMaster"
             :primary-tooltip="t('master')"
+            :to="`/host/${host.uuid}`"
+            size="medium"
           >
             {{ host.name_label }}
           </UiLink>
@@ -54,8 +54,9 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { getHostIcon } from '@/modules/host/utils/host.util.ts'
+import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -69,9 +70,8 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import { formatDate, parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -79,12 +79,12 @@ const { vm } = defineProps<{
   vm: XenApiVm
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
+const { getHostPowerState } = useHostMetricsStore().subscribe()
 const { pool } = usePoolStore().subscribe()
 
 const guestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
@@ -95,24 +95,9 @@ const host = computed(() => getVmHost(vm))
 
 const isPoolMaster = computed(() => pool.value?.master === host.value?.$ref)
 
-const hostPowerState = computed(() => {
-  if (host.value === undefined) {
-    return 'unknown'
-  }
+const hostIcon = computed(() => getHostIcon(host.value, getHostPowerState(host.value)))
 
-  return isHostRunning(host.value) ? 'running' : 'halted'
-})
-
-const powerState = useMapper(
-  () => vm.power_state,
-  {
-    [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
-    [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
-  },
-  VM_POWER_STATE.RUNNING
-)
+const { powerState } = useVmUtils(() => vm)
 
 function getValidDateTime(dateTime: string | undefined): string | undefined {
   return dateTime === '19700101T00:00:00Z' ? undefined : dateTime
@@ -141,7 +126,7 @@ const installDateFormatted = computed(() => {
     return t('unknown')
   }
 
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(parseDateTime(installTime)))
+  return formatDate(installTime)
 })
 
 const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))

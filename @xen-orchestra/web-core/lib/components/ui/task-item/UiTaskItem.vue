@@ -162,7 +162,6 @@ const progress = computed(() => {
       --line-width: 0.1rem;
       display: flex;
       align-items: center;
-      padding-left: 1.6rem;
       gap: 0.4rem;
 
       .tree-lines {
@@ -195,7 +194,7 @@ const progress = computed(() => {
       flex: 1;
       min-width: 0;
       gap: 1.6rem;
-      padding: 0.4rem 1.6rem;
+      padding: 0.4rem 1.6rem 0.4rem 0.8rem;
       justify-content: space-between;
       align-items: center;
     }

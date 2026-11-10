@@ -1,7 +1,7 @@
 import { fetchMissingHostPatches } from '@/libs/host.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import type { XenApiPatch } from '@/types/xen-api.ts'
-import { type Pausable, useTimeoutPoll, watchArray } from '@vueuse/core'
+import { type Pausable, tryOnScopeDispose, useTimeoutPoll, watchArray } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, reactive, toValue } from 'vue'
 
 export type XenApiPatchWithHostRefs = XenApiPatch & { $hostRefs: Set<string> }
@@ -55,6 +55,8 @@ export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
     },
     { immediate: true }
   )
+
+  tryOnScopeDispose(() => configByHost.forEach(config => config.timeoutPoll.pause()))
 
   const patches = computed(() => {
     const records = new Map<string, XenApiPatchWithHostRefs>()

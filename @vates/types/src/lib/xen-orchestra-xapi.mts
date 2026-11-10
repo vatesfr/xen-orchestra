@@ -130,6 +130,8 @@ export type XsPatches = {
   uuid?: string
 }
 
+type WrappedRecordOfType<Type extends WrappedXenApiRecord['$type']> = Extract<WrappedXenApiRecord, { $type: Type }>
+
 export interface Xapi {
   status: string
   pool?: { uuid: string }
@@ -147,6 +149,14 @@ export interface Xapi {
     ref: T['$ref'],
     field: K
   ): Promise<T[K]>
+  // the record is inferred from `type`, for a JS caller which cannot spell it out as a type argument
+  getField<Type extends WrappedXenApiRecord['$type'], Field extends keyof WrappedRecordOfType<Type>>(
+    type: Type,
+    ref: WrappedRecordOfType<Type>['$ref'],
+    field: Field
+  ): Promise<WrappedRecordOfType<Type>[Field]>
+  /** Synchronous: the record as the object cache currently holds it. */
+  getObjectByRef<Ref extends WrappedXenApiRecord['$ref']>(ref: Ref): Extract<WrappedXenApiRecord, { $ref: Ref }>
   getObject: <
     XoRecord extends XapiXoRecord,
     WrappedRecord extends WrappedXenApiRecord = Extract<WrappedXenApiRecord, { $type: XoRecord['type'] }>,
@@ -283,6 +293,42 @@ export interface Xapi {
     }
   ): Promise<XenApiVdi['$ref']>
   SR_reclaimSpace(ref: XenApiSr['$ref']): Promise<void>
+  VBD_create(params: {
+    bootable?: boolean
+    currently_attached?: boolean
+    device?: string
+    empty?: boolean
+    mode?: VBD_MODE
+    other_config?: Record<string, string>
+    qos_algorithm_params?: Record<string, string>
+    qos_algorithm_type?: string
+    /** a plug failure, only logged otherwise, is thrown: the VBD exists all the same */
+    throwVbdPlug?: boolean
+    type?: VBD_TYPE
+    unpluggable?: boolean
+    userdevice?: string
+    VDI?: XenApiVdi['$ref']
+    VM: XenApiVm['$ref']
+  }): Promise<XenApiVbd['$ref']>
+  /** unplugs the VBD first, if needed */
+  VBD_destroy(ref: XenApiVbd['$ref']): Promise<void>
+  VDI_create(
+    params: {
+      name_description?: string
+      name_label: string
+      other_config?: Record<string, string>
+      read_only?: boolean
+      sharable?: boolean
+      SR?: XenApiSr['$ref']
+      tags?: string[]
+      type?: VDI_TYPE
+      virtual_size: number
+      xenstore_data?: Record<string, string>
+    },
+    opts?: { sm_config?: Record<string, string> }
+  ): Promise<XenApiVdi['$ref']>
+  /** a VDI which no longer exists counts as destroyed */
+  VDI_destroy(ref: XenApiVdi['$ref']): Promise<void>
   editVm(
     id: XoVm['id'],
     props: EditVmProps,

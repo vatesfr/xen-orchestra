@@ -104,7 +104,7 @@ export default class TabLogs extends Component {
     formatLogs(logs).then(formattedLogs => {
       this.setState({
         logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
-          formatted: formattedLogs,
+          formatted: isEmpty(formattedLogs) ? undefined : formattedLogs,
           ...logs[id],
         })),
       })

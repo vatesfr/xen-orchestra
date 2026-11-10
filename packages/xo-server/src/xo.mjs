@@ -22,6 +22,8 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pipeline } from 'node:stream'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
+import { computeObjectNotifications } from './_objectNotifications.mjs'
+import { asyncEach } from '@vates/async-each'
 
 import mixins from './xo-mixins/index.mjs'
 import { generateToken, noop } from './utils.mjs'
@@ -74,6 +76,7 @@ export default class Xo extends EventEmitter {
     }
 
     this.hooks.on('start', () => this._watchObjects())
+    // `decorate` can return `undefined` to ignore an object
     this.hooks.on('registerCollection', async ({ collection, type, decorate = obj => obj }) => {
       const cache = new Map()
       const emitter = new EventEmitter()
@@ -84,7 +87,10 @@ export default class Xo extends EventEmitter {
         await Promise.all(
           objects.map(async object => {
             // pass a copy of the object to avoid any mutation on the source object
-            cache.set(object.id, await decorate({ ...object }))
+            const obj = await decorate({ ...object })
+            if (obj !== undefined) {
+              cache.set(obj.id, obj)
+            }
           })
         )
       })()
@@ -107,6 +113,13 @@ export default class Xo extends EventEmitter {
             const previous = cache.get(object.id)
             const newEntry = previous === undefined
             const obj = await decorate({ ...object })
+            if (obj === undefined) {
+              if (!newEntry) {
+                cache.delete(object.id)
+                emitter.emit('remove', undefined, previous)
+              }
+              return
+            }
             cache.set(obj.id, obj)
             emitter.emit(newEntry ? 'add' : 'update', obj, previous)
           })
@@ -416,32 +429,77 @@ export default class Xo extends EventEmitter {
     })
 
     objects.on('finish', () => {
-      const enteredMessage = !isEmpty(entered) && {
-        type: 'enter',
-        items: entered,
-      }
-      const exitedMessage = !isEmpty(exited) && {
-        type: 'exit',
-        items: exited,
-      }
+      const enteredBatch = entered
+      const exitedBatch = exited
 
-      if (!enteredMessage && !exitedMessage) {
+      reset()
+
+      if (isEmpty(enteredBatch) && isEmpty(exitedBatch)) {
         return
       }
 
-      for (const connection of this.apiConnections) {
-        // Notifies only authenticated clients.
-        if (connection.has('user_id') && connection.notify) {
-          if (enteredMessage) {
-            connection.notify('all', enteredMessage)
-          }
-          if (exitedMessage) {
-            connection.notify('all', exitedMessage)
+      this.#notifyObjectChanges(enteredBatch, exitedBatch).catch(error =>
+        log.warn('failed to notify object changes', { error })
+      )
+    })
+  }
+
+  async #notifyObjectChanges(entered, exited) {
+    const connections = []
+    for (const apiConnection of this.apiConnections) {
+      if (apiConnection.has('user_id') && apiConnection.notify !== undefined) {
+        connections.push(apiConnection)
+      }
+    }
+
+    if (connections.length === 0) {
+      return
+    }
+
+    const connectionsByUserId = new Map()
+    for (const connection of connections) {
+      const connectionUserId = connection.get('user_id')
+
+      const userConnections = connectionsByUserId.get(connectionUserId)
+      if (userConnections === undefined) {
+        connectionsByUserId.set(connectionUserId, [connection])
+      } else {
+        userConnections.push(connection)
+      }
+    }
+
+    await asyncEach(
+      connectionsByUserId,
+      async ([userId, userConnections]) => {
+        let objectFilter
+        try {
+          objectFilter = await this.getObjectFilterForUser(userId)
+        } catch (error) {
+          log.warn('failed to compute the object filter of a user', { error, userId })
+        }
+
+        if (objectFilter) {
+          const { enter, exit } = computeObjectNotifications({
+            entered,
+            exited,
+            isObjectVisible: objectFilter,
+          })
+
+          for (const userConnection of userConnections) {
+            if (enter !== undefined) {
+              userConnection.notify('all', { type: 'enter', items: enter })
+            }
+
+            if (exit !== undefined) {
+              userConnection.notify('all', { type: 'exit', items: exit })
+            }
           }
         }
+      },
+      {
+        concurrency: 10,
+        stopOnError: false,
       }
-
-      reset()
-    })
+    )
   }
 }

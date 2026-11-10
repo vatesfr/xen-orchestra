@@ -14,6 +14,7 @@ import {
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
@@ -40,6 +41,7 @@ export function useNewTrafficRuleForm(
   rawVifId: MaybeRefOrGetter<FrontXoVif['id'] | undefined>
 ) {
   const { t } = useI18n()
+  const { getVmIconTooltip } = useXoVmOperationLabel()
 
   const poolId = toComputed(rawPoolId)
   const vifId = toComputed(rawVifId)
@@ -121,7 +123,7 @@ export function useNewTrafficRuleForm(
     poolVms.value.map(vm => {
       const hasVifs = vm.VIFs.length > 0
 
-      return vmToTargetOption(vm, hasVifs)
+      return vmToTargetOption(vm, hasVifs, getVmIconTooltip(vm))
     })
   )
 
@@ -174,7 +176,7 @@ export function useNewTrafficRuleForm(
       label: 'label',
       value: 'value',
       disabled: source => source.disabled,
-      properties: source => ({ icon: source.icon }),
+      properties: source => ({ icon: source.icon, iconTooltip: source.iconTooltip }),
     },
   })
 

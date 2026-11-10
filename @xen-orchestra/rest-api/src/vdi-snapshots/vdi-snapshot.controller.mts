@@ -18,7 +18,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest } from 'express'
-import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
+import type { SUPPORTED_VDI_EXPORT_FORMAT, XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -104,7 +104,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   async exportVdiSnapshotContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: SUPPORTED_VDI_FORMAT
+    @Path() format: SUPPORTED_VDI_EXPORT_FORMAT
   ): Promise<Readable> {
     const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], 'VDI-snapshot', { format })
 

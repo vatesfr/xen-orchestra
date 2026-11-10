@@ -7,18 +7,9 @@
     >
       {{ branch.data.name_label || '(Pool)' }}
       <template #addons>
-        <MenuList placement="bottom-start">
-          <template #trigger="{ open, isOpen }">
-            <UiButtonIcon
-              accent="brand"
-              icon="action:more-actions"
-              size="small"
-              :selected="isOpen"
-              @click="open($event)"
-            />
-          </template>
+        <VtsActionsMenu placement="bottom-start">
           <PoolTreeActions :pool="branch.data" />
-        </MenuList>
+        </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -27,9 +18,8 @@
 <script lang="ts" setup>
 import PoolTreeActions from '@/modules/pool/components/actions/PoolTreeActions.vue'
 import type { PoolBranch } from '@/modules/treeview/types/tree.type.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 
 defineProps<{
