@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR, requires the new `import:vdi-from-url` privilege on the SR
+- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR(PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 
 ### Bug fixes
 
