@@ -22,6 +22,11 @@ export function createV2vMigrationList(overrides: Partial<V2vMigrationList> = {}
   }
 }
 
+// What a newer XO would store: a version this one cannot read
+export function createNewerV2vMigrationList() {
+  return { ...createV2vMigrationList({ vms: createV2vMigrationListVms(2) }), version: 2 }
+}
+
 export function createV2vMigrationListVms(count: number): V2vMigrationList['vms'] {
   return Array.from({ length: count }, (_, index) => ({ id: `vm-${index + 1}` as XoV2vVm['id'] }))
 }

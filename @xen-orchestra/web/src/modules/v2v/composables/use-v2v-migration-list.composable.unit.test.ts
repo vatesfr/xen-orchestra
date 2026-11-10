@@ -4,6 +4,7 @@ import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.ty
 import { getV2vMigrationListStorageKey } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { OTHER_POOL_ID } from '@/test/create-pool.ts'
 import {
+  createNewerV2vMigrationList,
   createV2vDestinationDefaults,
   createV2vMigrationList,
   createV2vMigrationListVms,
@@ -23,6 +24,21 @@ const NEW_DEFAULTS = createV2vDestinationDefaults({
 })
 
 const STORAGE_KEY = getV2vMigrationListStorageKey(STORED_LIST)
+
+const NEWER_LIST = createNewerV2vMigrationList()
+
+const NO_JSON = '{not json'
+
+const NO_LIST_OR_NO_JSON: [string, string | null][] = [
+  ['no list is stored', null],
+  ['the stored value is no JSON', NO_JSON],
+]
+
+function storeValue(value: string | null) {
+  if (value !== null) {
+    localStorage.setItem(STORAGE_KEY, value)
+  }
+}
 
 function mountMigrationList({
   sourceId = ref(SOURCE_ID),
@@ -55,10 +71,10 @@ describe('list', () => {
   })
 
   it.each([
-    ['is no JSON', '{not json'],
+    ['is no JSON', NO_JSON],
     ['is no list', '{"version":2}'],
   ])('is undefined when the stored value %s', (_, storedValue) => {
-    localStorage.setItem(STORAGE_KEY, storedValue)
+    storeValue(storedValue)
 
     expect(mountMigrationList().list).toBeUndefined()
   })
@@ -91,8 +107,27 @@ describe('list', () => {
   })
 })
 
+describe('isStoredByNewerVersion', () => {
+  it('is true when a newer version stored the list', () => {
+    seedV2vMigrationList(NEWER_LIST)
+
+    expect(mountMigrationList().isStoredByNewerVersion).toBe(true)
+  })
+
+  it.each([...NO_LIST_OR_NO_JSON, ['a list of this version is stored', JSON.stringify(STORED_LIST)]])(
+    'is false when %s',
+    (_, storedValue) => {
+      storeValue(storedValue)
+
+      expect(mountMigrationList().isStoredByNewerVersion).toBe(false)
+    }
+  )
+})
+
 describe('saveDefaults', () => {
-  it('stores a new list with the defaults and no VM', async () => {
+  it.each(NO_LIST_OR_NO_JSON)('stores a new list with the defaults and no VM when %s', async (_, storedValue) => {
+    storeValue(storedValue)
+
     mountMigrationList().saveDefaults(NEW_DEFAULTS)
     await nextTick()
 
@@ -106,6 +141,16 @@ describe('saveDefaults', () => {
     await nextTick()
 
     expect(readV2vMigrationListStorage()).toEqual({ ...STORED_LIST, defaults: NEW_DEFAULTS })
+  })
+
+  // A tab left open on an older XO must not erase the VMs of a list it cannot read
+  it('keeps a list stored by a newer version', async () => {
+    seedV2vMigrationList(NEWER_LIST)
+
+    mountMigrationList().saveDefaults(NEW_DEFAULTS)
+    await nextTick()
+
+    expect(readV2vMigrationListStorage()).toEqual(NEWER_LIST)
   })
 
   it.each(WITHOUT_SOURCE_OR_POOL)('stores nothing without a %s', async (_, options) => {

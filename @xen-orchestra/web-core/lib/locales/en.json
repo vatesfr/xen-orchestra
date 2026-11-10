@@ -1472,6 +1472,7 @@
   "v2v:destination-pool-info": "A migration goes from one source to one pool. Each source and pool pair has its own list.",
   "v2v:existing-list-info": "This browser already holds a migration list for {migration} ({vms}). Continuing reopens it, with the current migration state of every VM.",
   "v2v:global-defaults-info": "Applied to every VM, disk and network adapter. Each VM can override them in step 4 (Mapping). The SR and network are prefilled with the pool default SR and the management network of the pool master.",
+  "v2v:migration-list-of-newer-version": "A newer version of Xen Orchestra stored this migration list. Reload the page to continue with it.",
   "v2v:prerequisite-checking": "Prerequisite check: checking vectura…",
   "v2v:prerequisite-error": "Prerequisite check: vectura cannot be used, VMs cannot be migrated until it is fixed",
   "v2v:prerequisite-error-detail": "Prerequisite check: vectura cannot be used ({error}), VMs cannot be migrated until it is fixed",

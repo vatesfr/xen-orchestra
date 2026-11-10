@@ -63,7 +63,9 @@ export function useV2vDestinationStep() {
 
     const defaults = form.defaults.value
 
-    if (!isValid || defaults === undefined) {
+    const canContinue = isValid && defaults !== undefined && !migrationList.isStoredByNewerVersion.value
+
+    if (!canContinue) {
       return
     }
 
@@ -79,6 +81,7 @@ export function useV2vDestinationStep() {
   return {
     form: reactive(form),
     existingList,
+    isListStoredByNewerVersion: migrationList.isStoredByNewerVersion,
     submit,
     back,
   }

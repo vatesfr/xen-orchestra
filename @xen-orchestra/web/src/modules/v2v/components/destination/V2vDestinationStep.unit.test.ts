@@ -4,9 +4,10 @@ import V2vDestinationStep from '@/modules/v2v/components/destination/V2vDestinat
 import V2vExistingListInfo from '@/modules/v2v/components/destination/V2vExistingListInfo.vue'
 import type { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { getButton } from '@/test/get-button.ts'
+import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 
 const { destinationStepMock } = await vi.hoisted(async () => {
@@ -22,6 +23,7 @@ const { destinationStepMock } = await vi.hoisted(async () => {
         templateSelectBindings: { label: 'template' },
       }),
       existingList: vue.ref<ReturnType<typeof useV2vDestinationStep>['existingList']['value']>(),
+      isListStoredByNewerVersion: vue.ref(false),
       submit: vi.fn(),
       back: vi.fn(),
     },
@@ -46,6 +48,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   destinationStepMock.form.selectedPool = POOL
   destinationStepMock.existingList.value = undefined
+  destinationStepMock.isListStoredByNewerVersion.value = false
 })
 
 it('lets the user choose the pool', () => {
@@ -81,6 +84,21 @@ it('continues without mentioning a list when none holds VMs', () => {
 
   expect(wrapper.findComponent(V2vExistingListInfo).exists()).toBe(false)
   expect(getButton(wrapper, t('action:continue')).exists()).toBe(true)
+})
+
+it('says a newer version stored the list and blocks continuing', () => {
+  destinationStepMock.isListStoredByNewerVersion.value = true
+  const wrapper = mountStep()
+
+  expect(wrapper.getComponent(UiAlert).text()).toBe(t('v2v:migration-list-of-newer-version'))
+  expect(getUiButton(wrapper, t('action:continue')).props('disabled')).toBe(true)
+})
+
+it('lets the user continue while the list is readable', () => {
+  const wrapper = mountStep()
+
+  expect(wrapper.findComponent(UiAlert).exists()).toBe(false)
+  expect(getUiButton(wrapper, t('action:continue')).props('disabled')).toBe(false)
 })
 
 it('submits the destination', async () => {

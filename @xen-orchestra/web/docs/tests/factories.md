@@ -27,6 +27,7 @@ Domain objects are created through factories in `src/test/`, one per object type
 | `createV2vImportVm`                                                                   | `FrontXoVm` imported by V2V (its markers, then VM overrides) |
 | `createV2vColdAndWarmImportVms`                                                       | one cold and one warm V2V import of the test source          |
 | `createV2vMigrationList`, `createV2vDestinationDefaults`, `createV2vMigrationListVms` | `V2vMigrationList`, its defaults and `count` VMs             |
+| `createNewerV2vMigrationList`                                                         | a V2V migration list stored by a newer XO version            |
 
 `createPoolStats` composes `createHostStats`, since pool stats are one entry per host: pass a `Partial<XapiHostStats>` per host id, or an `{ error }` entry for a host whose stats the pool could not fetch.
 

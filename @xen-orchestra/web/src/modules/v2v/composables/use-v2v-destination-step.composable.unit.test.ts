@@ -4,6 +4,7 @@ import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/c
 import { createPool } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
+  createNewerV2vMigrationList,
   createV2vDestinationDefaults,
   createV2vMigrationList,
   createV2vMigrationListVms,
@@ -194,6 +195,19 @@ describe('submit', () => {
 
     expect(readV2vMigrationListStorage()).toEqual(createV2vMigrationList({ defaults: DEFAULTS }))
     expect(router.currentRoute.value.query).toMatchObject({ step: 'vms', pool: POOL.id })
+  })
+
+  it('keeps a list stored by a newer version and stays on the step', async () => {
+    const newerList = createNewerV2vMigrationList()
+    seedV2vMigrationList(newerList)
+    const { result, router } = await mountDestinationStep()
+    await chooseCompleteV2vDestination(result.form, POOL.id, DEFAULTS.template)
+
+    await result.submit()
+    await flushPromises()
+
+    expect(readV2vMigrationListStorage()).toEqual(newerList)
+    expect(router.currentRoute.value.query.step).toBe('destination')
   })
 })
 

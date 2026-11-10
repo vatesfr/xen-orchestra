@@ -6,6 +6,8 @@ import type {
 } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { isPlainObject } from 'lodash-es'
 
+const VERSION = 1
+
 const DEFAULTS_FIELDS = ['sr', 'network', 'template'] as const
 
 function isDestinationDefaults(value: unknown): value is V2vDestinationDefaults {
@@ -28,7 +30,7 @@ export function buildV2vMigrationList(
   defaults: V2vDestinationDefaults,
   vms: V2vMigrationListVm[]
 ): V2vMigrationList {
-  return { version: 1, sourceId, poolId, defaults, vms }
+  return { version: VERSION, sourceId, poolId, defaults, vms }
 }
 
 // The list lives in a storage any script or older XO version may have written: anything unexpected is no list
@@ -40,7 +42,7 @@ export function parseV2vMigrationList(raw: unknown, key: V2vMigrationListKey): V
   const list = raw as Record<string, unknown>
 
   const isValidList =
-    list.version === 1 &&
+    list.version === VERSION &&
     list.sourceId === key.sourceId &&
     list.poolId === key.poolId &&
     isDestinationDefaults(list.defaults) &&
@@ -52,4 +54,11 @@ export function parseV2vMigrationList(raw: unknown, key: V2vMigrationListKey): V
   }
 
   return buildV2vMigrationList(key, list.defaults as V2vDestinationDefaults, list.vms as V2vMigrationListVm[])
+}
+
+// A tab left open on an older XO reads such a list as no list: writing over it would erase its VMs
+export function isV2vMigrationListOfNewerVersion(raw: unknown) {
+  const version = isPlainObject(raw) ? (raw as Record<string, unknown>).version : undefined
+
+  return typeof version === 'number' && version > VERSION
 }

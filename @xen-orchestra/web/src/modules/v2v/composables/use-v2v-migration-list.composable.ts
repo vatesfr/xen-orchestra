@@ -3,6 +3,7 @@ import type { V2vDestinationDefaults, V2vMigrationListKey } from '@/modules/v2v/
 import {
   buildV2vMigrationList,
   getV2vMigrationListStorageKey,
+  isV2vMigrationListOfNewerVersion,
   parseV2vMigrationList,
 } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { useLocalStorage } from '@vueuse/core'
@@ -36,27 +37,34 @@ export function useV2vMigrationList(
     onError: error => console.error('Failed to access the V2V migration list', error),
   })
 
-  const list = computed(() => {
-    const key = listKey.value
+  const storedValue = computed((): unknown => {
     const raw = rawList.value
 
-    const hasStoredList = key !== undefined && raw !== null
+    const hasStoredValue = listKey.value !== undefined && raw !== null
 
-    if (!hasStoredList) {
+    if (!hasStoredValue) {
       return undefined
     }
 
     try {
-      return parseV2vMigrationList(JSON.parse(raw), key)
+      return JSON.parse(raw)
     } catch {
       return undefined
     }
   })
 
+  const list = computed(() => {
+    const key = listKey.value
+
+    return key === undefined ? undefined : parseV2vMigrationList(storedValue.value, key)
+  })
+
+  const isStoredByNewerVersion = computed(() => isV2vMigrationListOfNewerVersion(storedValue.value))
+
   function saveDefaults(defaults: V2vDestinationDefaults) {
     const key = listKey.value
 
-    if (key === undefined) {
+    if (key === undefined || isStoredByNewerVersion.value) {
       return
     }
 
@@ -65,5 +73,5 @@ export function useV2vMigrationList(
     rawList.value = JSON.stringify(buildV2vMigrationList(key, defaults, vms))
   }
 
-  return { list, saveDefaults }
+  return { list, isStoredByNewerVersion, saveDefaults }
 }

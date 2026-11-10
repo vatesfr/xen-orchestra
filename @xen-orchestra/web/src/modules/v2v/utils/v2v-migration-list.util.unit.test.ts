@@ -1,9 +1,14 @@
 import {
   buildV2vMigrationList,
   getV2vMigrationListStorageKey,
+  isV2vMigrationListOfNewerVersion,
   parseV2vMigrationList,
 } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
-import { createV2vMigrationList, createV2vMigrationListVms } from '@/test/create-v2v-migration-list.ts'
+import {
+  createNewerV2vMigrationList,
+  createV2vMigrationList,
+  createV2vMigrationListVms,
+} from '@/test/create-v2v-migration-list.ts'
 
 const STORED_LIST = createV2vMigrationList({ vms: createV2vMigrationListVms(2) })
 
@@ -45,5 +50,22 @@ describe('parseV2vMigrationList', () => {
     ['a VM without id', { vms: [{}] }],
   ])('returns no list for %s', (_, overrides) => {
     expect(parse({ ...STORED_LIST, ...overrides })).toBeUndefined()
+  })
+})
+
+describe('isV2vMigrationListOfNewerVersion', () => {
+  it('is true for a list stored by a newer version', () => {
+    expect(isV2vMigrationListOfNewerVersion(createNewerV2vMigrationList())).toBe(true)
+  })
+
+  it.each([
+    ['a list of this version', STORED_LIST],
+    ['a list of an older version', { ...STORED_LIST, version: 0 }],
+    ['a version that is no number', { ...STORED_LIST, version: '2' }],
+    ['an object without version', {}],
+    ['a value that is no object', '{not json'],
+    ['no value', undefined],
+  ])('is false for %s', (_, raw) => {
+    expect(isV2vMigrationListOfNewerVersion(raw)).toBe(false)
   })
 })
