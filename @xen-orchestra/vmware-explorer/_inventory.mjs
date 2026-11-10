@@ -1,3 +1,4 @@
+import { parseDatastorePath } from './_paths.mjs'
 import { UNSAFE_KEYS } from './parsers/utils.mjs'
 import { asArray } from './soap/normalize.mjs'
 
@@ -33,6 +34,7 @@ const CONTROLLER_PREFIXES = {
  * @property {{ portgroupKey?: string }} [port]
  * @property {unknown} [network]
  * @property {string} [opaqueNetworkId]
+ * @property {RawBacking} [parent] - backing of the parent disk of a snapshot delta
  */
 
 /**
@@ -108,6 +110,8 @@ const CONTROLLER_PREFIXES = {
  * @property {string | undefined} diskMode - `persistent`, `independent_persistent`…
  * @property {boolean} rdm - raw device mapping, which cannot be read through the datastore
  * @property {boolean} encrypted
+ * @property {string[]} chainPaths - `dir/disk.vmdk` in its datastore of the base disk, then of each snapshot delta down
+ * to the active disk, as the import records the disk a VDI last received
  */
 
 /**
@@ -154,6 +158,7 @@ export function parseDevices(devices, portgroupsByKey = {}) {
         diskMode: backing?.diskMode,
         rdm: backingType === 'VirtualDiskRawDiskMappingVer1BackingInfo',
         encrypted: backing?.keyId !== undefined,
+        chainPaths: chainPathsOf(backing),
       })
     } else if (device.macAddress !== undefined || device.addressType !== undefined) {
       // every kind of network card (E1000, VMXNET3…) carries a MAC address, nothing else does
@@ -169,6 +174,24 @@ export function parseDevices(devices, portgroupsByKey = {}) {
     }
   }
   return { disks, nics }
+}
+
+/**
+ * The paths of the disks of a chain, from its base: the backing of a snapshot delta links to its parent's.
+ *
+ * @param {RawBacking | undefined} backing - backing of the active disk
+ * @returns {string[]}
+ */
+function chainPathsOf(backing) {
+  const paths = []
+  // a parent loop would be a broken answer, VMware limits a chain to 255 disks
+  for (let depth = 0; backing !== undefined && depth < 256; depth++, backing = backing.parent) {
+    const path = parseDatastorePath(backing.fileName ?? '')?.path
+    if (path !== undefined) {
+      paths.unshift(path)
+    }
+  }
+  return paths
 }
 
 /**

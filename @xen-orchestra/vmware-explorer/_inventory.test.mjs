@@ -18,10 +18,14 @@ const DEVICES = {
       capacityInBytes: '10737418240',
       deviceInfo: { label: 'Hard disk 1' },
       backing: typed('VirtualDiskFlatVer2BackingInfo', {
-        fileName: '[ds1] vm/vm.vmdk',
+        fileName: '[ds1] vm/vm-000002.vmdk',
         datastore: ref('Datastore', 'datastore-11'),
         diskMode: 'persistent',
         thinProvisioned: 'true',
+        parent: typed('VirtualDiskFlatVer2BackingInfo', {
+          fileName: '[ds1] vm/vm-000001.vmdk',
+          parent: typed('VirtualDiskFlatVer2BackingInfo', { fileName: '[ds2] base/vm.vmdk' }),
+        }),
       }),
     }),
     typed('VirtualDisk', {
@@ -66,7 +70,9 @@ describe('parseDevices', function () {
       diskMode: 'persistent',
       rdm: false,
       encrypted: false,
+      chainPaths: ['base/vm.vmdk', 'vm/vm-000001.vmdk', 'vm/vm-000002.vmdk'],
     })
+    assert.deepEqual(rdm.chainPaths, ['vm/rdm.vmdk'])
     assert.equal(rdm.capacity, 1024 * 1024)
     assert.equal(rdm.rdm, true)
     assert.equal(rdm.encrypted, true)

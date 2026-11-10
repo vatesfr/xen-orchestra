@@ -22,7 +22,7 @@ const sourceVm = (id: string, { disks = ['scsi0:0'], nics = ['4000'] } = {}): Vm
   isTemplate: false,
   datastores: [],
   snapshotCount: 0,
-  disks: disks.map(key => ({ key, label: key, capacity: 1, rdm: false, encrypted: false })),
+  disks: disks.map(key => ({ key, label: key, capacity: 1, rdm: false, encrypted: false, chainPaths: [] })),
   nics: nics.map(key => ({ key, label: key })),
 })
 

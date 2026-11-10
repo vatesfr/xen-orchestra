@@ -56,6 +56,8 @@ export type VmwareVmDisk = {
   diskMode?: string
   rdm: boolean
   encrypted: boolean
+  /** `dir/disk.vmdk` in its datastore of the base disk, then of each snapshot delta down to the active disk */
+  chainPaths: string[]
 }
 
 export type VmwareVmNic = {

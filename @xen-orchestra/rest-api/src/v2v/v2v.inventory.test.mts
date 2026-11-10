@@ -173,6 +173,7 @@ describe('toXoV2vInventory', function () {
                 diskMode: 'independent_persistent',
                 rdm: true,
                 encrypted: true,
+                chainPaths: ['vm/vm.vmdk', 'vm/vm-000001.vmdk'],
               },
             ],
             nics: [
@@ -194,6 +195,7 @@ describe('toXoV2vInventory', function () {
         mode: 'independent_persistent',
         isRdm: true,
         isEncrypted: true,
+        chainPaths: ['vm/vm.vmdk', 'vm/vm-000001.vmdk'],
       },
     ])
     assert.deepEqual(vm.nics, [
@@ -216,6 +218,7 @@ describe('toXoV2vInventory', function () {
                 capacity: 1024,
                 rdm: false,
                 encrypted: false,
+                chainPaths: [],
               },
             ],
           }),

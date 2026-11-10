@@ -47,6 +47,7 @@ export const v2vInventory = {
           mode: 'persistent',
           isRdm: false,
           isEncrypted: false,
+          chainPaths: ['web-01/web-01.vmdk', 'web-01/web-01-000001.vmdk'],
         },
       ],
       nics: [
