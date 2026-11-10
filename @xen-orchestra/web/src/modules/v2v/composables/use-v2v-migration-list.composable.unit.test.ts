@@ -33,7 +33,7 @@ const NEW_DEFAULTS_LIST = createV2vMigrationList({ defaults: NEW_DEFAULTS })
 
 const STORAGE_KEY = getV2vMigrationListStorageKey(V2V_LIST_WITH_VMS)
 
-const NEWER_LIST = createNewerV2vMigrationList()
+const NEWER_LIST = createNewerV2vMigrationList(V2V_LIST_WITH_VMS)
 
 const NO_JSON = '{not json'
 
