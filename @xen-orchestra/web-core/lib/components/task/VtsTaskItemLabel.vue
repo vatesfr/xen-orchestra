@@ -1,20 +1,22 @@
 <template>
   <div class="vts-task-item-label" :class="{ selected }">
     <template v-if="depth > 1">
-      <VtsTreeLine v-for="i in depth - 1" :key="i" />
+      <VtsTreeLine v-for="i in depth - 1" :key="i" size="small" />
     </template>
-    <UiButtonIcon
-      v-if="hasToggle"
-      v-tooltip="isExpanded ? t('action:close') : t('action:open')"
-      class="toggle"
-      accent="brand"
-      :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
-      size="small"
-      :target-scale="{ x: 1.5, y: 2 }"
-      @click="emit('toggle')"
-    />
+    <div class="toggle-wrapper">
+      <UiButtonIcon
+        v-if="hasToggle"
+        v-tooltip="isExpanded ? t('action:close') : t('action:open')"
+        class="toggle"
+        accent="brand"
+        :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
+        size="small"
+        :target-scale="{ x: 1.5, y: 2 }"
+        @click="emit('toggle')"
+      />
+      <div v-else class="h-line" />
+    </div>
     <div class="content">
-      <div v-if="!hasToggle" class="h-line" />
       <slot />
     </div>
   </div>
@@ -24,7 +26,11 @@
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
+import {
+  IK_TREE_ITEM_EXPANDED,
+  IK_TREE_ITEM_HAS_CHILDREN,
+  IK_TREE_LIST_DEPTH,
+} from '@core/utils/injection-keys.util.ts'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -51,40 +57,34 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 
 <style lang="postcss" scoped>
 .vts-task-item-label {
-  --task-item-background-color: var(--color-neutral-background-primary);
   display: flex;
   align-items: center;
   gap: 0.4rem;
   min-height: 4.8rem;
-  border-block-end: 0.1rem solid var(--color-neutral-border);
-  background-color: var(--task-item-background-color);
+  background-color: var(--color-neutral-background-primary);
 
   &.selected {
-    --task-item-background-color: var(--color-brand-background-selected);
+    background-color: var(--color-brand-background-selected);
+  }
+
+  .toggle-wrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    width: 1.6rem;
+  }
+
+  .toggle,
+  .h-line {
+    width: 100%;
   }
 
   .content {
     display: flex;
     flex: 1;
     min-width: 0;
-  }
-
-  .h-line {
-    width: 2.4rem;
-    flex-shrink: 0;
-    margin-inline-end: 0.4rem;
-  }
-}
-
-:deep(.vts-tree-line) {
-  &:before {
-    content: '';
-    position: absolute;
-    inset-block-start: -1px;
-    inset-inline-start: 0;
-    width: calc(100% + 0.4rem);
-    height: 1px;
-    background-color: var(--task-item-background-color);
+    align-self: stretch;
+    border-block-end: 0.1rem solid var(--color-neutral-border);
   }
 }
 </style>
