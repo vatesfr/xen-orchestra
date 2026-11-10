@@ -824,6 +824,7 @@
   "maximum-vcpu": "Maximum vCPUs",
   "memory": "Memory",
   "memory-usage": "Memory usage",
+  "menu": "Menu",
   "merge-backups-synchronously": "Merge backups synchronously",
   "message": "Message",
   "migration-blocked": "Migration Blocked",
