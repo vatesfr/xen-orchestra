@@ -11,6 +11,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR, requires the new `import:vdi-from-url` privilege on the SR
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -32,9 +34,10 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - xo-server minor
