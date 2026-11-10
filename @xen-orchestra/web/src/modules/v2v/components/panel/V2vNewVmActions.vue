@@ -4,13 +4,13 @@
 
 <script lang="ts" setup>
 import type { V2vNewMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vNewVmActions, type V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
-import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import type { XoV2vVm } from '@vates/types'
 
 const { vm, updateVm } = defineProps<{
   vm: V2vNewMappingStepVm
-  updateVm: V2vVmMappingContext['updateVm']
+  updateVm: V2vVmUpdate
 }>()
 
 const emit = defineEmits<{

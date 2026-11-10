@@ -4,7 +4,7 @@ import type {
   V2vNotFoundMappingStepVm,
   V2vResumedMappingStepVm,
 } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
 import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
@@ -49,7 +49,7 @@ function useRemoveAction(vm: ComputedRef<V2vMappingStepVm>, remove: V2vVmRemove)
 // deleted. The menu actions carry no separator: the panel menu opens on them, a row menu sets them apart itself
 export function useV2vNewVmActions(
   rawVm: MaybeRefOrGetter<V2vNewMappingStepVm>,
-  { updateVm, remove }: Pick<V2vVmMappingContext, 'updateVm'> & { remove: V2vVmRemove }
+  { updateVm, remove }: { updateVm: V2vVmUpdate; remove: V2vVmRemove }
 ) {
   const vm = toComputed(rawVm)
 

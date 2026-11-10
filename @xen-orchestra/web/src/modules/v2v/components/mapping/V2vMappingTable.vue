@@ -19,7 +19,7 @@
 <script lang="ts" setup>
 import V2vMappingRowMenu from '@/modules/v2v/components/mapping/V2vMappingRowMenu.vue'
 import type { V2vMappingStepRow } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { renderInlinePartsCell } from '@/shared/utils/inline-parts-cell.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -36,7 +36,7 @@ import { useI18n } from 'vue-i18n'
 
 const { rows, updateVm } = defineProps<{
   rows: V2vMappingStepRow[]
-  updateVm: V2vVmMappingContext['updateVm']
+  updateVm: V2vVmUpdate
 }>()
 
 const emit = defineEmits<{

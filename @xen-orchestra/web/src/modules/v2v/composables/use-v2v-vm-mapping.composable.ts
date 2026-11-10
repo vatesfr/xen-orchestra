@@ -1,7 +1,6 @@
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
-import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
@@ -16,16 +15,11 @@ import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-export type V2vVmMappingContext = {
-  list: MaybeRefOrGetter<V2vMigrationList>
-  updateVm: ReturnType<typeof useV2vMigrationList>['updateVm']
-}
-
 export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
 
 // The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard
 export type V2vVmTargetsOptions = {
-  list: V2vVmMappingContext['list']
+  list: MaybeRefOrGetter<V2vMigrationList>
   inventory: MaybeRefOrGetter<XoV2vInventory | undefined>
 }
 

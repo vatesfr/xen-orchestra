@@ -23,7 +23,7 @@ import V2vVmActions from '@/modules/v2v/components/panel/V2vVmActions.vue'
 import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vue'
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XoV2vVm } from '@vates/types'
@@ -33,7 +33,7 @@ import { useI18n } from 'vue-i18n'
 // import VM of a resumed VM is deleted, and the panel then shows the new VM it became
 defineProps<{
   vm?: V2vMappingStepVm
-  updateVm: V2vVmMappingContext['updateVm']
+  updateVm: V2vVmUpdate
 }>()
 
 const emit = defineEmits<{

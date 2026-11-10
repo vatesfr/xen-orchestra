@@ -1,5 +1,6 @@
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
-import type { V2vVmMappingContext, V2vVmOverrides } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import type { V2vVmOverrides, V2vVmTargetsOptions } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -10,7 +11,7 @@ import type { MaybeRefOrGetter } from 'vue'
 // outside the wizard: it is handed the inventory of the connected source
 export function useV2vVmSettingsEdit(
   rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, updateVm }: V2vVmMappingContext
+  { list: rawList, updateVm }: { list: V2vVmTargetsOptions['list']; updateVm: V2vVmUpdate }
 ) {
   const vm = toComputed(rawVm)
 
