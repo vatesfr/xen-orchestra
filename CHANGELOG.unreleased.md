@@ -18,29 +18,29 @@
 - [Pool/Traffic rules] Display traffic rules by priority within their network (PR [#10688](https://github.com/vatesfr/xen-orchestra/pull/10688))
 - [VMs/Hosts] Show a loader in VM and host icons while their power state is changing, with the operation in progress in the tooltip, and move the header loader next to the name (PR [#10720](https://github.com/vatesfr/xen-orchestra/pull/10720))
 - [REST API] Create, update and delete backup jobs and schedules (admin only): `POST /rest/v0/backup-jobs`, `PATCH|DELETE /rest/v0/backup-jobs/:id`, `POST /rest/v0/schedules`, `PATCH|DELETE /rest/v0/schedules/:id` (PR [#10595](https://github.com/vatesfr/xen-orchestra/pull/10595))
-- [XO6/Groups] Add a groups list in the user management page (PR [#10272](https://github.com/vatesfr/xen-orchestra/pull/10272))
-- [XO6/Groups] Select a group in the list to see its details and the users it contains in a side panel (PR [#10291](https://github.com/vatesfr/xen-orchestra/pull/10291))
-- [XO6/Users] The groups listed in a user's side panel now open that group in XO 6, instead of linking to the XO 5 settings page (PR [#10291](https://github.com/vatesfr/xen-orchestra/pull/10291))
-- [XO6/Roles] Add a roles list in the user management page (PR [#10301](https://github.com/vatesfr/xen-orchestra/pull/10301))
-- [XO6/Roles] Select a role in the list to see its details, its privileges and the users and groups it is assigned to, in a side panel (PR [#10330](https://github.com/vatesfr/xen-orchestra/pull/10330))
-- [XO6/Roles] Delete a role from the roles list or its side panel in the user management page. A role assigned to users or groups cannot be deleted (PR [#10353](https://github.com/vatesfr/xen-orchestra/pull/10353))
-- [XO6/Users] Delete a user from the users list or its side panel in the user management page. A user cannot delete itself (PR [#10356](https://github.com/vatesfr/xen-orchestra/pull/10356))
-- [XO6/Roles] Create a role and its privileges from the roles list in the user management page (PR [#10605](https://github.com/vatesfr/xen-orchestra/pull/10605))
-- [XO6/Users] Open a user's detail page from the users list or its side panel, to see its details
-- [XO6/Users] List the groups of a user in its detail page, add the user to groups and detach it from them
-- [XO6/Users] List the roles of a user in its detail page, whether assigned directly or inherited from its groups, assign roles to the user and detach its direct roles
-- [XO6/Groups] Open a group's detail page from the groups list or its side panel, to see its details
-- [XO6/Groups] List the roles of a group in its detail page, assign roles to the group and detach them from it
-- [XO6/Groups] List the members of a group in its detail page, add users to the group and remove them from it
-- [XO6/Roles] Open a role's detail page from the roles tables or its side panel, to see its details
-- [XO6/Roles] List the users a role is assigned to in its detail page, whether directly or through their groups, assign the role to users and detach it from its direct users
-- [XO6/Roles] List the groups a role is assigned to in its detail page, assign the role to groups and detach it from them
-- [XO6/Roles] List the privileges of a role in its detail page, and see the objects each privilege currently applies to in a side panel
-- [XO6/Privileges] Open a privilege's detail page from the privileges table of a role or its side panel, to see its details
-- [XO6/Privileges] See the scope of a privilege in its detail page: its scope type, its query and the objects it currently applies to
-- [XO6/Users] Show users by their username, or their email address when they have none, and show their first and last names in the users list and side panel
-- [XO6/Users] Create a user from the users list in the user management page, and add it to groups and assign it roles right away
-- [XO6/Groups] See the roles applied to a group in its side panel (PR [#10659](https://github.com/vatesfr/xen-orchestra/pull/10659))
+- [Groups] Add a groups list in the user management page (PR [#10272](https://github.com/vatesfr/xen-orchestra/pull/10272))
+- [Groups] Select a group in the list to see its details and the users it contains in a side panel (PR [#10291](https://github.com/vatesfr/xen-orchestra/pull/10291))
+- [Users] The groups listed in a user's side panel now open that group in XO 6, instead of linking to the XO 5 settings page (PR [#10291](https://github.com/vatesfr/xen-orchestra/pull/10291))
+- [Roles] Add a roles list in the user management page (PR [#10301](https://github.com/vatesfr/xen-orchestra/pull/10301))
+- [Roles] Select a role in the list to see its details, its privileges and the users and groups it is assigned to, in a side panel (PR [#10330](https://github.com/vatesfr/xen-orchestra/pull/10330))
+- [Roles] Delete a role from the roles list or its side panel in the user management page. A role assigned to users or groups cannot be deleted (PR [#10353](https://github.com/vatesfr/xen-orchestra/pull/10353))
+- [Users] Delete a user from the users list or its side panel in the user management page. A user cannot delete itself (PR [#10356](https://github.com/vatesfr/xen-orchestra/pull/10356))
+- [Roles] Create a role and its privileges from the roles list in the user management page (PR [#10605](https://github.com/vatesfr/xen-orchestra/pull/10605))
+- [Users] Open a user's detail page from the users list or its side panel, to see its details
+- [Users] List the groups of a user in its detail page, add the user to groups and detach it from them
+- [Users] List the roles of a user in its detail page, whether assigned directly or inherited from its groups, assign roles to the user and detach its direct roles
+- [Groups] Open a group's detail page from the groups list or its side panel, to see its details
+- [Groups] List the roles of a group in its detail page, assign roles to the group and detach them from it
+- [Groups] List the members of a group in its detail page, add users to the group and remove them from it
+- [Roles] Open a role's detail page from the roles tables or its side panel, to see its details
+- [Roles] List the users a role is assigned to in its detail page, whether directly or through their groups, assign the role to users and detach it from its direct users
+- [Roles] List the groups a role is assigned to in its detail page, assign the role to groups and detach it from them
+- [Roles] List the privileges of a role in its detail page, and see the objects each privilege currently applies to in a side panel
+- [Privileges] Open a privilege's detail page from the privileges table of a role or its side panel, to see its details
+- [Privileges] See the scope of a privilege in its detail page: its scope type, its query and the objects it currently applies to
+- [Users] Show users by their username, or their email address when they have none, and show their first and last names in the users list and side panel
+- [Users] Create a user from the users list in the user management page, and add it to groups and assign it roles right away
+- [Groups] See the roles applied to a group in its side panel (PR [#10659](https://github.com/vatesfr/xen-orchestra/pull/10659))
 
 ### Bug fixes
 
@@ -48,7 +48,7 @@
 
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
-- [XO6/Users] Fix the side panel of a user always showing "No role applied": it now lists the roles of the user, grouped by the group they are inherited from, then its direct roles
+- [Users] Fix the side panel of a user always showing "No role applied": it now lists the roles of the user, grouped by the group they are inherited from, then its direct roles
 
 ### Packages to release
 
