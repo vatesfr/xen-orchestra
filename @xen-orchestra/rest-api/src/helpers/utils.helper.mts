@@ -144,12 +144,39 @@ export function safeParseComplexMatcher(string: string) {
 
 const SORT_REGEX = /^(-?)([\w$]+)$/
 
+type SortableValue = string | number | boolean
+type SortEntry<T> = { object: T; value: SortableValue | undefined }
+
+function isSortableValue(value: unknown): value is SortableValue {
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+}
+
+function getProperty(object: unknown, property: string): unknown {
+  return typeof object === 'object' && object !== null ? Reflect.get(object, property) : undefined
+}
+
+function compareSortableValues(a: SortableValue, b: SortableValue, property: string): number {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a - b
+  }
+  if (typeof a === 'string' && typeof b === 'string') {
+    return a < b ? -1 : a > b ? 1 : 0
+  }
+  if (typeof a === 'boolean' && typeof b === 'boolean') {
+    return a === b ? 0 : a ? 1 : -1
+  }
+  throw new ApiError(`cannot sort on ${property}: values have different types`, 400, {
+    data: { property, types: [typeof a, typeof b] },
+  })
+}
+
 /**
  * Sorts on a single top-level property, `-` prefix for descending order.
  *
  * - stable: objects with equal values keep their original order
  * - objects without the property (`undefined` or `null`) are always last
- * - strings are compared by code unit (case sensitive, no locale)
+ * - strings are compared by code unit (case sensitive, no locale), numbers numerically, `false` before `true`
+ * - fails with a 400 if a value is not a string, number or boolean, or if values have different types
  */
 export function sortObjects<T>(array: T[], sort: unknown): T[] {
   if (sort === undefined) {
@@ -165,32 +192,34 @@ export function sortObjects<T>(array: T[], sort: unknown): T[] {
   const [, sign, property] = match
   const direction = sign === '-' ? -1 : 1
 
-  return array.toSorted((a, b) => {
-    const aValue = (a as Record<string, unknown>)[property]
-    const bValue = (b as Record<string, unknown>)[property]
-
-    const aIsMissing = aValue === undefined || aValue === null
-    const bIsMissing = bValue === undefined || bValue === null
-    // missing values are always last, whatever the direction
-    if (aIsMissing && bIsMissing) {
-      return 0
+  // values are read and checked upfront: the comparator is not called on every value (e.g. a single object)
+  const entries = array.map((object): SortEntry<T> => {
+    const value = getProperty(object, property)
+    // NaN is not comparable, handle it as missing
+    if (value === undefined || value === null || Number.isNaN(value)) {
+      return { object, value: undefined }
     }
-    if (aIsMissing) {
-      return 1
+    if (!isSortableValue(value)) {
+      throw new ApiError(`cannot sort on ${property}: only strings, numbers and booleans are sortable`, 400, {
+        data: { sort },
+      })
     }
-    if (bIsMissing) {
-      return -1
-    }
-
-    // values of different types are considered equal, the stable sort keeps their order
-    if ((aValue as string) < (bValue as string)) {
-      return -direction
-    }
-    if ((aValue as string) > (bValue as string)) {
-      return direction
-    }
-    return 0
+    return { object, value }
   })
+
+  return entries
+    .toSorted((a, b) => {
+      // missing values are always last, whatever the direction
+      if (a.value === undefined) {
+        return b.value === undefined ? 0 : 1
+      }
+      if (b.value === undefined) {
+        return -1
+      }
+      // present values are contiguous, so a type mismatch always ends up compared and rejected here
+      return direction * compareSortableValues(a.value, b.value, property)
+    })
+    .map(entry => entry.object)
 }
 
 export function limitAndFilterArray<T>(

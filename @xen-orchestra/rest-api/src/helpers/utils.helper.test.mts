@@ -53,6 +53,44 @@ describe('sortObjects()', () => {
     assert.deepEqual(ids(sortObjects(pools, '$pool')), ['b', 'a'])
   })
 
+  it('sorts booleans, false first', () => {
+    const vms = [
+      { id: 'a', isTemplate: true },
+      { id: 'b', isTemplate: false },
+      { id: 'c' },
+      { id: 'd', isTemplate: false },
+    ]
+    assert.deepEqual(ids(sortObjects(vms, 'isTemplate')), ['b', 'd', 'a', 'c'])
+    assert.deepEqual(ids(sortObjects(vms, '-isTemplate')), ['a', 'b', 'd', 'c'])
+  })
+
+  it('handles NaN as missing', () => {
+    const disks = [
+      { id: 'a', size: NaN },
+      { id: 'b', size: 2 },
+      { id: 'c', size: 1 },
+    ]
+    assert.deepEqual(ids(sortObjects(disks, '-size')), ['b', 'c', 'a'])
+  })
+
+  for (const value of [{ a: 1 }, ['a'], () => {}, 1n]) {
+    it(`throws a 400 on a non scalar value: ${typeof value}`, () => {
+      // even a single object, which the comparator never sees
+      assert.throws(
+        () => sortObjects([{ id: 'a', value }], 'value'),
+        (error: unknown) => error instanceof ApiError && error.status === 400
+      )
+    })
+  }
+
+  it('throws a 400 when values have different types', () => {
+    const mixed = [{ id: 'a', value: 1 }, { id: 'b' }, { id: 'c', value: '1' }]
+    assert.throws(
+      () => sortObjects(mixed, 'value'),
+      (error: unknown) => error instanceof ApiError && error.status === 400
+    )
+  })
+
   for (const sort of ['', '-', 'a.b', 'name,size', ' name', ['name'], 42]) {
     it(`throws a 400 for ${JSON.stringify(sort)}`, () => {
       assert.throws(
