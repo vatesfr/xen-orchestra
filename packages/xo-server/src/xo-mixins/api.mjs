@@ -350,6 +350,12 @@ export default class Api {
     return this.#apiContext.run(apiContext, fn)
   }
 
+  // for what xo-server starts on its own from inside an API call, which must
+  // not act as the user of that call
+  runWithoutApiContext(fn) {
+    return this.#apiContext.run(undefined, fn)
+  }
+
   async #callApiMethod(name, method, { _log, ...params }) {
     const app = this._app
 

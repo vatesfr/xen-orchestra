@@ -21,6 +21,7 @@ function createXenServers({
   loadBalancerInstalled = true,
   loadBalancerLoaded = false,
   recordRefused = false,
+  resumeHostsStarted = true,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
   scheduleDisableRefused,
   updateRefused = false,
@@ -117,7 +118,7 @@ function createXenServers({
         options: { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: true },
         resume: {
           doneHostIds: new Set(['host-A']),
-          hostsStarted: true,
+          hostsStarted: resumeHostsStarted,
           hostOrder: ['host-A', 'host-B'],
           vmHomeById: { vm1: 'host-A' },
           haltedPinnedVms: {},
@@ -373,6 +374,18 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     )
     assert.equal(taskProperties[0].runId, 'run-1')
     assert.equal(taskProperties[0].attempt, 2)
+  })
+
+  it('accepts the state of the pool in an automatic resume only when its run started on a host', async function () {
+    const acceptedBy = async opts => {
+      const { calls, xenServers } = createXenServers(opts)
+      await xenServers.resumeRollingPoolUpdate(pool, { automatic: true })
+      return calls.find(([name]) => name === 'xapi.rollingPoolUpdate')[1].acceptCurrentStateAsBaseline
+    }
+    // the master, first host of the run, may have been updated by it
+    assert.equal(await acceptedBy({ resumeHostsStarted: true }), true)
+    // nothing the run did: a half updated pool is left to the operator
+    assert.ok(!(await acceptedBy({ resumeHostsStarted: false })))
   })
 
   it('asks the backup guard again, then continues the same run where it stopped', async function () {

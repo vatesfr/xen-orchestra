@@ -1095,8 +1095,13 @@ export default class XenServers {
     const { recorder, options, resume } = await app.resumeRpuRecoveryRun(pool, { automatic })
     return this._runRollingPoolUpdate($defer, pool, {
       jobs,
-      // a resume is the explicit acceptance of the state its run left
-      options: { ...options, acceptCurrentStateAsBaseline: true },
+      // a resume is the explicit acceptance of the state its run left. Nobody
+      // accepts it in an automatic one: only a run which started on a host,
+      // the master being the first, may have left the pool half updated itself
+      options: {
+        ...options,
+        acceptCurrentStateAsBaseline: !automatic || resume.hostsStarted || options.acceptCurrentStateAsBaseline,
+      },
       parentTask,
       recorder,
       resume,

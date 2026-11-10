@@ -117,7 +117,11 @@ export default class Pools {
     const app = this._app
     log.info('resuming the rolling pool update interrupted by the restart of xo-server', { poolId })
     try {
-      await app.resumeRollingPoolUpdate(app.getObject(poolId, 'pool'), { automatic: true })
+      // the pool may have been reconnected by an API call (`server.enable`),
+      // whose user neither owns the run nor lends it their credentials
+      await app.runWithoutApiContext(() =>
+        app.resumeRollingPoolUpdate(app.getObject(poolId, 'pool'), { automatic: true })
+      )
     } catch (error) {
       // a refusal (license, backup, missing pool...) leaves the run interrupted
       log.warn('automatic resume of the rolling pool update failed, it waits for a manual resume', { error, poolId })

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { after, describe, it } from 'node:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -296,8 +297,13 @@ function createAutoResumePools({ records = {}, resumeError, storeError } = {}) {
     assert.equal(type, 'pool')
     return { id, name_label: id }
   }
+  // same behavior as the Api mixin
+  const apiContext = new AsyncLocalStorage()
+  const resumeApiContexts = []
+  app.runWithoutApiContext = fn => apiContext.run(undefined, fn)
   app.resumeRollingPoolUpdate = async (pool, opts) => {
     app.calls.push(['resumeRollingPoolUpdate', pool.id, opts])
+    resumeApiContexts.push(apiContext.getStore())
     if (resumeError !== undefined) {
       throw resumeError
     }
@@ -311,6 +317,10 @@ function createAutoResumePools({ records = {}, resumeError, storeError } = {}) {
     // Like runHook, a failing listener does not fail the start
     start: () => Promise.all(startListeners.map(listener => listener().catch(() => {}))),
     connect: poolId => listeners['server:connected']({ xapi: { pool: { $id: poolId } } }),
+    // connection made by an API call, like `server.enable`
+    connectFromApiCall: (poolId, user) =>
+      apiContext.run({ user }, () => listeners['server:connected']({ xapi: { pool: { $id: poolId } } })),
+    resumeApiContexts,
   }
 }
 
@@ -323,6 +333,17 @@ describe('Pools automatic resume after a restart', function () {
     await connect('pool-1')
 
     assert.deepEqual(app.calls, [['resumeRollingPoolUpdate', 'pool-1', { automatic: true }]])
+  })
+
+  it('resumes outside of the API call which reconnected the pool', async function () {
+    const { connectFromApiCall, resumeApiContexts, start } = createAutoResumePools({
+      records: { 'pool-1': makeRecord({ status: 'running' }) },
+    })
+    await start()
+
+    await connectFromApiCall('pool-1', { id: 'user-1' })
+
+    assert.deepEqual(resumeApiContexts, [undefined])
   })
 
   it('waits for the records to be loaded when the pool connects first', async function () {
