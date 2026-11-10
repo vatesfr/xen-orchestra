@@ -12,6 +12,7 @@ import { pipeline } from 'node:stream/promises'
 
 import { connectXo } from './xo-api.mjs'
 import { createFakeXapi } from './fake-xapi.mjs'
+import { createRpuTracesWriter } from './rpu-traces.mjs'
 import { neutralizeConfig } from './config.mjs'
 
 const USAGE = `
@@ -22,7 +23,8 @@ Usage: load-cli.mjs <bundle.ndjson.gz.pgp> [options]
 
   --xo         URL of the XO (default: http://localhost)
   --xo-server  directory of xo-server (default: the one of this repository)
-  --datadir    datadir of xo-server (default: /var/lib/xo-server/data)
+  --datadir    datadir of xo-server (default: /var/lib/xo-server/data), the RPU/RPR traces are written in
+               its rpu-traces directory
   --host       address on which the fake XAPIs listen, must be reachable by the XO (default: 127.0.0.1)
 
   Environment:
@@ -117,6 +119,7 @@ async function main(args) {
 
   const xo = await connectXo(values.xo)
   const taskStores = openTaskStores(values['xo-server'], values.datadir)
+  const rpuTraces = createRpuTracesWriter(join(values.datadir, 'rpu-traces'))
   const fakeXapis = []
   const closeFakeXapis = () => Promise.all(fakeXapis.map(fakeXapi => fakeXapi.close()))
   try {
@@ -162,6 +165,8 @@ async function main(args) {
       } else if (line.kind === 'task' && Object.hasOwn(taskStores.stores, line.store)) {
         await taskStores.stores[line.store].put(line.key, line.value)
         ++tasks
+      } else if (line.kind === 'rpuTrace') {
+        await rpuTraces.write(line)
       }
     }
 
@@ -171,12 +176,18 @@ async function main(args) {
     if (!res.ok) {
       throw new Error(`config import failed with status ${res.status}: ${await res.text()}`)
     }
-    console.log('imported %d tasks and the config entries: %s', tasks, Object.keys(importedConfig).join(', '))
+    console.log(
+      'imported %d tasks, %d RPU/RPR trace files and the config entries: %s',
+      tasks,
+      rpuTraces.files,
+      Object.keys(importedConfig).join(', ')
+    )
   } catch (error) {
     await closeFakeXapis()
     throw error
   } finally {
     xo.close()
+    await rpuTraces.close()
     await taskStores.close()
   }
 

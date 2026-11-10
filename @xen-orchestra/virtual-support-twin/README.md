@@ -32,6 +32,13 @@ docker run --rm --init -p 8080:80 \
 
 Then open http://localhost:8080 and sign in with `admin@admin.net` / `admin`. The container is stopped with Ctrl+C, nothing persists. Credentials are not encrypted in the database of this XO.
 
+The traces of the rolling pool updates/reboots are written in `/var/lib/xo-server/data/rpu-traces`, the default location of an XOA, which is the one in the `traceFile` property of their tasks. To read them from the host, mount an empty directory there, it is refused if it already contains a trace of the same name:
+
+```sh
+mkdir rpu-traces
+docker run … -v ./rpu-traces:/var/lib/xo-server/data/rpu-traces virtual-support-twin /bundle.pgp
+```
+
 The configuration is imported with the `xo.importConfig` JSON-RPC method, the tasks are written in the database with the modules of xo-server. Each pool is served by a read-only fake XAPI inside the container. To avoid acting on the original infrastructure:
 
 - imported backup repositories and schedules are disabled, proxies and plugin configurations are not imported; the schedules enabled by the customer are named `[enabled at customer] <name>`
