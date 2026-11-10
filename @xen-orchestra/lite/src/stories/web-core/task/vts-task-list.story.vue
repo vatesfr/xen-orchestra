@@ -1,7 +1,12 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('tasks').type('Task[]').required().preset(allTasks), event('select')]"
+    :params="[
+      prop('tasks').type('Task[]').required().preset(allTasks),
+      prop('selectedTaskId').str().widget(),
+      prop('showEyeIcon').bool().default(true).widget(),
+      event('select').args({ id: 'string' }),
+    ]"
   >
     <VtsTaskList v-bind="properties" />
   </ComponentStory>

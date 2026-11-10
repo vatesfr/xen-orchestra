@@ -4,7 +4,6 @@
     :presets
     :params="[
       prop('task').type('object').required().widget().preset(pendingBackupTask),
-      prop('selected').type('boolean').widget(boolean()).preset(false),
       prop('showEyeIcon').type('boolean').widget(boolean()).preset(true),
       event('select').args({ id: 'string' }),
     ]"
@@ -35,35 +34,30 @@ const presets: Record<
   'Pending backup': {
     props: {
       task: pendingBackupTask,
-      selected: false,
       showEyeIcon: true,
     },
   },
   'Completed + root link': {
     props: {
       task: completedWithRootLinkTask,
-      selected: false,
       showEyeIcon: true,
     },
   },
   'Failed + warnings': {
     props: {
       task: failedWithWarningsTask,
-      selected: false,
       showEyeIcon: true,
     },
   },
   'Migration (nameParts)': {
     props: {
       task: migrationNamePartsTask,
-      selected: false,
       showEyeIcon: true,
     },
   },
   'Deep nested': {
     props: {
       task: deepNestedTask,
-      selected: false,
       showEyeIcon: true,
     },
   },

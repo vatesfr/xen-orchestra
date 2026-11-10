@@ -1,6 +1,7 @@
 <template>
   <UiButtonIcon
-    v-tooltip="{ content: t('tasks:overview'), placement: 'bottom-end' }"
+    v-tooltip="{ content: t('tasks:my-tasks'), placement: 'bottom-end' }"
+    :aria-label="t('tasks:my-tasks')"
     accent="brand"
     :dot="hasNewTask"
     icon="fa:bars-progress"
@@ -14,7 +15,6 @@ import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useRightSidebarStore } from '@core/packages/sidebar'
-import { watchArray } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -22,14 +22,29 @@ const { t } = useI18n()
 
 const rightSidebar = useRightSidebarStore()
 
-const { lastDayTasks } = useXoTaskCollection()
+const { tasks, lastDayTasks, areTasksReady } = useXoTaskCollection()
 
 const ids = computed(() => lastDayTasks.value.map(task => task.id))
 
 const hasNewTask = ref(false)
 
-watchArray(ids, (_newList, _oldList, addedIds) => {
-  if (addedIds.length > 0 && !rightSidebar.isExpanded) {
+const seenIds = new Set<string>()
+
+watch(
+  areTasksReady,
+  isReady => {
+    if (isReady) {
+      tasks.value.forEach(task => seenIds.add(task.id))
+    }
+  },
+  { immediate: true }
+)
+
+watch(ids, newIds => {
+  const unseenIds = newIds.filter(id => !seenIds.has(id))
+  unseenIds.forEach(id => seenIds.add(id))
+
+  if (areTasksReady.value && unseenIds.length > 0 && !rightSidebar.isExpanded) {
     hasNewTask.value = true
   }
 })

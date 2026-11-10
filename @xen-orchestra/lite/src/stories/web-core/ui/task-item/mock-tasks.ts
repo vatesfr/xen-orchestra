@@ -144,6 +144,23 @@ export const longNameTask: Task = {
   start: Date.now() - 2 * 60 * 60_000,
 }
 
+// Long name combined with every optional display: link, counter, infos, warnings, error, end time
+export const longNameWithEverythingTask: Task = {
+  id: '12',
+  name: 'Very long task name for a full backup job that also has subtasks, infos, warnings and an end time to display',
+  to: '#',
+  status: 'failure',
+  progress: 100,
+  start: Date.now() - 5 * 60 * 60_000,
+  end: Date.now() - 4 * 60 * 60_000,
+  infos: [{ message: 'Transferred 120 GiB', data: { size: 120 } }],
+  warnings: [{ message: 'Some VDIs were skipped', data: { skipped: 2 } }],
+  subtasks: [
+    { id: '12-1', name: 'Snapshot', status: 'success', progress: 100, end: Date.now() - 4.5 * 60 * 60_000 },
+    { id: '12-2', name: 'Transfer', status: 'failure', progress: 100, end: Date.now() - 4 * 60 * 60_000 },
+  ],
+}
+
 export const allTasks: Task[] = [
   pendingBackupTask,
   completedWithRootLinkTask,
@@ -156,4 +173,5 @@ export const allTasks: Task[] = [
   failedNestedTask,
   interruptedTask,
   longNameTask,
+  longNameWithEverythingTask,
 ]
