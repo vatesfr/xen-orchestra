@@ -1,4 +1,5 @@
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 
 /**
  * Builds a fully-populated `FrontXoPif` for use in tests. Pass `overrides` to
@@ -33,4 +34,8 @@ export function createPif(overrides: Partial<FrontXoPif> = {}): FrontXoPif {
     primaryAddressType: 'IPv4',
     ...overrides,
   }
+}
+
+export function createManagementPif(pool: FrontXoPool, networkId: FrontXoPif['$network']): FrontXoPif {
+  return createPif({ $host: pool.master, $pool: pool.id, $network: networkId, management: true })
 }

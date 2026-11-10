@@ -40,13 +40,16 @@ export type GuessActions<TData> = TData extends string | number
           ? MapActions<TKey, TValue>
           : EmptyObject
 
+// A string subtype (e.g. a branded id) is also an object type: it is matched first to keep it as is
 export type RouteQuery<TData> = WritableComputedRef<
-  TData extends Set<infer V>
-    ? ReadonlySet<V>
-    : TData extends Map<infer K, infer V>
-      ? ReadonlyMap<K, V>
-      : TData extends object
-        ? Readonly<TData>
-        : TData
+  TData extends string
+    ? TData
+    : TData extends Set<infer V>
+      ? ReadonlySet<V>
+      : TData extends Map<infer K, infer V>
+        ? ReadonlyMap<K, V>
+        : TData extends object
+          ? Readonly<TData>
+          : TData
 > &
   GuessActions<TData>

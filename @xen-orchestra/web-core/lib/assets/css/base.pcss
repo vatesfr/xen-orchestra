@@ -95,3 +95,9 @@ pre {
   content: '\2014'; /* em dash — */
   margin-inline-end: 0.8rem;
 }
+
+/* Between rendered children only: a child hidden by `v-if` leaves no stray separator. Empty alt text: not read out */
+.interpunct-list > * + *::before {
+  content: '•' / '';
+  margin-inline: 0.8rem;
+}
