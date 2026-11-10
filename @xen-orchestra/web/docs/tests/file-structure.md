@@ -38,7 +38,7 @@ Those types are declared in `tsconfig.vitest.json`, not in `tsconfig.app.json`, 
 
 The two projects split on the file name:
 
-| Project                | Covers                                                | Test globals |
-| ---------------------- | ----------------------------------------------------- | ------------ |
-| `tsconfig.app.json`    | everything **except** `*.unit.test.ts` and `setup.ts` | no           |
-| `tsconfig.vitest.json` | everything, tests included                            | yes          |
+| Project                | Covers                                                 | Test globals |
+| ---------------------- | ------------------------------------------------------ | ------------ |
+| `tsconfig.app.json`    | everything **except** `*.unit.test.ts` and `src/test/` | no           |
+| `tsconfig.vitest.json` | everything, tests included                             | yes          |
