@@ -1,18 +1,30 @@
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
-import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type {
+  FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
+
+const ENABLED_BR = createBr({ id: 'br-enabled' as FrontXoBackupRepository['id'] })
+const DISABLED_BR = createBr({ id: 'br-disabled' as FrontXoBackupRepository['id'], enabled: false })
+const PROXY_BR = createBr({ id: 'br-proxy' as FrontXoBackupRepository['id'], proxy: PROXY_ID })
+
+const POOL = { id: 'pool-1', name_label: 'Pool 1' } as FrontXoPool
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
@@ -20,7 +32,7 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), (
 
 vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
-    backupRepositories: ref([]),
+    backupRepositories: ref([ENABLED_BR, DISABLED_BR, PROXY_BR]),
     areBackupRepositoriesReady: ref(true),
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
@@ -35,7 +47,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => (
 
 vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
-    pools: ref([]),
+    pools: ref([POOL]),
     arePoolsReady: ref(true),
     getPoolById: () => undefined,
   })) as unknown as typeof useXoPoolCollection,
@@ -145,6 +157,16 @@ describe('next', () => {
 
     expect(form.currentStep).toBe('target')
   })
+
+  it('stays on the review, which is the last step', async () => {
+    const form = mountNewForm()
+    await fillMetadataJob(form)
+    form.goToStep('review')
+
+    await form.next()
+
+    expect(form.currentStep).toBe('review')
+  })
 })
 
 describe('back', () => {
@@ -213,6 +235,20 @@ describe('validateAndBuildPayload', () => {
     await fillMetadataJob(form)
 
     expect(await form.validateAndBuildPayload()).toMatchObject({ type: 'metadataBackup', name: 'Metadata backup' })
+  })
+
+  it('targets every enabled backup repository of the target proxy when all are selected', async () => {
+    const form = mountNewForm()
+    await fillMetadataJob(form)
+
+    expect(await form.validateAndBuildPayload()).toMatchObject({ remotes: { id: { __or: [ENABLED_BR.id] } } })
+  })
+
+  it('saves the metadata of every pool when all are selected', async () => {
+    const form = mountNewForm()
+    await fillMetadataJob(form)
+
+    expect(await form.validateAndBuildPayload()).toMatchObject({ pools: { id: { __or: [POOL.id] } } })
   })
 
   it('ignores the transfer of a metadata backup', async () => {

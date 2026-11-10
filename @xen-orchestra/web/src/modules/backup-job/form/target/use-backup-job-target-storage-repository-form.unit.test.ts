@@ -114,6 +114,13 @@ describe('validate', () => {
     })
   })
 
+  it('requires the query of a dynamic selection', async () => {
+    const form = mountStorageRepositoryForm({ storageRepositoryScopeType: 'smart' })
+
+    expect(await form.validate()).toBe(false)
+    expect(form.bindings.storageRepositoryFilter.error).toMatchObject({ content: form.t('query-required') })
+  })
+
   it('requires a query matching at least one SR', async () => {
     const form = mountStorageRepositoryForm({
       storageRepositoryScopeType: 'smart',

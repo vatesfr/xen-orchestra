@@ -1,4 +1,4 @@
-import { applyIf, minValue, requiredIf, withMessage } from '@core/packages/form-validation'
+import { applyIf, minValue, queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useI18n } from 'vue-i18n'
 
 export function useBackupJobFormRules() {
@@ -22,8 +22,19 @@ export function useBackupJobFormRules() {
     }
   }
 
+  function dynamicSelectionRules(isActive: () => boolean, noMatch?: { isEmpty: () => boolean; message: () => string }) {
+    return {
+      requiredIf: withMessage(requiredIf(isActive), () => t('query-required')),
+      queryFilter: withMessage(queryFilter, () => t('invalid-query')),
+      ...(noMatch !== undefined && {
+        atLeastOneMatch: withMessage(() => !isActive() || !noMatch.isEmpty(), noMatch.message),
+      }),
+    }
+  }
+
   return {
     atLeast,
     calendarRules,
+    dynamicSelectionRules,
   }
 }

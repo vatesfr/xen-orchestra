@@ -12,6 +12,6 @@ export function toVmQueryPreviewItem(
     id,
     label,
     icon: powerState !== undefined ? objectIcon('vm', toLower(powerState)) : 'object:vm:unknown',
-    route: `/vm/${id}/dashboard`,
+    route: { name: '/vm/[id]/dashboard', params: { id } },
   }
 }

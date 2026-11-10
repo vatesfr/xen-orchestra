@@ -5,12 +5,18 @@ import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/
 import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSchedulesCard.vue'
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
-import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type {
+  FrontAnyXoBackupJob,
+  FrontXoVmBackupJob,
+} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type {
   FrontXoBackupLog,
   useXoBackupLogCollection,
 } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type {
+  FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -19,23 +25,27 @@ import type {
   FrontXoSchedule,
   useXoScheduleCollection,
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
+import { createBr } from '@/test/create-br.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
+import { createSr } from '@/test/create-sr.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
+const { schedulesByJobId, backupLogsByJobId, srs, backupRepositories } = vi.hoisted(() => ({
   schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
   backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
+  srs: [] as FrontXoSr[],
+  backupRepositories: [] as FrontXoBackupRepository[],
 }))
 
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
@@ -63,7 +73,7 @@ vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collecti
 
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
-    srs: ref([]),
+    srs: ref(srs),
     getSrsByIds: () => [],
     getSrById: () => undefined,
   })) as unknown as typeof useXoSrCollection,
@@ -71,7 +81,7 @@ vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collecti
 
 vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
-    backupRepositories: ref([]),
+    backupRepositories: ref(backupRepositories),
     getBackupRepositoriesByIds: () => [],
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
@@ -122,9 +132,22 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
 
 const vmBackupJob = createVmBackupJob()
 
+const PROXY_ID = 'proxy-1'
+
+const mainBr = createBr({ id: 'br-main' as FrontXoBackupRepository['id'], name: 'Main BR', proxy: PROXY_ID })
+const otherBr = createBr({ id: 'br-other' as FrontXoBackupRepository['id'], name: 'Other BR', proxy: PROXY_ID })
+const disabledBr = createBr({ id: 'br-disabled' as FrontXoBackupRepository['id'], proxy: PROXY_ID, enabled: false })
+const otherProxyBr = createBr({ id: 'br-other-proxy' as FrontXoBackupRepository['id'], proxy: 'proxy-2' })
+
+const localSr = createSr({ id: 'sr-local' as FrontXoSr['id'], name_label: 'Local SR' })
+const nfsSr = createSr({ id: 'sr-nfs' as FrontXoSr['id'], name_label: 'NFS SR' })
+const isoSr = createSr({ id: 'sr-iso' as FrontXoSr['id'], name_label: 'ISO SR', content_type: 'iso' })
+
 beforeEach(() => {
   schedulesByJobId.clear()
   backupLogsByJobId.clear()
+  srs.splice(0, srs.length, localSr, nfsSr, isoSr)
+  backupRepositories.splice(0, backupRepositories.length, mainBr, otherBr, disabledBr, otherProxyBr)
 })
 
 function mountSidePanel(backupJob: FrontAnyXoBackupJob) {
@@ -181,4 +204,44 @@ it('shows nothing without selected backup job', () => {
   const wrapper = mount(BackupJobSidePanel, { props: {}, global: createGlobalTestConfig() })
 
   expect(wrapper.findComponent(BackupJobInfosCard).exists()).toBe(false)
+})
+
+describe('targets of a dynamic selection', () => {
+  function mountDynamicJob(remotes: string, srsExpression?: string) {
+    const backupJob = createVmBackupJob({
+      proxy: PROXY_ID as FrontXoVmBackupJob['proxy'],
+      remotes: remotes as unknown as FrontXoVmBackupJob['remotes'],
+      srs: srsExpression as unknown as FrontXoVmBackupJob['srs'],
+    })
+
+    return mountSidePanel(backupJob).getComponent(BackupJobTargetsCard)
+  }
+
+  it('targets every enabled backup repository of the job proxy', () => {
+    const card = mountDynamicJob('*')
+
+    expect(card.props('backupRepositoryTargets')).toEqual([mainBr, otherBr])
+    expect(card.props('backupRepositoryExpression')).toBe('*')
+  })
+
+  it('targets the backup repositories matching the query, shown without its context', () => {
+    const card = mountDynamicJob('backupRepository:(name:Main)')
+
+    expect(card.props('backupRepositoryTargets')).toEqual([mainBr])
+    expect(card.props('backupRepositoryExpression')).toBe('name:Main')
+  })
+
+  it('targets every writable storage repository', () => {
+    const card = mountDynamicJob('*', '*')
+
+    expect(card.props('storageRepositoryTargets')).toEqual([localSr, nfsSr])
+    expect(card.props('storageRepositoryExpression')).toBe('*')
+  })
+
+  it('targets the storage repositories matching the query, shown without its context', () => {
+    const card = mountDynamicJob('*', 'sr:(name_label:NFS)')
+
+    expect(card.props('storageRepositoryTargets')).toEqual([nfsSr])
+    expect(card.props('storageRepositoryExpression')).toBe('name_label:NFS')
+  })
 })

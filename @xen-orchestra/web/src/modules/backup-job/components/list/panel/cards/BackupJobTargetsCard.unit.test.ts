@@ -27,9 +27,13 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
 const sr = createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Replication SR' })
 const br = createBr({ id: 'br-1' as FrontXoBackupRepository['id'], name: 'Backup BR' })
 
-function mountTargetsCard(storageRepositoryTargets: FrontXoSr[], backupRepositoryTargets: FrontXoBackupRepository[]) {
+function mountTargetsCard(
+  storageRepositoryTargets: FrontXoSr[],
+  backupRepositoryTargets: FrontXoBackupRepository[],
+  expressions: { storageRepositoryExpression?: string; backupRepositoryExpression?: string } = {}
+) {
   return mount(BackupJobTargetsCard, {
-    props: { storageRepositoryTargets, backupRepositoryTargets },
+    props: { storageRepositoryTargets, backupRepositoryTargets, ...expressions },
     global: createGlobalTestConfig(),
   })
 }
@@ -61,4 +65,35 @@ it('only lists the backup repositories of a backup job without storage repositor
     t('backup-repositories'),
   ])
   expect(wrapper.findComponent(VtsDivider).exists()).toBe(false)
+})
+
+it('says that every storage repository is targeted', () => {
+  const wrapper = mountTargetsCard([sr], [], { storageRepositoryExpression: '*' })
+
+  expect(wrapper.text()).toContain(t('all-objects-srs'))
+})
+
+it('says that every backup repository is targeted', () => {
+  const wrapper = mountTargetsCard([], [br], { backupRepositoryExpression: '*' })
+
+  expect(wrapper.text()).toContain(t('all-objects-brs'))
+})
+
+it('shows the query of a dynamic selection with the targets it matches', () => {
+  const wrapper = mountTargetsCard([], [br], { backupRepositoryExpression: 'name:Backup' })
+
+  expect(wrapper.text()).toContain(t('dynamic-selection-query'))
+  expect(wrapper.text()).toContain('name:Backup')
+  expect(wrapper.findAllComponents(UiLink).map(link => link.text())).toEqual(['Backup BR'])
+})
+
+it('shows the storage repositories of a dynamic selection that matches none', () => {
+  const wrapper = mountTargetsCard([], [br], { storageRepositoryExpression: 'name_label:none' })
+
+  expect(wrapper.findAllComponents(UiPanelCardTitle).map(title => title.props('label'))).toEqual([
+    t('backup-targets'),
+    t('storage-repositories'),
+    t('backup-repositories'),
+  ])
+  expect(wrapper.text()).toContain('name_label:none')
 })

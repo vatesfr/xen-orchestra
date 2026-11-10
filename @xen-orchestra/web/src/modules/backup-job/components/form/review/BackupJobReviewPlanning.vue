@@ -38,6 +38,7 @@ import { useScheduleNextRuns } from '@/modules/schedule/composables/use-schedule
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
+import { formatTimeout } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -46,10 +47,10 @@ const { form } = defineProps<{
   isMetadata: boolean
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const timeout = computed(() =>
-  form.formData.timeout === undefined ? undefined : `${form.formData.timeout} ${t('cron:unit:hour')}`
+  formatTimeout(form.formData.timeout === undefined ? undefined : form.formData.timeout * 3600e3, locale.value)
 )
 
 const reportWhenLabel = computed(() => form.getReportWhenLabel(form.formData.reportWhen))

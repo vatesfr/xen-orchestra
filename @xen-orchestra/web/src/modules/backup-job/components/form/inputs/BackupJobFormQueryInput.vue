@@ -9,7 +9,7 @@
         :required
         clearable
         @clear="model = ''"
-        @keydown.enter="handleEnterKey($event)"
+        @keydown.enter="event => handleEnterKey(event)"
       />
       <UiButtonIcon
         v-if="uiStore.isSmallOrMedium"

@@ -1,3 +1,4 @@
+import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
 import {
   type BackupJobMirrorVm,
   useBackupJobMirrorVms,
@@ -21,7 +22,7 @@ import { useVmQueryPreviewItems } from '@/modules/vm/composables/use-vm-query-pr
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import type { QueryBuilderPreviewItem } from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
-import { queryFilter, required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -127,6 +128,8 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
     toPoolPreviewItems(pools.value.filter(pool => formData.poolIds.includes(pool.id)))
   )
 
+  const { dynamicSelectionRules } = useBackupJobFormRules()
+
   const { useField, useFormSelect, useSelect, validate, reset } = useValidatedForm(formData, {
     errors: {
       onSubmit: () => ({
@@ -145,26 +148,14 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
             () => t('select-at-least-one-object')
           ),
         },
-        vmFilter: {
-          requiredIf: withMessage(
-            requiredIf(() => hasVmSelection.value && formData.scopeType === 'smart'),
-            () => t('query-required')
-          ),
-          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
-        },
+        vmFilter: dynamicSelectionRules(() => hasVmSelection.value && formData.scopeType === 'smart'),
         poolIds: {
           atLeastOne: withMessage(
             () => !hasPoolSelection.value || formData.scopeType !== 'manual' || formData.poolIds.length > 0,
             () => t('select-at-least-one-object')
           ),
         },
-        poolFilter: {
-          requiredIf: withMessage(
-            requiredIf(() => hasPoolSelection.value && formData.scopeType === 'smart'),
-            () => t('query-required')
-          ),
-          queryFilter: withMessage(queryFilter, () => t('invalid-query')),
-        },
+        poolFilter: dynamicSelectionRules(() => hasPoolSelection.value && formData.scopeType === 'smart'),
         savePoolsMetadata: {
           atLeastOneOption: withMessage(
             () => !isMetadata.value || formData.saveXoConfig || formData.savePoolsMetadata,

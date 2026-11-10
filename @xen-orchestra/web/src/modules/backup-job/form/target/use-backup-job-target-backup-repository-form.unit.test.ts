@@ -173,6 +173,13 @@ describe('validate', () => {
     })
   })
 
+  it('requires the query of a dynamic selection', async () => {
+    const form = mountBackupRepositoryForm({ backupRepositoryScopeType: 'smart' })
+
+    expect(await form.validate()).toBe(false)
+    expect(form.bindings.backupRepositoryFilter.error).toMatchObject({ content: form.t('query-required') })
+  })
+
   it('requires a query matching at least one backup repository', async () => {
     const form = mountBackupRepositoryForm({
       backupRepositoryScopeType: 'smart',

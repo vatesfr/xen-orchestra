@@ -28,6 +28,10 @@ export function getMaxStep(range: CronFieldRange): number {
   return Math.floor(getRangeValues(range).length / 2)
 }
 
+export function getStepValues(values: number[], step: number): number[] {
+  return values.filter((_, index) => index % step === 0)
+}
+
 export function splitCron(cron: string): CronFields {
   const parts = cron.trim().split(/\s+/)
 
@@ -96,7 +100,7 @@ export function getSelectedValues(value: CronFieldValue, range: CronFieldRange):
     case 'all':
       return rangeValues
     case 'step':
-      return rangeValues.filter(rangeValue => (rangeValue - range.min) % value.step === 0)
+      return getStepValues(rangeValues, value.step)
     case 'list':
       return value.values
   }
