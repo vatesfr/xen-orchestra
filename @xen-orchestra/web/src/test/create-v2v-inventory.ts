@@ -50,6 +50,7 @@ export function createV2vVm(overrides: Partial<XoV2vVm> = {}): XoV2vVm {
         mode: V2V_DISK_MODE.PERSISTENT,
         isRdm: false,
         isEncrypted: false,
+        chainPaths: ['app-03/app-03.vmdk'],
       },
     ],
     nics: [],
