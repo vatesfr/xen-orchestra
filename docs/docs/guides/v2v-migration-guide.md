@@ -295,7 +295,7 @@ Once the import is complete, XO:
 
 The import snapshot taken before the repair is the rollback path. A failed repair does not fail the import: the task reports it as a warning, with the reason.
 
-The repair is off by default. It is available in the XO 5 import form, which also starts the VM, and through the API: the `repair` parameter of `vm.importFromEsxi` and `vm.importMultipleFromEsxi`, and the `repair` option of `POST /rest/v0/pools/:id/actions/import_vms_from_vmware`.
+The repair is off by default. It is available through the REST API: the `repair` option of `POST /rest/v0/pools/:id/actions/import_vms_from_vmware`.
 
 With the `startVm` option as well, XO then starts the VM and follows its first boot on XCP-ng:
 
