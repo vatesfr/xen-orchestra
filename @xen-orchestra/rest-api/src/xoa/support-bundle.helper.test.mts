@@ -5,7 +5,9 @@ import { findLeaks, OBFUSCATED_VALUE } from '@vates/obfuscate'
 import {
   collectConfigSecrets,
   collectXapiSecrets,
+  getRpuTracePoolId,
   getXapiTypeGroup,
+  parseRpuTraceLine,
   redactConfigEntry,
   redactXapiRecord,
 } from './support-bundle.helper.mjs'
@@ -99,5 +101,23 @@ describe('secrets collection', () => {
     collectXapiSecrets(secrets, 'pool', { repository_proxy_password: 'OpaqueRef:NULL' })
 
     assert.deepEqual([...secrets].sort(), ['chap-secret', 'cluster-token-value', 's3-secret-key', 'server-password'])
+  })
+})
+
+describe('RPU traces', () => {
+  it('extracts the pool of trace and heartbeat files only', () => {
+    const poolId = '3d1e8b6a-5f2c-4d9e-a0b1-7c6f5e4d3c2b'
+    assert.equal(getRpuTracePoolId(`rpu-${poolId}-20261110T123456789Z.ndjson`), poolId)
+    assert.equal(getRpuTracePoolId(`rpr-${poolId}-20261110T123456789Z.heartbeat.json`), poolId)
+    assert.equal(getRpuTracePoolId(`rpu-finalize-${poolId}-20261110T123456789Z.ndjson`), poolId)
+    assert.equal(getRpuTracePoolId(`rpu-${poolId}-20261110T123456789Z.heartbeat.json.tmp`), undefined)
+    assert.equal(getRpuTracePoolId('notes.txt'), undefined)
+  })
+
+  it('redacts parsed lines and keeps truncated ones as text', () => {
+    assert.deepEqual(parseRpuTraceLine('{"type":"property","name":"x","value":{"password":"p"}}'), {
+      data: { type: 'property', name: 'x', value: { password: OBFUSCATED_VALUE } },
+    })
+    assert.deepEqual(parseRpuTraceLine('{"type":"info","mess'), { raw: '{"type":"info","mess' })
   })
 })

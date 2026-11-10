@@ -145,3 +145,24 @@ export function collectXapiSecrets(secrets: Set<string>, type: string, record: R
     collectSecrets(secrets, record)
   }
 }
+
+// written by `openRpuTrace()` in xo-server/src/_rpuObservability.mjs: `<kind>-<poolId>-<timestamp>.<ext>`
+const RPU_TRACE_FILE_RE = /^(?:rpu-finalize|rpu|rpr)-(.+)-\d{8}T\d{9}Z\.(?:ndjson|heartbeat\.json)$/
+
+/** pool of an RPU/RPR trace or heartbeat file, `undefined` for any other file (e.g. a heartbeat being written) */
+export function getRpuTracePoolId(fileName: string): string | undefined {
+  return RPU_TRACE_FILE_RE.exec(fileName)?.[1]
+}
+
+export type RpuTraceLine = { data: unknown } | { raw: string }
+
+/** a line of a trace file, kept as text when it is not valid JSON, like the last line of a trace cut by a crash */
+export function parseRpuTraceLine(text: string): RpuTraceLine {
+  let data: unknown
+  try {
+    data = JSON.parse(text)
+  } catch {
+    return { raw: text }
+  }
+  return { data: redact(data) }
+}

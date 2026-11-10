@@ -3,6 +3,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { findLeaks, redact } from '@vates/obfuscate'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
+import { join } from 'node:path'
+import { open, readdir } from 'node:fs/promises'
 import { Readable } from 'node:stream'
 import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
@@ -15,7 +17,9 @@ import {
   SECRET_SOURCE_CONFIG_ENTRIES,
   collectConfigSecrets,
   collectXapiSecrets,
+  getRpuTracePoolId,
   getXapiTypeGroup,
+  parseRpuTraceLine,
   redactConfigEntry,
   redactXapiRecord,
 } from './support-bundle.helper.mjs'
@@ -189,6 +193,9 @@ export class SupportBundleService {
           yield checked({ kind: 'task', group: 'tasks', store, key, value: redact(value) })
         }
       }
+      for await (const line of this.#generateRpuTraceLines({ pools, tasksSince })) {
+        yield checked(line)
+      }
     }
 
     yield {
@@ -201,6 +208,52 @@ export class SupportBundleService {
       tasksSince,
       counts,
       checkedSecrets: secrets.size,
+    }
+  }
+
+  /** RPU/RPR trace and heartbeat files, one line per line of file, a trace is kept if modified after `tasksSince` */
+  async *#generateRpuTraceLines({ pools, tasksSince }: Pick<SupportBundleParams, 'pools' | 'tasksSince'>) {
+    const { config } = this.#restApi.xoApp
+    // same as `getRpuTracesConfig()` in xo-server/src/_rpuObservability.mjs
+    const dir = config.getOptional<string>('rpu.tracesDir') ?? join(config.get<string>('datadir'), 'rpu-traces')
+
+    let fileNames: string[]
+    try {
+      fileNames = await readdir(dir)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return // no RPU/RPR run yet
+      }
+      throw error
+    }
+
+    for (const file of fileNames.sort()) {
+      const poolId = getRpuTracePoolId(file)
+      if (poolId === undefined || (pools !== undefined && !pools.includes(poolId))) {
+        continue
+      }
+
+      let handle
+      try {
+        handle = await open(join(dir, file))
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          continue // deleted by the retention meanwhile
+        }
+        throw error
+      }
+      try {
+        if (tasksSince === undefined || (await handle.stat()).mtimeMs >= tasksSince) {
+          // streamed since a trace holds every event of a run
+          for await (const text of handle.readLines({ autoClose: false })) {
+            if (text !== '') {
+              yield { kind: 'rpuTrace', group: 'tasks' as const, poolId, file, ...parseRpuTraceLine(text) }
+            }
+          }
+        }
+      } finally {
+        await handle.close()
+      }
     }
   }
 }

@@ -79,7 +79,7 @@ export class XoaController extends Controller {
   /**
    * Admin only
    *
-   * Export the state of this XO (XAPI objects, configuration, tasks) to debug it in a dedicated XO.
+   * Export the state of this XO (XAPI objects, configuration, tasks and RPU/RPR traces) to debug it in a dedicated XO.
    *
    * Secrets (credentials, tokens, encryption keys, mount options…) are replaced by a placeholder,
    * and the whole export is encrypted (OpenPGP) with the provided passphrase.
