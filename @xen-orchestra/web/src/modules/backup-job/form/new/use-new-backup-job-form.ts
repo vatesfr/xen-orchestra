@@ -227,6 +227,12 @@ export function useNewBackupJobForm() {
       transfer: transfer.formData,
       target: target.formData,
       planning: planning.formData,
+      allIds: {
+        backupRepositories: target.backupRepository.compatibleBackupRepositories.value
+          .filter(br => br.enabled)
+          .map(br => br.id),
+        pools: source.pools.value.map(pool => pool.id),
+      },
     })
   }
 

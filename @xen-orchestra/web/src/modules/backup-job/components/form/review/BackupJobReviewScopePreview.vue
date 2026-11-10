@@ -25,6 +25,7 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  padding-block-end: 0.4rem;
 
   .count {
     color: var(--color-neutral-txt-secondary);

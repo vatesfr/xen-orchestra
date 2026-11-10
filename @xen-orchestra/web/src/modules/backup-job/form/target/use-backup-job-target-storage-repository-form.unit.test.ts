@@ -2,6 +2,8 @@ import {
   type BackupJobTargetStorageRepositoryFormData,
   useBackupJobTargetStorageRepositoryForm,
 } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type {
   FrontXoSr,
@@ -31,6 +33,17 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
     getPoolById: (id: FrontXoPool['id']) =>
       id === POOL_ID ? createPool({ id: POOL_ID, name_label: 'Main pool' }) : undefined,
   })) as unknown as typeof useXoPoolCollection,
+}))
+
+vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+  useXoPbdCollection: (() => ({
+    getPbdsByIds: () => [],
+    pbdsBySr: ref(new Map()),
+  })) as unknown as typeof useXoPbdCollection,
+}))
+
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
 function createStorageRepositoryFormData(): BackupJobTargetStorageRepositoryFormData {
@@ -72,10 +85,16 @@ describe('matchedStorageRepositories', () => {
     expect(form.matchedStorageRepositories).toEqual([])
   })
 
-  it('matches the SRs by the name of their pool', () => {
-    const form = mountStorageRepositoryForm({ storageRepositoryFilter: 'poolName:"Main pool"' })
+  it('matches the SRs by their type, as the backups resolve it', () => {
+    const form = mountStorageRepositoryForm({ storageRepositoryFilter: 'type:nfs' })
 
-    expect(form.matchedStorageRepositories.map(sr => sr.id)).toEqual([LOCAL_SR.id])
+    expect(form.matchedStorageRepositories.map(sr => sr.id)).toEqual([NFS_SR.id])
+  })
+
+  it('matches nothing on a property unknown to the backups', () => {
+    const form = mountStorageRepositoryForm({ storageRepositoryFilter: 'SR_type:nfs' })
+
+    expect(form.matchedStorageRepositories).toEqual([])
   })
 })
 
@@ -110,7 +129,7 @@ describe('validate', () => {
   it('accepts a query matching an SR', async () => {
     const form = mountStorageRepositoryForm({
       storageRepositoryScopeType: 'smart',
-      storageRepositoryFilter: 'SR_type:nfs',
+      storageRepositoryFilter: 'type:nfs',
     })
 
     expect(await form.validate()).toBe(true)

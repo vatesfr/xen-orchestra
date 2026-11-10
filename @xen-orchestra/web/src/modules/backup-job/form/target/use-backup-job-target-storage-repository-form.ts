@@ -1,12 +1,19 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
 import { useBackupJobScopeTypeOptions } from '@/modules/backup-job/composables/use-backup-job-scope-type-options.composable.ts'
 import type { BackupJobFormOption, BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
+import {
+  type SrExpressionContext,
+  toSrExpressionContext,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
-import { useSrEnhancedData } from '@/modules/storage-repository/composables/use-sr-enhanced-data.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { type FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { toSrQueryPreviewItem } from '@/modules/storage-repository/utils/xo-sr-query-preview-item.util.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { queryFilter, requiredIf, withMessage } from '@core/packages/form-validation'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -35,10 +42,28 @@ export function useBackupJobTargetStorageRepositoryForm(
 
   const availableStorageRepositories = computed(() => srs.value.filter(isSrWritable))
 
-  const { filterableSrs: filterableStorageRepositories } = useSrEnhancedData(availableStorageRepositories)
-
   const matchedStorageRepositories = computed(() =>
-    filterByQuery(filterableStorageRepositories.value, formData.storageRepositoryFilter)
+    filterByQuery(availableStorageRepositories.value, formData.storageRepositoryFilter, toSrExpressionContext)
+  )
+
+  const storageRepositorySchema = useQueryBuilderSchema<SrExpressionContext>({
+    '': useStringSchema(t('any-property')),
+    name_label: useStringSchema(t('name')),
+    description: useStringSchema(t('description')),
+    type: useStringSchema(t('storage-format')),
+    tags: useStringSchema(t('tags')),
+  })
+
+  const { getSrStatusIcon } = useXoSrUtils()
+
+  const matchedStorageRepositoryItems = computed(() =>
+    matchedStorageRepositories.value.map(sr => toSrQueryPreviewItem(sr, getSrStatusIcon(sr)))
+  )
+
+  const selectedStorageRepositoryItems = computed(() =>
+    availableStorageRepositories.value
+      .filter(sr => formData.storageRepositoryIds.includes(sr.id))
+      .map(sr => toSrQueryPreviewItem(sr, getSrStatusIcon(sr)))
   )
 
   const { atLeast } = useBackupJobFormRules()
@@ -114,6 +139,9 @@ export function useBackupJobTargetStorageRepositoryForm(
     bindings,
     availableStorageRepositories,
     matchedStorageRepositories,
+    matchedStorageRepositoryItems,
+    selectedStorageRepositoryItems,
+    storageRepositorySchema,
     areSrsReady,
     getScopeTypeLabel,
     getDistributionLabel,

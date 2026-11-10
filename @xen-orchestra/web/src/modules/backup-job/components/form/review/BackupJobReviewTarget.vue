@@ -10,6 +10,26 @@
         <VtsTabularKeyValueRow :label="t('target-proxy')" :value="targetProxy?.name" />
         <VtsTabularKeyValueRow :label="t('scope-type')" :value="backupRepositoryScopeTypeLabel" />
         <VtsTabularKeyValueRow
+          v-if="backupRepository.formData.backupRepositoryScopeType === 'manual'"
+          :label="t('scope-preview')"
+        >
+          <template #value>
+            <BackupJobReviewScopePreview
+              :items="selectedBackupRepositoryItems"
+              :count-label="t('n-brs', { n: selectedBackupRepositoryItems.length })"
+            />
+          </template>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
+      <VtsQueryBuilderPreview
+        v-if="backupRepository.formData.backupRepositoryScopeType === 'smart'"
+        :filter="backupRepository.formData.backupRepositoryFilter"
+        :schema="backupRepository.backupRepositorySchema"
+        :items="matchedBackupRepositoryItems"
+        :count-label="t('n-brs', { n: matchedBackupRepositoryItems.length })"
+      />
+      <VtsTabularKeyValueList>
+        <VtsTabularKeyValueRow
           v-if="form.hasRetentionStrategy.value"
           :label="t('backup-distribution-strategy')"
           :value="backupDistributionLabel"
@@ -44,6 +64,26 @@
       <UiSubtitle>{{ t('storage-repositories') }}</UiSubtitle>
       <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('scope-type')" :value="storageRepositoryScopeTypeLabel" />
+        <VtsTabularKeyValueRow
+          v-if="storageRepository.formData.storageRepositoryScopeType === 'manual'"
+          :label="t('scope-preview')"
+        >
+          <template #value>
+            <BackupJobReviewScopePreview
+              :items="selectedStorageRepositoryItems"
+              :count-label="t('n-srs', { n: selectedStorageRepositoryItems.length })"
+            />
+          </template>
+        </VtsTabularKeyValueRow>
+      </VtsTabularKeyValueList>
+      <VtsQueryBuilderPreview
+        v-if="storageRepository.formData.storageRepositoryScopeType === 'smart'"
+        :filter="storageRepository.formData.storageRepositoryFilter"
+        :schema="storageRepository.storageRepositorySchema"
+        :items="matchedStorageRepositoryItems"
+        :count-label="t('n-srs', { n: matchedStorageRepositoryItems.length })"
+      />
+      <VtsTabularKeyValueList>
         <VtsTabularKeyValueRow :label="t('replica-distribution-strategy')" :value="replicaDistributionLabel" />
         <VtsTabularKeyValueRow
           :label="t('minimum-replicas-to-retain')"
@@ -79,10 +119,12 @@
 
 <script lang="ts" setup>
 import BackupJobReviewCalendarRows from '@/modules/backup-job/components/form/review/BackupJobReviewCalendarRows.vue'
+import BackupJobReviewScopePreview from '@/modules/backup-job/components/form/review/BackupJobReviewScopePreview.vue'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import { LONG_TERM_RETENTION_FIELDS } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
 import { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import VtsQueryBuilderPreview from '@core/components/query-builder/VtsQueryBuilderPreview.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
@@ -97,6 +139,10 @@ const { form } = defineProps<{
 const { t } = useI18n()
 
 const { backupRepository, storageRepository, healthCheck } = form
+
+const { matchedBackupRepositoryItems, selectedBackupRepositoryItems } = backupRepository
+
+const { matchedStorageRepositoryItems, selectedStorageRepositoryItems } = storageRepository
 
 const { useGetProxyById } = useXoProxyCollection()
 

@@ -1,6 +1,7 @@
 import { useBackupJobFormRules } from '@/modules/backup-job/composables/use-backup-job-form-rules.composable.ts'
 import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import { useScheduleCalendarOptions } from '@/modules/schedule/composables/use-schedule-calendar-options.composable.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { type FrontXoSr, useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useVmTags } from '@/modules/vm/composables/use-vm-tags.composable.ts'
@@ -88,10 +89,16 @@ export function useBackupJobTargetHealthCheckForm(
 
   const { monthDayOptions, weekDayOptions, hourOptions } = useScheduleCalendarOptions()
 
+  const { getSrStatusIcon } = useXoSrUtils()
+
   const { id: healthCheckSrSelectId } = useFormSelect('healthCheckSr', availableStorageRepositories, {
     searchable: true,
     required: true,
-    option: { label: 'name_label', value: 'id' },
+    option: {
+      label: 'name_label',
+      value: 'id',
+      properties: sr => ({ icon: getSrStatusIcon(sr) }),
+    },
   })
 
   const { id: healthCheckVmTagsSelectId } = useFormSelect('healthCheckVmTags', vmTags, {

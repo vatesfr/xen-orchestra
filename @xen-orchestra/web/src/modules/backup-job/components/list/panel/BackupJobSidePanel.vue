@@ -38,14 +38,15 @@ import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/ca
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import {
-  getDynamicBackupRepositoryTargets,
-  getDynamicStorageRepositoryTargets,
-} from '@/modules/backup-job/utils/backup-job-dynamic-targets.util.ts'
-import {
-  BACKUP_REPOSITORY_EXPRESSION_KEY,
-  formatContextExpressionQuery,
-  STORAGE_REPOSITORY_EXPRESSION_KEY,
+  toBackupRepositoryExpressionContext,
+  toSrExpressionContext,
 } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
+import {
+  ALL_EXPRESSION,
+  BACKUP_REPOSITORY_EXPRESSION_KEY,
+  STORAGE_REPOSITORY_EXPRESSION_KEY,
+} from '@/modules/backup-job/utils/backup-job-payload.util.ts'
+import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import { BACKUP_JOB_LAST_RUNS_COUNT, getTargetIds } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
@@ -57,6 +58,7 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { computed } from 'vue'
@@ -86,13 +88,29 @@ const lastBackupLogs = computed(() =>
   backupJob !== undefined ? getLastNBackupLogsByJobId(backupJob.id, BACKUP_JOB_LAST_RUNS_COUNT) : []
 )
 
+function filterByExpression<TItem>(
+  items: TItem[],
+  expression: string,
+  key: string,
+  toContext: (item: TItem) => unknown
+): TItem[] {
+  return expression === ALL_EXPRESSION ? items : filterByQuery(items, expression, item => ({ [key]: toContext(item) }))
+}
+
 const backupRepositoryTargets = computed(() => {
   if (backupJob === undefined) {
     return []
   }
 
   if (typeof backupJob.remotes === 'string') {
-    return getDynamicBackupRepositoryTargets(backupRepositories.value, backupJob.remotes, backupJob.proxy)
+    const proxy = backupJob.proxy
+
+    return filterByExpression(
+      backupRepositories.value.filter(br => br.enabled && br.proxy === proxy),
+      backupJob.remotes,
+      BACKUP_REPOSITORY_EXPRESSION_KEY,
+      toBackupRepositoryExpressionContext
+    )
   }
 
   return getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
@@ -104,21 +122,22 @@ const storageRepositoryTargets = computed(() => {
   }
 
   if (typeof backupJob.srs === 'string') {
-    return getDynamicStorageRepositoryTargets(srs.value, backupJob.srs)
+    return filterByExpression(
+      srs.value.filter(isSrWritable),
+      backupJob.srs,
+      STORAGE_REPOSITORY_EXPRESSION_KEY,
+      toSrExpressionContext
+    )
   }
 
   return getSrsByIds(getTargetIds<FrontXoSr['id']>(backupJob.srs))
 })
 
 const backupRepositoryExpression = computed(() =>
-  typeof backupJob?.remotes === 'string'
-    ? formatContextExpressionQuery(BACKUP_REPOSITORY_EXPRESSION_KEY, backupJob.remotes)
-    : undefined
+  typeof backupJob?.remotes === 'string' ? backupJob.remotes : undefined
 )
 
 const storageRepositoryExpression = computed(() =>
-  backupJob?.type === 'backup' && typeof backupJob.srs === 'string'
-    ? formatContextExpressionQuery(STORAGE_REPOSITORY_EXPRESSION_KEY, backupJob.srs)
-    : undefined
+  backupJob?.type === 'backup' && typeof backupJob.srs === 'string' ? backupJob.srs : undefined
 )
 </script>
