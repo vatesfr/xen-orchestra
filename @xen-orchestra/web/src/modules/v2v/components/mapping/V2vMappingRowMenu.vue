@@ -7,14 +7,14 @@
 <script lang="ts" setup>
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmMappingContext } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { getV2vVmMenuActions } from '@/modules/v2v/utils/v2v-vm-actions.util.ts'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import type { XoV2vVm } from '@vates/types'
 
 defineProps<{
   vm: V2vMappingStepVm
-  updateVm: V2vVmMappingContext['updateVm']
+  updateVm: V2vVmUpdate
 }>()
 
 const emit = defineEmits<{
