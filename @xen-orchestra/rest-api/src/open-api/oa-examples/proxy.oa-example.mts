@@ -25,3 +25,5 @@ export const proxy = {
   url: 'https://uxxa-NIAY9W29VlGMrRcKuxx2dsYMTldJo-7l2YnMNQ@10.1.7.238/',
   version: '0.29.29',
 }
+
+export const proxyHealth = { success: true }
