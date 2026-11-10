@@ -16,6 +16,7 @@ const LISTING_TIMEOUT = 30e3
 const LISTING_DEBOUNCE = 60e3
 const VM_BACKUP_ARCHIVES_POLL_INTERVAL = 60e3
 const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
+const VM_BACKUP_JOURNAL_PURGE_TIMEOUT = 10 * 60e3
 
 const getDuration = key => (key === 'backups.journalRetention' ? 30 * 24 * 60 * 60e3 : LISTING_DEBOUNCE)
 
@@ -544,6 +545,29 @@ describe('the journal purge', () => {
     assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:00:00Z'), Date.parse('2026-07-13T10:00:00Z')])
 
     hooks.emit('stop')
+  })
+
+  it('purges the next repository when one does not answer', async () => {
+    const repository = new Repository([metadataOf(VM, '20260811T090000')])
+    const backupNg = createBackupNgWithRepository(repository)
+    const app = backupNg._app
+    app.getAllRemotes = async () => [
+      { id: 'hung', enabled: true },
+      { id: REMOTE_ID, enabled: true },
+    ]
+    app.getRemoteWithCredentials = async id => ({ id, url: 'file:///media/backup' })
+    app.getBackupsRemoteAdapter = ({ id }) =>
+      new Disposable(() => {}, {
+        ...repository.adapter,
+        ...(id === 'hung' && { purgeBackupJournal: () => new Promise(() => {}) }),
+      })
+
+    app.hooks.emit('started')
+    await tick(0)
+    await tick(VM_BACKUP_JOURNAL_PURGE_TIMEOUT)
+    app.hooks.emit('stop')
+
+    assert.deepEqual(repository.purges, [Date.parse('2026-07-12T10:10:00Z')])
   })
 
   it('purges a repository attached to a proxy through the proxy', async () => {

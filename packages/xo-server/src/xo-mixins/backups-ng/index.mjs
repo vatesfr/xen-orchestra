@@ -59,6 +59,10 @@ const VM_BACKUP_ARCHIVES_POLL_CONCURRENCY = 2
 // nothing more
 const VM_BACKUP_JOURNALS_PURGE_INTERVAL = 24 * 60 * 60 * 1e3
 
+// after which `#purgeVmBackupJournalsDaily()` goes on to the next repository: a call to NFS/SMB can
+// never settle, and would keep every repository after this one from being purged
+const VM_BACKUP_JOURNAL_PURGE_TIMEOUT = 10 * 60e3
+
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
  * @returns {number} delay in ms before the next attempt is allowed
@@ -944,8 +948,9 @@ export default class BackupNg {
    * one repository after another, in the background: it must not compete with the backups for the
    * repositories; one which cannot be purged does not stop the others, the next purge tries it again
    *
-   * a tick which comes before the previous purge is done, e.g. one stuck on a repository which does not
-   * answer, is skipped rather than adding a purge to it
+   * a repository which does not answer within `VM_BACKUP_JOURNAL_PURGE_TIMEOUT` is left to its purge,
+   * which goes on in the background; a tick which comes before the previous purge is done is skipped
+   * rather than adding a purge to it
    *
    * @returns {() => void} stops it, before the next repository when a purge is running
    */
@@ -967,7 +972,10 @@ export default class BackupNg {
           }
           try {
             const remote = await this._app.getRemoteWithCredentials(id)
-            await this.#vmBackupsSource.purgeJournal(remote, journalPurgeHorizon(remote, this.#journalRetention))
+            await timeout.call(
+              this.#vmBackupsSource.purgeJournal(remote, journalPurgeHorizon(remote, this.#journalRetention)),
+              VM_BACKUP_JOURNAL_PURGE_TIMEOUT
+            )
           } catch (error) {
             logger.warn('failed to purge the backup journal', { remoteId: id, error })
           }

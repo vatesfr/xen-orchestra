@@ -316,9 +316,12 @@ export async function readBackupJournal(handler, cursor, { mustExist = false } =
  * Whole days are removed, entries are never removed one by one: the day of `before` is kept entirely,
  * whatever the time of its entries.
  *
- * A day which cannot be removed is skipped with a warning, e.g. its files are immutable (`EPERM` on a
- * local repository, `AccessDenied` from the policy of a bucket): it must not keep the later days from
- * being removed, and the next purge tries it again. Only a failure to list the journal rejects.
+ * A day which cannot be removed is skipped, e.g. its files are immutable (`EPERM` on a local
+ * repository, `AccessDenied` from the policy of a bucket): it must not keep the later days from being
+ * removed, and the next purge tries it again. Only a failure to list the journal rejects.
+ *
+ * A purge warns once, with its first failure and their count: where deletes are refused, every day
+ * before `before` fails again on each purge, one more each day.
  *
  * @param {RemoteHandler} handler
  * @param {number} before timestamp in ms
@@ -330,7 +333,8 @@ export async function purgeBackupJournal(handler, before) {
     filter: name => isDayName(name) && name < minDay,
     ignoreMissing: true,
   })
-  const errors = []
+  let firstFailure
+  let nFailures = 0
   // one day at a time: this runs in the background, it must not compete with the backups for the
   // remote
   for (const day of days) {
@@ -339,10 +343,13 @@ export async function purgeBackupJournal(handler, before) {
       await handler.rmtree(path)
       debug('journal day purged', { path })
     } catch (error) {
-      errors.push({ error, path })
+      if (firstFailure === undefined) {
+        firstFailure = { error, path }
+      }
+      ++nFailures
     }
   }
-  if (errors.length > 0) {
-    warn('failed to purge some journal days', { errors })
+  if (firstFailure !== undefined) {
+    warn('failed to purge some journal days', { ...firstFailure, nFailures })
   }
 }
