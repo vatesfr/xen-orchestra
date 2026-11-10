@@ -373,6 +373,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/file-uploader-container/vts-file-uploader-container': RouteRecordInfo<
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/form-error-summary/vts-form-error-summary': RouteRecordInfo<
       '/story/web-core/form-error-summary/vts-form-error-summary',
       '/story/web-core/form-error-summary/vts-form-error-summary',
@@ -740,6 +747,27 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/dropdown-button/ui-dropdown-button': RouteRecordInfo<
       '/story/web-core/ui/dropdown-button/ui-dropdown-button',
       '/story/web-core/ui/dropdown-button/ui-dropdown-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-item/ui-file-item': RouteRecordInfo<
+      '/story/web-core/ui/file-item/ui-file-item',
+      '/story/web-core/ui/file-item/ui-file-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-list/ui-file-list': RouteRecordInfo<
+      '/story/web-core/ui/file-list/ui-file-list',
+      '/story/web-core/ui/file-list/ui-file-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-uploader/ui-file-uploader': RouteRecordInfo<
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1440,6 +1468,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/file-uploader-container/vts-file-uploader-container.story.vue': {
+      routes:
+        | '/story/web-core/file-uploader-container/vts-file-uploader-container'
+      views:
+        | never
+    }
     'src/stories/web-core/form-error-summary/vts-form-error-summary.story.vue': {
       routes:
         | '/story/web-core/form-error-summary/vts-form-error-summary'
@@ -1755,6 +1789,24 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/dropdown-button/ui-dropdown-button.story.vue': {
       routes:
         | '/story/web-core/ui/dropdown-button/ui-dropdown-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-item/ui-file-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-item/ui-file-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-list/ui-file-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-list/ui-file-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-uploader/ui-file-uploader.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-uploader/ui-file-uploader'
       views:
         | never
     }
