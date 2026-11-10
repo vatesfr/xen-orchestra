@@ -98,6 +98,7 @@ describe('Incremental Replication', () => {
       mode: 'delta',
       schedules: { [TEMPORARY_SCHEDULE_ID]: schedule },
       settings: {
+        '': {},
         [TEMPORARY_SCHEDULE_ID]: {
           timezone: 'Europe/Paris',
           copyRetention: 3,

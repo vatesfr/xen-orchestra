@@ -118,6 +118,7 @@ describe('Mirror Backup - Full Remote', () => {
       remotes: { [destRepository.id]: {} },
       schedules: { [TEMPORARY_SCHEDULE_ID]: schedule },
       settings: {
+        '': {},
         [TEMPORARY_SCHEDULE_ID]: {
           exportRetention: 3,
           mergeBackupsSynchronously: true,

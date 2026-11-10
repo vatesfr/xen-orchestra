@@ -164,6 +164,7 @@ describe('Backup basic tests', () => {
         mode: 'delta',
         schedules: { [TEMPORARY_SCHEDULE_ID]: getDefaultSchedule() },
         settings: {
+          '': {},
           [TEMPORARY_SCHEDULE_ID]: {
             timezone: 'Europe/Paris',
             copyRetention: 3,
