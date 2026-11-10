@@ -2,9 +2,7 @@
   <VtsSidePanel :has-selection="!!vif" class="vif-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
       <VifConnectionToggleButton :vif :vm />
-    </template>
-    <template v-if="vif" #more-actions>
-      <VifActions :vif />
+      <VifDeleteButton :vif />
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
@@ -117,7 +115,7 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
-import VifActions from '@/modules/vif/components/actions/VifActions.vue'
+import VifDeleteButton from '@/modules/vif/components/actions/delete/VifDeleteButton.vue'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'

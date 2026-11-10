@@ -706,7 +706,6 @@
   "mac-address": "MAC 주소",
   "mac-addresses": "MAC 주소",
   "manage-citrix-pv-drivers-via-windows-update": "Windows Update를 통해 Citrix PV 드라이버 관리",
-  "manage-vm-lifecycle-in-xo-5": "XO-5에서 VM 수명 주기 관리",
   "management": "관리",
   "management-agent-not-detected": "관리 에이전트가 감지되지 않음",
   "management-agent-version": "관리 에이전트 버전",

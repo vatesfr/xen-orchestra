@@ -21,19 +21,9 @@
           size="small"
           variant="secondary"
         />
-        <MenuList placement="bottom-start">
-          <template #trigger="{ open, isOpen }">
-            <UiButtonIcon
-              :aria-label="t('quick-actions')"
-              :selected="isOpen"
-              accent="brand"
-              icon="action:more-actions"
-              size="small"
-              @click="open($event)"
-            />
-          </template>
-          <HostMoreActions :host="branch.data" show-change-state-button />
-        </MenuList>
+        <VtsActionsMenu placement="bottom-start">
+          <HostMoreActions :host="branch.data" show-change-state />
+        </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -47,9 +37,8 @@ import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'

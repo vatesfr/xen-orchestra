@@ -1,10 +1,7 @@
 <template>
-  <MenuItem v-if="showChangeState" accent="brand" icon="action:change-state">
-    {{ t('action:change-state') }}
-    <template #submenu>
-      <VmPowerStateActions :vm />
-    </template>
-  </MenuItem>
+  <VtsChangeStateMenuItem v-if="showChangeState">
+    <VmPowerStateActions :vm />
+  </VtsChangeStateMenuItem>
   <VmMigrateButton :vm />
   <VmSnapshotButton :vm />
   <VmDuplicateButton :vm />
@@ -21,14 +18,11 @@ import VmMigrateButton from '@/modules/vm/components/actions/migrate/VmMigrateBu
 import VmSnapshotButton from '@/modules/vm/components/actions/snapshot/VmSnapshotButton.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuSeparator from '@core/components/menu/MenuSeparator.vue'
-import { useI18n } from 'vue-i18n'
+import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
 
 defineProps<{
   vm: FrontXoVm
   showChangeState?: boolean
 }>()
-
-const { t } = useI18n()
 </script>

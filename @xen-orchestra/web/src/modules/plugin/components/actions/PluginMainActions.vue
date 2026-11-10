@@ -1,25 +1,23 @@
 <template>
-  <UiButton
+  <VtsActionButton
     v-for="{ action, variant } of buttons"
     :key="variant"
-    v-tooltip="action.hint ?? false"
-    size="medium"
+    :hint="action.hint"
     :variant
     accent="brand"
     :disabled="action.disabled"
-    :left-icon="action.icon"
+    :icon="action.icon"
     :busy="action.busy"
     @click="action.onClick()"
   >
     {{ action.label }}
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { computed } from 'vue'
 
 const { plugin } = defineProps<{

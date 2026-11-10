@@ -16,33 +16,39 @@
         </template>
         <template #value>
           <div class="value-content">
-            <VtsStatus :status="policy" icon-only />
-            {{ protocolLabel }}
-            {{ direction.labelA }} {{ rule.ipRange }} {{ direction.labelB }}
-            <template v-if="vif">
-              <UiLink
-                size="small"
-                icon="object:vif"
-                :to="vif ? { name: '/vif/[id]/general', params: { id: vif.id } } : undefined"
-                :disabled="!vm"
-              >
-                {{ vifDevice }}
-              </UiLink>
-              <div v-if="vm">
-                {{ t('in') }}
+            <span class="status">
+              <VtsStatus :status="policy" icon-only />
+            </span>
+            <div class="sentence">
+              <span>
+                {{ protocolLabel }}
+                {{ direction.labelA }} {{ rule.ipRange }} {{ direction.labelB }}
+              </span>
+              <template v-if="vif">
                 <UiLink
                   size="small"
-                  :icon="vmPowerState"
-                  :icon-tooltip="vmIconTooltip"
-                  :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+                  icon="object:vif"
+                  :to="{ name: '/vif/[id]/general', params: { id: vif.id } }"
+                  :disabled="!vm"
                 >
-                  {{ vm.name_label }}
+                  {{ vifDevice }}
                 </UiLink>
-              </div>
-            </template>
-            <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
-              {{ network.name_label }}
-            </UiLink>
+                <template v-if="vm">
+                  <span>{{ t('in') }}</span>
+                  <UiLink
+                    size="small"
+                    :icon="vmPowerState"
+                    :icon-tooltip="vmIconTooltip"
+                    :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+                  >
+                    {{ vm.name_label }}
+                  </UiLink>
+                </template>
+              </template>
+              <UiLink v-else-if="network" size="small" icon="object:network" :to="networkTo">
+                {{ network.name_label }}
+              </UiLink>
+            </div>
           </div>
         </template>
         <template #addons>
@@ -145,10 +151,22 @@ const vifDevice = computed(() => `${t('vif')}${vif.value?.device}`)
 <style scoped lang="postcss">
 .traffic-rule-summary-card {
   .value-content {
-    display: inline-flex;
-    flex-wrap: wrap;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .status {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
+    height: 1lh;
+  }
+
+  .sentence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.8rem;
   }
 }
 </style>
