@@ -39,6 +39,10 @@ export default mergeConfig(
             // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
             storybookTest({ configDir: path.join(dirname, '.storybook') }),
           ],
+          // Without it, a cold cache discovers this dep mid-run and reloads, splitting the Vitest collector
+          optimizeDeps: {
+            include: ['@storybook/vue3-vite'],
+          },
           test: {
             name: 'storybook',
             browser: {
