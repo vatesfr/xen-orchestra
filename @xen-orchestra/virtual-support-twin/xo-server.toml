@@ -1,0 +1,8 @@
+# support bundle debug XO, credentials are not encrypted (no redis.encryptCredentialDatabase)
+datadir = '/var/lib/xo-server/data'
+
+[[http.listen]]
+port = 80
+
+[redis]
+uri = 'redis://localhost:6379/0'
