@@ -25,29 +25,29 @@ export function useV2vVmMappingDraft(rawVm: MaybeRefOrGetter<XoV2vVm>, { list, i
   const defaults = computed(() => toValue(list).defaults)
 
   // A cleared override is `undefined`: `toOverrides` leaves it out
-  function updateOverrides(getOverrides: (draftVm: V2vMigrationListVm) => Partial<V2vVmOverrides>) {
-    draft.value = { ...draft.value, ...getOverrides(draft.value) }
+  function updateOverrides(overrides: Partial<V2vVmOverrides>) {
+    draft.value = { ...draft.value, ...overrides }
   }
 
   // `undefined` resets a target to its default
   function setDiskSr(key: XoV2vDisk['key'], srId: FrontXoSr['id'] | undefined) {
-    updateOverrides(({ disks }) => ({ disks: setV2vOverride(disks, key, srId, defaults.value.sr) }))
+    updateOverrides({ disks: setV2vOverride(draft.value.disks, key, srId, defaults.value.sr) })
   }
 
   function setNicNetwork(key: XoV2vNic['key'], networkId: FrontXoNetwork['id'] | undefined) {
-    updateOverrides(({ nics }) => ({ nics: setV2vOverride(nics, key, networkId, defaults.value.network) }))
+    updateOverrides({ nics: setV2vOverride(draft.value.nics, key, networkId, defaults.value.network) })
   }
 
   function setTemplate(templateId: FrontXoVmTemplate['id'] | undefined) {
-    updateOverrides(() => ({ template: getV2vOverride(templateId, defaults.value.template) }))
+    updateOverrides({ template: getV2vOverride(templateId, defaults.value.template) })
   }
 
   function setKeepMac(value: boolean) {
-    updateOverrides(() => ({ keepMac: getV2vOverride(value, V2V_DEFAULT_KEEP_MAC) }))
+    updateOverrides({ keepMac: getV2vOverride(value, V2V_DEFAULT_KEEP_MAC) })
   }
 
   function setTags(value: string[]) {
-    updateOverrides(() => ({ tags: getV2vOverride(value, V2V_DEFAULT_TAGS) }))
+    updateOverrides({ tags: getV2vOverride(value, V2V_DEFAULT_TAGS) })
   }
 
   function toOverrides(): V2vVmOverrides {
