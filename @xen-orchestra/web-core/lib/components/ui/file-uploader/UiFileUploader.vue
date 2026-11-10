@@ -74,11 +74,13 @@ const isMultiple = computed(() => multiple)
 const className = computed(() => toVariants({ accent: accent.value, disabled: isDisabled.value }))
 
 const acceptedTypes = computed(() => {
-  if (Array.isArray(accept) && accept.length === 0) {
+  const types = toArray(accept)
+
+  if (types.length === 0) {
     return ['*/*']
   }
 
-  return toArray(accept)
+  return types.map(type => (type === '*' ? '*/*' : type))
 })
 
 const acceptedTypesLabel = computed(() => {
@@ -109,21 +111,21 @@ const { open, onChange } = useFileDialog({
   reset: true,
 })
 
-onChange(onDrop)
+onChange(handleFiles)
 
 // Handle Drop zone for drag and drop
 const dropZoneRef = useTemplateRef('dropZoneRef')
 
 const { isOverDropZone } = useDropZone(dropZoneRef, {
-  onDrop,
-  // VueUse bug: `multiple: false` and `dataTypes` reject the whole drag, so both are enforced in `onDrop` instead
+  onDrop: handleFiles,
+  // VueUse bug: `multiple: false` and `dataTypes` reject the whole drag, so both are enforced in `handleFiles` instead
   multiple: true,
   preventDefaultForUnhandled: true,
 })
 
 function isFileTypeAccepted(file: File) {
   return acceptedTypes.value.some(acceptedType => {
-    if (acceptedType === '*' || acceptedType === '*/*') {
+    if (acceptedType === '*/*') {
       return true
     }
 
@@ -149,7 +151,7 @@ function getRejectionReason(file: File): FileRejection['reason'] | undefined {
   }
 }
 
-function onDrop(files: File[] | FileList | null) {
+function handleFiles(files: File[] | FileList | null) {
   if (isDisabled.value || !files) {
     return
   }

@@ -11,10 +11,10 @@
       prop('maxSize').num().widget().help('Maximum file size in bytes. Larger files are rejected'),
       prop('accept')
         .type('MaybeArray<string>')
-        .default('*')
+        .default('*/*')
         .widget(
           choice(
-            { label: 'Any file type', value: '*' },
+            { label: 'Any file type', value: '*/*' },
             { label: 'Images', value: 'image/*' },
             { label: 'JSON files', value: '.json' },
             { label: 'Images and JSON files', value: ['image/*', '.json'] }
@@ -24,7 +24,9 @@
       prop('acceptLabel')
         .str()
         .widget()
-        .help('Readable list of the accepted types shown in the hint. Falls back to the raw `accept` list'),
+        .help(
+          'Readable list of the accepted types shown in the hint. Falls back to `Any file type` or the raw `accept` list'
+        ),
       prop('multiple').bool().widget().help('When disabled, only the first accepted file is emitted'),
       prop('required').bool().widget().help('Displayed by the label of the parent VtsInputWrapper'),
       prop('disabled').bool().widget().ctx(),
