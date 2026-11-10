@@ -11,7 +11,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] `POST /rest/v0/xoa/support-bundle` exports the state of XO (XAPI objects, configuration, tasks) without its secrets and encrypted with a passphrase, to debug it in a dedicated XO (see `@xen-orchestra/virtual-support-twin`)
+- [REST API] `POST /rest/v0/xoa/support-bundle` exports the state of XO (XAPI objects, configuration, tasks and rolling pool update/reboot traces) without its secrets and encrypted with a passphrase, to debug it in a dedicated XO (see `@xen-orchestra/virtual-support-twin`)
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
 - [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, report recipients…) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 - [Treeview] A more compact tree, so that names get more room: lower rows running edge to edge and a smaller indent per level; hovering a quick actions button no longer highlights its whole row (PR [#10727](https://github.com/vatesfr/xen-orchestra/pull/10727))
