@@ -57,6 +57,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api minor
