@@ -2,10 +2,7 @@
 
 ## **next**
 
-- [Mobile] Table quick actions and "Copy all" menus open in full page (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
-- [VM/Host] Lighter "Change state" button (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
-- [Side panels] Fix the side panel showing up for a moment when switching tabs (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
-- [Menus] Fix menus being shifted from their button and submenus opening on top of their parent menu (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [Mobile/Side panels] Full-page menus on mobile with "Change state" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
 - [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
