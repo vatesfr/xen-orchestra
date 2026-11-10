@@ -41,7 +41,7 @@
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
-- [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/private_networks`, which answers the ids of their networks (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/private_networks`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
 
 ### Bug fixes
 
