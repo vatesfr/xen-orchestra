@@ -1,7 +1,5 @@
 // @ts-check
 
-import { invalidParameters } from 'xo-common/api-errors.js'
-
 import { QUERY_SYNC } from '../rest-api'
 
 // TypeScript reads this Babel package as CommonJS, and @vates/types is ESM: hence the resolution-mode
@@ -44,24 +42,13 @@ export function createPrivateNetworkRoute(controller) {
     ],
     middlewares: [{ name: 'json' }],
     callback: ({ req, createAction }) =>
-      createAction(
-        async () => {
-          // The REST body is validated as a number, but the JSON-RPC params this mirrors take an integer: a
-          // fractional or negative MTU would reach network.create. 0 lets XAPI pick the MTU
-          const { mtu } = req.body
-          if (mtu !== undefined && !(Number.isInteger(mtu) && mtu >= 0)) {
-            throw invalidParameters(`MTU must be a non-negative integer, not ${mtu}`)
-          }
-          return { ids: await controller._createPrivateNetwork(req.body) }
-        },
-        {
-          // coerceQueryParams has made `sync` a boolean, which the express Request type cannot know
-          sync: /** @type {boolean | undefined} */ (req.query.sync) ?? false,
-          statusCode: 201,
-          // The route creates one network per pool, across several pools: there is no single
-          // object to attach the task to, so objectId is left unset
-          taskProperties: { name: 'create private network', params: req.body },
-        }
-      ),
+      createAction(async () => ({ ids: await controller._createPrivateNetwork(req.body) }), {
+        // coerceQueryParams has made `sync` a boolean, which the express Request type cannot know
+        sync: /** @type {boolean | undefined} */ (req.query.sync) ?? false,
+        statusCode: 201,
+        // The route creates one network per pool, across several pools: there is no single
+        // object to attach the task to, so objectId is left unset
+        taskProperties: { name: 'create private network', params: req.body },
+      }),
   }
 }

@@ -1045,6 +1045,9 @@ class SDNController extends EventEmitter {
 
   // The parameters are all checked before the first network is created: the networks of the pools before a failure
   // would stay
+  //
+  // The MTU is checked here for both APIs: the REST body can only declare a number, and XAPI reads an MTU of 0 or less
+  // as 1500, so a negative one would silently become the default
   async _createPrivateNetwork({
     poolIds,
     pifIds,
@@ -1055,6 +1058,9 @@ class SDNController extends EventEmitter {
     mtu = 0,
     preferredCenterId,
   }) {
+    if (!Number.isInteger(mtu) || mtu < 0) {
+      throw invalidParameters(`MTU must be a non-negative integer, not ${mtu}`)
+    }
     const { poolPifs, preferredCenter } = resolvePrivateNetworkPools(this._xo, { poolIds, pifIds, preferredCenterId })
 
     const vni = ++this._prevVni
