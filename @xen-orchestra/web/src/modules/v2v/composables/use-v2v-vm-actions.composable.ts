@@ -10,6 +10,7 @@ import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.t
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoV2vVm } from '@vates/types'
+import { noop } from '@vueuse/core'
 import { computed, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -72,7 +73,7 @@ export function useV2vResumedVmActions(rawVm: MaybeRefOrGetter<V2vResumedMapping
   const { deleteVm, isDeletingVm } = useVmDelete(() => vm.value.importVm)
 
   const editAction = useEditSettingsAction(() => ({
-    onClick: () => {},
+    onClick: noop,
     disabled: true,
     hint: t('v2v:locked-since-first-sync'),
   }))
