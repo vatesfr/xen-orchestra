@@ -36,6 +36,15 @@ describe('redact()', () => {
     assert.equal(obfuscate(plugin).apiKey, 'k')
   })
 
+  it('catches API keys whatever their case', () => {
+    const preferences = { xsCredentials: { username: 'u', apikey: 'k' }, api_key: 'k' }
+
+    assert.deepEqual(redact(preferences), {
+      xsCredentials: { username: 'u', apikey: OBFUSCATED_VALUE },
+      api_key: OBFUSCATED_VALUE,
+    })
+  })
+
   it('does not alter obfuscate() behavior', () => {
     assert.deepEqual(obfuscate({ password: 'p', secret: 's' }), { password: OBFUSCATED_VALUE, secret: 's' })
   })

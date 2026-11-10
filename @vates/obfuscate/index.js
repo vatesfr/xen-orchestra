@@ -61,7 +61,7 @@ exports.replace = replace
 // broader than SENSITIVE_PARAMS because redacted values are never merged back:
 // meant for data leaving XO (e.g. support dumps), not for display
 const EXPORT_SENSITIVE_PARAMS = [
-  'apiKey',
+  /api[-_]?key/i, // e.g. `apikey` in the XenServer credentials of user preferences
   'encryptionKey',
   'privateKey',
   'pw_hash',
