@@ -26,7 +26,7 @@
       </VtsActionsMenu>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="host.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}

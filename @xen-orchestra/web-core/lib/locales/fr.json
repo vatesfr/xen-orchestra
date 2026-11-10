@@ -916,6 +916,7 @@
   "name": "Nom",
   "name-required": "Le nom est requis.",
   "native": "Native",
+  "navigation": "Navigation",
   "nbd:disabled": "Désactivé",
   "nbd:insecure": "Non sécurisé (non chiffré)",
   "nbd:insecure-warning": "Les données des disques sauvegardés transiteront en clair sur ce réseau. À n'activer que sur un réseau dédié aux sauvegardes et isolé des VMs et des utilisateurs (VLAN ou réseau physique dédié).",
