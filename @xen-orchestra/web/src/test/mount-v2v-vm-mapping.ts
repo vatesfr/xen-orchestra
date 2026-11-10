@@ -11,7 +11,7 @@ import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { v2vConnectionProvide, v2vMappingConnectionProvide } from '@/test/v2v-connection-provide.ts'
+import { V2V_MAPPING_SOURCE, v2vConnectionProvide, v2vMappingConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
   V2V_DISK_OVERRIDES,
@@ -119,7 +119,7 @@ export async function mountV2vVmMappingComponent<TMounted>(
   const list = seedV2vVmMappingList(listVm)
 
   const { mounted } = await mountOnV2vWizard((router, provide) => mountComponent(list, router, provide), {
-    source: { inventory: V2V_MAPPING_INVENTORY },
+    source: V2V_MAPPING_SOURCE,
   })
 
   return mounted

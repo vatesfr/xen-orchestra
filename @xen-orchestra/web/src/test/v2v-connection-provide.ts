@@ -32,7 +32,10 @@ export function createConnectedV2vContext({
   return context
 }
 
+/** The source of the wizard, connected on the mapping inventory: the `source` of `mountOnV2vWizard`. */
+export const V2V_MAPPING_SOURCE = { inventory: V2V_MAPPING_INVENTORY }
+
 /** The connection of the wizard, its source connected on the mapping inventory. */
 export function v2vMappingConnectionProvide() {
-  return v2vConnectionProvide(createConnectedV2vContext({ inventory: V2V_MAPPING_INVENTORY }))
+  return v2vConnectionProvide(createConnectedV2vContext(V2V_MAPPING_SOURCE))
 }
