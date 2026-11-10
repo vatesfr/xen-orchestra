@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- Fix authentication token validation
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
