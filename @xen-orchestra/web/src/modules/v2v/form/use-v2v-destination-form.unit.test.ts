@@ -66,6 +66,12 @@ const OTHER_MANAGEMENT_NETWORK_ID = 'network-mgmt-2' as FrontXoNetwork['id']
 
 const STORED_LIST = createV2vMigrationList()
 
+const CHOSEN_DEFAULTS = {
+  sr: POOL.default_SR,
+  network: MANAGEMENT_NETWORK_ID,
+  template: createV2vDestinationDefaults().template,
+}
+
 function seedTwoPools() {
   seedV2vDestinationPools([
     { pool: POOL, managementNetworkId: MANAGEMENT_NETWORK_ID },
@@ -125,6 +131,17 @@ async function loadCollectionsOneByOne(order: readonly (keyof typeof LATE_COLLEC
     LATE_COLLECTIONS[collection]()
     await flushPromises()
   }
+}
+
+// The pool stops offering a chosen default: removed, or no longer writable for an SR
+async function mountCompleteDestinationWithout(collection: 'srs' | 'networks' | 'templates') {
+  const form = mountDestinationForm()
+  await chooseCompleteV2vDestination(form, POOL.id, CHOSEN_DEFAULTS.template)
+
+  xoCollectionsMock[collection].value = []
+  await nextTick()
+
+  return form
 }
 
 beforeEach(() => {
@@ -242,6 +259,16 @@ describe('formData', () => {
 
     expect(form.formData.sr).toBe(chosenSrId)
   })
+
+  it.each([
+    ['SR', 'sr', 'srs'],
+    ['network', 'network', 'networks'],
+    ['template', 'template', 'templates'],
+  ] as const)('clears the %s once the pool no longer offers it', async (_, field, collection) => {
+    const form = await mountCompleteDestinationWithout(collection)
+
+    expect(form.formData).toEqual({ pool: POOL.id, ...CHOSEN_DEFAULTS, [field]: undefined })
+  })
 })
 
 describe('defaults', () => {
@@ -254,12 +281,11 @@ describe('defaults', () => {
   })
 
   it('is the chosen SR, network and template', async () => {
-    const defaults = createV2vDestinationDefaults()
     const form = mountDestinationForm()
 
-    await chooseCompleteV2vDestination(form, POOL.id, defaults.template)
+    await chooseCompleteV2vDestination(form, POOL.id, CHOSEN_DEFAULTS.template)
 
-    expect(form.defaults).toEqual({ sr: POOL.default_SR, network: MANAGEMENT_NETWORK_ID, template: defaults.template })
+    expect(form.defaults).toEqual(CHOSEN_DEFAULTS)
   })
 })
 
@@ -277,9 +303,16 @@ describe('validate', () => {
   it('accepts a complete destination', async () => {
     const form = mountDestinationForm()
 
-    await chooseCompleteV2vDestination(form, POOL.id, createV2vDestinationDefaults().template)
+    await chooseCompleteV2vDestination(form, POOL.id, CHOSEN_DEFAULTS.template)
 
     expect(await form.validate()).toBe(true)
+  })
+
+  it('requires again an SR the pool no longer offers', async () => {
+    const form = await mountCompleteDestinationWithout('srs')
+
+    expect(await form.validate()).toBe(false)
+    expect(form.srSelectBindings.error).toEqual(dangerMessage(form.t('sr-required')))
   })
 })
 

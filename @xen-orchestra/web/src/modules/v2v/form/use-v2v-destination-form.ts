@@ -121,6 +121,12 @@ export function useV2vDestinationForm({
     { immediate: true }
   )
 
+  // A select shows nothing once its option is gone (removed, no longer writable) but keeps the value: clear it so
+  // `required` reports it instead of saving a default the pool no longer offers
+  watch(choices, newChoices => {
+    Object.assign(formData, getOfferedV2vDestinationPrefill(formData, newChoices))
+  })
+
   const defaults = computed<V2vDestinationDefaults | undefined>(() => {
     const { sr: srId, network: networkId, template: templateId } = formData
 
