@@ -1,7 +1,7 @@
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { CollectionItemProperties, GetItemId } from '@core/packages/collection'
 import { useFormBindings } from '@core/packages/form-bindings'
-import { useFormSelect as _useFormSelect } from '@core/packages/form-select'
+import { useFormSelect as useBaseFormSelect } from '@core/packages/form-select'
 import type {
   ExtractValue,
   FormSelectId,
@@ -58,7 +58,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
   data: TData,
   config: FormValidationConfig<TData>
 ) {
-  const { useField: _useField, useSelect: _useSelect } = useFormBindings(data)
+  const { useField: useBindingField, useSelect: useBindingSelect } = useFormBindings(data)
   const { errors: rawErrors, warnings: rawWarnings, validate, reset, handleBlur } = useFormValidation(data, config)
 
   const selectRegistry = new Map<FormSelectId, keyof TData>()
@@ -93,10 +93,10 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     extras?: () => E
   ) {
     if (extras !== undefined) {
-      return _useField(key, fieldMetadataWithExtras(key, extras))
+      return useBindingField(key, fieldMetadataWithExtras(key, extras))
     }
 
-    return _useField(key, fieldMetadata(key))
+    return useBindingField(key, fieldMetadata(key))
   }
 
   function useFormSelect<
@@ -114,7 +114,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
     const model = toRef(data, key) as Ref<unknown>
 
     const result = (
-      _useFormSelect as unknown as (
+      useBaseFormSelect as unknown as (
         sources: MaybeRefOrGetter<TSource[]>,
         config: UseFormSelectConfig<TSource, TCustomProperties> & { model: Ref<unknown> }
       ) => UseFormSelectReturn<TCustomProperties, TSource, $TValue | TEmptyValue, TMultiple>
@@ -147,7 +147,7 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
       const key = keyOrExtras as keyof TData
       const metadata = extras !== undefined ? fieldMetadataWithExtras(key, extras) : fieldMetadata(key)
 
-      return _useSelect(id, metadata)
+      return useBindingSelect(id, metadata)
     }
 
     const extrasFromRegistry = keyOrExtras as (() => E) | undefined
@@ -159,14 +159,14 @@ export function useValidatedForm<TData extends Record<string, unknown>>(
           ? fieldMetadataWithExtras(registryKey, extrasFromRegistry)
           : fieldMetadata(registryKey)
 
-      return _useSelect(id, metadata)
+      return useBindingSelect(id, metadata)
     }
 
     if (extrasFromRegistry !== undefined) {
-      return _useSelect(id, extrasFromRegistry)
+      return useBindingSelect(id, extrasFromRegistry)
     }
 
-    return _useSelect(id)
+    return useBindingSelect(id)
   }
 
   return {

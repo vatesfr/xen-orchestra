@@ -43,12 +43,10 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import { useInputWrapperController } from '@core/composables/input-wrapper-controller.composable.ts'
 import type { IconName } from '@core/icons'
-import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { inject, ref, useAttrs, watchEffect } from 'vue'
+import { ref, useAttrs } from 'vue'
 
 export type InputAccent = 'brand' | 'warning' | 'danger'
 
@@ -58,7 +56,7 @@ defineOptions({
   inheritAttrs: false,
 })
 const {
-  accent: _accent,
+  accent: rawAccent,
   required,
   disabled,
   id,
@@ -98,23 +96,11 @@ const attrs = useAttrs()
 
 const inputRef = ref<HTMLInputElement>()
 
-const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
-
-const accent = useMapper<LabelAccent, InputAccent>(
-  () => wrapperController?.labelAccent,
-  () => ({
-    neutral: _accent,
-    warning: 'warning',
-    danger: 'danger',
-  }),
-  'neutral'
-)
-
-if (wrapperController) {
-  watchEffect(() => {
-    wrapperController.required = required
-  })
-}
+const { wrapperController, accent } = useInputWrapperController({
+  accent: () => rawAccent,
+  required: () => required,
+  detached,
+})
 
 function focus() {
   inputRef.value?.focus()
