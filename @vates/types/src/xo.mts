@@ -530,15 +530,22 @@ type XoBackupJobGeneralSettings = {
   [key: string]: unknown
 }
 
+/**
+ * Keeps the last backup of each of the last `retention` days/weeks/months/years, in addition to `exportRetention`.
+ *
+ * Requires the `timezone` setting.
+ */
+export type XoBackupJobLongTermRetention = {
+  daily?: { retention: number; settings: Record<string, unknown> }
+  weekly?: { retention: number; settings: Record<string, unknown> }
+  monthly?: { retention: number; settings: Record<string, unknown> }
+  yearly?: { retention: number; settings: Record<string, unknown> }
+}
+
 export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
   cbtDestroySnapshotData?: boolean
   concurrency?: number
-  longTermRetention?: {
-    daily?: { retention: number; settings: Record<string, unknown> }
-    weekly?: { retention: number; settings: Record<string, unknown> }
-    monthly?: { retention: number; settings: Record<string, unknown> }
-    yearly?: { retention: number; settings: Record<string, unknown> }
-  }
+  longTermRetention?: XoBackupJobLongTermRetention
   checkpointSnapshot?: boolean
   offlineSnapshot?: boolean
   maxExportRate?: number
@@ -552,8 +559,8 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
 }
 export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
-  fullInterval?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  fullInterval?: number | string
   copyRetention?: number
   snapshotRetention?: number
   cbtDestroySnapshotData?: boolean
@@ -564,9 +571,9 @@ export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  remotes?: CMType.IdOr<XoBackupRepository['id']> | string
   vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
-  srs?: CMType.IdOr<XoSr['id']>
+  srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
     '': XoVmBackupJobGeneralSettings
@@ -595,16 +602,17 @@ export type XoMetadataBackupJob = BaseXoJob & {
 
 export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   concurrency?: number
+  longTermRetention?: XoBackupJobLongTermRetention
   nRetriesVmBackupFailures?: number
   mergeBackupsSynchronously?: boolean
   timeout?: number
+  timezone?: string
   maxExportRate?: number
-  backupReportTpl?: 'compactMjml'
-  reportWhen: 'failure'
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  vmFilter?: string
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }

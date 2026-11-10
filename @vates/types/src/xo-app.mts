@@ -9,6 +9,8 @@ import type {
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoMetadataBackupJob,
+  XoMirrorBackupJob,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -21,6 +23,7 @@ import type {
   XoVif,
   XoVm,
   XoVmBackupArchive,
+  XoVmBackupJob,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
@@ -309,6 +312,17 @@ export type XoApp = EventEmitter & {
     set(key: string, value: unknown): void
     unset(key: string): void
   }
+  createBackupNgJob<T extends XoVmBackupJob | XoMirrorBackupJob>(
+    type: T['type'],
+    props: Omit<T, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules?: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<T>
+  createMetadataBackupJob(
+    props: Omit<XoMetadataBackupJob, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<XoMetadataBackupJob>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -324,6 +338,14 @@ export type XoApp = EventEmitter & {
     proxy?: XoProxy['id']
     url: string
   }): Promise<XoBackupRepository>
+  createSchedule(params: {
+    cron: XoSchedule['cron']
+    enabled: XoSchedule['enabled']
+    jobId: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<XoSchedule>
   createUser(params: {
     firstname?: string
     lastname?: string
@@ -340,6 +362,7 @@ export type XoApp = EventEmitter & {
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
+  deleteSchedule(id: XoSchedule['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
@@ -378,6 +401,8 @@ export type XoApp = EventEmitter & {
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   removeRemote(id: XoBackupRepository['id']): Promise<void>
+  /** Also deletes the schedules of the job */
+  removeJob(id: AnyXoJob['id']): Promise<void>
   getAllRemotesInfo(): Promise<
     Record<
       XoBackupRepository['id'],
@@ -543,6 +568,19 @@ export type XoApp = EventEmitter & {
   ): Promise<{ vmUuid: string; success: boolean; merge?: boolean; size?: number; error?: string }[]>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
+  /**
+   * Shallow merge of the properties into the existing job, a `null` value removes the property.
+   */
+  updateJob(job: { id: AnyXoJob['id']; [key: string]: unknown }, merge?: boolean): Promise<void>
+  updateSchedule(params: {
+    id: XoSchedule['id']
+    cron?: XoSchedule['cron']
+    enabled?: XoSchedule['enabled']
+    jobId?: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<void>
   updateUser(
     id: XoUser['id'],
     updates: {

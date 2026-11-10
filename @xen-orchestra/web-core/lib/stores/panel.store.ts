@@ -1,12 +1,19 @@
+import { useResizableWidth } from '@core/composables/resizable-width.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
 
+export const PANEL_TRANSITION_DURATION = 250
+
 export const usePanelStore = defineStore('panel', () => {
   const uiStore = useUiStore()
   const isExpanded = useLocalStorage('panel.expanded', true)
   const isLocked = useLocalStorage('panel.locked', true)
+
+  const resizableWidth = useResizableWidth('right', 'panel.custom-width')
+
+  const cssWidth = computed(() => `${resizableWidth.width.value}px`)
 
   const cssHorizontalOffset = computed(() => (isExpanded.value ? 0 : '100%'))
   /* Panel closes automatically when it has no content (true on small UI or when not locked) */
@@ -59,5 +66,7 @@ export const usePanelStore = defineStore('panel', () => {
     toggleLock,
     syncWithSelection,
     cssHorizontalOffset,
+    cssWidth,
+    ...resizableWidth,
   }
 })

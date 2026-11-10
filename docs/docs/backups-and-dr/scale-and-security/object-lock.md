@@ -141,7 +141,7 @@ Detecting a locked bucket changes how XO talks to it:
 
 - **XO does not show which backups are protected.** The padlock displayed next to each backup in the restore view is computed from a marker file written by the on-prem service, so it never appears for an object-locked bucket. XO does detect Object Lock when it connects to the bucket, which is what disables the backup list cache and enables the Content-MD5 headers, but that is a property of the bucket, not of a backup: as explained in [Retention and lock duration](#retention-and-lock-duration), a bucket can be locked while a given restore point is already unprotected. Reporting a padlock from the bucket configuration alone would claim a protection that may not exist, so XO reports nothing. Verify protection on the storage side, per object.
 - **XO cannot restore an object version.** Recovering a backup deleted by a compromised XO is a manual operation, see below.
-- **Provider behaviour varies.** S3-compatible implementations differ on lifecycle-versus-lock precedence and on delete-marker handling. Test your provider before trusting it, and check its tier in [Object storage support](./object-storage-support.md).
+- **Provider behavior varies.** S3-compatible implementations differ on lifecycle-versus-lock precedence and on delete-marker handling. Test your provider before trusting it, and check its tier in [Object storage support](./object-storage-support.md).
 
 ## Recovering deleted backups {#recovering-deleted-backups}
 

@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard class="card-container">
     <UiPanelCardTitle size="medium" :label="t('configuration')" />
-    <div class="content">
+    <VtsCardRowList>
       <VdiFormatCardItem :format="vdi.sm_config['image-format']" />
       <VtsCardRowKeyValue>
         <template #key>
@@ -43,7 +43,7 @@
           <VtsStatus :status="isBootable" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -53,6 +53,7 @@ import type { XenApiVbd, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -73,11 +74,6 @@ const isBootable = computed(() => vbd?.bootable ?? false)
 
 <style scoped lang="postcss">
 .card-container {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
   .storage {
     display: flex;
     gap: 0.8rem;

@@ -23,7 +23,7 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { BACKUP_JOB_LAST_RUNS_COUNT } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import { BACKUP_JOB_LAST_RUNS_COUNT, getTargetIds } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
   useXoBackupRepositoryCollection,
@@ -36,7 +36,6 @@ import {
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -66,7 +65,7 @@ const lastBackupLogs = computed(() =>
 
 const backupRepositoryTargets = computed(() =>
   backupJob !== undefined
-    ? getBackupRepositoriesByIds(extractIdsFromSimplePattern<FrontXoBackupRepository['id']>(backupJob.remotes))
+    ? getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
     : []
 )
 
@@ -75,6 +74,6 @@ const storageRepositoryTargets = computed(() => {
     return []
   }
 
-  return getSrsByIds(extractIdsFromSimplePattern<FrontXoSr['id']>(backupJob.srs))
+  return getSrsByIds(getTargetIds<FrontXoSr['id']>(backupJob.srs))
 })
 </script>

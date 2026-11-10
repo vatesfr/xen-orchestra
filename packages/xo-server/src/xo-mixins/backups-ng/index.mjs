@@ -22,6 +22,9 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -190,7 +193,68 @@ export default class BackupNg {
 
         let vmIds
 
+        const timezone = job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+        const runContext = buildRunContext(new Date(), timezone)
+
+        job = { ...job, runContext }
+
         if (job.type === 'backup') {
+          const srsExpression = isExpression(job.srs) ? job.srs : undefined
+          const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
+
+          if (isExpression(job.srs)) {
+            const srUuids = resolveBackupSrs(job, Object.values(app.getObjectsByType('SR')), runContext)
+
+            job.srs = { id: { __or: srUuids } }
+          }
+
+          if (isExpression(job.remotes)) {
+            const {
+              backupRepositoryIds: remoteIds,
+              proxySkippedIds,
+              invalidUrlIds,
+            } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+            if (proxySkippedIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+                }
+              )
+            }
+
+            if (invalidUrlIds.length > 0) {
+              jobsLogger.warning(
+                'some backup repositories matched the expression but have an invalid URL, they are skipped',
+                {
+                  event: 'task.warning',
+                  taskId: runJobId,
+                  data: { backupRepositories: invalidUrlIds },
+                }
+              )
+            }
+
+            job.remotes = { id: { __or: remoteIds } }
+          }
+
+          if (
+            (srsExpression !== undefined || remotesExpression !== undefined) &&
+            unboxIdsFromPattern(job.srs).length === 0 &&
+            unboxIdsFromPattern(job.remotes).length === 0
+          ) {
+            jobsLogger.warning(
+              'no SR or backup repository matched the expressions, nothing will be backed up or replicated',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { srs: srsExpression, remotes: remotesExpression },
+              }
+            )
+          }
+
           const vmsPattern = job.vms
 
           // Make sure we are passing only the VM to run which can be
@@ -255,7 +319,6 @@ export default class BackupNg {
 
           job = {
             ...job,
-
             vms: { id: { __or: vmIds } },
             settings: merge(job.settings, data?.settings),
           }

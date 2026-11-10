@@ -2,12 +2,14 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <VtsObjectIcon
-        size="medium"
-        :state="toLower(vm.power_state)"
-        type="vm"
-        :busy="isChangingState"
-        :busy-tooltip="currentOperation"
+      <VtsIcon :name="vmIcon" :tooltip="iconTooltip" size="medium" />
+    </template>
+    <template v-if="hasPendingOperation" #status>
+      <UiLoader
+        v-tooltip="{
+          placement: 'top',
+          content: currentOperation,
+        }"
       />
     </template>
     <template #actions>
@@ -16,7 +18,9 @@
       </UiLink>
       <MenuList placement="bottom-start">
         <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
+          <UiDropdownButton size="medium" variant="primary" @click="open($event)">
+            {{ t('action:change-state') }}
+          </UiDropdownButton>
         </template>
         <VmPowerStateActions :vm />
       </MenuList>
@@ -91,17 +95,18 @@ import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -114,5 +119,7 @@ const { buildXo5Route } = useXoRoutes()
 const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
 const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
 
-const { isChangingState, currentOperation } = useXoVmUtils(() => vm)
+const { hasPendingOperation, currentOperation, iconTooltip } = useXoVmUtils(() => vm)
+
+const vmIcon = computed(() => getVmIcon(vm))
 </script>

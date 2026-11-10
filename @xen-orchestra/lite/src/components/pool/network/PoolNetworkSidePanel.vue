@@ -21,7 +21,7 @@
     <template v-if="network" #default>
       <UiPanelCard>
         <UiPanelCardTitle :id="network.uuid" size="medium" :label="network.name_label" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
@@ -63,7 +63,7 @@
             <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <UiPanelCard v-if="pifsCount && pifsCount > 0">
         <UiPanelCardTitle size="medium" :label="t('pifs')" :counter="pifsCount" />
@@ -97,6 +97,7 @@ import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -149,12 +150,6 @@ const { copy, copied, isSupported: isClipboardSupported } = useClipboard({ sourc
 
 <style scoped lang="postcss">
 .pool-network-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
   .text-left {
     text-align: left;
   }
