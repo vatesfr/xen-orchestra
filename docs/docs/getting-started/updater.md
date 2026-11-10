@@ -9,10 +9,12 @@ All updates are pushed through the updater, which is the central piece that keep
 
 It also allows you to change your current version into another (Free, Starter, Enterprise or Premium) **without downloading a new XOA**.
 
-:::note Getting a newer OS
-The updater keeps Xen Orchestra itself up to date, including the Node.js runtime when a newer version is required. In addition, the appliance's underlying OS automatically installs security updates as soon as they become available.
+:::warning OS updates & upgrades
+The updater keeps Xen Orchestra itself up to date, including the Node.js runtime when needed, and the appliance's OS automatically installs security updates as soon as they're available.
 
-Some updates, such as a new kernel, require an XOA reboot. For anything beyond that, such as a newer base system, [replace your XOA](migrate_to_new_xoa.md) with a freshly deployed one.
+Since XOA has privileged access to your whole infrastructure, keeping its OS up to date is critical. Some updates, such as a new kernel, only take effect after a reboot: don't postpone it. Rebooting XOA doesn't affect your VMs, but schedule it outside your backup windows, as running backup jobs will likely hang.
+
+For a newer base system, [replace your XOA](migrate_to_new_xoa.md) with a freshly deployed one.
 :::
 
 :::tip
