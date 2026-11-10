@@ -1,6 +1,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
@@ -37,7 +38,8 @@ export type V2vVmTargetsOptions = {
 }
 
 // The issue of the VM in the list, if any, is told with the checks of its source
-export type V2vVmMappingOptions = V2vVmTargetsOptions & {
+export type V2vVmMappingOptions = {
+  list: V2vVmTargetsOptions['list']
   listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
 }
 
@@ -129,13 +131,15 @@ export function useV2vVmTargets(
 export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, options: V2vVmMappingOptions) {
   const { getCheckInfo } = useV2vVmLabels()
 
+  const { inventory } = useV2vConnection()
+
   const vm = toComputed(rawVm)
 
   const list = toComputed(options.list)
 
   const poolName = useV2vPoolName(() => list.value.poolId)
 
-  const hostName = computed(() => findV2vVmHost(toValue(options.inventory), vm.value)?.name)
+  const hostName = computed(() => findV2vVmHost(inventory.value, vm.value)?.name)
 
   const checks = computed(() => {
     const vmChecks = getV2vVmChecks(vm.value).map(check => getCheckInfo(check))
@@ -144,7 +148,7 @@ export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, options: V2vVm
     return issue === undefined ? vmChecks : [...vmChecks, issue]
   })
 
-  return { poolName, hostName, checks, ...useV2vVmTargets(rawVm, options) }
+  return { poolName, hostName, checks, ...useV2vVmTargets(rawVm, { list: options.list, inventory }) }
 }
 
 // Each change goes through `updateVm`, as an override of the list defaults
