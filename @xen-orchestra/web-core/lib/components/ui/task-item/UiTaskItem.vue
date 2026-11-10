@@ -1,21 +1,21 @@
 <!-- v10 -->
 <template>
-  <div class="ui-task-item" :class="{ selected }">
-    <div class="content-left">
-      <VtsTaskName :task size="small" />
+  <div class="ui-task-item">
+    <div class="layout">
+      <VtsTaskName class="name" :task size="small" />
 
-      <div v-if="shouldShowInfos || hasSubTasks" class="infos">
-        <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
-        <UiInfo v-if="hasInfos" accent="info" />
-        <UiInfo v-if="hasWarnings" accent="warning" />
-        <UiInfo v-if="isError" accent="danger" />
+      <div class="meta">
+        <div v-if="shouldShowInfos || hasSubTasks" class="infos">
+          <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
+          <UiInfo v-if="hasInfos" accent="info" />
+          <UiInfo v-if="hasWarnings" accent="warning" />
+          <UiInfo v-if="isError" accent="danger" />
+        </div>
+        <span v-if="task.end" class="time typo-body-regular-small">
+          {{ `${t('task:ended')} ${end}` }}
+        </span>
       </div>
-    </div>
 
-    <div class="content-right typo-body-regular-small">
-      <span v-if="task.end">
-        {{ `${t('task:ended')} ${end}` }}
-      </span>
       <div class="progress">
         <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
       </div>
@@ -64,7 +64,6 @@ export type Task = {
 
 const { task, showEyeIcon = false } = defineProps<{
   task: Task
-  selected?: boolean
   showEyeIcon?: boolean
 }>()
 
@@ -102,70 +101,82 @@ const progress = computed(() => {
 
 <style lang="postcss" scoped>
 .ui-task-item {
-  display: flex;
-  flex-direction: row;
+  container: ui-task-item / inline-size;
   flex: 1;
   min-width: 0;
-  min-height: 4.8rem;
-  gap: 1.6rem;
   padding-block: 0.8rem;
   padding-inline: 0.4rem;
-  justify-content: space-between;
-  align-items: center;
 
-  &.selected {
-    background-color: var(--color-brand-background-selected);
+  .layout {
+    display: grid;
+    grid-template-areas: 'name infos . time progress actions';
+    grid-template-columns: auto auto 1fr auto auto auto;
+    align-items: center;
+    gap: 1.6rem;
+    min-height: 3.2rem;
+    color: var(--color-neutral-txt-secondary);
   }
 
-  .content-left {
-    display: flex;
-    gap: 1.6rem;
-    align-items: center;
-    flex-wrap: wrap;
-    color: var(--color-neutral-txt-secondary);
+  .name {
+    grid-area: name;
+    min-width: 0;
     word-break: break-word;
+  }
 
-    .infos {
+  .meta {
+    display: contents;
+  }
+
+  .infos {
+    grid-area: infos;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .time {
+    grid-area: time;
+  }
+
+  .progress {
+    grid-area: progress;
+    display: flex;
+    width: 4rem;
+  }
+
+  .actions {
+    grid-area: actions;
+    display: flex;
+  }
+
+  /* Keep progress aligned with rows that have the eye button (the empty column still has its gap) */
+  .progress:not(:has(+ .actions)) {
+    margin-inline-end: 2.4rem;
+  }
+
+  @container ui-task-item (max-width: 50rem) {
+    .layout {
+      grid-template-areas:
+        'name progress actions'
+        'meta progress actions';
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 0.4rem 0.8rem;
+    }
+
+    .meta {
+      grid-area: meta;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.8rem;
-    }
-  }
 
-  .content-right {
-    display: flex;
-    align-items: center;
-    gap: 1.6rem;
-    color: var(--color-neutral-txt-secondary);
-    flex-shrink: 0;
-
-    .progress {
-      display: flex;
-      width: 4rem;
-    }
-
-    .actions {
-      display: flex;
-      gap: 1.6rem;
+      &:empty {
+        display: none;
+      }
     }
 
     .progress:not(:has(+ .actions)) {
-      margin-inline-end: 4rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.8rem;
-
-    .content-right {
-      gap: 0.8rem;
-
-      .actions {
-        gap: 0.8rem;
-      }
+      margin-inline-end: 0;
     }
   }
 }

@@ -22,6 +22,7 @@
       </VtsStateHero>
       <VtsTaskList
         v-else
+        class="tasks"
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
         :auto-collapse-completed
@@ -88,6 +89,12 @@ const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks',
 
   .auto-collapse-toggle {
     text-transform: none;
+  }
+
+  .tasks {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: 0.4rem 0.8rem;
   }
 }
 </style>

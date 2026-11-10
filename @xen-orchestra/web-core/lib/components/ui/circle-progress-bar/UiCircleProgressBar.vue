@@ -28,7 +28,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { useClamp, useMax, useRound } from '@vueuse/math'
+import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -78,7 +78,7 @@ const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 
 const value = useMax(0, () => rawValue)
-const valuePercent = useRound(useClamp(() => (value.value / maxValue) * 100 || 0, 0, 100))
+const valuePercent = useClamp(() => (value.value / maxValue) * 100 || 0, 0, 100)
 
 const isComplete = computed(() => valuePercent.value >= 100)
 const isCompleteWithSuccess = computed(() => isComplete.value && accent === 'info')
@@ -88,7 +88,8 @@ const dashOffset = computed(() => {
   return circumference.value * (1 - valuePercent.value / 100)
 })
 
-const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
+// Floor (not round) so an unfinished value never displays as "100 %"
+const percentValue = computed(() => n(Math.floor(valuePercent.value) / 100, 'percent'))
 
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 

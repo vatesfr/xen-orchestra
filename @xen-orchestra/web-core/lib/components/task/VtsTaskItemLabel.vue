@@ -6,13 +6,14 @@
     <div class="toggle-wrapper">
       <UiButtonIcon
         v-if="hasToggle"
-        v-tooltip="isExpanded ? t('action:close') : t('action:open')"
+        v-tooltip="toggleLabel"
+        :aria-label="toggleLabel"
         class="toggle"
         accent="brand"
         :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
         size="small"
         :target-scale="{ x: 1.5, y: 2 }"
-        @click="emit('toggle')"
+        @click.stop="emit('toggle')"
       />
       <div v-else class="h-line" />
     </div>
@@ -31,7 +32,7 @@ import {
   IK_TREE_ITEM_HAS_CHILDREN,
   IK_TREE_LIST_DEPTH,
 } from '@core/utils/injection-keys.util.ts'
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { selected } = defineProps<{
@@ -53,6 +54,8 @@ const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
 const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
 
 const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
+
+const toggleLabel = computed(() => (isExpanded.value ? t('action:close') : t('action:open')))
 </script>
 
 <style lang="postcss" scoped>
@@ -60,7 +63,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 4.8rem;
   background-color: var(--color-neutral-background-primary);
 
   &.selected {

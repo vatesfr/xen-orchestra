@@ -1,5 +1,5 @@
 <template>
-  <VtsLayoutSidebar :side class="my-tasks-sidebar">
+  <VtsLayoutSidebar side="right" class="my-tasks-sidebar">
     <template #header>
       <div class="header">
         <span class="typo-body-bold">{{ t('tasks:my-tasks') }}</span>
@@ -21,46 +21,61 @@
 
     <VtsTaskList
       v-if="areTasksReady && displayedTasks.length > 0"
+      class="tasks"
       :tasks="displayedTasks"
       :selected-task-id="selectedTaskId"
-      @select="selectTask"
+      @select="id => selectTask(id)"
     />
     <VtsStateHero v-else-if="!areTasksReady" format="panel" type="busy" size="medium" />
-    <VtsStateHero v-else-if="displayedTasks.length === 0" format="card" type="no-result" size="medium">
+    <VtsStateHero v-else format="card" type="no-result" size="medium">
       {{ t('no-task') }}
     </VtsStateHero>
   </VtsLayoutSidebar>
 </template>
 
 <script lang="ts" setup>
-import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { SidebarSide } from '@core/packages/sidebar'
+import { useXoTaskCollection, type FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { computed, ref } from 'vue'
+import { useRightSidebarStore } from '@core/packages/sidebar'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-
-const { side = 'right' } = defineProps<{
-  side?: SidebarSide
-}>()
+import { useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
 
 const router = useRouter()
+const route = useRoute()
+const rightSidebar = useRightSidebarStore()
+const uiStore = useUiStore()
+
+// On small screens the sidebar covers the whole page: close it once a task (eye button or name link) is opened
+watch(
+  () => route.fullPath,
+  () => {
+    if (uiStore.isSmall) {
+      rightSidebar.toggleExpand(false)
+    }
+  }
+)
 
 const filter = ref('')
-const selectedTaskId = useRouteQuery('id')
+const routeTaskId = useRouteQuery('id')
+
+// `id` only refers to a task on the tasks page, other pages may use the same query key
+const selectedTaskId = computed(() => (route.name === '/(site)/tasks' ? routeTaskId.value : undefined))
 
 const { lastDayTasks, areTasksReady } = useXoTaskCollection()
 
 const displayedTasks = computed(() => lastDayTasks.value)
 
 const selectTask = (id: string) => {
-  router.push({ name: '/(site)/tasks', query: { id } })
+  router.push(getTaskRoute(id as FrontXoTask['id']))
 }
 </script>
 
@@ -71,15 +86,18 @@ const selectTask = (id: string) => {
   .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
     padding: 0.8rem 1.6rem;
     height: 4rem;
-    box-sizing: border-box;
   }
 
   .search {
     padding: 0.4rem;
+  }
+
+  .tasks {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: 0.4rem 0.8rem;
   }
 }
 </style>
