@@ -7,12 +7,22 @@ import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/
 import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSchedulesCard.vue'
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
-import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type {
+  FrontAnyXoBackupJob,
+  FrontXoVmBackupJob,
+} from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type {
+  FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
+import { createBr } from '@/test/create-br.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
+import { createSr } from '@/test/create-sr.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
@@ -21,9 +31,11 @@ import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
+import { ref } from 'vue'
 
 mockXoRoutes()
 
@@ -35,6 +47,7 @@ mockXoCollections('host', 'pbd', 'pool', 'sr')
 
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
+    backupRepositories: ref(backupRepositories),
     getBackupRepositoriesByIds: () => [],
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
@@ -43,7 +56,25 @@ mockXoProxyCollection()
 
 mockXoVmCollection()
 
+mockXoVmDeviceCollections('vbd', 'vdi')
+
 const vmBackupJob = createVmBackupJob()
+
+const backupRepositories: FrontXoBackupRepository[] = []
+
+const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
+
+const mainBr = createBr({ id: 'br-main' as FrontXoBackupRepository['id'], name: 'Main BR', proxy: PROXY_ID })
+const otherBr = createBr({ id: 'br-other' as FrontXoBackupRepository['id'], name: 'Other BR', proxy: PROXY_ID })
+const disabledBr = createBr({ id: 'br-disabled' as FrontXoBackupRepository['id'], proxy: PROXY_ID, enabled: false })
+const otherProxyBr = createBr({
+  id: 'br-other-proxy' as FrontXoBackupRepository['id'],
+  proxy: 'proxy-2' as FrontXoProxy['id'],
+})
+
+const localSr = createSr({ id: 'sr-local' as FrontXoSr['id'], name_label: 'Local SR' })
+const nfsSr = createSr({ id: 'sr-nfs' as FrontXoSr['id'], name_label: 'NFS SR' })
+const isoSr = createSr({ id: 'sr-iso' as FrontXoSr['id'], name_label: 'ISO SR', content_type: 'iso' })
 
 beforeEach(() => {
   scheduleCollectionMock.reset()
@@ -51,6 +82,8 @@ beforeEach(() => {
   proxyCollectionMock.reset()
   xoCollectionsMock.reset()
   vmCollectionMock.reset()
+  xoCollectionsMock.srs.value = [localSr, nfsSr, isoSr]
+  backupRepositories.splice(0, backupRepositories.length, mainBr, otherBr, disabledBr, otherProxyBr)
 })
 
 const global = { ...createGlobalTestConfig(), stubs: { BackupJobDeleteButton: true, BackupJobMoreActions: true } }
@@ -131,4 +164,44 @@ it('gives the schedules of the backup job to the infos card', () => {
   scheduleCollectionMock.schedules.value = schedules
 
   expect(mountSidePanel(vmBackupJob).getComponent(BackupJobInfosCard).props('schedules')).toEqual(schedules)
+})
+
+describe('targets of a dynamic selection', () => {
+  function mountDynamicJob(remotes: string, srsExpression?: string) {
+    const backupJob = createVmBackupJob({
+      proxy: PROXY_ID as FrontXoVmBackupJob['proxy'],
+      remotes: remotes as unknown as FrontXoVmBackupJob['remotes'],
+      srs: srsExpression as unknown as FrontXoVmBackupJob['srs'],
+    })
+
+    return mountSidePanel(backupJob).getComponent(BackupJobTargetsCard)
+  }
+
+  it('targets every enabled backup repository of the job proxy', () => {
+    const card = mountDynamicJob('*')
+
+    expect(card.props('backupRepositoryTargets')).toEqual([mainBr, otherBr])
+    expect(card.props('backupRepositoryExpression')).toBe('*')
+  })
+
+  it('targets the backup repositories matching the query, shown without its context', () => {
+    const card = mountDynamicJob('backupRepository:(name:Main)')
+
+    expect(card.props('backupRepositoryTargets')).toEqual([mainBr])
+    expect(card.props('backupRepositoryExpression')).toBe('name:Main')
+  })
+
+  it('targets every writable storage repository', () => {
+    const card = mountDynamicJob('*', '*')
+
+    expect(card.props('storageRepositoryTargets')).toEqual([localSr, nfsSr])
+    expect(card.props('storageRepositoryExpression')).toBe('*')
+  })
+
+  it('targets the storage repositories matching the query, shown without its context', () => {
+    const card = mountDynamicJob('*', 'sr:(name_label:NFS)')
+
+    expect(card.props('storageRepositoryTargets')).toEqual([nfsSr])
+    expect(card.props('storageRepositoryExpression')).toBe('name_label:NFS')
+  })
 })
