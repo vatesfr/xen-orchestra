@@ -1,4 +1,3 @@
-import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
@@ -8,20 +7,13 @@ import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.comp
 import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vDiskMappingRow, V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import {
-  getV2vOverride,
-  getV2vVmMapping,
-  setV2vOverride,
-  V2V_DEFAULT_KEEP_MAC,
-  V2V_DEFAULT_TAGS,
-} from '@/modules/v2v/utils/v2v-mapping.util.ts'
+import { getV2vVmMapping, V2V_DEFAULT_KEEP_MAC, V2V_DEFAULT_TAGS } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { findV2vMigrationListVm } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { findV2vPortGroup, findV2vVmHost, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
-import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoV2vDisk, XoV2vInventory, XoV2vNic, XoV2vVm } from '@vates/types'
+import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 export type V2vVmMappingContext = {
@@ -149,48 +141,4 @@ export function useV2vVmMapping(rawVm: MaybeRefOrGetter<XoV2vVm>, options: V2vVm
   })
 
   return { poolName, hostName, checks, ...useV2vVmTargets(rawVm, { list: options.list, inventory }) }
-}
-
-// Each change goes through `updateVm`, as an override of the list defaults
-export function useV2vVmMappingSetters(
-  rawVm: MaybeRefOrGetter<XoV2vVm>,
-  { list: rawList, updateVm }: V2vVmMappingContext
-) {
-  const vm = toComputed(rawVm)
-
-  const list = toComputed(rawList)
-
-  // A cleared override is `undefined`: the stored list leaves it out
-  function updateOverrides(getOverrides: (listVm: V2vMigrationListVm) => Partial<V2vVmOverrides>) {
-    updateVm(vm.value.id, currentVm => ({ ...currentVm, ...getOverrides(currentVm) }))
-  }
-
-  // `undefined` resets a target to its default
-  function setDiskSr(key: XoV2vDisk['key'], srId: FrontXoSr['id'] | undefined) {
-    updateOverrides(({ disks }) => ({ disks: setV2vOverride(disks, key, srId, list.value.defaults.sr) }))
-  }
-
-  function setNicNetwork(key: XoV2vNic['key'], networkId: FrontXoNetwork['id'] | undefined) {
-    updateOverrides(({ nics }) => ({ nics: setV2vOverride(nics, key, networkId, list.value.defaults.network) }))
-  }
-
-  function setTemplate(templateId: FrontXoVmTemplate['id'] | undefined) {
-    updateOverrides(() => ({ template: getV2vOverride(templateId, list.value.defaults.template) }))
-  }
-
-  function setKeepMac(value: boolean) {
-    updateOverrides(() => ({ keepMac: getV2vOverride(value, V2V_DEFAULT_KEEP_MAC) }))
-  }
-
-  function setTags(value: string[]) {
-    updateOverrides(() => ({ tags: getV2vOverride(value, V2V_DEFAULT_TAGS) }))
-  }
-
-  return {
-    setDiskSr,
-    setNicNetwork,
-    setTemplate,
-    setKeepMac,
-    setTags,
-  }
 }
