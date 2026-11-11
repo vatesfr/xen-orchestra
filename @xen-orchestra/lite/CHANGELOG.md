@@ -2,6 +2,8 @@
 
 ## **next**
 
+- [Web-Core/UiLogEntryViewer] Add an option to follow the new lines, and an accessible name to the "open in a new tab" button (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Web-Core/UiTreeItemLabel] Add an option replacing the active state of its link, for routes differing by their query (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 - [Web-Core/UiCircleProgressBar] Add a brand accent and an option to hide the value (PR [#10849](https://github.com/vatesfr/xen-orchestra/pull/10849))
 - [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System tabs, consoles, tasks, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))

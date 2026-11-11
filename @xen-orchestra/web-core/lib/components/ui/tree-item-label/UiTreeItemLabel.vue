@@ -1,11 +1,7 @@
 <!-- v3 -->
 <template>
   <RouterLink v-slot="{ isExactActive, isActive, href, navigate }" :to="route" custom>
-    <div
-      :class="[className, isExactActive ? 'exact-active' : active || isActive ? 'active' : undefined]"
-      class="ui-tree-item-label"
-      v-bind="attrs"
-    >
+    <div :class="[className, getActiveClass(isExactActive, isActive)]" class="ui-tree-item-label" v-bind="attrs">
       <VtsTreeItemToggle :size="resolvedSize" @toggle="emit('toggle')" />
       <a :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
@@ -39,10 +35,20 @@ defineOptions({
   inheritAttrs: false,
 })
 
-const { size } = defineProps<{
+const {
+  size,
+  active,
+  exactActive = undefined,
+} = defineProps<{
   route: RouteLocationRaw
   icon?: IconName
   active?: boolean
+  /**
+   * Replaces the exact-active state of the link when set, which then decides
+   * alone (no `active` either): e.g. for routes differing only by their query,
+   * which `RouterLink` ignores
+   */
+  exactActive?: boolean
   size?: TreeItemLabelSize
 }>()
 
@@ -65,6 +71,14 @@ const resolvedSize = computed(() => size ?? contextSize ?? 'medium')
 const className = computed(() => toVariants({ size: resolvedSize.value }))
 
 const smallHeight = `${TREE_ITEM_SMALL_HEIGHT}px`
+
+function getActiveClass(isExactActive: boolean, isActive: boolean) {
+  if (exactActive !== undefined) {
+    return exactActive ? 'exact-active' : undefined
+  }
+
+  return isExactActive ? 'exact-active' : active || isActive ? 'active' : undefined
+}
 </script>
 
 <style lang="postcss" scoped>

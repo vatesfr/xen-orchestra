@@ -9,6 +9,12 @@
         .preset({ name: '/pool/[uuid]', params: { uuid: '355ee47d-ff4c-4924-3db2-fd86ae629676' } })
         .widget(),
       prop('active').bool().widget(),
+      prop('exactActive')
+        .bool()
+        .widget()
+        .help(
+          'When set, replaces the exact-active state of the link (and `active`): e.g. routes differing by their query'
+        ),
       prop('size').enum('small', 'medium').preset('medium').widget(),
       prop('no-indent').bool().help('Remove indentation based on component depth in the tree'),
       slot('default'),

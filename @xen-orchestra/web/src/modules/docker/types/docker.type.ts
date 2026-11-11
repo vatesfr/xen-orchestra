@@ -1,3 +1,4 @@
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoDockerContainer, XoDockerEngine, XoDockerEngineInfo } from '@vates/types'
 
 /**
@@ -8,6 +9,8 @@ export type DockerStopConfirmedRestartPolicy = 'always' | 'unless-stopped'
 
 export const dockerEngineFields = [
   'id',
+  '$VM',
+  'kind',
   'host',
   'resolvedHost',
   'port',
@@ -48,6 +51,43 @@ export const dockerContainerFields = [
 export type FrontXoDockerContainer = Pick<XoDockerContainer, (typeof dockerContainerFields)[number]>
 
 export type FrontXoDockerEngineInfo = XoDockerEngineInfo
+
+/**
+ * Containers listed in the tree view: no stats, which would start the stats
+ * streams of the engines
+ */
+export const dockerTreeContainerFields = [
+  'id',
+  'dockerId',
+  'name',
+  'state',
+  'exitCode',
+  'health',
+  '$engine',
+  '$VM',
+] as const satisfies readonly (keyof XoDockerContainer)[]
+
+export type FrontXoDockerTreeContainer = Pick<XoDockerContainer, (typeof dockerTreeContainerFields)[number]>
+
+export const CONTAINERS_ROOT_ID = 'containers-root'
+
+/** root of the containers in the tree view */
+export type XoContainersRoot = {
+  id: typeof CONTAINERS_ROOT_ID
+  type: 'containers'
+  name: string
+}
+
+/** a VM running an engine, in the tree view */
+export type DockerTreeHost = {
+  /** the engine's */
+  id: FrontXoDockerEngine['id']
+  engine: FrontXoDockerEngine
+  vm: FrontXoVm
+  label: string
+  /** its containers have been listed (possibly failing) */
+  containersLoaded?: boolean
+}
 
 /**
  * Body of `POST /docker-engines`

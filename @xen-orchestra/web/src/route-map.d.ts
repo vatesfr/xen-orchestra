@@ -192,6 +192,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/containers': RouteRecordInfo<
+      '/containers',
+      '/containers',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/dev/': RouteRecordInfo<
       '/dev/',
       '/dev',
@@ -686,6 +693,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/v2v/migrate.vue': {
       routes:
         | '/admin/v2v/migrate'
+      views:
+        | never
+    }
+    'src/pages/containers.vue': {
+      routes:
+        | '/containers'
       views:
         | never
     }

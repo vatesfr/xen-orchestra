@@ -1,3 +1,8 @@
+import type {
+  DockerTreeHost,
+  FrontXoDockerTreeContainer,
+  XoContainersRoot,
+} from '@/modules/docker/types/docker.type.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { XoSite } from '@/modules/site/types/xo-site.type.ts'
@@ -12,3 +17,9 @@ export type HostBranch = Branch<FrontXoHost, VmLeaf, 'host'>
 export type PoolBranch = Branch<FrontXoPool, HostBranch | VmLeaf, 'pool'>
 
 export type SiteBranch = Branch<XoSite, PoolBranch, 'site'>
+
+export type DockerContainerLeaf = Leaf<FrontXoDockerTreeContainer, 'docker-container'>
+
+export type DockerHostBranch = Branch<DockerTreeHost, DockerContainerLeaf, 'docker-host'>
+
+export type ContainersBranch = Branch<XoContainersRoot, DockerHostBranch, 'containers'>
