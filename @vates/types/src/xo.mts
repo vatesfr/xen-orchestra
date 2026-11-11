@@ -25,6 +25,7 @@ import type {
   XoDockerContainerHealth,
   XoDockerContainerState,
   XoDockerContainerStats,
+  XoDockerEngineKind,
   XoDockerHealthCheck,
   XoDockerMount,
   XoDockerNetwork,
@@ -297,6 +298,8 @@ export type XoDockerEngine = {
   hostKeyAlgorithm?: string
   hasPassword: boolean
   hasPrivateKey: boolean
+  /** Docker or Podman: from the current connection, else the last one, absent until a connection negotiated */
+  kind?: XoDockerEngineKind
   /** state of the pooled connection, reading it never connects */
   connectionStatus: 'idle' | 'connected' | 'error'
   /** last connection failure, if any */

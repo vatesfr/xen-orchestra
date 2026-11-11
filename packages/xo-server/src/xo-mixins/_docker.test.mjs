@@ -170,6 +170,7 @@ function installFakeConnections() {
     request: proto.request,
     observedHostKey: Object.getOwnPropertyDescriptor(proto, 'observedHostKey'),
     apiVersion: Object.getOwnPropertyDescriptor(proto, 'apiVersion'),
+    engineKind: Object.getOwnPropertyDescriptor(proto, 'engineKind'),
   }
   const fake = {
     connects: 0,
@@ -177,7 +178,9 @@ function installFakeConnections() {
     delay: 0,
     connect: undefined,
     observed: { fingerprint: FINGERPRINT, algorithm: 'ssh-ed25519' },
+    kind: undefined,
     reset() {
+      this.kind = undefined
       this.connects = 0
       this.requests = 0
       this.delay = 0
@@ -189,6 +192,7 @@ function installFakeConnections() {
       proto.request = original.request
       Object.defineProperty(proto, 'observedHostKey', original.observedHostKey)
       Object.defineProperty(proto, 'apiVersion', original.apiVersion)
+      Object.defineProperty(proto, 'engineKind', original.engineKind)
     },
   }
   proto.connect = async function () {
@@ -217,6 +221,12 @@ function installFakeConnections() {
     configurable: true,
     get() {
       return fake.connect === null ? original.apiVersion.get.call(this) : '1.43'
+    },
+  })
+  Object.defineProperty(proto, 'engineKind', {
+    configurable: true,
+    get() {
+      return fake.connect === null ? original.engineKind.get.call(this) : fake.kind
     },
   })
   fake.reset()
@@ -518,6 +528,46 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         fake.reset()
         await docker.updateDockerEngine(id, { port: 2222 })
         assert.equal((await docker.getDockerEngine(id)).connectionStatus, 'idle')
+        await emit('stop')
+      })
+
+      it('kind: saved when created, from the live connection, else the last known one', async () => {
+        fake.kind = 'podman'
+        const created = await docker.createDockerEngine({
+          host: '192.0.2.10',
+          username: 'docker',
+          password: 'secret-password',
+          hostKeyFingerprint: FINGERPRINT,
+        })
+        assert.equal(created.kind, 'podman')
+        assert.equal((await seedDb.first(created.id)).kind, 'podman')
+
+        // unknown until a connection negotiated
+        const { id, revision } = await seed({})
+        assert.equal('kind' in (await docker.getDockerEngine(id)), false)
+
+        // the fake connections answer 500: the connection negotiated anyway
+        fake.kind = 'docker'
+        await assert.rejects(docker.getDockerEngineInfo(id), { code: 'DOCKER_API_ERROR' })
+        assert.equal((await docker.getDockerEngine(id)).connectionStatus, 'connected')
+        assert.equal((await docker.getDockerEngine(id)).kind, 'docker')
+        const raw = await seedDb.first(id)
+        assert.equal(raw.kind, 'docker')
+        assert.equal(raw.revision, revision, 'the revision is not bumped')
+
+        // the live kind wins over the stored one
+        fake.kind = 'podman'
+        const { id: other } = await seed({ kind: 'docker' })
+        await assert.rejects(docker.getDockerEngineInfo(other), { code: 'DOCKER_API_ERROR' })
+        assert.equal((await docker.getDockerEngine(other)).kind, 'podman')
+        assert.equal((await seedDb.first(other)).kind, 'podman')
+
+        // idle: the last known one
+        await emit('stop')
+        ;({ docker, emit } = await createDocker({ redis, crypto }))
+        const idle = await docker.getDockerEngine(id)
+        assert.equal(idle.connectionStatus, 'idle')
+        assert.equal(idle.kind, 'docker')
         await emit('stop')
       })
 
@@ -1356,6 +1406,8 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       const before = Date.now()
       const info = await docker.getDockerEngineInfo(engineId)
       assert.equal(info.status, 'connected')
+      assert.equal(info.kind, 'docker')
+      assert.equal((await docker.getDockerEngine(engineId)).kind, 'docker')
       assert.ok(info.asOf >= before)
       assert.match(info.engineVersion, /^\d+\.\d+/)
       assert.equal(typeof info.daemonId, 'string')

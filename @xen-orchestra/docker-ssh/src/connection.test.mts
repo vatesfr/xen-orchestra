@@ -159,6 +159,10 @@ describe('negotiateApiVersion()', () => {
     assert.throws(() => negotiateApiVersion({ ApiVersion: '1.23' }), { code: DOCKER_API_VERSION_UNSUPPORTED })
   })
 
+  it("negotiates Podman's Docker-compatible API (ApiVersion 1.41, MinAPIVersion 1.24)", () => {
+    assert.equal(negotiateApiVersion({ ApiVersion: '1.41', MinAPIVersion: '1.24' }), '1.41')
+  })
+
   it('negotiates 1.44 with Docker 29 (MinAPIVersion 1.44)', () => {
     assert.equal(negotiateApiVersion({ ApiVersion: '1.52', MinAPIVersion: '1.44' }), '1.44')
   })
@@ -583,6 +587,26 @@ describe('DockerConnection (fake daemon)', () => {
     await connection.close()
   })
 
+  it('negotiates with Podman (API 1.41) and tells it from Docker', async () => {
+    handler = (req: IncomingMessage, res: ServerResponse) =>
+      req.url === '/version'
+        ? json(res, 200, {
+            Version: '5.4.2',
+            ApiVersion: '1.41',
+            MinAPIVersion: '1.24',
+            Platform: { Name: 'linux/amd64/debian-13' },
+            Components: [{ Name: 'Podman Engine', Version: '5.4.2', Details: { MinAPIVersion: '4.0.0' } }],
+          })
+        : json(res, 200, req.url)
+    const { connection } = createConnection()
+    assert.equal(connection.engineKind, undefined)
+    const { body } = await connection.request({ path: '/info' })
+    assert.equal(body, '/v1.41/info')
+    assert.equal(connection.apiVersion, '1.41')
+    assert.equal(connection.engineKind, 'podman')
+    await connection.close()
+  })
+
   it('reports TIMEOUT (not DOCKER_API_ERROR) when aborted while reading an error body', async () => {
     handler = (req: IncomingMessage, res: ServerResponse) => {
       if (req.url === '/version') {
@@ -623,6 +647,7 @@ describe('DockerConnection (fake daemon)', () => {
     ])
     assert.equal(connection.apiVersion, MAX_API_VERSION)
     assert.equal(connection.engineVersion, '27.3.1')
+    assert.equal(connection.engineKind, 'docker')
     assert.equal(requests.filter(url => url === '/version').length, 1)
     assert.equal(
       requests.find(url => url.includes('filters')),

@@ -44,6 +44,7 @@ vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-container-collec
 
 const CONNECTED_INFO: FrontXoDockerEngineInfo = {
   status: 'connected',
+  kind: 'docker',
   asOf: Date.now(),
   engineVersion: '29.8.1',
   apiVersion: '1.43',

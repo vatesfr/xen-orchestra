@@ -9,6 +9,7 @@ import {
   computeMemoryUsage,
   getComposeInfo,
   getContainerName,
+  getEngineKind,
   normalizeContainerInspect,
   normalizeContainerListEntry,
   normalizeContainerStats,
@@ -605,10 +606,52 @@ describe('normalizeContainerStats()', () => {
   })
 })
 
+// `GET /version` of Podman 5 (Docker-compatible API)
+const PODMAN_VERSION = {
+  Platform: { Name: 'linux/amd64/debian-13' },
+  Components: [
+    {
+      Name: 'Podman Engine',
+      Version: '5.4.2',
+      Details: {
+        APIVersion: '5.4.2',
+        Arch: 'amd64',
+        BuildTime: '2025-04-30T00:00:00Z',
+        Experimental: 'false',
+        GitCommit: '',
+        GoVersion: 'go1.24.2',
+        KernelVersion: '6.12.101+deb13-amd64',
+        MinAPIVersion: '4.0.0',
+        Os: 'linux',
+      },
+    },
+  ],
+  Version: '5.4.2',
+  ApiVersion: '1.41',
+  MinAPIVersion: '1.24',
+  Os: 'linux',
+  Arch: 'amd64',
+}
+
+describe('getEngineKind()', () => {
+  it('tells Podman from Docker', () => {
+    assert.equal(getEngineKind(VERSION), 'docker')
+    assert.equal(getEngineKind(PODMAN_VERSION), 'podman')
+  })
+
+  it('from the platform alone, defaults to docker', () => {
+    assert.equal(getEngineKind({ Platform: { Name: 'Podman Engine' } }), 'podman')
+    assert.equal(getEngineKind(undefined), 'docker')
+    assert.equal(getEngineKind({ Components: 'garbage' } as never), 'docker')
+    assert.equal(getEngineKind({ Components: [null] } as never), 'docker')
+  })
+})
+
 describe('normalizeEngineInfo()', () => {
   it('normalizes /info and /version', () => {
     assert.deepEqual(normalizeEngineInfo(INFO, VERSION), {
       id: INFO.ID,
+      kind: 'docker',
       name: 'docker-host',
       engineVersion: '29.8.1',
       apiVersion: '1.56',
@@ -636,5 +679,9 @@ describe('normalizeEngineInfo()', () => {
     assert.equal(info.apiVersion, undefined)
     assert.equal(info.rootless, false)
     assert.deepEqual(info.warnings, [])
+  })
+
+  it('tells Podman', () => {
+    assert.equal(normalizeEngineInfo(INFO, PODMAN_VERSION).kind, 'podman')
   })
 })

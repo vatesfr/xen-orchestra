@@ -10,7 +10,7 @@ import Collection from '../collection/redis.mjs'
 //
 // Stored fields: `vm` (optional, indexed), `label`, `host`, `port`, `username`,
 // `password`, `privateKey`, `passphrase`, `socketPath`, `hostKeyFingerprint`,
-// `hostKeyAlgorithm`, `revision`.
+// `hostKeyAlgorithm`, `kind` (last known, see `ENGINE_KINDS`), `revision`.
 //
 // Records are stored as JSON, the whole record being encrypted when
 // `redis.encryptCredentialDatabase` is enabled (see `collection/redis.mjs`).
@@ -32,6 +32,7 @@ import Collection from '../collection/redis.mjs'
  *   socketPath: string,
  *   hostKeyFingerprint?: string,
  *   hostKeyAlgorithm?: string,
+ *   kind?: 'docker' | 'podman',
  *   revision?: string,
  * }} DockerEngineRecord
  */

@@ -20,6 +20,8 @@
 
 import { createLogger } from '@xen-orchestra/log'
 
+import type { XoDockerEngineKind } from '@vates/types'
+
 import type { DockerConnection } from './connection.mjs'
 
 import {
@@ -83,7 +85,7 @@ const makeKey = (id: string, revision: number | string | undefined) => `${id}:${
  */
 export type DockerConnectionFacade = Pick<
   DockerConnection,
-  'apiVersion' | 'engineVersion' | 'observedHostKey' | 'request' | 'requestStream' | 'exec'
+  'apiVersion' | 'engineKind' | 'engineVersion' | 'observedHostKey' | 'request' | 'requestStream' | 'exec'
 >
 
 /**
@@ -96,6 +98,8 @@ export type PoolableConnection = DockerConnectionFacade & Pick<DockerConnection,
 export type DockerConnectionState = {
   status: 'idle' | 'connected' | 'error'
   error?: { code: string; message: string }
+  /** only when connected */
+  kind?: XoDockerEngineKind
 }
 
 type Entry = {
@@ -130,6 +134,9 @@ function createFacade(entry: Entry): DockerConnectionFacade {
   return {
     get apiVersion() {
       return connection.apiVersion
+    },
+    get engineKind() {
+      return connection.engineKind
     },
     get engineVersion() {
       return connection.engineVersion
@@ -211,7 +218,11 @@ export class DockerConnectionPool {
       return { status: 'error', error: summarizeError(failure.error) }
     }
     const entry = this.#entries.get(key)
-    return { status: entry?.connected ? 'connected' : 'idle' }
+    if (!entry?.connected) {
+      return { status: 'idle' }
+    }
+    const kind = entry.connection?.engineKind
+    return kind === undefined ? { status: 'connected' } : { status: 'connected', kind }
   }
 
   /**

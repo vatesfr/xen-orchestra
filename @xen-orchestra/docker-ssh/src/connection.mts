@@ -23,8 +23,10 @@ import {
   POOL_EXHAUSTED,
   TIMEOUT,
 } from './errors.mjs'
+import { getEngineKind } from './normalize.mjs'
 import { SshHttpAgent } from './ssh-http-agent.mjs'
 import type { DockerVersion } from './wire.mjs'
+import type { XoDockerEngineKind } from '@vates/types'
 
 const { debug, warn } = createLogger('xo:docker:connection')
 
@@ -554,6 +556,7 @@ export class DockerConnection {
   #closeTimeout: number
   #connectTimeout: number
   #createClient: () => SshClient
+  #engineKind: XoDockerEngineKind | undefined
   #engineVersion: string | undefined
   #hostKeyAlgorithm: string | undefined
   #limiter: RequestLimiter
@@ -634,6 +637,11 @@ export class DockerConnection {
   /** negotiated API version, e.g. `1.44` */
   get apiVersion(): string | undefined {
     return this.#apiVersion
+  }
+
+  /** `docker` or `podman`, known once negotiated */
+  get engineKind(): XoDockerEngineKind | undefined {
+    return this.#engineKind
   }
 
   /** version of the Docker Engine, e.g. `27.3.1` */
@@ -828,7 +836,13 @@ export class DockerConnection {
         const apiVersion = negotiateApiVersion(body)
         this.#apiVersion = apiVersion
         this.#engineVersion = body.Version
-        debug('Docker API version negotiated', { ...this.#context, apiVersion, engineVersion: body.Version })
+        this.#engineKind = getEngineKind(body)
+        debug('Docker API version negotiated', {
+          ...this.#context,
+          apiVersion,
+          engineVersion: body.Version,
+          engineKind: this.#engineKind,
+        })
         return apiVersion
       })()
       this.#negotiation = negotiation

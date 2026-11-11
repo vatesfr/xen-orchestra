@@ -84,8 +84,12 @@ export type XoDockerError = {
   data?: Record<string, unknown>
 }
 
+/** Podman is told from Docker by its `GET /version` */
+export type XoDockerEngineKind = 'docker' | 'podman'
+
 export type XoDockerEngineInfoConnected = {
   status: 'connected'
+  kind: XoDockerEngineKind
   asOf: number
   /** the daemon's ID, not the engine's */
   daemonId?: string

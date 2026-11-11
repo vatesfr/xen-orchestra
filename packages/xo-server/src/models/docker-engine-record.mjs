@@ -54,7 +54,11 @@ export const IDENTITY_FIELDS = ['vm', ...CONNECTION_FIELDS]
 export const KEYED_FIELDS = CONNECTION_FIELDS.filter(key => key !== 'hostKeyFingerprint' && key !== 'hostKeyAlgorithm')
 
 // stored properties accepted by the config import, see `parseImportedEngines()`
-const STORED_FIELDS = new Set([...WRITABLE_FIELDS.values(), 'hostKeyAlgorithm', 'revision'])
+const STORED_FIELDS = new Set([...WRITABLE_FIELDS.values(), 'hostKeyAlgorithm', 'kind', 'revision'])
+
+// last known kind of the engine, written by the mixin when a connection
+// negotiates (not by the API), neither in the revision nor in the connection key
+export const ENGINE_KINDS = new Set(['docker', 'podman'])
 
 // pin a host key into the record (mutated, not saved)
 export function setHostKey(record, { fingerprint, algorithm }) {
@@ -106,6 +110,9 @@ export function validateRecord(record) {
   }
   if (record.hostKeyAlgorithm !== undefined && !HOST_KEY_TYPES.has(record.hostKeyAlgorithm)) {
     throw invalidParameters(`hostKeyAlgorithm must be one of ${Array.from(HOST_KEY_TYPES).join(', ')}`)
+  }
+  if (record.kind !== undefined && !ENGINE_KINDS.has(record.kind)) {
+    throw invalidParameters(`kind must be one of ${Array.from(ENGINE_KINDS).join(', ')}`)
   }
 }
 

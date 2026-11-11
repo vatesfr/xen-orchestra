@@ -29,11 +29,13 @@ export const dockerEngine = {
   resolvedHost: '127.0.0.1',
   hasPassword: false,
   hasPrivateKey: true,
+  kind: 'docker',
   connectionStatus: 'idle',
 }
 
 export const dockerEngineInfo = {
   status: 'connected',
+  kind: 'docker',
   asOf: 1790285367714,
   daemonId: '00000000-0000-4000-8000-000000000000',
   name: 'docker-host',

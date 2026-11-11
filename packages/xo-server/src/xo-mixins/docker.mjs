@@ -1118,6 +1118,9 @@ export default class Docker {
       await connection.close()
     }
     setHostKey(record, connection.observedHostKey)
+    if (connection.engineKind !== undefined) {
+      record.kind = connection.engineKind
+    }
   }
 
   // used when a key has been accepted without strict host key checking
@@ -1129,6 +1132,18 @@ export default class Docker {
       const record = await this.#db.first(id)
       if (record !== undefined && record.hostKeyFingerprint === undefined) {
         setHostKey(record, hostKey)
+        await this.#db.update(record)
+      }
+    })
+  }
+
+  // remember the kind of the engine (shown while idle), like `#pinHostKey()`:
+  // only this field is written, without bumping the revision
+  async #saveKind(id, kind) {
+    await this.#withLocks([`engine:${id}`], async () => {
+      const record = await this.#db.first(id)
+      if (record !== undefined && record.kind !== kind) {
+        record.kind = kind
         await this.#db.update(record)
       }
     })
@@ -1194,6 +1209,15 @@ export default class Docker {
       } catch (error) {
         held.release(error)
         throw error
+      }
+    }
+    const { engineKind } = held.connection
+    if (engineKind !== undefined && engineKind !== record.kind) {
+      try {
+        await this.#saveKind(record.id, engineKind)
+      } catch (error) {
+        // best effort: the request goes on
+        log.warn('cannot save the kind of the engine', { engine: record.id, error })
       }
     }
     return held
@@ -1308,7 +1332,10 @@ export default class Docker {
     }
     engine.hasPassword = record.password !== undefined
     engine.hasPrivateKey = record.privateKey !== undefined
-    const { status, error } = this.#pool.getState(record.id, this.#connectionKey(record))
+    const { status, error, kind = record.kind } = this.#pool.getState(record.id, this.#connectionKey(record))
+    if (kind !== undefined) {
+      engine.kind = kind
+    }
     engine.connectionStatus = status
     if (error !== undefined) {
       engine.error = error
