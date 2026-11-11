@@ -4,7 +4,6 @@
     :aria-label="label"
     :disabled="!isSupported"
     :icon
-    :aria-label="t('action:copy')"
     size="small"
     accent="brand"
     @click="copy()"

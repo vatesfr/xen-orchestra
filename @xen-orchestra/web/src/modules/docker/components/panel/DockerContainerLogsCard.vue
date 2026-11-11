@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="docker-container-logs-card">
-    <UiCardTitle>{{ t('logs') }}</UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('logs')" />
     <VtsStateHero v-if="hasDockerContainerLogsError" format="card" type="error" size="extra-small">
       {{ t('error-no-data') }}
     </VtsStateHero>
@@ -35,10 +35,11 @@ import {
 import type { FrontXoDockerContainer } from '@/modules/docker/types/docker.type.ts'
 import { formatDockerLogEntries } from '@/modules/docker/utils/xo-docker.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -46,19 +47,15 @@ const { container } = defineProps<{
   container: FrontXoDockerContainer
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { dockerContainerLogs, areDockerContainerLogsReady, hasDockerContainerLogsError } = useXoDockerContainerLogs(
   {},
   () => container.id
 )
 
-// local time like the other dates, with the seconds
-const content = computed(() =>
-  formatDockerLogEntries(dockerContainerLogs.value?.entries ?? [], date =>
-    d(date, { key: 'datetime_short', second: '2-digit' })
-  )
-)
+// local time like the other dates
+const content = computed(() => formatDockerLogEntries(dockerContainerLogs.value?.entries ?? [], formatDateTime))
 </script>
 
 <style lang="postcss" scoped>
