@@ -90,7 +90,7 @@ export function getDockerHostIcon({ engine, vm }: Pick<DockerTreeHost, 'engine' 
 const CONTAINER_ICON_BY_ACCENT = {
   success: 'object:container:running',
   warning: 'object:container:warning',
-  danger: 'object:container:danger',
+  danger: 'object:container:error',
   muted: 'object:container:halted',
 } as const satisfies Record<ReturnType<typeof getContainerStateAccent>, IconName>
 
@@ -103,4 +103,29 @@ export function getDockerContainerIcon(container: Pick<FrontXoDockerTreeContaine
 /** brand names, not translated: unknown until the engine has been connected to */
 export function getDockerEngineKindLabel({ kind }: Pick<FrontXoDockerEngine, 'kind'>): string | undefined {
   return kind === undefined ? undefined : { docker: 'Docker', podman: 'Podman' }[kind]
+}
+
+/**
+ * Whether a container host row is the highlighted one: on its Containers tab,
+ * unless the selected container has its own row (the host is expanded and the
+ * container listed)
+ */
+export function isDockerHostRowActive({
+  hostId,
+  routeEngineId,
+  selectedContainerId,
+  isCollapsed,
+  containerIds,
+}: {
+  hostId: string
+  routeEngineId: string | undefined
+  selectedContainerId: string | undefined
+  isCollapsed: boolean
+  containerIds: string[]
+}) {
+  if (routeEngineId !== hostId) {
+    return false
+  }
+
+  return selectedContainerId === undefined || isCollapsed || !containerIds.includes(selectedContainerId)
 }

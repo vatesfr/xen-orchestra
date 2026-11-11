@@ -7,6 +7,7 @@ import {
   getDockerTreeHosts,
   getEngineIdChunksToLoad,
   groupContainersByEngine,
+  isDockerHostRowActive,
   MAX_LISTED_ENGINES,
 } from '@/modules/docker/utils/xo-docker-tree.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -106,7 +107,7 @@ describe('icons and labels', () => {
     expect(getDockerContainerIcon({ state: 'running' })).toBe('object:container:running')
     expect(getDockerContainerIcon({ state: 'running', health: 'unhealthy' })).toBe('object:container:warning')
     expect(getDockerContainerIcon({ state: 'paused' })).toBe('object:container:paused')
-    expect(getDockerContainerIcon({ state: 'exited' })).toBe('object:container:danger')
+    expect(getDockerContainerIcon({ state: 'exited' })).toBe('object:container:error')
     expect(getDockerContainerIcon({ state: 'created' })).toBe('object:container:halted')
   })
 
@@ -114,5 +115,30 @@ describe('icons and labels', () => {
     expect(getDockerEngineKindLabel({ kind: 'docker' })).toBe('Docker')
     expect(getDockerEngineKindLabel({ kind: 'podman' })).toBe('Podman')
     expect(getDockerEngineKindLabel({})).toBeUndefined()
+  })
+})
+
+describe('isDockerHostRowActive', () => {
+  const base = {
+    hostId: 'e-a',
+    routeEngineId: 'e-a',
+    selectedContainerId: undefined,
+    isCollapsed: false,
+    containerIds: ['c1'],
+  }
+
+  it('is active on its Containers tab without a selected container', () => {
+    expect(isDockerHostRowActive(base)).toBe(true)
+  })
+
+  it('is not active on another page or another host', () => {
+    expect(isDockerHostRowActive({ ...base, routeEngineId: undefined })).toBe(false)
+    expect(isDockerHostRowActive({ ...base, routeEngineId: 'e-b' })).toBe(false)
+  })
+
+  it('leaves the highlight to the selected container when its row is shown', () => {
+    expect(isDockerHostRowActive({ ...base, selectedContainerId: 'c1' })).toBe(false)
+    expect(isDockerHostRowActive({ ...base, selectedContainerId: 'c1', isCollapsed: true })).toBe(true)
+    expect(isDockerHostRowActive({ ...base, selectedContainerId: 'c2' })).toBe(true)
   })
 })
