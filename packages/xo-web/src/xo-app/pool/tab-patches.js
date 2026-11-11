@@ -176,6 +176,7 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
     haltedPinnedVms = {},
     lastError,
     operatorChanges = [],
+    planChange,
     vmConflicts = [],
   } = recovery
   const haltedVmIds = Object.keys(haltedPinnedVms)
@@ -210,6 +211,16 @@ const RpuRecoveryBanner = ({ poolId, recovery }) => {
                 )
               })}
             </ul>
+          )}
+          {planChange !== undefined && (
+            <div>
+              <strong>{_('rpuRecoveryPlanChanged')}</strong>
+              <ul>
+                {planChange.addedHostIds.map(hostId => (
+                  <li key={hostId}>{renderXoItemFromId(hostId)}</li>
+                ))}
+              </ul>
+            </div>
           )}
           {lastError != null && (
             <p>

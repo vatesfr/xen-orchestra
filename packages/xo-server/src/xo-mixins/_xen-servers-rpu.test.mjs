@@ -24,6 +24,7 @@ function createXenServers({
   loadBalancerLoaded = false,
   operatorChanges,
   recordRefused = false,
+  resumeHostsStarted = true,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
   scheduleDisableRefused,
   updateRefused = false,
@@ -130,7 +131,7 @@ function createXenServers({
         options: { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: true },
         resume: {
           doneHostIds: new Set(['host-A']),
-          hostsStarted: true,
+          hostsStarted: resumeHostsStarted,
           hostOrder: ['host-A', 'host-B'],
           vmHomeById: { vm1: 'host-A' },
           haltedPinnedVms: {},
@@ -375,13 +376,38 @@ describe('XenServers.rollingPoolUpdate', function () {
 })
 
 describe('XenServers.resumeRollingPoolUpdate', function () {
+  it('runs outside of an API call as the automatic resume after a restart, in a new task of the same run', async function () {
+    const { calls, taskProperties, xenServers } = createXenServers()
+    xenServers._app.apiContext = undefined
+    await xenServers.resumeRollingPoolUpdate(pool, { automatic: true })
+    assert.ok(calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: true }]
+    )
+    assert.equal(taskProperties[0].runId, 'run-1')
+    assert.equal(taskProperties[0].attempt, 2)
+  })
+
+  it('accepts the state of the pool in an automatic resume only when its run started on a host', async function () {
+    const acceptedBy = async opts => {
+      const { calls, xenServers } = createXenServers(opts)
+      await xenServers.resumeRollingPoolUpdate(pool, { automatic: true })
+      return calls.find(([name]) => name === 'xapi.rollingPoolUpdate')[1].acceptCurrentStateAsBaseline
+    }
+    // the master, first host of the run, may have been updated by it
+    assert.equal(await acceptedBy({ resumeHostsStarted: true }), true)
+    // nothing the run did: a half updated pool is left to the operator
+    assert.ok(!(await acceptedBy({ resumeHostsStarted: false })))
+  })
+
   it('asks the backup guard again, then continues the same run where it stopped', async function () {
     const { calls, taskProperties, xenServers } = createXenServers()
     await xenServers.resumeRollingPoolUpdate(pool)
     assert.deepEqual(calls, [
       ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
       ['getAllJobs'],
-      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false }],
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: false }],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
       [
         'xapi.rollingPoolUpdate resume',
@@ -407,13 +433,26 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     assert.deepEqual(calls, [])
   })
 
+  it('does not accept the operator changes in an automatic resume, which is refused', async function () {
+    const changes = [{ type: 'ha', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, xenServers } = createXenServers({ operatorChanges: changes })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool, { automatic: true }), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: true }]
+    )
+    assert.ok(!calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
+  })
+
   it('lists in the task the operator changes it was asked to keep', async function () {
     const changes = [{ type: 'wlb', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
     const { calls, taskProperties, xenServers } = createXenServers({ acceptedOperatorChanges: changes })
     await xenServers.resumeRollingPoolUpdate(pool, { acceptOperatorChanges: true })
     assert.deepEqual(
       calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
-      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: true }]
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: true, automatic: false }]
     )
     assert.deepEqual(taskProperties[0].acceptedOperatorChanges, changes)
   })

@@ -176,6 +176,14 @@ export type PoolRollingUpdateRecoveryOperatorChange = {
   observed: 'enabled' | 'missing'
 }
 
+/** hosts resumes added to the plan of the run: patches released since it started, or hosts new to the pool */
+export type PoolRollingUpdateRecoveryPlanChange = {
+  /** the last resume which added hosts */
+  attempt: number
+  /** UUIDs of hosts the run did not plan to update, or had finished, added by any resume */
+  addedHostIds: string[]
+}
+
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
@@ -207,6 +215,8 @@ export type PoolRollingUpdateRecoveryRun = {
   vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
   /** found by the last resume, the run stays `awaiting-acceptance` until they are accepted */
   operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
+  /** absent when no resume changed the plan */
+  planChange?: PoolRollingUpdateRecoveryPlanChange
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */

@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { after, describe, it } from 'node:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { Readable } from 'node:stream'
 import { forbiddenOperation, incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 import { Task } from '@vates/task'
 
@@ -19,6 +21,7 @@ function createApp({ backupRunning = false } = {}) {
   return {
     calls,
     hooks: { on() {} },
+    on() {},
     config: {
       getOptional: key => (key === 'rpu.tracesDir' ? tracesDir : undefined),
       getOptionalDuration: () => undefined,
@@ -79,6 +82,7 @@ function makeStore(record) {
     async put(key, value) {
       values.set(key, value)
     },
+    createKeyStream: () => Readable.from([...values.keys()]),
   }
 }
 
@@ -270,5 +274,143 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     await assert.rejects(pools.resumeRpuRecoveryRun(pool, []), error =>
       noSuchObject.is(error, { id: 'pool-1', type: 'rollingUpdateRecovery' })
     )
+  })
+})
+
+// the api-errors factories throw the error they build
+function thrownBy(fn) {
+  try {
+    fn()
+  } catch (error) {
+    return error
+  }
+}
+
+// a Pools whose `start` hook and `server:connected` listener the test runs by hand
+function createAutoResumePools({ records = {}, resumeError, storeError } = {}) {
+  const app = createApp()
+  const store = makeStore()
+  for (const [poolId, record] of Object.entries(records)) {
+    store.values.set(poolId, record)
+  }
+  const startListeners = []
+  const listeners = {}
+  app.hooks = {
+    on(hook, listener) {
+      if (hook === 'start') {
+        startListeners.push(listener)
+      }
+    },
+  }
+  app.on = (event, listener) => {
+    listeners[event] = listener
+  }
+  app.getStore = async () => {
+    if (storeError !== undefined) {
+      throw storeError
+    }
+    return store
+  }
+  app.getObject = (id, type) => {
+    assert.equal(type, 'pool')
+    return { id, name_label: id }
+  }
+  // same behavior as the Api mixin
+  const apiContext = new AsyncLocalStorage()
+  const resumeApiContexts = []
+  app.runWithoutApiContext = fn => apiContext.run(undefined, fn)
+  app.resumeRollingPoolUpdate = async (pool, opts) => {
+    app.calls.push(['resumeRollingPoolUpdate', pool.id, opts])
+    resumeApiContexts.push(apiContext.getStore())
+    if (resumeError !== undefined) {
+      throw resumeError
+    }
+  }
+  const pools = new Pools(app)
+  return {
+    app,
+    pools,
+    store,
+    // the start listeners also include the trace reconciliation, harmless here.
+    // Like runHook, a failing listener does not fail the start
+    start: () => Promise.all(startListeners.map(listener => listener().catch(() => {}))),
+    connect: poolId => listeners['server:connected']({ xapi: { pool: { $id: poolId } } }),
+    // connection made by an API call, like `server.enable`
+    connectFromApiCall: (poolId, user) =>
+      apiContext.run({ user }, () => listeners['server:connected']({ xapi: { pool: { $id: poolId } } })),
+    resumeApiContexts,
+  }
+}
+
+describe('Pools automatic resume after a restart', function () {
+  it('resumes the run the restart interrupted once its pool is connected, only once', async function () {
+    const { app, connect, start } = createAutoResumePools({ records: { 'pool-1': makeRecord({ status: 'running' }) } })
+    await start()
+
+    await Promise.all([connect('pool-1'), connect('pool-1')])
+    await connect('pool-1')
+
+    assert.deepEqual(app.calls, [['resumeRollingPoolUpdate', 'pool-1', { automatic: true }]])
+  })
+
+  it('resumes outside of the API call which reconnected the pool', async function () {
+    const { connectFromApiCall, resumeApiContexts, start } = createAutoResumePools({
+      records: { 'pool-1': makeRecord({ status: 'running' }) },
+    })
+    await start()
+
+    await connectFromApiCall('pool-1', { id: 'user-1' })
+
+    assert.deepEqual(resumeApiContexts, [undefined])
+  })
+
+  it('waits for the records to be loaded when the pool connects first', async function () {
+    const { app, connect, start } = createAutoResumePools({ records: { 'pool-1': makeRecord({ status: 'running' }) } })
+
+    const connected = connect('pool-1')
+    await start()
+    await connected
+
+    assert.deepEqual(app.calls, [['resumeRollingPoolUpdate', 'pool-1', { automatic: true }]])
+  })
+
+  it('leaves to the operator a run this restart did not interrupt, or one an automatic resume already continued', async function () {
+    const { app, connect, start } = createAutoResumePools({
+      records: {
+        'pool-1': makeRecord({ status: 'failed' }),
+        'pool-2': makeRecord({ status: 'interrupted' }),
+        'pool-3': makeRecord({ status: 'running', resumedAutomatically: true }),
+      },
+    })
+    await start()
+
+    for (const poolId of ['pool-1', 'pool-2', 'pool-3', 'pool-4']) {
+      await connect(poolId)
+    }
+
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('does not hold the connections when the records cannot be loaded', async function () {
+    const { app, connect, start } = createAutoResumePools({ storeError: new Error('LevelDB open failed') })
+
+    const connected = connect('pool-1')
+    await start()
+    await connected
+
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('leaves the run interrupted when the resume is refused, for the operator to resume it', async function () {
+    const { app, connect, start, store } = createAutoResumePools({
+      records: { 'pool-1': makeRecord({ status: 'running' }) },
+      resumeError: thrownBy(() => forbiddenOperation('resumeRollingPoolUpdate', 'a backup is running')),
+    })
+    await start()
+
+    await connect('pool-1')
+
+    assert.equal(store.values.get('pool-1').status, 'interrupted')
+    assert.equal(app.calls.length, 1)
   })
 })

@@ -1065,8 +1065,9 @@ export default class XenServers {
   }
 
   /**
-   * Resumes the failed or interrupted rolling pool update of the pool: same run, only the hosts with remaining work
-   * are handled, then the VMs go back to the host they were on before the first attempt. The settings the previous
+   * Resumes the failed or interrupted rolling pool update of the pool: same run, the hosts with remaining work are
+   * handled, and a host a previous attempt finished is updated and rebooted again if patches were released since.
+   * Then the VMs go back to the host they were on before the first attempt. The settings the previous
    * attempts left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end of
    * the run, then are restored.
    *
@@ -1079,6 +1080,7 @@ export default class XenServers {
    *   as for a new run: a setting enabled again is disabled while the run goes on and enabled again at its end, HA
    *   whose heartbeat SR is gone stays disabled, the hosts and VMs which no longer exist are forgotten. The accepted
    *   changes are logged and listed in the task
+   * @param {boolean} [opts.automatic] - Started by xo-server after a restart, not by the operator
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @throws {Error} `forbiddenOperation` if a backup runs or may run on the pool, or a rolling pool update or reboot
    *   runs on the pool
@@ -1091,7 +1093,7 @@ export default class XenServers {
   async resumeRollingPoolUpdate(
     $defer,
     pool,
-    { bypassBackupCheck = false, acceptOperatorChanges = false, parentTask } = {}
+    { acceptOperatorChanges = false, automatic = false, bypassBackupCheck = false, parentTask } = {}
   ) {
     const app = this._app
     const poolId = pool.id
@@ -1103,7 +1105,7 @@ export default class XenServers {
 
     let resumed
     try {
-      resumed = await app.resumeRpuRecoveryRun(pool, schedules, { acceptOperatorChanges })
+      resumed = await app.resumeRpuRecoveryRun(pool, schedules, { acceptOperatorChanges, automatic })
     } catch (error) {
       if (incorrectState.is(error, { property: 'operatorChanges' })) {
         // the caller needs this error to offer the acknowledgement
@@ -1123,8 +1125,13 @@ export default class XenServers {
     return this._runRollingPoolUpdate($defer, pool, {
       acceptedOperatorChanges,
       jobs,
-      // a resume is the explicit acceptance of the state its run left
-      options: { ...options, acceptCurrentStateAsBaseline: true },
+      // a resume is the explicit acceptance of the state its run left. Nobody
+      // accepts it in an automatic one: only a run which started on a host,
+      // the master being the first, may have left the pool half updated itself
+      options: {
+        ...options,
+        acceptCurrentStateAsBaseline: !automatic || resume.hostsStarted || options.acceptCurrentStateAsBaseline,
+      },
       parentTask,
       recorder,
       resume,
@@ -1281,7 +1288,8 @@ export default class XenServers {
       recorder.setTaskId(task.id)
       await task.run(async () =>
         this.getXapi(pool).rollingPoolUpdate(task, {
-          xsCredentials: app.apiContext.user.preferences.xsCredentials,
+          // no API context in the automatic resume after a restart
+          xsCredentials: app.apiContext?.user.preferences.xsCredentials,
           acceptCurrentStateAsBaseline,
           rebootVm,
           shutdownPinnedVms,

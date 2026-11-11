@@ -723,10 +723,12 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
    * step statuses, last error, pinned VMs still halted, VMs the update could
-   * not migrate back to their original host (`vmConflicts`), what an
-   * operator changed since: settings the update left changed, hosts, VMs or
-   * backup schedules of the update removed, which block its resume until
-   * accepted (`operatorChanges`). 404 when the last
+   * not migrate back to their original host (`vmConflicts`), hosts a resume
+   * added to the plan because of patches released since the run started or
+   * because they joined the pool since (`planChange`), what an operator
+   * changed since: settings the update left changed, hosts, VMs or backup
+   * schedules of the update removed, which block its resume until accepted
+   * (`operatorChanges`). 404 when the last
    * rolling pool update completed successfully (no recovery needed), or when
    * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
    * record is kept for those pools).
@@ -798,9 +800,9 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
-   * Resume a failed or interrupted rolling pool update: the same run continues, only the hosts with remaining work
-   * are evacuated, updated and rebooted, then the VMs are migrated back to the host they were on before the first
-   * attempt. The settings the previous attempts left disabled (HA, auto power on, backup schedules, WLB, load
+   * Resume a failed or interrupted rolling pool update: the same run continues, the hosts with remaining work are
+   * evacuated, updated and rebooted, and a host a previous attempt finished is updated and rebooted again if patches
+   * were released since. Then the VMs are migrated back to the host they were on before the first attempt. The settings the previous attempts left disabled (HA, auto power on, backup schedules, WLB, load
    * balancer) stay disabled until the end of the run, then are restored.
    *
    * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
