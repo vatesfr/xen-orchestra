@@ -1,4 +1,5 @@
 import DockerConnectionForm from '@/modules/docker/components/form/connection/DockerConnectionForm.vue'
+import { createDockerEngine } from '@/test/create-docker-container.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -56,6 +57,73 @@ it('trusts the host key with the current form, not the rejected request', async 
     hostKeyFingerprint: FINGERPRINT,
   })
   expect(wrapper.emitted('saved')).toHaveLength(1)
+})
+
+it('trusts the new host key of a reconfigured engine, with the current form', async () => {
+  const NEW_FINGERPRINT = 'SHA256:jevkyj8fSz4Z+08fSN74aATCOihCPmIL+HkKx1xAVCU'
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(
+      Response.json(
+        {
+          error: 'host key mismatch',
+          data: { code: 'HOST_KEY_MISMATCH', expected: FINGERPRINT, actual: NEW_FINGERPRINT },
+        },
+        { status: 409 }
+      )
+    )
+    .mockResolvedValueOnce(Response.json({}))
+  vi.stubGlobal('fetch', fetch)
+
+  const wrapper = mount(DockerConnectionForm, {
+    props: {
+      vm: createVm({ mainIpAddress: '10.0.0.5', addresses: { '0/ipv4/0': '10.0.0.5' } }),
+      engine: createDockerEngine({ host: '10.0.0.9', username: 'docker', hostKeyFingerprint: FINGERPRINT }),
+    },
+    global: createGlobalTestConfig(),
+  })
+
+  // the engine moved: a new address, which presents another host key
+  const address = wrapper.findAll('input').find(input => (input.element as HTMLInputElement).value === '10.0.0.9')!
+  await address.setValue('10.0.0.42')
+  await wrapper.find('form').trigger('submit')
+  await flushPromises()
+
+  expect(getSentBody(fetch, 0)).toMatchObject({ host: '10.0.0.42' })
+  expect(getSentBody(fetch, 0)).not.toHaveProperty('hostKeyFingerprint')
+
+  await wrapper
+    .findAll('button')
+    .find(button => button.text() === t('action:trust-new-host-key'))!
+    .trigger('click')
+  await flushPromises()
+
+  expect(getSentBody(fetch, 1)).toMatchObject({ host: '10.0.0.42', hostKeyFingerprint: NEW_FINGERPRINT })
+  expect(wrapper.emitted('saved')).toHaveLength(1)
+})
+
+it('does not offer to trust a mismatching host key when creating an engine', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValueOnce(
+      Response.json(
+        {
+          error: 'host key mismatch',
+          data: { code: 'HOST_KEY_MISMATCH', expected: FINGERPRINT, actual: 'SHA256:x' },
+        },
+        { status: 409 }
+      )
+    )
+  )
+
+  const wrapper = mountForm()
+  await wrapper.find('input[name="docker-ssh-username"]').setValue('docker')
+  await wrapper.find('textarea').setValue(PRIVATE_KEY)
+  await wrapper.find('form').trigger('submit')
+  await flushPromises()
+
+  expect(wrapper.text()).toContain(t('docker-host-key-fingerprint-mismatch'))
+  expect(wrapper.findAll('button').some(button => button.text() === t('action:trust-new-host-key'))).toBe(false)
 })
 
 it('does not let the browser autofill the login password into the SSH fields', () => {

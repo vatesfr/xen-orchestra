@@ -85,6 +85,12 @@
             <VtsCodeSnippet :content="hostKeyError.expected" />
             <span>{{ t('docker-host-key-presented') }}</span>
             <VtsCodeSnippet :content="hostKeyError.actual" copy />
+            <!-- reconfiguring a known engine (e.g. a new address): the presented key can replace the pin -->
+            <div v-if="isEditing">
+              <UiButton variant="primary" accent="danger" size="medium" :busy="isRunning" @click="trustHostKey()">
+                {{ t('action:trust-new-host-key') }}
+              </UiButton>
+            </div>
           </div>
         </template>
       </UiAlert>
@@ -211,12 +217,21 @@ async function onSubmit() {
 
 // TOFU: the user checked the fingerprint of the 409, it is verified again on connection.
 // The request is rebuilt from the form: the user may have changed it since.
+/**
+ * Pins the presented host key and submits the current form again: an unknown
+ * key (trust on first use), or the key presented instead of the pinned one
+ * when reconfiguring an engine (only offered while editing: when creating, a
+ * mismatch is with the fingerprint the user pasted on purpose)
+ */
 async function trustHostKey() {
-  if (hostKeyError.value?.code !== 'HOST_KEY_UNKNOWN') {
+  const error = hostKeyError.value
+  if (error?.code === 'HOST_KEY_UNKNOWN') {
+    formData.hostKeyFingerprint = error.fingerprint
+  } else if (error?.code === 'HOST_KEY_MISMATCH' && isEditing.value) {
+    formData.hostKeyFingerprint = error.actual
+  } else {
     return
   }
-
-  formData.hostKeyFingerprint = hostKeyError.value.fingerprint
 
   await onSubmit()
 }
