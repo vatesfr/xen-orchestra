@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem expanded :node-id="leaf.data.id">
-    <UiTreeItemLabel :route="`/vm/${leaf.data.id}`" no-indent>
+    <UiTreeItemLabel :route="`/vm/${leaf.data.id}`" :active no-indent>
       {{ leaf.data.name_label }}
       <template #icon>
         <VtsIcon :name="vmIcon" :tooltip="vmIconTooltip" size="medium" />
@@ -22,6 +22,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useDockerHostRoute } from '@/modules/docker/composables/use-docker-host-route.composable.ts'
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
@@ -43,4 +44,9 @@ const { powerState, hasPendingOperation, currentOperation, iconTooltip } = useXo
 const vmIcon = computed(() => getVmIcon(leaf.data))
 
 const vmIconTooltip = computed(() => iconTooltip.value || powerState.value.text)
+
+const { routeEngine } = useDockerHostRoute()
+
+// on its Containers tab, a container host VM is highlighted in the Containers tree instead
+const active = computed(() => (routeEngine.value?.$VM === leaf.data.id ? false : undefined))
 </script>

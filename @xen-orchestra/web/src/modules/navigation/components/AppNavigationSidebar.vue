@@ -42,6 +42,7 @@
 
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
+import { useDockerHostRoute } from '@/modules/docker/composables/use-docker-host-route.composable.ts'
 import { CONTAINERS_ROOT_ID } from '@/modules/docker/types/docker.type.ts'
 import { useNavigationTree } from '@/modules/navigation/composables/use-navigation-tree.composable.ts'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
@@ -114,51 +115,62 @@ function getRouteParamId() {
   return Array.isArray(paramId) ? paramId[0] : paramId
 }
 
-function getTreeNodeIdFromRoute() {
+const { routeEngine, selectedContainerId } = useDockerHostRoute()
+
+/** the nodes to reveal for the current route, the first one found in the tree wins */
+function getTreeNodeIdsFromRoute(): string[] {
+  // a container host's Containers tab: the selected container (listed only when its host is
+  // expanded), else the host, rather than the VM in the site tree
+  if (routeEngine.value !== undefined) {
+    return selectedContainerId.value === undefined
+      ? [routeEngine.value.id]
+      : [selectedContainerId.value, routeEngine.value.id]
+  }
+
   const paramId = getRouteParamId()
 
   if (paramId) {
-    return paramId
+    return [paramId]
   }
 
   if (route.name === '/containers') {
-    return CONTAINERS_ROOT_ID
+    return [CONTAINERS_ROOT_ID]
   }
 
-  return undefined
+  return []
 }
 
 async function scrollToActiveNode() {
-  const treeNodeId = getTreeNodeIdFromRoute()
+  const treeNodeIds = getTreeNodeIdsFromRoute()
 
-  if (treeNodeId === undefined) {
+  if (treeNodeIds.length === 0) {
     scrolledToId = undefined
     return
   }
 
-  if (treeNodeId === scrolledToId) {
+  for (const treeNodeId of treeNodeIds) {
+    if (treeNodeId === scrolledToId) {
+      return
+    }
+
+    const node = expandToNode(treeNodeId)
+    const index = node === undefined ? undefined : treeItemIndexById.value.get(node.id)
+    if (index === undefined) {
+      continue
+    }
+
+    scrolledToId = treeNodeId
+
+    await nextTick()
+
+    siteTreeList.value?.scrollToItem(index)
+
     return
   }
-
-  const node = expandToNode(treeNodeId)
-  if (!node) {
-    return
-  }
-
-  const index = treeItemIndexById.value.get(node.id)
-  if (index === undefined) {
-    return
-  }
-
-  scrolledToId = treeNodeId
-
-  await nextTick()
-
-  siteTreeList.value?.scrollToItem(index)
 }
 
 watch(
-  [getTreeNodeIdFromRoute, isReady, treeItems],
+  [() => getTreeNodeIdsFromRoute().join(' '), isReady, treeItems],
   () => {
     if (isReady.value) {
       scrollToActiveNode()

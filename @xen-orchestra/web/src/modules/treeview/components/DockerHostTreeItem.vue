@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem :expanded="!branch.isCollapsed" :has-children="hasChildren" :node-id="branch.data.id">
-    <UiTreeItemLabel :route="`/vm/${branch.data.vm.id}/containers`" @toggle="branch.toggleCollapse()">
+    <UiTreeItemLabel :route="`/vm/${branch.data.vm.id}/containers`" :active @toggle="branch.toggleCollapse()">
       {{ branch.data.label }}
       <template #icon>
         <VtsIcon :name="icon" :tooltip size="medium" />
@@ -21,11 +21,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useDockerHostRoute } from '@/modules/docker/composables/use-docker-host-route.composable.ts'
 import { useDockerHostStatus } from '@/modules/docker/composables/use-docker-host-status.composable.ts'
 import {
   canListContainers,
   getDockerEngineKindLabel,
   getDockerHostIcon,
+  isDockerHostRowActive,
 } from '@/modules/docker/utils/xo-docker-tree.util.ts'
 import type { DockerHostBranch } from '@/modules/treeview/types/tree.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -44,6 +46,19 @@ const { branch } = defineProps<{
 const { t } = useI18n()
 
 const { getDockerHostStatus } = useDockerHostStatus()
+
+const { routeEngine, selectedContainerId } = useDockerHostRoute()
+
+// `RouterLink` ignores the query: the host would stay highlighted with a selected container
+const active = computed(() =>
+  isDockerHostRowActive({
+    hostId: branch.data.id,
+    routeEngineId: routeEngine.value?.id,
+    selectedContainerId: selectedContainerId.value,
+    isCollapsed: branch.isCollapsed,
+    containerIds: branch.rawChildren.map(container => container.data.id),
+  })
+)
 
 const canList = computed(() => canListContainers(branch.data))
 
