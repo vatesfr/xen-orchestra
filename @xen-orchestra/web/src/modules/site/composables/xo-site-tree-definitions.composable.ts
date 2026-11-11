@@ -3,18 +3,15 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import type { XoSite } from '@/modules/site/types/xo-site.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
-import { useTreeCollapse } from '@core/composables/tree-collapse.composable.ts'
-import { useTreeFilter } from '@core/composables/tree-filter.composable.ts'
+import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
 import { defineTree } from '@core/packages/tree/define-tree.ts'
-import { useTree } from '@core/packages/tree/use-tree.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
-export function useXoSiteTree() {
+export function useXoSiteTreeDefinitions(predicate: (node: TreeNodeBase) => boolean | undefined) {
   const { pools, arePoolsReady } = useXoPoolCollection()
   const { hostsByPool, areHostsReady } = useXoHostCollection()
   const { vmsByHost, hostLessVmsByPool, areVmsReady } = useXoVmCollection()
-  const { filter, predicate, isSearching, hasFilter } = useTreeFilter()
 
   const site: XoSite = {
     id: 'site-root',
@@ -70,16 +67,8 @@ export function useXoSiteTree() {
     )
   )
 
-  const collapsedIds = useTreeCollapse('site.collapsed', filter, hasFilter)
-
-  const { flatNodes, flatNodeIndexById, expandToNode } = useTree(definitions, { collapsedIds })
-
   return {
+    definitions,
     isReady,
-    treeItems: flatNodes,
-    treeItemIndexById: flatNodeIndexById,
-    filter,
-    isSearching,
-    expandToNode,
   }
 }

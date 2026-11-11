@@ -42,7 +42,7 @@
 
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
-import { useXoSiteTree } from '@/modules/site/composables/xo-site-tree.composable.ts'
+import { useNavigationTree } from '@/modules/navigation/composables/use-navigation-tree.composable.ts'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
 import type { SidebarSide } from '@core/packages/sidebar'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
@@ -77,7 +77,7 @@ const SIDEBAR_PANEL = {
 
 type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 
-const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useXoSiteTree()
+const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useNavigationTree()
 
 const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
