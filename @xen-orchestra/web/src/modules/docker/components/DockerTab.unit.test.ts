@@ -12,38 +12,34 @@ import { createDockerContainer, createDockerEngine } from '@/test/create-docker-
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
+import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { flushPromises, mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 
-const { engineState, infoState, containerState } = vi.hoisted(() => ({
-  engineState: {} as Record<string, unknown>,
-  infoState: {} as Record<string, unknown>,
-  containerState: {} as Record<string, unknown>,
-}))
+const engineState = {} as Record<string, unknown>
+const infoState = {} as Record<string, unknown>
+const containerState = {} as Record<string, unknown>
 
-vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-engine-collection.ts'), () => ({
+mockModule(import('@/modules/docker/remote-resources/use-xo-docker-engine-collection.ts'), () => ({
   useXoDockerEngineCollection: (() => engineState) as unknown as typeof useXoDockerEngineCollection,
 }))
 
-vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-engine-info.ts'), () => ({
+mockModule(import('@/modules/docker/remote-resources/use-xo-docker-engine-info.ts'), () => ({
   useXoDockerEngineInfo: (() => infoState) as unknown as typeof useXoDockerEngineInfo,
 }))
 
-// confirms right away
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
-  useDeleteModal: () =>
-    ({
-      open: ({ events }: { events: { onConfirm: () => Promise<void> } }) => events.onConfirm(),
-    }) as never,
-}))
-
-vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-container-collection.ts'), () => ({
+mockModule(import('@/modules/docker/remote-resources/use-xo-docker-container-collection.ts'), () => ({
   useXoDockerContainerCollection: (() => containerState) as unknown as typeof useXoDockerContainerCollection,
 }))
 
+mockDeleteModal()
+
 const CONNECTED_INFO: FrontXoDockerEngineInfo = {
   status: 'connected',
+  kind: 'docker',
   asOf: Date.now(),
   engineVersion: '29.8.1',
   apiVersion: '1.43',
@@ -102,6 +98,7 @@ function setContainers(containers: FrontXoDockerContainer[]) {
 }
 
 beforeEach(() => {
+  deleteModalMock.reset()
   setEngines({ engine: undefined })
   setInfo(undefined)
   setContainers([])
@@ -188,9 +185,7 @@ it('shows the engine, the counters and the containers when the engine is connect
   expect(wrapper.find('.docker-containers-summary-card .total').text()).toContain('2')
   expect(wrapper.find('.docker-containers-summary-card .running').text()).toContain('1')
   expect(wrapper.find('.docker-containers-summary-card .stopped').text()).toContain('1')
-  expect(
-    wrapper.findAll('.docker-containers-table tbody tr').map(row => row.find('.vts-stacked-text-cell .primary').text())
-  ).toEqual(['web', 'job'])
+  expect(wrapper.findAll('.docker-containers-table tbody tr').map(row => row.find('td').text())).toEqual(['web', 'job'])
   expect(wrapper.find('.docker-containers-table').text()).toContain(t('status:exited-with-code', { code: 3 }))
 })
 
@@ -277,10 +272,7 @@ it('keeps the engine card and its actions when /info fails', () => {
 })
 
 it('shows why forgetting the engine failed', async () => {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => Response.json({ error: 'engine is busy' }, { status: 500, statusText: 'Internal Server Error' }))
-  )
+  stubFetchResponse(500, { error: 'engine is busy' })
   setEngines({ engine: createDockerEngine() })
   setInfo(CONNECTED_INFO)
 
@@ -290,6 +282,7 @@ it('shows why forgetting the engine failed', async () => {
     .findAll('.docker-engine-card button')
     .find(button => button.text() === t('action:forget-docker-engine'))!
     .trigger('click')
+  deleteModalMock.confirm()
   await flushPromises()
 
   const alert = wrapper.find('.docker-engine-card .ui-alert')

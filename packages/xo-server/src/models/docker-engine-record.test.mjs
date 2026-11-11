@@ -34,6 +34,7 @@ describe('validateRecord()', () => {
   it('accepts a complete record', () => {
     validateRecord(valid())
     validateRecord(valid({ host: undefined, vm: VM, hostKeyFingerprint: FINGERPRINT, hostKeyAlgorithm: 'ssh-rsa' }))
+    validateRecord(valid({ kind: 'podman' }))
   })
 
   for (const [props, pattern] of [
@@ -46,6 +47,7 @@ describe('validateRecord()', () => {
     [{ socketPath: '/a\0b' }, /socketPath must be/],
     [{ hostKeyFingerprint: 'SHA256:short' }, /hostKeyFingerprint must be/],
     [{ hostKeyAlgorithm: 'ssh-foo' }, /hostKeyAlgorithm must be one of/],
+    [{ kind: 'lxc' }, /kind must be one of/],
     [{ vm: 1 }, /\$VM must be a string/],
     [{ label: {} }, /label must be a string/],
   ]) {
@@ -80,6 +82,7 @@ describe('applyProperties()', () => {
 
   it('refuses unknown properties and checks the transient ones', () => {
     assert.throws(() => applyProperties(valid(), { revision: 'x' }), isInvalid(/unknown property revision/))
+    assert.throws(() => applyProperties(valid(), { kind: 'docker' }), isInvalid(/unknown property kind/))
     assert.throws(() => applyProperties(valid(), { acceptUnknownHostKey: 'yes' }), isInvalid(/must be a boolean/))
     assert.throws(() => applyProperties(valid(), { hostKeyFingerprint: 1 }), isInvalid(/must be a string/))
     applyProperties(valid(), { acceptUnknownHostKey: true })
@@ -90,7 +93,7 @@ describe('parseImportedEngines()', () => {
   it('fills the defaults, normalizes the fingerprint and gives new revisions', () => {
     const { ids, vms, records } = parseImportedEngines([
       { id: 'a', host: 'h', username: 'u', password: 'p', revision: 'old', hostKeyFingerprint: `${FINGERPRINT}= ` },
-      { id: 'b', vm: VM, username: 'u', password: 'p' },
+      { id: 'b', vm: VM, username: 'u', password: 'p', kind: 'podman' },
     ])
     assert.deepEqual(Array.from(ids), ['a', 'b'])
     assert.deepEqual(Array.from(vms), [[VM, 'b']])
@@ -100,6 +103,7 @@ describe('parseImportedEngines()', () => {
     assert.equal('hostKeyAlgorithm' in records[0], false)
     assert.notEqual(records[0].revision, 'old')
     assert.notEqual(records[0].revision, records[1].revision)
+    assert.equal(records[1].kind, 'podman')
   })
 
   it('refuses invalid imports', () => {

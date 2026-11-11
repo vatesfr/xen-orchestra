@@ -24,7 +24,10 @@ type Wire<T, K extends keyof T> = Pick<T, K> & { [key: string]: unknown }
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> }
 
 /** `GET /version` */
-export type DockerVersion = Wire<Api['SystemVersion'], 'Version' | 'ApiVersion' | 'MinAPIVersion'>
+export type DockerVersion = Wire<
+  Api['SystemVersion'],
+  'Version' | 'ApiVersion' | 'MinAPIVersion' | 'Platform' | 'Components'
+>
 
 /** `GET /info` */
 export type DockerInfo = Wire<

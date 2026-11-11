@@ -5,7 +5,7 @@
 //   `redis://127.0.0.1:6379`), database XO_DOCKER_TEST_REDIS_DB (default 10) is
 //   flushed
 // - the second one also needs the real SSH + dockerd environment of
-//   `connection.integration.test.mts` of `@xen-orchestra/docker-ssh`
+//   `connection.integ.mts` of `@xen-orchestra/docker-ssh`
 //   (XO_DOCKER_TEST_SSH_HOST…), and uses database XO_DOCKER_TEST_REDIS_DB + 1;
 //   XO_DOCKER_TEST_MIXIN_SSH_PORT and XO_DOCKER_TEST_MIXIN_SSH_FINGERPRINT
 //   override the port and the fingerprint (see below); XO_DOCKER_TEST_ROOTLESS=0
@@ -21,9 +21,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test'
 import { parseDuration } from '@vates/parse-duration'
+import TOML from '@iarna/toml'
 import { createClient } from 'redis'
 import { DockerConnection, DockerError, MAX_API_VERSION } from '@xen-orchestra/docker-ssh'
-import { CONTAINER_LIST, INSPECT_BY_NAME } from '@xen-orchestra/docker-ssh/dist/fixtures/containers.mjs'
+import { CONTAINER_LIST, INSPECT_BY_NAME } from '@xen-orchestra/docker-ssh/dist/fixtures/containers.fixture.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { PassThrough, Readable } from 'node:stream'
@@ -82,6 +83,9 @@ const OBJECTS = {
 
 const getPath = (object, path) => path.split('.').reduce((value, key) => value?.[key], object)
 
+// the defaults of the real configuration
+const { docker: DOCKER_DEFAULTS } = TOML.parse(readFileSync(new URL('../../config.toml', import.meta.url), 'utf8'))
+
 async function createCrypto() {
   const crypto = new CryptoCredentials({ hooks: { on() {} }, config: { getOptional: () => true } })
   await crypto._loadKey(randomBytes(32), randomBytes(32))
@@ -97,11 +101,12 @@ async function createDocker({ redis, crypto = null, config = {} }) {
     _redis: redis,
     cryptoCredentials: crypto,
     config: {
-      getOptional: path => getPath(config, path),
-      getOptionalDuration: path => {
-        const value = getPath(config, path)
-        return value === undefined ? undefined : parseDuration(value)
+      get: path => {
+        const value = getPath({ ...config, docker: { ...DOCKER_DEFAULTS, ...config.docker } }, path)
+        assert.notEqual(value, undefined, path)
+        return value
       },
+      getDuration: path => parseDuration(app.config.get(path)),
     },
     hooks: {
       on(event, listener) {
@@ -170,6 +175,7 @@ function installFakeConnections() {
     request: proto.request,
     observedHostKey: Object.getOwnPropertyDescriptor(proto, 'observedHostKey'),
     apiVersion: Object.getOwnPropertyDescriptor(proto, 'apiVersion'),
+    engineKind: Object.getOwnPropertyDescriptor(proto, 'engineKind'),
   }
   const fake = {
     connects: 0,
@@ -177,7 +183,9 @@ function installFakeConnections() {
     delay: 0,
     connect: undefined,
     observed: { fingerprint: FINGERPRINT, algorithm: 'ssh-ed25519' },
+    kind: undefined,
     reset() {
+      this.kind = undefined
       this.connects = 0
       this.requests = 0
       this.delay = 0
@@ -189,6 +197,7 @@ function installFakeConnections() {
       proto.request = original.request
       Object.defineProperty(proto, 'observedHostKey', original.observedHostKey)
       Object.defineProperty(proto, 'apiVersion', original.apiVersion)
+      Object.defineProperty(proto, 'engineKind', original.engineKind)
     },
   }
   proto.connect = async function () {
@@ -217,6 +226,12 @@ function installFakeConnections() {
     configurable: true,
     get() {
       return fake.connect === null ? original.apiVersion.get.call(this) : '1.43'
+    },
+  })
+  Object.defineProperty(proto, 'engineKind', {
+    configurable: true,
+    get() {
+      return fake.connect === null ? original.engineKind.get.call(this) : fake.kind
     },
   })
   fake.reset()
@@ -518,6 +533,46 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
         fake.reset()
         await docker.updateDockerEngine(id, { port: 2222 })
         assert.equal((await docker.getDockerEngine(id)).connectionStatus, 'idle')
+        await emit('stop')
+      })
+
+      it('kind: saved when created, from the live connection, else the last known one', async () => {
+        fake.kind = 'podman'
+        const created = await docker.createDockerEngine({
+          host: '192.0.2.10',
+          username: 'docker',
+          password: 'secret-password',
+          hostKeyFingerprint: FINGERPRINT,
+        })
+        assert.equal(created.kind, 'podman')
+        assert.equal((await seedDb.first(created.id)).kind, 'podman')
+
+        // unknown until a connection negotiated
+        const { id, revision } = await seed({})
+        assert.equal('kind' in (await docker.getDockerEngine(id)), false)
+
+        // the fake connections answer 500: the connection negotiated anyway
+        fake.kind = 'docker'
+        await assert.rejects(docker.getDockerEngineInfo(id), { code: 'DOCKER_API_ERROR' })
+        assert.equal((await docker.getDockerEngine(id)).connectionStatus, 'connected')
+        assert.equal((await docker.getDockerEngine(id)).kind, 'docker')
+        const raw = await seedDb.first(id)
+        assert.equal(raw.kind, 'docker')
+        assert.equal(raw.revision, revision, 'the revision is not bumped')
+
+        // the live kind wins over the stored one
+        fake.kind = 'podman'
+        const { id: other } = await seed({ kind: 'docker' })
+        await assert.rejects(docker.getDockerEngineInfo(other), { code: 'DOCKER_API_ERROR' })
+        assert.equal((await docker.getDockerEngine(other)).kind, 'podman')
+        assert.equal((await seedDb.first(other)).kind, 'podman')
+
+        // idle: the last known one
+        await emit('stop')
+        ;({ docker, emit } = await createDocker({ redis, crypto }))
+        const idle = await docker.getDockerEngine(id)
+        assert.equal(idle.connectionStatus, 'idle')
+        assert.equal(idle.kind, 'docker')
         await emit('stop')
       })
 
@@ -1084,13 +1139,13 @@ describe('Docker mixin: engines CRUD (redis, no SSH)', { skip: skipRedis }, () =
           await assert.rejects(docker.getDockerContainerLogs(containerId, { since: 'not a date' }), { code: 10 })
         })
 
-        it('getDockerContainerStats(): malformed id or unknown engine → noSuchObject (phase 4)', async () => {
+        it('getDockerContainerStats(): malformed id or unknown engine → noSuchObject', async () => {
           for (const id of ['nope', `nope_${'a'.repeat(64)}`]) {
             await assert.rejects(docker.getDockerContainerStats(id), noSuchObject.is, id)
           }
         })
 
-        it('callDockerEngineRawApi(): parameters checked before any connection (phase 4)', async () => {
+        it('callDockerEngineRawApi(): parameters checked before any connection', async () => {
           const { id } = await seed({})
           await assert.rejects(docker.callDockerEngineRawApi(id, { method: 'CONNECT', path: '/x' }), { code: 10 })
           await assert.rejects(docker.callDockerEngineRawApi(id, { method: 'GET', path: 'x' }), { code: 10 })
@@ -1356,6 +1411,8 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
       const before = Date.now()
       const info = await docker.getDockerEngineInfo(engineId)
       assert.equal(info.status, 'connected')
+      assert.equal(info.kind, 'docker')
+      assert.equal((await docker.getDockerEngine(engineId)).kind, 'docker')
       assert.ok(info.asOf >= before)
       assert.match(info.engineVersion, /^\d+\.\d+/)
       assert.equal(typeof info.daemonId, 'string')
@@ -1732,7 +1789,7 @@ describe('Docker mixin against a real SSH server and dockerd', { skip: skipInteg
     await instance.docker.deleteDockerEngine(id)
   })
 
-  describe('stats sampler and raw requests (phase 4)', () => {
+  describe('stats sampler and raw requests', () => {
     let engineId, ids
     // the long-lived streams opened through DockerConnection, to check they are closed
     let streams, originalRequestStream

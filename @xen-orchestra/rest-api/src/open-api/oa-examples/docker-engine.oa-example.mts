@@ -1,6 +1,5 @@
 // Real payloads, captured from xo-server run from the sources against a rootless
-// dockerd 29.8.1 reached through OpenSSH 10.0 (phase 3 end-to-end run of the
-// Docker integration, rerun after the review fixes). Lists are shortened.
+// dockerd 29.8.1 reached through OpenSSH 10.0. Lists are shortened.
 
 export const dockerEngineId = {
   id: '8d834412-eb40-4328-a815-3fcc0989bd07',
@@ -29,11 +28,13 @@ export const dockerEngine = {
   resolvedHost: '127.0.0.1',
   hasPassword: false,
   hasPrivateKey: true,
+  kind: 'docker',
   connectionStatus: 'idle',
 }
 
 export const dockerEngineInfo = {
   status: 'connected',
+  kind: 'docker',
   asOf: 1790285367714,
   daemonId: '00000000-0000-4000-8000-000000000000',
   name: 'docker-host',

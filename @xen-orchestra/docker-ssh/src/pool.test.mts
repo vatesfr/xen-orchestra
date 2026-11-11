@@ -28,6 +28,8 @@ class FakeConnection {
     FakeConnection.instances.push(this)
   }
 
+  engineKind: 'docker' | 'podman' | undefined = undefined
+
   get apiVersion() {
     return '1.43'
   }
@@ -123,6 +125,13 @@ describe('DockerConnectionPool', () => {
     assert.equal(connections.length, 2)
     assert.deepEqual(pool.getState('a', 0), { status: 'connected' })
     assert.deepEqual(pool.getState('b', 0), { status: 'idle' })
+    await pool.destroy()
+  })
+
+  it('getState() gives the kind of a connected engine', async () => {
+    const pool = new DockerConnectionPool()
+    await pool.use(engine('a'), () => Object.assign(new FakeConnection(), { engineKind: 'podman' as const }), idle)
+    assert.deepEqual(pool.getState('a', 0), { status: 'connected', kind: 'podman' })
     await pool.destroy()
   })
 

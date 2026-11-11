@@ -100,31 +100,8 @@ import { parseSize } from '../utils.mjs'
 
 const log = createLogger('xo:xo-mixins:docker')
 
-const DEFAULTS = {
-  connectTimeout: 15e3,
-  requestTimeout: 30e3,
-  strictHostKeyChecking: true,
-  maxConnections: 20,
-  connectionIdleTimeout: 5 * 60e3,
-  failureTtl: 30e3,
-  cacheExpiresIn: 10e3,
-  inspectThreshold: 200,
-  defaultLogsTail: 100,
-  maxLogsTail: 10e3,
-  maxLogsSize: 5 * 1024 * 1024,
-  logsTimeout: 30e3,
-  logsIdleTimeout: 10e3,
-  authFailureCooldown: 10e3,
-  statsIdleTimeout: 90e3,
-  maxStatsContainers: 100,
-  maxStatsEngines: 10,
-  maxRawRequestSize: 1024 * 1024,
-  maxRawResponseSize: 10 * 1024 * 1024,
-  rawRequestTimeout: 5 * 60e3,
-}
-
 // containers whose inspection gives useful data (uptime, restart count…) in
-// the list, see tier 2 in the plan
+// the list
 const INSPECTED_STATES = new Set(['running', 'paused', 'restarting'])
 
 const CONTAINER_ACTIONS = new Set(['start', 'stop', 'restart', 'pause', 'unpause'])
@@ -286,12 +263,10 @@ export default class Docker {
   constructor(app) {
     this.#app = app
 
+    // defaults in config.toml
     const { config } = app
-    const get = (key, parse = value => value) => {
-      const value = config.getOptional('docker.' + key)
-      return value === undefined ? DEFAULTS[key] : parse(value)
-    }
-    const getDuration = key => config.getOptionalDuration('docker.' + key) ?? DEFAULTS[key]
+    const get = (key, parse = value => value) => parse(config.get('docker.' + key))
+    const getDuration = key => config.getDuration('docker.' + key)
     this.#config = {
       connectTimeout: getDuration('connectTimeout'),
       requestTimeout: getDuration('requestTimeout'),
@@ -330,7 +305,7 @@ export default class Docker {
         crypto: app.cryptoCredentials,
       }))
 
-      app.addConfigManager?.(
+      app.addConfigManager(
         'dockerEngines',
         () => db.get(),
         engines => this.#importEngines(engines)
@@ -1118,6 +1093,9 @@ export default class Docker {
       await connection.close()
     }
     setHostKey(record, connection.observedHostKey)
+    if (connection.engineKind !== undefined) {
+      record.kind = connection.engineKind
+    }
   }
 
   // used when a key has been accepted without strict host key checking
@@ -1129,6 +1107,18 @@ export default class Docker {
       const record = await this.#db.first(id)
       if (record !== undefined && record.hostKeyFingerprint === undefined) {
         setHostKey(record, hostKey)
+        await this.#db.update(record)
+      }
+    })
+  }
+
+  // remember the kind of the engine (shown while idle), like `#pinHostKey()`:
+  // only this field is written, without bumping the revision
+  async #saveKind(id, kind) {
+    await this.#withLocks([`engine:${id}`], async () => {
+      const record = await this.#db.first(id)
+      if (record !== undefined && record.kind !== kind) {
+        record.kind = kind
         await this.#db.update(record)
       }
     })
@@ -1194,6 +1184,15 @@ export default class Docker {
       } catch (error) {
         held.release(error)
         throw error
+      }
+    }
+    const { engineKind } = held.connection
+    if (engineKind !== undefined && engineKind !== record.kind) {
+      try {
+        await this.#saveKind(record.id, engineKind)
+      } catch (error) {
+        // best effort: the request goes on
+        log.warn('cannot save the kind of the engine', { engine: record.id, error })
       }
     }
     return held
@@ -1308,7 +1307,10 @@ export default class Docker {
     }
     engine.hasPassword = record.password !== undefined
     engine.hasPrivateKey = record.privateKey !== undefined
-    const { status, error } = this.#pool.getState(record.id, this.#connectionKey(record))
+    const { status, error, kind = record.kind } = this.#pool.getState(record.id, this.#connectionKey(record))
+    if (kind !== undefined) {
+      engine.kind = kind
+    }
     engine.connectionStatus = status
     if (error !== undefined) {
       engine.error = error

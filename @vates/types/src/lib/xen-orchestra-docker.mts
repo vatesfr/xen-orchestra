@@ -4,6 +4,8 @@
 // are omitted, except the stats values which are `null` when they cannot be
 // computed.
 
+import type { XoDockerEngine, XoVm } from '../xo.mjs'
+
 export type XoDockerContainerState = 'created' | 'running' | 'paused' | 'restarting' | 'removing' | 'exited' | 'dead'
 
 export type XoDockerContainerHealth = 'starting' | 'healthy' | 'unhealthy'
@@ -84,8 +86,12 @@ export type XoDockerError = {
   data?: Record<string, unknown>
 }
 
+/** Podman is told from Docker by its `GET /version` */
+export type XoDockerEngineKind = 'docker' | 'podman'
+
 export type XoDockerEngineInfoConnected = {
   status: 'connected'
+  kind: XoDockerEngineKind
   asOf: number
   /** the daemon's ID, not the engine's */
   daemonId?: string
@@ -162,8 +168,8 @@ export type XoDockerLogs = {
  * Failure of one engine in a container listing
  */
 export type XoDockerContainerListError = {
-  $engine: string
-  $VM?: string
+  $engine: XoDockerEngine['id']
+  $VM?: XoVm['id']
   code: string
   message: string
 }

@@ -15,6 +15,7 @@ import type {
   XoDockerContainerHealth,
   XoDockerContainerStats,
   XoDockerEngineInfoConnected,
+  XoDockerEngineKind,
   XoDockerMount,
   XoDockerNetwork,
   XoDockerPort,
@@ -549,6 +550,20 @@ export function normalizeContainerStats(value: unknown): XoDockerContainerStats 
 
 // === Engine
 
+const PODMAN_RE = /podman/i
+
+/**
+ * Podman's Docker-compatible API is told from Docker by the components and the
+ * platform of its `GET /version` (e.g. `Podman Engine`).
+ */
+export function getEngineKind(version: DockerVersion | undefined): XoDockerEngineKind {
+  const components = Array.isArray(version?.Components) ? version.Components : []
+  return components.some(component => PODMAN_RE.test(String(component?.Name))) ||
+    PODMAN_RE.test(String(version?.Platform?.Name))
+    ? 'podman'
+    : 'docker'
+}
+
 /**
  * `GET /info`, and optionally `GET /version` for the daemon's API versions.
  */
@@ -556,6 +571,7 @@ export function normalizeEngineInfo(info: DockerInfo, version?: DockerVersion): 
   const securityOptions = info.SecurityOptions ?? []
   return {
     id: info.ID,
+    kind: getEngineKind(version),
     name: info.Name,
     engineVersion: info.ServerVersion ?? version?.Version,
     apiVersion: version?.ApiVersion,
