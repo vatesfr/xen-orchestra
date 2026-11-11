@@ -604,6 +604,49 @@ describe('rollingPoolReboot', function () {
       )
     })
 
+    it('handles first the hosts to reboot first, then the master', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const recorder = planSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        rebootFirst: host => host.uuid === 'host-C',
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        ['host-C', 'host-A', 'host-B']
+      )
+      // the order a later resume follows
+      assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, ['host-C', 'host-A', 'host-B'])
+    })
+
+    it('keeps the order of the hosts to reboot first on a later resume', async function () {
+      const xapi = new FakeXapi([[10], [10], [10], [10]])
+      const recorder = planSpyRecorder()
+      const hostOrder = ['host-C', 'host-D', 'host-A', 'host-B']
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        rebootFirst: host => host.uuid === 'host-C' || host.uuid === 'host-D',
+        resume: { doneHostIds: new Set(), hostOrder, vmHomeById: {}, haltedPinnedVms: {} },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        hostOrder
+      )
+      assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, hostOrder)
+    })
+
     it('checks the evacuation precondition of the remaining hosts only right before evacuating them', async function () {
       const xapi = new FakeXapi([[10], [10], [10]])
       const calls = []

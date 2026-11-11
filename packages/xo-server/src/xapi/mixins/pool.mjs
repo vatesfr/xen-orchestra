@@ -55,6 +55,7 @@ const methods = {
       beforeEvacuateVms,
       beforeRebootHost,
       ignoreHost,
+      rebootFirst,
       shutdownPinnedVms = false,
       recorder = noopRpuRecorder,
       resume = noRpuResume,
@@ -241,12 +242,14 @@ const methods = {
       }
     }
 
-    // Put master in first position to restart it first
-    const indexOfMaster = hosts.findIndex(host => host.$ref === this.pool.master)
-    if (indexOfMaster === -1) {
+    if (!hosts.some(host => host.$ref === this.pool.master)) {
       throw new Error('Could not find pool master')
     }
-    ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+    // the hosts to reboot first, then the master to restart it first, then the
+    // others. A stable sort, unlike swapping the master with the first host,
+    // keeps within each group the order above, so a resume does not change it
+    const priority = host => (rebootFirst?.(host) ? 0 : 2) + (host.$ref === this.pool.master ? 0 : 1)
+    hosts.sort((a, b) => priority(a) - priority(b))
 
     // last write before the first host is handled: the host order and the VM
     // placement are the biggest part of the record, written once

@@ -346,7 +346,7 @@ resumeRollingUpdate.resolve = {
 }
 
 resumeRollingUpdate.description =
-  'Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, the settings it left disabled stay disabled until the end, then are restored'
+  'Resume a failed or interrupted rolling pool update: the hosts with remaining work are handled, and a finished host is updated and rebooted again if patches were released since, the settings it left disabled stay disabled until the end, then are restored'
 
 // -------------------------------------------------------------------
 
