@@ -8,25 +8,13 @@
     </template>
     <template v-if="container" #default>
       <UiPanelCard>
-        <VtsCardObjectTitle :id="container.dockerId" :label="displayName" icon="fa:layer-group" />
-        <div class="content">
-          <!-- CONTAINER ID -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('container-id') }}</template>
-            <template #value>
-              <VtsCodeSnippet :content="shortContainerId(container.dockerId)" />
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="container.dockerId" />
-            </template>
-          </VtsCardRowKeyValue>
+        <UiPanelCardTitle :id="container.dockerId" size="medium" :label="displayName" :icon />
+        <VtsCardRowList>
           <!-- STATE -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('state') }}</template>
             <template #value>
-              <UiTag :accent="getContainerStateAccent(container)" variant="primary">
-                {{ getDockerContainerStateLabel(container) }}
-              </UiTag>
+              <UiTag :accent="stateAccent" variant="primary">{{ stateLabel }}</UiTag>
             </template>
           </VtsCardRowKeyValue>
           <!-- HEALTH -->
@@ -35,10 +23,17 @@
             <template #value>
               <div class="health">
                 <UiTag :accent="healthAccent" variant="secondary">{{ t(`status:${container.health}`) }}</UiTag>
-                <span v-if="container.healthCheck?.lastCheckAt !== undefined" class="muted">
-                  {{ t('health-last-check') }}
-                  <VtsRelativeTime :date="container.healthCheck.lastCheckAt" />
-                </span>
+                <I18nT
+                  v-if="container.healthCheck?.lastCheckAt !== undefined"
+                  keypath="health-last-check"
+                  scope="global"
+                  tag="span"
+                  class="muted"
+                >
+                  <template #time>
+                    <VtsRelativeTime :date="container.healthCheck.lastCheckAt" />
+                  </template>
+                </I18nT>
               </div>
             </template>
           </VtsCardRowKeyValue>
@@ -61,7 +56,7 @@
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('command') }}</template>
             <template #value>
-              <code class="command">{{ container.command }}</code>
+              <VtsCodeSnippet :content="container.command" />
             </template>
             <template v-if="container.command" #addons>
               <VtsCopyButton :value="container.command" />
@@ -71,9 +66,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ t('created-on') }}</template>
             <template #value>
-              <template v-if="container.createdAt !== undefined">
-                {{ d(container.createdAt, 'datetime_short') }}
-              </template>
+              {{ createdOn }}
             </template>
           </VtsCardRowKeyValue>
           <!-- RESTART POLICY -->
@@ -103,36 +96,29 @@
               <template #value>{{ memoryUsage }}</template>
             </VtsCardRowKeyValue>
           </template>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
-        <div class="content">
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
+        <VtsCardRowList>
           <!-- OPEN PUBLISHED PORT -->
-          <div v-if="portToOpen !== undefined">
-            <UiLink
-              v-tooltip="t('open-published-port-info')"
-              size="medium"
-              :href="portToOpen.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="open-port"
-            >
-              {{ t('open-published-port', { port: portToOpen.port.publicPort }) }}
-            </UiLink>
-          </div>
+          <VtsCardRowKeyValue v-if="portToOpen !== undefined">
+            <template #key>{{ t('url') }}</template>
+            <template #value>
+              <UiLink
+                v-tooltip="t('open-published-port-info')"
+                size="small"
+                :href="portToOpen.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ t('open-published-port', { port: portToOpen.port.publicPort }) }}
+              </UiLink>
+            </template>
+          </VtsCardRowKeyValue>
           <!-- PORTS -->
-          <template v-if="ports.length > 0">
-            <VtsCardRowKeyValue v-for="(port, index) of ports" :key="port">
-              <template #key>
-                <span v-if="index === 0">{{ t('ports') }}</span>
-              </template>
-              <template #value>{{ port }}</template>
-            </VtsCardRowKeyValue>
-          </template>
-          <VtsCardRowKeyValue v-else>
+          <VtsCardRowKeyValue :values="ports">
             <template #key>{{ t('ports') }}</template>
-            <template #value><span class="value" /></template>
           </VtsCardRowKeyValue>
           <!-- NETWORKS -->
           <template v-if="container.networks.length > 0">
@@ -151,27 +137,12 @@
           </template>
           <VtsCardRowKeyValue v-else>
             <template #key>{{ t('networks') }}</template>
-            <template #value><span class="value" /></template>
           </VtsCardRowKeyValue>
           <!-- VOLUMES -->
-          <template v-if="container.mounts.length > 0">
-            <VtsCardRowKeyValue v-for="(mount, index) of container.mounts" :key="mount.destination" align-top>
-              <template #key>
-                <span v-if="index === 0">{{ t('volumes') }}</span>
-              </template>
-              <template #value>
-                <span class="mount">
-                  {{ t('docker-mount', { source: mount.name ?? mount.source, destination: mount.destination }) }}
-                  <span v-if="mount.readOnly" class="muted">{{ t('read-only') }}</span>
-                </span>
-              </template>
-            </VtsCardRowKeyValue>
-          </template>
-          <VtsCardRowKeyValue v-else>
+          <VtsCardRowKeyValue :values="volumes" align-top>
             <template #key>{{ t('volumes') }}</template>
-            <template #value><span class="value" /></template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- mounted only with a selection: its resource registers the URL of the container -->
       <DockerContainerLogsCard :key="container.id" :container />
@@ -185,29 +156,30 @@ import DockerContainerPrimaryActionButton from '@/modules/docker/components/acti
 import DockerContainerLogsCard from '@/modules/docker/components/panel/DockerContainerLogsCard.vue'
 import { useDockerContainerStateLabel } from '@/modules/docker/composables/use-docker-container-state-label.composable.ts'
 import type { FrontXoDockerContainer, FrontXoDockerEngine } from '@/modules/docker/types/docker.type.ts'
+import { getDockerContainerIcon } from '@/modules/docker/utils/xo-docker-tree.util.ts'
 import {
   dedupePorts,
   formatPortMapping,
   getContainerDisplayName,
   getContainerStateAccent,
   getPublishedPortToOpen,
-  shortContainerId,
 } from '@/modules/docker/utils/xo-docker.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { I18nT, useI18n } from 'vue-i18n'
 
 const { container, engine, vm } = defineProps<{
   container?: FrontXoDockerContainer
@@ -221,11 +193,19 @@ const emit = defineEmits<{
   changed: []
 }>()
 
-const { t, d, n } = useI18n()
+const { t, n } = useI18n()
 
 const { getDockerContainerStateLabel } = useDockerContainerStateLabel()
 
 const displayName = computed(() => (container === undefined ? '' : getContainerDisplayName(container)))
+
+const icon = computed(() => (container === undefined ? undefined : getDockerContainerIcon(container)))
+
+const stateAccent = computed(() => (container === undefined ? 'muted' : getContainerStateAccent(container)))
+
+const stateLabel = computed(() => (container === undefined ? '' : getDockerContainerStateLabel(container)))
+
+const createdOn = computed(() => (container?.createdAt === undefined ? '' : formatDateTime(container.createdAt)))
 
 const healthAccent = computed<TagAccent>(() => {
   switch (container?.health) {
@@ -276,6 +256,14 @@ const memoryUsage = computed(() => {
 
 const ports = computed(() => (container === undefined ? [] : dedupePorts(container.ports).map(formatPortMapping)))
 
+const volumes = computed(() =>
+  (container?.mounts ?? []).map(mount => {
+    const volume = t('source-to-destination', { source: mount.name ?? mount.source, destination: mount.destination })
+
+    return mount.readOnly ? `${volume} (${t('read-only')})` : volume
+  })
+)
+
 // the link opens from the browser: the address of the engine, as XO reaches it
 const portToOpen = computed(() =>
   container === undefined
@@ -286,12 +274,6 @@ const portToOpen = computed(() =>
 
 <style lang="postcss" scoped>
 .docker-container-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .health {
     display: flex;
     align-items: center;
@@ -302,18 +284,6 @@ const portToOpen = computed(() =>
   .muted {
     color: var(--color-neutral-txt-secondary);
     margin-inline-start: 0.4rem;
-  }
-
-  .mount {
-    overflow-wrap: anywhere;
-  }
-
-  .command {
-    overflow-wrap: anywhere;
-  }
-
-  .value:empty::before {
-    content: '-';
   }
 }
 </style>

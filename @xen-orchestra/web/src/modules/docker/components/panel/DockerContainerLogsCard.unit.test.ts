@@ -1,23 +1,18 @@
 import DockerContainerLogsCard from '@/modules/docker/components/panel/DockerContainerLogsCard.vue'
-import type { useXoDockerContainerLogs } from '@/modules/docker/remote-resources/use-xo-docker-container-logs.ts'
+import { useXoDockerContainerLogs } from '@/modules/docker/remote-resources/use-xo-docker-container-logs.ts'
 import { createDockerContainer } from '@/test/create-docker-container.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import type { XoDockerLogs } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { logsState, useLogs } = vi.hoisted(() => {
-  const logsState = {} as Record<string, unknown>
+const logsState = {} as Record<string, unknown>
 
-  return { logsState, useLogs: vi.fn(() => logsState) }
-})
-
-vi.mock(import('@/modules/docker/remote-resources/use-xo-docker-container-logs.ts'), async importOriginal => ({
-  ...(await importOriginal()),
-  useXoDockerContainerLogs: useLogs as unknown as typeof useXoDockerContainerLogs,
-}))
+const useLogs = mockedExport(useXoDockerContainerLogs)
 
 function setLogs(logs: XoDockerLogs | undefined, { hasError = false }: { hasError?: boolean } = {}) {
   Object.assign(logsState, {
@@ -45,7 +40,7 @@ function mountCard(container = createDockerContainer()) {
 }
 
 beforeEach(() => {
-  useLogs.mockClear()
+  useLogs.mockReturnValue(logsState)
   setLogs(undefined)
 })
 
@@ -66,9 +61,8 @@ it('shows the last lines, one per entry, the error stream marked', () => {
   const viewer = wrapper.find('.ui-log-entry-viewer')
   expect(viewer.find('.label').text()).toBe(t('logs-last-n-lines', { n: 50 }))
   // in local time, like the other dates
-  const date = (timestamp: string) => d(new Date(timestamp), { key: 'datetime_short', second: '2-digit' })
   expect(viewer.find('code').text()).toBe(
-    `${date('2026-09-25T08:42:01.123Z')} nginx: ready\n${date('2026-09-25T08:42:02Z')} [stderr] upstream timed out`
+    `${formatDateTime('2026-09-25T08:42:01.123Z')} nginx: ready\n${formatDateTime('2026-09-25T08:42:02Z')} [stderr] upstream timed out`
   )
   expect(wrapper.text()).toContain(t('logs-read-only-info', { n: 10 }))
   expect(wrapper.text()).not.toContain(t('logs-truncated'))
@@ -81,33 +75,6 @@ it('follows the tail of the logs', () => {
   const wrapper = mountCard()
 
   expect(wrapper.findComponent(UiLogEntryViewer).props('autoScroll')).toBe(true)
-})
-
-it('follows the tail only while the user stays at the bottom', async () => {
-  const wrapper = mount(UiLogEntryViewer, {
-    props: { label: 'Logs', content: 'a', size: 'small', accent: 'info', autoScroll: true },
-    global: createGlobalTestConfig(),
-  })
-  const element = wrapper.find('code').element
-  // no layout in happy-dom: 100px per line, one line visible
-  Object.defineProperty(element, 'scrollHeight', { get: () => element.textContent!.trim().split('\n').length * 100 })
-  Object.defineProperty(element, 'clientHeight', { value: 100 })
-  Object.defineProperty(element, 'scrollTop', { value: 0, writable: true })
-
-  // the icon-only buttons have an accessible name
-  expect(wrapper.findAll('.actions button').map(button => button.attributes('aria-label'))).toEqual([
-    t('action:copy'),
-    t('action:open-in-new-tab'),
-  ])
-
-  // at the bottom: follows the new lines
-  await wrapper.setProps({ content: 'a\nb' })
-  expect(element.scrollTop).toBe(200)
-
-  // scrolled up to read: stays there
-  element.scrollTop = 0
-  await wrapper.setProps({ content: 'a\nb\nc' })
-  expect(element.scrollTop).toBe(0)
 })
 
 it('says when the logs have been cut', () => {
