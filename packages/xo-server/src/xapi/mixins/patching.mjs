@@ -73,6 +73,11 @@ export const isUpdaterBusyError = error =>
 
 const LISTING_DEBOUNCE_TIME_MS = 60000
 
+// the update an interrupted attempt started outlives xo-server on the host: a
+// resumed attempt waits for it, as long as an update may last (see `_xcpUpdate`)
+const UPDATER_BUSY_DELAY = 10e3
+const UPDATER_BUSY_TIMEOUT = 30 * 60e3
+
 async function _listMissingPatches(hostId) {
   const host = this.getObject(hostId)
   return _isXcp(host)
@@ -201,6 +206,25 @@ const methods = {
     }
 
     return result
+  },
+
+  // A resumed attempt lists again rather than from the cache. The updater may
+  // still run the update of the interrupted attempt (patches or LINSTOR
+  // packages), which an automatic resume right after a restart of xo-server
+  // always meets: wait for its end
+  async _listMissingPatchesOnResume(hostId) {
+    const deadline = Date.now() + UPDATER_BUSY_TIMEOUT
+    return pRetry(
+      async () => {
+        await this.listMissingPatches(REMOVE_CACHE_ENTRY, hostId)
+        return this.listMissingPatches(hostId)
+      },
+      {
+        delay: UPDATER_BUSY_DELAY,
+        tries: Infinity,
+        when: error => isUpdaterBusyError(error) && Date.now() < deadline,
+      }
+    )
   },
 
   /**
@@ -849,10 +873,10 @@ const methods = {
             },
           },
           async () => {
-            if (resume.hostsStarted) {
-              await this.listMissingPatches(REMOVE_CACHE_ENTRY, hostUuid)
-            }
-            const missingPatches = await this.listMissingPatches(hostUuid)
+            const missingPatches =
+              resume !== noRpuResume
+                ? await this._listMissingPatchesOnResume(hostUuid)
+                : await this.listMissingPatches(hostUuid)
             hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
           }
         )

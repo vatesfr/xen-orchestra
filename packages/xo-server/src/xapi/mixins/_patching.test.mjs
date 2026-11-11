@@ -336,6 +336,86 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.installs, [])
     })
 
+    // the answer of the updater plugin while the update an interrupted attempt
+    // started still runs on the host
+    const updaterBusy = () =>
+      Object.assign(new Error('The updater plugin is busy'), {
+        code: '-1',
+        params: ['The updater plugin is busy (current operation: update)', '', ''],
+      })
+    // the listings of host-B fail while its updater is busy, and the listing
+    // cache keeps a failure until its entry is removed, as `debounceWithKey`
+    const busyUpdaterOnB = (xapi, nBusyListings) => {
+      const { listMissingPatches } = xapi
+      let cachedFailure
+      xapi.listMissingPatches = function (hostUuid, ...args) {
+        if (hostUuid === REMOVE_CACHE_ENTRY && args[0] === 'host-B') {
+          cachedFailure = undefined
+        } else if (hostUuid === 'host-B' && (cachedFailure !== undefined || nBusyListings-- > 0)) {
+          cachedFailure ??= updaterBusy()
+          return Promise.reject(cachedFailure)
+        }
+        return listMissingPatches.call(this, hostUuid, ...args)
+      }
+    }
+
+    it('waits for the update its interrupted attempt left running on a host', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([0, 0])
+      busyUpdaterOnB(xapi, 3)
+
+      const ticker = setInterval(() => t.mock.timers.tick(10e3), 1)
+      const { error, observedSteps } = await resumeUpdate(xapi, unfinishedB()).finally(() => clearInterval(ticker))
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.installs, [])
+      assert.deepEqual(observedSteps, ['host-B update'])
+    })
+
+    it('waits for the busy updater when the previous attempt stopped before any host', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([2, 2])
+      busyUpdaterOnB(xapi, 3)
+
+      const ticker = setInterval(() => t.mock.timers.tick(10e3), 1)
+      const { error } = await resumeUpdate(xapi, resumeOf(false)).finally(() => clearInterval(ticker))
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.installs, [['host-A'], ['host-B']])
+    })
+
+    it('does not wait on another listing error', { timeout: 5e3 }, async function () {
+      const xapi = new FakeXapi([0, 0])
+      xapi.listMissingPatches = hostUuid =>
+        hostUuid === REMOVE_CACHE_ENTRY ? Promise.resolve() : Promise.reject(new Error('repository unreachable'))
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error?.message, 'repository unreachable')
+    })
+
+    it('fails the run once the updater stays busy longer than an update', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+      const xapi = new FakeXapi([0, 0])
+      busyUpdaterOnB(xapi, Infinity)
+
+      const ticker = setInterval(() => t.mock.timers.tick(60e3), 1)
+      const { error } = await resumeUpdate(xapi, unfinishedB()).finally(() => clearInterval(ticker))
+
+      assert.match(error?.params?.[0], /plugin is busy/)
+      assert.deepEqual(xapi.steps, [])
+    })
+
+    it('does not wait for a busy updater on a first attempt', async function () {
+      const xapi = new FakeXapi([2, 2])
+      busyUpdaterOnB(xapi, 1)
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.match(error?.params?.[0], /plugin is busy/)
+      assert.deepEqual(xapi.steps, [])
+    })
+
     it('neither updates nor reboots an unfinished host which rebooted since, and enables it', async function () {
       const xapi = new FakeXapi([0, 0])
       Object.assign(xapi.hosts[1], { enabled: false, other_config: { boot_time: '3000' } })
