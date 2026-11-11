@@ -1,11 +1,7 @@
 <!-- v3 -->
 <template>
   <RouterLink v-slot="{ isExactActive, isActive, href, navigate }" :to="route" custom>
-    <div
-      :class="[className, isExactActive ? 'exact-active' : active || isActive ? 'active' : undefined]"
-      class="ui-tree-item-label"
-      v-bind="attrs"
-    >
+    <div :class="[className, getActiveClass(isExactActive, isActive)]" class="ui-tree-item-label" v-bind="attrs">
       <template v-if="depth > 1">
         <VtsTreeLine v-for="i in depth - 1" :key="i" :size="resolvedSize" />
       </template>
@@ -62,9 +58,10 @@ defineOptions({
   inheritAttrs: false,
 })
 
-const { size } = defineProps<{
+const { size, active = undefined } = defineProps<{
   route: RouteLocationRaw
   icon?: IconName
+  /** decides alone when set, e.g. for routes which differ only by their query, which `RouterLink` ignores */
   active?: boolean
   size?: TreeItemLabelSize
 }>()
@@ -96,6 +93,14 @@ const resolvedSize = computed(() => size ?? contextSize ?? 'medium')
 const className = computed(() => toVariants({ size: resolvedSize.value }))
 
 const smallHeight = `${TREE_ITEM_SMALL_HEIGHT}px`
+
+function getActiveClass(isExactActive: boolean, isActive: boolean) {
+  if (active !== undefined) {
+    return active ? 'exact-active' : undefined
+  }
+
+  return isExactActive ? 'exact-active' : isActive ? 'active' : undefined
+}
 </script>
 
 <style lang="postcss" scoped>

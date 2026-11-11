@@ -6,13 +6,14 @@ import { computed } from 'vue'
 
 /**
  * Docker engines matching a filter, e.g. `$VM:<uuid>` for the engine of a VM
- * (an empty list means that the VM has no engine configured).
+ * (an empty list means that the VM has no engine configured), all of them with
+ * an empty filter.
  *
  * Cheap: reading engines never opens an SSH connection.
  */
 export const useXoDockerEngineCollection = defineRemoteResource({
   url: (filter: string) =>
-    `${BASE_URL}/docker-engines?filter=${encodeURIComponent(filter)}&fields=${dockerEngineFields.join(',')}`,
+    `${BASE_URL}/docker-engines?${filter === '' ? '' : `filter=${encodeURIComponent(filter)}&`}fields=${dockerEngineFields.join(',')}`,
   initialData: () => [] as FrontXoDockerEngine[],
   // the payload is a plain array: assign it, a deep merge would keep stale keys
   onDataReceived: async (data, receivedData) => {

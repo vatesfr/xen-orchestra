@@ -42,6 +42,7 @@
 
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
+import { CONTAINERS_ROOT_ID } from '@/modules/docker/types/docker.type.ts'
 import { useNavigationTree } from '@/modules/navigation/composables/use-navigation-tree.composable.ts'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
 import type { SidebarSide } from '@core/packages/sidebar'
@@ -79,7 +80,7 @@ type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 
 const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useNavigationTree()
 
-const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
+const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]' | '/containers'>()
 
 const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 
@@ -103,19 +104,43 @@ const isDevPage = computed(() => route.path.startsWith('/dev'))
 
 let scrolledToId: string | undefined
 
-async function scrollToActiveNode() {
-  const paramId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+function getRouteParamId() {
+  if (!('id' in route.params)) {
+    return undefined
+  }
 
-  if (!paramId) {
+  const paramId = route.params.id
+
+  return Array.isArray(paramId) ? paramId[0] : paramId
+}
+
+function getTreeNodeIdFromRoute() {
+  const paramId = getRouteParamId()
+
+  if (paramId) {
+    return paramId
+  }
+
+  if (route.name === '/containers') {
+    return CONTAINERS_ROOT_ID
+  }
+
+  return undefined
+}
+
+async function scrollToActiveNode() {
+  const treeNodeId = getTreeNodeIdFromRoute()
+
+  if (treeNodeId === undefined) {
     scrolledToId = undefined
     return
   }
 
-  if (paramId === scrolledToId) {
+  if (treeNodeId === scrolledToId) {
     return
   }
 
-  const node = expandToNode(paramId)
+  const node = expandToNode(treeNodeId)
   if (!node) {
     return
   }
@@ -125,7 +150,7 @@ async function scrollToActiveNode() {
     return
   }
 
-  scrolledToId = paramId
+  scrolledToId = treeNodeId
 
   await nextTick()
 
@@ -133,7 +158,7 @@ async function scrollToActiveNode() {
 }
 
 watch(
-  [() => route.params.id, isReady, treeItems],
+  [getTreeNodeIdFromRoute, isReady, treeItems],
   () => {
     if (isReady.value) {
       scrollToActiveNode()
