@@ -189,6 +189,7 @@
   "action:test-plugin": "Test plugin",
   "action:test-speed": "Test speed",
   "action:trust-host-key": "I trust this host",
+  "action:trust-new-host-key": "I trust the new host key",
   "action:turn-into-group": "Turn into group",
   "action:unload": "Unload",
   "action:unpause": "Unpause",

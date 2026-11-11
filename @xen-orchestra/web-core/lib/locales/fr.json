@@ -189,6 +189,7 @@
   "action:test-plugin": "Tester le plugin",
   "action:test-speed": "Tester la vitesse",
   "action:trust-host-key": "Je fais confiance à cet hôte",
+  "action:trust-new-host-key": "Je fais confiance à la nouvelle clé d’hôte",
   "action:turn-into-group": "Transformer en groupe",
   "action:unload": "Décharger",
   "action:unpause": "Reprendre",
