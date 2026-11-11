@@ -387,6 +387,12 @@ function adoptOperatorChanges(record, changes) {
       }
       delete record.hosts?.[id]
       delete record.hasMissingPatchesByHost?.[id]
+      // a resume may have added it to the plan
+      const { recomputedPlan } = record
+      if (recomputedPlan !== undefined) {
+        delete recomputedPlan.hasMissingPatchesByHost[id]
+        recomputedPlan.addedHostIds = recomputedPlan.addedHostIds.filter(_ => _ !== id)
+      }
       // the VMs of a host which no longer exists stay where they are
       record.vmHomeById = withoutHost(record.vmHomeById, id)
       record.haltedPinnedVms = withoutHost(record.haltedPinnedVms, id)

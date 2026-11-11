@@ -1262,6 +1262,30 @@ describe('resumeRpuRecoveryRun()', () => {
       assert.deepEqual(stored.haltedPinnedVms, { vm5: 'h1' })
     })
 
+    it('no longer lists a host gone since the run among the hosts added to the plan', async () => {
+      const { store } = await storeWith({
+        hostOrder: ['h1', 'h2'],
+        hosts: { h1: { steps: {} }, h2: { steps: {} } },
+        hasMissingPatchesByHost: { h1: false, h2: false },
+        recomputedPlan: { attempt: 2, hasMissingPatchesByHost: { h1: true, h2: true }, addedHostIds: ['h1', 'h2'] },
+      })
+
+      await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live: { ...live, getHost: id => ({ h1: {} })[id] },
+        acceptOperatorChanges: true,
+      })
+
+      const stored = store.data.get('pool1')
+      assert.deepEqual(stored.recomputedPlan, {
+        attempt: 2,
+        hasMissingPatchesByHost: { h1: true },
+        addedHostIds: ['h1'],
+      })
+      assert.deepEqual(buildRpuRecoveryView(stored).planChange, { attempt: 2, addedHostIds: ['h1'] })
+    })
+
     it('gives up the HA restoration when a heartbeat SR is gone', async () => {
       const { store } = await storeWith({ changedByRun: { ha: HA } })
       const noSr = { ...live, pool: { ...live.pool, ha_enabled: false }, getSr: () => undefined }
