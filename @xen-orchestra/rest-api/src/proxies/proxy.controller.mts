@@ -15,7 +15,7 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoProxy } from '@vates/types'
+import type { XoApp, XoProxy } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
@@ -28,7 +28,13 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialProxies, proxy, proxyHealth, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
+import {
+  partialProxies,
+  proxy,
+  proxyHealth,
+  proxyIds,
+  proxyUpdaterState,
+} from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -43,6 +49,17 @@ async function callProxy<T>(call: Promise<T>): Promise<T> {
   } catch (error) {
     if (isProxyUnreachable(error)) {
       throw new ApiError(proxyUnreachableResp.description, proxyUnreachableResp.status)
+    }
+    throw error
+  }
+}
+
+async function callProxy<T>(call: Promise<T>): Promise<T> {
+  try {
+    return await call
+  } catch (error) {
+    if (isProxyUnreachable(error)) {
+      throw new ApiError('Proxy unreachable', 502)
     }
     throw error
   }
@@ -145,5 +162,33 @@ export class ProxyController extends XoController<XoProxy> {
     await callProxy(this.restApi.xoApp.checkProxyHealth(id as XoProxy['id']))
 
     return { success: true }
+  }
+
+  /**
+   * Returns the state of the proxy appliance updater (e.g. `xoa-up-to-date`, or a state ending with `-upgrade-needed`)
+   *
+   * Required privilege:
+   * - resource: proxy, action: read
+   *
+   * @example id "e625ea0c-a876-405a-b838-109d762efe88"
+   */
+  @Example(proxyUpdaterState)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/updater-state')
+  @Middlewares(
+    acl({
+      resource: 'proxy',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    })
+  )
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'Proxy unreachable')
+  getProxyUpdaterState(@Path() id: string): ReturnType<XoApp['getProxyApplianceUpdaterState']> {
+    return callProxy(this.restApi.xoApp.getProxyApplianceUpdaterState(id as XoProxy['id']))
   }
 }
