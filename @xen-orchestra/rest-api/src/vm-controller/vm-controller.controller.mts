@@ -259,6 +259,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])
+    await this.checkTagsChange(id as XoVmController['id'], { added: [tag] })
     await vmController.$call('add_tags', tag)
   }
 
@@ -277,6 +278,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmControllerTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmController = this.getXapiObject(id as XoVmController['id'])
+    await this.checkTagsChange(id as XoVmController['id'], { removed: [tag] })
     await vmController.$call('remove_tags', tag)
   }
 }

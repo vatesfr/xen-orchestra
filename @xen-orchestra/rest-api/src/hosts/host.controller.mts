@@ -387,6 +387,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const host = this.getXapiObject(id as XoHost['id'])
+    await this.checkTagsChange(id as XoHost['id'], { added: [tag] })
     await host.$call('add_tags', tag)
   }
 
@@ -405,6 +406,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const host = this.getXapiObject(id as XoHost['id'])
+    await this.checkTagsChange(id as XoHost['id'], { removed: [tag] })
     await host.$call('remove_tags', tag)
   }
 

@@ -312,6 +312,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await this.checkTagsChange(id as XoVmSnapshot['id'], { added: [tag] })
     await vmSnapshot.$call('add_tags', tag)
   }
 
@@ -330,6 +331,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await this.checkTagsChange(id as XoVmSnapshot['id'], { removed: [tag] })
     await vmSnapshot.$call('remove_tags', tag)
   }
 }

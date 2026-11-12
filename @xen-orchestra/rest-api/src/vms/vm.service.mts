@@ -225,8 +225,13 @@ export class VmService {
     const { resourceSet, share, ...editProps } = body
 
     // Touch the object so 404 is raised before any side effect.
-    void this.#restApi.getObject<XoVm>(id, 'VM')
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
     const xoApp = this.#restApi.xoApp
+
+    // only the tags actually added or removed are checked: resending unchanged reserved tags is allowed
+    if (editProps.tags !== undefined) {
+      await xoApp.checkTagsChange(this.#restApi.getCurrentUser(), vm, xoApp.diffTags(vm.tags, editProps.tags))
+    }
 
     if (resourceSet !== undefined) {
       await xoApp.setVmResourceSet(id, resourceSet, true)

@@ -305,6 +305,7 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
+    await this.checkTagsChange(id as XoSr['id'], { added: [tag] })
     await sr.$call('add_tags', tag)
   }
 
@@ -323,6 +324,7 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteSrTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const sr = this.getXapiObject(id as XoSr['id'])
+    await this.checkTagsChange(id as XoSr['id'], { removed: [tag] })
     await sr.$call('remove_tags', tag)
   }
 

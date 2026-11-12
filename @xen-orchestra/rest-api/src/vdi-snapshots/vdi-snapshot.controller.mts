@@ -271,6 +271,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+    await this.checkTagsChange(id as XoVdiSnapshot['id'], { added: [tag] })
     await vdiSnapshot.$call('add_tags', tag)
   }
 
@@ -289,6 +290,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+    await this.checkTagsChange(id as XoVdiSnapshot['id'], { removed: [tag] })
     await vdiSnapshot.$call('remove_tags', tag)
   }
 }

@@ -230,6 +230,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
+    await this.checkTagsChange(id as XoNetwork['id'], { added: [tag] })
     await network.$call('add_tags', tag)
   }
 
@@ -248,6 +249,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
+    await this.checkTagsChange(id as XoNetwork['id'], { removed: [tag] })
     await network.$call('remove_tags', tag)
   }
 }

@@ -911,6 +911,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putPoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const pool = this.getXapiObject(id as XoPool['id'])
+    await this.checkTagsChange(id as XoPool['id'], { added: [tag] })
     await pool.$call('add_tags', tag)
   }
 
@@ -929,6 +930,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deletePoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const pool = this.getXapiObject(id as XoPool['id'])
+    await this.checkTagsChange(id as XoPool['id'], { removed: [tag] })
     await pool.$call('remove_tags', tag)
   }
 

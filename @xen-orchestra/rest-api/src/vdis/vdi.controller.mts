@@ -485,6 +485,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Response(notFoundResp.status, notFoundResp.description)
   async putVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])
+    await this.checkTagsChange(id as XoVdi['id'], { added: [tag] })
     await vdi.$call('add_tags', tag)
   }
 
@@ -503,6 +504,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vdi = this.getXapiObject(id as XoVdi['id'])
+    await this.checkTagsChange(id as XoVdi['id'], { removed: [tag] })
     await vdi.$call('remove_tags', tag)
   }
 }
