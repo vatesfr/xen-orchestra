@@ -67,7 +67,6 @@ export const deepNestedTask: Task = {
   ],
 }
 
-// No progress set: displayed as 0% while pending
 export const pendingWithoutProgressTask: Task = {
   id: '6',
   name: 'Queued replication',
@@ -75,7 +74,6 @@ export const pendingWithoutProgressTask: Task = {
   start: Date.now() - 2 * 60_000,
 }
 
-// Progress at 100% but not ended yet
 export const pendingFullProgressTask: Task = {
   id: '7',
   name: 'Finalize export',
@@ -100,7 +98,6 @@ export const infosAndWarningsTask: Task = {
   ],
 }
 
-// Failure propagated from a nested subtask
 export const failedNestedTask: Task = {
   id: '9',
   name: 'Disaster recovery drill',
@@ -144,7 +141,6 @@ export const longNameTask: Task = {
   start: Date.now() - 2 * 60 * 60_000,
 }
 
-// Long name combined with every optional display: link, counter, infos, warnings, error, end time
 export const longNameWithEverythingTask: Task = {
   id: '12',
   name: 'Very long task name for a full backup job that also has subtasks, infos, warnings and an end time to display',
