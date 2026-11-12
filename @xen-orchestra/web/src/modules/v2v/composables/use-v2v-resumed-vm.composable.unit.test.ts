@@ -103,15 +103,14 @@ describe('isActiveMappingReady', () => {
     expect(mountResumedVm().isActiveMappingReady).toBe(true)
   })
 
+  // Which device flag `areImportDevicesReady` reads is covered by the `useV2vImportVm` tests
   const READY_FLAGS = {
-    areVbdsReady: vmDeviceCollectionsMock.areVbdsReady,
-    areVdisReady: vmDeviceCollectionsMock.areVdisReady,
-    areVifsReady: vmDeviceCollectionsMock.areVifsReady,
-    areSrsReady: xoCollectionsMock.areSrsReady,
-    areNetworksReady: xoCollectionsMock.areNetworksReady,
+    'the devices of the import VM': vmDeviceCollectionsMock.areVbdsReady,
+    'the SRs': xoCollectionsMock.areSrsReady,
+    'the networks': xoCollectionsMock.areNetworksReady,
   }
 
-  it.each(Object.keys(READY_FLAGS) as (keyof typeof READY_FLAGS)[])('is false while %s is false', readyFlag => {
+  it.each(Object.keys(READY_FLAGS) as (keyof typeof READY_FLAGS)[])('is false while %s load', readyFlag => {
     const resumedVm = mountResumedVm()
     READY_FLAGS[readyFlag].value = false
 
