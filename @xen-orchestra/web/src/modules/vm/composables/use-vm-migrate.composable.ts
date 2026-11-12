@@ -1,4 +1,4 @@
-import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -21,7 +21,7 @@ export function useVmMigrate(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     errorMessage: migrateVmErrorMessage,
   } = useXoVmMigrateJob(() => vm.value, payload)
 
-  const { xo5VmAdvancedHref } = useXoVmUtils(vm)
+  const { xo5VmAdvancedHref } = useXo5VmRoute(vm)
 
   const isMigrationBlocked = computed(() => isVmMigrationBlocked(vm.value))
 
