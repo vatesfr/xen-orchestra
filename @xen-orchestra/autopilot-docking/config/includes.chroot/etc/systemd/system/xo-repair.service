@@ -1,0 +1,16 @@
+[Unit]
+Description=Repair a VM migrated to XCP-ng
+After=local-fs.target systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+ConditionKernelCommandLine=!xo-repair.disable
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/xo-repair --service
+StandardOutput=journal+console
+StandardError=journal+console
+# dracut on several kernels can be slow on an emulated disk
+TimeoutStartSec=2h
+
+[Install]
+WantedBy=multi-user.target
