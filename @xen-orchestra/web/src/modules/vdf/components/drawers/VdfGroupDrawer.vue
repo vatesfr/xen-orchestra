@@ -32,18 +32,20 @@
               <VtsTag :value="tag" />
             </UiChip>
           </div>
-          <div class="add">
-            <UiInput
-              v-model.trim="newTag"
-              accent="brand"
-              :aria-label="t('firewall:group-form:tags')"
-              :placeholder="t('firewall:group-form:tags:placeholder')"
-              @keydown.enter.prevent="addTag()"
-            />
-            <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="addTag()">
-              {{ t('firewall:group-form:add-tag') }}
-            </UiButton>
-          </div>
+          <VtsInputWrapper :message="tagError" wrap-message>
+            <div class="add">
+              <UiInput
+                v-model.trim="newTag"
+                :accent="tagError ? 'danger' : 'brand'"
+                :aria-label="t('firewall:group-form:tags')"
+                :placeholder="t('firewall:group-form:tags:placeholder')"
+                @keydown.enter.prevent="addTag()"
+              />
+              <UiButton variant="secondary" accent="brand" size="medium" left-icon="fa:plus" @click="addTag()">
+                {{ t('firewall:group-form:add-tag') }}
+              </UiButton>
+            </div>
+          </VtsInputWrapper>
           <div v-if="suggestedTags.length > 0" class="suggestions typo-body-regular-small">
             <span class="secondary">{{ t('firewall:group-form:tags:suggestions') }}</span>
             <button v-for="tag of suggestedTags" :key="tag" type="button" class="suggestion" @click="addTag(tag)">
@@ -188,8 +190,9 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
-import { VDF_GLOBAL_PREFIX, VDF_QUARANTINE_TAG, VDF_TAG_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
+import { VDF_GLOBAL_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
+import { isGroupTag } from '@/modules/vdf/utils/vdf-group-tags.util.ts'
 import {
   isNetworkTag,
   networkTagFor,
@@ -365,14 +368,22 @@ const networkError = ref<string>()
 
 // tags already used for the firewall on this XO's VMs
 const suggestedTags = computed(() =>
-  [...new Set(vms.value.flatMap(vm => vm.tags))]
-    .filter(tag => tag.startsWith(VDF_TAG_PREFIX) && tag !== VDF_QUARANTINE_TAG && !form.tags.includes(tag))
-    .sort()
+  [...new Set(vms.value.flatMap(vm => vm.tags))].filter(tag => isGroupTag(tag) && !form.tags.includes(tag)).sort()
 )
 
 const newTag = ref('')
 
+const addedTagError = ref<string>()
+
+// what the user typed is kept, not prefixed: they fix it
 function addTag(tag = newTag.value) {
+  addedTagError.value = undefined
+
+  if (tag !== '' && !isGroupTag(tag)) {
+    addedTagError.value = tag
+    return
+  }
+
   if (tag !== '' && !form.tags.includes(tag)) {
     form.tags.push(tag)
   }
@@ -380,7 +391,18 @@ function addTag(tag = newTag.value) {
   newTag.value = ''
 }
 
+// the tag refused, or those a published group already has: publishing
+// would refuse them too
+const tagError = computed(() => {
+  const tags = addedTagError.value === undefined ? form.tags.filter(tag => !isGroupTag(tag)) : [addedTagError.value]
+
+  return tags.length > 0
+    ? { content: t('firewall:group-form:tags:invalid', { tags: tags.join(', ') }), accent: 'danger' as const }
+    : undefined
+})
+
 function removeTag(tag: string) {
+  addedTagError.value = undefined
   form.tags = form.tags.filter(value => value !== tag)
 }
 
@@ -442,7 +464,7 @@ const nameField = useField('name')
 async function submit() {
   addTag()
 
-  if (!(await validate()) || networkTagError.value !== undefined) {
+  if (!(await validate()) || networkTagError.value !== undefined || tagError.value !== undefined) {
     return
   }
 

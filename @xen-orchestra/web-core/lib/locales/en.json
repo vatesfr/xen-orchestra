@@ -734,6 +734,7 @@
   "firewall:group-form:rename": "Policies and rules using this group follow the rename.",
   "firewall:group-form:tags": "Membership tags",
   "firewall:group-form:tags:info": "A VM is a member when it carries all these tags: tagging VMs changes the members at once.",
+  "firewall:group-form:tags:invalid": "Group tags must start with vdf:, e.g. vdf:role=web: not {tags}",
   "firewall:group-form:tags:placeholder": "e.g. vdf:role=db",
   "firewall:group-form:tags:suggestions": "Tags in use:",
   "firewall:group-option": "{name} · {members}",
