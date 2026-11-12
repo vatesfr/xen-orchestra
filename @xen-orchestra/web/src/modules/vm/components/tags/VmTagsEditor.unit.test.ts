@@ -1,14 +1,17 @@
+import type { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
+import type { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
 import type { fetchDelete, fetchPut } from '@/shared/utils/fetch.util.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsOverlayList from '@core/components/overlay/VtsOverlayList.vue'
 import { type DOMWrapper, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { defineComponent, h, type MaybeRef, ref, unref } from 'vue'
+import { computed, defineComponent, h, type MaybeRef, ref, unref } from 'vue'
 
 const { put, remove } = vi.hoisted(() => ({
   put: vi.fn(),
@@ -20,6 +23,21 @@ vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchDelete: remove as unknown as typeof fetchDelete,
 }))
 
+// The firewall (vdf plugin): `canEdit` is what the pool's published policy says of the current user
+const { vdf } = vi.hoisted(() => ({
+  vdf: { enabled: false, canEdit: undefined as boolean | undefined },
+}))
+
+vi.mock(import('@/modules/vdf/composables/vdf-availability.composable.ts'), () => ({
+  useVdfAvailability: (() => ({ isVdfEnabled: computed(() => vdf.enabled) })) as unknown as typeof useVdfAvailability,
+}))
+
+vi.mock(import('@/modules/vdf/remote-resources/use-vdf-published-policy.ts'), () => ({
+  useVdfPublishedPolicy: (() => ({
+    publishedPolicy: computed(() => ({ canEdit: vdf.canEdit })),
+  })) as unknown as typeof useVdfPublishedPolicy,
+}))
+
 // The VMs of the pool, from which the tag suggestions are built
 const vms = ref<FrontXoVm[]>([])
 
@@ -29,6 +47,8 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => (
 }))
 
 beforeEach(() => {
+  vdf.enabled = false
+  vdf.canEdit = undefined
   put.mockReset()
   remove.mockReset()
 
@@ -153,6 +173,16 @@ describe('tags of the VM', () => {
         .filter(tag => tag.classes('accent--warning'))
         .map(tag => tag.text())
     ).toEqual(['xo:no-bak'])
+  })
+
+  it('highlights the firewall tags like the special tags', () => {
+    const wrapper = mountTagsEditor(createVm({ tags: ['production', 'vdf:app', 'vdf:quarantine'] }))
+
+    expect(
+      findVmTags(wrapper)
+        .filter(tag => tag.classes('accent--warning'))
+        .map(tag => tag.text())
+    ).toEqual(['vdf:app', 'vdf:quarantine'])
   })
 
   it('offers to add tags when the VM has none', () => {
@@ -469,13 +499,74 @@ describe('special tags', () => {
   })
 })
 
+describe('firewall tags', () => {
+  it('asks for a confirmation before adding a firewall tag', async () => {
+    const wrapper = mountTagsEditor()
+
+    await openTagSelect(wrapper)
+    await searchTag(wrapper, 'vdf:app')
+    await clickTagOption(wrapper, 'vdf:app')
+
+    expect(findModalTexts(wrapper)).toEqual({
+      title: t('vm-tag:add-firewall-tag?', { tag: 'vdf:app' }),
+      content: t('vm-tag:firewall-tag-description', { tag: 'vdf:app' }),
+      confirm: t('action:add-tag'),
+    })
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('asks for a confirmation before removing a firewall tag, and removes it once confirmed', async () => {
+    const wrapper = mountTagsEditor(createVm({ id: 'vm-42' as FrontXoVm['id'], tags: ['vdf:app'] }))
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'vdf:app')
+
+    expect(findModalTexts(wrapper)).toEqual({
+      title: t('vm-tag:remove-firewall-tag?', { tag: 'vdf:app' }),
+      content: t('vm-tag:firewall-tag-description', { tag: 'vdf:app' }),
+      confirm: t('action:remove-tag'),
+    })
+
+    await confirmModal(wrapper)
+
+    expect(remove).toHaveBeenCalledWith(`vms/vm-42/tags/${encodeURIComponent('vdf:app')}`)
+  })
+
+  it('warns that adding the quarantine tag cuts the VM off from the network', async () => {
+    const wrapper = mountTagsEditor()
+
+    await openTagSelect(wrapper)
+    await searchTag(wrapper, 'vdf:quarantine')
+    await clickTagOption(wrapper, 'vdf:quarantine')
+
+    expect(findModalTexts(wrapper)).toEqual({
+      title: t('vm-tag:quarantine-vm?'),
+      content: t('vm-tag:quarantine-add-description', { tag: 'vdf:quarantine' }),
+      confirm: t('action:add-tag'),
+    })
+  })
+
+  it('warns that removing the quarantine tag lifts the quarantine', async () => {
+    const wrapper = mountTagsEditor(createVm({ id: 'vm-42' as FrontXoVm['id'], tags: ['vdf:quarantine'] }))
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'vdf:quarantine')
+
+    expect(findModalTexts(wrapper)).toEqual({
+      title: t('vm-tag:lift-quarantine?'),
+      content: t('vm-tag:quarantine-remove-description', { tag: 'vdf:quarantine' }),
+      confirm: t('action:remove-tag'),
+    })
+  })
+})
+
 describe('refused tag changes', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   it('shows the reason given by the server', async () => {
-    const reason = 'this tag is reserved'
+    const reason = 'only administrators may change "vdf:" tags'
     put.mockRejectedValue(
       new ApiError('Forbidden', { status: 403, cause: { error: 'forbidden operation: x', data: { reason } } })
     )
@@ -516,5 +607,92 @@ describe('refused tag changes', () => {
     await confirmModal(wrapper)
 
     expect(findModalTexts(wrapper)).toBeUndefined()
+  })
+})
+
+describe('firewall tags reserved to administrators', () => {
+  const vdfVm = createVm({ id: 'vm-42' as FrontXoVm['id'], tags: ['production', 'vdf:app'] })
+
+  beforeEach(() => {
+    vdf.enabled = true
+    vdf.canEdit = false
+  })
+
+  it('shows the firewall tags, with a tooltip on them', async () => {
+    const wrapper = mountTagsEditor(vdfVm)
+
+    const tags = findVmTags(wrapper)
+
+    expect(tags.map(tag => tag.text())).toEqual(['production', 'vdf:app'])
+    expect(await findTooltipContent(tags[1].element)).toBe(t('vm-tag:firewall-tag-reserved'))
+    expect(await findTooltipContent(tags[0].element)).toBeFalsy()
+  })
+
+  it('keeps the firewall tags of the VM checked and cannot uncheck them', async () => {
+    const wrapper = mountTagsEditor(vdfVm)
+
+    await openTagSelect(wrapper)
+
+    expect(findCheckedTagOptions(wrapper)).toEqual(['production', 'vdf:app'])
+
+    await clickTagOption(wrapper, 'vdf:app')
+
+    expect(findModalTexts(wrapper)).toBeUndefined()
+    expect(remove).not.toHaveBeenCalled()
+  })
+
+  it('does not suggest the firewall tags of the other VMs, nor create one', async () => {
+    const wrapper = mountTagsEditor(vdfVm, [['production', 'vdf:db']])
+
+    await openTagSelect(wrapper)
+
+    expect(findTagOptions(wrapper).map(([tag]) => tag)).not.toContain('vdf:db')
+
+    await searchTag(wrapper, 'vdf:db')
+    await clickTagOption(wrapper, 'vdf:db')
+
+    expect(findModalTexts(wrapper)).toBeUndefined()
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('keeps the firewall tags when deselecting all the tags', async () => {
+    const wrapper = mountTagsEditor(vdfVm)
+
+    await openTagSelect(wrapper)
+    await getButton(wrapper, t('action:deselect-all')).trigger('click')
+    await settle()
+
+    expect(remove.mock.calls).toEqual([['vms/vm-42/tags/production']])
+    expect(findModalTexts(wrapper)).toBeUndefined()
+  })
+
+  it('still lets the other tags be changed', async () => {
+    const wrapper = mountTagsEditor(vdfVm)
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'production')
+
+    expect(remove).toHaveBeenCalledWith('vms/vm-42/tags/production')
+  })
+
+  it('offers the firewall tags when the user is allowed to change them', async () => {
+    vdf.canEdit = true
+
+    const wrapper = mountTagsEditor(vdfVm, [['vdf:db']])
+
+    await openTagSelect(wrapper)
+
+    expect(findTagOptions(wrapper).map(([tag]) => tag)).toContain('vdf:db')
+    expect(await findTooltipContent(findVmTags(wrapper)[1].element)).toBeFalsy()
+  })
+
+  it('offers the firewall tags when the firewall is not enabled', async () => {
+    vdf.enabled = false
+
+    const wrapper = mountTagsEditor(vdfVm, [['vdf:db']])
+
+    await openTagSelect(wrapper)
+
+    expect(findTagOptions(wrapper).map(([tag]) => tag)).toContain('vdf:db')
   })
 })

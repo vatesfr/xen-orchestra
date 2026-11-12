@@ -1,3 +1,5 @@
+import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
+import { isVdfTag } from '@/modules/vdf/utils/vdf-group-tags.util.ts'
 import { isNoBakVmTag } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
@@ -30,6 +32,28 @@ export function useVmSpecialTagModal() {
             description: t('vm-tag:no-bak-remove-description', { tag }),
             confirmLabel,
           }
+    }
+
+    if (tag === VDF_QUARANTINE_TAG) {
+      return action === 'add'
+        ? {
+            title: t('vm-tag:quarantine-vm?'),
+            description: t('vm-tag:quarantine-add-description', { tag }),
+            confirmLabel,
+          }
+        : {
+            title: t('vm-tag:lift-quarantine?'),
+            description: t('vm-tag:quarantine-remove-description', { tag }),
+            confirmLabel,
+          }
+    }
+
+    if (isVdfTag(tag)) {
+      return {
+        title: action === 'add' ? t('vm-tag:add-firewall-tag?', { tag }) : t('vm-tag:remove-firewall-tag?', { tag }),
+        description: t('vm-tag:firewall-tag-description', { tag }),
+        confirmLabel,
+      }
     }
 
     return {

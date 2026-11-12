@@ -1,4 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { isVdfTag } from '@/modules/vdf/utils/vdf-group-tags.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { objectIcon } from '@core/icons'
@@ -97,7 +98,7 @@ export function vmContainsNoBakTag(vm: FrontXoVm) {
 }
 
 export function isSpecialVmTag(tag: string) {
-  return tag.startsWith('xo:')
+  return tag.startsWith('xo:') || isVdfTag(tag)
 }
 
 export function getVmTagAccent(tag: string): TagAccent {
