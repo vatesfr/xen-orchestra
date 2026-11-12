@@ -220,7 +220,16 @@ export default class Pools {
 
       const unrestoredItems = await this._listUnrestoredRpuItems(pool, record)
       const refuse = items => {
-        throw incorrectState({ actual: items, expected: [], object: poolId, property: 'unrestoredItems' })
+        try {
+          incorrectState({ actual: items, expected: [], object: poolId, property: 'unrestoredItems' })
+        } catch (error) {
+          // the answer itself tells the way out, for the callers of the API
+          error.message +=
+            items === null
+              ? ': the record of the rolling pool update cannot be read, set `force` to finalize anyway'
+              : ': the rolling pool update left items unrestored, restore them and finalize again, or set `force` to abandon them'
+          throw error
+        }
       }
       // nothing can be restored from a record which cannot be read
       if (unrestoredItems === null && !force) {

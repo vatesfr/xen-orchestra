@@ -208,6 +208,8 @@ describe('Pools.finalizeRollingUpdate', function () {
       error => error
     )
     assert.equal(incorrectState.is(error, { property: 'unrestoredItems' }), true)
+    // the answer points at the forced path
+    assert.match(error.message, /^incorrect state: .*`force` to abandon them$/)
     assert.deepEqual(error.data, {
       actual: [{ type: 'ha', id: 'pool-1' }],
       expected: [],
@@ -300,6 +302,7 @@ describe('Pools.finalizeRollingUpdate', function () {
       error => error
     )
     assert.equal(incorrectState.is(error, { property: 'unrestoredItems' }), true)
+    assert.match(error.message, /cannot be read, set `force` to finalize anyway$/)
     assert.equal(error.data.actual, null)
     assert.equal(store.values.has('pool-1'), true)
 
