@@ -28,9 +28,7 @@
       <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
-          <UiTagsList v-if="vm.tags.length > 0">
-            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
-          </UiTagsList>
+          <VmTagsEditor :vm icon-only wrap />
         </template>
         <template v-if="vm.tags.length > 0" #addons>
           <VtsCopyButton :value="vm.tags.join(', ')" />
@@ -125,6 +123,7 @@
 import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -135,11 +134,9 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
