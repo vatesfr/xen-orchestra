@@ -54,10 +54,11 @@ describe('poolName', () => {
     expect(result.poolName).toBe(V2V_OTHER_POOL.name_label)
   })
 
-  it.each([
-    ['until a pool is chosen', undefined],
-    ['for a pool the pools do not hold', UNKNOWN_POOL_ID],
-  ])('is undefined %s', (_, poolId) => {
-    expect(mountSourceAndDestination(ref(poolId)).poolName).toBeUndefined()
+  it('is the pool id while the pools do not hold the pool', () => {
+    expect(mountSourceAndDestination(ref(UNKNOWN_POOL_ID)).poolName).toBe(UNKNOWN_POOL_ID)
+  })
+
+  it('is undefined until a pool is chosen', () => {
+    expect(mountSourceAndDestination(ref(undefined)).poolName).toBeUndefined()
   })
 })

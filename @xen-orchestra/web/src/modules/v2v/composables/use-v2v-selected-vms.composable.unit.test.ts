@@ -272,13 +272,12 @@ describe('listPair', () => {
     expect(result.listPair).toEqual(createV2vListPair())
   })
 
-  it('names no pool while the pools load', async () => {
+  it('names the pool by its id while the pools load', async () => {
     const { result } = await mountSelectedVms()
 
-    xoCollectionsMock.pools.value = []
-    xoCollectionsMock.arePoolsReady.value = false
+    xoCollectionsMock.startLoadingPools()
 
-    expect(result.listPair.poolName).toBeUndefined()
+    expect(result.listPair.poolName).toBe(V2V_LIST_POOL.id)
     expect(findItemIds(result)).toEqual(LIST_IDS)
   })
 
