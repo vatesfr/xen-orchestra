@@ -1,5 +1,5 @@
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import { useXoUserResource } from '@xen-orchestra/web/ui-plugin-sdk'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 export function useKubernetesClusterCreator(rawCluster: MaybeRefOrGetter<XoKubernetesCluster>) {

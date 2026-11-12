@@ -1,9 +1,9 @@
 import ClusterDashboardCpuUsageChart from '@/modules/kubernetes/components/dashboard/ClusterDashboardCpuUsageChart.vue'
-import { createVmStats } from '@/test/create-vm-stats.ts'
-import { n, t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
-import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiVmStats } from '@vates/types/common'
+import { createVmStats } from '@xen-orchestra/web/src/test/create-vm-stats.ts'
+import { n, t } from '@xen-orchestra/web/src/test/i18n.ts'
+import { findLinearChart, formatChartValue } from '@xen-orchestra/web/src/test/linear-chart-stub.ts'
+import { mountChartCard, type ChartCardProps } from '@xen-orchestra/web/src/test/mount-chart-card.ts'
 
 function mountChart(props: ChartCardProps<XapiVmStats[]> & { excludedNodeCount?: number }) {
   return mountChartCard(ClusterDashboardCpuUsageChart, { excludedNodeCount: 0, ...props })

@@ -2,8 +2,8 @@ import { xoKubernetesClusterArg } from '@/modules/kubernetes/jobs/xo-kubernetes-
 import { editPayloadArg } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-edit-args.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { getClusterUpdates } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
-import { fetchPut } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { fetchPut } from '@xen-orchestra/web/ui-plugin-sdk'
 import { useI18n } from 'vue-i18n'
 
 export type KubernetesClusterEditPayload = {

@@ -11,12 +11,12 @@
 </template>
 
 <script lang="ts" setup>
+import type { KubernetesNamespaceBranch } from '@/modules/kubernetes/types/kubernetes-tree.type.ts'
 import { getKubernetesNamespaceRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import type { KubernetesNamespaceBranch } from '@/modules/treeview/types/tree.type.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 
-defineProps<{
-  branch: KubernetesNamespaceBranch
+const { node: branch } = defineProps<{
+  node: KubernetesNamespaceBranch
 }>()
 </script>

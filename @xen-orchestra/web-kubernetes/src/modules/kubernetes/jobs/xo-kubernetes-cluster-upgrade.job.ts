@@ -2,8 +2,8 @@ import { xoKubernetesClusterArg } from '@/modules/kubernetes/jobs/xo-kubernetes-
 import { upgradePayloadArg } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-upgrade-args.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { isClusterUpgradable } from '@/modules/kubernetes/utils/kubernetes-cluster.util.ts'
-import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { fetchPost } from '@xen-orchestra/web/ui-plugin-sdk'
 import { useI18n } from 'vue-i18n'
 
 export type KubernetesClusterUpgradePayload = {

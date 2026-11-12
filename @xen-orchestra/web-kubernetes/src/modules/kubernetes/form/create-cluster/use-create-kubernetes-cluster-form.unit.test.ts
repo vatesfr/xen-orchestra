@@ -13,7 +13,7 @@ import {
   kubernetesClusterToFormData,
 } from '@/modules/kubernetes/utils/kubernetes-cluster-form.util.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposable } from '@xen-orchestra/web/src/test/mount-composable.ts'
 
 const { kubernetesReleaseGroups, useReleaseCollection } = vi.hoisted(() => {
   const kubernetesReleaseGroups = { value: [] as KubernetesReleaseGroup[] }

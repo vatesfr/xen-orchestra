@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import CreateClusterButton from '@/modules/kubernetes/components/actions/create-cluster/CreateClusterButton.vue'
-import { KUBERNETES_NAME } from '@/shared/constants.ts'
+import { KUBERNETES_NAME } from '@/modules/kubernetes/constants.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'

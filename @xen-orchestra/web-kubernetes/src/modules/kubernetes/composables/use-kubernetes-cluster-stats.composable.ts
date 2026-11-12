@@ -1,12 +1,16 @@
 import { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { fetchGet } from '@/shared/utils/fetch.util.ts'
-import { GRANULARITY, RRD_STEP_FROM_STRING } from '@/shared/utils/rest-api-stats.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import type { XapiVmStats } from '@vates/types/common'
 import { useAsyncState, useIntervalFn } from '@vueuse/core'
+import {
+  fetchGet,
+  type FrontXoVm,
+  GRANULARITY,
+  RRD_STEP_FROM_STRING,
+  useXoVmCollection,
+} from '@xen-orchestra/web/ui-plugin-sdk'
 import { computed, type MaybeRefOrGetter, watch } from 'vue'
 
 export function useKubernetesClusterStats(rawCluster: MaybeRefOrGetter<XoKubernetesCluster>) {

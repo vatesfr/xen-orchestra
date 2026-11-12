@@ -43,9 +43,9 @@
 <script lang="ts" setup>
 import NodeActions from '@/modules/kubernetes/components/actions/node/NodeActions.vue'
 import { useXoKubernetesNodeCluster } from '@/modules/kubernetes/composables/xo-kubernetes-node-cluster.composable.ts'
+import type { KubernetesNodeLeaf } from '@/modules/kubernetes/types/kubernetes-tree.type.ts'
 import { isControlPlaneNode, nodeIconState } from '@/modules/kubernetes/utils/kubernetes-node.util.ts'
 import { getKubernetesNodeRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import type { KubernetesNodeLeaf } from '@/modules/treeview/types/tree.type.ts'
 import type { ObjectState } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -59,8 +59,8 @@ import { useMapper } from '@core/packages/mapper'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { leaf } = defineProps<{
-  leaf: KubernetesNodeLeaf
+const { node: leaf } = defineProps<{
+  node: KubernetesNodeLeaf
 }>()
 
 const { t } = useI18n()

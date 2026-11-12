@@ -1,14 +1,14 @@
+import type { XapiVmStats } from '@vates/types/common'
 import {
   buildTimestamps,
+  type ChartPoint,
   countSamples,
   getMaxSample,
   getUsedMemoryAtIndex,
+  type PairedUsageSeries,
   RAM_CHART_MAX_FALLBACK,
   sumAtIndex,
-  type ChartPoint,
-  type PairedUsageSeries,
-} from '@/shared/utils/chart-stats.util.ts'
-import type { XapiVmStats } from '@vates/types/common'
+} from '@xen-orchestra/web/ui-plugin-sdk'
 
 // VMs don't all have the same history length (e.g. node VMs recreated on upgrade), so the series are aligned on their
 // most recent sample. A sample missing for a VM counts as 0, so a single VM gap doesn't blank the whole cluster series.

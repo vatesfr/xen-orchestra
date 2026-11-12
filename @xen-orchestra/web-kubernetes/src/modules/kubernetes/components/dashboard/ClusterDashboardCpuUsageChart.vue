@@ -18,14 +18,13 @@
 
 <script lang="ts" setup>
 import { buildClusterCpuUsageSeries } from '@/modules/kubernetes/utils/kubernetes-cluster-stats.util.ts'
-import { useChartPercentFormatter } from '@/shared/composables/chart-percent-formatter.composable.ts'
-import { getChartMaxValue } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import type { XapiVmStats } from '@vates/types/common'
+import { getChartMaxValue, useChartPercentFormatter } from '@xen-orchestra/web/ui-plugin-sdk'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 

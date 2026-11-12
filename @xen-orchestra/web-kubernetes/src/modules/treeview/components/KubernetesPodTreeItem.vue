@@ -7,12 +7,12 @@
 </template>
 
 <script lang="ts" setup>
+import type { KubernetesPodLeaf } from '@/modules/kubernetes/types/kubernetes-tree.type.ts'
 import { getKubernetesPodRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import type { KubernetesPodLeaf } from '@/modules/treeview/types/tree.type.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 
-defineProps<{
-  leaf: KubernetesPodLeaf
+const { node: leaf } = defineProps<{
+  node: KubernetesPodLeaf
 }>()
 </script>

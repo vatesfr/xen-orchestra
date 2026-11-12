@@ -1,9 +1,9 @@
 import KubernetesStatus from '@/modules/kubernetes/components/KubernetesStatus.vue'
 import type { KubernetesStatus as KubernetesStatusValue } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { t } from '@/test/i18n.ts'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { mount } from '@vue/test-utils'
+import { createGlobalTestConfig } from '@xen-orchestra/web/src/test/global-test-config.ts'
+import { t } from '@xen-orchestra/web/src/test/i18n.ts'
 
 function mountKubernetesStatus(status: KubernetesStatusValue) {
   return mount(KubernetesStatus, {

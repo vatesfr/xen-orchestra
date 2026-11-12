@@ -1,9 +1,9 @@
 import KubernetesPausedStatus from '@/modules/kubernetes/components/KubernetesPausedStatus.vue'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { t } from '@/test/i18n.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { mount } from '@vue/test-utils'
+import { createGlobalTestConfig } from '@xen-orchestra/web/src/test/global-test-config.ts'
+import { t } from '@xen-orchestra/web/src/test/i18n.ts'
 
 function mountKubernetesPausedStatus(paused: boolean) {
   return mount(KubernetesPausedStatus, {

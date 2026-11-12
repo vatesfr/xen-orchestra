@@ -1,8 +1,8 @@
 import { useXoKubernetesClusterCreateJob } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
 import type { KubernetesClusterCreatePayload } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create.job.ts'
-import { useXoCurrentUserResource } from '@/modules/user/remote-resources/use-xo-current-user.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { useXoCurrentUserResource } from '@xen-orchestra/web/ui-plugin-sdk'
 import { ref } from 'vue'
 
 export function useCreateKubernetesClusterDrawer() {

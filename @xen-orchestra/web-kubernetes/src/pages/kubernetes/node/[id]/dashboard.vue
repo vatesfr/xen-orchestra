@@ -12,9 +12,9 @@
 <script setup lang="ts">
 import NodeDashboardUsageCharts from '@/modules/kubernetes/components/dashboard/NodeDashboardUsageCharts.vue'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { VM_POWER_STATE } from '@vates/types'
+import { useXoVmCollection } from '@xen-orchestra/web/ui-plugin-sdk'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -4,8 +4,8 @@ import {
   buildClusterRamUsageSeries,
   getClusterRamUsageMaxValue,
 } from '@/modules/kubernetes/utils/kubernetes-cluster-stats.util.ts'
-import { RAM_CHART_MAX_FALLBACK } from '@/shared/utils/chart-stats.util.ts'
-import { createVmStats } from '@/test/create-vm-stats.ts'
+import { RAM_CHART_MAX_FALLBACK } from '@xen-orchestra/web/src/shared/utils/chart-stats.util.ts'
+import { createVmStats } from '@xen-orchestra/web/src/test/create-vm-stats.ts'
 
 describe('buildClusterCpuUsageSeries', () => {
   it('sums the usage of every vCPU of every VM at each sample', () => {

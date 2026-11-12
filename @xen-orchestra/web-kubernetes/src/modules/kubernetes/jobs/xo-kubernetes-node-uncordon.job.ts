@@ -1,7 +1,7 @@
 import { xoKubernetesNodeArg } from '@/modules/kubernetes/jobs/xo-kubernetes-node-args.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { fetchPost } from '@xen-orchestra/web/ui-plugin-sdk'
 import { useI18n } from 'vue-i18n'
 
 export const useXoKubernetesNodeUncordonJob = defineJob('kubernetes-node.uncordon', [xoKubernetesNodeArg], () => {

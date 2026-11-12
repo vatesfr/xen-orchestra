@@ -1,6 +1,6 @@
 import { payloadArg } from '@/modules/kubernetes/jobs/xo-kubernetes-cluster-create-args.ts'
-import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { fetchPost } from '@xen-orchestra/web/ui-plugin-sdk'
 import { useI18n } from 'vue-i18n'
 
 export type KubernetesClusterCreatePayload = {

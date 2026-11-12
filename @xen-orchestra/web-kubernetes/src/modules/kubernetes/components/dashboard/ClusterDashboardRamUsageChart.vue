@@ -21,13 +21,13 @@ import {
   buildClusterRamUsageSeries,
   getClusterRamUsageMaxValue,
 } from '@/modules/kubernetes/utils/kubernetes-cluster-stats.util.ts'
-import { formatChartBytes } from '@/shared/utils/chart-stats.util.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import type { XapiVmStats } from '@vates/types/common'
+import { formatChartBytes } from '@xen-orchestra/web/ui-plugin-sdk'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 

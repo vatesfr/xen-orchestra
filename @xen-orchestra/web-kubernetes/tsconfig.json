@@ -1,0 +1,23 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": [
+    "env.d.ts",
+    "./src/**/*",
+    "./src/**/*.vue",
+    "../web-core/env.d.ts",
+    "../web-core/lib/**/*",
+    "../web-core/lib/**/*.vue"
+  ],
+  // Not a composite project: XO6 modules exported by the SDK are type-checked here without being listed
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals"],
+    "paths": {
+      // XO6 modules are only reachable through the SDK, the fallback is for the XO6 modules it exports (and the XO6
+      // test helpers)
+      "@/*": ["./src/*", "../web/src/*"],
+      "@core/*": ["../web-core/lib/*"],
+      "@xen-orchestra/web/ui-plugin-sdk": ["../web/src/modules/ui-plugin/sdk.ts"]
+    }
+  }
+}

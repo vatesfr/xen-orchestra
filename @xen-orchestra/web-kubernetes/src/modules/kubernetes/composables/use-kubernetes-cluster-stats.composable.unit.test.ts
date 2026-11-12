@@ -1,14 +1,17 @@
 import { useKubernetesClusterStats } from '@/modules/kubernetes/composables/use-kubernetes-cluster-stats.composable.ts'
 import type { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import type { XoKubernetesNode } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createKubernetesCluster } from '@/test/create-kubernetes-cluster.ts'
 import { createKubernetesNode } from '@/test/create-kubernetes-node.ts'
-import { createVmStats } from '@/test/create-vm-stats.ts'
-import { createVm } from '@/test/create-vm.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
+import type {
+  FrontXoVm,
+  useXoVmCollection,
+} from '@xen-orchestra/web/src/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { createVmStats } from '@xen-orchestra/web/src/test/create-vm-stats.ts'
+import { createVm } from '@xen-orchestra/web/src/test/create-vm.ts'
+import { mountComposable } from '@xen-orchestra/web/src/test/mount-composable.ts'
 import { ref } from 'vue'
 
 const { useXoKubernetesNodeCollectionMock, useXoVmCollectionMock } = vi.hoisted(() => ({
@@ -20,7 +23,7 @@ vi.mock(import('@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-col
   useXoKubernetesNodeCollection: useXoKubernetesNodeCollectionMock as unknown as typeof useXoKubernetesNodeCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+vi.mock(import('@xen-orchestra/web/src/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: useXoVmCollectionMock as unknown as typeof useXoVmCollection,
 }))
 

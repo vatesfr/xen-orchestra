@@ -54,7 +54,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
+      files: ['@xen-orchestra/{web-core,lite,web,web-kubernetes}/**/*.{vue,ts}'],
       parser: 'vue-eslint-parser',
       parserOptions: {
         sourceType: 'module',
@@ -76,7 +76,7 @@ module.exports = {
               '@': './src',
             },
             extensions: ['.ts'],
-            packages: ['@xen-orchestra/lite', '@xen-orchestra/web'],
+            packages: ['@xen-orchestra/lite', '@xen-orchestra/web', '@xen-orchestra/web-kubernetes'],
           },
         },
       },
@@ -209,6 +209,7 @@ module.exports = {
         '@xen-orchestra/lite/**/*.{vue,ts}',
         '@xen-orchestra/web/**/*.{vue,ts}',
         '@xen-orchestra/web-core/**/*.{vue,ts,json}',
+        '@xen-orchestra/web-kubernetes/**/*.{vue,ts,json}',
       ],
       extends: ['plugin:@intlify/vue-i18n/base'],
       settings: {
@@ -276,6 +277,16 @@ module.exports = {
         ],
       },
     },
+    // The Kubernetes UI plugin uses its own translations on top of the web-core ones
+    {
+      files: ['@xen-orchestra/web-kubernetes/**/*.{vue,ts,json}'],
+      settings: {
+        'vue-i18n': {
+          localeDir: ['@xen-orchestra/web-core/lib/locales/*.json', '@xen-orchestra/web-kubernetes/src/locales/*.json'],
+          messageSyntaxVersion: '^9.9.0',
+        },
+      },
+    },
     // Specific rules for XO dev-related files
     {
       files: [
@@ -289,7 +300,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/{web-core,lite,web}/src/pages/**/*.vue'],
+      files: ['@xen-orchestra/{web-core,lite,web,web-kubernetes}/src/pages/**/*.vue'],
       parserOptions: {
         sourceType: 'module',
       },
@@ -298,7 +309,7 @@ module.exports = {
       },
     },
     {
-      files: ['@xen-orchestra/{web-core,lite,web}/src/route-map.d.ts'],
+      files: ['@xen-orchestra/{web-core,lite,web,web-kubernetes}/src/route-map.d.ts'],
       parserOptions: {
         sourceType: 'module',
       },

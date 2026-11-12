@@ -1,4 +1,4 @@
-import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
+import { useWatchCollection } from '@xen-orchestra/web/ui-plugin-sdk'
 
 /**
  * `useWatchCollection` types its predicate against the XO records, which the Kubernetes records are not: the

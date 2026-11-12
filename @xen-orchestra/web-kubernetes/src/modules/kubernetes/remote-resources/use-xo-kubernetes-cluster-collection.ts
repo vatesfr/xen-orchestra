@@ -1,9 +1,9 @@
 import { useWatchKubernetesCollection } from '@/modules/kubernetes/composables/use-watch-kubernetes-collection.composable.ts'
 import type { XoKubernetesCluster } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { useSorted } from '@vueuse/core'
 import { reactify } from '@vueuse/shared'
+import { BASE_URL } from '@xen-orchestra/web/ui-plugin-sdk'
 import { ref, watch } from 'vue'
 
 type ApiKubernetesCluster = Omit<XoKubernetesCluster, 'type'>

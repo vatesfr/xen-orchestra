@@ -7,13 +7,15 @@
 </template>
 
 <script setup lang="ts">
-import VmDashboardCpuUsageChart from '@/modules/vm/components/dashboard/VmDashboardCpuUsageChart.vue'
-import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDashboardNetworkUsageChart.vue'
-import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashboardRamUsageChart.vue'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
-import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import {
+  type FrontXoVm,
+  GRANULARITY,
+  useFetchStats,
+  VmDashboardCpuUsageChart,
+  VmDashboardNetworkUsageChart,
+  VmDashboardRamUsageChart,
+} from '@xen-orchestra/web/ui-plugin-sdk'
 
 const { vm } = defineProps<{
   vm: FrontXoVm

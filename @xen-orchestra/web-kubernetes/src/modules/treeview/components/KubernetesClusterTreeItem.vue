@@ -42,8 +42,8 @@
 <script lang="ts" setup>
 import ClusterActions from '@/modules/kubernetes/components/actions/ClusterActions.vue'
 import { useXoKubernetesClusterUtils } from '@/modules/kubernetes/composables/xo-kubernetes-cluster-utils.composable.ts'
+import type { KubernetesClusterBranch } from '@/modules/kubernetes/types/kubernetes-tree.type.ts'
 import { getKubernetesClusterRoute } from '@/modules/kubernetes/utils/kubernetes-routes.util.ts'
-import type { KubernetesClusterBranch } from '@/modules/treeview/types/tree.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
@@ -53,8 +53,8 @@ import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
-const { branch } = defineProps<{
-  branch: KubernetesClusterBranch
+const { node: branch } = defineProps<{
+  node: KubernetesClusterBranch
 }>()
 
 const { t } = useI18n()

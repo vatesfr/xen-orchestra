@@ -1,4 +1,4 @@
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVm } from '@xen-orchestra/web/ui-plugin-sdk'
 
 export type KubernetesAvailabilityStatus = 'available' | 'not-available'
 

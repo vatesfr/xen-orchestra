@@ -1,7 +1,7 @@
+import { KUBERNETES_NAME } from '@/modules/kubernetes/constants.ts'
 import { useXoKubernetesClusterCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-cluster-collection.ts'
 import { useXoKubernetesNodeCollection } from '@/modules/kubernetes/remote-resources/use-xo-kubernetes-node-collection.ts'
 import { KUBERNETES_ROOT_ID, type XoKubernetesRoot } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
-import { KUBERNETES_NAME } from '@/shared/constants.ts'
 import type { TreeNodeBase } from '@core/packages/tree/tree-node-base.ts'
 import { defineTree } from '@core/packages/tree/define-tree.ts'
 import { logicAnd } from '@vueuse/math'
