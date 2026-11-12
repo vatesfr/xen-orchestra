@@ -32,6 +32,27 @@ export const TRACKED_OPERATIONS: Partial<VM_OPERATIONS>[] = [
 
 export const MIGRATION_OPERATIONS: VM_OPERATIONS[] = [VM_OPERATIONS.MIGRATE_SEND, VM_OPERATIONS.POOL_MIGRATE]
 
+const POWER_STATES_BY_VM_OPERATION = {
+  [VM_OPERATIONS.START]: [VM_POWER_STATE.HALTED],
+  [VM_OPERATIONS.START_ON]: [VM_POWER_STATE.HALTED],
+  [VM_OPERATIONS.PAUSE]: [VM_POWER_STATE.RUNNING],
+  [VM_OPERATIONS.UNPAUSE]: [VM_POWER_STATE.PAUSED],
+  [VM_OPERATIONS.RESUME]: [VM_POWER_STATE.SUSPENDED],
+  [VM_OPERATIONS.SUSPEND]: [VM_POWER_STATE.RUNNING],
+  [VM_OPERATIONS.CLEAN_REBOOT]: [VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED],
+  [VM_OPERATIONS.HARD_REBOOT]: [VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED],
+  [VM_OPERATIONS.CLEAN_SHUTDOWN]: [VM_POWER_STATE.RUNNING],
+  [VM_OPERATIONS.HARD_SHUTDOWN]: [VM_POWER_STATE.RUNNING, VM_POWER_STATE.SUSPENDED, VM_POWER_STATE.PAUSED],
+} satisfies Partial<Record<VM_OPERATIONS, VM_POWER_STATE[]>>
+
+export type VmPowerStateOperation = keyof typeof POWER_STATES_BY_VM_OPERATION
+
+const GUEST_TOOLS_OPERATIONS: VmPowerStateOperation[] = [
+  VM_OPERATIONS.SUSPEND,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+]
+
 export function isVmMigrationBlocked(vm: FrontXoVm) {
   return MIGRATION_OPERATIONS.some(operation => vm.blockedOperations[operation] !== undefined)
 }
@@ -73,12 +94,30 @@ export function getVmsPendingOperation(vms: FrontXoVm[], operations: VM_OPERATIO
   }
 }
 
-export function areAllVmsHavingPowerState(vms: FrontXoVm[], powerStates: VM_POWER_STATE[]) {
-  return vms.every(vm => powerStates.includes(vm.power_state))
+export function isVmAllowingOperation(vm: FrontXoVm, operation: VmPowerStateOperation) {
+  const powerStates: VM_POWER_STATE[] = POWER_STATES_BY_VM_OPERATION[operation]
+
+  return powerStates.includes(vm.power_state)
 }
 
-export function notAllVmsHavingPowerState(vms: FrontXoVm[], powerStates: VM_POWER_STATE[]) {
-  return !areAllVmsHavingPowerState(vms, powerStates)
+export function areAllVmsAllowingOperation(vms: FrontXoVm[], operation: VmPowerStateOperation) {
+  return vms.every(vm => isVmAllowingOperation(vm, operation))
+}
+
+export function notAllVmsAllowingOperation(vms: FrontXoVm[], operation: VmPowerStateOperation) {
+  return !areAllVmsAllowingOperation(vms, operation)
+}
+
+export function getVmsAllowingOperation(vms: FrontXoVm[], operation: VmPowerStateOperation) {
+  return vms.filter(vm => isVmAllowingOperation(vm, operation))
+}
+
+export function hasVmGuestTools(vm: FrontXoVm) {
+  return vm.managementAgentDetected && vm.pvDriversDetected
+}
+
+export function isVmMissingGuestToolsFor(vm: FrontXoVm, operation: VmPowerStateOperation) {
+  return GUEST_TOOLS_OPERATIONS.includes(operation) && !hasVmGuestTools(vm)
 }
 
 export function getVmIpAddresses(vm: FrontXoVm) {
