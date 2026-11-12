@@ -301,6 +301,12 @@ export type XoApp = EventEmitter & {
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* whether this machine can run the tools of an import from VMware */
   checkEsxiDependencies(): Promise<XoV2vStatus>
+  /* throw if the user may not add or remove these tags on the object (tags reserved to the firewall) */
+  checkTagsChange(
+    user: XoUser | undefined,
+    object: XapiXoRecord,
+    change: { added?: string[]; removed?: string[] }
+  ): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -381,6 +387,8 @@ export type XoApp = EventEmitter & {
   deleteSchedule(id: XoSchedule['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
+  /* tags added and removed when `oldTags` are replaced by `newTags` */
+  diffTags(oldTags: string[], newTags: string[]): { added: string[]; removed: string[] }
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disablePluginAutoload(id: XoPlugin['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */

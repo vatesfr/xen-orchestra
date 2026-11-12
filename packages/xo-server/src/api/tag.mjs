@@ -1,4 +1,5 @@
 export async function add({ tag, object }) {
+  await this.checkTagsChange(this.apiContext.user, object, { added: [tag] })
   await this.getXapiObject(object).add_tags(tag)
 }
 
@@ -16,6 +17,7 @@ add.params = {
 // -------------------------------------------------------------------
 
 export async function remove({ tag, object }) {
+  await this.checkTagsChange(this.apiContext.user, object, { removed: [tag] })
   await this.getXapiObject(object).remove_tags(tag)
 }
 

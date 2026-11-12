@@ -179,6 +179,11 @@ export const create = defer(async function ($defer, params) {
 
   const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
   const paramsTags = params.tags
+  // the new VM starts with its template's tags, which `tags` replace; the
+  // resource set's tags were chosen by an administrator, they aren't checked
+  if (paramsTags !== undefined) {
+    await this.checkTagsChange(user, template, this.diffTags(template.tags, paramsTags))
+  }
   if (resourceSetTags !== undefined) {
     params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
   }
