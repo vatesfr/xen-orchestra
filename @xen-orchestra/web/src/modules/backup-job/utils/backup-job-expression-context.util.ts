@@ -9,6 +9,10 @@ export const BACKUP_REPOSITORY_EXPRESSION_KEY = 'backupRepository'
 
 export const STORAGE_REPOSITORY_EXPRESSION_KEY = 'sr'
 
+export function toContextExpression(key: string, query: string): string {
+  return `${key}:(${query})`
+}
+
 export function formatContextExpressionQuery(key: string, expression: string): string {
   const prefix = `${key}:(`
 
