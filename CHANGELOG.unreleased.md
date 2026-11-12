@@ -9,6 +9,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Get the state of a proxy appliance updater `GET /rest/v0/proxies/:id/updater-state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
