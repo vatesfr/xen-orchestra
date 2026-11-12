@@ -255,6 +255,54 @@ export function vmsWithUncoveredInterface<T extends { tags: string[] }>(
   )
 }
 
+// A running VM falls in exactly one of these: what the pool overview's
+// donut shows. Those out of the firewall by choice (no interface, or all on
+// vdf:unprotected networks) are in none: `outside`.
+export type VdfProtectionClasses<T> = {
+  // an enforced policy (or the quarantine) applies, on a host that enforces it
+  protected: T[]
+  // the same, on a host that enforces nothing (no working agent)
+  exposed: T[]
+  // only policies in monitor mode apply
+  monitored: T[]
+  // an interface no policy applies to: `vmsWithUncoveredInterface`
+  notProtected: T[]
+  outside: T[]
+}
+
+// `hasEnforcement(vm)`: an enforced policy or the quarantine applies to the
+// VM; `isOnEnforcingHost(vm)`: its host applies them. The VMs not protected
+// are those of `vmsWithUncoveredInterface`, whatever else is true of them.
+export function classifyVmsProtection<T extends { tags: string[] }>(
+  vms: T[],
+  document: VdfDocument,
+  interfacesOf: (vm: T) => { netTags: string[] }[],
+  hasEnforcement: (vm: T) => boolean,
+  isOnEnforcingHost: (vm: T) => boolean
+): VdfProtectionClasses<T> {
+  const classes: VdfProtectionClasses<T> = { protected: [], exposed: [], monitored: [], notProtected: [], outside: [] }
+
+  if (document.policies.length === 0) {
+    return classes
+  }
+
+  const uncovered = new Set(vmsWithUncoveredInterface(vms, document, interfacesOf))
+
+  for (const vm of vms) {
+    if (interfacesOf(vm).every(({ netTags }) => netTags.includes(VDF_UNPROTECTED_TAG))) {
+      classes.outside.push(vm)
+    } else if (uncovered.has(vm)) {
+      classes.notProtected.push(vm)
+    } else if (!hasEnforcement(vm)) {
+      classes.monitored.push(vm)
+    } else {
+      classes[isOnEnforcingHost(vm) ? 'protected' : 'exposed'].push(vm)
+    }
+  }
+
+  return classes
+}
+
 export type VdfChange = {
   kind: 'group' | 'policy' | 'rule' | 'service'
   type: 'added' | 'removed' | 'modified' | 'moved'

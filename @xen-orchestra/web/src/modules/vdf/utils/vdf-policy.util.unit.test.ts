@@ -1,5 +1,6 @@
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import {
+  classifyVmsProtection,
   diffDocuments,
   effectiveTiers,
   filterRuleBase,
@@ -381,5 +382,60 @@ describe('vmsWithUncoveredInterface', () => {
 
   it('reports nothing when no policy is published', () => {
     expect(vmsWithUncoveredInterface([vm('a', [], [])], { groups: {}, policies: [] }, interfacesOf)).toEqual([])
+  })
+})
+
+describe('classifyVmsProtection', () => {
+  const doc: VdfDocument = {
+    groups: { web: { tags: ['vdf:role=web'] }, mon: { tags: ['vdf:role=mon'] } },
+    policies: [
+      { name: 'web', appliedTo: 'web', default: 'drop', ingress: [] },
+      { name: 'mon', appliedTo: 'mon', default: 'drop', ingress: [], mode: 'monitor' },
+    ],
+  }
+
+  type TestVm = { name: string; tags: string[]; networks: string[][]; host: boolean }
+  const vm = (name: string, tags: string[], networks: string[][] = [[]], host = true): TestVm => ({
+    name,
+    tags,
+    networks,
+    host,
+  })
+  const interfacesOf = (vm: TestVm) => vm.networks.map(netTags => ({ netTags }))
+  const hasEnforcement = (vm: TestVm) => vm.tags.includes('vdf:role=web')
+  const isOnEnforcingHost = (vm: TestVm) => vm.host
+
+  const vms = [
+    vm('protected', ['vdf:role=web']),
+    vm('exposed', ['vdf:role=web'], [[]], false),
+    vm('monitored', ['vdf:role=mon']),
+    vm('bare', []),
+    vm('storage-only', [], [['vdf:unprotected']]),
+    vm('no-interface', [], []),
+    vm('mixed', ['vdf:role=web'], [['vdf:unprotected'], []]),
+  ]
+  const names = (list: TestVm[]) => list.map(({ name }) => name)
+
+  it('puts each running VM in one class, those out of the firewall in none', () => {
+    const classes = classifyVmsProtection(vms, doc, interfacesOf, hasEnforcement, isOnEnforcingHost)
+
+    expect(names(classes.protected)).toEqual(['protected', 'mixed'])
+    expect(names(classes.exposed)).toEqual(['exposed'])
+    expect(names(classes.monitored)).toEqual(['monitored'])
+    expect(names(classes.notProtected)).toEqual(['bare'])
+    expect(names(classes.outside)).toEqual(['storage-only', 'no-interface'])
+    expect(Object.values(classes).flat()).toHaveLength(vms.length)
+  })
+
+  it('counts as not protected exactly the VMs vmsWithUncoveredInterface lists', () => {
+    const classes = classifyVmsProtection(vms, doc, interfacesOf, hasEnforcement, isOnEnforcingHost)
+
+    expect(classes.notProtected).toEqual(vmsWithUncoveredInterface(vms, doc, interfacesOf))
+  })
+
+  it('classifies nothing when no policy is published', () => {
+    const classes = classifyVmsProtection(vms, { groups: {}, policies: [] }, interfacesOf, hasEnforcement, () => true)
+
+    expect(Object.values(classes).flat()).toEqual([])
   })
 })

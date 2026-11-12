@@ -467,7 +467,7 @@ import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
-import { policiesByTier, reportedTierValue, vmsWithUncoveredInterface } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { classifyVmsProtection, policiesByTier, reportedTierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import {
   agentGaps,
@@ -538,7 +538,7 @@ const {
   reloadPublishedPolicy,
 } = useVdfPolicy(() => pool)
 
-const { runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVmsReady } = useVdfMembers(
+const { runningVms, membersOf, protectedVms, quarantinedVms, areVmsReady } = useVdfMembers(
   () => pool.id,
   publishedDocument
 )
@@ -577,31 +577,36 @@ const exposedVms = computed(() =>
 // the others are listed as exposed
 const enforcedQuarantines = computed(() => quarantinedVms.value.filter(vm => !exposedVms.value.includes(vm)))
 
-const runningProtectedVms = computed(() =>
-  runningVms.value.filter(vm => protectedVms.value.includes(vm) && isOnEnforcingHost(vm))
-)
-
-const exposedProtectedCount = computed(() => exposedVms.value.filter(vm => protectedVms.value.includes(vm)).length)
-
 const haltedProtectedVms = computed(() => protectedVms.value.filter(vm => vm.power_state !== VM_POWER_STATE.RUNNING))
 
-const protectionTitle = computed(() =>
-  t('firewall:overview:running-protected', { n: runningProtectedVms.value.length, total: runningVms.value.length })
+// each running VM in one class (the donut and the list below agree); those
+// out of the firewall by choice (no interface, or only on vdf:unprotected
+// networks) are in none, so they are not in the donut's total either
+const { interfacesOf } = useVdfInterfaces()
+
+const protectionClasses = computed(() =>
+  classifyVmsProtection(
+    runningVms.value,
+    publishedDocument.value,
+    interfacesOf,
+    vm => protectedVms.value.includes(vm) || quarantinedVms.value.includes(vm),
+    isOnEnforcingHost
+  )
 )
 
-// only policies in monitor mode apply: not protected yet, observed (vdf#13)
-const runningMonitoredCount = computed(
-  () => monitoredVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING).length
-)
+const protectionTitle = computed(() => {
+  const { protected: enforced, exposed, monitored, notProtected } = protectionClasses.value
+
+  return t('firewall:overview:running-protected', {
+    n: enforced.length,
+    total: enforced.length + exposed.length + monitored.length + notProtected.length,
+  })
+})
 
 // running VMs with an interface no policy applies to (not even in monitor
 // mode), by name: the policies the VM's Firewall tab lists, per interface
-const { interfacesOf } = useVdfInterfaces()
-
 const unprotectedVms = computed(() =>
-  vmsWithUncoveredInterface(runningVms.value, publishedDocument.value, interfacesOf).sort((vmA, vmB) =>
-    vmA.name_label.localeCompare(vmB.name_label)
-  )
+  [...protectionClasses.value.notProtected].sort((vmA, vmB) => vmA.name_label.localeCompare(vmB.name_label))
 )
 
 const UNPROTECTED_SHOWN = 5
@@ -617,26 +622,22 @@ const monitoredPolicyCount = computed(() => publishedDocument.value.policies.fil
 const protectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('firewall:overview:protected'),
-    value: runningProtectedVms.value.length,
+    value: protectionClasses.value.protected.length,
     accent: 'success',
   },
   {
     label: t('firewall:overview:exposed'),
-    value: exposedProtectedCount.value,
+    value: protectionClasses.value.exposed.length,
     accent: 'danger',
   },
   {
     label: t('firewall:overview:monitored'),
-    value: runningMonitoredCount.value,
+    value: protectionClasses.value.monitored.length,
     accent: 'info',
   },
   {
     label: t('firewall:overview:not-protected'),
-    value:
-      runningVms.value.length -
-      runningProtectedVms.value.length -
-      exposedProtectedCount.value -
-      runningMonitoredCount.value,
+    value: protectionClasses.value.notProtected.length,
     accent: 'warning',
   },
 ])
