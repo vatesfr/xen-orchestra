@@ -69,7 +69,7 @@ describe('useXoBackupJobLastRuns', () => {
     expect(result.lastRuns).toEqual([
       {
         status: 'pending',
-        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_000_000)}, ${result.t('pending')}`,
+        tooltip: `${result.t('last-run-number', { n: 1 })}: ${formatDateTime(1_700_000_000_000)}, ${result.t('in-progress')}`,
       },
     ])
   })

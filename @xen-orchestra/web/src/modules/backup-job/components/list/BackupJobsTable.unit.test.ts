@@ -179,6 +179,26 @@ describe('last runs', () => {
   })
 })
 
+describe('status', () => {
+  it('shows the backup job as enabled when at least one of its schedules is enabled', () => {
+    const backupJob = createVmBackupJob()
+    schedulesByJobId.set(backupJob.id, [
+      createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: false }),
+      createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: true }),
+    ])
+
+    const cell = findCell(mountTable([backupJob]), t('status'))
+
+    expect(cell.getComponent(VtsStatus).props('status')).toBe(true)
+  })
+
+  it('shows a backup job without enabled schedule as disabled', () => {
+    const cell = findCell(mountTable([createVmBackupJob()]), t('status'))
+
+    expect(cell.getComponent(VtsStatus).props('status')).toBe(false)
+  })
+})
+
 describe('health check', () => {
   it('shows the health check status of the backup job', () => {
     const backupJob = createVmBackupJob({
