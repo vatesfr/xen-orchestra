@@ -94,7 +94,7 @@
 
 - @vates/obfuscate minor
 - @vates/syslog minor
-- @vates/types minor
+- @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
 - @xen-orchestra/backups major
