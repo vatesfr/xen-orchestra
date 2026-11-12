@@ -633,6 +633,40 @@ describe('pool publish', () => {
     }
   })
 
+  // group tags must start with vdf: (XO core keeps that namespace to administrators)
+  test('a group on a tag not starting with vdf: is refused, naming it; an old document is still read', async () => {
+    const old = { ...document(), groups: { web: { tags: ['web'] } } }
+    const xo = fakeXo({ otherConfig: { 'vdf:policy': text(old) } })
+    const plugin = await loaded(xo)
+    try {
+      const publish = groups =>
+        xo.route('post', '/pools/{id}/actions/publish_policy', {
+          params: { id: POOL },
+          body: {
+            policy: text({ ...document(), groups }),
+            expectedDocId: publishedPolicy(xo.xapi.pool.other_config).docId,
+          },
+        })
+
+      for (const tag of ['web', 'vdf:quarantine']) {
+        const { result } = await publish({ web: { tags: ['vdf:role=web', tag] } })
+        assert.equal(result.published, false)
+        assert.match(result.error, new RegExp(`group "web": tag "${tag}" is refused, group tags must start with vdf:`))
+      }
+      assert.equal(
+        xo.calls.some(call => call.fn === 'publish'),
+        false
+      )
+
+      // only publishing is refused
+      assert.deepEqual((await xo.route('get', '/pools/{id}/policy', { params: { id: POOL } })).result.document, old)
+
+      assert.equal((await publish({ web: { tags: ['vdf:role=web'] } })).result.published, true)
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('nothing published yet: the expected id is empty', async () => {
     const xo = fakeXo()
     const plugin = await loaded(xo)

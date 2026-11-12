@@ -77,7 +77,7 @@ describe('compose', () => {
 
   test('egress rules: global ids and destination names (vdf#53)', () => {
     const global = {
-      groups: { app: { tags: ['role=app'] }, db: { tags: ['role=db'] } },
+      groups: { app: { tags: ['vdf:role=app'] }, db: { tags: ['vdf:role=db'] } },
       policies: [
         {
           name: 'app',
@@ -177,6 +177,17 @@ describe('checks', () => {
       }).length,
       2
     )
+  })
+
+  test('group tags start with vdf:, and are not the quarantine tag', () => {
+    const groups = { web: { tags: ['web'] }, ok: { tags: ['vdf:role=web'] }, q: { tags: ['vdf:quarantine'] } }
+    for (const check of [checkGlobalDocument, checkLocalDocument]) {
+      const errors = check({ groups, policies: [] })
+      assert.equal(errors.length, 2)
+      assert.match(errors[0], /group "web": tag "web" is refused, group tags must start with vdf:, e\.g\. vdf:role=web/)
+      assert.match(errors[1], /group "q": tag "vdf:quarantine"/)
+      assert.deepEqual(check({ groups: { ok: groups.ok }, policies: [] }), [])
+    }
   })
 
   test('local ids stay below the global range', () => {

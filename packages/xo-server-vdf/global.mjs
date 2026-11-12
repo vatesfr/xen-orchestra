@@ -49,6 +49,25 @@ export function globalPart(document) {
 // a policy's rules, ingress and egress (vdf#53)
 const allRules = policy => [...(policy.ingress ?? []), ...(policy.egress ?? [])]
 
+// XO core keeps the vdf: tags to pool administrators (reserved-tags.mjs):
+// a group on any other tag would be open to whoever may tag VMs. The
+// quarantine tag isn't a group criterion either. Only publishing is
+// refused: a document already published is read as it is.
+const GROUP_TAG_PREFIX = 'vdf:'
+const QUARANTINE_TAG = 'vdf:quarantine'
+
+function groupTagErrors(groups) {
+  const errors = []
+  for (const [name, group] of Object.entries(groups ?? {})) {
+    for (const tag of group.tags ?? []) {
+      if (typeof tag !== 'string' || !tag.startsWith(GROUP_TAG_PREFIX) || tag === QUARANTINE_TAG) {
+        errors.push(`group "${name}": tag "${tag}" is refused, group tags must start with vdf:, e.g. vdf:role=web`)
+      }
+    }
+  }
+  return errors
+}
+
 // Errors XO reports before asking any agent: names and ids that would
 // collide once the global configuration is written into a pool.
 export function checkGlobalDocument(document) {
@@ -63,6 +82,7 @@ export function checkGlobalDocument(document) {
       errors.push(`group "${name}": global names are written without the "${GLOBAL_PREFIX}" prefix`)
     }
   }
+  errors.push(...groupTagErrors(document.groups))
   for (const policy of document.policies ?? []) {
     if (isGlobalName(policy.name)) {
       errors.push(`policy "${policy.name}": global names are written without the "${GLOBAL_PREFIX}" prefix`)
@@ -118,7 +138,7 @@ export const reservedTiersError = names =>
 // a pool the global configuration applies to (globalScope), the tiers kept
 // for global policies.
 export function checkLocalDocument(document, { globalScope = false } = {}) {
-  const errors = []
+  const errors = groupTagErrors(localPart(document).groups)
   for (const policy of localPart(document).policies) {
     for (const rule of allRules(policy)) {
       if (rule.id >= GLOBAL_RULE_BASE) {
