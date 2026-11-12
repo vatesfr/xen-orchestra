@@ -39,6 +39,13 @@ test('a leading undefined is treated as an empty signal slot', async () => {
   assert.deepEqual(calls[0], ['Async.VM.start', 'ref', false])
 })
 
+test('a leading null is treated as an empty signal slot', async () => {
+  const { calls, xapi } = createXapi()
+
+  assert.equal(await xapi.callAsync(null, 'VM.start', 'ref', false), 'result')
+  assert.deepEqual(calls[0], ['Async.VM.start', 'ref', false])
+})
+
 test('signal + cache + method: the cache is used and the signal is not forwarded', async () => {
   const { calls, xapi } = createXapi()
   const { signal } = new AbortController()

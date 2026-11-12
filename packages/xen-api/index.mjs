@@ -1828,7 +1828,7 @@ function abortable(fn) {
     if (first != null && typeof first.throwIfRequested === 'function') {
       return Promise.reject(new TypeError('CancelToken is no longer supported, pass an AbortSignal instead'))
     }
-    const signal = first === undefined || first instanceof AbortSignal ? args.shift() : undefined
+    const signal = first == null || first instanceof AbortSignal ? (args.shift() ?? undefined) : undefined
     return fn.call(this, signal, ...args)
   }
 }
