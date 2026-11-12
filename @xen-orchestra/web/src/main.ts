@@ -1,3 +1,5 @@
+import { loadUiPlugins } from '@/modules/ui-plugin/load-ui-plugins.ts'
+import { getUiPluginManifests } from '@/modules/ui-plugin/ui-plugin-discovery.ts'
 import { formValidationConfig } from '@/plugins/form-validation.config.ts'
 import { IS_XOA_BUILD } from '@/shared/constants.ts'
 import i18n from '@core/i18n.ts'
@@ -46,6 +48,9 @@ async function init() {
   if (import.meta.hot) {
     handleHotUpdate(router)
   }
+
+  // Before installing the router, so that the initial navigation can target a UI plugin route
+  await loadUiPlugins(getUiPluginManifests(), router)
 
   app.use(i18n)
   app.use(createPinia())

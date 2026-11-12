@@ -1,8 +1,10 @@
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
+import { federation } from '@module-federation/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv, PluginOption } from 'vite'
 import vueRouter from 'vue-router/vite'
+import { exactVueI18nAliasPlugin, getHostSharedConfig, HOST_FEDERATION_NAME } from './federation.config.ts'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -19,6 +21,15 @@ export default defineConfig(({ mode }) => {
       vueI18n({
         include: fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
       }),
+      // XO6 is the host of the UI plugins (see `src/modules/ui-plugin`), useless in unit tests
+      process.env.VITEST === undefined && exactVueI18nAliasPlugin(),
+      process.env.VITEST === undefined &&
+        federation({
+          name: HOST_FEDERATION_NAME,
+          remotes: {},
+          shared: getHostSharedConfig(),
+          dts: false,
+        }),
     ] as PluginOption[],
     resolve: {
       alias: {

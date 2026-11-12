@@ -5,4 +5,6 @@
 // Set by xoa-packager, absence means build from source.
 interface ImportMetaEnv {
   readonly VITE_XOA_BUILD?: string
+  // UI plugins to load, see `src/modules/ui-plugin/ui-plugin-discovery.ts`
+  readonly VITE_XO_UI_PLUGINS?: string
 }
