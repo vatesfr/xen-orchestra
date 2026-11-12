@@ -11,7 +11,12 @@
       </UiButton>
     </VtsStateHero>
     <VtsStateHero v-else-if="!isHistoryReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="entries.length === 0" format="card" type="no-data" size="medium">
+    <VtsStateHero
+      v-else-if="entries.length === 0 && tagChanges.length === 0"
+      format="card"
+      type="no-data"
+      size="medium"
+    >
       {{ t('firewall:history:empty') }}
       <span class="typo-body-regular secondary">{{ t('firewall:history:empty:info') }}</span>
     </VtsStateHero>
@@ -19,6 +24,7 @@
       v-else
       :id="`vdf-history-${scopeKey}`"
       :entries
+      :tag-changes
       :current-id
       @view="entry => viewVersion(entry)"
       @restore="entry => restoreEntry(entry)"
@@ -44,7 +50,7 @@ const { t } = useI18n()
 
 const scopeKey = scope.kind === 'global' ? 'global' : scope.pool.id
 
-const { entries, currentId, isHistoryReady, hasHistoryError, reloadHistory, viewVersion, restoreEntry } =
+const { entries, tagChanges, currentId, isHistoryReady, hasHistoryError, reloadHistory, viewVersion, restoreEntry } =
   useVdfHistoryPage(() => scope)
 </script>
 

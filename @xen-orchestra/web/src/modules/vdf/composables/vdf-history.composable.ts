@@ -19,6 +19,9 @@ export function useVdfHistoryPage(rawScope: MaybeRefOrGetter<VdfScope>) {
   // newest first
   const entries = computed(() => [...(history.value?.entries ?? [])].reverse())
 
+  // vdf: tags changed outside XO (a pool's), newest first
+  const tagChanges = computed(() => [...(history.value?.tagChanges ?? [])].reverse())
+
   // the version the scope enforces now: the newest one with its id
   const currentId = computed(
     () =>
@@ -85,6 +88,7 @@ export function useVdfHistoryPage(rawScope: MaybeRefOrGetter<VdfScope>) {
 
   return {
     entries,
+    tagChanges,
     currentId,
     isHistoryReady,
     hasHistoryError,

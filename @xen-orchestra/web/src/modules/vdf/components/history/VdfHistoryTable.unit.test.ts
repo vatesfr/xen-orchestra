@@ -1,6 +1,6 @@
 import VdfHistoryTable from '@/modules/vdf/components/history/VdfHistoryTable.vue'
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
-import type { VdfHistoryEntry } from '@/modules/vdf/types.ts'
+import type { VdfHistoryEntry, VdfTagChange } from '@/modules/vdf/types.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -26,9 +26,9 @@ const entry = (id: number, fields: Partial<VdfHistoryEntry> = {}): VdfHistoryEnt
   ...fields,
 })
 
-const mountTable = (entries: VdfHistoryEntry[]) =>
+const mountTable = (entries: VdfHistoryEntry[], tagChanges?: VdfTagChange[]) =>
   mount(VdfHistoryTable, {
-    props: { id: 'history', entries, currentId: entries[0]?.id },
+    props: { id: 'history', entries, tagChanges, currentId: entries[0]?.id },
     global: createGlobalTestConfig(),
   })
 
@@ -76,4 +76,29 @@ it('hides the versions without changes until asked', async () => {
   await wrapper.getComponent(VdfSwitch).setValue(true)
 
   expect(wrapper.findAll('tbody tr')).toHaveLength(3)
+})
+
+// vdf#141: a vdf: tag changed outside this XO, among the versions by when
+// XO saw it
+it('says which tag changed outside this XO, on what, among the versions', () => {
+  const tagChange: VdfTagChange = {
+    id: 1,
+    seenAt: '2026-10-26T09:00:00Z',
+    object: { id: 'vm-1', type: 'VM', name: 'web-1' },
+    tag: 'vdf:quarantine',
+    change: 'removed',
+    outsideXo: true,
+  }
+  const wrapper = mountTable(
+    [
+      entry(2, { publishedAt: '2026-10-27T09:00:00Z', summary: summary({ added: 1 }) }),
+      entry(1, { summary: summary({ added: 1 }) }),
+    ],
+    [tagChange]
+  )
+  const rows = wrapper.findAll('tbody tr')
+
+  expect(rows).toHaveLength(3)
+  expect(rows[1].text()).toContain(t('firewall:history:tag:vm:removed', { tag: 'vdf:quarantine', name: 'web-1' }))
+  expect(rows[1].text()).toContain(t('firewall:outside:by'))
 })

@@ -159,6 +159,9 @@ export type VdfPublishedPolicy = {
   global?: { revision: number; inScope: boolean; owner?: string }
   // the last change made outside this XO
   outside?: VdfOutsideChange | null
+  // VMs still out of the quarantine lifted outside this XO (vdf#141);
+  // absent from older plugins
+  quarantineLifted?: VdfTagChange[]
 }
 
 export type VdfGlobalScope = {
@@ -323,6 +326,18 @@ export type VdfHistoryEntry = {
   // what it changed, object by object (the first ones; absent from older
   // plugins)
   changes?: { items: VdfHistoryChangeItem[]; more: number }
+}
+
+// A vdf: tag changed outside this XO (xe, another XO, any XAPI client) on a
+// pool's VM or network, kept beside its versions (vdf#141)
+export type VdfTagChange = {
+  id: number
+  seenAt: string
+  // name: when XO saw the change, if it still had the object
+  object: { id: string; type: 'VM' | 'network'; name?: string }
+  tag: string
+  change: 'added' | 'removed'
+  outsideXo: true
 }
 
 export type VdfHistoryChangeItem =

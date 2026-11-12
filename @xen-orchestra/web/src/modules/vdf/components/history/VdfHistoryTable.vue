@@ -8,7 +8,7 @@
     <VtsTable
       :key="String(isNarrow)"
       :state
-      :pagination-bindings="entries.length > 10 ? paginationBindings : undefined"
+      :pagination-bindings="rows.length > 10 ? paginationBindings : undefined"
       sticky="right"
     >
       <thead>
@@ -17,9 +17,14 @@
         </tr>
       </thead>
       <tbody>
-        <VtsRow v-for="entry of pageEntries" :key="entry.id">
-          <BodyCells :item="entry" />
-        </VtsRow>
+        <template v-for="row of pageRows" :key="isTagChange(row) ? `tag-${row.id}` : row.id">
+          <VtsRow v-if="isTagChange(row)">
+            <TagChangeCells :item="row" />
+          </VtsRow>
+          <VtsRow v-else>
+            <BodyCells :item="row" />
+          </VtsRow>
+        </template>
       </tbody>
     </VtsTable>
   </div>
@@ -29,11 +34,12 @@
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
-import type { VdfHistoryChangeItem, VdfHistoryEntry } from '@/modules/vdf/types.ts'
+import type { VdfHistoryChangeItem, VdfHistoryEntry, VdfTagChange } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
@@ -46,10 +52,17 @@ import { computed, h, ref, useTemplateRef, watchEffect, withDirectives } from 'v
 import { useI18n } from 'vue-i18n'
 
 // newest first
-const { id, entries, currentId } = defineProps<{
+const {
+  id,
+  entries,
+  tagChanges = [],
+  currentId,
+} = defineProps<{
   // pagination key
   id: string
   entries: VdfHistoryEntry[]
+  // a pool's vdf: tags changed outside this XO (vdf#141)
+  tagChanges?: VdfTagChange[]
   currentId: number | undefined
 }>()
 
@@ -77,9 +90,36 @@ const unchangedCount = computed(() => entries.filter(isUnchanged).length)
 
 const shownEntries = computed(() => (showUnchanged.value ? entries : entries.filter(entry => !isUnchanged(entry))))
 
-const { pageRecords: pageEntries, paginationBindings } = usePagination(id, shownEntries)
+type HistoryRow = VdfHistoryEntry | VdfTagChange
 
-const state = useTableState({ empty: () => shownEntries.value.length === 0 })
+const isTagChange = (row: HistoryRow): row is VdfTagChange => 'tag' in row
+
+// newest first: the tag changes among the versions, by when they were seen
+// (the versions keep their order; one from before XO kept a history is the
+// oldest)
+const rows = computed(() => {
+  const merged: HistoryRow[] = []
+  let next = 0
+  for (const entry of shownEntries.value) {
+    const at = entry.publishedAt === null ? -Infinity : Date.parse(entry.publishedAt)
+    while (next < tagChanges.length && Date.parse(tagChanges[next].seenAt) >= at) {
+      merged.push(tagChanges[next++])
+    }
+    merged.push(entry)
+  }
+  return [...merged, ...tagChanges.slice(next)]
+})
+
+const { pageRecords: pageRows, paginationBindings } = usePagination(id, rows)
+
+const state = useTableState({ empty: () => rows.value.length === 0 })
+
+// "vdf:quarantine removed from VM web-1, outside XO"
+const tagChangeText = ({ object, tag, change }: VdfTagChange) =>
+  t(`firewall:history:tag:${object.type === 'network' ? 'network' : 'vm'}:${change}`, {
+    tag,
+    name: object.name ?? object.id,
+  })
 
 // one changed object in words: "db: 2 rules added, 1 removed", "group
 // cache added"
@@ -233,10 +273,30 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
   }),
 })
 
+// a tag changed outside this XO: when XO saw it, and what
+const { BodyCells: TagChangeCells, toggle: toggleTagChange } = useHistoryColumns({
+  body: (change: VdfTagChange) => ({
+    publishedAt: r =>
+      r(
+        h('span', { class: 'date' }, [
+          h('span', formatDateTime(change.seenAt)),
+          h(VtsRelativeTime, { date: change.seenAt, class: 'secondary typo-body-regular-small' }),
+        ])
+      ),
+    publishedBy: r => r(h(UiTag, { accent: 'warning', variant: 'secondary' }, () => t('firewall:outside:by'))),
+    changes: r => r(h('span', { class: 'changes' }, tagChangeText(change))),
+    content: () => h(UiTableCell),
+    actions: () => h(UiTableCell),
+  }),
+})
+
 // on a laptop, a version's content is in its details (the eye)
 const isNarrow = useVdfNarrow(useTemplateRef('root'), 112)
 
-watchEffect(() => toggle('content', !isNarrow.value))
+watchEffect(() => {
+  toggle('content', !isNarrow.value)
+  toggleTagChange('content', !isNarrow.value)
+})
 </script>
 
 <style lang="postcss" scoped>
