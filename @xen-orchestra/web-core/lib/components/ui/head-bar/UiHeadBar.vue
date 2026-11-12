@@ -47,11 +47,11 @@ const slots = defineSlots<{
   background-color: var(--color-neutral-background-primary);
 
   .label-wrapper {
-    flex: 1 1 20rem;
+    flex: 1 1 0;
     display: flex;
     gap: 1.6rem;
     align-items: center;
-    min-width: 0;
+    min-width: 10rem;
   }
 
   .label {
