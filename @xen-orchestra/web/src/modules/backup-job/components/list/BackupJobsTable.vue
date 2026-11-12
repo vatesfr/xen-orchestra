@@ -51,6 +51,7 @@ import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
+import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import {
   BACKUP_JOB_LAST_RUNS_COUNT,
@@ -201,6 +202,13 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
     const {
+      run: runBackupJobs,
+      canRun: canRunBackupJobs,
+      isRunning: isRunningBackupJobs,
+      errorMessage: runBackupJobsErrorMessage,
+    } = useXoBackupJobRunJob(() => [backupJob])
+
+    const {
       run: duplicateBackupJobs,
       canRun: canDuplicateBackupJobs,
       isRunning: isDuplicatingBackupJobs,
@@ -230,6 +238,14 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
         r({
           onClick: () => (selectedBackupJobId.value = backupJob.id),
           actions: [
+            {
+              label: t('action:manual-run'),
+              icon: 'fa:play',
+              onClick: () => runBackupJobs(),
+              disabled: !canRunBackupJobs.value,
+              busy: isRunningBackupJobs.value,
+              hint: runBackupJobsErrorMessage.value,
+            },
             {
               label: t('action:duplicate'),
               icon: 'action:duplicate',

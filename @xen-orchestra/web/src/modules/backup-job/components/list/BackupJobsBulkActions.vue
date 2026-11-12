@@ -5,6 +5,7 @@
 <script lang="ts" setup>
 import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
+import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
@@ -16,6 +17,13 @@ const { backupJobs } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const {
+  run: runBackupJobs,
+  canRun: canRunBackupJobs,
+  isRunning: isRunningBackupJobs,
+  errorMessage: runBackupJobsErrorMessage,
+} = useXoBackupJobRunJob(() => backupJobs)
 
 const {
   run: duplicateBackupJobs,
@@ -30,6 +38,14 @@ const { deleteBackupJobs, canDeleteBackupJobs, isDeletingBackupJobs, deleteBacku
 const isSelectionEmpty = computed(() => backupJobs.length === 0)
 
 const bulkActions = computed<ActionItem[]>(() => [
+  {
+    label: t('action:manual-run'),
+    icon: 'fa:play',
+    onClick: () => runBackupJobs(),
+    disabled: !canRunBackupJobs.value,
+    busy: isRunningBackupJobs.value,
+    hint: isSelectionEmpty.value ? t('no-backup-job-selected') : runBackupJobsErrorMessage.value,
+  },
   {
     label: t('action:duplicate'),
     icon: 'action:duplicate',

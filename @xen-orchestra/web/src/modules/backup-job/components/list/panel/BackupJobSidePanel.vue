@@ -1,8 +1,10 @@
 <template>
   <VtsSidePanel :has-selection="!!backupJob" @close="emit('close')">
     <template v-if="backupJob" #actions>
-      <BackupJobDuplicateButton :backup-job />
       <BackupJobDeleteButton :backup-job />
+    </template>
+    <template v-if="backupJob" #more-actions>
+      <BackupJobMoreActions :backup-job />
     </template>
 
     <template v-if="backupJob" #default>
@@ -21,8 +23,8 @@
 </template>
 
 <script lang="ts" setup>
+import BackupJobMoreActions from '@/modules/backup-job/components/actions/BackupJobMoreActions.vue'
 import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
-import BackupJobDuplicateButton from '@/modules/backup-job/components/actions/duplicate/BackupJobDuplicateButton.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
