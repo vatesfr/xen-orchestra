@@ -491,6 +491,97 @@ describe('rollingPoolReboot', function () {
     )
   })
 
+  describe('afterHostIsBack', function () {
+    // evacuations, reboots and calls of the hook, in order
+    const spyXapi = xapi => {
+      const events = []
+      const clearHost = xapi.clearHost.bind(xapi)
+      xapi.clearHost = async host => {
+        events.push(`evacuate ${host.uuid}`)
+        return clearHost(host)
+      }
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, hostRef) => {
+        events.push(`reboot ${xapi.getObject(hostRef).uuid}`)
+        return callAsync(method, hostRef)
+      }
+      return events
+    }
+
+    it('runs once every host is back, the last one included, before the next evacuation', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+
+      const { error } = await rollingPoolReboot(xapi, {
+        afterHostIsBack: async host => events.push(`back ${host.uuid}`),
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        'evacuate host-A',
+        'reboot host-A',
+        'back host-A',
+        'evacuate host-B',
+        'reboot host-B',
+        'back host-B',
+      ])
+    })
+
+    it('does not run for a host which is not rebooted', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+
+      const { error } = await rollingPoolReboot(xapi, {
+        afterHostIsBack: async host => events.push(`back ${host.uuid}`),
+        ignoreHost: host => host.uuid === 'host-A',
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, ['evacuate host-B', 'reboot host-B', 'back host-B'])
+    })
+
+    it('stops the run before the next evacuation when it fails', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+      const recorder = stepSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        afterHostIsBack: async () => {
+          throw new Error('LINSTOR is not healthy')
+        },
+      })
+
+      assert.equal(error?.message, 'LINSTOR is not healthy')
+      assert.deepEqual(events, ['evacuate host-A', 'reboot host-A'])
+      // the host did reboot: the record must not tell otherwise
+      assert.ok(recorder.steps.some(_ => _.status === 'observed' && _.hostId === 'host-A' && _.name === 'reboot'))
+    })
+
+    it('ends the progress of the run at 100', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const progress = []
+      const parentTask = new Task({
+        properties: { name: 'rolling pool reboot', progress: 0 },
+        onProgress: event => {
+          if (event.type === 'property' && event.id === parentTask.id && event.name === 'progress') {
+            progress.push(event.value)
+          }
+        },
+      })
+
+      await parentTask.run(() =>
+        poolMethods.rollingPoolReboot.call(xapi, parentTask, { afterHostIsBack: async () => {} })
+      )
+
+      assert.equal(progress.at(-1), 100)
+      assert.ok(
+        progress.every(value => value <= 100),
+        `${progress}`
+      )
+    })
+  })
+
   describe('resume', function () {
     // records which hosts the run touches and what it writes to the record
     const spyXapi = xapi => {
