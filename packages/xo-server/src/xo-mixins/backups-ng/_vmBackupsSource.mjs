@@ -216,6 +216,28 @@ export class VmBackupsSource {
   }
 
   /**
+   * Removes the journal days of a repository before the one of `before`.
+   *
+   * A proxy too old to purge a journal rejects with its method-not-found error, which the caller
+   * reports like any other failure.
+   *
+   * @param {Repository} repository
+   * @param {number} before timestamp in ms, of this process' clock: a proxy uses it as is
+   * @returns {Promise<void>}
+   */
+  async purgeJournal(repository, before) {
+    if (isProxied(repository)) {
+      await this.#app.callProxyMethod(repository.proxy, 'backup.purgeVmBackupsJournal', {
+        remote: remoteOf(repository),
+        before,
+      })
+      return
+    }
+
+    await this.#useAdapter(repository, adapter => adapter.purgeBackupJournal(before))
+  }
+
+  /**
    * @param {ProxiedRepository} repository
    * @param {string} vmUuid
    * @returns {Promise<Backups>}
