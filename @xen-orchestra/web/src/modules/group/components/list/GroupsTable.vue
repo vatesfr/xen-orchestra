@@ -111,7 +111,7 @@ const { HeadCells, BodyCells } = useGroupColumns({
           icon: 'table:group',
           to: { name: '/admin/group/[id]/general', params: { id: group.id } },
         }),
-      provider: r => r(group.provider),
+      provider: r => r(group.provider ?? ''),
       users: r => r(group.usersCount),
       roles: r => r(group.rolesCount),
       actions: r =>

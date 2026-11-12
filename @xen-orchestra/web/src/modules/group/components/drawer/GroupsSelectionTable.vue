@@ -80,7 +80,7 @@ const { HeadCells, BodyCells } = useGroupColumns({
   body: (group: FilterableGroup) => ({
     checkbox: r => r({ selected: isSelected(group.id), onToggle: () => toggleSelection(group.id) }),
     name: r => r({ label: group.name, icon: 'table:group' }),
-    provider: r => r(group.provider),
+    provider: r => r(group.provider ?? ''),
     users: r => r(group.usersCount),
     roles: r => r(group.rolesCount),
   }),
