@@ -238,6 +238,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/role/templates': RouteRecordInfo<
+      '/admin/role/templates',
+      '/admin/role/templates',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/user/[id]': RouteRecordInfo<
       '/admin/user/[id]',
       '/admin/user/:id',
@@ -888,6 +895,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/role/new.vue': {
       routes:
         | '/admin/role/new'
+      views:
+        | never
+    }
+    'src/pages/admin/role/templates.vue': {
+      routes:
+        | '/admin/role/templates'
       views:
         | never
     }

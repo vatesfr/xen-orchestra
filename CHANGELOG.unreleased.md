@@ -42,6 +42,7 @@
 - [Users] Create a user from the users list in the user management page, and add it to groups and assign it roles right away
 - [Groups] See the roles applied to a group in its side panel (PR [#10659](https://github.com/vatesfr/xen-orchestra/pull/10659))
 - [Groups] Delete a group, or several at once, from the groups list or its side panel in the user management page. Its members are kept, but lose the roles they inherited from it. A synchronized group cannot be deleted (PR [#10765](https://github.com/vatesfr/xen-orchestra/pull/10765))
+- [Roles] Create a role from a template: pick a role template from the roles list in the user management page, then adjust its name, description and privileges before creating the role
 
 ### Bug fixes
 
