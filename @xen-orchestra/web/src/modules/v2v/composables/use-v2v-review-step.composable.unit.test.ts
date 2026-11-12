@@ -8,6 +8,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
   createV2vLaunchSettings,
   createV2vStartVm,
+  getV2vStartEndpoint,
   stubV2vStartAccepted,
   stubV2vStartProblems,
   V2V_START_TASK_ID,
@@ -79,7 +80,7 @@ vi.mock(
 )
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
-const START_ENDPOINT = `pools/${V2V_LIST_POOL.id}/actions/import_vms_from_vmware`
+const START_ENDPOINT = getV2vStartEndpoint(V2V_LIST_POOL.id)
 
 const NEW_VM = createV2vStartVm({ id: V2V_WEB_VM.id })
 
@@ -347,7 +348,7 @@ describe('canLaunch', () => {
     expect(result.canLaunch).toBe(false)
   })
 
-  it('cannot launch without a connected source, nor any VM to show', async () => {
+  it('cannot launch without a connected source, no VM resolving without its inventory', async () => {
     const { result } = await mountReviewStep({ isSourceConnected: false })
 
     expect(result.canLaunch).toBe(false)
@@ -418,26 +419,33 @@ describe('launch', () => {
     expect(hasRequested('POST', START_ENDPOINT, payload)).toBe(true)
   })
 
-  it('does not launch while the destination pool loads', async () => {
+  it.each([
+    { case: 'without a connected source', options: { isSourceConnected: false } },
+    {
+      case: 'while the destination pool loads',
+      prepare: () => {
+        xoCollectionsMock.pools.value = []
+      },
+      errorKey: 'job:arg:pool-id-required',
+    },
+    {
+      case: 'while the launch options are invalid',
+      prepare: (result: ReviewStep) => {
+        result.form.formData.concurrency = 0
+      },
+    },
+  ])('does not launch $case', async ({ options, prepare, errorKey }) => {
     const fetchMock = stubV2vStartAccepted()
-    const { result } = await mountReviewStep()
+    const { result } = await mountReviewStep(options)
 
-    xoCollectionsMock.pools.value = []
-    await launch(result)
-
-    expect(fetchMock).not.toHaveBeenCalled()
-    expect(result.launchError).toEqual({ title: result.t('error'), messages: [result.t('job:arg:pool-id-required')] })
-  })
-
-  it('does not launch while the launch options are invalid', async () => {
-    const fetchMock = stubV2vStartAccepted()
-    const { result } = await mountReviewStep()
-
-    result.form.formData.concurrency = 0
+    prepare?.(result)
     await launch(result)
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(result.launched).toBeUndefined()
+    expect(result.launchError).toEqual(
+      errorKey === undefined ? undefined : { title: result.t('error'), messages: [result.t(errorKey)] }
+    )
   })
 
   it('is launching while the request runs', async () => {

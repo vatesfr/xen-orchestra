@@ -5,6 +5,7 @@ import { ApiError } from '@/shared/error/api.error.ts'
 import { createPool } from '@/test/create-pool.ts'
 import {
   createV2vStartPayloadInput,
+  getV2vStartEndpoint,
   stubV2vStartAccepted,
   stubV2vStartProblems,
   V2V_START_TASK_ID,
@@ -28,7 +29,7 @@ describe('run', () => {
 
     await expect(mountStartJob(POOL, PAYLOAD).run()).resolves.toBe(V2V_START_TASK_ID)
     expect(fetchMock).toHaveBeenCalledOnce()
-    expect(hasRequested('POST', `pools/${POOL.id}/actions/import_vms_from_vmware`, PAYLOAD)).toBe(true)
+    expect(hasRequested('POST', getV2vStartEndpoint(POOL.id), PAYLOAD)).toBe(true)
   })
 
   it('rejects with the API error the server answered', async () => {
@@ -45,25 +46,15 @@ describe('errorMessage', () => {
     expectJobRunning(job, job.t('job:v2v-start:in-progress'))
   })
 
-  it('reports a missing pool', () => {
-    const job = mountStartJob(undefined, PAYLOAD)
+  it.each([
+    { case: 'a missing pool', pool: undefined, payload: PAYLOAD, key: 'job:arg:pool-id-required' },
+    { case: 'a missing payload', pool: POOL, payload: undefined, key: 'job:arg:missing-payload' },
+    { case: 'a payload without VMs', pool: POOL, payload: { ...PAYLOAD, vms: [] }, key: 'job:v2v-start:missing-vm' },
+  ])('reports $case', ({ pool, payload, key }) => {
+    const job = mountStartJob(pool, payload)
 
     expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(job.t('job:arg:pool-id-required'))
-  })
-
-  it('reports a missing payload', () => {
-    const job = mountStartJob(POOL, undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(job.t('job:arg:missing-payload'))
-  })
-
-  it('reports a payload without VMs', () => {
-    const job = mountStartJob(POOL, { ...PAYLOAD, vms: [] })
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(job.t('job:v2v-start:missing-vm'))
+    expect(job.errorMessage).toBe(job.t(key))
   })
 
   it('can run with a pool and a payload of one VM', () => {

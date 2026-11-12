@@ -7,7 +7,7 @@ import V2vReviewStep from '@/modules/v2v/components/review/V2vReviewStep.vue'
 import V2vVmLaunchOptionsTable from '@/modules/v2v/components/review/V2vVmLaunchOptionsTable.vue'
 import { stubV2vStartAccepted, stubV2vStartProblems, V2V_START_TASK_ID } from '@/test/create-v2v-launch.ts'
 import { findCardTitleLabel } from '@/test/find-card-title.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findTitle } from '@/test/find-titles.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
@@ -83,6 +83,8 @@ async function mountStep(options?: Parameters<typeof mountV2vListStep>[2]) {
   )
 }
 
+type MountedStep = Awaited<ReturnType<typeof mountStep>>
+
 // A group by its heading
 function getGroup(wrapper: VueWrapper, headingKey: string) {
   const group = wrapper.findAllComponents(V2vLaunchGroup).find(found => found.props('heading').label === t(headingKey))
@@ -105,20 +107,23 @@ beforeEach(() => {
   resetV2vCollectionMocks()
 })
 
-it('shows the step busy while the VMs load', async () => {
-  const { wrapper } = await mountStep()
+it.each([
+  {
+    case: 'while the VMs load',
+    makeBusy: () => {
+      v2vVmRowsCollectionsMock.areVmsReady.value = false
+    },
+  },
+  {
+    case: 'without a destination pool',
+    makeBusy: ({ router }: MountedStep) =>
+      router.replace({ query: { ...router.currentRoute.value.query, pool: undefined } }),
+  },
+])('shows the step busy $case', async ({ makeBusy }) => {
+  const mounted = await mountStep()
+  const { wrapper } = mounted
 
-  v2vVmRowsCollectionsMock.areVmsReady.value = false
-  await flushPromises()
-
-  expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
-  expect(wrapper.findComponent(V2vLaunchOptionsCard).exists()).toBe(false)
-})
-
-it('shows the step busy without a destination pool', async () => {
-  const { wrapper, router } = await mountStep()
-
-  await router.replace({ query: { ...router.currentRoute.value.query, pool: undefined } })
+  await makeBusy(mounted)
   await flushPromises()
 
   expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
@@ -129,7 +134,7 @@ it('heads the review with its summary', async () => {
   const { wrapper } = await mountStep()
 
   expect(findCardTitleLabel(wrapper)).toBe(t('review-and-launch'))
-  expect(findParts(wrapper.getComponent(UiCardTitle), '.inline-parts')).toHaveLength(4)
+  expect(findInlineParts(wrapper.getComponent(UiCardTitle))).toHaveLength(4)
 })
 
 it('shows the default options, then the options of each launchable VM', async () => {
@@ -176,7 +181,7 @@ it('names a resumed VM with where it continues', async () => {
   const resumed = getGroup(wrapper, 'v2v:launch-group:resumed').getComponent(V2vLaunchGroupVm)
 
   expect(resumed.text()).toMatch(new RegExp(`^${V2V_DB_VM.name}`))
-  expect(findParts(resumed, '.inline-parts')).toHaveLength(3)
+  expect(findInlineParts(resumed)).toHaveLength(3)
 })
 
 it('names the new VMs', async () => {
