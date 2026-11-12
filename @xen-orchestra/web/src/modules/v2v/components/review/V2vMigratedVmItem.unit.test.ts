@@ -22,7 +22,7 @@ function getDetails(vm: V2vMigratedVm) {
   return t('v2v:migrated-vm-details', {
     vm: vm.importVm.name,
     pool: vm.poolName,
-    srs: vm.srs,
+    srs: vm.srNames,
     destinationPool: DESTINATION_POOL_NAME,
   })
 }
@@ -39,11 +39,11 @@ function findVmText(wrapper: ReturnType<typeof mountItem>) {
 it('names the VM, then tells when it was cut over, where it is and that a second VM will be created', () => {
   const vm = createV2vMigratedVm()
 
-  expect(findVmText(mountItem(vm))).toBe(`${vm.name}${vm.cutover}${getDetails(vm)}`)
+  expect(findVmText(mountItem(vm))).toBe(`${vm.name}${vm.cutoverLabel}${getDetails(vm)}`)
 })
 
 it('tells where the VM is without its cutover date once unknown', () => {
-  const vm = createV2vMigratedVm({ cutover: undefined })
+  const vm = createV2vMigratedVm({ cutoverLabel: undefined })
 
   expect(findVmText(mountItem(vm))).toBe(`${vm.name}${getDetails(vm)}`)
 })

@@ -53,8 +53,8 @@ export function createV2vMigratedVm(overrides: Partial<V2vMigratedVm> = {}): V2v
     name: 'web-01',
     importVm: { id: 'xo-vm-1' as FrontXoVm['id'], name: 'web-01 (imported)' },
     poolName: 'forcair',
-    srs: 'sr-ssd-03',
-    cutover: 'Cutover done on 10/2/2026.',
+    srNames: 'sr-ssd-03',
+    cutoverLabel: 'Cutover done on 10/2/2026.',
     isConfirmed: false,
     ...overrides,
   }
