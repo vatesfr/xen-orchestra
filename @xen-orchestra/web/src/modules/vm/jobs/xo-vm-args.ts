@@ -16,8 +16,3 @@ export const xoVmHostArg = defineJobArg({
   identify: (host: FrontXoHost | undefined) => host?.id,
   toArray: false,
 })
-
-export const xoVmTagArg = defineJobArg<string>({
-  identify: true,
-  toArray: false,
-})

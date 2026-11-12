@@ -53,7 +53,7 @@ beforeEach(() => {
   buildXo5Route.mockReset()
   useXoUserResourceMock.mockReset()
 
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(true), getVmHost, vms: ref([]) })
+  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(true), getVmHost })
   useGetPoolById.mockReturnValue(computed(() => undefined))
   getVmHost.mockReturnValue(undefined)
   isMasterHost.mockReturnValue(false)
@@ -69,7 +69,7 @@ function mountQuickInfo(vm: FrontXoVm = createVm()) {
 }
 
 it('shows a busy state instead of the rows while the VMs are still loading', () => {
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(false), getVmHost, vms: ref([]) })
+  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(false), getVmHost })
 
   const wrapper = mountQuickInfo()
 

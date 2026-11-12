@@ -38,8 +38,7 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
 }))
 
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  // `vms` feeds the suggestions of the tag select
-  useXoVmCollection: (() => ({ getVmHost, vms: computed(() => []) })) as unknown as typeof useXoVmCollection,
+  useXoVmCollection: (() => ({ getVmHost })) as unknown as typeof useXoVmCollection,
 }))
 
 vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
@@ -152,29 +151,6 @@ it('renders one tag per VM tag', () => {
   const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
 
   expect(findTags(wrapper)).toEqual(['production', 'billing'])
-})
-
-it('highlights the special tags with a warning accent', () => {
-  const wrapper = mountInfoCard(createVm({ tags: ['production', 'xo:no-bak'] }))
-
-  const warningTags = wrapper.findAll('.ui-tag').filter(tag => tag.classes('accent--warning'))
-
-  expect(warningTags.map(tag => tag.text())).toEqual(['xo:no-bak'])
-})
-
-it('shows an icon-only "Add" button next to the tags when the VM has none', () => {
-  const wrapper = mountInfoCard(createVm({ tags: [] }))
-
-  const button = wrapper.get('.vts-tag-select > .ui-button-icon')
-
-  expect(button.attributes('aria-label')).toBe(t('action:add'))
-  expect(button.text()).toBe('')
-})
-
-it('shows an icon-only "Edit" button next to the tags when the VM has some', () => {
-  const wrapper = mountInfoCard(createVm({ tags: ['production'] }))
-
-  expect(wrapper.get('.vts-tag-select > .ui-button-icon').attributes('aria-label')).toBe(t('action:edit'))
 })
 
 it('shows the name of the pool hosting the VM', () => {

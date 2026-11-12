@@ -576,20 +576,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/tag/vts-tag': RouteRecordInfo<
-      '/story/web-core/tag/vts-tag',
-      '/story/web-core/tag/vts-tag',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/tag-select/vts-tag-select': RouteRecordInfo<
-      '/story/web-core/tag-select/vts-tag-select',
-      '/story/web-core/tag-select/vts-tag-select',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/story/web-core/tree/vts-tree-item': RouteRecordInfo<
       '/story/web-core/tree/vts-tree-item',
       '/story/web-core/tree/vts-tree-item',
@@ -1688,18 +1674,6 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tabular-key-value-row/vts-tabular-key-value-row.story.vue': {
       routes:
         | '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row'
-      views:
-        | never
-    }
-    'src/stories/web-core/tag/vts-tag.story.vue': {
-      routes:
-        | '/story/web-core/tag/vts-tag'
-      views:
-        | never
-    }
-    'src/stories/web-core/tag-select/vts-tag-select.story.vue': {
-      routes:
-        | '/story/web-core/tag-select/vts-tag-select'
       views:
         | never
     }

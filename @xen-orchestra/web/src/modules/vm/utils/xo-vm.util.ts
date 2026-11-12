@@ -1,6 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { objectIcon } from '@core/icons'
 import { COMMON_TAG, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { castArray, toLower } from 'lodash-es'
@@ -93,17 +92,5 @@ export function extractVmHostId(vm: FrontXoVm) {
 }
 
 export function vmContainsNoBakTag(vm: FrontXoVm) {
-  return vm.tags.some(tag => isNoBakVmTag(tag))
-}
-
-export function isSpecialVmTag(tag: string) {
-  return tag.startsWith('xo:')
-}
-
-export function getVmTagAccent(tag: string): TagAccent {
-  return isSpecialVmTag(tag) ? 'warning' : 'info'
-}
-
-export function isNoBakVmTag(tag: string) {
-  return tag.split('=', 1)[0] === COMMON_TAG.NOBAK
+  return vm.tags.some(tag => tag.split('=', 1)[0] === COMMON_TAG.NOBAK)
 }

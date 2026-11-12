@@ -8,7 +8,6 @@
         .preset('info')
         .enum('info', 'neutral', 'success', 'warning', 'danger', 'muted')
         .widget(),
-      prop('wrap').bool().widget().help('Stacks the term above the value when they do not fit on one line'),
       slot(),
       slot('term'),
       setting('slot').preset('Label').widget(),
