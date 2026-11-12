@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/autopilot-docking",
+  "version": "0.0.0",
+  "description": "Live ISO that prepares a VM imported from another hypervisor to boot on XCP-ng",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/autopilot-docking",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/autopilot-docking",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

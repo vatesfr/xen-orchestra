@@ -1,0 +1,5 @@
+# default hooks, linked by `lb config` from /usr/share/live/build/hooks: the
+# hooks of this project are regular files, named outside these patterns
+config/hooks/live/
+config/hooks/normal/[0-8]*
+config/hooks/normal/90[0-2]0-remove-*
