@@ -1,11 +1,11 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
 import { useV2vPoolName, useV2vPoolNameGetter } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
@@ -42,8 +42,8 @@ export type V2vMigratedVm = {
   name: string
   importVm: { id: FrontXoVm['id']; name: string }
   poolName: string
-  srs: string
-  cutover?: string
+  srNames: string
+  cutoverLabel?: string
   isConfirmed: boolean
 }
 
@@ -81,7 +81,7 @@ export function useV2vReviewStep() {
 
   const { getPoolById } = useXoPoolCollection()
 
-  const { getSrById } = useXoSrCollection()
+  const { getSrName } = useV2vTargetNameGetters()
 
   const { getImportActiveMapping } = useV2vImportVm()
 
@@ -103,7 +103,7 @@ export function useV2vReviewStep() {
   function getImportSrNames(row: V2vVmRow, importVm: FrontXoVm): string[] {
     const { disks } = getImportActiveMapping(row.vm, importVm)
 
-    return uniq(compact(disks.map(({ srId }) => getV2vTargetName(srId, id => getSrById(id)?.name_label))))
+    return uniq(compact(disks.map(({ srId }) => getV2vTargetName(srId, getSrName))))
   }
 
   // Each group VM with the import its row holds and where it is: only a VM with an import is migrated or resumed
@@ -165,8 +165,8 @@ export function useV2vReviewStep() {
         name,
         importVm: { id: importVm.id, name: importVm.name_label },
         poolName,
-        srs: srNames.join(', '),
-        cutover: labels.getCutoverLabel(row.cutoverAt),
+        srNames: srNames.join(', '),
+        cutoverLabel: labels.getCutoverLabel(row.cutoverAt),
         isConfirmed: confirmedIds.has(id),
       })
     )

@@ -2,7 +2,7 @@
   <div class="v2v-migrated-vm-item">
     <V2vLaunchGroupVm>
       <template #name>{{ vm.name }}</template>
-      <span v-if="vm.cutover !== undefined">{{ vm.cutover }}</span>
+      <span v-if="vm.cutoverLabel !== undefined">{{ vm.cutoverLabel }}</span>
       <I18nT keypath="v2v:migrated-vm-details" scope="global" tag="span">
         <template #vm>
           <UiLink size="small" display-inline :to="{ name: '/vm/[id]/dashboard', params: { id: vm.importVm.id } }">
@@ -10,7 +10,7 @@
           </UiLink>
         </template>
         <template #pool>{{ vm.poolName }}</template>
-        <template #srs>{{ vm.srs }}</template>
+        <template #srs>{{ vm.srNames }}</template>
         <template #destinationPool>{{ destinationPoolName }}</template>
       </I18nT>
     </V2vLaunchGroupVm>
