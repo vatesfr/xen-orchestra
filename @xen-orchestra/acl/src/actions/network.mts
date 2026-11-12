@@ -1,4 +1,5 @@
 export default {
+  'allow-vif': true,
   create: true,
   delete: true,
   read: true,
