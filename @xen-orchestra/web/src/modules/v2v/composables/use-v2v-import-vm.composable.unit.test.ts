@@ -1,6 +1,5 @@
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
@@ -16,12 +15,7 @@ import {
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
-import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
 vi.mock(
   import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
@@ -45,19 +39,6 @@ beforeEach(() => {
   resetV2vCollectionMocks()
 })
 
-describe('getImportPoolName', () => {
-  it('names the pool of the import VM', () => {
-    expect(mountImportVm().getImportPoolName(V2V_RESUMED_IMPORT_VM)).toBe(V2V_LIST_POOL.name_label)
-  })
-
-  it('names the pool by its id while the pools load', () => {
-    const importVm = mountImportVm()
-    xoCollectionsMock.pools.value = []
-
-    expect(importVm.getImportPoolName(V2V_RESUMED_IMPORT_VM)).toBe(V2V_LIST_POOL.id)
-  })
-})
-
 describe('getImportActiveMapping', () => {
   it('pairs the disks and the NICs of the source VM with the devices of its import VM', () => {
     expect(mountImportVm().getImportActiveMapping(V2V_SYNCED_VM, V2V_RESUMED_IMPORT_VM)).toEqual({
@@ -73,7 +54,7 @@ describe('getImportActiveMapping', () => {
   })
 
   it('pairs nothing with the devices of another VM', () => {
-    const importVmWithoutDevices = createV2vImportVm({ sourceVmId: V2V_SYNCED_VM.id }, { $pool: V2V_LIST_POOL.id })
+    const importVmWithoutDevices = createV2vImportVm({ sourceVmId: V2V_SYNCED_VM.id })
 
     const { disks, nics } = mountImportVm().getImportActiveMapping(V2V_SYNCED_VM, importVmWithoutDevices)
 

@@ -3,6 +3,7 @@ import { useXoSrCollection } from '@/modules/storage-repository/remote-resources
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
+import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
@@ -23,7 +24,7 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
 
   const { getDiskDetailParts, getNicDetailParts } = useV2vMappingLabels()
 
-  const { getImportPoolName, getImportActiveMapping, areImportDevicesReady } = useV2vImportVm()
+  const { getImportActiveMapping, areImportDevicesReady } = useV2vImportVm()
 
   const { areSrsReady } = useXoSrCollection()
 
@@ -35,7 +36,7 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
 
   const importVm = toComputed(rawImportVm)
 
-  const poolName = computed(() => getImportPoolName(importVm.value))
+  const poolName = useV2vPoolName(() => importVm.value.$pool)
 
   const { powerState } = useXoVmUtils(importVm)
 

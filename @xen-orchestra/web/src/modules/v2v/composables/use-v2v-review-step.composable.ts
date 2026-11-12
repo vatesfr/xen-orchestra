@@ -4,7 +4,7 @@ import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
-import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
+import { useV2vPoolName, useV2vPoolNameGetter } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
@@ -83,7 +83,9 @@ export function useV2vReviewStep() {
 
   const { getSrById } = useXoSrCollection()
 
-  const { getImportPoolName, getImportActiveMapping } = useV2vImportVm()
+  const { getImportActiveMapping } = useV2vImportVm()
+
+  const { getPoolName } = useV2vPoolNameGetter()
 
   const form = useV2vLaunchForm()
 
@@ -119,7 +121,7 @@ export function useV2vReviewStep() {
           item,
           row,
           importVm,
-          poolName: getImportPoolName(importVm),
+          poolName: getPoolName(importVm.$pool),
           srNames: getImportSrNames(row, importVm),
         },
       ]
