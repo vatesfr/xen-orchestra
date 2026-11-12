@@ -127,6 +127,18 @@
       </template>
     </UiAlert>
 
+    <!-- vdf#141: XO stripped its source's group tags, which its creator may not add -->
+    <UiAlert v-if="notInherited.length > 0" accent="warning" class="state-alert">
+      {{ t('firewall:vm:not-inherited') }}
+      <template #description>
+        <span class="state-detail">
+          <span v-for="change of notInherited" :key="change.id">
+            {{ t('firewall:vm:not-inherited:info', { tags: change.tags.join(', '), user: change.createdBy }) }}
+          </span>
+        </span>
+      </template>
+    </UiAlert>
+
     <UiAlert v-if="tagError" accent="danger">
       {{ t('firewall:vm:tags-failed', { vm: vm.name_label }) }}
       <template #description>{{ tagError }}</template>
@@ -288,6 +300,7 @@ import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.co
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
 import { useVdfUntrustedMembers } from '@/modules/vdf/composables/vdf-untrusted.composable.ts'
 import { useVdfVifLocks } from '@/modules/vdf/composables/vdf-vif-lock.composable.ts'
+import { useVdfHistory } from '@/modules/vdf/remote-resources/use-vdf-history.ts'
 import type { VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { lockProposal, reportedAddresses } from '@/modules/vdf/utils/vdf-locking.util.ts'
@@ -302,6 +315,7 @@ import {
 } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { joinedDirection, joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
+import { notInheritedTagsOf } from '@/modules/vdf/utils/vdf-tag-changes.util.ts'
 import { shadowedVifs, TRAFFIC_RULE_ACCENTS, TRAFFIC_RULE_DECIDES_FIRST } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -359,6 +373,12 @@ const vmJoined = computed(() =>
 )
 
 const membership = useVdfMembership()
+
+// vdf#141: the group tags it did not inherit from its source and still
+// lacks, as the pool's history keeps them
+const { history } = useVdfHistory({}, () => pool.id)
+
+const notInherited = computed(() => notInheritedTagsOf(history.value?.tagChanges ?? [], vm))
 
 // a trace, in the drawer: the page stays
 const { openTrace } = useVdfTraceDrawer()

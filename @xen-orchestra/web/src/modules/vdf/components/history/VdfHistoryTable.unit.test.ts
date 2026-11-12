@@ -102,3 +102,23 @@ it('says which tag changed outside this XO, on what, among the versions', () => 
   expect(rows[1].text()).toContain(t('firewall:history:tag:vm:removed', { tag: 'vdf:quarantine', name: 'web-1' }))
   expect(rows[1].text()).toContain(t('firewall:outside:by'))
 })
+
+// vdf#141: the vdf: tags a new VM did not inherit, among the versions
+it('says which tags a new VM did not inherit, and who created it', () => {
+  const notInherited: VdfTagChange = {
+    id: 2,
+    kind: 'notInherited',
+    seenAt: '2026-10-26T10:00:00Z',
+    object: { id: 'vm-2', type: 'VM', name: 'web-1-copy' },
+    tags: ['vdf:role=app'],
+    createdBy: 'alice',
+  }
+  const rows = mountTable([entry(1, { summary: summary({ added: 1 }) })], [notInherited]).findAll('tbody tr')
+
+  expect(rows).toHaveLength(2)
+  expect(rows[0].text()).toContain(
+    t('firewall:history:tag:not-inherited', { tags: 'vdf:role=app', name: 'web-1-copy', user: 'alice' }, 1)
+  )
+  expect(rows[0].text()).toContain(t('firewall:history:not-inherited:by'))
+  expect(rows[0].text()).not.toContain(t('firewall:outside:by'))
+})

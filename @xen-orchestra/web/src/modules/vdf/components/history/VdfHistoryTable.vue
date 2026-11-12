@@ -92,7 +92,7 @@ const shownEntries = computed(() => (showUnchanged.value ? entries : entries.fil
 
 type HistoryRow = VdfHistoryEntry | VdfTagChange
 
-const isTagChange = (row: HistoryRow): row is VdfTagChange => 'tag' in row
+const isTagChange = (row: HistoryRow): row is VdfTagChange => 'seenAt' in row
 
 // newest first: the tag changes among the versions, by when they were seen
 // (the versions keep their order; one from before XO kept a history is the
@@ -114,12 +114,23 @@ const { pageRecords: pageRows, paginationBindings } = usePagination(id, rows)
 
 const state = useTableState({ empty: () => rows.value.length === 0 })
 
-// "vdf:quarantine removed from VM web-1, outside XO"
-const tagChangeText = ({ object, tag, change }: VdfTagChange) =>
-  t(`firewall:history:tag:${object.type === 'network' ? 'network' : 'vm'}:${change}`, {
-    tag,
-    name: object.name ?? object.id,
-  })
+// "vdf:quarantine removed from VM web-1, outside XO", "vdf:role=app not
+// inherited by VM web-1-copy: created by alice, who can't add firewall tags"
+const tagChangeText = (change: VdfTagChange) =>
+  change.kind === 'notInherited'
+    ? t(
+        'firewall:history:tag:not-inherited',
+        {
+          tags: change.tags.join(', '),
+          name: change.object.name ?? change.object.id,
+          user: change.createdBy,
+        },
+        change.tags.length
+      )
+    : t(`firewall:history:tag:${change.object.type === 'network' ? 'network' : 'vm'}:${change.change}`, {
+        tag: change.tag,
+        name: change.object.name ?? change.object.id,
+      })
 
 // one changed object in words: "db: 2 rules added, 1 removed", "group
 // cache added"
@@ -273,7 +284,8 @@ const { HeadCells, BodyCells, toggle } = useHistoryColumns({
   }),
 })
 
-// a tag changed outside this XO: when XO saw it, and what
+// a tag changed outside this XO, or not inherited by a new VM: when XO saw
+// it, and what
 const { BodyCells: TagChangeCells, toggle: toggleTagChange } = useHistoryColumns({
   body: (change: VdfTagChange) => ({
     publishedAt: r =>
@@ -283,8 +295,15 @@ const { BodyCells: TagChangeCells, toggle: toggleTagChange } = useHistoryColumns
           h(VtsRelativeTime, { date: change.seenAt, class: 'secondary typo-body-regular-small' }),
         ])
       ),
-    publishedBy: r => r(h(UiTag, { accent: 'warning', variant: 'secondary' }, () => t('firewall:outside:by'))),
-    changes: r => r(h('span', { class: 'changes' }, tagChangeText(change))),
+    publishedBy: r =>
+      r(
+        change.kind === 'notInherited'
+          ? h(UiTag, { accent: 'info', variant: 'secondary' }, () => t('firewall:history:not-inherited:by'))
+          : h(UiTag, { accent: 'warning', variant: 'secondary' }, () => t('firewall:outside:by'))
+      ),
+    // long: cut, whole on hover
+    changes: r =>
+      r(withDirectives(h('span', { class: 'changes' }, tagChangeText(change)), [[vTooltip, tagChangeText(change)]])),
     content: () => h(UiTableCell),
     actions: () => h(UiTableCell),
   }),

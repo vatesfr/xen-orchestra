@@ -161,7 +161,7 @@ export type VdfPublishedPolicy = {
   outside?: VdfOutsideChange | null
   // VMs still out of the quarantine lifted outside this XO (vdf#141);
   // absent from older plugins
-  quarantineLifted?: VdfTagChange[]
+  quarantineLifted?: VdfOutsideTagChange[]
 }
 
 export type VdfGlobalScope = {
@@ -329,9 +329,10 @@ export type VdfHistoryEntry = {
 }
 
 // A vdf: tag changed outside this XO (xe, another XO, any XAPI client) on a
-// pool's VM or network, kept beside its versions (vdf#141)
-export type VdfTagChange = {
+// pool's VM or network, kept beside its versions (vdf#141); no kind
+export type VdfOutsideTagChange = {
   id: number
+  kind?: undefined
   seenAt: string
   // name: when XO saw the change, if it still had the object
   object: { id: string; type: 'VM' | 'network'; name?: string }
@@ -339,6 +340,22 @@ export type VdfTagChange = {
   change: 'added' | 'removed'
   outsideXo: true
 }
+
+// The vdf: group tags XO stripped from a new VM (clone, copy, import,
+// creation from a template): the user who created it may not add them
+// (vdf#141)
+export type VdfNotInheritedTags = {
+  id: number
+  kind: 'notInherited'
+  seenAt: string
+  object: { id: string; type: 'VM'; name?: string }
+  tags: string[]
+  // a user label, as publishedBy
+  createdBy: string
+}
+
+// a pool's tag changes, kept beside its versions
+export type VdfTagChange = VdfOutsideTagChange | VdfNotInheritedTags
 
 export type VdfHistoryChangeItem =
   | { kind: 'policy'; name: string; change: 'added' | 'removed' }
