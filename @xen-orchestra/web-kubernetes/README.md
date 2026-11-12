@@ -53,4 +53,6 @@ The plugin is loaded cross-origin by the browser: nginx allows any origin (the f
 
 `deploy/kubernetes.yaml` is a minimal deployment (Deployment + NodePort Service, read-only root filesystem): `kubectl apply -n <namespace> -f deploy/kubernetes.yaml`, after replacing the image with the one pushed to your registry. The plugin is then served on port 30081 of the nodes: `http://<node IP>:30081/remoteEntry.js`.
 
+Without a registry, `deploy/hack/build-and-load-image.sh [image] user@ip` builds the image, loads it on every node of the current Kubernetes context over SSH, deploys the manifest and prints the `VITE_XO_UI_PLUGINS` value for XO 6.
+
 For now, XO 6 gets the plugins to load at build time from `VITE_XO_UI_PLUGINS`. Discovering them at runtime from xo-server is the next step.
