@@ -58,13 +58,15 @@ Old traces are garbage-collected on mtime (`rpu.tracesRetention`, 31 days by def
 
 ### Failure signatures seen in the field
 
-| Error                                                                                 | What it is                                                                                                                                                                  |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `The updater plugin is busy (current operation: update)` on `Listing missing patches` | Race between the LINSTOR update step and `check_update`: the updater lock on the host is not released yet. Not destructive, happens before anything is installed. Relaunch. |
-| `VM_LACKS_FEATURE` with OpaqueRefs, on `Updating and rebooting`                       | A running VM has no PV drivers. `assert_can_evacuate` runs on all hosts before anything starts, so the RPU refuses upfront. Shut the VM down or install guest tools.        |
-| `MESSAGE_PARAMETER_COUNT_MISMATCH(host.evacuate, 1, 3)` (DEBUG)                       | Expected signature fallback on XAPI 8.2. WARN only if every supported signature fails.                                                                                      |
-| Timeout on `Waiting for host to be up`                                                | Host takes too long to boot. `xapiOptions.restartHostTimeout` (default 20 minutes).                                                                                         |
-| Pool stays `disconnected` after the master rebooted, `EHOSTUNREACH`                   | Stale connection error, the retry did not kick in yet. `POST /rest/v0/servers/<id>/actions/connect` reconnects immediately.                                                 |
+| Error                                                                                 | What it is                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `The updater plugin is busy (current operation: update)` on `Listing missing patches` | Race between the LINSTOR update step and `check_update`: the updater lock on the host is not released yet. Not destructive, happens before anything is installed. Relaunch.                                                                                                                                                                 |
+| `VM_LACKS_FEATURE` with OpaqueRefs, on `Updating and rebooting`                       | A running VM has no PV drivers. `assert_can_evacuate` runs on all hosts before anything starts, so the RPU refuses upfront. Shut the VM down or install guest tools.                                                                                                                                                                        |
+| `MESSAGE_PARAMETER_COUNT_MISMATCH(host.evacuate, 1, 3)` (DEBUG)                       | Expected signature fallback on XAPI 8.2. WARN only if every supported signature fails.                                                                                                                                                                                                                                                      |
+| Timeout on `Waiting for host to be up`                                                | Host takes too long to boot. `xapiOptions.restartHostTimeout` (default 20 minutes).                                                                                                                                                                                                                                                         |
+| `incorrect state` with `property: 'linstorHealth'`, before anything is changed        | The pool has an XOSTOR storage which is not healthy: `actual` lists the offline nodes and the volumes which are not up to date. Nothing was updated nor restarted. Fix the storage (`linstor node list`, `linstor resource list`), then relaunch.                                                                                           |
+| `LINSTOR is not healthy after 1200 seconds: …` on `Waiting for LINSTOR to be healthy` | XOSTOR did not recover in time from the restart of its services or from the reboot of a host: the message names the nodes and volumes in the way. The run stops before evacuating the next host. Same timeout as the host restart, `xapiOptions.restartHostTimeout`. Resume once the volumes are `UpToDate`: the resume waits for them too. |
+| Pool stays `disconnected` after the master rebooted, `EHOSTUNREACH`                   | Stale connection error, the retry did not kick in yet. `POST /rest/v0/servers/<id>/actions/connect` reconnects immediately.                                                                                                                                                                                                                 |
 
 Note on granularity: `Evacuate` is a single `host.evacuate` XAPI call, there is no per-VM detail in the tree for that phase. When `shutdownPinnedVms` is enabled and pinned VMs are present, per-VM subtasks also appear under `Shut down pinned VMs` and `Restart pinned VMs`.
 
@@ -119,6 +121,10 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  ├─ task.start({ name: 'Listing missing patches for host ${hostUuid}', hostId: string, hostName: string })
 │  │  └─ task.end
 │  └─ task.end
+├─ task.start({ name: 'Updating LINSTOR packages', progress: number })
+│  ├─ task.start({ name: 'Waiting for LINSTOR to be healthy' })
+│  │  └─ task.end
+│  └─ task.end
 ├─ task.start({ name: 'Updating and rebooting' })
 │  ├─ task.start({ name: 'Installing XS patches' })
 │  │  └─ task.end
@@ -135,6 +141,8 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  |  |  ├─ task.start({ name: 'Restart', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
+│  │  │  │  └─ task.end
+│  |  |  ├─ task.start({ name: 'Waiting for LINSTOR to be healthy', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Restart pinned VMs', hostId: string, hostName: string })
 │  |  |  |  ├─ task.start({ name: `Restarting VM ${vmId} on host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
@@ -155,6 +163,8 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  └─ task.end
 └─ task.end
 ```
+
+On a pool with an XOSTOR storage, the run only goes on while LINSTOR is healthy: every node online, every volume up to date. It is checked once before anything is changed, and a pool which is not healthy is refused. The LINSTOR tasks above only exist on such a pool: the run waits for LINSTOR after it restarted its services, and after each host is back from its reboot, before the next one is evacuated. A resumed run starts with the same wait instead of the check. The capacity of the storage pools is not part of it. A host whose `linstor-manager` plugin has no health check is not checked.
 
 If the load balancer was loaded before the rolling pool update, its cooldown and re-enablement are reported as a separate root task. This task starts during cleanup after either success or failure, so its delay does not extend the rolling pool update task. If rolling pool updates overlap or another starts during the cooldown, the load balancer stays disabled and a fresh cooldown starts after the last update ends.
 
