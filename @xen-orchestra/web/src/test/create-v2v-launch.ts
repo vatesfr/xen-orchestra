@@ -1,3 +1,4 @@
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { V2vMigratedVm } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
 import type {
   V2vLaunchPlanItem,
@@ -57,6 +58,11 @@ export function createV2vMigratedVm(overrides: Partial<V2vMigratedVm> = {}): V2v
     isConfirmed: false,
     ...overrides,
   }
+}
+
+// The route a launch on that pool is posted to
+export function getV2vStartEndpoint(poolId: FrontXoPool['id']) {
+  return `pools/${poolId}/actions/import_vms_from_vmware`
 }
 
 export const V2V_START_TASK_ID = 'task-1' as XoTask['id']
