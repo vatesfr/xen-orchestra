@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
 import aclResolver from 'xo-acl-resolver'
+import { EventEmitter } from 'node:events'
 import { describe, it } from 'node:test'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-import ReservedTags, { diffTags, isReservedTag } from './reserved-tags.mjs'
+import ReservedTags, { diffTags, isReservedTag, RESERVED_TAG_CHANGE_EVENT } from './reserved-tags.mjs'
 
 const OBJECTS = {
   'pool-1': { id: 'pool-1', type: 'pool', $pool: 'pool-1' },
@@ -22,15 +23,18 @@ const PERMISSIONS_BY_USER = {
   [VM_ADMIN.id]: { 'vm-1': { administrate: 1 } },
 }
 
-// `hasPermissions` as the ACLs mixin implements it, counting its calls
+// `hasPermissions` as the ACLs mixin implements it, counting its calls; the
+// app's hooks and objects (XO's object collection) as event emitters
 function createMixin() {
-  const app = {
+  const app = Object.assign(new EventEmitter(), {
+    hooks: new EventEmitter(),
+    objects: new EventEmitter(),
     hasPermissionsCalls: 0,
     async hasPermissions(userId, permissions) {
       this.hasPermissionsCalls++
       return aclResolver.check(PERMISSIONS_BY_USER[userId] ?? {}, id => OBJECTS[id], permissions)
     },
-  }
+  })
   return { app, mixin: new ReservedTags(app) }
 }
 
@@ -183,5 +187,138 @@ describe('stripInheritedReservedTags', () => {
       },
     })
     await assert.rejects(mixin.stripInheritedReservedTags(VM_ADMIN, vm), error)
+  })
+})
+
+// XO started, its objects loaded: the reserved tag changes the mixin emits
+function createWatching(loaded = [{ ...VM, tags: ['web'] }]) {
+  const { app, mixin } = createMixin()
+  const events = []
+  app.on(RESERVED_TAG_CHANGE_EVENT, event => events.push(event))
+  app.hooks.emit('start')
+  app.objects.emit('add', Object.fromEntries(loaded.map(object => [object.id, object])))
+  // XAPI reports objects as they are now
+  const update = (...objects) => app.objects.emit('update', Object.fromEntries(objects.map(o => [o.id, o])))
+  return { app, mixin, events, update }
+}
+
+describe('reserved tag changes reported by XAPI', () => {
+  it('attributes a change the guard let through to its user, once', async () => {
+    const { mixin, events, update } = createWatching()
+    await mixin.checkTagsChange(POOL_ADMIN, VM, { added: ['vdf:role=app'] })
+    update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    assert.equal(events.length, 1)
+    const { timestamp, ...event } = events[0]
+    assert.equal(typeof timestamp, 'number')
+    assert.deepEqual(event, {
+      objectId: 'vm-1',
+      objectType: 'VM',
+      poolId: 'pool-1',
+      tag: 'vdf:role=app',
+      change: 'add',
+      userId: 'pool-admin',
+      outsideXo: false,
+    })
+
+    // the note was consumed: the same change again comes from outside
+    update({ ...VM, tags: ['web'] })
+    update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    assert.deepEqual(
+      events.map(({ tag, change, userId, outsideXo }) => ({ tag, change, userId, outsideXo })),
+      [
+        { tag: 'vdf:role=app', change: 'add', userId: 'pool-admin', outsideXo: false },
+        { tag: 'vdf:role=app', change: 'remove', userId: undefined, outsideXo: true },
+        { tag: 'vdf:role=app', change: 'add', userId: undefined, outsideXo: true },
+      ]
+    )
+  })
+
+  it('reports a change nobody made through XO as outside XO, on VMs and networks', () => {
+    const NETWORK = { id: 'net-1', type: 'network', $pool: 'pool-1', tags: ['vdf:net=dmz'] }
+    const { events, update } = createWatching([{ ...VM, tags: ['vdf:quarantine'] }, NETWORK])
+    update({ ...VM, tags: [] }, { ...NETWORK, tags: [] })
+    assert.deepEqual(
+      events.map(({ objectId, objectType, tag, change, outsideXo, userId }) => ({
+        objectId,
+        objectType,
+        tag,
+        change,
+        outsideXo,
+        userId,
+      })),
+      [
+        {
+          objectId: 'vm-1',
+          objectType: 'VM',
+          tag: 'vdf:quarantine',
+          change: 'remove',
+          outsideXo: true,
+          userId: undefined,
+        },
+        {
+          objectId: 'net-1',
+          objectType: 'network',
+          tag: 'vdf:net=dmz',
+          change: 'remove',
+          outsideXo: true,
+          userId: undefined,
+        },
+      ]
+    )
+  })
+
+  it('a change the guard refused is not noted', async () => {
+    const { mixin, events, update } = createWatching()
+    await assert.rejects(mixin.checkTagsChange(VM_ADMIN, VM, { added: ['vdf:role=app'] }))
+    update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    assert.equal(events[0].outsideXo, true)
+  })
+
+  it('a note expires after two minutes', async t => {
+    let now = 1_000_000
+    t.mock.method(Date, 'now', () => now)
+    const { mixin, events, update } = createWatching()
+    await mixin.checkTagsChange(ADMIN, VM, { added: ['vdf:role=app'] })
+    now += 2 * 60 * 1000
+    update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    assert.equal(events[0].outsideXo, true)
+  })
+
+  it('reports nothing for objects loaded, new or reloaded, nor for tags that are not reserved', () => {
+    const { app, events, update } = createWatching([{ ...VM, tags: ['vdf:quarantine'] }])
+    // reconnection to the pool: removed, then loaded again as they are now
+    app.objects.emit('remove', { 'vm-1': undefined })
+    app.objects.emit('add', { 'vm-1': { ...VM, tags: [] } })
+    // an object XO had not seen
+    update({ id: 'vm-2', type: 'VM', $pool: 'pool-1', tags: ['vdf:role=app'] })
+    // not watched
+    update({ id: 'tpl-1', type: 'VM-template', $pool: 'pool-1', tags: ['vdf:role=app'] })
+    update({ id: 'tpl-1', type: 'VM-template', $pool: 'pool-1', tags: [] })
+    // not reserved
+    update({ ...VM, tags: ['web', 'vdf'] })
+    assert.deepEqual(events, [])
+  })
+
+  it('attributes the tags stripped from a new VM to XO', async () => {
+    const vm = createNewVm(['web', 'vdf:role=app', 'vdf:quarantine'])
+    const { mixin, events, update } = createWatching([{ id: 'new-vm', type: 'VM', $pool: 'pool-1', tags: vm.tags }])
+    await mixin.stripInheritedReservedTags(VM_ADMIN, vm)
+    update({ id: 'new-vm', type: 'VM', $pool: 'pool-1', tags: vm.tags })
+    assert.deepEqual(
+      events.map(({ objectId, tag, change, userId, outsideXo }) => ({ objectId, tag, change, userId, outsideXo })),
+      [{ objectId: 'new-vm', tag: 'vdf:role=app', change: 'remove', userId: 'xo', outsideXo: false }]
+    )
+  })
+
+  it('a VM XO is creating: its tags are part of its creation', () => {
+    const creation = { date: new Date().toISOString(), user: 'admin' }
+    const { events, update } = createWatching([{ ...VM, tags: [], creation }])
+    update({ ...VM, tags: ['vdf:role=app'], creation })
+    assert.deepEqual(events, [])
+
+    // created long ago: reported
+    const old = { date: new Date(Date.now() - 3 * 60 * 1000).toISOString(), user: 'admin' }
+    update({ ...VM, tags: [], creation: old })
+    assert.equal(events[0].outsideXo, true)
   })
 })
