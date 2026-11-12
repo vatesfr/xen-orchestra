@@ -1,15 +1,16 @@
 <template>
   <UiPanelCard class="user-infos-card">
-    <UiCardTitle>
-      <div class="title">
-        <UiUserLogo size="small" />
-        <UiLink :href="xo5UsersHref" size="medium">
-          {{ user.name }}
-        </UiLink>
-      </div>
-    </UiCardTitle>
-    <div class="content">
-      <VtsCodeSnippet :content="user.id" copy />
+    <UiPanelCardTitle :id="user.id" size="medium">
+      <template #label>
+        <span class="name">
+          <UiUserLogo size="small" />
+          <UiLink :href="xo5UsersHref" size="small">
+            {{ user.name }}
+          </UiLink>
+        </span>
+      </template>
+    </UiPanelCardTitle>
+    <VtsCardRowList>
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('xoa-manager') }}</template>
         <template #value>{{ userPermission }}</template>
@@ -35,7 +36,7 @@
         <template #key>{{ t('providers') }}</template>
         <template #value>{{ providers }}</template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -44,12 +45,13 @@ import { useXoUserAuthenticationTokensCollection } from '@/modules/user/remote-r
 import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -57,7 +59,7 @@ const { user } = defineProps<{
   user: FrontXoUser
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
@@ -80,7 +82,7 @@ const lastLoginTimestamp = computed(() => {
     return undefined
   }
 
-  return d(mostRecentTimestamp, { dateStyle: 'short', timeStyle: 'medium' })
+  return formatDateTime(mostRecentTimestamp)
 })
 
 const providers = computed(() => {
@@ -98,16 +100,10 @@ const userPermission = computed(() => {
 
 <style scoped lang="postcss">
 .user-infos-card {
-  .title {
+  .name {
     display: flex;
     align-items: center;
     gap: 0.8rem;
-  }
-
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
   }
 }
 </style>

@@ -30,7 +30,7 @@ const {
   canRun: canShutdownHost,
   isRunning: isShuttingDownHost,
   errorMessage: shutdownHostErrorMessage,
-} = useXoHostShutdownJob(() => host)
+} = useXoHostShutdownJob(() => host, false)
 
 const { open: openActionModal } = useActionModal()
 

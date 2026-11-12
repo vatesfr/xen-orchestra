@@ -254,11 +254,11 @@ pub fn read_reply(payload: &[u8]) -> Result<ReadReply, Error> {
     })
 }
 
-fn word(bytes: &[u8], at: usize) -> u32 {
+pub(super) fn word(bytes: &[u8], at: usize) -> u32 {
     u32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]])
 }
 
-fn long(bytes: &[u8], at: usize) -> u64 {
+pub(super) fn long(bytes: &[u8], at: usize) -> u64 {
     u64::from_le_bytes([
         bytes[at],
         bytes[at + 1],

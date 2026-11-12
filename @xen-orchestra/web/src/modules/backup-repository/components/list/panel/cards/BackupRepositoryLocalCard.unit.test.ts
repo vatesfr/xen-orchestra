@@ -1,5 +1,5 @@
 import BackupRepositoryLocalCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryLocalCard.vue'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -19,7 +19,7 @@ function mountCard(file = createFileUrl()) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('local'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('local'))
 })
 
 it('shows the path of the repository', () => {

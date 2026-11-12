@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import type { SmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
-import { maskSecret } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import { formatSmbPathOnShare, maskSecret } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -24,8 +24,8 @@ const urlInfo = computed(() => form.buildPayload().urlInfo)
 const maskedPassword = computed(() => maskSecret(urlInfo.value.password))
 
 const sharePath = computed(() => {
-  const { host, path } = urlInfo.value
+  const { host = '', path = '' } = urlInfo.value
 
-  return `\\\\${host}${path ? `\\${path}` : ''}`
+  return formatSmbPathOnShare(host, path)
 })
 </script>

@@ -26,6 +26,7 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -111,7 +112,7 @@ function getManagementIcon(pif: XenApiPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
-  exclude: ['actions'],
+  exclude: ['selectItem'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
     const status = computed(() => getPifStatus(pif))
@@ -119,6 +120,8 @@ const { HeadCells, BodyCells } = usePifColumns({
     const ipAddresses = computed(() => getIpAddresses(pif))
     const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
     const rightIcon = computed(() => getManagementIcon(pif))
+
+    const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() => [pif])
 
     return {
       network: r => r({ label: name.value }),
@@ -128,7 +131,21 @@ const { HeadCells, BodyCells } = usePifColumns({
       ip: r => r(ipAddresses.value),
       mac: r => r(pif.MAC),
       mode: r => r(ipMode.value),
-      selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.uuid),
+          actions: [
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => forgetPifs(),
+              busy: isForgettingPifs.value,
+              disabled: !canForgetPifs.value,
+              hint: forgetPifsErrorMessage.value,
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

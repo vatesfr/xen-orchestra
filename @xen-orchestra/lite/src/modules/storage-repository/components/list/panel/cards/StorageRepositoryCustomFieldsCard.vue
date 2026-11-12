@@ -1,8 +1,6 @@
 <template>
   <UiPanelCard class="storage-repository-custom-fields-card">
-    <UiCardTitle>
-      {{ t('custom-fields') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('custom-fields')" />
     <div class="content">
       <VtsStateHero
         v-if="Object.keys(customFields).length === 0"
@@ -21,8 +19,8 @@
 <script lang="ts" setup>
 import VtsLabelValueList from '@core/components/label-value-list/VtsLabelValueList.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

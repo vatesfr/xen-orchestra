@@ -1,7 +1,7 @@
 <template>
   <VtsLayoutSidebar class="pool-tree-sidebar">
     <template #subheader>
-      <VtsTreeSearch v-model="filter" />
+      <VtsTreeSearch ref="treeSearch" v-model="filter" />
     </template>
     <VtsTreeList v-if="hasError">
       <VtsTreeItemError>{{ t('error-no-data') }}</VtsTreeItemError>
@@ -26,6 +26,7 @@ import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import VtsTreeSearch from '@core/components/tree/VtsTreeSearch.vue'
+import { useTreeSearchShortcut } from '@core/composables/tree-search-shortcut.composable.ts'
 import { computed, nextTick, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -37,6 +38,10 @@ const { treeItems, treeItemIndexById, isReady, hasError, filter, isSearching, ex
 const route = useRoute<'/pool/[uuid]' | '/host/[uuid]' | '/vm/[uuid]'>()
 
 const poolTreeList = useTemplateRef('poolTreeList')
+
+const treeSearch = useTemplateRef('treeSearch')
+
+useTreeSearchShortcut(treeSearch)
 
 const currentNodeId = computed(() => {
   const uuid = Array.isArray(route.params.uuid) ? route.params.uuid[0] : route.params.uuid

@@ -1,4 +1,5 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { safePushInMap } from '@/shared/utils/map.util.ts'
@@ -25,7 +26,9 @@ const serverFields = [
 ] as const satisfies readonly (keyof XoServer)[]
 
 export const useXoServerCollection = defineRemoteResource({
-  url: `${BASE_URL}/servers?fields=${serverFields.join(',')}`,
+  url: `${BASE_URL}/servers?fields=${serverFields.join(',')}&ndjson=true`,
+  stream: true,
+  initWatchCollection: () => useWatchCollection({ resource: 'server', fields: serverFields }),
   initialData: () => [] as FrontXoServer[],
   state: (servers, context) => {
     const serverByPool = ref(new Map<FrontXoPool['id'], FrontXoServer[]>())

@@ -1,19 +1,17 @@
 <template>
   <UiPanelCard class="storage-repository-pbds-card">
-    <UiCardTitle>
-      {{ t('pbd-details') }}
-    </UiCardTitle>
+    <UiPanelCardTitle size="medium" :label="t('pbd-details')" />
     <VtsStateHero v-if="pbdsInScope.length === 0" type="no-data" format="card" horizontal size="extra-small">
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <template v-else>
-      <div class="content">
+      <VtsCardRowList class="content">
         <VtsStatus :status="srConnectionStatus" />
-      </div>
-      <div v-if="areSomePbdsDisconnected" class="content">
+      </VtsCardRowList>
+      <VtsCardRowList v-if="areSomePbdsDisconnected" class="content">
         <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.uuid">
           <VtsDivider v-if="index > 0" class="divider" type="stretch" />
-          <span class="typo-body-bold-small subtitle">{{ t('disconnected-pbd-number', { n: index + 1 }) }}</span>
+          <UiPanelCardTitle size="small" :label="t('disconnected-pbd-number', { n: index + 1 })" class="subtitle" />
           <StorageRepositoryPbdHost :pbd />
           <VtsCardRowKeyValue>
             <template #key>
@@ -33,7 +31,7 @@
             accent="info"
           />
         </template>
-      </div>
+      </VtsCardRowList>
     </template>
   </UiPanelCard>
 </template>
@@ -45,12 +43,13 @@ import { usePbdUtils } from '@/modules/storage-repository/composables/pbd-utils.
 import { useSrUtils } from '@/modules/storage-repository/composables/sr-utils.composable.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -72,10 +71,6 @@ const { areSomePbdsDisconnected, disconnectedPbds } = usePbdUtils(pbdsInScope)
 <style scoped lang="postcss">
 .storage-repository-pbds-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .subtitle {
       margin-block-end: 0.4rem;
     }

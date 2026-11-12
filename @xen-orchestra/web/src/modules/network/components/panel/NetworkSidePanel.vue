@@ -5,8 +5,14 @@
     </template>
     <template v-if="network" #default>
       <UiPanelCard>
-        <VtsCardObjectTitle :id="network.id" :label="network.name_label" icon="object:network" :href="networkHref" />
-        <div class="content">
+        <UiPanelCardTitle
+          :id="network.id"
+          size="medium"
+          :label="network.name_label"
+          icon="object:network"
+          :to="networkTo"
+        />
+        <VtsCardRowList class="content">
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
@@ -50,7 +56,7 @@
             <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <NetworkPifsInfoCard :network />
     </template>
@@ -60,15 +66,16 @@
 <script setup lang="ts">
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
+import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { getNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,38 +89,16 @@ const emit = defineEmits<{
 
 const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => (network !== undefined ? [network] : []))
 
-const { buildXo5Route } = useXoRoutes()
-
-const networkHref = computed(() =>
-  network !== undefined ? buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`) : undefined
-)
-
-const { getPifsByNetworkId } = useXoPifCollection()
+const networkTo = computed(() => (network !== undefined ? getNetworkRoute(network.id) : undefined))
 
 const { t } = useI18n()
 
-const pifs = computed(() => (network !== undefined ? getPifsByNetworkId(network.id) : []))
-
-const networkVlan = computed(() => {
-  if (pifs.value.length === 0) {
-    return
-  }
-
-  return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
-})
-
-const networkNbd = computed(() => (network?.nbd ? t('on') : t('off')))
-
-const networkDefaultLockingMode = computed(() => (network?.defaultIsLocked ? t('disabled') : t('unlocked')))
+const { networkVlan, networkNbd, networkDefaultLockingMode } = useXoNetworkUtils(() => network)
 </script>
 
 <style scoped lang="postcss">
 .network-side-panel {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value:empty::before {
       content: '-';
     }

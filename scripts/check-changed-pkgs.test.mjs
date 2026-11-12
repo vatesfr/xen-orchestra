@@ -115,13 +115,13 @@ describe('getChangedPackages', function () {
     )
   })
 
-  it('maps a vectura file to vectura, not to the package which bundles it', function () {
+  it('maps a vectura file to the package which bundles its binary', function () {
     assert.deepEqual(
       changedPackageNames([
         '@xen-orchestra/vmware-explorer/vectura/src/main.rs',
         '@xen-orchestra/vmware-explorer/vectura/tests/cli.rs',
       ]),
-      ['vectura']
+      ['@xen-orchestra/vmware-explorer']
     )
   })
 

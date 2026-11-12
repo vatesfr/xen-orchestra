@@ -8,6 +8,7 @@ import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
+import { asyncEach } from '@vates/async-each'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
@@ -1470,12 +1471,39 @@ export const isPubKeyTooShort = host => {
   return _call('host.isPubKeyTooShort', { id: host.id })
 }
 
+const getMasterPatchesWarningId = async host => {
+  const { master } = getObject(store.getState(), host.$pool)
+  if (master === host.id) {
+    return
+  }
+
+  if (getObject(store.getState(), master).power_state !== 'Running') {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  const masterMissingPatches = await getHostMissingPatches(master)
+  if (masterMissingPatches === null) {
+    return 'installAllPatchesOnHostMasterUnknown'
+  }
+
+  if (masterMissingPatches.length > 0) {
+    return 'installAllPatchesOnHostMasterNotUpToDate'
+  }
+}
+
 // for XCP-ng now
-export const installAllPatchesOnHost = ({ host }) =>
-  confirm({
+export const installAllPatchesOnHost = async ({ host }) => {
+  const masterPatchesWarningId = await getMasterPatchesWarningId(host)
+
+  return confirm({
     body: (
       <div>
         <p>{_('installAllPatchesOnHostContent')}</p>
+        {masterPatchesWarningId !== undefined && (
+          <p className='text-danger'>
+            <Icon icon='alarm' /> {_(masterPatchesWarningId)}
+          </p>
+        )}
         <p className='text-warning'>
           {_('installAllPatchesXostorWarning')}
           <br />
@@ -1491,6 +1519,7 @@ export const installAllPatchesOnHost = ({ host }) =>
       subscribeHostMissingPatches.forceRefresh(host)
     )
   )
+}
 
 export const installPatches = (patches, pool) =>
   confirm({
@@ -2771,7 +2800,21 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
-  }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
+  }).then(async () => {
+    let nErrors = 0
+    await asyncEach(
+      map(vdis, resolveId),
+      id =>
+        _call('vdi.delete', { id }).catch(() => {
+          nErrors++
+        }),
+      { concurrency: 5 }
+    )
+
+    if (nErrors !== 0) {
+      error(_('failedToDeleteVdisTitle', { nVdis: nErrors }), _('failedToDeleteVdisMessage', { nVdis: nErrors }))
+    }
+  }, noop)
 
 export const migrateVdi = (vdi, sr, resourceSet) =>
   _call('vdi.migrate', {
@@ -2895,6 +2938,13 @@ export const editNetwork = (network, props) => _call('network.set', { ...props, 
 
 export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
+
+// the disk data are sent in clear: the user must confirm the network is dedicated
+export const confirmInsecureNbd = () =>
+  confirm({
+    title: _('insecureNbdConfirmTitle'),
+    body: _('insecureNbdConfirmBody'),
+  })
 export const createBondedNetwork = params => _call('network.createBonded', params)
 export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
@@ -3344,6 +3394,15 @@ const resolveVdiRestoreTargets = mapVdisSrs =>
     }
     if (type === 'live-mount') {
       return { type, host: resolveId(target.host) }
+    }
+    // a live restore is a live mount which a cache makes read/write
+    if (type === 'live-restore') {
+      const cacheSr = resolveId(target.cacheSr)
+      // without its cache SR, the server would silently fall back to a read-only live mount
+      if (cacheSr == null) {
+        throw new Error('a live restore requires a cache SR')
+      }
+      return { type: 'live-mount', host: resolveId(target.host), cacheSr }
     }
     return { type }
   })
@@ -4321,6 +4380,9 @@ export const subscribeTunnelState = createSubscription(() => _call('xoa.supportT
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const snapshotXoa = () => _call('xo.snapshotBeforeUpgrade')
+
+// `null` when XO does not run in a VM, or cannot tell which one
+export const getXoVmUuid = () => _call('xo.getCurrentVmUuid')
 
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 

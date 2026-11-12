@@ -1,7 +1,7 @@
 <template>
   <VtsLayoutSidebar :side class="app-navigation-sidebar">
     <template #header>
-      <TabList class="sidebar-tabs">
+      <TabList :label="t('navigation')" class="sidebar-tabs">
         <UiTabItem
           :active="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW"
           tag="button"
@@ -23,12 +23,12 @@
       </TabList>
     </template>
     <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW" #subheader>
-      <VtsTreeSearch v-model="filter" />
+      <VtsTreeSearch ref="treeSearch" v-model="filter" />
     </template>
     <template v-if="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW">
       <VtsStateHero v-if="!isConnected && !isDevPage" format="card" type="busy" size="medium" class="loader" />
       <VtsTreeList v-else-if="!isReady">
-        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
+        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" size="small" />
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
       <VtsStateHero v-else-if="treeItems.length === 0" format="card" size="medium" type="no-result">
@@ -52,6 +52,7 @@ import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import VtsTreeSearch from '@core/components/tree/VtsTreeSearch.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
+import { useTreeSearchShortcut } from '@core/composables/tree-search-shortcut.composable.ts'
 import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
@@ -90,6 +91,13 @@ watchImmediate(
 )
 
 const siteTreeList = useTemplateRef('siteTreeList')
+
+const treeSearch = useTemplateRef('treeSearch')
+
+useTreeSearchShortcut(treeSearch, {
+  side: () => side,
+  beforeFocus: () => (activeSidebarPanel.value = SIDEBAR_PANEL.TREEVIEW),
+})
 
 const isDevPage = computed(() => route.path.startsWith('/dev'))
 

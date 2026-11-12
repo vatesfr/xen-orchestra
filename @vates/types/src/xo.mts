@@ -21,6 +21,29 @@ import type {
 import type * as CMType from './lib/complex-matcher.mjs'
 import { XoAclBasePrivilege, XoAclRole } from './lib/xen-orchestra-acl.mjs'
 import type { XenApiHost, XenApiPool } from './xen-api.mjs'
+import type {
+  XoAuditPlugin,
+  XoAuthGithubPlugin,
+  XoAuthGooglePlugin,
+  XoAuthLdapPlugin,
+  XoAuthOidcPlugin,
+  XoAuthSamlPlugin,
+  XoBackupReportsPlugin,
+  XoIpmiSensorsPlugin,
+  XoLoadBalancerPlugin,
+  XoNetboxPlugin,
+  XoOpenmetricsPlugin,
+  XoPerfAlertPlugin,
+  XoSdnControllerPlugin,
+  XoTestPluginPlugin,
+  XoTransportEmailPlugin,
+  XoTransportIcinga2Plugin,
+  XoTransportNagiosPlugin,
+  XoTransportSlackPlugin,
+  XoTransportXmppPlugin,
+  XoUsageReportPlugin,
+  XoWebHooksPlugin,
+} from './lib/xen-orchestra-plugins.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -118,7 +141,7 @@ type BaseXoVm = BaseXapiXo & {
   /**
    * @deprecated use pvDriversVersion instead
    */
-  xentools?:
+  xenTools?:
     | false
     | {
         major: null | number
@@ -157,6 +180,15 @@ export type XoBackupLog = BaseXoLog & {
 export type XoRestoreLog = BaseXoLog & {
   message: 'restore'
 }
+export type XoBackupDiskPartition = {
+  id: Branded<'xo-backup-disk-partition'>
+  name?: string
+  size: number
+  start: number
+  /** number for MBR, string for GPT partition */
+  type: string | number
+}
+
 export type XoVmBackupArchive = {
   id: Branded<'vm-backup-archive'>
   type: 'xo-vm-backup'
@@ -208,6 +240,7 @@ export type XoBackupRepositoryBenchmark = {
 }
 
 export type XoBackupRepository = {
+  available?: number
   benchmarks?: XoBackupRepositoryBenchmark[]
   enabled: boolean
   error?: Record<string, unknown>
@@ -215,7 +248,9 @@ export type XoBackupRepository = {
   name: string
   options?: string
   proxy?: XoProxy['id']
+  size?: number
   url: string
+  used?: number
 }
 
 export type XoGpuGroup = BaseXapiXo & {
@@ -457,6 +492,29 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+export type XoPlugin =
+  | XoAuditPlugin
+  | XoAuthGithubPlugin
+  | XoAuthGooglePlugin
+  | XoAuthLdapPlugin
+  | XoAuthOidcPlugin
+  | XoAuthSamlPlugin
+  | XoBackupReportsPlugin
+  | XoIpmiSensorsPlugin
+  | XoLoadBalancerPlugin
+  | XoNetboxPlugin
+  | XoOpenmetricsPlugin
+  | XoPerfAlertPlugin
+  | XoSdnControllerPlugin
+  | XoTestPluginPlugin
+  | XoTransportEmailPlugin
+  | XoTransportIcinga2Plugin
+  | XoTransportNagiosPlugin
+  | XoTransportSlackPlugin
+  | XoTransportXmppPlugin
+  | XoUsageReportPlugin
+  | XoWebHooksPlugin
+
 export type XoProxy = {
   id: Branded<'proxy'>
   url: string
@@ -481,15 +539,22 @@ type XoBackupJobGeneralSettings = {
   [key: string]: unknown
 }
 
+/**
+ * Keeps the last backup of each of the last `retention` days/weeks/months/years, in addition to `exportRetention`.
+ *
+ * Requires the `timezone` setting.
+ */
+export type XoBackupJobLongTermRetention = {
+  daily?: { retention: number; settings: Record<string, unknown> }
+  weekly?: { retention: number; settings: Record<string, unknown> }
+  monthly?: { retention: number; settings: Record<string, unknown> }
+  yearly?: { retention: number; settings: Record<string, unknown> }
+}
+
 export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
   cbtDestroySnapshotData?: boolean
   concurrency?: number
-  longTermRetention?: {
-    daily?: { retention: number; settings: Record<string, unknown> }
-    weekly?: { retention: number; settings: Record<string, unknown> }
-    monthly?: { retention: number; settings: Record<string, unknown> }
-    yearly?: { retention: number; settings: Record<string, unknown> }
-  }
+  longTermRetention?: XoBackupJobLongTermRetention
   checkpointSnapshot?: boolean
   offlineSnapshot?: boolean
   maxExportRate?: number
@@ -503,8 +568,8 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
 }
 export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
-  fullInterval?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  fullInterval?: number | string
   copyRetention?: number
   snapshotRetention?: number
   cbtDestroySnapshotData?: boolean
@@ -515,9 +580,9 @@ export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  remotes?: CMType.IdOr<XoBackupRepository['id']> | string
   vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
-  srs?: CMType.IdOr<XoSr['id']>
+  srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
     '': XoVmBackupJobGeneralSettings
@@ -546,16 +611,17 @@ export type XoMetadataBackupJob = BaseXoJob & {
 
 export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   concurrency?: number
+  longTermRetention?: XoBackupJobLongTermRetention
   nRetriesVmBackupFailures?: number
   mergeBackupsSynchronously?: boolean
   timeout?: number
+  timezone?: string
   maxExportRate?: number
-  backupReportTpl?: 'compactMjml'
-  reportWhen: 'failure'
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  vmFilter?: string
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }
@@ -609,6 +675,7 @@ export type XoServer = {
   label?: string
   master?: XoHost['id']
   poolId?: XoPool['id']
+  poolMembersAddresses?: string[]
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
@@ -697,6 +764,7 @@ export type XoTask = {
       | 'backup-log'
       | 'backup-repository'
       | 'group'
+      | 'plugin'
       | 'proxy'
       | 'restore'
       | 'restore-log'
@@ -910,7 +978,9 @@ export type NonXapiXoRecord =
   | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
+  | XoAuthenticationToken
   | XoGroup
+  | XoPlugin
   | XoProxy
   | XoJob
   | XoBackupRepository

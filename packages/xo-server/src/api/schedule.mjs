@@ -1,7 +1,9 @@
 // FIXME so far, no acls for schedules
 
+import { createLogger } from '@xen-orchestra/log'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
-import { noMatchingVm } from 'xo-common/api-errors.js'
+
+const log = createLogger('xo:schedule')
 
 export async function getAll() {
   return /* await */ this.getAllSchedules()
@@ -80,15 +82,11 @@ export async function runSequence({ schedules }) {
       // we can't auto resolve array parameters, we have to resolve them by hand
       const schedule = await this.getSchedule(idSchedule)
       const job = await this.getJob(schedule.jobId)
-      try {
-        await this.runJob(job, schedule)
-        Task.set('progress', Math.round(((i + 1) * 100) / nb))
-      } catch (error) {
-        // prevent skipped backups from stopping the sequence
-        if (!noMatchingVm.is(error)) {
-          throw error
-        }
-      }
+      // a failing job must not prevent the next jobs in the sequence from running
+      await this.runJob(job, schedule).catch(error =>
+        log.warn('job failed, continuing sequence', { error, jobId: job.id })
+      )
+      Task.set('progress', Math.round(((i + 1) * 100) / nb))
     }
   })
 }

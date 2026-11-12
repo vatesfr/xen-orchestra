@@ -1,4 +1,9 @@
-import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import {
+  type FrontXoNetwork,
+  useXoNetworkCollection,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
+import { rankTrafficRules } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -22,12 +27,10 @@ export function useTrafficRules(
 
   const { getVmById } = useXoVmCollection()
 
-  const trafficRules = computed<TrafficRule[]>(() => {
-    const sortedNetworks = [...networks.value].sort((networkA, networkB) =>
-      (networkA.name_label ?? '').localeCompare(networkB.name_label ?? '')
-    )
+  const { getNetworkById } = useXoNetworkCollection()
 
-    const sortedVifs = [...vifs.value]
+  const trafficRules = computed<RankedTrafficRule[]>(() => {
+    const sortedVifs = vifs.value
       .filter(vif => getVmById(vif.$VM))
       .sort((vifA, vifB) => {
         const vmNameLabelA = getVmById(vifA.$VM)?.name_label ?? ''
@@ -41,8 +44,8 @@ export function useTrafficRules(
         return Number(vifA.device) - Number(vifB.device)
       })
 
-    return [
-      ...sortedNetworks.flatMap(network =>
+    const rules: TrafficRule[] = [
+      ...networks.value.flatMap(network =>
         parseRules(network.other_config?.[SDN_CONTROLLER_OF_RULES_KEY]).map((rule, index) => ({
           ...rule,
           id: `network:${network.id}:${index}`,
@@ -61,6 +64,8 @@ export function useTrafficRules(
         }))
       ),
     ]
+
+    return rankTrafficRules(rules, networkId => getNetworkById(networkId)?.name_label ?? '')
   })
 
   return { trafficRules }

@@ -6,15 +6,15 @@
     <template v-if="pif">
       <!-- PIF -->
       <UiPanelCard>
-        <VtsCardObjectTitle :id="pif.id" :label="pif.isBondMaster ? t('bond') : t('pif')" />
-        <div class="content">
+        <UiPanelCardTitle :id="pif.id" size="medium" :label="pif.isBondMaster ? t('bond') : t('pif')" />
+        <VtsCardRowList>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
+              <UiLink v-if="network" size="small" :to="networkTo" icon="object:network">
                 {{ network.name_label }}
               </UiLink>
             </template>
@@ -77,34 +77,15 @@
               <VtsCopyButton :value="network.tags.join(', ')" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
-        <div class="content">
+        <UiPanelCardTitle size="medium" :label="t('network-information')" />
+        <VtsCardRowList>
           <!-- IP ADDRESSES -->
-          <template v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-              </template>
-              <template #value>
-                <span class="text-ellipsis">{{ ip }}</span>
-              </template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-              </template>
-            </VtsCardRowKeyValue>
-          </template>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
+          <VtsCardRowKeyValue :values="ipAddresses">
+            <template #key>{{ t('ip-addresses') }}</template>
           </VtsCardRowKeyValue>
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
@@ -168,24 +149,15 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- BOND DEVICES -->
-          <div>
-            <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
-              <template #key>
-                <div v-if="index === 0">{{ t('bond-devices') }}</div>
-              </template>
-              <template #value>{{ device }}</template>
-              <template #addons>
-                <VtsCopyButton :value="device" />
-                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 1" :values="bondDevices" />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-        </div>
+          <VtsCardRowKeyValue v-if="bondDevices.length > 0" :values="bondDevices">
+            <template #key>{{ t('bond-devices') }}</template>
+          </VtsCardRowKeyValue>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- PROPERTIES -->
       <UiPanelCard>
-        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
-        <div class="content">
+        <UiPanelCardTitle size="medium" :label="t('properties')" />
+        <VtsCardRowList>
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -219,7 +191,7 @@
               <VtsCopyButton :value="networkNbd" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -231,16 +203,15 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import PifSetManagementButton from '@/modules/pif/components/actions/set-management/PifSetManagementButton.vue'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
@@ -318,12 +289,6 @@ const speed = computed(() => {
 
 <style scoped lang="postcss">
 .pif-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .value:empty::before {
     content: '-';
   }

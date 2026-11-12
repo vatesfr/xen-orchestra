@@ -21,6 +21,13 @@ export const constructPattern = values =>
         },
       }
 
+export const usesExpressions = job =>
+  typeof job.srs === 'string' ||
+  typeof job.remotes === 'string' ||
+  Object.values(job.settings ?? {}).some(settings =>
+    ['healthCheckVmsWithTags', 'fullInterval', 'vmFilter'].some(key => typeof settings?.[key] === 'string')
+  )
+
 export const FormFeedback = ({ component: Component, error, message, ...props }) => (
   <div>
     <Component

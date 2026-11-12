@@ -66,7 +66,29 @@ export const toLvPartitions = (partitionId, originalVgName, lvItems) =>
     }))
 
 const makeRelative = path => resolve('/', path).slice(1)
-const resolveSubpath = (root, path) => resolve(root, makeRelative(path))
+
+// The partition is mounted on the XOA/proxy, so the kernel resolves a guest symlink against the
+// host root: following one (e.g. `ln -s / foo` in the VM, then `/foo/etc`) would read host files.
+// Symlinks are therefore not supported by file restore: a path going through one is refused,
+// checked component by component with lstat. The mount is read-only, so no check/use race.
+export async function resolveWithoutSymlinks(rootPath, path) {
+  const relativePath = makeRelative(path)
+  let currentPath = rootPath
+  for (const name of relativePath.split('/')) {
+    if (name === '') {
+      continue
+    }
+    currentPath = join(currentPath, name)
+    const stats = await lstat(currentPath)
+    if (stats.isSymbolicLink()) {
+      const error = new Error(`symbolic links are not supported by file restore: ${path}`)
+      error.code = 'ELINK_NOT_SUPPORTED'
+      error.path = path
+      throw error
+    }
+  }
+  return relativePath
+}
 
 async function addZipEntries(zip, realBasePath, virtualBasePath, relativePaths) {
   for (const relativePath of relativePaths) {
@@ -290,6 +312,12 @@ export const fileRestoreMethods = {
     const self = this
     Disposable.use(async function* () {
       const path = yield self.getPartition(diskId, partitionId)
+      // validated before resolving the promise, so a refused path rejects instead of
+      // producing a truncated archive
+      const relativePaths = []
+      for (const requestedPath of paths) {
+        relativePaths.push(await resolveWithoutSymlinks(path, requestedPath))
+      }
       let outputStream
 
       if (format === 'tgz') {
@@ -298,7 +326,13 @@ export const fileRestoreMethods = {
         // simultaneous reads. Those saturate the libuv threadpool and starve
         // the underlying vhd/CIFS reads NTFS-3g depends on (FUSE-on-FUSE
         // threadpool deadlock). Serializing keeps a worker free for them.
-        const pack = tar.c({ cwd: path, gzip: true, jobs: 1 }, paths.map(makeRelative))
+        //
+        // symlinks found while walking the selected directories are skipped, like in the zip
+        // format and the file listing
+        const pack = tar.c(
+          { cwd: path, gzip: true, jobs: 1, filter: (_, stats) => !stats.isSymbolicLink() },
+          relativePaths
+        )
 
         // node-tar >= 7 returns a Minipass stream: it has `pipe()` but is not a `node:stream`
         // instance. xo-proxy serves this stream through Koa, which pipes only bodies passing
@@ -316,7 +350,7 @@ export const fileRestoreMethods = {
         // appear as a freeze with no response sent.
         outputStream = zip.outputStream
         resolve(zip.outputStream)
-        await addZipEntries(zip, path, '', paths.map(makeRelative))
+        await addZipEntries(zip, path, '', relativePaths)
         zip.end()
       } else {
         throw new Error('unsupported format ' + format)
@@ -331,17 +365,23 @@ export const fileRestoreMethods = {
   },
 
   async *getDisk(diskId) {
-    if (this._useGetDiskLegacy) {
-      yield* getDiskLegacy(this._handler, diskId)
-      return
+    try {
+      if (this._useGetDiskLegacy) {
+        yield* getDiskLegacy(this._handler, diskId)
+        return
+      }
+      const handler = this._handler
+      // this is a disposable
+      const mountDir = yield getTmpDir()
+      // this is also a disposable
+      yield mount(handler, diskId, mountDir)
+      // this will yield disk path to caller
+      yield `${mountDir}/vhd0`
+    } finally {
+      // Disposable.factory disposes by calling gen.return(), which runs this finally before
+      // the mount/tmpdir disposers — i.e. exactly as the disk is unmounted.
+      this._partitionsCache.delete(diskId)
     }
-    const handler = this._handler
-    // this is a disposable
-    const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
-    // this will yield disk path to caller
-    yield `${mountDir}/vhd0`
   },
 
   // partitionId values:
@@ -371,7 +411,7 @@ export const fileRestoreMethods = {
 
   listPartitionFiles(diskId, partitionId, path) {
     return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
-      path = resolveSubpath(rootPath, path)
+      path = join(rootPath, await resolveWithoutSymlinks(rootPath, path))
       const entriesMap = {}
       await asyncEach(
         await readdir(path),
@@ -397,7 +437,13 @@ export const fileRestoreMethods = {
   },
 
   listPartitions(diskId) {
-    return Disposable.use(this.getDisk(diskId), async devicePath => {
+    const cache = this._partitionsCache
+    const cached = cache.get(diskId)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const pPartitions = Disposable.use(this.getDisk(diskId), async devicePath => {
       // partx may return empty on FUSE-backed files (vhd0); a loop device
       // presents proper block-device semantics that partx reads reliably.
       // losetup may itself fail if the FUSE mount isn't fully ready yet —
@@ -415,11 +461,14 @@ export const fileRestoreMethods = {
         }
       }
 
+      // direct listing failed, try with lvm listing
       if (partitions.length === 0) {
+        debug('direct listing of the volume partition failed, try to read through LVM')
         try {
           // handle potential raw LVM physical volume
           return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
         } catch (error) {
+          warn('LVM listing of this volume failed ', error)
           return []
         }
       }
@@ -455,6 +504,16 @@ export const fileRestoreMethods = {
       })
       return results
     })
+
+    // The entry is evicted on disk unmount (see getDisk)
+    // a failed probe is not cached so the next call retries.
+    cache.set(diskId, pPartitions)
+    pPartitions.catch(() => {
+      if (cache.get(diskId) === pPartitions) {
+        cache.delete(diskId)
+      }
+    })
+    return pPartitions
   },
 }
 

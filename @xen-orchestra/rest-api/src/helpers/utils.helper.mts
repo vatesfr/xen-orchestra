@@ -1,12 +1,17 @@
 import * as CM from 'complex-matcher'
 import { AnyXoVm, XoSr } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
+import { createSchedule } from '@xen-orchestra/cron'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { isPromise } from 'node:util/types'
 
 import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 import { ApiError } from './error.helper.mjs'
+import { XMLParser } from 'fast-xml-parser'
+
 export const BASE_URL = '/rest/v0'
+export { default as forEach } from 'lodash/forEach.js'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')
@@ -15,6 +20,19 @@ export const isSrWritable = (sr: XoSr) => isSrWritableOrIso(sr) && sr.content_ty
 export const isSrWritableOrIso = (sr: XoSr) => sr.size > 0
 export const isReplicaVm = (vm: AnyXoVm) => 'start' in vm.blockedOperations && vm.other['xo:backup:job'] !== undefined
 export const vmContainsNoBakTag = (vm: AnyXoVm) => vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
+
+/**
+ * xo-server only parses the cron when starting the schedule, after saving it:
+ * check it before any write to answer 400 instead of saving a broken schedule
+ */
+export const assertValidCron = (cron: string, timezone?: string) => {
+  try {
+    createSchedule(cron, timezone).next(1)
+  } catch (error) {
+    throw invalidParameters(`invalid cron "${cron}": ${(error as Error).message}`)
+  }
+}
+
 export const getTopPerProperty = <T,>(
   array: T[],
   { length = Infinity, prop }: { length?: number; prop: keyof T & string }
@@ -153,4 +171,27 @@ export function limitAndFilterArray<T>(
   }
 
   return array
+}
+
+export const parseXml = (function () {
+  const parser = new XMLParser({
+    attributeNamePrefix: '',
+    ignoreAttributes: false,
+    ignoreDeclaration: true,
+    parseTagValue: false,
+    parseAttributeValue: false,
+  })
+
+  return xml => {
+    try {
+      return parser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml)
+    } catch (error) {
+      log.warn('parseXml', { error, xml })
+      return ''
+    }
+  }
+})()
+
+export function ensureArray<T>(value: T | T[] | undefined): T[] {
+  return value === undefined ? [] : Array.isArray(value) ? value : [value]
 }

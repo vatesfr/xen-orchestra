@@ -1,6 +1,6 @@
 import BackupRepositoryS3Card from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryS3Card.vue'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -29,7 +29,7 @@ function mountCard(s3 = createS3Url()) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('s3'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('s3'))
 })
 
 it('shows the endpoint, security settings, credentials, bucket and path in bucket', () => {

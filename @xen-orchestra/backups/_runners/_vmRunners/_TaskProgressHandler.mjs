@@ -13,7 +13,9 @@ export class TaskProgressHandler {
     if (progress < 0 || progress > 1) {
       return
     }
+    // the end is always emitted: throttled, a last step under the threshold would leave the task at 99%
     if (
+      progress !== 1 &&
       this.#lastProgressDate !== undefined &&
       this.#lastProgressValue !== undefined &&
       Date.now() - this.#lastProgressDate < MAX_DURATION_BETWEEN_PROGRESS_EMIT &&

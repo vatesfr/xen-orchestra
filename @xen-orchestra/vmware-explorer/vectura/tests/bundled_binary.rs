@@ -3,7 +3,7 @@
 //! `@xen-orchestra/vmware-explorer` runs the `vectura` binary of the crate
 //! root, so it is the build of the version of Cargo.toml and it stays
 //! executable. scripts/release.sh bumps the version and rebuilds the binary
-//! in the same commit.
+//! together.
 
 #![cfg(all(target_os = "linux", target_arch = "x86_64"))]
 
@@ -22,6 +22,6 @@ fn the_binary_at_the_crate_root_runs_as_this_version() {
     assert_eq!(
         String::from_utf8_lossy(&output.stdout),
         format!("vectura {}\n", env!("CARGO_PKG_VERSION")),
-        "release with `scripts/bump-pkg vectura <type>` rather than editing the version by hand"
+        "bump with `scripts/release.sh <type>` rather than editing the version by hand"
     );
 }

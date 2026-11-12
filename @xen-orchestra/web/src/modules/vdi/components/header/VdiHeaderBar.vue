@@ -6,21 +6,9 @@
     </template>
     <template #actions>
       <VdiPowerStateActions :vm :vbd />
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: t('more-actions'),
-            }"
-            icon="action:more-actions"
-            accent="brand"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
+      <VtsActionsMenu :label="t('more-actions')" size="medium">
         <VdiMoreActions :vm :vdi :vbd />
-      </MenuList>
+      </VtsActionsMenu>
     </template>
   </UiHeadBar>
 </template>
@@ -33,10 +21,8 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { vdi, vm, vbds, vbd } = defineProps<{

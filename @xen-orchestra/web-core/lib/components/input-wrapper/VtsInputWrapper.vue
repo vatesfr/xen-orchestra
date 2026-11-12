@@ -5,7 +5,7 @@
     </UiLabel>
     <slot />
     <UiInfo v-for="{ content, accent } of messages" :key="content" :accent :wrap="wrapMessage">
-      {{ content }}
+      <slot name="message" :content :accent>{{ content }}</slot>
     </UiInfo>
   </div>
 </template>
@@ -29,7 +29,7 @@ export type InputWrapperController = {
   required: boolean
 }
 
-const { message: _message } = defineProps<{
+const { message: rawMessage } = defineProps<{
   label?: string
   learnMoreUrl?: string
   message?: InputWrapperMessage
@@ -39,12 +39,13 @@ const { message: _message } = defineProps<{
 defineSlots<{
   default(): any
   label?(): any
+  message?(props: { content: string; accent: InfoAccent }): any
 }>()
 
 const id = useId()
 
 const unsortedMessages = useArrayMap(
-  () => toArray(_message),
+  () => toArray(rawMessage),
   item => ({
     content: typeof item === 'object' ? item.content : item,
     accent: typeof item === 'object' ? (item.accent ?? 'info') : 'info',

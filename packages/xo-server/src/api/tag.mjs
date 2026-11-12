@@ -46,7 +46,27 @@ set.params = {
 set.permission = 'admin'
 
 export async function getAllConfigured() {
-  return this.getConfiguredTags()
+  const configuredTags = await this.getConfiguredTags()
+
+  const { permission, user } = this.apiContext
+  if (permission === 'admin') {
+    return configuredTags
+  }
+
+  const isObjectVisible = await this.getObjectFilterForUser(user.id)
+
+  const visibleTags = new Set()
+  const objects = this.getObjects()
+  for (const id in objects) {
+    const { tags } = objects[id]
+    if (tags !== undefined && tags.length !== 0 && isObjectVisible(id)) {
+      for (const tag of tags) {
+        visibleTags.add(tag)
+      }
+    }
+  }
+
+  return configuredTags.filter(({ id }) => visibleTags.has(id))
 }
 
 getAllConfigured.description = 'Get all configured tags'

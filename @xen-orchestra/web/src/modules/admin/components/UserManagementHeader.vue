@@ -2,7 +2,7 @@
   <UiHeadBar icon="object:organization">
     {{ t('user-management') }}
   </UiHeadBar>
-  <TabList>
+  <TabList :label="t('user-management')">
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/admin/user-management/users' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('users') }}

@@ -60,7 +60,7 @@ const parsePartxLine = createParser({
 export async function listPartitions(devicePath) {
   const parts = await fromCallback(execFile, 'partx', [
     '--bytes',
-    '--output=NR,START,SIZE,NAME,UUID,TYPE',
+    '--output=START,SIZE,NAME,UUID,TYPE',
     '--pairs',
     devicePath,
   ]).catch(error => {

@@ -1,9 +1,7 @@
 <template>
   <UiPanelCard class="vdi-configuration-card">
-    <UiCardTitle>
-      {{ t('configuration') }}
-    </UiCardTitle>
-    <div class="content">
+    <UiPanelCardTitle size="medium" :label="t('configuration')" />
+    <VtsCardRowList>
       <VdiFormatCardItem :format="vdi.image_format" />
       <VtsCardRowKeyValue>
         <template #key>
@@ -44,7 +42,7 @@
           <VtsStatus :status="isBootable" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -56,11 +54,12 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -91,12 +90,6 @@ const isBootable = computed(() => vbd.value?.bootable ?? false)
 
 <style scoped lang="postcss">
 .vdi-configuration-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
   .storage {
     display: flex;
     gap: 0.8rem;

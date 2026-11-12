@@ -105,6 +105,7 @@ function getPrimaryIcon(sr: XenApiSr) {
 }
 
 const { HeadCells, BodyCells } = useSrColumns({
+  exclude: ['checkbox'],
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
 

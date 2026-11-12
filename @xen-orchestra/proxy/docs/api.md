@@ -139,7 +139,7 @@ declare namespace backup {
     id: string
     // UUID of the SR introduced on the host
     srUuid: string
-    // UUID of the read-only VDI exposing the disk
+    // UUID of the VDI exposing the disk, read-only unless it is cached
     vdiUuid: string
     // IQN of the target serving the disk
     iqn: string
@@ -159,34 +159,53 @@ declare namespace backup {
   }
 
   // `mapVdisSrs` gives a target per disk, keyed by the uuid the disk has in the backup:
-  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`, `{ type: 'live-mount', host: string }`,
-  // or an SR uuid / `null` for the first two, in the legacy shape. A live mounted disk is served
-  // by this proxy, like `mountDisk` does, and outlives the restore: it is reported in `liveMounts`,
-  // and its `id` must be handed back to `unmountDisk`.
+  // `{ type: 'restore', sr?: string }`, `{ type: 'ignore' }`,
+  // `{ type: 'live-mount', host: string, cacheSr?: string }`, or an SR uuid / `null` for the first
+  // two, in the legacy shape. A live mounted disk is served by this proxy, like `mountDisk` does,
+  // and outlives the restore: it is reported in `liveMounts`, and its `id` must be handed back to
+  // `unmountDisk`. With `cacheSr`, it is cached and read/write, like `mountDisk` with `cacheSr`:
+  // `vm` and `cacheXapi` are then required, as for `mountDisk`.
   function importVmBackup(_: {
     backupId: string
+    cacheXapi?: Xapi
     remote: Remote
     settings?: { newMacAddresses?: boolean; mapVdisSrs?: object }
     srUuid: string
+    vm?: string
     xapi: Xapi
     streamLogs: boolean = false
   }): RestoredVm // with `streamLogs`, an ndjson stream of the task logs, the result in the end one
 
-  // Serve `disk` as a read-only iSCSI LUN and attach it, as an SR, to `host` — a host of the pool
-  // `xapi` points at. Nothing is copied: every read goes straight to the backup repository, and
-  // writes are refused. Undone by `unmountDisk`.
+  // Serve `disk` as an iSCSI LUN and attach it, as an SR, to `host` — a host of the pool `xapi`
+  // points at. Without `cacheSr`, nothing is copied: every read goes straight to the backup
+  // repository, and the LUN is write protected. Undone by `unmountDisk`.
+  //
+  // `xapiLabels` names the SR and the VDI attached to the host; `nameLabel`, which only names the
+  // SR, is still accepted from older XOs.
   //
   // The portal handed to the host is this proxy's address as seen from it, auto-detected unless
   // `iscsi.advertisedAddress` is set in the proxy configuration.
   //
+  // With `cacheSr`, the LUN is read/write: each block read is kept in a VDI of this SR, hot-plugged
+  // onto this proxy's own VM `vm`, so the backup repository is read at most once per block, and the
+  // writes land there too — the backup is never modified. That VDI is created with the mount and
+  // destroyed with it, so what was written is lost on unmount. `cacheXapi` connects to the pool
+  // running this proxy, which holds `cacheSr` and may differ from `xapi`'s; `cacheSr` must be
+  // plugged on the host running this proxy. On a local SR, this proxy must not be migrated until the
+  // mount is gone, since that VDI cannot follow it.
+  //
   // There is no method to list the mounts: a proxy is driven by a single XO, which is the one
   // keeping track of them.
   function mountDisk(_: {
+    cacheSr?: string
+    cacheXapi?: Xapi
     disk: string
     host: string
-    nameLabel?: string
+    nameLabel?: string // deprecated, use `xapiLabels.srNameLabel`
     remote: Remote
+    vm?: string
     xapi: Xapi
+    xapiLabels?: { srNameLabel?: string; vdiNameLabel?: string; vdiNameDescription?: string }
   }): MountedDisk
 
   // Fails with a `noSuchObject` error (code 1, `data.type: 'live-mount'`) for an id this proxy does

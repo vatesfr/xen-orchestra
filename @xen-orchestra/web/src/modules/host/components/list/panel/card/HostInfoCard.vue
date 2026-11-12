@@ -1,22 +1,24 @@
 <template>
   <UiPanelCard class="host-info-card">
-    <VtsCardObjectTitle
+    <UiPanelCardTitle
       :id="host.id"
+      :icon="hostIcon"
+      :icon-tooltip="iconTooltip"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
-      :icon="hostIcon"
+      size="medium"
     />
-    <div class="content">
+    <VtsCardRowList class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
           <span class="value">
-            <VtsIcon :name="powerState.icon" size="medium" />
-            {{ powerState.text }}
+            <VtsIcon :name="hostStateDisplay.icon" size="medium" />
+            {{ hostStateDisplay.text }}
           </span>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue align-top truncate>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ host.name_description }}</template>
         <template v-if="host.name_description" #addons>
@@ -44,7 +46,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" icon="object:pool" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -72,7 +74,7 @@
         <template #key>{{ t('started') }}</template>
         <template #value>{{ relativeStartTime }}</template>
         <template v-if="relativeStartTime" #addons>
-          <VtsCopyButton :value="String(relativeStartTime)" />
+          <VtsCopyButton :value="relativeStartTime" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -87,7 +89,7 @@
           <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', nMissingPatches)" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -99,7 +101,7 @@ import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resourc
 import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCardObjectTitle from '@core/components/card-object-title/VtsCardObjectTitle.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -107,6 +109,7 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
@@ -118,7 +121,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostStatus, getRelativeStartTime } = useXoHostUtils(() => host)
+const { getHostStateDisplay, relativeStartTime, iconTooltip } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -138,20 +141,14 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
 
 const hostState = computed(() => getHostState(host))
 
-const powerState = computed(() => getHostStatus(hostState.value))
+const hostStateDisplay = computed(() => getHostStateDisplay(hostState.value))
 
 const hostIcon = computed(() => getHostIcon(host))
-
-const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .host-info-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value {
       display: flex;
       align-items: center;

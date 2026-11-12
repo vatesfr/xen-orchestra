@@ -86,8 +86,12 @@ export class IncomingPdu {
  * No per-read timeout, intentionally — a target may sit idle between commands
  * indefinitely. Liveness is a transport concern (socket timeout / NOP
  * keepalives), handled elsewhere.
+ *
+ * A PDU announcing a data segment longer than `maxDataSegmentLength` is
+ * rejected before its payload is read, so a peer cannot make us buffer up to
+ * the 16 MiB the 24-bit length field allows.
  */
-export async function readPdu(stream: Readable): Promise<IncomingPdu | null> {
+export async function readPdu(stream: Readable, maxDataSegmentLength = Infinity): Promise<IncomingPdu | null> {
   const bhs = await readChunk(stream, BHS_LENGTH)
   if (bhs === null) {
     return null // clean EOF between PDUs
@@ -98,6 +102,9 @@ export async function readPdu(stream: Readable): Promise<IncomingPdu | null> {
 
   const totalAhsLength = bhs.readUInt8(4)
   const dataSegmentLength = bhs.readUIntBE(5, 3)
+  if (dataSegmentLength > maxDataSegmentLength) {
+    throw new Error(`iSCSI data segment too long (${dataSegmentLength} > ${maxDataSegmentLength} bytes)`)
+  }
   const ahsBytes = totalAhsLength * 4
   const dataBytesPadded = roundUp4(dataSegmentLength)
 
