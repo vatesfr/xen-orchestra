@@ -195,7 +195,7 @@ export const configurationSchema = {
     },
     logRecords: {
       description:
-        'Also write each new record to xo-server logs, as a single JSON line (e.g. to forward them to a syslog server)',
+        'Also write each new record to xo-server logs, as a single JSON line (e.g. to forward them to a syslog server). Warning: records may contain sensitive data, such as user names, emails and IP addresses, and credentials not caught by the automatic obfuscation (which only covers parameters named like password, token, passphrase or encryptionKey), e.g. a login and password embedded in a remote URL. Make sure the logs and their destination are secured accordingly.',
       type: 'boolean',
     },
   },
