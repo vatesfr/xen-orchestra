@@ -78,9 +78,11 @@ export function summarize(previous, next) {
   }
 }
 
-// newest last, at most `max` entries
+// newest last, the `max` most recent entries, and older open alerts (a
+// quarantine lifted outside XO is kept until it is resolved)
 export function appendEntry(entries, entry, max = HISTORY_LENGTH) {
-  return [...entries, entry].slice(-max)
+  const all = [...entries, entry]
+  return [...all.slice(0, -max).filter(isOpen), ...all.slice(-max)]
 }
 
 // the history list goes without the documents

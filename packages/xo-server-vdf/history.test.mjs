@@ -197,6 +197,31 @@ describe('quarantines lifted outside XO', () => {
     )
   })
 
+  test('an open alert survives the trim of the entries, once resolved it is trimmed as any', () => {
+    const max = 5
+    const fill = entries => {
+      for (let i = 0; i < max + 1; i++) {
+        entries = appendEntry(entries, { id: nextEntryId(entries), kind: 'notInherited' }, max)
+      }
+      return entries
+    }
+    let entries = appendEntry([], change('a', 'vdf:quarantine', 'remove'), max)
+    entries = fill(entries)
+    assert.equal(entries.length, max + 1)
+    assert.deepEqual(
+      liftedQuarantines(entries, () => true).map(entry => entry.object.id),
+      ['a']
+    )
+
+    entries = resolveLifts(entries, entry => entry.object.id === 'a', REQUARANTINED)
+    entries = fill(entries)
+    assert.equal(entries.length, max)
+    assert.deepEqual(
+      liftedQuarantines(entries, () => true),
+      []
+    )
+  })
+
   test('resolves the open alerts picked, and only them', () => {
     const changes = [
       change('a', 'vdf:quarantine', 'remove'),
