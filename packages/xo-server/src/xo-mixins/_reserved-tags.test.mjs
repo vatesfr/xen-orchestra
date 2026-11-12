@@ -347,13 +347,50 @@ describe('reserved tag changes reported by XAPI', () => {
     assert.equal(events[0].outsideXo, true)
   })
 
-  it('a note expires after two minutes', async t => {
+  it('a note expires after 30 seconds', async t => {
     let now = 1_000_000
     t.mock.method(Date, 'now', () => now)
     const { mixin, events, update } = createWatching()
     await mixin.checkTagsChange(ADMIN, VM, { added: ['vdf:role=app'] })
-    now += 2 * 60 * 1000
+    await mixin.checkTagsChange(ADMIN, VM, { added: ['vdf:role=db'] })
+    now += 29 * 1000
     update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    now += 1000
+    update({ ...VM, tags: ['web', 'vdf:role=app', 'vdf:role=db'] })
+    assert.deepEqual(
+      events.map(({ tag, outsideXo }) => ({ tag, outsideXo })),
+      [
+        { tag: 'vdf:role=app', outsideXo: false },
+        { tag: 'vdf:role=db', outsideXo: true },
+      ]
+    )
+  })
+
+  it('a change that changes nothing is not noted: a later change outside XO is reported as such', async () => {
+    const { mixin, events, update } = createWatching()
+    // removing a tag the VM lacks, adding one it has: allowed, but no XAPI event will follow
+    await mixin.checkTagsChange(ADMIN, { ...VM, tags: ['web'] }, { removed: ['vdf:quarantine'] })
+    await mixin.checkTagsChange(ADMIN, { ...VM, tags: ['web'] }, { added: ['vdf:quarantine'] })
+    update({ ...VM, tags: ['web', 'vdf:quarantine'] })
+    await mixin.checkTagsChange(ADMIN, { ...VM, tags: ['web', 'vdf:quarantine'] }, { added: ['vdf:quarantine'] })
+    // xe vm-param-remove, then xe vm-param-add
+    update({ ...VM, tags: ['web'] })
+    update({ ...VM, tags: ['web', 'vdf:quarantine'] })
+    assert.deepEqual(
+      events.map(({ tag, change, userId, outsideXo }) => ({ tag, change, userId, outsideXo })),
+      [
+        { tag: 'vdf:quarantine', change: 'add', userId: 'admin', outsideXo: false },
+        { tag: 'vdf:quarantine', change: 'remove', userId: undefined, outsideXo: true },
+        { tag: 'vdf:quarantine', change: 'add', userId: undefined, outsideXo: true },
+      ]
+    )
+  })
+
+  it('the group tags a new VM keeps are not noted', async () => {
+    const vm = createNewVm(['web', 'vdf:role=app'])
+    const { mixin, events, update } = createWatching([{ id: 'new-vm', type: 'VM', $pool: 'pool-1', tags: vm.tags }])
+    assert.deepEqual(await mixin.stripInheritedReservedTags(ADMIN, vm), [])
+    update({ id: 'new-vm', type: 'VM', $pool: 'pool-1', tags: ['web'] })
     assert.equal(events[0].outsideXo, true)
   })
 

@@ -34,12 +34,17 @@ const QUARANTINE_TAG = 'vdf:quarantine'
 // - a VM XO is creating gets its tags set after it appears (createVm): its
 //   changes nobody noted are part of its creation, not reported, while its
 //   `xo:creation` date is recent;
-// - a change XO let through but that failed, or changed nothing, is never
-//   reported by XAPI: its note expires.
+// - a change XO let through but that failed is never reported by XAPI: its
+//   note expires; one that changes nothing (adding a tag the object has,
+//   removing one it lacks) isn't noted.
 export const RESERVED_TAG_CHANGE_EVENT = 'xo:reservedTagChanged'
 
-// how long a noted change waits for XAPI to report it
-const NOTE_TTL_MS = 2 * 60 * 1000
+// how long a noted change waits for XAPI to report it: XAPI reports a change
+// within seconds, a longer wait lets a leftover note misattribute a later one
+const NOTE_TTL_MS = 30 * 1000
+
+// how long after its creation a VM is still being created by XO (createVm)
+const CREATION_WINDOW_MS = 2 * 60 * 1000
 
 const WATCHED_TYPES = new Set(['VM', 'network'])
 
@@ -153,7 +158,7 @@ export default class ReservedTags {
 
   #report(object, { added, removed }) {
     const now = Date.now()
-    const isBeingCreated = object.type === 'VM' && now - Date.parse(object.creation?.date) < NOTE_TTL_MS
+    const isBeingCreated = object.type === 'VM' && now - Date.parse(object.creation?.date) < CREATION_WINDOW_MS
     for (const [change, tags] of [
       ['add', added],
       ['remove', removed],
@@ -191,7 +196,8 @@ export default class ReservedTags {
    * on the object's pool; other tags are not checked here. Calls without a
    * user (xo-server's own work) are not checked.
    *
-   * A change it lets through is noted as XO's, for XAPI's report of it.
+   * A change it lets through is noted as XO's, for XAPI's report of it, if
+   * it changes the object's tags (as XO sees them).
    *
    * @param {object | undefined} user - the XO user making the change
    * @param {object} object - the XO object the tags are written on (for a VM being created, its template)
@@ -200,7 +206,12 @@ export default class ReservedTags {
    */
   async checkTagsChange(user, object, { added = [], removed = [] }) {
     await this.#checkPermission(user, object, { added, removed })
-    this.#note(object.id, user, { added, removed })
+    // a change that changes nothing produces no XAPI event: a note would wait for another change
+    const tags = object.tags ?? []
+    this.#note(object.id, user, {
+      added: added.filter(tag => !tags.includes(tag)),
+      removed: removed.filter(tag => tags.includes(tag)),
+    })
   }
 
   // the guard's decision, without noting the change
