@@ -4,7 +4,6 @@ import type { XoUser } from '@vates/types'
 
 export const useXoCurrentUser = defineRemoteResource({
   url: `${BASE_URL}/users/me`,
-  pollingIntervalMs: false,
   initialData: () => undefined as XoUser | undefined,
   state: currentUser => ({ currentUser }),
 })
