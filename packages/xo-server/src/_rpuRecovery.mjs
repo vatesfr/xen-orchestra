@@ -227,7 +227,7 @@ export async function readClosableRpuRecoveryRecord(store, poolId) {
  * and the live state of the pool: an item is listed only when the record says
  * the run changed it and the pool still shows it changed.
  *
- * Flat list, in restore order: pool settings (HA, auto power-on, WLB, load
+ * Flat list: pool settings (HA, auto power-on, WLB, load
  * balancer), backup schedules, disabled hosts, running VMs away from their
  * home host, pinned VMs shut down by the run. Objects that no longer exist are
  * skipped: there is nothing left to restore. Displaced VMs are not listed when
@@ -283,7 +283,13 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   if (pool.other_config?.['xo:rpuMigrateVmsBack'] !== 'false') {
     for (const [vmId, homeHostId] of Object.entries(record.vmHomeById ?? {})) {
       const vm = getVm(vmId)
-      if (vm !== undefined && vm.power_state === 'Running' && vm.$resident_on?.$id !== homeHostId) {
+      // nowhere to bring it back once its home host left the pool
+      if (
+        vm !== undefined &&
+        vm.power_state === 'Running' &&
+        vm.$resident_on?.$id !== homeHostId &&
+        getHost(homeHostId) !== undefined
+      ) {
         items.push({ type: 'vm', id: vmId, name: vm.name_label })
       }
     }
@@ -416,6 +422,7 @@ function adoptOperatorChanges(record, changes) {
  */
 export const noopRpuRecorder = Object.freeze({
   markRunning: noop,
+  flush: noop,
   setTaskId: noop,
   setVariant: noop,
   setPatchInventory: noop,
@@ -445,7 +452,7 @@ export const noopRpuRecorder = Object.freeze({
  * restore is logged with the setting and leaves it in the record.
  *
  * @param {object} recorder
- * @param {'ha' | 'autoPowerOn' | 'wlb' | 'schedules'} name
+ * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
  * @param {() => Promise<void>} restore
  * @param {string} [id] - The schedule for `schedules`
  * @returns {Promise<void>}
@@ -546,6 +553,8 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.status = 'running'
       write()
     },
+    // resolves once the writes requested so far reached the store, or failed
+    flush: () => chain,
     setTaskId(taskId) {
       if (taskId !== undefined) {
         record.taskId = taskId
@@ -781,6 +790,22 @@ const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
 
 const isStepOver = status => status === 'observed-succeeded' || status === 'not-needed'
 const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
+
+/**
+ * Whether the run started to update a host and did not see it reboot: its
+ * patches are not all effective yet, only a resume finishes it.
+ *
+ * @param {object} record - Readable record
+ * @param {string} hostId
+ * @returns {boolean}
+ */
+export function isRpuHostAwaitingReboot(record, hostId) {
+  const { steps = {}, updateStarted } = record.hosts?.[hostId] ?? {}
+  return (
+    (updateStarted === true || isStepStarted(steps.update?.status ?? 'pending')) &&
+    !isStepOver(steps.reboot?.status ?? 'pending')
+  )
+}
 
 /**
  * Decides, from the record of a failed or interrupted run, what a resume does

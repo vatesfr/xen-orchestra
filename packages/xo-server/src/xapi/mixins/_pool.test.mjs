@@ -782,3 +782,137 @@ describe('rollingPoolReboot', function () {
     })
   })
 })
+
+describe('restoreRpuLeftovers', function () {
+  // what a run stopped after the evacuation of host A left: the host disabled,
+  // its VM on host B, its pinned VM halted, HA and auto power-on disabled
+  function setup() {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], []]))
+    const [hostA, hostB] = xapi.hosts
+    hostA.enabled = false
+    xapi.vms[0].$resident_on = hostB
+    xapi.vms.push({ $ref: 'OpaqueRef:vm-p', uuid: 'vm-p', name_label: 'vm p', power_state: 'Halted' })
+    // mixed in from patching.mjs
+    xapi._enableHostOnceBooted = async hostId => {
+      events.push(['enableHost', hostId])
+      xapi.getObject(hostId).enabled = true
+    }
+    xapi.callAsync = async (method, ...args) => {
+      events.push(['callAsync', method, ...args])
+    }
+    const migrateVm = xapi.migrateVm.bind(xapi)
+    xapi.migrateVm = async (vmId, _, hostId) => {
+      events.push(['migrateVm', vmId, hostId])
+      return migrateVm(vmId, _, hostId)
+    }
+    recorder.forgetHaltedPinnedVm = vmId => events.push(['forgetHaltedPinnedVm', vmId])
+    const record = {
+      changedByRun: { autoPowerOn: true, ha: { srs: ['sr-1'], configuration: {} } },
+      haltedPinnedVms: { 'vm-p': 'host-A' },
+      vmHomeById: { 'vm-a1': 'host-A' },
+    }
+    const items = [
+      { type: 'ha', id: 'pool-1' },
+      { type: 'autoPowerOn', id: 'pool-1' },
+      { type: 'host', id: 'host-A' },
+      { type: 'vm', id: 'vm-a1' },
+      { type: 'haltedPinnedVm', id: 'vm-p' },
+    ]
+    const restore = (items, patch) =>
+      Task.run({ properties: { name: 'finalize' } }, () =>
+        xapi.restoreRpuLeftovers({ record: { ...record, ...patch }, items, recorder })
+      )
+    return { events, items, recorder, restore, xapi }
+  }
+
+  const restorationsAfterTheHost = [
+    ['callAsync', 'VM.start_on', 'OpaqueRef:vm-p', 'OpaqueRef:host-A', false, false],
+    ['forgetHaltedPinnedVm', 'vm-p'],
+    ['migrateVm', 'vm-a1', 'host-A'],
+    ['other_config', 'auto_poweron', 'true'],
+    ['restored', 'autoPowerOn'],
+    ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+    ['restored', 'ha'],
+  ]
+
+  it('enables the hosts, starts the pinned VMs, migrates the VMs back, then restores auto power-on and HA', async function () {
+    const { events, items, restore, xapi } = setup()
+    await restore(items)
+    assert.deepEqual(events, [['enableHost', 'host-A'], ...restorationsAfterTheHost])
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-A')
+  })
+
+  it('goes on after a failed restoration', async function () {
+    const { events, items, restore, xapi } = setup()
+    xapi._enableHostOnceBooted = async () => {
+      throw new Error('HOST_STILL_BOOTING')
+    }
+    await restore(items)
+    assert.deepEqual(events, restorationsAfterTheHost)
+  })
+
+  it('keeps the steps of the run, and does not report a pinned VM which did not start as stopped', async function () {
+    const { events, items, recorder, restore, xapi } = setup()
+    xapi.callAsync = async () => {
+      throw new Error('VM.start_on failed')
+    }
+    for (const method of ['stepRunning', 'stepObserved', 'stepNotNeeded', 'stepFailed']) {
+      recorder[method] = (...args) => events.push([method, ...args])
+    }
+    recorder.setVmConflicts = vmConflicts => events.push(['setVmConflicts', vmConflicts])
+    // nothing can come back to host A
+    xapi.migrateVm = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    await restore(items, { vmHomeById: { 'vm-a1': 'host-A', 'vm-p': 'host-A' } })
+
+    const recorded = events.filter(([name]) => name.startsWith('step') || name === 'setVmConflicts')
+    assert.deepEqual(
+      recorded.map(([name]) => name),
+      ['setVmConflicts']
+    )
+    assert.deepEqual(
+      recorded[0][1].map(({ vmId, reason }) => [vmId, reason]),
+      [['vm-a1', 'migration-failed']]
+    )
+  })
+
+  it('leaves disabled, without its VMs, a host the run updated and did not reboot', async function () {
+    const { events, items, restore, xapi } = setup()
+    await restore(items, {
+      hosts: { 'host-A': { steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } } },
+    })
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.hosts[0].enabled, false)
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
+  it('enables the hosts at once', async function () {
+    const { events, restore, xapi } = setup()
+    xapi.hosts[1].enabled = false
+    let enabling = 0
+    xapi._enableHostOnceBooted = async hostId => {
+      events.push(['enabling', hostId, ++enabling])
+      await new Promise(resolve => setImmediate(resolve))
+      enabling--
+    }
+    await restore([
+      { type: 'host', id: 'host-A' },
+      { type: 'host', id: 'host-B' },
+    ])
+    assert.deepEqual(events, [
+      ['enabling', 'host-A', 1],
+      ['enabling', 'host-B', 2],
+    ])
+  })
+
+  it('only restores what is listed, and leaves HA recorded without its heartbeat SRs to the operator', async function () {
+    const { events, restore } = setup()
+    await restore([{ type: 'ha', id: 'pool-1' }], { changedByRun: { ha: true } })
+    assert.deepEqual(events, [])
+
+    // restored by hand since the run: still in the record, not listed
+    await restore([])
+    assert.deepEqual(events, [])
+  })
+})

@@ -147,8 +147,8 @@ export type RollingPoolActionBody = {
 
 export type FinalizeRollingUpdateBody = {
   /**
-   * Close the record even though the update left items unrestored, or its record cannot be read: they are abandoned
-   * and listed in the task, nothing is restored nor changed in the pool. Defaults to false.
+   * Close the record without restoring what the update left unrestored, or when its record cannot be read: the items
+   * are abandoned and listed in the task, nothing is restored nor changed in the pool. Defaults to false.
    */
   force?: boolean
 }
