@@ -8,7 +8,8 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
+import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import {
   V2V_DB_IMPORT_VM,
   V2V_DB_SYNC_SNAPSHOT,
@@ -18,6 +19,7 @@ import {
   V2V_MAPPING_STEP_LIST,
 } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
@@ -54,8 +56,9 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 const SOURCE_HOST = createV2vConnection().host
 
-function mountMappingStep(options?: Parameters<typeof mountV2vMappingStep>[1]) {
-  return mountV2vMappingStep(
+function mountMappingStep(options?: Parameters<typeof mountV2vListStep>[2]) {
+  return mountV2vListStep(
+    'mapping',
     setup => mountComposableOnV2vWizard(() => ({ ...useV2vMappingStep(), labels: useV2vVmLabels() }), setup),
     options
   )
@@ -71,9 +74,7 @@ async function removeOnceConfirmed({ result }: MappingStep, id: XoV2vVm['id']) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('selectedVm', () => {
@@ -117,7 +118,7 @@ describe('selectedVm', () => {
 
     expect(result.selectedVm).toMatchObject({
       kind: 'new',
-      listIssue: result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
+      listIssue: result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
     })
   })
 

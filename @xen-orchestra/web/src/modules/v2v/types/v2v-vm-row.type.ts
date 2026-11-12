@@ -20,6 +20,7 @@ export type V2vVmRow = {
   supported: boolean
   unsupportedReason?: V2vUnsupportedReason
   lastSyncAt?: number
+  cutoverAt?: number
   isInList: boolean
   importVm?: FrontXoVm
   vm: XoV2vVm

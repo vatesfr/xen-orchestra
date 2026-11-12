@@ -9,7 +9,7 @@ import {
   createV2vResumedMappingStepVm,
 } from '@/test/create-v2v-mapping-step-vm.ts'
 import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -95,7 +95,7 @@ it('tags each VM with its kind, none for a VM not found in the source, and tells
 it('sums the mapping of each VM up in parts, none for a VM without', () => {
   const mappingCells = findTableColumnCells(mountTable(), t('mapping'))
 
-  expect(mappingCells.map(cell => findParts(cell, '.inline-parts'))).toEqual(ROWS.map(row => row.item.mappingParts))
+  expect(mappingCells.map(findInlineParts)).toEqual(ROWS.map(row => row.item.mappingParts))
 })
 
 it('marks the row of the selected VM alone', () => {

@@ -3,7 +3,7 @@ import type { V2vDestinationVm } from '@/modules/v2v/composables/use-v2v-resumed
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
@@ -41,7 +41,7 @@ it('links the VM to its page, with the icon of its power state', () => {
 })
 
 it('lays out the pool of the VM, its power state and its blocked start', () => {
-  expect(findParts(mountCard(), '.inline-parts')).toEqual([
+  expect(findInlineParts(mountCard())).toEqual([
     t('pool-named', { name: DISKOR_POOL_NAME }),
     'Halted',
     t('v2v:start-blocked-partial'),

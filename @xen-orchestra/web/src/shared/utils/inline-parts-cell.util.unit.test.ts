@@ -1,5 +1,5 @@
 import { renderInlinePartsCell } from '@/shared/utils/inline-parts-cell.util.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { mount } from '@vue/test-utils'
 
 function mountCell(parts: string[]) {
@@ -8,10 +8,10 @@ function mountCell(parts: string[]) {
 
 describe('renderInlinePartsCell', () => {
   it('lays out each part of the cell on one line', () => {
-    expect(findParts(mountCell(['PG-Prod', 'VLAN 10']), '.inline-parts')).toEqual(['PG-Prod', 'VLAN 10'])
+    expect(findInlineParts(mountCell(['PG-Prod', 'VLAN 10']))).toEqual(['PG-Prod', 'VLAN 10'])
   })
 
   it('lays out nothing without parts', () => {
-    expect(findParts(mountCell([]), '.inline-parts')).toEqual([])
+    expect(findInlineParts(mountCell([]))).toEqual([])
   })
 })

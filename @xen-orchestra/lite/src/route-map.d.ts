@@ -471,6 +471,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/number-input/vts-number-input': RouteRecordInfo<
+      '/story/web-core/number-input/vts-number-input',
+      '/story/web-core/number-input/vts-number-input',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
@@ -544,6 +551,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/status/vts-status': RouteRecordInfo<
       '/story/web-core/status/vts-status',
       '/story/web-core/status/vts-status',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/success-state-hero/vts-success-state-hero': RouteRecordInfo<
+      '/story/web-core/success-state-hero/vts-success-state-hero',
+      '/story/web-core/success-state-hero/vts-success-state-hero',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1601,6 +1615,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/number-input/vts-number-input.story.vue': {
+      routes:
+        | '/story/web-core/number-input/vts-number-input'
+      views:
+        | never
+    }
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
@@ -1664,6 +1684,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/status/vts-status.story.vue': {
       routes:
         | '/story/web-core/status/vts-status'
+      views:
+        | never
+    }
+    'src/stories/web-core/success-state-hero/vts-success-state-hero.story.vue': {
+      routes:
+        | '/story/web-core/success-state-hero/vts-success-state-hero'
       views:
         | never
     }

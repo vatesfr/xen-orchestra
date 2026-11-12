@@ -16,9 +16,11 @@ import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
 import { V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -66,6 +68,17 @@ const WEB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_
 // The web VM is new, the DB one resumed
 const WEB_AND_DB_LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id]) })
 
+// The mapping summaries of the VMs of `WEB_AND_DB_LIST`: a new one on the list defaults, a resumed one
+const WEB_MAPPING = {
+  type: 'mapped',
+  diskCount: 1,
+  srNames: [V2V_DEFAULT_SR.name_label],
+  nicCount: 0,
+  networkNames: [],
+}
+
+const DB_MAPPING = { type: 'locked' }
+
 // The DB VM is warm synced on the pool of the list, the listed one migrated
 const IMPORT_VMS = [
   createV2vImportVm(
@@ -110,9 +123,7 @@ function findItemIds(result: SelectedVms) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('items', () => {
@@ -184,10 +195,10 @@ describe('items', () => {
     })
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
-      result.labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason: 'rdm' }),
-      result.labels.getCheckInfo({ type: 'already-migrated', level: 'warning' }),
-      result.labels.getCheckInfo({ type: 'not-found', level: 'blocking' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.unsupported),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.alreadyMigrated),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.notFound),
     ])
   })
 
@@ -197,8 +208,8 @@ describe('items', () => {
     xoCollectionsMock.srs.value = []
 
     expect(result.items.map(item => item.check)).toEqual([
-      result.labels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
-      result.labels.getCheckInfo({ type: 'ready', level: 'ready' }),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
+      result.labels.getCheckInfo(V2V_SELECTED_VM_CHECK.ready),
     ])
   })
 
@@ -323,12 +334,12 @@ describe('isBusy', () => {
 })
 
 describe('vms', () => {
-  it('tells the kind and the check of each VM of the list, with its item, in the list order', async () => {
+  it('tells the kind, the check and the mapping summary of each VM of the list, with its item, in the list order', async () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
 
     expect(result.vms).toEqual([
-      { kind: 'new', check: { type: 'ready', level: 'ready' }, item: result.items[0] },
-      { kind: 'resume', check: { type: 'ready', level: 'ready' }, item: result.items[1] },
+      { kind: 'new', check: V2V_SELECTED_VM_CHECK.ready, mapping: WEB_MAPPING, item: result.items[0] },
+      { kind: 'resume', check: V2V_SELECTED_VM_CHECK.ready, mapping: DB_MAPPING, item: result.items[1] },
     ])
   })
 
@@ -336,6 +347,31 @@ describe('vms', () => {
     const { result } = await mountSelectedVms({ list: V2V_EMPTY_LIST })
 
     expect(result.vms).toEqual([])
+  })
+})
+
+describe('vmStates', () => {
+  it('tells what the launch plan reads of each VM of the list, in the list order', async () => {
+    const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
+
+    expect(result.vmStates).toEqual([
+      {
+        id: V2V_WEB_VM.id,
+        name: V2V_WEB_VM.name,
+        kind: 'new',
+        check: V2V_SELECTED_VM_CHECK.ready,
+        checkInfo: result.items[0].check,
+        mapping: WEB_MAPPING,
+      },
+      {
+        id: V2V_DB_VM.id,
+        name: V2V_DB_VM.name,
+        kind: 'resume',
+        check: V2V_SELECTED_VM_CHECK.ready,
+        checkInfo: result.items[1].check,
+        mapping: DB_MAPPING,
+      },
+    ])
   })
 })
 

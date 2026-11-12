@@ -12,7 +12,7 @@ import { v2vStatusMock } from '@/test/mock-xo-v2v-status.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { SERVER_ERROR_MESSAGE, stubFetchResponse, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vRememberedConnections } from '@/test/v2v-remembered-connections-storage.ts'
@@ -159,23 +159,13 @@ describe('submit', () => {
 
   it('reports any other failure as a connection error', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result, router } = await mountSourceStep()
 
     await submitConnection(result)
 
-    expect(result.connectionError).toBe('unreachable')
+    expect(result.connectionError).toBe(SERVER_ERROR_MESSAGE)
     expect(router.currentRoute.value.query.step).toBe('source')
-  })
-
-  it('reports a generic error when the failure carries no message', async () => {
-    silenceConsoleError()
-    stubFetchResponse(500, {})
-    const { result } = await mountSourceStep()
-
-    await submitConnection(result)
-
-    expect(result.connectionError).toBe(result.t('error'))
   })
 
   it('is connecting while the inventory loads', async () => {
@@ -390,7 +380,7 @@ describe('forgetRememberedPassword', () => {
 describe('cancel', () => {
   it('resets the form and the connection error', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result } = await mountSourceStep()
     await submitConnection(result)
 

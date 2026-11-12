@@ -1,8 +1,11 @@
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
+import { mount } from '@vue/test-utils'
+import type { Component } from 'vue'
 import type { LocationQueryRaw, Router } from 'vue-router'
 
 export type V2vWizardSetup = {
@@ -43,4 +46,23 @@ export async function mountComposableOnV2vWizard<TResult extends Record<string, 
   )
 
   return { result, router }
+}
+
+type V2vWizardComponentOptions = {
+  props?: Record<string, unknown>
+  stubs?: NonNullable<Parameters<typeof createGlobalTestConfig>[0]>['stubs']
+}
+
+// A component of the wizard, mounted with its props and stubs on the route, the list and the source of the setup
+export async function mountComponentOnV2vWizard(
+  component: Component,
+  { props, stubs }: V2vWizardComponentOptions,
+  setup: V2vWizardSetup
+) {
+  const { mounted: wrapper, router } = await mountOnV2vWizard(
+    (router, provide) => mount(component, { props, global: createGlobalTestConfig({ router, stubs, provide }) }),
+    setup
+  )
+
+  return { wrapper, router }
 }

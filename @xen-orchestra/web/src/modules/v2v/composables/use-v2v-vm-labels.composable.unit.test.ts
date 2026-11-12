@@ -1,9 +1,11 @@
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vMappingSummary, V2vSelectedVmCheck, V2vVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
+import { DISKOR_POOL_NAME, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vDisk, createV2vPortGroup } from '@/test/create-v2v-inventory.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { createV2vUnsupportedCheck, V2V_SELECTED_VM_CHECK, V2V_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 
 function mountLabels() {
@@ -137,23 +139,13 @@ describe('getKindTag', () => {
 
 describe('getCheckInfo', () => {
   it.each([
-    ['a ready', { type: 'ready', level: 'ready' }, 'ready', 'success'],
-    ['a missing', { type: 'not-found', level: 'blocking' }, 'v2v:not-found-in-source', 'danger'],
-    ['a running', { type: 'running', level: 'blocking' }, 'import-in-progress', 'danger'],
-    [
-      'an already migrated',
-      { type: 'already-migrated', level: 'warning' },
-      'v2v:already-migrated-confirm-at-launch',
-      'warning',
-    ],
-    [
-      'an incompletely mapped',
-      { type: 'mapping-incomplete', level: 'blocking' },
-      'v2v:check:mapping-incomplete',
-      'danger',
-    ],
-    ['a fully supported', { type: 'no-unsupported-disk', level: 'ready' }, 'v2v:check:no-unsupported-disk', 'success'],
-    ['a snapshot-free', { type: 'no-snapshot', level: 'ready' }, 'v2v:check:no-snapshot', 'success'],
+    ['a ready', V2V_SELECTED_VM_CHECK.ready, 'ready', 'success'],
+    ['a missing', V2V_SELECTED_VM_CHECK.notFound, 'v2v:not-found-in-source', 'danger'],
+    ['a running', V2V_SELECTED_VM_CHECK.running, 'import-in-progress', 'danger'],
+    ['an already migrated', V2V_SELECTED_VM_CHECK.alreadyMigrated, 'v2v:already-migrated-confirm-at-launch', 'warning'],
+    ['an incompletely mapped', V2V_SELECTED_VM_CHECK.mappingIncomplete, 'v2v:check:mapping-incomplete', 'danger'],
+    ['a fully supported', V2V_VM_CHECK.noUnsupportedDisk, 'v2v:check:no-unsupported-disk', 'success'],
+    ['a snapshot-free', V2V_VM_CHECK.noSnapshot, 'v2v:check:no-snapshot', 'success'],
   ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck | V2vVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
@@ -167,7 +159,7 @@ describe('getCheckInfo', () => {
   ] as const)('tells a VM unsupported for its %s disk', (reason, labelKey) => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason })).toEqual({
+    expect(labels.getCheckInfo(createV2vUnsupportedCheck(reason))).toEqual({
       label: labels.t(labelKey),
       accent: 'danger',
     })
@@ -185,16 +177,17 @@ describe('getCheckInfo', () => {
   it('names the pool a VM is partially imported on', () => {
     const labels = mountLabels()
 
-    expect(
-      labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }, DISKOR_POOL_NAME)
-    ).toEqual({ label: labels.t('v2v:partial-import-on-pool', { pool: DISKOR_POOL_NAME }), accent: 'danger' })
+    expect(labels.getCheckInfo(V2V_SELECTED_VM_CHECK.partialOnOtherPool, DISKOR_POOL_NAME)).toEqual({
+      label: labels.t('v2v:partial-import-on-pool', { pool: DISKOR_POOL_NAME }),
+      accent: 'danger',
+    })
   })
 
   it('names the pool by its id while its name is unknown', () => {
     const labels = mountLabels()
 
-    expect(labels.getCheckInfo({ type: 'partial-on-other-pool', level: 'blocking', poolId: OTHER_POOL_ID }).label).toBe(
-      labels.t('v2v:partial-import-on-pool', { pool: OTHER_POOL_ID })
+    expect(labels.getCheckInfo(V2V_SELECTED_VM_CHECK.partialOnOtherPool).label).toBe(
+      labels.t('v2v:partial-import-on-pool', { pool: UNKNOWN_POOL_ID })
     )
   })
 })
@@ -382,5 +375,117 @@ describe('getNicDetailParts', () => {
     const labels = mountLabels()
 
     expect(labels.getNicDetailParts(createV2vPortGroup(), false)).toEqual(['PG-Prod', labels.t('vlan-id', { id: 10 })])
+  })
+})
+
+describe('getLaunchGroupHeading', () => {
+  it.each([
+    ['excluded', 'v2v:launch-group:excluded', 'danger'],
+    ['migrated', 'v2v:already-fully-migrated', 'warning'],
+    ['resumed', 'v2v:launch-group:resumed', 'brand'],
+    ['new', 'v2v:launch-group:new', 'success'],
+  ] as const)('heads the %s group with its label and accent', (type, labelKey, accent) => {
+    const labels = mountLabels()
+
+    expect(labels.getLaunchGroupHeading(type)).toEqual({ label: labels.t(labelKey), accent })
+  })
+})
+
+describe('getReviewSummaryParts', () => {
+  it('names the destination pool, counts the VMs of the list, then the excluded ones and those to confirm', () => {
+    const labels = mountLabels()
+
+    expect(labels.getReviewSummaryParts(DISKOR_POOL_NAME, 7, { excluded: 2, unconfirmed: 1 })).toEqual([
+      labels.t('destination-pool-named', { name: DISKOR_POOL_NAME }),
+      labels.t('n-vms-in-list', { n: 7 }),
+      labels.t('v2v:n-excluded', { n: 2 }),
+      labels.t('n-need-confirmation', { n: 1 }),
+    ])
+  })
+
+  it('leaves out the counts at zero and a pool still unknown', () => {
+    const labels = mountLabels()
+
+    expect(labels.getReviewSummaryParts(undefined, 3, { excluded: 0, unconfirmed: 0 })).toEqual([
+      labels.t('n-vms-in-list', { n: 3 }),
+    ])
+  })
+})
+
+describe('getResumedVmParts', () => {
+  it.each([
+    ['delta', 'v2v:delta-from-last-sync'],
+    ['full', 'full-transfer'],
+  ] as const)('tells the %s transfer, where the VM continues, and that its mapping is kept', (transfer, labelKey) => {
+    const labels = mountLabels()
+
+    expect(labels.getResumedVmParts(transfer, DISKOR_POOL_NAME, ['sr-nvme-01', 'sr-ssd-01'])).toEqual([
+      labels.t(labelKey),
+      labels.t('v2v:continues-on-pool-sr', { pool: DISKOR_POOL_NAME, srs: 'sr-nvme-01, sr-ssd-01' }),
+      labels.t('v2v:mapping-locked'),
+    ])
+  })
+})
+
+describe('getCutoverLabel', () => {
+  it('tells when the VM was cut over', () => {
+    const labels = mountLabels()
+    const cutoverAt = Date.UTC(2026, 9, 2)
+
+    expect(labels.getCutoverLabel(cutoverAt)).toBe(labels.t('v2v:cutover-done-on', { date: formatDateTime(cutoverAt) }))
+  })
+
+  it('tells nothing while the cutover date is unknown', () => {
+    expect(mountLabels().getCutoverLabel(undefined)).toBeUndefined()
+  })
+})
+
+describe('getNewVmsSummary', () => {
+  it('names the VMs, then the SRs they go to', () => {
+    const labels = mountLabels()
+
+    expect(labels.getNewVmsSummary(['app-03', 'build-02'], ['sr-nvme-01', 'sr-hdd-02'])).toBe(
+      labels.t('source-to-destination', { source: 'app-03, build-02', destination: 'sr-nvme-01, sr-hdd-02' })
+    )
+  })
+
+  it('only names the VMs while their SRs are unknown', () => {
+    expect(mountLabels().getNewVmsSummary(['app-03', 'build-02'], undefined)).toBe('app-03, build-02')
+  })
+})
+
+describe('getStartProblemLabel', () => {
+  it('names the VM of the problem', () => {
+    const labels = mountLabels()
+
+    expect(labels.getStartProblemLabel('RDM disk', 'web-01')).toBe(
+      labels.t('v2v:vm-start-problem', { vm: 'web-01', message: 'RDM disk' })
+    )
+  })
+
+  it('only tells a problem of the whole launch', () => {
+    expect(mountLabels().getStartProblemLabel('tags are not supported', undefined)).toBe('tags are not supported')
+  })
+})
+
+describe('getLaunchOptionLabel', () => {
+  it.each([
+    [true, 'option-on'],
+    [false, 'option-off'],
+  ] as const)('tells a launch option set to %s', (value, labelKey) => {
+    const labels = mountLabels()
+
+    expect(labels.getLaunchOptionLabel(value, !value)).toBe(labels.t(labelKey))
+  })
+
+  it.each([
+    [true, 'option-on'],
+    [false, 'option-off'],
+  ] as const)('reads a launch option left to its default of %s as that default', (defaultValue, labelKey) => {
+    const labels = mountLabels()
+
+    expect(labels.getLaunchOptionLabel(undefined, defaultValue)).toBe(
+      labels.t('default-value', { value: labels.t(labelKey) })
+    )
   })
 })

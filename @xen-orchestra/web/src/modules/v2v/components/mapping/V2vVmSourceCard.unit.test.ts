@@ -1,7 +1,7 @@
 import V2vVmSourceCard from '@/modules/v2v/components/mapping/V2vVmSourceCard.vue'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -36,5 +36,5 @@ it('shows the facts of the source VM', () => {
 })
 
 it('lays out the count and the total size of the disks', () => {
-  expect(findParts(mountCard(), '.inline-parts')).toEqual(['2', '160 GiB'])
+  expect(findInlineParts(mountCard())).toEqual(['2', '160 GiB'])
 })
