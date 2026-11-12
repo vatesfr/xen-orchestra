@@ -400,6 +400,7 @@ export type XoApp = EventEmitter & {
   getPlugin(id: XoPlugin['id']): Promise<XoPlugin>
   getPlugins(): Promise<XoPlugin[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
+  getProxyApplianceUpdaterState(id: XoProxy['id']): Promise<{ level: string; message: string; state: string }>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   removeRemote(id: XoBackupRepository['id']): Promise<void>
