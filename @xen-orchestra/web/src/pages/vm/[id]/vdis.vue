@@ -88,7 +88,7 @@ const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
 * This selector extends the clickable area of the links for better accessibility
 */
 .add-vdi-link {
-  height: 100%;
-  width: 100%;
+  flex-grow: 1;
+  padding-block: 1.2rem;
 }
 </style>

@@ -70,7 +70,7 @@ const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
 }
 
 .new-network-link {
-  height: 100%;
-  width: 100%;
+  flex-grow: 1;
+  padding-block: 1.2rem;
 }
 </style>
