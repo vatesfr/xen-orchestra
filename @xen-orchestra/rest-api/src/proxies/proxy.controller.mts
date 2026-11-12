@@ -18,6 +18,7 @@ import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
@@ -30,6 +31,10 @@ import { partialProxies, proxy, proxyHealth, proxyIds } from '../open-api/oa-exa
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+
+function isProxyUnreachable(error: unknown): boolean {
+  return error instanceof TypeError && error.message === 'fetch failed'
+}
 
 @Route('proxies')
 @Security('*')
@@ -123,8 +128,17 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'Proxy unreachable')
   async getProxyHealth(@Path() id: string): Promise<{ success: true }> {
-    await this.restApi.xoApp.checkProxyHealth(id as XoProxy['id'])
+    try {
+      await this.restApi.xoApp.checkProxyHealth(id as XoProxy['id'])
+    } catch (error) {
+      if (isProxyUnreachable(error)) {
+        throw new ApiError('Proxy unreachable', 502)
+      }
+      throw error
+    }
+
     return { success: true }
   }
 }
