@@ -20,7 +20,7 @@ import type {
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type {
   FrontXoSchedule,
   useXoScheduleCollection,
@@ -135,12 +135,15 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
 
 const vmBackupJob = createVmBackupJob()
 
-const PROXY_ID = 'proxy-1'
+const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
 const mainBr = createBr({ id: 'br-main' as FrontXoBackupRepository['id'], name: 'Main BR', proxy: PROXY_ID })
 const otherBr = createBr({ id: 'br-other' as FrontXoBackupRepository['id'], name: 'Other BR', proxy: PROXY_ID })
 const disabledBr = createBr({ id: 'br-disabled' as FrontXoBackupRepository['id'], proxy: PROXY_ID, enabled: false })
-const otherProxyBr = createBr({ id: 'br-other-proxy' as FrontXoBackupRepository['id'], proxy: 'proxy-2' })
+const otherProxyBr = createBr({
+  id: 'br-other-proxy' as FrontXoBackupRepository['id'],
+  proxy: 'proxy-2' as FrontXoProxy['id'],
+})
 
 const localSr = createSr({ id: 'sr-local' as FrontXoSr['id'], name_label: 'Local SR' })
 const nfsSr = createSr({ id: 'sr-nfs' as FrontXoSr['id'], name_label: 'NFS SR' })
