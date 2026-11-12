@@ -51,10 +51,15 @@ const allRules = policy => [...(policy.ingress ?? []), ...(policy.egress ?? [])]
 
 // XO core keeps the vdf: tags to pool administrators (reserved-tags.mjs):
 // a group on any other tag would be open to whoever may tag VMs. The
-// quarantine tag isn't a group criterion either. Only publishing is
+// quarantine tag isn't a group criterion either, and networks are network
+// tags. Only publishing is
 // refused: a document already published is read as it is.
 const GROUP_TAG_PREFIX = 'vdf:'
 const QUARANTINE_TAG = 'vdf:quarantine'
+
+// a group's networks are network tags (same shape as the XO 6 form's
+// isNetworkTag): vdf:net= and a value
+const NETWORK_TAG = /^vdf:net=[a-z0-9][a-z0-9._-]*$/
 
 function groupTagErrors(groups) {
   const errors = []
@@ -64,6 +69,11 @@ function groupTagErrors(groups) {
         errors.push(`group "${name}": tag "${tag}" is the quarantine tag, it can't be a group tag`)
       } else if (typeof tag !== 'string' || !tag.startsWith(GROUP_TAG_PREFIX)) {
         errors.push(`group "${name}": tag "${tag}" is refused, group tags must start with vdf:, e.g. vdf:role=web`)
+      }
+    }
+    for (const tag of group.networks ?? []) {
+      if (typeof tag !== 'string' || !NETWORK_TAG.test(tag)) {
+        errors.push(`group "${name}": network tag "${tag}" is refused, network tags look like vdf:net=dmz`)
       }
     }
   }

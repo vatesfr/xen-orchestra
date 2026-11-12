@@ -190,6 +190,22 @@ describe('checks', () => {
     }
   })
 
+  test('group networks are network tags like vdf:net=dmz', () => {
+    const groups = {
+      a: { tags: ['vdf:role=web'], networks: ['vdf:net=dmz', 'dmz', 'vdf:net='] },
+      b: { networks: ['vdf:net=backend'] },
+      c: { networks: [42] },
+    }
+    for (const check of [checkGlobalDocument, checkLocalDocument]) {
+      const errors = check({ groups, policies: [] })
+      assert.equal(errors.length, 3)
+      assert.match(errors[0], /group "a": network tag "dmz" is refused, network tags look like vdf:net=dmz/)
+      assert.match(errors[1], /group "a": network tag "vdf:net=" is refused/)
+      assert.match(errors[2], /group "c": network tag "42" is refused/)
+      assert.deepEqual(check({ groups: { b: groups.b }, policies: [] }), [])
+    }
+  })
+
   test('local ids stay below the global range', () => {
     assert.deepEqual(checkLocalDocument(compose(LOCAL, GLOBAL)), [])
     assert.equal(

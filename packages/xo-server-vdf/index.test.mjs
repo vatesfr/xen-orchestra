@@ -688,6 +688,40 @@ describe('pool publish', () => {
     }
   })
 
+  test('a group on a network tag of another shape is refused, naming it; an old document is still read', async () => {
+    const old = { ...document(), groups: { web: { tags: ['vdf:role=web'], networks: ['dmz'] } } }
+    const xo = fakeXo({ otherConfig: { 'vdf:policy': text(old) } })
+    const plugin = await loaded(xo)
+    try {
+      const publish = groups =>
+        xo.route('post', '/pools/{id}/actions/publish_policy', {
+          params: { id: POOL },
+          body: {
+            policy: text({ ...document(), groups }),
+            expectedDocId: publishedPolicy(xo.xapi.pool.other_config).docId,
+          },
+        })
+
+      const { result } = await publish({ web: { tags: ['vdf:role=web'], networks: ['dmz'] } })
+      assert.equal(result.published, false)
+      assert.ok(result.error.includes('group "web": network tag "dmz" is refused, network tags look like vdf:net=dmz'))
+      assert.equal(
+        xo.calls.some(call => call.fn === 'publish'),
+        false
+      )
+
+      // only publishing is refused
+      assert.deepEqual((await xo.route('get', '/pools/{id}/policy', { params: { id: POOL } })).result.document, old)
+
+      assert.equal(
+        (await publish({ web: { tags: ['vdf:role=web'], networks: ['vdf:net=dmz'] } })).result.published,
+        true
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('nothing published yet: the expected id is empty', async () => {
     const xo = fakeXo()
     const plugin = await loaded(xo)
