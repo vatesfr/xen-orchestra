@@ -1,7 +1,12 @@
 <template>
   <div class="tasks-list">
     <UiTitle>
-      {{ t('tasks') }}
+      {{ title ?? t('tasks') }}
+      <template v-if="autoCollapseToggle" #action>
+        <UiToggle v-model="autoCollapseCompleted" class="auto-collapse-toggle">
+          {{ t('auto-collapse-completed-tasks') }}
+        </UiToggle>
+      </template>
     </UiTitle>
     <UiQuerySearchBar @search="value => (searchQuery = value)" />
     <div class="container">
@@ -19,6 +24,7 @@
         v-else
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
+        :auto-collapse-completed
         @select="id => (selectedTaskId = id)"
       />
       <VtsStateHero v-if="searchQuery && filteredTasks.length === 0" format="table" type="no-result" size="small">
@@ -36,15 +42,18 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableControlsBar from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { tasks } = defineProps<{
+const { tasks, title } = defineProps<{
   tasks: Task[]
   hasError: boolean
   busy: boolean
+  title?: string
+  autoCollapseToggle?: boolean
 }>()
 
 const { t } = useI18n()
@@ -52,6 +61,8 @@ const { t } = useI18n()
 const selectedTaskId = useRouteQuery('id')
 
 const searchQuery = ref('')
+
+const autoCollapseCompleted = ref(false)
 
 const filteredTasks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
@@ -80,6 +91,10 @@ const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks',
   .container,
   .actions {
     gap: 0.8rem;
+  }
+
+  .auto-collapse-toggle {
+    text-transform: none;
   }
 }
 </style>

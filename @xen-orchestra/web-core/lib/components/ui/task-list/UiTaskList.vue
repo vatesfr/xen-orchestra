@@ -9,6 +9,7 @@
       :depth="depth + 1"
       :selected="selectedTaskId === task.id"
       :selected-task-id="selectedTaskId"
+      :auto-collapse-completed
       @select="emit('select', $event)"
       @expand="task.toggleFlag('expanded')"
     />
@@ -19,11 +20,17 @@
 import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useCollection } from '@core/packages/collection'
+import { watch } from 'vue'
 
-const { tasks, depth = 0 } = defineProps<{
+const {
+  tasks,
+  depth = 0,
+  autoCollapseCompleted,
+} = defineProps<{
   tasks: Task[]
   depth?: number
   selectedTaskId?: string
+  autoCollapseCompleted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +40,16 @@ const emit = defineEmits<{
 const { items: tasksItems } = useCollection(() => tasks, {
   flags: { expanded: true },
 })
+
+watch(
+  () =>
+    autoCollapseCompleted ? tasksItems.value.filter(task => task.source.end !== undefined).map(task => task.id) : [],
+  (completedTaskIds, previousCompletedTaskIds = []) => {
+    tasksItems.value
+      .filter(task => completedTaskIds.includes(task.id) && !previousCompletedTaskIds.includes(task.id))
+      .forEach(task => task.toggleFlag('expanded', false))
+  }
+)
 </script>
 
 <style scoped lang="postcss">
