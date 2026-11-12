@@ -4,7 +4,12 @@ import { EventEmitter } from 'node:events'
 import { describe, it } from 'node:test'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-import ReservedTags, { diffTags, isReservedTag, RESERVED_TAG_CHANGE_EVENT } from './reserved-tags.mjs'
+import ReservedTags, {
+  diffTags,
+  isReservedTag,
+  RESERVED_TAG_CHANGE_EVENT,
+  RESERVED_TAGS_STRIPPED_EVENT,
+} from './reserved-tags.mjs'
 
 const OBJECTS = {
   'pool-1': { id: 'pool-1', type: 'pool', $pool: 'pool-1' },
@@ -232,6 +237,7 @@ function createNewVm(tags, { pool = 'pool-1', setTags = async () => {}, destroy 
   const vm = {
     uuid: 'new-vm',
     $ref: 'OpaqueRef:new-vm',
+    name_label: 'web-1-copy',
     tags,
     tagsWritten: [],
     destroyed: [],
@@ -316,6 +322,48 @@ describe('stripInheritedReservedTags', () => {
       },
     })
     await assert.rejects(mixin.stripInheritedReservedTags(VM_ADMIN, vm), error)
+  })
+})
+
+describe('the tags stripped, emitted', () => {
+  const TAGS = ['web', 'vdf:role=app', 'vdf:quarantine', 'vdf:role=db']
+  const emitted = app => {
+    const events = []
+    app.on(RESERVED_TAGS_STRIPPED_EVENT, event => events.push(event))
+    return events
+  }
+
+  it('once removed: the VM, its pool, the tags, who created it, when', async t => {
+    t.mock.method(Date, 'now', () => 1_000_000)
+    const { app, mixin } = createMixin()
+    const events = emitted(app)
+    const vm = createNewVm(TAGS, { pool: 'pool-2' })
+    await mixin.stripInheritedReservedTags(VM_ADMIN, vm)
+    assert.deepEqual(events, [
+      {
+        vmId: 'new-vm',
+        vmName: 'web-1-copy',
+        poolId: 'pool-2',
+        tags: ['vdf:role=app', 'vdf:role=db'],
+        userId: VM_ADMIN.id,
+        timestamp: 1_000_000,
+      },
+    ])
+  })
+
+  it('not when nothing is stripped, nor when the removal fails', async () => {
+    const { app, mixin } = createMixin()
+    const events = emitted(app)
+    await mixin.stripInheritedReservedTags(ADMIN, createNewVm(TAGS))
+    await mixin.stripInheritedReservedTags(VM_ADMIN, createNewVm(['web', 'vdf:quarantine']))
+    await mixin.stripInheritedReservedTags(undefined, createNewVm(TAGS))
+    const failing = createNewVm(TAGS, {
+      setTags: async () => {
+        throw new Error('XAPI is down')
+      },
+    })
+    await assert.rejects(mixin.stripInheritedReservedTagsOrDestroy(VM_ADMIN, failing))
+    assert.deepEqual(events, [])
   })
 })
 

@@ -49,6 +49,15 @@ const NOTE_TTL_MS = 30 * 1000
 // reported
 const CREATION_WINDOW_MS = 30 * 1000
 
+// A new VM's inherited reserved tags `stripInheritedReservedTags` removed,
+// emitted on the app once they are removed, for a VM that may not be in
+// XO's objects yet:
+//
+//   { vmId, vmName, poolId, tags, userId (who created the VM), timestamp }
+//
+// Core only logs it; the plugin shows it.
+export const RESERVED_TAGS_STRIPPED_EVENT = 'xo:reservedTagsStripped'
+
 const WATCHED_TYPES = new Set(['VM', 'network'])
 
 const noteKey = (objectId, change, tag) => `${objectId}\0${change}\0${tag}`
@@ -325,6 +334,7 @@ export default class ReservedTags {
    *
    * Call it before the new VM can be started; if the removal fails, it throws
    * and the VM must not be started. Calls without a user are not checked.
+   * Tags removed are emitted on the app (`RESERVED_TAGS_STRIPPED_EVENT`).
    *
    * @param {object | undefined} user - the XO user who created the VM
    * @param {object} vm - the XAPI record of the new VM
@@ -358,6 +368,14 @@ export default class ReservedTags {
       this.#note(object.id, undefined, { removed: stripped })
       await vm.set_tags(vm.tags.filter(tag => !stripped.includes(tag)))
       log.info('reserved tags stripped from a new VM', { vm: vm.uuid, tags: stripped, user: user.id })
+      this._app.emit(RESERVED_TAGS_STRIPPED_EVENT, {
+        vmId: object.id,
+        vmName: vm.name_label,
+        poolId: object.$pool,
+        tags: stripped,
+        userId: user.id,
+        timestamp: Date.now(),
+      })
     }
     return stripped
   }
