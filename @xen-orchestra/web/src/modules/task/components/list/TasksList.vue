@@ -47,7 +47,8 @@ import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
-import { computed, ref } from 'vue'
+import { hasSubtask } from '@core/utils/task.util.ts'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { tasks, title } = defineProps<{
@@ -68,7 +69,24 @@ const { items: filteredTasks, hasSearch, searchBindings } = useSearchFilter(() =
 
 const hasNoSearchResult = computed(() => hasSearch.value && filteredTasks.value.length === 0)
 
-const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks', filteredTasks)
+const { pageRecords: tasksRecords, paginationBindings, seek } = usePagination('tasks', filteredTasks)
+
+watch(
+  [
+    selectedTaskId,
+    () => {
+      const taskId = selectedTaskId.value
+
+      return taskId ? filteredTasks.value.find(task => task.id === taskId || hasSubtask(task, taskId))?.id : undefined
+    },
+  ],
+  ([, rootTaskId]) => {
+    if (rootTaskId !== undefined) {
+      seek(task => task.id === rootTaskId)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="postcss">

@@ -54,7 +54,6 @@ const route = useRoute()
 const rightSidebar = useRightSidebarStore()
 const uiStore = useUiStore()
 
-// On small screens the sidebar covers the whole page: close it once a task (eye button or name link) is opened
 watch(
   () => route.fullPath,
   () => {
@@ -67,7 +66,6 @@ watch(
 const filter = ref('')
 const routeTaskId = useRouteQuery('id')
 
-// `id` only refers to a task on the tasks page, other pages may use the same query key
 const selectedTaskId = computed(() => (route.name === '/(site)/tasks' ? routeTaskId.value : undefined))
 
 const { lastDayTasks, areTasksReady } = useXoTaskCollection()

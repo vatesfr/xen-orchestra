@@ -149,7 +149,6 @@ const progress = computed(() => {
     display: flex;
   }
 
-  /* Keep progress aligned with rows that have the eye button (the empty column still has its gap) */
   .progress:not(:has(+ .actions)) {
     margin-inline-end: 2.4rem;
   }
