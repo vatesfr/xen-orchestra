@@ -227,13 +227,21 @@ describe('checkMigration', () => {
   })
 })
 
-// the XAPI record of a VM just created on a pool, recording the tags written on it
-function createNewVm(tags, { pool = 'pool-1', setTags = async () => {} } = {}) {
+// the XAPI record of a VM just created on a pool, recording the tags written on it and its destruction
+function createNewVm(tags, { pool = 'pool-1', setTags = async () => {}, destroy = async () => {} } = {}) {
   const vm = {
     uuid: 'new-vm',
+    $ref: 'OpaqueRef:new-vm',
     tags,
     tagsWritten: [],
-    $xapi: { xo: { addObject: vm => ({ id: vm.uuid, type: 'VM', $container: pool, $pool: pool }) } },
+    destroyed: [],
+    $xapi: {
+      xo: { addObject: vm => ({ id: vm.uuid, type: 'VM', $container: pool, $pool: pool }) },
+      async VM_destroy(...args) {
+        vm.destroyed.push(args)
+        await destroy()
+      },
+    },
     async set_tags(tags) {
       this.tagsWritten.push(tags)
       await setTags(tags)
@@ -308,6 +316,37 @@ describe('stripInheritedReservedTags', () => {
       },
     })
     await assert.rejects(mixin.stripInheritedReservedTags(VM_ADMIN, vm), error)
+  })
+})
+
+describe('stripInheritedReservedTagsOrDestroy', () => {
+  const TAGS = ['web', 'vdf:role=app', 'vdf:quarantine']
+  const failing = error => async () => {
+    throw error
+  }
+
+  it('strips like stripInheritedReservedTags, and keeps the VM', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTagsOrDestroy(VM_ADMIN, vm, ['vdf:role=app']), ['vdf:role=app'])
+    assert.deepEqual(vm.tagsWritten, [['web', 'vdf:quarantine']])
+    assert.deepEqual(vm.destroyed, [])
+  })
+
+  it('destroys the VM with its disks when the tags cannot be removed, then fails with the error', async () => {
+    const { mixin } = createMixin()
+    const error = new Error('XAPI is down')
+    const vm = createNewVm(TAGS, { setTags: failing(error) })
+    await assert.rejects(mixin.stripInheritedReservedTagsOrDestroy(VM_ADMIN, vm), error)
+    assert.deepEqual(vm.destroyed, [['OpaqueRef:new-vm', { deleteDisks: true, force: true }]])
+  })
+
+  it('fails with the error of the removal even when the destroy fails', async () => {
+    const { mixin } = createMixin()
+    const error = new Error('XAPI is down')
+    const vm = createNewVm(TAGS, { setTags: failing(error), destroy: failing(new Error('VM is locked')) })
+    await assert.rejects(mixin.stripInheritedReservedTagsOrDestroy(VM_ADMIN, vm), error)
+    assert.equal(vm.destroyed.length, 1)
   })
 })
 

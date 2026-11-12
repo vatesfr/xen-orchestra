@@ -29,6 +29,10 @@ function createApp({ strip = async () => [] } = {}) {
       events.push(['stripInheritedReservedTags', ...args])
       return strip()
     },
+    async stripInheritedReservedTagsOrDestroy(...args) {
+      events.push(['stripInheritedReservedTagsOrDestroy', ...args])
+      return strip()
+    },
   }
   return { app, events, newVm }
 }
@@ -55,11 +59,26 @@ describe('vm.clone', () => {
 })
 
 describe('vm.copy', () => {
+  const sr = { $pool: 'pool-1', _xapiId: 'sr-1' }
+
   it('strips the reserved tags the user may not add from the copy, before returning it', async () => {
     const { app, events, newVm } = createApp()
-    const sr = { $pool: 'pool-1', _xapiId: 'sr-1' }
     assert.equal(await handlers.copy.call(app, { vm, sr }), 'new-vm')
-    assert.deepEqual(events[0], ['stripInheritedReservedTags', USER, newVm])
+    assert.deepEqual(events[0], ['stripInheritedReservedTagsOrDestroy', USER, newVm])
+  })
+
+  it('fails and destroys the copy with its disks if its reserved tags cannot be stripped', async () => {
+    const error = new Error('XAPI is down')
+    const { app, events, newVm } = createApp()
+    newVm.$xapi = { VM_destroy: async (...args) => events.push(['VM_destroy', ...args]) }
+    const mixin = new ReservedTags(app)
+    mixin.stripInheritedReservedTags = async () => {
+      throw error
+    }
+    app.stripInheritedReservedTagsOrDestroy = mixin.stripInheritedReservedTagsOrDestroy.bind(mixin)
+
+    await assert.rejects(handlers.copy.call(app, { vm, sr }), error)
+    assert.deepEqual(events, [['VM_destroy', 'OpaqueRef:new-vm', { deleteDisks: true, force: true }]])
   })
 })
 

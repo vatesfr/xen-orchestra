@@ -78,7 +78,7 @@ describe('VM tags', () => {
   })
 })
 
-// a restApi whose XAPI clones and creates VMs, recording in order what happens to the new VM
+// a restApi whose XAPI clones, copies and creates VMs, recording in order what happens to the new VM
 function createRestApiForNewVm({ strip = async () => [] as string[] } = {}) {
   const events: unknown[] = []
   const newVm = {
@@ -88,6 +88,7 @@ function createRestApiForNewVm({ strip = async () => [] as string[] } = {}) {
   }
   const xapi = {
     cloneVm: async () => newVm,
+    copyVm: async () => newVm,
     createVm: async () => newVm,
     VM_destroy: async (ref: string) => events.push(['VM_destroy', ref]),
   }
@@ -103,6 +104,10 @@ function createRestApiForNewVm({ strip = async () => [] as string[] } = {}) {
         events.push(['stripInheritedReservedTags', ...args])
         return strip()
       },
+      async stripInheritedReservedTagsOrDestroy(...args: unknown[]) {
+        events.push(['stripInheritedReservedTagsOrDestroy', ...args])
+        return strip()
+      },
     },
   } as unknown as RestApi
   return { events, newVm, restApi }
@@ -114,7 +119,24 @@ describe('new VMs', () => {
     const controller = new VmController(restApi, {} as never, {} as never)
 
     assert.deepEqual(await controller.cloneVm('vm-1', { fast: true }, true), { id: 'new-vm' })
-    assert.deepEqual(events, [['stripInheritedReservedTags', user, newVm]])
+    assert.deepEqual(events, [['stripInheritedReservedTagsOrDestroy', user, newVm]])
+  })
+
+  it('fails a clone or a copy with the error of the strip that destroys the new VM when it fails', async () => {
+    const error = new Error('XAPI is down')
+    const { events, newVm, restApi } = createRestApiForNewVm({
+      strip: async () => {
+        throw error
+      },
+    })
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    await assert.rejects(controller.cloneVm('vm-1', { fast: true }, true), error)
+    await assert.rejects(controller.cloneVm('vm-1', { srId: 'sr-1' }, true), error)
+    assert.deepEqual(events, [
+      ['stripInheritedReservedTagsOrDestroy', user, newVm],
+      ['stripInheritedReservedTagsOrDestroy', user, newVm],
+    ])
   })
 
   it('strips the reserved tags the user may not add from an instance of a template, before booting it', async () => {

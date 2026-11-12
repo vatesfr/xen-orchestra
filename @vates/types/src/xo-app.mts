@@ -608,6 +608,12 @@ export type XoApp = EventEmitter & {
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   /* remove from a new VM the firewall tags it inherited and the user may not add (never vdf:quarantine), before it can run; returns them */
   stripInheritedReservedTags(user: XoUser | undefined, vm: XenApiVmWrapped, inheritedTags?: string[]): Promise<string[]>
+  /* stripInheritedReservedTags, destroying the new VM with its disks if the removal fails, then throwing its error */
+  stripInheritedReservedTagsOrDestroy(
+    user: XoUser | undefined,
+    vm: XenApiVmWrapped,
+    inheritedTags?: string[]
+  ): Promise<string[]>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>

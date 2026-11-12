@@ -946,7 +946,7 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     ).vm
   }
 
-  await this.stripInheritedReservedTags(this.apiContext.user, newVm)
+  await this.stripInheritedReservedTagsOrDestroy(this.apiContext.user, newVm)
 
   // A snapshot may have its `is_a_template` flag set to true, which isn't
   // automatically set to false when copying it
@@ -1362,7 +1362,7 @@ async function handleVmImport(req, res, { data, srId, type, user, xapi }) {
         form.parse(req)
       })
     : xapi.importVm(req, { data, srId, type }))
-  await this.stripInheritedReservedTags(user, vm)
+  await this.stripInheritedReservedTagsOrDestroy(user, vm)
   res.end(format.response(0, vm.$id))
 }
 
@@ -1390,7 +1390,7 @@ async function import_({ data, sr, type = 'xva', url }) {
         throw new Error(`${response.status} ${response.statusText}`)
       }
       const vm = await xapi._getOrWaitObject(await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef))
-      await this.stripInheritedReservedTags(this.apiContext.user, vm)
+      await this.stripInheritedReservedTagsOrDestroy(this.apiContext.user, vm)
       return vm.uuid
     } finally {
       await dispatcher.close()

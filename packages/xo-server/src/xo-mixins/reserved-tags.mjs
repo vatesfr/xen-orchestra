@@ -359,6 +359,33 @@ export default class ReservedTags {
     return stripped
   }
 
+  /**
+   * `stripInheritedReservedTags`, for a path with no cleanup of its own: if
+   * the removal fails, the new VM is destroyed with its disks, so that it is
+   * never left behind with the tags, then the removal's error is thrown. A
+   * failed destroy is logged.
+   *
+   * @param {object | undefined} user - the XO user who created the VM
+   * @param {object} vm - the XAPI record of the new VM
+   * @param {string[]} [inheritedTags] - the tags it inherited, if not all its tags
+   * @returns {Promise<string[]>} the tags removed
+   */
+  async stripInheritedReservedTagsOrDestroy(user, vm, inheritedTags) {
+    try {
+      return await this.stripInheritedReservedTags(user, vm, inheritedTags)
+    } catch (error) {
+      try {
+        await vm.$xapi.VM_destroy(vm.$ref, { deleteDisks: true, force: true })
+      } catch (destroyError) {
+        log.error('a new VM whose reserved tags could not be stripped could not be destroyed', {
+          vm: vm.uuid,
+          error: destroyError,
+        })
+      }
+      throw error
+    }
+  }
+
   // exposed on the app for the REST API, which cannot import xo-server
   diffTags(oldTags, newTags) {
     return diffTags(oldTags, newTags)

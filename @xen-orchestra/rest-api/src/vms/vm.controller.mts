@@ -799,7 +799,7 @@ export class VmController extends XapiXoController<XoVm> {
         clonedVm = await xapi.cloneVm(vmId, { nameLabel: body?.name_label, fast })
       }
 
-      await this.restApi.xoApp.stripInheritedReservedTags(this.restApi.getCurrentUser(), clonedVm)
+      await this.restApi.xoApp.stripInheritedReservedTagsOrDestroy(this.restApi.getCurrentUser(), clonedVm)
       const clonedVmUuid = clonedVm.uuid
 
       if (sync) {
