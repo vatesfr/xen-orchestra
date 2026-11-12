@@ -16,7 +16,7 @@
       <VmMainActions :vm show-xo5-link />
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="vm.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
