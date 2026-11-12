@@ -1,0 +1,8 @@
+# Used by `docker build -f @xen-orchestra/web-kubernetes/Dockerfile .` (paths are relative to the repository root)
+.git
+docs
+ignore
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.env

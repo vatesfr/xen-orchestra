@@ -40,4 +40,17 @@ Unit tests (`yarn test`) run without federation: XO 6 modules used by the SDK an
 
 `yarn build` produces `dist/`, to be served by any HTTP server reachable by the browser.
 
+### Container
+
+The `Dockerfile` builds the plugin and serves it with nginx (unprivileged, port 8080, `/healthz` for probes). It is built from the repository root, since the plugin depends on the monorepo:
+
+```sh
+docker build -f @xen-orchestra/web-kubernetes/Dockerfile -t xo-web-kubernetes .
+docker run --rm -p 8080:8080 xo-web-kubernetes
+```
+
+The plugin is loaded cross-origin by the browser: nginx allows any origin (the files are public code) and makes `remoteEntry.js` always revalidated, the content-hashed `assets/` being cached for a year.
+
+`deploy/kubernetes.yaml` is a minimal deployment (Deployment + NodePort Service, read-only root filesystem): `kubectl apply -n <namespace> -f deploy/kubernetes.yaml`, after replacing the image with the one pushed to your registry. The plugin is then served on port 30081 of the nodes: `http://<node IP>:30081/remoteEntry.js`.
+
 For now, XO 6 gets the plugins to load at build time from `VITE_XO_UI_PLUGINS`. Discovering them at runtime from xo-server is the next step.

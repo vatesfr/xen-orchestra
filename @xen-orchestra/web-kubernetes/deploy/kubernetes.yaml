@@ -1,0 +1,85 @@
+# Kubernetes UI plugin of XO 6: static files served by nginx (see `../Dockerfile`).
+#
+#   kubectl apply -n <namespace> -f deploy/kubernetes.yaml
+#
+# The browser loads the plugin directly: the Service is exposed on the port 30081 of the nodes, and XO 6 must declare
+# its URL, e.g. `VITE_XO_UI_PLUGINS=xo_kubernetes=http://<node IP>:30081/remoteEntry.js`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xo-web-kubernetes
+  labels:
+    app.kubernetes.io/name: xo-web-kubernetes
+    app.kubernetes.io/part-of: xen-orchestra
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xo-web-kubernetes
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: xo-web-kubernetes
+        app.kubernetes.io/part-of: xen-orchestra
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          # Replace with the image pushed to your registry
+          image: xo-web-kubernetes:0.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+              ephemeral-storage: 8Mi
+            limits:
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            # nginx writes its pid and temporary files there
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xo-web-kubernetes
+  labels:
+    app.kubernetes.io/name: xo-web-kubernetes
+    app.kubernetes.io/part-of: xen-orchestra
+spec:
+  # Reachable on port 30081 of every node: http://<node IP>:30081/remoteEntry.js
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: xo-web-kubernetes
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30081
