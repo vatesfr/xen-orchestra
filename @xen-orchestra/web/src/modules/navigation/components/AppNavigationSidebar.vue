@@ -42,9 +42,9 @@
 
 <script lang="ts" setup>
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
-import { KUBERNETES_ROOT_ID } from '@/modules/kubernetes/types/xo-kubernetes.type.ts'
 import { useNavigationTree } from '@/modules/navigation/composables/use-navigation-tree.composable.ts'
 import SiteTreeList from '@/modules/treeview/components/SiteTreeList.vue'
+import { getUiPluginActiveTreeNodeId } from '@/modules/ui-plugin/ui-plugin.registry.ts'
 import type { SidebarSide } from '@core/packages/sidebar'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -80,17 +80,7 @@ type SidebarPanel = (typeof SIDEBAR_PANEL)[keyof typeof SIDEBAR_PANEL]
 
 const { treeItems, treeItemIndexById, isReady, filter, isSearching, expandToNode } = useNavigationTree()
 
-const route = useRoute<
-  | '/pool/[id]'
-  | '/host/[id]'
-  | '/vm/[id]'
-  | '/kubernetes'
-  | '/kubernetes/clusters'
-  | '/kubernetes/cluster/[id]'
-  | '/kubernetes/node/[id]'
-  | '/kubernetes/namespace/[id]'
-  | '/kubernetes/pod/[id]'
->()
+const route = useRoute<'/pool/[id]' | '/host/[id]' | '/vm/[id]'>()
 
 const activeSidebarPanel = ref<SidebarPanel>(SIDEBAR_PANEL.TREEVIEW)
 
@@ -131,11 +121,7 @@ function getTreeNodeIdFromRoute() {
     return paramId
   }
 
-  if (route.name === '/kubernetes' || route.name === '/kubernetes/clusters') {
-    return KUBERNETES_ROOT_ID
-  }
-
-  return undefined
+  return getUiPluginActiveTreeNodeId(route)
 }
 
 async function scrollToActiveNode() {
