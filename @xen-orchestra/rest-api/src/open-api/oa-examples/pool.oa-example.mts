@@ -584,6 +584,7 @@ export const poolRollingUpdateRecovery = {
       reason: 'stopped',
     },
   ],
+  operatorChanges: [],
   planChange: {
     attempt: 2,
     addedHostIds: ['b61a5c92-700e-4966-a13b-00633f03eea8'],

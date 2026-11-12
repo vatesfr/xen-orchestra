@@ -25,6 +25,7 @@
 - [RPU] A rolling pool update that could not move some VMs back to their original host keeps its recovery record, so a resume tries again. VMs stopped or deleted during the update are left alone, and listed with the VMs that could not be moved back on the pool's Patches tab until the update is finalized (PR [#10634](https://github.com/vatesfr/xen-orchestra/pull/10634))
 - [RPU] Resuming a rolling pool update also installs the patches released since it started, including on hosts it had already updated, and lists these hosts on the pool's Patches tab (PR [#10684](https://github.com/vatesfr/xen-orchestra/pull/10684))
 - [RPU] A rolling pool update interrupted by a restart of XO resumes on its own once the pool is connected again. This happens only once: if this automatic resume is refused or interrupted in turn, the update waits for a manual resume (PR [#10722](https://github.com/vatesfr/xen-orchestra/pull/10722))
+- [RPU] Resuming a rolling pool update stops when HA, auto power on, WLB or a backup schedule was enabled again since the failed or interrupted attempt, or when a host, a VM, a backup schedule or an HA heartbeat SR of the update is gone. The changes are listed on the pool's Patches tab, and the update resumes only once they are accepted as they are (PR [#10670](https://github.com/vatesfr/xen-orchestra/pull/10670))
 
 ### Bug fixes
 

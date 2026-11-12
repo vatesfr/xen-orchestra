@@ -241,7 +241,7 @@ describe('Pools.resumeRpuRecoveryRun', function () {
   it('resumes the run with the settings left changed by the previous attempt, not the hosts', async function () {
     const { pools, store } = createPools({ record: makeDirtyRecord() })
 
-    const { recorder, resume } = await pools.resumeRpuRecoveryRun(pool)
+    const { recorder, resume } = await pools.resumeRpuRecoveryRun(pool, [])
 
     assert.equal(store.values.get('pool-1').status, 'resuming')
     assert.equal(recorder.runId, 'run-1')
@@ -251,9 +251,27 @@ describe('Pools.resumeRpuRecoveryRun', function () {
     assert.deepEqual(resume.hostOrder, ['h1'])
   })
 
+  it('awaits acceptance after a schedule an operator enabled again, resumes once the change is accepted', async function () {
+    const { pools, store } = createPools({ record: makeRecord({ changedByRun: { schedules: ['s1'] } }) })
+    const schedules = [{ id: 's1', name: 'nightly', enabled: true }]
+    const changes = [{ type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' }]
+
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool, schedules), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.equal(store.values.get('pool-1').status, 'awaiting-acceptance')
+
+    const { resume, acceptedOperatorChanges } = await pools.resumeRpuRecoveryRun(pool, schedules, {
+      acceptOperatorChanges: true,
+    })
+    assert.deepEqual(acceptedOperatorChanges, changes)
+    assert.deepEqual(resume.changedByRun, { schedules: [] })
+    assert.equal(store.values.get('pool-1').status, 'resuming')
+  })
+
   it('has nothing to resume when the pool has no record', async function () {
     const { pools } = createPools()
-    await assert.rejects(pools.resumeRpuRecoveryRun(pool), error =>
+    await assert.rejects(pools.resumeRpuRecoveryRun(pool, []), error =>
       noSuchObject.is(error, { id: 'pool-1', type: 'rollingUpdateRecovery' })
     )
   })

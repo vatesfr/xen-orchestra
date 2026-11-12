@@ -123,7 +123,8 @@ export default class Pools {
         app.resumeRollingPoolUpdate(app.getObject(poolId, 'pool'), { automatic: true })
       )
     } catch (error) {
-      // a refusal (license, backup, missing pool...) leaves the run interrupted
+      // a refusal (license, backup, missing pool...) leaves the run interrupted,
+      // operator changes leave it awaiting acceptance
       log.warn('automatic resume of the rolling pool update failed, it waits for a manual resume', { error, poolId })
     }
   }
@@ -136,18 +137,30 @@ export default class Pools {
    * Continues the failed or interrupted run of a pool, see `resumeRpuRecoveryRun` in `_rpuRecovery.mjs`.
    *
    * @param {object} pool - XO pool object
+   * @param {object[]} schedules - all the backup schedules (`getAllSchedules`), the caller already reads them
    * @param {object} [opts]
+   * @param {boolean} [opts.acceptOperatorChanges] - take what an operator changed since the run as the new baseline
    * @param {boolean} [opts.automatic] - Whether xo-server started this attempt after a restart, without the operator
-   * @returns {Promise<object>} the recorder, the options of the run, and what the previous attempts did, the
-   *   settings they left changed included (see `planRpuResume`)
+   * @returns {Promise<object>} the recorder, the options of the run, what the previous attempts did, the
+   *   settings they left changed included (see `planRpuResume`), and the operator changes accepted
    */
-  async resumeRpuRecoveryRun(pool, { automatic = false } = {}) {
-    const { recorder, record, plan } = await resumeRpuRecoveryRunInStore({
+  async resumeRpuRecoveryRun(pool, schedules, { acceptOperatorChanges = false, automatic = false } = {}) {
+    const xapi = this._app.getXapi(pool)
+    const scheduleById = keyBy(schedules, 'id')
+    const { recorder, record, plan, acceptedOperatorChanges } = await resumeRpuRecoveryRunInStore({
       store: this._rpuRecoveryStore,
       poolId: pool.id,
+      live: {
+        pool: xapi.pool,
+        getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
+        getSchedule: scheduleId => scheduleById[scheduleId],
+        getSr: srId => xapi.getObjectByUuid(srId, undefined),
+        getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
+      },
+      acceptOperatorChanges,
       automatic,
     })
-    return { recorder, options: record.options, resume: plan }
+    return { recorder, options: record.options, resume: plan, acceptedOperatorChanges }
   }
 
   getRollingUpdateRecovery(poolId) {
