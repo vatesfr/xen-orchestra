@@ -35,7 +35,15 @@ import {
   VDF_LOCKING_KEY,
   vdfLockEnforcement,
 } from './global.mjs'
-import { appendEntry, liftedQuarantines, listEntries, nextEntryId, summarize, tagChangeEntry } from './history.mjs'
+import {
+  appendEntry,
+  liftedQuarantines,
+  listEntries,
+  nextEntryId,
+  notInheritedEntry,
+  summarize,
+  tagChangeEntry,
+} from './history.mjs'
 import { trace } from './trace.mjs'
 
 const log = createLogger('xo:xo-server-vdf')
@@ -173,12 +181,17 @@ const GLOBAL_SCOPE = 'global'
 
 const historyKey = scopeId => `history:${scopeId}`
 
-// vdf: tags changed outside XO, per pool (history.mjs: tagChangeEntry)
+// vdf: tags changed outside XO, and not inherited by a new VM, per pool
+// (history.mjs: tagChangeEntry, notInheritedEntry)
 const tagChangesKey = poolId => `tag-changes:${poolId}`
 
 // emitted by xo-server's reserved-tags mixin for each vdf: tag change XAPI
 // reports on a VM or network
 const RESERVED_TAG_CHANGE_EVENT = 'xo:reservedTagChanged'
+
+// emitted by xo-server's reserved-tags mixin when it strips the vdf: tags a
+// new VM's creator may not add
+const RESERVED_TAGS_STRIPPED_EVENT = 'xo:reservedTagsStripped'
 
 // what this XO last saw of a pool, and what it wrote there (vdf#32)
 const seenKey = poolId => `seen:${poolId}`
@@ -559,6 +572,7 @@ class VdfPlugin {
     this.#scheduleSync()
 
     this.#xo.on(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
+    this.#xo.on(RESERVED_TAGS_STRIPPED_EVENT, this.#onReservedTagsStripped)
   }
 
   unload() {
@@ -569,6 +583,7 @@ class VdfPlugin {
     this.#unregisterRoutes = undefined
     this.#xo.objects.removeListener('finish', this.#scheduleSync)
     this.#xo.removeListener(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
+    this.#xo.removeListener(RESERVED_TAGS_STRIPPED_EVENT, this.#onReservedTagsStripped)
     clearInterval(this.#syncInterval)
     clearTimeout(this.#syncTimer)
   }
@@ -1325,8 +1340,20 @@ class VdfPlugin {
 
   // HISTORY
 
-  // the tag changes being recorded, one at a time
+  // the writes to the tag changes, one at a time
   #recordingTagChange = Promise.resolve()
+
+  // Adds the entry `makeEntry()` resolves to to the pool's tag changes,
+  // after the writes before it; failures are logged
+  #recordTagChange(poolId, makeEntry, what) {
+    this.#recordingTagChange = this.#recordingTagChange
+      .then(async () => {
+        const entry = await makeEntry()
+        const entries = await this.#get(tagChangesKey(poolId), [])
+        await this.#store.put(tagChangesKey(poolId), appendEntry(entries, { id: nextEntryId(entries), ...entry }))
+      })
+      .catch(error => log.warn(`recording ${what}`, { poolId, error }))
+  }
 
   // A vdf: tag changed outside XO is kept in its pool's history; a lifted
   // quarantine is then an alarm (GET policy: quarantineLifted). Changes
@@ -1335,19 +1362,32 @@ class VdfPlugin {
     if (!change.outsideXo) {
       return
     }
-    this.#recordingTagChange = this.#recordingTagChange.then(async () => {
-      let name
-      try {
-        name = this.#xo.getObject(change.objectId, change.objectType).name_label
-      } catch {}
-      const entries = await this.#get(tagChangesKey(change.poolId), [])
-      await this.#store.put(
-        tagChangesKey(change.poolId),
-        appendEntry(entries, { id: nextEntryId(entries), ...tagChangeEntry(change, name) })
-      )
-    })
-    this.#recordingTagChange = this.#recordingTagChange.catch(error =>
-      log.warn('recording a tag change made outside XO', { change, error })
+    this.#recordTagChange(
+      change.poolId,
+      () => {
+        let name
+        try {
+          name = this.#xo.getObject(change.objectId, change.objectType).name_label
+        } catch {}
+        return tagChangeEntry(change, name)
+      },
+      'a tag change made outside XO'
+    )
+  }
+
+  // The vdf: tags a new VM did not inherit, because its creator may not add
+  // them, are kept beside the changes made outside XO
+  #onReservedTagsStripped = stripped => {
+    this.#recordTagChange(
+      stripped.poolId,
+      async () => {
+        let user
+        try {
+          user = await this.#xo.getUser(stripped.userId)
+        } catch {}
+        return notInheritedEntry(stripped, userLabel(user) ?? stripped.userId)
+      },
+      'the tags a new VM did not inherit'
     )
   }
 
@@ -2202,7 +2242,7 @@ class VdfPlugin {
         endpoint: '/pools/{id}/history',
         method: 'get',
         description:
-          'The last documents published to the pool through XO, oldest first, without their content: id, docId, previousDocId, publishedAt, publishedBy, summary. Beside them, tagChanges: the last vdf: tags changed outside XO on its VMs and networks, oldest first.',
+          'The last documents published to the pool through XO, oldest first, without their content: id, docId, previousDocId, publishedAt, publishedBy, summary. Beside them, tagChanges, oldest first: the last vdf: tags changed outside XO on its VMs and networks, and (kind: notInherited) the vdf: tags a new VM did not inherit because its creator may not add them.',
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Publish history' }],

@@ -59,6 +59,7 @@ function fakeXo({
   hosts = {},
   networks = {},
   acls = [],
+  users = [ADMIN],
   agent = {},
   lag,
   vifFault,
@@ -299,6 +300,14 @@ function fakeXo({
         throw new Error('no such object')
       }
       return xapis[id]
+    },
+    // XO's users (getUser throws no such object for an unknown id)
+    async getUser(id) {
+      const user = users.find(user => user.id === id)
+      if (user === undefined) {
+        throw new Error('no such object')
+      }
+      return user
     },
     getXenServerIdByObject: pool => `server-${pool.id}`,
     getAllXenServers: async () => [...servers].map(id => ({ id })),
@@ -2690,6 +2699,77 @@ describe('vdf: tags changed outside XO (vdf#141)', () => {
       // quarantined again
       theVm.tags = ['vdf:quarantine']
       assert.deepEqual(await liftedOf(xo), [])
+    })
+  })
+
+  // as xo-server's reserved-tags mixin emits it
+  const stripped = (userId = 'alice') => ({
+    vmId: 'vm-2',
+    vmName: 'web-1-copy',
+    poolId: POOL,
+    tags: ['vdf:role=app'],
+    userId,
+    timestamp: Date.parse('2026-11-12T11:00:00Z'),
+  })
+
+  test('the tags a new VM did not inherit are in the same list, as a kind of their own', async () => {
+    const alice = { id: 'alice', email: 'alice@example.org', permission: 'none' }
+    const xo = fakeXo({ vms: [vm()], users: [ADMIN, alice] })
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagChanged', tagChange())
+      xo.events.emit('xo:reservedTagsStripped', stripped())
+      // a user deleted since: their id
+      xo.events.emit('xo:reservedTagsStripped', stripped('gone'))
+      await settled()
+      const [outside, notInherited, byGone] = (await historyOf(xo)).tagChanges
+      assert.equal(outside.tag, 'vdf:quarantine')
+      const entry = {
+        kind: 'notInherited',
+        seenAt: '2026-11-12T11:00:00.000Z',
+        object: { id: 'vm-2', type: 'VM', name: 'web-1-copy' },
+        tags: ['vdf:role=app'],
+      }
+      assert.deepEqual(notInherited, { id: 2, ...entry, createdBy: 'alice@example.org' })
+      assert.deepEqual(byGone, { id: 3, ...entry, createdBy: 'gone' })
+      // not a change outside XO: no alarm from it
+      assert.deepEqual(
+        (await liftedOf(xo)).map(alarm => alarm.id),
+        [1]
+      )
+    })
+
+    // unloaded: no longer followed
+    xo.events.emit('xo:reservedTagsStripped', stripped())
+    await settled()
+    assert.equal(xo.store.data.get(`tag-changes:${POOL}`).length, 3)
+  })
+
+  test('entries written before kinds existed still read as changes outside XO', async () => {
+    const old = {
+      id: 7,
+      seenAt: '2026-11-12T09:00:00.000Z',
+      object: { id: 'vm-1', type: 'VM', name: 'web-1' },
+      tag: 'vdf:quarantine',
+      change: 'removed',
+      outsideXo: true,
+    }
+    const xo = fakeXo({ vms: [vm()], store: fakeStore({ [`tag-changes:${POOL}`]: [old] }) })
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagsStripped', stripped('admin'))
+      await settled()
+      const { tagChanges } = await historyOf(xo)
+      assert.deepEqual(tagChanges[0], old)
+      assert.deepEqual(
+        tagChanges.map(entry => [entry.id, entry.kind]),
+        [
+          [7, undefined],
+          [8, 'notInherited'],
+        ]
+      )
+      assert.deepEqual(
+        (await liftedOf(xo)).map(alarm => alarm.id),
+        [7]
+      )
     })
   })
 })

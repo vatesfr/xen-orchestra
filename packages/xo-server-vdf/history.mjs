@@ -179,6 +179,18 @@ export const tagChangeEntry = ({ objectId, objectType, tag, change, timestamp },
   outsideXo: true,
 })
 
+// The vdf: tags a new VM did not inherit from its source (xo-server's
+// xo:reservedTagsStripped event): its creator, `createdBy` (a user label),
+// may not add them. Kept in the same list, as a kind of its own; entries
+// without a kind are tags changed outside XO.
+export const notInheritedEntry = ({ vmId, vmName, tags, timestamp }, createdBy) => ({
+  kind: 'notInherited',
+  seenAt: new Date(timestamp).toISOString(),
+  object: { id: vmId, type: 'VM', name: vmName },
+  tags,
+  createdBy,
+})
+
 const QUARANTINE_TAG = 'vdf:quarantine'
 
 // The VMs whose quarantine was last lifted outside XO, the newest such
@@ -187,7 +199,7 @@ const QUARANTINE_TAG = 'vdf:quarantine'
 export function liftedQuarantines(tagChanges, isQuarantined) {
   const last = new Map()
   for (const entry of tagChanges) {
-    if (entry.tag === QUARANTINE_TAG && entry.object.type === 'VM') {
+    if (entry.kind === undefined && entry.tag === QUARANTINE_TAG && entry.object.type === 'VM') {
       last.set(entry.object.id, entry)
     }
   }
