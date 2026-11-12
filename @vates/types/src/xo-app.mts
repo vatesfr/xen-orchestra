@@ -604,6 +604,8 @@ export type XoApp = EventEmitter & {
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
+  /* remove from a new VM the firewall tags it inherited and the user may not add (never vdf:quarantine), before it can run; returns them */
+  stripInheritedReservedTags(user: XoUser | undefined, vm: XenApiVmWrapped, inheritedTags?: string[]): Promise<string[]>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>

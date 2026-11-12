@@ -179,8 +179,11 @@ export const create = defer(async function ($defer, params) {
 
   const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
   const paramsTags = params.tags
-  // the new VM starts with its template's tags, which `tags` replace; the
-  // resource set's tags were chosen by an administrator, they aren't checked
+  // the new VM starts with its template's tags, which `tags` replace: the tags
+  // that differ from the template's are checked here; the template's tags it
+  // keeps are inherited, stripped after its creation if the user may not add
+  // them; the resource set's tags were chosen by an administrator, they aren't
+  // checked
   if (paramsTags !== undefined) {
     await this.checkTagsChange(user, template, this.diffTags(template.tags, paramsTags))
   }
@@ -192,6 +195,12 @@ export const create = defer(async function ($defer, params) {
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
   const vm = xapi.xo.addObject(xapiVm)
+
+  await this.stripInheritedReservedTags(
+    user,
+    xapiVm,
+    template.tags.filter(tag => !resourceSetTags?.includes(tag))
+  )
 
   // create cloud config drive
   let cloudConfigVdiUuid
@@ -893,6 +902,8 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   })
   $defer.onFailure(() => xapi.VM_destroy(newVm.$ref))
 
+  await this.stripInheritedReservedTags(this.apiContext.user, newVm)
+
   // A snapshot may have its `is_a_template` flag set to true, which isn't
   // automatically set to false when cloning it
   if (vm.type !== 'VM-template') {
@@ -943,6 +954,8 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
       })
     ).vm
   }
+
+  await this.stripInheritedReservedTags(this.apiContext.user, newVm)
 
   // A snapshot may have its `is_a_template` flag set to true, which isn't
   // automatically set to false when copying it
@@ -1011,6 +1024,7 @@ export async function copyToTemplate({ vm }) {
     nameLabel: vm.name_label,
   })
   try {
+    await this.stripInheritedReservedTags(this.apiContext.user, clonedVm)
     await clonedVm.set_is_a_template(true)
   } catch (error) {
     ignoreErrors.call(clonedVm.$destroy())
@@ -1306,7 +1320,7 @@ export { export_ as export }
  *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
  *  - the last part is the ova file.
  */
-async function handleVmImport(req, res, { data, srId, type, xapi }) {
+async function handleVmImport(req, res, { data, srId, type, user, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
@@ -1357,6 +1371,7 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
         form.parse(req)
       })
     : xapi.importVm(req, { data, srId, type }))
+  await this.stripInheritedReservedTags(user, vm)
   res.end(format.response(0, vm.$id))
 }
 
@@ -1383,8 +1398,9 @@ async function import_({ data, sr, type = 'xva', url }) {
         await response.body?.cancel() // free the socket
         throw new Error(`${response.status} ${response.statusText}`)
       }
-      const ref = await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef)
-      return await xapi.call('VM.get_uuid', ref)
+      const vm = await xapi._getOrWaitObject(await xapi.VM_import(Readable.fromWeb(response.body), sr._xapiRef))
+      await this.stripInheritedReservedTags(this.apiContext.user, vm)
+      return vm.uuid
     } finally {
       await dispatcher.close()
     }
@@ -1395,7 +1411,7 @@ async function import_({ data, sr, type = 'xva', url }) {
       'vm.import',
       this.apiContext.connection,
       handleVmImport,
-      { data, srId, type, xapi },
+      { data, srId, type, user: this.apiContext.user, xapi },
       { exposeAllErrors: true }
     ),
   }

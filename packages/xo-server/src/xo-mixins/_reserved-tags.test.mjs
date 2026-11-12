@@ -7,6 +7,7 @@ import ReservedTags, { diffTags, isReservedTag } from './reserved-tags.mjs'
 
 const OBJECTS = {
   'pool-1': { id: 'pool-1', type: 'pool', $pool: 'pool-1' },
+  'pool-2': { id: 'pool-2', type: 'pool', $pool: 'pool-2' },
   'vm-1': { id: 'vm-1', type: 'VM', $container: 'pool-1', $pool: 'pool-1' },
 }
 const VM = OBJECTS['vm-1']
@@ -98,5 +99,89 @@ describe('checkTagsChange', () => {
     const { mixin } = createMixin()
     const change = mixin.diffTags(['vdf:quarantine', 'old'], ['old', 'new'])
     await assert.rejects(mixin.checkTagsChange(VM_ADMIN, VM, change), isRefusal('vdf:quarantine'))
+  })
+})
+
+// the XAPI record of a VM just created on a pool, recording the tags written on it
+function createNewVm(tags, { pool = 'pool-1', setTags = async () => {} } = {}) {
+  const vm = {
+    uuid: 'new-vm',
+    tags,
+    tagsWritten: [],
+    $xapi: { xo: { addObject: vm => ({ id: vm.uuid, type: 'VM', $container: pool, $pool: pool }) } },
+    async set_tags(tags) {
+      this.tagsWritten.push(tags)
+      await setTags(tags)
+      this.tags = tags
+    },
+  }
+  return vm
+}
+
+describe('stripInheritedReservedTags', () => {
+  const TAGS = ['web', 'vdf:role=app', 'vdf:quarantine', 'vdf:role=db']
+
+  it('lets an XO administrator keep the reserved tags', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTags(ADMIN, vm), [])
+    assert.deepEqual(vm.tagsWritten, [])
+  })
+
+  it('lets a user with administrate on the pool keep the reserved tags', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTags(POOL_ADMIN, vm), [])
+    assert.deepEqual(vm.tagsWritten, [])
+  })
+
+  it('strips the group tags of a user without the right, but keeps vdf:quarantine', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTags(VM_ADMIN, vm), ['vdf:role=app', 'vdf:role=db'])
+    assert.deepEqual(vm.tagsWritten, [['web', 'vdf:quarantine']])
+  })
+
+  it('decides on the pool of the new VM', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS, { pool: 'pool-2' })
+    assert.deepEqual(await mixin.stripInheritedReservedTags(POOL_ADMIN, vm), ['vdf:role=app', 'vdf:role=db'])
+  })
+
+  it('leaves a VM without group tags untouched, without any check or XAPI call', async () => {
+    const { app, mixin } = createMixin()
+    const vm = createNewVm(['web', 'vdf:quarantine'])
+    vm.$xapi = undefined
+    assert.deepEqual(await mixin.stripInheritedReservedTags(VM_ADMIN, vm), [])
+    assert.deepEqual(vm.tagsWritten, [])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('does not check calls without a user', async () => {
+    const { app, mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTags(undefined, vm), [])
+    assert.deepEqual(vm.tagsWritten, [])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('only considers the inherited tags when given', async () => {
+    const { mixin } = createMixin()
+    const vm = createNewVm(TAGS)
+    assert.deepEqual(await mixin.stripInheritedReservedTags(VM_ADMIN, vm, ['web', 'vdf:role=db', 'vdf:net=dmz']), [
+      'vdf:role=db',
+    ])
+    assert.deepEqual(vm.tagsWritten, [['web', 'vdf:role=app', 'vdf:quarantine']])
+  })
+
+  it('fails when the tags cannot be removed', async () => {
+    const { mixin } = createMixin()
+    const error = new Error('XAPI is down')
+    const vm = createNewVm(TAGS, {
+      setTags: async () => {
+        throw error
+      },
+    })
+    await assert.rejects(mixin.stripInheritedReservedTags(VM_ADMIN, vm), error)
   })
 })
