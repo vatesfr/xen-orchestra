@@ -34,7 +34,7 @@
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { useVdfNarrow } from '@/modules/vdf/composables/vdf-narrow.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
-import type { VdfHistoryChangeItem, VdfHistoryEntry, VdfTagChange } from '@/modules/vdf/types.ts'
+import type { VdfHistoryChangeItem, VdfHistoryEntry, VdfOutsideTagChange, VdfTagChange } from '@/modules/vdf/types.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -114,8 +114,25 @@ const { pageRecords: pageRows, paginationBindings } = usePagination(id, rows)
 
 const state = useTableState({ empty: () => rows.value.length === 0 })
 
-// "vdf:quarantine removed from VM web-1, outside XO", "vdf:role=app not
-// inherited by VM web-1-copy: created by alice, who can't add firewall tags"
+// "vdf:quarantine removed from VM web-1, outside this XO", and for a
+// quarantine lifted that way, how its alert ended: ", acknowledged by bob on
+// <date>" (vdf#141)
+function outsideChangeText(change: VdfOutsideTagChange) {
+  const text = t(`firewall:history:tag:${change.object.type === 'network' ? 'network' : 'vm'}:${change.change}`, {
+    tag: change.tag,
+    name: change.object.name ?? change.object.id,
+  })
+
+  return change.resolution === undefined
+    ? text
+    : `${text}, ${t(`firewall:history:tag:${change.resolution}`, {
+        user: change.resolvedBy,
+        date: change.resolvedAt === undefined ? '' : formatDateTime(change.resolvedAt),
+      })}`
+}
+
+// or "vdf:role=app not inherited by VM web-1-copy: created by alice, who
+// can't add firewall tags"
 const tagChangeText = (change: VdfTagChange) =>
   change.kind === 'notInherited'
     ? t(
@@ -127,10 +144,7 @@ const tagChangeText = (change: VdfTagChange) =>
         },
         change.tags.length
       )
-    : t(`firewall:history:tag:${change.object.type === 'network' ? 'network' : 'vm'}:${change.change}`, {
-        tag: change.tag,
-        name: change.object.name ?? change.object.id,
-      })
+    : outsideChangeText(change)
 
 // one changed object in words: "db: 2 rules added, 1 removed", "group
 // cache added"

@@ -25,29 +25,17 @@
       </template>
     </UiAlert>
 
-    <!-- vdf#141: a quarantine lifted outside this XO, the VM still out of it -->
-    <UiAlert v-if="quarantineLifted.length > 0" accent="danger">
-      {{ t('firewall:outside:quarantine-lifted', { n: quarantineLifted.length }, quarantineLifted.length) }}
-      <template #description>
-        <p>{{ t('firewall:outside:quarantine-lifted:info', quarantineLifted.length) }}</p>
-        <UiLink
-          v-for="change of quarantineLifted"
-          :key="change.id"
-          :to="{ name: '/vm/[id]/firewall', params: { id: change.object.id } }"
-          size="small"
-        >
-          {{
-            t('firewall:outside:quarantine-lifted:vm', {
-              vm: change.object.name ?? change.object.id,
-              date: formatDateTime(change.seenAt),
-            })
-          }}
-        </UiLink>
-        <UiLink :to="{ name: '/pool/[id]/firewall/history', params: { id: pool.id } }" size="small">
-          {{ t('firewall:outside:open-history') }}
-        </UiLink>
-      </template>
-    </UiAlert>
+    <!-- vdf#141: a quarantine lifted outside this XO, until put back or acknowledged -->
+    <VdfQuarantineLiftedAlert
+      :pool-id="pool.id"
+      :changes="quarantineLifted"
+      :can-acknowledge="canEdit"
+      @acknowledged="reloadPublishedPolicy()"
+    >
+      <UiLink :to="{ name: '/pool/[id]/firewall/history', params: { id: pool.id } }" size="small">
+        {{ t('firewall:outside:open-history') }}
+      </UiLink>
+    </VdfQuarantineLiftedAlert>
 
     <UiAlert v-if="isPublished && gapNotes.length > 0" accent="warning">
       {{ t('firewall:overview:agent-gaps') }}
@@ -463,6 +451,7 @@ import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalD
 import VdfServicesStatus from '@/modules/vdf/components/services/VdfServicesStatus.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
+import VdfQuarantineLiftedAlert from '@/modules/vdf/components/VdfQuarantineLiftedAlert.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
@@ -513,7 +502,6 @@ import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { formatDateTime } from '@core/utils/time.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
@@ -546,6 +534,8 @@ const {
   realizationOf,
   hostOf,
   globalInfo,
+  canEdit,
+  reloadPublishedPolicy,
 } = useVdfPolicy(() => pool)
 
 const { runningVms, membersOf, protectedVms, monitoredVms, quarantinedVms, areVmsReady } = useVdfMembers(

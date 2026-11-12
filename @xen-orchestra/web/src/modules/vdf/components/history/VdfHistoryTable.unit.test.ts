@@ -1,8 +1,9 @@
 import VdfHistoryTable from '@/modules/vdf/components/history/VdfHistoryTable.vue'
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
-import type { VdfHistoryEntry, VdfTagChange } from '@/modules/vdf/types.ts'
+import type { VdfHistoryEntry, VdfOutsideTagChange, VdfTagChange } from '@/modules/vdf/types.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 
 // UX P2-10: when, and what changed, at a glance; versions without changes
@@ -121,4 +122,31 @@ it('says which tags a new VM did not inherit, and who created it', () => {
   )
   expect(rows[0].text()).toContain(t('firewall:history:not-inherited:by'))
   expect(rows[0].text()).not.toContain(t('firewall:outside:by'))
+})
+
+// vdf#141: how the alert of a quarantine lifted outside this XO ended
+it('says who acknowledged a quarantine lifted outside this XO, or that it was put back', () => {
+  const lifted = (id: number, fields: Partial<VdfOutsideTagChange>): VdfOutsideTagChange => ({
+    id,
+    seenAt: '2026-10-26T09:00:00Z',
+    object: { id: 'vm-1', type: 'VM', name: 'web-1' },
+    tag: 'vdf:quarantine',
+    change: 'removed',
+    outsideXo: true,
+    ...fields,
+  })
+  const rows = mountTable(
+    [],
+    [
+      lifted(2, { resolution: 'acknowledged', resolvedAt: '2026-10-26T11:00:00Z', resolvedBy: 'bob' }),
+      lifted(1, { resolution: 'requarantined', resolvedAt: '2026-10-26T10:00:00Z' }),
+    ]
+  ).findAll('tbody tr')
+
+  expect(rows[0].text()).toContain(
+    t('firewall:history:tag:acknowledged', { user: 'bob', date: formatDateTime('2026-10-26T11:00:00Z') })
+  )
+  expect(rows[1].text()).toContain(
+    t('firewall:history:tag:requarantined', { date: formatDateTime('2026-10-26T10:00:00Z') })
+  )
 })

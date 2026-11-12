@@ -54,6 +54,16 @@
       </div>
     </div>
 
+    <!-- vdf#141: its quarantine lifted outside this XO, until put back or acknowledged -->
+    <VdfQuarantineLiftedAlert
+      :pool-id="pool.id"
+      :changes="quarantineLifted"
+      :can-acknowledge="canEdit"
+      vm
+      class="state-alert"
+      @acknowledged="reloadPublishedPolicy()"
+    />
+
     <!-- what most changes what "Protected" means, in words, each with its way out -->
     <UiAlert v-if="vmShadows.length > 0" accent="danger" class="state-alert">
       {{ t('firewall:vm:bypassed') }}
@@ -286,6 +296,7 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import VdfDraftHint from '@/modules/vdf/components/overview/VdfDraftHint.vue'
 import VdfEffectivePolicy from '@/modules/vdf/components/VdfEffectivePolicy.vue'
 import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
+import VdfQuarantineLiftedAlert from '@/modules/vdf/components/VdfQuarantineLiftedAlert.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
@@ -356,8 +367,23 @@ const { t, te, locale } = useI18n()
 
 // what the hosts enforce for this VM: the published document, never the
 // draft
-const { publishedDocument, isPublishedPolicyReady, hasPublishedPolicyError, hasDraft, hosts, hostOf, areHostsReady } =
-  useVdfPolicy(() => pool)
+const {
+  publishedPolicy,
+  publishedDocument,
+  isPublishedPolicyReady,
+  hasPublishedPolicyError,
+  reloadPublishedPolicy,
+  canEdit,
+  hasDraft,
+  hosts,
+  hostOf,
+  areHostsReady,
+} = useVdfPolicy(() => pool)
+
+// vdf#141: its quarantine lifted outside this XO, not resolved since
+const quarantineLifted = computed(() =>
+  (publishedPolicy.value?.quarantineLifted ?? []).filter(change => change.object.id === vm.id)
+)
 
 const tierLabel = useVdfTierLabel()
 

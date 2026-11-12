@@ -159,8 +159,8 @@ export type VdfPublishedPolicy = {
   global?: { revision: number; inScope: boolean; owner?: string }
   // the last change made outside this XO
   outside?: VdfOutsideChange | null
-  // VMs still out of the quarantine lifted outside this XO (vdf#141);
-  // absent from older plugins
+  // VMs whose quarantine was lifted outside this XO, not resolved since
+  // (vdf#141); absent from older plugins
   quarantineLifted?: VdfOutsideTagChange[]
 }
 
@@ -339,6 +339,12 @@ export type VdfOutsideTagChange = {
   tag: string
   change: 'added' | 'removed'
   outsideXo: true
+  // vdf:quarantine removed from a VM: an alert until resolved, by the VM
+  // quarantined again (through XO or not) or acknowledged (resolvedBy: a
+  // user label); absent from older plugins
+  resolution?: 'requarantined' | 'acknowledged'
+  resolvedAt?: string
+  resolvedBy?: string
 }
 
 // The vdf: group tags XO stripped from a new VM (clone, copy, import,
