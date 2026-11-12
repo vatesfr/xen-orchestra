@@ -3,7 +3,6 @@ import { useActionColumn } from '@core/tables/column-definitions/action-column.t
 import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useLinkOrTextColumn } from '@core/tables/column-definitions/link-or-text-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -16,7 +15,6 @@ export const useGroupColumns = defineColumns(() => {
     provider: useTextColumn({ headerLabel: () => t('provider') }),
     users: useNumberColumn({ headerLabel: () => t('users') }),
     roles: useNumberColumn({ headerLabel: () => t('roles') }),
-    selectItem: useSelectItemColumn(),
     actions: useActionColumn({}),
   }
 })
