@@ -16,11 +16,13 @@ const VM = OBJECTS['vm-1']
 const ADMIN = { id: 'admin', permission: 'admin' }
 const POOL_ADMIN = { id: 'pool-admin', permission: 'none' }
 const VM_ADMIN = { id: 'vm-admin', permission: 'none' }
+const POOL_2_ADMIN = { id: 'pool-2-admin', permission: 'none' }
 
 // the legacy ACLs of each user, as `getPermissionsForUser` returns them
 const PERMISSIONS_BY_USER = {
   [POOL_ADMIN.id]: { 'pool-1': { administrate: 1 } },
   [VM_ADMIN.id]: { 'vm-1': { administrate: 1 } },
+  [POOL_2_ADMIN.id]: { 'pool-2': { administrate: 1 } },
 }
 
 // `hasPermissions` as the ACLs mixin implements it, counting its calls; the
@@ -175,6 +177,52 @@ describe('checkNewVmTags', () => {
   it('does not check calls without a user', async () => {
     const { app, mixin } = createMixin()
     assert.deepEqual(await mixin.checkNewVmTags(undefined, TEMPLATE, ['vdf:role=app'], undefined), ['vdf:role=app'])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+})
+
+describe('checkMigration', () => {
+  const TAGGED_VM = { ...VM, tags: ['web', 'vdf:role=app', 'vdf:quarantine'] }
+
+  const isMigrationRefusal = error =>
+    forbiddenOperation.is(error) &&
+    error.data.reason ===
+      'the VM carries firewall tags (vdf:role=app): migrating it to another pool takes an XO administrator or the administrate permission on the destination pool'
+
+  it('lets an XO administrator migrate a VM with group tags to another pool', async () => {
+    const { app, mixin } = createMixin()
+    await mixin.checkMigration(ADMIN, TAGGED_VM, 'pool-2')
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('lets a user with administrate on the destination pool migrate it', async () => {
+    const { mixin } = createMixin()
+    await mixin.checkMigration(POOL_2_ADMIN, TAGGED_VM, 'pool-2')
+  })
+
+  it('refuses a user with administrate on the source pool or the VM only', async () => {
+    const { mixin } = createMixin()
+    await assert.rejects(mixin.checkMigration(POOL_ADMIN, TAGGED_VM, 'pool-2'), isMigrationRefusal)
+    await assert.rejects(mixin.checkMigration(VM_ADMIN, TAGGED_VM, 'pool-2'), isMigrationRefusal)
+  })
+
+  it('does not check a VM whose only reserved tag is vdf:quarantine, or without any', async () => {
+    const { app, mixin } = createMixin()
+    await mixin.checkMigration(VM_ADMIN, { ...VM, tags: ['web', 'vdf:quarantine'] }, 'pool-2')
+    await mixin.checkMigration(VM_ADMIN, { ...VM, tags: ['web'] }, 'pool-2')
+    await mixin.checkMigration(VM_ADMIN, VM, 'pool-2')
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('does not check a migration within the pool', async () => {
+    const { app, mixin } = createMixin()
+    await mixin.checkMigration(VM_ADMIN, TAGGED_VM, 'pool-1')
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('does not check calls without a user', async () => {
+    const { app, mixin } = createMixin()
+    await mixin.checkMigration(undefined, TAGGED_VM, 'pool-2')
     assert.equal(app.hasPermissionsCalls, 0)
   })
 })
@@ -384,6 +432,13 @@ describe('reserved tag changes reported by XAPI', () => {
         { tag: 'vdf:quarantine', change: 'add', userId: undefined, outsideXo: true },
       ]
     )
+  })
+
+  it('a migration allowed is not noted: the tags do not change', async () => {
+    const { mixin, events, update } = createWatching()
+    await mixin.checkMigration(ADMIN, { ...VM, tags: ['web', 'vdf:role=app'] }, 'pool-2')
+    update({ ...VM, tags: ['web', 'vdf:role=app'] })
+    assert.equal(events[0].outsideXo, true)
   })
 
   it('the group tags a new VM keeps are not noted', async () => {

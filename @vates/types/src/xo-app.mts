@@ -301,6 +301,8 @@ export type XoApp = EventEmitter & {
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* whether this machine can run the tools of an import from VMware */
   checkEsxiDependencies(): Promise<XoV2vStatus>
+  /* throw if the user may not migrate this VM, with its firewall group tags, to another pool */
+  checkMigration(user: XoUser | undefined, vm: XoVm, destinationPoolId: XoPool['id']): Promise<void>
   /* throw if the user may not add or remove these tags on the object (tags reserved to the firewall) */
   checkTagsChange(
     user: XoUser | undefined,

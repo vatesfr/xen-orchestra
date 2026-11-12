@@ -593,6 +593,7 @@ export async function migrate({
   }
 
   await this.checkPermissions(permissions)
+  await this.checkMigration(this.apiContext.user, vm, host.$pool)
 
   await this.getXapi(vm).migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
     sr: sr && this.getObject(sr, 'SR')._xapiId,

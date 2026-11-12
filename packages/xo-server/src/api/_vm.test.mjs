@@ -127,3 +127,39 @@ describe('vm.create', () => {
     assert.deepEqual(created[0], ['keep'])
   })
 })
+
+describe('vm.migrate', () => {
+  const TAGGED_VM = { $pool: 'pool-1', tags: ['vdf:role=app'], _xapiId: 'vm-1' }
+  const HOST_IN_POOL_2 = { $pool: 'pool-2', _xapiId: 'host-2' }
+
+  // an app with the reserved tags mixin, where the user has administrate on
+  // `administratedPool` only, and a XAPI recording the migrations
+  function createAppForMigrate(administratedPool) {
+    const migrations = []
+    const xapi = { migrateVm: async (...args) => migrations.push(args) }
+    const app = {
+      apiContext: { user: USER, permission: USER.permission },
+      checkPermissions: async () => {},
+      getXapi: () => xapi,
+      hasPermissions: async (userId, [[id, permission]]) => id === administratedPool && permission === 'administrate',
+    }
+    const mixin = new ReservedTags(app)
+    app.checkMigration = mixin.checkMigration.bind(mixin)
+    return { app, migrations }
+  }
+
+  it('refuses to move a VM with group tags to a pool the user does not administrate, before migrating', async () => {
+    const { app, migrations } = createAppForMigrate('pool-1')
+    await assert.rejects(
+      handlers.migrate.call(app, { vm: TAGGED_VM, host: HOST_IN_POOL_2 }),
+      error => forbiddenOperation.is(error) && error.data.reason.startsWith('the VM carries firewall tags')
+    )
+    assert.deepEqual(migrations, [])
+  })
+
+  it('migrates it with administrate on the destination pool', async () => {
+    const { app, migrations } = createAppForMigrate('pool-2')
+    await handlers.migrate.call(app, { vm: TAGGED_VM, host: HOST_IN_POOL_2 })
+    assert.equal(migrations.length, 1)
+  })
+})

@@ -144,3 +144,53 @@ describe('new VMs', () => {
     assert.deepEqual(events.slice(1), [['VM_destroy', 'OpaqueRef:new-vm']])
   })
 })
+
+// a restApi with a VM in pool-1 and a host in pool-2, whose XAPI records the migrations
+function createRestApiForMigrate({ refuse }: { refuse: boolean }) {
+  const checks: unknown[] = []
+  const migrations: unknown[] = []
+  const host = { id: 'host-2', $pool: 'pool-2' }
+  const restApi = {
+    getCurrentUser: () => user,
+    getObject: (id: string, type: string) => (type === 'host' ? host : vm),
+    getXapiObject: () => ({ $xapi: { migrateVm: async (...args: unknown[]) => migrations.push(args) } }),
+    ioc: { get: () => ({}) },
+    tasks: { create: () => ({ id: 'task-1', run: (fn: () => unknown) => fn() }) },
+    xoApp: {
+      async checkMigration(...args: unknown[]) {
+        checks.push(args)
+        if (refuse) {
+          forbiddenOperation('migrate VM to another pool', 'the VM carries firewall tags')
+        }
+      },
+      getXapi: () => ({}),
+    },
+  } as unknown as RestApi
+  return { checks, migrations, restApi }
+}
+
+describe('VM migration', () => {
+  it('answers 403 to a refused migration to another pool, without migrating the VM', async () => {
+    const { checks, migrations, restApi } = createRestApiForMigrate({ refuse: true })
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    const error = await controller.migrateVm('vm-1', { hostId: 'host-2' }).then(
+      () => assert.fail('the VM was migrated'),
+      error => error
+    )
+
+    assert.equal(statusOf(error), 403)
+    assert.deepEqual(checks, [[user, vm, 'pool-2']])
+    assert.deepEqual(migrations, [])
+  })
+
+  it('migrates the VM once the destination pool is checked', async () => {
+    const { checks, migrations, restApi } = createRestApiForMigrate({ refuse: false })
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    await controller.migrateVm('vm-1', { hostId: 'host-2' }, true)
+
+    assert.deepEqual(checks, [[user, vm, 'pool-2']])
+    assert.equal(migrations.length, 1)
+  })
+})

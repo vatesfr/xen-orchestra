@@ -214,6 +214,15 @@ export default class ReservedTags {
     })
   }
 
+  // the guard's one permission decision: may this user write reserved tags on the objects of this pool
+  async #mayWriteReservedTags(user, poolId) {
+    return (
+      user === undefined ||
+      user.permission === 'admin' ||
+      (await this._app.hasPermissions(user.id, [[poolId, 'administrate']]))
+    )
+  }
+
   // the guard's decision, without noting the change
   async #checkPermission(user, object, { added = [], removed = [] }) {
     const reserved = [
@@ -224,15 +233,40 @@ export default class ReservedTags {
       return
     }
 
-    if (
-      user !== undefined &&
-      user.permission !== 'admin' &&
-      !(await this._app.hasPermissions(user.id, [[object.$pool, 'administrate']]))
-    ) {
+    if (!(await this.#mayWriteReservedTags(user, object.$pool))) {
       const [verb, tag] = reserved[0]
       throw forbiddenOperation(
         `${verb} tag ${tag}`,
         `the tag "${tag}" belongs to the firewall: changing it takes an XO administrator or the administrate permission on the pool`
+      )
+    }
+  }
+
+  /**
+   * Before a VM migrates to another pool: it arrives there with its group
+   * tags (reserved, but not `vdf:quarantine`), which puts it into that pool's
+   * firewall groups. For the user, it is as if they added them on the
+   * destination pool: the guard decides. `vdf:quarantine` only tightens, it
+   * is not checked. Nothing is stripped and nothing is noted: the VM's tags
+   * don't change.
+   *
+   * Migrations within the pool and calls without a user are not checked.
+   *
+   * @param {object | undefined} user - the XO user migrating the VM
+   * @param {object} vm - the XO record of the VM
+   * @param {string} destinationPoolId - the pool of the destination host
+   * @throws {Error} `forbiddenOperation` if the user may not bring these tags to the destination pool
+   */
+  async checkMigration(user, vm, destinationPoolId) {
+    const groupTags = (vm.tags ?? []).filter(tag => isReservedTag(tag) && tag !== QUARANTINE_TAG)
+    if (destinationPoolId === vm.$pool || groupTags.length === 0) {
+      return
+    }
+
+    if (!(await this.#mayWriteReservedTags(user, destinationPoolId))) {
+      throw forbiddenOperation(
+        'migrate VM to another pool',
+        `the VM carries firewall tags (${groupTags.join(', ')}): migrating it to another pool takes an XO administrator or the administrate permission on the destination pool`
       )
     }
   }

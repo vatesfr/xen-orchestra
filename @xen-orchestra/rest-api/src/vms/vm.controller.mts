@@ -1106,7 +1106,7 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  migrateVm(
+  async migrateVm(
     @Path() id: string,
     @Body()
     body:
@@ -1124,6 +1124,13 @@ export class VmController extends XapiXoController<XoVm> {
     const vmId = id as XoVm['id']
     const hostId = body.hostId as XoHost['id']
     const bypassCpuCheck = body.bypassCpuCheck ?? false
+
+    // refused before anything moves, rather than as a failed task
+    await this.restApi.xoApp.checkMigration(
+      this.restApi.getCurrentUser(),
+      this.getObject(vmId),
+      this.restApi.getObject<XoHost>(hostId, 'host').$pool
+    )
 
     const action = async () => {
       const { migrationNetworkId } = body
