@@ -2681,24 +2681,91 @@ describe('vdf: tags changed outside XO (vdf#141)', () => {
     })
   })
 
-  test('a quarantine lifted outside XO is an alarm while the VM stays out of quarantine', async () => {
-    const theVm = vm()
-    const xo = fakeXo({ vms: [theVm] })
+  test('a quarantine lifted outside XO is an alert until the VM is quarantined again, through XO or not', async () => {
+    for (const outsideXo of [false, true]) {
+      const xo = fakeXo({ vms: [vm()] })
+      await withPlugin(xo, async () => {
+        xo.events.emit('xo:reservedTagChanged', tagChange({ tag: 'vdf:role=app' }))
+        await settled()
+        assert.deepEqual(await liftedOf(xo), [])
+
+        xo.events.emit('xo:reservedTagChanged', tagChange())
+        await settled()
+        const [alert, ...others] = await liftedOf(xo)
+        assert.deepEqual(others, [])
+        assert.equal(alert.id, 2)
+        assert.deepEqual(alert.object, { id: 'vm-1', type: 'VM', name: 'web-1' })
+        assert.equal(alert.seenAt, '2026-11-12T10:00:00.000Z')
+
+        // quarantined again
+        xo.events.emit('xo:reservedTagChanged', {
+          ...tagChange({ outsideXo, change: 'add' }),
+          timestamp: Date.parse('2026-11-12T10:05:00Z'),
+        })
+        await settled()
+        assert.deepEqual(await liftedOf(xo), [])
+        const { tagChanges } = await historyOf(xo)
+        assert.deepEqual(tagChanges[1], {
+          ...alert,
+          resolution: 'requarantined',
+          resolvedAt: '2026-11-12T10:05:00.000Z',
+        })
+        // only changes outside XO are listed
+        assert.equal(tagChanges.length, outsideXo ? 3 : 2)
+
+        // lifted again through XO: not reopened
+        xo.events.emit('xo:reservedTagChanged', tagChange({ outsideXo: false }))
+        await settled()
+        assert.deepEqual(await liftedOf(xo), [])
+      })
+    }
+  })
+
+  test('an alert is acknowledged by a user with administrate on the pool, for good', async () => {
+    const bob = { id: 'bob', email: 'bob@example.org', permission: 'none' }
+    const viewer = { id: 'carol', email: 'carol@example.org', permission: 'none' }
+    const xo = fakeXo({
+      vms: [vm()],
+      acls: [
+        ['bob', POOL, 'administrate'],
+        ['carol', POOL, 'view'],
+      ],
+    })
+    const acknowledge = (entry, user) =>
+      xo.route('post', '/pools/{id}/actions/acknowledge_quarantine_lifted', {
+        params: { id: POOL },
+        body: { entry },
+        user,
+      })
     await withPlugin(xo, async () => {
       xo.events.emit('xo:reservedTagChanged', tagChange({ tag: 'vdf:role=app' }))
-      await settled()
-      assert.deepEqual(await liftedOf(xo), [])
-
       xo.events.emit('xo:reservedTagChanged', tagChange())
       await settled()
-      const [alarm, ...others] = await liftedOf(xo)
-      assert.deepEqual(others, [])
-      assert.deepEqual(alarm.object, { id: 'vm-1', type: 'VM', name: 'web-1' })
-      assert.equal(alarm.seenAt, '2026-11-12T10:00:00.000Z')
+      const [alert] = await liftedOf(xo)
 
-      // quarantined again
-      theVm.tags = ['vdf:quarantine']
+      // not without the right
+      assert.equal((await acknowledge(alert.id, viewer)).status, 403)
+      assert.deepEqual(await liftedOf(xo), [alert])
+
+      // only such an alert
+      assert.equal((await acknowledge(1, bob)).status, 404)
+      assert.equal((await acknowledge(9, bob)).status, 404)
+
+      const before = Date.now()
+      const { status, result } = await acknowledge(alert.id, bob)
+      assert.equal(status, 200)
+      assert.equal(result.resolution, 'acknowledged')
+      assert.equal(result.resolvedBy, 'bob@example.org')
+      assert.ok(Date.parse(result.resolvedAt) >= before && Date.parse(result.resolvedAt) <= Date.now())
+      assert.deepEqual((await historyOf(xo)).tagChanges[1], result)
       assert.deepEqual(await liftedOf(xo), [])
+
+      // quarantined, then lifted again through XO: not reopened; acknowledged again: unchanged
+      xo.events.emit('xo:reservedTagChanged', tagChange({ outsideXo: false, change: 'add' }))
+      xo.events.emit('xo:reservedTagChanged', tagChange({ outsideXo: false }))
+      await settled()
+      assert.deepEqual(await liftedOf(xo), [])
+      assert.deepEqual((await acknowledge(alert.id, ADMIN)).result, result)
     })
   })
 

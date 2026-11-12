@@ -8,6 +8,7 @@ import {
   listEntries,
   listEntry,
   nextEntryId,
+  resolveLifts,
   summarize,
   tagChangeEntry,
 } from './history.mjs'
@@ -171,24 +172,49 @@ describe('describeChanges', () => {
   })
 })
 
-describe('liftedQuarantines', () => {
-  const change = (objectId, tag, change, objectType = 'VM') =>
-    tagChangeEntry({ objectId, objectType, tag, change, timestamp: 0 }, objectId)
+describe('quarantines lifted outside XO', () => {
+  let id = 0
+  const change = (objectId, tag, change, objectType = 'VM') => ({
+    id: ++id,
+    ...tagChangeEntry({ objectId, objectType, tag, change, timestamp: 0 }, objectId),
+  })
+  const REQUARANTINED = { resolution: 'requarantined', resolvedAt: '2026-11-12T12:00:00.000Z' }
 
-  test('the VMs whose quarantine was last lifted outside XO, still out of it and still there', () => {
+  test('an alert per VM still there: its last quarantine change kept, a lift not resolved', () => {
     const changes = [
       change('a', 'vdf:quarantine', 'remove'),
       change('b', 'vdf:quarantine', 'remove'),
       change('b', 'vdf:quarantine', 'add'), // put back outside XO
-      change('c', 'vdf:quarantine', 'remove'), // quarantined again since
+      { ...change('c', 'vdf:quarantine', 'remove'), ...REQUARANTINED }, // put back through XO
       change('d', 'vdf:quarantine', 'remove'), // gone
       change('e', 'vdf:role=app', 'remove'),
       change('n', 'vdf:quarantine', 'remove', 'network'),
+      { kind: 'notInherited', object: { id: 'f', type: 'VM' }, tags: ['vdf:role=app'] },
     ]
-    const quarantined = { a: false, b: false, c: true, e: false, n: false }
     assert.deepEqual(
-      liftedQuarantines(changes, id => quarantined[id]).map(entry => entry.object.id),
+      liftedQuarantines(changes, id => id !== 'd').map(entry => entry.object.id),
       ['a']
+    )
+  })
+
+  test('resolves the open alerts picked, and only them', () => {
+    const changes = [
+      change('a', 'vdf:quarantine', 'remove'),
+      change('a', 'vdf:role=app', 'remove'),
+      change('b', 'vdf:quarantine', 'remove'),
+    ]
+    const resolved = resolveLifts(changes, entry => entry.object.id === 'a', REQUARANTINED)
+    assert.deepEqual(resolved, [{ ...changes[0], ...REQUARANTINED }, changes[1], changes[2]])
+
+    // resolved once: never again, nor reopened
+    const acknowledged = { resolution: 'acknowledged', resolvedAt: '2026-11-12T13:00:00.000Z', resolvedBy: 'bob' }
+    assert.equal(
+      resolveLifts(resolved, entry => entry.object.id === 'a', acknowledged),
+      resolved
+    )
+    assert.deepEqual(
+      liftedQuarantines(resolved, () => true),
+      [changes[2]]
     )
   })
 })

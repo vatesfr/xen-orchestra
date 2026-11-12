@@ -37,10 +37,12 @@ import {
 } from './global.mjs'
 import {
   appendEntry,
+  isQuarantineLift,
   liftedQuarantines,
   listEntries,
   nextEntryId,
   notInheritedEntry,
+  resolveLifts,
   summarize,
   tagChangeEntry,
 } from './history.mjs'
@@ -176,6 +178,10 @@ const PARAMS_ENTRY = {
 }
 
 const PARAMS_GLOBAL_ENTRY = { entry: { type: 'string', example: '4' } }
+
+const BODY_ACKNOWLEDGE = {
+  entry: { type: 'number', example: 3, description: 'the id of the entry, in the pool history tagChanges' },
+}
 
 const GLOBAL_SCOPE = 'global'
 
@@ -1343,60 +1349,95 @@ class VdfPlugin {
   // the writes to the tag changes, one at a time
   #recordingTagChange = Promise.resolve()
 
-  // Adds the entry `makeEntry()` resolves to to the pool's tag changes,
-  // after the writes before it; failures are logged
-  #recordTagChange(poolId, makeEntry, what) {
-    this.#recordingTagChange = this.#recordingTagChange
-      .then(async () => {
-        const entry = await makeEntry()
-        const entries = await this.#get(tagChangesKey(poolId), [])
-        await this.#store.put(tagChangesKey(poolId), appendEntry(entries, { id: nextEntryId(entries), ...entry }))
-      })
-      .catch(error => log.warn(`recording ${what}`, { poolId, error }))
+  // Replaces the pool's tag changes with what `update(entries)` resolves
+  // to, after the writes before it. Resolves to the new entries; failures
+  // are logged.
+  #updateTagChanges(poolId, update, what) {
+    const updated = this.#recordingTagChange.then(async () => {
+      const entries = await this.#get(tagChangesKey(poolId), [])
+      const next = await update(entries)
+      if (next !== entries) {
+        await this.#store.put(tagChangesKey(poolId), next)
+      }
+      return next
+    })
+    this.#recordingTagChange = updated.catch(error => log.warn(`recording ${what}`, { poolId, error }))
+    return updated
   }
 
   // A vdf: tag changed outside XO is kept in its pool's history; a lifted
-  // quarantine is then an alarm (GET policy: quarantineLifted). Changes
-  // made through XO are left to XO's logs.
+  // quarantine is then an alert (GET policy: quarantineLifted) until the VM
+  // is quarantined again, through XO or not, or someone acknowledges it.
+  // Changes made through XO are left to XO's logs.
   #onReservedTagChange = change => {
-    if (!change.outsideXo) {
+    const isRequarantine = change.objectType === 'VM' && change.tag === 'vdf:quarantine' && change.change === 'add'
+    if (!change.outsideXo && !isRequarantine) {
       return
     }
-    this.#recordTagChange(
+    this.#updateTagChanges(
       change.poolId,
-      () => {
+      entries => {
+        if (isRequarantine) {
+          entries = resolveLifts(entries, entry => entry.object.id === change.objectId, {
+            resolution: 'requarantined',
+            resolvedAt: new Date(change.timestamp).toISOString(),
+          })
+        }
+        if (!change.outsideXo) {
+          return entries
+        }
         let name
         try {
           name = this.#xo.getObject(change.objectId, change.objectType).name_label
         } catch {}
-        return tagChangeEntry(change, name)
+        return appendEntry(entries, { id: nextEntryId(entries), ...tagChangeEntry(change, name) })
       },
-      'a tag change made outside XO'
+      'a vdf: tag change'
     )
   }
 
   // The vdf: tags a new VM did not inherit, because its creator may not add
   // them, are kept beside the changes made outside XO
   #onReservedTagsStripped = stripped => {
-    this.#recordTagChange(
+    this.#updateTagChanges(
       stripped.poolId,
-      async () => {
+      async entries => {
         let user
         try {
           user = await this.#xo.getUser(stripped.userId)
         } catch {}
-        return notInheritedEntry(stripped, userLabel(user) ?? stripped.userId)
+        const entry = notInheritedEntry(stripped, userLabel(user) ?? stripped.userId)
+        return appendEntry(entries, { id: nextEntryId(entries), ...entry })
       },
       'the tags a new VM did not inherit'
     )
   }
 
+  // the alert of a quarantine lifted outside XO, acknowledged by `user`
+  // (already resolved: unchanged); undefined if there is no such alert
+  async #acknowledgeLift(poolId, entryId, user) {
+    const entries = await this.#updateTagChanges(
+      poolId,
+      entries =>
+        resolveLifts(entries, entry => entry.id === entryId, {
+          resolution: 'acknowledged',
+          resolvedAt: new Date().toISOString(),
+          resolvedBy: userLabel(user),
+        }),
+      'an acknowledgement'
+    )
+    const entry = entries.find(entry => entry.id === entryId)
+    return entry !== undefined && isQuarantineLift(entry) ? entry : undefined
+  }
+
+  // the open alerts of VMs XO still has
   async #liftedQuarantines(poolId) {
     return liftedQuarantines(await this.#get(tagChangesKey(poolId), []), vmId => {
       try {
-        return this.#xo.getObject(vmId, 'VM').tags.includes('vdf:quarantine')
+        this.#xo.getObject(vmId, 'VM')
+        return true
       } catch {
-        return undefined
+        return false
       }
     })
   }
@@ -2183,7 +2224,7 @@ class VdfPlugin {
             ...policy,
             // the last change made outside this XO (vdf#32)
             outside: (await this.#outsideOf(req.params.id, policy.docId)) ?? null,
-            // VMs still out of the quarantine lifted outside XO (vdf#141)
+            // VMs whose quarantine was lifted outside XO, not resolved since (vdf#141)
             quarantineLifted: await this.#liftedQuarantines(req.params.id),
             canEdit: await this.#canOnPool(restApi, req.params.id, 'administrate'),
             global: {
@@ -2250,6 +2291,31 @@ class VdfPlugin {
           entries: listEntries(await this.#history(req.params.id), entry => localPart(entry.document)),
           tagChanges: await this.#get(tagChangesKey(req.params.id), []),
         }),
+      }),
+      this.#poolRoute({
+        endpoint: '/pools/{id}/actions/acknowledge_quarantine_lifted',
+        // as the pool's publish
+        permission: 'administrate',
+        method: 'post',
+        description:
+          "Acknowledge the alert of a VM's quarantine lifted outside XO (an entry of the pool history's tagChanges): it leaves GET policy's quarantineLifted for good, and the entry records who acknowledged it and when (resolution, resolvedBy, resolvedAt). An alert already resolved is left as it is.",
+        tags: ['vdf'],
+        params: PARAMS_ID,
+        body: BODY_ACKNOWLEDGE,
+        middlewares: [{ name: 'json' }],
+        responses: [
+          { status: 200, description: 'The entry' },
+          { status: 404, description: 'No such quarantine lifted outside XO' },
+        ],
+        callback: async ({ req, res, restApi }) => {
+          const user = restApi.getCurrentUser({ throwUnauthenticated: false })
+          const entry = await this.#acknowledgeLift(req.params.id, req.body.entry, user)
+          if (entry === undefined) {
+            res.status(404)
+            return { error: 'no such quarantine lifted outside XO' }
+          }
+          return entry
+        },
       }),
       this.#poolRoute({
         endpoint: '/pools/{id}/history/{entry}',

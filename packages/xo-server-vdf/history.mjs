@@ -193,15 +193,36 @@ export const notInheritedEntry = ({ vmId, vmName, tags, timestamp }, createdBy) 
 
 const QUARANTINE_TAG = 'vdf:quarantine'
 
-// The VMs whose quarantine was last lifted outside XO, the newest such
-// change of each, unless `isQuarantined(vmId)` says the VM is quarantined
-// again (true) or gone (undefined).
-export function liftedQuarantines(tagChanges, isQuarantined) {
+// vdf:quarantine added or removed on a VM outside XO
+const isQuarantineChange = entry =>
+  entry.kind === undefined && entry.tag === QUARANTINE_TAG && entry.object.type === 'VM'
+
+// A VM's quarantine lifted outside XO is an alert until it is resolved, on
+// the entry: { resolution: 'requarantined' | 'acknowledged', resolvedAt,
+// resolvedBy (acknowledged: a user label) }
+export const isQuarantineLift = entry => isQuarantineChange(entry) && entry.change === 'removed'
+
+const isOpen = entry => isQuarantineLift(entry) && entry.resolution === undefined
+
+// The entries with the open alerts `isTarget` picks resolved; `entries`
+// itself when there is none
+export function resolveLifts(entries, isTarget, resolution) {
+  if (!entries.some(entry => isOpen(entry) && isTarget(entry))) {
+    return entries
+  }
+  return entries.map(entry => (isOpen(entry) && isTarget(entry) ? { ...entry, ...resolution } : entry))
+}
+
+// The open alerts, one per VM still there (`exists(vmId)`): its last
+// quarantine change kept, if it is a lift not resolved. A VM's quarantine
+// added outside XO before this resolution was stored is its last change:
+// no alert.
+export function liftedQuarantines(tagChanges, exists) {
   const last = new Map()
   for (const entry of tagChanges) {
-    if (entry.kind === undefined && entry.tag === QUARANTINE_TAG && entry.object.type === 'VM') {
+    if (isQuarantineChange(entry)) {
       last.set(entry.object.id, entry)
     }
   }
-  return [...last.values()].filter(entry => entry.change === 'removed' && isQuarantined(entry.object.id) === false)
+  return [...last.values()].filter(entry => isOpen(entry) && exists(entry.object.id))
 }
