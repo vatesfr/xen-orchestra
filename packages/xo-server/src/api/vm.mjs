@@ -1018,7 +1018,7 @@ export async function copyToTemplate({ vm }) {
     await this.stripInheritedReservedTags(this.apiContext.user, clonedVm)
     await clonedVm.set_is_a_template(true)
   } catch (error) {
-    ignoreErrors.call(clonedVm.$destroy())
+    ignoreErrors.call(xapi.VM_destroy(clonedVm.$ref))
     throw error
   }
 }

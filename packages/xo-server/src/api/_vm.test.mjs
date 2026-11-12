@@ -82,6 +82,29 @@ describe('vm.copy', () => {
   })
 })
 
+describe('vm.copyToTemplate', () => {
+  it('strips the reserved tags the user may not add, then makes the copy a template', async () => {
+    const { app, events, newVm } = createApp()
+    await handlers.copyToTemplate.call(app, { vm })
+    assert.deepEqual(events, [
+      ['stripInheritedReservedTags', USER, newVm],
+      ['set_is_a_template', true],
+    ])
+  })
+
+  it('fails and destroys the copy with its disks if its reserved tags cannot be stripped', async () => {
+    const error = new Error('XAPI is down')
+    const { app, events } = createApp({
+      strip: async () => {
+        throw error
+      },
+    })
+    await assert.rejects(handlers.copyToTemplate.call(app, { vm }), error)
+    // VM_destroy deletes the disks unless told not to; the raw $destroy() left them
+    assert.deepEqual(events.at(-1), ['VM_destroy', 'OpaqueRef:new-vm'])
+  })
+})
+
 describe('vm.create', () => {
   const TEMPLATE = {
     id: 'tpl-1',
