@@ -342,3 +342,61 @@ describe('VIF traffic rules', () => {
     assert.deepEqual(writes, [])
   })
 })
+
+describe('network traffic rules', () => {
+  // a network on a pool where the XAPI plugin fails to apply (or remove) the rule
+  function controllerWithFailingPlugin(otherConfig = {}) {
+    const writes = []
+    const network = {
+      $ref: 'OpaqueRef:network-1',
+      $PIFs: [{ host: 'host-1' }],
+      other_config: otherConfig,
+      update_other_config: async (key, value) => writes.push([key, value]),
+      $xapi: { barrier: async () => network },
+    }
+    const controller = createFakeController()
+    controller._xo.getObject = () => ({ id: 'network-1' })
+    controller._xo.getXapiObject = () => network
+    controller._getOrCreateOfChannel = async () => ({
+      addNetworkRule: async () => {
+        throw new Error('XENAPI_PLUGIN_FAILURE(add-rule)')
+      },
+      deleteNetworkRule: async () => {
+        throw new Error('XENAPI_PLUGIN_FAILURE(del-rule)')
+      },
+    })
+    return { controller, writes }
+  }
+  const rule = {
+    allow: true,
+    direction: 'from/to',
+    ipRange: '192.0.2.0/24',
+    port: 22,
+    protocol: 'TCP',
+    networkId: 'network-1',
+  }
+  const recorded = {
+    'xo:sdn-controller:of-rules': JSON.stringify([JSON.stringify({ ...rule, networkId: undefined, cookie: '0x1' })]),
+  }
+
+  it("through the API, a rule the host can't install fails the call and isn't recorded", async () => {
+    const { controller, writes } = controllerWithFailingPlugin()
+
+    await assert.rejects(controller._addNetworkRule(rule, { strict: true }), /XENAPI_PLUGIN_FAILURE/)
+    assert.deepEqual(writes, [])
+  })
+
+  it("through the API, a rule the host can't remove fails the call and stays recorded", async () => {
+    const { controller, writes } = controllerWithFailingPlugin(recorded)
+
+    await assert.rejects(controller._deleteNetworkOfRule(rule, true, { strict: true }), /XENAPI_PLUGIN_FAILURE/)
+    assert.deepEqual(writes, [])
+  })
+
+  it('applied again on events, an error is logged, not thrown', async () => {
+    const { controller } = controllerWithFailingPlugin(recorded)
+
+    await assert.doesNotReject(controller._addNetworkRule(rule))
+    await assert.doesNotReject(controller._deleteNetworkOfRule(rule))
+  })
+})
