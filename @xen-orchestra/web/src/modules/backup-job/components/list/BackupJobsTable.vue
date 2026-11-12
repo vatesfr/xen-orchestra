@@ -50,12 +50,14 @@ import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
+import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import {
   BACKUP_JOB_LAST_RUNS_COUNT,
   type BackupLogsStatus,
   getBackupJobHealthCheckStatus,
   getBackupLogsStatus,
+  isBackupJobEnabled,
 } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
@@ -137,7 +139,7 @@ const filteredBackupJobs = computed(() => {
   lastDaysStart.setHours(0, 0, 0, 0)
 
   return queryFilteredBackupJobs.value.filter(backupJob => {
-    const isEnabled = schedulesByJobId.value.get(backupJob.id)?.some(schedule => schedule.enabled) ?? false
+    const isEnabled = isBackupJobEnabled(schedulesByJobId.value.get(backupJob.id) ?? [])
 
     const finishedBackupLogs = (backupLogsByJobId.value.get(backupJob.id) ?? []).filter(
       backupLog => backupLog.status !== 'pending'
@@ -198,6 +200,13 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
+    const {
+      run: duplicateBackupJobs,
+      canRun: canDuplicateBackupJobs,
+      isRunning: isDuplicatingBackupJobs,
+      errorMessage: duplicateBackupJobsErrorMessage,
+    } = useXoBackupJobDuplicateJob(() => [backupJob])
+
     const { deleteBackupJobs, canDeleteBackupJobs, isDeletingBackupJobs, deleteBackupJobsErrorMessage } =
       useBackupJobDelete(() => [backupJob])
 
@@ -222,6 +231,14 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
           onClick: () => (selectedBackupJobId.value = backupJob.id),
           actions: [
             {
+              label: t('action:duplicate'),
+              icon: 'action:duplicate',
+              onClick: () => duplicateBackupJobs(),
+              disabled: !canDuplicateBackupJobs.value,
+              busy: isDuplicatingBackupJobs.value,
+              hint: duplicateBackupJobsErrorMessage.value,
+            },
+            {
               label: t('action:delete'),
               icon: 'action:delete',
               onClick: () => deleteBackupJobs(),
@@ -229,6 +246,7 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
               busy: isDeletingBackupJobs.value,
               hint: deleteBackupJobsErrorMessage.value,
               accent: 'danger',
+              separator: true,
             },
           ],
         }),

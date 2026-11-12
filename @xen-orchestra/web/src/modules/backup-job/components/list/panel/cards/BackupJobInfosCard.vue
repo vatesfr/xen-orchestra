@@ -18,6 +18,12 @@
           <VtsCopyButton :value="modeLabel" />
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('status') }}</template>
+        <template #value>
+          <VtsStatus :status="isBackupJobEnabled(schedules)" />
+        </template>
+      </VtsCardRowKeyValue>
       <template v-if="healthCheckStatus !== undefined">
         <VtsCardRowKeyValue>
           <template #key>{{ t('health-check') }}</template>
@@ -62,7 +68,9 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import {
   getBackupJobHealthCheckSrIds,
   getBackupJobHealthCheckStatus,
+  isBackupJobEnabled,
 } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -78,6 +86,7 @@ import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
   backupJob: FrontAnyXoBackupJob
+  schedules: FrontXoSchedule[]
 }>()
 
 const { t } = useI18n()

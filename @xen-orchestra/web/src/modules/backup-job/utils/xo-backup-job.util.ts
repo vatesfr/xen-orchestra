@@ -3,9 +3,11 @@ import type {
   FrontXoVmBackupJob,
 } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { VM_POWER_STATE, XoSr } from '@vates/types'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
+import { omit } from 'lodash-es'
 
 export const BACKUP_JOB_LAST_RUNS_COUNT = 3
 
@@ -50,6 +52,27 @@ export function getBackupLogsStatus(backupLogs: FrontXoBackupLog[]): BackupLogsS
   }
 
   return 'success'
+}
+
+export function isBackupJobEnabled(schedules: FrontXoSchedule[]): boolean {
+  return schedules.some(schedule => schedule.enabled)
+}
+
+export function getBackupJobDuplicatePayload(
+  backupJob: FrontAnyXoBackupJob,
+  schedules: FrontXoSchedule[],
+  name: string
+) {
+  return {
+    ...omit(backupJob, ['id', 'href']),
+    name,
+    schedules: Object.fromEntries(
+      schedules.map(schedule => [
+        schedule.id,
+        { cron: schedule.cron, timezone: schedule.timezone, name: schedule.name, enabled: schedule.enabled },
+      ])
+    ),
+  }
 }
 
 export function getBackupJobHealthCheckSrIds(backupJob: FrontAnyXoBackupJob): XoSr['id'][] {
