@@ -81,6 +81,7 @@
 - @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/autopilot-docking major
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
