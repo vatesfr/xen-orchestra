@@ -559,7 +559,6 @@
   "mac-address": "Dirección MAC",
   "mac-addresses": "Direcciones MAC",
   "manage-citrix-pv-drivers-via-windows-update": "Administrar los drivers Citrix PV mediante Windows Update",
-  "manage-vm-lifecycle-in-xo-5": "Gestionar ciclo de vida de la VM en XO-5",
   "management": "Gestión",
   "management-agent-not-detected": "No se detecta agente de gestión",
   "management-agent-version": "Versión del agente de gestión",

@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert'
 import test from 'node:test'
 import { execFile } from 'node:child_process'
-import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { Stream } from 'node:stream'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -9,6 +9,7 @@ import { promisify } from 'node:util'
 import { randomBytes } from 'node:crypto'
 
 import Disposable from 'promise-toolbox/Disposable'
+import * as tar from 'tar'
 
 import { RemoteAdapter } from './RemoteAdapter.mjs'
 
@@ -69,6 +70,83 @@ test('fetchPartitionFiles resolves with a node:stream for every format', async t
     const archive = Buffer.concat(chunks)
     assert.deepEqual(archive.subarray(0, magic.length), magic, `${format}: unexpected archive header`)
   }
+})
+
+async function readAll(stream) {
+  const chunks = []
+  for await (const chunk of stream) {
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
+}
+
+async function listTgzEntries(archive, tmp) {
+  const file = join(tmp, 'archive.tgz')
+  await writeFile(file, archive)
+  const entries = []
+  await tar.t({ file, onReadEntry: entry => entries.push(entry.path.replace(/\/$/, '')) })
+  return entries
+}
+
+// The partition is mounted on the XOA/proxy: a guest symlink is resolved against the host root,
+// so following one would expose host files. Paths through a symlink are refused, and symlinks
+// met while walking a directory are skipped.
+test('file restore never follows symbolic links', async t => {
+  const tmp = await mkdtemp(join(tmpdir(), 'xo-flr-symlink-'))
+  t.after(() => rm(tmp, { recursive: true, force: true }))
+
+  // `host` stands for the XOA filesystem, `root` for the mounted guest partition
+  const host = join(tmp, 'host')
+  const root = join(tmp, 'root')
+  await mkdir(host)
+  await writeFile(join(host, 'secret.txt'), 'host secret')
+  await mkdir(join(root, 'dir'), { recursive: true })
+  await writeFile(join(root, 'dir', 'file.txt'), 'guest file')
+  await symlink(host, join(root, 'absolute')) // like `ln -s / foo` in the guest
+  await symlink('../../host', join(root, 'dir', 'relative'))
+  await symlink('file.txt', join(root, 'dir', 'in-tree'))
+
+  const adapter = new RemoteAdapter({})
+  adapter.getPartition = Disposable.factory(async function* () {
+    yield root
+  })
+
+  const refusedPaths = ['/absolute', '/absolute/secret.txt', '/dir/relative', '/dir/relative/host/secret.txt']
+
+  await t.test('listing refuses a path through a symlink', async () => {
+    for (const path of refusedPaths) {
+      await assert.rejects(adapter.listPartitionFiles('disk', 'partition', path), { code: 'ELINK_NOT_SUPPORTED' }, path)
+    }
+  })
+
+  await t.test('listing skips symlinks', async () => {
+    assert.deepEqual(await adapter.listPartitionFiles('disk', 'partition', '/'), { 'dir/': {} })
+    assert.deepEqual(await adapter.listPartitionFiles('disk', 'partition', '/dir'), { 'file.txt': {} })
+  })
+
+  for (const format of ['tgz', 'zip']) {
+    await t.test(`${format}: download refuses a path through a symlink`, async () => {
+      for (const path of refusedPaths) {
+        await assert.rejects(
+          adapter.fetchPartitionFiles('disk', 'partition', ['/dir/file.txt', path], format),
+          { code: 'ELINK_NOT_SUPPORTED' },
+          path
+        )
+      }
+    })
+  }
+
+  await t.test('tgz: symlinks inside a selected directory are skipped', async () => {
+    const archive = await readAll(await adapter.fetchPartitionFiles('disk', 'partition', ['/dir'], 'tgz'))
+    assert.deepEqual((await listTgzEntries(archive, tmp)).sort(), ['dir', 'dir/file.txt'])
+  })
+
+  await t.test('zip: symlinks inside a selected directory are skipped', async () => {
+    const archive = await readAll(await adapter.fetchPartitionFiles('disk', 'partition', ['/dir'], 'zip'))
+    assert.ok(archive.includes('dir/file.txt'))
+    assert.equal(archive.includes('dir/relative'), false)
+    assert.equal(archive.includes('dir/in-tree'), false)
+  })
 })
 
 test('LVM file-restore against real losetup/dmsetup/lvm', { skip }, async t => {

@@ -392,6 +392,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 - Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](./scale-and-security/object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 - If the bucket has S3 Object Lock enabled, read [S3 Object Lock](./scale-and-security/object-lock.md) first: it constrains which backup modes and retention settings you can use, and XO does not set the retention period itself.
+- XO locks a VM's folder in the bucket while a backup job writes to it, and while the cleanup that follows a job or a deletion merges and removes the leftover files in it. The lock does not cover removing the backups you delete themselves. On buckets with Object Lock enabled, and when the S3 user cannot read the bucket's Object Lock configuration (`s3:GetBucketObjectLockConfiguration`, XO logs a warning), backups run without this lock, as they used to. On a versioned bucket, the lock object is rewritten every 30 seconds while a backup job, a merge or a cleanup holds a VM's folder, so the bucket keeps its previous versions; a lifecycle rule that expires noncurrent versions removes them.
 
 :::
 
@@ -415,6 +416,7 @@ To configure an Azure backup repository, you'll need:
 
 - When using Azurite instead of real Azure, select the **Azurite** type and provide the emulator's host/port.
 - Container names must be **lowercase**.
+- XO locks a VM's folder in the container while a backup job writes to it, and while the cleanup that follows a job or a deletion merges and removes the leftover files in it. The lock does not cover removing the backups you delete themselves. On an account with blob versioning or soft delete, each lock taken leaves a copy of its 0-byte lock blob: a previous version, or a soft-deleted blob. A lifecycle management rule that deletes previous versions, or the soft-delete retention period, removes them.
 
 :::
 
@@ -643,6 +645,7 @@ You can also restore specific files and directories inside a VM. It works with a
 
 - File level restore **is only possible on incremental backups**. Also, due to some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./backup-types/incremental_backups.md#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
+- File level restore **does not support symbolic links**: they are hidden when browsing, skipped when a folder is restored, and a path going through one is refused. Restore the link target directly instead.
 - The following Microsoft solutions are **not supported**:
   - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
   - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)

@@ -659,7 +659,6 @@
   "mac-address": "MAC地址",
   "mac-addresses": "MAC地址",
   "manage-citrix-pv-drivers-via-windows-update": "通过Windows更新管理Citrix PV驱动",
-  "manage-vm-lifecycle-in-xo-5": "在XO-5管理虚拟机生命周期",
   "management": "管理",
   "management-agent-not-detected": "未检测到管理代理",
   "management-agent-version": "管理代理版本",

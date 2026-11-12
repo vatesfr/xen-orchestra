@@ -70,3 +70,26 @@ export const backupArchive = {
   dynamicVhds: 0,
   withMemory: false,
 }
+
+export const backupArchiveDiskPartitions = [
+  {
+    id: 'b2a7e4d1-5c3f-4e8a-9d06-1f7c2e9b4a53',
+    name: 'boot',
+    size: 1073741824,
+    start: 2048,
+    type: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+  },
+  {
+    id: '6c2d1b4a-0f3e-4c8d-9a1b-2e5f7c9d0a3b',
+    name: 'root',
+    size: 20398997504,
+    start: 2099200,
+    type: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+  },
+]
+
+export const backupArchiveFiles = [
+  { name: 'ssh/', isFile: false },
+  { name: 'hosts', isFile: true, size: 221 },
+  { name: 'passwd', isFile: true, size: 1872 },
+]

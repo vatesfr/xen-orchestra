@@ -6,6 +6,7 @@
       :closable="hasSelection"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="vts-side-panel"
+      :style="{ transform }"
       :class="{
         locked: panelStore.isLocked && !uiStore.isSmall,
         mobile: uiStore.isSmall,
@@ -49,7 +50,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { PANEL_TRANSITION_DURATION, usePanelStore } from '@core/stores/panel.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { IK_INFO_SIZE } from '@core/utils/injection-keys.util.ts'
+import { IK_INFO_SIZE, IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys.util.ts'
 import { computed, provide, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,9 +76,17 @@ const { t } = useI18n()
 
 const showResizeHandle = computed(() => !uiStore.isSmall && panelStore.isExpanded)
 
+const transform = computed(() => `translateX(${panelStore.cssHorizontalOffset})`)
+
 const transformTransition = `transform ${PANEL_TRANSITION_DURATION}ms`
 
 provide(IK_INFO_SIZE, 'small')
+
+provide(IK_MENU_ACTION_HANDLER, () => {
+  if (uiStore.isSmall) {
+    handleClose()
+  }
+})
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
@@ -118,7 +127,6 @@ function handleClose() {
     min-height: var(--panel-min-height);
     max-height: var(--panel-viewport-height);
     overflow: hidden;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(> .content) {
       flex: 1 1 auto;
@@ -133,7 +141,6 @@ function handleClose() {
     width: 100dvw;
     height: 100dvh;
     inset: 0;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(.corner-actions) {
       margin-inline-start: 0;

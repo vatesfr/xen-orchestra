@@ -2,13 +2,8 @@
   <VtsSidePanel :key="panelSignature" :has-selection="!!sr" @close="emit('close')">
     <template v-if="sr" #actions>
       <SrConnectButton :scope :sr />
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
-        </template>
-        <SrDisconnectButton :scope :sr />
-        <SrDeleteButton :sr />
-      </MenuList>
+      <SrDisconnectButton :scope :sr />
+      <SrDeleteButton :sr />
     </template>
     <template v-if="sr" #default>
       <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
@@ -40,10 +35,8 @@ import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
 import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 

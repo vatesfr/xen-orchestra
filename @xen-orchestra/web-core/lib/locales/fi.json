@@ -706,7 +706,6 @@
   "mac-address": "MAC-osoite",
   "mac-addresses": "MAC-osoitteet",
   "manage-citrix-pv-drivers-via-windows-update": "Hallitse Citrix PV -ajureita Windows Updaten kautta",
-  "manage-vm-lifecycle-in-xo-5": "Hallitse VM:n elinkaarta XO-5:ssä",
   "management": "Hallinta",
   "management-agent-not-detected": "Hallinta-agenttia ei havaittu",
   "management-agent-version": "Hallinta-agentin versio",

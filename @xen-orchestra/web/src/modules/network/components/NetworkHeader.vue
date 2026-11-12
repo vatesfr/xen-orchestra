@@ -16,7 +16,7 @@
   <UiHeadBar icon="object:network">
     {{ network.name_label }}
   </UiHeadBar>
-  <TabList>
+  <TabList :label="network.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/network/[id]/general', params: { id: network.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('general') }}

@@ -1,10 +1,11 @@
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { getHostPendingStateOperation, getHostSmartRebootVmOperation } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { createMapper, useMapper } from '@core/packages/mapper'
+import { createMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -18,12 +19,12 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
   const { vmsByHost } = useXoVmCollection()
 
   const getHostStateDisplay = createMapper<XoHostState, { text: string; icon: IconName | undefined }>(
-    {
+    () => ({
       running: { text: t('host:status:running'), icon: 'status:running-circle' },
       halted: { text: t('host:status:halted'), icon: 'status:halted-circle' },
       disabled: { text: t('host:status:disabled'), icon: 'status:host-disabled-circle' },
       unknown: { text: t('host:status:unknown'), icon: undefined },
-    },
+    }),
     'unknown'
   )
 
@@ -45,26 +46,17 @@ export function useXoHostUtils(rawHost: MaybeRefOrGetter<FrontXoHost>) {
 
   const isChangingState = computed(() => pendingStateOperation.value !== undefined)
 
-  const currentOperation = useMapper<string, string>(
-    () => pendingStateOperation.value,
-    {
-      power_on: t('operation:start'),
-      shutdown: t('operation:shutdown'),
-      reboot: t('operation:clean-reboot'),
-      evacuate: t('operation:evacuate'),
-      enable: t('operation:enable'),
-      suspend: t('operation:vm-suspend'),
-      clean_shutdown: t('operation:vm-clean-shutdown'),
-      hard_shutdown: t('operation:vm-hard-shutdown'),
-      unknown: '',
-    },
-    'unknown'
-  )
+  const { getHostOperationLabel, getHostIconTooltip } = useXoHostOperationLabel()
+
+  const currentOperation = computed(() => getHostOperationLabel(pendingStateOperation.value))
+
+  const iconTooltip = computed(() => getHostIconTooltip(host.value))
 
   return {
     getHostStateDisplay,
     relativeStartTime,
     isChangingState,
     currentOperation,
+    iconTooltip,
   }
 }

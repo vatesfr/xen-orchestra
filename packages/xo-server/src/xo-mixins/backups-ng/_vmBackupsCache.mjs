@@ -138,6 +138,19 @@ const rebuildIntervalOf = repository => {
 }
 
 /**
+ * The date before which the journal of a repository may be purged: `retention` ago, but never before
+ * what a replay of its entry can still ask for. A replay happens up to `rebuildIntervalOf()` after the
+ * listing, from a cursor bootstrapped `CLOCK_SKEW_TOLERANCE` before it.
+ *
+ * @param {Repository} repository
+ * @param {number} retention in milliseconds
+ * @returns {number} timestamp in ms, of this process' clock
+ */
+export function journalPurgeHorizon(repository, retention) {
+  return Date.now() - Math.max(retention, rebuildIntervalOf(repository) + CLOCK_SKEW_TOLERANCE)
+}
+
+/**
  * forgets a backup, and the VM it belonged to when it was its last one
  *
  * @param {BackupsByVm} backupsByVm

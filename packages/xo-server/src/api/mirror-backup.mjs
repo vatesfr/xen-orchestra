@@ -1,4 +1,4 @@
-import { assertValidSettingsExpression } from './_backupExpressions.mjs'
+import { assertValidSettingsExpression } from '@xen-orchestra/backups/backupExpressions.mjs'
 
 const SCHEMA_SETTINGS = {
   type: 'object',
