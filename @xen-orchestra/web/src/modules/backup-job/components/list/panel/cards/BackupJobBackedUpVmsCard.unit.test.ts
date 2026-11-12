@@ -1,6 +1,8 @@
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
@@ -27,6 +29,14 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async (
     })) as unknown as typeof useXoVmCollection,
   }
 })
+
+vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+  useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
+}))
+
+vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+  useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
+}))
 
 vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
@@ -98,4 +108,18 @@ it('shows the first backed up VMs, offering to see the other ones', () => {
 
   expect(wrapper.getComponent(UiPanelCardTitle).props('counter')).toBe(6)
   expect(wrapper.text()).toContain(t('action:see-n-more', { n: 1 }))
+})
+
+it('shows the query of a dynamic selection with the VMs it matches', () => {
+  const wrapper = mountBackedUpVmsCard('name_label:"VM 1"' as unknown as FrontXoVmBackupJob['vms'])
+
+  expect(wrapper.text()).toContain(t('dynamic-selection-query'))
+  expect(wrapper.text()).toContain('name_label:"VM 1"')
+  expect(findVmLinks(wrapper).map(link => link.text())).toEqual(['VM 1'])
+})
+
+it('says that every VM is backed up by a smart mode without criteria', () => {
+  const wrapper = mountBackedUpVmsCard({ type: 'VM' })
+
+  expect(wrapper.text()).toContain(t('all-objects-vms'))
 })

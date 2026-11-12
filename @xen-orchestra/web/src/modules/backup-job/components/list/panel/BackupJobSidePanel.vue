@@ -9,7 +9,12 @@
       <BackupJobSchedulesCard v-if="schedules.length > 0" :schedules />
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
       <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup'" :backed-up-vms="backupJob.vms" />
-      <BackupJobTargetsCard :storage-repository-targets :backup-repository-targets />
+      <BackupJobTargetsCard
+        :storage-repository-targets
+        :backup-repository-targets
+        :storage-repository-expression
+        :backup-repository-expression
+      />
       <BackupJobSettingsCard :backup-job />
     </template>
   </VtsSidePanel>
@@ -23,6 +28,15 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import {
+  getDynamicBackupRepositoryTargets,
+  getDynamicStorageRepositoryTargets,
+} from '@/modules/backup-job/utils/backup-job-dynamic-targets.util.ts'
+import {
+  BACKUP_REPOSITORY_EXPRESSION_KEY,
+  formatContextExpressionQuery,
+  STORAGE_REPOSITORY_EXPRESSION_KEY,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import { BACKUP_JOB_LAST_RUNS_COUNT, getTargetIds } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import {
@@ -53,9 +67,9 @@ const { schedulesByJobId } = useXoScheduleCollection()
 
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 
-const { getSrsByIds } = useXoSrCollection()
+const { srs, getSrsByIds } = useXoSrCollection()
 
-const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
+const { backupRepositories, getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
 
 const schedules = computed(() => (backupJob !== undefined ? (schedulesByJobId.value.get(backupJob.id) ?? []) : []))
 
@@ -63,17 +77,39 @@ const lastBackupLogs = computed(() =>
   backupJob !== undefined ? getLastNBackupLogsByJobId(backupJob.id, BACKUP_JOB_LAST_RUNS_COUNT) : []
 )
 
-const backupRepositoryTargets = computed(() =>
-  backupJob !== undefined
-    ? getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
-    : []
-)
+const backupRepositoryTargets = computed(() => {
+  if (backupJob === undefined) {
+    return []
+  }
+
+  if (typeof backupJob.remotes === 'string') {
+    return getDynamicBackupRepositoryTargets(backupRepositories.value, backupJob.remotes, backupJob.proxy)
+  }
+
+  return getBackupRepositoriesByIds(getTargetIds<FrontXoBackupRepository['id']>(backupJob.remotes))
+})
 
 const storageRepositoryTargets = computed(() => {
   if (backupJob?.type !== 'backup' || backupJob.srs === undefined) {
     return []
   }
 
+  if (typeof backupJob.srs === 'string') {
+    return getDynamicStorageRepositoryTargets(srs.value, backupJob.srs)
+  }
+
   return getSrsByIds(getTargetIds<FrontXoSr['id']>(backupJob.srs))
 })
+
+const backupRepositoryExpression = computed(() =>
+  typeof backupJob?.remotes === 'string'
+    ? formatContextExpressionQuery(BACKUP_REPOSITORY_EXPRESSION_KEY, backupJob.remotes)
+    : undefined
+)
+
+const storageRepositoryExpression = computed(() =>
+  backupJob?.type === 'backup' && typeof backupJob.srs === 'string'
+    ? formatContextExpressionQuery(STORAGE_REPOSITORY_EXPRESSION_KEY, backupJob.srs)
+    : undefined
+)
 </script>
