@@ -7,11 +7,11 @@ const SELECTED_TAB_SELECTOR = '[role="tab"][aria-selected="true"]'
 
 const INTERACTIVE_SELECTOR = 'a, button'
 
-export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null | undefined>) {
+export function useTabListNavigation(scrollContainer: MaybeRefOrGetter<HTMLElement | null | undefined>) {
   let centeredTab: Element | undefined
 
   function getTabs() {
-    return Array.from(toValue(list)?.querySelectorAll<HTMLElement>(TAB_SELECTOR) ?? [])
+    return Array.from(toValue(scrollContainer)?.querySelectorAll<HTMLElement>(TAB_SELECTOR) ?? [])
   }
 
   function getEnabledTabs() {
@@ -19,7 +19,11 @@ export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null |
   }
 
   function findTabIndex(tabs: HTMLElement[], target: EventTarget | null) {
-    return tabs.findIndex(tab => target instanceof Node && tab.contains(target))
+    if (!(target instanceof Node)) {
+      return -1
+    }
+
+    return tabs.findIndex(tab => tab.contains(target))
   }
 
   function updateTabIndexes() {
@@ -36,20 +40,23 @@ export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null |
   }
 
   function centerTab(tab: Element, behavior?: ScrollBehavior) {
-    const listElement = toValue(list)
+    const container = toValue(scrollContainer)
 
-    if (listElement === null || listElement === undefined) {
+    if (container === null || container === undefined) {
       return
     }
 
-    const listRect = listElement.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
     const tabRect = tab.getBoundingClientRect()
 
-    listElement.scrollBy({ left: tabRect.left + tabRect.width / 2 - listRect.left - listRect.width / 2, behavior })
+    container.scrollBy({
+      left: tabRect.left + tabRect.width / 2 - containerRect.left - containerRect.width / 2,
+      behavior,
+    })
   }
 
   function centerSelectedTab(behavior?: ScrollBehavior) {
-    const selectedTab = toValue(list)?.querySelector(SELECTED_TAB_SELECTOR) ?? undefined
+    const selectedTab = toValue(scrollContainer)?.querySelector(SELECTED_TAB_SELECTOR) ?? undefined
 
     if (selectedTab === undefined || selectedTab === centeredTab) {
       return
@@ -89,7 +96,7 @@ export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null |
     }
   }
 
-  useEventListener(list, 'keydown', (event: KeyboardEvent) => {
+  useEventListener(scrollContainer, 'keydown', (event: KeyboardEvent) => {
     if (event.altKey || event.ctrlKey || event.metaKey || !(event.target instanceof HTMLElement)) {
       return
     }
@@ -111,7 +118,7 @@ export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null |
     }
   })
 
-  useEventListener(list, 'focusin', (event: FocusEvent) => {
+  useEventListener(scrollContainer, 'focusin', (event: FocusEvent) => {
     const tabs = getTabs()
     const index = findTabIndex(tabs, event.target)
 
@@ -121,7 +128,7 @@ export function useTabListNavigation(list: MaybeRefOrGetter<HTMLElement | null |
   })
 
   useMutationObserver(
-    list,
+    scrollContainer,
     () => {
       updateTabIndexes()
       centerSelectedTab()

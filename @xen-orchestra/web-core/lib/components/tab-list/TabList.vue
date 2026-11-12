@@ -16,7 +16,7 @@
           :target-scale="1"
           tabindex="-1"
           aria-hidden="true"
-          @click="scroll(direction)"
+          @click="scrollTabs(direction)"
         />
       </div>
     </template>
@@ -30,7 +30,7 @@ import { useTabListNavigation } from '@core/composables/tab-list-navigation.comp
 import { useResizeObserver, useScroll } from '@vueuse/core'
 import { computed, useTemplateRef } from 'vue'
 
-const props = defineProps<{
+const { label, disabled } = defineProps<{
   label?: string
   disabled?: boolean
 }>()
@@ -39,7 +39,7 @@ const SCROLL_DIRECTIONS = ['left', 'right'] as const
 
 const SCROLL_STEP_RATIO = 0.8
 
-useDisabled(() => props.disabled)
+useDisabled(() => disabled)
 
 const list = useTemplateRef('list')
 
@@ -53,7 +53,7 @@ useTabListNavigation(list)
 
 const canScroll = computed(() => ({ left: !arrivedState.left, right: !arrivedState.right }))
 
-function scroll(direction: (typeof SCROLL_DIRECTIONS)[number]) {
+function scrollTabs(direction: (typeof SCROLL_DIRECTIONS)[number]) {
   if (list.value === null) {
     return
   }
