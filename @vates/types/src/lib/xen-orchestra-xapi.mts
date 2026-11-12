@@ -190,7 +190,7 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   deleteVif(vifId: XoVif['id']): Promise<void>
   disconnectVif(vifId: XoVif['id']): Promise<void>
-  exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
+  exportVmOva(vmRef: XenApiVm['$ref'], opts?: { signal?: AbortSignal }): Promise<PassThrough>
   emergencyShutdownHost(hostId: XoHost['id']): Promise<void>
   ejectHostFromPool(hostId: XoHost['id']): Promise<void>
   host_smartReboot(
