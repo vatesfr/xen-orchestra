@@ -11,8 +11,8 @@ export function useBackupArchiveSelectorSchema(): QueryBuilderSchema {
     '': useStringSchema(t('any-property')),
     id: useStringSchema(t('id')),
     mode: useStringSchema(t('mode'), {
-      full: t('backup:full'),
-      delta: t('backup:incremental'),
+      full: t('full'),
+      delta: t('incremental'),
     }),
     backupRepository: useStringSchema(t('backup-repository')),
     jobId: useStringSchema(t('backup-job')),
