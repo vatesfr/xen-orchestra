@@ -1,20 +1,22 @@
 import { useXoCurrentUserPrivilegeCollection } from '@/modules/user/remote-resources/use-xo-current-user-privilege-collection.ts'
-import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import { useXoCurrentUser } from '@/modules/user/remote-resources/use-xo-current-user.ts'
 import { hasPrivilegeOn, type SupportedActions, type SupportedResource } from '@xen-orchestra/acl'
 import { computed } from 'vue'
 
 export function useCurrentUserPrivileges() {
-  const { user } = useXoUserResource({}, 'me')
+  const { currentUser } = useXoCurrentUser()
 
-  const isAdmin = computed(() => user.value?.permission === 'admin')
+  const isAdmin = computed(() => currentUser.value?.permission === 'admin')
 
-  const shouldFetchPrivileges = computed(() => user.value !== undefined && !isAdmin.value)
+  const shouldFetchPrivileges = computed(() => currentUser.value !== undefined && !isAdmin.value)
 
   const { currentUserPrivileges, areCurrentUserPrivilegesReady } = useXoCurrentUserPrivilegeCollection({
     isEnabled: shouldFetchPrivileges,
   })
 
-  const isReady = computed(() => user.value !== undefined && (isAdmin.value || areCurrentUserPrivilegesReady.value))
+  const isReady = computed(
+    () => currentUser.value !== undefined && (isAdmin.value || areCurrentUserPrivilegesReady.value)
+  )
 
   function can<TResource extends SupportedResource>({
     resource,
@@ -25,7 +27,7 @@ export function useCurrentUserPrivileges() {
     action: SupportedActions<TResource>
     objects: object | object[]
   }) {
-    if (user.value === undefined || !isReady.value) {
+    if (currentUser.value === undefined || !isReady.value) {
       return false
     }
 
@@ -35,7 +37,7 @@ export function useCurrentUserPrivileges() {
 
     try {
       return hasPrivilegeOn({
-        user: user.value,
+        user: currentUser.value,
         userPrivileges: currentUserPrivileges.value,
         resource,
         action,
