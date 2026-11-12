@@ -736,6 +736,7 @@
   "firewall:group-form:tags:info": "A VM is a member when it carries all these tags: tagging VMs changes the members at once.",
   "firewall:group-form:tags:invalid": "Group tags must start with vdf:, e.g. vdf:role=web: not {tags}",
   "firewall:group-form:tags:placeholder": "e.g. vdf:role=db",
+  "firewall:group-form:tags:quarantine": "{tag} is the quarantine tag, it can't be a group tag",
   "firewall:group-form:tags:suggestions": "Tags in use:",
   "firewall:group-option": "{name} · {members}",
   "firewall:group-option:both": "{vms}, {ips}",

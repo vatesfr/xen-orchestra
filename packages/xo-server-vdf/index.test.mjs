@@ -657,10 +657,13 @@ describe('pool publish', () => {
           },
         })
 
-      for (const tag of ['web', 'vdf:quarantine']) {
+      for (const [tag, error] of [
+        ['web', 'is refused, group tags must start with vdf:'],
+        ['vdf:quarantine', "is the quarantine tag, it can't be a group tag"],
+      ]) {
         const { result } = await publish({ web: { tags: ['vdf:role=web', tag] } })
         assert.equal(result.published, false)
-        assert.match(result.error, new RegExp(`group "web": tag "${tag}" is refused, group tags must start with vdf:`))
+        assert.ok(result.error.includes(`group "web": tag "${tag}" ${error}`), result.error)
       }
       assert.equal(
         xo.calls.some(call => call.fn === 'publish'),

@@ -190,7 +190,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
-import { VDF_GLOBAL_PREFIX, type VdfGroup } from '@/modules/vdf/types.ts'
+import { VDF_GLOBAL_PREFIX, VDF_QUARANTINE_TAG, type VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isGroupTag } from '@/modules/vdf/utils/vdf-group-tags.util.ts'
 import {
@@ -395,9 +395,14 @@ function addTag(tag = newTag.value) {
 // would refuse them too
 const tagError = computed(() => {
   const tags = addedTagError.value === undefined ? form.tags.filter(tag => !isGroupTag(tag)) : [addedTagError.value]
+  const others = tags.filter(tag => tag !== VDF_QUARANTINE_TAG)
+
+  if (others.length > 0) {
+    return { content: t('firewall:group-form:tags:invalid', { tags: others.join(', ') }), accent: 'danger' as const }
+  }
 
   return tags.length > 0
-    ? { content: t('firewall:group-form:tags:invalid', { tags: tags.join(', ') }), accent: 'danger' as const }
+    ? { content: t('firewall:group-form:tags:quarantine', { tag: VDF_QUARANTINE_TAG }), accent: 'danger' as const }
     : undefined
 })
 

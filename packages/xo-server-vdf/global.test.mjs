@@ -185,7 +185,7 @@ describe('checks', () => {
       const errors = check({ groups, policies: [] })
       assert.equal(errors.length, 2)
       assert.match(errors[0], /group "web": tag "web" is refused, group tags must start with vdf:, e\.g\. vdf:role=web/)
-      assert.match(errors[1], /group "q": tag "vdf:quarantine"/)
+      assert.equal(errors[1], `group "q": tag "vdf:quarantine" is the quarantine tag, it can't be a group tag`)
       assert.deepEqual(check({ groups: { ok: groups.ok }, policies: [] }), [])
     }
   })

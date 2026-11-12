@@ -60,7 +60,9 @@ function groupTagErrors(groups) {
   const errors = []
   for (const [name, group] of Object.entries(groups ?? {})) {
     for (const tag of group.tags ?? []) {
-      if (typeof tag !== 'string' || !tag.startsWith(GROUP_TAG_PREFIX) || tag === QUARANTINE_TAG) {
+      if (tag === QUARANTINE_TAG) {
+        errors.push(`group "${name}": tag "${tag}" is the quarantine tag, it can't be a group tag`)
+      } else if (typeof tag !== 'string' || !tag.startsWith(GROUP_TAG_PREFIX)) {
         errors.push(`group "${name}": tag "${tag}" is refused, group tags must start with vdf:, e.g. vdf:role=web`)
       }
     }
