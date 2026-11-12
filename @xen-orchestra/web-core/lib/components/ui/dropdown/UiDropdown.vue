@@ -9,7 +9,6 @@
       <slot />
     </div>
     <div v-if="info" class="info typo-body-regular-small">{{ info }}</div>
-    <UiLoader v-if="busy" class="loader" />
     <VtsIcon
       v-if="subMenuIcon || locked"
       :name="locked ? 'fa:lock' : 'fa:angle-right'"
@@ -22,7 +21,6 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -46,7 +44,6 @@ const {
   subMenuIcon?: boolean
   icon?: IconName
   info?: string
-  busy?: boolean
 }>()
 
 const disabled = computed(() => rawDisabled || locked)
@@ -206,10 +203,6 @@ const className = computed(() =>
 
   .info {
     color: var(--color-neutral-txt-secondary);
-  }
-
-  .loader {
-    flex-shrink: 0;
   }
 
   .right-icon {

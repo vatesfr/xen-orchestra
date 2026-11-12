@@ -11,7 +11,7 @@ type DropdownAccent = 'normal' | 'brand' | 'success' | 'warning' | 'danger'
   <UiDropdown accent="brand" icon="fa:arrow-down" info="current">
     Sort ascending
   </UiDropdown>
-  <UiDropdown accent="brand" icon="fa:arrow-up" busy>
+  <UiDropdown accent="brand" icon="fa:arrow-up">
     Sort descending
   </UiDropdown>
 </UiDropdownList>

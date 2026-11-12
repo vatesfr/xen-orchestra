@@ -1,20 +1,11 @@
-import { usePinnedAnchor } from '@core/composables/pinned-anchor.composable.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import { autoUpdate, flip, type MaybeElement, type ReferenceElement, shift, size, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
 import { clamp, onClickOutside, useEventListener, whenever } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, provide, reactive, type Ref, ref, watch } from 'vue'
+import { computed, provide, reactive, ref, watch } from 'vue'
 import { type FormOptionIndex, type FormSelect, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 import { useFormSelectKeyboardNavigation } from './use-form-select-keyboard-navigation.ts'
 
-export type UseFormSelectControllerOptions = {
-  /*
-   * When set, the dropdown stays where the trigger was when it opened, relative to this container (which still follows
-   * the page scroll), instead of following the trigger
-   */
-  pinnedContainer?: MaybeRefOrGetter<HTMLElement | null | undefined>
-}
-
-export function useFormSelectController(select: FormSelect, options: UseFormSelectControllerOptions = {}) {
+export function useFormSelectController(select: FormSelect) {
   const rootRef = ref<HTMLElement>()
 
   const activeOption = computed(() => select.options.value.find(option => option.flags.active))
@@ -62,12 +53,7 @@ export function useFormSelectController(select: FormSelect, options: UseFormSele
 
   /* DROPDOWN PLACEMENT */
 
-  const floatingReference: Readonly<Ref<ReferenceElement | undefined>> =
-    options.pinnedContainer === undefined
-      ? triggerRef
-      : usePinnedAnchor({ reference: triggerRef, container: options.pinnedContainer, isPinned: isOpen })
-
-  const { floatingStyles } = useFloating(floatingReference, dropdownRef, {
+  const { floatingStyles } = useFloating(triggerRef, dropdownRef, {
     whileElementsMounted: autoUpdate,
     middleware: [
       shift(),
