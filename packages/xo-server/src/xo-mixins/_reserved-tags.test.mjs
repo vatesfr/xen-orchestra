@@ -106,6 +106,79 @@ describe('checkTagsChange', () => {
   })
 })
 
+describe('checkNewVmTags', () => {
+  const TEMPLATE = {
+    id: 'tpl-1',
+    type: 'VM-template',
+    $pool: 'pool-1',
+    tags: ['keep', 'vdf:role=e2e', 'vdf:quarantine'],
+  }
+
+  it("keeps vdf:quarantine when tags are omitted, whoever the user is, even replaced by the resource set's", async () => {
+    const { app, mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, undefined, []), ['vdf:quarantine'])
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, undefined, ['rs']), ['rs', 'vdf:quarantine'])
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, undefined, ['vdf:quarantine']), ['vdf:quarantine'])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it("keeps the template's tags when tags are omitted without a resource set", async () => {
+    const { app, mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, undefined, undefined), TEMPLATE.tags)
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it('refuses tags without vdf:quarantine to a user without the right: an explicit removal', async () => {
+    const { mixin } = createMixin()
+    await assert.rejects(mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, ['keep'], undefined), isRefusal('vdf:quarantine'))
+    await assert.rejects(mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, ['keep'], ['rs']), isRefusal('vdf:quarantine'))
+  })
+
+  it('lets an XO administrator or a user with administrate on the pool remove vdf:quarantine', async () => {
+    const { mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(ADMIN, TEMPLATE, ['keep'], undefined), ['keep'])
+    assert.deepEqual(await mixin.checkNewVmTags(POOL_ADMIN, TEMPLATE, ['keep'], ['rs']), ['keep', 'rs'])
+  })
+
+  it("lets tags leave out the template's group tags without any check", async () => {
+    const { app, mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, ['vdf:quarantine', 'new'], undefined), [
+      'vdf:quarantine',
+      'new',
+    ])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it("does not check the template's reserved tags kept: they are stripped after creation", async () => {
+    const { app, mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, TEMPLATE.tags, undefined), TEMPLATE.tags)
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+
+  it("checks the reserved tags added, except the resource set's", async () => {
+    const { mixin } = createMixin()
+    await assert.rejects(
+      mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, ['vdf:quarantine', 'vdf:role=app'], undefined),
+      isRefusal('vdf:role=app')
+    )
+    assert.deepEqual(await mixin.checkNewVmTags(VM_ADMIN, TEMPLATE, ['keep', 'vdf:quarantine'], ['vdf:role=app']), [
+      'keep',
+      'vdf:quarantine',
+      'vdf:role=app',
+    ])
+    assert.deepEqual(await mixin.checkNewVmTags(POOL_ADMIN, TEMPLATE, ['vdf:quarantine', 'vdf:role=app'], undefined), [
+      'vdf:quarantine',
+      'vdf:role=app',
+    ])
+  })
+
+  it('does not check calls without a user', async () => {
+    const { app, mixin } = createMixin()
+    assert.deepEqual(await mixin.checkNewVmTags(undefined, TEMPLATE, ['vdf:role=app'], undefined), ['vdf:role=app'])
+    assert.equal(app.hasPermissionsCalls, 0)
+  })
+})
+
 // the XAPI record of a VM just created on a pool, recording the tags written on it
 function createNewVm(tags, { pool = 'pool-1', setTags = async () => {} } = {}) {
   const vm = {

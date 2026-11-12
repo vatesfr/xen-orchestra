@@ -199,6 +199,12 @@ export default class ReservedTags {
    * @throws {Error} `forbiddenOperation` if the change touches a reserved tag the user may not write
    */
   async checkTagsChange(user, object, { added = [], removed = [] }) {
+    await this.#checkPermission(user, object, { added, removed })
+    this.#note(object.id, user, { added, removed })
+  }
+
+  // the guard's decision, without noting the change
+  async #checkPermission(user, object, { added = [], removed = [] }) {
     const reserved = [
       ...added.filter(isReservedTag).map(tag => ['add', tag]),
       ...removed.filter(isReservedTag).map(tag => ['remove', tag]),
@@ -218,9 +224,49 @@ export default class ReservedTags {
         `the tag "${tag}" belongs to the firewall: changing it takes an XO administrator or the administrate permission on the pool`
       )
     }
+  }
 
-    // for a VM being created, `object` is its template: noted for nothing
-    this.#note(object.id, user, { added, removed })
+  /**
+   * The tags of a VM created from a template by `vm.create`, checked: the new
+   * VM gets `tags` instead of the template's, or, when `tags` is omitted, the
+   * template's, or the resource set's if there is one; the resource set's
+   * tags are added in every case. Compared with the template's:
+   *
+   * - a reserved tag added (not by the resource set, which an administrator
+   *   chose) goes through the guard;
+   * - a group tag (reserved, but not `vdf:quarantine`) not kept is fine: it
+   *   is what `stripInheritedReservedTags` would do;
+   * - `vdf:quarantine` is kept when `tags` is omitted, whoever the user is;
+   *   `tags` without it remove it: through the guard;
+   * - a group tag kept is inherited: call `stripInheritedReservedTags` on the
+   *   new VM, before it can be started.
+   *
+   * @param {object | undefined} user - the XO user creating the VM
+   * @param {object} template - the XO record of the template
+   * @param {string[] | undefined} tags - the tags requested, if any
+   * @param {string[] | undefined} resourceSetTags - the tags of the resource set, if any
+   * @returns {Promise<string[]>} the tags of the new VM
+   * @throws {Error} `forbiddenOperation` if the user may not add or remove a reserved tag this way
+   */
+  async checkNewVmTags(user, template, tags, resourceSetTags) {
+    const templateTags = template.tags ?? []
+    let newTags
+    if (tags !== undefined) {
+      newTags = [...tags, ...(resourceSetTags ?? [])]
+    } else {
+      newTags = [...(resourceSetTags ?? templateTags)]
+      // nobody asked to remove it
+      if (templateTags.includes(QUARANTINE_TAG) && !newTags.includes(QUARANTINE_TAG)) {
+        newTags.push(QUARANTINE_TAG)
+      }
+    }
+
+    // the VM doesn't exist yet: nothing to note, its tags are part of its creation
+    await this.#checkPermission(user, template, {
+      added: newTags.filter(tag => !templateTags.includes(tag) && !resourceSetTags?.includes(tag)),
+      removed: templateTags.includes(QUARANTINE_TAG) && !newTags.includes(QUARANTINE_TAG) ? [QUARANTINE_TAG] : [],
+    })
+    return newTags
   }
 
   /**

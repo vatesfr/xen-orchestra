@@ -178,18 +178,8 @@ export const create = defer(async function ($defer, params) {
   }
 
   const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
-  const paramsTags = params.tags
-  // the new VM starts with its template's tags, which `tags` replace: the tags
-  // that differ from the template's are checked here; the template's tags it
-  // keeps are inherited, stripped after its creation if the user may not add
-  // them; the resource set's tags were chosen by an administrator, they aren't
-  // checked
-  if (paramsTags !== undefined) {
-    await this.checkTagsChange(user, template, this.diffTags(template.tags, paramsTags))
-  }
-  if (resourceSetTags !== undefined) {
-    params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
-  }
+  // the template's reserved tags the new VM keeps are stripped after its creation
+  params.tags = await this.checkNewVmTags(user, template, params.tags, resourceSetTags)
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id, { destroyAllVifs: true })
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
