@@ -7,3 +7,8 @@ export function findParts(wrapper: Pick<VueWrapper, 'find'>, selector: string) {
     .findAll(':scope > *')
     .map(part => part.text())
 }
+
+// The parts of the first `InlineParts` the wrapper renders
+export function findInlineParts(wrapper: Pick<VueWrapper, 'find'>) {
+  return findParts(wrapper, '.inline-parts')
+}

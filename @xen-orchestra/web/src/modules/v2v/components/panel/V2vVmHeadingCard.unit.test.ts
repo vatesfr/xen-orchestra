@@ -3,7 +3,7 @@ import type { V2vMappingVmHeading } from '@/modules/v2v/composables/use-v2v-mapp
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -28,7 +28,7 @@ it('tags the VM with its status, then locates it on the source', () => {
 
   expect(Object.keys(findCardLabelledValues(wrapper))).toEqual([t('status'), t('location')])
   expect(findAccentedTags(wrapper)).toEqual([VM.heading.statusTag])
-  expect(findParts(wrapper, '.inline-parts')).toEqual(VM.heading.locationParts)
+  expect(findInlineParts(wrapper)).toEqual(VM.heading.locationParts)
 })
 
 it('leaves out the status of a VM without one', () => {
