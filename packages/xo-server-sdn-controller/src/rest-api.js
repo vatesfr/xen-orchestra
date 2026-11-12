@@ -50,8 +50,8 @@ const RESOURCES = [
     acl: 'network',
     type: 'network',
     idKey: 'networkId',
-    addRule: (controller, rule) => controller._addNetworkRule(rule),
-    deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule),
+    addRule: (controller, rule) => controller._addNetworkRule(rule, { strict: true }),
+    deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule, true, { strict: true }),
   },
   {
     collection: 'vifs',

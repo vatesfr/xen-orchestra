@@ -416,7 +416,7 @@ class SDNController extends EventEmitter {
 
     const addNetworkRule = params => {
       this._checkTrafficRulePriority(params, params.priority)
-      return this._addNetworkRule(params)
+      return this._addNetworkRule(params, { strict: true })
     }
     addNetworkRule.description = 'Add an ACL rule to a network'
     addNetworkRule.params = {
@@ -430,7 +430,7 @@ class SDNController extends EventEmitter {
     }
     addNetworkRule.permission = 'admin'
 
-    const deleteNetworkRule = params => this._deleteNetworkOfRule(params)
+    const deleteNetworkRule = params => this._deleteNetworkOfRule(params, true, { strict: true })
     deleteNetworkRule.description = 'Delete an ACL rule from a network'
     deleteNetworkRule.params = {
       direction: { type: 'string' },
@@ -801,7 +801,11 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _addNetworkRule({ networkId, allow, direction, ipRange = '', port, priority, protocol }) {
+  // strict: as _addRule's
+  async _addNetworkRule(
+    { networkId, allow, direction, ipRange = '', port, priority, protocol },
+    { strict = false } = {}
+  ) {
     try {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
@@ -868,6 +872,9 @@ class SDNController extends EventEmitter {
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
           log.info('addNetworkRule: Ignoring HOST_OFFLINE', { network: networkId })
+        } else if (strict && !this.#staticConfig.useDirectChannel) {
+          // the XAPI plugin failed: the rule isn't recorded
+          throw error
         } else {
           // continue on error: it could be normal to fail
           // (if no port where to apply the rule for example)
@@ -892,6 +899,9 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
@@ -969,9 +979,11 @@ class SDNController extends EventEmitter {
     }
   }
 
+  // strict: as _deleteRule's
   async _deleteNetworkOfRule(
     { direction, ipRange = '', port, priority, protocol, networkId },
-    updateOtherConfig = true
+    updateOtherConfig = true,
+    { strict = false } = {}
   ) {
     try {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
@@ -1012,7 +1024,7 @@ class SDNController extends EventEmitter {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
           log.error('deleteNetworkOfRule: error while deleting OpenFlow rule', error)
-          if (this.#staticConfig.useDirectChannel === false) {
+          if (!this.#staticConfig.useDirectChannel) {
             // means that the xapi python plugin failed
             throw error
           }
@@ -1050,6 +1062,9 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
