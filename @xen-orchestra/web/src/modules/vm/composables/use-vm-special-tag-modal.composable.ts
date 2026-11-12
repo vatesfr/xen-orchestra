@@ -39,6 +39,20 @@ export function useVmSpecialTagModal() {
     }
   }
 
+  const { open: openError } = useOverlay({
+    component: () => import('@/modules/vm/components/tags/VmTagErrorModal.vue'),
+    events: { onConfirm: true },
+  })
+
+  function openTagErrorModal(tag: string, action: VmSpecialTagAction, message: string) {
+    return openError({
+      props: {
+        title: action === 'add' ? t('vm-tag:add-failed', { tag }) : t('vm-tag:remove-failed', { tag }),
+        description: message,
+      },
+    })
+  }
+
   function openSpecialTagModal(tag: string, action: VmSpecialTagAction, onConfirm: () => void) {
     return open({
       props: getTexts(tag, action),
@@ -46,5 +60,5 @@ export function useVmSpecialTagModal() {
     })
   }
 
-  return { openSpecialTagModal }
+  return { openSpecialTagModal, openTagErrorModal }
 }

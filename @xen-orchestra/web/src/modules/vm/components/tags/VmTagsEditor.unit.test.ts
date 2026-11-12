@@ -1,5 +1,6 @@
 import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { ApiError } from '@/shared/error/api.error.ts'
 import type { fetchDelete, fetchPut } from '@/shared/utils/fetch.util.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { getButton } from '@/test/get-button.ts'
@@ -465,5 +466,55 @@ describe('special tags', () => {
     await confirmModal(wrapper)
 
     expect(remove).toHaveBeenCalledWith(`vms/vm-42/tags/${encodeURIComponent('xo:no-bak=Reason')}`)
+  })
+})
+
+describe('refused tag changes', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  it('shows the reason given by the server', async () => {
+    const reason = 'this tag is reserved'
+    put.mockRejectedValue(
+      new ApiError('Forbidden', { status: 403, cause: { error: 'forbidden operation: x', data: { reason } } })
+    )
+
+    const wrapper = mountTagsEditor()
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'db')
+
+    expect(findModalTexts(wrapper)).toMatchObject({
+      title: t('vm-tag:add-failed', { tag: 'db' }),
+      content: reason,
+      confirm: t('action:close'),
+    })
+  })
+
+  it('shows the error message when the server gives no reason', async () => {
+    remove.mockRejectedValue(new Error('Network down'))
+
+    const wrapper = mountTagsEditor()
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'web')
+
+    expect(findModalTexts(wrapper)).toMatchObject({
+      title: t('vm-tag:remove-failed', { tag: 'web' }),
+      content: 'Network down',
+    })
+  })
+
+  it('closes the error', async () => {
+    put.mockRejectedValue(new Error('Network down'))
+
+    const wrapper = mountTagsEditor()
+
+    await openTagSelect(wrapper)
+    await clickTagOption(wrapper, 'db')
+    await confirmModal(wrapper)
+
+    expect(findModalTexts(wrapper)).toBeUndefined()
   })
 })
