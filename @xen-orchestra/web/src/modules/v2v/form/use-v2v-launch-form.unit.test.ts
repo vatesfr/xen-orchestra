@@ -44,7 +44,7 @@ describe('concurrencyInputBindings', () => {
   it('labels the concurrency, required', () => {
     const form = mountV2vLaunchForm()
 
-    expect(form.concurrencyInputBindings).toMatchObject({ label: form.t('concurrency'), required: true })
+    expect(form.concurrencyInputBindings).toMatchObject({ label: form.t('concurrent-vms'), required: true })
   })
 })
 

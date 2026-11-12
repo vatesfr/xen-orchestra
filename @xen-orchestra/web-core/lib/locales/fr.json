@@ -338,6 +338,7 @@
   "compression": "Compression",
   "compression-not-available": "La compression n'est pas disponible pour les SRs du même pool.",
   "concurrency": "Concurrence",
+  "concurrent-vms": "VMs simultanées",
   "configuration": "Configuration",
   "configure-for-protected": "Pour garantir la protection de vos VMs, vous pouvez configurer un {backup-job}",
   "configure-in-xo-5": "Configurer dans XO 5",
