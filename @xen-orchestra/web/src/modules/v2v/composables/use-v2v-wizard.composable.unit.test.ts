@@ -68,8 +68,7 @@ describe('currentStep', () => {
   it('stays on the VMs step while the pools load', async () => {
     const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
 
-    xoCollectionsMock.pools.value = []
-    xoCollectionsMock.arePoolsReady.value = false
+    xoCollectionsMock.startLoadingPools()
     await nextTick()
 
     expect(wizard.currentStep).toBe('vms')
@@ -107,24 +106,17 @@ describe('summary', () => {
     expect(wizard.summary).toBe(V2V_WIZARD_SOURCE.connection.host)
   })
 
-  it('names the source and the pool past the destination step', async () => {
+  it.each([
+    ['its name', () => {}, V2V_LIST_POOL.name_label],
+    ['its id while the pools load', () => xoCollectionsMock.startLoadingPools(), V2V_LIST_POOL.id],
+  ])('names the source and the pool by %s past the destination step', async (_, setPools, destination) => {
     const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
 
-    expect(wizard.summary).toBe(
-      wizard.t('source-to-destination', {
-        source: V2V_WIZARD_SOURCE.connection.host,
-        destination: V2V_LIST_POOL.name_label,
-      })
-    )
-  })
-
-  it('names the source alone while the pools load', async () => {
-    const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
-
-    xoCollectionsMock.pools.value = []
-    xoCollectionsMock.arePoolsReady.value = false
+    setPools()
     await nextTick()
 
-    expect(wizard.summary).toBe(V2V_WIZARD_SOURCE.connection.host)
+    expect(wizard.summary).toBe(
+      wizard.t('source-to-destination', { source: V2V_WIZARD_SOURCE.connection.host, destination })
+    )
   })
 })

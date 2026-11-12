@@ -49,6 +49,11 @@ export const xoCollectionsMock = {
     this.pifs.value = []
     this.templates.value = []
   },
+  // The pools of a loading collection: none yet, and not ready
+  startLoadingPools() {
+    this.pools.value = []
+    this.arePoolsReady.value = false
+  },
 }
 
 // Use as `vi.mock(import('<collection module>'), () => import('@/test/mock-xo-collections.ts'))`
