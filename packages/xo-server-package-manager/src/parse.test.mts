@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
+import { getOverallPercentage, parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
 
 // =============================================================================
 // parseUpgradableList
@@ -130,20 +130,52 @@ Description: older version
 // =============================================================================
 
 describe('parseStatusFdLine', () => {
-  it('returns undefined for non-pmstatus lines', () => {
-    assert.equal(parseStatusFdLine('dlstatus:1:0:Downloading libgnutls30'), undefined)
+  it('returns undefined for other lines', () => {
+    assert.equal(parseStatusFdLine('pmerror:curl:50.0000:dpkg failed'), undefined)
     assert.equal(parseStatusFdLine(''), undefined)
     assert.equal(parseStatusFdLine('some random text'), undefined)
   })
 
-  it('parses the percentage', () => {
-    assert.equal(parseStatusFdLine('pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...'), 50)
-    assert.equal(parseStatusFdLine('pmstatus:curl:0.0000:Preparing curl (amd64)...'), 0)
-    assert.equal(parseStatusFdLine('pmstatus:curl:33.3333:Unpacking curl (amd64)'), 33.33)
+  it('parses the download progress', () => {
+    assert.deepStrictEqual(parseStatusFdLine('dlstatus:3:21.4667:Retrieving file 3 of 4'), {
+      phase: 'download',
+      percentage: 21.47,
+    })
   })
 
-  it('returns undefined for malformed pmstatus lines', () => {
+  it('parses the installation progress', () => {
+    assert.deepStrictEqual(parseStatusFdLine('pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...'), {
+      phase: 'install',
+      percentage: 50,
+    })
+    assert.deepStrictEqual(parseStatusFdLine('pmstatus:curl:0.0000:Preparing curl (amd64)...'), {
+      phase: 'install',
+      percentage: 0,
+    })
+  })
+
+  it('returns undefined for malformed lines', () => {
     assert.equal(parseStatusFdLine('pmstatus:curl'), undefined)
-    assert.equal(parseStatusFdLine('pmstatus:curl:notanumber:msg'), undefined)
+    assert.equal(parseStatusFdLine('dlstatus:1:notanumber:msg'), undefined)
+  })
+})
+
+// =============================================================================
+// getOverallPercentage
+// =============================================================================
+
+describe('getOverallPercentage', () => {
+  it('maps the download to the first half', () => {
+    assert.equal(getOverallPercentage({ phase: 'download', percentage: 0 }, true), 0)
+    assert.equal(getOverallPercentage({ phase: 'download', percentage: 100 }, true), 50)
+  })
+
+  it('maps the installation to the second half after a download', () => {
+    assert.equal(getOverallPercentage({ phase: 'install', percentage: 0 }, true), 50)
+    assert.equal(getOverallPercentage({ phase: 'install', percentage: 100 }, true), 100)
+  })
+
+  it('maps the installation to the whole progress without download', () => {
+    assert.equal(getOverallPercentage({ phase: 'install', percentage: 40 }, false), 40)
   })
 })

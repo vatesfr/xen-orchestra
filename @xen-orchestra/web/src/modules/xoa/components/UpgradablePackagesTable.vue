@@ -51,7 +51,7 @@ const { HeadCells, BodyCells } = useUpgradablePackageColumns({
       name: r => r(upgradablePackage.name),
       version: r => r(`${upgradablePackage.installedVersion} → ${upgradablePackage.version}`),
       description: r => r(upgradablePackage.description),
-      upgrade: r => r(t('action:update'), () => run(), { disabled: !canRun.value }),
+      upgrade: r => r(t('action:upgrade'), () => run(), { disabled: !canRun.value }),
     }
   },
 })

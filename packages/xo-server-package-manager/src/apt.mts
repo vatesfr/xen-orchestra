@@ -2,7 +2,7 @@ import type { UpgradablePackage } from '@vates/types'
 import { execFile, spawn } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
-import { parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
+import { getOverallPercentage, parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -115,6 +115,7 @@ export async function upgradePackages({
     stderr += chunk
   })
 
+  let hasDownloaded = false
   let pendingStatus = ''
   const statusFd = child.stdio[3] as NodeJS.ReadableStream
   statusFd.setEncoding('utf8')
@@ -122,9 +123,10 @@ export async function upgradePackages({
     const lines = (pendingStatus + chunk).split('\n')
     pendingStatus = lines.pop()!
     for (const line of lines) {
-      const percentage = parseStatusFdLine(line)
-      if (percentage !== undefined) {
-        onProgress(percentage)
+      const status = parseStatusFdLine(line)
+      if (status !== undefined) {
+        hasDownloaded ||= status.phase === 'download'
+        onProgress(getOverallPercentage(status, hasDownloaded))
       }
     }
   })

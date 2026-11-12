@@ -57,18 +57,43 @@ export function parseDescriptions(stdout: string): Map<string, string> {
   return descriptions
 }
 
+export type AptPhase = 'download' | 'install'
+
+export type StatusFdProgress = {
+  phase: AptPhase
+  percentage: number
+}
+
+const PHASE_BY_STATUS_TYPE: Record<string, AptPhase> = { dlstatus: 'download', pmstatus: 'install' }
+
 /**
- * Parse a line of apt's Status-Fd stream and return the overall percentage
+ * Parse a line of apt's Status-Fd stream, each percentage is the progress of the whole phase
  *
- * Format: pmstatus:package:percentage:message
- * Example: pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...
+ * Format: type:item:percentage:message
+ * Examples:
+ *   dlstatus:3:21.4667:Retrieving file 3 of 4
+ *   pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...
  */
-export function parseStatusFdLine(line: string): number | undefined {
+export function parseStatusFdLine(line: string): StatusFdProgress | undefined {
   const [type, , percentage] = line.split(':')
-  if (type !== 'pmstatus' || percentage === undefined) {
+  const phase = type === undefined ? undefined : PHASE_BY_STATUS_TYPE[type]
+  if (phase === undefined || percentage === undefined) {
     return undefined
   }
 
   const parsedPercentage = parseFloat(percentage)
-  return isNaN(parsedPercentage) ? undefined : Math.round(parsedPercentage * 100) / 100
+  return isNaN(parsedPercentage) ? undefined : { phase, percentage: Math.round(parsedPercentage * 100) / 100 }
+}
+
+/**
+ * Combine the progress of a phase into the progress of the whole operation
+ *
+ * The download and the installation are half of the progress each, unless nothing has been downloaded (packages
+ * already in the cache): the installation is then the whole progress.
+ */
+export function getOverallPercentage({ phase, percentage }: StatusFdProgress, hasDownloaded: boolean): number {
+  if (phase === 'download') {
+    return percentage / 2
+  }
+  return hasDownloaded ? 50 + percentage / 2 : percentage
 }
