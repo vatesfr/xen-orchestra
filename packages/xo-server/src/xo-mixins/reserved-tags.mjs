@@ -33,7 +33,7 @@ const QUARANTINE_TAG = 'vdf:quarantine'
 //   missed, and an object that appears already tagged isn't reported;
 // - a VM XO is creating gets its tags set after it appears (createVm): its
 //   changes nobody noted are part of its creation, not reported, while its
-//   `xo:creation` date is recent;
+//   `xo:creation` date is less than 30 seconds old (CREATION_WINDOW_MS);
 // - a change XO let through but that failed is never reported by XAPI: its
 //   note expires; one that changes nothing (adding a tag the object has,
 //   removing one it lacks) isn't noted.
@@ -43,8 +43,11 @@ export const RESERVED_TAG_CHANGE_EVENT = 'xo:reservedTagChanged'
 // within seconds, a longer wait lets a leftover note misattribute a later one
 const NOTE_TTL_MS = 30 * 1000
 
-// how long after its creation a VM is still being created by XO (createVm)
-const CREATION_WINDOW_MS = 2 * 60 * 1000
+// how long after its creation a VM is still being created by XO (createVm):
+// XO sets a new VM's tags right after creating it, well within 30 seconds; the
+// price is that a change made outside XO in a new VM's first 30 seconds is not
+// reported
+const CREATION_WINDOW_MS = 30 * 1000
 
 const WATCHED_TYPES = new Set(['VM', 'network'])
 

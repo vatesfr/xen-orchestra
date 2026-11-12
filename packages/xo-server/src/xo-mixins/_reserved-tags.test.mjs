@@ -514,15 +514,21 @@ describe('reserved tag changes reported by XAPI', () => {
     )
   })
 
-  it('a VM XO is creating: its tags are part of its creation', () => {
-    const creation = { date: new Date().toISOString(), user: 'admin' }
+  it('a VM XO is creating: its tags are part of its creation, for 30 seconds', t => {
+    let now = 1_000_000
+    t.mock.method(Date, 'now', () => now)
+    const creation = { date: new Date(now).toISOString(), user: 'admin' }
     const { events, update } = createWatching([{ ...VM, tags: [], creation }])
+    now += 29 * 1000
     update({ ...VM, tags: ['vdf:role=app'], creation })
     assert.deepEqual(events, [])
 
-    // created long ago: reported
-    const old = { date: new Date(Date.now() - 3 * 60 * 1000).toISOString(), user: 'admin' }
-    update({ ...VM, tags: [], creation: old })
-    assert.equal(events[0].outsideXo, true)
+    // created 30 seconds ago: reported
+    now += 1000
+    update({ ...VM, tags: [], creation })
+    assert.deepEqual(
+      events.map(({ tag, change, outsideXo }) => ({ tag, change, outsideXo })),
+      [{ tag: 'vdf:role=app', change: 'remove', outsideXo: true }]
+    )
   })
 })
