@@ -292,6 +292,7 @@
     <!-- which running VMs no policy protects, not only how many -->
     <UiCard v-if="publishedDocument.policies.length > 0 && unprotectedVms.length > 0" class="unprotected">
       <UiTitle>{{ t('firewall:overview:not-protected:list', { n: unprotectedVms.length }) }}</UiTitle>
+      <UiInfo accent="warning" wrap>{{ t('firewall:overview:not-protected:hint') }}</UiInfo>
       <div class="vm-links">
         <UiLink
           v-for="vm of shownUnprotected"
@@ -462,6 +463,7 @@ import VdfTechnicalDetails from '@/modules/vdf/components/overview/VdfTechnicalD
 import VdfServicesStatus from '@/modules/vdf/components/services/VdfServicesStatus.vue'
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
+import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'
 import { useVdfOutsideText } from '@/modules/vdf/composables/vdf-outside.composable.ts'
@@ -476,7 +478,7 @@ import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
-import { policiesByTier, reportedTierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import { policiesByTier, reportedTierValue, vmsWithUncoveredInterface } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import {
   agentGaps,
@@ -602,11 +604,14 @@ const runningMonitoredCount = computed(
   () => monitoredVms.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING).length
 )
 
-// running VMs no policy applies to (not even in monitor mode), by name
+// running VMs with an interface no policy applies to (not even in monitor
+// mode), by name: the policies the VM's Firewall tab lists, per interface
+const { interfacesOf } = useVdfInterfaces()
+
 const unprotectedVms = computed(() =>
-  runningVms.value
-    .filter(vm => !protectedVms.value.includes(vm) && !monitoredVms.value.includes(vm))
-    .sort((vmA, vmB) => vmA.name_label.localeCompare(vmB.name_label))
+  vmsWithUncoveredInterface(runningVms.value, publishedDocument.value, interfacesOf).sort((vmA, vmB) =>
+    vmA.name_label.localeCompare(vmB.name_label)
+  )
 )
 
 const UNPROTECTED_SHOWN = 5

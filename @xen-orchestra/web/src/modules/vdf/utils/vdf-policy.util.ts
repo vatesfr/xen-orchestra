@@ -20,7 +20,7 @@ import {
   ruleNumber,
 } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isMonitored, withFormatVersion } from '@/modules/vdf/utils/vdf-monitor.util.ts'
-import { isNetworksOnly, selectsByNetwork } from '@/modules/vdf/utils/vdf-networks.util.ts'
+import { isNetworksOnly, selectsByNetwork, VDF_UNPROTECTED_TAG } from '@/modules/vdf/utils/vdf-networks.util.ts'
 import { portBounds } from '@/modules/vdf/utils/vdf-ports.util.ts'
 import {
   allRules,
@@ -231,6 +231,28 @@ export function effectiveTiers(vmTags: string[], document: VdfDocument, ifaceNet
       }
     })
     .filter(tier => tier.policies.length > 0)
+}
+
+// The VMs with an interface no published policy applies to (monitored ones
+// included): not filtered there, whatever the VM's other interfaces. What
+// applies is what the VM's Firewall tab shows (`effectiveTiers`), for one
+// interface at a time; interfaces on a vdf:unprotected network are out of
+// the firewall by choice. A document without policy is not set up: nothing.
+export function vmsWithUncoveredInterface<T extends { tags: string[] }>(
+  vms: T[],
+  document: VdfDocument,
+  interfacesOf: (vm: T) => { netTags: string[] }[]
+): T[] {
+  if (document.policies.length === 0) {
+    return []
+  }
+
+  return vms.filter(vm =>
+    interfacesOf(vm).some(
+      ({ netTags }) =>
+        !netTags.includes(VDF_UNPROTECTED_TAG) && effectiveTiers(vm.tags, document, [netTags]).length === 0
+    )
+  )
 }
 
 export type VdfChange = {

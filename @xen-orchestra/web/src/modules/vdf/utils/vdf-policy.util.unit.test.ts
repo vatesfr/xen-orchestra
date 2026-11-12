@@ -16,6 +16,7 @@ import {
   tierValue,
   toTierRef,
   vmGroupNames,
+  vmsWithUncoveredInterface,
 } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { describe, expect, it } from 'vitest'
 
@@ -332,5 +333,53 @@ describe('moves', () => {
     expect(moveRule(moved, 'app', 8, 'top')).toBe(true)
     expect(moved.policies[0].ingress.map(({ id }) => id)).toEqual([8, 1, 7])
     expect(moveRule(moved, 'app', 7, 'down')).toBe(false)
+  })
+})
+
+describe('vmsWithUncoveredInterface', () => {
+  const doc: VdfDocument = {
+    groups: { web: { tags: ['vdf:role=web'] }, cust: { networks: ['vdf:net=customer'] } },
+    policies: [{ name: 'web', appliedTo: 'web', default: 'drop', ingress: [] }],
+  }
+  const withBaseline: VdfDocument = {
+    ...doc,
+    policies: [...doc.policies, { name: 'cust', appliedTo: 'cust', default: 'drop', ingress: [] }],
+  }
+
+  const vm = (name: string, tags: string[], ...networks: string[][]) => ({ name, tags, networks })
+  const interfacesOf = (vm: { networks: string[][] }) => vm.networks.map(netTags => ({ netTags }))
+  const names = (vms: { name: string }[]) => vms.map(({ name }) => name)
+
+  it('leaves out a VM in a group with a policy', () => {
+    expect(vmsWithUncoveredInterface([vm('a', ['vdf:role=web'], [])], doc, interfacesOf)).toEqual([])
+  })
+
+  it('leaves out a VM in no group on a network with a network-wide policy', () => {
+    const vms = [vm('a', [], ['vdf:net=customer'])]
+
+    expect(vmsWithUncoveredInterface(vms, withBaseline, interfacesOf)).toEqual([])
+    expect(names(vmsWithUncoveredInterface(vms, doc, interfacesOf))).toEqual(['a'])
+  })
+
+  it('reports a VM in no group on a network without a network-wide policy', () => {
+    expect(names(vmsWithUncoveredInterface([vm('a', [], ['vdf:net=other'])], withBaseline, interfacesOf))).toEqual([
+      'a',
+    ])
+  })
+
+  it('leaves out an interface on a vdf:unprotected network', () => {
+    const vms = [vm('a', [], ['vdf:net=customer', 'vdf:unprotected'])]
+
+    expect(vmsWithUncoveredInterface(vms, withBaseline, interfacesOf)).toEqual([])
+  })
+
+  it('reports a VM with one uncovered interface among several', () => {
+    const vms = [vm('a', [], ['vdf:net=customer'], ['vdf:net=other'])]
+
+    expect(names(vmsWithUncoveredInterface(vms, withBaseline, interfacesOf))).toEqual(['a'])
+  })
+
+  it('reports nothing when no policy is published', () => {
+    expect(vmsWithUncoveredInterface([vm('a', [], [])], { groups: {}, policies: [] }, interfacesOf)).toEqual([])
   })
 })

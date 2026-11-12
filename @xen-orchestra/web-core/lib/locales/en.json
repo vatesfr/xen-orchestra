@@ -1167,6 +1167,7 @@
   "firewall:overview:no-host": "No host in this pool",
   "firewall:overview:no-running-vm": "No running VM",
   "firewall:overview:not-protected": "Not protected",
+  "firewall:overview:not-protected:hint": "Their traffic is not filtered, on the interfaces no policy applies to. A policy on their network (a baseline) would cover them.",
   "firewall:overview:not-protected:list": "Not protected: 1 running VM no policy applies to | Not protected: {n} running VMs no policy applies to",
   "firewall:overview:policies": "Published policies",
   "firewall:overview:policies:description": "What the hosts enforce now",
