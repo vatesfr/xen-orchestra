@@ -9,7 +9,7 @@
       <VtsIcon v-tooltip="t('default-storage-repository')" name="status:primary-circle" size="medium" />
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="sr.name_label">
     <RouterLink
       v-slot="{ isActive, href }"
       :to="{ name: '/sr/[id]/general', params: { id: sr.id }, query: scopeQuery }"

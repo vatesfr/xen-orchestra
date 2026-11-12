@@ -4,7 +4,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import { formatDate } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -87,19 +87,11 @@ describe('installDateFormatted', () => {
     expect(result.installDateFormatted).toBe(result.t('unknown'))
   })
 
-  it('formats the install date with the current locale', () => {
+  it('formats the install date with formatDate', () => {
     const installTime = 1660000000
-    const { wrapper } = mountComposable(() => {
-      const { locale, t } = useI18n()
-      const { installDateFormatted } = useXoVmUtils(createVm({ installTime }))
-      const expected = new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(
-        new Date(parseDateTime(installTime * 1000))
-      )
+    const result = mountVmUtils({ installTime })
 
-      return { installDateFormatted, expected, t }
-    })
-
-    expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
+    expect(result.installDateFormatted).toBe(formatDate(installTime * 1000))
   })
 })
 
@@ -209,17 +201,17 @@ describe('guestToolsDisplay', () => {
   })
 })
 
-describe('isChangingState', () => {
-  it('is false when no state-changing operation is pending', () => {
+describe('hasPendingOperation', () => {
+  it('is false when no tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: {} })
 
-    expect(result.isChangingState).toBe(false)
+    expect(result.hasPendingOperation).toBe(false)
   })
 
-  it('is true while a state-changing operation is pending', () => {
+  it('is true while a tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
 
-    expect(result.isChangingState).toBe(true)
+    expect(result.hasPendingOperation).toBe(true)
   })
 })
 
@@ -227,7 +219,9 @@ describe('currentOperation', () => {
   it('maps the pending operation to a translated label', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
 
-    expect(result.currentOperation).toBe(result.t('operation:snapshot'))
+    expect(result.currentOperation).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:snapshot') })
+    )
   })
 
   it('falls back to an empty label for an unknown operation', () => {
@@ -240,6 +234,22 @@ describe('currentOperation', () => {
     const result = mountVmUtils({ current_operations: {} })
 
     expect(result.currentOperation).toBe('')
+  })
+})
+
+describe('iconTooltip', () => {
+  it('shows the operation changing the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
+
+    expect(result.iconTooltip).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:clean-reboot') })
+    )
+  })
+
+  it('is empty while no operation changes the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
+
+    expect(result.iconTooltip).toBe('')
   })
 })
 

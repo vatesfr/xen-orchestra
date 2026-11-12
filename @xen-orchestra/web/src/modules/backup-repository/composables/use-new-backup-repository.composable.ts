@@ -2,15 +2,12 @@ import {
   type NewBackupRepositoryPayload,
   useXoBackupRepositoryCreateJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
-import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { ref } from 'vue'
 
 export function useNewBackupRepository() {
   const payload = ref<NewBackupRepositoryPayload>()
-
-  const { $context } = useXoBackupRepositoryCollection()
 
   const { run } = useXoBackupRepositoryCreateJob(payload)
 
@@ -27,9 +24,6 @@ export function useNewBackupRepository() {
             console.error('Failed to create backup repository', result.reason)
             return KEEP_OVERLAY_OPEN
           }
-
-          // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
-          $context.forceReload()
         } catch (error) {
           console.error('Error when creating backup repository', error)
           return KEEP_OVERLAY_OPEN

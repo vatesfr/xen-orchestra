@@ -25,28 +25,26 @@ The wizard walks four steps: **Connect** (your host address and credentials), **
 
 ## XOA specifications and sizing {#xoa-vm-specifications}
 
-By default, the deployed VM is configured with:
+The deploy form on [vates.tech/deploy](https://vates.tech/deploy/) lets you size the VM at deployment, with three presets:
 
-- 2 vCPUs
-- 2 GiB of RAM
-- 20 GiB of free SR space (2 GiB on thin provisioned SR)
+| Preset | vCPUs | RAM | Typical usage |
+| --- | --- | --- | --- |
+| Small | 2 | 4 GiB | A few pools, no backup jobs, no V2V |
+| Medium | 4 | 8 GiB | Enterprise usage: backup jobs, V2V, more pools |
+| **Large** (default) | 8 | 16 GiB | Large infrastructures with backup jobs |
+
+The VM also needs 20 GiB of free SR space (2 GiB on a thin-provisioned SR).
 
 ### Sizing your XOA {#sizing}
 
-The right size depends on what you ask of it:
+The default preset targets large infrastructures running backup jobs, which is what most production deployments look like. A few rules of thumb:
 
-| Usage                                                       | vCPUs  | RAM                    |
-| ----------------------------------------------------------- | ------ | ---------------------- |
-| A few pools, no backup jobs, no V2V                         | 2      | 2 GiB (strict minimum) |
-| Enterprise usage (backup jobs, V2V, more pools)             | 4      | 4 GiB minimum          |
-| Working at scale (large infrastructure, heavy backup load)  | 4 to 8 | 8 GiB                  |
-
-A few rules of thumb:
-
-- **2 GiB and 2 vCPUs is the strict minimum**, fine for a few pools without backups or V2V.
-- As soon as you use XOA in an enterprise context, **4 GiB and 4 vCPUs** should be your baseline.
-- **8 GiB** is better when working at scale, and **8 vCPUs** can bring extra speed when you run a lot of backups (transfers and compression are parallel workloads).
+- **4 GiB and 2 vCPUs** is enough for a few pools without backups or V2V. 2 GiB is the strict minimum, for labs only.
+- As soon as you run backup jobs or V2V, use at least **8 GiB and 4 vCPUs**.
+- **16 GiB and 8 vCPUs** for large infrastructures or a heavy backup load: transfers and compression are parallel workloads, so they benefit from more vCPUs.
 - You can always give more, but **measure** afterwards to check the improvement is real before going further.
+
+You can resize the VM at any time: shut it down, change its vCPUs and RAM, and start it again. Since Xen Orchestra 6.8, `xo-server` sets its own memory limit to 70% of the VM's RAM at each start, so there is nothing else to change. If you deployed with another method, the VM starts with 2 vCPUs and 2 GiB: resize it right after deployment.
 
 ## First login
 

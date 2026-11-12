@@ -605,10 +605,12 @@ const _createVm = defer(async ($defer: Defer) => {
       xapi.vm.setAffinityHost(vmRefs, vmCreationParams.value.affinityHost),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
-      xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
       xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
+
+    // Replaces the whole `platform` map, so it must not run concurrently with other `platform` changes
+    await xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket)
 
     // VTPM
     if (vmState.boot_firmware === 'uefi' && vmState.create_vtpm) {
@@ -631,7 +633,10 @@ const _createVm = defer(async ($defer: Defer) => {
       if ((newVdis.length === 0 && existingVdis.length === 0) || installMethod === 'network') {
         const { order } = vm.HVM_boot_params
 
-        await xapi.call('VM.set_HVM_boot_params', [vmRefs[0], { order: order ? 'n' + order.replace('n', '') : 'ncd' }])
+        await xapi.call('VM.set_HVM_boot_params', [
+          vmRefs[0],
+          { ...vm.HVM_boot_params, order: order ? 'n' + order.replace('n', '') : 'ncd' },
+        ])
       }
     } else {
       if (vm.PV_bootloader === 'eliloader') {

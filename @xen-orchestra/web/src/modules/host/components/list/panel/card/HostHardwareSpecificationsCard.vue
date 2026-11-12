@@ -1,9 +1,7 @@
 <template>
-  <UiPanelCard class="host-hardware-specifications-card">
-    <UiCardTitle>
-      {{ t('hardware-specifications') }}
-    </UiCardTitle>
-    <div class="content">
+  <UiPanelCard>
+    <UiPanelCardTitle size="medium" :label="t('hardware-specifications')" />
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
         <template #value>{{ manufacturerInfo }}</template>
@@ -18,7 +16,7 @@
           <VtsCopyButton :value="coreSocketInfo" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -26,9 +24,10 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostCoreSocketInfo, getHostManufacturerInfo } from '@/modules/host/utils/xo-host.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,13 +41,3 @@ const manufacturerInfo = computed(() => getHostManufacturerInfo(host))
 
 const coreSocketInfo = computed(() => getHostCoreSocketInfo(host))
 </script>
-
-<style scoped lang="postcss">
-.host-hardware-specifications-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

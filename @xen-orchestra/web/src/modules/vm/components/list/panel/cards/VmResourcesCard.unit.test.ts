@@ -5,7 +5,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues } from '@/test/find-labelled-values.ts'
+import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -50,7 +50,7 @@ function attachVdis(...sizes: number[]) {
 it('renders the card title', () => {
   const wrapper = mountResourcesCard()
 
-  expect(wrapper.get('.ui-card-title .title').text()).toBe(t('resources'))
+  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('resources'))
 })
 
 it('shows the vCPU count, the formatted RAM and the summed disk space of the VM', () => {

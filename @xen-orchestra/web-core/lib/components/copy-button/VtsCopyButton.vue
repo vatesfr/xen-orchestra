@@ -1,6 +1,7 @@
 <template>
   <UiButtonIcon
-    v-tooltip="!isSupported ? t('copy-unavailable-http') : copied && t('copied')"
+    v-tooltip="tooltipContent"
+    :aria-label="label"
     :disabled="!isSupported"
     :icon
     size="small"
@@ -16,8 +17,9 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { value } = defineProps<{
+const { value, label } = defineProps<{
   value: string
+  label?: string
 }>()
 
 const { t } = useI18n()
@@ -25,4 +27,16 @@ const { t } = useI18n()
 const { copy, copied, isSupported } = useCopyToClipboard(() => value)
 
 const icon = computed(() => (copied.value ? 'fa:check-circle' : 'fa:copy'))
+
+const tooltipContent = computed(() => {
+  if (!isSupported.value) {
+    return t('copy-unavailable-http')
+  }
+
+  if (copied.value) {
+    return t('copied')
+  }
+
+  return label ?? false
+})
 </script>

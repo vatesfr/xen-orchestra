@@ -19,6 +19,7 @@ import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-ch
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 import { createLogger } from '@xen-orchestra/log'
+import lockedError from './_lockedError.js'
 import { PassThrough, Transform, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
@@ -36,6 +37,13 @@ const MAX_PART_NUMBER = 10000
 const MIN_PART_SIZE = 5 * 1024 * 1024
 const { debug, info, warn } = createLogger('xo:fs:s3')
 
+// how often a holder rewrites its lock object
+export const REFRESH_INTERVAL = 30e3
+
+// how long a lock object may go without being rewritten before a contender takes it over: a holder survives a few
+// failed refreshes, and one which crashed blocks the path for 3 minutes at most
+export const STALE_AFTER = 180e3
+
 export default class S3Handler extends RemoteHandlerAbstract {
   #bucket
   #dir
@@ -43,6 +51,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #httpAgent
   #httpsAgent
   #immutable = false
+  // the S3 user may not read the bucket's Object Lock configuration: whether it is enabled is unknown
+  #objectLockUnknown = false
   #maxPartSize
   #maxPartNumber
   #minPartSize
@@ -303,7 +313,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _unlink(path) {
-    await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    try {
+      await this.#s3.send(new DeleteObjectCommand(this.#createParams(path)))
+    } catch (error) {
+      // Some providers answers 404 NoSuchKey where AWS answers 204
+      if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
+        throw error
+      }
+    }
 
     if (await this.#isNotEmptyDir(path)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
@@ -370,8 +387,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
-    return +result.ContentLength
+    try {
+      const result = await this.#s3.send(new HeadObjectCommand(this.#createParams(file)))
+      return +result.ContentLength
+    } catch (error) {
+      // a HEAD response has no body, so a missing object is reported as
+      // NotFound instead of the NoSuchKey the other methods get
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        const enoentError = new Error(`ENOENT: no such file '${file}'`, { cause: error })
+        enoentError.code = 'ENOENT'
+        enoentError.path = file
+        throw enoentError
+      }
+      throw error
+    }
   }
 
   async _read(file, buffer, position = 0) {
@@ -495,10 +524,89 @@ export default class S3Handler extends RemoteHandlerAbstract {
       if (error.$metadata.httpStatusCode === 403) {
         info(`s3 user doesnt have enough privilege to check for Object Lock, enable content MD5 header`)
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
+        if (!this.#objectLockUnknown) {
+          warn(
+            'the S3 user cannot read the Object Lock configuration of the bucket (s3:GetBucketObjectLockConfiguration), nothing is locked on this remote'
+          )
+        }
+        this.#objectLockUnknown = true
       } else if (error.Code === 'ObjectLockConfigurationNotFoundError' || error.$metadata.httpStatusCode === 501) {
         info(`Object lock is not available or not configured, don't add the content MD5 header`)
       } else {
         throw error
+      }
+    }
+  }
+
+  // Object Lock buckets keep the no-op lock of `RemoteHandlerAbstract`: every write of the lock object would leave
+  // a version retained for the whole retention period. So do the buckets whose Object Lock configuration the S3
+  // user cannot read (see `_sync()`).
+  //
+  // The lock is an object rewritten with plain writes, which every S3 provider supports: it is held while it is
+  // fresher than STALE_AFTER. It is not atomic: two contenders which find it free at the same time both take it, and
+  // a holder whose refreshes failed for STALE_AFTER keeps writing in a folder someone else took over.
+  //
+  // Its age is read on the provider's clock alone, `Last-Modified` against the `Date` of the response: XO's clock may
+  // not agree with the provider's, and one more than 2.5 minutes ahead would take over a lock its holder keeps
+  // refreshing (the SDK corrects its own clock only from 5 minutes off).
+  async _lock(path) {
+    if (this.isImmutable() || this.#objectLockUnknown) {
+      return super._lock(path)
+    }
+
+    // `<path>.lock`, the name of the local lock directory: the listings skip it already
+    const params = this.#createParams(`${path}.lock`)
+
+    // the requests are sent with the S3 client directly, not through the handler's methods: those go through the
+    // handler's concurrency limit, and a refresh queued behind long uploads would let the lock go stale
+    const write = () => this.#s3.send(new PutObjectCommand({ ...params, Body: '' }))
+
+    // the output of a HEAD has no `Date`: it is read from the response
+    let date
+    const head = new HeadObjectCommand(params)
+    head.middlewareStack.add(
+      next => async args => {
+        const result = await next(args)
+        date = result.response.headers.date
+        return result
+      },
+      { step: 'deserialize' }
+    )
+
+    let current
+    try {
+      current = await this.#s3.send(head)
+    } catch (error) {
+      if (error.name !== 'NotFound') {
+        throw error
+      }
+    }
+    // a provider which omits `Last-Modified` or `Date` never lets a lock be taken over: it stays held until released
+    const age = Date.parse(date) - current?.LastModified?.getTime()
+    if (current !== undefined && (Number.isNaN(age) || age <= STALE_AFTER)) {
+      throw lockedError(path)
+    }
+
+    await write()
+
+    let refreshing = Promise.resolve()
+    const interval = setInterval(() => {
+      refreshing = write().then(
+        () => {},
+        // a failed refresh is not a lost lock: the next one tries again
+        error => debug('lock could not be refreshed', { error, path })
+      )
+    }, REFRESH_INTERVAL)
+    interval.unref()
+
+    return async () => {
+      clearInterval(interval)
+      try {
+        // a refresh landing after the delete would write the lock again
+        await refreshing
+        await this.#s3.send(new DeleteObjectCommand(params))
+      } catch (error) {
+        warn('lock could not be released', { error, path })
       }
     }
   }

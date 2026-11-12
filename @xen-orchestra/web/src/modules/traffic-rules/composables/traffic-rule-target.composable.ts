@@ -1,16 +1,18 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import type { IconName } from '@core/icons'
 import type { TrafficRule } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 type TrafficRuleTargetEntry = {
   label: string
   icon: IconName
+  iconTooltip?: string
   to: LinkOptions['to']
   disabled?: boolean
 }
@@ -24,6 +26,7 @@ export function useTrafficRuleTarget() {
   const { getVifById } = useXoVifCollection()
   const { getVmById } = useXoVmCollection()
   const { getNetworkById } = useXoNetworkCollection()
+  const { getVmIconTooltip } = useXoVmOperationLabel()
 
   return (rule: TrafficRule): TrafficRuleTarget => {
     if (rule.type === 'network') {
@@ -47,7 +50,8 @@ export function useTrafficRuleTarget() {
       suffix: vm
         ? {
             label: vm.name_label,
-            icon: `object:vm:${toLower(vm.power_state)}`,
+            icon: getVmIcon(vm),
+            iconTooltip: getVmIconTooltip(vm),
             to: { name: '/vm/[id]/dashboard', params: { id: vm.id } },
           }
         : undefined,

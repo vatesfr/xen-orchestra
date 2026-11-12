@@ -88,38 +88,14 @@ export function getStoragesUsageTotals(storagesUsage: StorageUsage[]): { totalUs
   )
 }
 
-export function buildPercentProgressItems(usages: PercentUsage[]): ProgressBarGroupItem[] {
-  return usages.map(
-    usage =>
-      ({
-        id: usage.id,
-        label: usage.name_label,
-        current: usage.percent,
-        total: 100,
-      }) satisfies ProgressBarGroupItem
-  )
+export function toPercentProgressItem(usage: PercentUsage): ProgressBarGroupItem {
+  return { id: usage.id, label: usage.name_label, current: usage.percent, total: 100 }
 }
 
-export function buildHostsRamProgressItems(usages: HostRamUsage[]): ProgressBarGroupItem[] {
-  return usages.map(
-    usage =>
-      ({
-        id: usage.id,
-        label: usage.name_label,
-        current: usage.usage,
-        total: usage.size,
-      }) satisfies ProgressBarGroupItem
-  )
+export function toHostRamProgressItem(usage: HostRamUsage): ProgressBarGroupItem {
+  return { id: usage.id, label: usage.name_label, current: usage.usage, total: usage.size }
 }
 
-export function buildVmsRamProgressItems(usages: VmRamUsage[]): ProgressBarGroupItem[] {
-  return usages.map(
-    usage =>
-      ({
-        id: usage.id,
-        label: usage.name_label,
-        current: usage.memory - usage.memoryFree,
-        total: usage.memory,
-      }) satisfies ProgressBarGroupItem
-  )
+export function toVmRamProgressItem(usage: VmRamUsage): ProgressBarGroupItem {
+  return { id: usage.id, label: usage.name_label, current: usage.memory - usage.memoryFree, total: usage.memory }
 }

@@ -31,6 +31,7 @@ import {
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  incorrectStateResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -389,6 +390,8 @@ export class AclRoleController extends XoController<XoAclRole> {
   /**
    * Attach an ACL V2 role to a user.
    *
+   * An admin cannot be given a role: the RBAC does not apply to them.
+   *
    * Required privilege:
    * - resource: acl-role, action: update:users
    *
@@ -409,13 +412,11 @@ export class AclRoleController extends XoController<XoAclRole> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
   async attachAclV2User(@Path() id: string, @Path() userId: string): Promise<void> {
     const roleId = id as XoAclRole['id']
 
-    // addAclV2UserRole does not check if the user exists so we get the user here to make sure it exists.
-    const user = await this.restApi.xoApp.getUser(userId as XoUser['id'])
-
-    await this.restApi.xoApp.addAclV2UserRole(user.id, roleId)
+    await this.restApi.xoApp.addAclV2UserRole(userId as XoUser['id'], roleId)
   }
 
   /**

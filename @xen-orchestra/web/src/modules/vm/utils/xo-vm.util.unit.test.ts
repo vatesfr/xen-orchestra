@@ -3,12 +3,15 @@ import {
   areAllVmsHavingPowerState,
   areVmsOperationPending,
   extractVmHostId,
+  getVmIcon,
   getVmIpAddresses,
+  getVmPendingPowerStateOperation,
   getVmsPendingOperation,
   isVmOperationPending,
   notAllVmsHavingPowerState,
 } from '@/modules/vm/utils/xo-vm.util.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { objectIcon } from '@core/icons'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 
 describe('isVmOperationPending', () => {
@@ -34,6 +37,52 @@ describe('isVmOperationPending', () => {
     const vm = createVm({ current_operations: {} })
 
     expect(isVmOperationPending(vm, VM_OPERATIONS.START)).toBe(false)
+  })
+})
+
+describe('getVmPendingPowerStateOperation', () => {
+  it('returns the pending operation that changes the power state, ignoring the other ones', () => {
+    const vm = createVm({
+      current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT, 'task-2': VM_OPERATIONS.HARD_REBOOT },
+    })
+
+    expect(getVmPendingPowerStateOperation(vm)).toBe(VM_OPERATIONS.HARD_REBOOT)
+  })
+
+  it('returns undefined while only an operation that does not change the power state is pending', () => {
+    const vm = createVm({ current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT } })
+
+    expect(getVmPendingPowerStateOperation(vm)).toBeUndefined()
+  })
+})
+
+describe('getVmIcon', () => {
+  it('falls back to the unknown VM icon when no VM is provided', () => {
+    expect(getVmIcon(undefined)).toBe(objectIcon('vm', 'unknown'))
+  })
+
+  it('picks the icon matching the VM power state', () => {
+    const vm = createVm({ power_state: VM_POWER_STATE.HALTED, current_operations: {} })
+
+    expect(getVmIcon(vm)).toBe(objectIcon('vm', 'halted'))
+  })
+
+  it('picks the busy icon while the VM power state is changing', () => {
+    const vm = createVm({
+      power_state: VM_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': VM_OPERATIONS.SHUTDOWN },
+    })
+
+    expect(getVmIcon(vm)).toBe(objectIcon('vm', 'busy'))
+  })
+
+  it('keeps the power state icon while an operation that does not change the power state is pending', () => {
+    const vm = createVm({
+      power_state: VM_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT },
+    })
+
+    expect(getVmIcon(vm)).toBe(objectIcon('vm', 'running'))
   })
 })
 

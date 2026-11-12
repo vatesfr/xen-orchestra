@@ -7,6 +7,18 @@ import { useRoute, useRouter } from 'vue-router'
 
 const HOST_URL = import.meta.env.PROD ? window.origin : import.meta.env.VITE_XO_HOST
 
+function getHostUrl(master: string | null) {
+  if (master === null) {
+    return new URL(HOST_URL)
+  }
+
+  try {
+    return new URL(master.includes('://') ? master : `https://${master}`)
+  } catch {
+    return new URL(HOST_URL)
+  }
+}
+
 enum STATUS {
   DISCONNECTED,
   CONNECTING,
@@ -28,10 +40,7 @@ export const useXenApiStore = defineStore('xen-api', () => {
     }
   )
 
-  const hostUrl = new URL(HOST_URL)
-  if (masterSessionStorage.value !== null) {
-    hostUrl.hostname = masterSessionStorage.value
-  }
+  const hostUrl = getHostUrl(masterSessionStorage.value)
 
   const isPoolOverridden = hostUrl.origin !== new URL(HOST_URL).origin
   const xenApi = new XenApi(hostUrl.origin)

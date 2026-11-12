@@ -1,5 +1,10 @@
 <template>
-  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent">
+  <UiInfo
+    v-tooltip="iconOnly ? currentStatus.text : false"
+    :accent="currentStatus.accent"
+    :role="iconOnly ? 'img' : undefined"
+    :aria-label="iconOnly ? currentStatus.text : undefined"
+  >
     <template v-if="!iconOnly">{{ currentStatus.text }}</template>
   </UiInfo>
 </template>
@@ -26,6 +31,7 @@ export type Status =
   | 'failure'
   | 'pending'
   | 'enabled'
+  | 'at-least-one-enabled'
   | 'disabled'
   | 'allow'
   | 'drop'
@@ -57,6 +63,7 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
     ['failure', { text: t('failure'), accent: 'danger' }],
     ['pending', { text: t('in-progress'), accent: 'info' }],
     ['enabled', { text: t('enabled'), accent: 'success' }],
+    ['at-least-one-enabled', { text: t('at-least-one-enabled'), accent: 'success' }],
     ['disabled', { text: t('disabled'), accent: 'muted' }],
     ['allow', { text: t('allow'), accent: 'success' }],
     ['drop', { text: t('drop'), accent: 'danger' }],

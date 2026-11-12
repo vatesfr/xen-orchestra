@@ -166,6 +166,28 @@ describe('AbstractNbdClient', () => {
     }
   })
 
+  it('does not let an error on a superseded transport disturb the current one', async () => {
+    const client = new InMemoryNbdClient({}, { readBlockRetries: 1, waitBeforeReconnect: 0 })
+    await client.connect()
+    await client.reconnect()
+    try {
+      assert.equal(client.transports.length, 2)
+      const [supersededTransport] = client.transports
+
+      // the read is queued synchronously, the in memory server answers later
+      const promise = client.readBlock(0, BLOCK_SIZE)
+      // the other end of the closed transport resets it late
+      supersededTransport.readable.emit('error', Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }))
+
+      const block = await promise
+      assert.ok(block.equals(DATA.subarray(0, BLOCK_SIZE)))
+      // no reconnection has been triggered
+      assert.equal(client.transports.length, 2)
+    } finally {
+      await client.disconnect()
+    }
+  })
+
   it('does not support getMap()', async () => {
     const client = new InMemoryNbdClient()
     await assert.rejects(client.getMap(), ({ code }) => code === 'NBD_MAP_UNSUPPORTED')

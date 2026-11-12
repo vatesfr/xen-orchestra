@@ -2,13 +2,14 @@
 //!
 //! The line is ASCII, ends in CRLF and reads
 //! `220 <version text>: <capability>, <capability>, ...`. An item may carry
-//! a `/` suffix, which is not part of its name. Whether the client goes on is
-//! decided on the capability names alone, never on the version text.
+//! a `/` suffix, which is not part of its name. Whether the client goes on,
+//! and in which dialect, is decided on the capability names alone, never on
+//! the version text.
 
-/// The capability a host must announce before TLS starts on its data port.
+/// The capability that selects the modern dialect on a data port.
 ///
-/// A host without it identifies its data-port certificate by SHA-1 only,
-/// which this client refuses to pin.
+/// A host without it (ESXi 6.x) speaks the [`legacy`](super::legacy)
+/// dialect and cannot confirm its data-port certificate by SHA-256 in band.
 pub const SHA256_SUPPORTED: &str = "SHA256 supported";
 
 /// The capability of a host that carries the disk session over TLS.
@@ -46,12 +47,18 @@ pub enum Error {
 }
 
 impl Greeting {
+    /// Whether the host announces `capability`, matched whole and case-sensitive.
+    #[must_use]
+    pub fn announces(&self, capability: &str) -> bool {
+        self.capabilities.iter().any(|name| name == capability)
+    }
+
     /// Fails, naming `capability` and the announced list, unless the host announces it.
     ///
     /// # Errors
     /// When `capability` is not among the announced names.
     pub fn require(&self, capability: &'static str) -> Result<(), Error> {
-        if self.capabilities.iter().any(|name| name == capability) {
+        if self.announces(capability) {
             Ok(())
         } else {
             Err(Error::Missing {
@@ -111,17 +118,12 @@ mod tests {
     }
 
     #[test]
-    fn an_esxi_6_greeting_is_refused_with_its_capability_list_quoted() {
+    fn an_esxi_6_greeting_announces_nfcssl_but_not_sha256() {
         let greeting = parse(ESXI_6).unwrap();
 
-        let error = greeting.require(SHA256_SUPPORTED).unwrap_err();
-
-        assert_eq!(
-            error.to_string(),
-            "the host does not announce \"SHA256 supported\"; announced: [SSL Required, \
-             ServerDaemonProtocol:SOAP, MKSDisplayProtocol:VNC, VMXARGS supported, \
-             NFCSSL supported]"
-        );
+        assert!(!greeting.announces(SHA256_SUPPORTED));
+        assert!(greeting.announces(NFCSSL_SUPPORTED));
+        assert!(parse(ESXI_8).unwrap().announces(SHA256_SUPPORTED));
     }
 
     #[test]

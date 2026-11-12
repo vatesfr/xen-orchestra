@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsTabularKeyValueList>
       <VtsTabularKeyValueRow :label="t('name')" :value="sr.name_label" />
-      <VtsTabularKeyValueRow :label="t('uuid')" :value="sr.id" />
+      <VtsTabularKeyValueRow :label="t('uuid')" :value="sr.id" copy />
       <VtsTabularKeyValueRow :label="t('description')" :value="sr.name_description" />
       <VtsTabularKeyValueRow :label="t('tags')">
         <template #value>
