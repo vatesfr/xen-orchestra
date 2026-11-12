@@ -9,6 +9,7 @@
         :selected-task-id
         :show-eye-icon
         :auto-collapse-completed
+        :expand-all
         @select="id => emit('select', id)"
       />
     </template>
@@ -28,6 +29,7 @@ const { task, selectedTaskId } = defineProps<{
   selectedTaskId?: string
   showEyeIcon?: boolean
   autoCollapseCompleted?: boolean
+  expandAll?: boolean
 }>()
 
 const emit = defineEmits<{
