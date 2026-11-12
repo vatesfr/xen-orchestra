@@ -26,6 +26,7 @@
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
         :auto-collapse-completed
+        :expand-all="hasSearch"
         @select="id => (selectedTaskId = id)"
       />
       <VtsStateHero v-if="hasNoSearchResult" format="table" type="no-result" size="small">
@@ -44,10 +45,10 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableControlsBar from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
-import { hasSubtask } from '@core/utils/task.util.ts'
+import { filterTasksByName, hasSubtask } from '@core/utils/task.util.ts'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,7 +66,11 @@ const selectedTaskId = useRouteQuery('id')
 
 const autoCollapseCompleted = ref(false)
 
-const { items: filteredTasks, hasSearch, searchBindings } = useSearchFilter(() => tasks)
+const { debouncedSearch, searchBindings } = useDebouncedSearch()
+
+const hasSearch = computed(() => debouncedSearch.value.trim() !== '')
+
+const filteredTasks = computed(() => filterTasksByName(tasks, debouncedSearch.value))
 
 const hasNoSearchResult = computed(() => hasSearch.value && filteredTasks.value.length === 0)
 

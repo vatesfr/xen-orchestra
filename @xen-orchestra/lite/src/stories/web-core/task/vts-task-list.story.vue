@@ -5,6 +5,8 @@
       prop('tasks').type('Task[]').required().preset(allTasks),
       prop('selectedTaskId').str().widget(),
       prop('showEyeIcon').bool().default(true).widget(),
+      prop('autoCollapseCompleted').bool().widget(),
+      prop('expandAll').bool().widget(),
       event('select').args({ id: 'string' }),
     ]"
   >

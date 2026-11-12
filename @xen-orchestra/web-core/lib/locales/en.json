@@ -1397,6 +1397,7 @@
   "tasks:my-tasks": "My tasks",
   "tasks:overview": "Tasks overview",
   "tasks:search-in-my-tasks": "Search in my tasks",
+  "tasks:see-all": "See all tasks",
   "template": "Template",
   "template-has-bios-strings": "The template already contains the BIOS strings",
   "test-data": "Test data",
