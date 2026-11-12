@@ -24,8 +24,9 @@
       </div>
     </div>
   </div>
+  <BackupJobsBulkActions :backup-jobs="selectedBackupJobs" />
 
-  <VtsTable :state :pagination-bindings sticky="right">
+  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -44,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import BackupJobsBulkActions from '@/modules/backup-job/components/list/BackupJobsBulkActions.vue'
+import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
@@ -66,6 +69,7 @@ import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButt
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
@@ -123,7 +127,7 @@ const { id: lastDaysStatusSelectId, selectedValues: selectedLastDaysStatuses } =
   option: { label: status => backupLogsStatusLabels.value[status] },
 })
 
-function isSelected<TValue>(selectedValues: TValue[], value: TValue) {
+function matchesFilter<TValue>(selectedValues: TValue[], value: TValue) {
   return selectedValues.length === 0 || selectedValues.includes(value)
 }
 
@@ -146,9 +150,9 @@ const filteredBackupJobs = computed(() => {
     )
 
     return (
-      isSelected(selectedStatuses.value, isEnabled ? 'enabled' : 'disabled') &&
-      isSelected(selectedLastRunsStatuses.value, lastRunsStatus) &&
-      isSelected(selectedLastDaysStatuses.value, lastDaysStatus)
+      matchesFilter(selectedStatuses.value, isEnabled ? 'enabled' : 'disabled') &&
+      matchesFilter(selectedLastRunsStatuses.value, lastRunsStatus) &&
+      matchesFilter(selectedLastDaysStatuses.value, lastDaysStatus)
     )
   })
 })
@@ -161,6 +165,15 @@ const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
 const selectedBackupJobId = useRouteQuery('id')
 
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', filteredBackupJobs)
+
+const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: () => backupJobs,
+  filteredItems: filteredBackupJobs,
+  pageItems: paginatedBackupJobs,
+  getItemId: backupJob => backupJob.id,
+})
+
+const selectedBackupJobs = computed(() => backupJobs.filter(backupJob => selectedIds.value.includes(backupJob.id)))
 
 const state = useTableState({
   busy: () => busy,
@@ -176,13 +189,24 @@ const state = useTableState({
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const { HeadCells, BodyCells } = useBackupJobColumns({
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
+  }),
   body: (backupJob: FrontAnyXoBackupJob) => {
     const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
+    const { deleteBackupJobs, canDeleteBackupJobs, isDeletingBackupJobs, deleteBackupJobsErrorMessage } =
+      useBackupJobDelete(() => [backupJob])
+
     return {
+      checkbox: r =>
+        r({
+          selected: isSelected(backupJob.id),
+          onToggle: () => toggleSelection(backupJob.id),
+        }),
       backupJob: r =>
         r({
           label: backupJob.name ?? t('untitled'),
@@ -193,7 +217,21 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       mode: r => r(modeLabel.value),
       lastRuns: r => (areBackupLogsReady.value ? r(lastRuns.value) : renderLoadingCell()),
       healthCheck: r => r(healthCheckStatus.value ?? []),
-      selectItem: r => r(() => (selectedBackupJobId.value = backupJob.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedBackupJobId.value = backupJob.id),
+          actions: [
+            {
+              label: t('action:delete'),
+              icon: 'action:delete',
+              onClick: () => deleteBackupJobs(),
+              disabled: !canDeleteBackupJobs.value,
+              busy: isDeletingBackupJobs.value,
+              hint: deleteBackupJobsErrorMessage.value,
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

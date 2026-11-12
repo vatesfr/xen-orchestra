@@ -1,5 +1,9 @@
 <template>
   <VtsSidePanel :has-selection="!!backupJob" @close="emit('close')">
+    <template v-if="backupJob" #actions>
+      <BackupJobDeleteButton :backup-job />
+    </template>
+
     <template v-if="backupJob" #default>
       <UiAlert v-if="schedules.length > 1" accent="warning">
         {{ t('multiple-schedules') }}
@@ -16,6 +20,7 @@
 </template>
 
 <script lang="ts" setup>
+import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
