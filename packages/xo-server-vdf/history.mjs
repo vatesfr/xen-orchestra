@@ -165,3 +165,31 @@ export function listEntries(entries, comparable = entry => entry.document) {
 }
 
 export const nextEntryId = entries => (entries.length === 0 ? 1 : entries[entries.length - 1].id + 1)
+
+// A vdf: tag changed outside XO (xo-server's xo:reservedTagChanged event,
+// vdf#141 section 7), from the event and the object's name. Such changes
+// are kept in a list of their own per pool, beside its versions: they
+// neither push versions out nor come between a version and the one it
+// replaced.
+export const tagChangeEntry = ({ objectId, objectType, tag, change, timestamp }, name) => ({
+  seenAt: new Date(timestamp).toISOString(),
+  object: { id: objectId, type: objectType, name },
+  tag,
+  change: change === 'add' ? 'added' : 'removed',
+  outsideXo: true,
+})
+
+const QUARANTINE_TAG = 'vdf:quarantine'
+
+// The VMs whose quarantine was last lifted outside XO, the newest such
+// change of each, unless `isQuarantined(vmId)` says the VM is quarantined
+// again (true) or gone (undefined).
+export function liftedQuarantines(tagChanges, isQuarantined) {
+  const last = new Map()
+  for (const entry of tagChanges) {
+    if (entry.tag === QUARANTINE_TAG && entry.object.type === 'VM') {
+      last.set(entry.object.id, entry)
+    }
+  }
+  return [...last.values()].filter(entry => entry.change === 'removed' && isQuarantined(entry.object.id) === false)
+}

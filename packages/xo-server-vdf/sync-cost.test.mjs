@@ -106,6 +106,8 @@ function largeXo({ pools: poolCount, vms: vmCount }) {
     all: objects,
     // XAPI events: the passes are run by hand
     objects: { on() {}, removeListener() {} },
+    on() {},
+    removeListener() {},
     xapis,
     publishes: () => publishes,
     store,

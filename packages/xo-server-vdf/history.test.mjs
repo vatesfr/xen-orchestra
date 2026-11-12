@@ -1,7 +1,16 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
 
-import { appendEntry, describeChanges, listEntries, listEntry, nextEntryId, summarize } from './history.mjs'
+import {
+  appendEntry,
+  describeChanges,
+  liftedQuarantines,
+  listEntries,
+  listEntry,
+  nextEntryId,
+  summarize,
+  tagChangeEntry,
+} from './history.mjs'
 
 const BEFORE = {
   groups: { web: { tags: ['vdf:role=web'] }, db: { tags: ['vdf:role=db'] } },
@@ -159,5 +168,27 @@ describe('describeChanges', () => {
       { kind: 'group', name: 'web', change: 'removed' },
       { kind: 'group', name: 'db', change: 'removed' },
     ])
+  })
+})
+
+describe('liftedQuarantines', () => {
+  const change = (objectId, tag, change, objectType = 'VM') =>
+    tagChangeEntry({ objectId, objectType, tag, change, timestamp: 0 }, objectId)
+
+  test('the VMs whose quarantine was last lifted outside XO, still out of it and still there', () => {
+    const changes = [
+      change('a', 'vdf:quarantine', 'remove'),
+      change('b', 'vdf:quarantine', 'remove'),
+      change('b', 'vdf:quarantine', 'add'), // put back outside XO
+      change('c', 'vdf:quarantine', 'remove'), // quarantined again since
+      change('d', 'vdf:quarantine', 'remove'), // gone
+      change('e', 'vdf:role=app', 'remove'),
+      change('n', 'vdf:quarantine', 'remove', 'network'),
+    ]
+    const quarantined = { a: false, b: false, c: true, e: false, n: false }
+    assert.deepEqual(
+      liftedQuarantines(changes, id => quarantined[id]).map(entry => entry.object.id),
+      ['a']
+    )
   })
 })

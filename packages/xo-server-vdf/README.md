@@ -37,6 +37,8 @@ Under `/rest/v0/plugins/vdf/pools/{id}`:
 | `GET history`                 | The last documents XO published to the pool, oldest first, without their content                                           |
 | `GET history/{entry}`         | One of them, with the version it replaced (`previous`, when kept)                                                          |
 
+**Tags changed outside XO (vdf#141):** xo-server reports each `vdf:` tag added or removed on a VM or network by something other than XO (xe, another XO, any XAPI client). The plugin keeps the last 50 per pool, beside the versions: `tagChanges` in `GET history`. A VM whose `vdf:quarantine` was last removed that way and is still out of quarantine is listed in `GET policy` as `quarantineLifted`.
+
 **Concurrent edits:** with `expectedDocId` (the id of the document the edit started from, `''` for none), a publish is refused with `conflict: true` and nothing is written if the pool's document changed meanwhile. Publishes through XO are serialized per pool, so two of them cannot both pass the check; a write made in between by the global configuration or outside XO (`vdf-agent publish`) makes the check fail, which is the point.
 
 **Infrastructure services (vdf#103):** a pool's document may declare its DHCP servers and routers (`services`, version 9, which XO sets as it does 4 and 7); the global configuration declares none (its check refuses them: a global group's members in other pools would come as addresses without MACs). `GET policy` reads `vdf:policy.v9` first.

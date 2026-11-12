@@ -35,7 +35,7 @@ import {
   VDF_LOCKING_KEY,
   vdfLockEnforcement,
 } from './global.mjs'
-import { appendEntry, listEntries, nextEntryId, summarize } from './history.mjs'
+import { appendEntry, liftedQuarantines, listEntries, nextEntryId, summarize, tagChangeEntry } from './history.mjs'
 import { trace } from './trace.mjs'
 
 const log = createLogger('xo:xo-server-vdf')
@@ -172,6 +172,13 @@ const PARAMS_GLOBAL_ENTRY = { entry: { type: 'string', example: '4' } }
 const GLOBAL_SCOPE = 'global'
 
 const historyKey = scopeId => `history:${scopeId}`
+
+// vdf: tags changed outside XO, per pool (history.mjs: tagChangeEntry)
+const tagChangesKey = poolId => `tag-changes:${poolId}`
+
+// emitted by xo-server's reserved-tags mixin for each vdf: tag change XAPI
+// reports on a VM or network
+const RESERVED_TAG_CHANGE_EVENT = 'xo:reservedTagChanged'
 
 // what this XO last saw of a pool, and what it wrote there (vdf#32)
 const seenKey = poolId => `seen:${poolId}`
@@ -550,6 +557,8 @@ class VdfPlugin {
     this.#xo.objects.on('finish', this.#scheduleSync)
     this.#syncInterval = setInterval(this.#scheduleSync, SYNC_RETRY_MS)
     this.#scheduleSync()
+
+    this.#xo.on(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
   }
 
   unload() {
@@ -559,6 +568,7 @@ class VdfPlugin {
     this.#unregisterRoutes?.()
     this.#unregisterRoutes = undefined
     this.#xo.objects.removeListener('finish', this.#scheduleSync)
+    this.#xo.removeListener(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
     clearInterval(this.#syncInterval)
     clearTimeout(this.#syncTimer)
   }
@@ -1314,6 +1324,42 @@ class VdfPlugin {
   }
 
   // HISTORY
+
+  // the tag changes being recorded, one at a time
+  #recordingTagChange = Promise.resolve()
+
+  // A vdf: tag changed outside XO is kept in its pool's history; a lifted
+  // quarantine is then an alarm (GET policy: quarantineLifted). Changes
+  // made through XO are left to XO's logs.
+  #onReservedTagChange = change => {
+    if (!change.outsideXo) {
+      return
+    }
+    this.#recordingTagChange = this.#recordingTagChange.then(async () => {
+      let name
+      try {
+        name = this.#xo.getObject(change.objectId, change.objectType).name_label
+      } catch {}
+      const entries = await this.#get(tagChangesKey(change.poolId), [])
+      await this.#store.put(
+        tagChangesKey(change.poolId),
+        appendEntry(entries, { id: nextEntryId(entries), ...tagChangeEntry(change, name) })
+      )
+    })
+    this.#recordingTagChange = this.#recordingTagChange.catch(error =>
+      log.warn('recording a tag change made outside XO', { change, error })
+    )
+  }
+
+  async #liftedQuarantines(poolId) {
+    return liftedQuarantines(await this.#get(tagChangesKey(poolId), []), vmId => {
+      try {
+        return this.#xo.getObject(vmId, 'VM').tags.includes('vdf:quarantine')
+      } catch {
+        return undefined
+      }
+    })
+  }
 
   // entries imported or written by an earlier version may lack an id
   async #history(scopeId) {
@@ -2097,6 +2143,8 @@ class VdfPlugin {
             ...policy,
             // the last change made outside this XO (vdf#32)
             outside: (await this.#outsideOf(req.params.id, policy.docId)) ?? null,
+            // VMs still out of the quarantine lifted outside XO (vdf#141)
+            quarantineLifted: await this.#liftedQuarantines(req.params.id),
             canEdit: await this.#canOnPool(restApi, req.params.id, 'administrate'),
             global: {
               revision: global?.revision ?? 0,
@@ -2154,12 +2202,13 @@ class VdfPlugin {
         endpoint: '/pools/{id}/history',
         method: 'get',
         description:
-          'The last documents published to the pool through XO, oldest first, without their content: id, docId, previousDocId, publishedAt, publishedBy, summary.',
+          'The last documents published to the pool through XO, oldest first, without their content: id, docId, previousDocId, publishedAt, publishedBy, summary. Beside them, tagChanges: the last vdf: tags changed outside XO on its VMs and networks, oldest first.',
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Publish history' }],
         callback: async ({ req }) => ({
           entries: listEntries(await this.#history(req.params.id), entry => localPart(entry.document)),
+          tagChanges: await this.#get(tagChangesKey(req.params.id), []),
         }),
       }),
       this.#poolRoute({

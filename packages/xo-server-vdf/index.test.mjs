@@ -1,5 +1,6 @@
 import { describe, test } from 'node:test'
 import { strict as assert } from 'node:assert'
+import { EventEmitter } from 'node:events'
 
 import Ajv from 'ajv'
 
@@ -261,6 +262,14 @@ function fakeXo({
       configManagers[id] = { exporter, importer }
     },
     objects: { on() {}, removeListener() {} },
+    // XO's app events: xo-server's reserved-tags mixin emits tag changes
+    events: new EventEmitter(),
+    on(event, listener) {
+      xo.events.on(event, listener)
+    },
+    removeListener(event, listener) {
+      xo.events.removeListener(event, listener)
+    },
     getObjects: ({ filter }) =>
       filter.type === 'pool'
         ? { ...poolObjects }
@@ -2594,6 +2603,90 @@ describe('VDF lock', () => {
         assert.equal(last.trusted, true)
         assert.deepEqual(ipsInB(xo), ['10.0.0.5'])
       })
+    })
+  })
+})
+
+describe('vdf: tags changed outside XO (vdf#141)', () => {
+  const vm = () => ({ id: 'vm-1', $pool: POOL, name_label: 'web-1', tags: [], power_state: 'Halted' })
+  // as xo-server's reserved-tags mixin emits it
+  const tagChange = ({ outsideXo = true, tag = 'vdf:quarantine', change = 'remove' } = {}) => ({
+    objectId: 'vm-1',
+    objectType: 'VM',
+    poolId: POOL,
+    tag,
+    change,
+    ...(outsideXo ? {} : { userId: 'admin' }),
+    outsideXo,
+    timestamp: Date.parse('2026-11-12T10:00:00Z'),
+  })
+  // the plugin records on its own: until it's done
+  const settled = () => new Promise(resolve => setImmediate(resolve))
+  const historyOf = async xo => (await xo.route('get', '/pools/{id}/history', { params: { id: POOL } })).result
+  const liftedOf = async xo =>
+    (await xo.route('get', '/pools/{id}/policy', { params: { id: POOL } })).result.quarantineLifted
+  const withPlugin = async (xo, fn) => {
+    const plugin = await loaded(xo)
+    try {
+      await fn(plugin)
+    } finally {
+      plugin.unload()
+    }
+  }
+
+  test("a change outside XO is in the pool's history, beside its versions", async () => {
+    const xo = fakeXo({ vms: [vm()] })
+    const recorded = {
+      seenAt: '2026-11-12T10:00:00.000Z',
+      object: { id: 'vm-1', type: 'VM', name: 'web-1' },
+      outsideXo: true,
+    }
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagChanged', tagChange({ tag: 'vdf:role=app', change: 'add' }))
+      xo.events.emit('xo:reservedTagChanged', tagChange())
+      await settled()
+      const { entries, tagChanges } = await historyOf(xo)
+      assert.deepEqual(entries, [])
+      assert.deepEqual(tagChanges, [
+        { id: 1, ...recorded, tag: 'vdf:role=app', change: 'added' },
+        { id: 2, ...recorded, tag: 'vdf:quarantine', change: 'removed' },
+      ])
+    })
+
+    // unloaded: no longer followed
+    xo.events.emit('xo:reservedTagChanged', tagChange())
+    await settled()
+    assert.equal(xo.store.data.get(`tag-changes:${POOL}`).length, 2)
+  })
+
+  test('a change made through XO is not', async () => {
+    const xo = fakeXo({ vms: [vm()] })
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagChanged', tagChange({ outsideXo: false }))
+      await settled()
+      assert.deepEqual((await historyOf(xo)).tagChanges, [])
+      assert.deepEqual(await liftedOf(xo), [])
+    })
+  })
+
+  test('a quarantine lifted outside XO is an alarm while the VM stays out of quarantine', async () => {
+    const theVm = vm()
+    const xo = fakeXo({ vms: [theVm] })
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagChanged', tagChange({ tag: 'vdf:role=app' }))
+      await settled()
+      assert.deepEqual(await liftedOf(xo), [])
+
+      xo.events.emit('xo:reservedTagChanged', tagChange())
+      await settled()
+      const [alarm, ...others] = await liftedOf(xo)
+      assert.deepEqual(others, [])
+      assert.deepEqual(alarm.object, { id: 'vm-1', type: 'VM', name: 'web-1' })
+      assert.equal(alarm.seenAt, '2026-11-12T10:00:00.000Z')
+
+      // quarantined again
+      theVm.tags = ['vdf:quarantine']
+      assert.deepEqual(await liftedOf(xo), [])
     })
   })
 })
