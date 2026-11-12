@@ -77,3 +77,70 @@ describe('VM tags', () => {
     assert.deepEqual(writes, [])
   })
 })
+
+// a restApi whose XAPI clones and creates VMs, recording in order what happens to the new VM
+function createRestApiForNewVm({ strip = async () => [] as string[] } = {}) {
+  const events: unknown[] = []
+  const newVm = {
+    $ref: 'OpaqueRef:new-vm',
+    uuid: 'new-vm',
+    $callAsync: async (...args: unknown[]) => events.push(['$callAsync', ...args]),
+  }
+  const xapi = {
+    cloneVm: async () => newVm,
+    createVm: async () => newVm,
+    VM_destroy: async (ref: string) => events.push(['VM_destroy', ref]),
+  }
+  const restApi = {
+    getCurrentUser: () => user,
+    getObject: () => vm,
+    getXapi: () => xapi,
+    ioc: { get: () => ({}) },
+    tasks: { create: () => ({ id: 'task-1', run: (fn: () => unknown) => fn() }) },
+    xoApp: {
+      getXapi: () => xapi,
+      async stripInheritedReservedTags(...args: unknown[]) {
+        events.push(['stripInheritedReservedTags', ...args])
+        return strip()
+      },
+    },
+  } as unknown as RestApi
+  return { events, newVm, restApi }
+}
+
+describe('new VMs', () => {
+  it('strips the reserved tags the user may not add from a clone, before returning it', async () => {
+    const { events, newVm, restApi } = createRestApiForNewVm()
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    assert.deepEqual(await controller.cloneVm('vm-1', { fast: true }, true), { id: 'new-vm' })
+    assert.deepEqual(events, [['stripInheritedReservedTags', user, newVm]])
+  })
+
+  it('strips the reserved tags the user may not add from an instance of a template, before booting it', async () => {
+    const { events, newVm, restApi } = createRestApiForNewVm()
+    const service = new VmService(restApi)
+
+    await service.create({ boot: true, name_label: 'vm', pool: 'pool-1', template: 'template-1' } as never)
+    assert.deepEqual(events, [
+      ['stripInheritedReservedTags', user, newVm],
+      ['$callAsync', 'start', false, false],
+    ])
+  })
+
+  it('destroys an instance of a template without booting it if its reserved tags cannot be stripped', async () => {
+    const error = new Error('XAPI is down')
+    const { events, restApi } = createRestApiForNewVm({
+      strip: async () => {
+        throw error
+      },
+    })
+    const service = new VmService(restApi)
+
+    await assert.rejects(
+      service.create({ boot: true, name_label: 'vm', pool: 'pool-1', template: 'template-1' } as never),
+      error
+    )
+    assert.deepEqual(events.slice(1), [['VM_destroy', 'OpaqueRef:new-vm']])
+  })
+})

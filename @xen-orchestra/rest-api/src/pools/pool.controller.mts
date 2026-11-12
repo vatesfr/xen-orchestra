@@ -512,8 +512,9 @@ export class PoolController extends XapiXoController<XoPool> {
       srRef = this.restApi.getXapiObject<XoSr>(sr as XoSr['id'], 'SR').$ref
     }
 
-    const vmRef = await xapi.VM_import(req, srRef)
-    const vmId = await xapi.getField<XenApiVm, 'uuid'>('VM', vmRef, 'uuid')
+    const vm = await xapi.barrier<XenApiVm>(await xapi.VM_import(req, srRef))
+    await this.restApi.xoApp.stripInheritedReservedTags(this.restApi.getCurrentUser(), vm)
+    const vmId = vm.uuid
 
     this.setHeader('Location', `${BASE_URL}/vms/${vmId}`)
 

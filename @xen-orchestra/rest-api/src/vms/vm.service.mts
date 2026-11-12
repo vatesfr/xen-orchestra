@@ -63,6 +63,7 @@ export class VmService {
 
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
+    await xoApp.stripInheritedReservedTags(currentUser, xapiVm)
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
     if (createVtpm) {

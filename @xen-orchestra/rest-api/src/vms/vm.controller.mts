@@ -25,6 +25,7 @@ import type {
   XapiStatsGranularity,
   XapiVmStats,
   XenApiVm,
+  XenApiVmWrapped,
   XoAlarm,
   XoVmBackupJob,
   XoHost,
@@ -778,7 +779,7 @@ export class VmController extends XapiXoController<XoVm> {
 
     const action = async () => {
       const xapi = this.getXapi(vmId)
-      let clonedVmUuid: string
+      let clonedVm: XenApiVmWrapped
 
       if (body !== undefined && 'srId' in body && body.srId !== undefined) {
         const srId = body.srId as XoSr['id']
@@ -786,17 +787,20 @@ export class VmController extends XapiXoController<XoVm> {
         const sr = this.restApi.getObject<XoSr>(srId, 'SR')
 
         if (vm.$pool === sr.$pool) {
-          clonedVmUuid = (await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId: srId })).uuid
+          clonedVm = await xapi.copyVm(vmId, { nameLabel: body.name_label, srOrSrId: srId })
         } else {
           const targetXapi = this.restApi.xoApp.getXapi(srId)
-          clonedVmUuid = (
+          clonedVm = (
             await xapi.remoteCopyVm(vmId, targetXapi, srId, { compress: body.compress, nameLabel: body.name_label })
-          ).vm.uuid
+          ).vm
         }
       } else {
         const fast = body !== undefined && 'fast' in body ? body.fast : undefined
-        clonedVmUuid = (await xapi.cloneVm(vmId, { nameLabel: body?.name_label, fast })).uuid
+        clonedVm = await xapi.cloneVm(vmId, { nameLabel: body?.name_label, fast })
       }
+
+      await this.restApi.xoApp.stripInheritedReservedTags(this.restApi.getCurrentUser(), clonedVm)
+      const clonedVmUuid = clonedVm.uuid
 
       if (sync) {
         this.setHeader('Location', `${BASE_URL}/vms/${clonedVmUuid}`)
