@@ -3,10 +3,12 @@ import { usePrivilegeSelectorSchema } from '@/modules/role/composables/use-privi
 import type { NewPrivilegePayload } from '@/modules/role/types.ts'
 import {
   getResourceActions,
+  isActionCovered,
   isSelectablePrivilegeResource,
   PRIVILEGE_RESOURCES,
   type PrivilegeAction,
   type PrivilegeResource,
+  removeCoveredActions,
 } from '@/modules/role/utils/privilege-catalogue.util.ts'
 import {
   buildManualSelectionSelector,
@@ -94,7 +96,19 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
     multiple: true,
     searchable: true,
     disabled: () => formData.details.resource === undefined,
+    option: { disabled: action => isActionCovered(action, formData.details.actions) },
   })
+
+  watch(
+    () => formData.details.actions,
+    actions => {
+      const uncoveredActions = removeCoveredActions(actions)
+
+      if (uncoveredActions.length < actions.length) {
+        formData.details.actions = uncoveredActions
+      }
+    }
+  )
 
   const { id: effectSelectId } = useFormSelect('effect', effectOptions, {
     required: true,

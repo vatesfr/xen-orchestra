@@ -1,11 +1,11 @@
-import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedResource } from '@xen-orchestra/acl'
+import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions, type SupportedResource } from '@xen-orchestra/acl'
 
 export type PrivilegeResource = SupportedResource
 
 export const PRIVILEGE_RESOURCES = (Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE) as PrivilegeResource[]).sort()
 
 export type PrivilegeAction = {
-  [Resource in PrivilegeResource]: keyof (typeof SUPPORTED_ACTIONS_BY_RESOURCE)[Resource] & string
+  [Resource in PrivilegeResource]: SupportedActions<Resource>
 }[PrivilegeResource]
 
 export const COLLECTION_PATHS = {
@@ -49,10 +49,40 @@ export function isSelectablePrivilegeResource(resource: string): resource is Sel
   return Object.hasOwn(COLLECTION_PATHS, resource)
 }
 
+function flattenActions(actions: object, prefix = ''): string[] {
+  return Object.entries(actions)
+    .sort(([firstName], [secondName]) => firstName.localeCompare(secondName))
+    .flatMap(([name, subActions]) => {
+      const action = `${prefix}${name}`
+
+      if (typeof subActions !== 'object') {
+        return [action]
+      }
+
+      return [action, ...flattenActions(subActions, `${action}:`)]
+    })
+}
+
 export function getResourceActions(resource: PrivilegeResource | undefined): PrivilegeAction[] {
   if (resource === undefined) {
     return []
   }
 
-  return (Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE[resource]) as PrivilegeAction[]).sort()
+  return ['*', ...flattenActions(SUPPORTED_ACTIONS_BY_RESOURCE[resource])] as PrivilegeAction[]
+}
+
+function isActionCoveredBy(action: PrivilegeAction, coveringAction: PrivilegeAction) {
+  if (action === coveringAction) {
+    return false
+  }
+
+  return coveringAction === '*' || action.startsWith(`${coveringAction}:`)
+}
+
+export function isActionCovered(action: PrivilegeAction, selectedActions: PrivilegeAction[]) {
+  return selectedActions.some(selectedAction => isActionCoveredBy(action, selectedAction))
+}
+
+export function removeCoveredActions(actions: PrivilegeAction[]) {
+  return actions.filter(action => !isActionCovered(action, actions))
 }
