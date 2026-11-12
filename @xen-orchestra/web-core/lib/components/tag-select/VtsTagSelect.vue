@@ -94,6 +94,7 @@ type TagOptionProperties = {
   info: string | undefined
   isNew: boolean
   tagAccent: TagAccent
+  lock: string | undefined
   busy: ComputedRef<boolean>
 }
 
@@ -101,11 +102,14 @@ const {
   tags,
   suggestions = [],
   tagAccent,
+  tagLock,
   busyTags = [],
 } = defineProps<{
   tags: string[]
   suggestions?: TagSelectSuggestion[]
   tagAccent?: (tag: string) => TagAccent
+  // a tag that can't be changed, with the reason
+  tagLock?: (tag: string) => string | undefined
   iconOnly?: boolean
   busyTags?: string[]
 }>()
@@ -168,10 +172,12 @@ const select = useFormSelect(sources, {
   model: selectedTags,
   option: {
     value: 'id',
+    disabled: source => tagLock?.(source.id) !== undefined,
     properties: (source): TagOptionProperties => ({
       info: source.info,
       isNew: source.isNew,
       tagAccent: tagAccent?.(source.id) ?? 'info',
+      lock: tagLock?.(source.id),
       busy: computed(() => busyTags.includes(source.id)),
     }),
   },
@@ -187,14 +193,18 @@ const visibleTags = computed(() =>
 
 const areAllVisibleTagsSelected = computed(() => visibleTags.value.every(tag => selectedTags.value.includes(tag)))
 
-const isSomeVisibleTagSelected = computed(() => visibleTags.value.some(tag => selectedTags.value.includes(tag)))
+const isSomeVisibleTagSelected = computed(() =>
+  visibleTags.value.some(tag => selectedTags.value.includes(tag) && tagLock?.(tag) === undefined)
+)
 
 function selectVisibleTags() {
   selectedTags.value = [...new Set([...selectedTags.value, ...visibleTags.value])]
 }
 
 function deselectVisibleTags() {
-  selectedTags.value = selectedTags.value.filter(tag => !visibleTags.value.includes(tag))
+  selectedTags.value = selectedTags.value.filter(
+    tag => !visibleTags.value.includes(tag) || tagLock?.(tag) !== undefined
+  )
 }
 
 const { rootRef, triggerRef, dropdownRef, searchRef, isOpen, closeDropdown, floatingStyles } = useFormSelectController(

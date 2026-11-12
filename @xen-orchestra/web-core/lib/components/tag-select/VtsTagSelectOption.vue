@@ -1,9 +1,11 @@
 <template>
   <UiDropdown
     ref="elementRef"
+    v-tooltip="option.properties.lock ?? false"
     :accent="option.properties.isNew ? 'brand' : 'normal'"
     :busy="option.properties.busy"
     :checkbox="!option.properties.isNew"
+    :disabled="option.properties.disabled"
     :hover="option.flags.active"
     :icon="option.properties.isNew ? 'action:add' : undefined"
     :info="option.properties.info"
@@ -19,7 +21,13 @@
 
 <script
   generic="
-    TOption extends FormOption<{ isNew: boolean; info: string | undefined; tagAccent: TagAccent; busy: boolean }>
+    TOption extends FormOption<{
+      isNew: boolean
+      info: string | undefined
+      tagAccent: TagAccent
+      lock: string | undefined
+      busy: boolean
+    }>
   "
   lang="ts"
   setup
@@ -27,6 +35,7 @@
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type FormOption, useFormOptionController } from '@core/packages/form-select'
 import { useI18n } from 'vue-i18n'
 
