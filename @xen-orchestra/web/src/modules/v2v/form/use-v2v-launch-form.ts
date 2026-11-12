@@ -43,6 +43,6 @@ export function useV2vLaunchForm() {
       label: t('stop-on-error'),
       info: t('v2v:stop-on-error-info'),
     })),
-    concurrencyInputBindings: useField('concurrency', () => ({ label: t('concurrency'), required: true })),
+    concurrencyInputBindings: useField('concurrency', () => ({ label: t('concurrent-vms'), required: true })),
   }
 }
