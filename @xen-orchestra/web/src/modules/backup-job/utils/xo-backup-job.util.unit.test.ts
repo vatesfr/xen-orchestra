@@ -1,9 +1,11 @@
 import {
   getBackupJobHealthCheckSrIds,
   getBackupJobHealthCheckStatus,
+  getBackupLogsStatus,
   hasBackupJobSnapshotRetention,
 } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createBackupLog } from '@/test/create-backup-log.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
 
 const firstScheduleId = 'schedule-1' as XoSchedule['id']
@@ -107,5 +109,26 @@ describe('hasBackupJobSnapshotRetention', () => {
     })
 
     expect(hasBackupJobSnapshotRetention(backupJob)).toBe(false)
+  })
+})
+
+describe('getBackupLogsStatus', () => {
+  const createBackupLogs = (...statuses: ReturnType<typeof createBackupLog>['status'][]) =>
+    statuses.map(status => createBackupLog({ status }))
+
+  it('reports no run when there is no backup log', () => {
+    expect(getBackupLogsStatus([])).toBe('no-run')
+  })
+
+  it('reports a success when every run succeeded', () => {
+    expect(getBackupLogsStatus(createBackupLogs('success', 'success'))).toBe('success')
+  })
+
+  it('reports skipped runs when a run was skipped without error', () => {
+    expect(getBackupLogsStatus(createBackupLogs('success', 'skipped'))).toBe('skipped')
+  })
+
+  it.each(['failure', 'interrupted'] as const)('reports a failure when a run is %s, even with skipped runs', status => {
+    expect(getBackupLogsStatus(createBackupLogs('skipped', status, 'success'))).toBe('failure')
   })
 })
