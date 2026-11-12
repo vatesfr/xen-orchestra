@@ -129,7 +129,7 @@
   "action:revert-vm-here": "VM을 여기로 되돌리기",
   "action:save": "저장",
   "action:search": "검색",
-  "action:search-treeview": "트리 화면에서 검색",
+  "action:search-treeview": "@:action:트리 화면에서 검색 ({shortcut})",
   "action:see-all": "모두 보기",
   "action:see-less": "덜 보기",
   "action:see-n-more": "{n}개 더 보기",
