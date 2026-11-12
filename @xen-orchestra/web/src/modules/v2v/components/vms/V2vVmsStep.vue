@@ -11,17 +11,7 @@
         <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
         <V2vVmPresets :presets @apply="id => applyPreset(id)" />
         <div class="selection-actions">
-          <!-- Its VMs are no table selection: once closed, the panel opens again from here -->
-          <UiButton
-            v-if="!isEmpty && !panelStore.isExpanded"
-            accent="brand"
-            variant="secondary"
-            size="medium"
-            left-icon="fa:list"
-            @click="panelStore.expand()"
-          >
-            {{ t('selected-vms-n', { n: count }) }}
-          </UiButton>
+          <V2vShowSelectedVmsButton :count="selectedVmsPanel.count" />
           <UiButton accent="brand" variant="primary" size="medium" :disabled="!canAddSelected" @click="addSelected()">
             {{ t('v2v:action:add-to-migration-list') }}
           </UiButton>
@@ -40,32 +30,22 @@
         </UiButton>
       </V2vWizardStepActions>
     </div>
-    <V2vSelectedVmsPanel
-      :items
-      :count
-      :is-empty
-      :is-busy
-      :readiness-tags
-      :list-pair
-      @remove="id => remove(id)"
-      @clear="clear()"
-    />
+    <V2vSelectedVmsPanel v-bind="selectedVmsPanel" @remove="id => remove(id)" @clear="clear()" />
   </VtsContentSidePanel>
 </template>
 
 <script lang="ts" setup>
 import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
+import V2vShowSelectedVmsButton from '@/modules/v2v/components/selected-vms/V2vShowSelectedVmsButton.vue'
 import V2vVmPresets from '@/modules/v2v/components/vms/V2vVmPresets.vue'
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import V2vVmsTable from '@/modules/v2v/components/vms/V2vVmsTable.vue'
 import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
-import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import { usePanelStore } from '@core/stores/panel.store.ts'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -89,12 +69,10 @@ const {
   canGoNext,
   back,
   next,
-  selectedVmsContext,
+  selectedVmsPanel,
+  remove,
+  clear,
 } = useV2vVmsStep()
-
-const { items, count, isEmpty, isBusy, readinessTags, listPair, remove, clear } = useV2vSelectedVms(selectedVmsContext)
-
-const panelStore = usePanelStore()
 </script>
 
 <style lang="postcss" scoped>

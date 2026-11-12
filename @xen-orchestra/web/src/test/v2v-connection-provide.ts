@@ -5,6 +5,7 @@ import {
 } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
+import { V2V_MAPPING_INVENTORY } from '@/test/v2v-mapping-fixtures.ts'
 import type { XoV2vConnection, XoV2vInventory } from '@vates/types'
 
 /**
@@ -29,4 +30,12 @@ export function createConnectedV2vContext({
   context.setConnection(connection, inventory)
 
   return context
+}
+
+/** The source of the wizard, connected on the mapping inventory: the `source` of `mountOnV2vWizard`. */
+export const V2V_MAPPING_SOURCE = { inventory: V2V_MAPPING_INVENTORY }
+
+/** The connection of the wizard, its source connected on the mapping inventory. */
+export function v2vMappingConnectionProvide() {
+  return v2vConnectionProvide(createConnectedV2vContext(V2V_MAPPING_SOURCE))
 }

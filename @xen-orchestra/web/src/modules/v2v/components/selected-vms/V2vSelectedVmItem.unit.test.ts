@@ -49,6 +49,11 @@ it('tells its check with its accent', async () => {
   expect(findAccentedInfos(await mountItem(createV2vSelectedVm({ check })))).toEqual([check])
 })
 
+// The router alone marks every mapping link as current: they only differ by their query
+it('does not mark its link as the current page', async () => {
+  expect((await mountItem()).get('a').attributes('aria-current')).toBe('false')
+})
+
 it('removes the VM from the list', async () => {
   const wrapper = await mountItem()
 

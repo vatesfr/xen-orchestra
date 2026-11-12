@@ -35,19 +35,25 @@ export const xoCollectionsMock = {
   arePoolsReady: ref(true),
   hosts: ref<FrontXoHost[]>([]),
   srs: ref<FrontXoSr[]>([]),
+  areSrsReady: ref(true),
   pbds: ref<FrontXoPbd[]>([]),
   networks: ref<FrontXoNetwork[]>([]),
+  areNetworksReady: ref(true),
   pifs: ref<FrontXoPif[]>([]),
   templates: ref<FrontXoVmTemplate[]>([]),
+  areTemplatesReady: ref(true),
   reset() {
     this.pools.value = []
     this.arePoolsReady.value = true
     this.hosts.value = []
     this.srs.value = []
+    this.areSrsReady.value = true
     this.pbds.value = []
     this.networks.value = []
+    this.areNetworksReady.value = true
     this.pifs.value = []
     this.templates.value = []
+    this.areTemplatesReady.value = true
   },
   // The pools of a loading collection: none yet, and not ready
   startLoadingPools() {
@@ -74,11 +80,13 @@ export const useXoHostCollection = (() => ({
 
 export const useXoSrCollection = (() => ({
   srs: xoCollectionsMock.srs,
+  areSrsReady: xoCollectionsMock.areSrsReady,
   getSrById: (id: FrontXoSr['id'] | undefined) => xoCollectionsMock.srs.value.find(sr => sr.id === id),
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
   networks: xoCollectionsMock.networks,
+  areNetworksReady: xoCollectionsMock.areNetworksReady,
   getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
     xoCollectionsMock.networks.value.find(network => network.id === id),
 })) as unknown as typeof realUseXoNetworkCollection
@@ -93,4 +101,5 @@ export const useXoPifCollection = (() => ({
 
 export const useXoVmTemplateCollection = (() => ({
   templates: xoCollectionsMock.templates,
+  areTemplatesReady: xoCollectionsMock.areTemplatesReady,
 })) as unknown as typeof realUseXoVmTemplateCollection

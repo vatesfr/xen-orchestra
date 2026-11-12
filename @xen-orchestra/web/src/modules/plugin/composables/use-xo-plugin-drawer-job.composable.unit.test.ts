@@ -3,9 +3,9 @@ import type { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-co
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -17,30 +17,24 @@ type OverlayOptions = {
   }
 }
 
-const { useJob, run, useOverlayMock, open, drawer } = vi.hoisted(() => ({
+const { useJob, run, drawer } = vi.hoisted(() => ({
   useJob: vi.fn(),
   run: vi.fn(),
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
   drawer: vi.fn(),
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const PAYLOAD = { to: 'admin@example.org' }
 
 beforeEach(() => {
   useJob.mockReset()
   run.mockReset()
-  useOverlayMock.mockReset()
-  open.mockReset()
+  overlayMock.reset()
 
   silenceConsoleError()
 
   useJob.mockReturnValue(createJobResult(run))
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
 })
 
 function mountDrawerJob(plugin: FrontXoPlugin = createPlugin()) {
@@ -50,7 +44,7 @@ function mountDrawerJob(plugin: FrontXoPlugin = createPlugin()) {
 }
 
 function getOverlayOptions(): OverlayOptions {
-  return useOverlayMock.mock.calls[0][0]
+  return overlayMock.getOverlay<OverlayOptions>()
 }
 
 function getJobArgs() {
@@ -87,7 +81,7 @@ describe('openDrawer', () => {
     mountDrawerJob(plugin).openDrawer()
 
     expect(getOverlayOptions().component).toBe(drawer)
-    expect(open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
   })
 
   it('closes the drawer when it is cancelled', () => {
