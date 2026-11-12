@@ -76,7 +76,7 @@ const { t } = useI18n()
 
 const showResizeHandle = computed(() => !uiStore.isSmall && panelStore.isExpanded)
 
-const transform = computed(() => `translateX(${panelStore.cssHorizontalOffset})`)
+const transform = computed(() => (panelStore.isExpanded ? 'none' : `translateX(${panelStore.cssHorizontalOffset})`))
 
 const transformTransition = `transform ${PANEL_TRANSITION_DURATION}ms`
 

@@ -16,6 +16,7 @@
       prop('subMenuIcon').bool().widget(),
       iconProp('icon'),
       prop('info').str().widget(),
+      prop('busy').bool().widget().help('Applied to the first item only, as each item can be busy on its own'),
       slot('icon').help('You can use this slot to handle the icon by yourself'),
       slot(),
       setting('checkbox').help('Pass `checkbox` prop to `DropdownList`').widget(boolean()),
@@ -23,7 +24,7 @@
     ]"
   >
     <UiDropdownList :checkbox="settings.checkbox">
-      <UiDropdown v-for="n in 5" :key="n" v-bind="properties">
+      <UiDropdown v-for="n in 5" :key="n" v-bind="properties" :busy="n === 1 && properties.busy">
         {{ settings.defaultSlotContent }}
       </UiDropdown>
     </UiDropdownList>

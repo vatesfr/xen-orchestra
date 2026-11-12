@@ -1,5 +1,5 @@
 <template>
-  <UiTertiaryTag v-if="parsedTag" :accent>
+  <UiTertiaryTag v-if="parsedTag" :accent :wrap>
     <template #term>{{ parsedTag.term }}</template>
     {{ parsedTag.label }}
   </UiTertiaryTag>
@@ -24,6 +24,7 @@ const {
   value: string
   accent?: TagAccent
   variant?: TagVariant
+  wrap?: boolean
 }>()
 
 const parsedTag = computed(() => parseTag(value))

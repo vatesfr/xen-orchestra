@@ -7,8 +7,11 @@ import {
   getVmIpAddresses,
   getVmPendingPowerStateOperation,
   getVmsPendingOperation,
+  isNoBakVmTag,
+  isSpecialVmTag,
   isVmOperationPending,
   notAllVmsHavingPowerState,
+  vmContainsNoBakTag,
 } from '@/modules/vm/utils/xo-vm.util.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { objectIcon } from '@core/icons'
@@ -196,5 +199,51 @@ describe('extractVmHostId', () => {
     })
 
     expect(extractVmHostId(vm)).toBeUndefined()
+  })
+})
+
+describe('isSpecialVmTag', () => {
+  it('is true for a tag starting with "xo:"', () => {
+    expect(isSpecialVmTag('xo:notify-on-snapshot')).toBe(true)
+  })
+
+  it('is true for a "xo:" tag carrying a value', () => {
+    expect(isSpecialVmTag('xo:no-bak=Reason')).toBe(true)
+  })
+
+  it('is false for a regular tag', () => {
+    expect(isSpecialVmTag('production')).toBe(false)
+  })
+
+  it('is false when "xo:" only appears in the value of the tag', () => {
+    expect(isSpecialVmTag('env=xo:prod')).toBe(false)
+  })
+})
+
+describe('isNoBakVmTag', () => {
+  it('is true for the no-bak tag', () => {
+    expect(isNoBakVmTag('xo:no-bak')).toBe(true)
+  })
+
+  it('is true for the no-bak tag carrying a reason', () => {
+    expect(isNoBakVmTag('xo:no-bak=Excluded on purpose')).toBe(true)
+  })
+
+  it('is false for another special tag', () => {
+    expect(isNoBakVmTag('xo:no-bak-snapshot')).toBe(false)
+  })
+
+  it('is false for a regular tag', () => {
+    expect(isNoBakVmTag('production')).toBe(false)
+  })
+})
+
+describe('vmContainsNoBakTag', () => {
+  it('is true when one of the tags of the VM is the no-bak tag', () => {
+    expect(vmContainsNoBakTag(createVm({ tags: ['production', 'xo:no-bak=Reason'] }))).toBe(true)
+  })
+
+  it('is false when the VM has no no-bak tag', () => {
+    expect(vmContainsNoBakTag(createVm({ tags: ['production', 'xo:notify-on-snapshot'] }))).toBe(false)
   })
 })
