@@ -50,6 +50,7 @@ import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
+import { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
 import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
@@ -201,6 +202,18 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
+    const isEnabled = computed(() => isBackupJobEnabled(schedulesByJobId.value.get(backupJob.id) ?? []))
+
+    const {
+      run: changeBackupJobsState,
+      canRun: canChangeBackupJobsState,
+      isRunning: isChangingBackupJobsState,
+      errorMessage: changeBackupJobsStateErrorMessage,
+    } = useXoBackupJobChangeStateJob(
+      () => [backupJob],
+      () => !isEnabled.value
+    )
+
     const {
       run: runBackupJobs,
       canRun: canRunBackupJobs,
@@ -233,11 +246,20 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       type: r => r(typeLabels.value[0] ?? '', { extraCount: typeLabels.value.length - 1 }),
       mode: r => r(modeLabel.value),
       lastRuns: r => (areBackupLogsReady.value ? r(lastRuns.value) : renderLoadingCell()),
+      status: r => r(isEnabled.value),
       healthCheck: r => r(healthCheckStatus.value ?? []),
       actions: r =>
         r({
           onClick: () => (selectedBackupJobId.value = backupJob.id),
           actions: [
+            {
+              label: isEnabled.value ? t('action:disable') : t('action:enable'),
+              icon: isEnabled.value ? 'action:disable' : 'status:success-circle',
+              onClick: () => changeBackupJobsState(),
+              disabled: !canChangeBackupJobsState.value,
+              busy: isChangingBackupJobsState.value,
+              hint: changeBackupJobsStateErrorMessage.value,
+            },
             {
               label: t('action:manual-run'),
               icon: 'fa:play',

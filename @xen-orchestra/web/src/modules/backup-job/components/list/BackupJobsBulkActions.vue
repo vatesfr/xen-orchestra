@@ -4,6 +4,7 @@
 
 <script lang="ts" setup>
 import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
+import { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
 import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
@@ -17,6 +18,20 @@ const { backupJobs } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const {
+  run: enableBackupJobs,
+  canRun: canEnableBackupJobs,
+  isRunning: isEnablingBackupJobs,
+  errorMessage: enableBackupJobsErrorMessage,
+} = useXoBackupJobChangeStateJob(() => backupJobs, true)
+
+const {
+  run: disableBackupJobs,
+  canRun: canDisableBackupJobs,
+  isRunning: isDisablingBackupJobs,
+  errorMessage: disableBackupJobsErrorMessage,
+} = useXoBackupJobChangeStateJob(() => backupJobs, false)
 
 const {
   run: runBackupJobs,
@@ -38,6 +53,30 @@ const { deleteBackupJobs, canDeleteBackupJobs, isDeletingBackupJobs, deleteBacku
 const isSelectionEmpty = computed(() => backupJobs.length === 0)
 
 const bulkActions = computed<ActionItem[]>(() => [
+  {
+    label: t('action:change-state'),
+    icon: 'action:change-state',
+    disabled: isSelectionEmpty.value,
+    hint: isSelectionEmpty.value ? t('no-backup-job-selected') : undefined,
+    children: [
+      {
+        label: t('action:enable'),
+        icon: 'status:success-circle',
+        onClick: () => enableBackupJobs(),
+        disabled: !canEnableBackupJobs.value,
+        busy: isEnablingBackupJobs.value,
+        hint: enableBackupJobsErrorMessage.value,
+      },
+      {
+        label: t('action:disable'),
+        icon: 'action:disable',
+        onClick: () => disableBackupJobs(),
+        disabled: !canDisableBackupJobs.value,
+        busy: isDisablingBackupJobs.value,
+        hint: disableBackupJobsErrorMessage.value,
+      },
+    ],
+  },
   {
     label: t('action:manual-run'),
     icon: 'fa:play',

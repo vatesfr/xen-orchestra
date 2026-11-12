@@ -19,6 +19,7 @@ export const useBackupJobColumns = defineColumns(() => {
       iconOnly: true,
       progressiveSize: true,
     }),
+    status: useStatusColumn({ headerLabel: () => t('status') }),
     healthCheck: useStatusColumn({ headerLabel: () => t('health-check') }),
     actions: useActionColumn({}),
   }
