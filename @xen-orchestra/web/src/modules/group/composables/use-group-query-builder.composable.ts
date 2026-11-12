@@ -6,12 +6,11 @@ import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type FilterableGroup = FrontXoGroup & { provider: string; usersCount: number; rolesCount: number }
+export type FilterableGroup = FrontXoGroup & { usersCount: number; rolesCount: number }
 
 function toFilterableGroup(group: FrontXoGroup): FilterableGroup {
   return {
     ...group,
-    provider: group.provider ?? '',
     usersCount: group.users.length,
     rolesCount: group.aclRoleIds.length,
   }
