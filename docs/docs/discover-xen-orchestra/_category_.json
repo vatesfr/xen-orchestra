@@ -1,6 +1,7 @@
 {
     "label": "Discover Xen Orchestra",
     "position": 3,
+    "collapsed": false,
     "link": {
       "type": "generated-index",
       "description": "General information on Xen Orchestra"
