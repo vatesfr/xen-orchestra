@@ -1,6 +1,7 @@
 {
     "label": "Getting started",
     "position": 2,
+    "collapsed": false,
     "link": {
       "type": "generated-index",
       "description": "How to get XO up and running as fast as possible"
