@@ -10,6 +10,8 @@ import type {
 import { Unbrand } from '../open-api/common/response.common.mjs'
 import type * as CMType from '@vates/types/lib/complex-matcher'
 
+// Manual copy because with Unbrand<>, tsoa emits an empty schema. If XoVmBackupJobScheduleSettings changes
+// in @vates/types, you have to update this copy too.
 type UnbrandedXoVmBackupJobScheduleSettings = {
   exportRetention?: number
   healthCheckVmsWithTags?: string[] | string
@@ -42,6 +44,8 @@ type UnbrandedXoMetadataBackupJob = Omit<XoMetadataBackupJob, 'settings' | 'pool
 }
 export type UnbrandXoMetadataBackupJob = Unbrand<UnbrandedXoMetadataBackupJob>
 
+// Manual copy because with Unbrand<>, tsoa emits an empty schema. If XoMirrorBackupScheduleSettings changes
+// in @vates/types, you have to update this copy too.
 type UnbrandedXoMirrorBackupScheduleSettings = {
   exportRetention?: number
   healthCheckVmsWithTags?: string[] | string
