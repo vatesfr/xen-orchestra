@@ -13,10 +13,12 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=14.0"
+    "node": ">=22.15"
   },
   "dependencies": {
     "@vates/read-chunk": "^1.2.1",
+    "@vates/xml": "^2.0.0",
+    "@xen-orchestra/log": "^0.7.2",
     "hash-wasm": "^4.11.0",
     "lodash.defaultsdeep": "^4.6.1",
     "promise-toolbox": "^0.21.0",
