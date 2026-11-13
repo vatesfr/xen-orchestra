@@ -459,8 +459,8 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * Required privilege:
-   * - resource: pif, action: update:management (on the target PIF)
-   * - resource: pif, action: update:management (on the previous management PIF)
+   * - resource: pif, actions: update:dns, update:gateway, update:ip, update:management,
+   *   update:mode, update:netmask (on the target PIF and on the previous management PIF)
    *
    * Move the management IP configuration (IP, netmask, gateway, DNS) of the host
    * to the given PIF, then remove it from the previous management PIF.
@@ -476,28 +476,21 @@ export class HostController extends XapiXoController<XoHost> {
   @Post('{id}/actions/move_management_ip')
   @Middlewares([
     json(),
-    acl([
-      {
-        resource: 'pif',
-        action: 'update:management',
-        objectId: 'body.pifId',
+    acl({
+      resource: 'pif',
+      actions: ['update:dns', 'update:gateway', 'update:ip', 'update:management', 'update:mode', 'update:netmask'],
+      objectIds: ({ req, restApi }) => {
+        const host = restApi.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
+        const managementPif = host.$PIFs
+          .map(id => restApi.getObject<XoPif>(id as XoPif['id'], 'PIF'))
+          .find(hostPif => hostPif.management)
+        if (managementPif) {
+          return [req.body.pifId as XoPif['id'], managementPif.id]
+        } else {
+          return [req.body.pifId as XoPif['id']]
+        }
       },
-      {
-        resource: 'pif',
-        action: 'update:management',
-        objectIds: ({ req, restApi }) => {
-          const host = restApi.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
-          const managementPif = host.$PIFs
-            .map(id => restApi.getObject<XoPif>(id as XoPif['id'], 'PIF'))
-            .find(hostPif => hostPif.management)
-          if (managementPif) {
-            return [managementPif.id]
-          } else {
-            return []
-          }
-        },
-      },
-    ]),
+    }),
   ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
