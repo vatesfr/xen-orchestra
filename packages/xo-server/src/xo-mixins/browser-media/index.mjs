@@ -93,6 +93,9 @@ function isSameOrigin({ headers }, forwarded) {
   }
 }
 
+// levelup reports a value which fails to decode as a ReadError caused by an EncodingError
+const isDecodeError = error => error?.name === 'EncodingError' || error?.cause?.name === 'EncodingError'
+
 const refuseUpgrade = (socket, status) => socket.end(`HTTP/1.1 ${status}\r\nConnection: close\r\n\r\n`)
 
 /**
@@ -467,10 +470,11 @@ export default class BrowserMedia {
     session.error = undefined
     // what has been done so far, undone by #release
     const insertion = (session.insertion = { pool: xapi.pool.uuid, vmUuid: vm.uuid })
-    // e.g. the insertion was cancelled from the browser: an expected state, not a failure of xo-server
+    // e.g. the insertion was cancelled from the browser: an expected state, not a failure of xo-server.
+    // The status stays `inserting` until the insertion is undone, what changed is the connection.
     const assertConnected = () => {
       if (session.closed) {
-        throw incorrectState({ actual: 'disconnected', expected: 'connected', object: session.id, property: 'status' })
+        throw incorrectState({ actual: true, expected: false, object: session.id, property: 'closed' })
       }
     }
     try {
@@ -758,11 +762,19 @@ export default class BrowserMedia {
         let entry
         try {
           entry = await store.get(sessionId)
-          if (typeof entry?.pool !== 'string' || typeof entry.vm !== 'string') {
-            throw new Error('invalid journal entry')
-          }
         } catch (error) {
-          this.#reportRecoveryFailure(sessionId, error)
+          if (error.notFound) {
+            return // deleted meanwhile
+          }
+          if (!isDecodeError(error)) {
+            // e.g. the database could not be read: the entry may be fine, retried later
+            this.#reportRecoveryFailure(sessionId, error)
+            return
+          }
+          entry = undefined
+        }
+        if (typeof entry?.pool !== 'string' || typeof entry.vm !== 'string') {
+          await this.#dropInvalidEntry(store, sessionId)
           return
         }
         const xapi = Object.values(this.#app.getAllXapis()).find(xapi => xapi.pool?.uuid === entry.pool)
@@ -789,6 +801,21 @@ export default class BrowserMedia {
       // as many as the browser media sessions of a crashed XO, and each makes several XAPI calls
       { concurrency: RECOVERY_CONCURRENCY }
     )
+  }
+
+  /**
+   * Without its pool and VM, an entry cannot be recovered, and would be retried forever: drop it. What
+   * it may have left is still tagged with the session id, for an administrator to find.
+   */
+  async #dropInvalidEntry(store, sessionId) {
+    try {
+      await store.del(sessionId)
+    } catch (error) {
+      this.#reportRecoveryFailure(sessionId, error)
+      return
+    }
+    this.#failedRecoveries.delete(sessionId)
+    log.warn('dropped an invalid browser media journal entry', { session: sessionId, tag: TAG })
   }
 
   /** Warn once per journal entry: it is retried at each reconciliation. */
