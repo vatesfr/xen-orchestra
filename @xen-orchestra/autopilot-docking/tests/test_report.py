@@ -87,6 +87,14 @@ class ReportTest(unittest.TestCase):
         self.assertIn("pv_drivers_unsupported", [f["code"] for f in data["findings"]])
         self.assertIn({"code": "install_firstboot", "status": "applied"}, data["actions"])
 
+    def test_compact_json_keeps_the_info_xo_acts_on(self):
+        report = Report("repair", "dev")
+        report.info("guest_agent_missing", "no guest tools disk")
+        for i in range(100):
+            report.info(f"info_{i}", "x" * 100)
+        data = json.loads(report.compact_json())
+        self.assertEqual([f["code"] for f in data["findings"]], ["guest_agent_missing"])
+
     def test_compact_json_small_report_is_complete(self):
         report = Report("repair", "dev")
         report.warning("windows_static_ip", "static IP", addresses=["10.0.0.5"])

@@ -23,7 +23,10 @@ XO_OS_KEYS = ("kind", "name", "rtc_timeoffset", "firstboot")
 XO_NETWORK_KEYS = ("guid", "dhcp", "addresses")
 XO_CODES = frozenset({
     "boot_disk_not_first",
+    "guest_agent_missing",
+    "guest_agent_unsupported",
     "install_firstboot",
+    "install_guest_agent",
     "pv_drivers_unsupported",
     "windows_firstboot_incomplete",
     "windows_static_ip_unmapped",
@@ -116,7 +119,8 @@ class Report:
                 with_info: bool = True) -> dict:
         findings = []
         for f in self.findings:
-            if f.level == "info" and not with_info:
+            # an info XO acts on is kept
+            if f.level == "info" and not with_info and f.code not in XO_CODES:
                 continue
             entry = {"level": f.level, "code": f.code}
             if with_messages:
