@@ -6,14 +6,16 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 
 ## Parameters
 
-| Name            | Type                                | Description                                 |
-| --------------- | ----------------------------------- | ------------------------------------------- |
-| `items`         | `MaybeRefOrGetter<TItem[]>`         | All the items of the table (before filters) |
-| `filteredItems` | `MaybeRefOrGetter<TItem[]>`         | The items matching the current filter       |
-| `pageItems`     | `MaybeRefOrGetter<TItem[]>`         | The items displayed on the current page     |
-| `getItemId`     | `(item: TItem) => CollectionItemId` | Returns the ID of an item                   |
+| Name            | Type                        | Description                                                  |
+| --------------- | --------------------------- | ------------------------------------------------------------ |
+| `items`         | `MaybeRefOrGetter<TItem[]>` | All the items of the table (before filters)                  |
+| `filteredItems` | `MaybeRefOrGetter<TItem[]>` | The items matching the current filter                        |
+| `pageItems`     | `MaybeRefOrGetter<TItem[]>` | The items displayed on the current page                      |
+| `getItemId`     | `(item: TItem) => TId`      | Returns the ID of an item (`TId` extends `CollectionItemId`) |
 
 `filteredItems` and `pageItems` must contain items of the same type as `items`. Only their IDs are used.
+
+The returned IDs keep the type `getItemId` returns (a branded ID stays branded).
 
 ## Returned values
 

@@ -109,8 +109,7 @@ export function useV2vVmsStep() {
   // The added VMs leave the selectable rows, but keep their flag: cleared, they are not selected again once removed
   // from the list
   function addSelected() {
-    // useTableSelection types its ids loosely: they are the row ids `getItemId` gave it
-    migrationList.addVms(selectedIds.value as V2vVmRow['id'][])
+    migrationList.addVms(selectedIds.value)
     selectionBindings.value.onClearSelection()
   }
 
