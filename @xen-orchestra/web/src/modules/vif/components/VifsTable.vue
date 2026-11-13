@@ -27,6 +27,7 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
 import { useVifDelete } from '@/modules/vif/composables/use-vif-delete.composable.ts'
+import { useVifEdit } from '@/modules/vif/composables/use-vif-edit.composable.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -61,6 +62,8 @@ const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
 const { areVifsReady, hasVifFetchError } = useXoVifCollection()
 const { t } = useI18n()
+
+const { goToVifEdit } = useVifEdit()
 
 const selectedVifId = useRouteQuery('id')
 
@@ -169,6 +172,7 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
         r({
           onClick: () => (selectedVifId.value = vif.id),
           actions: [
+            { label: t('action:edit'), icon: 'action:edit', onClick: () => goToVifEdit(vif) } satisfies ActionItem,
             connectionAction.value,
             {
               label: t('action:delete'),

@@ -2,7 +2,7 @@
   <UiTextarea v-model.trim="model" :accent="errorMessage !== undefined ? 'danger' : 'brand'">
     {{ t('allowed-ips') }}
 
-    <template #info>{{ t('allowed-ips-example') }}</template>
+    <template #hint>{{ t('allowed-ips-example') }}</template>
     <template v-if="errorMessage !== undefined" #message>{{ errorMessage }}</template>
   </UiTextarea>
 </template>
