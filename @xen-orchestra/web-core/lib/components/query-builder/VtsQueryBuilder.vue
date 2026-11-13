@@ -8,29 +8,14 @@
         :id
         v-model="filter"
         :accent="isUsable ? 'brand' : 'danger'"
+        :busy
         :aria-label="uiStore.isSmall ? t('query-builder:label') : undefined"
         :placeholder="t('query-builder:placeholder')"
         enterkeyhint="search"
         clearable
-        @clear="emit('search', '')"
         @keydown.enter="handleEnterKey($event)"
       />
     </div>
-
-    <UiButtonIcon
-      v-if="uiStore.isSmallOrMedium"
-      icon="fa:magnifying-glass"
-      size="medium"
-      accent="brand"
-      @click="search()"
-    />
-    <template v-else>
-      <UiButton size="medium" accent="brand" variant="secondary" @click="search()">
-        {{ t('action:search') }}
-      </UiButton>
-
-      <VtsDivider type="stretch" />
-    </template>
 
     <VtsQueryBuilderButton
       v-model="rootGroup"
@@ -43,10 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsQueryBuilderButton from '@core/components/query-builder/VtsQueryBuilderButton.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder.ts'
@@ -56,10 +38,11 @@ import { useI18n } from 'vue-i18n'
 
 const { schema } = defineProps<{
   schema: QueryBuilderSchema
+  busy?: boolean
 }>()
 
 const emit = defineEmits<{
-  search: [filter: string]
+  search: []
 }>()
 
 const filter = defineModel<string>({ required: true })
@@ -72,13 +55,9 @@ const id = useId()
 
 const { rootGroup, isUsable, updateFilter, resetFilter } = useQueryBuilder(filter, () => schema)
 
-function search() {
-  emit('search', filter.value)
-}
-
 function confirmQueryBuilder() {
   updateFilter()
-  emit('search', rootGroup.value.rawFilter)
+  emit('search')
 }
 
 function handleEnterKey(event: KeyboardEvent) {
@@ -88,7 +67,7 @@ function handleEnterKey(event: KeyboardEvent) {
   }
 
   event.preventDefault()
-  search()
+  emit('search')
 }
 </script>
 

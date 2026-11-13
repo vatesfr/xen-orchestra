@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('vms') }}
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -49,7 +49,7 @@ const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
-const { items: filteredVms, filter, schema, getDisplayData } = useVmQueryBuilder('vms', () => rawVms)
+const { items: filteredVms, searchBindings, schema, getDisplayData } = useVmQueryBuilder('vms', () => rawVms)
 
 const state = useTableState({
   busy: () => busy,

@@ -5,7 +5,7 @@
       <slot name="title-actions" />
     </template>
   </UiTitle>
-  <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+  <UiQuerySearchBar v-bind="searchBindings" />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -26,13 +26,14 @@ import type { FrontXoUser } from '@/modules/user/remote-resources/use-xo-user-co
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
 import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
 import { useUserColumns } from '@xen-orchestra/web-core/tables/column-sets/user-columns.ts'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { users } = defineProps<{
@@ -47,17 +48,7 @@ const { t } = useI18n()
 
 const { buildXo5Route } = useXoRoutes()
 
-const searchQuery = ref('')
-
-const filteredUsers = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return users
-  }
-
-  return users.filter(user => Object.values(user).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
-})
+const { items: filteredUsers, searchBindings } = useSearchFilter(() => users)
 
 const selectedUserId = useRouteQuery('id')
 

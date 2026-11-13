@@ -13,7 +13,7 @@ export function useSrQueryBuilder(
 ) {
   const { t } = useI18n()
 
-  const { items, filter } = useQueryBuilderFilter(id, srs, options)
+  const queryBuilderFilter = useQueryBuilderFilter(id, srs, options)
 
   const schema = useQueryBuilderSchema<FrontXoSr>({
     '': useStringSchema(t('any-property')),
@@ -26,5 +26,5 @@ export function useSrQueryBuilder(
     }),
   })
 
-  return { items, filter, schema }
+  return { ...queryBuilderFilter, schema }
 }

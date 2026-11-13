@@ -2,7 +2,7 @@
   <UiTitle>
     {{ t('backup-jobs') }}
   </UiTitle>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -57,7 +57,7 @@ const { buildXo5Route } = useXoRoutes()
 
 const { areBackupLogsReady } = useXoBackupLogCollection()
 
-const { items: filteredBackupJobs, filter } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
+const { items: filteredBackupJobs, searchBindings } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
 
 const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
   '': useStringSchema(t('any-property')),

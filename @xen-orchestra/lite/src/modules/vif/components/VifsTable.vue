@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <VtsTable :state :pagination-bindings sticky="right">
       <thead>
         <tr>
@@ -35,6 +35,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { type ActionItem } from '@core/tables/column-definitions/action-column.ts'
@@ -42,7 +43,7 @@ import { useVifColumns } from '@core/tables/column-sets/vif-columns.ts'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs, vm } = defineProps<{
@@ -72,21 +73,10 @@ const getIpAddresses = (vif: XenApiVif) => {
   return getUniqueIpAddressesForDevice(networks, vif.device)
 }
 
-const searchQuery = ref('')
-
-const filteredVifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return vifs
-  }
-
-  return vifs.filter(vif =>
-    [...Object.values(vif), getNetworkName(vif.network)].some(value =>
-      String(value).toLocaleLowerCase().includes(searchTerm)
-    )
-  )
-})
+const { items: filteredVifs, searchBindings } = useSearchFilter(
+  () => vifs,
+  vif => [...Object.values(vif), getNetworkName(vif.network)]
+)
 
 const state = useTableState({
   busy: logicNot(isReady),
