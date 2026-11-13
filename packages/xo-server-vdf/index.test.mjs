@@ -280,6 +280,10 @@ function fakeXo({
       servers.delete(`server-${poolId}`)
     },
     getStore: async () => store,
+    // the routes registered now, as the REST API would list them
+    get routes() {
+      return routes
+    },
     registerRestRoutes(newRoutes) {
       routes = newRoutes
       return () => {
@@ -3189,6 +3193,10 @@ describe('hosts that can enforce', () => {
     const [guard] = xo.placementGuards
     assert.equal(guard.name, 'firewall')
     assert.equal(guard.bypassRight, 'XO administrators and users with the firewall publish privilege on the pool')
+    // its alert's route says what it lists: not how the VMs got there, not a rejecting agent
+    const { description } = xo.routes.find(route => route.endpoint === '/unenforced')
+    assert.match(description, /missing .*stopped or stale/)
+    assert.doesNotMatch(description, /outside XO|bypassFirewallCheck|rejecting the published policy/)
     plugin.unload()
     assert.equal(xo.placementGuards.size, 0)
   })

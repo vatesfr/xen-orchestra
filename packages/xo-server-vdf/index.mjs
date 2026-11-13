@@ -2275,7 +2275,7 @@ class VdfPlugin {
         endpoint: '/unenforced',
         method: 'get',
         description:
-          "Per pool the user may read the firewall of, the running hosts whose agent can't enforce (none, stopped, not reporting, rejecting the published policy) while VMs the firewall protects run there: started or moved there outside XO, or with bypassFirewallCheck. Each host with why (state, reason, since) and those VMs.",
+          "Per pool with VDF the user may read the firewall of, the running hosts without a working agent while VMs the firewall protects run there: state missing (no agent: nothing is filtered there), stopped or stale (not reporting: the flows it installed stay, a policy published since or a VM started or arrived there since isn't enforced). An agent that rejected the published policy keeps enforcing its last valid one: not listed. Each host with its state, the reason in words, since (its last report) and those VMs.",
         tags: ['vdf'],
         responses: [{ status: 200, description: "Hosts that can't enforce, with the protected VMs they run" }],
         scope: 'acl',
