@@ -10,6 +10,7 @@ import {
   findInfoByMessage,
   generateBackupJobName,
   getDefaultSchedule,
+  TEMPORARY_SCHEDULE_ID,
   getScheduleKey,
   getRequiredEnv,
 } from '../utils/index.js'
@@ -161,9 +162,10 @@ describe('Backup basic tests', () => {
       const crConfig = {
         name: generateBackupJobName(),
         mode: 'delta',
-        schedules: { '': getDefaultSchedule() },
+        schedules: { [TEMPORARY_SCHEDULE_ID]: getDefaultSchedule() },
         settings: {
-          '': {
+          '': {},
+          [TEMPORARY_SCHEDULE_ID]: {
             timezone: 'Europe/Paris',
             copyRetention: 3,
             preferNbd: true,
