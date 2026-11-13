@@ -613,3 +613,122 @@ export function hasGlobalPart(document) {
   const { groups, policies } = globalPart(document)
   return Object.keys(groups).length > 0 || policies.length > 0
 }
+
+// HOSTS THAT CAN'T ENFORCE (vdf#141 follow-up): a VM the firewall protects,
+// started on or moved to a host whose agent is missing or not working, runs
+// there unfiltered. XO refuses to put it there (the placement guard) and
+// says where it runs anyway (started or moved outside XO).
+
+// on a network: its interfaces get no VDF flows (storage, transit…)
+export const UNPROTECTED_TAG = 'vdf:unprotected'
+
+/**
+ * Whether a host's agent enforces the policy published in its pool, or is
+ * converging on it, from its status (hostStatus) and the id of the published
+ * document (publishedPolicy().docId, '' for none). Same thresholds as
+ * `vdf-agent status` and XO 6 (isFresh: a heartbeat older than twice its
+ * period, or a stop status). Whether the host runs is the caller's: a halted
+ * host enforces nothing, and runs nothing.
+ *
+ * - `missing`: no status, no agent ever wrote one;
+ * - `stopped`: the agent stopped cleanly (its stop status);
+ * - `stale`: its heartbeat is too old, or ahead of XO's clock past the skew
+ *   it allows (FUTURE_HEARTBEAT_MS);
+ * - `rejected`: it rejected the document published now, and enforces the
+ *   last valid one;
+ * - enforcing: `up-to-date`, `error` (applied, but not everywhere: its
+ *   errors say where) and `behind` (it hasn't applied the published document
+ *   yet: converging, it reports it once applied).
+ *
+ * @returns {{ enforces: boolean, state: string, reason?: string, since?: string }}
+ *   the reason in words, naming the host, when it doesn't enforce; since: the
+ *   last time it said anything (its heartbeat, or when it stopped)
+ */
+export function hostEnforcement(host, status, publishedDocId, now = Date.now()) {
+  const agent = `the firewall agent on host "${host.name_label ?? host.id}"`
+  if (status === undefined) {
+    return { enforces: false, state: 'missing', reason: `no firewall agent on host "${host.name_label ?? host.id}"` }
+  }
+  if (isStopping(status)) {
+    return {
+      enforces: false,
+      state: 'stopped',
+      reason: `${agent} stopped at ${status.stopping}`,
+      since: status.stopping,
+    }
+  }
+  if (!isFresh(status, now)) {
+    const heartbeat = Date.parse(status.heartbeat ?? '')
+    if (Number.isNaN(heartbeat)) {
+      return { enforces: false, state: 'stale', reason: `${agent} has never reported a heartbeat` }
+    }
+    return {
+      enforces: false,
+      state: 'stale',
+      reason:
+        heartbeat > now
+          ? `${agent} reports a heartbeat ahead of XO's clock (${status.heartbeat}): it says nothing about now`
+          : `${agent} has not reported since ${status.heartbeat}`,
+      since: status.heartbeat,
+    }
+  }
+  if (typeof status.rejected === 'string' && status.rejected !== '' && (status.published ?? '') === publishedDocId) {
+    return {
+      enforces: false,
+      state: 'rejected',
+      reason: `${agent} rejected the published policy (${status.rejected})`,
+      since: status.heartbeat,
+    }
+  }
+  if ((status.published ?? '') !== publishedDocId || (status.doc ?? '') !== publishedDocId) {
+    return { enforces: true, state: 'behind' }
+  }
+  return { enforces: true, state: Array.isArray(status.errors) && status.errors.length > 0 ? 'error' : 'up-to-date' }
+}
+
+// the interfaces of a VM (their networks' tags) a group selects: a group on
+// networks alone (vdf#98) those on its networks, whatever the VM's tags;
+// another one, if the VM carries all its tags, those on all its networks
+// (every one without networks)
+function selectedInterfaces(group, tags, ifaces) {
+  const groupTags = group.tags ?? []
+  const networks = group.networks ?? []
+  const onNetworks = ifaces.filter(iface => networks.every(tag => iface.netTags.includes(tag)))
+  if (groupTags.length === 0) {
+    return networks.length === 0 ? [] : onNetworks
+  }
+  return groupTags.every(tag => tags.includes(tag)) ? onNetworks : []
+}
+
+/**
+ * What protects a VM in a pool: `vdf:quarantine` if it carries it, and the
+ * enforced policies (not in monitor mode) applied to a group that selects
+ * one of its interfaces, in the pool's documents (the one published there,
+ * the global configuration, composed). Nothing when every interface is on a
+ * `vdf:unprotected` network, or it has none. A VM nothing protects is not
+ * the firewall's business, wherever it runs.
+ *
+ * @param {object} params
+ * @param {string[]} params.tags - the VM's tags
+ * @param {{ netTags: string[] }[]} params.ifaces - its interfaces, by the tags
+ *   of their network (none when it isn't known)
+ * @param {Array<object | null | undefined>} params.documents
+ * @returns {string[]} `vdf:quarantine` and the names of the policies, none if
+ *   the VM isn't protected
+ */
+export function vmProtections({ tags = [], ifaces, documents }) {
+  const covered = ifaces.filter(iface => !iface.netTags.includes(UNPROTECTED_TAG))
+  if (covered.length === 0) {
+    return []
+  }
+  const protections = new Set(tags.includes(QUARANTINE_TAG) ? [QUARANTINE_TAG] : [])
+  for (const document of documents) {
+    for (const policy of document?.policies ?? []) {
+      const group = document.groups?.[policy.appliedTo]
+      if (policy.mode !== 'monitor' && group != null && selectedInterfaces(group, tags, covered).length > 0) {
+        protections.add(policy.name)
+      }
+    }
+  }
+  return [...protections]
+}

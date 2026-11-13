@@ -9,6 +9,7 @@ import {
   duplicateAddresses,
   GLOBAL_RULE_BASE,
   globalMembers,
+  hostEnforcement,
   hostStatus,
   isFresh,
   keepGlobalPart,
@@ -23,6 +24,7 @@ import {
   vdfLockEnforcement,
   vmIfaces,
   vmIps,
+  vmProtections,
   withFormatVersion,
 } from './global.mjs'
 
@@ -750,5 +752,120 @@ describe('VDF locks', () => {
     assert.equal(isFresh({}, NOW), false)
     // a clean stop says so
     assert.equal(isFresh({ heartbeat: '2026-10-27T11:59:50Z', stopping: '2026-10-27T11:59:55Z' }, NOW), false)
+  })
+})
+
+describe('hosts that can enforce (vdf#141)', () => {
+  const NOW = Date.parse('2026-11-13T12:00:00Z')
+  const HOST = { id: 'host-1', name_label: 'xcp1' }
+  const status = fields => ({
+    heartbeat: '2026-11-13T11:55:00Z',
+    heartbeatSec: 600,
+    published: 'abc',
+    doc: 'abc',
+    ...fields,
+  })
+  const enforcement = (fields, docId = 'abc') =>
+    hostEnforcement(HOST, fields === undefined ? undefined : status(fields), docId, NOW)
+
+  test('an agent enforcing the published policy, or converging on it, enforces', () => {
+    assert.deepEqual(enforcement({}), { enforces: true, state: 'up-to-date' })
+    assert.deepEqual(enforcement({ errors: ['br0: failed'] }), { enforces: true, state: 'error' })
+    // a publish it hasn't read, or read and not applied yet
+    assert.deepEqual(enforcement({ published: 'old', doc: 'old' }), { enforces: true, state: 'behind' })
+    assert.deepEqual(enforcement({ doc: 'old', applying: 'abc' }), { enforces: true, state: 'behind' })
+    // it rejected an older document: the new one may pass
+    assert.deepEqual(enforcement({ published: 'old', doc: 'older', rejected: 'bad' }), {
+      enforces: true,
+      state: 'behind',
+    })
+    // nothing published: the agent enforces quarantines
+    assert.deepEqual(enforcement({ published: undefined, doc: undefined }, ''), { enforces: true, state: 'up-to-date' })
+    // a heartbeat within twice its period, or a minute ahead of XO's clock
+    assert.equal(enforcement({ heartbeat: '2026-11-13T11:41:00Z' }).enforces, true)
+    assert.equal(enforcement({ heartbeat: '2026-11-13T12:00:50Z' }).enforces, true)
+  })
+
+  test("a host without agent, or whose agent stopped, is stuck or rejected the policy, doesn't", () => {
+    assert.deepEqual(enforcement(undefined), {
+      enforces: false,
+      state: 'missing',
+      reason: 'no firewall agent on host "xcp1"',
+    })
+    assert.deepEqual(enforcement({ stopping: '2026-11-13T11:58:00Z' }), {
+      enforces: false,
+      state: 'stopped',
+      reason: 'the firewall agent on host "xcp1" stopped at 2026-11-13T11:58:00Z',
+      since: '2026-11-13T11:58:00Z',
+    })
+    assert.deepEqual(enforcement({ heartbeat: '2026-11-13T11:39:00Z' }), {
+      enforces: false,
+      state: 'stale',
+      reason: 'the firewall agent on host "xcp1" has not reported since 2026-11-13T11:39:00Z',
+      since: '2026-11-13T11:39:00Z',
+    })
+    // its own period: every 30 s, a minute and a half is too long
+    assert.equal(enforcement({ heartbeat: '2026-11-13T11:58:30Z', heartbeatSec: 30 }).state, 'stale')
+    assert.match(enforcement({ heartbeat: '2026-11-13T12:05:00Z' }).reason, /ahead of XO's clock/)
+    assert.equal(
+      enforcement({ heartbeat: 'garbage' }).reason,
+      'the firewall agent on host "xcp1" has never reported a heartbeat'
+    )
+    assert.deepEqual(enforcement({ doc: 'old', rejected: 'unknown tier' }), {
+      enforces: false,
+      state: 'rejected',
+      reason: 'the firewall agent on host "xcp1" rejected the published policy (unknown tier)',
+      since: '2026-11-13T11:55:00Z',
+    })
+  })
+})
+
+describe('protected VMs (vdf#141)', () => {
+  const DOCUMENT = {
+    groups: {
+      app: { tags: ['vdf:role=app'] },
+      web: { tags: ['vdf:role=web'] },
+      dmz: { tags: ['vdf:role=dmz'], networks: ['vdf:net=dmz'] },
+      storage: { networks: ['vdf:net=storage'] },
+    },
+    policies: [
+      { name: 'app-in', appliedTo: 'app' },
+      { name: 'web-watch', appliedTo: 'web', mode: 'monitor' },
+      { name: 'dmz-in', appliedTo: 'dmz' },
+      { name: 'storage-in', appliedTo: 'storage' },
+      { name: 'from-web', appliedTo: 'app', ingress: [{ id: 1, from: 'web' }] },
+    ],
+  }
+  const plain = { netTags: [] }
+  const protections = (tags, ifaces = [plain], documents = [DOCUMENT]) => vmProtections({ tags, ifaces, documents })
+
+  test('a VM a published enforced policy applies to, or quarantined, is protected', () => {
+    assert.deepEqual(protections(['vdf:role=app', 'web']), ['app-in', 'from-web'])
+    assert.deepEqual(protections(['vdf:quarantine']), ['vdf:quarantine'])
+    // quarantined, in a pool where nothing is published
+    assert.deepEqual(protections(['vdf:quarantine'], [plain], [null]), ['vdf:quarantine'])
+    // a group on networks: an interface there
+    assert.deepEqual(protections(['vdf:role=dmz'], [plain, { netTags: ['vdf:net=dmz'] }]), ['dmz-in'])
+    // a group on networks alone (vdf#98): whatever the VM's tags
+    assert.deepEqual(protections([], [{ netTags: ['vdf:net=storage'] }]), ['storage-in'])
+    // the global configuration, composed (one document each)
+    const global = {
+      groups: { 'global:db': { tags: ['vdf:role=db'] } },
+      policies: [{ name: 'global:db-in', appliedTo: 'global:db' }],
+    }
+    assert.deepEqual(protections(['vdf:role=db'], [plain], [DOCUMENT, global]), ['global:db-in'])
+  })
+
+  test('a VM no enforced policy applies to, or only on vdf:unprotected networks, is not', () => {
+    // only a rule's peer, or under a monitored policy
+    assert.deepEqual(protections(['vdf:role=web']), [])
+    assert.deepEqual(protections(['vdf:role=dmz']), [])
+    assert.deepEqual(protections(['vdf:role=app'], [plain], [null, undefined]), [])
+    // its interfaces all on vdf:unprotected networks, quarantined or not; none at all
+    const unprotected = { netTags: ['vdf:unprotected', 'vdf:net=storage'] }
+    assert.deepEqual(protections(['vdf:quarantine', 'vdf:role=app'], [unprotected]), [])
+    assert.deepEqual(protections(['vdf:quarantine'], []), [])
+    // one interface the firewall covers is enough
+    assert.deepEqual(protections(['vdf:role=app'], [unprotected, plain]), ['app-in', 'from-web'])
   })
 })
