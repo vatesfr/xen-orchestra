@@ -1,6 +1,10 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
-    <HostDashboardQuickInfo class="quick-info" :host />
+    <div class="quick-info">
+      <HostDashboardQuickInfo :host />
+      <!-- vdf#141: protected VMs running here, where the firewall agent can't enforce -->
+      <VdfUnenforcedAlert :pool-id="host.$pool" :host-id="host.id" />
+    </div>
     <div v-if="!isHostRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
@@ -47,6 +51,7 @@ import HostDashboardRamUsageChart from '@/modules/host/components/dashboard/Host
 import HostDashboardVmsStatus from '@/modules/host/components/dashboard/HostDashboardVmsStatus.vue'
 import { useXoHostAlarmsCollection } from '@/modules/host/remote-resources/use-xo-host-alarms-collection.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import VdfUnenforcedAlert from '@/modules/vdf/components/VdfUnenforcedAlert.vue'
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -84,6 +89,9 @@ const uiStore = useUiStore()
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   .quick-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
     grid-area: quick-info;
   }
 

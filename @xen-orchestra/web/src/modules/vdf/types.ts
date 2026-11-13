@@ -812,3 +812,21 @@ export type VdfMonitorReport = {
   keepDays?: number
   errors: { host: string; hostName: string; error: string }[]
 }
+
+// vdf#141: a running host whose agent can't enforce while VMs the firewall
+// protects run there (GET /plugins/vdf/unenforced): missing (no agent),
+// stopped, stale (not reporting), rejected (the published policy); the
+// reason in the plugin's words, naming the host; since: its last report
+export type VdfUnenforcedHost = {
+  id: string
+  name: string
+  state: 'missing' | 'stopped' | 'stale' | 'rejected'
+  reason: string
+  since?: string
+  vms: { id: string; name: string }[]
+}
+
+// per pool whose firewall the user may read, those hosts
+export type VdfUnenforced = {
+  pools: { id: string; name: string; hosts: VdfUnenforcedHost[] }[]
+}

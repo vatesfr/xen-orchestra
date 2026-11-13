@@ -5,6 +5,8 @@
       <div class="main">
         <VdfFirewallBar :scope="{ kind: 'pool', pool }" />
         <VdfDraftBar :scope="{ kind: 'pool', pool }" />
+        <!-- vdf#141: protected VMs running where the firewall can't enforce -->
+        <VdfUnenforcedAlert :pool-id="pool.id" class="unenforced" />
         <RouterView v-slot="{ Component }">
           <component :is="Component" :pool />
         </RouterView>
@@ -19,6 +21,7 @@ import VdfDraftBar from '@/modules/vdf/components/VdfDraftBar.vue'
 import VdfFirewallBar from '@/modules/vdf/components/VdfFirewallBar.vue'
 import VdfFirewallNav from '@/modules/vdf/components/VdfFirewallNav.vue'
 import VdfGate from '@/modules/vdf/components/VdfGate.vue'
+import VdfUnenforcedAlert from '@/modules/vdf/components/VdfUnenforcedAlert.vue'
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -58,6 +61,10 @@ watch(
     flex: 1;
     flex-direction: column;
     min-width: 0;
+  }
+
+  .unenforced {
+    margin: 0.8rem 0.8rem 0;
   }
 }
 </style>
