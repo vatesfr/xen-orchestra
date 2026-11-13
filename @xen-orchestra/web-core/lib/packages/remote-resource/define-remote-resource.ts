@@ -1,3 +1,4 @@
+import { RemoteResourceFetchError } from '@core/packages/remote-resource/remote-resource-fetch.error.ts'
 import {
   type THandleDelete,
   type THandlePost,
@@ -342,7 +343,7 @@ export function defineRemoteResource<
         const response = await fetch(url)
 
         if (!response.ok) {
-          lastError.value = Error(`Failed to fetch: ${response.statusText}`)
+          lastError.value = new RemoteResourceFetchError(response)
           return
         }
 
