@@ -37,6 +37,9 @@ import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
 import { type SrScope } from '@core/types/storage-repository.type.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -89,8 +92,6 @@ const state = useTableState({
   },
 })
 
-const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
-
 const { getSrPbdsSignature } = useGetPbdsInScope()
 
 function getPrimaryIcon(sr: XenApiSr) {
@@ -104,7 +105,9 @@ function getPrimaryIcon(sr: XenApiSr) {
   }
 }
 
-const { HeadCells, BodyCells } = useSrColumns({
+const getUsageRatio = (sr: XenApiSr) => (sr.physical_size === 0 ? 0 : sr.physical_utilisation / sr.physical_size)
+
+const { HeadCells, BodyCells, sortItems } = useSrColumns({
   exclude: ['checkbox'],
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
@@ -185,7 +188,19 @@ const { HeadCells, BodyCells } = useSrColumns({
         }),
     }
   },
+  sort: {
+    storageRepository: sortByNameLabel,
+    description: sortByNameDescription,
+    storageFormat: (sr1, sr2) => compareStrings(sr1.type, sr2.type),
+    accessMode: (sr1, sr2) => Number(sr1.shared) - Number(sr2.shared),
+    usedSpace: (sr1, sr2) => getUsageRatio(sr1) - getUsageRatio(sr2),
+  },
+  initialSort: { id: 'storageRepository', direction: 'asc' },
 })
+
+const sortedSrs = computed(() => sortItems(filteredSrs.value))
+
+const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', sortedSrs)
 </script>
 
 <style scoped lang="postcss">

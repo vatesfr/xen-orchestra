@@ -61,10 +61,12 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
@@ -129,8 +131,6 @@ const enrichedRules = computed(() =>
 )
 const { filter, items: filteredRules } = useQueryBuilderFilter('trafficRule', () => enrichedRules.value)
 
-const { pageRecords: paginatedRules, paginationBindings } = usePagination('trafficRules', filteredRules)
-
 const schema = useQueryBuilderSchema<EnrichedTrafficRule>({
   '': useStringSchema(t('any-property')),
   networkLabel: useStringSchema(t('network')),
@@ -157,7 +157,11 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useTrafficRulesColumns({
+const { compareStatuses } = useStatusLabel()
+
+const getPolicy = (rule: EnrichedTrafficRule) => (rule.allow ? 'allow' : 'drop')
+
+const { HeadCells, BodyCells, sortItems } = useTrafficRulesColumns({
   exclude: showPriority ? [] : ['priority'],
   body: (rule: EnrichedTrafficRule) => {
     const network = useGetNetworkById(() => rule.networkId)
@@ -179,7 +183,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
           to: networkTo.value,
         }),
       priority: r => r(`${rule.rank}/${rule.networkRuleCount}`),
-      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
+      policy: r => r(t(getPolicy(rule)), rule.allow ? 'success' : 'danger'),
       protocol: r => r(getTrafficRuleProtocolLabel(rule)),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),
@@ -209,7 +213,21 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
         }),
     }
   },
+  sort: {
+    network: (rule1, rule2) => compareStrings(rule1.networkLabel, rule2.networkLabel),
+    priority: (rule1, rule2) => rule1.rank - rule2.rank,
+    policy: (rule1, rule2) => compareStatuses(getPolicy(rule1), getPolicy(rule2)),
+    protocol: (rule1, rule2) => compareStrings(getTrafficRuleProtocolLabel(rule1), getTrafficRuleProtocolLabel(rule2)),
+    directionA: (rule1, rule2) => compareStrings(rule1.directionA, rule2.directionA),
+    target: (rule1, rule2) => compareStrings(rule1.ipRange, rule2.ipRange),
+    directionB: (rule1, rule2) => compareStrings(rule1.directionB, rule2.directionB),
+    object: (rule1, rule2) => compareStrings(rule1.objectLabel, rule2.objectLabel),
+  },
 })
+
+const sortedRules = computed(() => sortItems(filteredRules.value))
+
+const { pageRecords: paginatedRules, paginationBindings } = usePagination('trafficRules', sortedRules)
 </script>
 
 <style lang="postcss" scoped>

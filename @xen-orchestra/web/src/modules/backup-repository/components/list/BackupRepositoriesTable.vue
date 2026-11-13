@@ -31,7 +31,7 @@ import BackupRepositoriesBulkActions from '@/modules/backup-repository/component
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
-import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryTypeLabelGetter } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -46,14 +46,17 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const { brs, busy, error } = defineProps<{
   brs: FrontXoBackupRepository[]
@@ -67,18 +70,16 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { useGetProxyById } = useXoProxyCollection()
+const { getProxyById, useGetProxyById } = useXoProxyCollection()
 
 const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
 
 const selectedBrId = useRouteQuery('id')
 
-const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
-
 const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: () => brs,
   filteredItems: filteredBrs,
-  pageItems: paginatedBrs,
+  pageItems: () => getPaginatedBrs(),
   getItemId: br => br.id,
 })
 
@@ -101,14 +102,22 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useBackupRepositoryColumns({
+const { compareStatuses } = useStatusLabel()
+
+const getTypeLabel = useXoBackupRepositoryTypeLabelGetter()
+
+const getBrTypeLabel = (br: FrontXoBackupRepository) => getTypeLabel(parseBackupRepositoryUrl(br.url).type)
+
+const getProxyName = (br: FrontXoBackupRepository) => (br.proxy ? (getProxyById(br.proxy)?.name ?? '') : '')
+
+const { HeadCells, BodyCells, sortItems } = useBackupRepositoryColumns({
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 
-    const typeLabel = useXoBackupRepositoryTypeLabel(() => parsedBrUrl.value?.type)
+    const typeLabel = computed(() => getTypeLabel(parsedBrUrl.value?.type))
 
     const proxy = useGetProxyById(() => br.proxy)
 
@@ -204,7 +213,22 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
         }),
     }
   },
+  sort: {
+    backupRepository: (br1, br2) => compareStrings(br1.name, br2.name),
+    status: (br1, br2) => compareStatuses(getBackupRepositoryStatus(br1), getBackupRepositoryStatus(br2)),
+    type: (br1, br2) => compareStrings(getBrTypeLabel(br1), getBrTypeLabel(br2)),
+    proxy: (br1, br2) => compareStrings(getProxyName(br1), getProxyName(br2)),
+  },
 })
+
+const sortedBrs = computed(() => sortItems(filteredBrs.value))
+
+const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', sortedBrs)
+
+// A function declaration, so that the selection, needed by the columns, can use the page rows sorted by these columns
+function getPaginatedBrs(): FrontXoBackupRepository[] {
+  return paginatedBrs.value
+}
 </script>
 
 <style scoped lang="postcss">

@@ -11,9 +11,10 @@
 
 <script setup lang="ts">
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
-import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 
 export type Status =
   | 'connecting'
@@ -43,33 +44,35 @@ const { status } = defineProps<{
   iconOnly?: boolean
 }>()
 
-const { t } = useI18n()
+const { getStatusLabel } = useStatusLabel()
 
-const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
+const accent = useMapper<Status, InfoAccent>(
   () => status,
   () => [
-    ['connecting', { text: t('connecting'), accent: 'info' }],
-    ['connected', { text: t('connected'), accent: 'success' }],
-    ['disconnected', { text: t('disconnected'), accent: 'danger' }],
-    ['disconnecting', { text: t('disconnecting'), accent: 'info' }],
-    ['partially-connected', { text: t('partially-connected'), accent: 'warning' }],
-    ['disconnected-from-physical-device', { text: t('disconnected-from-physical-device'), accent: 'warning' }],
-    ['physically-disconnected', { text: t('disconnected-from-physical-device'), accent: 'danger' }],
-    ['unable-to-connect-to-the-pool', { text: t('unable-to-connect-to-the-pool'), accent: 'danger' }],
-    ['unable-to-connect', { text: t('unable-to-connect'), accent: 'danger' }],
-    ['success', { text: t('success'), accent: 'success' }],
-    ['skipped', { text: t('skipped'), accent: 'warning' }],
-    ['interrupted', { text: t('interrupted'), accent: 'danger' }],
-    ['failure', { text: t('failure'), accent: 'danger' }],
-    ['pending', { text: t('in-progress'), accent: 'info' }],
-    ['enabled', { text: t('enabled'), accent: 'success' }],
-    ['at-least-one-enabled', { text: t('at-least-one-enabled'), accent: 'success' }],
-    ['disabled', { text: t('disabled'), accent: 'muted' }],
-    ['allow', { text: t('allow'), accent: 'success' }],
-    ['drop', { text: t('drop'), accent: 'danger' }],
-    [true, { text: t('enabled'), accent: 'success' }],
-    [false, { text: t('disabled'), accent: 'muted' }],
+    ['connecting', 'info'],
+    ['connected', 'success'],
+    ['disconnected', 'danger'],
+    ['disconnecting', 'info'],
+    ['partially-connected', 'warning'],
+    ['disconnected-from-physical-device', 'warning'],
+    ['physically-disconnected', 'danger'],
+    ['unable-to-connect-to-the-pool', 'danger'],
+    ['unable-to-connect', 'danger'],
+    ['success', 'success'],
+    ['skipped', 'warning'],
+    ['interrupted', 'danger'],
+    ['failure', 'danger'],
+    ['pending', 'info'],
+    ['enabled', 'success'],
+    ['at-least-one-enabled', 'success'],
+    ['disabled', 'muted'],
+    ['allow', 'success'],
+    ['drop', 'danger'],
+    [true, 'success'],
+    [false, 'muted'],
   ],
   false
 )
+
+const currentStatus = computed(() => ({ text: getStatusLabel(status), accent: accent.value }))
 </script>

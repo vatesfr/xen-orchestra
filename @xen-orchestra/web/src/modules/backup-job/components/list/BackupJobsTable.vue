@@ -24,8 +24,14 @@
 
 <script setup lang="ts">
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
-import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
-import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
+import {
+  useGetXoBackupJobModeLabel,
+  useXoBackupJobModeLabel,
+} from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
+import {
+  useGetXoBackupJobTypeLabels,
+  useXoBackupJobTypeLabels,
+} from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobHealthCheckStatus } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
@@ -41,6 +47,7 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { compareFirstStrings, compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -66,8 +73,6 @@ const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
 
 const selectedBackupJobId = useRouteQuery('id')
 
-const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', filteredBackupJobs)
-
 const state = useTableState({
   busy: () => busy,
   error: () => error,
@@ -81,7 +86,11 @@ const state = useTableState({
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const { HeadCells, BodyCells } = useBackupJobColumns({
+const getBackupJobTypeLabels = useGetXoBackupJobTypeLabels()
+
+const getBackupJobModeLabel = useGetXoBackupJobModeLabel()
+
+const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
   body: (backupJob: FrontAnyXoBackupJob) => {
     const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)
@@ -102,5 +111,17 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       selectItem: r => r(() => (selectedBackupJobId.value = backupJob.id)),
     }
   },
+  sort: {
+    backupJob: (backupJob1, backupJob2) => compareStrings(backupJob1.name ?? '', backupJob2.name ?? ''),
+    type: (backupJob1, backupJob2) =>
+      compareFirstStrings(getBackupJobTypeLabels(backupJob1), getBackupJobTypeLabels(backupJob2)),
+    mode: (backupJob1, backupJob2) =>
+      compareStrings(getBackupJobModeLabel(backupJob1), getBackupJobModeLabel(backupJob2)),
+  },
+  initialSort: { id: 'backupJob', direction: 'asc' },
 })
+
+const sortedBackupJobs = computed(() => sortItems(filteredBackupJobs.value))
+
+const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', sortedBackupJobs)
 </script>

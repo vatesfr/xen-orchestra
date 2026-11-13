@@ -35,9 +35,11 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
+import { compareFirstStrings, compareStrings } from '@core/utils/compare-strings.util.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -98,7 +100,7 @@ const state = useTableState({
     pifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
+const { compareStatuses } = useStatusLabel()
 
 function getManagementIcon(pif: XenApiPif) {
   if (!pif.management) {
@@ -111,7 +113,7 @@ function getManagementIcon(pif: XenApiPif) {
   }
 }
 
-const { HeadCells, BodyCells } = usePifColumns({
+const { HeadCells, BodyCells, sortItems } = usePifColumns({
   exclude: ['selectItem'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
@@ -148,7 +150,24 @@ const { HeadCells, BodyCells } = usePifColumns({
         }),
     }
   },
+  sort: {
+    network: (pif1, pif2) => compareStrings(getNetworkName(pif1.network), getNetworkName(pif2.network)),
+    device: (pif1, pif2) => compareStrings(pif1.device, pif2.device),
+    status: (pif1, pif2) => compareStatuses(getPifStatus(pif1), getPifStatus(pif2)),
+    vlan: (pif1, pif2) => pif1.VLAN - pif2.VLAN,
+    ip: (pif1, pif2) => compareFirstStrings(getIpAddresses(pif1), getIpAddresses(pif2)),
+    mac: (pif1, pif2) => compareStrings(pif1.MAC, pif2.MAC),
+    mode: (pif1, pif2) =>
+      compareStrings(
+        getIpConfigurationMode(pif1.ip_configuration_mode),
+        getIpConfigurationMode(pif2.ip_configuration_mode)
+      ),
+  },
 })
+
+const sortedPifs = computed(() => sortItems(filteredPifs.value))
+
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 </script>
 
 <style scoped lang="postcss">

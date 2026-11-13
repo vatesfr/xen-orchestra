@@ -6,11 +6,11 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="task of pendingTasks" :key="task.uuid">
-        <BodyCells :item="{ task, pending: true }" />
+      <VtsRow v-for="item of sortedPendingTasks" :key="item.task.uuid">
+        <BodyCells :item />
       </VtsRow>
-      <VtsRow v-for="task of finishedTasks" :key="task.uuid" class="finished">
-        <BodyCells :item="{ task, pending: false }" />
+      <VtsRow v-for="item of sortedFinishedTasks" :key="item.task.uuid" class="finished">
+        <BodyCells :item />
       </VtsRow>
     </tbody>
   </VtsTable>
@@ -29,6 +29,7 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useProgressBarColumn } from '@core/tables/column-definitions/progress-bar-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
@@ -67,12 +68,25 @@ const useTaskColumns = defineColumns(() => {
   }
 })
 
-const { HeadCells, BodyCells } = useTaskColumns({
-  body: ({ task, pending }: { task: XenApiTask; pending: boolean }) => {
+type TaskItem = { task: XenApiTask; pending: boolean }
+
+const getHostName = (task: XenApiTask) => getHost(task.resident_on)?.name_label ?? ''
+
+const getEstimatedEnd = (task: XenApiTask) => {
+  const createdAt = parseDateTime(task.created)
+
+  return createdAt + (new Date().getTime() - createdAt) / task.progress
+}
+
+// Same value as the "Estimated end" cell: the end of a finished task, the estimated end of a pending one
+const getEnd = ({ task, pending }: TaskItem) => (pending ? getEstimatedEnd(task) : parseDateTime(task.finished))
+
+const { HeadCells, BodyCells, sortItems } = useTaskColumns({
+  body: ({ task, pending }: TaskItem) => {
     const host = computed(() => getHost(task.resident_on))
     const createdAt = computed(() => parseDateTime(task.created))
     const finishedAt = computed(() => (pending ? undefined : parseDateTime(task.finished)))
-    const estimatedEndAt = computed(() => createdAt.value + (new Date().getTime() - createdAt.value) / task.progress)
+    const estimatedEndAt = computed(() => getEstimatedEnd(task))
 
     return {
       name: r => r(task.name_label),
@@ -88,7 +102,22 @@ const { HeadCells, BodyCells } = useTaskColumns({
             : renderBodyCell(),
     }
   },
+  sort: {
+    name: (item1, item2) => compareStrings(item1.task.name_label, item2.task.name_label),
+    host: (item1, item2) => compareStrings(getHostName(item1.task), getHostName(item2.task)),
+    progress: (item1, item2) => item1.task.progress - item2.task.progress,
+    started: (item1, item2) => parseDateTime(item1.task.created) - parseDateTime(item2.task.created),
+    estimatedEnd: (item1, item2) => getEnd(item1) - getEnd(item2),
+  },
+  initialSort: { id: 'started', direction: 'desc' },
 })
+
+// Pending tasks stay above the finished ones, each group being sorted on its own
+const sortedPendingTasks = computed(() => sortItems(props.pendingTasks.map(task => ({ task, pending: true }))))
+
+const sortedFinishedTasks = computed(() =>
+  sortItems((props.finishedTasks ?? []).map(task => ({ task, pending: false })))
+)
 </script>
 
 <style lang="postcss" scoped>
