@@ -40,16 +40,7 @@
         </UiButton>
       </V2vWizardStepActions>
     </div>
-    <V2vSelectedVmsPanel
-      :items
-      :count
-      :is-empty
-      :is-busy
-      :readiness-tags
-      :list-pair
-      @remove="id => remove(id)"
-      @clear="clear()"
-    />
+    <V2vSelectedVmsPanel :items :is-busy :readiness-tags :list-pair @remove="id => remove(id)" @clear="clear()" />
   </VtsContentSidePanel>
 </template>
 

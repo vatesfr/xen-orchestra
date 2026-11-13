@@ -16,7 +16,7 @@
         size="medium"
         icon="fa:list"
         :label="t('selected-vms')"
-        :counter="{ value: count, accent: 'brand' }"
+        :counter="{ value: items.length, accent: 'brand' }"
       />
       <InlineParts class="storage-info typo-body-regular-small">
         <span>{{ t('v2v:saved-in-this-browser') }}</span>
@@ -53,10 +53,8 @@ import type { XoV2vVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { isEmpty, isBusy } = defineProps<{
+const { items, isBusy } = defineProps<{
   items: V2vSelectedVm[]
-  count: number
-  isEmpty: boolean
   isBusy: boolean
   readinessTags: V2vAccentedLabel<TagAccent>[]
   listPair: V2vListPair
@@ -69,7 +67,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const areItemsShown = computed(() => !isEmpty && !isBusy)
+const isEmpty = computed(() => items.length === 0)
+
+const areItemsShown = computed(() => !isEmpty.value && !isBusy)
 </script>
 
 <style lang="postcss" scoped>

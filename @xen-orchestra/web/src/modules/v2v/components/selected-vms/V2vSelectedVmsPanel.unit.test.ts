@@ -32,8 +32,6 @@ const LIST_PAIR = createV2vListPair()
 
 const EMPTY = {
   items: [],
-  count: 0,
-  isEmpty: true,
   readinessTags: [],
   listPair: LIST_PAIR,
 }
@@ -42,8 +40,6 @@ function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> =
   return mount(V2vSelectedVmsPanel, {
     props: {
       items: ITEMS,
-      count: ITEMS.length,
-      isEmpty: false,
       isBusy: false,
       readinessTags: READINESS_TAGS,
       listPair: LIST_PAIR,

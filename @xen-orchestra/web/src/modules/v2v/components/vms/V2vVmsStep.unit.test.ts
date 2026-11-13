@@ -256,8 +256,6 @@ describe('selected VMs', () => {
     const { wrapper } = await mountStep()
 
     expect(getPanel(wrapper).props()).toMatchObject({
-      count: 1,
-      isEmpty: false,
       isBusy: false,
       readinessTags: [{ label: t('n-ready', { n: 1 }), accent: 'success' }],
       listPair: createV2vListPair(),
