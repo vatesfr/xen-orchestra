@@ -291,6 +291,19 @@ export type XoApp = EventEmitter & {
     }
   ) => () => void // eslint-disable-line @typescript-eslint/no-explicit-any
   registerRestRoutes: (routes: PluginRestRouteDefinition[], base?: string) => () => void
+  /* a plugin's guard on the hosts VMs start on or move to (checkPlacement), returns its removal */
+  registerPlacementGuard: (guard: {
+    name: string
+    bypassRight: string
+    check: (context: {
+      operation: 'start' | 'resume' | 'migrate'
+      vm: XoVm
+      host: XoHost | undefined
+      pool: XoPool
+      vifNetworks: Record<XoVif['id'], XoNetwork['id']> | undefined
+    }) => Promise<{ host?: XoHost; reason: string } | undefined>
+    mayBypass: (context: { user: XoUser; pool: XoPool }) => Promise<boolean>
+  }) => () => void
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
@@ -303,6 +316,18 @@ export type XoApp = EventEmitter & {
   checkEsxiDependencies(): Promise<XoV2vStatus>
   /* throw if the user may not migrate this VM, with its firewall group tags, to another pool */
   checkMigration(user: XoUser | undefined, vm: XoVm, destinationPoolId: XoPool['id']): Promise<void>
+  /*
+   * throw if a placement guard (a plugin's: the firewall's) refuses to put the VM onto the host (none: the one XAPI
+   * picks in the VM's pool), unless `bypass` is set by a user the guard allows (placementRefused, forbiddenOperation)
+   */
+  checkPlacement(params: {
+    operation: 'start' | 'resume' | 'migrate'
+    user: XoUser | undefined
+    vm: XoVm
+    host?: XoHost
+    bypass?: boolean
+    vifNetworks?: Record<XoVif['id'], XoNetwork['id']>
+  }): Promise<void>
   /* throw if the user may not add or remove these tags on the object (tags reserved to the firewall) */
   checkTagsChange(
     user: XoUser | undefined,
