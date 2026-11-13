@@ -727,12 +727,13 @@ class VdfPlugin {
   }
 
   // Per pool the user may read, the running hosts that can't enforce while
-  // VMs the firewall protects run there (paused ones too), with them. None
+  // VMs the firewall protects run there, with them. None
   // in a pool without VDF (managesVdf): nothing was ever filtered there.
   async #unenforced(user) {
     const now = Date.now()
+    // running, as XO 6 counts exposed VMs: a paused one exchanges nothing
     const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } })).filter(
-      vm => vm.power_state === 'Running' || vm.power_state === 'Paused'
+      vm => vm.power_state === 'Running'
     )
     const hosts = Object.values(this.#xo.getObjects({ filter: { type: 'host' } }))
     const pools = []

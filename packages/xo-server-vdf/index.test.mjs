@@ -3442,7 +3442,9 @@ describe('hosts that can enforce', () => {
     const running = (vm, host) => ({ ...vm, power_state: 'Running', $container: host })
     const vms = [
       running(WEB, 'h-none'),
-      { ...running(QUARANTINED, 'h-stale'), power_state: 'Paused' },
+      running(QUARANTINED, 'h-stale'),
+      // paused: exchanges nothing, as XO 6 counts exposed VMs
+      { ...running(vmWith('paused', ['vdf:quarantine']), 'h-stale'), power_state: 'Paused' },
       running(PLAIN, 'h-none'),
       running(vmWith('web-2', ['vdf:role=web']), 'h-ok'),
       running(vmWith('web-3', ['vdf:role=web']), 'h-rejecting'),
