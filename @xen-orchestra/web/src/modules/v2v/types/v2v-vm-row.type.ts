@@ -32,7 +32,6 @@ export type V2vVmDatastoreViewRow = V2vVmViewRow & {
   sizeOnDatastore: number
 }
 
-// The table shows all the VMs, or those of one datastore with what concerns that datastore
 export type V2vVmsTableView =
   | { type: 'all'; rows: V2vVmViewRow[] }
   | { type: 'datastore'; rows: V2vVmDatastoreViewRow[] }

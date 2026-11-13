@@ -88,7 +88,6 @@ const stats = useV2vSourceStats(() => connection.sourceId)
 
 const { getStatusCountLabel } = useV2vVmLabels()
 
-// The imports of the source, most advanced first
 const progressLabels = computed(() => {
   const counts = stats.value
 

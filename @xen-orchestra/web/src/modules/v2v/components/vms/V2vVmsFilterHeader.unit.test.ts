@@ -19,7 +19,6 @@ function mountHeader(props: { sourceHost?: string; datastoreSummary?: V2vDatasto
   return mount(V2vVmsFilterHeader, { props: { sourceHost: SOURCE_HOST, ...props }, global: createGlobalTestConfig() })
 }
 
-// Each title describes its VMs with one `InlineParts`
 function findDescriptionParts(wrapper: ReturnType<typeof mountHeader>) {
   return findParts(wrapper, '.interpunct-list')
 }

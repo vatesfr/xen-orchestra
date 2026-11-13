@@ -24,7 +24,6 @@ const STATUS_ACCENTS: Record<V2vVmStatus, TagAccent> = {
   cold: 'success',
 }
 
-// Where a V2V VM value becomes text: the table, the filters and the selected VM labels read it from here
 export function useV2vVmLabels() {
   const { t } = useI18n()
 

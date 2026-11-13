@@ -1,7 +1,6 @@
 <template>
   <div class="v2v-migration-wizard">
     <V2vWizardHeader :current-step :summary />
-    <!-- Its side panel sits flush with the page edges, as on every page with one: the step lays out its own padding -->
     <V2vVmsStep v-if="currentStep === 'vms'" />
     <div v-else class="content">
       <V2vSourceStep v-if="currentStep === 'source'" />

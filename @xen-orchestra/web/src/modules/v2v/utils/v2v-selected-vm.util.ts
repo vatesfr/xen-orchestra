@@ -11,7 +11,6 @@ export const V2V_READINESS_LEVELS = ['ready', 'warning', 'blocking'] as const
 
 type V2vSelectedVmRow = Pick<V2vVmRow, 'migration' | 'unsupportedReason' | 'importVm'>
 
-// Names stay `undefined` while their collection loads
 export type V2vMappingTargetNames = {
   srName?: string
   networkName?: string

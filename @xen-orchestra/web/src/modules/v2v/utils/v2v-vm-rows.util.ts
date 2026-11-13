@@ -66,7 +66,6 @@ export function getV2vSizeOnDatastore(vm: Pick<XoV2vVm, 'disks'>, datastore: V2v
   return sumDiskCapacities(vm.disks.filter(disk => disk.datastoreId === datastore.id))
 }
 
-// The row holds datastore names, not ids
 export function getV2vOtherDatastores(row: Pick<V2vVmRow, 'datastore'>, datastore: V2vDatastoreRef): string[] {
   return row.datastore.filter(name => name !== datastore.name)
 }
@@ -78,7 +77,6 @@ export function countV2vRowsByStatus(rows: Pick<V2vVmRow, 'migration'>[]): Recor
   )
 }
 
-// A VM already in the list is added once only
 export function isV2vVmRowSelectable(row: Pick<V2vVmRow, 'supported' | 'isInList'>): boolean {
   return row.supported && !row.isInList
 }

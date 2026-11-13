@@ -49,7 +49,6 @@ function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> =
   })
 }
 
-// The actions of a side panel sit in its header, above its cards
 function getHeaderClearButton(wrapper: VueWrapper) {
   return getButton(wrapper.getComponent(VtsSidePanel).get('.ui-panel > .header'), t('action:clear'))
 }

@@ -86,7 +86,6 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }:
     })
   )
 
-  // Only a partial import on another pool names a pool
   function getCheckPoolName(check: V2vSelectedVmCheck) {
     return check.type === 'partial-on-other-pool' ? getPoolById(check.poolId)?.name_label : undefined
   }
