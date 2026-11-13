@@ -623,22 +623,24 @@ export function hasGlobalPart(document) {
 export const UNPROTECTED_TAG = 'vdf:unprotected'
 
 /**
- * Whether a host's agent enforces the policy published in its pool, or is
- * converging on it, from its status (hostStatus) and the id of the published
- * document (publishedPolicy().docId, '' for none). Same thresholds as
- * `vdf-agent status` and XO 6 (isFresh: a heartbeat older than twice its
- * period, or a stop status). Whether the host runs is the caller's: a halted
- * host enforces nothing, and runs nothing.
+ * Whether a host's agent enforces a policy, from its status (hostStatus) and
+ * the id of the document published in its pool (publishedPolicy().docId, ''
+ * for none). The reading and the states of XO 6's hostState, and its
+ * hostEnforces (web: vdf-status.util.ts): a working agent enforces, whatever
+ * policy it holds; one missing or stopped or stuck enforces nothing, and a VM
+ * there runs unfiltered. Same thresholds as `vdf-agent status` (isFresh: a
+ * heartbeat older than twice its period, or a stop status). Whether the host
+ * runs is the caller's: a halted host enforces nothing, and runs nothing.
  *
- * - `missing`: no status, no agent ever wrote one;
- * - `stopped`: the agent stopped cleanly (its stop status);
- * - `stale`: its heartbeat is too old, or ahead of XO's clock past the skew
- *   it allows (FUTURE_HEARTBEAT_MS);
- * - `rejected`: it rejected the document published now, and enforces the
- *   last valid one;
- * - enforcing: `up-to-date`, `error` (applied, but not everywhere: its
- *   errors say where) and `behind` (it hasn't applied the published document
- *   yet: converging, it reports it once applied).
+ * - not enforcing: `missing` (no status, no agent ever wrote one; XO 6's
+ *   unknown), `stopped` (the agent stopped cleanly: its stop status; XO 6's
+ *   stale) and `stale` (its heartbeat is too old, or ahead of XO's clock past
+ *   the skew it allows, FUTURE_HEARTBEAT_MS);
+ * - enforcing: `rejected` (it rejected a published document and keeps
+ *   enforcing its last valid one: a forced publish, vdf#2, must not lock
+ *   VMs out of the host), `up-to-date`, `error` (applied, but not everywhere:
+ *   its errors say where) and `behind` (it hasn't applied the published
+ *   document yet: converging, it reports it once applied).
  *
  * @returns {{ enforces: boolean, state: string, reason?: string, since?: string }}
  *   the reason in words, naming the host, when it doesn't enforce; since: the
@@ -672,13 +674,8 @@ export function hostEnforcement(host, status, publishedDocId, now = Date.now()) 
       since: status.heartbeat,
     }
   }
-  if (typeof status.rejected === 'string' && status.rejected !== '' && (status.published ?? '') === publishedDocId) {
-    return {
-      enforces: false,
-      state: 'rejected',
-      reason: `${agent} rejected the published policy (${status.rejected})`,
-      since: status.heartbeat,
-    }
+  if (typeof status.rejected === 'string' && status.rejected !== '') {
+    return { enforces: true, state: 'rejected' }
   }
   if ((status.published ?? '') !== publishedDocId || (status.doc ?? '') !== publishedDocId) {
     return { enforces: true, state: 'behind' }

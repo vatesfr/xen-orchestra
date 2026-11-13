@@ -221,7 +221,10 @@ export type VdfVmProtection =
   | 'unprotected'
 
 // Hosts whose agent enforces nothing reliable: no agent, or one stopped or
-// stuck. A VM running there gets no flows at all, quarantine included.
+// stuck. A VM running there gets no flows at all, quarantine included. One
+// that rejected the published document enforces its last valid one. The
+// plugin decides the same (hostEnforcement: its placement guard and the
+// unenforced hosts' alert, vdf#141).
 const NOT_ENFORCING: VdfHostState[] = ['unknown', 'stale', 'disabled']
 
 export const hostEnforces = (state: VdfHostState | undefined) => state !== undefined && !NOT_ENFORCING.includes(state)

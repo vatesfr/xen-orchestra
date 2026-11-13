@@ -774,10 +774,12 @@ describe('hosts that can enforce (vdf#141)', () => {
     // a publish it hasn't read, or read and not applied yet
     assert.deepEqual(enforcement({ published: 'old', doc: 'old' }), { enforces: true, state: 'behind' })
     assert.deepEqual(enforcement({ doc: 'old', applying: 'abc' }), { enforces: true, state: 'behind' })
-    // it rejected an older document: the new one may pass
+    // it rejected the published document (a forced publish, vdf#2), or an
+    // older one: it keeps enforcing its last valid one, as XO 6 reads it
+    assert.deepEqual(enforcement({ doc: 'old', rejected: 'unknown tier' }), { enforces: true, state: 'rejected' })
     assert.deepEqual(enforcement({ published: 'old', doc: 'older', rejected: 'bad' }), {
       enforces: true,
-      state: 'behind',
+      state: 'rejected',
     })
     // nothing published: the agent enforces quarantines
     assert.deepEqual(enforcement({ published: undefined, doc: undefined }, ''), { enforces: true, state: 'up-to-date' })
@@ -786,7 +788,7 @@ describe('hosts that can enforce (vdf#141)', () => {
     assert.equal(enforcement({ heartbeat: '2026-11-13T12:00:50Z' }).enforces, true)
   })
 
-  test("a host without agent, or whose agent stopped, is stuck or rejected the policy, doesn't", () => {
+  test("a host without agent, or whose agent stopped or is stuck, doesn't", () => {
     assert.deepEqual(enforcement(undefined), {
       enforces: false,
       state: 'missing',
@@ -811,12 +813,6 @@ describe('hosts that can enforce (vdf#141)', () => {
       enforcement({ heartbeat: 'garbage' }).reason,
       'the firewall agent on host "xcp1" has never reported a heartbeat'
     )
-    assert.deepEqual(enforcement({ doc: 'old', rejected: 'unknown tier' }), {
-      enforces: false,
-      state: 'rejected',
-      reason: 'the firewall agent on host "xcp1" rejected the published policy (unknown tier)',
-      since: '2026-11-13T11:55:00Z',
-    })
   })
 })
 

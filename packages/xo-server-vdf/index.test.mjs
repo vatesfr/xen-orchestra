@@ -3193,7 +3193,7 @@ describe('hosts that can enforce', () => {
     assert.equal(xo.placementGuards.size, 0)
   })
 
-  test('refuses a protected VM on a host whose agent is missing, stuck or rejecting the policy', async () => {
+  test('refuses a protected VM on a host whose agent is missing or stuck, not one that rejected the policy', async () => {
     const rejecting = hostIn(POOL, status({ doc: 'older', rejected: 'unknown tier' }))
     const { xo, check } = setUp({ hosts: { ...HOSTS, 'h-rejecting': rejecting }, vms: [WEB] })
     const plugin = await loaded(xo)
@@ -3207,10 +3207,8 @@ describe('hosts that can enforce', () => {
         (await check({ vm: WEB, host: xo.hosts['h-stale'] })).reason,
         'the firewall agent on host "h-stale" has not reported since 2026-11-01T00:00:00.000Z'
       )
-      assert.equal(
-        (await check({ vm: WEB, host: xo.hosts['h-rejecting'] })).reason,
-        'the firewall agent on host "h-rejecting" rejected the published policy (unknown tier)'
-      )
+      // it keeps enforcing its last valid policy (a forced publish, vdf#2)
+      assert.equal(await check({ vm: WEB, host: xo.hosts['h-rejecting'] }), undefined)
     } finally {
       plugin.unload()
     }
@@ -3351,13 +3349,19 @@ describe('hosts that can enforce', () => {
   test('lists, per pool the user may read, the hosts that cannot enforce while protected VMs run there', async () => {
     const reader = { id: 'reader', permission: 'none' }
     const pools = { [POOL]: { otherConfig: { 'vdf:policy': POLICY } }, B: { otherConfig: { 'vdf:policy': POLICY } } }
-    const hosts = { ...HOSTS, 'b-none': hostIn('B', undefined) }
+    const hosts = {
+      ...HOSTS,
+      'b-none': hostIn('B', undefined),
+      // it keeps enforcing its last valid policy: not listed
+      'h-rejecting': hostIn(POOL, status({ doc: 'older', rejected: 'unknown tier' })),
+    }
     const running = (vm, host) => ({ ...vm, power_state: 'Running', $container: host })
     const vms = [
       running(WEB, 'h-none'),
       { ...running(QUARANTINED, 'h-stale'), power_state: 'Paused' },
       running(PLAIN, 'h-none'),
       running(vmWith('web-2', ['vdf:role=web']), 'h-ok'),
+      running(vmWith('web-3', ['vdf:role=web']), 'h-rejecting'),
       { ...running(vmWith('web-b', ['vdf:role=web']), 'b-none'), $pool: 'B' },
       // halted: runs nowhere
       { ...WEB, id: 'web-halted', $container: 'h-none' },
