@@ -17,8 +17,6 @@ const AGENT_POLL_INTERVAL = 5e3
 // the phases of the first-boot script: the VM is restarted between two of them
 const WINDOWS_FIRST_BOOT_PHASES = ['drivers', 'finish']
 
-const hasFinding = (report, code) => report.findings.some(finding => finding.code === code)
-
 /**
  * Waits for the guest agent to report, after `since`: the guest metrics of a previous boot may still be there.
  */
@@ -159,17 +157,17 @@ async function enableSecureBoot(xapi, vmRef, context) {
  * @param {import('xen-api').Xapi} params.xapi
  * @param {string} params.vmRef
  * @param {object} params.metadata - from `getTransferableVmMetadata`
- * @param {{ diagnose: object, repair: object }} params.reports - from `repairImportedVm`
+ * @param {{ diagnose: object, repair: object, hasPvDrivers: boolean }} params.reports - from `repairImportedVm`
  * @param {(progress: import('./_repairInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress - called
  * each time the Windows first boot moves forward, e.g. to describe it on the VM. Must not throw
  */
 export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, onProgress }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
-  const { repair } = reports
+  // older Windows: no PV drivers, the first boot cannot report anything. Decided by the repair, not read again
+  // from its report, where the finding may have been dropped to fit in xenstore
+  const { repair, hasPvDrivers } = reports
   const isWindows = repair.os.kind === 'windows'
-  // older Windows: no PV drivers, the first boot cannot report anything
-  const hasPvDrivers = !hasFinding(repair, 'pv_drivers_unsupported')
 
   const since = Date.now()
   await xapi.call('VM.start', vmRef, false, false)

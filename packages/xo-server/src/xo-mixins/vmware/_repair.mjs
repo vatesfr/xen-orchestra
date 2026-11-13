@@ -268,7 +268,8 @@ export async function diagnoseOffline({ xapi, vmRef, context }) {
  * @param {object} params.metadata - from `getTransferableVmMetadata`
  * @param {boolean} [params.followFirstBoot] - whether XO starts the VM and follows its first boot: the
  * Windows first boot then leaves its reboots to XO
- * @returns {Promise<{ diagnose: object, repair: object }>} the reports of both runs
+ * @returns {Promise<{ diagnose: object, repair: object, hasPvDrivers: boolean }>} the reports of both runs, and
+ * whether the guest got the PV drivers: the first boot must follow the same decision as the ISO
  */
 export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot = false }) {
   const vm = xapi.getObject(vmRef)
@@ -344,6 +345,6 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
     }
 
     // the `network` of a later run is empty: the first run switched the static adapters to DHCP
-    return { diagnose: diagnose.report, repair: repair.report }
+    return { diagnose: diagnose.report, repair: repair.report, hasPvDrivers }
   })
 }
