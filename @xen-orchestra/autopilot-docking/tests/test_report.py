@@ -50,6 +50,43 @@ class ReportTest(unittest.TestCase):
         self.assertIn("blocking", [f["code"] for f in data["findings"]])
         self.assertEqual(data["result"], "error")
 
+    def test_compact_json_drops_what_xo_does_not_read_first(self):
+        report = Report("diagnose", "dev")
+        report.os = {"kind": "linux", "name": "Debian 12", "kernels": [f"6.1.0-{i}-amd64" for i in range(100)]}
+        report.error("boot_disk_not_first", "the OS is not on the first disk", os_disk="xvdb")
+        data = json.loads(report.compact_json())
+        self.assertEqual(data["os"], {"kind": "linux", "name": "Debian 12"})
+        # the details XO reads in a finding are kept longer than those of the OS
+        self.assertEqual(data["findings"][0]["data"], {"os_disk": "xvdb"})
+        self.assertNotIn("truncated", data)
+
+    def test_compact_json_keeps_what_xo_relies_on(self):
+        report = Report("repair", "dev")
+        report.os = {"kind": "windows", "rtc_timeoffset": 3600, "vmware_services": [f"vm{i}" for i in range(100)]}
+        report.network = [
+            {"adapter": "vmxnet3 Ethernet Adapter " * 4, "guid": f"{{guid-{i}}}", "dhcp": i % 2 == 0,
+             "addresses": [f"10.0.0.{i}"], "masks": ["255.255.255.0"], "gateways": ["10.0.0.1"],
+             "dns": ["10.0.0.2", "10.0.0.3"]}
+            for i in range(10)
+        ]
+        report.warning("pv_drivers_unsupported", "too old")
+        for i in range(100):
+            report.warning(f"warn_{i}", "y" * 100)
+        report.plan("install_firstboot", "first boot", lambda: None)
+        for i in range(100):
+            report.plan(f"action_{i}", "x" * 100, lambda: None)
+        report.apply_actions()
+        text = report.compact_json()
+        self.assertLessEqual(len(text.encode()), 1900)
+        data = json.loads(text)
+        self.assertTrue(data["truncated"])
+        self.assertEqual(data["os"], {"kind": "windows", "rtc_timeoffset": 3600})
+        self.assertEqual(data["network"], [
+            {"guid": f"{{guid-{i}}}", "dhcp": False, "addresses": [f"10.0.0.{i}"]} for i in range(1, 10, 2)
+        ])
+        self.assertIn("pv_drivers_unsupported", [f["code"] for f in data["findings"]])
+        self.assertIn({"code": "install_firstboot", "status": "applied"}, data["actions"])
+
     def test_compact_json_small_report_is_complete(self):
         report = Report("repair", "dev")
         report.warning("windows_static_ip", "static IP", addresses=["10.0.0.5"])

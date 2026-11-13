@@ -3,3 +3,7 @@
 config/hooks/live/
 config/hooks/normal/[0-8]*
 config/hooks/normal/90[0-2]0-remove-*
+
+# Python bytecode, written by the tests: it must not end up in the ISO either
+__pycache__/
+*.pyc
