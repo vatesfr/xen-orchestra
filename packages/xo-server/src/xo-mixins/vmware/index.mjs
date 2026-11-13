@@ -31,6 +31,11 @@ const { warn } = createLogger('xo:mixins:vmware')
 const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
 
+/**
+ * @typedef {{ isRepaired: true, reports: object }} RepairedGuest - with the reports of `repairImportedVm`
+ * @typedef {{ isRepaired: false }} UnrepairedGuest - the repair failed, the task says why
+ */
+
 // once XO stops following a first boot which waits for it, the user has to take over
 const withFirstBootHint = (message, reports = {}) =>
   isFirstBootLeftToXo(reports) ? `${message}. ${FIRST_BOOT_LEFT_TO_XO}` : message
@@ -254,25 +259,23 @@ export default class MigrateVm {
     }
   }
 
-  // before the lock on start is removed: the VM cannot be started by somebody else between two runs of the ISO.
-  // A failed repair does not fail the import: the data is there, the snapshot of the import is the rollback.
-  // Returns the reports of the ISO, undefined when the guest has not been repaired
-  async #repairVm({ followFirstBoot, isComplete, metadata, vm }) {
-    if (!isComplete) {
-      Task.info('the import is partial, the guest will be repaired once it is complete')
-      return
-    }
+  // once the import is complete, before the lock on start is removed: the VM cannot be started by somebody else
+  // between two runs of the ISO. A failed repair does not fail the import: the data is there, the snapshot of the
+  // import is the rollback
+  /** @returns {Promise<RepairedGuest | UnrepairedGuest>} */
+  async #repairVm({ followFirstBoot, metadata, vm }) {
     const xapi = vm.$xapi
     try {
       const reports = await Task.run({ properties: { name: 'repairing the guest for XCP-ng' } }, () =>
         repairImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
       )
       await this.#writeRepairDescription(vm, describeRepair({ reports }))
-      return reports
+      return { isRepaired: true, reports }
     } catch (error) {
       warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(withFirstBootHint(`the guest could not be repaired: ${error.message}`, error.reports))
       await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error }))
+      return { isRepaired: false }
     }
   }
 
@@ -287,20 +290,21 @@ export default class MigrateVm {
     }
   }
 
-  // once the import is complete and the lock on start removed. A repaired guest is followed through its first
-  // boot, which does not fail the import either
-  async #startVm({ metadata, reports, vm }) {
+  // once the import is complete and the lock on start removed: failing to start the VM must not fail the import,
+  // which would destroy the VM
+  async #startVm({ metadata, vm }) {
     const xapi = vm.$xapi
-    if (reports === undefined) {
-      // the import is complete: failing to start the VM must not fail it, which would destroy the VM
-      try {
-        await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
-      } catch (error) {
-        warn('failed to start the imported VM', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
-        Task.warning(`the VM could not be started: ${error.message}`)
-      }
-      return
+    try {
+      await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+    } catch (error) {
+      warn('failed to start the imported VM', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(`the VM could not be started: ${error.message}`)
     }
+  }
+
+  // starts a repaired guest and follows its first boot, which does not fail the import either
+  async #startRepairedVm({ metadata, reports, vm }) {
+    const xapi = vm.$xapi
     // how far the first boot went, kept in the description when it fails
     let firstBoot
     try {
@@ -458,10 +462,17 @@ export default class MigrateVm {
     await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     const isComplete = stopSource || metadata.powerState === 'poweredOff'
-    let reports
-    if (repair) {
+    // the guest is only repaired, and the VM only started, once the import is complete
+    if (!isComplete && (repair || startVm)) {
+      Task.info('the import is partial: the guest is neither repaired nor started until an import completes it')
+    }
+    const isRepairing = repair && isComplete
+    const isStarting = startVm && isComplete
+    /** @type {RepairedGuest | UnrepairedGuest | undefined} undefined when no repair is run */
+    let repairOutcome
+    if (isRepairing) {
       // the VM is started once repaired, XO follows its first boot and does its reboots
-      reports = await this.#repairVm({ followFirstBoot: startVm, isComplete, metadata, vm })
+      repairOutcome = await this.#repairVm({ followFirstBoot: isStarting, metadata, vm })
     }
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
@@ -474,17 +485,17 @@ export default class MigrateVm {
       }
     })
 
-    if (startVm) {
-      if (!isComplete) {
-        Task.info('the import is partial, the VM is not started')
-      } else if (repair && reports === undefined) {
-        Task.warning('the VM is not started: its guest could not be repaired')
-      } else {
-        await this.#startVm({ metadata, reports, vm })
+    if (!isStarting) {
+      if (repairOutcome?.isRepaired && metadata.firmware === 'uefi' && metadata.secureBoot) {
+        // the repair disabled it, the first boot would have enabled it again
+        Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
       }
-    } else if (reports !== undefined && metadata.firmware === 'uefi' && metadata.secureBoot) {
-      // the repair disabled it, the first boot would have enabled it again
-      Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
+    } else if (repairOutcome === undefined) {
+      await this.#startVm({ metadata, vm })
+    } else if (repairOutcome.isRepaired) {
+      await this.#startRepairedVm({ metadata, reports: repairOutcome.reports, vm })
+    } else {
+      Task.warning('the VM is not started: its guest could not be repaired')
     }
 
     return vm.uuid
