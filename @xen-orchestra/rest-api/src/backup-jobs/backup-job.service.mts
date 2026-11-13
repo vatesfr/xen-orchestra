@@ -75,6 +75,9 @@ export class BackupJobService {
       assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
     } else if (type === 'mirrorBackup') {
       assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      assertValidExpression('remotes', job.remotes)
+    } else if (type === 'metadataBackup') {
+      assertValidExpression('remotes', job.remotes)
     }
   }
 
