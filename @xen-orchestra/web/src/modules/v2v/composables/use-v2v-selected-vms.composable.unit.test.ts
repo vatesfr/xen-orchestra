@@ -1,5 +1,5 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -79,7 +79,7 @@ async function mountSelectedVms({
   xoCollectionsMock.networks.value = [NETWORK]
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
-  return mountV2vVmsStep(() => ({ ...useV2vVmsStep().selectedVms, labels: useV2vVmLabels() }), {
+  return mountV2vVmsStep(() => ({ ...useV2vVmsStep().selectedVms, labels: useV2vSelectedVmLabels() }), {
     list,
     query: { pool: poolId ?? undefined },
   })

@@ -2,8 +2,9 @@ import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-x
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
-import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
@@ -46,7 +47,7 @@ export type V2vListPair = {
 export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId }: V2vSelectedVmsContext) {
   const { t } = useI18n()
 
-  const { getKindTag, getCheckInfo, getMappingParts, getReadinessTags } = useV2vVmLabels()
+  const { getKindTag, getCheckInfo, getMappingParts, getReadinessTags } = useV2vSelectedVmLabels()
 
   const { getStepLocation } = useV2vWizardNavigation()
 
