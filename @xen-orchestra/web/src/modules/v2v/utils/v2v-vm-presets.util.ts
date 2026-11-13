@@ -1,4 +1,5 @@
 import type { V2vVmRow, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import { countV2vRowsByStatus } from '@/modules/v2v/utils/v2v-vm-rows.util.ts'
 import { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import {
   addFilterClause,
@@ -76,12 +77,15 @@ export function getActiveV2vPreset(filter: string): V2vVmPresetId | undefined {
 
 export function countV2vPresets(rows: V2vVmRow[], filter: string): Record<V2vVmPresetId, number> {
   // useQueryBuilderFilter shows every row for an unparsable filter: the counts are those of an empty one
-  const facetFilter = isFilterParsable(filter) ? filter : ''
+  const facetFilter = isFilterParsable(filter) ? applyV2vPreset(filter, 'all') : ''
 
-  return objectFromEntries(
-    V2V_VM_PRESETS.map(
-      presetId =>
-        [presetId, rows.filter(parse(applyV2vPreset(facetFilter, presetId)).createPredicate()).length] as const
-    )
-  )
+  // One pass over the rows: each count then tests the row field its PRESET_CLAUSES entry matches
+  const facetRows = rows.filter(parse(facetFilter).createPredicate())
+  const statusCounts = countV2vRowsByStatus(facetRows)
+
+  return {
+    all: facetRows.length,
+    'not-ready': facetRows.filter(row => !row.supported).length,
+    ...objectFromEntries(V2V_VM_STATUSES.map(status => [MIGRATION_PRESETS[status], statusCounts[status]] as const)),
+  }
 }
