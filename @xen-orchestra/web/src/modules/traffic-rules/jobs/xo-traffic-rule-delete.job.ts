@@ -29,6 +29,10 @@ export const useXoTrafficRuleDeleteJob = defineJob('traffic-rule.delete', [xoTra
             body.port = rule.port
           }
 
+          if (rule.priority !== undefined) {
+            body.priority = rule.priority
+          }
+
           if (rule.type === 'VIF') {
             body.vifId = rule.sourceId
           } else {

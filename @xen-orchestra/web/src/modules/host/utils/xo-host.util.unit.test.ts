@@ -152,4 +152,24 @@ describe('getHostIcon', () => {
   it('falls back to the unknown host icon when no host is provided', () => {
     expect(getHostIcon(undefined)).toBe(objectIcon('host', 'unknown'))
   })
+
+  it('picks the host busy icon while the host state is changing', () => {
+    const host = createHost({
+      power_state: HOST_POWER_STATE.RUNNING,
+      enabled: true,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
+    })
+
+    expect(getHostIcon(host)).toBe(objectIcon('host', 'busy'))
+  })
+
+  it('keeps the host state icon while only a VM operation is pending on the host', () => {
+    const host = createHost({
+      power_state: HOST_POWER_STATE.RUNNING,
+      enabled: true,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.VM_START },
+    })
+
+    expect(getHostIcon(host)).toBe(objectIcon('host', 'running'))
+  })
 })

@@ -14,27 +14,12 @@
       <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
     <template #actions>
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
-        </template>
+      <VtsChangeStateMenu v-if="!uiStore.isSmall">
         <HostPowerStateActions :host />
-      </MenuList>
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{
-              placement: 'left',
-              content: t('more-actions'),
-            }"
-            icon="action:more-actions"
-            accent="brand"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
-        <HostMoreActions :host />
-      </MenuList>
+      </VtsChangeStateMenu>
+      <VtsActionsMenu :label="t('more-actions')" size="medium">
+        <HostMoreActions :host :show-change-state="uiStore.isSmall" />
+      </VtsActionsMenu>
     </template>
   </UiHeadBar>
 </template>
@@ -46,12 +31,12 @@ import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
+import VtsChangeStateMenu from '@core/components/menu/VtsChangeStateMenu.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -60,6 +45,8 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const uiStore = useUiStore()
 
 const { isMasterHost } = usePoolStore().subscribe()
 const isMaster = computed(() => isMasterHost(host.$ref))

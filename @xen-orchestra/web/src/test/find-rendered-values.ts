@@ -38,6 +38,22 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
 }
 
 /**
+ * Reads every `VtsCardRowKeyValue` as `{ label: values }`, each value of a
+ * multi-value row (an address list, report recipients) being its own entry, in
+ * the order the row lists them. A single-value row reads as a one-entry list.
+ */
+export function findCardLabelledValueLists(wrapper: QueryableWrapper): Record<string, string[]> {
+  return Object.fromEntries(
+    wrapper
+      .findAll(CARD_KEY_VALUE_ROW_SELECTOR)
+      .map(row => [
+        row.get('.key').text(),
+        row.findAll('.value-row > .value, .value-container > .value').map(value => value.text()),
+      ])
+  )
+}
+
+/**
  * Reads the value each `VtsTabularKeyValueRow` / `VtsKeyValueRow` offers to copy, keyed
  * by its label. Rows without a copy button are left out, so a single `toEqual` pins
  * both which rows are copyable and what they copy.

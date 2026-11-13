@@ -9,7 +9,7 @@ import type {
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -95,7 +95,7 @@ it('lists every type of the backup job, offering to copy them all', () => {
   const wrapper = mountInfosCard(backupJob)
   const typeLabels = [t('backup:rolling-snapshot'), t('backup:vms-backup'), t('backup:vms-replication')]
 
-  expect(findValues(wrapper).slice(0, 3)).toEqual(typeLabels)
+  expect(findCardLabelledValueLists(wrapper)[t('type')]).toEqual(typeLabels)
   expect(wrapper.getComponent(VtsCopyAllMenuItem).props('values')).toEqual(typeLabels)
 })
 

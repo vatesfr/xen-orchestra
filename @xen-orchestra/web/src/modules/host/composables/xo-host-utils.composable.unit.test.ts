@@ -172,7 +172,7 @@ describe('currentOperation', () => {
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
     })
 
-    expect(currentOperation).toBe(t('operation:clean-reboot'))
+    expect(currentOperation).toBe(t('operation-in-progress', { operation: t('operation:clean-reboot') }))
   })
 
   it('maps the power-on operation of a halted host to a translated label', () => {
@@ -181,7 +181,7 @@ describe('currentOperation', () => {
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.POWER_ON },
     })
 
-    expect(currentOperation).toBe(t('operation:start'))
+    expect(currentOperation).toBe(t('operation-in-progress', { operation: t('operation:start') }))
   })
 
   it('maps the smart-reboot VM operation to a translated label', () => {
@@ -195,7 +195,9 @@ describe('currentOperation', () => {
       return { ...useXoHostUtils(host), t }
     })
 
-    expect(wrapper.vm.currentOperation).toBe(wrapper.vm.t('operation:vm-hard-shutdown'))
+    expect(wrapper.vm.currentOperation).toBe(
+      wrapper.vm.t('operation-in-progress', { operation: wrapper.vm.t('operation:vm-hard-shutdown') })
+    )
   })
 
   it('falls back to an empty label when there is no pending operation', () => {
@@ -210,5 +212,27 @@ describe('currentOperation', () => {
     })
 
     expect(currentOperation).toBe('')
+  })
+})
+
+describe('iconTooltip', () => {
+  it('shows the operation changing the host state', () => {
+    const result = mountHostUtils({
+      power_state: HOST_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
+    })
+
+    expect(result.iconTooltip).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:clean-reboot') })
+    )
+  })
+
+  it('is empty while only a VM operation is pending on the host', () => {
+    const result = mountHostUtils({
+      power_state: HOST_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.VM_START },
+    })
+
+    expect(result.iconTooltip).toBe('')
   })
 })
