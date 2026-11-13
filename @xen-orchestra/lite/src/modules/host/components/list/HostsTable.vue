@@ -38,6 +38,9 @@ import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
+import { compareFirstStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -82,8 +85,6 @@ const state = useTableState({
   },
 })
 
-const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)
-
 function getMasterIcon(host: XenApiHost) {
   if (!isMasterHost(host.$ref)) {
     return undefined
@@ -95,10 +96,12 @@ function getMasterIcon(host: XenApiHost) {
   }
 }
 
-const { HeadCells, BodyCells } = useHostColumns({
+const getIpAddresses = (host: XenApiHost) => getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref))
+
+const { HeadCells, BodyCells, sortItems } = useHostColumns({
   exclude: ['checkbox', 'srStatus', 'actions'],
   body: (host: XenApiHost) => {
-    const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref)))
+    const ipAddresses = computed(() => getIpAddresses(host))
     const hostIcon = computed(() => getHostIcon(host, getHostPowerState(host)))
     const rightIcon = computed(() => getMasterIcon(host))
 
@@ -116,7 +119,18 @@ const { HeadCells, BodyCells } = useHostColumns({
       selectItem: r => r(() => (selectedHostId.value = host.uuid)),
     }
   },
+  sort: {
+    host: sortByNameLabel,
+    description: sortByNameDescription,
+    ipAddresses: (host1, host2) => compareFirstStrings(getIpAddresses(host1), getIpAddresses(host2)),
+    tags: (host1, host2) => compareFirstStrings(host1.tags, host2.tags),
+  },
+  initialSort: { id: 'host', direction: 'asc' },
 })
+
+const sortedHosts = computed(() => sortItems(filteredHosts.value))
+
+const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', sortedHosts)
 </script>
 
 <style lang="postcss" scoped>

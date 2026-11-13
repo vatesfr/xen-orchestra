@@ -1,6 +1,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import type { RouteLocationRaw } from 'vue-router'
 
 export function isSrWritable(sr: FrontXoSr) {
@@ -29,4 +30,20 @@ export function getSrCustomFields(sr: FrontXoSr): Record<string, string> {
 
     return acc
   }, {})
+}
+
+export function compareSrFormats(sr1: FrontXoSr, sr2: FrontXoSr) {
+  return compareStrings(sr1.SR_type, sr2.SR_type)
+}
+
+export function compareSrAccessModes(sr1: FrontXoSr, sr2: FrontXoSr) {
+  return Number(sr1.shared) - Number(sr2.shared)
+}
+
+function getSrUsageRatio(sr: FrontXoSr) {
+  return sr.size === 0 ? 0 : sr.physical_usage / sr.size
+}
+
+export function compareSrUsages(sr1: FrontXoSr, sr2: FrontXoSr) {
+  return getSrUsageRatio(sr1) - getSrUsageRatio(sr2)
 }

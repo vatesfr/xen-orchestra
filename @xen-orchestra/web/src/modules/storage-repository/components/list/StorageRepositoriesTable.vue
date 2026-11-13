@@ -34,7 +34,12 @@ import {
   useXoSrCollection,
   type FrontXoSr,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import {
+  compareSrAccessModes,
+  compareSrFormats,
+  compareSrUsages,
+  getSrPageLocation,
+} from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -47,6 +52,8 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -89,8 +96,6 @@ const state = useTableState({
         : false,
 })
 
-const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
-
 const { getSrPbdsSignature } = useGetPbdsInScope()
 
 function getPrimaryIcon(sr: FrontXoSr) {
@@ -104,7 +109,7 @@ function getPrimaryIcon(sr: FrontXoSr) {
   }
 }
 
-const { HeadCells, BodyCells } = useSrColumns({
+const { HeadCells, BodyCells, sortItems } = useSrColumns({
   exclude: ['checkbox'],
   body: (sr: FrontXoSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))
@@ -185,7 +190,19 @@ const { HeadCells, BodyCells } = useSrColumns({
         }),
     }
   },
+  sort: {
+    storageRepository: sortByNameLabel,
+    description: sortByNameDescription,
+    storageFormat: compareSrFormats,
+    accessMode: compareSrAccessModes,
+    usedSpace: compareSrUsages,
+  },
+  initialSort: { id: 'storageRepository', direction: 'asc' },
 })
+
+const sortedSrs = computed(() => sortItems(filteredSrs.value))
+
+const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', sortedSrs)
 </script>
 
 <style scoped lang="postcss">
