@@ -6,9 +6,10 @@
 export default {
   // firewall pages, status, history, rule log, trace
   read: true,
-  // policies and groups
+  // policies and groups, and the firewall's tags on the pool's networks
+  // (`vdf:net=…`, `vdf:unprotected`), which decide where policies apply
   publish: true,
-  // the firewall's tags (`vdf:…`) on the pool's objects, except the quarantine
+  // the firewall's group tags (`vdf:…`) on the pool's VMs, except the quarantine
   membership: true,
   // the quarantine tag (`vdf:quarantine`) on the pool's VMs
   quarantine: {

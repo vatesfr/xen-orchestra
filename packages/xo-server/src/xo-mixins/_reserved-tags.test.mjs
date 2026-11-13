@@ -6,7 +6,7 @@ import { featureUnauthorized, forbiddenOperation } from 'xo-common/api-errors.js
 
 import ReservedTags, {
   diffTags,
-  firewallActionForTag,
+  firewallActionsForTag,
   isReservedTag,
   RESERVED_TAG_CHANGE_EVENT,
   RESERVED_TAGS_STRIPPED_EVENT,
@@ -172,14 +172,24 @@ describe('checkTagsChange', () => {
   })
 })
 
-describe('firewallActionForTag', () => {
-  it('quarantining or lifting it for vdf:quarantine, membership for every other reserved tag', () => {
-    assert.equal(firewallActionForTag('add', 'vdf:quarantine'), 'quarantine:add')
-    assert.equal(firewallActionForTag('remove', 'vdf:quarantine'), 'quarantine:remove')
-    assert.equal(firewallActionForTag('add', 'vdf:role=app'), 'membership')
-    assert.equal(firewallActionForTag('remove', 'vdf:role=app'), 'membership')
-    assert.equal(firewallActionForTag('add', 'vdf:net=dmz'), 'membership')
-    assert.equal(firewallActionForTag('remove', 'vdf:unprotected'), 'membership')
+describe('firewallActionsForTag', () => {
+  it('quarantining or lifting it for vdf:quarantine, membership for a group tag', () => {
+    assert.deepEqual(firewallActionsForTag('add', 'vdf:quarantine', 'VM'), ['quarantine:add'])
+    assert.deepEqual(firewallActionsForTag('remove', 'vdf:quarantine', 'VM'), ['quarantine:remove'])
+    assert.deepEqual(firewallActionsForTag('add', 'vdf:role=app', 'VM'), ['membership'])
+    assert.deepEqual(firewallActionsForTag('remove', 'vdf:role=app', 'VM'), ['membership'])
+  })
+
+  it('publish for any reserved tag on a network', () => {
+    for (const tag of ['vdf:net=dmz', 'vdf:unprotected', 'vdf:role=app', 'vdf:quarantine']) {
+      assert.deepEqual(firewallActionsForTag('add', tag, 'network'), ['publish'], tag)
+      assert.deepEqual(firewallActionsForTag('remove', tag, 'network'), ['publish'], tag)
+    }
+  })
+
+  it('membership and publish for a network tag on another object', () => {
+    assert.deepEqual(firewallActionsForTag('add', 'vdf:net=dmz', 'VM'), ['membership', 'publish'])
+    assert.deepEqual(firewallActionsForTag('remove', 'vdf:unprotected', 'VM'), ['membership', 'publish'])
   })
 })
 
@@ -235,11 +245,15 @@ describe('checkTagsChange: who may change which reserved tag', () => {
     'join a group': [VM, { added: ['vdf:role=app'] }],
     'leave a group': [VM, { removed: ['vdf:role=app'] }],
     'tag a network': [NETWORK, { added: ['vdf:net=dmz'] }],
+    'unprotect a network': [NETWORK, { added: ['vdf:unprotected'] }],
+    'put a group tag on a network': [NETWORK, { added: ['vdf:role=app'] }],
+    'put a network tag on a VM': [VM, { added: ['vdf:net=dmz'] }],
     quarantine: [VM, { added: ['vdf:quarantine'] }],
     lift: [VM, { removed: ['vdf:quarantine'] }],
   }
   const ALL = Object.keys(CHANGES)
-  const MEMBERSHIP_CHANGES = ['join a group', 'leave a group', 'tag a network']
+  const MEMBERSHIP_CHANGES = ['join a group', 'leave a group']
+  const PUBLISH_CHANGES = ['tag a network', 'unprotect a network', 'put a group tag on a network']
   const EXPECTED = [
     ['an XO administrator', ADMIN, ALL],
     ['administrate on the pool (legacy)', POOL_ADMIN, ALL],
@@ -250,14 +264,10 @@ describe('checkTagsChange: who may change which reserved tag', () => {
     ['firewall quarantine:add', QUARANTINE_ADD, ['quarantine']],
     ['firewall quarantine:remove', QUARANTINE_REMOVE, ['lift']],
     ['firewall quarantine', QUARANTINE, ['quarantine', 'lift']],
-    ['firewall read and publish', READ_PUBLISH, []],
+    ['firewall read and publish', READ_PUBLISH, PUBLISH_CHANGES],
     ['firewall membership on the pool, selected by name', PROD_MEMBERSHIP, MEMBERSHIP_CHANGES],
     ['firewall membership on another pool', POOL_2_MEMBERSHIP, []],
-    [
-      'firewall *, but quarantine:remove denied on the pool',
-      ALL_BUT_LIFT,
-      ['join a group', 'leave a group', 'tag a network', 'quarantine'],
-    ],
+    ['firewall *, but quarantine:remove denied on the pool', ALL_BUT_LIFT, ALL.filter(change => change !== 'lift')],
     ['vm update:tags only', VM_TAGGER, []],
     ['no ACL and no role', NOBODY, []],
   ]
@@ -290,6 +300,27 @@ describe('checkTagsChange: who may change which reserved tag', () => {
       assert.equal(
         error.data.reason,
         'the tag "vdf:role=app" belongs to the firewall: adding it takes the firewall membership privilege on the pool, the administrate permission on it, or an XO administrator'
+      )
+      return true
+    })
+    await assert.rejects(
+      mixin.checkTagsChange(
+        MEMBERSHIP,
+        { id: 'net-1', type: 'network', $pool: 'pool-1' },
+        { removed: ['vdf:unprotected'] }
+      ),
+      error => {
+        assert.equal(
+          error.data.reason,
+          'the tag "vdf:unprotected" belongs to the firewall: removing it on a network takes the firewall publish privilege on the pool, the administrate permission on it, or an XO administrator'
+        )
+        return true
+      }
+    )
+    await assert.rejects(mixin.checkTagsChange(MEMBERSHIP, VM, { added: ['vdf:net=dmz'] }), error => {
+      assert.equal(
+        error.data.reason,
+        'the tag "vdf:net=dmz" belongs to the firewall: adding it takes the firewall publish privilege on the pool, the administrate permission on it, or an XO administrator'
       )
       return true
     })

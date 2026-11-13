@@ -29,16 +29,42 @@ const LEGACY_PERMISSION_BY_FIREWALL_ACTION = {
   'quarantine:remove': 'administrate',
 }
 
+// Network tags: a group scoped to networks applies on the networks carrying
+// its tags (`vdf:net=dmz`), and `vdf:unprotected` takes a whole network out of
+// the firewall.
+const NETWORK_TAG_PREFIX = 'vdf:net='
+const UNPROTECTED_TAG = 'vdf:unprotected'
+export const isNetworkTag = tag => tag.startsWith(NETWORK_TAG_PREFIX) || tag === UNPROTECTED_TAG
+
 /**
- * The firewall action adding or removing a reserved tag takes: putting a VM
- * into quarantine or lifting it for `vdf:quarantine`, `membership` for every
- * other one (group tags, network tags).
+ * The firewall actions adding or removing a reserved tag on an object takes,
+ * all of them:
+ *
+ * - on a network, `publish`, whatever the tag: a network's tags decide where
+ *   the policies apply, as publishing them does;
+ * - `vdf:quarantine`: putting the VM into quarantine or lifting it;
+ * - a network tag on another object (a VM): it means nothing to the
+ *   firewall there, but a group may select VMs by any tag, so `membership`,
+ *   and `publish` as for a network tag anywhere;
+ * - every other one (group tags): `membership`.
  *
  * @param {'add' | 'remove'} change
  * @param {string} tag - a reserved tag
- * @returns {'membership' | 'quarantine:add' | 'quarantine:remove'}
+ * @param {string} objectType - the XO type of the object carrying it (`VM`, `network`…)
+ * @returns {Array<'publish' | 'membership' | 'quarantine:add' | 'quarantine:remove'>}
  */
-export const firewallActionForTag = (change, tag) => (tag === QUARANTINE_TAG ? `quarantine:${change}` : 'membership')
+export function firewallActionsForTag(change, tag, objectType) {
+  if (objectType === 'network') {
+    return ['publish']
+  }
+  if (tag === QUARANTINE_TAG) {
+    return [`quarantine:${change}`]
+  }
+  if (isNetworkTag(tag)) {
+    return ['membership', 'publish']
+  }
+  return ['membership']
+}
 
 // what a refusal says the user lacks
 const describeFirewallRight = (action, pool = 'the pool') =>
@@ -231,7 +257,7 @@ export default class ReservedTags {
    * The one place that decides whether a user may add or remove tags on an
    * object: every path through which a user writes tags calls it.
    *
-   * Each reserved tag takes its firewall action (`firewallActionForTag`) on
+   * Each reserved tag takes its firewall actions (`firewallActionsForTag`) on
    * the object's pool (`hasFirewallRight`); other tags are not checked here.
    * Calls without a user (xo-server's own work) are not checked.
    *
@@ -317,15 +343,16 @@ export default class ReservedTags {
     // action → allowed
     const decided = new Map()
     for (const [change, tag] of reserved) {
-      const action = firewallActionForTag(change, tag)
-      if (!decided.has(action)) {
-        decided.set(action, await this.hasFirewallRight(user, object.$pool, action))
-      }
-      if (!decided.get(action)) {
-        throw forbiddenOperation(
-          `${change} tag ${tag}`,
-          `the tag "${tag}" belongs to the firewall: ${change === 'add' ? 'adding' : 'removing'} it takes ${describeFirewallRight(action)}`
-        )
+      for (const action of firewallActionsForTag(change, tag, object.type)) {
+        if (!decided.has(action)) {
+          decided.set(action, await this.hasFirewallRight(user, object.$pool, action))
+        }
+        if (!decided.get(action)) {
+          throw forbiddenOperation(
+            `${change} tag ${tag}`,
+            `the tag "${tag}" belongs to the firewall: ${change === 'add' ? 'adding' : 'removing'} it ${object.type === 'network' ? 'on a network ' : ''}takes ${describeFirewallRight(action)}`
+          )
+        }
       }
     }
   }

@@ -192,15 +192,17 @@ Actions are written using the exact string you pass in a privilege. A parent act
 
 The `firewall` resource is a pool's firewall (VDF, the Vates Distributed Firewall). Its privileges are evaluated against the **pool**: a selector selects pools (`id: <pool-uuid>`, `name_label: prod`, `tags: dmz`), whatever the action.
 
-| Action              | Allows                                                                                                    |
-| ------------------- | --------------------------------------------------------------------------------------------------------- |
-| `read`              | See the pool's firewall: status, policies, history, rule log, trace                                       |
-| `publish`           | Publish the pool's policies and groups (check, publish, roll back)                                        |
-| `membership`        | Add or remove the firewall's tags (`vdf:…`) on the pool's objects (VMs, networks…), except the quarantine |
-| `quarantine:add`    | Quarantine a VM of the pool (add `vdf:quarantine`)                                                        |
-| `quarantine:remove` | Lift a VM's quarantine (remove `vdf:quarantine`), and acknowledge a quarantine lifted outside XO          |
+| Action              | Allows                                                                                                                                                                                    |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read`              | See the pool's firewall: status, policies, history, rule log, trace                                                                                                                       |
+| `publish`           | Publish the pool's policies and groups (check, publish, roll back), and change the firewall's tags on its networks (`vdf:net=…`, `vdf:unprotected`): they decide where the policies apply |
+| `membership`        | Add or remove the firewall's group tags (`vdf:…`) on the pool's VMs, except the quarantine                                                                                                |
+| `quarantine:add`    | Quarantine a VM of the pool (add `vdf:quarantine`)                                                                                                                                        |
+| `quarantine:remove` | Lift a VM's quarantine (remove `vdf:quarantine`), and acknowledge a quarantine lifted outside XO                                                                                          |
 
 Changing a `vdf:` tag takes two keys: the right to change the object's tags (`update:tags` on it through the REST API, the `administrate` ACL on it through the JSON-RPC API), and the matching `firewall` action on its pool, whichever API is used. With the first key only, a user still changes every other tag. The same `firewall` action is needed when a new VM (clone, copy, import, creation from a template) keeps the `vdf:` group tags of its source, otherwise they are removed from it, and when a VM with group tags migrates to another pool (`membership` on the destination pool). `vdf:quarantine` is always kept.
+
+Any `vdf:` tag on a network takes `publish`. A network tag (`vdf:net=…`, `vdf:unprotected`) on a VM means nothing to the firewall, but a group may select VMs by any tag: it takes both `membership` and `publish`.
 
 XO administrators have every right. The original [ACLs](./users.md#acls) still count: `administrate` on a pool counts as every `firewall` action on it, `view` as `read`. A `deny` privilege does not take away what an original ACL grants. The XO-wide firewall configuration stays reserved to administrators.
 
