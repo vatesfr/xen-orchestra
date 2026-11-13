@@ -33,6 +33,7 @@
 - [Backups] The backup journal of a remote (`xo-backup-log/`) no longer grows forever: its entries are deleted after 30 days, configurable with `backups.journalRetention` (PR [#10703](https://github.com/vatesfr/xen-orchestra/pull/10703))
 - [XO6/Backups] Add a detail page for backup logs (PR [#10718](https://github.com/vatesfr/xen-orchestra/pull/10718))
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
+- [VMs] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
 
 ### Bug fixes
 

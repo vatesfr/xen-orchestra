@@ -1,14 +1,21 @@
 <template>
-  <UiModal :accent :icon @confirm="emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal :accent :icon @confirm="isConfirmed && emit('confirm')" @dismiss="emit('cancel')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
-      <span v-if="modalTexts.message">{{ modalTexts.message }}</span>
+      <div class="vts-action-modal">
+        <p v-if="modalTexts.message">{{ modalTexts.message }}</p>
+        <VtsTypeToConfirmInput
+          v-if="confirmationText !== undefined"
+          v-model="isTypedTextConfirmed"
+          :confirmation-text
+        />
+      </div>
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton>
+      <VtsOverlayConfirmButton :disabled="!isConfirmed">
         {{ modalTexts.action }}
       </VtsOverlayConfirmButton>
     </template>
@@ -18,11 +25,13 @@
 <script lang="ts" setup>
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsTypeToConfirmInput from '@core/components/type-to-confirm-input/VtsTypeToConfirmInput.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
@@ -38,21 +47,28 @@ type TextMappingByObject = {
 type VtsActionModalVmProps = {
   object: 'vm'
   action: VmActions
-  vmName: string
+  vmCount: number
   hostName?: never
 }
 
 type VtsActionModalHostProps = {
   object: 'host'
   action: HostActions
-  vmName?: never
+  vmCount?: never
   hostName: string
 }
 
-const { action, object, vmName, hostName } = defineProps<
+const {
+  action,
+  object,
+  vmCount = 1,
+  hostName,
+  confirmationText,
+} = defineProps<
   (VtsActionModalVmProps | VtsActionModalHostProps) & {
     accent: ModalAccent
     icon: IconName
+    confirmationText?: string
   }
 >()
 
@@ -71,24 +87,24 @@ const { t } = useI18n()
 const textMappingsByObject: TextMappingByObject = {
   vm: {
     'force-reboot': {
-      title: t('modal:confirm-vm-force-reboot?', { vm: vmName }),
-      message: t('modal:vm-force-reboot-message'),
-      action: t('modal:action:vm-force-reboot'),
+      title: t('modal:vm-force-reboot-title', { n: vmCount }),
+      message: t('modal:vm-force-reboot-message', { n: vmCount }),
+      action: t('action:force-reboot-n-vms', { n: vmCount }),
     },
     'force-shutdown': {
-      title: t('modal:confirm-vm-force-shutdown?', { vm: vmName }),
-      message: t('modal:vm-force-shutdown-message'),
-      action: t('modal:action:vm-force-shutdown'),
+      title: t('modal:vm-force-shutdown-title', { n: vmCount }),
+      message: t('modal:vm-force-shutdown-message', { n: vmCount }),
+      action: t('action:force-shutdown-n-vms', { n: vmCount }),
     },
     reboot: {
-      title: t('modal:confirm-vm-reboot?', { vm: vmName }),
-      message: t('modal:vm-reboot-message'),
-      action: t('modal:action:vm-reboot'),
+      title: t('modal:vm-reboot-title', { n: vmCount }),
+      message: t('modal:vm-reboot-message', { n: vmCount }),
+      action: t('action:reboot-n-vms', { n: vmCount }),
     },
     shutdown: {
-      title: t('modal:confirm-vm-shutdown?', { vm: vmName }),
-      message: t('modal:vm-shutdown-message'),
-      action: t('modal:action:vm-shutdown'),
+      title: t('modal:vm-shutdown-title', { n: vmCount }),
+      message: t('modal:vm-shutdown-message', { n: vmCount }),
+      action: t('action:shutdown-n-vms', { n: vmCount }),
     },
   },
   host: {
@@ -159,4 +175,16 @@ const modalTexts = useMapper(
   () => textMappingsByObject[object] as Record<ActionsByObject[ObjectType], ActionTexts>,
   () => defaultActionByObject[object]
 )
+
+const isTypedTextConfirmed = ref(false)
+
+const isConfirmed = computed(() => confirmationText === undefined || isTypedTextConfirmed.value)
 </script>
+
+<style lang="postcss" scoped>
+.vts-action-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+}
+</style>
