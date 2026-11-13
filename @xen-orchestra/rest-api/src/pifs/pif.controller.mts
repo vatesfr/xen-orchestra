@@ -132,6 +132,9 @@ export class PifController extends XapiXoController<XoPif> {
   }
 
   /**
+   * Delete a PIF. If it is the PIF of a VLAN, a bond or a tunnel, the VLAN, the bond or the tunnel is destroyed.
+   * The management interface cannot be deleted.
+   *
    * Required privilege:
    * - resource: pif, action: delete
    *

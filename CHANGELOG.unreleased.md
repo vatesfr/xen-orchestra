@@ -35,6 +35,8 @@
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
 - [VMs] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
 - [XO6/Backups] Add filters and actions on backup jobs (PR [#10772](https://github.com/vatesfr/xen-orchestra/pull/10772))
+- [REST API] Add `DELETE /rest/v0/pifs/{id}` to delete a PIF and its related VLAN, bond or tunnel (PR [#10564](https://github.com/vatesfr/xen-orchestra/pull/10564))
+- [Network] PIF deletion now handles VLANs and bonds, and prevents deleting the management interface (PR [#10564](https://github.com/vatesfr/xen-orchestra/pull/10564))
 
 ### Bug fixes
 
