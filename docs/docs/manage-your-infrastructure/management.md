@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Management in XO 6
 
-This page walks through day-to-day management in XO 6: pools, hosts and VMs. For the general layout and navigation, start with [XO 6 at a glance](../discover-xen-orchestra/gettingstarted.md).
+This page walks through day-to-day management in XO 6: pools, hosts and VMs. For the general layout and navigation, start with [How XO is organized](../core-concepts/coreconcepts/coreconcepts.md).
 
 ## Pools
 
@@ -87,15 +87,19 @@ A rule is simple to express: allow or block, a protocol (ARP, ICMP, IP, TCP or U
 <UiShot light="/img/xo6/traffic-rule-new-light.png" dark="/img/xo6/traffic-rule-new-dark.png" alt="The new traffic rule form: policy, protocol, direction, IP range, and the network or VIF it applies to" url="https://your-xo/v6/#/traffic-rule/new" />
 
 :::warning Prerequisites
-Traffic rules are enforced by the [SDN Controller plugin](../manage-your-infrastructure/sdn_controller.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../getting-started/configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](../manage-your-infrastructure/sdn_controller.md#migration-path) converts existing rules.
+Traffic rules are enforced by the [SDN Controller plugin](networking/sdn_controller.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../getting-started/configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](networking/sdn_controller.md#migration-path) converts existing rules.
 :::
 
 Everything is also available through the [REST API](../automation/restapi.md), where rules can additionally be updated in place, making network policies easy to automate.
 
 ## Users and administration
 
-The **Administration** tab of the sidebar covers who can access your Xen Orchestra. **Users** are listed in XO 6 with their details, groups and authentication tokens (creating and editing users still happens in XO 5); **Groups**, **Roles** and **LDAP or other authentication providers** open their XO 5 configuration pages.
+The **Administration** tab of the sidebar covers who can access your Xen Orchestra. **Users** are listed in XO 6 with their details, groups and authentication tokens (creating and editing users still happens in XO 5); **Groups** and **Roles** open their XO 5 configuration pages, and **LDAP/Auth providers** opens the authentication plugins.
 
 <UiShot light="/img/xo6/administration-light.png" dark="/img/xo6/administration-dark.png" alt="The administration panel" url="https://your-xo/v6/#/admin/user-management/users" />
 
-For the permission model itself (roles, scopes and delegation), see [RBAC](../users-and-access/rbac.md).
+For the permission model itself (roles, scopes and delegation), see [RBAC](../security/user-management/rbac.md).
+
+### Authentication providers
+
+Users can log in with a built-in account, or through an external authentication provider such as LDAP, OpenID Connect, SAML, GitHub or Google. These providers are plugins, configured from **Administration → User management → LDAP/Auth providers**: see [Security → User management → Authentication providers](../security/user-management/authentication-providers.md).

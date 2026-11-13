@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 ---
 
 # Configuration
@@ -18,7 +18,7 @@ Starting with **Xen Orchestra 6**, the XO 6 UI becomes the default interface. Th
 
 ### Temporary Switch to XO 5
 
-To quickly access the old UI without changing any configuration, `/v5` to your URL (e.g., `https://xo.example.com/v5`).
+To quickly access the old UI without changing any configuration, add `/v5` to your URL (e.g., `https://xo.example.com/v5`).
 
 ### Making XO 5 the default UI
 
@@ -95,7 +95,7 @@ user = 'nobody'
 group = 'nogroup'
 ```
 
-**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](install-from-sources.md).
+**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](installation/install-from-sources.md).
 
 ## HTTP listen address and port
 
@@ -157,7 +157,7 @@ useDirectChannel = false
 
 Changing the mode is only supported forward : from direct OpenFlow Protocol channel to XAPI Plugin communication.
 A migration script is provided to automatically convert the traffic rules.
-See [SDN Controller: OpenFlow rules](../manage-your-infrastructure/sdn_controller.md#migration-path) for details.
+See [SDN Controller: OpenFlow rules](../manage-your-infrastructure/networking/sdn_controller.md#migration-path) for details.
 
 ## Custom certificate authority
 
@@ -299,7 +299,7 @@ For advanced usage, you can customize the way XO connect to Redis:
 #encryptCredentialDatabase = true
 ```
 
-For more information about the encryption feature, see [credential database encryption](../users-and-access/credential-encryption.md)
+For more information about the encryption feature, see [credential database encryption](../security/credential-encryption.md)
 
 ## Proxy for updates and patches
 
