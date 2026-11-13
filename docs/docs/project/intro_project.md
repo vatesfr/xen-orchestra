@@ -1,5 +1,5 @@
 ---
-slug: project
+slug: about
 sidebar_label: About
 sidebar_position: 1
 ---

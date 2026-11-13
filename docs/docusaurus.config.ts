@@ -293,8 +293,8 @@ export default {
             from: '/distributed_backups',
           },
           {
-            to: '/project/project',
-            from: '/project',
+            to: '/project/about',
+            from: ['/project', '/project/project'],
           },
           {
             to: '/project/contributing',
