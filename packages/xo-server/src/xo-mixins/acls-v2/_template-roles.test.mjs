@@ -3,7 +3,7 @@ import { describe, it } from 'node:test'
 import { hasPrivilegeOn } from '@xen-orchestra/acl'
 
 import * as TEMPLATES from './template-roles.mjs'
-import { FIREWALL_ADMINISTRATOR, FIREWALL_OPERATOR } from './template-roles.mjs'
+import { ADMINISTRATOR, FIREWALL_ADMINISTRATOR, FIREWALL_OPERATOR, REAL_ONLY_ALL } from './template-roles.mjs'
 
 const USER = { id: 'user', permission: 'none' }
 const POOL = { id: 'pool-1', type: 'pool', $pool: 'pool-1', name_label: 'prod', tags: [] }
@@ -74,5 +74,22 @@ describe('Firewall operator', () => {
     }
     assert.equal(allows(FIREWALL_OPERATOR, 'vm', 'update:tags'), true)
     assert.equal(allows(FIREWALL_OPERATOR, 'network', 'update:tags'), false)
+  })
+})
+
+describe('Administrator', () => {
+  it('may do everything with the firewall', () => {
+    for (const action of ['read', 'publish', 'membership', 'quarantine:add', 'quarantine:remove']) {
+      assert.equal(allows(ADMINISTRATOR, 'firewall', action, POOL), true, action)
+    }
+  })
+})
+
+describe('Read only', () => {
+  it('may see the firewall, and do nothing else with it', () => {
+    assert.equal(allows(REAL_ONLY_ALL, 'firewall', 'read', POOL), true)
+    for (const action of ['publish', 'membership', 'quarantine:add', 'quarantine:remove']) {
+      assert.equal(allows(REAL_ONLY_ALL, 'firewall', action, POOL), false, action)
+    }
   })
 })

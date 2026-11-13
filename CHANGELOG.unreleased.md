@@ -37,6 +37,7 @@
 - [RBAC] New `firewall` resource, for the firewall (VDF) of each pool: `read`, `publish`, `membership`, `quarantine:add` and `quarantine:remove`, evaluated against the pool so that a selector selects pools
 - [RBAC] The firewall's `vdf:` tags take a `firewall` privilege on the object's pool besides the right to change its tags, through the REST and JSON-RPC APIs: `membership` for group tags on VMs, `publish` for tags on networks (`vdf:net=…`, `vdf:unprotected`), `quarantine:add` and `quarantine:remove` for `vdf:quarantine`; `administrate` on the pool still counts
 - [RBAC] New template roles: _Firewall administrator_ (every `firewall` action) and _Firewall operator_ (see the firewall, quarantine VMs and lift their quarantine)
+- [RBAC] The _Administrator_ template role has every `firewall` action, and _Read only_ has `firewall` `read` (roles copied from them before keep their privileges)
 
 ### Bug fixes
 

@@ -79,14 +79,14 @@ To use them, **copy** a template into a new role and assign that copy to your us
 
 | Role                        | Description                                                                                                                                 |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Read only**               | Read access to the entire infrastructure and all XO objects. Cannot modify anything.                                                        |
+| **Read only**               | Read access to the entire infrastructure and all XO objects, including every pool's firewall (`firewall` `read`). Cannot modify anything. |
 | **VMs power state manager** | Can start, stop, reboot, pause, suspend, resume, and unpause VMs.                                                                           |
 | **VMs creator**             | Can instantiate VM templates and create VDIs and VIFs.                                                                                      |
 | **VMs read only**           | Can only list and view VMs.                                                                                                                 |
 | **VMs administrator**       | Full control over VM actions, plus read access to VM snapshots.                                                                             |
 | **Network administrator**   | Scoped admin for networking: manages networks and VIFs, creates pool networks, reads and updates PIFs, and views pools, hosts and VMs.      |
 | **Storage administrator**   | Scoped admin for storage: full control over SRs, VDIs, VBDs, PBDs and backup repositories, read access to unmanaged VDIs and storage managers. |
-| **Administrator**           | Full access to the entire infrastructure and all XO objects.                                                                                |
+| **Administrator**           | Full access to the entire infrastructure and all XO objects, including every `firewall` action. |
 | **Firewall administrator**  | Every `firewall` action on every pool, reads what the firewall pages show, and updates the tags of VMs and networks.                        |
 | **Firewall operator**       | Sees every pool's firewall, quarantines VMs and lifts their quarantine, reads what the firewall pages show, and updates VM tags.            |
 
@@ -128,6 +128,8 @@ The two firewall templates delegate the firewall (VDF) of the pools, see [Firewa
 | **Firewall operator**      | `read`, `quarantine:add`, `quarantine:remove` | `pool`, `host`, `network`, `vm`, `vif` | `vm`            |
 
 `update:tags` is the first of the two keys a firewall tag takes, so these roles can also change the other tags of VMs (and networks for the administrator). To limit a role to some pools, add a selector on the pool to its `firewall` privileges after copying it, e.g. `name_label: prod`.
+
+The **Administrator** template has every `firewall` action too, and **Read only** has `firewall` `read`. Templates are brought up to date at each start of XO, but not the roles copied from them: a copy made before XO knew the `firewall` resource doesn't have these privileges, add them to it.
 
 To copy a template into an assignable role, use `POST /rest/v0/acl-roles/<template-id>/actions/copy`:
 

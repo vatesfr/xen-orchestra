@@ -23,6 +23,8 @@ export const REAL_ONLY_ALL = {
     { action: 'read', resource: 'host', effect: 'allow' },
     { action: 'read', resource: 'pbd', effect: 'allow' },
     { action: 'read', resource: 'pool', effect: 'allow' },
+    // each pool's firewall (VDF), evaluated against the pool
+    { action: 'read', resource: 'firewall', effect: 'allow' },
     { action: 'read', resource: 'message', effect: 'allow' },
     { action: 'read', resource: 'pci', effect: 'allow' },
     { action: 'read', resource: 'pgpu', effect: 'allow' },
