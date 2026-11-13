@@ -188,7 +188,7 @@ describe('send()', () => {
   it('drops messages when too much is waiting to be sent', async () => {
     // never reads
     const port = await listen(net.createServer(socket => socket.pause()))
-    const client = createClient(`tcp://127.0.0.1:${port}`, { maxPendingBytes: 64 * 1024 })
+    const client = createClient(`tcp://127.0.0.1:${port}`, { closeTimeout: 200, maxPendingBytes: 64 * 1024 })
 
     const message = 'x'.repeat(1024)
     const results = []
@@ -207,15 +207,47 @@ describe('send()', () => {
     assert((await Promise.all(results)).includes('dropped'))
   })
 
-  it('closes a connection which is being established', async () => {
+  it('delivers the messages of a connection which is being established, then closes it', async () => {
     const server = await createStreamServer()
     const client = createClient(`tcp://127.0.0.1:${server.port}`)
-    const socket = (client.send('message').catch(Function.prototype), client._socket)
+    const sent = client.send('message')
+    const socket = client._socket
     client.close()
-    await wait(100)
 
+    await sent
+    await new Promise(resolve => (socket.closed ? resolve() : socket.once('close', resolve)))
+    assert.match(server.data, /message\n$/)
     assert(socket.destroyed)
-    assert.equal(server.sockets.size, 0)
+    assert.equal(client._socket, undefined)
+  })
+
+  it('delivers the datagrams whose host name is being resolved, then closes the socket', async () => {
+    const server = await createUdpServer()
+    const client = createClient(`udp://localhost:${server.port}`)
+    const sent = client.send('message')
+    client.close()
+
+    await sent
+    await wait(100)
+    assert.equal(server.messages.length, 1)
+    assert.match(server.messages[0], /message$/)
+  })
+
+  it('stops waiting for the pending writes after closeTimeout', async () => {
+    // never reads
+    const port = await listen(net.createServer(socket => socket.pause()))
+    const client = createClient(`tcp://127.0.0.1:${port}`, { closeTimeout: 200, maxPendingBytes: Infinity })
+    const results = []
+    for (let i = 0; i < 1e3; ++i) {
+      results.push(client.send('x'.repeat(64 * 1024)).then(Function.prototype, error => error))
+    }
+    const socket = client._socket
+    client.close()
+
+    const start = Date.now()
+    await Promise.all(results)
+    assert(Date.now() - start < 2e3)
+    assert(socket.destroyed)
   })
 })
 

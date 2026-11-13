@@ -106,12 +106,36 @@ function withMessage(error) {
   return error
 }
 
+// UDP sockets: callbacks of the datagrams not yet sent (e.g. host name being
+// resolved), the socket is closed once they are all called
+const pendingDatagrams = new WeakMap()
+
+function closeUdpSocket(socket, timeout) {
+  const pending = pendingDatagrams.get(socket)
+  if (pending.size === 0) {
+    socket.close()
+    return
+  }
+  pending.closing = true
+  // the datagrams which are still not sent then fail, so that no send() stays pending
+  setTimeout(() => {
+    if (pending.size !== 0) {
+      const callbacks = Array.from(pending)
+      pending.clear()
+      socket.close()
+      const error = new Error('the syslog client was closed before the message could be sent')
+      callbacks.forEach(cb => cb(error))
+    }
+  }, timeout).unref()
+}
+
 class SyslogClient {
   constructor(
     uri,
     {
       appName = 'node',
       ca,
+      closeTimeout = 10e3,
       connectTimeout = 10e3,
       facility = 'user',
       format = 'rfc5424',
@@ -140,6 +164,7 @@ class SyslogClient {
     }
 
     this._appName = toHeaderField(appName, 48)
+    this._closeTimeout = closeTimeout
     this._connectTimeout = connectTimeout
     this._facility = FACILITIES[facility]
     this._format = FORMATTERS[format]
@@ -162,16 +187,26 @@ class SyslogClient {
     this._socket = undefined
   }
 
+  // the messages already sent are still delivered (e.g. a connection which is
+  // being established, or a host name which is being resolved), then the socket
+  // is closed, at most closeTimeout later
+  //
   // the client can still be used afterwards, it will reconnect
   close() {
     const socket = this._socket
-    if (socket !== undefined) {
-      this._socket = undefined
-      if (socket instanceof net.Socket) {
-        socket.destroy()
-      } else {
-        socket.close()
-      }
+    if (socket === undefined) {
+      return
+    }
+    this._socket = undefined
+
+    if (socket instanceof net.Socket) {
+      // the pending writes are flushed before the connection is ended
+      socket.end()
+      const timeout = setTimeout(() => socket.destroy(), this._closeTimeout)
+      timeout.unref()
+      socket.once('close', () => clearTimeout(timeout))
+    } else {
+      closeUdpSocket(socket, this._closeTimeout)
     }
   }
 
@@ -248,6 +283,7 @@ class SyslogClient {
     let socket = this._socket
     if (socket === undefined) {
       socket = this._socket = dgram.createSocket(net.isIPv6(this._host) ? 'udp6' : 'udp4')
+      pendingDatagrams.set(socket, new Set())
 
       // errors are passed to the callbacks of send(), a failed socket is replaced
       socket.on('error', () => {
@@ -258,7 +294,17 @@ class SyslogClient {
       socket.unref()
     }
 
-    socket.send(message, this._port, this._host, cb)
+    const pending = pendingDatagrams.get(socket)
+    pending.add(cb)
+    socket.send(message, this._port, this._host, error => {
+      // otherwise, already failed by closeUdpSocket()
+      if (pending.delete(cb)) {
+        if (pending.size === 0 && pending.closing) {
+          socket.close()
+        }
+        cb(error)
+      }
+    })
   }
 }
 
