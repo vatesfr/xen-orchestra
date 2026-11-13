@@ -4,6 +4,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
 import { liveMountXapiLabels } from './liveMountXapiLabels.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
+import { meterDisk, SourceReadTask } from './_SourceReadTask.mjs'
 import { decorateClass } from '@vates/decorate-with'
 import { Task } from '@vates/task'
 import { createLogger } from '@xen-orchestra/log'
@@ -424,6 +425,7 @@ export class ImportVmBackup {
         throw new Error('live mounting a disk is only supported when restoring an incremental backup')
       }
       backup = await adapter.readFullVmBackup(metadata)
+      sizeContainer.readTask = new SourceReadTask('read')
       watchStreamSize(backup, sizeContainer)
     } else {
       assert.strictEqual(metadata.mode, 'delta')
@@ -432,6 +434,9 @@ export class ImportVmBackup {
       // releases them, a successful one hands their ids back to the caller
       $defer.onFailure(() => this.#releaseLiveMounts())
       backup = await this._decorateIncrementalVmMetadata()
+      for (const key in backup.disks) {
+        backup.disks[key] = meterDisk(backup.disks[key], backup.vdis[key])
+      }
     }
 
     return Task.run(

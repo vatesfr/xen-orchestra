@@ -20,6 +20,7 @@ import { AggregatedIncrementalXapiWriter } from '../_writers/AggregatedIncrement
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
 import { compileExpression, isExpression } from '../../_expressionPredicate.mjs'
 import { buildVmContext } from '../../_buildContext.mjs'
+import { meterDisk } from '../../_SourceReadTask.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -67,6 +68,8 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         Task.warning('Backup fell back to a full')
       }
       useNbd = useNbd || disk.useNbd()
+      // each disk is read once, whatever the number of writers
+      disk = meterDisk(disk, deltaExport.vdis[key])
       disk = new ThrottledDisk(disk, this._throttleGenerator)
       deltaExport.disks[key] = new SynchronizedDisk(disk)
     }

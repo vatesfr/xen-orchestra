@@ -76,3 +76,30 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
     query: { id: taskId },
   }
 }
+
+type TaskSpeedTree = Pick<FrontXoTask, 'end' | 'properties'> & { tasks?: TaskSpeedTree[] }
+
+/**
+ * Current reading speed of a running task, in bytes per second: its own one (`speed` property of the tasks reading a
+ * source), or the sum of the ones of its running subtasks
+ */
+export function getTaskSpeed(task: TaskSpeedTree): number | undefined {
+  if (task.end !== undefined) {
+    return undefined
+  }
+
+  const { speed } = task.properties
+  if (typeof speed === 'number') {
+    return speed
+  }
+
+  let sum: number | undefined
+  for (const subtask of task.tasks ?? []) {
+    const subtaskSpeed = getTaskSpeed(subtask)
+    if (subtaskSpeed !== undefined) {
+      sum = (sum ?? 0) + subtaskSpeed
+    }
+  }
+
+  return sum
+}
