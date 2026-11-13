@@ -1,10 +1,12 @@
 <!-- v5 -->
 <template>
   <div class="vts-side-panel-sticky" :class="{ mobile: uiStore.isSmall }">
+    <VtsResizeHandle v-if="showResizeHandle" position="start" :resizable="panelStore" />
     <VtsPanel
       :closable="hasSelection"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="vts-side-panel"
+      :style="{ transform }"
       :class="{
         locked: panelStore.isLocked && !uiStore.isSmall,
         mobile: uiStore.isSmall,
@@ -42,12 +44,14 @@
 
 <script setup lang="ts">
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
+import VtsResizeHandle from '@core/components/resize-handle/VtsResizeHandle.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { usePanelStore } from '@core/stores/panel.store.ts'
+import { PANEL_TRANSITION_DURATION, usePanelStore } from '@core/stores/panel.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { watch } from 'vue'
+import { IK_INFO_SIZE, IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys.util.ts'
+import { computed, provide, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { hasSelection } = defineProps<{
@@ -69,6 +73,20 @@ const panelStore = usePanelStore()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
+
+const showResizeHandle = computed(() => !uiStore.isSmall && panelStore.isExpanded)
+
+const transform = computed(() => `translateX(${panelStore.cssHorizontalOffset})`)
+
+const transformTransition = `transform ${PANEL_TRANSITION_DURATION}ms`
+
+provide(IK_INFO_SIZE, 'small')
+
+provide(IK_MENU_ACTION_HANDLER, () => {
+  if (uiStore.isSmall) {
+    handleClose()
+  }
+})
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],
@@ -99,8 +117,8 @@ function handleClose() {
 }
 
 .vts-side-panel {
-  width: var(--side-panel-width, 40rem);
-  transition: transform 0.25s;
+  width: v-bind('panelStore.cssWidth');
+  transition: v-bind(transformTransition);
 
   &:not(.mobile) {
     --panel-viewport-height: calc(100dvh - 5.6rem);
@@ -109,7 +127,6 @@ function handleClose() {
     min-height: var(--panel-min-height);
     max-height: var(--panel-viewport-height);
     overflow: hidden;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(> .content) {
       flex: 1 1 auto;
@@ -124,7 +141,6 @@ function handleClose() {
     width: 100dvw;
     height: 100dvh;
     inset: 0;
-    transform: translateX(v-bind('panelStore.cssHorizontalOffset'));
 
     :deep(.corner-actions) {
       margin-inline-start: 0;

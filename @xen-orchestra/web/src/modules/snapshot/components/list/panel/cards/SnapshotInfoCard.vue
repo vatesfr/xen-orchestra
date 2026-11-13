@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="snapshot-info-card">
+  <UiPanelCard>
     <UiPanelCardTitle
       :id="snapshot.id"
       size="medium"
@@ -7,7 +7,7 @@
       :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)"
       icon="object:vm-snapshot"
     />
-    <div class="content">
+    <VtsCardRowList>
       <!-- DESCRIPTION -->
       <VtsCardRowKeyValue truncate align-top>
         <template #key>
@@ -53,12 +53,12 @@
           {{ t('memory') }}
         </template>
         <template #value>
-          <UiInfo :accent="memoryAccent" size="medium">
+          <UiInfo :accent="memoryAccent">
             {{ t(memoryLabel) }}
           </UiInfo>
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -67,6 +67,7 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -93,13 +94,3 @@ const memoryLabel = computed(() => (snapshot.power_state === VM_POWER_STATE.SUSP
 
 const trigger = computed(() => getSnapshotTrigger(snapshot))
 </script>
-
-<style scoped lang="postcss">
-.snapshot-info-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

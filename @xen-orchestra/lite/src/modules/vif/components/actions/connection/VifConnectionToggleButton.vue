@@ -1,23 +1,21 @@
 <template>
-  <UiButton
-    v-tooltip="!connection.canToggle && connection.errorMessage"
-    size="medium"
+  <VtsActionButton
+    :hint="connection.errorMessage"
     variant="tertiary"
     accent="brand"
     :disabled="!connection.canToggle"
-    :left-icon="connection.icon"
+    :icon="connection.icon"
     :busy="connection.isToggling"
     @click="connection.toggle()"
   >
     {{ connection.label }}
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVifConnection } from '@/modules/vif/composables/use-vif-connection.composable.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useMapper } from '@core/packages/mapper'
 import { CONNECTION_ACTION } from '@core/types/connection.ts'
 import { useI18n } from 'vue-i18n'

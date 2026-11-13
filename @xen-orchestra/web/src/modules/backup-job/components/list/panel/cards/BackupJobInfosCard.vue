@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="backup-job-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle
       :id="backupJob.id"
       size="medium"
@@ -7,16 +7,9 @@
       :href="jobOverviewHref"
       icon="object:backup-job"
     />
-    <div class="content">
-      <VtsCardRowKeyValue v-for="(typeLabel, index) in typeLabels" :key="typeLabel">
-        <template #key>
-          <template v-if="index === 0">{{ t('type') }}</template>
-        </template>
-        <template #value>{{ typeLabel }}</template>
-        <template #addons>
-          <VtsCopyButton :value="typeLabel" />
-          <VtsCopyAllMenuItem v-if="index === 0 && typeLabels.length > 1" :values="typeLabels" />
-        </template>
+    <VtsCardRowList>
+      <VtsCardRowKeyValue :values="typeLabels">
+        <template #key>{{ t('type') }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('mode') }}</template>
@@ -58,7 +51,7 @@
           <template #value />
         </VtsCardRowKeyValue>
       </template>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -74,7 +67,7 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -111,13 +104,3 @@ const healthCheckSrs = computed(() =>
   })
 )
 </script>
-
-<style scoped lang="postcss">
-.backup-job-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

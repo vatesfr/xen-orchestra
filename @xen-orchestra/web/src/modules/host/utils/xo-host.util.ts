@@ -92,5 +92,13 @@ export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; us
 }
 
 export function getHostIcon(host: FrontXoHost | undefined) {
+  if (host === undefined) {
+    return objectIcon('host', 'unknown')
+  }
+
+  if (getHostPendingStateOperation(host) !== undefined) {
+    return objectIcon('host', 'busy')
+  }
+
   return objectIcon('host', getHostState(host))
 }

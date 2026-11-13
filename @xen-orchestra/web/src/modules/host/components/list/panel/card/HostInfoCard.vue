@@ -3,11 +3,12 @@
     <UiPanelCardTitle
       :id="host.id"
       :icon="hostIcon"
+      :icon-tooltip="iconTooltip"
       :label="host.name_label"
       :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
       size="medium"
     />
-    <div class="content">
+    <VtsCardRowList class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -88,7 +89,7 @@
           <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', nMissingPatches)" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -100,6 +101,7 @@ import { useXoHostMissingPatchesCollection } from '@/modules/host/remote-resourc
 import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -119,7 +121,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostStateDisplay, relativeStartTime } = useXoHostUtils(() => host)
+const { getHostStateDisplay, relativeStartTime, iconTooltip } = useXoHostUtils(() => host)
 
 const { useGetPoolById } = useXoPoolCollection()
 
@@ -147,10 +149,6 @@ const hostIcon = computed(() => getHostIcon(host))
 <style lang="postcss" scoped>
 .host-info-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value {
       display: flex;
       align-items: center;

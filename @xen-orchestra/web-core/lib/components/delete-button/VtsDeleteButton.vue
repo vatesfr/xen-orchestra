@@ -1,26 +1,18 @@
 <template>
-  <UiButton
-    v-tooltip="tooltip"
-    size="medium"
-    variant="tertiary"
-    accent="danger"
-    left-icon="action:delete"
-    :disabled
-    :busy
-  >
+  <VtsActionButton variant="tertiary" accent="danger" icon="action:delete" :hint :disabled :busy :on-click>
     {{ t('action:delete') }}
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script setup lang="ts">
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
   busy?: boolean
   disabled?: boolean
-  tooltip?: string | false
+  hint?: string
+  onClick?: () => unknown
 }>()
 
 const { t } = useI18n()

@@ -103,9 +103,11 @@ export const locales: Locales = {
   },
 }
 
+export const FALLBACK_LOCALE = 'en'
+
 export default createI18n({
   locale: localStorage.getItem('lang') ?? 'en',
-  fallbackLocale: 'en',
+  fallbackLocale: FALLBACK_LOCALE,
   messages,
   missing: (locale, key, vm) => {
     if (!import.meta.env.DEV) {

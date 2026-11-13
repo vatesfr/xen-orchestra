@@ -111,11 +111,11 @@ describe('title', () => {
     expect(title.text()).toContain('backup-log-42')
   })
 
-  it('links to the backup repositories settings of XO 5', () => {
-    const wrapper = mountCard()
+  it('links to the detail page of the log', () => {
+    const wrapper = mountCard(createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] }))
 
-    expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).props('href')).toBe(
-      'https://xo5.example.com/#/settings/remotes'
+    expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).attributes('href')).toBe(
+      '/admin/backup-log/backup-log-42/general'
     )
   })
 

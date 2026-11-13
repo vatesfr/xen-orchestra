@@ -1,7 +1,12 @@
 import type { TrafficRule } from '@vates/types'
 
-export type EnrichedTrafficRule = TrafficRule & {
-  order: number
+export type RankedTrafficRule = TrafficRule & {
+  rank: number
+}
+
+export type EnrichedTrafficRule = RankedTrafficRule & {
+  networkLabel: string
+  networkRuleCount: number
   directionA: string
   directionB: string
   directionLabel: string

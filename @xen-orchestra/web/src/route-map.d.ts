@@ -113,6 +113,36 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/backup-log/[id]': RouteRecordInfo<
+      '/admin/backup-log/[id]',
+      '/admin/backup-log/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/backup-log/[id]/backed-up-vms'
+      | '/admin/backup-log/[id]/general'
+      | '/admin/backup-log/[id]/run'
+    >,
+    '/admin/backup-log/[id]/backed-up-vms': RouteRecordInfo<
+      '/admin/backup-log/[id]/backed-up-vms',
+      '/admin/backup-log/:id/backed-up-vms',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/general': RouteRecordInfo<
+      '/admin/backup-log/[id]/general',
+      '/admin/backup-log/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/run': RouteRecordInfo<
+      '/admin/backup-log/[id]/run',
+      '/admin/backup-log/:id/run',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/backup-repository/[id]': RouteRecordInfo<
       '/admin/backup-repository/[id]',
       '/admin/backup-repository/:id',
@@ -248,6 +278,28 @@ declare module 'vue-router/auto-routes' {
     '/host/[id]/vms': RouteRecordInfo<
       '/host/[id]/vms',
       '/host/:id/vms',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/network/[id]': RouteRecordInfo<
+      '/network/[id]',
+      '/network/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/network/[id]/general'
+      | '/network/[id]/pifs'
+    >,
+    '/network/[id]/general': RouteRecordInfo<
+      '/network/[id]/general',
+      '/network/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/network/[id]/pifs': RouteRecordInfo<
+      '/network/[id]/pifs',
+      '/network/:id/pifs',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -614,6 +666,33 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/backup-log/[id].vue': {
+      routes:
+        | '/admin/backup-log/[id]'
+        | '/admin/backup-log/[id]/backed-up-vms'
+        | '/admin/backup-log/[id]/general'
+        | '/admin/backup-log/[id]/run'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-log/[id]/backed-up-vms.vue': {
+      routes:
+        | '/admin/backup-log/[id]/backed-up-vms'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/general.vue': {
+      routes:
+        | '/admin/backup-log/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/run.vue': {
+      routes:
+        | '/admin/backup-log/[id]/run'
+      views:
+        | never
+    }
     'src/pages/admin/backup-repository/[id].vue': {
       routes:
         | '/admin/backup-repository/[id]'
@@ -734,6 +813,26 @@ declare module 'vue-router/auto-routes' {
     'src/pages/host/[id]/vms.vue': {
       routes:
         | '/host/[id]/vms'
+      views:
+        | never
+    }
+    'src/pages/network/[id].vue': {
+      routes:
+        | '/network/[id]'
+        | '/network/[id]/general'
+        | '/network/[id]/pifs'
+      views:
+        | 'default'
+    }
+    'src/pages/network/[id]/general.vue': {
+      routes:
+        | '/network/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/network/[id]/pifs.vue': {
+      routes:
+        | '/network/[id]/pifs'
       views:
         | never
     }

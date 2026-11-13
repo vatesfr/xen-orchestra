@@ -19,7 +19,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { getProxyCacheParams, rejectsUnknownParams } from '../backup-disk-mounts.mjs'
 import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
-import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { journalPurgeHorizon, serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
@@ -54,6 +54,14 @@ const VM_BACKUP_ARCHIVES_FULL_POLL_INTERVAL = 10 * 60e3
 // how many repositories `#pollVmBackupArchives()` reads at once: reading all of them together would
 // put the load of every repository on the same instant
 const VM_BACKUP_ARCHIVES_POLL_CONCURRENCY = 2
+
+// the journal is purged by whole UTC days, therefore purging it more than once a day would remove
+// nothing more
+const VM_BACKUP_JOURNALS_PURGE_INTERVAL = 24 * 60 * 60 * 1e3
+
+// after which `#purgeVmBackupJournalsDaily()` goes on to the next repository: a call to NFS/SMB can
+// never settle, and would keep every repository after this one from being purged
+const VM_BACKUP_JOURNAL_PURGE_TIMEOUT = 10 * 60e3
 
 /**
  * @param {number} attempt number of consecutive failures so far, `0` for the first one
@@ -110,7 +118,9 @@ const extractIdsFromSimplePattern = pattern => {
 }
 
 export default class BackupNg {
+  #journalRetention
   #vmBackupsCache
+  #vmBackupsSource
 
   get runningRestores() {
     return this._runningRestores
@@ -130,7 +140,9 @@ export default class BackupNg {
   constructor(app) {
     this._app = app
     this._runningRestores = new Set()
-    this.#vmBackupsCache = new VmBackupsCache(new VmBackupsSource(app), {
+    this.#journalRetention = app.config.getDuration('backups.journalRetention')
+    this.#vmBackupsSource = new VmBackupsSource(app)
+    this.#vmBackupsCache = new VmBackupsCache(this.#vmBackupsSource, {
       minRefreshDelay: app.config.getDuration('backups.listingDebounce'),
     })
 
@@ -153,6 +165,8 @@ export default class BackupNg {
     let stopVmBackupArchivesFullPoll
     /** @type {AbortController | undefined} */
     let initialVmBackupArchivesListing
+    /** @type {(() => void) | undefined} */
+    let stopVmBackupJournalsPurge
     app.hooks.on('start', () => {
       stopVmBackupArchivesPoll = this.#pollVmBackupArchives(
         () => this.#vmBackupsCache.replayableRepositoryIds(),
@@ -170,11 +184,13 @@ export default class BackupNg {
       this.#listAllVmBackupArchives(initialVmBackupArchivesListing.signal).catch(error => {
         logger.warn('failed to list the backup repositories', { error })
       })
+      stopVmBackupJournalsPurge = this.#purgeVmBackupJournalsDaily()
     })
     app.hooks.on('stop', () => {
       stopVmBackupArchivesPoll?.()
       stopVmBackupArchivesFullPoll?.()
       initialVmBackupArchivesListing?.abort()
+      stopVmBackupJournalsPurge?.()
       this.#vmBackupsCache.removeArchivesListeners()
     })
 
@@ -916,6 +932,63 @@ export default class BackupNg {
         running = false
       }
     }, interval)
+
+    return () => {
+      clearInterval(timer)
+      stopped = true
+    }
+  }
+
+  /**
+   * removes from the journal of every enabled repository the days older than
+   * `backups.journalRetention`, see `journalPurgeHorizon()`, at once and then every
+   * `VM_BACKUP_JOURNALS_PURGE_INTERVAL`: at once, so that an app restarted more often than that still
+   * purges them
+   *
+   * one repository after another, in the background: it must not compete with the backups for the
+   * repositories; one which cannot be purged does not stop the others, the next purge tries it again
+   *
+   * a repository which does not answer within `VM_BACKUP_JOURNAL_PURGE_TIMEOUT` is left to its purge,
+   * which goes on in the background; a tick which comes before the previous purge is done is skipped
+   * rather than adding a purge to it
+   *
+   * @returns {() => void} stops it, before the next repository when a purge is running
+   */
+  #purgeVmBackupJournalsDaily() {
+    let running = false
+    let stopped = false
+    const purge = async () => {
+      if (running) {
+        return
+      }
+      running = true
+      try {
+        for (const { enabled, id } of await this._app.getAllRemotes()) {
+          if (stopped) {
+            return
+          }
+          if (!enabled) {
+            continue
+          }
+          try {
+            const remote = await this._app.getRemoteWithCredentials(id)
+            await timeout.call(
+              this.#vmBackupsSource.purgeJournal(remote, journalPurgeHorizon(remote, this.#journalRetention)),
+              VM_BACKUP_JOURNAL_PURGE_TIMEOUT
+            )
+          } catch (error) {
+            logger.warn('failed to purge the backup journal', { remoteId: id, error })
+          }
+        }
+      } catch (error) {
+        logger.warn('failed to list the backup repositories', { error })
+      } finally {
+        running = false
+      }
+    }
+
+    purge()
+    const timer = setInterval(purge, VM_BACKUP_JOURNALS_PURGE_INTERVAL)
 
     return () => {
       clearInterval(timer)
