@@ -205,6 +205,40 @@ describe('EverpureClient', () => {
     )
   })
 
+  it('creates an empty volume', async () => {
+    const { client, calls } = await connectedClient({
+      'POST /volumes': ({ query, body }) => {
+        assert.equal(query.names, 'vol')
+        assert.deepEqual(body, { provisioned: 1024 ** 3 })
+        return { body: { items: [{ name: 'vol', provisioned: 1024 ** 3, serial: 'ABC' }] } }
+      },
+    })
+    const volume = await client.createVolume('vol', { provisioned: 1024 ** 3 })
+    assert.equal(volume.serial, 'ABC')
+    assert.equal(calls.at(-1)!.method, 'POST')
+    const before = calls.length
+    await assert.rejects(client.createVolume('vol', { provisioned: 1000 }), RangeError)
+    assert.equal(calls.length, before, 'a misaligned size is refused before calling the array')
+  })
+
+  it('deletes a volume by destroying then eradicating it', async () => {
+    const { client, calls } = await connectedClient({
+      'PATCH /volumes': ({ body }) => {
+        assert.deepEqual(body, { destroyed: true })
+        return {}
+      },
+      'DELETE /volumes': () => ({}),
+    })
+    assert.deepEqual(await client.deleteVolume('vol'), { eradicated: true })
+    assert.deepEqual(
+      calls.slice(-2).map(c => [c.method, c.path, c.query.names]),
+      [
+        ['PATCH', '/api/2.36/volumes', 'vol'],
+        ['DELETE', '/api/2.36/volumes', 'vol'],
+      ]
+    )
+  })
+
   it('creates a snapshot of a volume', async () => {
     const { client, calls } = await connectedClient({
       'POST /volume-snapshots': ({ query, body }) => {

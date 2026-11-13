@@ -1,6 +1,6 @@
 export { EverpureClient, EverpureError } from './EverpureClient.mjs'
 export type {
-  DeleteVolumeSnapshotResult,
+  DeleteResult,
   EverpureBlockRange,
   EverpureClientOptions,
   EverpureReference,

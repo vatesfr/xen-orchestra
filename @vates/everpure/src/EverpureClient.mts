@@ -90,9 +90,9 @@ export interface ListChangedBlocksOptions {
   readonly segmentLength?: number
 }
 
-export interface DeleteVolumeSnapshotResult {
+export interface DeleteResult {
   /**
-   * False when the snapshot could only be destroyed, not eradicated (e.g. the
+   * False when the object could only be destroyed, not eradicated (e.g. the
    * array's SafeMode forbids manual eradication): it then stays in the
    * eradication-pending state until the array's eradication delay elapses.
    */
@@ -204,6 +204,29 @@ export class EverpureClient {
     return this.#getSingle<EverpureVolume>('/volumes', name)
   }
 
+  /** Creates an empty thin volume of `provisioned` bytes (a multiple of 512). */
+  async createVolume(name: string, { provisioned }: { readonly provisioned: number }): Promise<EverpureVolume> {
+    assertMultipleOf(provisioned, SECTOR_SIZE, 'provisioned')
+    const response = await this.#request<ListResponse<EverpureVolume>>('POST', '/volumes', {
+      query: { names: name },
+      body: { provisioned },
+    })
+    const volume = response.items[0]
+    if (volume === undefined) {
+      throw new Error(`volume ${name} created but the array returned no volume record`)
+    }
+    log.info('volume created', { volume: name, provisioned })
+    return volume
+  }
+
+  /**
+   * Destroys a volume, then eradicates it. The volume must not be connected to
+   * any host. See {@link DeleteResult.eradicated}.
+   */
+  async deleteVolume(name: string): Promise<DeleteResult> {
+    return this.#destroyThenEradicate('/volumes', name)
+  }
+
   async getVolumeSnapshot(name: string): Promise<EverpureVolumeSnapshot> {
     return this.#getSingle<EverpureVolumeSnapshot>('/volume-snapshots', name)
   }
@@ -235,20 +258,25 @@ export class EverpureClient {
 
   /**
    * Destroys a snapshot, then eradicates it so that it stops holding space
-   * right away. See {@link DeleteVolumeSnapshotResult.eradicated}.
+   * right away. See {@link DeleteResult.eradicated}.
    */
-  async deleteVolumeSnapshot(name: string): Promise<DeleteVolumeSnapshotResult> {
-    await this.#request('PATCH', '/volume-snapshots', { query: { names: name }, body: { destroyed: true } })
+  async deleteVolumeSnapshot(name: string): Promise<DeleteResult> {
+    return this.#destroyThenEradicate('/volume-snapshots', name)
+  }
+
+  async #destroyThenEradicate(path: string, name: string): Promise<DeleteResult> {
+    await this.#request('PATCH', path, { query: { names: name }, body: { destroyed: true } })
     try {
-      await this.#request('DELETE', '/volume-snapshots', { query: { names: name } })
+      await this.#request('DELETE', path, { query: { names: name } })
     } catch (error) {
-      log.warn('snapshot destroyed but not eradicated, it will be eradicated after the array eradication delay', {
-        snapshot: name,
+      log.warn('object destroyed but not eradicated, it will be eradicated after the array eradication delay', {
+        path,
+        name,
         error,
       })
       return { eradicated: false }
     }
-    log.info('snapshot deleted', { snapshot: name })
+    log.info('object deleted', { path, name })
     return { eradicated: true }
   }
 

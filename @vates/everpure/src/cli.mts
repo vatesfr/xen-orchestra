@@ -8,6 +8,9 @@ const USAGE = `Usage: vates-everpure [options] <command> [arguments]
 Talk to an Everpure (Pure Storage FlashArray) REST API 2.x.
 
 Commands:
+  volume create <name> <size>           Create an empty thin volume (size: 512-multiple,
+                                        suffixes K/M/G/T accepted).
+  volume delete <name>                  Destroy and eradicate a volume (must be disconnected).
   snapshot list <volume>                List the snapshots of a volume.
   snapshot create <volume> [<suffix>]   Snapshot a volume as <volume>.<suffix>.
   snapshot delete <snapshot>            Destroy and eradicate a snapshot.
@@ -81,6 +84,27 @@ if (url === undefined || apiToken === undefined) {
 const client = new EverpureClient({ url, apiToken, allowUnauthorized: values.insecure === true })
 
 async function run([command, ...args]: ReadonlyArray<string>): Promise<void> {
+  if (command === 'volume') {
+    const [action, name, size] = args
+    if (name === undefined) {
+      fail(`volume ${action ?? ''}: missing argument\n${USAGE}`)
+    }
+    if (action === 'create') {
+      if (size === undefined) {
+        fail(`volume create: missing size\n${USAGE}`)
+      }
+      const volume = await client.createVolume(name, { provisioned: parseSize(size, 'size') })
+      process.stdout.write(`${volume.name}\t${formatBytes(volume.provisioned)}\tserial ${volume.serial}\n`)
+      return
+    }
+    if (action === 'delete') {
+      const { eradicated } = await client.deleteVolume(name)
+      process.stdout.write(`${name} ${eradicated ? 'eradicated' : 'destroyed, pending eradication'}\n`)
+      return
+    }
+    fail(`unknown volume action: ${action ?? ''}\n${USAGE}`)
+  }
+
   if (command === 'snapshot') {
     const [action, name, suffix] = args
     if (name === undefined) {
