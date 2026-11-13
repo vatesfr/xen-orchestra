@@ -391,6 +391,12 @@ const userLabel = user => user?.email ?? user?.name ?? user?.id
 
 const isAdmin = user => user?.permission === 'admin'
 
+// the actions of the RBAC `firewall` resource, whose object is the pool
+const FIREWALL_ACTIONS = ['read', 'publish', 'membership', 'quarantine:add', 'quarantine:remove']
+
+// the legacy ACL on the pool that counts as each firewall action, for messages
+const legacyPermissionFor = action => (action === 'read' ? 'view' : 'administrate')
+
 function forbidden(res, message) {
   res.status(403)
   return { error: message }
@@ -916,7 +922,7 @@ class VdfPlugin {
     const global = this.#global
     const analysis = this.#analysis()
     const admin = isAdmin(user)
-    const canView = async poolId => admin || (await this.#xo.hasPermissions(user.id, [[poolId, 'view']]))
+    const canView = poolId => this.#can(user, poolId, 'read')
     const poolName = Object.fromEntries([
       ...this.#lostPools().map(pool => [pool.id, pool.name]),
       ...this.#pools().map(pool => [pool.id, pool.name_label]),
@@ -1798,17 +1804,34 @@ class VdfPlugin {
     )
   }
 
-  // Who may do what: XO administrators everything; other users, on a pool
-  // they have an ACL on, see its firewall (view) and change its own part
-  // (administrate). The global configuration is for XO administrators
-  // only: it applies to pools a user may not even see.
-  async #canOnPool(restApi, poolId, permission) {
-    const user = restApi.getCurrentUser({ throwUnauthenticated: false })
-    return isAdmin(user) || (user !== undefined && (await this.#xo.hasPermissions(user.id, [[poolId, permission]])))
+  // Who may do what: XO administrators everything; other users, on a pool,
+  // the firewall actions XO core gives them there (hasFirewallRight, the
+  // decision the vdf: tag guard makes too): the RBAC `firewall` privileges
+  // on the pool, or the legacy ACLs, view for read and administrate for
+  // every action. The global configuration is for XO administrators only:
+  // it applies to pools a user may not even see.
+  //
+  // The REST API's acl middleware can't decide this: it doesn't look at
+  // legacy ACLs, and a route declaring it refuses every non-administrator
+  // where the RBAC feature isn't licensed. Each pool route asks here.
+  async #can(user, poolId, action) {
+    // xo-server allows its own work, done without a user: a request always has one
+    return isAdmin(user) || (user?.id !== undefined && (await this.#xo.hasFirewallRight(user, poolId, action)))
   }
 
-  // a pool route open to users with `permission` on the pool
-  #poolRoute({ permission = 'view', callback, ...route }) {
+  async #canOnPool(restApi, poolId, action) {
+    return this.#can(restApi.getCurrentUser({ throwUnauthenticated: false }), poolId, action)
+  }
+
+  // what the current user may do with the pool's firewall, per action
+  async #rightsOnPool(restApi, poolId) {
+    return Object.fromEntries(
+      await Promise.all(FIREWALL_ACTIONS.map(async action => [action, await this.#canOnPool(restApi, poolId, action)]))
+    )
+  }
+
+  // a pool route open to users who may do `action` with the pool's firewall
+  #poolRoute({ action = 'read', callback, ...route }) {
     return {
       ...route,
       scope: 'acl',
@@ -1816,8 +1839,11 @@ class VdfPlugin {
         const { req, res, restApi } = context
         // throws no such object for an unknown pool
         this.#xo.getObject(req.params.id, 'pool')
-        if (!(await this.#canOnPool(restApi, req.params.id, permission))) {
-          return forbidden(res, `this needs the ${permission} permission on the pool`)
+        if (!(await this.#canOnPool(restApi, req.params.id, action))) {
+          return forbidden(
+            res,
+            `this needs the firewall ${action} privilege on the pool, or the ${legacyPermissionFor(action)} permission on it`
+          )
         }
         return callback(context)
       },
@@ -2211,7 +2237,8 @@ class VdfPlugin {
       this.#poolRoute({
         endpoint: '/pools/{id}/policy',
         method: 'get',
-        description: 'The policy document the pool enforces (the newest pool key whose base still matches) and its id.',
+        description:
+          "The policy document the pool enforces (the newest pool key whose base still matches) and its id, and what the user may do with the pool's firewall (rights: per action of the RBAC firewall resource; canEdit: publish).",
         tags: ['vdf'],
         params: PARAMS_ID,
         responses: [{ status: 200, description: 'Published policy' }],
@@ -2220,13 +2247,18 @@ class VdfPlugin {
           const policy = publishedPolicy(xapi.pool.other_config)
           const global = this.#global
           const owner = this.#otherOwner(xapi)
+          const rights = await this.#rightsOnPool(restApi, req.params.id)
           return {
             ...policy,
             // the last change made outside this XO (vdf#32)
             outside: (await this.#outsideOf(req.params.id, policy.docId)) ?? null,
             // VMs whose quarantine was lifted outside XO, not resolved since (vdf#141)
             quarantineLifted: await this.#liftedQuarantines(req.params.id),
-            canEdit: await this.#canOnPool(restApi, req.params.id, 'administrate'),
+            // what the user may do with the pool's firewall, per action of
+            // the RBAC `firewall` resource (vdf#141)
+            rights,
+            // may publish its policies
+            canEdit: rights.publish,
             global: {
               revision: global?.revision ?? 0,
               inScope: global !== undefined && inScope(global.scope, req.params.id),
@@ -2238,7 +2270,7 @@ class VdfPlugin {
       }),
       this.#poolRoute({
         endpoint: '/pools/{id}/actions/check_policy',
-        permission: 'administrate',
+        action: 'publish',
         method: 'post',
         description: "Validate a policy document with the pool master's vdf-agent, without publishing it.",
         tags: ['vdf'],
@@ -2256,7 +2288,7 @@ class VdfPlugin {
       }),
       this.#poolRoute({
         endpoint: '/pools/{id}/actions/publish_policy',
-        permission: 'administrate',
+        action: 'publish',
         method: 'post',
         description:
           "Validate and publish a policy document to the pool's keys, through the pool master's vdf-agent. Agents apply it within tens of milliseconds. With expectedDocId, refused (nothing written) if the pool's document changed since.",
@@ -2294,11 +2326,11 @@ class VdfPlugin {
       }),
       this.#poolRoute({
         endpoint: '/pools/{id}/actions/acknowledge_quarantine_lifted',
-        // as the pool's publish
-        permission: 'administrate',
+        // as lifting the quarantine
+        action: 'quarantine:remove',
         method: 'post',
         description:
-          "Acknowledge the alert of a VM's quarantine lifted outside XO (an entry of the pool history's tagChanges): it leaves GET policy's quarantineLifted for good, and the entry records who acknowledged it and when (resolution, resolvedBy, resolvedAt). An alert already resolved is left as it is.",
+          "Acknowledge the alert of a VM's quarantine lifted outside XO (an entry of the pool history's tagChanges): it leaves GET policy's quarantineLifted for good, and the entry records who acknowledged it and when (resolution, resolvedBy, resolvedAt). An alert already resolved is left as it is. Takes the firewall quarantine:remove privilege on the pool (or administrate).",
         tags: ['vdf'],
         params: PARAMS_ID,
         body: BODY_ACKNOWLEDGE,

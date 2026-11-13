@@ -43,6 +43,8 @@ const ADMIN = { id: 'admin', email: 'admin@example.org', permission: 'admin' }
 
 // pools of one host each, whose agent writes what it's asked to publish;
 // `vms` are XO's VM objects, `acls` [userId, poolId, permission] entries
+// (legacy ACLs), `privileges` [userId, poolId, action] entries (RBAC
+// `firewall` privileges on a pool: `*` and `quarantine` cover their actions)
 // `agent.beforePublish(poolId)` runs before a publish lands (to interleave
 // another write), `agent.refuse` lists pools whose agent refuses publishes,
 // `agent.lacking` gives per pool the hosts whose agent lacks what any
@@ -59,6 +61,7 @@ function fakeXo({
   hosts = {},
   networks = {},
   acls = [],
+  privileges = [],
   users = [ADMIN],
   agent = {},
   lag,
@@ -315,6 +318,24 @@ function fakeXo({
       permissions.every(([objectId, permission]) =>
         acls.some(acl => acl[0] === userId && acl[1] === objectId && acl[2] === permission)
       ),
+    // xo-server's decision (reserved-tags mixin): an administrator or no
+    // user (xo-server's own work), the legacy ACL that counts as the action
+    // (view for read, administrate for all), or an RBAC privilege; the
+    // [userId, poolId, action] asked, in order
+    firewallRightsAsked: [],
+    async hasFirewallRight(user, poolId, action) {
+      xo.firewallRightsAsked.push([user?.id, poolId, action])
+      if (user === undefined || user.permission === 'admin') {
+        return true
+      }
+      const legacy = action === 'read' ? 'view' : 'administrate'
+      const covers = granted => granted === '*' || granted === action || action.startsWith(`${granted}:`)
+      return (
+        acls.some(
+          ([u, p, permission]) => u === user.id && p === poolId && [legacy, 'administrate'].includes(permission)
+        ) || privileges.some(([u, p, granted]) => u === user.id && p === poolId && covers(granted))
+      )
+    },
     async route(method, endpoint, { params = {}, body, query = {}, user = ADMIN } = {}) {
       const route = routes.find(route => route.method === method && route.endpoint === endpoint)
       assert.ok(route, `${method} ${endpoint}`)
@@ -1248,6 +1269,135 @@ describe('permissions', () => {
       } finally {
         plugin2.unload()
       }
+    } finally {
+      plugin.unload()
+    }
+  })
+})
+
+describe('firewall rights (vdf#141)', () => {
+  const user = { id: 'u1', email: 'u1@example.org', permission: 'none' }
+  const NO_RIGHT = {
+    read: false,
+    publish: false,
+    membership: false,
+    'quarantine:add': false,
+    'quarantine:remove': false,
+  }
+  const message = action =>
+    `this needs the firewall ${action} privilege on the pool, or the ${action === 'read' ? 'view' : 'administrate'} permission on it`
+
+  // the pool routes, with the firewall action each one takes
+  const POOL_ROUTES = [
+    ['get', '/pools/{id}/policy', 'read'],
+    ['post', '/pools/{id}/actions/check_policy', 'publish'],
+    ['post', '/pools/{id}/actions/publish_policy', 'publish'],
+    ['get', '/pools/{id}/history', 'read'],
+    ['post', '/pools/{id}/actions/acknowledge_quarantine_lifted', 'quarantine:remove'],
+    ['get', '/pools/{id}/history/{entry}', 'read'],
+    ['post', '/pools/{id}/actions/trace', 'read'],
+    ['get', '/pools/{id}/sdn_controller', 'read'],
+    ['get', '/pools/{id}/stats', 'read'],
+    ['get', '/pools/{id}/rule-log', 'read'],
+    ['get', '/pools/{id}/monitor', 'read'],
+  ]
+
+  test('each pool route takes its firewall action on the pool, and says which', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      for (const [method, endpoint, action] of POOL_ROUTES) {
+        xo.firewallRightsAsked.length = 0
+        const { status, result } = await xo.route(method, endpoint, {
+          params: { id: POOL, entry: '1' },
+          body: {},
+          user,
+        })
+        assert.equal(status, 403, endpoint)
+        assert.deepEqual(xo.firewallRightsAsked, [['u1', POOL, action]], endpoint)
+        assert.equal(result.error, message(action), endpoint)
+      }
+      assert.equal(xo.calls.length, 0)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('RBAC privileges on a pool open its routes, and GET policy says which', async () => {
+    const xo = fakeXo({
+      pools: { A: {}, B: {} },
+      privileges: [
+        ['u1', 'A', 'read'],
+        ['u1', 'A', 'publish'],
+        ['u1', 'B', 'quarantine'],
+      ],
+    })
+    const plugin = await loaded(xo)
+    try {
+      const policy = await xo.route('get', '/pools/{id}/policy', { params: { id: 'A' }, user })
+      assert.equal(policy.status, 200)
+      assert.deepEqual(policy.result.rights, { ...NO_RIGHT, read: true, publish: true })
+      assert.equal(policy.result.canEdit, true)
+
+      const publish = await xo.route('post', '/pools/{id}/actions/publish_policy', {
+        params: { id: 'A' },
+        body: { policy: text(document()) },
+        user,
+      })
+      assert.equal(publish.status, 200)
+      assert.equal(publish.result.published, true)
+
+      // quarantine privileges alone don't show the firewall
+      const other = await xo.route('get', '/pools/{id}/policy', { params: { id: 'B' }, user })
+      assert.equal(other.status, 403)
+      assert.equal(other.result.error, message('read'))
+
+      const global = (await xo.route('get', '/global', { user })).result
+      assert.equal(global.canEdit, false)
+      assert.deepEqual(
+        global.pools.map(pool => pool.id),
+        ['A']
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('legacy ACLs still count: view reads, administrate does everything', async () => {
+    const viewer = { id: 'u2', email: 'u2@example.org', permission: 'none' }
+    const xo = fakeXo({
+      pools: { A: {}, B: {} },
+      acls: [
+        ['u1', 'A', 'administrate'],
+        ['u2', 'A', 'view'],
+      ],
+    })
+    const plugin = await loaded(xo)
+    try {
+      const rightsOf = async who =>
+        (await xo.route('get', '/pools/{id}/policy', { params: { id: 'A' }, user: who })).result
+      assert.deepEqual((await rightsOf(user)).rights, {
+        read: true,
+        publish: true,
+        membership: true,
+        'quarantine:add': true,
+        'quarantine:remove': true,
+      })
+      const { rights, canEdit } = await rightsOf(viewer)
+      assert.deepEqual(rights, { ...NO_RIGHT, read: true })
+      assert.equal(canEdit, false)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('an administrator has every right; a request without a user none', async () => {
+    const xo = fakeXo()
+    const plugin = await loaded(xo)
+    try {
+      const policy = await xo.route('get', '/pools/{id}/policy', { params: { id: POOL } })
+      assert.equal(Object.values(policy.result.rights).every(Boolean), true)
+      assert.equal((await xo.route('get', '/pools/{id}/policy', { params: { id: POOL }, user: null })).status, 403)
     } finally {
       plugin.unload()
     }
@@ -2753,6 +2903,43 @@ describe('vdf: tags changed outside XO (vdf#141)', () => {
         assert.deepEqual(await liftedOf(xo), [])
       })
     }
+  })
+
+  test('an alert is acknowledged with the firewall quarantine:remove privilege, not quarantine:add', async () => {
+    const lifter = { id: 'dave', email: 'dave@example.org', permission: 'none' }
+    const quarantiner = { id: 'erin', email: 'erin@example.org', permission: 'none' }
+    const xo = fakeXo({
+      vms: [vm()],
+      privileges: [
+        ['dave', POOL, 'quarantine:remove'],
+        ['erin', POOL, 'quarantine:add'],
+      ],
+    })
+    const acknowledge = (entry, user) =>
+      xo.route('post', '/pools/{id}/actions/acknowledge_quarantine_lifted', {
+        params: { id: POOL },
+        body: { entry },
+        user,
+      })
+    await withPlugin(xo, async () => {
+      xo.events.emit('xo:reservedTagChanged', tagChange())
+      await settled()
+      const [alert] = await liftedOf(xo)
+
+      const refused = await acknowledge(alert.id, quarantiner)
+      assert.equal(refused.status, 403)
+      assert.equal(
+        refused.result.error,
+        'this needs the firewall quarantine:remove privilege on the pool, or the administrate permission on it'
+      )
+      assert.deepEqual(await liftedOf(xo), [alert])
+
+      const { status, result } = await acknowledge(alert.id, lifter)
+      assert.equal(status, 200)
+      assert.equal(result.resolution, 'acknowledged')
+      assert.equal(result.resolvedBy, 'dave@example.org')
+      assert.deepEqual(await liftedOf(xo), [])
+    })
   })
 
   test('an alert is acknowledged by a user with administrate on the pool, for good', async () => {
