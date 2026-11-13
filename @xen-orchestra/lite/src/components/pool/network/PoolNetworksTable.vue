@@ -39,8 +39,12 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -61,19 +65,24 @@ const { t } = useI18n()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const getNetworkVlan = (network: XenApiNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.$ref))
+const getFirstPifVlan = (network: XenApiNetwork) => pifs.value.find(pif => network.PIFs?.includes(pif.$ref))?.VLAN
 
-  if (networkPIFs.length > 0) {
-    return networkPIFs[0].VLAN !== -1 ? networkPIFs[0].VLAN.toString() : t('none')
+const getNetworkVlan = (network: XenApiNetwork) => {
+  const vlan = getFirstPifVlan(network)
+
+  if (vlan === undefined) {
+    return undefined
   }
+
+  return vlan !== -1 ? vlan.toString() : t('none')
 }
+
+// Networks without PIF or without VLAN (-1) come first
+const getNetworkVlanNumber = (network: XenApiNetwork) => getFirstPifVlan(network) ?? -1
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
 const { items: filteredNetworks, searchBindings } = useSearchFilter(() => networks)
-
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
 const state = useTableState({
   busy: () => busy,
@@ -86,7 +95,9 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useNetworkColumns({
+const { compareStatuses } = useStatusLabel()
+
+const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   exclude: ['actions'],
   body: (network: XenApiNetwork) => {
     const status = computed(() => getNetworkStatus(network))
@@ -103,7 +114,21 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
     }
   },
+  sort: {
+    network: sortByNameLabel,
+    description: sortByNameDescription,
+    status: (network1, network2) => compareStatuses(getNetworkStatus(network1), getNetworkStatus(network2)),
+    vlan: (network1, network2) => getNetworkVlanNumber(network1) - getNetworkVlanNumber(network2),
+    mtu: (network1, network2) => network1.MTU - network2.MTU,
+    defaultLockingMode: (network1, network2) =>
+      compareStrings(getLockingMode(network1.default_locking_mode), getLockingMode(network2.default_locking_mode)),
+  },
+  initialSort: { id: 'network', direction: 'asc' },
 })
+
+const sortedNetworks = computed(() => sortItems(filteredNetworks.value))
+
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', sortedNetworks)
 </script>
 
 <style scoped lang="postcss">
