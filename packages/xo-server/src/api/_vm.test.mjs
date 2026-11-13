@@ -138,6 +138,8 @@ describe('vm.create', () => {
       getResourceSet: async () => ({ subjects: [], tags: [] }),
       getXapi: () => xapi,
       hasPermissions: async () => false,
+      // no RBAC role
+      getAclV2UserPrivileges: async () => [],
     }
     const mixin = new ReservedTags(app)
     app.checkNewVmTags = mixin.checkNewVmTags.bind(mixin)
@@ -184,6 +186,8 @@ describe('vm.migrate', () => {
       checkPermissions: async () => {},
       getXapi: () => xapi,
       hasPermissions: async (userId, [[id, permission]]) => id === administratedPool && permission === 'administrate',
+      // no RBAC role
+      getAclV2UserPrivileges: async () => [],
     }
     const mixin = new ReservedTags(app)
     app.checkMigration = mixin.checkMigration.bind(mixin)

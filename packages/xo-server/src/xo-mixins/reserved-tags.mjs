@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
+import { hasPrivilegeOn } from '@xen-orchestra/acl'
+import { featureUnauthorized, forbiddenOperation } from 'xo-common/api-errors.js'
 
 const log = createLogger('xo:reserved-tags')
 
@@ -16,6 +17,32 @@ export const isReservedTag = tag => tag.startsWith(RESERVED_TAG_PREFIX)
 
 // a copy of a quarantined VM stays quarantined: tightening is always safe to inherit
 const QUARANTINE_TAG = 'vdf:quarantine'
+
+// Who may do what with a pool's firewall: the actions of the RBAC `firewall`
+// resource, whose object is the pool, and the legacy ACL on the pool that
+// counts as each of them (`administrate` as every action, `view` as `read`).
+const LEGACY_PERMISSION_BY_FIREWALL_ACTION = {
+  read: 'view',
+  publish: 'administrate',
+  membership: 'administrate',
+  'quarantine:add': 'administrate',
+  'quarantine:remove': 'administrate',
+}
+
+/**
+ * The firewall action adding or removing a reserved tag takes: putting a VM
+ * into quarantine or lifting it for `vdf:quarantine`, `membership` for every
+ * other one (group tags, network tags).
+ *
+ * @param {'add' | 'remove'} change
+ * @param {string} tag - a reserved tag
+ * @returns {'membership' | 'quarantine:add' | 'quarantine:remove'}
+ */
+export const firewallActionForTag = (change, tag) => (tag === QUARANTINE_TAG ? `quarantine:${change}` : 'membership')
+
+// what a refusal says the user lacks
+const describeFirewallRight = (action, pool = 'the pool') =>
+  `the firewall ${action} privilege on ${pool}, the ${LEGACY_PERMISSION_BY_FIREWALL_ACTION[action]} permission on it, or an XO administrator`
 
 // Where prevention ends, detect (vdf#141 §7): xe, another XO or any XAPI
 // client can change these tags, XO can't prevent it. XO notes the reserved
@@ -204,9 +231,9 @@ export default class ReservedTags {
    * The one place that decides whether a user may add or remove tags on an
    * object: every path through which a user writes tags calls it.
    *
-   * Reserved tags take an XO administrator or the `administrate` permission
-   * on the object's pool; other tags are not checked here. Calls without a
-   * user (xo-server's own work) are not checked.
+   * Each reserved tag takes its firewall action (`firewallActionForTag`) on
+   * the object's pool (`hasFirewallRight`); other tags are not checked here.
+   * Calls without a user (xo-server's own work) are not checked.
    *
    * A change it lets through is noted as XO's, for XAPI's report of it, if
    * it changes the object's tags (as XO sees them).
@@ -226,12 +253,57 @@ export default class ReservedTags {
     })
   }
 
-  // the guard's one permission decision: may this user write reserved tags on the objects of this pool
-  async #mayWriteReservedTags(user, poolId) {
+  /**
+   * The one decision on the firewall's rights: may this user do this action
+   * (of the RBAC `firewall` resource) on the firewall of this pool. The tag
+   * guard decides with it, and so do the firewall plugin's routes.
+   *
+   * Yes for an XO administrator; for a user with the legacy ACL that counts
+   * as the action on the pool (`administrate` for every action, `view` for
+   * `read`); for a user whose RBAC privileges allow `firewall <action>` on
+   * the pool (the object their selectors are evaluated against). Calls
+   * without a user (xo-server's own work) are allowed.
+   *
+   * Where the RBAC feature is not available (an XOA whose licence lacks it),
+   * only legacy ACLs count. From the sources, it always is: RBAC privileges
+   * then count as on any XOA that has it, a user without a role has none.
+   *
+   * @param {object | undefined} user - the XO user
+   * @param {string} poolId
+   * @param {'read' | 'publish' | 'membership' | 'quarantine:add' | 'quarantine:remove'} action
+   * @returns {Promise<boolean>}
+   */
+  async hasFirewallRight(user, poolId, action) {
+    const legacyPermission = LEGACY_PERMISSION_BY_FIREWALL_ACTION[action]
+    if (legacyPermission === undefined) {
+      throw new TypeError(`unknown firewall action: ${action}`)
+    }
+    if (user === undefined || user.permission === 'admin') {
+      return true
+    }
+    if (await this._app.hasPermissions(user.id, [[poolId, legacyPermission]])) {
+      return true
+    }
+
+    let userPrivileges
+    try {
+      userPrivileges = await this._app.getAclV2UserPrivileges(user.id)
+    } catch (error) {
+      if (featureUnauthorized.is(error)) {
+        return false
+      }
+      throw error
+    }
     return (
-      user === undefined ||
-      user.permission === 'admin' ||
-      (await this._app.hasPermissions(user.id, [[poolId, 'administrate']]))
+      userPrivileges.length !== 0 &&
+      hasPrivilegeOn({
+        user,
+        resource: 'firewall',
+        action,
+        // throws for an unknown pool: refused
+        objects: this._app.getObject(poolId, 'pool'),
+        userPrivileges,
+      })
     )
   }
 
@@ -241,16 +313,20 @@ export default class ReservedTags {
       ...added.filter(isReservedTag).map(tag => ['add', tag]),
       ...removed.filter(isReservedTag).map(tag => ['remove', tag]),
     ]
-    if (reserved.length === 0) {
-      return
-    }
 
-    if (!(await this.#mayWriteReservedTags(user, object.$pool))) {
-      const [verb, tag] = reserved[0]
-      throw forbiddenOperation(
-        `${verb} tag ${tag}`,
-        `the tag "${tag}" belongs to the firewall: changing it takes an XO administrator or the administrate permission on the pool`
-      )
+    // action → allowed
+    const decided = new Map()
+    for (const [change, tag] of reserved) {
+      const action = firewallActionForTag(change, tag)
+      if (!decided.has(action)) {
+        decided.set(action, await this.hasFirewallRight(user, object.$pool, action))
+      }
+      if (!decided.get(action)) {
+        throw forbiddenOperation(
+          `${change} tag ${tag}`,
+          `the tag "${tag}" belongs to the firewall: ${change === 'add' ? 'adding' : 'removing'} it takes ${describeFirewallRight(action)}`
+        )
+      }
     }
   }
 
@@ -258,8 +334,8 @@ export default class ReservedTags {
    * Before a VM migrates to another pool: it arrives there with its group
    * tags (reserved, but not `vdf:quarantine`), which puts it into that pool's
    * firewall groups. For the user, it is as if they added them on the
-   * destination pool: the guard decides. `vdf:quarantine` only tightens, it
-   * is not checked. Nothing is stripped and nothing is noted: the VM's tags
+   * destination pool: it takes `membership` there. `vdf:quarantine` only
+   * tightens, it is not checked. Nothing is stripped and nothing is noted: the VM's tags
    * don't change.
    *
    * Migrations within the pool and calls without a user are not checked.
@@ -275,10 +351,10 @@ export default class ReservedTags {
       return
     }
 
-    if (!(await this.#mayWriteReservedTags(user, destinationPoolId))) {
+    if (!(await this.hasFirewallRight(user, destinationPoolId, 'membership'))) {
       throw forbiddenOperation(
         'migrate VM to another pool',
-        `the VM carries firewall tags (${groupTags.join(', ')}): migrating it to another pool takes an XO administrator or the administrate permission on the destination pool`
+        `the VM carries firewall tags (${groupTags.join(', ')}): migrating it to another pool takes ${describeFirewallRight('membership', 'the destination pool')}`
       )
     }
   }

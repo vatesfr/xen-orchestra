@@ -187,6 +187,10 @@ The `firewall` resource is a pool's firewall (VDF, the Vates Distributed Firewal
 | `quarantine:add`    | Quarantine a VM of the pool (add `vdf:quarantine`)                                                        |
 | `quarantine:remove` | Lift a VM's quarantine (remove `vdf:quarantine`), and acknowledge a quarantine lifted outside XO          |
 
+Changing a `vdf:` tag takes two keys: the right to change the object's tags (`update:tags` on it through the REST API, the `administrate` ACL on it through the JSON-RPC API), and the matching `firewall` action on its pool, whichever API is used. With the first key only, a user still changes every other tag. The same `firewall` action is needed when a new VM (clone, copy, import, creation from a template) keeps the `vdf:` group tags of its source, otherwise they are removed from it, and when a VM with group tags migrates to another pool (`membership` on the destination pool). `vdf:quarantine` is always kept.
+
+XO administrators have every right. The original [ACLs](./users.md#acls) still count: `administrate` on a pool counts as every `firewall` action on it, `view` as `read`. A `deny` privilege does not take away what an original ACL grants. The XO-wide firewall configuration stays reserved to administrators.
+
 ### XO management resources
 
 | Resource            | Available actions                                                                                                         |

@@ -35,6 +35,7 @@
 - [XO6/Backups] Add a detail page for backup logs (PR [#10718](https://github.com/vatesfr/xen-orchestra/pull/10718))
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
 - [RBAC] New `firewall` resource, for the firewall (VDF) of each pool: `read`, `publish`, `membership`, `quarantine:add` and `quarantine:remove`, evaluated against the pool so that a selector selects pools
+- [RBAC] The firewall's `vdf:` tags take a `firewall` privilege on the object's pool besides the right to change its tags, through the REST and JSON-RPC APIs: `membership` for group and network tags, `quarantine:add` and `quarantine:remove` for `vdf:quarantine`; `administrate` on the pool still counts
 
 ### Bug fixes
 
