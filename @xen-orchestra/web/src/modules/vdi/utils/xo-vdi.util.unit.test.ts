@@ -1,5 +1,7 @@
-import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { compareVdiFormats, compareVdiUsages, getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import { createVbd } from '@/test/create-vbd.ts'
+import { createVdi } from '@/test/create-vdi.ts'
 import { objectIcon } from '@core/icons'
 
 describe('getVdiFormat', () => {
@@ -33,5 +35,41 @@ describe('getVdiIcon', () => {
     expect(getVdiIcon([createVbd({ attached: true }), createVbd({ attached: false })])).toBe(
       objectIcon('vdi', 'warning')
     )
+  })
+})
+
+function sortVdiLabels(vdis: FrontXoVdi[], compareFn: (vdi1: FrontXoVdi, vdi2: FrontXoVdi) => number) {
+  return [...vdis].sort(compareFn).map(vdi => vdi.name_label)
+}
+
+describe('compareVdiFormats', () => {
+  it('orders VDIs by displayed format, an undefined format being VHD', () => {
+    const vdis = [
+      createVdi({ name_label: 'VHD VDI', image_format: undefined }),
+      createVdi({ name_label: 'QCOW2 VDI', image_format: 'qcow2' }),
+      createVdi({ name_label: 'RAW VDI', image_format: 'raw' }),
+    ]
+
+    expect(sortVdiLabels(vdis, compareVdiFormats)).toEqual(['QCOW2 VDI', 'RAW VDI', 'VHD VDI'])
+  })
+})
+
+describe('compareVdiUsages', () => {
+  it('orders VDIs by used space percentage rather than absolute usage', () => {
+    const vdis = [
+      createVdi({ name_label: 'Small VDI', usage: 9, size: 10 }),
+      createVdi({ name_label: 'Big VDI', usage: 500, size: 1000 }),
+    ]
+
+    expect(sortVdiLabels(vdis, compareVdiUsages)).toEqual(['Big VDI', 'Small VDI'])
+  })
+
+  it('treats a VDI with no size as 0% used', () => {
+    const vdis = [
+      createVdi({ name_label: 'Used VDI', usage: 10, size: 100 }),
+      createVdi({ name_label: 'Empty VDI', usage: 0, size: 0 }),
+    ]
+
+    expect(sortVdiLabels(vdis, compareVdiUsages)).toEqual(['Empty VDI', 'Used VDI'])
   })
 })

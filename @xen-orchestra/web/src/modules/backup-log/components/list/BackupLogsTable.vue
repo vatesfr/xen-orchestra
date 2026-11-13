@@ -35,10 +35,12 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupLogColumns } from '@core/tables/column-sets/backup-log-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -86,8 +88,6 @@ const schema = useQueryBuilderSchema<BackupLogFilterableData>({
   }),
 })
 
-const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backup-logs', filteredBackupLogs)
-
 const state = useTableState({
   busy: () => busy,
   error: () => error,
@@ -99,7 +99,22 @@ const state = useTableState({
         : false,
 })
 
-const { HeadCells, BodyCells } = useBackupLogColumns({
+const { compareStatuses } = useStatusLabel()
+
+// Same values as the ones displayed in the VM and SR cells: the first VM/SR of the run
+const getFirstVmName = (log: BackupLogFilterableData) => getVmById(getBackupLogVmIds(log)[0])?.name_label ?? ''
+
+const getFirstSrName = (log: BackupLogFilterableData) => {
+  const firstSrId = getBackupLogSrIds(log)[0]
+
+  if (firstSrId === undefined) {
+    return ''
+  }
+
+  return getSrById(firstSrId)?.name_label ?? firstSrId
+}
+
+const { HeadCells, BodyCells, sortItems } = useBackupLogColumns({
   body: (log: BackupLogFilterableData) => {
     const href = computed(() => buildXo5Route(`/backup/${log.jobId}/edit`))
 
@@ -148,5 +163,17 @@ const { HeadCells, BodyCells } = useBackupLogColumns({
       selectItem: r => r(() => (selectedBackupLogId.value = log.id)),
     }
   },
+  sort: {
+    job: (log1, log2) => compareStrings(log1.jobName ?? '', log2.jobName ?? ''),
+    backupDate: (log1, log2) => log1.start - log2.start,
+    vm: (log1, log2) => compareStrings(getFirstVmName(log1), getFirstVmName(log2)),
+    sr: (log1, log2) => compareStrings(getFirstSrName(log1), getFirstSrName(log2)),
+    status: (log1, log2) => compareStatuses(log1.status, log2.status),
+  },
+  initialSort: { id: 'backupDate', direction: 'desc' },
 })
+
+const sortedBackupLogs = computed(() => sortItems(filteredBackupLogs.value))
+
+const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backup-logs', sortedBackupLogs)
 </script>

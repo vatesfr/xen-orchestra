@@ -36,12 +36,14 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
+import { compareFirstStrings, compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
@@ -59,7 +61,7 @@ defineSlots<{
 }>()
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
-const { useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
+const { getNetworkById, useGetNetworkById, areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const isReady = logicAnd(arePifsReady, areNetworksReady)
 
@@ -110,7 +112,9 @@ const getIpConfigurationMode = (ipMode: IP_CONFIGURATION_MODE) => {
   }
 }
 
-const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
+const getNetworkName = (pif: FrontXoPif) => getNetworkById(pif.$network)?.name_label ?? ''
+
+const { compareStatuses } = useStatusLabel()
 
 function getManagementIcon(pif: FrontXoPif) {
   if (!pif.management) {
@@ -123,7 +127,7 @@ function getManagementIcon(pif: FrontXoPif) {
   }
 }
 
-const { HeadCells, BodyCells } = usePifColumns({
+const { HeadCells, BodyCells, sortItems } = usePifColumns({
   exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))
@@ -176,7 +180,23 @@ const { HeadCells, BodyCells } = usePifColumns({
         }),
     }
   },
+  sort: {
+    // Same order as the PIF collection: by network name, then by device
+    network: (pif1, pif2) =>
+      compareStrings(getNetworkName(pif1), getNetworkName(pif2)) || compareStrings(pif1.device, pif2.device),
+    device: (pif1, pif2) => compareStrings(pif1.device, pif2.device),
+    status: (pif1, pif2) => compareStatuses(getPifStatus(pif1), getPifStatus(pif2)),
+    vlan: (pif1, pif2) => pif1.vlan - pif2.vlan,
+    ip: (pif1, pif2) => compareFirstStrings(getIpAddresses(pif1), getIpAddresses(pif2)),
+    mac: (pif1, pif2) => compareStrings(pif1.mac, pif2.mac),
+    mode: (pif1, pif2) => compareStrings(getIpConfigurationMode(pif1.mode), getIpConfigurationMode(pif2.mode)),
+  },
+  initialSort: { id: 'network', direction: 'asc' },
 })
+
+const sortedPifs = computed(() => sortItems(filteredPifs.value))
+
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', sortedPifs)
 </script>
 
 <style scoped lang="postcss">

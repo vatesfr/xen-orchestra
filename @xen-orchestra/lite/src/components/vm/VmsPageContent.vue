@@ -8,22 +8,12 @@
     </UiTitle>
     <VmsActionsBar v-if="!uiStore.isSmall" :selected-refs="selectedVmsRefs" />
     <div>
-      <div class="filter-and-sort">
-        <CollectionFilter
-          :active-filters="filters"
-          :available-filters="availableFilters"
-          @add-filter="addFilter"
-          @remove-filter="removeFilter"
-        />
-
-        <CollectionSorter
-          :active-sorts="sorts"
-          :available-sorts="availableFilters"
-          @add-sort="addSort"
-          @remove-sort="removeSort"
-          @toggle-sort-direction="toggleSortDirection"
-        />
-      </div>
+      <CollectionFilter
+        :active-filters="filters"
+        :available-filters="availableFilters"
+        @add-filter="addFilter"
+        @remove-filter="removeFilter"
+      />
 
       <VtsTable :state :pagination-bindings>
         <thead>
@@ -49,10 +39,8 @@
 
 <script lang="ts" setup>
 import CollectionFilter from '@/components/CollectionFilter.vue'
-import CollectionSorter from '@/components/CollectionSorter.vue'
 import VmsActionsBar from '@/components/vm/VmsActionsBar.vue'
 import useCollectionFilter from '@/composables/collection-filter.composable.ts'
-import useCollectionSorter from '@/composables/collection-sorter.composable.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
@@ -75,9 +63,10 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { compareFirstStrings } from '@core/utils/compare-strings.util.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { useSorted } from '@vueuse/core'
 import { useArrayFilter } from '@vueuse/shared'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -115,25 +104,10 @@ const { filters, addFilter, removeFilter, predicate } = useCollectionFilter<XenA
   queryStringParam: 'filter',
 })
 
-const { sorts, addSort, removeSort, toggleSortDirection, compareFn } = useCollectionSorter<XenApiVm>({
-  queryStringParam: 'sort',
-})
-
 const filteredVms = useArrayFilter(
   () => vms,
   vm => predicate.value(vm)
 )
-
-const filteredAndSortedVms = useSorted(filteredVms, (vm1, vm2) => compareFn.value(vm1, vm2))
-
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', filteredAndSortedVms)
-
-const { selected: selectedVmsRefs, areAllSelected: areAllVmsSelected } = useMultiSelect(
-  computed(() => vms.map(vm => vm.$ref)),
-  computed(() => paginatedVms.value.map(vm => vm.$ref))
-)
-
-titleStore.setCount(() => selectedVmsRefs.value.length)
 
 const state = useTableState({
   busy: () => busy,
@@ -142,23 +116,25 @@ const state = useTableState({
     vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { HeadCells, BodyCells } = useVmColumns({
+const getIpAddresses = (vm: XenApiVm) => [
+  ...new Set(Object.values(getGuestMetrics(vm.guest_metrics)?.networks ?? {}).sort()),
+]
+
+const getVcpus = (vm: XenApiVm) => getVmMetrics(vm.metrics)?.VCPUs_number ?? vm.VCPUs_at_startup
+
+const getDiskSpace = (vm: XenApiVm) => {
+  const vbds = getVbds(vm.VBDs).filter(vbd => vbd.type === 'Disk')
+
+  return getVdis(vbds.map(vbd => vbd.VDI)).reduce((total, vdi) => total + (vdi.virtual_size ?? 0), 0)
+}
+
+const { HeadCells, BodyCells, sortItems } = useVmColumns({
   exclude: ['actions', 'checkbox'],
   body: (vm: XenApiVm) => {
-    const guestMetrics = computed(() => getGuestMetrics(vm.guest_metrics))
-    const vmMetrics = computed(() => getVmMetrics(vm.metrics))
-    const ips = computed(() => [...new Set(Object.values(guestMetrics.value?.networks ?? {}).sort())])
+    const ips = computed(() => getIpAddresses(vm))
     const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
-    const vcpus = computed(() => vmMetrics.value?.VCPUs_number ?? vm.VCPUs_at_startup)
-    const vbds = computed(() => getVbds(vm.VBDs).filter(vbd => vbd.type === 'Disk'))
-    const vdis = computed(() => getVdis(vbds.value.map(vbd => vbd.VDI)))
-
-    const diskSpace = computed(() =>
-      formatSizeRaw(
-        vdis.value.reduce((total, vdi) => total + (vdi.virtual_size ?? 0), 0),
-        1
-      )
-    )
+    const vcpus = computed(() => getVcpus(vm))
+    const diskSpace = computed(() => formatSizeRaw(getDiskSpace(vm), 1))
 
     return {
       vm: r =>
@@ -170,16 +146,32 @@ const { HeadCells, BodyCells } = useVmColumns({
       tags: r => r(vm.tags),
     }
   },
+  sort: {
+    vm: sortByNameLabel,
+    ipAddresses: (vm1, vm2) => compareFirstStrings(getIpAddresses(vm1), getIpAddresses(vm2)),
+    vcpus: (vm1, vm2) => getVcpus(vm1) - getVcpus(vm2),
+    ram: (vm1, vm2) => vm1.memory_dynamic_max - vm2.memory_dynamic_max,
+    diskSpace: (vm1, vm2) => getDiskSpace(vm1) - getDiskSpace(vm2),
+    tags: (vm1, vm2) => compareFirstStrings(vm1.tags, vm2.tags),
+  },
+  initialSort: { id: 'vm', direction: 'asc' },
 })
+
+const sortedVms = computed(() => sortItems(filteredVms.value))
+
+const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', sortedVms)
+
+const { selected: selectedVmsRefs, areAllSelected: areAllVmsSelected } = useMultiSelect(
+  computed(() => vms.map(vm => vm.$ref)),
+  computed(() => paginatedVms.value.map(vm => vm.$ref))
+)
+
+titleStore.setCount(() => selectedVmsRefs.value.length)
 </script>
 
 <style lang="postcss" scoped>
 .vms-page-content {
   overflow: auto;
   margin: 1rem;
-
-  .filter-and-sort {
-    display: flex;
-  }
 }
 </style>
