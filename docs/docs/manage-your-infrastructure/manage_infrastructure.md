@@ -910,7 +910,7 @@ This section shows the disks, their size and used space. A progress bar helps yo
 
 ### Local default SRs
 
-Declaring a default storage repository for each pool is good practice to avoid unexpected behaviours.
+Declaring a default storage repository for each pool is good practice to avoid unexpected behaviors.
 
 ### Pools with no default SR
 
@@ -983,8 +983,10 @@ To receive reports, you first need to enable the **usage-report** plugin:
    - Storage repositories
 
 :::tip
-To include these stats in your reports, the plugin must have saved them at least once.  
-::: 8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.  
+To include these stats in your reports, the plugin must have saved them at least once.
+:::
+
+8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.
 9. Click **Save configuration**. Reports will be sent to the email addresses you entered at the frequency you selected.
 
 ## Software RAID

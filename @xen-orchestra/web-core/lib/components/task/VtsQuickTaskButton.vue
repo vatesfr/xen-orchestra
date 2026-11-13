@@ -21,8 +21,8 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiQuickTaskPanel from '@core/components/ui/quick-task-panel/UiQuickTaskPanel.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { placeOverlay } from '@core/utils/placement.util.ts'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
-import placementJs from 'placement.js'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -57,7 +57,7 @@ whenever(isPanelOpen, async () => {
     return
   }
 
-  placementJs(button, panel, {
+  placeOverlay(button, panel, {
     placement: 'bottom-end',
   })
 

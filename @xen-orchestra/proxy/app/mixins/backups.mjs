@@ -423,6 +423,19 @@ export default class Backups {
             },
           },
         ],
+        purgeVmBackupsJournal: [
+          // `before` is computed by the caller: the horizon is the one of XO, whatever the clock of this proxy
+          ({ remote, before }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.purgeBackupJournal(before)),
+          {
+            description: 'remove the days of the backup journal of a remote before the one of a date',
+            params: {
+              remote: { type: 'object' },
+              // timestamp in ms
+              before: { type: 'number' },
+            },
+          },
+        ],
         restoreMetadataBackup: [
           ({ backupId, remote, xapi: xapiOptions }) =>
             Disposable.use(app.remotes.getHandler(remote), xapiOptions && this.getXapi(xapiOptions), (handler, xapi) =>

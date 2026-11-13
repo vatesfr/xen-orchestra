@@ -8,7 +8,7 @@
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import { computed } from 'vue'
 
-const { columns: _columns = 2 } = defineProps<{
+const { columns: rawColumns = 2 } = defineProps<{
   columns?: number
   extraSpaceAround?: boolean
 }>()
@@ -19,7 +19,7 @@ const slots = defineSlots<{
 
 const nodes = computed(() => slots.default())
 
-const columns = computed(() => Math.max(_columns, nodes.value.length))
+const columns = computed(() => Math.max(rawColumns, nodes.value.length))
 </script>
 
 <style lang="postcss" scoped>

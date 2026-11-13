@@ -17,7 +17,7 @@ export function useVmOperation(rawVm: MaybeRefOrGetter<XenApiVm | undefined>) {
 
   const currentOperation = useMapper<string, string>(
     () => Object.values(vm.value?.current_operations ?? {})[0],
-    {
+    () => ({
       start: t('operation:start'),
       start_on: t('operation:start-on-host'),
       pause: t('operation:pause'),
@@ -36,7 +36,7 @@ export function useVmOperation(rawVm: MaybeRefOrGetter<XenApiVm | undefined>) {
       export: t('operation:export'),
       import: t('operation:import'),
       unknown: '',
-    },
+    }),
     'unknown'
   )
 

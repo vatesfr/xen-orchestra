@@ -8,7 +8,7 @@
       <!-- VIF -->
       <UiPanelCard>
         <UiPanelCardTitle :id="vif.uuid" size="medium" :label="t('vif')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -79,32 +79,15 @@
               {{ isTxChecksummingEnabled(vif) }}
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
       <UiPanelCard>
         <UiPanelCardTitle size="medium" :label="t('network-information')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- IP ADDRESSES -->
-          <div v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-              </template>
-              <template #value>{{ ip }}</template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
+          <VtsCardRowKeyValue :values="ipAddresses">
+            <template #key>{{ t('ip-addresses') }}</template>
           </VtsCardRowKeyValue>
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
@@ -118,7 +101,7 @@
               <VtsCopyButton :value="vif.MAC" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -133,7 +116,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -187,12 +170,6 @@ const rateLimit = computed(() => {
 
 <style scoped lang="postcss">
 .vm-vifs-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .value:empty::before {
     content: '-';
   }

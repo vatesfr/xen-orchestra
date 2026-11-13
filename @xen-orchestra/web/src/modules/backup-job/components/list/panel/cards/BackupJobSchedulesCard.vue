@@ -1,7 +1,7 @@
 <template>
   <UiPanelCard class="backup-job-schedules-card">
     <UiPanelCardTitle size="medium" :label="t('schedules')" :counter="schedules.length" />
-    <div class="content">
+    <VtsCardRowList class="content">
       <template v-for="({ schedule, nextRun }, index) in schedulesWithNextRun" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
@@ -45,7 +45,7 @@
           </template>
         </VtsCardRowKeyValue>
       </template>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -54,6 +54,7 @@ import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo
 import { getScheduleNextRun } from '@/modules/schedule/utils/xo-schedule.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -89,10 +90,6 @@ const schedulesWithNextRun = computed(() =>
 <style scoped lang="postcss">
 .backup-job-schedules-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-
     .divider {
       margin-block: 1.6rem;
     }

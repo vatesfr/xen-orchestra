@@ -10,6 +10,7 @@ import {
   faCamera,
   faCircle,
   faCircleNodes,
+  faCircleNotch,
   faCity,
   faClock,
   faDatabase,
@@ -17,6 +18,7 @@ import {
   faHdd,
   faMapPin,
   faNetworkWired,
+  faPaperclip,
   faPlay,
   faPuzzlePiece,
   faSatellite,
@@ -68,6 +70,22 @@ const runningNeutral = defineIcon([
     color: 'var(--color-neutral-background-primary)',
     translate: [7.5, 5.5],
     size: 5,
+  },
+])
+
+const busy = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircleNotch,
+    color: 'var(--color-brand-item-base)',
+    translate: [7, 5.5],
+    size: 10,
+    spin: 1,
   },
 ])
 
@@ -150,6 +168,7 @@ export const objectIcons = defineIconPack({
   'host:disabled': [constructIcon(faServer), ...constructCircleStatus('host-disabled-circle')],
   'host:warning': [constructIcon(faServer), ...constructCircleStatus('warning-circle')],
   'host:halted': [constructIcon(faServer), ...constructCircleStatus('halted-circle')],
+  'host:busy': [constructIcon(faServer), { icon: busy }],
   vm: constructIcon(faDesktop),
   'vm:unknown': [
     {
@@ -166,6 +185,7 @@ export const objectIcons = defineIconPack({
   'vm:suspended': [constructIcon(faDesktop), ...constructCircleStatus('suspended-circle')],
   'vm:warning': [constructIcon(faDesktop), ...constructCircleStatus('warning-circle')],
   'vm:halted': [constructIcon(faDesktop), ...constructCircleStatus('halted-circle')],
+  'vm:busy': [constructIcon(faDesktop), { icon: busy }],
   'vm-snapshot': [
     constructIcon(faDesktop),
     {
@@ -187,6 +207,7 @@ export const objectIcons = defineIconPack({
   'sr:disabled': [constructIcon(faDatabase), ...constructCircleStatus('disabled')],
   'sr:partially-connected': [constructIcon(faDatabase), ...constructCircleStatus('warning-circle')],
   'sr:disconnected': [constructIcon(faDatabase), ...constructCircleStatus('danger-circle')],
+  'sr:busy': [constructIcon(faDatabase), { icon: busy }],
   vdi: constructIcon(faHdd),
   'vdi:unknown': [
     {
@@ -202,6 +223,7 @@ export const objectIcons = defineIconPack({
   'vdi:disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
   'vdi:warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
   'vdi:detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
+  'vdi:busy': [constructIcon(faHdd), { icon: busy }],
   'vdi-snapshot': [
     constructIcon(faHdd),
     {
@@ -240,6 +262,7 @@ export const objectIcons = defineIconPack({
   'network:connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
   'network:partially-connected': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
   'network:disconnected': [constructIcon(faNetworkWired), ...constructCircleStatus('danger-circle')],
+  'network:busy': [constructIcon(faNetworkWired), { icon: busy }],
   br: constructIcon(faBoxesStacked),
   'br:unknown': [
     {
@@ -255,6 +278,7 @@ export const objectIcons = defineIconPack({
   'br:disabled': [constructIcon(faBoxesStacked), ...constructCircleStatus('disabled')],
   'br:warning': [constructIcon(faBoxesStacked), ...constructCircleStatus('warning-circle')],
   'br:disconnected': [constructIcon(faBoxesStacked), ...constructCircleStatus('danger-circle')],
+  'br:busy': [constructIcon(faBoxesStacked), { icon: busy }],
   'backup-archive': constructIcon(faArchive),
   'backup-job': [
     constructIcon(faArchive),
@@ -281,4 +305,7 @@ export const objectIcons = defineIconPack({
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),
+  file: constructIcon(faPaperclip),
+  'file:success': [constructIcon(faPaperclip), ...constructCircleStatus('success-circle')],
+  'file:error': [constructIcon(faPaperclip), ...constructCircleStatus('danger-circle')],
 })

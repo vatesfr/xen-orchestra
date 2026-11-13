@@ -19,6 +19,7 @@ import { computed } from 'vue'
 
 export type TrafficRuleFormSelectOption = FormOption<{
   icon?: IconName
+  iconTooltip?: string
   status?: Status
 }>
 

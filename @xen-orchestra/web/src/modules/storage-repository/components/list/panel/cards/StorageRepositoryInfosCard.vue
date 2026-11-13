@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="card-container">
+  <UiPanelCard>
     <UiPanelCardTitle :id="sr.id" size="medium" :label="sr.name_label" :to="srRoute" :icon="srStatusIcon" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -51,7 +51,7 @@
         <template #key>{{ t('high-availability') }}</template>
         <template #value><VtsStatus :status="isHaSr" /></template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -64,6 +64,7 @@ import {
 import { getSrPageLocation } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -95,13 +96,3 @@ const allocationStrategy = computed(() => getSrProvisioningLabel(sr))
 
 const isHaSr = isHighAvailabilitySr(() => sr)
 </script>
-
-<style scoped lang="postcss">
-.storage-repository-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

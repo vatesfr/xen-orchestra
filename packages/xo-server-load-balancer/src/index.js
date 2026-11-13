@@ -122,7 +122,7 @@ export const configurationSchema = {
               'Preventive: balance hosts when exceeding thresholds and when pool CPU values are too disparate',
               'vCPU balancing: balance hosts when exceeding thresholds and pre-position VMs on hosts to balance vCPU/CPU ratio',
             ],
-            title: 'Performance plan behaviour',
+            title: 'Performance plan behavior',
             description: 'Optional features for performance plan',
             default: false,
           },

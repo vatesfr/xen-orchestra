@@ -1,9 +1,10 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { objectIcon } from '@core/icons'
 import { COMMON_TAG, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
-import { castArray } from 'lodash-es'
+import { castArray, toLower } from 'lodash-es'
 
-export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
+const CHANGING_POWER_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.START,
   VM_OPERATIONS.START_ON,
   VM_OPERATIONS.PAUSE,
@@ -15,6 +16,10 @@ export const CHANGING_STATE_OPERATIONS: Partial<VM_OPERATIONS>[] = [
   VM_OPERATIONS.SHUTDOWN,
   VM_OPERATIONS.CLEAN_SHUTDOWN,
   VM_OPERATIONS.HARD_SHUTDOWN,
+]
+
+export const TRACKED_OPERATIONS: Partial<VM_OPERATIONS>[] = [
+  ...CHANGING_POWER_STATE_OPERATIONS,
   VM_OPERATIONS.SNAPSHOT,
   VM_OPERATIONS.DESTROY,
   VM_OPERATIONS.CLONE,
@@ -35,6 +40,22 @@ export function isVmOperationPending(vm: FrontXoVm, operations: VM_OPERATIONS[] 
   const currentOperations = Object.values(vm.current_operations)
 
   return castArray(operations).some(operation => currentOperations.includes(operation))
+}
+
+export function getVmPendingPowerStateOperation(vm: FrontXoVm) {
+  return getVmsPendingOperation([vm], CHANGING_POWER_STATE_OPERATIONS)
+}
+
+export function getVmIcon(vm: FrontXoVm | undefined) {
+  if (vm === undefined) {
+    return objectIcon('vm', 'unknown')
+  }
+
+  if (getVmPendingPowerStateOperation(vm) !== undefined) {
+    return objectIcon('vm', 'busy')
+  }
+
+  return objectIcon('vm', toLower(vm.power_state))
 }
 
 export function areVmsOperationPending(vms: FrontXoVm[], operations: VM_OPERATIONS[] | VM_OPERATIONS) {

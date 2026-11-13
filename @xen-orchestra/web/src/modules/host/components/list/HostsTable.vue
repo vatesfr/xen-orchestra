@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
@@ -60,6 +61,8 @@ const selectedHostId = useRouteQuery('id')
 const { pifsByHost, arePifsReady, hasPifFetchError } = useXoPifCollection()
 
 const { isMasterHost } = useXoHostCollection()
+
+const { getHostIconTooltip } = useXoHostOperationLabel()
 
 const isReady = logicAnd(() => !busy, arePifsReady)
 
@@ -111,6 +114,7 @@ const { HeadCells, BodyCells } = useHostColumns({
           label: host.name_label,
           to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
+          iconTooltip: getHostIconTooltip(host),
           rightIcon: rightIcon.value,
         }),
       description: r => r(host.name_description),

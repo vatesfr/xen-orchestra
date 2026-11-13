@@ -393,6 +393,47 @@ describe('readBackupJournal()', { concurrency: 1 }, () => {
   })
 })
 
+describe('purgeBackupJournal()', { concurrency: 1 }, () => {
+  const DAY = 24 * 60 * 60 * 1e3
+  const HOUR = 60 * 60 * 1e3
+
+  // midnight of the given number of days ago, so that the tests do not depend on the time they run at
+  const daysAgo = n => (Math.floor(Date.now() / DAY) - n) * DAY
+
+  const writeEntryAt = timestamp =>
+    writeJournalEntryAt(timestamp, { event: 'add', vmUuid, filename: `/${rootPath}/${timestamp}.json` })
+
+  test('removes the days before the one of `before`, and keeps that day whole', async () => {
+    for (const n of [3, 2]) {
+      await writeEntryAt(daysAgo(n) + HOUR)
+    }
+
+    // after the entry of its own day: that entry is kept all the same
+    await adapter.purgeBackupJournal(daysAgo(2) + 2 * HOUR)
+
+    assert.deepEqual(await listJournalDays(), [formatJournalDay(daysAgo(2))])
+  })
+
+  test('skips a day which cannot be removed, and removes the next ones', async t => {
+    for (const n of [3, 2]) {
+      await writeEntryAt(daysAgo(n))
+    }
+    const lockedDay = formatJournalDay(daysAgo(3))
+
+    const rmtree = handler.rmtree.bind(handler)
+    t.mock.method(handler, 'rmtree', async path => {
+      if (path === `/${BACKUP_JOURNAL_DIR}/${lockedDay}`) {
+        throw Object.assign(new Error('EPERM: operation not permitted'), { code: 'EPERM' })
+      }
+      return rmtree(path)
+    })
+
+    await adapter.purgeBackupJournal(Date.now())
+
+    assert.deepEqual(await listJournalDays(), [lockedDay])
+  })
+})
+
 describe('readBackupJournalEvents()', { concurrency: 1 }, () => {
   // records the paths whose metadata is read from now on, to check a replay does not re-read the
   // same backup once per event

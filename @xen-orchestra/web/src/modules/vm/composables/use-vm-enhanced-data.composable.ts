@@ -1,12 +1,12 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
-import { objectIcon } from '@core/icons'
+import { getVmIcon, getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
+import type { IconName } from '@core/icons'
 import { formatSizeRaw, type SizeInfo } from '@core/utils/size.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoVdi } from '@vates/types'
-import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
 export interface VmFilterableData extends FrontXoVm {
@@ -20,13 +20,15 @@ export interface VmDisplayData extends VmFilterableData {
   // Formatted values for UI display
   formattedRam: SizeInfo
   formattedDiskSpace: SizeInfo
-  vmIcon: ReturnType<typeof objectIcon>
+  vmIcon: IconName
+  vmIconTooltip: string
 }
 
 export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
   const vms = toComputed(rawVms)
   const { getVbdsByIds } = useXoVbdCollection()
   const { getVdiById } = useXoVdiCollection()
+  const { getVmIconTooltip } = useXoVmOperationLabel()
 
   /**
    * Calculate raw disk space in bytes
@@ -59,13 +61,15 @@ export function useVmEnhancedData(rawVms: MaybeRefOrGetter<FrontXoVm[]>) {
   const getDisplayData = (vm: VmFilterableData): VmDisplayData => {
     const formattedRam = formatSizeRaw(vm.ramSize, 1)
     const formattedDiskSpace = formatSizeRaw(vm.diskSpaceSize, 1)
-    const vmIcon = objectIcon('vm', toLower(vm.power_state))
+    const vmIcon = getVmIcon(vm)
+    const vmIconTooltip = getVmIconTooltip(vm)
 
     return {
       ...vm,
       formattedRam,
       formattedDiskSpace,
       vmIcon,
+      vmIconTooltip,
     }
   }
 

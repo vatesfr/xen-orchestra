@@ -27,6 +27,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
 import {
   isKnownJournalEvent,
+  purgeBackupJournal,
   readBackupJournal,
   writeBackupJournalEntries,
   writeBackupJournalEntry,
@@ -65,6 +66,10 @@ export class RemoteAdapter {
     this._handler = handler
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
+
+    // Cache of the partition list per diskId, populated by listPartitions and evicted by
+    // getDisk when the disk is unmounted
+    this._partitionsCache = new Map()
   }
 
   get handler() {
@@ -553,6 +558,14 @@ export class RemoteAdapter {
    */
   async readBackupJournal(cursor, opts) {
     return readBackupJournal(this._handler, cursor, opts)
+  }
+
+  /**
+   * @param {number} before timestamp in ms, the journal days before its own are removed
+   * @returns {Promise<void>}
+   */
+  async purgeBackupJournal(before) {
+    return purgeBackupJournal(this._handler, before)
   }
 
   // Same as `readBackupJournal()`, with the current metadata of the added and changed backups
