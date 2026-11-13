@@ -27,6 +27,16 @@ function createTransport(config) {
   // eslint-disable-next-line no-unused-vars
   const { certificateAuthorities, target = 'localhost', type, ...opts } = config
 
+  // a single path instead of a list is an easy mistake in a TOML configuration
+  if (
+    certificateAuthorities !== undefined &&
+    !(Array.isArray(certificateAuthorities) && certificateAuthorities.every(path => typeof path === 'string'))
+  ) {
+    throw new TypeError(
+      `syslog transport: certificateAuthorities must be a list of paths, e.g. certificateAuthorities = ['/etc/ssl/certs/company-ca.pem'], got ${JSON.stringify(certificateAuthorities)}`
+    )
+  }
+
   const client = createClient(/^[a-z]+:\/\//.test(target) ? target : `udp://${target}`, {
     // like the previous implementation
     appName: basename(process.title),
@@ -53,7 +63,7 @@ function createTransport(config) {
     }
   }
 
-  return log =>
+  const transport = log =>
     client
       .send(log.message, {
         msgid: log.namespace,
@@ -61,6 +71,11 @@ function createTransport(config) {
         timestamp: log.time,
       })
       .then(onSent, onError)
+
+  // called by `configure()` when this transport is replaced
+  transport.close = () => client.close()
+
+  return transport
 }
 
 module.exports = exports = createTransport

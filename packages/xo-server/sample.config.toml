@@ -181,13 +181,14 @@ port = 80
 # RFC 5424 messages by default, 'rfc3164' for the previous format
 #format = 'rfc3164'
 #
-# For TCP and TLS: 'lf' (default) or 'octet-counting' (RFC 5425, e.g. syslog-ng syslog() driver)
+# For TCP and TLS: 'lf' (default, line breaks in a log are sent as \n) or
+# 'octet-counting' (RFC 5425, e.g. syslog-ng syslog() driver, keeps line breaks)
 #framing = 'octet-counting'
 #
 # TLS only: paths to PEM files of certificate authorities to trust, and whether
 # to accept any certificate (e.g. self-signed)
 #certificateAuthorities = ['/etc/ssl/certs/company-ca.pem']
-#ignoreUnauthorized = false
+#allowUnauthorized = false
 
 #=====================================================================
 
