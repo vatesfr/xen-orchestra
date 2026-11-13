@@ -191,3 +191,29 @@ describe('disconnectXenServer', function () {
     assert.deepEqual({ ...xenServers._serverIdsByPool }, { 'pool-2': 'server-2' })
   })
 })
+
+describe('_onXenAdd', function () {
+  it('ignores a dependent object which has been removed since it was registered', function () {
+    const { xenServers } = createXenServers()
+
+    // e.g. a VM which has been migrated to another pool: the metrics are
+    // still registered as depending on it, but it no longer exists
+    const metrics = { $id: 'metrics-1', $ref: 'OpaqueRef:metrics', $type: 'VM_metrics' }
+    const dependents = { __proto__: null, [metrics.$ref]: 'vm-gone' }
+
+    assert.doesNotThrow(() => {
+      xenServers._onXenAdd(
+        { [metrics.$id]: metrics },
+        { __proto__: null },
+        { __proto__: null },
+        'server-1',
+        dependents,
+        {
+          __proto__: null,
+          [metrics.$id]: metrics,
+        }
+      )
+    })
+    assert.equal(metrics.$ref in dependents, false, 'the stale dependency must be dropped')
+  })
+})

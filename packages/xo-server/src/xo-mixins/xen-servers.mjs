@@ -319,7 +319,13 @@ export default class XenServers {
       const dependent = dependents[$ref]
       if (dependent !== undefined) {
         delete dependents[$ref]
-        return handleObject(xapiObjects[dependent], dependent)
+
+        // the dependent object may have been removed since (e.g. after a VM
+        // migration between pools), in which case there is nothing to handle
+        const dependentObject = xapiObjects[dependent]
+        if (dependentObject !== undefined) {
+          return handleObject(dependentObject, dependent)
+        }
       }
 
       try {
