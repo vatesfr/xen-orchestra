@@ -17,6 +17,8 @@ export const useVdfPublishedPolicy = defineRemoteResource({
     publishedPolicy,
     isPublishedPolicyReady: context.isReady,
     hasPublishedPolicyError: context.hasError,
+    // a RemoteResourceFetchError with the status: 403 when the user may not read the pool's firewall
+    publishedPolicyError: context.lastError,
     reloadPublishedPolicy: context.forceReload,
   }),
 })

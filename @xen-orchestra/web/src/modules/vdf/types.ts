@@ -152,8 +152,10 @@ export type VdfPublishedPolicy = {
   text: string | null
   document: VdfDocument | null
   parseError?: string
-  // whether the current user may publish to the pool (XO admin, or an
-  // administrate ACL on it)
+  // what the current user may do with the pool's firewall, per action of
+  // the RBAC `firewall` resource (vdf#141); absent from older plugins
+  rights?: Partial<Record<'read' | 'publish' | 'membership' | 'quarantine:add' | 'quarantine:remove', boolean>>
+  // whether the current user may publish to the pool (rights.publish)
   canEdit?: boolean
   // owner: the XO whose global configuration the pool holds, if another one
   global?: { revision: number; inScope: boolean; owner?: string }
