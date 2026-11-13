@@ -1,9 +1,11 @@
 import {
+  Body,
   Example,
   Extension,
   Get,
   Middlewares,
   Path,
+  Post,
   Query,
   Request,
   Response,
@@ -13,6 +15,7 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { json } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoApp, XoProxy } from '@vates/types'
@@ -20,14 +23,19 @@ import type { XoApp, XoProxy } from '@vates/types'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   proxyUnreachableResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import {
   partialProxies,
   proxy,
@@ -182,5 +190,69 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
   getProxyApplianceUpdaterState(@Path() id: string): ReturnType<XoApp['getProxyApplianceUpdaterState']> {
     return callProxy(this.restApi.xoApp.getProxyApplianceUpdaterState(id as XoProxy['id']))
+  }
+
+  /**
+   * Upgrades the proxy appliance
+   *
+   * By default, the upgrade is refused with an `incorrect state` error if backup jobs are running on the proxy.
+   *
+   * Set `force` to `true` to upgrade by rebooting the proxy VM, which also ignores running jobs. Only available if the
+   * proxy VM is known. No privilege on the VM is checked: the `upgrade` action is enough to reboot it.
+   *
+   * Required privilege:
+   * - resource: proxy, action: upgrade
+   *
+   * @example id "e625ea0c-a876-405a-b838-109d762efe88"
+   * @example body { "force": false, "ignoreRunningJobs": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/upgrade')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'proxy',
+      action: 'upgrade',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    }),
+  ])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'Proxy unreachable')
+  upgradeProxy(
+    @Path() id: string,
+    @Body()
+    body?: {
+      force?: boolean
+      ignoreRunningJobs?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const proxyId = id as XoProxy['id']
+    const force = body?.force ?? false
+    const opts = {
+      force,
+      ignoreRunningJobs: body?.ignoreRunningJobs ?? force,
+    }
+
+    const action = async () => {
+      await callProxy(this.restApi.xoApp.upgradeProxyAppliance(proxyId, opts))
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'upgrade proxy appliance',
+        objectId: proxyId,
+        params: body,
+      },
+    })
   }
 }
