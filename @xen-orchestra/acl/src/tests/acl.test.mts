@@ -1,5 +1,6 @@
 import { test, suite } from 'node:test'
 import assert from 'node:assert'
+import { UNKNOWN } from 'complex-matcher'
 import type { Branded } from '@vates/types/common'
 import type { XoUser } from '@vates/types/xo'
 
@@ -58,6 +59,60 @@ suite('Privilege.match behavior', () => {
   test('Should not match due to insufficient privilege', () => {
     const cleanShutdownPrivilege = new Privilege({ action: 'shutdown:clean', resource: 'vm', effect: 'allow' })
     assert.strictEqual(cleanShutdownPrivilege.match({ resource: 'vm', action: 'shutdown', object }), false)
+  })
+
+  suite('on a partial object', () => {
+    const ownVmPrivilege = new Privilege({
+      action: 'read',
+      resource: 'vm',
+      selector: 'creation:creator:2',
+      effect: 'allow',
+    })
+    const partialObject = { id: 'alma' }
+
+    test('Should not match a missing property if known fields are not provided', () => {
+      assert.strictEqual(ownVmPrivilege.match({ resource: 'vm', action: 'read', object: partialObject }), false)
+    })
+
+    test('Should not match a missing property if it is a known field', () => {
+      assert.strictEqual(
+        ownVmPrivilege.match({
+          resource: 'vm',
+          action: 'read',
+          object: partialObject,
+          knownFields: ['id', 'creation'],
+        }),
+        false
+      )
+    })
+
+    test('Should return UNKNOWN if the selector uses an unknown field', () => {
+      assert.strictEqual(
+        ownVmPrivilege.match({ resource: 'vm', action: 'read', object: partialObject, knownFields: ['id'] }),
+        UNKNOWN
+      )
+    })
+
+    test('Should not match because of the resource even if the selector is unknown', () => {
+      assert.strictEqual(
+        ownVmPrivilege.match({ resource: 'host', action: 'read', object: partialObject, knownFields: ['id'] }),
+        false
+      )
+    })
+
+    test('Should not match because of the action even if the selector is unknown', () => {
+      assert.strictEqual(
+        ownVmPrivilege.match({ resource: 'vm', action: 'start', object: partialObject, knownFields: ['id'] }),
+        false
+      )
+    })
+
+    test('Should match without selector', () => {
+      assert.strictEqual(
+        privilege.match({ resource: 'vm', action: 'read', object: partialObject, knownFields: [] }),
+        true
+      )
+    })
   })
 })
 
@@ -356,6 +411,205 @@ suite('ACL V2 behavior', async () => {
         userPrivileges: allPrivileges,
       })
       assert.strictEqual(vms.length, 2)
+    })
+  })
+
+  suite('partial objects behavior', () => {
+    const UNKNOWN_RESULT = { code: 'ACL_UNKNOWN_RESULT' }
+
+    const vmReadAll = {
+      id: privilegeId,
+      action: 'read',
+      resource: 'vm',
+      effect: 'allow',
+      roleId,
+    } satisfies TPrivilege<'vm'>
+    const vmReadOwn = {
+      id: privilegeId,
+      action: 'read',
+      resource: 'vm',
+      selector: `creation:creator:${user.id}`,
+      effect: 'allow',
+      roleId,
+    } satisfies TPrivilege<'vm'>
+    const vmDenyReadOnPool = {
+      id: privilegeId,
+      action: 'read',
+      resource: 'vm',
+      selector: '$pool:2',
+      effect: 'deny',
+      roleId,
+    } satisfies TPrivilege<'vm'>
+
+    const partialVm = { id: 'partial-vm' }
+    const partialVmOnDeniedPool = { id: 'partial-vm-denied', $pool: '2' }
+
+    suite('hasPrivilegeOn', () => {
+      test('Should always return true for admin', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user: admin,
+            action: 'read',
+            resource: 'vm',
+            objects: partialVm,
+            knownFields: ['id'],
+            userPrivileges: [vmReadOwn],
+          }),
+          true
+        )
+      })
+
+      test('Should keep the current behavior if known fields are not provided', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({ user, action: 'read', resource: 'vm', objects: partialVm, userPrivileges: [vmReadOwn] }),
+          false
+        )
+      })
+
+      test('Should throw if the only allow privilege is unknown', () => {
+        assert.throws(
+          () =>
+            hasPrivilegeOn({
+              user,
+              action: 'read',
+              resource: 'vm',
+              objects: partialVm,
+              knownFields: ['id'],
+              userPrivileges: [vmReadOwn],
+            }),
+          UNKNOWN_RESULT
+        )
+      })
+
+      test('Should return false if the unknown field is known to be absent', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user,
+            action: 'read',
+            resource: 'vm',
+            objects: partialVm,
+            knownFields: ['id', 'creation'],
+            userPrivileges: [vmReadOwn],
+          }),
+          false
+        )
+      })
+
+      test('Should return true if an allow privilege is known even if another one is unknown', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user,
+            action: 'read',
+            resource: 'vm',
+            objects: partialVm,
+            knownFields: ['id'],
+            userPrivileges: [vmReadOwn, vmReadAll],
+          }),
+          true
+        )
+      })
+
+      test('Should throw if a deny privilege is unknown, even with a known allow privilege', () => {
+        assert.throws(
+          () =>
+            hasPrivilegeOn({
+              user,
+              action: 'read',
+              resource: 'vm',
+              objects: partialVm,
+              knownFields: ['id'],
+              userPrivileges: [vmReadAll, vmDenyReadOnPool],
+            }),
+          UNKNOWN_RESULT
+        )
+      })
+
+      test('Should return true if a deny privilege is known not to match', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user,
+            action: 'read',
+            resource: 'vm',
+            objects: partialVm,
+            knownFields: ['id', '$pool'],
+            userPrivileges: [vmReadAll, vmDenyReadOnPool],
+          }),
+          true
+        )
+      })
+
+      test('Should return false if a deny privilege is known to match, even with an unknown allow privilege', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user,
+            action: 'read',
+            resource: 'vm',
+            objects: partialVmOnDeniedPool,
+            knownFields: ['id', '$pool'],
+            userPrivileges: [vmReadOwn, vmDenyReadOnPool],
+          }),
+          false
+        )
+      })
+
+      test('Should return false if one of the objects is known to be denied, even if another one is unknown', () => {
+        assert.strictEqual(
+          hasPrivilegeOn({
+            user,
+            action: 'read',
+            resource: 'vm',
+            objects: [partialVm, partialVmOnDeniedPool],
+            knownFields: ['id'],
+            userPrivileges: [vmReadAll, vmDenyReadOnPool],
+          }),
+          false
+        )
+      })
+
+      test('Should throw if the other objects are allowed and one is unknown', () => {
+        assert.throws(
+          () =>
+            hasPrivilegeOn({
+              user,
+              action: 'read',
+              resource: 'vm',
+              objects: [{ id: 'allowed-vm', $pool: '1' }, partialVm],
+              knownFields: ['id'],
+              userPrivileges: [vmReadAll, vmDenyReadOnPool],
+            }),
+          UNKNOWN_RESULT
+        )
+      })
+    })
+
+    suite('getMissingPrivileges', () => {
+      test('Should throw if a privilege is unknown', () => {
+        assert.throws(
+          () =>
+            getMissingPrivileges(
+              [{ user, action: 'read', resource: 'vm', objects: partialVm, knownFields: ['id'] }],
+              [vmReadOwn]
+            ),
+          UNKNOWN_RESULT
+        )
+      })
+    })
+
+    suite('filterObjectsWithPrivilege', () => {
+      test('Should throw if a privilege is unknown on one of the objects', () => {
+        assert.throws(
+          () =>
+            filterObjectsWithPrivilege({
+              user,
+              action: 'read',
+              resource: 'vm',
+              objects: [partialVm],
+              knownFields: ['id'],
+              userPrivileges: [vmReadOwn],
+            }),
+          UNKNOWN_RESULT
+        )
+      })
     })
   })
 })

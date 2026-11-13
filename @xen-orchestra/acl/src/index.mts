@@ -16,6 +16,7 @@ export { SUPPORTED_ACTIONS_BY_RESOURCE }
 export type * from './generated/privilege-types.mjs'
 
 import { AnyPrivilege } from './generated/privilege-types.mjs'
+import { UNKNOWN } from 'complex-matcher'
 
 export type AnyPrivilegeOnParam = {
   [Resource in SupportedResource]: {
@@ -23,6 +24,7 @@ export type AnyPrivilegeOnParam = {
     resource: Resource
     action: SupportedActions<Resource>
     objects: object | object[]
+    knownFields?: string[]
   }
 }[SupportedResource]
 
@@ -32,12 +34,14 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   resource,
   objects,
   userPrivileges,
+  knownFields,
 }: {
   user: XoUser
   resource: T
   action: SupportedActions<T>
   objects: object | object[]
   userPrivileges: AnyPrivilege[]
+  knownFields?: string[]
 }) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
@@ -63,7 +67,7 @@ export function hasPrivilegeOn<T extends SupportedResource>({
     return true
   }
 
-  const effectsByObject = new Map<object, Privilege<T>['effect'][]>()
+  const effectsByObject = new Map<object, { known: boolean; effect: Privilege<T>['effect'] }[]>()
   if (Array.isArray(objects)) {
     objects.forEach(obj => effectsByObject.set(obj, []))
   } else {
@@ -74,20 +78,42 @@ export function hasPrivilegeOn<T extends SupportedResource>({
     const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>)
 
     for (const [object, effects] of effectsByObject.entries()) {
-      if (!privilege.match({ action, resource, object })) {
+      const result = privilege.match({ action, resource, object, knownFields })
+      if (!result) {
         continue
       }
-      effects.push(privilege.effect)
+      effects.push({ known: result !== UNKNOWN, effect: privilege.effect })
     }
   }
 
   if (
-    Array.from(effectsByObject.values()).some(
-      effects => effects.length === 0 || effects.some(effect => effect === 'deny')
-    )
+    Array.from(effectsByObject.values()).some(effects => {
+      const hasEffects = effects.length !== 0
+      const hasknownDeny = effects.some(({ known, effect }) => effect === 'deny' && known)
+      const hasOnlyUnknownDeny = effects.every(({ known, effect }) => effect === 'deny')
+
+      return !hasEffects || hasknownDeny || hasOnlyUnknownDeny
+    })
   ) {
     return false
   }
+
+  if (
+    Array.from(effectsByObject.values()).some(effects => {
+      const hasKnownAllow = effects.some(({ known, effect }) => effect === 'allow' && known)
+      const hasUnknownAllow = effects.some(({ known, effect }) => effect === 'allow' && !known)
+      const hasUnknownDeny = effects.some(({ known, effect }) => effect === 'deny' && !known)
+
+      return hasUnknownDeny || (hasUnknownAllow && !hasKnownAllow)
+    })
+  ) {
+    const error = new Error(
+      `The privilege couldn't be decided because the object is missing fields the selectors need. action: ${action}, resource: ${resource}`
+    ) as Error & { code?: string }
+    error.code = 'ACL_UNKNOWN_RESULT'
+    throw error
+  }
+
   return true
 }
 
@@ -101,6 +127,7 @@ export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileg
           action: param.action as SupportedActions<typeof param.resource>,
           objects: param.objects,
           userPrivileges,
+          knownFields: param.knownFields,
         })
     )
     .map(({ action, objects, resource }) => {
@@ -142,6 +169,7 @@ export function filterObjectsWithPrivilege<Resource extends SupportedResource, O
   action: SupportedActions<Resource>
   objects: Object[]
   userPrivileges: AnyPrivilege[]
+  knownFields?: string[]
 }) {
   return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }))
 }
