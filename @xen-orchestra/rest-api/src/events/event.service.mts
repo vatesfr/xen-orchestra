@@ -50,8 +50,6 @@ export class EventService {
     }
   }
 
-  // TODO: remove once the PR that block RBAC on admin user is merged
-  // Just here to test the feature
   async #getUserPrivileges(userId: XoUser['id']): Promise<UserPrivileges> {
     const { xoApp } = this.#restApi
     const user = await xoApp.getUser(userId)
@@ -94,8 +92,7 @@ export class EventService {
     const current = await this.#getUserPrivileges(subscriber.userId)
     const resources =
       current.user.permission !== previous.user.permission
-        ? // if the user permission change (e.g from admin to -> non admin)
-          // we need to considere all resource to be changed
+        ? // if the user permission change (e.g from admin to -> non admin) we need to considere all resource to be changed
           (Object.keys(SUPPORTED_ACTIONS_BY_RESOURCE) as SupportedResource[])
         : xorWith(current.userPrivileges, previous.userPrivileges, isEqual).map(({ resource }) => resource)
     const privilegesChange = {
