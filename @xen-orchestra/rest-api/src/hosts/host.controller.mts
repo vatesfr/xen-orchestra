@@ -469,7 +469,7 @@ export class HostController extends XapiXoController<XoHost> {
    * The current management PIF must use a static IP configuration.
    *
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
-   * @example body { "pif": "d9e42451-3794-089f-de81-4ee0e6137bee" }
+   * @example body { "pifId": "d9e42451-3794-089f-de81-4ee0e6137bee" }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
@@ -480,7 +480,7 @@ export class HostController extends XapiXoController<XoHost> {
       {
         resource: 'pif',
         action: 'update:management',
-        objectId: 'body.pif',
+        objectId: 'body.pifId',
       },
       {
         resource: 'pif',
@@ -509,12 +509,12 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(incorrectStateResp.status, incorrectStateResp.description)
   moveManagementIp(
     @Path() id: string,
-    @Body() body: { pif: string },
+    @Body() body: { pifId: string },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
-      await this.#hostService.moveManagementIp(hostId, body.pif as XoPif['id'])
+      await this.#hostService.moveManagementIp(hostId, body.pifId as XoPif['id'])
     }
 
     return this.createAction<void>(action, {
