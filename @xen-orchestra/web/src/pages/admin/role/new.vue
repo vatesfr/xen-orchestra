@@ -13,15 +13,24 @@
       </template>
     </VtsOperationErrorCard>
     <UiCard v-show="canDisplayForm">
-      <NewRoleForm @create="role => createRole(role)" @cancel="router.push(ROLES_ROUTE)" />
+      <NewRoleFromTemplateForm
+        v-if="roleTemplateId !== undefined"
+        :key="roleTemplateId"
+        :role-template-id
+        @create="role => createRole(role)"
+        @cancel="router.push(ROLES_ROUTE)"
+      />
+      <NewRoleForm v-else @create="role => createRole(role)" @cancel="router.push(ROLES_ROUTE)" />
     </UiCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import NewRoleForm from '@/modules/role/components/form/new/NewRoleForm.vue'
+import NewRoleFromTemplateForm from '@/modules/role/components/form/new/NewRoleFromTemplateForm.vue'
 import { useXoRoleCreateJob } from '@/modules/role/jobs/xo-role-create.job.ts'
 import { useXoRoleCollection } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
+import type { FrontXoRoleTemplate } from '@/modules/role/remote-resources/use-xo-role-template-collection.ts'
 import type { NewRolePayload } from '@/modules/role/types.ts'
 import type { ApiError } from '@/shared/error/api.error.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
@@ -29,6 +38,7 @@ import VtsOperationPendingCard from '@core/components/operation-pending-card/Vts
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -38,6 +48,12 @@ const ROLES_ROUTE = { name: '/admin/user-management/roles' } as const
 const { t } = useI18n()
 
 const router = useRouter()
+
+const roleTemplateQuery = useRouteQuery('template')
+
+const roleTemplateId = computed(() =>
+  roleTemplateQuery.value === '' ? undefined : (roleTemplateQuery.value as FrontXoRoleTemplate['id'])
+)
 
 const newRole = ref<NewRolePayload>()
 

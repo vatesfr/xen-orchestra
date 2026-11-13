@@ -50,6 +50,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { objectOmit } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
+const { initialRole } = defineProps<{
+  initialRole?: NewRolePayload
+}>()
+
 const emit = defineEmits<{
   create: [role: NewRolePayload]
   cancel: []
@@ -57,9 +61,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { nameInputBindings, descriptionInputBindings, validateAndBuildPayload } = useNewRoleForm()
+const { nameInputBindings, descriptionInputBindings, validateAndBuildPayload } = useNewRoleForm(initialRole)
 
-const { privileges, addPrivileges, editPrivilege, removePrivilege } = useNewRolePrivileges()
+const { privileges, addPrivileges, editPrivilege, removePrivilege } = useNewRolePrivileges(initialRole?.privileges)
 
 async function onSubmit() {
   const role = await validateAndBuildPayload()

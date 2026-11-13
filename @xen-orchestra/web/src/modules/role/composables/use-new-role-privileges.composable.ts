@@ -6,8 +6,8 @@ function stagePrivileges(privileges: NewPrivilegePayload[]): StagedPrivilege[] {
   return privileges.map(privilege => ({ ...privilege, key: crypto.randomUUID() }))
 }
 
-export function useNewRolePrivileges() {
-  const privileges = ref<StagedPrivilege[]>([])
+export function useNewRolePrivileges(initialPrivileges: NewPrivilegePayload[] = []) {
+  const privileges = ref<StagedPrivilege[]>(stagePrivileges(initialPrivileges))
 
   const { open } = useOverlay({
     component: () => import('@/modules/role/components/drawer/NewPrivilegeDrawer.vue'),
