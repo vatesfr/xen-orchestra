@@ -97,7 +97,7 @@ describe('getBrowserMediaRefusal', () => {
   })
 
   it('does not guess the others', () => {
-    expect(refusal({ property: 'status', expected: 'connected' })).toBe('unknown')
+    expect(refusal({ property: 'closed', expected: false })).toBe('unknown')
     expect(getBrowserMediaRefusal(new Error('network'))).toBe('unknown')
   })
 })
