@@ -1,6 +1,7 @@
 import type { VdfDocument } from '@/modules/vdf/types.ts'
 import {
   classifyVmsProtection,
+  isOutsideFirewall,
   diffDocuments,
   effectiveTiers,
   filterRuleBase,
@@ -437,5 +438,19 @@ describe('classifyVmsProtection', () => {
     const classes = classifyVmsProtection(vms, { groups: {}, policies: [] }, interfacesOf, hasEnforcement, () => true)
 
     expect(Object.values(classes).flat()).toEqual([])
+  })
+})
+
+describe('isOutsideFirewall', () => {
+  it('a VM without interface, or with all of them on vdf:unprotected networks, is out of the firewall', () => {
+    expect(isOutsideFirewall([])).toBe(true)
+    expect(
+      isOutsideFirewall([{ netTags: ['vdf:unprotected'] }, { netTags: ['vdf:net=storage', 'vdf:unprotected'] }])
+    ).toBe(true)
+  })
+
+  it('one interface the firewall covers is enough to be in it', () => {
+    expect(isOutsideFirewall([{ netTags: ['vdf:unprotected'] }, { netTags: [] }])).toBe(false)
+    expect(isOutsideFirewall([{ netTags: ['vdf:net=dmz'] }])).toBe(false)
   })
 })

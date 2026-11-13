@@ -462,7 +462,12 @@ import { displayName, isGlobalName, vdfPageRoute } from '@/modules/vdf/utils/vdf
 import { formatAddressList } from '@/modules/vdf/utils/vdf-locking.util.ts'
 import { isMonitored } from '@/modules/vdf/utils/vdf-monitor.util.ts'
 import { isOutsideNotable } from '@/modules/vdf/utils/vdf-outside.util.ts'
-import { classifyVmsProtection, policiesByTier, reportedTierValue } from '@/modules/vdf/utils/vdf-policy.util.ts'
+import {
+  classifyVmsProtection,
+  isOutsideFirewall,
+  policiesByTier,
+  reportedTierValue,
+} from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { allRules } from '@/modules/vdf/utils/vdf-rules.util.ts'
 import {
   agentGaps,
@@ -562,9 +567,16 @@ const quarantineLifted = computed(() => publishedPolicy.value?.quarantineLifted 
 // on a host without a working agent gets nothing there (#37)
 const isOnEnforcingHost = (vm: FrontXoVm) => hostEnforces(hostOf(vm)?.state)
 
+const { interfacesOf } = useVdfInterfaces()
+
+// out of the firewall by choice (no interface, or only on vdf:unprotected
+// networks): nothing to enforce, wherever it runs
 const exposedVms = computed(() =>
   runningVms.value.filter(
-    vm => (protectedVms.value.includes(vm) || quarantinedVms.value.includes(vm)) && !isOnEnforcingHost(vm)
+    vm =>
+      (protectedVms.value.includes(vm) || quarantinedVms.value.includes(vm)) &&
+      !isOnEnforcingHost(vm) &&
+      !isOutsideFirewall(interfacesOf(vm))
   )
 )
 
@@ -576,7 +588,6 @@ const haltedProtectedVms = computed(() => protectedVms.value.filter(vm => vm.pow
 // each running VM in one class (the donut and the list below agree); those
 // out of the firewall by choice (no interface, or only on vdf:unprotected
 // networks) are in none, so they are not in the donut's total either
-const { interfacesOf } = useVdfInterfaces()
 
 const protectionClasses = computed(() =>
   classifyVmsProtection(

@@ -270,6 +270,12 @@ export type VdfProtectionClasses<T> = {
   outside: T[]
 }
 
+// A VM out of the firewall by choice: no interface, or all of them on
+// vdf:unprotected networks. Nothing protects it, the quarantine included,
+// wherever it runs (the plugin's vmProtections says the same).
+export const isOutsideFirewall = (interfaces: { netTags: string[] }[]) =>
+  interfaces.every(({ netTags }) => netTags.includes(VDF_UNPROTECTED_TAG))
+
 // `hasEnforcement(vm)`: an enforced policy or the quarantine applies to the
 // VM; `isOnEnforcingHost(vm)`: its host applies them. The VMs not protected
 // are those of `vmsWithUncoveredInterface`, whatever else is true of them.
@@ -289,7 +295,7 @@ export function classifyVmsProtection<T extends { tags: string[] }>(
   const uncovered = new Set(vmsWithUncoveredInterface(vms, document, interfacesOf))
 
   for (const vm of vms) {
-    if (interfacesOf(vm).every(({ netTags }) => netTags.includes(VDF_UNPROTECTED_TAG))) {
+    if (isOutsideFirewall(interfacesOf(vm))) {
       classes.outside.push(vm)
     } else if (uncovered.has(vm)) {
       classes.notProtected.push(vm)
