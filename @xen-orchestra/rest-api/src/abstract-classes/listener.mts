@@ -1,12 +1,13 @@
 import { createLogger } from '@xen-orchestra/log'
 import type { EventEmitter } from 'node:events'
 import { AnyPrivilege, hasPrivilegeOn, SupportedResource } from '@xen-orchestra/acl'
-import { XAPI_TYPES, type XapiXoRecord, type XoUser } from '@vates/types'
+import { XAPI_TYPES, XoRecord, type XapiXoRecord, type XoUser } from '@vates/types'
 import type { CollectionEventType, EventType, NonXapiListenerType, XoListenerType } from '../events/event.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { Subscriber } from '../events/event.class.mjs'
 import { XAPI_TYPE_BY_ACL_RESOURCE } from '../middlewares/acl.middleware.mjs'
+import type { PrivilegesChange } from './listener.type.mjs'
 
 const log = createLogger('xo:rest-api:listener')
 
@@ -19,6 +20,8 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
   #eventCallbacks: Map<string, (...args: unknown[]) => void> = new Map()
   #watchedEvent: EventType[]
   #type: Type
+  // the updates and removals of the collection, to detect the ones made while it is resynced
+  #changes = 0
 
   constructor(eventEmitter: EventEmitter, watchedEvent: EventType[], type?: Type) {
     this.#eventEmitter = eventEmitter
@@ -81,6 +84,9 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     const broadcastAllSubscriber = async (...args: unknown[]) => {
+      if (event !== 'add') {
+        this.#changes++
+      }
       try {
         await Promise.all(
           [...this.#subscribers.values()].map(async conf => {
@@ -117,16 +123,59 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     this.#eventEmitter.on(event, broadcastAllSubscriber)
   }
 
+  async resync(
+    subscriber: Subscriber,
+    privilegesChange: PrivilegesChange,
+    getObjects: () => Promise<Record<XoRecord['id'], XoRecord | undefined>>
+  ) {
+    const isXapiListener = XAPI_TYPES.includes(this.type === 'alarm' ? 'message' : this.type!)
+    const changes = this.#changes
+    const objects = await getObjects()
+    for (const [index, id] of Object.keys(objects).entries()) {
+      // objects can be big. So in order to not block the event loop "just" for the SSE, we yield every 200 objects
+      // to let the event loop process other events
+      if (index % 200 === 199) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      // the connection may be closed (e.g. too much data queued), or the collection unsubscribed, meanwhile
+      const conf = this.#subscribers.get(subscriber.id)
+      if (!subscriber.isAlive || conf === undefined) {
+        return
+      }
+      // a XO object changed meanwhile the client may be out of sync and must reload
+      // the desync can happend only for XO objects because for XAPI objects, `getObjects` return a reference
+      // to the live index
+      if (!isXapiListener && this.#changes !== changes) {
+        log.warn(`${this.type} collection changed while resyncing, force clear the subscriber`)
+        subscriber.clear()
+        return
+      }
+
+      // removed meanwhile (work only for XAPI objects)
+      const object = objects[id]
+      if (object === undefined) {
+        continue
+      }
+      const data = await this.handleData({ ...conf, event: 'update' }, object, object, privilegesChange)
+      if (data?.event === 'add' || data?.event === 'remove') {
+        const { event, ...dataToBroadcast } = data
+        subscriber.broadcast(event, dataToBroadcast)
+      }
+    }
+  }
+
   async getAclEvent({
     event,
     object,
     previousObject,
     userId,
+    privilegesChange,
   }: {
     event: CollectionEventType
     object: object | undefined
     previousObject: object | undefined
     userId: XoUser['id']
+    privilegesChange?: PrivilegesChange
   }): Promise<CollectionEventType | undefined> {
     if (this.type === undefined || (object === undefined && previousObject === undefined)) {
       return
@@ -137,8 +186,10 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     }
 
     const restApi = iocContainer.get(RestApi)
-    const user = await restApi.xoApp.getUser(userId)
-    if (user.permission === 'admin') {
+    const user = privilegesChange?.user ?? (await restApi.xoApp.getUser(userId))
+    // `previousObject` is seen as the user was before
+    const previousUser = privilegesChange?.previousUser ?? user
+    if (user.permission === 'admin' && previousUser.permission === 'admin') {
       return event
     }
 
@@ -147,7 +198,9 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return
     }
 
-    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const userPrivileges =
+      privilegesChange?.userPrivileges ?? ((await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[])
+    const previousUserPrivileges = privilegesChange?.previousUserPrivileges ?? userPrivileges
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
@@ -185,8 +238,8 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
         const canSeePreviousObject =
           previousObject !== undefined &&
           hasPrivilegeOn({
-            user,
-            userPrivileges,
+            user: previousUser,
+            userPrivileges: previousUserPrivileges,
             action: 'read',
             objects: previousObject,
             resource,

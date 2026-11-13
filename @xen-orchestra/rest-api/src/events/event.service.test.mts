@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 import type { Response } from 'express'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 // this module depends on the IoC container, which cannot be initialized on its own
 // because of circular imports between the services: load the generated routes first,
@@ -33,6 +34,7 @@ const archive = {
  * the service and in the container, which is where `Listener#getAclEvent` resolves the user from.
  */
 function createRestApi(vmBackupArchives: EventEmitter) {
+  const xoEventEmitters: Record<string, EventEmitter> = { 'backup-archive': vmBackupArchives }
   const restApi = {
     getCurrentUser: () => user,
     ioc: {
@@ -45,7 +47,7 @@ function createRestApi(vmBackupArchives: EventEmitter) {
       config: { get: () => 1 },
       getUser: async () => user,
       getAclV2UserPrivileges: async () => [],
-      getXoEventEmitterByType: (type: string) => (type === 'backup-archive' ? vmBackupArchives : undefined),
+      getXoEventEmitterByType: (type: string) => (xoEventEmitters[type] ??= new EventEmitter()),
     },
   } as unknown as RestApi
 
@@ -93,7 +95,7 @@ describe('EventService', () => {
     const eventService = new EventService(createRestApi(vmBackupArchives))
     const { frames, res } = createResponse()
 
-    const subscriberId = eventService.createSseSubscriber(res)
+    const subscriberId = await eventService.createSseSubscriber(res)
     eventService.addListenerFor(subscriberId, { type: 'backup-archive' })
 
     vmBackupArchives.emit('add', archive, undefined)
@@ -110,5 +112,190 @@ describe('EventService', () => {
     // stops listening to the collection once nobody subscribes to it anymore
     eventService.removeListenerFor(subscriberId, 'backup-archive')
     assert.equal(vmBackupArchives.listenerCount('add'), 0)
+  })
+
+  describe('sends the objects whose visibility changed when the RBAC changes', () => {
+    const privilege = (resource: string, selector: string, id = 'privilege-1') => ({
+      id,
+      roleId: 'role-1',
+      resource,
+      action: 'read',
+      effect: 'allow',
+      selector,
+    })
+
+    /**
+     * A connection of a user subscribed to a collection of two objects, `o1` and `o2`. Changing `state` then calling
+     * `change()` emits an RBAC trigger (its payload is ignored) and returns the frames it produced. `whileOpening`
+     * changes `state` and emits a trigger right after the privileges of the opening stream are read. `emit(type)` emits
+     * an update in a collection.
+     */
+    async function connect(
+      collection: 'VM' | 'group' | 'user',
+      privileges: object[],
+      permission = 'none',
+      whileOpening?: (state: { privileges: object[] }) => void
+    ) {
+      const objects: Record<string, object> = { o1: { id: 'o1' }, o2: { id: 'o2' } }
+      const state = { fail: undefined as (() => void) | undefined, objects, permission, privileges }
+      const restApi = createRestApi(new EventEmitter())
+      const emitter = (type: string) => restApi.xoApp.getXoEventEmitterByType(type)
+      const emit = (type: string) => emitter(type).emit('update', {}, {})
+      Object.assign(restApi, {
+        getCurrentUser: () => ({ id: 'user-2', permission: state.permission }),
+        getObjectsByType: () => state.objects,
+      })
+      Object.assign(restApi.xoApp, {
+        getAclV2UserPrivileges: async () => {
+          state.fail?.()
+          const { privileges } = state
+          if (whileOpening !== undefined) {
+            whileOpening(state)
+            whileOpening = undefined
+            emit('acl-privilege')
+          }
+          return privileges
+        },
+        getXoObjectsByType: async () => Object.values(state.objects),
+        getUser: async () => ({ id: 'user-2', permission: state.permission }),
+        objects: { allIndexes: { type: { getEventEmitterByType: (type: string) => emitter(type) } } },
+      })
+
+      const eventService = new EventService(restApi)
+      const { frames, res } = createResponse()
+      eventService.addListenerFor(await eventService.createSseSubscriber(res), { type: collection, fields: ['id'] })
+
+      return {
+        emit,
+        res,
+        state,
+        async change(type = 'acl-privilege', times = 1) {
+          frames.length = 0
+          for (let i = 0; i < times; i++) {
+            emit(type)
+          }
+          await flush()
+          return frames.map(({ event, data }) => `${event} ${data.id}`)
+        },
+      }
+    }
+
+    // a XAPI collection, and a XO one read like its GET endpoint does
+    for (const [resource, collection] of [
+      ['vm', 'VM'],
+      ['user', 'user'],
+    ] as const) {
+      it(`for the ${collection} collection when a privilege changes`, async t => {
+        t.mock.timers.enable({ apis: ['setInterval'] })
+
+        const connection = await connect(collection, [privilege(resource, 'id:o1')])
+        connection.state.privileges = [privilege(resource, 'id:o2')]
+
+        assert.deepEqual(await connection.change(), ['remove o1', 'add o2'])
+        assert.equal(connection.res.destroyed, false)
+      })
+    }
+
+    it('once for a burst of changes', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      // two privileges granting `o1` are added at once
+      const connection = await connect('VM', [])
+      connection.state.privileges = [privilege('vm', 'id:o1'), privilege('vm', 'id:o1', 'privilege-2')]
+
+      assert.deepEqual(await connection.change('acl-privilege', 2), ['add o1'])
+    })
+
+    // enough objects for the resync to yield before handling the next one
+    const beforeYield = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`x${i}`, { id: `x${i}` }]))
+
+    it('except the XAPI objects removed while the resync yields', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      connection.state.objects = { ...beforeYield, o1: { id: 'o1' } }
+      connection.state.privileges = [privilege('vm', 'id:o1')]
+      // at the yield of the resync, `o1` is removed: the index is live, the connection is kept
+      setImmediate(() => {
+        delete connection.state.objects.o1
+        connection.emit('VM')
+      })
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, false)
+    })
+
+    it('including a change made while the stream was opening', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      // `o1` is granted after the privileges of the connection were read
+      const connection = await connect('VM', [], 'none', state => (state.privileges = [privilege('vm', 'id:o1')]))
+      await flush()
+
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change(), ['remove o1'])
+    })
+
+    it('when a role is attached to or detached from the user, directly or through a group', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      // the user joins a group which has the role
+      connection.state.privileges = [privilege('vm', 'id:o1')]
+      assert.deepEqual(await connection.change('user'), ['add o1'])
+
+      // the role is detached
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change('acl-role'), ['remove o1'])
+    })
+
+    it('when the user is no longer an admin', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [privilege('vm', 'id:o1')], 'admin')
+      connection.state.permission = 'none'
+
+      assert.deepEqual(await connection.change('user'), ['remove o2'])
+    })
+
+    it('or closes the connection when the privileges cannot be read', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      connection.state.fail = () => {
+        throw new Error('cannot check the licence')
+      }
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, true)
+    })
+
+    it('or closes the connection when a XO object changes during the resync', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('group', [])
+      connection.state.objects = { ...beforeYield, o1: { id: 'o1' } }
+      connection.state.privileges = [privilege('group', 'id:o1')]
+      // at the yield of the resync, a group is updated: the objects read before may be outdated
+      setImmediate(() => connection.emit('group'))
+
+      await connection.change()
+      assert.equal(connection.res.destroyed, true)
+    })
+
+    it('but keeps the connection when a role is deleted while the privileges are read', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [privilege('vm', 'id:o1')])
+      connection.state.fail = () => noSuchObject('role-1', 'role')
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, false)
+
+      // the round the removal of the role triggers diffs from the privileges before it
+      connection.state.fail = undefined
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change('acl-role'), ['remove o1'])
+    })
   })
 })
