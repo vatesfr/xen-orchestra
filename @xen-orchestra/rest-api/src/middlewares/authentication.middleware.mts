@@ -9,6 +9,7 @@ import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { ACL_MIDDLEWARE_NAME } from './acl.middleware.mjs'
+import { parseBasicCredentials } from './basic-auth.helper.mjs'
 import type { SecurityName } from '@vates/types'
 const log = createLogger('xo:rest-api:authentication')
 
@@ -73,7 +74,7 @@ export function setupApiContext(xoApp: XoApp) {
         return next(new ApiError('Malformed Authorization header', 400))
       }
 
-      const [username, password] = Buffer.from(encoded, 'base64').toString().split(':')
+      const { username, password } = parseBasicCredentials(encoded)
       Object.assign(credentials, { username, password, otp: query.otp })
       res.locals.authType = 'basic'
     }
