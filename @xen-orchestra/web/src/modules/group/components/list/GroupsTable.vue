@@ -2,6 +2,9 @@
   <div class="groups-table">
     <UiTitle>
       {{ t('groups') }}
+      <template #action>
+        <slot name="title-actions" />
+      </template>
     </UiTitle>
     <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
@@ -51,6 +54,10 @@ const {
   groups: FrontXoGroup[]
   busy?: boolean
   error?: boolean
+}>()
+
+defineSlots<{
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()
