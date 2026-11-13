@@ -340,8 +340,14 @@ export class VmController extends XapiXoController<XoVm> {
    * - resource: vm, action: start
    * - resource: host, action: allow-vm (if an hostId is specified)
    *
+   * A placement guard may refuse the host (the firewall plugin: a VM it protects onto a host whose firewall agent
+   * can't enforce; without `hostId`, any host of the pool the VM could start on): 403, the reason in `data`. Set
+   * `bypassFirewallCheck` to `true` to start it anyway; only the users the guard allows may (XO administrators and
+   * users with the firewall publish privilege on the pool), and it is logged.
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
+   * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8", "bypassFirewallCheck": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
@@ -360,10 +366,21 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async startVm(
     @Path() id: string,
-    @Body() body?: { hostId?: string },
+    @Body() body?: { hostId?: string; bypassFirewallCheck?: boolean },
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
+
+    // refused before anything starts, rather than as a failed task
+    await this.restApi.xoApp.checkPlacement({
+      operation: 'start',
+      user: this.restApi.getCurrentUser(),
+      vm: this.getObject(vmId),
+      host:
+        body?.hostId === undefined ? undefined : this.restApi.getObject<XoHost>(body.hostId as XoHost['id'], 'host'),
+      bypass: body?.bypassFirewallCheck,
+    })
+
     const action = async () => {
       await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
     }
@@ -578,19 +595,37 @@ export class VmController extends XapiXoController<XoVm> {
    * Required privilege:
    * - resource: vm, action: resume
    *
+   * A placement guard may refuse a host of the pool the VM could resume on (the firewall plugin: a VM it protects
+   * onto a host whose firewall agent can't enforce): 403, the reason in `data`. Set `bypassFirewallCheck` to `true`
+   * to resume it anyway; only the users the guard allows may, and it is logged.
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "bypassFirewallCheck": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/resume')
-  @Middlewares(acl({ resource: 'vm', action: 'resume', objectId: 'params.id' }))
+  @Middlewares([json(), acl({ resource: 'vm', action: 'resume', objectId: 'params.id' })])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async resumeVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  async resumeVm(
+    @Path() id: string,
+    @Body() body?: { bypassFirewallCheck?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
+
+    // refused before anything resumes, rather than as a failed task
+    await this.restApi.xoApp.checkPlacement({
+      operation: 'resume',
+      user: this.restApi.getCurrentUser(),
+      vm: this.getObject(vmId),
+      bypass: body?.bypassFirewallCheck,
+    })
+
     const action = async () => {
       await this.getXapi(vmId).resumeVm(vmId)
     }
@@ -1084,6 +1119,10 @@ export class VmController extends XapiXoController<XoVm> {
    *
    * **Warning**: when `bypassCpuCheck` is used, the VM may crash after the migration
    *
+   * A placement guard may refuse the destination host (the firewall plugin: a VM it protects onto a host whose
+   * firewall agent can't enforce): 403, the reason in `data`. Set `bypassFirewallCheck` to `true` to migrate it
+   * anyway; only the users the guard allows may, and it is logged.
+   *
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
    * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8", "bypassCpuCheck": true }
@@ -1110,11 +1149,12 @@ export class VmController extends XapiXoController<XoVm> {
     @Path() id: string,
     @Body()
     body:
-      | { hostId: string; migrationNetworkId?: string; bypassCpuCheck?: boolean }
+      | { hostId: string; migrationNetworkId?: string; bypassCpuCheck?: boolean; bypassFirewallCheck?: boolean }
       | {
           hostId: string
           migrationNetworkId?: string
           bypassCpuCheck?: boolean
+          bypassFirewallCheck?: boolean
           srId?: string
           srIdByVdiId?: { [key: string]: string }
           networkIdByVifId?: { [key: string]: string }
@@ -1126,11 +1166,17 @@ export class VmController extends XapiXoController<XoVm> {
     const bypassCpuCheck = body.bypassCpuCheck ?? false
 
     // refused before anything moves, rather than as a failed task
-    await this.restApi.xoApp.checkMigration(
-      this.restApi.getCurrentUser(),
-      this.getObject(vmId),
-      this.restApi.getObject<XoHost>(hostId, 'host').$pool
-    )
+    const host = this.restApi.getObject<XoHost>(hostId, 'host')
+    await this.restApi.xoApp.checkMigration(this.restApi.getCurrentUser(), this.getObject(vmId), host.$pool)
+    await this.restApi.xoApp.checkPlacement({
+      operation: 'migrate',
+      user: this.restApi.getCurrentUser(),
+      vm: this.getObject(vmId),
+      host,
+      bypass: body.bypassFirewallCheck,
+      vifNetworks:
+        'networkIdByVifId' in body ? (body.networkIdByVifId as Record<XoVif['id'], XoNetwork['id']>) : undefined,
+    })
 
     const action = async () => {
       const { migrationNetworkId } = body

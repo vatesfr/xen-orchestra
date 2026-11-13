@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
+import { forbiddenOperation, placementRefused } from 'xo-common/api-errors.js'
 import type { Request, Response } from 'express'
 import type { XoUser, XoVm } from '@vates/types'
 
@@ -185,6 +185,7 @@ function createRestApiForMigrate({ refuse }: { refuse: boolean }) {
           forbiddenOperation('migrate VM to another pool', 'the VM carries firewall tags')
         }
       },
+      checkPlacement: async () => {},
       getXapi: () => ({}),
     },
   } as unknown as RestApi
@@ -214,5 +215,88 @@ describe('VM migration', () => {
 
     assert.deepEqual(checks, [[user, vm, 'pool-2']])
     assert.equal(migrations.length, 1)
+  })
+})
+
+// a restApi whose placement guards refuse (`refuse`) or not, recording what
+// they're asked and what XAPI is asked to do
+function createRestApiForPlacement({ refuse }: { refuse: boolean }) {
+  const checks: Record<string, unknown>[] = []
+  const calls: unknown[] = []
+  const host = { id: 'host-2', $pool: 'pool-1' }
+  const record =
+    (name: string) =>
+    async (...args: unknown[]) =>
+      calls.push([name, ...args])
+  const xapi = { startVm: record('startVm'), resumeVm: record('resumeVm'), migrateVm: record('migrateVm') }
+  const restApi = {
+    getCurrentUser: () => user,
+    getObject: (id: string, type: string) => (type === 'host' ? host : vm),
+    getXapi: () => xapi,
+    getXapiObject: () => ({ $xapi: xapi }),
+    ioc: { get: () => ({}) },
+    tasks: { create: () => ({ id: 'task-1', run: (fn: () => unknown) => fn() }) },
+    xoApp: {
+      checkMigration: async () => {},
+      async checkPlacement(params: Record<string, unknown>) {
+        checks.push(params)
+        if (refuse) {
+          placementRefused({
+            operation: params.operation,
+            vm: { id: 'vm-1' },
+            host: { id: 'host-2' },
+            guard: 'firewall',
+            reason: 'no firewall agent on host "host-2"',
+            bypass: { parameter: 'bypassFirewallCheck', allowed: false, who: 'XO administrators' },
+          })
+        }
+      },
+      getXapi: () => xapi,
+    },
+  } as unknown as RestApi
+  return { calls, checks, host, restApi }
+}
+
+describe('placement guards', () => {
+  it('answers 403 to a refused start, resume or migration, with the reason, before anything is asked of XAPI', async () => {
+    const { calls, checks, restApi } = createRestApiForPlacement({ refuse: true })
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    for (const action of [
+      () => controller.startVm('vm-1', { hostId: 'host-2' }),
+      () => controller.resumeVm('vm-1'),
+      () => controller.migrateVm('vm-1', { hostId: 'host-2', networkIdByVifId: { 'vif-1': 'net-1' } }),
+    ]) {
+      const error = await action().then(
+        () => assert.fail('the VM was placed'),
+        error => error
+      )
+      assert.equal(statusOf(error), 403)
+      assert.equal(error.data.reason, 'no firewall agent on host "host-2"')
+    }
+
+    assert.deepEqual(
+      checks.map(({ operation, host, vifNetworks }) => [
+        operation,
+        (host as { id: string } | undefined)?.id,
+        vifNetworks,
+      ]),
+      [
+        ['start', 'host-2', undefined],
+        ['resume', undefined, undefined],
+        ['migrate', 'host-2', { 'vif-1': 'net-1' }],
+      ]
+    )
+    assert.deepEqual(calls, [])
+  })
+
+  it('passes the user, the VM and the override, then starts the VM where XAPI picks', async () => {
+    const { calls, checks, restApi } = createRestApiForPlacement({ refuse: false })
+    const controller = new VmController(restApi, {} as never, {} as never)
+
+    await controller.startVm('vm-1', { bypassFirewallCheck: true }, true)
+
+    assert.deepEqual(checks, [{ operation: 'start', user, vm, host: undefined, bypass: true }])
+    assert.deepEqual(calls, [['startVm', 'vm-1', { startOnly: true, hostId: undefined }]])
   })
 })

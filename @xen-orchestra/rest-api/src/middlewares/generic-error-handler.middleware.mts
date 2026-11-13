@@ -8,6 +8,7 @@ import {
   noSuchObject,
   notImplemented,
   objectAlreadyExists,
+  placementRefused,
   unauthorized,
   serviceUnavailable,
 } from 'xo-common/api-errors.js'
@@ -38,7 +39,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     statusCode = error.status
   } else if (noSuchObject.is(error)) {
     statusCode = 404
-  } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {
+  } else if (unauthorized.is(error) || forbiddenOperation.is(error) || placementRefused.is(error)) {
     statusCode = 403
   } else if (featureUnauthorized.is(error)) {
     statusCode = 403
