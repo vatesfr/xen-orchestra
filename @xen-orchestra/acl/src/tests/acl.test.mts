@@ -376,3 +376,84 @@ suite('getActionStrings', () => {
     assert.ok(actions.includes('shutdown:hard'))
   })
 })
+
+suite('firewall resource', () => {
+  const user = {
+    id: '2' as XoUser['id'],
+    groups: [],
+    permission: 'none',
+    email: 'user@user.net',
+    preferences: {},
+  } satisfies XoUser
+  const id = 'fake-priv-test-id' as Branded<'acl-v2-privilege'>
+  const roleId = 'fake-role-test-id' as Branded<'acl-v2-role'>
+
+  // its object is the pool
+  const prodPool = { id: 'pool-prod', name_label: 'prod', tags: ['dmz'] }
+  const labPool = { id: 'pool-lab', name_label: 'lab', tags: [] }
+
+  const privilege = (action: TPrivilege<'firewall'>['action'], selector?: string) =>
+    ({ id, roleId, resource: 'firewall', action, effect: 'allow', selector }) satisfies TPrivilege<'firewall'>
+  const has = (
+    action: TPrivilege<'firewall'>['action'],
+    userPrivileges: TPrivilege<'firewall'>[],
+    pool: object = prodPool
+  ) => hasPrivilegeOn({ user, resource: 'firewall', action, objects: pool, userPrivileges })
+
+  test('supports its actions', () => {
+    for (const action of [
+      'read',
+      'publish',
+      'membership',
+      'quarantine',
+      'quarantine:add',
+      'quarantine:remove',
+    ] as const) {
+      assert.doesNotThrow(() => Privilege.checkActionIsValid('firewall', action))
+    }
+    // @ts-expect-error test invalid action
+    assert.throws(() => Privilege.checkActionIsValid('firewall', 'quarantine:lift'))
+    assert.deepStrictEqual([...new Set(getActionStrings('firewall'))].sort(), [
+      '*',
+      'membership',
+      'publish',
+      'quarantine',
+      'quarantine:add',
+      'quarantine:remove',
+      'read',
+    ])
+  })
+
+  test('quarantine covers adding and removing it, each of them only itself', () => {
+    assert.strictEqual(has('quarantine:add', [privilege('quarantine')]), true)
+    assert.strictEqual(has('quarantine:remove', [privilege('quarantine')]), true)
+    assert.strictEqual(has('quarantine:add', [privilege('quarantine:add')]), true)
+    assert.strictEqual(has('quarantine:remove', [privilege('quarantine:add')]), false)
+    assert.strictEqual(has('membership', [privilege('quarantine')]), false)
+    assert.strictEqual(has('publish', [privilege('read')]), false)
+  })
+
+  test('* covers every action', () => {
+    for (const action of ['read', 'publish', 'membership', 'quarantine:add', 'quarantine:remove'] as const) {
+      assert.strictEqual(has(action, [privilege('*')]), true)
+    }
+  })
+
+  test('a selector selects pools', () => {
+    for (const selector of [`id:${prodPool.id}`, 'name_label:prod', 'tags:dmz']) {
+      const privileges = [privilege('membership', selector)]
+      assert.strictEqual(has('membership', privileges, prodPool), true, selector)
+      assert.strictEqual(has('membership', privileges, labPool), false, selector)
+    }
+  })
+
+  test('a deny on a pool wins over an allow on every pool', () => {
+    const privileges = [
+      privilege('*'),
+      { ...privilege('quarantine:remove', 'name_label:prod'), effect: 'deny' },
+    ] satisfies TPrivilege<'firewall'>[]
+    assert.strictEqual(has('quarantine:remove', privileges, prodPool), false)
+    assert.strictEqual(has('quarantine:add', privileges, prodPool), true)
+    assert.strictEqual(has('quarantine:remove', privileges, labPool), true)
+  })
+})

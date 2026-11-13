@@ -5,6 +5,7 @@ import { default as backupArchive } from './backup-archive.mjs'
 import { default as backupJob } from './backup-job.mjs'
 import { default as backupLog } from './backup-log.mjs'
 import { default as backupRepository } from './backup-repository.mjs'
+import { default as firewall } from './firewall.mjs'
 import { default as gpuGroup } from './gpuGroup.mjs'
 import { default as group } from './group.mjs'
 import { default as host } from './host.mjs'
@@ -48,6 +49,7 @@ export const SUPPORTED_ACTIONS_BY_RESOURCE = {
   'backup-job': backupJob,
   'backup-log': backupLog,
   'backup-repository': backupRepository,
+  firewall,
   group,
   gpuGroup,
   host,
