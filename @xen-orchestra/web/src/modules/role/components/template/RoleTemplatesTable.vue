@@ -55,7 +55,7 @@ const { HeadCells, BodyCells } = useRoleTemplateColumns({
     name: r => r(roleTemplate.name, { leftIcon: { icon: 'fa:key' } }),
     description: r => r(roleTemplate.description ?? ''),
     privileges: r => r(roleTemplate.privilegeIds.length),
-    select: r => r(t('action:select-template'), () => router.push(getNewRoleFromTemplateRoute(roleTemplate.id))),
+    select: r => r(t('action:use-template'), () => router.push(getNewRoleFromTemplateRoute(roleTemplate.id))),
     selectItem: r => r(() => (selectedRoleTemplateId.value = roleTemplate.id)),
   }),
 })

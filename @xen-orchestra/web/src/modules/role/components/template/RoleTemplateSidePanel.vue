@@ -2,7 +2,7 @@
   <VtsSidePanel :has-selection="roleTemplate !== undefined" @close="emit('close')">
     <template v-if="newRoleRoute" #actions>
       <UiLink :to="newRoleRoute" icon="fa:plus" size="medium">
-        {{ t('action:select-template') }}
+        {{ t('action:use-template') }}
       </UiLink>
     </template>
     <template v-if="roleTemplate" #default>
