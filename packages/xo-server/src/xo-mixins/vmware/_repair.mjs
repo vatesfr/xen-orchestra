@@ -240,10 +240,22 @@ async function withRepairIso(xapi, vmRef, context, fn) {
       }
       return await fn(run)
     } finally {
+      // each one on its own: a failed restore must neither skip the others nor replace the error of the repair
       const current = xapi.getObject(vmRef)
-      await xapi.call('VM.set_xenstore_data', vmRef, clearRepairXenstoreData(current.xenstore_data))
-      await current.update_HVM_boot_params('order', order)
-      await current.update_blocked_operations({ start: start ?? null, start_on: start_on ?? null })
+      const restores = {
+        'the repair inputs and outputs': () =>
+          xapi.call('VM.set_xenstore_data', vmRef, clearRepairXenstoreData(current.xenstore_data)),
+        'the boot order': () => current.update_HVM_boot_params('order', order),
+        'the blocked operations': () =>
+          current.update_blocked_operations({ start: start ?? null, start_on: start_on ?? null }),
+      }
+      for (const [what, restore] of Object.entries(restores)) {
+        try {
+          await restore()
+        } catch (error) {
+          warn(`failed to restore ${what} after the repair ISO`, { ...context, error })
+        }
+      }
     }
   })
 }
@@ -280,7 +292,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
     if (isBlockedOnBootDisk(diagnose.report)) {
       const osDisk = diagnose.report.findings.find(finding => finding.code === 'boot_disk_not_first').data?.os_disk
       if (osDisk === undefined) {
-        // the details are the first thing dropped from a report too large for xenstore
+        // the details of the findings are dropped from a report too large for xenstore
         assertNotBlocked(diagnose.report, context)
       }
       await moveDiskFirst(xapi, vmRef, osDisk, context)
