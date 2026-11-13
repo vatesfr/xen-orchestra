@@ -231,6 +231,29 @@ test('firstBootOfRepairedVm, abort', async t => {
     assert.deepEqual(xapi.calls, ['VM.start'])
   })
 
+  await t.test('does not wait for an agent the repair could not install', async () => {
+    for (const repair of [
+      { os: { kind: 'linux' }, findings: [{ level: 'info', code: 'guest_agent_missing' }], actions: [] },
+      { os: { kind: 'linux' }, findings: [{ level: 'warning', code: 'guest_agent_unsupported' }], actions: [] },
+      { os: { kind: 'linux' }, findings: [], actions: [{ code: 'install_guest_agent', status: 'failed' }] },
+    ]) {
+      const task = new Task({ properties: { name: 'import' } })
+      // waiting would be aborted
+      const xapi = abortingXapi({ task, abortOn: 'VM.start', firmware: 'uefi' })
+      await task.run(() =>
+        firstBootOfRepairedVm({
+          xapi,
+          vmRef: VM_REF,
+          metadata: { vmId: '54', secureBoot: true },
+          reports: { ...LINUX_REPORTS, repair },
+          onProgress: async () => {},
+        })
+      )
+      // nor reboots it for Secure Boot, which the agent should have confirmed
+      assert.deepEqual(xapi.calls, ['VM.start'])
+    }
+  })
+
   await t.test('leaves the VM as it is while it reboots with Secure Boot', async () => {
     const task = new Task({ properties: { name: 'import' } })
     const xapi = abortingXapi({ task, abortOn: 'VM.clean_reboot', firmware: 'uefi', agentReportsOnStart: true })

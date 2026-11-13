@@ -13,6 +13,12 @@ const WINDOWS_FIRST_BOOT_TIMEOUT = 45 * 60e3
 const AGENT_TIMEOUT = 15 * 60e3
 const AGENT_POLL_INTERVAL = 5e3
 
+// the guest has no agent which could report: none was there, and the repair could not install one
+const AGENT_NOT_INSTALLED_CODES = ['guest_agent_missing', 'guest_agent_unsupported']
+const isAgentNotInstalled = repair =>
+  repair.findings.some(({ code }) => AGENT_NOT_INSTALLED_CODES.includes(code)) ||
+  repair.actions.some(({ code, status }) => code === 'install_guest_agent' && status === 'failed')
+
 // the phases of the first-boot script: the VM is restarted between two of them
 const WINDOWS_FIRST_BOOT_PHASES = ['drivers', 'finish']
 
@@ -197,6 +203,13 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
     if (needsSecureBoot) {
       Task.warning('Secure Boot was enabled on the source: without guest agent, it is not enabled again automatically')
     }
+    return
+  }
+  // nothing to wait for
+  if (isAgentNotInstalled(repair)) {
+    Task.warning(
+      `the guest has no agent, which the repair could not install: install it after the first boot${needsSecureBoot ? ', then enable Secure Boot again, as on the source' : ''}`
+    )
     return
   }
 
