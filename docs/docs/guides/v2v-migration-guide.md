@@ -133,11 +133,11 @@ XO must be able to connect to the ESXi host, or to the vCenter, through the port
 
 #### Changed Block Tracking (CBT) {#changed-block-tracking-cbt}
 
-Enable CBT on the source VMs before migrating them. XO asks the ESXi host which blocks the disks use and, for the final delta, which blocks changed since the first pass. Without CBT, every disk is read entirely, which is much slower for large disks that are mostly empty.
+XO enables CBT on the source VM when the migration starts, when it is not already. XO then asks the ESXi host which blocks the disks use and, for the final delta, which blocks changed since the first pass. Without CBT, every disk is read entirely, which is much slower for large disks that are mostly empty.
 
 With CBT, the final delta only reads the blocks changed since the first pass, whatever the datastore. For the first pass, the host lists the blocks the disk uses on VMFS datastores. On NFS datastores, it may list the whole disk: the first pass then reads every block, and only the runs of zeros are left out of the transfer from ESXi.
 
-CBT is enabled in the advanced configuration parameters of the VM (**Edit Settings → VM Options → Advanced → Configuration Parameters**): set `ctkEnabled` to `TRUE`, and `scsiX:Y.ctkEnabled` to `TRUE` for each disk (for example `scsi0:0.ctkEnabled`). It only takes effect at the next power on, or when a snapshot is taken or removed.
+The tracking only starts when the disks are next opened: XO takes a snapshot of the source for that when needed. When XO cannot enable CBT, for example when the VMware account lacks the **Virtual machine → Change Configuration → Toggle disk change tracking** privilege, the migration goes on and the task reports a warning. CBT can then be enabled by hand, in the advanced configuration parameters of the VM (**Edit Settings → VM Options → Advanced → Configuration Parameters**): set `ctkEnabled` to `TRUE`, and `scsiX:Y.ctkEnabled` to `TRUE` for each disk (for example `scsi0:0.ctkEnabled`). It only takes effect at the next power on, or when a snapshot is taken or removed.
 
 :::warning
 A snapshot taken before CBT was enabled cannot be used to compute a delta. Remove the existing snapshots once CBT is enabled: XO then takes its own snapshot when the migration starts.
@@ -284,6 +284,10 @@ Once the migration is complete:
 
 A VM imported from VMware does not always boot on XCP-ng as is: its initramfs may lack the Xen drivers, its network interfaces are renamed, the VMware Tools fail without their virtual hardware, and the XCP-ng guest tools are missing. The guest repair takes care of it, before the guest OS ever boots on XCP-ng.
 
+:::warning
+The guest repair is experimental. The repair ISO is not distributed yet: build it from the [`@xen-orchestra/autopilot-docking`](https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/autopilot-docking) package, as its README describes, then deploy it on the pool.
+:::
+
 ### How it works
 
 Once the import is complete, XO:
@@ -293,7 +297,7 @@ Once the import is complete, XO:
 3. boots it again in `repair` mode, which applies the changes, then powers the VM off;
 4. detaches both ISOs and restores the boot order, so the VM boots on its disks.
 
-The import snapshot taken before the repair is the rollback path. A failed repair does not fail the import: the task reports it as a warning, with the reason.
+The import snapshot taken before the repair is the rollback path. A failed repair does not fail the import: the task reports it as a warning, with the reason, Secure Boot is restored as it was, and the VM is left powered off, even with `startVm`.
 
 The repair is off by default. It is available through the REST API: the `repair` option of `POST /rest/v0/pools/:id/actions/import_vms_from_vmware`.
 
@@ -305,7 +309,7 @@ With the `startVm` option as well, XO then starts the VM and follows its first b
 
 ### Requirements
 
-- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `vates-autopilot-docking-<date and time>-<commit>.iso`. When several are deployed, the most recent one by name is used.
+- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `vates-autopilot-docking-<date and time>-<commit>.iso` (see the warning above to build it). When several are deployed, the most recent one by name is used. Without it, the import fails before any transfer.
 - **A complete import**: the source VM is powered off before the migration, or the `Stop source` option is enabled. A partial import of a running VM is not repaired. The REST API refuses this combination.
 - **A clean shutdown of Windows**: a Windows VM that was powered off, rather than shut down from the guest, cannot be repaired (`ntfs_unclean`): its volumes are left in a state that cannot be written offline. Keep the VMware Tools running so that `Stop source` shuts it down cleanly, or shut it down from Windows before the migration. Hibernation and Fast Startup are blocking too.
 - **A running source for Windows with several network cards in static addressing**: the static configuration of each old adapter is moved to the network card with the same MAC address, matched through the IP addresses that the VMware Tools report while the VM runs. Start the migration with the source VM running, its VMware Tools up, and the `Stop source` option enabled. Otherwise these adapters fall back to DHCP, and the task reports it. A single network card, or DHCP, does not need it, and neither does Linux.
@@ -319,7 +323,7 @@ With the `startVm` option as well, XO then starts the VM and follows its first b
 | Windows | Boot on the emulated disk enabled, VMware services disabled, static IP configuration of the old adapters captured and reapplied on the new ones at first boot (DNS included), XCP-ng PV drivers and management agent installed at first boot |
 | UEFI (all) | Fallback boot loader (`\EFI\BOOT\BOOTX64.EFI`) installed, since the boot entries of the VMware NVRAM are lost |
 
-The network configuration of the guest itself is never modified: static and DHCP interfaces stay as they are, and the network cards keep their VMware MAC addresses, so DHCP reservations keep working.
+On Linux, the network configuration of the guest is not modified: static and DHCP interfaces stay as they are, under their former names. On Windows, the old adapters are switched to DHCP offline, then their static configuration is applied to the new adapters at first boot; an adapter that cannot be matched with a new one stays in DHCP, and the task reports it (see the requirements). In both cases, the network cards keep their VMware MAC addresses, so DHCP reservations keep working.
 
 ### Supported systems
 

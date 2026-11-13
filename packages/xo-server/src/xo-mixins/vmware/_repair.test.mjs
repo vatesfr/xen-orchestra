@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { diagnoseOffline, findRepairIso } from './_repair.mjs'
+import { diagnoseOffline, findRepairIso, repairImportedVm } from './_repair.mjs'
 
 const VM_REF = 'OpaqueRef:vm'
 const CONTEXT = { vmId: 'vm-uuid', sourceVmId: '54' }
@@ -135,5 +135,235 @@ test('findRepairIso', async t => {
     assert.throws(() => findRepairIso(poolWith('vates-autopilot-docking-latest.iso'), CONTEXT), {
       code: 'REPAIR_ISO_NOT_FOUND',
     })
+  })
+})
+
+const INPUT_KEYS = ['mode', 'nics', 'windows-nics', 'windows-reboot']
+const METADATA = { vmId: '54', networks: [], guestNics: [] }
+
+const reportOf = ({ kind = 'linux', findings = [], actions = [], ...os } = {}) => ({
+  os: { kind, ...os },
+  network: [],
+  findings,
+  actions,
+})
+const blockedOn = (code, data) => reportOf({ findings: [{ level: 'error', code, data }] })
+
+/**
+ * A pool where each boot of the VM on the repair ISO is the next of `runs`: the outputs of the ISO
+ * (`{ result, report }`), `'timeout'` for an ISO which never reports, `'no result'` for one which halts the VM
+ * without a result.
+ *
+ * @param {object} params
+ * @param {Array<{ result: string, report: object } | 'timeout' | 'no result'>} params.runs
+ * @param {Array<{ name: string, userdevice: string }>} [params.disks]
+ */
+function isoXapi({ runs, disks = [] }) {
+  const remainingRuns = [...runs]
+  const calls = []
+  // the inputs of each boot on the ISO
+  const inputs = []
+  let currentRun
+  const vm = {
+    $ref: VM_REF,
+    uuid: CONTEXT.vmId,
+    power_state: 'Halted',
+    xenstore_data: {},
+    platform: {},
+    blocked_operations: {},
+    HVM_boot_params: { order: 'c', firmware: 'bios' },
+    $VBDs: disks.map(({ name, userdevice }) => ({
+      type: 'Disk',
+      userdevice,
+      async set_userdevice(value) {
+        calls.push(`${name}.userdevice=${value}`)
+        this.userdevice = value
+      },
+      async set_bootable(value) {
+        calls.push(`${name}.bootable=${value}`)
+      },
+    })),
+    async update_blocked_operations() {},
+    async update_HVM_boot_params() {},
+    async update_platform(key, value) {
+      calls.push(`platform.${key}=${value}`)
+    },
+  }
+  const iso = {
+    $ref: 'OpaqueRef:iso',
+    name_label: 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso',
+    $SR: { content_type: 'iso' },
+  }
+  return {
+    calls,
+    inputs,
+    objects: { indexes: { type: { VDI: { [iso.$ref]: iso } } } },
+    getObject: () => vm,
+    async barrier() {},
+    async VBD_create() {},
+    async VBD_destroy() {},
+    async callAsync() {},
+    async call(method, ref, arg) {
+      if (method === 'VM.set_xenstore_data') {
+        vm.xenstore_data = arg
+      } else if (method === 'VM.get_allowed_VBD_devices') {
+        return ['5', '6']
+      } else if (method === 'VM.start') {
+        inputs.push(
+          Object.fromEntries(
+            INPUT_KEYS.flatMap(key => {
+              const value = vm.xenstore_data[`vm-data/xo-repair/${key}`]
+              return value === undefined ? [] : [[key, value]]
+            })
+          )
+        )
+        currentRun = remainingRuns.shift()
+        assert.notEqual(currentRun, undefined, 'booted on the ISO more often than expected')
+        if (typeof currentRun === 'object') {
+          const { mode } = inputs.at(-1)
+          const outputs = { state: 'done', mode, version: 'dev', result: currentRun.result }
+          outputs.report = JSON.stringify(currentRun.report)
+          for (const [key, value] of Object.entries(outputs)) {
+            vm.xenstore_data[`vm-data/xo-repair/out/${key}`] = value
+          }
+        }
+        if (currentRun !== 'timeout') {
+          vm.power_state = 'Halted'
+        }
+      } else {
+        calls.push(method)
+      }
+    },
+    async waitObjectState(ref, predicate) {
+      if (currentRun !== 'timeout' && predicate(vm)) {
+        return vm
+      }
+      throw Object.assign(new Error('timeout'), { code: 'TIMEOUT' })
+    },
+  }
+}
+
+const repair = (xapi, options) => repairImportedVm({ xapi, vmRef: VM_REF, metadata: METADATA, ...options })
+
+test('repairImportedVm', async t => {
+  await t.test('runs a diagnose, then a repair', async () => {
+    const xapi = isoXapi({
+      runs: [
+        { result: 'ok', report: reportOf() },
+        { result: 'ok', report: reportOf({ actions: [{ code: 'install_xen_drivers', status: 'applied' }] }) },
+      ],
+    })
+    const reports = await repair(xapi)
+    assert.deepEqual(xapi.inputs, [{ mode: 'diagnose' }, { mode: 'repair' }])
+    assert.equal(reports.repair.actions[0].code, 'install_xen_drivers')
+    assert.equal(reports.hasPvDrivers, true)
+  })
+
+  await t.test('moves the OS disk first, then diagnoses again', async () => {
+    const xapi = isoXapi({
+      disks: [
+        { name: 'xvda', userdevice: '0' },
+        { name: 'xvdb', userdevice: '1' },
+      ],
+      runs: [
+        { result: 'error', report: blockedOn('boot_disk_not_first', { os_disk: 'xvdb' }) },
+        { result: 'ok', report: reportOf() },
+        { result: 'ok', report: reportOf() },
+      ],
+    })
+    await repair(xapi)
+    // the first disk is parked on a free userdevice: they are unique
+    assert.deepEqual(xapi.calls, [
+      'xvda.userdevice=5',
+      'xvda.bootable=false',
+      'xvdb.userdevice=0',
+      'xvdb.bootable=true',
+      'xvda.userdevice=1',
+    ])
+    assert.deepEqual(
+      xapi.inputs.map(({ mode }) => mode),
+      ['diagnose', 'diagnose', 'repair']
+    )
+  })
+
+  await t.test('stops before any change on a blocking finding', async () => {
+    const xapi = isoXapi({ runs: [{ result: 'error', report: blockedOn('ntfs_unclean') }] })
+    await assert.rejects(repair(xapi), error => {
+      assert.equal(error.code, 'REPAIR_BLOCKED')
+      assert.equal(error.reports.diagnose.findings[0].code, 'ntfs_unclean')
+      return true
+    })
+    assert.deepEqual(xapi.inputs, [{ mode: 'diagnose' }])
+  })
+
+  await t.test('stops when the OS disk is not known', async () => {
+    // not a disk of the VM
+    let xapi = isoXapi({
+      disks: [{ name: 'xvda', userdevice: '0' }],
+      runs: [{ result: 'error', report: blockedOn('boot_disk_not_first', { os_disk: 'xvdc' }) }],
+    })
+    await assert.rejects(repair(xapi), { code: 'REPAIR_OS_DISK_NOT_FOUND', osDisk: 'xvdc' })
+    assert.deepEqual(xapi.calls, [])
+
+    // dropped from a report too large for xenstore
+    xapi = isoXapi({ runs: [{ result: 'error', report: blockedOn('boot_disk_not_first') }] })
+    await assert.rejects(repair(xapi), { code: 'REPAIR_BLOCKED' })
+  })
+
+  await t.test('fails with both reports when the repair fails', async () => {
+    const xapi = isoXapi({
+      runs: [
+        { result: 'ok', report: reportOf() },
+        {
+          result: 'error',
+          report: reportOf({ actions: [{ code: 'rebuild_initramfs', status: 'failed', error: 'dracut failed' }] }),
+        },
+      ],
+    })
+    await assert.rejects(repair(xapi), error => {
+      assert.equal(error.code, 'REPAIR_FAILED')
+      assert.match(error.message, /rebuild_initramfs: dracut failed\. Full report and logs in \/var\/log\/xo-repair\//)
+      assert.deepEqual(Object.keys(error.reports), ['diagnose', 'repair'])
+      return true
+    })
+  })
+
+  await t.test('leaves the reboots of Windows to XO when it follows the first boot', async () => {
+    const xapi = isoXapi({
+      runs: [
+        { result: 'ok', report: reportOf({ kind: 'windows', rtc_timeoffset: 3600 }) },
+        { result: 'ok', report: reportOf({ kind: 'windows' }) },
+      ],
+    })
+    const reports = await repair(xapi, { followFirstBoot: true })
+    assert.equal(xapi.inputs[1]['windows-reboot'], 'xo')
+    assert.equal(reports.hasPvDrivers, true)
+    // Windows keeps the RTC in local time
+    assert.deepEqual(xapi.calls, ['platform.timeoffset=3600'])
+  })
+
+  await t.test('leaves the reboots to a Windows without PV drivers', async () => {
+    const tooOld = reportOf({ kind: 'windows', findings: [{ level: 'warning', code: 'pv_drivers_unsupported' }] })
+    const xapi = isoXapi({
+      runs: [
+        { result: 'warning', report: tooOld },
+        { result: 'warning', report: tooOld },
+      ],
+    })
+    const reports = await repair(xapi, { followFirstBoot: true })
+    // XO could not tell when its first boot ends
+    assert.equal(xapi.inputs[1]['windows-reboot'], 'guest')
+    assert.equal(reports.hasPvDrivers, false)
+  })
+
+  await t.test('stops the VM when the ISO does not report in time', async () => {
+    const xapi = isoXapi({ runs: ['timeout'] })
+    await assert.rejects(repair(xapi), { code: 'REPAIR_ISO_TIMEOUT' })
+    assert.deepEqual(xapi.calls, ['VM.hard_shutdown'])
+  })
+
+  await t.test('fails when the ISO halts the VM without a result', async () => {
+    const xapi = isoXapi({ runs: ['no result'] })
+    await assert.rejects(repair(xapi), { code: 'REPAIR_ISO_NO_RESULT', mode: 'diagnose' })
   })
 })
