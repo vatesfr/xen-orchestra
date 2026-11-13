@@ -7,6 +7,7 @@
 const { AsyncLocalStorage } = require('node:async_hooks')
 
 const createTransport = require('./_createTransport.js')
+const { closeTransport } = createTransport
 
 // stored in the global context so that various versions of the library can interact.
 const symbol = Symbol.for('@xen-orchestra/log/capture')
@@ -33,7 +34,7 @@ exports.captureLogs = function captureLogs(onLog, fn) {
 exports.createCaptureTransport = function createCaptureTransport(fallback) {
   fallback = fallback === undefined ? Function.prototype : createTransport(fallback)
 
-  return function captureTransport(log) {
+  function captureTransport(log) {
     const onLog = asyncStorage.getStore()
     if (onLog !== undefined) {
       onLog(log, fallback)
@@ -41,4 +42,6 @@ exports.createCaptureTransport = function createCaptureTransport(fallback) {
       fallback(log)
     }
   }
+  captureTransport.close = () => closeTransport(fallback)
+  return captureTransport
 }
