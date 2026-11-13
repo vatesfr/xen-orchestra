@@ -8,6 +8,9 @@
             <UiLink :to="{ name: '/admin/role/new' }" icon="fa:plus" size="medium">
               {{ t('new') }}
             </UiLink>
+            <UiLink :to="{ name: '/admin/role/templates' }" icon="fa:copy" size="medium">
+              {{ t('role:new-from-template') }}
+            </UiLink>
           </template>
         </RolesTable>
       </UiCard>
