@@ -8,7 +8,8 @@
       size="small"
       @click="emit('apply', preset.id)"
     >
-      {{ t('label-with-count', { label: preset.label, count: preset.count }) }}
+      {{ preset.label }}
+      <UiCounter :value="preset.count" accent="brand" variant="secondary" size="small" />
     </UiButton>
   </div>
 </template>
@@ -17,7 +18,7 @@
 import type { V2vVmPreset } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { useI18n } from 'vue-i18n'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 
 defineProps<{
   presets: V2vVmPreset[]
@@ -26,8 +27,6 @@ defineProps<{
 const emit = defineEmits<{
   apply: [id: V2vVmPresetId]
 }>()
-
-const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

@@ -801,7 +801,6 @@
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
   "key": "Key",
   "keywords": "Keywords",
-  "label-with-count": "{label} {count}",
   "language": "Language",
   "language-preferences": "Language preferences",
   "last": "Last",
