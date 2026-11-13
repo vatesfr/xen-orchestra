@@ -78,13 +78,33 @@ function deleteAndConfirm(backupJobs: FrontAnyXoBackupJob[]) {
 }
 
 describe('deleteBackupJobs', () => {
-  it('opens the delete modal for a single backup job', () => {
+  it('opens the delete modal named after the backup job for a single backup job', () => {
     const { result, deleteModal, typeToConfirmModal } = mountDelete([firstBackupJob])
 
     result.deleteBackupJobs()
 
-    expect(deleteModal.open).toHaveBeenCalledOnce()
+    expect(deleteModal.open).toHaveBeenCalledWith({
+      props: {
+        accent: 'danger',
+        subject: firstBackupJob.name,
+        description: t('modal:backup-job-delete-message', { n: 1 }),
+        confirmLabel: t('action:delete-n-jobs', { n: 1 }),
+      },
+      events: {
+        onConfirm: expect.any(Function),
+      },
+    })
     expect(typeToConfirmModal.open).not.toHaveBeenCalled()
+  })
+
+  it('names a backup job without name as untitled in the delete modal', () => {
+    const { result, deleteModal } = mountDelete([createVmBackupJob({ name: undefined })])
+
+    result.deleteBackupJobs()
+
+    expect(deleteModal.open).toHaveBeenCalledWith(
+      expect.objectContaining({ props: expect.objectContaining({ subject: t('untitled') }) })
+    )
   })
 
   it('asks to type the number of backup jobs to confirm for several backup jobs', () => {
