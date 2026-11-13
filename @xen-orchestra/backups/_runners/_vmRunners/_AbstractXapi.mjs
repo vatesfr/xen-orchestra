@@ -381,7 +381,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const xapi = this._xapi
 
     const vdiCandidates = {}
-    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
+    const vdiUuids = this._vm.$VBDs.filter(({ type }) => type === 'Disk').map(({ VDI }) => VDI)
     Object.values(xapi.objects.indexes.type.VDI)
       .filter(_ => !!_) // filter nullish
       .filter(({ other_config, snapshot_of }) => {

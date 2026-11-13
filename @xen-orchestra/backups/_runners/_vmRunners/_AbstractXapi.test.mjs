@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { formatDateTime } from '@xen-orchestra/xapi'
 
 import { AbstractXapi } from './_AbstractXapi.mjs'
-import { DATETIME, EXPORTED_SUCCESSFULLY, JOB_ID, SCHEDULE_ID } from '../../_otherConfig.mjs'
+import { DATETIME, EXPORTED_SUCCESSFULLY, JOB_ID, SCHEDULE_ID, VM_UUID } from '../../_otherConfig.mjs'
 
 // Build an AbstractXapi instance without running its heavy constructor, then
 // assign only the fields the method under test reads.
@@ -655,5 +655,40 @@ describe('run() purges the snapshot data only while the snapshot exists', () => 
 
     assert.equal(calls.markExportSuccessfull, 0, 'the live VM is not marked as exported')
     assert.deepEqual(calls.vmDestroyed, [], 'the live VM must never be destroyed')
+  })
+})
+
+describe('_fetchJobSnapshots() diskless VM detection', () => {
+  const makeFetchRunner = vbds => {
+    const jobSnapshot = {
+      $ref: 'snap-ref',
+      $snapshot_of: {},
+      other_config: { [JOB_ID]: 'job-1', [VM_UUID]: 'vm-uuid', [DATETIME]: '20240101T00:00:00Z' },
+    }
+    return makeRunner({
+      _jobId: 'job-1',
+      _vm: { uuid: 'vm-uuid', $VBDs: vbds, $snapshots: [jobSnapshot] },
+      _xapi: { objects: { indexes: { type: { VDI: {} } } } },
+    })
+  }
+
+  it('tracks VM snapshots of a VM with only an empty CD drive', async () => {
+    const runner = makeFetchRunner([{ type: 'CD', VDI: 'OpaqueRef:NULL' }])
+
+    await runner._fetchJobSnapshots()
+
+    assert.deepEqual(
+      runner._disklessJobSnapshotVms.map(({ $ref }) => $ref),
+      ['snap-ref'],
+      'a CD drive must not prevent the diskless retention'
+    )
+  })
+
+  it('does not use the diskless retention when the VM has a disk', async () => {
+    const runner = makeFetchRunner([{ type: 'Disk', VDI: 'vdi-ref' }])
+
+    await runner._fetchJobSnapshots()
+
+    assert.deepEqual(runner._disklessJobSnapshotVms, [])
   })
 })
