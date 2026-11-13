@@ -304,7 +304,7 @@ The repair is off by default. It is available through the REST API: the `repair`
 With the `startVm` option as well, XO then starts the VM and follows its first boot on XCP-ng:
 
 1. Linux boots directly. Windows runs its first-boot phases: it installs the PV drivers and the management agent, and restarts on its own. When the first boot does not complete within 45 minutes, or gives up, XO stops the VM and boots the repair ISO again to read the state and the log of the first boot, which the task then reports.
-2. XO waits for the guest agent to report.
+2. XO waits for the guest agent to report, unless the repair could not install one: the task then says to install it after the first boot.
 3. If the source VM had Secure Boot enabled, XO enables it again and restarts the VM to check that it boots. If it does not, Secure Boot is disabled again, and the task reports it. Secure Boot needs the UEFI certificates of the pool to be installed.
 
 ### Requirements

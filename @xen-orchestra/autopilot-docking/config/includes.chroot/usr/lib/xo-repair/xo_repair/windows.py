@@ -563,9 +563,9 @@ class WindowsGuest:
             source = "none"
         elif self.tools is None:
             self.report.warning("windows_tools_disk_missing",
-                                "no guest tools disk: the first boot will look for packages matching "
-                                f"{patterns} on a CD drive")
-            source = f"a CD matching {patterns}"
+                                f"no guest tools disk: the first boot will have no package matching {patterns} "
+                                "to install")
+            source = "missing, no guest tools disk"
         else:
             files = [str(p.relative_to(self.tools)) for p in self.tools.rglob("*") if p.is_file()]
             matches = match_packages(files, self.msi_patterns)
