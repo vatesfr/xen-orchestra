@@ -1,5 +1,4 @@
 import { createLogger } from '@xen-orchestra/log'
-import { parseDateTime } from '@xen-orchestra/xapi'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
@@ -17,15 +16,19 @@ const AGENT_POLL_INTERVAL = 5e3
 // the phases of the first-boot script: the VM is restarted between two of them
 const WINDOWS_FIRST_BOOT_PHASES = ['drivers', 'finish']
 
+// when the guest agent last reported, as dated by the host
+const lastAgentReport = (xapi, vmRef) => xapi.getObject(vmRef).$guest_metrics?.last_updated
+
 /**
- * Waits for the guest agent to report, after `since`: the guest metrics of a previous boot may still be there.
+ * Waits for the guest agent to report again after `previousReport`, from `lastAgentReport`: the guest metrics of
+ * a previous boot may still be there. Compared with that value and not with the clock of XO, which a host
+ * ahead of it would date before the previous boot.
  */
-async function waitGuestAgent(xapi, vmRef, { since, timeout, context }) {
-  const sinceSeconds = Math.floor(since / 1e3)
+async function waitGuestAgent(xapi, vmRef, { previousReport, timeout, context }) {
   const deadline = Date.now() + timeout
   while (true) {
     const guestMetrics = xapi.getObject(vmRef).$guest_metrics
-    if (guestMetrics?.PV_drivers_detected && parseDateTime(guestMetrics.last_updated) >= sinceSeconds) {
+    if (guestMetrics?.PV_drivers_detected && guestMetrics.last_updated !== previousReport) {
       return
     }
     if (Date.now() >= deadline) {
@@ -131,10 +134,15 @@ async function enableSecureBoot(xapi, vmRef, context) {
 
   const vm = xapi.getObject(vmRef)
   await vm.update_platform('secureboot', 'true')
-  const since = Date.now()
   try {
     await xapi.call('VM.clean_reboot', vmRef)
-    await waitGuestAgent(xapi, vmRef, { since, timeout: AGENT_TIMEOUT, context })
+    // the agent of the previous boot is stopped: what the cache has once up to date is its last report
+    await xapi.barrier()
+    await waitGuestAgent(xapi, vmRef, {
+      previousReport: lastAgentReport(xapi, vmRef),
+      timeout: AGENT_TIMEOUT,
+      context,
+    })
     Task.info('Secure Boot enabled again, as on the source')
   } catch (error) {
     // a cancelled task is not a VM which failed to boot: it is left as it is
@@ -169,7 +177,8 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
   const { repair, hasPvDrivers } = reports
   const isWindows = repair.os.kind === 'windows'
 
-  const since = Date.now()
+  // the VM is halted: nothing reports until it starts
+  const previousReport = lastAgentReport(xapi, vmRef)
   await xapi.call('VM.start', vmRef, false, false)
   // until then the cache may still show the VM halted
   await xapi.barrier()
@@ -192,7 +201,7 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
   }
 
   try {
-    await waitGuestAgent(xapi, vmRef, { since, timeout: AGENT_TIMEOUT, context })
+    await waitGuestAgent(xapi, vmRef, { previousReport, timeout: AGENT_TIMEOUT, context })
   } catch (error) {
     if (Task.abortSignal?.aborted) {
       throw error
