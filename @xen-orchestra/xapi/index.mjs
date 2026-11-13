@@ -6,6 +6,7 @@ import { Xapi as Base } from 'xen-api'
 import { createLogger } from '@xen-orchestra/log'
 
 import * as Mixins from './_Mixins.mjs'
+import { PropertyFilter } from './_propertyFilter.mjs'
 
 const { warn } = createLogger('xo:xapi')
 
@@ -164,6 +165,7 @@ function removeWatcher(predicate, cb) {
 export class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
+    vmFilteredProperties,
     maxUncoalescedVdis,
     preferNbd = false,
     nbdOptions,
@@ -180,6 +182,11 @@ export class Xapi extends Base {
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
     this._maxUncoalescedVdis = maxUncoalescedVdis
+    const notVmProperty = vmFilteredProperties?.find(property => !property.startsWith('VM.'))
+    if (notVmProperty !== undefined) {
+      throw new Error(`invalid vmFilteredProperties entry ${notVmProperty}, only VM properties can be filtered`)
+    }
+    this._propertyFilter = new PropertyFilter(vmFilteredProperties)
     this._preferNbd = preferNbd
     this._nbdOptions = nbdOptions
     this._syncHookSecret = syncHookSecret
@@ -216,6 +223,31 @@ export class Xapi extends Base {
     }
     this.objects.on('add', onAddOrUpdate)
     this.objects.on('update', onAddOrUpdate)
+  }
+
+  // all the calls to the xapi go through this method: this guarantees that the properties filtered by the
+  // `vmFilteredProperties` option are never written
+  _call(method, args, ...rest) {
+    if (args !== undefined && args.length > 0) {
+      const [sessionId, ...params] = args
+      const filteredParams = this._propertyFilter.filterCall(method, params)
+      if (filteredParams === undefined) {
+        return Promise.resolve()
+      }
+      if (filteredParams !== params) {
+        args = [sessionId, ...filteredParams]
+      }
+    }
+    return super._call(method, args, ...rest)
+  }
+
+  // avoid removing the current value of a filtered entry, setFieldEntries() goes through this method
+  async setFieldEntry(type, ref, field, entry, value) {
+    // removing a filtered entry is still possible
+    if (value !== null && this._propertyFilter.isFiltered(type, field, entry)) {
+      return
+    }
+    return super.setFieldEntry(type, ref, field, entry, value)
   }
 
   // Wait for an object to appear or to be updated.

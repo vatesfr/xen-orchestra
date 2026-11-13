@@ -96,6 +96,12 @@ disableFileRemotes = true
 maxUncoalescedVdis = 1
 watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM', 'VM_guest_metrics']
 
+# Keys that XO never writes in the map fields of the VMs it creates or
+# modifies, as 'VM.field:key' (the key is case-insensitive)
+#
+# Example: ['VM.platform:hvm_serial', 'VM.other_config:xo:foo']
+vmFilteredProperties = []
+
 
 
 #compact mode

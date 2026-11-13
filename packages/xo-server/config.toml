@@ -289,6 +289,12 @@ poolMarkingInterval = '6 hours'
 poolMarkingMaxAge = '48 hours'
 poolMarkingPrefix = 'xo:clientInfo:'
 
+# Keys that XO never writes in the map fields of the VMs it creates or
+# modifies, as 'VM.field:key' (the key is case-insensitive)
+#
+# Example: ['VM.platform:hvm_serial', 'VM.other_config:xo:foo']
+vmFilteredProperties = []
+
 [xo-proxy]
 callTimeout = '1 min'
 
