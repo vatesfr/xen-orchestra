@@ -139,6 +139,10 @@ async function enableSecureBoot(xapi, vmRef, context) {
     await waitGuestAgent(xapi, vmRef, { since, timeout: AGENT_TIMEOUT, context })
     Task.info('Secure Boot enabled again, as on the source')
   } catch (error) {
+    // a cancelled task is not a VM which failed to boot: it is left as it is
+    if (Task.abortSignal?.aborted) {
+      throw error
+    }
     warn('the VM did not boot with Secure Boot, disabling it again', { ...context, error })
     await stopVm(xapi, vmRef)
     await vm.update_platform('secureboot', 'false')
@@ -192,6 +196,9 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
   try {
     await waitGuestAgent(xapi, vmRef, { since, timeout: AGENT_TIMEOUT, context })
   } catch (error) {
+    if (Task.abortSignal?.aborted) {
+      throw error
+    }
     // the VM may run fine without its agent, e.g. a guest whose agent could not be installed
     warn('the guest agent did not report after the first boot', { ...context, error })
     Task.warning(
