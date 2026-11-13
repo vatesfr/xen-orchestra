@@ -14,12 +14,12 @@ Xen Orchestra is an Open Source project with more than 15 years of history. Orig
 - **December 2012**: the project is rebooted on top of XAPI for XenServer, with the first commit of the current codebase.
 - **February 2014**: XO 3.0, the first release of the rebooted project.
 - **May 2015**: XO 4.0, with a fully redesigned web interface.
-- **June 2016**: XO 5.0, the first release of the generation still known today as [XO 5](../discover-xen-orchestra/xo6vsxo5.md).
+- **June 2016**: XO 5.0, the first release of the generation still known today as [XO 5](../whats-new/xo6vsxo5.md).
 - **2018**: after Citrix closed a lot of XenServer features, Olivier Lambert launched [XCP-ng](https://xcp-ng.org), a fully open source fork of XenServer: successful Kickstarter campaign in early 2018, first release (XCP-ng 7.4) on March 31, 2018.
 - **2022**: work starts on [XO Lite](https://docs.vates.tech/products/add-ons/xo-lite), the lightweight web UI embedded in every XCP-ng host.
-- **January 2023**: first preview of [V2V](../guides/v2v-migration-guide.md), the built-in tool to migrate VMs directly from VMware to XCP-ng.
+- **January 2023**: first preview of [V2V](../migrate-from-vmware/v2v-migration-guide.md), the built-in tool to migrate VMs directly from VMware to XCP-ng.
 - **November 2025**: XO 5.113, the last feature release of the 5.x series.
-- **December 2025**: XO 6.0, the first official release of the new [XO 6](../discover-xen-orchestra/gettingstarted.md) interface, becomes the default UI.
+- **December 2025**: XO 6.0, the first official release of the new [XO 6](../getting-started/gettingstarted.md) interface, becomes the default UI.
 - **February 2026**: XO 6.2 introduces [distributed backups](../backups-and-dr/scale-and-security/distributed_backups.md), spreading backup data across multiple backup repositories (BR).
 - **March 2026**: XO 6.3 brings symmetrical replication and a rewritten immutable backup engine.
 - **May 2026**: XO 6.5 delivers QCOW2 general availability (disks beyond the 2 TiB VHD limit), bidirectional replication and traffic rules on networks and VIFs.

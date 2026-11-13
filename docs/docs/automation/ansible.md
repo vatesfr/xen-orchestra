@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # Ansible dynamic inventory
 
 ## Introduction

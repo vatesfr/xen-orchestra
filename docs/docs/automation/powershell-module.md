@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # PowerShell module
 
 ## Introduction

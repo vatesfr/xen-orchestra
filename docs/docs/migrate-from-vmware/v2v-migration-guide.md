@@ -1,5 +1,6 @@
 ---
 sidebar_label: VMware migration (V2V)
+sidebar_position: 1
 ---
 
 # VMware migration (V2V)
