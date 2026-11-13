@@ -228,12 +228,14 @@ explicitly by XO are always used.
 ##### Windows first boot
 
 `firstboot.ps1` runs at each boot as LocalSystem until its phases are done, then deletes its service.
-It is compatible with PowerShell 2.0. Before any phase, it removes the `Run` entries that start a
-program from `\VMware\VMware Tools\` ("VMware User Process"), which crashes without its services.
+It is compatible with PowerShell 2.0. Before any phase, it restricts `C:\xo-repair` to SYSTEM and the
+administrators (written through ntfs-3g, it is writable by every user), and removes the `Run` entries
+that start a program from `\VMware\VMware Tools\` ("VMware User Process"), which crashes without its
+services.
 
 | Phase     | `standard` | `full` | What it does                                                                                                                                                                                                                                                                         | Ends with       |
 | --------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
-| `drivers` | yes        | yes    | installs the packages matching `windows-msi-patterns` from `\xo-repair\packages\` (or a CD drive), in order, then tries the VMware Tools MSI uninstall                                                                                                                               | reboot          |
+| `drivers` | yes        | yes    | installs the packages matching `windows-msi-patterns` from `\xo-repair\packages\`, in order, then tries the VMware Tools MSI uninstall                                                                                                                                               | reboot          |
 | `cleanup` |            | yes    | removes VMware driver packages from the driver store (`pnputil -f -d`, provider read from the INF), the VMware Tools directories, and the VMware-signed `vm*.dll` / `vm*.sys` / `pvscsi.sys` from System32                                                                           | reboot          |
 | `finish`  | yes        | yes    | applies `network.ini` to the adapters with these MACs (WMI `EnableStatic`, `SetGateways`, `SetDNSServerSearchOrder`). `full` only: removes the ghost VMware PCI devices (vendor 15AD) with `pnputil /remove-device`, on Windows 10 2004 / Server 2022 and later. Then reports `done` | service deleted |
 

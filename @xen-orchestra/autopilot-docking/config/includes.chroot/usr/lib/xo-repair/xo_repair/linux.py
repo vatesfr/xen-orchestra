@@ -653,7 +653,8 @@ class LinuxGuest:
         for entry in mountable_entries(entries):
             essential = entry.mountpoint in ESSENTIAL_MOUNTPOINTS
             dev = self._resolve_spec(entry.spec)
-            target = self.root / entry.mountpoint.lstrip("/")
+            # a symlink of the guest must not lead the mount out of its root
+            target = resolve_in_root(self.root, entry.mountpoint)
             if dev is None or not target.is_dir():
                 if essential:
                     self.report.error("fstab_mount_missing",

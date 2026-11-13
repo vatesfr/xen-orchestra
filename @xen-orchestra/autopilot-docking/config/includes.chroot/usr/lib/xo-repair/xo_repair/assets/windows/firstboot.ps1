@@ -6,7 +6,7 @@
 #   standard: drivers -> finish
 #   full:     drivers -> cleanup -> finish
 #
-#   drivers  install the Xen PV packages copied by xo-repair (or from a CD),
+#   drivers  install the Xen PV packages copied by xo-repair,
 #            uninstall VMware Tools (MSI),
 #            then reboot onto the PV drivers
 #   cleanup  remove VMware driver packages and VMware Tools files, then reboot
@@ -102,6 +102,21 @@ function Remove-VmwareAutorun {
     }
 }
 
+# xo-repair wrote this folder through ntfs-3g, which leaves it writable by every user of the guest, while
+# its script and packages run as LocalSystem: restricted to SYSTEM and the administrators, by SID since the
+# names of the groups are localized. At every run, before anything is read from the folder
+function Protect-Base {
+    $output = & icacls.exe $Base /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' 2>&1 |
+        Out-String
+    if ($LASTEXITCODE -eq 0) {
+        # the files take the access of the folder
+        $output = & icacls.exe (Join-Path $Base '*') /reset /T /C 2>&1 | Out-String
+    }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "warning: the access to $Base could not be restricted: $($output.Trim())"
+    }
+}
+
 function Remove-FirstbootService {
     & sc.exe delete $ServiceName | Out-Null
     Write-Log "service $ServiceName removed"
@@ -137,23 +152,13 @@ function Stop-Attempt([string]$Reason) {
     exit 1
 }
 
+# Copied from the guest tools disk by xo-repair. Only from there: what is installed as LocalSystem must come
+# from a folder only SYSTEM and the administrators can write, see Protect-Base
 function Find-Package([string]$Pattern) {
-    # copied from the guest tools disk by xo-repair
     $local = Join-Path $Base 'packages'
-    if (Test-Path $local) {
-        $found = Get-ChildItem -Path $local -Filter $Pattern -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($found) { return $found.FullName }
-    }
-    # fallback: CD drives, which can show up late after boot: wait up to one minute
-    for ($i = 0; $i -lt 12; $i++) {
-        foreach ($drive in Get-WmiObject Win32_LogicalDisk -Filter 'DriveType=5') {
-            if (-not $drive.VolumeName) { continue }
-            $found = Get-ChildItem -Path ($drive.DeviceID + '\') -Filter $Pattern -Recurse -ErrorAction SilentlyContinue |
-                Select-Object -First 1
-            if ($found) { return $found.FullName }
-        }
-        Start-Sleep -Seconds 5
-    }
+    if (-not (Test-Path $local)) { return $null }
+    $found = Get-ChildItem -Path $local -Filter $Pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) { return $found.FullName }
     return $null
 }
 
@@ -217,7 +222,7 @@ function Invoke-DriversPhase {
     foreach ($pattern in $Config['msi_patterns'].Split(';')) {
         if (-not $pattern) { continue }
         $msi = Find-Package $pattern
-        if (-not $msi) { Stop-Attempt "no package matching $pattern in $Base\packages or on any CD drive" }
+        if (-not $msi) { Stop-Attempt "no package matching $pattern in $Base\packages" }
         $name = [IO.Path]::GetFileNameWithoutExtension($msi)
         Write-Log "installing $msi"
         $code = Invoke-Msi @('/i', "`"$msi`"", '/qn', '/norestart', '/l*v', "`"$(Join-Path $Base "install-$name.log")`"")
@@ -344,6 +349,7 @@ function Invoke-FinishPhase {
 
 # -- main ------------------------------------------------------------------------
 
+Protect-Base
 $Config = Read-Config
 $Plan = $Phases[$Config['cleanup']]
 if (-not $Plan) { $Plan = $Phases['standard'] }

@@ -1,4 +1,4 @@
-// The contract with the repair ISO (repository xo-v2v-repair-iso): XO writes its inputs in `VM.xenstore_data`, the
+// The contract with the repair ISO (package @xen-orchestra/autopilot-docking): XO writes its inputs in `VM.xenstore_data`, the
 // ISO reads them from the guest and writes its outputs under `out/`, which XAPI syncs back into
 // `VM.xenstore_data`, where they stay after the VM halts.
 

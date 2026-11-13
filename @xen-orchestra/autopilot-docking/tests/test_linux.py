@@ -141,6 +141,23 @@ class MountableTest(unittest.TestCase):
         self.assertEqual([e.mountpoint for e in mountable_entries(entries)], ["/var", "/var/lib"])
 
 
+class MountFstabTest(unittest.TestCase):
+    def test_mount_point_stays_in_the_guest_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # an absolute symlink, which the live system would follow out of the guest
+            root = make_tree(Path(tmp), {"boot": ("symlink", "/guest-boot"), "guest-boot/.keep": ""})
+            devices = parse_lsblk(lsblk_json(
+                dev("xvda", "disk", children=[dev("xvda1", fstype="ext4", uuid="U-BOOT")]),
+            ))
+            mounts = mock.Mock()
+            guest = LinuxGuest(OsCandidate("linux", devices[1]), devices, guest_disks(devices), mounts,
+                               Report("repair", "dev"), readonly=False)
+            guest.root = root
+            guest._mount_fstab(parse_fstab("UUID=U-BOOT /boot ext4 defaults 0 2\n"))
+            mounts.mount.assert_called_once_with("/dev/xvda1", "ext4", root / "guest-boot", readonly=False,
+                                                 options=[])
+
+
 class NetworkTest(unittest.TestCase):
     MAC = "00:0c:29:d4:bf:19"
 
