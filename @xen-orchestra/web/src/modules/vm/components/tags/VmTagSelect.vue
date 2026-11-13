@@ -31,5 +31,9 @@ const { tagSuggestions } = useVmTagSuggestions()
 
 const { getTagLock } = useVmReservedTags(() => vm)
 
-const unlockedSuggestions = computed(() => tagSuggestions.value.filter(({ tag }) => getTagLock(tag) === undefined))
+// the VM's own tags stay listed (locked if they can't be removed); the
+// others only if they can be added
+const unlockedSuggestions = computed(() =>
+  tagSuggestions.value.filter(({ tag }) => vm.tags.includes(tag) || getTagLock(tag, 'add') === undefined)
+)
 </script>
