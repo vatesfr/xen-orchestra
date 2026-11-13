@@ -40,6 +40,7 @@
 
 <!--packages-start-->
 
+- @vates/obfuscate minor
 - @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/backups minor
