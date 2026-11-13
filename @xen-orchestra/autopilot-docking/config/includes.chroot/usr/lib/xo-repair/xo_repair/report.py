@@ -18,6 +18,17 @@ log = logging.getLogger("xo-repair")
 # the write fails and XO gets no report at all. Keep a safety margin.
 XENSTORE_VALUE_LIMIT = 1900
 
+# what XO reads in a report: the rest is only for humans, and dropped first when the report does not fit
+XO_OS_KEYS = ("kind", "name", "rtc_timeoffset", "firstboot")
+XO_NETWORK_KEYS = ("guid", "dhcp", "addresses")
+XO_CODES = frozenset({
+    "boot_disk_not_first",
+    "install_firstboot",
+    "pv_drivers_unsupported",
+    "windows_firstboot_incomplete",
+    "windows_static_ip_unmapped",
+})
+
 
 @dataclass
 class Finding:
@@ -101,7 +112,8 @@ class Report:
             return "warning"
         return "ok"
 
-    def to_dict(self, *, with_data: bool = True, with_messages: bool = True, with_info: bool = True) -> dict:
+    def to_dict(self, *, with_details: bool = True, with_data: bool = True, with_messages: bool = True,
+                with_info: bool = True) -> dict:
         findings = []
         for f in self.findings:
             if f.level == "info" and not with_info:
@@ -127,8 +139,12 @@ class Report:
             "firmware": self.firmware,
             "disks": self.disks,
             "tools": self.tools,
-            "os": self.os,
-            "network": self.network,
+            "os": self.os if with_details else {k: self.os[k] for k in XO_OS_KEYS if k in self.os},
+            "network": self.network if with_details else [
+                {k: adapter[k] for k in XO_NETWORK_KEYS if k in adapter}
+                # XO only matches the static adapters with the cards of the source
+                for adapter in self.network if not adapter.get("dhcp") and adapter.get("addresses")
+            ],
             "findings": findings,
             "actions": actions,
         }
@@ -143,22 +159,35 @@ class Report:
         relies on them, messages are only for humans.
         """
         variants = (
-            {"with_data": True, "with_messages": True, "with_info": True},
-            {"with_data": False, "with_messages": True, "with_info": True},
-            {"with_data": False, "with_messages": True, "with_info": False},
-            {"with_data": False, "with_messages": False, "with_info": False},
+            {"with_details": True, "with_data": True, "with_messages": True, "with_info": True},
+            {"with_details": False, "with_data": True, "with_messages": True, "with_info": True},
+            {"with_details": False, "with_data": False, "with_messages": True, "with_info": True},
+            {"with_details": False, "with_data": False, "with_messages": True, "with_info": False},
+            {"with_details": False, "with_data": False, "with_messages": False, "with_info": False},
         )
         for options in variants:
             text = json.dumps(self.to_dict(**options), separators=(",", ":"))
             if len(text.encode()) <= limit:
                 return text
-        data = self.to_dict(with_data=False, with_messages=False, with_info=False)
+        data = self.to_dict(with_details=False, with_data=False, with_messages=False, with_info=False)
         data["truncated"] = True
-        # errors first, so they are the last entries to be dropped
-        data["findings"].sort(key=lambda f: f["level"] != "error")
         while len(json.dumps(data, separators=(",", ":")).encode()) > limit:
             longest = max(("findings", "actions"), key=lambda k: len(data[k]))
             if not data[longest]:
                 break
-            data[longest].pop()
+            _drop_one(data[longest])
         return json.dumps(data, separators=(",", ":"))
+
+
+def _is_relied_on(entry: dict) -> bool:
+    """A finding or an action XO acts on, or which tells why the run failed."""
+    return entry.get("level") == "error" or entry.get("status") == "failed" or entry["code"] in XO_CODES
+
+
+def _drop_one(entries: list[dict]) -> None:
+    """Drops the last entry XO does not rely on, the last one when it relies on all of them."""
+    for index in range(len(entries) - 1, -1, -1):
+        if not _is_relied_on(entries[index]):
+            del entries[index]
+            return
+    entries.pop()
