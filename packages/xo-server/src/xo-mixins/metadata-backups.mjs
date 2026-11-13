@@ -5,6 +5,9 @@ import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
+import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { resolveBackupRepositories } from './backups-ng/_resolveBackupTargets.mjs'
+import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
@@ -52,6 +55,31 @@ export default class metadataBackup {
     if (job.xoMetadata) {
       const config = await app.exportConfig()
       job.xoMetadata = typeof config === 'string' ? config : { encoding: 'base64', data: config.toString('base64') }
+    }
+
+    if (isExpression(job.remotes)) {
+      const runContext = buildRunContext(
+        new Date(),
+        job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+      )
+      const { backupRepositoryIds: remoteIds, invalidUrlIds } = resolveBackupRepositories(
+        job,
+        await app.getAllRemotes(),
+        runContext
+      )
+
+      if (invalidUrlIds.length > 0) {
+        jobsLogger.warning(
+          'some backup repositories matched the expression but have an invalid URL, they are skipped',
+          {
+            event: 'task.warning',
+            taskId: runJobId,
+            data: { backupRepositories: invalidUrlIds },
+          }
+        )
+      }
+
+      job.remotes = { id: { __or: remoteIds } }
     }
 
     const remoteIds = unboxIdsFromPattern(job.remotes)
