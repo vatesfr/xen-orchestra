@@ -21,7 +21,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsStatus :status="isBackupJobEnabled(schedules)" />
+          <VtsStatus :status="isEnabled" />
         </template>
       </VtsCardRowKeyValue>
       <template v-if="healthCheckStatus !== undefined">
@@ -84,7 +84,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJob } = defineProps<{
+const { backupJob, schedules } = defineProps<{
   backupJob: FrontAnyXoBackupJob
   schedules: FrontXoSchedule[]
 }>()
@@ -102,6 +102,8 @@ const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
 
 const modeLabel = useXoBackupJobModeLabel(() => backupJob)
+
+const isEnabled = computed(() => isBackupJobEnabled(schedules))
 
 const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 

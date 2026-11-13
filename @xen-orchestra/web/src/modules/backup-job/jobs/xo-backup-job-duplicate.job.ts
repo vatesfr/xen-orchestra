@@ -1,6 +1,6 @@
 import { xoBackupJobsArg } from '@/modules/backup-job/jobs/xo-backup-job-args.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { getBackupJobDuplicatePayload } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import { getBackupJobDuplicatePayload } from '@/modules/backup-job/utils/xo-backup-job-duplicate-payload.util.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
