@@ -30,7 +30,7 @@
   "license": "AGPL-3.0-or-later",
   "version": "0.4.2",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "dependencies": {
     "passport-openidconnect": "^0.1.2"

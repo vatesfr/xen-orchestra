@@ -41,6 +41,7 @@
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [Auth/OIDC] Fix sign in with providers whose ID token only carries the minimal claims, as the OpenID specification requires once an access token is issued (e.g. SimpleSAMLphp, SATOSA): the username and the groups are then read from the userinfo endpoint (PR [#9648](https://github.com/vatesfr/xen-orchestra/pull/9648))
 
 ### Packages to release
 
@@ -69,6 +70,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-auth-oidc patch
 - xo-server-load-balancer patch
 - xo-web minor
 
