@@ -41,6 +41,7 @@
 
 - [Pools] Pool side panel now shows the same pool name, UUID and icon as the pools table, and keeps the pool card when the pool is disconnected or unreachable (PR [#10714](https://github.com/vatesfr/xen-orchestra/pull/10714))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
+- [Backup/Merge worker] Fix the merge worker exiting with `ENOENT` when a queued task has already been removed (Issue [#10762](https://github.com/vatesfr/xen-orchestra/issues/10762))
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 
 ### Packages to release
