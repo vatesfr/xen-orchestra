@@ -30,16 +30,9 @@ import type { V2vVmDatastoreViewRow, V2vVmsTableView, V2vVmViewRow } from '@/mod
 import type { PaginationBindings } from '@core/composables/pagination.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable, { type TableState } from '@core/components/table/VtsTable.vue'
-import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
-import { useCollapsedListColumn } from '@core/tables/column-definitions/collapsed-list-column.ts'
-import { useDateColumn } from '@core/tables/column-definitions/date-column.ts'
-import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
-import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
+import { useV2vVmColumns, type V2vVmColumns } from '@core/tables/column-sets/v2v-vm-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { h, type VNode } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { selection } = defineProps<{
   view: V2vVmsTableView
@@ -54,27 +47,7 @@ const emit = defineEmits<{
 
 const { powerLabels, getStatusTag } = useV2vVmLabels()
 
-function setupColumns() {
-  const { t } = useI18n()
-
-  return {
-    checkbox: useCheckboxColumn(),
-    vm: useTextColumn({ headerLabel: () => t('vm') }),
-    power: useTextColumn({ headerLabel: () => t('power-state') }),
-    datastores: useTextColumn({ headerLabel: () => t('datastores') }),
-    alsoOn: useCollapsedListColumn({ headerLabel: () => t('also-on') }),
-    size: useNumberColumn({ headerLabel: () => t('size') }),
-    sizeOnDatastore: useNumberColumn({ headerLabel: () => t('size-on-this-datastore') }),
-    migration: useTagColumn({ headerLabel: () => t('migration') }),
-    lastSync: useDateColumn({ headerLabel: () => t('last-sync') }),
-  }
-}
-
-type V2vVmColumns = ReturnType<typeof setupColumns>
-
 type BodyRenderer<TColumnId extends keyof V2vVmColumns> = (renderer: V2vVmColumns[TColumnId]['renderBody']) => VNode
-
-const useV2vVmColumns = defineColumns(setupColumns)
 
 function renderSize(bytes: number, renderer: V2vVmColumns['size']['renderBody']) {
   const size = formatSizeRaw(bytes, 1)
