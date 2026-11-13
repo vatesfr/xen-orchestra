@@ -218,7 +218,7 @@ export const configurationSchema = {
         },
         // not `checkCertificate` with `true` as default: xo-web displays a
         // missing boolean as disabled, whatever its default
-        ignoreUnauthorized: {
+        allowUnauthorized: {
           title: 'Ignore certificate errors',
           description:
             "TLS only: do not check the server's certificate (e.g. self-signed certificate), prefer adding its certificate authority below",
@@ -258,6 +258,8 @@ class AuditXoPlugin {
 
     this._auditCore = undefined
     this._storage = undefined
+    this._configured = false
+    this._syslogError = undefined
     this._syslogForwarder = undefined
 
     this._listeners = {
@@ -268,17 +270,32 @@ class AuditXoPlugin {
 
   async configure({ active = false, syslog }, { loaded }) {
     // created first so that an invalid configuration is rejected without altering the current one
-    let syslogForwarder
+    let syslogForwarder, syslogError
     if (syslog !== undefined) {
-      const { certificateAuthorities, ...options } = syslog
-      syslogForwarder = new SyslogForwarder({
-        ...options,
-        ca:
-          certificateAuthorities === undefined
-            ? undefined
-            : await Promise.all(certificateAuthorities.map(path => fromCallback(readFile, path, 'utf8'))),
-      })
+      try {
+        const { certificateAuthorities, ...options } = syslog
+        syslogForwarder = new SyslogForwarder({
+          ...options,
+          ca:
+            certificateAuthorities === undefined
+              ? undefined
+              : await Promise.all(certificateAuthorities.map(path => fromCallback(readFile, path, 'utf8'))),
+        })
+      } catch (error) {
+        // a configuration change is rejected so that the user sees why
+        if (this._configured) {
+          throw error
+        }
+
+        // at startup (first configuration, from the saved one), e.g. a
+        // certificate authority which is no longer readable must not prevent
+        // the plugin from recording, only the forwarding is disabled
+        log.error('cannot forward records to syslog, fix the syslog settings of the plugin', { error })
+        syslogError = error
+      }
     }
+    this._configured = true
+    this._syslogError = syslogError
     this._syslogForwarder?.close()
     this._syslogForwarder = syslogForwarder
 
@@ -419,7 +436,8 @@ class AuditXoPlugin {
   async test() {
     const forwarder = this._syslogForwarder
     if (forwarder === undefined) {
-      throw new Error('no syslog URI configured')
+      // e.g. the certificate authority which was not readable at startup
+      throw this._syslogError ?? new Error('no syslog URI configured')
     }
     return forwarder.test()
   }
