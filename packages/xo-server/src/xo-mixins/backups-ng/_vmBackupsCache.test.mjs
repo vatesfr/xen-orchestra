@@ -5,7 +5,7 @@ import { isKnownJournalEvent } from '@xen-orchestra/backups/_backupJournal.mjs'
 import { normalize } from '@xen-orchestra/fs/path'
 
 import { filenameOf, journalEntryPath, metadataOf, OTHER_VM, VM } from './_vmBackupsFixtures.mjs'
-import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
+import { journalPurgeHorizon, serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 
 const REPOSITORY = { id: 'repository', url: 'file:///media/backup' }
 
@@ -1073,5 +1073,24 @@ describe('serveVmBackups', () => {
       [OTHER_VM]: [{ id: `repository/${filenameOf(OTHER_VM, 'c')}`, timestamp: 3 }],
     })
     assert.deepEqual(serveVmBackups(cached, 'repository', 'a-vm-without-backups'), { 'a-vm-without-backups': [] })
+  })
+})
+
+describe('journalPurgeHorizon', () => {
+  const DAY = 24 * 60 * 60e3
+
+  it('is the retention ago', t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+
+    assert.equal(journalPurgeHorizon(REPOSITORY, 30 * DAY), Date.parse('2026-07-12T10:00:00Z'))
+  })
+
+  it('keeps what a replay can still read, whatever the retention', t => {
+    mockTime(t, Date.parse('2026-08-11T10:00:00Z'))
+
+    // replayed for 3 days after it is listed, from a cursor 5 minutes before the listing
+    const repository = { ...REPOSITORY, url: REPOSITORY.url + '?fullListingInterval=4320' }
+
+    assert.equal(journalPurgeHorizon(repository, DAY), Date.parse('2026-08-08T09:55:00Z'))
   })
 })

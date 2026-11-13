@@ -4,7 +4,7 @@
       <VtsForgetButton
         :busy="isForgettingPifs"
         :disabled="!canForgetPifs"
-        :tooltip="!canForgetPifs && forgetPifsErrorMessage"
+        :hint="forgetPifsErrorMessage"
         @click="forgetPifs()"
       />
     </template>
@@ -12,7 +12,7 @@
       <!-- PIF -->
       <UiPanelCard>
         <UiPanelCardTitle :id="pif.uuid" size="medium" :label="isBond ? t('bond') : t('pif')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -82,34 +82,15 @@
               </UiTagsList>
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
         <UiPanelCardTitle size="medium" :label="t('network-information')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- IP ADDRESSES -->
-          <div v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-              </template>
-              <template #value>
-                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
-              </template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
+          <VtsCardRowKeyValue :values="ipAddresses">
+            <template #key>{{ t('ip-addresses') }}</template>
           </VtsCardRowKeyValue>
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
@@ -173,26 +154,15 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- BOND DEVICES -->
-          <div>
-            <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
-              <template #key>
-                <div v-if="index === 0">{{ t('bond-devices') }}</div>
-              </template>
-              <template #value>
-                <span v-tooltip class="text-ellipsis">{{ device }}</span>
-              </template>
-              <template v-if="device" #addons>
-                <VtsCopyButton :value="device" />
-                <VtsCopyAllMenuItem v-if="index === 0 && bondDevices.length > 1" :values="bondDevicesFiltered" />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-        </div>
+          <VtsCardRowKeyValue v-if="bondDevicesFiltered.length > 0" :values="bondDevicesFiltered">
+            <template #key>{{ t('bond-devices') }}</template>
+          </VtsCardRowKeyValue>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- PROPERTIES -->
       <UiPanelCard>
         <UiPanelCardTitle size="medium" :label="t('properties')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -226,7 +196,7 @@
               <VtsCopyButton :value="networkPurpose" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -239,7 +209,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsForgetButton from '@core/components/forget-button/VtsForgetButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -331,12 +301,6 @@ const speed = computed(() => {
 
 <style scoped lang="postcss">
 .host-pif-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .network {
     display: flex;
     gap: 0.8rem;

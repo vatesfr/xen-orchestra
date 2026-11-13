@@ -10,7 +10,7 @@
 
 ## Structuring a test file
 
-- **One `describe` block per function or exposed property**, labelled with its exact name (`describe('getHostInfo')`, `describe('powerState')`). A component test has no such members: group with `describe` only to separate genuinely distinct behaviours, otherwise flat `it`s read better.
+- **One `describe` block per function or exposed property**, labeled with its exact name (`describe('getHostInfo')`, `describe('powerState')`). A component test has no such members: group with `describe` only to separate genuinely distinct behaviors, otherwise flat `it`s read better.
 - Use `it` (not `test`).
 - The name completes the sentence the `it` starts: a **present-tense assertion**, lowercase, no trailing period, and **without a redundant prefix** — the `describe` label already carries the function name. `it('formats the core count with its socket count')` reads as one sentence; `it('getHostCoreSocketInfo formats …')` stutters.
 

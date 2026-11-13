@@ -1,23 +1,21 @@
 <template>
-  <UiButton
-    v-tooltip="!canChangeBackupRepositoriesState && changeBackupRepositoriesStateErrorMessage"
-    size="medium"
+  <VtsActionButton
+    :hint="changeBackupRepositoriesStateErrorMessage"
     variant="tertiary"
     accent="brand"
     :disabled="!canChangeBackupRepositoriesState"
-    :left-icon="br.enabled ? 'action:disable' : 'action:connect'"
+    :icon="br.enabled ? 'action:disable' : 'action:connect'"
     :busy="isChangingBackupRepositoriesState"
     @click="changeBackupRepositoriesState()"
   >
     {{ br.enabled ? t('action:disable') : t('action:connect') }}
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useI18n } from 'vue-i18n'
 
 const { br } = defineProps<{

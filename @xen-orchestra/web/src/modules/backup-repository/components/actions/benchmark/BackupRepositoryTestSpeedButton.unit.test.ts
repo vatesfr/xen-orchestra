@@ -4,8 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
 
@@ -50,10 +49,10 @@ function findJobBrs() {
 }
 
 it('offers to test the speed', () => {
-  const menuItem = mountButton().getComponent(MenuItem)
+  const button = mountButton().getComponent(VtsActionButton)
 
-  expect(menuItem.text()).toBe(t('action:test-speed'))
-  expect(menuItem.props('icon')).toBe('action:scan')
+  expect(button.text()).toBe(t('action:test-speed'))
+  expect(button.props('icon')).toBe('action:scan')
 })
 
 it('runs the job on the repository', () => {
@@ -63,20 +62,20 @@ it('runs the job on the repository', () => {
   expect(findJobBrs()).toEqual([br])
 })
 
-it('runs the job when clicking the menu item', async () => {
-  await mountButton().getComponent(MenuTrigger).trigger('click')
+it('runs the job when clicking the button', async () => {
+  await mountButton().get('button').trigger('click')
 
   expect(run).toHaveBeenCalledOnce()
 })
 
-it('disables the menu item when the job cannot run', () => {
+it('disables the button when the job cannot run', () => {
   mockBenchmarkJob({ canRun: false })
 
-  expect(mountButton().getComponent(MenuItem).props('disabled')).toBe(true)
+  expect(mountButton().getComponent(VtsActionButton).props('disabled')).toBe(true)
 })
 
-it('shows the menu item as busy while the job runs', () => {
+it('shows the button as busy while the job runs', () => {
   mockBenchmarkJob({ isRunning: true })
 
-  expect(mountButton().getComponent(MenuItem).props('busy')).toBe(true)
+  expect(mountButton().getComponent(VtsActionButton).props('busy')).toBe(true)
 })

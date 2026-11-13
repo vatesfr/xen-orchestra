@@ -11,7 +11,7 @@
       event('close').args({}).help('Emitted when the user clicks the close button'),
       slot(),
       slot('header').help('Meant to receive text or other information'),
-      slot('actions').help('For the main action buttons'),
+      slot('actions').help('For the main action buttons, moved into the more actions menu when they do not fit'),
       slot('more-actions').help('For other action buttons, shown in a dropdown menu'),
       slot('corner-actions').help('For action icon buttons, like the pin button on VtsSidePanel'),
       setting('headerText').widget(text()),
@@ -29,15 +29,15 @@
         <span>{{ settings.headerText }}</span>
       </template>
       <template v-if="settings.showButtons" #actions>
-        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="action:edit">Edit</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="danger" left-icon="action:delete">Delete</UiButton>
+        <VtsActionButton variant="tertiary" accent="brand" icon="action:edit">Edit</VtsActionButton>
+        <VtsActionButton variant="tertiary" accent="danger" icon="action:delete">Delete</VtsActionButton>
       </template>
       <template v-if="settings.showMoreButtons" #more-actions>
-        <UiButton variant="tertiary" size="medium" accent="warning" left-icon="action:disconnect">
+        <MenuItem accent="warning" icon="action:disconnect">
           Disconnect<UiCounter value="3" accent="warning" variant="primary" size="small" />
-        </UiButton>
-        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="action:copy">Copy</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="action:download">Download</UiButton>
+        </MenuItem>
+        <MenuItem accent="neutral" icon="action:copy">Copy</MenuItem>
+        <MenuItem accent="neutral" icon="action:download">Download</MenuItem>
       </template>
       <template #default>
         <VtsStateHero v-if="settings.showHero" format="card" :type="settings.heroType" size="medium" />
@@ -53,9 +53,10 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param.ts'
 import { boolean, choice, text } from '@/libs/story/story-widget.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
+import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsPanel from '@core/components/panel/VtsPanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import { STATE_HERO_TYPES } from '@core/types/state-hero.type.ts'

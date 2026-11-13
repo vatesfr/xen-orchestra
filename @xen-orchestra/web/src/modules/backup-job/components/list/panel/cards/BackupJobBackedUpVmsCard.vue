@@ -12,7 +12,7 @@
       </VtsCardRowKeyValue>
       <template v-if="isSmartModeEnabled">
         <VtsDivider class="divider" type="stretch" />
-        <div class="content">
+        <VtsCardRowList class="content">
           <VtsCardRowKeyValue v-if="smartModePowerState !== undefined">
             <template #key>
               {{ t('power-state') }}
@@ -42,17 +42,13 @@
             <BackupJobSmartModeTagsItem :tags="smartModeTags.included" :label="t('vms-tags')" />
             <BackupJobSmartModeTagsItem :tags="smartModeTags.excluded" :label="t('excluded-vms-tags')" />
           </template>
-        </div>
+        </VtsCardRowList>
       </template>
       <template v-if="backedUpVmsCount > 0">
         <VtsDivider class="divider" type="stretch" />
         <UiCollapsibleList tag="ul" :total-items="backedUpVmsCount">
-          <li v-for="vm in backedUpVms" :key="vm.id">
-            <UiLink
-              size="small"
-              :icon="`object:vm:${toLower(vm.power_state)}`"
-              :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
-            >
+          <li v-for="{ vm, icon, iconTooltip } in backedUpVmLinks" :key="vm.id">
+            <UiLink size="small" :icon :icon-tooltip :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
               {{ vm.name_label }}
             </UiLink>
           </li>
@@ -67,7 +63,10 @@ import BackupJobSmartModePoolItem from '@/modules/backup-job/components/list/pan
 import BackupJobSmartModeTagsItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobSmartModeTagsItem.vue'
 import { useXoBackedUpVmsUtils } from '@/modules/backup-job/composables/use-xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -76,6 +75,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { toLower } from 'lodash-es'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpVms: rawBackedUpVms } = defineProps<{
@@ -86,6 +86,12 @@ const { t } = useI18n()
 
 const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smartModeTags, isSmartModeEnabled } =
   useXoBackedUpVmsUtils(() => rawBackedUpVms)
+
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const backedUpVmLinks = computed(() =>
+  backedUpVms.value.map(vm => ({ vm, icon: getVmIcon(vm), iconTooltip: getVmIconTooltip(vm) }))
+)
 </script>
 
 <style scoped lang="postcss">
@@ -95,10 +101,6 @@ const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smar
   }
 
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-
     .smart-mode-power-state-value {
       display: flex;
       align-items: center;

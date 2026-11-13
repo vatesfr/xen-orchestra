@@ -3,12 +3,16 @@ import type {
   AnyXoJob,
   AnyXoLog,
   NonXapiXoRecord,
+  XoBackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoMetadataBackupJob,
+  XoMirrorBackupJob,
+  XoNetwork,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -21,9 +25,13 @@ import type {
   XoVif,
   XoVm,
   XoVmBackupArchive,
+  XoVmBackupJob,
+  XoVmTemplate,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
+import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -202,6 +210,15 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
+// `@xen-orchestra/vmware-explorer` is not typed
+export type EsxiConnectionParams = {
+  /** `host` or `host:port` */
+  host: string
+  user: string
+  password: string
+  sslVerify: boolean
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -282,6 +299,8 @@ export type XoApp = EventEmitter & {
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* whether this machine can run the tools of an import from VMware */
+  checkEsxiDependencies(): Promise<XoV2vStatus>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -309,6 +328,17 @@ export type XoApp = EventEmitter & {
     set(key: string, value: unknown): void
     unset(key: string): void
   }
+  createBackupNgJob<T extends XoVmBackupJob | XoMirrorBackupJob>(
+    type: T['type'],
+    props: Omit<T, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules?: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<T>
+  createMetadataBackupJob(
+    props: Omit<XoMetadataBackupJob, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<XoMetadataBackupJob>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -324,6 +354,14 @@ export type XoApp = EventEmitter & {
     proxy?: XoProxy['id']
     url: string
   }): Promise<XoBackupRepository>
+  createSchedule(params: {
+    cron: XoSchedule['cron']
+    enabled: XoSchedule['enabled']
+    jobId: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<XoSchedule>
   createUser(params: {
     firstname?: string
     lastname?: string
@@ -340,6 +378,7 @@ export type XoApp = EventEmitter & {
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
+  deleteSchedule(id: XoSchedule['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
@@ -378,6 +417,8 @@ export type XoApp = EventEmitter & {
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   removeRemote(id: XoBackupRepository['id']): Promise<void>
+  /** Also deletes the schedules of the job */
+  removeJob(id: AnyXoJob['id']): Promise<void>
   getAllRemotesInfo(): Promise<
     Record<
       XoBackupRepository['id'],
@@ -441,6 +482,7 @@ export type XoApp = EventEmitter & {
   }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
+  getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -456,6 +498,22 @@ export type XoApp = EventEmitter & {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>
+  listBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+    // keys ending in "/" are directories; files carry size (bytes) and mtime (epoch ms).
+    // Values may be empty ({}) for directories or when served by an older proxy.
+  ): Promise<Record<string, { size?: number; mtime?: number }>>
+  fetchBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string
+  ): Promise<Readable>
   loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
@@ -466,6 +524,21 @@ export type XoApp = EventEmitter & {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /** imports one VM from VMware, resuming a previous partial import when possible, returns the UUID of the XCP-ng VM */
+  migrationfromEsxi(
+    params: EsxiConnectionParams & {
+      sr: XoSr['id']
+      network: XoNetwork['id']
+      /** overrides `sr`, by disk node (e.g. `scsi0:0`) */
+      disks?: Record<string, XoSr['id']>
+      /** overrides `network`, by NIC device key (e.g. `4000`) */
+      nics?: Record<string, XoNetwork['id']>
+      template: XoVmTemplate['id']
+      stopSource: boolean
+      /** VMware moref of the VM */
+      vm: string
+    }
+  ): Promise<XoVm['uuid']>
   /**
    * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
    * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
@@ -543,6 +616,19 @@ export type XoApp = EventEmitter & {
   ): Promise<{ vmUuid: string; success: boolean; merge?: boolean; size?: number; error?: string }[]>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
+  /**
+   * Shallow merge of the properties into the existing job, a `null` value removes the property.
+   */
+  updateJob(job: { id: AnyXoJob['id']; [key: string]: unknown }, merge?: boolean): Promise<void>
+  updateSchedule(params: {
+    id: XoSchedule['id']
+    cron?: XoSchedule['cron']
+    enabled?: XoSchedule['enabled']
+    jobId?: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<void>
   updateUser(
     id: XoUser['id'],
     updates: {

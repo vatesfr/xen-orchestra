@@ -7,7 +7,7 @@
       </UiLink>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="XOA_NAME">
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/dashboard' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('dashboard') }}

@@ -43,3 +43,29 @@ type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes'
 export type UnbrandXoMirrorBackupJob = Unbrand<UnbrandedXoMirrorBackupJob>
 
 export type UnbrandAnyXoBackupJob = UnbrandXoVmBackupJob | UnbrandXoMetadataBackupJob | UnbrandXoMirrorBackupJob
+
+export type CreateBackupJobSchedule = {
+  cron: string
+  enabled?: boolean
+  name?: string
+  timezone?: string
+}
+
+type WithSchedules = {
+  /**
+   * Schedules to create along the job, keyed by temporary IDs.
+   *
+   * These temporary IDs can be used as keys in `settings`, they will be replaced by the IDs of the created schedules.
+   */
+  schedules?: Record<string, CreateBackupJobSchedule>
+}
+
+export type CreateVmBackupJobBody = Omit<UnbrandXoVmBackupJob, 'id'> & WithSchedules
+export type CreateMetadataBackupJobBody = Omit<UnbrandXoMetadataBackupJob, 'id' | 'userId'> & WithSchedules
+export type CreateMirrorBackupJobBody = Omit<UnbrandXoMirrorBackupJob, 'id'> & WithSchedules
+export type CreateBackupJobBody = CreateVmBackupJobBody | CreateMetadataBackupJobBody | CreateMirrorBackupJobBody
+
+export type UpdateVmBackupJobBody = Partial<Omit<UnbrandXoVmBackupJob, 'id' | 'type'>>
+export type UpdateMetadataBackupJobBody = Partial<Omit<UnbrandXoMetadataBackupJob, 'id' | 'type' | 'userId'>>
+export type UpdateMirrorBackupJobBody = Partial<Omit<UnbrandXoMirrorBackupJob, 'id' | 'type'>>
+export type UpdateBackupJobBody = UpdateVmBackupJobBody | UpdateMetadataBackupJobBody | UpdateMirrorBackupJobBody

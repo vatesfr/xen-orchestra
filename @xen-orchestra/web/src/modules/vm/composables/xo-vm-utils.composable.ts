@@ -1,5 +1,6 @@
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { CHANGING_STATE_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
+import { TRACKED_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
@@ -28,12 +29,12 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
     () => vm.value.power_state,
-    {
+    () => ({
       [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
       [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
       [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
       [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
-    },
+    }),
     VM_POWER_STATE.RUNNING
   )
 
@@ -99,34 +100,13 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     } as const
   })
 
-  const isChangingState = computed(() => isVmOperationPending(vm.value, CHANGING_STATE_OPERATIONS))
+  const hasPendingOperation = computed(() => isVmOperationPending(vm.value, TRACKED_OPERATIONS))
 
-  const currentOperation = useMapper<string, string>(
-    () => Object.values(vm.value.current_operations)[0],
-    {
-      start: t('operation:start'),
-      start_on: t('operation:start-on-host'),
-      pause: t('operation:pause'),
-      unpause: t('operation:unpause'),
-      suspend: t('operation:suspend'),
-      resume: t('operation:resume'),
-      clean_reboot: t('operation:clean-reboot'),
-      hard_reboot: t('operation:force-reboot'),
-      shutdown: t('operation:shutdown'),
-      clean_shutdown: t('operation:clean-shutdown'),
-      hard_shutdown: t('operation:force-shutdown'),
-      destroy: t('operation:destroy'),
-      snapshot: t('operation:snapshot'),
-      clone: t('operation:duplicate'),
-      copy: t('operation:duplicate'),
-      export: t('operation:export'),
-      import: t('operation:import'),
-      migrate_send: t('operation:migrate'),
-      pool_migrate: t('operation:migrate'),
-      unknown: '',
-    },
-    'unknown'
-  )
+  const { getVmOperationLabel, getVmIconTooltip } = useXoVmOperationLabel()
+
+  const currentOperation = computed(() => getVmOperationLabel(Object.values(vm.value.current_operations)[0]))
+
+  const iconTooltip = computed(() => getVmIconTooltip(vm.value))
 
   const { buildXo5Route } = useXoRoutes()
 
@@ -138,8 +118,9 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     relativeStartTime,
     hasGuestTools,
     guestToolsDisplay,
-    isChangingState,
+    hasPendingOperation,
     currentOperation,
+    iconTooltip,
     xo5VmAdvancedHref,
   }
 }

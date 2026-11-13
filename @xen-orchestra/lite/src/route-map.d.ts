@@ -296,6 +296,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/action-button/vts-action-button': RouteRecordInfo<
+      '/story/web-core/action-button/vts-action-button',
+      '/story/web-core/action-button/vts-action-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/banner/vts-banner': RouteRecordInfo<
       '/story/web-core/banner/vts-banner',
       '/story/web-core/banner/vts-banner',
@@ -313,6 +320,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/card/vts-card-row-key-value': RouteRecordInfo<
       '/story/web-core/card/vts-card-row-key-value',
       '/story/web-core/card/vts-card-row-key-value',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/card/vts-card-row-list': RouteRecordInfo<
+      '/story/web-core/card/vts-card-row-list',
+      '/story/web-core/card/vts-card-row-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -362,6 +376,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/dropdown-title/vts-dropdown-title': RouteRecordInfo<
       '/story/web-core/dropdown-title/vts-dropdown-title',
       '/story/web-core/dropdown-title/vts-dropdown-title',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/file-uploader-container/vts-file-uploader-container': RouteRecordInfo<
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -418,6 +439,34 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/menu/vts-action-items': RouteRecordInfo<
       '/story/web-core/menu/vts-action-items',
       '/story/web-core/menu/vts-action-items',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-change-state-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu',
+      '/story/web-core/menu/vts-change-state-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-change-state-menu-item': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu-item',
+      '/story/web-core/menu/vts-change-state-menu-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-mobile-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-mobile-menu',
+      '/story/web-core/menu/vts-mobile-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-responsive-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-responsive-menu',
+      '/story/web-core/menu/vts-responsive-menu',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -733,6 +782,27 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/dropdown-button/ui-dropdown-button': RouteRecordInfo<
       '/story/web-core/ui/dropdown-button/ui-dropdown-button',
       '/story/web-core/ui/dropdown-button/ui-dropdown-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-item/ui-file-item': RouteRecordInfo<
+      '/story/web-core/ui/file-item/ui-file-item',
+      '/story/web-core/ui/file-item/ui-file-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-list/ui-file-list': RouteRecordInfo<
+      '/story/web-core/ui/file-list/ui-file-list',
+      '/story/web-core/ui/file-list/ui-file-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-uploader/ui-file-uploader': RouteRecordInfo<
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1367,6 +1437,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/action-button/vts-action-button.story.vue': {
+      routes:
+        | '/story/web-core/action-button/vts-action-button'
+      views:
+        | never
+    }
     'src/stories/web-core/banner/vts-banner.story.vue': {
       routes:
         | '/story/web-core/banner/vts-banner'
@@ -1382,6 +1458,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/card/vts-card-row-key-value.story.vue': {
       routes:
         | '/story/web-core/card/vts-card-row-key-value'
+      views:
+        | never
+    }
+    'src/stories/web-core/card/vts-card-row-list.story.vue': {
+      routes:
+        | '/story/web-core/card/vts-card-row-list'
       views:
         | never
     }
@@ -1424,6 +1506,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/dropdown-title/vts-dropdown-title.story.vue': {
       routes:
         | '/story/web-core/dropdown-title/vts-dropdown-title'
+      views:
+        | never
+    }
+    'src/stories/web-core/file-uploader-container/vts-file-uploader-container.story.vue': {
+      routes:
+        | '/story/web-core/file-uploader-container/vts-file-uploader-container'
       views:
         | never
     }
@@ -1472,6 +1560,30 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/menu/vts-action-items.story.vue': {
       routes:
         | '/story/web-core/menu/vts-action-items'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-change-state-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-change-state-menu-item.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-mobile-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-mobile-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-responsive-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-responsive-menu'
       views:
         | never
     }
@@ -1742,6 +1854,24 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/dropdown-button/ui-dropdown-button.story.vue': {
       routes:
         | '/story/web-core/ui/dropdown-button/ui-dropdown-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-item/ui-file-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-item/ui-file-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-list/ui-file-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-list/ui-file-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-uploader/ui-file-uploader.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-uploader/ui-file-uploader'
       views:
         | never
     }
