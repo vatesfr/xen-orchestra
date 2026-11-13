@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { diagnoseOffline } from './_repair.mjs'
+import { diagnoseOffline, findRepairIso } from './_repair.mjs'
 
 const VM_REF = 'OpaqueRef:vm'
 const CONTEXT = { vmId: 'vm-uuid', sourceVmId: '54' }
@@ -99,5 +99,35 @@ test('withRepairIso restores how the VM boots', async t => {
     await assert.rejects(diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT }))
     const secureBootCalls = xapi.calls.filter(call => call.startsWith('platform.secureboot'))
     assert.deepEqual(secureBootCalls, ['platform.secureboot=false', 'platform.secureboot=null'])
+  })
+})
+
+test('findRepairIso', async t => {
+  const poolWith = (...names) => ({
+    objects: {
+      indexes: {
+        type: {
+          VDI: Object.fromEntries(
+            names.map(name => [name, { $ref: name, name_label: name, $SR: { content_type: 'iso' } }])
+          ),
+        },
+      },
+    },
+  })
+
+  await t.test('takes the most recent build, release or not', async () => {
+    const xapi = poolWith(
+      'xo-repair-20261112-abcdef12.iso',
+      'xo-repair-20261113-1.2.0.iso',
+      'xo-repair-20261101-12345678-dirty.iso'
+    )
+    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'xo-repair-20261113-1.2.0.iso')
+  })
+
+  await t.test('ignores a name it could not order', async () => {
+    // would come last by name, before any dated build
+    const xapi = poolWith('xo-repair-20261112-abcdef12.iso', 'xo-repair-latest.iso')
+    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'xo-repair-20261112-abcdef12.iso')
+    assert.throws(() => findRepairIso(poolWith('xo-repair-latest.iso'), CONTEXT), { code: 'REPAIR_ISO_NOT_FOUND' })
   })
 })

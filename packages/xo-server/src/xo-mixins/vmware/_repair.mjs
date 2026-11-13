@@ -32,14 +32,15 @@ const TOOLS_USERDEVICE = '25'
 
 /**
  * The most recent repair ISO deployed on the pool as an ISO SR VDI: its name starts with the date of its build,
- * `xo-repair-<YYYYMMDD>-<commit>.iso`, the last one by name is the most recent.
+ * `xo-repair-<YYYYMMDD>-<commit or version>.iso`, the last one by name is the most recent. A name without that
+ * structure is ignored: it could not be ordered.
  */
 export function findRepairIso(xapi, context) {
   const isos = Object.values(xapi.objects.indexes.type.VDI ?? {}).filter(
     vdi => isRepairIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
   )
   if (isos.length === 0) {
-    const error = new Error('no repair ISO xo-repair-*.iso in the pool')
+    const error = new Error('no repair ISO xo-repair-<YYYYMMDD>-<commit or version>.iso in the pool')
     error.code = 'REPAIR_ISO_NOT_FOUND'
     Object.assign(error, context)
     throw error
