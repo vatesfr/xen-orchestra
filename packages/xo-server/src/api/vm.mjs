@@ -25,6 +25,16 @@ const log = createLogger('xo:vm')
 const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
 const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
 
+// the override of the placement guards (vdf#141: a protected VM onto a host
+// whose firewall agent can't enforce), for vm.start, vm.resume,
+// vm.recoveryStart and vm.migrate
+const BYPASS_FIREWALL_CHECK_PARAM = {
+  description:
+    "Start, resume or migrate the VM even if a placement guard refuses the host (the firewall: its agent can't enforce there); logged, and only for the users the guard allows",
+  optional: true,
+  type: 'boolean',
+}
+
 const TTL_CACHE = 3e4
 const CACHE = new TTLCache({
   ttl: TTL_CACHE,
@@ -563,6 +573,7 @@ getSecurebootReadiness.resolve = {
 
 export async function migrate({
   bypassAssert = false,
+  bypassFirewallCheck,
   force,
   host,
   mapVdisSrs,
@@ -594,6 +605,14 @@ export async function migrate({
 
   await this.checkPermissions(permissions)
   await this.checkMigration(this.apiContext.user, vm, host.$pool)
+  await this.checkPlacement({
+    operation: 'migrate',
+    user: this.apiContext.user,
+    vm,
+    host,
+    bypass: bypassFirewallCheck,
+    vifNetworks: mapVifsNetworks,
+  })
 
   await this.getXapi(vm).migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
     sr: sr && this.getObject(sr, 'SR')._xapiId,
@@ -631,6 +650,8 @@ migrate.params = {
     optional: true,
     type: 'boolean',
   },
+
+  bypassFirewallCheck: BYPASS_FIREWALL_CHECK_PARAM,
 }
 
 migrate.resolve = {
@@ -1098,11 +1119,13 @@ snapshot.resolve = {
 
 // -------------------------------------------------------------------
 
-export function start({ vm, bypassMacAddressesCheck, force, host }) {
+export async function start({ vm, bypassFirewallCheck, bypassMacAddressesCheck, force, host }) {
+  await this.checkPlacement({ operation: 'start', user: this.apiContext.user, vm, host, bypass: bypassFirewallCheck })
   return this.getXapi(vm).startVm(vm._xapiId, { bypassMacAddressesCheck, force, hostId: host?._xapiId })
 }
 
 start.params = {
+  bypassFirewallCheck: BYPASS_FIREWALL_CHECK_PARAM,
   bypassMacAddressesCheck: { type: 'boolean', optional: true },
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
@@ -1191,11 +1214,13 @@ pause.resolve = {
 
 // -------------------------------------------------------------------
 
-export function resume({ vm }) {
+export async function resume({ vm, bypassFirewallCheck }) {
+  await this.checkPlacement({ operation: 'resume', user: this.apiContext.user, vm, bypass: bypassFirewallCheck })
   return this.getXapi(vm).resumeVm(vm._xapiId)
 }
 
 resume.params = {
+  bypassFirewallCheck: BYPASS_FIREWALL_CHECK_PARAM,
   id: { type: 'string' },
 }
 
@@ -1796,11 +1821,13 @@ setBootOrder.resolve = {
 
 // -------------------------------------------------------------------
 
-export function recoveryStart({ vm }) {
+export async function recoveryStart({ vm, bypassFirewallCheck }) {
+  await this.checkPlacement({ operation: 'start', user: this.apiContext.user, vm, bypass: bypassFirewallCheck })
   return this.getXapi(vm).startVmOnCd(vm._xapiId)
 }
 
 recoveryStart.params = {
+  bypassFirewallCheck: BYPASS_FIREWALL_CHECK_PARAM,
   id: { type: 'string' },
 }
 

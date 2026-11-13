@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
+import { forbiddenOperation, placementRefused } from 'xo-common/api-errors.js'
 
 import * as handlers from './vm.mjs'
 import ReservedTags from '../xo-mixins/reserved-tags.mjs'
@@ -184,6 +184,7 @@ describe('vm.migrate', () => {
     const app = {
       apiContext: { user: USER, permission: USER.permission },
       checkPermissions: async () => {},
+      checkPlacement: async () => {},
       getXapi: () => xapi,
       hasPermissions: async (userId, [[id, permission]]) => id === administratedPool && permission === 'administrate',
       // no RBAC role
@@ -207,5 +208,83 @@ describe('vm.migrate', () => {
     const { app, migrations } = createAppForMigrate('pool-2')
     await handlers.migrate.call(app, { vm: TAGGED_VM, host: HOST_IN_POOL_2 })
     assert.equal(migrations.length, 1)
+  })
+})
+
+describe('placement guards', () => {
+  const HALTED_VM = { id: 'vm-1', $pool: 'pool-1', tags: [], power_state: 'Halted', _xapiId: 'vm-1' }
+  const HOST = { id: 'host-1', $pool: 'pool-1', _xapiId: 'host-1' }
+
+  // an app whose placement guards refuse (`refuse`) or not, and a XAPI
+  // recording what it's asked to do
+  function createAppForPlacement({ refuse = false } = {}) {
+    const checks = []
+    const calls = []
+    const record =
+      name =>
+      async (...args) =>
+        calls.push([name, ...args])
+    const xapi = {
+      startVm: record('startVm'),
+      resumeVm: record('resumeVm'),
+      startVmOnCd: record('startVmOnCd'),
+      migrateVm: record('migrateVm'),
+    }
+    const app = {
+      apiContext: { user: USER, permission: USER.permission },
+      checkPermissions: async () => {},
+      checkMigration: async () => {},
+      async checkPlacement(params) {
+        checks.push(params)
+        if (refuse) {
+          placementRefused({
+            operation: params.operation,
+            vm: { id: params.vm.id },
+            host: undefined,
+            guard: 'firewall',
+            reason: 'no firewall agent',
+            bypass: { parameter: 'bypassFirewallCheck', allowed: false, who: 'administrators' },
+          })
+        }
+      },
+      getObject: id => ({ _xapiId: id }),
+      getXapi: () => xapi,
+    }
+    return { app, calls, checks }
+  }
+
+  it('vm.start asks them with the user, the VM, the host and the override, then starts it', async () => {
+    const { app, calls, checks } = createAppForPlacement()
+    await handlers.start.call(app, { vm: HALTED_VM, host: HOST, bypassFirewallCheck: true })
+    assert.deepEqual(checks, [{ operation: 'start', user: USER, vm: HALTED_VM, host: HOST, bypass: true }])
+    assert.deepEqual(calls, [
+      ['startVm', 'vm-1', { bypassMacAddressesCheck: undefined, force: undefined, hostId: 'host-1' }],
+    ])
+  })
+
+  it('vm.start, vm.resume, vm.recoveryStart and vm.migrate do nothing they refuse', async () => {
+    const { app, calls, checks } = createAppForPlacement({ refuse: true })
+    const isRefusal = error => placementRefused.is(error)
+    await assert.rejects(handlers.start.call(app, { vm: HALTED_VM }), isRefusal)
+    await assert.rejects(handlers.resume.call(app, { vm: { ...HALTED_VM, power_state: 'Suspended' } }), isRefusal)
+    await assert.rejects(handlers.recoveryStart.call(app, { vm: HALTED_VM }), isRefusal)
+    await assert.rejects(
+      handlers.migrate.call(app, {
+        vm: { ...HALTED_VM, power_state: 'Running' },
+        host: HOST,
+        mapVifsNetworks: { 'vif-1': 'net-1' },
+      }),
+      isRefusal
+    )
+    assert.deepEqual(
+      checks.map(({ operation, host, vifNetworks }) => [operation, host?.id, vifNetworks]),
+      [
+        ['start', undefined, undefined],
+        ['resume', undefined, undefined],
+        ['start', undefined, undefined],
+        ['migrate', 'host-1', { 'vif-1': 'net-1' }],
+      ]
+    )
+    assert.deepEqual(calls, [])
   })
 })
