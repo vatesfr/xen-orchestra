@@ -198,7 +198,7 @@ A `DELETE` on `/rest/v0/events/<connection id>/subscriptions/VM` unsubscribes.
 :::note
 
 - The server buffers events for slow consumers, up to `maxRamAllocatedPerSseClient` (MiB, set in the `[rest-api]` section of `xo-server`'s configuration, 20 by default). A client exceeding it is disconnected and must reconnect.
-- Events are filtered according to the privileges of the user. When they change (privileges, roles, groups or permission), the stream sends `add` events for the objects of the subscribed collections the user can now see, and `remove` events for the ones they can no longer see. Subscribe before fetching a collection: these events are computed from the privileges read when the stream was opened.
+- Events are filtered according to the privileges of the user. When they change (privileges, roles, groups or permission), the stream sends `add` events for the objects of the subscribed collections the user can now see, and `remove` events for the ones they can no longer see. Subscribe before fetching a collection: these events are computed from the privileges read when the stream was opened. If an object of a collection stored by XO (users, backup archives, tasks…) changes during this synchronization, the stream is closed: reconnect and fetch the collections again.
 
 :::
 

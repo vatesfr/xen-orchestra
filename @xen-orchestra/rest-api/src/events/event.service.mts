@@ -1,4 +1,5 @@
 import isEqual from 'lodash/isEqual.js'
+import keyBy from 'lodash/keyBy.js'
 import xorWith from 'lodash/xorWith.js'
 import { createLogger } from '@xen-orchestra/log'
 import { noSuchObject } from 'xo-common/api-errors.js'
@@ -106,11 +107,11 @@ export class EventService {
       if (listener?.subscribers.has(subscriber.id)) {
         // alarms are messages
         const type = resource === 'alarm' ? 'message' : XAPI_TYPE_BY_ACL_RESOURCE[resource]
-        const objects =
+        await listener.resync(subscriber, privilegesChange, async () =>
           type !== undefined
-            ? Object.values(this.#restApi.getObjectsByType(type))
-            : await this.#restApi.xoApp.getXoObjectsByType(resource === 'backup-job' ? 'job' : resource)
-        await listener.resync(subscriber, objects, privilegesChange)
+            ? this.#restApi.getObjectsByType(type)
+            : keyBy(await this.#restApi.xoApp.getXoObjectsByType(resource === 'backup-job' ? 'job' : resource), 'id')
+        )
       }
     }
     this.#privilegesBySubscriber.set(subscriber, current)

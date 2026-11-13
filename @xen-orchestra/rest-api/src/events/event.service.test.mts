@@ -127,20 +127,23 @@ describe('EventService', () => {
     /**
      * A connection of a user subscribed to a collection of two objects, `o1` and `o2`. Changing `state` then calling
      * `change()` emits an RBAC trigger (its payload is ignored) and returns the frames it produced. `whileOpening`
-     * changes `state` and emits a trigger right after the privileges of the opening stream are read.
+     * changes `state` and emits a trigger right after the privileges of the opening stream are read. `emit(type)` emits
+     * an update in a collection.
      */
     async function connect(
-      collection: 'VM' | 'user',
+      collection: 'VM' | 'group' | 'user',
       privileges: object[],
       permission = 'none',
       whileOpening?: (state: { privileges: object[] }) => void
     ) {
-      const state = { fail: undefined as (() => void) | undefined, permission, privileges }
+      const objects: Record<string, object> = { o1: { id: 'o1' }, o2: { id: 'o2' } }
+      const state = { fail: undefined as (() => void) | undefined, objects, permission, privileges }
       const restApi = createRestApi(new EventEmitter())
-      const emit = (type: string) => restApi.xoApp.getXoEventEmitterByType(type).emit('update', {}, {})
+      const emitter = (type: string) => restApi.xoApp.getXoEventEmitterByType(type)
+      const emit = (type: string) => emitter(type).emit('update', {}, {})
       Object.assign(restApi, {
         getCurrentUser: () => ({ id: 'user-2', permission: state.permission }),
-        getObjectsByType: () => ({ o1: { id: 'o1' }, o2: { id: 'o2' } }),
+        getObjectsByType: () => state.objects,
       })
       Object.assign(restApi.xoApp, {
         getAclV2UserPrivileges: async () => {
@@ -153,9 +156,9 @@ describe('EventService', () => {
           }
           return privileges
         },
-        getXoObjectsByType: async () => [{ id: 'o1' }, { id: 'o2' }],
+        getXoObjectsByType: async () => Object.values(state.objects),
         getUser: async () => ({ id: 'user-2', permission: state.permission }),
-        objects: { allIndexes: { type: { getEventEmitterByType: () => new EventEmitter() } } },
+        objects: { allIndexes: { type: { getEventEmitterByType: (type: string) => emitter(type) } } },
       })
 
       const eventService = new EventService(restApi)
@@ -163,6 +166,7 @@ describe('EventService', () => {
       eventService.addListenerFor(await eventService.createSseSubscriber(res), { type: collection, fields: ['id'] })
 
       return {
+        emit,
         res,
         state,
         async change(type = 'acl-privilege', times = 1) {
@@ -200,6 +204,25 @@ describe('EventService', () => {
       connection.state.privileges = [privilege('vm', 'id:o1'), privilege('vm', 'id:o1', 'privilege-2')]
 
       assert.deepEqual(await connection.change('acl-privilege', 2), ['add o1'])
+    })
+
+    // enough objects for the resync to yield before handling the next one
+    const beforeYield = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`x${i}`, { id: `x${i}` }]))
+
+    it('except the XAPI objects removed while the resync yields', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [])
+      connection.state.objects = { ...beforeYield, o1: { id: 'o1' } }
+      connection.state.privileges = [privilege('vm', 'id:o1')]
+      // at the yield of the resync, `o1` is removed: the index is live, the connection is kept
+      setImmediate(() => {
+        delete connection.state.objects.o1
+        connection.emit('VM')
+      })
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, false)
     })
 
     it('including a change made while the stream was opening', async t => {
@@ -244,6 +267,19 @@ describe('EventService', () => {
       }
 
       assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, true)
+    })
+
+    it('or closes the connection when a XO object changes during the resync', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('group', [])
+      connection.state.objects = { ...beforeYield, o1: { id: 'o1' } }
+      connection.state.privileges = [privilege('group', 'id:o1')]
+      // at the yield of the resync, a group is updated: the objects read before may be outdated
+      setImmediate(() => connection.emit('group'))
+
+      await connection.change()
       assert.equal(connection.res.destroyed, true)
     })
 
