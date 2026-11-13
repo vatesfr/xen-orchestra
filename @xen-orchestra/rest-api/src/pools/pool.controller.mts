@@ -830,9 +830,13 @@ export class PoolController extends XapiXoController<XoPool> {
    * pinned VMs are started, displaced VMs are migrated back to their host, and HA, auto power-on, WLB, the load
    * balancer and the backup schedules are enabled again. The record is closed once nothing is left.
    *
+   * A host which was updated and not rebooted is left disabled, without its VMs: it keeps the call refused, resuming
+   * the update is what finishes it.
+   *
    * Refused with an `incorrect state` error listing what could not be restored while any item remains, or when the
-   * record cannot be read: the record is kept. Set `force` to `true` to close it anyway: the items are abandoned and
-   * listed in the task, nothing is restored nor changed in the pool. 404 when the pool has no record.
+   * record cannot be read: the record is kept. Refused with a `forbidden operation` error while a backup runs or may
+   * run on the pool and something is left to restore. Set `force` to `true` to close it anyway: the items are
+   * abandoned and listed in the task, nothing is restored nor changed in the pool. 404 when the pool has no record.
    *
    * Required privilege:
    * - resource: pool, action: rolling-update
