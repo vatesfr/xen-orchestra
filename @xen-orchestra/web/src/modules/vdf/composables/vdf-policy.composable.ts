@@ -1,6 +1,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfDraft } from '@/modules/vdf/composables/vdf-draft.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { emptyDocument } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { hostState, parseHostStatus, policyRealization } from '@/modules/vdf/utils/vdf-status.util.ts'
@@ -41,8 +42,11 @@ export function useVdfPolicy(rawPool: MaybeRefOrGetter<FrontXoPool>) {
   // whether XO's global configuration applies to this pool
   const globalInfo = computed(() => publishedPolicy.value?.global)
 
-  // XO administrators, and users with an administrate ACL on the pool
-  const canEdit = computed(() => publishedPolicy.value?.canEdit !== false)
+  // the user may publish the pool's policies (vdf#141): every control that
+  // publishes follows it
+  const { can } = useVdfFirewallRights(poolId)
+
+  const canEdit = computed(() => can('publish'))
 
   const draftState = useVdfDraft(poolId, publishedDocument, publishedDocId, isPublishedPolicyReady, {
     lockGlobal: true,

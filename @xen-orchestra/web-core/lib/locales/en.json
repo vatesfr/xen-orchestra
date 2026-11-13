@@ -1303,7 +1303,7 @@
   "firewall:published:waiting": "Waiting for the hosts' agents to report it…",
   "firewall:quarantined": "Quarantined",
   "firewall:rate:below": "<{n}/s",
-  "firewall:read-only": "You can view this pool's firewall but not change it: publishing needs XO administrator rights or the Administrate permission on the pool.",
+  "firewall:read-only": "You can view this pool's firewall but not change it: publishing requires the firewall right to publish policies on this pool.",
   "firewall:rebase:choose": "Choose a version of each conflicting object to rebase.",
   "firewall:rebase:confirm": "Rebase",
   "firewall:rebase:conflicts": "No conflict | 1 conflict | {n} conflicts",

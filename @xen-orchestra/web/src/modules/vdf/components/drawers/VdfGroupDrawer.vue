@@ -79,11 +79,13 @@
         <section class="section">
           <UiLabel accent="neutral">{{ t('firewall:group-form:interfaces') }}</UiLabel>
           <UiInfo accent="muted" wrap>{{ t('firewall:group-form:interfaces:info') }}</UiInfo>
+          <!-- vdf#141: the networks are tagged at once, which takes the publish right -->
+          <UiInfo v-if="networkLock" accent="warning" wrap>{{ networkLock }}</UiInfo>
           <div class="scope">
-            <UiRadioButton v-model="form.scope" value="all" accent="brand">
+            <UiRadioButton v-model="form.scope" value="all" accent="brand" :disabled="networkLock !== undefined">
               {{ t('firewall:group-form:interfaces:all') }}
             </UiRadioButton>
-            <UiRadioButton v-model="form.scope" value="networks" accent="brand">
+            <UiRadioButton v-model="form.scope" value="networks" accent="brand" :disabled="networkLock !== undefined">
               {{ t('firewall:group-form:interfaces:networks') }}
             </UiRadioButton>
           </div>
@@ -96,6 +98,7 @@
                 v-for="network of scopeNetworks"
                 :key="network.id"
                 :model-value="form.networkIds.includes(network.id)"
+                :disabled="networkLock !== undefined"
                 accent="brand"
                 @update:model-value="toggleNetwork(network, $event === true)"
               >
@@ -109,7 +112,11 @@
               </UiCheckbox>
             </div>
             <VtsInputWrapper :label="t('firewall:group-form:network-tag')" :message="networkTagError" wrap-message>
-              <UiInput v-model.trim="form.networkTag" :accent="networkTagError ? 'danger' : 'brand'" />
+              <UiInput
+                v-model.trim="form.networkTag"
+                :accent="networkTagError ? 'danger' : 'brand'"
+                :disabled="networkLock !== undefined"
+              />
             </VtsInputWrapper>
             <UiInfo accent="info" wrap>{{ t('firewall:group-form:network-tag:info') }}</UiInfo>
             <UiInfo v-if="networkError" accent="danger" wrap>{{ networkError }}</UiInfo>
@@ -190,6 +197,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { VDF_GLOBAL_PREFIX, VDF_QUARANTINE_TAG, type VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { isGroupTag } from '@/modules/vdf/utils/vdf-group-tags.util.ts'
@@ -363,6 +371,13 @@ const previewTitle = computed(() => {
 })
 
 const { setNetworkTag } = useVdfNetworkTags()
+
+// a network's firewall tags take `publish` on its pool (vdf#141): in a pool,
+// without it the networks stay as they are (the global configuration is
+// for XO administrators)
+const { lockReason } = useVdfFirewallRights(() => (poolIds.length === 1 ? poolIds[0] : undefined))
+
+const networkLock = computed(() => lockReason('publish'))
 
 const networkError = ref<string>()
 

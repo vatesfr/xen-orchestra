@@ -1303,7 +1303,7 @@
   "firewall:published:waiting": "En attente de la confirmation des agents des hôtes…",
   "firewall:quarantined": "En quarantaine",
   "firewall:rate:below": "<{n}/s",
-  "firewall:read-only": "Vous pouvez consulter le pare-feu de ce pool mais pas le modifier : publier demande les droits d'administrateur XO ou la permission Administrer sur le pool.",
+  "firewall:read-only": "Vous pouvez consulter le pare-feu de ce pool mais pas le modifier : publier nécessite le droit de pare-feu permettant de publier les politiques sur ce pool.",
   "firewall:rebase:choose": "Choisissez une version de chaque objet en conflit pour mettre à jour le brouillon.",
   "firewall:rebase:confirm": "Mettre à jour",
   "firewall:rebase:conflicts": "Aucun conflit | 1 conflit | {n} conflits",

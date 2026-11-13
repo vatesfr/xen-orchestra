@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard v-if="pool !== undefined && hasFirewall" class="vdf-network-firewall-card">
+  <UiPanelCard v-if="pool !== undefined && hasFirewall && can('read')" class="vdf-network-firewall-card">
     <UiPanelCardTitle size="medium" :label="t('firewall')" icon="fa:shield" />
     <div class="content typo-body-regular-small">
       <span v-if="isUnprotected" class="secondary">{{ t('firewall:network:unprotected:info') }}</span>
@@ -16,13 +16,16 @@
           })
         }}
       </UiInfo>
-      <VdfSwitch
-        :model-value="isUnprotected"
-        :disabled="isRunning"
-        @update:model-value="setUnprotected($event === true)"
-      >
-        {{ t('firewall:network:leave-out') }}
-      </VdfSwitch>
+      <!-- vdf#141: vdf:unprotected takes the publish right on the pool -->
+      <span v-tooltip="lockReason('publish') ?? false" class="leave-out">
+        <VdfSwitch
+          :model-value="isUnprotected"
+          :disabled="isRunning || !can('publish')"
+          @update:model-value="setUnprotected($event === true)"
+        >
+          {{ t('firewall:network:leave-out') }}
+        </VdfSwitch>
+      </span>
       <UiInfo v-if="error" accent="danger" wrap>{{ error }}</UiInfo>
     </div>
   </UiPanelCard>
@@ -35,6 +38,7 @@ import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfSwitch from '@/modules/vdf/components/VdfSwitch.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfInterfaces, useVdfNetworkTags } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfPublishedPolicy } from '@/modules/vdf/remote-resources/use-vdf-published-policy.ts'
 import { displayName } from '@/modules/vdf/utils/vdf-global.util.ts'
 import { enforcedPolicies } from '@/modules/vdf/utils/vdf-monitor.util.ts'
@@ -49,6 +53,7 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -70,6 +75,9 @@ const pool = computed(() => pools.value.find(candidate => candidate.id === netwo
 const hasFirewall = computed(() => Object.keys(pool.value?.otherConfig ?? {}).some(key => key.startsWith('vdf:policy')))
 
 const { publishedPolicy } = useVdfPublishedPolicy({}, () => network.$pool)
+
+// shown with `read` on the pool's firewall, changed with `publish`
+const { can, lockReason } = useVdfFirewallRights(() => network.$pool)
 
 const groups = computed(() => publishedPolicy.value?.document?.groups ?? {})
 
@@ -170,6 +178,10 @@ async function setUnprotected(shouldBeUnprotected: boolean) {
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+  }
+
+  .leave-out {
+    align-self: flex-start;
   }
 
   .groups {
