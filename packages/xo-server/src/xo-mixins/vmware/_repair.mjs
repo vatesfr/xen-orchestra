@@ -297,8 +297,9 @@ export async function diagnoseOffline({ xapi, vmRef, context }) {
  * @param {object} params.metadata - from `getTransferableVmMetadata`
  * @param {boolean} [params.followFirstBoot] - whether XO starts the VM and follows its first boot: the
  * Windows first boot then leaves its reboots to XO
- * @returns {Promise<{ diagnose: object, repair: object, hasPvDrivers: boolean }>} the reports of both runs, and
- * whether the guest got the PV drivers: the first boot must follow the same decision as the ISO
+ * @returns {Promise<{ diagnose: object, repair: object, hasPvDrivers: boolean, windowsReboot?: string }>} the
+ * reports of both runs, whether the guest got the PV drivers, and who restarts Windows between the phases of its
+ * first boot: the first boot must follow the same decisions as the ISO
  */
 export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot = false }) {
   const vm = xapi.getObject(vmRef)
@@ -331,6 +332,9 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
         'this Windows version is older than the XCP-ng PV drivers support (build 14393): the VM will run on emulated devices, without management agent'
       )
     }
+    // without PV drivers the first boot cannot report its end: XO does not follow it, and a VM stopped
+    // between two phases would stay stopped
+    const windowsReboot = isWindows ? (followFirstBoot && hasPvDrivers ? 'xo' : 'guest') : undefined
     const repair = await run(
       isWindows
         ? {
@@ -340,9 +344,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
               networks: metadata.networks,
               reportNetwork: diagnose.report.network,
             }),
-            // without PV drivers the first boot cannot report its end: XO does not follow it, and a VM stopped
-            // between two phases would stay stopped
-            windowsReboot: followFirstBoot && hasPvDrivers ? 'xo' : 'guest',
+            windowsReboot,
           }
         : { mode: 'repair', nics: buildLinuxNics(metadata.networks) }
     )
@@ -355,7 +357,8 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
           : `the repair of the guest failed: ${details}. Full report and logs in ${guestLogs} in the guest`
       )
       error.code = 'REPAIR_FAILED'
-      Object.assign(error, context, { reports: { diagnose: diagnose.report, repair: repair.report } })
+      // an action applied before the failure may have installed the first boot all the same
+      Object.assign(error, context, { reports: { diagnose: diagnose.report, repair: repair.report, windowsReboot } })
       throw error
     }
     if (repair.report.findings.some(finding => finding.code === 'windows_static_ip_unmapped')) {
@@ -374,6 +377,6 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
     }
 
     // the `network` of a later run is empty: the first run switched the static adapters to DHCP
-    return { diagnose: diagnose.report, repair: repair.report, hasPvDrivers }
+    return { diagnose: diagnose.report, repair: repair.report, hasPvDrivers, windowsReboot }
   })
 }

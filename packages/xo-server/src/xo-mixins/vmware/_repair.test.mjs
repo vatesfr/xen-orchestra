@@ -257,6 +257,7 @@ test('repairImportedVm', async t => {
     assert.deepEqual(xapi.inputs, [{ mode: 'diagnose' }, { mode: 'repair' }])
     assert.equal(reports.repair.actions[0].code, 'install_xen_drivers')
     assert.equal(reports.hasPvDrivers, true)
+    assert.equal(reports.windowsReboot, undefined)
   })
 
   await t.test('moves the OS disk first, then diagnoses again', async () => {
@@ -323,7 +324,7 @@ test('repairImportedVm', async t => {
     await assert.rejects(repair(xapi), error => {
       assert.equal(error.code, 'REPAIR_FAILED')
       assert.match(error.message, /rebuild_initramfs: dracut failed\. Full report and logs in \/var\/log\/xo-repair\//)
-      assert.deepEqual(Object.keys(error.reports), ['diagnose', 'repair'])
+      assert.ok(error.reports.diagnose !== undefined && error.reports.repair !== undefined)
       return true
     })
   })
@@ -337,6 +338,8 @@ test('repairImportedVm', async t => {
     })
     const reports = await repair(xapi, { followFirstBoot: true })
     assert.equal(xapi.inputs[1]['windows-reboot'], 'xo')
+    // what the first boot and the description of the VM rely on
+    assert.equal(reports.windowsReboot, 'xo')
     assert.equal(reports.hasPvDrivers, true)
     // Windows keeps the RTC in local time
     assert.deepEqual(xapi.calls, ['platform.timeoffset=3600'])
@@ -353,6 +356,7 @@ test('repairImportedVm', async t => {
     const reports = await repair(xapi, { followFirstBoot: true })
     // XO could not tell when its first boot ends
     assert.equal(xapi.inputs[1]['windows-reboot'], 'guest')
+    assert.equal(reports.windowsReboot, 'guest')
     assert.equal(reports.hasPvDrivers, false)
   })
 

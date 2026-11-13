@@ -257,10 +257,25 @@ const describeFinding = ({ level, code, message }) =>
   message === undefined ? `- ${level} ${code}` : `- ${level} ${code}: ${message}`
 
 /**
+ * Whether the guest waits for XO to start it again between the phases of its Windows first boot (`windows-reboot`
+ * `xo`): when XO no longer follows it (failed start, cancelled task, restart of XO), each phase ends with the VM
+ * stopped, which must be started again by hand.
+ *
+ * @param {{ repair?: RepairReport, windowsReboot?: string }} reports - from `repairImportedVm`
+ */
+export const isFirstBootLeftToXo = ({ repair, windowsReboot }) =>
+  windowsReboot === 'xo' &&
+  (repair?.actions.some(({ code, status }) => code === 'install_firstboot' && status === 'applied') ?? false)
+
+export const FIRST_BOOT_LEFT_TO_XO =
+  'Windows stops between the phases of its first boot for XO to start it again: unless XO completed it, start the VM again until C:\\xo-repair\\firstboot.log says it is done'
+
+/**
  * What the repair did to the guest, for humans, as written in the description of the VM.
  *
  * @param {object} params
- * @param {{ diagnose?: RepairReport, repair?: RepairReport }} [params.reports] - all or part of them on a failure
+ * @param {{ diagnose?: RepairReport, repair?: RepairReport, windowsReboot?: string }} [params.reports] - all or part
+ * of them on a failure
  * @param {{ message: string }} [params.error] - why the repair failed
  * @param {FirstBootProgress} [params.firstBoot] - how far the first boot of a repaired guest went
  * @param {{ message: string }} [params.firstBootError] - why the first boot of a repaired guest failed
@@ -305,6 +320,10 @@ export function describeRepair({ reports = {}, error, firstBoot, firstBootError 
   }
   if (firstBootError !== undefined) {
     lines.push(`first boot failed: ${firstBootError.message}`)
+  }
+  // written as soon as the guest is repaired: XO may stop following the first boot without writing anything more
+  if (isFirstBootLeftToXo(reports) && !firstBoot?.done) {
+    lines.push(FIRST_BOOT_LEFT_TO_XO)
   }
   return lines.join('\n')
 }
