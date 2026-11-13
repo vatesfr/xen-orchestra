@@ -41,10 +41,12 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
@@ -94,9 +96,9 @@ const state = useTableState({
 
 const displayServers = computed(() => filteredServers.value.map(server => getDisplayData(server)))
 
-const { pageRecords: paginatedServers, paginationBindings } = usePagination('servers', displayServers)
+const { compareStatuses } = useStatusLabel()
 
-const { HeadCells, BodyCells } = useServerColumns({
+const { HeadCells, BodyCells, sortItems } = useServerColumns({
   body: (server: PoolDisplayData) => {
     const poolInfo = computed(() => ({
       label: server.poolName,
@@ -193,7 +195,17 @@ const { HeadCells, BodyCells } = useServerColumns({
         }),
     }
   },
+  sort: {
+    pool: (server1, server2) => compareStrings(server1.poolName, server2.poolName),
+    hostIp: (server1, server2) => compareStrings(server1.masterHostIp, server2.masterHostIp),
+    status: (server1, server2) => compareStatuses(server1.poolStatus, server2.poolStatus),
+    primaryHost: (server1, server2) => compareStrings(server1.primaryHostName, server2.primaryHostName),
+  },
 })
+
+const sortedServers = computed(() => sortItems(displayServers.value))
+
+const { pageRecords: paginatedServers, paginationBindings } = usePagination('servers', sortedServers)
 </script>
 
 <style scoped lang="postcss">

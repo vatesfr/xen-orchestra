@@ -36,6 +36,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
@@ -43,6 +44,7 @@ import { type ActionItem } from '@core/tables/column-definitions/action-column.t
 import { useVifNetworkColumns } from '@core/tables/column-sets/vif-network-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@core/types/connection.ts'
+import { compareFirstStrings, compareStrings } from '@core/utils/compare-strings.util.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -93,9 +95,13 @@ const getIpAddresses = (vif: FrontXoVif) => {
   return getUniqueIpAddressesForDevice(addresses, vif.device)
 }
 
-const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
+const getStatus = (vif: FrontXoVif) => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED)
 
-const { HeadCells, BodyCells } = useVifNetworkColumns({
+const compareDevices = (vif1: FrontXoVif, vif2: FrontXoVif) => compareStrings(vif1.device, vif2.device)
+
+const { compareStatuses } = useStatusLabel()
+
+const { HeadCells, BodyCells, sortItems } = useVifNetworkColumns({
   body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 
@@ -160,7 +166,7 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
             })
           : renderBodyCell(),
       device: r => r(t('vif-device', { device: vif.device })),
-      status: r => r(vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED),
+      status: r => r(getStatus(vif)),
       ipsAddresses: r => r(ipAddresses.value),
       macAddresses: r => r(vif.MAC),
       mtu: r => r(vif.MTU),
@@ -183,7 +189,22 @@ const { HeadCells, BodyCells } = useVifNetworkColumns({
         }),
     }
   },
+  sort: {
+    // Every VIF row is labelled "VIF", they are told apart by their device
+    vif: compareDevices,
+    network: (vif1, vif2) => compareStrings(getNetworkName(vif1), getNetworkName(vif2)),
+    device: compareDevices,
+    status: (vif1, vif2) => compareStatuses(getStatus(vif1), getStatus(vif2)),
+    ipsAddresses: (vif1, vif2) => compareFirstStrings(getIpAddresses(vif1), getIpAddresses(vif2)),
+    macAddresses: (vif1, vif2) => compareStrings(vif1.MAC, vif2.MAC),
+    mtu: (vif1, vif2) => vif1.MTU - vif2.MTU,
+    lockingMode: (vif1, vif2) => compareStrings(vif1.lockingMode, vif2.lockingMode),
+  },
 })
+
+const sortedVifs = computed(() => sortItems(filteredVifs.value))
+
+const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', sortedVifs)
 </script>
 
 <style scoped lang="postcss">

@@ -7,6 +7,7 @@
 - [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+- [Tables] Table columns can be sorted from their header, replacing the sort selector of the VMs list (PR [#10560](https://github.com/vatesfr/xen-orchestra/pull/10560))
 
 ## **0.27.0** (2026-10-29)
 

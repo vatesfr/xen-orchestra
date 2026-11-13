@@ -36,14 +36,18 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,7 +69,7 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { getPifsByIds } = useXoPifCollection()
+const { getPifsByIds, getPifsByNetworkId } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -93,14 +97,19 @@ const state = useTableState({
         : false,
 })
 
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
+// Networks without PIF or without VLAN (-1) come first
+const getNetworkVlanNumber = (network: FrontXoNetwork) => getPifsByNetworkId(network.id)[0]?.vlan ?? -1
 
-const { HeadCells, BodyCells } = useNetworkColumns({
+const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
+
+const { compareStatuses } = useStatusLabel()
+
+const getStatus = (network: FrontXoNetwork) => getNetworkStatus(getPifsByIds(network.PIFs))
+
+const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
-    const networkPifs = computed(() => getPifsByIds(network.PIFs))
-
-    const status = computed(() => getNetworkStatus(networkPifs.value))
+    const status = computed(() => getStatus(network))
     const { networkVlan, networkDefaultLockingMode } = useXoNetworkUtils(network)
 
     const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => [network])
@@ -132,7 +141,21 @@ const { HeadCells, BodyCells } = useNetworkColumns({
         }),
     }
   },
+  sort: {
+    network: sortByNameLabel,
+    description: sortByNameDescription,
+    status: (network1, network2) => compareStatuses(getStatus(network1), getStatus(network2)),
+    vlan: (network1, network2) => getNetworkVlanNumber(network1) - getNetworkVlanNumber(network2),
+    mtu: (network1, network2) => network1.MTU - network2.MTU,
+    defaultLockingMode: (network1, network2) =>
+      compareStrings(getLockingMode(network1.defaultIsLocked), getLockingMode(network2.defaultIsLocked)),
+  },
+  initialSort: { id: 'network', direction: 'asc' },
 })
+
+const sortedNetworks = computed(() => sortItems(filteredNetworks.value))
+
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', sortedNetworks)
 </script>
 
 <style scoped lang="postcss">

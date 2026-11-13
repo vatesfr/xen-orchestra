@@ -32,6 +32,7 @@ import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
 import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
 import { useUserColumns } from '@xen-orchestra/web-core/tables/column-sets/user-columns.ts'
+import { compareStrings } from '@xen-orchestra/web-core/utils/compare-strings.util.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -63,24 +64,34 @@ const selectedUserId = useRouteQuery('id')
 
 const xo5UsersHref = computed(() => buildXo5Route('/settings/users'))
 
-const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', filteredUsers)
-
 const state = useTableState({
   empty: () =>
     users.length === 0 ? t('no-user-detected') : filteredUsers.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { HeadCells, BodyCells } = useUserColumns({
+const getProviders = (user: FrontXoUser) => {
+  const providers = Object.keys(user.authProviders ?? {})
+
+  return providers.length === 0 ? t('local') : providers.join(', ')
+}
+
+const { HeadCells, BodyCells, sortItems } = useUserColumns({
   body: (user: FrontXoUser) => {
     return {
       username: r => r(user.name ?? '', { href: xo5UsersHref.value }),
       email: r => r(user.email),
-      providers: r => {
-        const providers = Object.keys(user.authProviders ?? {})
-        return r(providers.length === 0 ? t('local') : providers.join(', '))
-      },
+      providers: r => r(getProviders(user)),
       selectItem: r => r(() => (selectedUserId.value = user.id)),
     }
   },
+  sort: {
+    username: (user1, user2) => compareStrings(user1.name ?? '', user2.name ?? ''),
+    email: (user1, user2) => compareStrings(user1.email, user2.email),
+    providers: (user1, user2) => compareStrings(getProviders(user1), getProviders(user2)),
+  },
 })
+
+const sortedUsers = computed(() => sortItems(filteredUsers.value))
+
+const { pageRecords: paginatedUsers, paginationBindings } = usePagination('users', sortedUsers)
 </script>
