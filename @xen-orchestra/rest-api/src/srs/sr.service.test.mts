@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import type { Readable } from 'node:stream'
+import { SUPPORTED_VDI_FORMAT, type XoSr } from '@vates/types'
+import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { SrService, type CreateSrBody } from './sr.service.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
@@ -117,5 +120,154 @@ describe('SrService.create', () => {
       assert.equal(error.status, 501)
       return true
     })
+  })
+})
+
+describe('SrService.importVdiFromUrl', () => {
+  const SR_ID = 'sr-uuid' as XoSr['id']
+  const ISO_SR = { content_type: 'iso', type: 'iso', is_tools_sr: false }
+
+  // returns the service and the calls made to XAPI
+  function setup(srRecord: Record<string, unknown> = ISO_SR) {
+    const calls = {
+      getXapiObject: [] as unknown[][],
+      SR_importVdi: [] as unknown[][],
+      getField: [] as unknown[][],
+    }
+    const fakeXapi = {
+      SR_importVdi: async (...args: unknown[]) => {
+        calls.SR_importVdi.push(args)
+        return 'OpaqueRef:new-vdi'
+      },
+      getField: async (...args: unknown[]) => {
+        calls.getField.push(args)
+        return 'vdi-uuid-123'
+      },
+    }
+    const restApi = {
+      getXapiObject: (...args: unknown[]) => {
+        calls.getXapiObject.push(args)
+        return { ...srRecord, $ref: 'OpaqueRef:sr-1', $xapi: fakeXapi }
+      },
+    } as unknown as RestApi
+
+    return { calls, service: new SrService(restApi) }
+  }
+
+  // a response whose body records whether it has been cancelled
+  function createResponse({ status = 200, headers = {} }: { status?: number; headers?: Record<string, string> } = {}) {
+    const body = { cancelled: false }
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('iso'))
+          controller.close()
+        },
+        cancel() {
+          body.cancelled = true
+        },
+      }),
+      { status, headers }
+    )
+    return { body, response }
+  }
+
+  const isInvalidParameters = (error: unknown) => invalidParameters.is(error)
+
+  it('imports the URL content as a raw VDI in the ISO SR and returns the VDI uuid', async t => {
+    const { response } = createResponse({ headers: { 'content-length': '3' } })
+    const fetchMock = t.mock.method(globalThis, 'fetch', async () => response)
+    const { calls, service } = setup()
+
+    const id = await service.importVdiFromUrl(SR_ID, {
+      url: 'https://example.net/isos/debian-13.iso',
+      name_label: 'Debian',
+      name_description: 'installer',
+    })
+
+    assert.deepEqual(calls.getXapiObject, [[SR_ID, 'SR']])
+    assert.equal(fetchMock.mock.callCount(), 1)
+    assert.equal(String(fetchMock.mock.calls[0].arguments[0]), 'https://example.net/isos/debian-13.iso')
+
+    assert.equal(calls.SR_importVdi.length, 1)
+    const [srRef, stream, opts] = calls.SR_importVdi[0] as [string, Readable & { length?: number }, unknown]
+    assert.equal(srRef, 'OpaqueRef:sr-1')
+    // the size of a raw VDI comes from the Content-Length header
+    assert.equal(stream.length, 3)
+    assert.deepEqual(opts, {
+      format: SUPPORTED_VDI_FORMAT.raw,
+      name_label: 'Debian',
+      name_description: 'installer',
+    })
+
+    assert.deepEqual(calls.getField, [['VDI', 'OpaqueRef:new-vdi', 'uuid']])
+    assert.equal(id, 'vdi-uuid-123')
+  })
+
+  it('defaults name_label to the decoded file name of the URL', async t => {
+    const { response } = createResponse({ headers: { 'content-length': '3' } })
+    t.mock.method(globalThis, 'fetch', async () => response)
+    const { calls, service } = setup()
+
+    await service.importVdiFromUrl(SR_ID, { url: 'https://example.net/isos/my%20distro.iso?token=abc' })
+
+    const opts = calls.SR_importVdi[0][2] as { name_label: string }
+    assert.equal(opts.name_label, 'my distro.iso')
+  })
+
+  for (const [description, url] of [
+    ['an invalid URL', 'not a url'],
+    ['a non HTTP(S) URL', 'ftp://example.net/debian.iso'],
+    ['a file URL', 'file:///etc/passwd'],
+  ]) {
+    it(`rejects ${description} with invalid parameters, before any download`, async t => {
+      const fetchMock = t.mock.method(globalThis, 'fetch', async () => createResponse().response)
+      const { calls, service } = setup()
+
+      await assert.rejects(service.importVdiFromUrl(SR_ID, { url }), isInvalidParameters)
+      assert.equal(fetchMock.mock.callCount(), 0)
+      assert.equal(calls.getXapiObject.length, 0)
+    })
+  }
+
+  for (const [description, srRecord] of [
+    ['a VM SR', { content_type: 'user', type: 'nfs', is_tools_sr: false }],
+    ['the XCP-ng tools SR', { content_type: 'iso', type: 'iso', is_tools_sr: true }],
+    ['the DVD drives SR', { content_type: 'iso', type: 'udev', is_tools_sr: false }],
+  ] as const) {
+    it(`rejects ${description} with invalid parameters, before any download`, async t => {
+      const fetchMock = t.mock.method(globalThis, 'fetch', async () => createResponse().response)
+      const { calls, service } = setup(srRecord)
+
+      await assert.rejects(
+        service.importVdiFromUrl(SR_ID, { url: 'https://example.net/debian.iso' }),
+        isInvalidParameters
+      )
+      assert.equal(fetchMock.mock.callCount(), 0)
+      assert.equal(calls.SR_importVdi.length, 0)
+    })
+  }
+
+  it('rejects when the download fails, and frees the response body', async t => {
+    const { body, response } = createResponse({ status: 404 })
+    t.mock.method(globalThis, 'fetch', async () => response)
+    const { calls, service } = setup()
+
+    await assert.rejects(service.importVdiFromUrl(SR_ID, { url: 'https://example.net/missing.iso' }), /404/)
+    assert.equal(body.cancelled, true)
+    assert.equal(calls.SR_importVdi.length, 0)
+  })
+
+  it('rejects with invalid parameters when there is no Content-Length, and frees the response body', async t => {
+    const { body, response } = createResponse()
+    t.mock.method(globalThis, 'fetch', async () => response)
+    const { calls, service } = setup()
+
+    await assert.rejects(
+      service.importVdiFromUrl(SR_ID, { url: 'https://example.net/debian.iso' }),
+      isInvalidParameters
+    )
+    assert.equal(body.cancelled, true)
+    assert.equal(calls.SR_importVdi.length, 0)
   })
 })

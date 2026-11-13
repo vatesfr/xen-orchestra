@@ -19,11 +19,8 @@ import {
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { json, Request as ExRequest } from 'express'
-import { Readable } from 'node:stream'
-import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
-import { invalidParameters } from 'xo-common/api-errors.js'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -49,23 +46,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { SrService, type CreateSrBody } from './sr.service.mjs'
-
-interface ImportVdiFromUrlBody {
-  url: string
-  /** Defaults to the file name in the URL */
-  name_label?: string
-  name_description?: string
-}
-
-function getFileNameFromUrl(url: URL): string {
-  const fileName = url.pathname.slice(url.pathname.lastIndexOf('/') + 1)
-  try {
-    return decodeURIComponent(fileName)
-  } catch {
-    return fileName
-  }
-}
+import { SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -487,50 +468,8 @@ export class SrController extends XapiXoController<XoSr> {
     @Path() id: string,
     @Body() body: ImportVdiFromUrlBody
   ): Promise<{ id: Unbrand<XoVdi>['id'] }> {
-    let url: URL
-    try {
-      url = new URL(body.url)
-    } catch {
-      throw invalidParameters(`invalid URL: ${body.url}`)
-    }
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      throw invalidParameters(`unsupported protocol ${url.protocol}, expected http: or https:`)
-    }
-
-    const xapiSr = this.getXapiObject(id as XoSr['id'])
-    const xapi = xapiSr.$xapi
-
-    // XO ISO libraries (local, NFS, SMB) are all created with type and content_type `iso`,
-    // this excludes the XCP-ng tools SR and the DVD drives SR (type `udev`)
-    if (xapiSr.content_type !== 'iso' || xapiSr.type !== 'iso' || xapiSr.is_tools_sr) {
-      throw invalidParameters(`SR ${id} is not an ISO library SR`)
-    }
-
-    const response = await fetch(url)
-    if (!response.ok || response.body === null) {
-      await response.body?.cancel() // free the socket
-      throw new Error(`failed to download ${url}: ${response.status} ${response.statusText}`)
-    }
-
-    // raw imports need the size of the VDI before reading the stream
-    const contentLength = response.headers.get('content-length')
-    if (contentLength === null) {
-      await response.body.cancel()
-      throw invalidParameters(`the remote server did not provide a Content-Length for ${url}`)
-    }
-
-    const stream: Readable & { length?: number } = Readable.fromWeb(response.body as WebReadableStream)
-    stream.length = +contentLength
-
-    const vdiRef = await xapi.SR_importVdi(xapiSr.$ref, stream, {
-      format: SUPPORTED_VDI_FORMAT.raw,
-      name_label: body.name_label ?? getFileNameFromUrl(url),
-      name_description: body.name_description,
-    })
-    const vdiId = await xapi.getField<XenApiVdi, 'uuid'>('VDI', vdiRef, 'uuid')
-
+    const vdiId = await this.#srService.importVdiFromUrl(id as XoSr['id'], body)
     this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
-
     return { id: vdiId }
   }
 }
