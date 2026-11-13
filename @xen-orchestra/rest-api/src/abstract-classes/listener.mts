@@ -124,10 +124,15 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return
     }
 
-    for (const object of objects) {
+    for (const [index, object] of objects.entries()) {
       // the connection may be closed meanwhile, e.g. when too much data is queued
       if (!subscriber.isAlive) {
         return
+      }
+      // objects can be big. So in order to not block the event loop "just" for the SSE, we yield every 100 objects
+      // to let the event loop process other events
+      if (index % 100 === 0) {
+        await new Promise(resolve => setImmediate(resolve))
       }
       const data = await this.handleData({ ...conf, event: 'update' }, object, object, privilegesChange)
       if (data?.event === 'add' || data?.event === 'remove') {

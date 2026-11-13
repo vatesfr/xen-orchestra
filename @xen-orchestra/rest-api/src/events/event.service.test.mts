@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 import type { Response } from 'express'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 // this module depends on the IoC container, which cannot be initialized on its own
 // because of circular imports between the services: load the generated routes first,
@@ -125,21 +126,32 @@ describe('EventService', () => {
 
     /**
      * A connection of a user subscribed to a collection of two objects, `o1` and `o2`. Changing `state` then calling
-     * `change()` emits an RBAC trigger (its payload is ignored) and returns the frames it produced.
+     * `change()` emits an RBAC trigger (its payload is ignored) and returns the frames it produced. `whileOpening`
+     * changes `state` and emits a trigger right after the privileges of the opening stream are read.
      */
-    async function connect(collection: 'VM' | 'user', privileges: object[], permission = 'none') {
-      const state = { error: undefined as Error | undefined, permission, privileges }
+    async function connect(
+      collection: 'VM' | 'user',
+      privileges: object[],
+      permission = 'none',
+      whileOpening?: (state: { privileges: object[] }) => void
+    ) {
+      const state = { fail: undefined as (() => void) | undefined, permission, privileges }
       const restApi = createRestApi(new EventEmitter())
+      const emit = (type: string) => restApi.xoApp.getXoEventEmitterByType(type).emit('update', {}, {})
       Object.assign(restApi, {
         getCurrentUser: () => ({ id: 'user-2', permission: state.permission }),
         getObjectsByType: () => ({ o1: { id: 'o1' }, o2: { id: 'o2' } }),
       })
       Object.assign(restApi.xoApp, {
         getAclV2UserPrivileges: async () => {
-          if (state.error !== undefined) {
-            throw state.error
+          state.fail?.()
+          const { privileges } = state
+          if (whileOpening !== undefined) {
+            whileOpening(state)
+            whileOpening = undefined
+            emit('acl-privilege')
           }
-          return state.privileges
+          return privileges
         },
         getXoObjectsByType: async () => [{ id: 'o1' }, { id: 'o2' }],
         getUser: async () => ({ id: 'user-2', permission: state.permission }),
@@ -156,7 +168,7 @@ describe('EventService', () => {
         async change(type = 'acl-privilege', times = 1) {
           frames.length = 0
           for (let i = 0; i < times; i++) {
-            restApi.xoApp.getXoEventEmitterByType(type).emit('update', {}, {})
+            emit(type)
           }
           await flush()
           return frames.map(({ event, data }) => `${event} ${data.id}`)
@@ -190,6 +202,17 @@ describe('EventService', () => {
       assert.deepEqual(await connection.change('acl-privilege', 2), ['add o1'])
     })
 
+    it('including a change made while the stream was opening', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      // `o1` is granted after the privileges of the connection were read
+      const connection = await connect('VM', [], 'none', state => (state.privileges = [privilege('vm', 'id:o1')]))
+      await flush()
+
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change(), ['remove o1'])
+    })
+
     it('when a role is attached to or detached from the user, directly or through a group', async t => {
       t.mock.timers.enable({ apis: ['setInterval'] })
 
@@ -216,10 +239,27 @@ describe('EventService', () => {
       t.mock.timers.enable({ apis: ['setInterval'] })
 
       const connection = await connect('VM', [])
-      connection.state.error = new Error('cannot check the licence')
+      connection.state.fail = () => {
+        throw new Error('cannot check the licence')
+      }
 
       assert.deepEqual(await connection.change(), [])
       assert.equal(connection.res.destroyed, true)
+    })
+
+    it('but keeps the connection when a role is deleted while the privileges are read', async t => {
+      t.mock.timers.enable({ apis: ['setInterval'] })
+
+      const connection = await connect('VM', [privilege('vm', 'id:o1')])
+      connection.state.fail = () => noSuchObject('role-1', 'role')
+
+      assert.deepEqual(await connection.change(), [])
+      assert.equal(connection.res.destroyed, false)
+
+      // the round the removal of the role triggers diffs from the privileges before it
+      connection.state.fail = undefined
+      connection.state.privileges = []
+      assert.deepEqual(await connection.change('acl-role'), ['remove o1'])
     })
   })
 })

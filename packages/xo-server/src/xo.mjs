@@ -157,12 +157,7 @@ export default class Xo extends EventEmitter {
         )
       )
     })
-    // the XO objects which are not in a collection
-    this.#getAllByType.set('backup-archive', async () =>
-      Object.values(await this.listVmBackupsNg((await this.getAllRemotes()).map(({ id }) => id)))
-        .filter(backupsByVm => backupsByVm !== null)
-        .flatMap(backupsByVm => Object.values(backupsByVm).flat())
-    )
+
     this.#getAllByType.set('backup-log', () => this.getBackupNgLogsSorted({ filter: { message: 'backup' } }))
     this.#getAllByType.set('task', async () => {
       const tasks = []
