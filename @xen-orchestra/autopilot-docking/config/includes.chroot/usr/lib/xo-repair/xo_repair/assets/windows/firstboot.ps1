@@ -128,6 +128,11 @@ function Stop-Attempt([string]$Reason) {
         Write-Log 'maximum number of attempts reached, giving up'
         Send-Status "$($script:Phase):failed"
         Remove-FirstbootService
+    } elseif ($script:Config['reboot'] -eq 'xo') {
+        # XO follows the first boot: the next attempt is now, not at a boot nobody does. A reboot and
+        # not a shut down, which XO would take for the end of the phase
+        Write-Log "rebooting for attempt $($script:Attempt + 1)"
+        & shutdown.exe /r /t 15 /c "XO repair: $Reason, retrying"
     }
     exit 1
 }
