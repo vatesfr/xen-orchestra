@@ -232,3 +232,21 @@ exports.serviceUnavailable = create(28, ({ serviceName }) => ({
   },
   message: 'service unavailable',
 }))
+
+// A placement guard refused to start, resume or migrate a VM onto a host
+// (xo-server's placement guards, which plugins register). `reason` is the
+// guard's own; `bypass.parameter` is the boolean parameter that overrides the
+// refusal, `bypass.allowed` whether the refused user may set it, and
+// `bypass.who` who may.
+exports.placementRefused = create(29, ({ operation, vm, host, guard, reason, bypass }) => {
+  const name = object => `"${object.name !== undefined ? object.name : object.id}"`
+  const where = host === undefined ? 'in its pool' : `${operation === 'migrate' ? 'to' : 'on'} host ${name(host)}`
+  return {
+    data: { operation, vm, host, guard, reason, bypass },
+    message:
+      `cannot ${operation} VM ${name(vm)} ${where}: ${reason}. ` +
+      (bypass.allowed
+        ? `To ${operation} it anyway, set ${bypass.parameter}.`
+        : `Only ${bypass.who} may ${operation} it anyway, with ${bypass.parameter}.`),
+  }
+})
