@@ -19,14 +19,14 @@ This procedure is validated against a fresh **Debian 12 x64** install and works 
 
 ### Node.js
 
-Xen Orchestra requires [Node.js](https://nodejs.org/), **always the [latest LTS version](https://github.com/nodejs/release?tab=readme-ov-file#release-schedule)**. Check what you have:
+Xen Orchestra requires [Node.js](https://nodejs.org/) **22**, the version used by XOA. Use the latest 22.x release. Newer versions, such as Node.js 24, are not supported yet. Check what you have:
 
 <Terminal title="check your Node.js version">{`
 node -v
-v22.11.0
+v22.22.3
 `}</Terminal>
 
-If it is missing or older than the current LTS, install it following [the Node.js instructions](https://nodejs.org/en/download/package-manager/).
+If it is missing or is not a 22.x version, install Node.js 22 following [the Node.js instructions](https://nodejs.org/en/download/package-manager/).
 
 ### Yarn
 
