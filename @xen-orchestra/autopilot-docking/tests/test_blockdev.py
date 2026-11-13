@@ -1,8 +1,12 @@
 import unittest
+from unittest import mock
 
 from helpers import dev, lsblk_json
 
-from xo_repair.blockdev import guest_disks, parse_lsblk
+from xo_repair import __main__ as main
+from xo_repair.blockdev import activate_storage, guest_disks, parse_lsblk
+from xo_repair.report import Report
+from xo_repair.util import RepairError
 
 
 class ParseLsblkTest(unittest.TestCase):
@@ -52,6 +56,32 @@ class ParseLsblkTest(unittest.TestCase):
     def test_disk_order_beyond_z(self):
         text = lsblk_json(dev("xvdaa", "disk"), dev("xvdz", "disk"), dev("xvda", "disk"))
         self.assertEqual([d.name for d in guest_disks(parse_lsblk(text))], ["xvda", "xvdz", "xvdaa"])
+
+
+class ActivateStorageTest(unittest.TestCase):
+    def test_returns_the_failures(self):
+        def run(cmd, **kwargs):
+            if cmd[0] == "vgchange":
+                raise RepairError("command_failed", "vgchange exited with status 5: metadata unreadable")
+
+        with mock.patch("xo_repair.blockdev.run", side_effect=run):
+            self.assertEqual(activate_storage(readonly=True),
+                             ["vgchange exited with status 5: metadata unreadable"])
+
+    def test_reported_when_no_os_is_found(self):
+        report = Report("diagnose", "dev")
+        disks = parse_lsblk(lsblk_json(dev("xvda", "disk")))
+        with mock.patch.object(main.efi, "firmware", return_value="bios"), \
+                mock.patch.object(main, "activate_storage", return_value=["vgchange exited with status 5"]), \
+                mock.patch.object(main, "list_block_devices", return_value=[]), \
+                mock.patch.object(main, "guest_disks", return_value=disks), \
+                mock.patch.object(main, "find_tools", return_value=None), \
+                mock.patch.object(main, "probe", return_value=[]):
+            main.execute(report, mock.Mock(), None, "standard", {}, {})
+        self.assertEqual([(f.level, f.code, f.message) for f in report.findings], [
+            ("warning", "storage_activation_failed", "vgchange exited with status 5"),
+            ("error", "no_os_found", "no Linux or Windows installation found on the disks"),
+        ])
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 
-from .util import run
+from .util import RepairError, run
 
 LSBLK_COLUMNS = "NAME,PATH,TYPE,FSTYPE,UUID,PARTUUID,LABEL,PARTTYPE,PTTYPE,SIZE,RM"
 IGNORED_DISK_PREFIXES = ("loop", "sr", "zram", "ram", "fd")
@@ -103,11 +103,17 @@ def guest_disks(devices: list[BlockDev]) -> list[BlockDev]:
     return sorted(disks, key=lambda d: (len(d.name), d.name))
 
 
-def activate_storage(readonly: bool) -> None:
-    """Assemble MD arrays and activate LVM volumes so their filesystems are visible."""
+def activate_storage(readonly: bool) -> list[str]:
+    """Assemble MD arrays and activate LVM volumes so their filesystems are visible.
+
+    Best effort: a guest without RAID or LVM makes these commands fail too. Returns the failures, which
+    tell why no OS was found when none is.
+    """
     mdadm = ["mdadm", "--assemble", "--scan"] + (["--readonly"] if readonly else [])
+    failures = []
     for cmd in (mdadm, ["vgchange", "-ay"], ["udevadm", "settle", "--timeout=30"]):
         try:
-            run(cmd, check=False, timeout=120)
-        except Exception:  # noqa: BLE001 - best effort, missing tools are fine
-            pass
+            run(cmd, timeout=120)
+        except RepairError as exc:
+            failures.append(str(exc))
+    return failures

@@ -2,6 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from unittest import mock
+
 from helpers import make_tree, write_empty_hive
 
 from xo_repair.efi import fallback_copies
@@ -9,7 +11,7 @@ from xo_repair.windows import (
     FIRSTBOOT_SERVICE, clear_static_config, control_sets, current_control_set, disable_services,
     enable_boot_drivers, firstboot_config, firstboot_msi_patterns, firstboot_state, install_firstboot_service, is_hibernated, match_packages,
     map_static_adapters, network_adapters, network_config, parse_windows_nics, pv_drivers_installed,
-    rtc_timeoffset, vmware_services,
+    rtc_timeoffset, vmware_services, WindowsGuest,
 )
 
 try:
@@ -313,6 +315,19 @@ class EfiFallbackTest(unittest.TestCase):
     def test_no_loader(self):
         make_tree(self.esp, {"EFI/empty/README": ""})
         self.assertIsNone(fallback_copies(self.esp / "EFI", "linux", ["debian"]))
+
+
+class CommitTest(unittest.TestCase):
+    def test_backup_keeps_the_hive_before_the_first_repair(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            guest = WindowsGuest.__new__(WindowsGuest)
+            guest.system_path = Path(tmp) / "SYSTEM"
+            guest.system_path.write_bytes(b"original")
+            guest.system = mock.Mock()
+            guest._commit()
+            guest.system_path.write_bytes(b"repaired")  # what the first run wrote
+            guest._commit()
+            self.assertEqual((Path(tmp) / "SYSTEM.xo-repair.bak").read_bytes(), b"original")
 
 
 if __name__ == "__main__":

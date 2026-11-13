@@ -607,6 +607,8 @@ class WindowsGuest:
 
     def _commit(self) -> None:
         backup = self.system_path.with_name(self.system_path.name + ".xo-repair.bak")
-        shutil.copyfile(self.system_path, backup)
+        # the hive before the first repair: a later run would back up a hive it already modified
+        if not backup.exists():
+            shutil.copyfile(self.system_path, backup)
         self.system.commit()
         self.system.close()

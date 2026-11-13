@@ -66,7 +66,7 @@ def execute(report: Report, mounts: Mounts, msi_patterns: list[str] | None, clea
             nic_map: dict[str, str], windows_nics: dict[str, str], reboot: str = "guest") -> None:
     readonly = report.mode != "repair"
     report.firmware = efi.firmware()
-    activate_storage(readonly)
+    activation_failures = activate_storage(readonly)
     devices = list_block_devices()
     disks = guest_disks(devices)
     report.disks = [d.name for d in disks]
@@ -77,6 +77,9 @@ def execute(report: Report, mounts: Mounts, msi_patterns: list[str] | None, clea
     tools = find_tools(devices, mounts, report)
     candidates = probe(devices, mounts, report)
     if not candidates:
+        # the OS may be on RAID or LVM which could not be activated
+        for failure in activation_failures:
+            report.warning("storage_activation_failed", failure)
         report.error("no_os_found", "no Linux or Windows installation found on the disks")
         return
     if len(candidates) > 1:

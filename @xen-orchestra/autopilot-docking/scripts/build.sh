@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build, check and version the repair ISO. Run as root from the repository root.
+# Build, check and version the repair ISO. Run as root, from any folder: it works in the package folder.
 # Usage: scripts/build.sh
 #   XO_REPAIR_VERSION=1.2.0 scripts/build.sh   # release build (CI sets it from the tag)
 # Produces dist/vates-autopilot-docking-<YYYYMMDDTHHMMSSZ>-<commit or release version>.iso and its .sha256.

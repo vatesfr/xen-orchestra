@@ -4,6 +4,26 @@ config/hooks/live/
 config/hooks/normal/[0-8]*
 config/hooks/normal/90[0-2]0-remove-*
 
+# what live-build and scripts/build.sh generate, see auto/clean
+.build/
+binary/
+cache/
+chroot/
+local/
+config/binary
+config/bootstrap
+config/build
+config/chroot
+config/common
+config/source
+build.log
+build.status
+binary.modified_timestamps
+chroot.files
+chroot.packages.*
+live-image-*
+config/includes.chroot/usr/lib/xo-repair/VERSION
+
 # Python bytecode, written by the tests: it must not end up in the ISO either
 __pycache__/
 *.pyc
