@@ -6,18 +6,26 @@ import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-
 import { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { ApiError } from '@/shared/error/api.error.ts'
 import type { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { fetchPostMock, monitorTaskMock } = vi.hoisted(() => ({
+const { fetchPostMock, monitorTaskMock, openOverlayMock } = vi.hoisted(() => ({
   fetchPostMock: vi.fn(),
   monitorTaskMock: vi.fn(),
+  openOverlayMock: vi.fn(),
+}))
+
+// the firewall's confirmation (vdf#141), answered by openOverlayMock
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+  useOverlay: (() => ({ open: openOverlayMock })) as unknown as typeof useOverlay,
 }))
 
 vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
@@ -225,6 +233,29 @@ describe('run', () => {
     await job.run()
 
     expect(fetchPostMock).toHaveBeenCalledWith(`vms/${vm.id}/actions/migrate`, payload)
+    expect(monitorTaskMock).toHaveBeenCalledWith(TASK_ID)
+  })
+
+  it('migrates anyway, without the firewall, once a user allowed to confirms', async () => {
+    const refusal = {
+      operation: 'migrate',
+      vm: { id: 'vm-1', name: 'web-1' },
+      host: { id: HOST_ID, name: 'xcp2' },
+      guard: 'firewall',
+      reason: 'no firewall agent on host "xcp2"',
+      bypass: { parameter: 'bypassFirewallCheck', allowed: true, who: 'XO administrators' },
+    }
+    fetchPostMock.mockRejectedValueOnce(new ApiError('Forbidden', { status: 403, cause: { data: refusal } }))
+    openOverlayMock.mockResolvedValue({ event: 'onConfirm' })
+    const vm = createVm()
+    const job = mountMigrateJob(vm)
+
+    await job.run()
+
+    expect(fetchPostMock.mock.calls).toEqual([
+      [`vms/${vm.id}/actions/migrate`, payload],
+      [`vms/${vm.id}/actions/migrate`, { ...payload, bypassFirewallCheck: true }],
+    ])
     expect(monitorTaskMock).toHaveBeenCalledWith(TASK_ID)
   })
 

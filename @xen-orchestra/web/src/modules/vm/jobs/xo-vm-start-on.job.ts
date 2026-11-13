@@ -1,4 +1,5 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useVdfPlacementOverride } from '@/modules/vdf/composables/vdf-placement.composable.ts'
 import { xoVmHostArg, xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
@@ -11,14 +12,19 @@ import { useI18n } from 'vue-i18n'
 export const useXoVmStartOnJob = defineJob('vm.start-on', [xoVmsArg, xoVmHostArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
+  // vdf#141: refused by the firewall, who may goes on without it
+  const { placeWithOverride } = useVdfPlacementOverride()
 
   return {
     async run(vms: FrontXoVm[], host: FrontXoHost | undefined) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/start`, {
-            hostId: host?.id,
-          })
+          const { taskId } = await placeWithOverride(bypassFirewallCheck =>
+            fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/start`, {
+              hostId: host?.id,
+              ...(bypassFirewallCheck ? { bypassFirewallCheck } : {}),
+            })
+          )
           await monitorTask(taskId)
         })
       )

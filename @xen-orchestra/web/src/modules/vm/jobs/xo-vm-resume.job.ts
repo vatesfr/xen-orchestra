@@ -1,3 +1,4 @@
+import { useVdfPlacementOverride } from '@/modules/vdf/composables/vdf-placement.composable.ts'
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
@@ -10,12 +11,19 @@ import { useI18n } from 'vue-i18n'
 export const useXoVmResumeJob = defineJob('vm.resume', [xoVmsArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
+  // vdf#141: refused by the firewall, who may goes on without it
+  const { placeWithOverride } = useVdfPlacementOverride()
 
   return {
     async run(vms: FrontXoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/resume`)
+          const { taskId } = await placeWithOverride(bypassFirewallCheck =>
+            fetchPost<{ taskId: XoTask['id'] }>(
+              `vms/${vm.id}/actions/resume`,
+              bypassFirewallCheck ? { bypassFirewallCheck } : undefined
+            )
+          )
           await monitorTask(taskId)
         })
       )

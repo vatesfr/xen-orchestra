@@ -1,4 +1,5 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useVdfPlacementOverride } from '@/modules/vdf/composables/vdf-placement.composable.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -18,6 +19,8 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
   const { getHostById } = useXoHostCollection()
+  // vdf#141: refused by the firewall, who may goes on without it
+  const { placeWithOverride } = useVdfPlacementOverride()
 
   return {
     async run(vm: FrontXoVm, payload: VmMigratePayload | undefined) {
@@ -25,7 +28,12 @@ export const useXoVmMigrateJob = defineJob('vm.migrate', [xoVmArg, xoVmMigratePa
         throw new JobError(t('job:vm-migrate:missing-host'))
       }
 
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/migrate`, payload)
+      const { taskId } = await placeWithOverride(bypassFirewallCheck =>
+        fetchPost<{ taskId: XoTask['id'] }>(
+          `vms/${vm.id}/actions/migrate`,
+          bypassFirewallCheck ? { ...payload, bypassFirewallCheck } : payload
+        )
+      )
 
       await monitorTask(taskId)
     },
