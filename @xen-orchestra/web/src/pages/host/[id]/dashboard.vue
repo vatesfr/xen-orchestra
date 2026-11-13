@@ -2,7 +2,7 @@
   <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <div class="quick-info">
       <HostDashboardQuickInfo :host />
-      <!-- vdf#141: protected VMs running here, where the firewall agent can't enforce -->
+      <!-- vdf#141: protected VMs running here without a working firewall agent (no host Firewall tab) -->
       <VdfUnenforcedAlert :pool-id="host.$pool" :host-id="host.id" />
     </div>
     <div v-if="!isHostRunning" class="offline-hero-container">

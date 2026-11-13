@@ -39,6 +39,9 @@
       </template>
     </UiAlert>
 
+    <!-- vdf#141: without policies, no Exposed list below; a quarantine may still go unenforced -->
+    <VdfUnenforcedAlert v-if="publishedDocument.policies.length === 0" :pool-id="pool.id" />
+
     <VdfDraftHint v-if="hasDraft" :to="{ name: '/pool/[id]/firewall/policies', params: { id: pool.id } }" />
 
     <template v-if="publishedDocument.policies.length > 0">
@@ -447,6 +450,7 @@ import VdfServicesStatus from '@/modules/vdf/components/services/VdfServicesStat
 import VdfGroupChip from '@/modules/vdf/components/VdfGroupChip.vue'
 import VdfHostStateInfo from '@/modules/vdf/components/VdfHostStateInfo.vue'
 import VdfQuarantineLiftedAlert from '@/modules/vdf/components/VdfQuarantineLiftedAlert.vue'
+import VdfUnenforcedAlert from '@/modules/vdf/components/VdfUnenforcedAlert.vue'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
 import { type VdfLockIssue, useVdfLockingIssues } from '@/modules/vdf/composables/vdf-locking-issues.composable.ts'
 import { useVdfMembers } from '@/modules/vdf/composables/vdf-members.composable.ts'

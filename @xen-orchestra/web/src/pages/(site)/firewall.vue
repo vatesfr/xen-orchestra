@@ -5,8 +5,8 @@
       <div class="main">
         <VdfFirewallBar :scope />
         <VdfDraftBar :scope />
-        <!-- vdf#141: protected VMs running where the firewall can't enforce, in every pool -->
-        <VdfUnenforcedAlert class="unenforced" />
+        <!-- vdf#141: protected VMs on a host without a working agent, in every pool; the overview says it itself -->
+        <VdfUnenforcedAlert v-if="route.name !== '/(site)/firewall/overview'" class="unenforced" />
         <RouterView />
       </div>
     </div>

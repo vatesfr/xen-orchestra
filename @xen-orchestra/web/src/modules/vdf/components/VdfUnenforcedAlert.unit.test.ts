@@ -6,6 +6,7 @@ import type { VdfUnenforced } from '@/modules/vdf/types.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -70,10 +71,7 @@ vi.mock(import('@/modules/vdf/remote-resources/use-vdf-unenforced.ts'), () => ({
   useVdfUnenforced: (() => ({ unenforced: ref(UNENFORCED) })) as unknown as typeof useVdfUnenforced,
 }))
 
-const mountAlert = (
-  props: { poolId?: string; hostId?: string; vmId?: string },
-  { enabled = true, canRead = true } = {}
-) => {
+const mountAlert = (props: { poolId?: string; hostId?: string }, { enabled = true, canRead = true } = {}) => {
   state.enabled = enabled
   state.canRead = canRead
 
@@ -82,41 +80,45 @@ const mountAlert = (
 
 const linkedVms = (wrapper: ReturnType<typeof mountAlert>) => wrapper.findAllComponents(UiLink).map(link => link.text())
 
-it("XO-wide: every pool's hosts, with their pool and their VMs", () => {
-  const wrapper = mountAlert({})
+it("XO-wide: every pool's hosts, named with their pool, and their VMs", () => {
+  const text = mountAlert({}).text()
 
-  expect(wrapper.text()).toContain(t('firewall:unenforced:hosts', { n: 3 }, 3))
-  expect(wrapper.text()).toContain('lab: the firewall agent on host "lab1" stopped')
-  expect(linkedVms(wrapper)).toEqual(['web-1', 'db-1', 'app-1', 'test-1'])
+  expect(text).toContain(t('firewall:unenforced:vms', { n: 4 }, 4))
+  expect(text).toContain(t('firewall:unenforced:stale', { host: 'lab1 (lab)', n: 1 }, 1))
+  expect(linkedVms(mountAlert({}))).toEqual(['web-1', 'db-1', 'app-1', 'test-1'])
 })
 
-it("a pool's: its hosts only", () => {
+it("a pool's: its hosts, each as its agent is, with its VMs", () => {
   const wrapper = mountAlert({ poolId: 'pool-1' })
+  const text = wrapper.text()
 
-  expect(wrapper.text()).toContain(t('firewall:unenforced:hosts', { n: 2 }, 2))
-  expect(wrapper.text()).toContain('no firewall agent on host "xcp1"')
-  expect(wrapper.text()).not.toContain('lab1')
+  expect(text).toContain(t('firewall:unenforced:vms', { n: 3 }, 3))
+  // no agent: nothing is filtered there
+  expect(text).toContain(t('firewall:unenforced:missing', { host: 'xcp1', n: 2 }, 2))
+  // one not reporting: the flows it installed stay, what came since isn't enforced
+  expect(text).toContain(t('firewall:unenforced:stale', { host: 'xcp2', n: 1 }, 1))
+  expect(text).toContain(t('firewall:unenforced:since', { date: formatDateTime('2026-11-13T09:00:00.000Z') }))
+  expect(text).not.toContain('lab1')
   expect(linkedVms(wrapper)).toEqual(['web-1', 'db-1', 'app-1'])
 })
 
-it("a host's: its VMs", () => {
+it('says it in the singular for one VM', () => {
+  const text = mountAlert({ poolId: 'pool-2' }).text()
+
+  expect(text).toContain(t('firewall:unenforced:vms', { n: 1 }, 1))
+  expect(text).toContain(t('firewall:unenforced:stale', { host: 'lab1', n: 1 }, 1))
+  expect(t('firewall:unenforced:vms', { n: 1 }, 1)).not.toBe(t('firewall:unenforced:vms', { n: 2 }, 2))
+})
+
+it("a host's: its VMs, no links", () => {
   const wrapper = mountAlert({ poolId: 'pool-1', hostId: 'host-1' })
 
   expect(wrapper.text()).toContain(t('firewall:unenforced:host', { n: 2 }, 2))
   expect(wrapper.text()).not.toContain('xcp2')
-  expect(linkedVms(wrapper)).toEqual(['web-1', 'db-1'])
-})
-
-it("a VM's: the host it runs on, no links", () => {
-  const wrapper = mountAlert({ poolId: 'pool-1', vmId: 'vm-3' })
-
-  expect(wrapper.text()).toContain(t('firewall:unenforced:vm', { host: 'xcp2' }))
-  expect(wrapper.text()).toContain('has not reported since')
   expect(linkedVms(wrapper)).toEqual([])
 })
 
-it('nothing for a VM, a host or a pool that is fine', () => {
-  expect(mountAlert({ poolId: 'pool-1', vmId: 'vm-9' }).text()).toBe('')
+it('nothing for a host or a pool that is fine', () => {
   expect(mountAlert({ poolId: 'pool-1', hostId: 'host-9' }).text()).toBe('')
   expect(mountAlert({ poolId: 'pool-9' }).text()).toBe('')
 })

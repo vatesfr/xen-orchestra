@@ -5,8 +5,12 @@
       <div class="main">
         <VdfFirewallBar :scope="{ kind: 'pool', pool }" />
         <VdfDraftBar :scope="{ kind: 'pool', pool }" />
-        <!-- vdf#141: protected VMs running where the firewall can't enforce -->
-        <VdfUnenforcedAlert :pool-id="pool.id" class="unenforced" />
+        <!-- vdf#141: protected VMs on a host without a working agent; the overview lists them itself -->
+        <VdfUnenforcedAlert
+          v-if="route.name !== '/pool/[id]/firewall/overview'"
+          :pool-id="pool.id"
+          class="unenforced"
+        />
         <RouterView v-slot="{ Component }">
           <component :is="Component" :pool />
         </RouterView>

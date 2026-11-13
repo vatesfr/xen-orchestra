@@ -2,11 +2,13 @@
   <UiAlert v-if="hosts.length > 0" accent="danger">
     {{ title }}
     <template #description>
-      <p>{{ t('firewall:unenforced:info') }}</p>
       <ul class="hosts">
         <li v-for="host of hosts" :key="host.id" class="host">
-          <span>{{ poolId === undefined ? `${host.poolName}: ${host.reason}` : host.reason }}</span>
-          <span v-if="vmId === undefined" class="vms">
+          <span>{{ hostText(host) }}</span>
+          <span v-if="host.since !== undefined" class="secondary">
+            {{ t('firewall:unenforced:since', { date: formatDateTime(host.since) }) }}
+          </span>
+          <span v-if="hostId === undefined" class="vms">
             <UiLink
               v-for="vm of host.vms"
               :key="vm.id"
@@ -26,21 +28,24 @@
 import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
 import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfUnenforced } from '@/modules/vdf/remote-resources/use-vdf-unenforced.ts'
+import type { VdfUnenforcedHost } from '@/modules/vdf/types.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// vdf#141: hosts whose firewall agent can't enforce while VMs the firewall
-// protects run there, started or moved there outside XO (or with the check
-// overridden): they run unfiltered. XO-wide without props; a pool's with
-// `poolId`; one host's with `hostId`, one VM's with `vmId` (and their pool's
-// id). For users who may read the pool's firewall: the plugin lists only
-// their pools.
-const { poolId, hostId, vmId } = defineProps<{
+// vdf#141: hosts without a working firewall agent while VMs the firewall
+// protects run there, for the pages that say it nowhere else (the pool and
+// XO-wide overviews list exposed VMs, the VM's Firewall tab says Exposed).
+// XO-wide without props; a pool's with `poolId`; one host's with `hostId`
+// (and its pool's id). A missing agent filters nothing; a stopped or stuck
+// one leaves the flows it installed, and enforces nothing that came since.
+// For users who may read the pool's firewall: the plugin lists only their
+// pools.
+const { poolId, hostId } = defineProps<{
   poolId?: string
   hostId?: string
-  vmId?: string
 }>()
 
 const { t } = useI18n()
@@ -60,24 +65,21 @@ const hosts = computed(() => {
     .filter(pool => poolId === undefined || pool.id === poolId)
     .flatMap(pool => pool.hosts.map(host => ({ ...host, poolName: pool.name })))
     .filter(host => hostId === undefined || host.id === hostId)
-    .filter(host => vmId === undefined || host.vms.some(vm => vm.id === vmId))
 })
 
 const title = computed(() => {
-  if (vmId !== undefined) {
-    return t('firewall:unenforced:vm', { host: hosts.value[0].name })
-  }
+  const n = hosts.value.reduce((count, host) => count + host.vms.length, 0)
 
-  if (hostId !== undefined) {
-    const n = hosts.value[0].vms.length
-
-    return t('firewall:unenforced:host', { n }, n)
-  }
-
-  const n = hosts.value.length
-
-  return t('firewall:unenforced:hosts', { n }, n)
+  return t(hostId === undefined ? 'firewall:unenforced:vms' : 'firewall:unenforced:host', { n }, n)
 })
+
+// missing: nothing filtered; stopped or stale: its flows stay, nothing since
+function hostText(host: VdfUnenforcedHost & { poolName: string }) {
+  const n = host.vms.length
+  const name = poolId === undefined ? `${host.name} (${host.poolName})` : host.name
+
+  return t(`firewall:unenforced:${host.state === 'missing' ? 'missing' : 'stale'}`, { host: name, n }, n)
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -93,6 +95,10 @@ const title = computed(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 1.6rem;
+}
+
+.secondary {
+  color: var(--color-neutral-txt-secondary);
 }
 
 .vms {

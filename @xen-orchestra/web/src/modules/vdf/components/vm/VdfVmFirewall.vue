@@ -71,8 +71,6 @@
       class="state-alert"
       @acknowledged="reloadPublishedPolicy()"
     />
-    <!-- vdf#141: it runs on a host whose agent can't enforce, started or moved there outside XO -->
-    <VdfUnenforcedAlert :pool-id="pool.id" :vm-id="vm.id" class="state-alert" />
 
     <!-- what most changes what "Protected" means, in words, each with its way out -->
     <UiAlert v-if="vmShadows.length > 0" accent="danger" class="state-alert">
@@ -311,7 +309,6 @@ import VdfEffectivePolicy from '@/modules/vdf/components/VdfEffectivePolicy.vue'
 import VdfPreviewBadge from '@/modules/vdf/components/VdfPreviewBadge.vue'
 import VdfQuarantineLiftedAlert from '@/modules/vdf/components/VdfQuarantineLiftedAlert.vue'
 import VdfRuleLogTable from '@/modules/vdf/components/VdfRuleLogTable.vue'
-import VdfUnenforcedAlert from '@/modules/vdf/components/VdfUnenforcedAlert.vue'
 import VdfVmInterface from '@/modules/vdf/components/vm/VdfVmInterface.vue'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfInterfaces } from '@/modules/vdf/composables/vdf-interfaces.composable.ts'
