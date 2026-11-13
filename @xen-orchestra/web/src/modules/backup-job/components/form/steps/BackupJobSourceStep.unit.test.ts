@@ -18,7 +18,7 @@ import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
+import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -63,7 +63,7 @@ mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-colle
   })) as unknown as typeof useXoBackupLogCollection,
 }))
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
+mockModule(import('@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
   useXoVmBackupArchiveCollection: (() => ({
     backupArchives: ref([]),
     areBackupArchivesReady: ref(true),

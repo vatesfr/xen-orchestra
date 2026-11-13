@@ -4,7 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import type {
   FrontXoVmBackupArchive,
   useXoVmBackupArchiveCollection,
-} from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
+} from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -18,7 +18,7 @@ const { backupArchives, areBackupArchivesReady, getVmById } = {
   getVmById: vi.fn(),
 }
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
+mockModule(import('@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
   useXoVmBackupArchiveCollection: (() => ({
     backupArchives: ref(backupArchives.value),
     areBackupArchivesReady: ref(areBackupArchivesReady.value),

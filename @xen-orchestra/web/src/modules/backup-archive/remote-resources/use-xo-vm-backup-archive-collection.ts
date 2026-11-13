@@ -12,8 +12,11 @@ const vmBackupArchiveFields = [
   'size',
   'vm',
   'type',
-  'mode',
   'timestamp',
+  'jobId',
+  'mode',
+  'isImmutable',
+  'disks',
   'backupRepository', // `backupRepository` is needed by the predicate
 ] as const satisfies readonly (keyof XoVmBackupArchive)[]
 

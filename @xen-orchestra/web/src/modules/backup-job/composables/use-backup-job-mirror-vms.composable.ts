@@ -1,6 +1,6 @@
 import type { BackupJobMode } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
+import { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
