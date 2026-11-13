@@ -2,22 +2,20 @@
   <VtsSidePanel :has-selection="!!vif" class="vif-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
       <VifConnectionToggleButton :vif :vm />
-    </template>
-    <template v-if="vif" #more-actions>
-      <VifActions :vif />
+      <VifDeleteButton :vif />
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
         <UiPanelCardTitle :id="vif.id" size="medium" :to="vifTo" :label="t('vif')" icon="object:vif" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
+              <UiLink v-if="network" size="small" :to="networkTo" icon="object:network">
                 {{ network.name_label }}
               </UiLink>
             </template>
@@ -85,32 +83,15 @@
               {{ vif.txChecksumming }}
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- NETWORK INFORMATION -->
       <UiPanelCard>
         <UiPanelCardTitle size="medium" :label="t('network-information')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- IP ADDRESSES -->
-          <template v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-              </template>
-              <template #value>{{ ip }}</template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-              </template>
-            </VtsCardRowKeyValue>
-          </template>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
+          <VtsCardRowKeyValue :values="ipAddresses">
+            <template #key>{{ t('ip-addresses') }}</template>
           </VtsCardRowKeyValue>
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
@@ -124,7 +105,7 @@
               <VtsCopyButton :value="vif.MAC" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -134,12 +115,12 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
-import VifActions from '@/modules/vif/components/actions/VifActions.vue'
+import VifDeleteButton from '@/modules/vif/components/actions/delete/VifDeleteButton.vue'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { getVifTrafficRoute } from '@/modules/vif/utils/xo-vif.util.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -188,12 +169,6 @@ const status = computed(() => (vif?.attached ? CONNECTION_STATUS.CONNECTED : CON
 
 <style scoped lang="postcss">
 .vif-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .value:empty::before {
     content: '-';
   }

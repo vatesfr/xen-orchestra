@@ -15,7 +15,7 @@ import VueCharts from 'vue-echarts'
 
 const {
   data,
-  valueFormatter: _valueFormatter,
+  valueFormatter: rawValueFormatter,
   maxValue,
 } = defineProps<{
   data: LinearChartData
@@ -28,7 +28,7 @@ const Y_AXIS_MAX_VALUE = 200
 const xAxisLabelFormatter = timeFormat('%a\n%H:%M')
 
 const valueFormatter = computed<ValueFormatter>(() => {
-  const formatter = _valueFormatter
+  const formatter = rawValueFormatter
 
   return value => {
     if (value === null) {

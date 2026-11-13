@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="backup-repository-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle
       :id="br.id"
       :label="br.name"
@@ -7,7 +7,7 @@
       :icon="brIcon"
       size="medium"
     />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -44,7 +44,7 @@
           <VtsStatus :status="isEncrypted" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -53,6 +53,7 @@ import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composab
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryIcon } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -76,13 +77,3 @@ const { brStatus, brType, brStorageMode, brProxy, isEncrypted } = useXoBackupRep
 
 const brIcon = computed(() => getBackupRepositoryIcon(br, parsedBrUrl?.type))
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

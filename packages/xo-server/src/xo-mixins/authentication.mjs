@@ -16,6 +16,8 @@ const log = createLogger('xo:authentification')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
+const isNonEmptyString = value => typeof value === 'string' && value.length !== 0
+
 export default class {
   constructor(app) {
     app.config.watch('authentication', config => {
@@ -51,7 +53,7 @@ export default class {
 
     // Token authentication provider.
     this.registerAuthenticationProvider(async ({ token: tokenId }, { ip } = {}) => {
-      if (!tokenId) {
+      if (!isNonEmptyString(tokenId)) {
         return
       }
 
@@ -278,8 +280,13 @@ export default class {
     await db.remove((await db.get()).filter(createPredicate(filter)).map(({ id }) => id))
   }
 
-  async _getAuthenticationToken(id, properties) {
-    const token = await this._tokens.first(properties ?? id)
+  async _getAuthenticationToken(id, userId) {
+    if (!isNonEmptyString(id) || (userId !== undefined && !isNonEmptyString(userId))) {
+      return
+    }
+
+    // build the query from validated fields only, never forward caller-supplied objects
+    const token = await this._tokens.first(userId === undefined ? id : { id, user_id: userId })
     if (token !== undefined) {
       if (token.expiration > Date.now()) {
         return token
@@ -290,9 +297,9 @@ export default class {
   }
 
   async getAuthenticationToken(properties) {
-    const id = typeof properties === 'string' ? properties : properties.id
+    const { id, user_id: userId } = typeof properties === 'string' ? { id: properties } : (properties ?? {})
 
-    const token = await this._getAuthenticationToken(id, properties)
+    const token = await this._getAuthenticationToken(id, userId)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }

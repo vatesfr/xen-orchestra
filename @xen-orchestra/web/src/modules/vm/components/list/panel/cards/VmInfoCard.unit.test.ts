@@ -12,10 +12,14 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { objectIcon } from '@core/icons'
 import type { XoUser } from '@vates/types'
-import { HOST_POWER_STATE, VM_POWER_STATE } from '@vates/types'
+import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
@@ -91,6 +95,22 @@ it('renders the name and the id of the VM as the card title', () => {
 
   expect(wrapper.get('.ui-panel-card-title').text()).toContain('Web server')
   expect(wrapper.get('.ui-panel-card-title').text()).toContain('vm-42')
+})
+
+it('shows the busy icon in the card title while the VM power state is changing', () => {
+  const wrapper = mountInfoCard(
+    createVm({ power_state: VM_POWER_STATE.RUNNING, current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } })
+  )
+
+  expect(wrapper.getComponent(UiPanelCardTitle).getComponent(VtsIcon).props('name')).toBe(objectIcon('vm', 'busy'))
+})
+
+it('shows the pending operation in the tooltip of the busy icon of the card title', async () => {
+  const wrapper = mountInfoCard(createVm({ current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }))
+
+  expect(await findTooltipContent(wrapper.getComponent(UiPanelCardTitle).getComponent(VtsIcon).element)).toBe(
+    t('operation-in-progress', { operation: t('operation:clean-reboot') })
+  )
 })
 
 it('lists every row of the card, in order', () => {

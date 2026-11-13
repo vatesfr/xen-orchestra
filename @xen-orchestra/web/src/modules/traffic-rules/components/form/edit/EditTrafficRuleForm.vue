@@ -29,7 +29,12 @@
         <template #option="{ option }">
           <VtsOption :option>
             <span class="option-content">
-              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              <VtsIcon
+                v-if="option.properties.icon"
+                :name="option.properties.icon"
+                :tooltip="option.properties.iconTooltip"
+                size="medium"
+              />
               {{ option.properties.label }}
             </span>
           </VtsOption>

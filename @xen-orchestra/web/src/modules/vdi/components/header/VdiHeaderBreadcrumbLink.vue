@@ -2,7 +2,7 @@
   <div class="breadcrumb-container">
     <UiBreadcrumb v-if="fromContext === VDI_PAGE_CONTEXT.VM && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-        <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
+        <VtsIcon :name="vmIcon" :tooltip="vmIconTooltip" size="current" />
         {{ vm.name_label }}
       </UiLink>
       <UiLink :size :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }">
@@ -28,7 +28,7 @@
 
     <UiBreadcrumb v-else-if="fromContext === VDI_PAGE_CONTEXT.SNAPSHOT && vm && vdi" :size>
       <UiLink :size :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
-        <VtsObjectIcon type="vm" :state="toLower(vm.power_state)" size="current" />
+        <VtsIcon :name="vmIcon" :tooltip="vmIconTooltip" size="current" />
         {{ vm.name_label }}
       </UiLink>
       <UiLink :size :to="{ name: '/vm/[id]/snapshots', params: { id: vm.id } }">
@@ -66,14 +66,14 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import VtsObjectIcon from '@xen-orchestra/web-core/components/object-icon/VtsObjectIcon.vue'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -84,6 +84,11 @@ const { vm, sr, vdi, vdiSnapshot, fromContext } = defineProps<{
   vdiSnapshot?: FrontXoVdiSnapshot
   fromContext?: VdiPageContext
 }>()
+
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmIcon = computed(() => getVmIcon(vm))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm))
 
 const uiStore = useUiStore()
 

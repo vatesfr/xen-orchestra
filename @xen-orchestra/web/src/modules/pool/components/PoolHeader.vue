@@ -7,7 +7,7 @@
       </UiLink>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="pool.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}

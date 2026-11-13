@@ -65,7 +65,7 @@ export function onRouteDidUpdate({ location }: { location: { pathname: string; h
   if (path === '/getting-started/installation' && MOVED_FROM_XOA[anchor] !== undefined) {
     window.location.replace(MOVED_FROM_XOA[anchor])
   }
-  if (path === '/support-and-licencing/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
+  if (path === '/support-and-licensing/support' && MOVED_TO_VATES_DOCS[anchor] !== undefined) {
     window.location.replace(MOVED_TO_VATES_DOCS[anchor])
   }
 }

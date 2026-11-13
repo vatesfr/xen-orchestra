@@ -46,7 +46,13 @@
       </div>
     </div>
     <template v-if="hasSubTasks && expanded">
-      <UiTaskList :tasks="subTasks" :depth :selected-task-id="selectedTaskId" @select="id => emit('select', id)" />
+      <UiTaskList
+        :tasks="subTasks"
+        :depth
+        :selected-task-id="selectedTaskId"
+        :auto-collapse-completed
+        @select="id => emit('select', id)"
+      />
     </template>
   </li>
 </template>
@@ -96,6 +102,7 @@ const { task, showEyeIcon = false } = defineProps<{
   selected?: boolean
   selectedTaskId?: string
   showEyeIcon?: boolean
+  autoCollapseCompleted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -162,7 +169,6 @@ const progress = computed(() => {
       --line-width: 0.1rem;
       display: flex;
       align-items: center;
-      padding-left: 1.6rem;
       gap: 0.4rem;
 
       .tree-lines {
@@ -195,7 +201,7 @@ const progress = computed(() => {
       flex: 1;
       min-width: 0;
       gap: 1.6rem;
-      padding: 0.4rem 1.6rem;
+      padding: 0.4rem 1.6rem 0.4rem 0.8rem;
       justify-content: space-between;
       align-items: center;
     }

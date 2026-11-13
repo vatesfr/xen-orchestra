@@ -1,7 +1,10 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('value').type('string').preset('hello world').required().widget()]"
+    :params="[
+      prop('value').type('string').preset('hello world').required().widget(),
+      prop('label').str().widget().help('Tooltip shown before the copy, also used as the accessible name'),
+    ]"
   >
     <VtsCopyButton v-bind="properties" />
   </ComponentStory>
