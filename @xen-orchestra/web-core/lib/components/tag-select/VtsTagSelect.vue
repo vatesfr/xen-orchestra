@@ -83,6 +83,8 @@ export type TagSelectSuggestion = {
   info?: string
 }
 
+export type TagChange = 'add' | 'remove'
+
 type TagSource = {
   id: string
   label: string
@@ -108,8 +110,9 @@ const {
   tags: string[]
   suggestions?: TagSelectSuggestion[]
   tagAccent?: (tag: string) => TagAccent
-  // a tag that can't be changed, with the reason
-  tagLock?: (tag: string) => string | undefined
+  // a tag that can't be changed, with the reason: added when the tag isn't
+  // one of `tags`, removed when it is
+  tagLock?: (tag: string, change: TagChange) => string | undefined
   iconOnly?: boolean
   busyTags?: string[]
 }>()
@@ -131,7 +134,10 @@ const search = ref('')
 
 const selectedTags = ref<string[]>([])
 
-const pendingChanges = new Map<string, 'add' | 'remove'>()
+const pendingChanges = new Map<string, TagChange>()
+
+// why the tag can't be added (or removed, if the item has it), if it can't
+const lockOf = (tag: string) => tagLock?.(tag, tags.includes(tag) ? 'remove' : 'add')
 
 function syncSelection() {
   pendingChanges.forEach((change, tag) => {
@@ -172,12 +178,12 @@ const select = useFormSelect(sources, {
   model: selectedTags,
   option: {
     value: 'id',
-    disabled: source => tagLock?.(source.id) !== undefined,
+    disabled: source => lockOf(source.id) !== undefined,
     properties: (source): TagOptionProperties => ({
       info: source.info,
       isNew: source.isNew,
       tagAccent: tagAccent?.(source.id) ?? 'info',
-      lock: tagLock?.(source.id),
+      lock: lockOf(source.id),
       busy: computed(() => busyTags.includes(source.id)),
     }),
   },
@@ -191,20 +197,23 @@ const visibleTags = computed(() =>
   options.value.filter(option => !option.properties.isNew).map(option => option.properties.value)
 )
 
-const areAllVisibleTagsSelected = computed(() => visibleTags.value.every(tag => selectedTags.value.includes(tag)))
+// those that can't be added don't count
+const areAllVisibleTagsSelected = computed(() =>
+  visibleTags.value.every(tag => selectedTags.value.includes(tag) || lockOf(tag) !== undefined)
+)
 
 const isSomeVisibleTagSelected = computed(() =>
-  visibleTags.value.some(tag => selectedTags.value.includes(tag) && tagLock?.(tag) === undefined)
+  visibleTags.value.some(tag => selectedTags.value.includes(tag) && lockOf(tag) === undefined)
 )
 
 function selectVisibleTags() {
-  selectedTags.value = [...new Set([...selectedTags.value, ...visibleTags.value])]
+  selectedTags.value = [
+    ...new Set([...selectedTags.value, ...visibleTags.value.filter(tag => lockOf(tag) === undefined)]),
+  ]
 }
 
 function deselectVisibleTags() {
-  selectedTags.value = selectedTags.value.filter(
-    tag => !visibleTags.value.includes(tag) || tagLock?.(tag) !== undefined
-  )
+  selectedTags.value = selectedTags.value.filter(tag => !visibleTags.value.includes(tag) || lockOf(tag) !== undefined)
 }
 
 const { rootRef, triggerRef, dropdownRef, searchRef, isOpen, closeDropdown, floatingStyles } = useFormSelectController(
