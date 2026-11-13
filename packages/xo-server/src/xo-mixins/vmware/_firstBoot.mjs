@@ -3,7 +3,15 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import { diagnoseOffline } from './_repair.mjs'
-import { isFirstBootOver, readFirstBootState } from './_repairInputs.mjs'
+import {
+  ACTION,
+  actionStatus,
+  FINDING,
+  findFinding,
+  isFirstBootOver,
+  readFirstBootState,
+  WINDOWS_FIRST_BOOT_LOG,
+} from './_repairInputs.mjs'
 
 const { warn } = createLogger('xo:mixins:vmware:first-boot')
 
@@ -14,10 +22,10 @@ const AGENT_TIMEOUT = 15 * 60e3
 const AGENT_POLL_INTERVAL = 5e3
 
 // the guest has no agent which could report: none was there, and the repair could not install one
-const AGENT_NOT_INSTALLED_CODES = ['guest_agent_missing', 'guest_agent_unsupported']
 const isAgentNotInstalled = repair =>
-  repair.findings.some(({ code }) => AGENT_NOT_INSTALLED_CODES.includes(code)) ||
-  repair.actions.some(({ code, status }) => code === 'install_guest_agent' && status === 'failed')
+  findFinding(repair, FINDING.GUEST_AGENT_MISSING) !== undefined ||
+  findFinding(repair, FINDING.GUEST_AGENT_UNSUPPORTED) !== undefined ||
+  actionStatus(repair, ACTION.INSTALL_GUEST_AGENT) === 'failed'
 
 // the phases of the first-boot script: the VM is restarted between two of them
 const WINDOWS_FIRST_BOOT_PHASES = ['drivers', 'finish']
@@ -109,11 +117,11 @@ async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
     diagnoseOffline({ xapi, vmRef, context })
   )
   // its message carries the end of the log of the first boot, when the report has room for it
-  const incomplete = report.findings.find(finding => finding.code === 'windows_firstboot_incomplete')
+  const incomplete = findFinding(report, FINDING.WINDOWS_FIRSTBOOT_INCOMPLETE)
   const offlineState = report.os.firstboot ?? state ?? 'no state'
   const summary = incomplete?.message === undefined ? offlineState : `${offlineState}: ${incomplete.message}`
   const error = new Error(
-    `the Windows first boot did not complete (${summary}). The VM is stopped, see C:\\xo-repair\\firstboot.log in the guest`
+    `the Windows first boot did not complete (${summary}). The VM is stopped, see ${WINDOWS_FIRST_BOOT_LOG} in the guest`
   )
   error.code = 'FIRST_BOOT_FAILED'
   Object.assign(error, context, { state, report })
@@ -189,9 +197,7 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
   // until then the cache may still show the VM halted
   await xapi.barrier()
 
-  const firstBootScheduled = repair.actions.some(
-    action => action.code === 'install_firstboot' && action.status === 'applied'
-  )
+  const firstBootScheduled = actionStatus(repair, ACTION.INSTALL_FIRSTBOOT) === 'applied'
   if (isWindows && firstBootScheduled && hasPvDrivers) {
     await Task.run({ properties: { name: 'Windows first boot' } }, () =>
       followWindowsFirstBoot(xapi, vmRef, { context, onProgress })
