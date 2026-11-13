@@ -8,6 +8,8 @@ import {
   buildWindowsNics,
   clearRepairXenstoreData,
   describeFailures,
+  FINDING,
+  findFinding,
   getBlockingFindings,
   guestLogsOf,
   isRepairIsoName,
@@ -212,7 +214,7 @@ async function moveDiskFirst(xapi, vmRef, osDisk, context) {
 }
 
 const isBlockedOnBootDisk = report =>
-  getBlockingFindings(report).some(finding => finding.code === 'boot_disk_not_first')
+  getBlockingFindings(report).some(finding => finding.code === FINDING.BOOT_DISK_NOT_FIRST)
 
 function assertNotBlocked(report, context) {
   if (getBlockingFindings(report).length !== 0) {
@@ -308,7 +310,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
   return withRepairIso(xapi, vmRef, context, async run => {
     let diagnose = await run({ mode: 'diagnose' })
     if (isBlockedOnBootDisk(diagnose.report)) {
-      const osDisk = diagnose.report.findings.find(finding => finding.code === 'boot_disk_not_first').data?.os_disk
+      const osDisk = findFinding(diagnose.report, FINDING.BOOT_DISK_NOT_FIRST).data?.os_disk
       if (osDisk === undefined) {
         // the details of the findings are dropped from a report too large for xenstore
         assertNotBlocked(diagnose.report, context)
@@ -326,7 +328,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
         'the source did not report its network cards (not running, or without VMware tools): static addresses of a VM with several cards cannot be carried over'
       )
     }
-    const hasPvDrivers = !diagnose.report.findings.some(finding => finding.code === 'pv_drivers_unsupported')
+    const hasPvDrivers = findFinding(diagnose.report, FINDING.PV_DRIVERS_UNSUPPORTED) === undefined
     if (!hasPvDrivers) {
       Task.warning(
         'this Windows version is older than the XCP-ng PV drivers support (build 14393): the VM will run on emulated devices, without management agent'
@@ -361,7 +363,7 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
       Object.assign(error, context, { reports: { diagnose: diagnose.report, repair: repair.report, windowsReboot } })
       throw error
     }
-    if (repair.report.findings.some(finding => finding.code === 'windows_static_ip_unmapped')) {
+    if (findFinding(repair.report, FINDING.WINDOWS_STATIC_IP_UNMAPPED) !== undefined) {
       Task.warning('the static network configuration of some adapters could not be carried over, they use DHCP')
     }
     if (repair.report.tools === null) {

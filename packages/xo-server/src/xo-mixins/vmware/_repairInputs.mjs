@@ -22,6 +22,39 @@ const PARENT_KEY = 'vm-data/xo-repair'
 // where a repair run writes its full report and log, in the guest
 const GUEST_LOGS = { linux: '/var/log/xo-repair/', windows: 'C:\\xo-repair\\' }
 
+// where the first-boot script of Windows logs each of its phases
+export const WINDOWS_FIRST_BOOT_LOG = GUEST_LOGS.windows + 'firstboot.log'
+
+// The codes of the report XO acts on. The ISO keeps them when it trims its report to fit in xenstore: the errors
+// always, the others because `XO_CODES` of its `report.py` lists them, which must follow this list
+export const FINDING = Object.freeze({
+  ACTION_FAILED: 'action_failed',
+  BOOT_DISK_NOT_FIRST: 'boot_disk_not_first',
+  GUEST_AGENT_MISSING: 'guest_agent_missing',
+  GUEST_AGENT_UNSUPPORTED: 'guest_agent_unsupported',
+  PV_DRIVERS_UNSUPPORTED: 'pv_drivers_unsupported',
+  WINDOWS_FIRSTBOOT_INCOMPLETE: 'windows_firstboot_incomplete',
+  WINDOWS_STATIC_IP_UNMAPPED: 'windows_static_ip_unmapped',
+})
+export const ACTION = Object.freeze({
+  INSTALL_FIRSTBOOT: 'install_firstboot',
+  INSTALL_GUEST_AGENT: 'install_guest_agent',
+})
+
+/**
+ * @param {RepairReport} report
+ * @param {string} code - from `FINDING`
+ * @returns {RepairReport['findings'][number] | undefined}
+ */
+export const findFinding = (report, code) => report.findings.find(finding => finding.code === code)
+
+/**
+ * @param {RepairReport} report
+ * @param {string} code - from `ACTION`
+ * @returns {string | undefined} `planned`, `applied`, `failed` or `skipped`, undefined when not planned
+ */
+export const actionStatus = (report, code) => report.actions.find(action => action.code === code)?.status
+
 /**
  * The `nics` input of a Linux guest: the name each NIC had in the guest on VMware, by MAC.
  *
@@ -224,7 +257,7 @@ export function describeFailures(report) {
     .filter(action => action.status === 'failed')
     .map(({ code, error }) => (error === undefined ? code : `${code}: ${error}`))
   const blockingFindings = getBlockingFindings(report)
-    .filter(finding => finding.code !== 'action_failed')
+    .filter(finding => finding.code !== FINDING.ACTION_FAILED)
     .map(({ code, message }) => (message === undefined ? code : `${code}: ${message}`))
   const failures = [...failedActions, ...blockingFindings]
   if (report.truncated) {
@@ -264,11 +297,9 @@ const describeFinding = ({ level, code, message }) =>
  * @param {{ repair?: RepairReport, windowsReboot?: string }} reports - from `repairImportedVm`
  */
 export const isFirstBootLeftToXo = ({ repair, windowsReboot }) =>
-  windowsReboot === 'xo' &&
-  (repair?.actions.some(({ code, status }) => code === 'install_firstboot' && status === 'applied') ?? false)
+  windowsReboot === 'xo' && repair !== undefined && actionStatus(repair, ACTION.INSTALL_FIRSTBOOT) === 'applied'
 
-export const FIRST_BOOT_LEFT_TO_XO =
-  'Windows stops between the phases of its first boot for XO to start it again: unless XO completed it, start the VM again until C:\\xo-repair\\firstboot.log says it is done'
+export const FIRST_BOOT_LEFT_TO_XO = `Windows stops between the phases of its first boot for XO to start it again: unless XO completed it, start the VM again until ${WINDOWS_FIRST_BOOT_LOG} says it is done`
 
 /**
  * What the repair did to the guest, for humans, as written in the description of the VM.
@@ -302,7 +333,9 @@ export function describeRepair({ reports = {}, error, firstBoot, firstBootError 
       lines.push('actions:', ...report.actions.map(describeAction))
     }
     // a failed action is already in the actions
-    const findings = report.findings.filter(finding => finding.level !== 'info' && finding.code !== 'action_failed')
+    const findings = report.findings.filter(
+      finding => finding.level !== 'info' && finding.code !== FINDING.ACTION_FAILED
+    )
     if (findings.length !== 0) {
       lines.push('findings:', ...findings.map(describeFinding))
     }
