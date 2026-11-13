@@ -256,21 +256,7 @@ export class VmService {
     }
 
     const xapiVm = this.#restApi.getXapiObject<XoVm>(id, 'VM')
-    const xapi = xapiVm.$xapi
-
-    // Attempts to eject all removable media
-    await Promise.all(
-      xapiVm.VBDs.map(ref =>
-        xapi.callAsync('VBD.eject', ref).catch(error => {
-          const { code } = error
-          if (code !== 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
-            throw error
-          }
-        })
-      )
-    )
-
-    await xapiVm.$call('set_is_a_template', true)
+    await xapiVm.$xapi.VM_convertToTemplate(xapiVm.$ref)
   }
 
   #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {
