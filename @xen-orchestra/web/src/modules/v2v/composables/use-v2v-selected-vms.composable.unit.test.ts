@@ -1,5 +1,4 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
@@ -80,10 +79,10 @@ async function mountSelectedVms({
   xoCollectionsMock.networks.value = [NETWORK]
   v2vVmRowsCollectionsMock.vms.value = IMPORT_VMS
 
-  return mountV2vVmsStep(
-    () => ({ ...useV2vSelectedVms(useV2vVmsStep().selectedVmsContext), labels: useV2vVmLabels() }),
-    { list, query: { pool: poolId ?? undefined } }
-  )
+  return mountV2vVmsStep(() => ({ ...useV2vVmsStep().selectedVms, labels: useV2vVmLabels() }), {
+    list,
+    query: { pool: poolId ?? undefined },
+  })
 }
 
 type SelectedVms = Awaited<ReturnType<typeof mountSelectedVms>>['result']

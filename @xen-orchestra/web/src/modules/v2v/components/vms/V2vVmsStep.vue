@@ -59,7 +59,6 @@ import V2vVmPresets from '@/modules/v2v/components/vms/V2vVmPresets.vue'
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import V2vVmsTable from '@/modules/v2v/components/vms/V2vVmsTable.vue'
 import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
-import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vVmsStep } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
@@ -89,10 +88,10 @@ const {
   canGoNext,
   back,
   next,
-  selectedVmsContext,
+  selectedVms,
 } = useV2vVmsStep()
 
-const { items, count, isEmpty, isBusy, readinessTags, listPair, remove, clear } = useV2vSelectedVms(selectedVmsContext)
+const { items, count, isEmpty, isBusy, readinessTags, listPair, remove, clear } = selectedVms
 
 const panelStore = usePanelStore()
 </script>

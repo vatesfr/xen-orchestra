@@ -1,7 +1,7 @@
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vMigrationList } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
-import type { V2vSelectedVmsContext } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmQueryBuilder } from '@/modules/v2v/composables/use-v2v-vm-query-builder.composable.ts'
@@ -171,7 +171,7 @@ export function useV2vVmsStep() {
     filter.value = applyV2vPreset(filter.value, id)
   }
 
-  const selectedVmsContext: V2vSelectedVmsContext = { migrationList, rows, areRowsReady, poolId }
+  const selectedVms = useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId })
 
   return {
     sourceHost,
@@ -192,6 +192,6 @@ export function useV2vVmsStep() {
     canGoNext: migrationList.hasVms,
     back: () => goToStep('destination'),
     next: () => goToStep('mapping'),
-    selectedVmsContext,
+    selectedVms,
   }
 }

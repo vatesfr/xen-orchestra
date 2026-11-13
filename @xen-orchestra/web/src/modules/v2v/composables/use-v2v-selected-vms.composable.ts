@@ -22,7 +22,7 @@ import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 // What the VMs step owns: the panel reads the same list and rows, never instances of its own
-export type V2vSelectedVmsContext = {
+type V2vSelectedVmsContext = {
   migrationList: Pick<ReturnType<typeof useV2vMigrationList>, 'list' | 'removeVm' | 'clearVms'>
   rows: MaybeRefOrGetter<V2vVmRow[]>
   areRowsReady: MaybeRefOrGetter<boolean>

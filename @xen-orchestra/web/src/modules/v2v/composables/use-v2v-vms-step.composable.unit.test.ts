@@ -25,7 +25,6 @@ import {
 import { V2V_EMPTY_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
-import { toValue } from 'vue'
 
 vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
@@ -41,6 +40,14 @@ vi.mock(
 )
 vi.mock(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+vi.mock(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+vi.mock(
+  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
 
@@ -369,20 +376,6 @@ describe('tableState', () => {
     const { result } = await mountVmsStep({ filter: 'name:nothing' })
 
     expect(result.tableState?.type).toBe('no-result')
-  })
-})
-
-describe('selectedVmsContext', () => {
-  it('hands its list, rows and their readiness, and pool to the selected VMs', async () => {
-    v2vVmRowsCollectionsMock.areVmsReady.value = false
-    const { result } = await mountVmsStep()
-
-    const { migrationList, rows, areRowsReady, poolId } = result.selectedVmsContext
-
-    expect(migrationList.list.value?.vms).toEqual(V2V_LIST_WITH_LISTED_VM.vms)
-    expect(getV2vVmNames(toValue(rows))).toEqual(getV2vVmNames(V2V_VMS_INVENTORY.vms))
-    expect(toValue(areRowsReady)).toBe(false)
-    expect(toValue(poolId)).toBe(V2V_LIST_WITH_LISTED_VM.poolId)
   })
 })
 
