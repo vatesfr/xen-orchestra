@@ -2880,6 +2880,12 @@ const messages = {
   refreshLicenses: 'Refresh',
   uploadAirgapDataPack: 'Upload',
   uploadAirgapDataPackSuccess: 'Airgap data pack successfully uploaded',
+  uploadAirgapDataPackConfirmTitle: 'Upload airgap data pack',
+  uploadAirgapDataPackConfirmButton: 'Continue',
+  uploadAirgapDataPackFirstImportConfirmMessage:
+    'This appliance will switch to airgap mode: it will no longer contact Vates servers for its licenses and updates, but the license server embedded in this appliance. This cannot be undone from Xen Orchestra.',
+  uploadAirgapDataPackReimportConfirmMessage:
+    'This data pack will replace the license database of this appliance. Licenses activated since your last export will be lost: export your licenses and send them to Vates before continuing.',
   dropFileHere: 'Drop your data file here',
   airgapDataPackFileRejected: 'File {name} is not a valid airgap data pack (expected a .tar.xz archive)',
   airgapDataPack: 'Airgap data pack',

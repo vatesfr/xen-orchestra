@@ -5,6 +5,7 @@ import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
 import xoaUpdater from 'xoa-updater'
+import { chooseAction } from 'modal'
 import { exportAirgapLicenses, uploadAirgapDataPack } from 'xo'
 
 export default class Airgap extends Component {
@@ -21,6 +22,21 @@ export default class Airgap extends Component {
   }
 
   _handleUpload = async () => {
+    const isAirgap = this.props.canExport
+
+    await chooseAction({
+      body: (
+        <p>
+          {isAirgap
+            ? _('uploadAirgapDataPackReimportConfirmMessage')
+            : _('uploadAirgapDataPackFirstImportConfirmMessage')}
+        </p>
+      ),
+      buttons: [{ btnStyle: 'primary', label: _('uploadAirgapDataPackConfirmButton') }],
+      icon: 'import',
+      title: _('uploadAirgapDataPackConfirmTitle'),
+    })
+
     await uploadAirgapDataPack(this.state.airgapDataPack)
     this.setState({ airgapDataPack: undefined })
     // the first import registers the appliance: refresh the registration state so the licenses are displayed
