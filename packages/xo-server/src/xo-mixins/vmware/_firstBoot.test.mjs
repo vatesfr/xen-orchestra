@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 
@@ -108,5 +109,52 @@ test('firstBootOfRepairedVm, Windows', async t => {
       xapi.calls.filter(method => method === 'VM.start'),
       ['VM.start', 'VM.start']
     )
+  })
+})
+
+test('firstBootOfRepairedVm, Secure Boot', async t => {
+  await t.test('leaves the VM as it is when the task is aborted while it reboots', async () => {
+    const calls = []
+    const task = new Task({ properties: { name: 'import' } })
+    const vm = {
+      uuid: 'vm-uuid',
+      power_state: 'Halted',
+      HVM_boot_params: { firmware: 'uefi' },
+      $guest_metrics: { PV_drivers_detected: true, last_updated: Math.floor(Date.now() / 1e3) + 3600 },
+      async update_platform(key, value) {
+        calls.push(`platform.${key}=${value}`)
+      },
+    }
+    const xapi = {
+      async barrier() {},
+      getObject: () => vm,
+      async call(method) {
+        calls.push(method)
+        if (method === 'VM.start') {
+          vm.power_state = 'Running'
+        } else if (method === 'VM.get_secureboot_readiness') {
+          return 'ready'
+        } else if (method === 'VM.clean_reboot') {
+          // the agent has not reported since the reboot when the user cancels
+          vm.$guest_metrics = undefined
+          task.abort(new Error('cancelled by the user'))
+        }
+      },
+    }
+
+    await assert.rejects(
+      task.run(() =>
+        firstBootOfRepairedVm({
+          xapi,
+          vmRef: VM_REF,
+          metadata: { vmId: '54', secureBoot: true },
+          reports: { diagnose: {}, repair: { os: { kind: 'linux' }, findings: [], actions: [] } },
+          onProgress: async () => {},
+        })
+      ),
+      { name: 'AbortError' }
+    )
+    // neither stopped, nor Secure Boot disabled again
+    assert.deepEqual(calls, ['VM.start', 'VM.get_secureboot_readiness', 'platform.secureboot=true', 'VM.clean_reboot'])
   })
 })
