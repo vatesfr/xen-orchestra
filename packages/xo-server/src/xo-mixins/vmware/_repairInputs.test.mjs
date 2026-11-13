@@ -8,6 +8,7 @@ import {
   clearRepairXenstoreData,
   describeFailures,
   describeRepair,
+  FIRST_BOOT_LEFT_TO_XO,
   getBlockingFindings,
   isFirstBootOver,
   isRepairDone,
@@ -351,6 +352,30 @@ test('describeRepair', async t => {
         firstBootError: { message: 'the Windows first boot did not complete' },
       }).endsWith('drivers phase done, VM restarted by XO\nfirst boot failed: the Windows first boot did not complete')
     )
+  })
+
+  await t.test('says the VM must be started again while a first boot left to XO is not done', () => {
+    const firstBootInstalled = report({ actions: [{ code: 'install_firstboot', status: 'applied' }] })
+    const reports = { diagnose: report(), repair: firstBootInstalled, windowsReboot: 'xo' }
+    // written once repaired: XO may stop following without writing anything more
+    assert.ok(describeRepair({ reports }).endsWith(`\n${FIRST_BOOT_LEFT_TO_XO}`))
+    assert.ok(
+      describeRepair({
+        reports,
+        firstBoot: { restartedAfter: [], done: false },
+        firstBootError: { message: 'aborted' },
+      }).endsWith(`first boot failed: aborted\n${FIRST_BOOT_LEFT_TO_XO}`)
+    )
+
+    assert.ok(
+      !describeRepair({ reports, firstBoot: { restartedAfter: ['drivers'], done: true } }).includes(
+        FIRST_BOOT_LEFT_TO_XO
+      )
+    )
+    // the guest reboots itself
+    assert.ok(!describeRepair({ reports: { ...reports, windowsReboot: 'guest' } }).includes(FIRST_BOOT_LEFT_TO_XO))
+    // no first boot installed
+    assert.ok(!describeRepair({ reports: { ...reports, repair: report() } }).includes(FIRST_BOOT_LEFT_TO_XO))
   })
 
   await t.test('adds the failure of the first boot and says when details were dropped', () => {

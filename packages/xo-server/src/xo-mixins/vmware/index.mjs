@@ -14,7 +14,12 @@ import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
 import { findRepairIso, repairImportedVm } from './_repair.mjs'
-import { describeRepair, replaceRepairDescription } from './_repairInputs.mjs'
+import {
+  describeRepair,
+  FIRST_BOOT_LEFT_TO_XO,
+  isFirstBootLeftToXo,
+  replaceRepairDescription,
+} from './_repairInputs.mjs'
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
@@ -25,6 +30,10 @@ const { warn } = createLogger('xo:mixins:vmware')
 // The imports made before this key existed are all from VMware
 const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
+
+// once XO stops following a first boot which waits for it, the user has to take over
+const withFirstBootHint = (message, reports = {}) =>
+  isFirstBootLeftToXo(reports) ? `${message}. ${FIRST_BOOT_LEFT_TO_XO}` : message
 
 export default class MigrateVm {
   constructor(app) {
@@ -262,7 +271,7 @@ export default class MigrateVm {
       return reports
     } catch (error) {
       warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
-      Task.warning(`the guest could not be repaired: ${error.message}`)
+      Task.warning(withFirstBootHint(`the guest could not be repaired: ${error.message}`, error.reports))
       await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error }))
     }
   }
@@ -309,7 +318,7 @@ export default class MigrateVm {
       )
     } catch (error) {
       warn('the first boot of the repaired guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
-      Task.warning(`the first boot on XCP-ng failed: ${error.message}`)
+      Task.warning(withFirstBootHint(`the first boot on XCP-ng failed: ${error.message}`, reports))
       await this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, firstBootError: error }))
     }
   }
