@@ -283,7 +283,13 @@ export default class MigrateVm {
   async #startVm({ metadata, reports, vm }) {
     const xapi = vm.$xapi
     if (reports === undefined) {
-      await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+      // the import is complete: failing to start the VM must not fail it, which would destroy the VM
+      try {
+        await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+      } catch (error) {
+        warn('failed to start the imported VM', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+        Task.warning(`the VM could not be started: ${error.message}`)
+      }
       return
     }
     // how far the first boot went, kept in the description when it fails
