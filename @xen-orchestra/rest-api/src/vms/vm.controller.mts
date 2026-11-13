@@ -659,13 +659,7 @@ export class VmController extends XapiXoController<XoVm> {
   async ejectCdVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
-      await this.getXapi(vmId)
-        .ejectCdFromVm(vmId)
-        .catch(error => {
-          if (error.code !== 'VBD_IS_EMPTY') {
-            throw error
-          }
-        })
+      await this.getXapi(vmId).ejectCdFromVm(vmId)
     }
 
     return this.createAction<void>(action, {
