@@ -248,13 +248,28 @@ describe('placement guards', () => {
       })
     })
 
-    it('lets the operation go on when deciding who may override it fails', async () => {
+    it('keeps a refusal when deciding who may override it fails, and logs it', async () => {
       const guards = createGuards()
       guards.registerPlacementGuard(failing('mayBypass'))
+      const running = vmIn('Running')
       logs.length = 0
-      await guards.checkPlacement({ operation: 'migrate', user: OPERATOR, vm: vmIn('Running'), host: HOST })
-      assert.equal(logs.length, 1)
-      assert.equal(logs[0].message, 'the firewall placement guard failed (mayBypass): migrate goes on')
+      // no override asked: refused, as for a user who may not override it
+      await assert.rejects(
+        guards.checkPlacement({ operation: 'migrate', user: OPERATOR, vm: running, host: HOST }),
+        error => placementRefused.is(error, { bypass: { allowed: false } })
+      )
+      // asked: refused too, with a permission error
+      await assert.rejects(
+        guards.checkPlacement({ operation: 'migrate', user: OPERATOR, vm: running, host: HOST, bypass: true }),
+        error => forbiddenOperation.is(error)
+      )
+      assert.deepEqual(
+        logs.map(log => [log.level, log.message]),
+        [
+          [40, 'the firewall placement guard failed (mayBypass): its refusal stands, without override'],
+          [40, 'the firewall placement guard failed (mayBypass): its refusal stands, without override'],
+        ]
+      )
     })
 
     it('takes a refusal without a reason for a failure', async () => {

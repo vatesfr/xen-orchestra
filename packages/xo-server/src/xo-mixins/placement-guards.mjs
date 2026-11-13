@@ -25,9 +25,10 @@ const ref = object => (object === undefined ? undefined : { id: object.id, name:
  * guard before the operation, refuses with `placementRefused` for the first
  * one that refuses, and handles the override (`bypassFirewallCheck`): who may
  * use it is the guard's decision, using it is logged. Without a guard (no
- * plugin loaded), nothing changes. A guard that throws (`check` or
- * `mayBypass`) refuses nothing: the failure is logged as a warning and the
- * operation goes on.
+ * plugin loaded), nothing changes. A guard whose `check` throws refuses
+ * nothing: the failure is logged as a warning and the operation goes on. One
+ * whose `mayBypass` throws after a refusal allows no override: logged, the
+ * refusal stands.
  *
  * What XO does not start or migrate itself through these paths (xe, another
  * client, HA, an evacuation) is not guarded: the guards' plugin has to detect
@@ -93,14 +94,17 @@ export default class PlacementGuards {
     }
 
     // A guard that fails (a plugin bug, a XAPI call failing, a pool
-    // unreachable) refuses nothing: logged, the operation goes on. A guard
-    // is there to stop a placement it knows to be wrong, never to stop
-    // people from starting VMs because it is broken.
-    const ask = async (guard, what, fn) => {
+    // unreachable) is logged. Its check failing refuses nothing: the
+    // operation goes on, a guard is there to stop a placement it knows to
+    // be wrong, never to stop people from starting VMs because it is
+    // broken. Once it has refused, though, the refusal stands: deciding who
+    // may override it failing means nobody may (as for a user it doesn't
+    // allow).
+    const ask = async (guard, what, consequence, fn) => {
       try {
         return { answer: await fn() }
       } catch (error) {
-        log.warn(`the ${guard.name} placement guard failed (${what}): ${operation} goes on`, {
+        log.warn(`the ${guard.name} placement guard failed (${what}): ${consequence}`, {
           guard: guard.name,
           vm: vm.id,
           vmName: vm.name_label,
@@ -112,7 +116,7 @@ export default class PlacementGuards {
     }
 
     for (const guard of [...this.#guards]) {
-      const checked = await ask(guard, 'check', async () => {
+      const checked = await ask(guard, 'check', `${operation} goes on`, async () => {
         const refusal = await guard.check({ operation, vm, host, pool, vifNetworks })
         if (refusal !== undefined && typeof refusal?.reason !== 'string') {
           throw new TypeError(`a refusal without reason: ${JSON.stringify(refusal)}`)
@@ -126,11 +130,10 @@ export default class PlacementGuards {
       const refusedHost = refusal.host ?? host
       let allowed = true
       if (user !== undefined) {
-        const decided = await ask(guard, 'mayBypass', () => guard.mayBypass({ user, pool }))
-        if (decided === undefined) {
-          continue
-        }
-        allowed = decided.answer === true
+        const decided = await ask(guard, 'mayBypass', 'its refusal stands, without override', () =>
+          guard.mayBypass({ user, pool })
+        )
+        allowed = decided?.answer === true
       }
       if (!bypass) {
         placementRefused({
