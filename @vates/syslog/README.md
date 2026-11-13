@@ -26,7 +26,7 @@ const client = createClient('tls://syslog.company.lan', {
 
 await client.send('something happened', { msgid: 'event', severity: 'warning' })
 
-// closes the connection, the client reconnects if it is used again
+// closes the connection once the messages already sent are delivered, the client reconnects if it is used again
 client.close()
 ```
 
@@ -43,6 +43,7 @@ Options:
 - `hostname`: host name of the messages, `os.hostname()` by default
 - `ca` (TLS): contents of PEM certificate authorities to trust, in addition to the system ones
 - `allowUnauthorized` (TLS): do not check the certificate of the server, `false` by default
+- `closeTimeout`: in milliseconds, how long `close()` waits for the messages already sent, `10e3` by default
 - `connectTimeout`: in milliseconds, `10e3` by default
 - `maxPendingBytes`: messages are rejected when more than this is waiting to be sent (e.g. the server is unreachable or does not read), `1 MiB` by default
 
@@ -62,7 +63,7 @@ The promise rejects if the message cannot be sent, with the cause of the failure
 
 ### `client.close()`
 
-Closes the connection, including a connection which is being established.
+Closes the connection, including a connection which is being established. The messages already sent are still delivered first (e.g. while the connection is being established or the host name resolved), for at most `closeTimeout`: after that, those not sent fail.
 
 ## Contributions
 
