@@ -1,5 +1,6 @@
 export default {
   clone: true,
+  'convert-to-template': true,
   delete: true,
   export: true,
   'migrate-send': true,
