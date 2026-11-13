@@ -864,4 +864,25 @@ describe('protected VMs (vdf#141)', () => {
     // one interface the firewall covers is enough
     assert.deepEqual(protections(['vdf:role=app'], [unprotected, plain]), ['app-in', 'from-web'])
   })
+
+  test('reads a malformed document as agents do, without throwing', () => {
+    const malformed = [
+      { policies: { app: {} } },
+      { groups: { app: { tags: 'vdf:role=app' } }, policies: [{ name: 'app-in', appliedTo: 'app' }] },
+      { groups: { app: null }, policies: [null, { name: 'x' }, { name: 'app-in', appliedTo: 'app' }] },
+      'text',
+      42,
+    ]
+    for (const document of malformed) {
+      assert.deepEqual(protections(['vdf:role=app'], [plain], [document]), [], JSON.stringify(document))
+    }
+    // networks that aren't a list: none, the group's tags select it
+    const noNetworks = {
+      groups: { app: { tags: ['vdf:role=app'], networks: 'x' } },
+      policies: [{ name: 'app-in', appliedTo: 'app' }],
+    }
+    assert.deepEqual(protections(['vdf:role=app'], [plain], [noNetworks]), ['app-in'])
+    // a quarantine still counts
+    assert.deepEqual(protections(['vdf:quarantine'], [plain], malformed), ['vdf:quarantine'])
+  })
 })

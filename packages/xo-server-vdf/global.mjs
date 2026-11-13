@@ -688,8 +688,8 @@ export function hostEnforcement(host, status, publishedDocId, now = Date.now()) 
 // another one, if the VM carries all its tags, those on all its networks
 // (every one without networks)
 function selectedInterfaces(group, tags, ifaces) {
-  const groupTags = group.tags ?? []
-  const networks = group.networks ?? []
+  const groupTags = arrayOf(group.tags)
+  const networks = arrayOf(group.networks)
   const onNetworks = ifaces.filter(iface => networks.every(tag => iface.netTags.includes(tag)))
   if (groupTags.length === 0) {
     return networks.length === 0 ? [] : onNetworks
@@ -713,6 +713,10 @@ function selectedInterfaces(group, tags, ifaces) {
  * @returns {string[]} `vdf:quarantine` and the names of the policies, none if
  *   the VM isn't protected
  */
+// a document's list as agents read it: anything else is none (a document
+// published outside XO is read as it is)
+const arrayOf = value => (Array.isArray(value) ? value : [])
+
 export function vmProtections({ tags = [], ifaces, documents }) {
   const covered = ifaces.filter(iface => !iface.netTags.includes(UNPROTECTED_TAG))
   if (covered.length === 0) {
@@ -720,9 +724,14 @@ export function vmProtections({ tags = [], ifaces, documents }) {
   }
   const protections = new Set(tags.includes(QUARANTINE_TAG) ? [QUARANTINE_TAG] : [])
   for (const document of documents) {
-    for (const policy of document?.policies ?? []) {
-      const group = document.groups?.[policy.appliedTo]
-      if (policy.mode !== 'monitor' && group != null && selectedInterfaces(group, tags, covered).length > 0) {
+    for (const policy of arrayOf(document?.policies)) {
+      const group = typeof policy?.appliedTo === 'string' ? document.groups?.[policy.appliedTo] : undefined
+      if (
+        policy?.mode !== 'monitor' &&
+        group !== null &&
+        typeof group === 'object' &&
+        selectedInterfaces(group, tags, covered).length > 0
+      ) {
         protections.add(policy.name)
       }
     }

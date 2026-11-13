@@ -3238,6 +3238,31 @@ describe('hosts that can enforce', () => {
     }
   })
 
+  test('throws nothing for a VM without interfaces, a network XO lost, nothing published, a global configuration without document', async () => {
+    const noVifs = vmWith('no-vifs', ['vdf:quarantine'], { VIFs: [] })
+    const lostNetwork = vmWith('lost', ['vdf:quarantine'], { VIFs: ['lost/vif0'] })
+    const { xo, check } = setUp({
+      pools: { [POOL]: {} },
+      vms: [noVifs, lostNetwork, WEB],
+      vifs: { 'lost/vif0': { $network: 'net-gone' } },
+      store: fakeStore({ global: { revision: 3, scope: { all: true } } }),
+    })
+    const plugin = await loaded(xo)
+    try {
+      for (const host of [xo.hosts['h-none'], undefined]) {
+        // nothing to filter
+        assert.equal(await check({ vm: noVifs, host }), undefined)
+        // nothing published: a group protects nothing
+        assert.equal(await check({ vm: WEB, host }), undefined)
+        // its network unknown: an untagged one, the quarantine holds
+        assert.match((await check({ vm: lostNetwork, host })).reason, /no firewall agent on host "h-none"/)
+      }
+      assert.deepEqual((await xo.route('get', '/unenforced')).result, { pools: [] })
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('protects a quarantined VM even where nothing is published', async () => {
     const { xo, check } = setUp({ pools: { [POOL]: {} }, vms: [QUARANTINED, WEB] })
     const plugin = await loaded(xo)
