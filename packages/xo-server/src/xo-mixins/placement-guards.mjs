@@ -25,7 +25,9 @@ const ref = object => (object === undefined ? undefined : { id: object.id, name:
  * guard before the operation, refuses with `placementRefused` for the first
  * one that refuses, and handles the override (`bypassFirewallCheck`): who may
  * use it is the guard's decision, using it is logged. Without a guard (no
- * plugin loaded), nothing changes.
+ * plugin loaded), nothing changes. A guard that throws (`check` or
+ * `mayBypass`) refuses nothing: the failure is logged as a warning and the
+ * operation goes on.
  *
  * What XO does not start or migrate itself through these paths (xe, another
  * client, HA, an evacuation) is not guarded: the guards' plugin has to detect
@@ -78,15 +80,58 @@ export default class PlacementGuards {
     if (operation === 'start' && vm.power_state === 'Suspended') {
       host = undefined
     }
-    const pool = this._app.getObject(host?.$pool ?? vm.$pool, 'pool')
+    let pool
+    try {
+      pool = this._app.getObject(host?.$pool ?? vm.$pool, 'pool')
+    } catch (error) {
+      log.warn(`no placement guard asked: the pool is unknown, ${operation} goes on`, {
+        vm: vm.id,
+        host: host?.id,
+        error,
+      })
+      return
+    }
+
+    // A guard that fails (a plugin bug, a XAPI call failing, a pool
+    // unreachable) refuses nothing: logged, the operation goes on. A guard
+    // is there to stop a placement it knows to be wrong, never to stop
+    // people from starting VMs because it is broken.
+    const ask = async (guard, what, fn) => {
+      try {
+        return { answer: await fn() }
+      } catch (error) {
+        log.warn(`the ${guard.name} placement guard failed (${what}): ${operation} goes on`, {
+          guard: guard.name,
+          vm: vm.id,
+          vmName: vm.name_label,
+          host: host?.id,
+          hostName: host?.name_label,
+          error,
+        })
+      }
+    }
 
     for (const guard of [...this.#guards]) {
-      const refusal = await guard.check({ operation, vm, host, pool, vifNetworks })
+      const checked = await ask(guard, 'check', async () => {
+        const refusal = await guard.check({ operation, vm, host, pool, vifNetworks })
+        if (refusal !== undefined && typeof refusal?.reason !== 'string') {
+          throw new TypeError(`a refusal without reason: ${JSON.stringify(refusal)}`)
+        }
+        return refusal
+      })
+      const refusal = checked?.answer
       if (refusal === undefined) {
         continue
       }
       const refusedHost = refusal.host ?? host
-      const allowed = user === undefined || (await guard.mayBypass({ user, pool }))
+      let allowed = true
+      if (user !== undefined) {
+        const decided = await ask(guard, 'mayBypass', () => guard.mayBypass({ user, pool }))
+        if (decided === undefined) {
+          continue
+        }
+        allowed = decided.answer === true
+      }
       if (!bypass) {
         placementRefused({
           operation,

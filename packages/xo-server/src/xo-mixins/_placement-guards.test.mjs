@@ -22,7 +22,15 @@ const OPERATOR = { id: 'operator', email: 'op@example.org', permission: 'none' }
 
 function createGuards() {
   const objects = { [POOL.id]: POOL, [POOL_2.id]: POOL_2 }
-  const app = { getObject: id => objects[id] }
+  // XO throws no such object for an unknown id
+  const app = {
+    getObject(id) {
+      if (objects[id] === undefined) {
+        throw new Error(`no such object ${id}`)
+      }
+      return objects[id]
+    },
+  }
   return new PlacementGuards(app)
 }
 
@@ -202,5 +210,78 @@ describe('placement guards', () => {
     unregister()
     await guards.checkPlacement({ operation: 'start', user: OPERATOR, vm: HALTED, host: HOST })
     assert.deepEqual(checks, [])
+  })
+
+  describe('a guard that fails refuses nothing', () => {
+    const failing = (what, error = new Error('XAPI is down')) => ({
+      ...refusing().guard,
+      async check(context) {
+        if (what === 'check') {
+          throw error
+        }
+        if (what === 'refusal') {
+          return { host: context.host }
+        }
+        return refusing().guard.check(context)
+      },
+      async mayBypass() {
+        throw error
+      },
+    })
+
+    it('logs a failing check as a warning, with the guard, the VM and the host, and lets the operation go on', async () => {
+      const guards = createGuards()
+      const error = new Error('XAPI is down')
+      guards.registerPlacementGuard(failing('check', error))
+      logs.length = 0
+      await guards.checkPlacement({ operation: 'start', user: OPERATOR, vm: HALTED, host: HOST })
+      assert.equal(logs.length, 1)
+      assert.equal(logs[0].level, 40)
+      assert.equal(logs[0].message, 'the firewall placement guard failed (check): start goes on')
+      assert.deepEqual(logs[0].data, {
+        guard: 'firewall',
+        vm: 'vm-1',
+        vmName: 'web',
+        host: 'host-1',
+        hostName: 'xcp1',
+        error,
+      })
+    })
+
+    it('lets the operation go on when deciding who may override it fails', async () => {
+      const guards = createGuards()
+      guards.registerPlacementGuard(failing('mayBypass'))
+      logs.length = 0
+      await guards.checkPlacement({ operation: 'migrate', user: OPERATOR, vm: vmIn('Running'), host: HOST })
+      assert.equal(logs.length, 1)
+      assert.equal(logs[0].message, 'the firewall placement guard failed (mayBypass): migrate goes on')
+    })
+
+    it('takes a refusal without a reason for a failure', async () => {
+      const guards = createGuards()
+      guards.registerPlacementGuard(failing('refusal'))
+      logs.length = 0
+      await guards.checkPlacement({ operation: 'start', user: OPERATOR, vm: HALTED, host: HOST })
+      assert.equal(logs.length, 1)
+      assert.match(logs[0].data.error.message, /a refusal without reason/)
+    })
+
+    it("doesn't hide another guard's refusal", async () => {
+      const guards = createGuards()
+      guards.registerPlacementGuard(failing('check'))
+      guards.registerPlacementGuard(refusing().guard)
+      await assert.rejects(
+        guards.checkPlacement({ operation: 'start', user: OPERATOR, vm: HALTED, host: HOST }),
+        error => placementRefused.is(error)
+      )
+    })
+
+    it('asks no guard about a VM whose pool XO does not know, and lets it go on', async () => {
+      const guards = createGuards()
+      const { checks, guard } = refusing()
+      guards.registerPlacementGuard(guard)
+      await guards.checkPlacement({ operation: 'start', user: OPERATOR, vm: { ...HALTED, $pool: 'pool-9' } })
+      assert.deepEqual(checks, [])
+    })
   })
 })
