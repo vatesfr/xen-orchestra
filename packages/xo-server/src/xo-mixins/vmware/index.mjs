@@ -13,7 +13,7 @@ import { importDisksFromDatastore, importStream } from './importDisksfromDatasto
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
-import { repairImportedVm } from './_repair.mjs'
+import { findRepairIso, repairImportedVm } from './_repair.mjs'
 import { describeRepair, replaceRepairDescription } from './_repairInputs.mjs'
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
@@ -352,6 +352,10 @@ export default class MigrateVm {
     // before anything is done on either side: a mapping which cannot be applied would import the
     // device to the default destination
     assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
+    if (repair) {
+      // a repair which cannot run would only be known once the disks are transferred
+      findRepairIso(xapi, { sourceVmId: vmId })
+    }
     const { srsByNode, network, networksByNic } = resolveDestinations(app, {
       sr,
       srId,

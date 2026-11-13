@@ -34,7 +34,7 @@ const TOOLS_USERDEVICE = '25'
  * The most recent repair ISO deployed on the pool as an ISO SR VDI: its name starts with the date of its build,
  * `xo-repair-<YYYYMMDD>-<commit>.iso`, the last one by name is the most recent.
  */
-function findRepairIso(xapi, context) {
+export function findRepairIso(xapi, context) {
   const isos = Object.values(xapi.objects.indexes.type.VDI ?? {}).filter(
     vdi => isRepairIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
   )
@@ -44,25 +44,28 @@ function findRepairIso(xapi, context) {
     Object.assign(error, context)
     throw error
   }
-  const iso = isos.reduce((latest, vdi) => (vdi.name_label > latest.name_label ? vdi : latest))
-  Task.info(`repair ISO: ${iso.name_label}`)
-  return iso
+  return isos.reduce((latest, vdi) => (vdi.name_label > latest.name_label ? vdi : latest))
 }
 
 const findToolsIso = xapi =>
   Object.values(xapi.objects.indexes.type.VDI ?? {}).find(vdi => vdi.is_tools_iso && !vdi.missing)
 
-// the CD drive of the VM, created when it has none
+/**
+ * The CD drive of the VM, created when it has none: then it is destroyed on release, not only emptied.
+ *
+ * @returns {Promise<{ cdDriveRef: string, isCreated: boolean }>}
+ */
 async function insertCd(xapi, vm, iso) {
   const cdDrive = vm.$VBDs.find(vbd => vbd.type === 'CD')
   if (cdDrive === undefined) {
-    return xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: iso.$ref, bootable: true })
+    const cdDriveRef = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: iso.$ref, bootable: true })
+    return { cdDriveRef, isCreated: true }
   }
   if (!cdDrive.empty) {
     await xapi.callAsync('VBD.eject', cdDrive.$ref)
   }
   await xapi.callAsync('VBD.insert', cdDrive.$ref, iso.$ref)
-  return cdDrive.$ref
+  return { cdDriveRef: cdDrive.$ref, isCreated: false }
 }
 
 /**
@@ -71,9 +74,10 @@ async function insertCd(xapi, vm, iso) {
  */
 async function attachRepairDisks(xapi, vmRef, context) {
   const iso = findRepairIso(xapi, context)
+  Task.info(`repair ISO: ${iso.name_label}`)
   const vm = xapi.getObject(vmRef)
 
-  const cdDriveRef = await insertCd(xapi, vm, iso)
+  const { cdDriveRef, isCreated } = await insertCd(xapi, vm, iso)
 
   // optional: without it the ISO repairs everything but the guest agent
   const toolsIso = findToolsIso(xapi)
@@ -99,9 +103,9 @@ async function attachRepairDisks(xapi, vmRef, context) {
 
   return new Disposable(async () => {
     // the VM is imported anyway: failing to release these is not worth failing it
-    await xapi
-      .callAsync('VBD.eject', cdDriveRef)
-      .catch(error => warn('failed to eject the repair ISO', { ...context, error }))
+    await (isCreated ? xapi.VBD_destroy(cdDriveRef) : xapi.callAsync('VBD.eject', cdDriveRef)).catch(error =>
+      warn('failed to release the repair ISO', { ...context, error })
+    )
     if (toolsVbdRef !== undefined) {
       await xapi
         .VBD_destroy(toolsVbdRef)
@@ -221,12 +225,14 @@ function assertNotBlocked(report, context) {
  * function which boots the VM on the ISO with these inputs, and returns its outputs.
  *
  * Secure Boot stays disabled: the ISO is not signed, and it is enabled again only once the guest has
- * booted on XCP-ng.
+ * booted on XCP-ng. When `fn` fails, the guest is not booted by XO: it is restored as it was.
  */
 async function withRepairIso(xapi, vmRef, context, fn) {
   const vm = xapi.getObject(vmRef)
   const { order } = vm.HVM_boot_params
   const { start, start_on } = vm.blocked_operations
+  const isUefi = vm.HVM_boot_params.firmware === 'uefi'
+  const { secureboot } = vm.platform
 
   const run = inputs => runRepairIso(xapi, vmRef, inputs, context)
 
@@ -234,11 +240,19 @@ async function withRepairIso(xapi, vmRef, context, fn) {
     try {
       await vm.update_blocked_operations({ start: null, start_on: null })
       await vm.update_HVM_boot_params('order', 'dc')
-      if (vm.HVM_boot_params.firmware === 'uefi') {
+      if (isUefi) {
         // an absent key means `auto`, which enforces Secure Boot when the pool has certificates
         await vm.update_platform('secureboot', 'false')
       }
       return await fn(run)
+    } catch (error) {
+      if (isUefi) {
+        await xapi
+          .getObject(vmRef)
+          .update_platform('secureboot', secureboot ?? null)
+          .catch(restoreError => warn('failed to restore Secure Boot', { ...context, error: restoreError }))
+      }
+      throw error
     } finally {
       // each one on its own: a failed restore must neither skip the others nor replace the error of the repair
       const current = xapi.getObject(vmRef)
