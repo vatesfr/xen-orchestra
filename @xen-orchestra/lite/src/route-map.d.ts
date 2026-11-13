@@ -562,6 +562,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/table/vts-table': RouteRecordInfo<
+      '/story/web-core/table/vts-table',
+      '/story/web-core/table/vts-table',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list': RouteRecordInfo<
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
@@ -1676,6 +1683,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tab-list/tab-list.story.vue': {
       routes:
         | '/story/web-core/tab-list/tab-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/table/vts-table.story.vue': {
+      routes:
+        | '/story/web-core/table/vts-table'
       views:
         | never
     }
