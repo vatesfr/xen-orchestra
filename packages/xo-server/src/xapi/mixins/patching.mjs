@@ -766,6 +766,16 @@ const methods = {
     })
   },
 
+  // XAPI refuses until the end of the host startup, which comes after its
+  // agent started. A call which hangs fails instead of stalling the caller
+  _enableHostOnceBooted(hostId) {
+    return pRetry(() => timeout.call(this.enableHost(hostId), ENABLE_HOST_TIMEOUT), {
+      delay: 5e3,
+      tries: 60,
+      when: { code: 'HOST_STILL_BOOTING' },
+    })
+  },
+
   async rollingPoolUpdate(
     $defer,
     parentTask,
@@ -948,14 +958,7 @@ const methods = {
       // again when it is handled
       if (!host.enabled && enabledBeforeUpdate !== false) {
         await Task.run({ properties: { name: 'Enabling host', hostId, hostName: host.name_label } }, () =>
-          // XAPI refuses until the end of the host startup, which comes after
-          // its agent started. A call which hangs fails the run instead of
-          // stalling it
-          pRetry(() => timeout.call(this.enableHost(hostId), ENABLE_HOST_TIMEOUT), {
-            delay: 5e3,
-            tries: 60,
-            when: { code: 'HOST_STILL_BOOTING' },
-          })
+          this._enableHostOnceBooted(hostId)
         )
       }
       if (hasMissingPatchesByHost[hostId]) {

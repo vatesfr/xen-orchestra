@@ -39,6 +39,7 @@
 - [RPU] Resuming a rolling pool update also installs the patches released since it started, including on hosts it had already updated, and lists these hosts on the pool's Patches tab (PR [#10684](https://github.com/vatesfr/xen-orchestra/pull/10684))
 - [RPU] A rolling pool update interrupted by a restart of XO resumes on its own once the pool is connected again. This happens only once: if this automatic resume is refused or interrupted in turn, the update waits for a manual resume (PR [#10722](https://github.com/vatesfr/xen-orchestra/pull/10722))
 - [RPU] Resuming a rolling pool update stops when HA, auto power on, WLB or a backup schedule was enabled again since the failed or interrupted attempt, or when a host, a VM, a backup schedule or an HA heartbeat SR of the update is gone. The changes are listed on the pool's Patches tab, and the update resumes only once they are accepted as they are (PR [#10670](https://github.com/vatesfr/xen-orchestra/pull/10670))
+- [RPU] Finalizing an incomplete rolling pool update first restores what it left: disabled hosts are enabled, VMs are migrated back to their original host or started again, and HA, auto power on, WLB, the load balancer and backup schedules are enabled again. It is refused if something could not be restored, if a host was updated but not rebooted, or while a backup is running (PR [#10770](https://github.com/vatesfr/xen-orchestra/pull/10770))
 
 ### Bug fixes
 

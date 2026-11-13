@@ -16,6 +16,7 @@ import { incorrectState } from 'xo-common/api-errors.js'
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
 import {
+  createRpuRecoveryRecorder,
   listUnrestoredItems,
   readClosableRpuRecoveryRecord,
   readRpuRecoveryView,
@@ -188,10 +189,14 @@ export default class Pools {
   /**
    * Closes the recovery record a previous rolling pool update left on the pool.
    *
-   * Refused while the run left something unrestored, unless `force` is set:
-   * the items are then abandoned, listed in the task and the trace, and
-   * nothing is restored nor changed in the pool. VMs away from their home host
-   * alone do not refuse it, they are only listed in the task.
+   * What the run left unrestored is first restored, best effort (see
+   * `restoreRpuLeftovers`): hosts enabled, pinned VMs started, VMs migrated
+   * back to their home host, settings enabled again. The record is deleted
+   * once nothing is left. Otherwise it is kept, without what was restored, and
+   * the finalization is refused with what is left.
+   *
+   * With `force`, nothing is restored nor changed in the pool: the items are
+   * abandoned, listed in the task and the trace, and the record is deleted.
    *
    * @param {object} pool - XO pool object
    * @param {object} [opts]
@@ -199,10 +204,11 @@ export default class Pools {
    * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
    * @returns {Promise<void>}
    * @throws {Error} `noSuchObject` if the pool has no record
-   * @throws {Error} `forbiddenOperation` if a rolling pool update or reboot is running on the pool
+   * @throws {Error} `forbiddenOperation` if a rolling pool update or reboot is running on the pool, or if a backup
+   *   runs or may run on it while something is left to restore and `force` is not set
    * @throws {Error} `incorrectState` (property `status`) if the record belongs to a live run
    * @throws {Error} `incorrectState` (property `unrestoredItems`, `actual` the items, `null` when the record cannot
-   *   be read) if something is left unrestored and `force` is not set
+   *   be read) if something could not be restored and `force` is not set
    */
   async finalizeRollingUpdate(pool, { force = false, parentTask } = {}) {
     const { _app } = this
@@ -213,11 +219,25 @@ export default class Pools {
       const record = await readClosableRpuRecoveryRecord(store, poolId)
 
       const unrestoredItems = await this._listUnrestoredRpuItems(pool, record)
-      // a VM away from its home host does not block: it may have been moved on
-      // purpose, and the next run takes the current placement as its home
-      const abandonsItems = unrestoredItems === null || unrestoredItems.some(item => item.type !== 'vm')
-      if (abandonsItems && !force) {
-        throw incorrectState({ actual: unrestoredItems, expected: [], object: poolId, property: 'unrestoredItems' })
+      const refuse = items => {
+        try {
+          incorrectState({ actual: items, expected: [], object: poolId, property: 'unrestoredItems' })
+        } catch (error) {
+          // the answer itself tells the way out, for the callers of the API
+          error.message +=
+            items === null
+              ? ': the record of the rolling pool update cannot be read, set `force` to finalize anyway'
+              : ': the rolling pool update left items unrestored, restore them and finalize again, or set `force` to abandon them'
+          throw error
+        }
+      }
+      // nothing can be restored from a record which cannot be read
+      if (unrestoredItems === null && !force) {
+        refuse(unrestoredItems)
+      }
+      // the cleanup migrates VMs
+      if (!force && unrestoredItems.length > 0) {
+        await _app.backupGuard(poolId, { operation: 'finalizeRollingUpdate' })
       }
 
       const runId = record?.runId
@@ -240,12 +260,23 @@ export default class Pools {
         const task = parentTask === undefined ? _app.tasks.create(properties) : new Task({ properties })
         trace?.attach(task)
         await task.run(async () => {
-          if (abandonsItems) {
-            log.warn(`rolling pool update of pool ${poolId} finalized by force, nothing restored`, {
-              poolId,
-              runId,
-              unrestoredItems,
-            })
+          if (unrestoredItems === null || unrestoredItems.length > 0) {
+            if (force) {
+              log.warn(`rolling pool update of pool ${poolId} finalized by force, nothing restored`, {
+                poolId,
+                runId,
+                unrestoredItems,
+              })
+            } else {
+              const recorder = createRpuRecoveryRecorder({ store, record })
+              await _app.restoreRpuLeftovers(pool, { record, items: unrestoredItems, recorder })
+              // a write still pending would bring a deleted record back
+              await recorder.flush()
+              const itemsLeft = await this._listUnrestoredRpuItems(pool, record)
+              if (itemsLeft.length > 0) {
+                refuse(itemsLeft)
+              }
+            }
           }
           await store.del(poolId)
         })

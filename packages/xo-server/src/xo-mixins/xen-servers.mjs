@@ -896,25 +896,26 @@ export default class XenServers {
   }
 
   _getRpuLoadBalancerSuspension() {
-    const app = this._app
     const state = { shouldReEnable: false }
-    return new Disposable(
-      () =>
-        state.shouldReEnable &&
-        synchronizedLoadBalancerOperation(async () => {
-          const plugin = await app.getOptionalPlugin('load-balancer')
-          if (plugin?.loaded) {
-            return
-          }
-          if (state.autoload && plugin?.autoload === false) {
-            throw new Error(
-              'not re-enabling the load balancer plugin because its autoload has been disabled during the suspension'
-            )
-          }
-          await app.loadPlugin('load-balancer')
-        }),
-      state
-    )
+    return new Disposable(() => state.shouldReEnable && this._loadRpuLoadBalancer(state.autoload), state)
+  }
+
+  // loads again the plugin a rolling pool update unloaded, `autoload` as the
+  // run found it
+  _loadRpuLoadBalancer(autoload) {
+    const app = this._app
+    return synchronizedLoadBalancerOperation(async () => {
+      const plugin = await app.getOptionalPlugin('load-balancer')
+      if (plugin?.loaded) {
+        return
+      }
+      if (autoload && plugin?.autoload === false) {
+        throw new Error(
+          'not re-enabling the load balancer plugin because its autoload has been disabled during the suspension'
+        )
+      }
+      await app.loadPlugin('load-balancer')
+    })
   }
 
   _releaseRpuLoadBalancer(suspension, pool, recorder) {
@@ -999,6 +1000,55 @@ export default class XenServers {
         }
       }
     })
+  }
+
+  // never throws
+  _restoreRpuWlb(xapi, pool, recorder) {
+    return restoreRpuSetting(recorder, 'wlb', () => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
+  }
+
+  /**
+   * Best-effort restoration of what an incomplete rolling pool update left changed, through the restorations of the
+   * run itself: the pool first (see `restoreRpuLeftovers` of the XAPI), then WLB, the load balancer plugin and the
+   * backup schedules.
+   *
+   * Only restores: a failure is logged, leaves its item as it was and does not prevent the next restorations. Never
+   * throws.
+   *
+   * @param {object} pool - XO pool object
+   * @param {object} params
+   * @param {object} params.record - Recovery record of the run
+   * @param {Array<{ type: string, id: string }>} params.items - What is left unrestored, see `listUnrestoredItems`
+   * @param {object} params.recorder - Recorder of `record`
+   * @returns {Promise<void>}
+   */
+  async restoreRpuLeftovers(pool, { record, items, recorder }) {
+    const xapi = this.getXapi(pool)
+    const idsOf = type => items.filter(item => item.type === type).map(item => item.id)
+
+    await xapi.restoreRpuLeftovers({ record, items, recorder })
+
+    if (idsOf('wlb').length > 0) {
+      await this._restoreRpuWlb(xapi, pool, recorder)
+    }
+    if (idsOf('loadBalancer').length > 0) {
+      await restoreRpuSetting(recorder, 'loadBalancer', () =>
+        this._loadRpuLoadBalancer(record.changedByRun.loadBalancer.autoload)
+      )
+    }
+    const scheduleIds = idsOf('schedule')
+    if (scheduleIds.length > 0) {
+      try {
+        const restorations = []
+        const schedules = await this._app.getAllSchedules()
+        this._restoreRpuSchedules(restoration => restorations.push(restoration), recorder, scheduleIds, schedules)
+        for (const restoration of restorations) {
+          await restoration()
+        }
+      } catch (error) {
+        log.warn('failed to restore the backup schedules a rolling pool update left disabled', { error })
+      }
+    }
   }
 
   // the schedules a previous attempt of the run disabled stay disabled until
@@ -1266,7 +1316,7 @@ export default class XenServers {
       const wlbEnabled = await xapi.getField('pool', pool._xapiRef, 'wlb_enabled')
       // registered before disabling it, which may fail after the change
       if (wlbEnabled || changedByRun.wlb) {
-        $defer(() => restoreRpuSetting(recorder, 'wlb', () => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true)))
+        $defer(() => this._restoreRpuWlb(xapi, pool, recorder))
       }
       if (wlbEnabled) {
         await recorder.settingChangedByRun('wlb')

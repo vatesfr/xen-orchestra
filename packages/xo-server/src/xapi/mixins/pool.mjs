@@ -5,7 +5,7 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
-import { noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../../_rpuRecovery.mjs'
+import { isRpuHostAwaitingReboot, noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
@@ -82,15 +82,7 @@ const methods = {
     // registered before disabling it, which may fail after the change. HA
     // recorded without its heartbeat SRs is left to the operator
     if (ha?.srs !== undefined) {
-      $defer(() =>
-        restoreRpuSetting(recorder, 'ha', () =>
-          this.call(
-            'pool.enable_ha',
-            ha.srs.map(uuid => this.getObject(uuid).$ref),
-            ha.configuration
-          )
-        )
-      )
+      $defer(() => this._restoreRpuHa(recorder, ha))
     }
     if (haEnabled) {
       await recorder.settingChangedByRun('ha', ha)
@@ -100,9 +92,7 @@ const methods = {
     const autoPowerOn = this.pool.other_config.auto_poweron === 'true'
     // registered before disabling it, which may fail after the change
     if (autoPowerOn || changedByRun.autoPowerOn) {
-      $defer(() =>
-        restoreRpuSetting(recorder, 'autoPowerOn', () => this.pool.update_other_config('auto_poweron', 'true'))
-      )
+      $defer(() => this._restoreRpuAutoPowerOn(recorder))
     }
     if (autoPowerOn) {
       log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
@@ -189,20 +179,7 @@ const methods = {
         haltedPinnedVms.set(vm.$ref, host.$ref)
       }
     }
-    $defer(async () => {
-      for (const [vmRef, hostRef] of haltedPinnedVms) {
-        try {
-          await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
-          try {
-            recorder.forgetHaltedPinnedVm(this.getObject(vmRef).uuid)
-          } catch (error) {
-            log.warn('could not resolve a restarted pinned VM, leaving it in the recovery record', { vmRef, error })
-          }
-        } catch (error) {
-          log.warn('failed to restart pinned VM after an aborted rolling pool reboot', { vmRef, error })
-        }
-      }
-    })
+    $defer(() => this._startRpuHaltedPinnedVms(haltedPinnedVms, recorder))
 
     // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back and updateHosts (beforeEvacuateVms and beforeRebootHost)
     const nSteps =
@@ -469,6 +446,140 @@ const methods = {
 
     // in case task progress has not been incremented properly
     setProgress(parentTask, 100)
+  },
+
+  // HA as the run found it: `ha` holds the uuids of its heartbeat SRs and its
+  // configuration. Never throws
+  _restoreRpuHa(recorder, ha) {
+    return restoreRpuSetting(recorder, 'ha', () =>
+      this.call(
+        'pool.enable_ha',
+        ha.srs.map(uuid => this.getObject(uuid).$ref),
+        ha.configuration
+      )
+    )
+  },
+
+  // never throws
+  _restoreRpuAutoPowerOn(recorder) {
+    return restoreRpuSetting(recorder, 'autoPowerOn', () => this.pool.update_other_config('auto_poweron', 'true'))
+  },
+
+  // Starts the pinned VMs a run shut down and did not start again, each on its
+  // host (VM ref -> host ref). Never throws, a VM which does not start stays in
+  // the record
+  async _startRpuHaltedPinnedVms(haltedPinnedVms, recorder) {
+    for (const [vmRef, hostRef] of haltedPinnedVms) {
+      try {
+        await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+        try {
+          recorder.forgetHaltedPinnedVm(this.getObject(vmRef).uuid)
+        } catch (error) {
+          log.warn('could not resolve a restarted pinned VM, leaving it in the recovery record', { vmRef, error })
+        }
+      } catch (error) {
+        log.warn('failed to restart a pinned VM shut down by a rolling pool reboot', { vmRef, error })
+      }
+    }
+  },
+
+  /**
+   * Best-effort restoration of what an incomplete rolling pool update left
+   * changed in the pool, through the restorations of the run itself: hosts left
+   * disabled, pinned VMs left halted, VMs away from their host, auto power-on
+   * and HA.
+   *
+   * Only restores, in the order of a run: a failure is logged, leaves its item
+   * as it was and does not prevent the next restorations. Never throws.
+   *
+   * A host the run updated without seeing it reboot is left disabled, without
+   * its VMs: it stays listed, only a resume finishes it.
+   *
+   * @param {object} params
+   * @param {object} params.record - Recovery record of the run
+   * @param {Array<{ type: string, id: string }>} params.items - What is left unrestored, see `listUnrestoredItems`
+   * @param {object} params.recorder - Recorder of `record`
+   * @returns {Promise<void>}
+   */
+  async restoreRpuLeftovers({ record, items, recorder }) {
+    const idsOf = type => items.filter(item => item.type === type).map(item => item.id)
+    const attempt = async (restoration, fn) => {
+      try {
+        await fn()
+      } catch (error) {
+        log.warn('failed to restore what a rolling pool update left changed', { error, restoration })
+      }
+    }
+
+    // A host updated but not rebooted stays disabled, without its VMs: back in
+    // service, nothing would tell it still has to reboot. A resume finishes it
+    const hostIdsAwaitingReboot = new Set(idsOf('host').filter(hostId => isRpuHostAwaitingReboot(record, hostId)))
+    if (hostIdsAwaitingReboot.size > 0) {
+      log.warn('hosts updated but not rebooted by the rolling pool update are left disabled', {
+        hostIds: Array.from(hostIdsAwaitingReboot),
+      })
+    }
+
+    // first: a VM only comes back to an enabled host. At once: a host still
+    // booting is waited for
+    await Promise.all(
+      idsOf('host')
+        .filter(hostId => !hostIdsAwaitingReboot.has(hostId))
+        .map(hostId =>
+          attempt(`enable host ${hostId}`, () =>
+            Task.run(
+              { properties: { name: 'Enabling host', hostId, hostName: this.getObject(hostId).name_label } },
+              () => this._enableHostOnceBooted(hostId)
+            )
+          )
+        )
+    )
+
+    const haltedPinnedVms = new Map() // VM ref -> host ref
+    for (const vmId of idsOf('haltedPinnedVm')) {
+      const vm = this.getObject(vmId, undefined)
+      const hostId = record.haltedPinnedVms[vmId]
+      const host = hostIdsAwaitingReboot.has(hostId) ? undefined : this.getObject(hostId, undefined)
+      if (vm !== undefined && host !== undefined) {
+        haltedPinnedVms.set(vm.$ref, host.$ref)
+      }
+    }
+    await this._startRpuHaltedPinnedVms(haltedPinnedVms, recorder)
+
+    if (idsOf('vm').length > 0) {
+      // all the VMs of the run, as a resume does: the ones already home are
+      // skipped, and the VM conflicts of the record are replaced as a whole
+      const vmIdsByHost = {}
+      for (const [vmId, hostId] of Object.entries(record.vmHomeById)) {
+        // a pinned VM which did not start is not a VM an operator stopped
+        if (!hostIdsAwaitingReboot.has(hostId) && !haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
+          ;(vmIdsByHost[hostId] ??= []).push(vmId)
+        }
+      }
+      const hosts = Object.keys(vmIdsByHost)
+        .map(hostId => this.getObject(hostId, undefined))
+        .filter(host => host !== undefined)
+      // the steps and the last error of the record stay the ones of the run
+      const conflictsRecorder = {
+        ...noopRpuRecorder,
+        setVmConflicts: vmConflicts => recorder.setVmConflicts(vmConflicts),
+      }
+      await attempt('migrate VMs back', () =>
+        this._migrateVmsBack(hosts, vmIdsByHost, undefined, () => {}, conflictsRecorder)
+      )
+    }
+
+    if (idsOf('autoPowerOn').length > 0) {
+      await this._restoreRpuAutoPowerOn(recorder)
+    }
+    // HA recorded without its heartbeat SRs is left to the operator
+    const { ha } = record.changedByRun ?? {}
+    if (idsOf('ha').length > 0 && ha?.srs !== undefined) {
+      await this._restoreRpuHa(recorder, ha)
+    }
+
+    // the caller reads the outcome from the cache of the XAPI objects
+    await attempt('wait for the XAPI events', () => this.barrier())
   },
 
   // Bring every VM back to the host it was running on before the reboot.

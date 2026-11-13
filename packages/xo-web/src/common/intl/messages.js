@@ -1312,9 +1312,9 @@ const messages = {
     'Resume the rolling pool update: the hosts with remaining work are handled, and a host already finished is updated and rebooted again if patches were released since. Then the VMs are migrated back to their original host. The settings it left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end, then are restored.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
-    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore. VMs that are not on their original host are left where they are.',
+    'Finalize the last rolling pool update? What it changed and did not restore is restored first: disabled hosts are enabled, VMs are migrated back to their original host or started again, and the settings it disabled are enabled again. A host updated but not rebooted stays disabled: resume the update to finish it. Its record is then removed and a new rolling pool update is allowed. This is refused if something could not be restored.',
   rpuRecoveryForceFinalizeConfirm:
-    'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
+    'The following, changed by the update, could not be restored. Finalize anyway? Nothing more will be restored: these items are abandoned and listed in the task.',
   rpuRecoveryForceFinalizeUnknownConfirm:
     'The record of the update could not be read, so what it changed and did not restore is unknown. Finalize anyway? Nothing will be restored: whatever the update left is abandoned, and the task records that the list is unknown.',
   rpuUnrestoredHa: 'High Availability disabled',

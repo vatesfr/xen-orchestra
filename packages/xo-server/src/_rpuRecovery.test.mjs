@@ -7,6 +7,7 @@ import {
   buildRpuRecoveryView,
   createRpuRecoveryRecord,
   filterError,
+  isRpuHostAwaitingReboot,
   listOperatorChanges,
   listRpuPlanChange,
   listUnrestoredItems,
@@ -373,10 +374,16 @@ describe('listUnrestoredItems()', () => {
   })
 
   it('lists the running VMs away from the host they were running on', () => {
-    const record = makeRecord({ vmHomeById: { vm1: 'h1', vm2: 'h1', vm3: 'h2', vm4: 'h2' } })
-    // vm2 is back home, vm3 is halted, vm4 is gone
-    const vms = { vm1: vm('vm 1', 'Running', 'h2'), vm2: vm('vm 2', 'Running', 'h1'), vm3: vm('vm 3', 'Halted') }
-    assert.deepEqual(listUnrestoredItems(record, makeLive({ vms })), [{ type: 'vm', id: 'vm1', name: 'vm 1' }])
+    const record = makeRecord({ vmHomeById: { vm1: 'h1', vm2: 'h1', vm3: 'h2', vm4: 'h2', vm5: 'h3' } })
+    // vm2 is back home, vm3 is halted, vm4 is gone, the home host of vm5 left the pool
+    const vms = {
+      vm1: vm('vm 1', 'Running', 'h2'),
+      vm2: vm('vm 2', 'Running', 'h1'),
+      vm3: vm('vm 3', 'Halted'),
+      vm5: vm('vm 5', 'Running', 'h1'),
+    }
+    const hosts = { h1: host('host 1', true), h2: host('host 2', true) }
+    assert.deepEqual(listUnrestoredItems(record, makeLive({ hosts, vms })), [{ type: 'vm', id: 'vm1', name: 'vm 1' }])
   })
 
   it('does not list the displaced VMs when the pool opted out of the migrate back', () => {
@@ -577,6 +584,25 @@ describe('createRpuRecoveryRecorder()', () => {
     recorder.forgetHaltedPinnedVm('vm2')
     await recorder.fail(new Error('later'))
     assert.deepEqual(stored().haltedPinnedVms, {})
+  })
+
+  it('flush resolves once the requested writes reached the store, even a failed one', async () => {
+    const { store, recorder } = await makeRecorder()
+    const put = store.put.bind(store)
+    let written = 0
+    store.put = async (...args) => {
+      await new Promise(resolve => setImmediate(resolve))
+      if (++written === 2) {
+        throw new Error('disk full')
+      }
+      return put(...args)
+    }
+
+    recorder.setTaskId('task1')
+    recorder.setVariant('xcp')
+    await recorder.flush()
+
+    assert.equal(written, 2)
   })
 
   it('recordHaltedPinnedVm is strict: rejects on write failure', async () => {
@@ -954,6 +980,31 @@ describe('createRpuRecoveryRecorder()', () => {
 
 const allSteps = status =>
   Object.fromEntries(['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status }]))
+
+describe('isRpuHostAwaitingReboot()', () => {
+  const awaiting = host => isRpuHostAwaitingReboot({ hosts: { h1: host } }, 'h1')
+
+  it('is true once the update of the host started, until its reboot is observed', () => {
+    assert.equal(awaiting({ steps: { update: { status: 'running' } } }), true)
+    assert.equal(awaiting({ steps: { update: { status: 'failed' } } }), true)
+    assert.equal(awaiting({ steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } }), true)
+    // update started in an attempt before the last one
+    assert.equal(awaiting({ updateStarted: true, steps: { update: { status: 'not-needed' } } }), true)
+    assert.equal(
+      awaiting({ steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'observed-succeeded' } } }),
+      false
+    )
+  })
+
+  it('is false for a host the run did not update', () => {
+    assert.equal(awaiting({ steps: { evacuate: { status: 'failed' } } }), false)
+    assert.equal(
+      awaiting({ steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'not-needed' } } }),
+      false
+    )
+    assert.equal(isRpuHostAwaitingReboot({}, 'h1'), false)
+  })
+})
 
 describe('planRpuResume()', () => {
   function makeRecord(hosts) {
@@ -1406,6 +1457,7 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
 describe('noopRpuRecorder', () => {
   it('accepts every recorder call without effect', async () => {
     noopRpuRecorder.markRunning()
+    await noopRpuRecorder.flush()
     noopRpuRecorder.stepRunning('h1', 'evacuate')
     noopRpuRecorder.hostFailed('h1', new Error('boom'))
     await noopRpuRecorder.recordHaltedPinnedVm('vm1', 'h1')
