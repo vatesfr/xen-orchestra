@@ -37,7 +37,7 @@ export type V2vVmOptions = {
   /** stop the source VM before the last delta, which completes the import */
   stopSource?: boolean
   /**
-   * once the import is complete, boot the VM on the repair ISO deployed on the pool (`xo-repair-*.iso`),
+   * once the import is complete, boot the VM on the repair ISO deployed on the pool (`vates-autopilot-docking-*.iso`),
    * which prepares the guest to run on XCP-ng. Off by default. Needs a complete import: a source stopped, or
    * stopped by `stopSource`. A failed repair does not fail the import
    */

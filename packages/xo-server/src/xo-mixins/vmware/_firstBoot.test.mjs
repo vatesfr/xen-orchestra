@@ -43,7 +43,11 @@ function fakeXapi(states) {
       ...Object.fromEntries(Object.entries(output).map(([key, value]) => [`vm-data/xo-repair/out/${key}`, value])),
     },
   })
-  const iso = { $ref: 'OpaqueRef:iso', name_label: 'xo-repair-20261112-abcdef12.iso', $SR: { content_type: 'iso' } }
+  const iso = {
+    $ref: 'OpaqueRef:iso',
+    name_label: 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso',
+    $SR: { content_type: 'iso' },
+  }
   return {
     calls,
     objects: { indexes: { type: { VDI: { [iso.$ref]: iso } } } },

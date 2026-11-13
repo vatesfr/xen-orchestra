@@ -205,14 +205,17 @@ test('readRepairOutput', async t => {
 })
 
 test('isRepairIsoName', () => {
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.iso'), true)
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b-dirty.iso'), true)
-  assert.equal(isRepairIsoName('xo-repair-20261018-1.2.0.iso'), true)
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.img'), false)
-  // without the date first, it could not be ordered with the others
-  assert.equal(isRepairIsoName('xo-repair-1.2.0.iso'), false)
-  assert.equal(isRepairIsoName('xo-repair-latest.iso'), false)
-  assert.equal(isRepairIsoName('xo-repair-2026-10-18-0d5f013b.iso'), false)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.iso'), true)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b-dirty.iso'), true)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-1.2.0.iso'), true)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.img'), false)
+  // without the date and time first, it could not be ordered with the others
+  assert.equal(isRepairIsoName('vates-autopilot-docking-1.2.0.iso'), false)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-latest.iso'), false)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018-0d5f013b.iso'), false)
+  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512-0d5f013b.iso'), false)
+  // the former name
+  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.iso'), false)
   assert.equal(isRepairIsoName('guest-tools.iso'), false)
 })
 

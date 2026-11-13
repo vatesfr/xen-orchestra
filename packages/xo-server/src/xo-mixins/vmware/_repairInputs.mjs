@@ -2,12 +2,14 @@
 // ISO reads them from the guest and writes its outputs under `out/`, which XAPI syncs back into
 // `VM.xenstore_data`, where they stay after the VM halts.
 
-// `xo-repair-<build date>-<suffix>.iso`, as `scripts/build.sh` names its builds: the suffix is the commit, maybe
-// `-dirty`, or the version of a release. The date first: the most recent ISO is the last one by name
-const REPAIR_ISO_NAME_RE = /^xo-repair-\d{8}-(?:[0-9a-f]{8}(?:-dirty)?|\d+\.\d+\.\d+)\.iso$/
+// `vates-autopilot-docking-<build date and time>-<suffix>.iso`, as `scripts/build.sh` names its builds: the date
+// and time in UTC, the suffix is the commit, maybe `-dirty`, or the version of a release. The date first: the most
+// recent ISO is the last one by name
+const REPAIR_ISO_NAME_RE = /^vates-autopilot-docking-\d{8}T\d{6}Z-(?:[0-9a-f]{8}(?:-dirty)?|\d+\.\d+\.\d+)\.iso$/
 
 /**
- * Whether a VDI is the repair ISO: `xo-repair-20261018-0d5f013b.iso` or `xo-repair-20261018-1.2.0.iso`.
+ * Whether a VDI is the repair ISO: `vates-autopilot-docking-20261018T084512Z-0d5f013b.iso` or
+ * `vates-autopilot-docking-20261018T084512Z-1.2.0.iso`.
  *
  * @param {string} name - `name_label` of the VDI
  */
