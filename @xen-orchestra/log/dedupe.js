@@ -4,6 +4,7 @@ const isEqual = require('lodash/isEqual')
 
 const Log = require('./_Log')
 const createTransport = require('./_createTransport')
+const { closeTransport } = createTransport
 
 exports.dedupe = function createDedupe({ timeout = 600e3, transport }) {
   transport = createTransport(transport)
@@ -22,7 +23,7 @@ exports.dedupe = function createDedupe({ timeout = 600e3, transport }) {
     n = 0
   }
 
-  return function dedupeLog(log) {
+  function dedupeLog(log) {
     if (
       log.level === prev.level &&
       log.message === prev.message &&
@@ -42,4 +43,11 @@ exports.dedupe = function createDedupe({ timeout = 600e3, transport }) {
     prev = log
     return transport(log)
   }
+  dedupeLog.close = () => {
+    if (n !== 0) {
+      flush()
+    }
+    closeTransport(transport)
+  }
+  return dedupeLog
 }

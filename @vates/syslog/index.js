@@ -79,7 +79,11 @@ const FORMATTERS = {
 
 const FRAMERS = {
   // https://datatracker.ietf.org/doc/html/rfc6587#section-3.4.2
-  lf: message => message + '\n',
+  //
+  // a line feed ends the message: the line breaks it contains are written as
+  // `\n` (and `\r`) so that it is received as one message, use octet-counting
+  // to keep them
+  lf: message => message.replace(/\r/g, '\\r').replace(/\n/g, '\\n') + '\n',
 
   // https://datatracker.ietf.org/doc/html/rfc6587#section-3.4.1, required by RFC 5425 (TLS)
   'octet-counting': message => `${Buffer.byteLength(message)} ${message}`,
@@ -112,8 +116,8 @@ class SyslogClient {
       facility = 'user',
       format = 'rfc5424',
       framing = 'lf',
+      allowUnauthorized = false,
       hostname = os.hostname(),
-      ignoreUnauthorized = false,
       maxPendingBytes = 1024 * 1024,
     } = {}
   ) {
@@ -150,7 +154,7 @@ class SyslogClient {
         ? {
             // the `ca` option replaces the system certificate authorities
             ca: ca === undefined ? undefined : [...tls.rootCertificates, ...ca],
-            rejectUnauthorized: !ignoreUnauthorized,
+            rejectUnauthorized: !allowUnauthorized,
           }
         : undefined
 

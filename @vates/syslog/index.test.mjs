@@ -111,11 +111,21 @@ describe('send()', () => {
     assert.match(server.data, /^<14>1 [^\n]+ - foo\n<14>1 [^\n]+ - bar\n$/)
   })
 
+  it('escapes the line breaks of a message framed with a line feed', async () => {
+    const server = await createStreamServer()
+    const client = createClient(`tcp://127.0.0.1:${server.port}`)
+    await client.send('foo\r\nbar\nbaz')
+    await wait(50)
+    client.close()
+
+    assert.match(server.data, /^<14>1 [^\n]+ - foo\\r\\nbar\\nbaz\n$/)
+  })
+
   it('frames TCP messages with octet counting', async () => {
     const server = await createStreamServer()
     const client = createClient(`tcp://127.0.0.1:${server.port}`, { framing: 'octet-counting' })
     await client.send('foo')
-    await client.send('bär')
+    await client.send('b\när')
     await wait(50)
     client.close()
 
@@ -130,7 +140,7 @@ describe('send()', () => {
     }
     assert.equal(messages.length, 2)
     assert.match(messages[0], /^<14>1 .+ - foo$/)
-    assert.match(messages[1], /^<14>1 .+ - bär$/)
+    assert.match(messages[1], /^<14>1 .+ - b\när$/s)
   })
 
   it('reconnects when the server closes the connection', async () => {
@@ -225,13 +235,13 @@ describe('TLS', () => {
     assert.match(server.data, / - message\n$/)
   })
 
-  it('rejects an unknown certificate authority, unless ignoreUnauthorized', async () => {
+  it('rejects an unknown certificate authority, unless allowUnauthorized', async () => {
     const server = await createTlsServer()
     await assert.rejects(createClient(`tls://localhost:${server.port}`).send('message'), {
       code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
     })
 
-    const client = createClient(`tls://localhost:${server.port}`, { ignoreUnauthorized: true })
+    const client = createClient(`tls://localhost:${server.port}`, { allowUnauthorized: true })
     await client.send('message')
     client.close()
   })
