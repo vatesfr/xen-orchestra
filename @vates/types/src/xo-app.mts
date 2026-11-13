@@ -507,6 +507,12 @@ export type XoApp = EventEmitter & {
   getXenServerWithCredentials(id: XoServer['id']): Promise<XoServer & { password: string }>
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
+  /* may the user do this action of the RBAC `firewall` resource on the pool's firewall (XO admin, RBAC privilege on the pool, or the legacy ACL that counts as it); no user: xo-server's own work, allowed */
+  hasFirewallRight(
+    user: XoUser | undefined,
+    poolId: XoPool['id'],
+    action: 'read' | 'publish' | 'membership' | 'quarantine:add' | 'quarantine:remove'
+  ): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>
   listBackupNgPartitionFiles(
