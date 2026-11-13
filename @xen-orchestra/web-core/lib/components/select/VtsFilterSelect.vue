@@ -77,7 +77,7 @@ function toggleSelectAll(value: boolean) {
 }
 
 .dropdown-list {
-  max-height: 36.2rem; /* 8 Dropdown items */
+  max-height: 36.2rem;
   overflow: auto;
   z-index: 1020;
 

@@ -10,6 +10,8 @@ import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFr
 
 export const BACKUP_JOB_LAST_RUNS_COUNT = 3
 
+export const BACKUP_JOB_LAST_DAYS_COUNT = 7
+
 export type VmsSmartModeEnabled = {
   $pool?: Record<string, unknown>
   power_state?: VM_POWER_STATE
