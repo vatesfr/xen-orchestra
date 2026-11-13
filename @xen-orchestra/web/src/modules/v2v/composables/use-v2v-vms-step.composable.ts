@@ -20,10 +20,10 @@ import {
   countV2vRowsByStatus,
   isV2vVmRowSelectable,
 } from '@/modules/v2v/utils/v2v-vm-rows.util.ts'
-import { getFilterPropertyValues, setFilterProperty } from '@/shared/utils/query-builder-filter.util.ts'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { type SelectionBindings, useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
+import { getFilterPropertyValues, setFilterProperty } from '@core/packages/query-builder/filter-string.ts'
 import { computed, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

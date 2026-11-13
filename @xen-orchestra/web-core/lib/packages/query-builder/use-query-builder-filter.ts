@@ -1,6 +1,6 @@
+import { tryParseFilter } from '@core/packages/query-builder/filter-string.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { useRouteQuery } from '@vueuse/router'
-import { parse } from 'complex-matcher'
 import { computed, type ComputedRef, type MaybeRefOrGetter, ref, type Ref } from 'vue'
 
 export type UseQueryBuilderFilterReturn<TSource> = {
@@ -19,13 +19,7 @@ export function useQueryBuilderFilter<TSource>(
 
   const sources = toComputed(sourcesRaw)
 
-  const mainNode = computed(() => {
-    try {
-      return parse(filter.value)
-    } catch {
-      return undefined
-    }
-  })
+  const mainNode = computed(() => tryParseFilter(filter.value))
 
   const predicate = computed(() => {
     if (mainNode.value === undefined) {

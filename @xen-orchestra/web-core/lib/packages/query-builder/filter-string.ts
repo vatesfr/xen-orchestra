@@ -12,16 +12,18 @@ import {
 } from 'complex-matcher'
 import { escapeRegExp } from 'lodash-es'
 
-function readFilter<TResult>(filter: string, unparsableResult: TResult, read: (root: Node) => TResult): TResult {
-  let root: Node
-
+export function tryParseFilter(filter: string): Node | undefined {
   try {
-    root = parse(filter)
+    return parse(filter)
   } catch {
-    return unparsableResult
+    return undefined
   }
+}
 
-  return read(root)
+function readFilter<TResult>(filter: string, unparsableResult: TResult, read: (root: Node) => TResult): TResult {
+  const root = tryParseFilter(filter)
+
+  return root === undefined ? unparsableResult : read(root)
 }
 
 function getTopLevelClauses(root: Node): Node[] {
@@ -61,7 +63,7 @@ function findNestedClauses(node: Node, name: string): Node[] {
 }
 
 export function isFilterParsable(filter: string): boolean {
-  return readFilter(filter, false, () => true)
+  return tryParseFilter(filter) !== undefined
 }
 
 export function getFilterPropertyValues(filter: string, name: string): string[] {

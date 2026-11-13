@@ -7,7 +7,7 @@ import {
   isFilterParsable,
   removeFilterProperty,
   setFilterProperty,
-} from '@/shared/utils/query-builder-filter.util.ts'
+} from '@core/packages/query-builder/filter-string.ts'
 import { objectEntries, objectFromEntries } from '@core/utils/object.util.ts'
 import { parse } from 'complex-matcher'
 import { sumBy } from 'lodash-es'
