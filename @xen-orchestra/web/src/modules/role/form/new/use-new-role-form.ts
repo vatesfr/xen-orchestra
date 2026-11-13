@@ -9,12 +9,12 @@ type NewRoleFormData = {
   description: string
 }
 
-export function useNewRoleForm() {
+export function useNewRoleForm(initialRole?: Pick<NewRolePayload, 'name' | 'description'>) {
   const { t } = useI18n()
 
   const formData = reactive<NewRoleFormData>({
-    name: '',
-    description: '',
+    name: initialRole?.name ?? '',
+    description: initialRole?.description ?? '',
   })
 
   const { useField, validate } = useValidatedForm(formData, {

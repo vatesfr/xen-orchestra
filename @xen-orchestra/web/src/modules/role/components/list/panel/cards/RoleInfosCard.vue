@@ -1,12 +1,6 @@
 <template>
   <UiPanelCard class="role-infos-card">
-    <UiPanelCardTitle
-      :id="role.id"
-      size="medium"
-      :label="role.name"
-      icon="fa:key"
-      :to="{ name: '/admin/role/[id]/general', params: { id: role.id } }"
-    />
+    <UiPanelCardTitle :id="role.id" size="medium" :label="role.name" icon="fa:key" :to="detailRoute" />
     <div class="content">
       <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
@@ -21,17 +15,23 @@
 
 <script lang="ts" setup>
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
+import type { FrontXoRoleTemplate } from '@/modules/role/remote-resources/use-xo-role-template-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  role: FrontXoRole
+const { role } = defineProps<{
+  role: FrontXoRole | FrontXoRoleTemplate
 }>()
 
 const { t } = useI18n()
+
+const detailRoute = computed(() =>
+  'isTemplate' in role ? undefined : ({ name: '/admin/role/[id]/general', params: { id: role.id } } as const)
+)
 </script>
 
 <style scoped lang="postcss">
