@@ -709,7 +709,7 @@ For example, if a schema doesn't define a `custom_field` property but a user typ
 
 ### Values Known Only at Runtime
 
-`useStringSchema` and its siblings call `useI18n`, so they run once, in `setup`. When a property's values come from loaded data, build the schema once and swap the values in a `computed` with `withEnumeratedValues(property, values)`: every operator that takes values (`is`, `isNot`…) gets one entry per value, its label being the value itself; the other operators are kept as they are.
+`useStringSchema` and its siblings call `useI18n`, so they run once, in `setup`: their labels are translated once too, which is enough because the apps reload on a language change. When a property's values come from loaded data, build the schema once and swap the values in a `computed` with `withEnumeratedValues(property, values)`: every operator that takes values (`is`, `isNot`…) gets one entry per value, its label being the value itself; the other operators are kept as they are.
 
 ```typescript
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'

@@ -33,8 +33,8 @@ export function useV2vVmQueryBuilder(
     }),
   })
 
-  // useStringSchema needs the setup context to translate its operators: it runs once, only the datastore values follow
-  // the inventory
+  // useStringSchema needs the setup context to translate its operators: it runs once, labels included (a language change
+  // reloads the app), only the datastore values follow the inventory
   const schema = computed<QueryBuilderSchema>(() => ({
     ...staticSchema,
     datastore: withEnumeratedValues(staticSchema.datastore, toValue(datastoreNames)),
