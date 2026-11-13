@@ -41,16 +41,18 @@ import { toLower } from 'lodash-es'
 import { h, useTemplateRef, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vms, vmById } = defineProps<{
+const { vms, vmById, poolId } = defineProps<{
   vms: VdfVmStat[]
   vmById: Map<string, FrontXoVm>
+  // the pool of these VMs, whose firewall rights decide on quarantine
+  poolId: string
 }>()
 
 const { t, n } = useI18n()
 
 const formatRate = useVdfRate()
 
-const { quarantineAction } = useVdfQuarantine()
+const { quarantineAction } = useVdfQuarantine(() => poolId)
 
 const { pageRecords: pageVms, paginationBindings } = usePagination('vdf-live-vms', () => vms, { ignoreRoute: true })
 

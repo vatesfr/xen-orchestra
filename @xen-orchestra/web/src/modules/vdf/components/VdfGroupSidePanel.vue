@@ -63,11 +63,13 @@
         <UiPanelCardTitle size="medium" :label="t('vms')" icon="object:vm" :counter="members.length">
           <template v-if="group.tags?.length" #action>
             <UiButton
+              v-tooltip="membershipLock ?? false"
               size="small"
               variant="tertiary"
               accent="brand"
               left-icon="fa:plus"
               :busy="isUpdatingTags"
+              :disabled="membershipLock !== undefined"
               @click="emit('addVms')"
             >
               {{ t('firewall:add-vms') }}
@@ -99,8 +101,8 @@
           <li v-for="member of visibleMembers" :key="member.vm.id" class="member">
             <UiChip
               accent="info"
-              :disabled="isUpdatingTags || networksOnly"
-              :title="t('firewall:remove-vm:label', { vm: member.vm.name_label })"
+              :disabled="isUpdatingTags || networksOnly || membershipLock !== undefined"
+              :title="membershipLock ?? t('firewall:remove-vm:label', { vm: member.vm.name_label })"
               @remove="emit('removeVm', member.vm)"
             >
               <UiLink
@@ -199,6 +201,8 @@ const {
   members: FrontXoVm[]
   usage: { appliedTo: string[]; sourceOf: string[] }
   isUpdatingTags: boolean
+  // why the user may not add VMs to the group or remove them, if they may not
+  membershipLock?: string
   // why the last membership change failed
   tagError?: string
 }>()

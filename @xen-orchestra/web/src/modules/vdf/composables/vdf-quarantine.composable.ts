@@ -1,11 +1,12 @@
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { VDF_QUARANTINE_TAG } from '@/modules/vdf/types.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { MenuItemAccent } from '@core/components/menu/MenuItem.vue'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { useInfoModal } from '@core/composables/modals/use-info-modal.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { ref } from 'vue'
+import { type MaybeRefOrGetter, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export function isVmQuarantined(vm: Pick<FrontXoVm, 'tags'>) {
@@ -15,9 +16,19 @@ export function isVmQuarantined(vm: Pick<FrontXoVm, 'tags'>) {
 // Quarantine and release wherever an incident is seen (the VM's firewall
 // page and header menu, Live, rule log): one confirmation, one tag job.
 // Given the page's membership (whose `tagError` it shows), failures are
-// left to it; otherwise they open a modal.
-export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership>) {
+// left to it; otherwise they open a modal. `poolId`: the pool of the VMs it
+// is given, whose firewall rights decide (quarantine:add, quarantine:remove).
+export function useVdfQuarantine(
+  poolId: MaybeRefOrGetter<string | undefined>,
+  membership?: ReturnType<typeof useVdfMembership>
+) {
   const { t } = useI18n()
+
+  const { lockReason } = useVdfFirewallRights(poolId)
+
+  // why the user can't quarantine a VM of the pool (or lift its
+  // quarantine), naming the right, if they can't
+  const quarantineLock = (quarantine: boolean) => lockReason(quarantine ? 'quarantine:add' : 'quarantine:remove')
 
   const { setQuarantine, isUpdatingTags, tagError } = membership ?? useVdfMembership()
 
@@ -33,6 +44,10 @@ export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership
 
   // resolves to whether the tag was written
   async function confirmQuarantine(vm: FrontXoVm, quarantine = !isVmQuarantined(vm)) {
+    if (quarantineLock(quarantine) !== undefined) {
+      return false
+    }
+
     const response = await openQuarantine({ props: { vmName: vm.name_label, release: !quarantine } })
 
     if (response.event !== 'onConfirm') {
@@ -66,6 +81,7 @@ export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership
   // about something else, a connection or a log entry)
   function quarantineAction(vm: FrontXoVm, { named = false } = {}): LeafActionItem & { accent: MenuItemAccent } {
     const release = isVmQuarantined(vm)
+    const lock = quarantineLock(!release)
 
     return {
       label: named
@@ -74,6 +90,8 @@ export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership
       icon: release ? 'fa:lock-open' : 'fa:lock',
       accent: release ? 'brand' : 'danger',
       busy: isUpdatingTags.value && pendingVmId.value === vm.id,
+      disabled: lock !== undefined,
+      hint: lock,
       // not awaited: menus show a click as busy until it settles, and this one
       // waits on the confirmation; `busy` above covers the tag write
       onClick: () => {
@@ -82,5 +100,5 @@ export function useVdfQuarantine(membership?: ReturnType<typeof useVdfMembership
     }
   }
 
-  return { confirmQuarantine, quarantineAction, isUpdatingTags, pendingVmId }
+  return { confirmQuarantine, quarantineAction, quarantineLock, isUpdatingTags, pendingVmId }
 }

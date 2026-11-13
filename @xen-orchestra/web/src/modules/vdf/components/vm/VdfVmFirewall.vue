@@ -27,11 +27,13 @@
         <VdfPreviewBadge />
         <UiButton
           v-if="isQuarantined"
+          v-tooltip="quarantineLock(false) ?? false"
           variant="primary"
           accent="brand"
           size="medium"
           left-icon="fa:lock-open"
           :busy="isUpdatingTags"
+          :disabled="quarantineLock(false) !== undefined"
           @click="confirmQuarantine(vm, false)"
         >
           {{ t('firewall:vm:release') }}
@@ -47,7 +49,14 @@
               @click="open($event)"
             />
           </template>
-          <MenuItem accent="danger" icon="fa:lock" :busy="isUpdatingTags" @click="confirmQuarantine(vm, true)">
+          <MenuItem
+            v-tooltip="quarantineLock(true) ?? false"
+            accent="danger"
+            icon="fa:lock"
+            :busy="isUpdatingTags"
+            :disabled="quarantineLock(true) !== undefined"
+            @click="confirmQuarantine(vm, true)"
+          >
             {{ t('firewall:vm:quarantine-action') }}
           </MenuItem>
         </MenuList>
@@ -58,7 +67,6 @@
     <VdfQuarantineLiftedAlert
       :pool-id="pool.id"
       :changes="quarantineLifted"
-      :can-acknowledge="canEdit"
       vm
       class="state-alert"
       @acknowledged="reloadPublishedPolicy()"
@@ -190,7 +198,9 @@
           <div v-for="(item, index) of vmTrafficRules" :key="index" class="traffic-rule typo-body-regular-small">
             <span>{{ ruleText(item) }}</span>
             <UiTag
-              v-tooltip="t(`firewall:traffic-rule:status:${statusOf(item, shadowed, isAboveTrafficRules, isAnyPriority)}:info`)"
+              v-tooltip="
+                t(`firewall:traffic-rule:status:${statusOf(item, shadowed, isAboveTrafficRules, isAnyPriority)}:info`)
+              "
               :accent="TRAFFIC_RULE_ACCENTS[statusOf(item, shadowed, isAboveTrafficRules, isAnyPriority)]"
               variant="secondary"
               tabindex="0"
@@ -209,9 +219,9 @@
             <UiChip
               v-for="group of vmGroups"
               :key="group.name"
-              v-tooltip="t('firewall:vm:leave', { group: group.label })"
+              v-tooltip="membershipLock ?? t('firewall:vm:leave', { group: group.label })"
               accent="info"
-              :disabled="isUpdatingTags"
+              :disabled="isUpdatingTags || membershipLock !== undefined"
               @remove="leaveGroup(group.name)"
             >
               <span class="chip">
@@ -224,7 +234,8 @@
           <VtsInputWrapper v-if="joinableGroups.length > 0" :label="t('firewall:vm:join-group')">
             <VtsSelect :id="joinSelectId" accent="brand" />
           </VtsInputWrapper>
-          <span class="secondary typo-body-regular-small">{{ t('firewall:vm:groups:info') }}</span>
+          <!-- vdf#141: joining or leaving a group takes the membership right -->
+          <span class="secondary typo-body-regular-small">{{ membershipLock ?? t('firewall:vm:groups:info') }}</span>
         </UiCard>
 
         <UiCard>
@@ -306,6 +317,7 @@ import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.compo
 import { useVdfMonitorShadows } from '@/modules/vdf/composables/vdf-monitor-shadows.composable.ts'
 import { useVdfPolicy } from '@/modules/vdf/composables/vdf-policy.composable.ts'
 import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf-quarantine.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfTierLabel } from '@/modules/vdf/composables/vdf-tier-label.composable.ts'
 import { useVdfTraceDrawer } from '@/modules/vdf/composables/vdf-trace-drawer.composable.ts'
 import { useVdfTrafficRules } from '@/modules/vdf/composables/vdf-traffic-rules.composable.ts'
@@ -327,7 +339,11 @@ import {
 import { effectiveTiers, groupUsage, reportedTierValue, vmGroupNames } from '@/modules/vdf/utils/vdf-policy.util.ts'
 import { joinedDirection, joinedVms, vmProtection, type VdfVmProtection } from '@/modules/vdf/utils/vdf-status.util.ts'
 import { notInheritedTagsOf } from '@/modules/vdf/utils/vdf-tag-changes.util.ts'
-import { shadowedVifs, TRAFFIC_RULE_ACCENTS, TRAFFIC_RULE_DECIDES_FIRST } from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
+import {
+  shadowedVifs,
+  TRAFFIC_RULE_ACCENTS,
+  TRAFFIC_RULE_DECIDES_FIRST,
+} from '@/modules/vdf/utils/vdf-traffic-rules.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
@@ -373,7 +389,6 @@ const {
   isPublishedPolicyReady,
   hasPublishedPolicyError,
   reloadPublishedPolicy,
-  canEdit,
   hasDraft,
   hosts,
   hostOf,
@@ -489,7 +504,6 @@ const STATUS_ACCENTS: Record<VdfVmProtection, 'success' | 'info' | 'warning' | '
   quarantined: 'danger',
   'quarantine-not-enforced': 'danger',
 }
-
 
 const formatList = (items: string[]) => new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
 
@@ -611,11 +625,16 @@ const joinableGroups = computed(() =>
 
 const groupToJoin = ref('')
 
+// joining or leaving a group takes `membership` on the pool's firewall
+const { lockReason } = useVdfFirewallRights(() => pool.id)
+
+const membershipLock = computed(() => lockReason('membership'))
+
 const { id: joinSelectId } = useFormSelect(joinableGroups, {
   model: groupToJoin,
   placeholder: t('firewall:vm:join-group:placeholder'),
   searchable: true,
-  disabled: isUpdatingTags,
+  disabled: computed(() => isUpdatingTags.value || membershipLock.value !== undefined),
   option: { id: 'name', value: 'name', label: 'label' },
 })
 
@@ -639,7 +658,9 @@ async function joinGroup(name: string) {
       protectedBy: groupUsage(publishedDocument.value, name).appliedTo.map(displayName),
       // vdf#40: those that keep deciding first once the VM is protected
       trafficRules: vmTrafficRules.value.filter(item =>
-        TRAFFIC_RULE_DECIDES_FIRST.includes(statusOf(item, shadowed.value, isAboveTrafficRules.value, isAnyPriority.value))
+        TRAFFIC_RULE_DECIDES_FIRST.includes(
+          statusOf(item, shadowed.value, isAboveTrafficRules.value, isAnyPriority.value)
+        )
       ).length,
       monitorBlind: shadowsIn(publishedDocument.value, [
         { vm, tags: [...new Set([...vm.tags, ...(group.tags ?? [])])] },
@@ -724,7 +745,9 @@ const hostProblems = computed(() => {
   })
   const unrealized = (status?.policies ?? [])
     .filter(policy => !policy.realized && policyNames.value.includes(displayName(policy.name)))
-    .map(policy => t('firewall:vm:host-errors:unrealized', { policy: displayName(policy.name), reason: policy.reason ?? '' }))
+    .map(policy =>
+      t('firewall:vm:host-errors:unrealized', { policy: displayName(policy.name), reason: policy.reason ?? '' })
+    )
 
   return [...new Set([...unrealized, ...errors])]
 })
@@ -743,7 +766,7 @@ const statusAccent = computed(() =>
 // QUARANTINE: the same confirmation as the VM's header menu and the Live
 // tables; a failure shows through tagError
 
-const { confirmQuarantine } = useVdfQuarantine(membership)
+const { confirmQuarantine, quarantineLock } = useVdfQuarantine(() => pool.id, membership)
 
 // LOCKING: an interface locked to the addresses its guest reports, after
 // a confirmation (vdf#15); with VDF where XAPI refuses, and unlocked from

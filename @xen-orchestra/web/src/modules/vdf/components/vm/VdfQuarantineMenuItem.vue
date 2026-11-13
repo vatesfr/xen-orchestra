@@ -1,5 +1,13 @@
 <template>
-  <MenuItem v-if="isOffered" :accent="action.accent" :icon="action.icon" :busy="action.busy" :on-click="action.onClick">
+  <MenuItem
+    v-if="isOffered"
+    v-tooltip="action.hint ?? false"
+    :accent="action.accent"
+    :icon="action.icon"
+    :busy="action.busy"
+    :disabled="action.disabled"
+    :on-click="action.onClick"
+  >
     {{ action.label }}
   </MenuItem>
 </template>
@@ -10,6 +18,7 @@ import { isVmQuarantined, useVdfQuarantine } from '@/modules/vdf/composables/vdf
 import { VDF_STATUS_KEY } from '@/modules/vdf/utils/vdf-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 
 // Quarantine (or release) from a VM's actions menu: offered when an agent
@@ -20,7 +29,7 @@ const { vm } = defineProps<{
 
 const { hosts } = useXoHostCollection()
 
-const { quarantineAction } = useVdfQuarantine()
+const { quarantineAction } = useVdfQuarantine(() => vm.$pool)
 
 const isOffered = computed(
   () =>

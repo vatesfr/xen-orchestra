@@ -16,12 +16,14 @@
             })
           }}
         </UiLink>
+        <!-- vdf#141: as lifting the quarantine, which it accepts -->
         <UiButton
-          v-if="canAcknowledge"
+          v-tooltip="lockReason('quarantine:remove') ?? false"
           variant="secondary"
           accent="danger"
           size="small"
           :busy="isRunning && entryId === change.id"
+          :disabled="!can('quarantine:remove')"
           @click="acknowledge(change)"
         >
           {{ t('firewall:outside:quarantine-lifted:acknowledge') }}
@@ -34,22 +36,22 @@
 </template>
 
 <script lang="ts" setup>
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfAcknowledgeLiftJob } from '@/modules/vdf/jobs/vdf-acknowledge-lift.job.ts'
 import type { VdfOutsideTagChange } from '@/modules/vdf/types.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // vdf#141: VMs whose quarantine was lifted outside this XO, until the VM is
 // quarantined again or someone acknowledges it; `vm`: on that VM's page
-const { poolId, changes, canAcknowledge, vm } = defineProps<{
+const { poolId, changes, vm } = defineProps<{
   poolId: string
   changes: VdfOutsideTagChange[]
-  // XO administrators, and users with administrate on the pool
-  canAcknowledge: boolean
   vm?: boolean
 }>()
 
@@ -58,6 +60,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// acknowledging takes the quarantine:remove right on the pool
+const { can, lockReason } = useVdfFirewallRights(() => poolId)
 
 const entryId = ref<number>()
 

@@ -97,7 +97,7 @@ const router = useRouter()
 
 const { openTrace } = useVdfTraceDrawer()
 
-const { quarantineAction } = useVdfQuarantine()
+const { quarantineAction } = useVdfQuarantine(() => poolId)
 
 const isPaused = ref(false)
 

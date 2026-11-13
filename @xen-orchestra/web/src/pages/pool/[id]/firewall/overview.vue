@@ -26,12 +26,7 @@
     </UiAlert>
 
     <!-- vdf#141: a quarantine lifted outside this XO, until put back or acknowledged -->
-    <VdfQuarantineLiftedAlert
-      :pool-id="pool.id"
-      :changes="quarantineLifted"
-      :can-acknowledge="canEdit"
-      @acknowledged="reloadPublishedPolicy()"
-    >
+    <VdfQuarantineLiftedAlert :pool-id="pool.id" :changes="quarantineLifted" @acknowledged="reloadPublishedPolicy()">
       <UiLink :to="{ name: '/pool/[id]/firewall/history', params: { id: pool.id } }" size="small">
         {{ t('firewall:outside:open-history') }}
       </UiLink>
@@ -534,7 +529,6 @@ const {
   realizationOf,
   hostOf,
   globalInfo,
-  canEdit,
   reloadPublishedPolicy,
 } = useVdfPolicy(() => pool)
 

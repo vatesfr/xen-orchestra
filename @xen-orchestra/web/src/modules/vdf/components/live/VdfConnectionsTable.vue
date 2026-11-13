@@ -67,7 +67,7 @@ const { connections, scopeId } = defineProps<{
 
 const { t, n } = useI18n()
 
-const { quarantineAction } = useVdfQuarantine()
+const { quarantineAction } = useVdfQuarantine(() => scopeId)
 
 // identical connections (same ends, service and rule) on one row, by default
 const isGrouped = ref(true)

@@ -115,7 +115,7 @@
 
       <UiCard>
         <UiTitle>{{ t('firewall:live:protected-vms') }}</UiTitle>
-        <VdfProtectedVmsTable :vms="vmStats" :vm-by-id />
+        <VdfProtectedVmsTable :vms="vmStats" :vm-by-id :pool-id="pool.id" />
       </UiCard>
     </template>
   </div>

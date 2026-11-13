@@ -79,7 +79,7 @@ const { t } = useI18n()
 
 const router = useRouter()
 
-const { quarantineAction } = useVdfQuarantine()
+const { quarantineAction } = useVdfQuarantine(() => scopeId)
 
 const { openTrace } = useVdfTraceDrawer()
 

@@ -61,7 +61,7 @@
             @select="name => (selectedGroup = name)"
           />
         </UiCard>
-</template>
+      </template>
     </div>
     <VdfGroupSidePanel
       :scope-id
@@ -73,6 +73,7 @@
       :members="selected?.members ?? []"
       :usage="selected?.usage ?? { appliedTo: [], sourceOf: [] }"
       :is-updating-tags
+      :membership-lock
       :tag-error
       @close="selectedGroup = ''"
       @edit="selected && editGroup(selected.name)"
@@ -90,6 +91,7 @@ import VdfGroupSidePanel from '@/modules/vdf/components/VdfGroupSidePanel.vue'
 import { useVdfEditors } from '@/modules/vdf/composables/vdf-editors.composable.ts'
 import { provideVdfGroups } from '@/modules/vdf/composables/vdf-groups-context.composable.ts'
 import { useVdfMembership } from '@/modules/vdf/composables/vdf-membership.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import { useVdfScope, type VdfScope } from '@/modules/vdf/composables/vdf-scope.composable.ts'
 import type { VdfGroup } from '@/modules/vdf/types.ts'
 import { displayName, isGlobalName, vdfGlobalRoute, vdfPageRoute } from '@/modules/vdf/utils/vdf-global.util.ts'
@@ -149,6 +151,13 @@ const { editGroup, editPolicy } = useVdfEditors(() => scope)
 provideVdfGroups(() => document.value.groups)
 
 const { addVmsToGroup, removeVmFromGroup, isUpdatingTags, tagError } = useVdfMembership()
+
+// adding VMs to a group or removing them takes `membership` on their pool's
+// firewall (vdf#141); the global configuration's members come from several
+// pools: the server decides for each
+const { lockReason } = useVdfFirewallRights(() => (scope.kind === 'pool' ? scope.pool.id : undefined))
+
+const membershipLock = computed(() => lockReason('membership'))
 
 const { pools } = useXoPoolCollection()
 
@@ -285,8 +294,11 @@ function groupActions(entry: GroupEntry): ActionItem[] {
   const addVmsAction: ActionItem = {
     label: t('firewall:add-vms'),
     icon: 'fa:plus',
-    disabled: entry.tags.length === 0,
-    hint: entry.tags.length === 0 ? t('firewall:group:no-tags:short') : t('firewall:membership:applies-now:short'),
+    disabled: entry.tags.length === 0 || membershipLock.value !== undefined,
+    hint:
+      entry.tags.length === 0
+        ? t('firewall:group:no-tags:short')
+        : (membershipLock.value ?? t('firewall:membership:applies-now:short')),
     // not awaited: the menu closes as the modal opens, rather than staying
     // open behind it until the modal is answered
     onClick: () => {
