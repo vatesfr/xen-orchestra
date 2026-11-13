@@ -15,13 +15,14 @@
 
 - [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
-- [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured. Logs are sent as RFC 5424 messages with their namespace as message ID (`format = 'rfc3164'` for the previous format) (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [Logs] Fix the syslog transport sending every log with the _informational_ severity, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Logs] Fix the syslog transport sending every log with the _informational_ severity, splitting a log with line breaks into several messages, keeping the previous connection open when the configuration changes, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
 ### Packages to release
 
@@ -42,7 +43,7 @@
 - @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/backups minor
-- @xen-orchestra/log minor
+- @xen-orchestra/log major
 - @xen-orchestra/qa-test patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch

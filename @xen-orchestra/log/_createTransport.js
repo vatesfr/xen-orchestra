@@ -39,7 +39,15 @@ function compileFilter(filter) {
   throw new TypeError('unsupported `filter`')
 }
 
-module.exports = function createTransport(config) {
+// a transport can have a `close()` method to release its resources (e.g.
+// connections) when it is replaced, wrapping transports must forward it
+const closeTransport = transport => {
+  if (typeof transport.close === 'function') {
+    transport.close()
+  }
+}
+
+module.exports = exports = function createTransport(config) {
   if (typeof config === 'function') {
     return config
   }
@@ -47,11 +55,13 @@ module.exports = function createTransport(config) {
   if (Array.isArray(config)) {
     const transports = config.map(createTransport)
     const { length } = transports
-    return function () {
+    const transport = function () {
       for (let i = 0; i < length; ++i) {
         transports[i].apply(this, arguments)
       }
     }
+    transport.close = () => transports.forEach(closeTransport)
+    return transport
   }
 
   const { type } = config
@@ -80,7 +90,10 @@ module.exports = function createTransport(config) {
         return orig.apply(this, arguments)
       }
     }
+    transport.close = () => closeTransport(orig)
   }
 
   return transport
 }
+
+exports.closeTransport = closeTransport
