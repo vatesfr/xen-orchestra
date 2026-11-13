@@ -679,7 +679,7 @@ To send the records to a SIEM or any other log collector, fill the `syslog` sect
 - `uri`: the address of the syslog server, like `udp://syslog.company.lan`, `tcp://syslog.company.lan:1514` or `tls://syslog.company.lan` (default port is `514`, `6514` for TLS)
 - `facility`: the syslog facility of the messages, `authpriv` by default
 - `framing` (TCP and TLS only): `lf` (default, a line feed after each message) or `octet-counting` (required by some servers, e.g. the `syslog()` driver of syslog-ng)
-- `ignoreUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
+- `allowUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
 - `certificateAuthorities` (TLS only): paths to PEM files of additional certificate authorities to trust, e.g. when the certificate of the server is issued by an internal authority
 
 Each new record is still stored in XO and a copy is sent as an [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) message:
@@ -687,6 +687,8 @@ Each new record is still stored in XO and a copy is sent as an [RFC 5424](https:
 - the app name is `xo-audit`
 - the message ID is the event of the record (e.g. `apiCall`, `signInFailed`)
 - the content is the record as JSON, including its `id` and `previousId` hashes so that the copies can be checked against the chain stored in XO
+
+Saving settings which cannot be used (e.g. an unreadable certificate authority file) fails with the reason. If this happens when XO starts, the records are still stored in XO but not forwarded: the error is logged, and the test button of the plugin shows it.
 
 Forwarding is best effort: records that cannot be sent (e.g. the syslog server is unreachable, or stopped reading) are not sent again later, but they remain in XO and can be exported. Prefer TLS (or TCP on a trusted network): UDP and TCP messages are not encrypted, and UDP messages can be lost or rejected when a record is too big.
 
