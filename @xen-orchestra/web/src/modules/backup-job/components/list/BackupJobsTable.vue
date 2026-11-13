@@ -2,9 +2,13 @@
   <UiTitle>
     {{ t('backup-jobs') }}
   </UiTitle>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <div class="search-and-filters">
+    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <BackupJobsFilters :status-select-id :last-runs-status-select-id :last-days-status-select-id />
+  </div>
+  <BackupJobsBulkActions :backup-jobs="selectedBackupJobs" />
 
-  <VtsTable :state :pagination-bindings sticky="right">
+  <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -23,6 +27,10 @@
 </template>
 
 <script setup lang="ts">
+import BackupJobsBulkActions from '@/modules/backup-job/components/list/BackupJobsBulkActions.vue'
+import BackupJobsFilters from '@/modules/backup-job/components/list/BackupJobsFilters.vue'
+import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-backup-job-actions.composable.ts'
+import { useXoBackupJobFilters } from '@/modules/backup-job/composables/use-xo-backup-job-filters.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
@@ -36,6 +44,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -57,7 +66,10 @@ const { buildXo5Route } = useXoRoutes()
 
 const { areBackupLogsReady } = useXoBackupLogCollection()
 
-const { items: filteredBackupJobs, filter } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
+const { items: queryFilteredBackupJobs, filter } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
+
+const { filteredBackupJobs, statusSelectId, lastRunsStatusSelectId, lastDaysStatusSelectId } =
+  useXoBackupJobFilters(queryFilteredBackupJobs)
 
 const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
   '': useStringSchema(t('any-property')),
@@ -67,6 +79,19 @@ const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
 const selectedBackupJobId = useRouteQuery('id')
 
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', filteredBackupJobs)
+
+const {
+  selectedItems: selectedBackupJobs,
+  pageSelectionModel,
+  isSelected,
+  toggleSelection,
+  selectionBindings,
+} = useTableSelection({
+  items: () => backupJobs,
+  filteredItems: filteredBackupJobs,
+  pageItems: paginatedBackupJobs,
+  getItemId: backupJob => backupJob.id,
+})
 
 const state = useTableState({
   busy: () => busy,
@@ -82,13 +107,23 @@ const state = useTableState({
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
 const { HeadCells, BodyCells } = useBackupJobColumns({
+  head: () => ({
+    checkbox: r => r(pageSelectionModel),
+  }),
   body: (backupJob: FrontAnyXoBackupJob) => {
     const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
+    const { isEnabled, moreActions, deleteAction } = useXoBackupJobActions(() => backupJob)
+
     return {
+      checkbox: r =>
+        r({
+          selected: isSelected(backupJob.id),
+          onToggle: () => toggleSelection(backupJob.id),
+        }),
       backupJob: r =>
         r({
           label: backupJob.name ?? t('untitled'),
@@ -98,9 +133,38 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       type: r => r(typeLabels.value[0] ?? '', { extraCount: typeLabels.value.length - 1 }),
       mode: r => r(modeLabel.value),
       lastRuns: r => (areBackupLogsReady.value ? r(lastRuns.value) : renderLoadingCell()),
+      status: r => r(isEnabled.value),
       healthCheck: r => r(healthCheckStatus.value ?? []),
-      selectItem: r => r(() => (selectedBackupJobId.value = backupJob.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedBackupJobId.value = backupJob.id),
+          actions: [...moreActions.value, deleteAction.value],
+        }),
     }
   },
 })
 </script>
+
+<style scoped lang="postcss">
+.search-and-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+
+  @media (--large) {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    column-gap: 1.6rem;
+
+    .vts-query-builder,
+    .backup-jobs-filters {
+      grid-column: 1 / -1;
+    }
+
+    .vts-query-builder {
+      display: grid;
+      grid-template-columns: subgrid;
+    }
+  }
+}
+</style>

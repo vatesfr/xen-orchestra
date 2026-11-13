@@ -2,14 +2,16 @@ import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type {
   FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createSchedule } from '@/test/create-schedule.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
@@ -17,7 +19,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoSchedule } from '@vates/types'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { ref } from 'vue'
 
 const { srs } = vi.hoisted(() => ({
@@ -56,11 +58,17 @@ beforeEach(() => {
   srs.splice(0, srs.length, healthCheckSr)
 })
 
-function mountInfosCard(backupJob: FrontAnyXoBackupJob) {
+function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedule[] = [createSchedule()]) {
   return mount(BackupJobInfosCard, {
-    props: { backupJob },
+    props: { backupJob, schedules },
     global: createGlobalTestConfig(),
   })
+}
+
+function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
+  return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
+    status.props('status')
+  )
 }
 
 function findValues(wrapper: ReturnType<typeof mountInfosCard>) {
@@ -95,7 +103,7 @@ it('lists every type of the backup job, offering to copy them all', () => {
   const wrapper = mountInfosCard(backupJob)
   const typeLabels = [t('backup:rolling-snapshot'), t('backup:vms-backup'), t('backup:vms-replication')]
 
-  expect(findValues(wrapper).slice(0, 3)).toEqual(typeLabels)
+  expect(findCardLabelledValueLists(wrapper)[t('type')]).toEqual(typeLabels)
   expect(wrapper.getComponent(VtsCopyAllMenuItem).props('values')).toEqual(typeLabels)
 })
 
@@ -118,7 +126,24 @@ it('shows the mode and the health check status of the backup job', () => {
     [t('mode')]: t('incremental'),
     [t('health-check-sr')]: 'Health check SR',
   })
-  expect(wrapper.getComponent(VtsStatus).props('status')).toBe('at-least-one-enabled')
+  expect(findStatuses(wrapper)[1]).toBe('at-least-one-enabled')
+})
+
+it('shows the backup job as enabled when at least one of its schedules is enabled', () => {
+  const wrapper = mountInfosCard(createVmBackupJob(), [
+    createSchedule({ id: firstScheduleId, enabled: false }),
+    createSchedule({ id: secondScheduleId, enabled: true }),
+  ])
+
+  expect(findStatuses(wrapper)[0]).toBe(true)
+})
+
+it('shows the backup job as disabled when none of its schedules is enabled', () => {
+  expect(findStatuses(mountInfosCard(createVmBackupJob(), [createSchedule({ enabled: false })]))[0]).toBe(false)
+})
+
+it('shows a backup job without schedule as disabled', () => {
+  expect(findStatuses(mountInfosCard(createVmBackupJob(), []))[0]).toBe(false)
 })
 
 it('links each health check SR to its page, and shows the id of a missing one', () => {

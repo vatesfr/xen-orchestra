@@ -29,7 +29,7 @@ export type InputWrapperController = {
   required: boolean
 }
 
-const { message: _message } = defineProps<{
+const { message: rawMessage } = defineProps<{
   label?: string
   learnMoreUrl?: string
   message?: InputWrapperMessage
@@ -45,7 +45,7 @@ defineSlots<{
 const id = useId()
 
 const unsortedMessages = useArrayMap(
-  () => toArray(_message),
+  () => toArray(rawMessage),
   item => ({
     content: typeof item === 'object' ? item.content : item,
     accent: typeof item === 'object' ? (item.accent ?? 'info') : 'info',

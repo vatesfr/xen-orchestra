@@ -2,7 +2,7 @@ import { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import { useRedirectAfterDelete } from '@core/composables/redirect-after-delete.composable.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useUnselectAfterDelete } from '@core/composables/unselect-after-delete.composable.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
@@ -14,7 +14,7 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
 
   const { t } = useI18n()
 
-  const selectedBrId = useRouteQuery('id')
+  const { unselectIfDeleted } = useUnselectAfterDelete()
 
   const route = useRoute<'/admin/backup-repository/[id]'>()
 
@@ -36,13 +36,7 @@ export function useBackupRepositoryForget(rawBrs: MaybeRefOrGetter<FrontXoBackup
     run({
       detached: true,
       onSuccess: async results => {
-        const isSelectedBrForgotten = results.some(
-          (result, index) => result.status === 'fulfilled' && brIds[index] === selectedBrId.value
-        )
-
-        if (isSelectedBrForgotten) {
-          selectedBrId.value = ''
-        }
+        unselectIfDeleted(brIds, results)
 
         await redirectIfOnObjectPage(results)
       },
