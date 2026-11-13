@@ -80,14 +80,18 @@ const selectedBackupJobId = useRouteQuery('id')
 
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', filteredBackupJobs)
 
-const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+const {
+  selectedItems: selectedBackupJobs,
+  pageSelectionModel,
+  isSelected,
+  toggleSelection,
+  selectionBindings,
+} = useTableSelection({
   items: () => backupJobs,
   filteredItems: filteredBackupJobs,
   pageItems: paginatedBackupJobs,
   getItemId: backupJob => backupJob.id,
 })
-
-const selectedBackupJobs = computed(() => backupJobs.filter(backupJob => selectedIds.value.includes(backupJob.id)))
 
 const state = useTableState({
   busy: () => busy,

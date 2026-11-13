@@ -1,7 +1,7 @@
 import { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useUnselectAfterDelete } from '@core/composables/unselect-after-delete.composable.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
@@ -12,7 +12,7 @@ export function useBackupJobDelete(rawBackupJobs: MaybeRefOrGetter<FrontAnyXoBac
 
   const { t } = useI18n()
 
-  const selectedBackupJobId = useRouteQuery('id')
+  const { unselectIfDeleted } = useUnselectAfterDelete()
 
   const {
     run,
@@ -27,13 +27,7 @@ export function useBackupJobDelete(rawBackupJobs: MaybeRefOrGetter<FrontAnyXoBac
     run({
       detached: true,
       onSuccess: results => {
-        const isSelectedBackupJobDeleted = results.some(
-          (result, index) => result.status === 'fulfilled' && backupJobIds[index] === selectedBackupJobId.value
-        )
-
-        if (isSelectedBackupJobDeleted) {
-          selectedBackupJobId.value = ''
-        }
+        unselectIfDeleted(backupJobIds, results)
       },
     })
   }
