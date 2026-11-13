@@ -3,7 +3,7 @@ import { EventEmitter, once } from 'node:events'
 import { createServer } from 'node:http'
 import { after, afterEach, describe, it } from 'node:test'
 import WebSocket from 'ws'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { incorrectState, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import BrowserMedia from './index.mjs'
 import { TAG } from './_xapi.mjs'
@@ -185,7 +185,7 @@ function makeStore(entries = {}) {
     async get(key) {
       const value = map.get(key)
       if (value instanceof Error) {
-        throw value // stands for a value which fails to decode
+        throw value // e.g. a value which fails to decode, see decodeError()
       }
       return value
     },
@@ -193,6 +193,15 @@ function makeStore(entries = {}) {
       yield* map.keys()
     },
   }
+}
+
+// as levelup reports a value which fails to decode
+function decodeError() {
+  const cause = new Error('Unexpected token')
+  cause.name = 'EncodingError'
+  const error = new Error('Unexpected token', { cause })
+  error.name = 'ReadError'
+  return error
 }
 
 const servers = []
@@ -531,7 +540,7 @@ describe('failures while releasing', () => {
     const inserting = media.insertBrowserMedia({ id: session, vmId: VM_ID })
     await media.ejectBrowserMedia(session)
 
-    await assert.rejects(inserting, /disconnected during the insertion/)
+    await assert.rejects(inserting, error => incorrectState.is(error, { actual: true, property: 'closed' }))
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
     assert.deepEqual(xapi.records.SR, {})
     assert.equal(store.map.size, 0)
@@ -650,7 +659,7 @@ describe('stop', () => {
     await sleep(5)
 
     await stop(app)
-    await assert.rejects(inserting, /disconnected during the insertion/)
+    await assert.rejects(inserting, error => incorrectState.is(error, { actual: true, property: 'closed' }))
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
     assert.equal(store.map.size, 0)
 
@@ -740,16 +749,27 @@ describe('recovery', () => {
     assert.deepEqual(xapi.records.SR, {})
   })
 
-  it('skips a journal entry which cannot be read, and recovers the others', async () => {
+  it('drops the journal entries which are invalid, and recovers the others', async () => {
     const xapi = makeXapi()
     const store = makeStore({
-      corrupt: new Error('failed to decode'),
+      corrupt: decodeError(),
       'not-an-entry': null,
+      'no-vm': { pool: POOL_UUID, createdAt: 0 },
       'old-session': { pool: POOL_UUID, vm: 'gone', createdAt: 0 },
     })
     await setup({ xapi, store })
-    await until(() => !store.map.has('old-session'))
-    assert.deepEqual([...store.map.keys()], ['corrupt', 'not-an-entry'])
+    await until(() => store.map.size === 0)
+  })
+
+  it('keeps a journal entry which cannot be read for another reason, and retries', async () => {
+    const xapi = makeXapi()
+    const store = makeStore({ 'old-session': new Error('IO error: database is locked') })
+    await setup({ xapi, store, reconcileInterval: 10 })
+    await sleep(30)
+    assert.ok(store.map.has('old-session'))
+
+    store.map.set('old-session', { pool: POOL_UUID, vm: 'gone', createdAt: 0 })
+    await until(() => store.map.size === 0)
   })
 
   it('does not eject an ISO another client inserted meanwhile', async () => {
