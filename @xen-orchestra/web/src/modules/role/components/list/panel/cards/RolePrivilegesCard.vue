@@ -29,6 +29,7 @@
 import PrivilegeDetailsRows from '@/modules/role/components/privilege/PrivilegeDetailsRows.vue'
 import type { FrontXoRole } from '@/modules/role/remote-resources/use-xo-role-collection.ts'
 import { useXoRolePrivilegesCollection } from '@/modules/role/remote-resources/use-xo-role-privileges-collection.ts'
+import type { FrontXoRoleTemplate } from '@/modules/role/remote-resources/use-xo-role-template-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -36,7 +37,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { useI18n } from 'vue-i18n'
 
 const { role } = defineProps<{
-  role: FrontXoRole
+  role: FrontXoRole | FrontXoRoleTemplate
 }>()
 
 const { t } = useI18n()
