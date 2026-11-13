@@ -1,16 +1,31 @@
 import type {
   XoVmBackupJob,
   XoVmBackupJobGeneralSettings,
-  XoVmBackupJobScheduleSettings,
   XoMetadataBackupJob,
   XoMirrorBackupJob,
   XoMetadataBackupJobGeneralSettings,
   XoMetadataBackupJobScheduleSettings,
   XoMirrorBackupGeneralSettings,
-  XoMirrorBackupScheduleSettings,
+  XoVm,
 } from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
 import type * as CMType from '@vates/types/lib/complex-matcher'
+
+/**
+ * Copy of XoVmBackupJobScheduleSettings without the brand:
+ * tsoa empties any mapped type (Unbrand, Pick, Omit…) nested under Unbrand<UnbrandedXoVmBackupJob>,
+ * which dropped every schedule setting from the request bodies
+ */
+type VmBackupJobScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  fullInterval?: number | string
+  copyRetention?: number
+  snapshotRetention?: number
+  cbtDestroySnapshotData?: boolean
+  healthCheckSr?: string
+  [key: string]: unknown
+}
 
 type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms' | 'srs'> & {
   remotes?: CMType.IdOr<string> | string
@@ -18,7 +33,7 @@ type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms'
   srs?: CMType.IdOr<string> | string
   settings: {
     '': XoVmBackupJobGeneralSettings
-    [scheduleId: string]: Unbrand<XoVmBackupJobScheduleSettings> | undefined
+    [scheduleId: string]: VmBackupJobScheduleSettings | undefined
   }
 }
 export type UnbrandXoVmBackupJob = Unbrand<UnbrandedXoVmBackupJob>
@@ -33,11 +48,22 @@ type UnbrandedXoMetadataBackupJob = Omit<XoMetadataBackupJob, 'settings' | 'pool
 }
 export type UnbrandXoMetadataBackupJob = Unbrand<UnbrandedXoMetadataBackupJob>
 
+/**
+ * Same as VmBackupJobScheduleSettings
+ */
+type MirrorBackupJobScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: XoVm['tags'] | string
+  vmFilter?: string
+  healthCheckSr?: string
+  [key: string]: unknown
+}
+
 type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes'> & {
   remotes: CMType.IdOr<string>
   settings: {
     '': XoMirrorBackupGeneralSettings
-    [scheduleId: string]: Unbrand<XoMirrorBackupScheduleSettings> | undefined
+    [scheduleId: string]: MirrorBackupJobScheduleSettings | undefined
   }
 }
 export type UnbrandXoMirrorBackupJob = Unbrand<UnbrandedXoMirrorBackupJob>
