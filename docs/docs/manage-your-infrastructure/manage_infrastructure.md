@@ -789,6 +789,74 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 - The host you want to remove must be a slave, not the master!
   :::
 
+### Forget a host that is permanently gone
+
+Detaching only works on a host that is up and reachable. When a host is dead for good (hardware failure, stolen, reinstalled from scratch…), it stays in the pool database as an offline host, and the pool keeps waiting for it. In that case, **forget** the host: this removes its record from the pool database (XAPI `host.destroy`).
+
+:::danger
+Only forget a host that will never come back online with its current installation. If the host can be repaired and booted again, fix it and use [Detach](#remove-a-host-from-an-existing-pool) instead. Forgetting a host cannot be undone.
+:::
+
+#### Before forgetting the host
+
+1. **Make sure the host is really off.** Xen Orchestra only offers the Forget action when the host is not running. If the machine is still powered on but unreachable, power it off (for example through its IPMI/BMC) before going further.
+
+2. **If the dead host was the pool master**, promote another host first. The pool cannot be managed without a master. On the host that will become the new master, run:
+
+   ```sh
+   xe pool-emergency-transition-to-master
+   xe pool-recover-slaves
+   ```
+
+   Then reconnect Xen Orchestra to the new master if needed (Settings > Servers).
+
+3. **Clear the VMs still recorded on the host.** If some VMs were running on the host when it died, the pool still considers them as running there, and forgetting the host fails with this error:
+
+   ```json
+   {
+     "code": "HOST_HAS_RESIDENT_VMS",
+     "params": ["OpaqueRef:…"]
+   }
+   ```
+
+   List these VMs from a surviving host of the pool:
+
+   ```sh
+   xe vm-list resident-on=<dead host UUID> is-control-domain=false params=uuid,name-label,power-state
+   ```
+
+   Then mark each of them as halted:
+
+   ```sh
+   xe vm-reset-powerstate uuid=<VM UUID> --force
+   ```
+
+   :::warning
+   `vm-reset-powerstate` tells the pool that the VM is stopped, without checking. If the host is in fact still running that VM and you start it on another host, the VM runs twice on the same disks, which corrupts them. Only run this command once you are sure the dead host is powered off.
+   :::
+
+   VMs whose disks are on a shared SR can then be started on another host. VMs whose disks were on the local storage of the dead host cannot be started anymore: restore them from your backups.
+
+#### Forget the host
+
+Once the host is halted and has no resident VMs left, forget it from Xen Orchestra:
+
+- **XO 5**: on the host page, go to the **Advanced** tab and click **Forget**. The button is only shown when the host is not running.
+- **XO 6**: on the host page, open the actions menu (**⋮**) and select **Forget**. The action is only enabled when the host is halted.
+
+You can also forget it from the command line, on the pool master:
+
+```sh
+xe host-forget uuid=<dead host UUID>
+```
+
+For the XCP-ng side of removing a host from a pool (`pool-eject` versus `host-forget`), see [Remove a host from a pool](https://docs.xcp-ng.org/management/hosts-pools/#remove-a-host-from-a-pool) in the XCP-ng documentation.
+
+#### After forgetting the host
+
+- The local SRs of the forgotten host (local storage, removable devices…) can stay behind with no host attached. Once you made sure you don't need them anymore, forget them from the **Storage** view.
+- If you want to reuse the same machine, reinstall XCP-ng on it, then add it to the pool like any new host (see [Adding a host to an existing pool](#adding-a-host-to-an-existing-pool)).
+
 ### Network bonding
 
 #### Definition
