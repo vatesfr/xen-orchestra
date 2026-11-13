@@ -73,7 +73,7 @@ The reverse is not true: granting `shutdown:clean` does **not** grant `shutdown:
 
 ## Built-in template roles
 
-Xen Orchestra ships with eight ready-to-use role templates. They are **immutable** and automatically kept up to date on startup: they cannot be modified, deleted, or assigned directly.
+Xen Orchestra ships with ten ready-to-use role templates. They are **immutable** and automatically kept up to date on startup: they cannot be modified, deleted, or assigned directly.
 
 To use them, **copy** a template into a new role and assign that copy to your users or groups. This ensures the built-in templates always stay up to date without affecting your custom configuration.
 
@@ -87,6 +87,8 @@ To use them, **copy** a template into a new role and assign that copy to your us
 | **Network administrator**   | Scoped admin for networking: manages networks and VIFs, creates pool networks, reads and updates PIFs, and views pools, hosts and VMs.      |
 | **Storage administrator**   | Scoped admin for storage: full control over SRs, VDIs, VBDs, PBDs and backup repositories, read access to unmanaged VDIs and storage managers. |
 | **Administrator**           | Full access to the entire infrastructure and all XO objects.                                                                                |
+| **Firewall administrator**  | Every `firewall` action on every pool, reads what the firewall pages show, and updates the tags of VMs and networks.                        |
+| **Firewall operator**       | Sees every pool's firewall, quarantines VMs and lifts their quarantine, reads what the firewall pages show, and updates VM tags.            |
 
 The **Administrator** template and the two scoped administrator roles below were introduced in Xen Orchestra 6.6.
 
@@ -115,6 +117,17 @@ In practice, a Storage administrator can create and delete SRs, manage virtual d
 | `vm`      | Read only.                                                                                       |
 
 A Network administrator can therefore manage the whole network stack, from pool networks down to individual VM interfaces, while hosts and VMs themselves remain visible but untouchable.
+
+### Firewall roles
+
+The two firewall templates delegate the firewall (VDF) of the pools, see [Firewall](#firewall):
+
+| Template                   | `firewall`                                    | Read                                   | `update:tags`   |
+| -------------------------- | --------------------------------------------- | -------------------------------------- | --------------- |
+| **Firewall administrator** | Every action (`*`)                            | `pool`, `host`, `network`, `vm`, `vif` | `vm`, `network` |
+| **Firewall operator**      | `read`, `quarantine:add`, `quarantine:remove` | `pool`, `host`, `network`, `vm`, `vif` | `vm`            |
+
+`update:tags` is the first of the two keys a firewall tag takes, so these roles can also change the other tags of VMs (and networks for the administrator). To limit a role to some pools, add a selector on the pool to its `firewall` privileges after copying it, e.g. `name_label: prod`.
 
 To copy a template into an assignable role, use `POST /rest/v0/acl-roles/<template-id>/actions/copy`:
 

@@ -7,6 +7,8 @@ import { forbiddenOperation, incorrectState, noSuchObject, objectAlreadyExists }
 
 import {
   ADMINISTRATOR,
+  FIREWALL_ADMINISTRATOR,
+  FIREWALL_OPERATOR,
   REAL_ONLY_ALL,
   VMS_CREATOR,
   VMS_POWER_STATE_MANAGER,
@@ -64,6 +66,8 @@ const TEMPLATE_ROLES = [
   /** @type {RoleTemplate} */ (ADMINISTRATOR),
   /** @type {RoleTemplate} */ (NETWORK_ADMINISTRATOR),
   /** @type {RoleTemplate} */ (STORAGE_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (FIREWALL_ADMINISTRATOR),
+  /** @type {RoleTemplate} */ (FIREWALL_OPERATOR),
 ]
 
 export default class {

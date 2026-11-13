@@ -134,3 +134,38 @@ export const STORAGE_ADMINISTRATOR = {
     { action: 'read', resource: 'sm', effect: 'allow' },
   ],
 }
+
+// === Firewall
+// What the firewall pages load, besides the firewall itself
+const FIREWALL_PAGES_READ = ['pool', 'host', 'network', 'vm', 'vif'].map(resource => ({
+  action: 'read',
+  resource,
+  effect: 'allow',
+}))
+
+// `update:tags` is the other key a firewall tag takes (on the VM or network
+// itself): it also lets them change the objects' other tags
+export const FIREWALL_ADMINISTRATOR = {
+  roleTemplateId: 9,
+  name: 'Firewall administrator',
+  description: "Full control over the pools' firewalls: policies, group membership and quarantine",
+  privileges: [
+    { action: '*', resource: 'firewall', effect: 'allow' },
+    ...FIREWALL_PAGES_READ,
+    { action: 'update:tags', resource: 'vm', effect: 'allow' },
+    { action: 'update:tags', resource: 'network', effect: 'allow' },
+  ],
+}
+
+export const FIREWALL_OPERATOR = {
+  roleTemplateId: 10,
+  name: 'Firewall operator',
+  description: "See the pools' firewalls, quarantine VMs and lift their quarantine",
+  privileges: [
+    { action: 'read', resource: 'firewall', effect: 'allow' },
+    { action: 'quarantine:add', resource: 'firewall', effect: 'allow' },
+    { action: 'quarantine:remove', resource: 'firewall', effect: 'allow' },
+    ...FIREWALL_PAGES_READ,
+    { action: 'update:tags', resource: 'vm', effect: 'allow' },
+  ],
+}
