@@ -66,28 +66,34 @@ function findStateHeroTypes(wrapper: VueWrapper) {
   return wrapper.findAllComponents(VtsStateHero).map(stateHero => stateHero.props('type'))
 }
 
-describe('with VMs', () => {
-  // Its VMs open it like a selection, but are none to clear: it only closes where closing collapses it
-  it('is the persistent side panel of the page, holding its VMs as a selection', () => {
-    expect(mountPanel().getComponent(VtsSidePanel).props()).toMatchObject({ hasSelection: true, persistent: true })
-  })
-
-  it('titles its summary card with the selected VMs and their count', () => {
-    const title = getSummaryCard(mountPanel()).getComponent(UiPanelCardTitle)
+describe.each([
+  { state: 'with VMs', props: {}, count: '2' },
+  { state: 'busy', props: { isBusy: true }, count: '2' },
+  { state: 'empty', props: EMPTY, count: '0' },
+])('summary card, $state', ({ props, count }) => {
+  it('titles the selected VMs with their count', () => {
+    const title = getSummaryCard(mountPanel(props)).getComponent(UiPanelCardTitle)
 
     expect(title.props('label')).toBe(t('selected-vms'))
-    expect(title.getComponent(UiCounter).text()).toBe('2')
+    expect(title.getComponent(UiCounter).text()).toBe(count)
   })
 
   it('tells where the list is kept', () => {
-    expect(findParts(getSummaryCard(mountPanel()), '.storage-info')).toEqual([
+    expect(findParts(getSummaryCard(mountPanel(props)), '.storage-info')).toEqual([
       t('v2v:saved-in-this-browser'),
       t('v2v:sent-to-xo-at-launch'),
     ])
   })
 
   it('summarizes the source and pool of the list', () => {
-    expect(getSummaryCard(mountPanel()).getComponent(V2vListPairSummary).props()).toEqual(LIST_PAIR)
+    expect(getSummaryCard(mountPanel(props)).getComponent(V2vListPairSummary).props()).toEqual(LIST_PAIR)
+  })
+})
+
+describe('with VMs', () => {
+  // Its VMs open it like a selection, but are none to clear: it only closes where closing collapses it
+  it('is the persistent side panel of the page, holding its VMs as a selection', () => {
+    expect(mountPanel().getComponent(VtsSidePanel).props()).toMatchObject({ hasSelection: true, persistent: true })
   })
 
   it('tags the readiness of the VMs', () => {
@@ -132,18 +138,20 @@ describe('busy', () => {
     expect(findAccentedTags(getSummaryCard(wrapper))).toEqual([])
     expect(findButton(wrapper, t('action:clear'))).toBeUndefined()
   })
-
-  it('still titles the selected VMs with their count and summarizes the source and pool of the list', () => {
-    const wrapper = mountPanel({ isBusy: true })
-
-    expect(getSummaryCard(wrapper).getComponent(UiCounter).text()).toBe('2')
-    expect(getSummaryCard(wrapper).getComponent(V2vListPairSummary).props()).toEqual(LIST_PAIR)
-  })
 })
 
 describe('empty', () => {
   it('holds no selection', () => {
     expect(mountPanel(EMPTY).getComponent(VtsSidePanel).props('hasSelection')).toBe(false)
+  })
+
+  // A cleared list keeps its card: the panel still tells which list it is
+  it('keeps only its summary card, with no readiness tag nor state hero', () => {
+    const wrapper = mountPanel(EMPTY)
+
+    expect(wrapper.findAllComponents(UiPanelCard)).toHaveLength(1)
+    expect(findAccentedTags(getSummaryCard(wrapper))).toEqual([])
+    expect(findStateHeroTypes(wrapper)).toEqual([])
   })
 
   it('offers no clear', () => {

@@ -36,7 +36,7 @@
         />
       </template>
 
-      <VtsStateHero v-if="!hasSelection" format="panel" type="no-selection" size="medium" />
+      <VtsStateHero v-if="!hasSelection && !persistent" format="panel" type="no-selection" size="medium" />
       <slot v-else />
     </VtsPanel>
   </div>
@@ -89,7 +89,8 @@ provide(IK_MENU_ACTION_HANDLER, () => {
   }
 })
 
-// A persistent panel holds no selection to clear: it only closes where closing collapses it
+// A persistent panel shows its content even with no selection, which has nothing to clear: it only closes where closing
+// collapses it
 const isClosable = computed(() => hasSelection && (!persistent || panelStore.syncsOpenStateWithSelection))
 
 watch(
